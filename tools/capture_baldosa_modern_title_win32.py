@@ -160,20 +160,33 @@ def retail_art_digest(width: int, rgba: bytes) -> int:
     return fnv_pixels(bgr)
 
 
-def validate_native_capture(
-    folder: Path, log: str, *, exe_sha256: str, expected_width: int = 342) -> dict:
+def verify_native_title_entry(log: str, *, reduced_motion: bool = False) -> None:
+    # Real native P1 A is applied INSIDE the gamepad callback. With reduced
+    # motion it immediately enters root before the CI script can report the
+    # *successful* gamepad call; ordinary motion logs only after 14 frames.
+    # Both orders are causally correct but MUST be explicitly selected.
+    opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+    input_ack = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+    entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
+    root_paint = "UR_BALDOSA_MODERN_ROOT painted=1"
     witness = (
-        "UR_BALDOSA_MODERN_ROOT opened=1",
-        "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60",
-        "UR_BALDOSA_MODERN_TITLE entered_root=1",
-        "UR_BALDOSA_MODERN_ROOT painted=1",
+        (opened, entered, input_ack, root_paint) if reduced_motion
+        else (opened, input_ack, entered, root_paint)
     )
     prev = -1
     for marker in witness:
+        if log.count(marker) != 1:
+            raise ValueError(f"missing/duplicate genuine native guest witness: {marker}")
         pos = log.find(marker, prev + 1)
         if pos < 0:
             raise ValueError(f"missing/out-of-order genuine native guest witness: {marker}")
         prev = pos
+
+
+def validate_native_capture(
+    folder: Path, log: str, *, exe_sha256: str,
+    expected_width: int = 342, reduced_motion: bool = False) -> dict:
+    verify_native_title_entry(log, reduced_motion=reduced_motion)
     output = {"executable_sha256": exe_sha256, "captures": []}
     for stage in ("title", "root"):
         name = f"modern-native-{stage}-{expected_width}x224.pam"
@@ -277,7 +290,8 @@ def main() -> int:
     exe_hash = hashlib.sha256(image).hexdigest()
     expected_width = 256 if args.aspect == "4:3" else 342
     receipt = validate_native_capture(
-        captures, log, exe_sha256=exe_hash, expected_width=expected_width)
+        captures, log, exe_sha256=exe_hash, expected_width=expected_width,
+        reduced_motion=args.reduced_motion)
     receipt["native_presented"] = verify_native_presented_frames(
         presented, captures, expected_width=expected_width,
         reduced_motion=args.reduced_motion)

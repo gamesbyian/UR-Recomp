@@ -15,6 +15,14 @@
 #include "baldosa_native_options.hpp"
 #include "modern_pause_overlay_presenter.hpp"
 #include "modern_menu_motion.hpp"
+#include "modern_menu_stock_hero.hpp"
+// Original art is generated only from a verified USA ROM by
+// tools/build_modern_menu_stock_hero.py before the native build. It is absent
+// in normal builds: never replace it with vetoed procedural 4x racer art.
+#if __has_include("modern_menu_stock_hero_original.generated.hpp")
+#include "modern_menu_stock_hero_original.generated.hpp"
+#define UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE 1
+#endif
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
@@ -1269,6 +1277,31 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                 painter, reinterpret_cast<std::uint32_t*>(dst),
                 static_cast<int>(pitch / 4), height, 1,
                 HostOverlayRect{(width - 240) / 2, 10, 240, 204}, phase);
+#if defined(UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE)
+            // Real game opt-in ONLY. These are original cartridge racer poses,
+            // but their one-shot 2P-race clip is NOT approved as title artwork
+            // or a polished showroom cycle. Keep this separate from normal UI.
+            const char* stock_preview =
+                std::getenv("UR_MODERN_SOURCE_HERO_EXPERIMENTAL");
+            if (stock_preview && std::strcmp(stock_preview, "1") == 0 &&
+                width == 342) {
+                const auto drawn_hero =
+                    ur::product::paint_modern_menu_stock_hero(
+                        reinterpret_cast<std::uint32_t*>(dst),
+                        static_cast<int>(pitch / 4), height,
+                        HostOverlayRect{0, 0, width, height},
+                        ur::product::ModernMenuStockHeroPlacement{120, 25, 3},
+                        ur::product::modern_menu_source_hero::kClip, phase);
+                if (drawn_hero ==
+                    ur::product::ModernMenuStockHeroDraw::Drawn)
+                    painter.draw_text(
+                        reinterpret_cast<std::uint32_t*>(dst),
+                        static_cast<int>(pitch / 4), height, 184, 168,
+                        "ORIGINAL ART TEST",
+                        ur::product::kModernStockMenuPalette.secondary_grey,
+                        1);
+            }
+#endif
         }
         ++g_paint_count;
         if (g_reentry_needs_paint) {

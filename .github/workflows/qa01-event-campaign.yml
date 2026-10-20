@@ -280,6 +280,8 @@ jobs:
           python3 tools/qa01_rf070_original_sa1_probe_isolation.py --root "$CORE_SRC"
           # RF076 TEMP: actual original direct/slow fetched Op and NMI WAI PC boundary.
           python3 tools/qa01_rf076_original_opcode_fetch_source.py --root "$CORE_SRC"
+          # RF079 one-case source-only: after true BIT/BPL instruction, no guest read.
+          python3 tools/qa01_rf079_original_post_bit_branch.py --root "$CORE_SRC"
           # RF069: invalidate all stock *.o compiled before getset.h was
           # instrumented. The pinned 2014 Makefile does NOT depend on headers.
           make -C "$CORE_SRC/libretro" clean
@@ -365,6 +367,8 @@ jobs:
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
           python3 tools/qa01_rf076_generated_exec_pc_gate.py --root baldosa \
             --out "$RUNNER_TEMP/rf076-generated-exec-pc-preflight.json"
+          # RF079 one-case native real BIT returned-byte and BPL N source reporter.
+          python3 tools/qa01_rf079_native_real_bit_branch.py --root baldosa
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -377,6 +381,8 @@ jobs:
           sha256sum "$CORE_SRC/getset.h" "$CORE_SRC/cpuexec.cpp" "$CORE_SRC/cpuops.cpp" > "$OUT/rf066-original-source-sha256.txt"
           cp "$RUNNER_TEMP/qa01-rf069-actual-ELF-guards.json" "$OUT/rf069-actual-ELF-guards.json"
           sha256sum "$CORE_SRC/cpuexec.cpp" > "$OUT/rf076-original-opcode-source-sha256.txt"
+          sha256sum baldosa/snesrecomp/runner/src/beam_frame_driver.c \
+            baldosa/snesrecomp/runner/src/cpu_state.c > "$OUT/rf079-native-staged-source-sha256.txt"
           cp "$RUNNER_TEMP/rf074-native-exec-preflight.json" "$OUT/rf074-native-exec-preflight.json"
           cp "$RUNNER_TEMP/rf076-generated-exec-pc-preflight.json" "$OUT/rf076-generated-exec-pc-preflight.json"
           cp "$RUNNER_TEMP/rf076-bounded-event-cap-receipt.json" "$OUT/rf076-bounded-event-cap-receipt.json"
@@ -452,6 +458,8 @@ jobs:
           UR_QA01_RF064_POST_CALL_PULL: "1"
           UR_QA01_RF066_ORIGINAL_CONSUMED_ORDER: "1"
           UR_QA01_RF076_ORIGINAL_FETCH_PC: "1"
+          UR_QA01_RF079_ORIGINAL_BIT_BPL: "1"
+          UR_QA01_RF079_NATIVE_BIT_BPL: "1"
           UR_QA01_RF035_SOUND_CONSUMER: "1"
           UR_QA01_RF047_NATIVE_NMI_RETURN: "1"
           UR_QA01_RF047_EXEC_PC: "1"

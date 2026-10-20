@@ -137,6 +137,45 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                         driver.run(exe, rom, base / "output", "a" * 40,
                                    "windows", 10, window_size=size)
 
+    def test_admitted_native_navigation_routes_are_explicit_and_distinct(self):
+        self.assertEqual(driver.ROUTES["root-quit"][0], "14")
+        self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
+        self.assertEqual(driver.ROUTES["options-p1"][0], "12")
+        self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
+        self.assertTrue(all(40 <= entry[1] < 100
+                            for entry in driver.ROUTES.values()))
+
+    def test_native_destination_route_requires_actual_source_event(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp)
+            def false_open(command, **kw):
+                self.assertEqual(
+                    kw["env"]["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "12")
+                self.assertEqual(
+                    kw["env"]["UR_MODERN_VISUAL_SDL_CAPTURE_DRAW"], "74")
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "UR_BALDOSA_MODERN_ROOT opened=1\\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE refused=output-size "
+                    "draw=74 observed=800x600 requested=1280x720"), stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=false_open):
+                with self.assertRaisesRegex(RuntimeError, "destination route not observed"):
+                    driver.launch(stage / "exe", stage / "rom", stage,
+                                  "options", (1280, 720), "windows", 10,
+                                  route="options-p1")
+
+    def test_unknown_route_fails_before_output_root_is_created(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            exe, rom = root / "exe", root / "rom"
+            exe.write_bytes(b"mock")
+            rom.write_bytes(b"mock")
+            with patch.object(driver, "sha256", side_effect=lambda p:
+                              driver.USA_SHA256 if p == rom else "a" * 64):
+                with self.assertRaisesRegex(ValueError, "Unknown native semantic route"):
+                    driver.run(exe, rom, root / "out", "a" * 40,
+                               "windows", 10, route="forged-route")
+                self.assertFalse((root / "out").exists())
+
     def test_missing_real_native_root_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             stage = Path(tmp)

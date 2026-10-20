@@ -17,7 +17,20 @@ The official SNES manual identifies `B` as jump, `L/R` as airborne flips/rolls, 
 
 This is **Original-mode 342×224 actual world geometry**, not authored HD Remastered racers or runtime physical-4K movie capture. The 1920×1080 result, if produced, is only the 960×540 captured SDL drawable delivered via nearest-neighbor doubling.
 
-## Reproduction request for a permissioned native runner
+## Reproduction command for a permissioned native runner
+
+### Single-command bounded runner
+
+After checking out this UR-Recomp branch and the exact pinned Baldosa checkout (with its pinned SNESRecomp submodule), install the existing runner's SDL2, Xvfb, FFmpeg, Ninja, and Pillow dependencies. Supply your own legally obtained USA ROM; the script refuses a mismatched SHA and does **not** publish any ROM bytes.
+
+```bash
+bash tools/showcase/run_dynamic_native_capture.sh \
+    /absolute/path/to/pinned/baldosa \
+    /absolute/path/to/your/Uniracers_USA.sfc \
+    /tmp/ur-dynamic-native
+```
+
+The shell script stages all source modifications in the disposable Baldosa checkout, builds **once**, runs two candidate routes twice each (capture off/on), rejects any full guest-WRAM CRC disagreement, checks lossless FFV1 and 900 contiguous IDs, then writes both 15-second 1080p MP4s, 20 decoded source witnesses and two contact sheets under `/tmp/ur-dynamic-native/published`. It commits nothing. Control logs, index TSV and lossless FFV1 masters stay in `/tmp/ur-dynamic-native/working` for independent analysis and must **not** be merged as ROM-bearing outputs.
 
 Re-use the exact successful historical native producer workflow `.github/workflows/ur-continuous-native-footage-once.yml` from source commit `4748ae337f38d801039260ca6ed849fd2ca1d7a3`. Its Linux SDL2/FFmpeg/Xvfb host, pinned upstream Baldosa, SNESRecomp framework, private legally provided ROM gate and existing native source patching are required.
 

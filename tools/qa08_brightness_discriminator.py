@@ -254,6 +254,40 @@ def _strict_zip_envelope(blob, archive):
         raise ValueError('QA08 archive central-directory envelope mismatch')
     if not archive.infolist() or archive.infolist()[0].header_offset != 0:
         raise ValueError('QA08 archive has unindexed prefix')
+    # The central directory may index valid members while hiding additional
+    # unindexed bytes between their local records. Preserve the physical ZIP
+    # byte envelope of the authenticated original diagnostic source.
+    central_start = offset
+    members = sorted(archive.infolist(), key=lambda member: member.header_offset)
+    next_offset = 0
+    for member in members:
+        local = member.header_offset
+        if local != next_offset or blob[local:local+4] != b'PK\\x03\\x04':
+            raise ValueError('QA08 unindexed local ZIP gap or header')
+        if local + 30 > eocd:
+            raise ValueError('QA08 local header out of bounds')
+        fields = struct.unpack_from('<IHHHHHIIIHH', blob, local)
+        _, version, flags, method, _, _, _, _, _, name_len, extra_len = fields
+        name_start = local + 30
+        data_start = name_start + name_len + extra_len
+        if (flags != member.flag_bits or method != member.compress_type or
+                blob[name_start:name_start+name_len] != member.filename.encode('utf-8') or
+                data_start > eocd):
+            raise ValueError('QA08 local member header contradiction')
+        data_end = data_start + member.compress_size
+        if flags & 0x08:
+            if blob[data_end:data_end+4] != b'PK\\x07\\x08':
+                raise ValueError('QA08 missing local ZIP data descriptor')
+            if data_end + 16 > eocd:
+                raise ValueError('QA08 local ZIP data descriptor truncated')
+            crc, compressed, uncompressed = struct.unpack_from('<III', blob, data_end+4)
+            if (crc, compressed, uncompressed) != (member.CRC, member.compress_size, member.file_size):
+                raise ValueError('QA08 local ZIP data descriptor contradiction')
+            next_offset = data_end + 16
+        else:
+            next_offset = data_end
+    if next_offset != central_start:
+        raise ValueError('QA08 unindexed bytes before central directory')
 
 
 def audit(path):

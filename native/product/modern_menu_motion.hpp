@@ -41,6 +41,27 @@ constexpr std::uint64_t modern_menu_tick60(std::uint64_t milliseconds) noexcept 
            ((milliseconds % 1000u) * 60u) / 1000u;
 }
 
+// Explicit native acceptance capture clock. An external harness may pin a
+// single menu pose using UR_MODERN_MENU_TEST_TICK60, without injecting any
+// guest clock, UI input, or frame-count side effects. Strict decimal only:
+// malformed / overflow values fail closed to the real presentation clock.
+// This is a presentation screenshot override, never a saved setting.
+inline std::uint64_t modern_menu_resolve_test_tick60(
+    std::uint64_t presentation_tick60, const char* decimal) noexcept {
+    if (!decimal || !*decimal) return presentation_tick60;
+    std::uint64_t parsed = 0;
+    for (const char* current = decimal; *current; ++current) {
+        const unsigned char ch = static_cast<unsigned char>(*current);
+        if (ch < '0' || ch > '9') return presentation_tick60;
+        const auto digit = static_cast<std::uint64_t>(ch - '0');
+        constexpr auto maximum = UINT64_MAX;
+        if (parsed > (maximum - digit) / 10u)
+            return presentation_tick60;
+        parsed = parsed * 10u + digit;
+    }
+    return parsed;
+}
+
 struct ModernMenuMotionInput {
     std::uint64_t tick60 = 0;
     std::uint8_t selection = 0;

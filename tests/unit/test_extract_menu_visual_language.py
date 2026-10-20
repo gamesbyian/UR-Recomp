@@ -97,6 +97,48 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])
 
+    def test_original_small_font_atlas_uses_real_vram_and_hflip(self) -> None:
+        class Sample:
+            pass
+
+        sample = Sample()
+        sample.vram = bytearray(65536)
+        sample.cgram = bytearray(512)
+        pal = 7 * 16 + 9  # measured small-font grey ramp
+        sample.cgram[2 * pal:2 * pal + 2] = (0x4210).to_bytes(2, "little")
+        for tile in (mvl.SMALL_FONT_FIRST_TILE, 0xA4):
+            sample.vram[tile * 32] = 0x80
+            sample.vram[(tile + mvl.SMALL_FONT_BOTTOM_OFFSET) * 32] = 0x80
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "detail.png"
+            info = mvl.write_small_font_atlas(path, sample, 0)
+            glyphs = info["glyphs"]
+            positions = {g["character"]: idx for idx, g in enumerate(glyphs)}
+            self.assertEqual(glyphs[positions["0"]]["tile"],
+                             glyphs[positions["O"]]["tile"])
+            self.assertEqual(glyphs[positions[")"]]["tile"], 0xA4)
+            self.assertTrue(glyphs[positions[")"]]["hflip"])
+            self.assertEqual(info["glyph_cell"], [8, 16])
+            self.assertEqual(info["dimensions"], [len(glyphs) * 8, 16])
+            self.assertEqual(info["sha256"],
+                             hashlib.sha256(path.read_bytes()).hexdigest())
+            raw = path.read_bytes()
+            start = raw.index(b"IDAT")
+            count = struct.unpack(">I", raw[start - 4:start])[0]
+            pixels = zlib.decompress(raw[start + 4:start + 4 + count])
+            line_size = len(glyphs) * 8 * 4 + 1
+
+            def rgba_for(ch: str, local_x: int, y: int = 0) -> bytes:
+                glyph_idx = positions[ch]
+                pos = y * line_size + 1 + (glyph_idx * 8 + local_x) * 4
+                return pixels[pos:pos + 4]
+
+            self.assertEqual(rgba_for("0", 0), rgba_for("O", 0))
+            self.assertEqual(rgba_for("(", 0)[3], 255)
+            self.assertEqual(rgba_for(")", 0)[3], 0)
+            self.assertEqual(rgba_for(")", 7), rgba_for("(", 0))
+            self.assertEqual(rgba_for(" ", 0), bytes(4))
+
     def test_real_obj_vram_page_palette_and_transparency_contract(self) -> None:
         # Synthetic ORIGINAL-PPU-format bytes; no ROM/binary art in tests.
         class Sample:

@@ -78,7 +78,8 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         "schema": "UR-GENUINE-ASYNCHRONOUS-NATIVE-2P/1",
         "source_head": source_sha,
         "rom_sha256": rom_sha,
-        "native_binary_sha256": Path(binary_file).read_text().split()[0],
+        "native_binary_sha256": (Path(binary_file).read_text().split()[0] if binary_file else None),
+        "native_binary_sha256_unavailable_reason": ("original artifact excluded its binary checksum text file; native source commits and signed CI provenance retained" if binary_file is None else None),
         "source_game_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
         "source_framework_commit": "075fbe4c8e0d97b0013be541795c39cb644a9709",
         "recording_origin": "111 guest frames after observed stock race GO, bounded below by absolute source frame 1990",
@@ -171,13 +172,16 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--publish", type=Path, required=True)
     p.add_argument("--route-manifest", type=Path, required=True)
-    p.add_argument("--native-sha", type=Path, required=True)
+    p.add_argument("--native-sha", type=Path)
+    p.add_argument("--salvage-artifact-without-native-binary-hash", action="store_true")
     p.add_argument("--rom-sha", required=True)
     p.add_argument("--source-sha", required=True)
     p.add_argument("--work-root", type=Path, required=True)
     p.add_argument("--names", nargs="+", default=list(NAMES))
     a = p.parse_args()
     a.publish.mkdir(parents=True, exist_ok=True)
+    if (a.native_sha is None) == (not a.salvage_artifact_without_native_binary_hash):
+        p.error("Supply exactly one of --native-sha or --salvage-artifact-without-native-binary-hash")
     doc = inspect(a.publish, a.route_manifest, a.native_sha, a.rom_sha,
                   a.source_sha, names=a.names, work_root=a.work_root)
     (a.publish / "dynamic-racing-provenance.json").write_text(

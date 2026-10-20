@@ -177,6 +177,23 @@ int main() {
     assert(has("> P2  MARTIN  CHOOSE"));
     assert(has("STOCK: MIKE / MARTIN"));
     clear();
+    // Long profile names must not consume the READY/CHOOSE status. The full
+    // identity remains in the product catalog; compact copy marks overflow.
+    v.join_p1_name = "ABCDEFGHIJKLMNOPQRST";
+    v.join_p2_name = "QRSTUVWXYZABCDEFGHIJ";
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    assert(has("> P1  ABCDEFGHIJ.  ACTIVE"));
+    assert(has("> P2  QRSTUVWXYZ.  CHOOSE"));
+    bounds(256,224);
+    clear();
+    // In 342-wide composition both complete 20-character names fit.
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has("> P1  ABCDEFGHIJKLMNOPQRST  ACTIVE"));
+    assert(has("> P2  QRSTUVWXYZABCDEFGHIJ  CHOOSE"));
+    bounds(342,224);
+    clear();
 
     v.two_seat_join_open = false;
     v.first_racer_open = true;
@@ -199,6 +216,7 @@ int main() {
     v.unbound_two_player_warning_open = true;
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
+    assert(has("STOCK 2P STILL PLAYABLE"));
     assert(has("NO MATCH HISTORY SAVED"));
     assert(has("P1 A ANYWAY   B BACK"));
     clear();

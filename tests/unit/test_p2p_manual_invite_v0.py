@@ -163,6 +163,8 @@ class OfflinePeerInviteTests(unittest.TestCase):
             base.replace('"v":0', '"v":0,"v":0').encode(),
             base.replace('"v":0', '"v":0,"unknown":1').encode(),
             b'{"v":NaN}',
+            # Huge exponents can decode to infinity; reject with InviteError.
+            base.replace('"valid_until":1700000600', '"valid_until":1e999').encode(),
         ]
         for raw in payloads:
             with self.subTest(payload=raw[:45]), self.assertRaises(inv.InviteError):

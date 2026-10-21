@@ -154,8 +154,9 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
     assert(has("PRACTICE") && has("ZOOM ZOO") && has("CRAWLER  /  CIRCUIT"));
-    assert(has("5 STOCK-UNLOCKED COURSES"));
-    assert(!has("STOCK")); // narrow has no redundant wide-only header tag
+    assert(has("5 COURSES UNLOCKED"));
+    assert(!has("5 STOCK-UNLOCKED COURSES")); // never show engineering copy
+    assert(!has("COURSES")); // compact has no redundant wide-only stage tag
     // Tour and course navigation are separate real native input actions.
     assert(has("UP/DN COURSE   L/R TOUR"));
     assert(has("A START   B BACK"));
@@ -180,9 +181,9 @@ int main() {
     v.practice_launch_pending = true;
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));
-    assert(has("ENTERING ORIGINAL COURSE"));
-    assert(has("WAIT FOR SOURCE GO") && has("B CANCEL"));
-    assert(has("STOCK")); // widened layout identifies the original course route
+    assert(has("STARTING PRACTICE"));
+    assert(has("WAIT FOR GO") && has("B CANCEL"));
+    assert(has("COURSES")); // the widescreen stage tag is not an implementation label
     // Source-grey #989898 fails normal small-text contrast on the real
     // #484848 header band. The derived brighter neutral must apply ONLY
     // to the optional native-wide tag, never original menu/gameplay pixels.
@@ -230,7 +231,7 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
     assert(has("UP/DOWN PAGE  B BACK"));
-    assert(has("READ ONLY - NO REPLAY"));
+    assert(has("REPLAY UNAVAILABLE"));
     clear();
     v.read_only_records_two_player = true;
     v.records_status = "MY 2P 1  UNAVAILABLE 3";
@@ -300,14 +301,14 @@ int main() {
     assert(render_modern_native_pause_destination(
         painter,scratch,256,256,224,v));
     assert(has("UNIRACERS"));
-    assert(has("PAUSED - GUEST FROZEN"));
+    assert(has("GAME PAUSED"));
     assert(has("OPTIONS"));
     assert(has("> VSYNC    < ON >"));
     bounds(256,224);
     clear();
     assert(render_modern_native_pause_destination(
         painter,scratch,512,512,448,v));
-    assert(has("PAUSED - GUEST FROZEN"));
+    assert(has("GAME PAUSED"));
     assert(has("OPTIONS"));
     bounds(512,448);
     clear();
@@ -319,7 +320,7 @@ int main() {
     assert(!painted.empty());
     assert(painted.front().x == 11 && painted.front().y == 10);
     assert(painted.front().w == 320 && painted.front().h == 204);
-    assert(has("PAUSED - GUEST FROZEN") && has("OPTIONS"));
+    assert(has("GAME PAUSED") && has("OPTIONS"));
     bounds(342,224);
     clear();
     assert(render_modern_native_pause_destination(
@@ -331,7 +332,7 @@ int main() {
     clear();
     assert(render_modern_native_pause_destination(
         painter,scratch,1368,1368,896,v));
-    assert(has("UNIRACERS") && has("PAUSED - GUEST FROZEN"));
+    assert(has("UNIRACERS") && has("GAME PAUSED"));
     assert(has("OPTIONS"));
     assert(!painted.empty());
     assert(painted.front().x == 44 && painted.front().y == 40);
@@ -360,7 +361,7 @@ int main() {
     assert(has("  P1  MIKE  ACTIVE"));
     assert(!has("> P1  MIKE  ACTIVE"));
     assert(has("> P2  MARTIN  CHOOSE"));
-    assert(has("STOCK: MIKE / MARTIN"));
+    assert(has("RACE AS: MIKE / MARTIN"));
     assert(std::count_if(painted.begin(), painted.end(),
         [](const Rectangle& box) {
             return box.colour == kModernStockMenuPalette.cursor_blue;
@@ -409,7 +410,8 @@ int main() {
     v.first_racer_created = true;
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));
-    assert(has("ACTIVE P1 AT NEXT BOOT"));
+    assert(has("P1 CHANGES ON RESTART"));
+    assert(!has("NO LIVE RACER CHANGE"));
     assert(has("SAVED FOR NEXT LAUNCH"));
     assert(has("QUIT AND RESTART GAME"));
     assert(has("PROFILE")); // native-wide stage identity, never a new route
@@ -419,7 +421,8 @@ int main() {
     v.unbound_two_player_warning_open = true;
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
-    assert(has("STOCK 2P STILL PLAYABLE"));
+    assert(has("LOCAL 2P STILL PLAYABLE"));
+    assert(has("2P RESULTS NOT SAVED"));
     assert(has("NO MATCH HISTORY SAVED"));
     assert(has("P1 A ANYWAY   B BACK"));
     clear();

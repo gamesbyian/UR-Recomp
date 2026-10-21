@@ -226,6 +226,47 @@ jobs:
             ${{ runner.temp }}/ur-integrated-motion-source-pixel-audit.json
           if-no-files-found: warn
           retention-days: 7
+      - name: Probe strict virtual UHD 3840x2160 Modern root SDL presentation
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          OUT="$RUNNER_TEMP/ur-integrated-virtual-uhd-3840x2160"
+          # This is a TEST OF THE ACTUAL SDL RENDERER DRAWABLE, not a 4K
+          # monitor, USB input, physical-display acceptance or screenshot
+          # enlargement. Refuse if the Windows host clamps its output.
+          python tools/qa_modern_visual_win32_capture_driver.py \
+            --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+            --out "$OUT" --video windows --timeout 100 \
+            --window-size 3840x2160 --route root-quit
+          test -s "$OUT/actual-sdl-drawable.png"
+          test -s "$OUT/readback-receipt.json"
+          test -s "$OUT/probe_first/actual-sdl-drawable.pam"
+          test -s "$OUT/probe_first/native-process.log"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt=json.loads((Path(__import__("os").environ["RUNNER_TEMP"])/
+              "ur-integrated-virtual-uhd-3840x2160/readback-receipt.json").read_text())
+          assert receipt["actual_sdl_renderer_output"]==[3840,2160]
+          assert receipt["native_semantic_route"]=="root-quit"
+          assert receipt["visual_approved"] is False
+          assert receipt["hardware_approved"] is False
+          assert receipt["release_gate_credit"]==0
+          PY
+          echo "Actual virtual 3840x2160 Windows SDL3 renderer reached; NO physical 4K display or artistic approval established." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain exact virtual UHD native SDL P7/PNG witness (not physical 4K)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-virtual-uhd-root-3840x2160
+          path: |
+            ${{ runner.temp }}/ur-integrated-virtual-uhd-3840x2160/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-integrated-virtual-uhd-3840x2160/readback-receipt.json
+            ${{ runner.temp }}/ur-integrated-virtual-uhd-3840x2160/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-integrated-virtual-uhd-3840x2160/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Capture native widescreen and fallback Windows output on SAME exact PE
         run: |
           set -euo pipefail

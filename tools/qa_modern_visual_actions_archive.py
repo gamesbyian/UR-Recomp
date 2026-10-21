@@ -23,6 +23,7 @@ MAX_LOG = 2 * 1024 * 1024
 P7 = re.compile(rb"\AP7\nWIDTH ([1-9][0-9]*)\nHEIGHT ([1-9][0-9]*)\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n")
 PNG_SIG = b"\x89PNG\r\n\x1a\n"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
+SOURCE_HEX = re.compile(r"[0-9a-f]{40}\Z")
 
 
 class AuditError(ValueError):
@@ -139,18 +140,23 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
     if (not isinstance(receipt.get("exe_sha256"),str) or
             not HEX.fullmatch(receipt["exe_sha256"])):
         raise AuditError("no executable SHA")
+    if (not isinstance(receipt.get("source_sha"),str) or
+            not SOURCE_HEX.fullmatch(receipt["source_sha"])):
+        raise AuditError("no exact source SHA")
     return {
         "id":folder.rsplit("/",1)[-1], "pixels":[w,h],
         "original_p7":selected[0],
         "successful_process_log":selected_logs[0],
         "png_sha256":digest(png), "p7_sha256":digest(p7),
-        "exe_sha256":receipt["exe_sha256"], "exact_rgba_bytes":w*h*4,
+        "exe_sha256":receipt["exe_sha256"],
+        "source_sha":receipt["source_sha"], "exact_rgba_bytes":w*h*4,
         "guest_frame_witness":int(evidence[0][1]),
         "human_approved":False, "release_gate_credit":0,
     }
 
 
-def verify(path: Path) -> dict:
+def verify(path: Path, expected_source_sha: str | None = None,
+           expected_exe_sha: str | None = None) -> dict:
     with zipfile.ZipFile(path) as z:
         names = z.namelist()
         if len(names) != len(set(names)) or any(
@@ -171,6 +177,16 @@ def verify(path: Path) -> dict:
         }
         if len({r["exe_sha256"] for r in report["captures"]}) != 1:
             raise AuditError("different native PE hashes in same capture artifact")
+        if len({r["source_sha"] for r in report["captures"]}) != 1:
+            raise AuditError("different native source epochs in same capture artifact")
+        if expected_source_sha is not None and (
+                not SOURCE_HEX.fullmatch(expected_source_sha) or
+                report["captures"][0]["source_sha"] != expected_source_sha):
+            raise AuditError("capture archive does not belong to required source SHA")
+        if expected_exe_sha is not None and (
+                not HEX.fullmatch(expected_exe_sha) or
+                report["captures"][0]["exe_sha256"] != expected_exe_sha):
+            raise AuditError("capture archive does not belong to required Windows PE")
         return report
 
 
@@ -178,9 +194,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifact",type=Path,required=True)
     parser.add_argument("--out",type=Path)
+    parser.add_argument("--expected-source-sha")
+    parser.add_argument("--expected-exe-sha")
     args = parser.parse_args()
     try:
-        result = verify(args.artifact)
+        result = verify(args.artifact,args.expected_source_sha,args.expected_exe_sha)
         if args.out:
             if args.out.exists() or args.out.is_symlink():
                 raise AuditError("report destination exists")

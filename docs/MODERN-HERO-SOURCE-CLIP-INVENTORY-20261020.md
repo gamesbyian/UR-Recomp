@@ -42,6 +42,12 @@ python3 -m unittest tests.unit.test_build_modern_hero_reaction_plates
 The unit tests generate synthetic images under a **synthetic non-retail ROM identity** and patch only the isolated test process. These are rejection-path tests, never the user's actual art or native screenshots. Real source raster generation must be performed privately with a verified canonical ROM and visually compared to the independently captured original/native game before promoting a new reaction animation. Source plates do not prove visible on-screen 342×224 or 256×224 behaviour. The currently integrated eight-pose hero clip and motion module in #2042 are untouched.
 
 
+## Atomic original-pixel contact sheet for human review
+
+The same private canonical-ROM producer additionally builds `original-hero-contact-sheet-4x.png`, laying the original 64×64 frames out in registered order, **exact nearest-neighbour 4×** with no interpolated pixels, background, invented acting or retiming. The manifest binds the sheet SHA256, tile geometry, source registered-frame order, and explicit non-claims: `native_screenshot=false`, `source_timing_certified=false`, `human_visual_approval=false`. Individual lossless 64×64 source plates and their hashes remain available; the sheet is a **source comparison aid**, not an approved HD character or a recording from the native executable.
+
+Private output now requires a fresh, nonexistent destination. It refuses overwrite, symlink targets, duplicate/reordered guest labels and mismatches between the declared original RGBA digests and the actual plate bytes. All PNGs and the manifest are encoded and written into a sibling private staging directory, then published with a single directory rename; failure removes the staging folder and leaves no partly populated review destination. Running the documented command again with the *same* `--out-dir` intentionally refuses to replace existing evidence; use a new directory for each source/clip revision. Parent directory must be writable; no ROM-derived pixels enter the repository or CI artifact by default.
+
 ## Temporal discontinuity proof for source clips
 
 The private Original-raster plate producer additionally writes `temporal_original_raster_metrics` into its receipt using `tools/qualify_modern_original_hero_temporal.py`. This makes **source pose deltas** independently reviewable before adding one to the native animation layer. Each original-registration edge records:

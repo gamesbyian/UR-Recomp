@@ -122,6 +122,26 @@ int main() {
     assert(drawn_in_color("RACER: CHANGED - RESTART APP",
                           kModernMenuCheckerLegibleGrey));
     assert(text_draws_fit(old_view));
+    // Exact native host statuses keep the essential RESTART/SAVE action
+    // in every stock-width banner; ordinary names still use an ellipsis.
+    const char* const statuses[] = {
+        "RESTART TO USE NEW RACER",
+        "SECOND RACER SAVED - RESTART",
+        "P1 SWITCH QUEUED - QUIT TO SAVE"
+    };
+    const char* const compact[] = {
+        "RACER: RESTART FOR NEW RACER",
+        "RACER: P2 SAVED - RESTART",
+        "RACER: SWITCH: QUIT TO SAVE"
+    };
+    for (std::size_t i = 0; i < 3; ++i) {
+        painted.clear();
+        view.racer_name = statuses[i];
+        assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                          old_view,view));
+        assert(contains(compact[i]));
+        assert(text_draws_fit(old_view));
+    }
     painted.clear();
     view.racer_name = "THIS IS AN EXCESSIVELY LONG RACER NAME";
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
@@ -172,6 +192,17 @@ int main() {
     assert(contains("RACER: PROFILE CHANGED - RESTART APP"));
     assert(!contains("RACER: CHANGED - RESTART APP"));
     assert(text_draws_fit(wide_view));
+    // Native wide retains all original host statuses verbatim.
+    for (const char* status : {"RESTART TO USE NEW RACER",
+                                "SECOND RACER SAVED - RESTART",
+                                "P1 SWITCH QUEUED - QUIT TO SAVE"}) {
+        painted.clear();
+        view.racer_name = status;
+        assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
+                                          wide_view,view));
+        assert(contains(std::string("RACER: ") + status));
+        assert(text_draws_fit(wide_view));
+    }
     view.racer_name = "CUSTOM RACER";
 
     painted.clear();

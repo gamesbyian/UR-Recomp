@@ -437,7 +437,7 @@ inline bool render_modern_root_overlay(
                         "QUICK PRACTICE", palette.title_yellow, scale);
         const auto cells = modern_overlay_text_cells(panel_w - 30);
         const std::string name = fit_modern_overlay_text(
-            view.practice_launch_pending ? "ENTERING ORIGINAL COURSE"
+            view.practice_launch_pending ? "STARTING PRACTICE"
                                          : std::string(view.practice_course_name),
             cells);
         paint.draw_text(pixels, stride, surface_height,
@@ -446,7 +446,7 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 62 * scale,
                         view.practice_launch_pending
-                            ? "WAIT FOR SOURCE GO"
+                            ? "WAIT FOR GO"
                             : fit_modern_overlay_text(
                                   std::string(view.practice_tour_name) + " - " +
                                       std::string(view.practice_kind_label),
@@ -530,7 +530,7 @@ inline bool render_modern_root_overlay(
                         bx + 9 * scale,
                         by + (view.read_only_records_two_player &&
                               !view.records_detail.empty() ? 99 : 85) * scale,
-                        "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
+                        "REPLAY UNAVAILABLE", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,
                         !view.read_only_records_pages_available
@@ -568,7 +568,7 @@ inline bool render_modern_root_overlay(
                         view.join_p2_confirmed
                             ? palette.title_yellow : 0xFFFFFFFFu, scale);
         const std::string stock = fit_modern_overlay_text(
-            std::string("STOCK: ") + std::string(view.join_p1_stock) +
+            std::string("RACE AS: ") + std::string(view.join_p1_stock) +
             " / " + std::string(view.join_p2_stock), cells);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 83 * scale,
@@ -594,7 +594,7 @@ inline bool render_modern_root_overlay(
                         view.first_racer_is_switch
                             ? "SWITCH ACTIVE P1"
                             : view.first_racer_is_second
-                            ? "SECOND STOCK RACER" : "FIRST STOCK RACER",
+                            ? "SECOND RACER" : "FIRST RACER",
                         palette.title_yellow, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 40 * scale,
@@ -619,7 +619,7 @@ inline bool render_modern_root_overlay(
                         view.first_racer_created
                             ? "QUIT AND RESTART GAME"
                             : view.first_racer_is_switch
-                                ? "NO LIVE RACER CHANGE"
+                                ? "RESTART TO SWITCH RACER"
                                 : "UP/DOWN CHOOSE PRESET",
                         palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
@@ -647,10 +647,10 @@ inline bool render_modern_root_overlay(
                         "NEED TWO NAMED RACERS", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 63 * scale,
-                        "NO MATCH HISTORY SAVED", palette.secondary_grey, scale);
+                        "2P RESULTS NOT SAVED", palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 92 * scale,
-                        "PLAY STOCK 2P ANYWAY?", 0xFFFFFFFFu, scale);
+                        "PLAY LOCAL 2P ANYWAY?", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 115 * scale,
                         "P1 A YES  B BACK", palette.cursor_blue, scale);

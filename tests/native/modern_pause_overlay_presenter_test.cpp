@@ -14,6 +14,7 @@ using namespace ur::product;
 namespace {
 std::vector<std::string> painted;
 int legible_pause_status_draws = 0;
+std::vector<std::pair<std::string, std::uint32_t>> colour_draws;
 int active_w = 0;
 int active_h = 0;
 void check_bounds(int x, int y, int w, int h) {
@@ -33,6 +34,7 @@ void stroke(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
 void text(std::uint32_t*,int,int,int x,int y,const char* t,std::uint32_t colour,int scale) {
     check_bounds(x,y,static_cast<int>(std::string(t).size()) * 8 * scale,8 * scale);
     painted.emplace_back(t);
+    colour_draws.emplace_back(t, colour);
     if (std::string(t) == "GAME PAUSED" &&
         colour == kModernMenuCheckerLegibleGrey)
         ++legible_pause_status_draws;
@@ -45,6 +47,11 @@ int count(const std::string& s) {
     int n = 0;
     for (const auto& item : painted) if (item == s) ++n;
     return n;
+}
+bool drawn_in(const std::string& label, std::uint32_t colour) {
+    for (const auto& d : colour_draws)
+        if (d.first == label && d.second == colour) return true;
+    return false;
 }
 }  // namespace
 
@@ -65,6 +72,26 @@ int main() {
     assert(!contains("PAUSED - GUEST FROZEN"));
     assert(legible_pause_status_draws == 1);
     assert(count("SOON") == 4);
+    // Focus can land on a not-yet-wired row. Its label and SOON tag must stay
+    // readable on the light focus bar (dark focus text, never dim grey).
+    for (int source_w : {256, 342}) {
+        active_w = source_w;
+        active_h = 224;
+        UrModernPauseMenu focused{};
+        ur_modern_pause_menu_reset(&focused);
+        focused.selected = UR_MODERN_PAUSE_CONTROLS;
+        painted.clear();
+        colour_draws.clear();
+        assert(render_native_modern_pause_overlay(
+            painter, pixels, source_w, source_w, 224, focused, true));
+        assert(drawn_in("CONTROLS", kModernStockMenuPalette.shadow_black));
+        assert(!drawn_in("CONTROLS", kModernStockMenuPalette.secondary_grey));
+        assert(drawn_in("SOON", kModernStockMenuPalette.shadow_black));
+        assert(drawn_in("RUN DATA", kModernStockMenuPalette.secondary_grey));
+    }
+    active_w = 512;
+    active_h = 448;
+    painted.clear();
     // Compact prepared-source frames must paint directly into their real
     // framebuffer. Keep all eight rows and disabled/selection policies;
     // a 1280x720 SDL window alone cannot substitute for these source sizes.

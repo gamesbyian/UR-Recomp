@@ -68,12 +68,16 @@ inline bool render_native_modern_pause_overlay(
                                 panel_w - 12, 15, pal.cursor_blue);
             paint.draw_text(pixels, stride, height, x + 10, ry,
                             row.label,
-                            !enabled ? pal.secondary_grey :
-                            active ? pal.shadow_black : 0xFFFFFFFFu, 1);
+                            // A focused row sits on the light focus bar;
+                            // dim grey there is ~1.8:1, so focus text wins
+                            // and "SOON" still marks it as unavailable.
+                            active ? pal.shadow_black :
+                            !enabled ? pal.secondary_grey : 0xFFFFFFFFu, 1);
             if (!enabled)
                 paint.draw_text(pixels, stride, height,
                                 x + panel_w - 45, ry, "SOON",
-                                pal.secondary_grey, 1);
+                                active ? pal.shadow_black
+                                       : pal.secondary_grey, 1);
         }
         paint.draw_text(pixels, stride, height, x + 8, y + 183,
                         "UP/DOWN  A SELECT", 0xFFFFFFFFu, 1);
@@ -110,8 +114,8 @@ inline bool render_native_modern_pause_overlay(
         }
         paint.draw_text(pixels, stride, height, x + 21, ry,
             row.label,
-            !enabled ? pal.secondary_grey :
-            active ? pal.shadow_black : 0xFFFFFFFFu, 2);
+            active ? pal.shadow_black :
+            !enabled ? pal.secondary_grey : 0xFFFFFFFFu, 2);
         if (!enabled)
             paint.draw_text(pixels, stride, height,
                 x + panel_w - 88, ry + 7, "SOON",

@@ -490,3 +490,32 @@ uses an independent, exact **60-tick modulo prompt timer** (30 bright,
 actual prompt ink before/after the age cap, through a full new pulse, and
 after 4200 reduced-motion ticks; it does not fabricate any guest attract
 demo. Genuine stock idle demo remains unresolved under #2079.
+
+## Native original idle-attract source preflight (diagnostic-only)
+
+Before releasing a Modern-owned title to the stock guest's attract sequence,
+check that the original cartridge is actually progressing beneath the overlay
+on the **same source/executable**. Issue #2079's independent original Snes9x
+trace proves first MAIN at frame 440, original title at 943, and actual
+split-screen demo race at 1531. Those are source states, **not** a license
+to trigger a host cutover after a guessed 503-frame timer.
+
+The opt-in `UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE=1` adds three inert,
+source-WRAM-derived diagnostic markers to the existing native post-frame
+observer. Only a genuine main D7 followed by the original title 84 and
+race flag 01 can advance those markers; the host title must remain visible
+for all three. No alternate emulator loop, input injection, forced guest
+mode, guest WRAM write, reallocation or normal shipping frontend behavior
+is introduced.
+
+The separate fresh-user-root Windows native script waits 1800 guest frames
+without any button commands. The verifier rejects absent/reordered/duplicate
+markers, altered first-cycle intervals, unexpected source values, missing
+Modern owner state, binary/ROM source ambiguity and non-Windows execution.
+Its bounded output retains exact candidate PE/script/log SHA256 and a small
+machine-readable first-cycle receipt. These are **only observational source
+facts**. The host does not yet reveal the demo nor implement the wake-back
+handoff. Such user-visible behavior, controller consumption, native P6 and
+independent final SDL display captures remain acceptance blocks until this
+probe passes and the integration owner concurs. Any conflicting Windows
+observations are surfaced as failures, not silently normalized to a timer.

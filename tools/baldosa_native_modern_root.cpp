@@ -1583,6 +1583,34 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     g_title_guest_frame = frame;
+    // CI-only read-only preflight of the *real* original idle attract.
+    // A host-owned title may overlay a still-running guest. Do not
+    // assume that 503 nominal frames authorizes a real visible demo:
+    // observe stock MAIN -> stock title -> actual demo-race state in WRAM.
+    // This probe never switches host focus or writes/injects guest input.
+    const char* attract_probe = std::getenv("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE");
+    if (attract_probe && std::strcmp(attract_probe, "1") == 0 &&
+        configured() && g_visible && g_stock_target == -1) {
+        static unsigned stage = 0;
+        const unsigned menu = g_ram[0x009fu];
+        const unsigned race = g_ram[0x0313u];
+        if (stage == 0 && menu == 0xd7u && race != 1u) {
+            stage = 1;
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=%u menu=d7 race=%02x overlay_title=%d\n",
+                frame, race, ur::product::modern_title_active(g_title) ? 1 : 0);
+        } else if (stage == 1 && menu == 0x84u && race != 1u) {
+            stage = 2;
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=%u menu=84 race=%02x overlay_title=%d\n",
+                frame, race, ur::product::modern_title_active(g_title) ? 1 : 0);
+        } else if (stage == 2 && race == 1u) {
+            stage = 3;
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=%u menu=%02x race=01 overlay_title=%d\n",
+                frame, menu, ur::product::modern_title_active(g_title) ? 1 : 0);
+        }
+    }
     ur_baldosa_modern_root_stock_observe_guest();
     if (g_visible && ur::product::modern_title_active(g_title)) {
         g_title = ur::product::modern_title_advance(g_title);

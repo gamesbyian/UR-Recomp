@@ -12,10 +12,19 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
+
+# Support both tests importing tools.* and direct `python3 tools/<script>.py`.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from tools.audit_modern_hero_source_clips import (
     CANONICAL_USA_SHA256, CANDIDATES, ClipAdmissionError, REGISTRY,
     ROOT, SOURCE, inspect_clip,
+)
+from tools.qualify_modern_original_hero_temporal import (
+    analyze_original_hero_temporal_clip,
 )
 from tools.prototype_racer_hd_replacement import (
     alpha_bounds, alpha_contact_anchor_x2_y2, build_stock_rgba,
@@ -78,6 +87,9 @@ def rasterize_original_clip(
                                   row["original_rgba_sha256"])
         if prior != row["original_rgba_sha256"]:
             raise ClipAdmissionError("same source representation changed raster across guest frames")
+    temporal_metrics = analyze_original_hero_temporal_clip(
+        frames, [row["registered_guest_frame"] for row in results],
+        width=W, height=H)
     return {
         "schema_version": 1,
         "status": "original ROM P1 reconstruction; preview only, not menu animation acceptance",
@@ -86,6 +98,7 @@ def rasterize_original_clip(
         "format": "original 64x64 RGBA8888, not procedural 4x art",
         "native_hero_admitted": False,
         "may_reverse_or_loop": False,
+        "temporal_original_raster_metrics": temporal_metrics,
         "frames": results,
     }, frames
 

@@ -247,7 +247,11 @@ int main() {
 
     // One actual shipped P1 shortcut, no development-only "stock" jargon.
     // Does not change what profile the existing shortcut creates.
+    // Source-bound geometry checks must count THIS compact draw alone;
+    // prior wide-root operations use incompatible (larger) coordinates.
     painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
     view.racer_shortcuts_available = false;
     view.first_racer_shortcut_available = true;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,

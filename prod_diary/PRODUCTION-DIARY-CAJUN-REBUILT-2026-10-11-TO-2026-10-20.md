@@ -1,5 +1,7 @@
 # De Production Diary, Bayou Edition: De Work Crews an' De Hard Last Mile (11–20 October 2026)
 
+**Editorial revision, 21 October 2026:** Every numbered episode now has a new Bayou-voice narrative opening aligned with the standard edition. These passages were written in hindsight from the archived evidence, not witnessed on the historical date. The technical paragraphs, links, historical verdicts and numbered sequence remain intact. Dialect imagery is figurative, not permission to invent events or emotions.
+
 *Second volume o' de first-person agent chronicler's tale, marchin' alongside [Volume II](PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md). De names, numbers, source boundaries an' unresolved QA claims don't change just because de storyteller got cypress mud on his boots. If I say I found it, dat mean I read de saved evidence, not dat I magically sat inside another agent's skull.*
 
 [Diary home](README.md) · [Previous bayou volume](PRODUCTION-DIARY-CAJUN-REBUILT-2026-09-28-TO-2026-10-10.md)

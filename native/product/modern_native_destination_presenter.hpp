@@ -254,10 +254,10 @@ inline bool render_modern_native_destination(
     if (c.wide) {
         const std::string_view tag = v.options_open
             ? (v.options_controls_help ? "HELP" : "SETTINGS")
-            : (v.practice_picker_open || v.practice_launch_pending) ? "STOCK"
+            : (v.practice_picker_open || v.practice_launch_pending) ? "COURSES"
             : v.read_only_records_open ? "ARCHIVE"
             : v.first_racer_open ? "PROFILE"
-            : v.two_seat_join_open ? "P1 + P2" : "2P STOCK";
+            : v.two_seat_join_open ? "P1 + P2" : "LOCAL 2P";
         const int tag_x = c.w / c.scale - 10 -
             static_cast<int>(tag.size()) * kModernOverlayCellPixels;
         p.fill_rect(pixels, stride, surface_height,
@@ -271,6 +271,9 @@ inline bool render_modern_native_destination(
                     tag.data(), 0xFFC8C8C8u, c.scale);
     }
 
+    // Player-facing language deliberately omits implementation terms such
+    // as host, guest, route and stock. The underlying source-authoritative
+    // course count, save policy and next-boot racer activation are unchanged.
     if (v.options_open) {
         if (v.options_controls_help) {
             static constexpr const char* lines[] = {
@@ -317,7 +320,7 @@ inline bool render_modern_native_destination(
     } else if (v.practice_picker_open || v.practice_launch_pending) {
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 38,
-            v.practice_launch_pending ? "ENTERING ORIGINAL COURSE"
+            v.practice_launch_pending ? "STARTING PRACTICE"
                                       : modern_native_display_caps(
                                             v.practice_course_name),
             col.title_yellow);
@@ -329,16 +332,16 @@ inline bool render_modern_native_destination(
         }
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 63,
-            v.practice_launch_pending ? "WAIT FOR SOURCE GO" : context,
+            v.practice_launch_pending ? "WAIT FOR GO" : context,
             0xFFFFFFFFu);
         const std::string unlocked =
             v.practice_courses_open > 1
             ? std::to_string(v.practice_courses_open) +
-                " STOCK-UNLOCKED COURSES"
-            : "1 VERIFIED STOCK COURSE";
+                " COURSES UNLOCKED"
+            : "1 COURSE UNLOCKED";
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 91,
-            v.practice_launch_pending ? "SOURCE ROUTE IN PROGRESS" : unlocked,
+            v.practice_launch_pending ? "RACE STARTING" : unlocked,
             col.secondary_grey);
         if (!v.practice_launch_pending && v.practice_courses_open > 1)
             modern_native_destination_line(
@@ -369,7 +372,7 @@ inline bool render_modern_native_destination(
                 v.records_detail, col.secondary_grey, 9, 1, true);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 114,
-            "READ ONLY - NO REPLAY", col.secondary_grey);
+            "REPLAY UNAVAILABLE", col.secondary_grey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 125,
             v.read_only_records_pages_available
@@ -397,7 +400,7 @@ inline bool render_modern_native_destination(
                 p, pixels, stride, surface_height, c, 59, true, p2);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 84,
-            std::string("STOCK: ") + std::string(v.join_p1_stock) +
+            std::string("RACE AS: ") + std::string(v.join_p1_stock) +
             " / " + std::string(v.join_p2_stock), col.secondary_grey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 108,
@@ -408,9 +411,9 @@ inline bool render_modern_native_destination(
     } else if (v.first_racer_open) {
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 39,
-            v.first_racer_is_switch ? "ACTIVE P1 AT NEXT BOOT" :
-            v.first_racer_is_second ? "SECOND STOCK RACER" :
-                                       "FIRST STOCK RACER", col.secondary_grey);
+            v.first_racer_is_switch ? "P1 CHANGES ON RESTART" :
+            v.first_racer_is_second ? "SECOND RACER" :
+                                       "FIRST RACER", col.secondary_grey);
         modern_native_destination_row(
             p, pixels, stride, surface_height, c, 59, true,
             std::string(v.first_racer_is_switch ? "NEXT P1: " : "PRESET: ") +
@@ -419,8 +422,8 @@ inline bool render_modern_native_destination(
             p, pixels, stride, surface_height, c, 83,
             v.first_racer_created ? "SAVED FOR NEXT LAUNCH" :
             v.first_racer_failed ? "NOT SAVED - CHECK DATA" :
-            v.first_racer_is_switch ? "NO LIVE RACER CHANGE" :
-                                      "SEPARATE PROGRESS PROFILE",
+            v.first_racer_is_switch ? "RESTART TO SWITCH RACER" :
+                                      "SEPARATE SAVED PROGRESS",
             v.first_racer_failed ? col.title_yellow : 0xFFFFFFFFu);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 105,
@@ -438,10 +441,10 @@ inline bool render_modern_native_destination(
             "TWO NAMED RACERS NEEDED", col.title_yellow);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 63,
-            "STOCK 2P STILL PLAYABLE", 0xFFFFFFFFu);
+            "LOCAL 2P STILL PLAYABLE", 0xFFFFFFFFu);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 85,
-            "NO MATCH HISTORY SAVED", col.secondary_grey);
+            "2P RESULTS NOT SAVED", col.secondary_grey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
             "P1 A ANYWAY   B BACK", col.cursor_blue);
@@ -489,7 +492,7 @@ inline bool render_modern_native_pause_destination(
                 "UNIRACERS", pal.title_yellow, 2 * scale);
     p.draw_text(pixels, stride, height,
                 root.x + 8 * scale, root.y + 36 * scale,
-                "PAUSED - GUEST FROZEN", pal.secondary_grey, scale);
+                "GAME PAUSED", pal.secondary_grey, scale);
     return render_modern_native_destination(
         p, pixels, stride, height, scale, logical_w, root, view);
 }

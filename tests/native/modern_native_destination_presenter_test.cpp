@@ -158,6 +158,21 @@ int main() {
     // Tour and course navigation are separate real native input actions.
     assert(has("UP/DN COURSE   L/R TOUR"));
     assert(has("A START   B BACK"));
+    // Regression: real Win32 SDL frame used to leak the root's QUIT help
+    // and focus sliver outside the destination panel. Both narrow and wide
+    // modals must paint an opaque root-interaction scrim from below the
+    // immutable racer identity line to the bottom of the root frame.
+    auto has_body_scrim = [](HostOverlayRect root, int scale) {
+        return std::any_of(painted.begin(), painted.end(),
+            [root,scale](const Rectangle& box) {
+                return box.x == root.x + scale &&
+                    box.y == root.y + 40 * scale &&
+                    box.w == root.width - 2 * scale &&
+                    box.h == root.height - 41 * scale &&
+                    box.colour == kModernStockMenuPalette.background;
+            });
+    };
+    assert(has_body_scrim(original, 1));
     bounds(256,224);
     clear();
     v.practice_picker_open = false;
@@ -166,6 +181,7 @@ int main() {
                                              1,320,wide,v));
     assert(has("ENTERING ORIGINAL COURSE"));
     assert(has("WAIT FOR SOURCE GO") && has("B CANCEL"));
+    assert(has_body_scrim(wide, 1));
     bounds(342,224);
     clear();
 

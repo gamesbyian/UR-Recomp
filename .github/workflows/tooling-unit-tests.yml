@@ -45,6 +45,11 @@ on:
       # regression even when no Python harness file changes.
       - "native/product/modern_pause_overlay_presenter.hpp"
       - "tests/native/modern_pause_overlay_presenter_test.cpp"
+      # Destination modal and real paused-Options source geometry are also
+      # executable C++ painter contracts, not only host-header metadata.
+      - "native/product/modern_native_destination_presenter.hpp"
+      - "tests/native/modern_native_destination_presenter_test.cpp"
+      - "tests/native/modern_native_destination_layering_test.cpp"
       # Original-derived menu primitive and source atlas headers own
       # executable C++ invariants. They must invalidate this same suite even
       # if no Python shim or presenter was changed in the PR.

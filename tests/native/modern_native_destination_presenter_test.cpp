@@ -329,6 +329,12 @@ int main() {
         painter,scratch,256,256,224,v));
     assert(has("UNIRACERS"));
     assert(has("GAME PAUSED"));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 16 && t.y == 46 && t.cells == 11 &&
+                   t.size == 1 &&
+                   t.colour == kModernMenuCheckerLegibleGrey;
+        }));
     assert(has("OPTIONS"));
     assert(has("> VSYNC    < ON >"));
     bounds(256,224);
@@ -348,6 +354,12 @@ int main() {
     assert(painted.front().x == 11 && painted.front().y == 10);
     assert(painted.front().w == 320 && painted.front().h == 204);
     assert(has("GAME PAUSED") && has("OPTIONS"));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 19 && t.y == 46 && t.cells == 11 &&
+                   t.size == 1 &&
+                   t.colour == kModernMenuCheckerLegibleGrey;
+        }));
     bounds(342,224);
     clear();
     assert(render_modern_native_pause_destination(

@@ -26,6 +26,18 @@ MARKER = re.compile(
 EXPECTED = ("main_menu", "attract_title", "demo_race")
 
 
+def persist_exact_native_log(path: Path, log: str) -> str:
+    """Receipt hashes actual retained ZIP bytes, even on Windows.
+
+    Path.write_text() converts LF to CRLF on native Windows by default;
+    previously that made the receipt describe a different byte stream
+    from the uploaded artifact. Explicit UTF-8 bytes forbid translation.
+    """
+    raw = log.encode("utf-8")
+    path.write_bytes(raw)
+    return hashlib.sha256(raw).hexdigest()
+
+
 def verify_original_source_attract(log: str) -> list[dict[str, int | str]]:
     if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
         raise ValueError("no real Modern native host opening in guest log")
@@ -162,6 +174,46 @@ def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
     ]
 
 
+def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | str]]:
+    """Require a REAL named P1/source-menu handoff after native demo wake.
+
+    This is not a fabricated menu/race: native stock router must publish
+    existing stock_requested and stock_entered markers after 60 settled D7.
+    """
+    required = (
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600",
+        "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674",
+        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0",
+        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60",
+        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+    )
+    last = -1
+    for marker in required:
+        if log.count(marker) != 1:
+            raise ValueError("missing or duplicate named original-game proof: " + marker)
+        current = log.find(marker, last + 1)
+        if current < 0:
+            raise ValueError("named stock input entered before real MAIN recovery: " + marker)
+        last = current
+    if ("UR_BALDOSA_MODERN_ROOT active_profile_stale=1" in log or
+            "UR_BALDOSA_MODERN_ROOT stock_aborted" in log):
+        raise ValueError("named original route not safely source-admitted")
+    return [
+        {"phase": "named_play_denied_while_demo", "frame": 1710},
+        {"phase": "named_play_denied_while_menu_unsettled", "frame": 3770},
+        {"phase": "original_main_stable", "frame": 3818},
+        {"phase": "original_stock_one_player_entered", "frame": 3900},
+    ]
+
+
 def verify_original_guest_presentations(presented: Path, modern_width: int = 342) -> list[dict]:
     """Actual after-host P6, not final SDL/window, across the source handoff."""
     frame_path = presented / "presents.csv"
@@ -222,6 +274,10 @@ def main() -> int:
                    help="actual SDL drawable shape used to choose logical 342/256")
     p.add_argument("--preview-wake", action="store_true",
                    help="opt-in source title/demo reveal with consumed real P1 wake")
+    p.add_argument("--named-play", action="store_true",
+                   help="mint native first profile in separate prior process, then prove real stock 1P")
+    p.add_argument("--bootstrap-script", type=Path,
+                   help="genuine native P1 X/A profile creation route for named-play")
     p.add_argument("--recovery", action="store_true",
                    help="exercise source-admitted Play gating through genuine MAIN return")
     args = p.parse_args()
@@ -229,6 +285,9 @@ def main() -> int:
         p.error("--recovery requires --preview-wake")
     if args.recovery and args.wake_route != "p1":
         p.error("--recovery requires P1 wake route")
+    if args.named_play and (not args.preview_wake or not args.recovery or
+                            args.wake_route != "p1" or not args.bootstrap_script):
+        p.error("--named-play requires P1 --preview-wake --recovery --bootstrap-script")
     if os.name != "nt":
         p.error("native original-guest attract requires real Windows AOT")
     if not 30 <= args.timeout <= 150:
@@ -252,6 +311,7 @@ def main() -> int:
     env.pop("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", None)
     if args.preview_wake:
         env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = (
+            "23" if args.named_play else
             "20" if args.recovery else
             "21" if args.wake_route == "keyboard" else
             "22" if args.wake_route == "p2" else "19")
@@ -268,6 +328,38 @@ def main() -> int:
         "UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE": "1",
         "UR_REDUCED_MOTION": "0",
     })
+    bootstrap_log_sha256 = None
+    if args.named_play:
+        # Process A invokes the real P1 X/A first-racer UI and canonical
+        # native product writers. Process B reads that exact persisted root.
+        bootstrap = args.bootstrap_script.resolve(strict=True)
+        if bootstrap == script or bootstrap == rom:
+            raise ValueError("named-profile bootstrap must be separate original input route")
+        boot_dir = out / "named-p1-bootstrapped"
+        boot_dir.mkdir()
+        boot_env = dict(env)
+        boot_env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "8"
+        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "0"
+        boot_env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
+        boot_env.pop("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", None)
+        boot_cmd = [str(exe), "--no-launcher", "--config", str(cfg),
+                    "--script", str(bootstrap), str(rom)]
+        try:
+            boot_result = subprocess.run(
+                boot_cmd, cwd=boot_dir, env=boot_env, timeout=args.timeout,
+                capture_output=True, text=True, errors="replace")
+        except subprocess.TimeoutExpired as exc:
+            (out / "native-profile-bootstrap-timeout.txt").write_text(str(exc))
+            raise
+        boot_log = boot_result.stdout + "\n" + boot_result.stderr
+        bootstrap_log_sha256 = persist_exact_native_log(
+            out / "native-profile-bootstrap.log", boot_log)
+        if (boot_result.returncode or
+                boot_log.count("UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process") != 1 or
+                not (user / "profiles-v1.txt").is_file()):
+            raise ValueError("genuine P1 X/A native profile creation did not persist")
+        env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
+        env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
     if args.preview_wake:
         env.update({
             "SNESRECOMP_SCREENSHOT_DIR": str(presented),
@@ -293,11 +385,12 @@ def main() -> int:
         (out / "native-attract-timeout.txt").write_text(str(exc))
         raise
     log = run.stdout + "\n" + run.stderr
-    (out / "native-attract.log").write_text(log, encoding="utf-8")
+    retained_log_sha256 = persist_exact_native_log(out / "native-attract.log", log)
     if run.returncode:
         raise ValueError(f"real Windows native attract process exited {run.returncode}")
     observed = (
-        verify_source_driven_recovery(log) if args.recovery
+        verify_named_original_play_after_recovery(log) if args.named_play
+        else verify_source_driven_recovery(log) if args.recovery
         else verify_source_driven_preview(log, wake_route=args.wake_route) if args.preview_wake
         else verify_original_source_attract(log))
     presented_receipt = (
@@ -309,8 +402,10 @@ def main() -> int:
         "candidate_executable_sha256": hashlib.sha256(binary).hexdigest(),
         "pinned_original_usa_rom_sha256": EXPECTED_USA_ROM,
         "actual_guest_source_markers": observed,
-        "log_sha256": hashlib.sha256(log.encode("utf-8")).hexdigest(),
+        "log_sha256": retained_log_sha256,
         "script_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
+        "genuine_native_profile_bootstrap_sha256": bootstrap_log_sha256,
+        "named_source_play_verified": args.named_play,
         "diagnostic_guest_writes": False,
         "human_button_actions": 2 if args.preview_wake else 0,
         "scripted_host_preview_only": args.preview_wake,
@@ -334,6 +429,8 @@ def main() -> int:
         print("UR_MODERN_TITLE_ORIGINAL_P6_WAKE=passed")
     if args.recovery:
         print("UR_MODERN_TITLE_ORIGINAL_PLAY_RECOVERY=passed")
+    if args.named_play:
+        print("UR_MODERN_TITLE_REAL_NAMED_P1_AFTER_ATTRACT=passed")
     for m in observed:
         print(f"{m['phase']}={m['frame']}")
     return 0

@@ -18,7 +18,7 @@ Root: https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn
 - Integrated receipts: https://drive.google.com/drive/folders/1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU
 - Superseded/rejected: https://drive.google.com/drive/folders/1XuTGwAE7zsMhw20mvSPm3WYX94PiNxhY
 
-**Legacy archive safety:** Existing root files remain in place; they are an immutable legacy archive. Never bulk-move, overwrite, delete, or classify historical files merely by filename. Do not infer that inbox contents are already validated. Never treat a Drive proposal as permission to override independent QA, source provenance, art veto, or release gates.
+**Owner-confirmed legacy cleanup:** On 2026-10-21 the owner confirmed that the 387 historical file IDs missing from current Vault folder listings were **deliberately deleted**. Do **not** restore, reupload, search for or audit their retention status; they are excluded from the active recovery queue. Keep the old 393-ID inventories as historical evidence only. Current recovery operates on surviving Inbox/Incoming/Evidence/Integrated/Journals items and genuinely new submissions. Do not infer that Inbox contents are validated. Never treat a Drive proposal as permission to override independent QA, source provenance, art veto or release gates. [Recovery index](recovery/README.md) records the owner's disposition.
 
 ## Mandatory preflight before new research
 

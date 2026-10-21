@@ -621,3 +621,72 @@ These are the real original guest source states, one native AOT PE, exact
 P6 present-frame receipts and independent ROM-free negative fixtures, NOT
 physical two-pad signoff nor true final SDL pixel/hardware QA. Source guest
 state and Authentic mode remain untouched; default attract is still disabled.
+
+
+## Native attract artifact byte-integrity correction (2026-10-21)
+
+An independent download audit of **owner head `557f0c7dbe9777481ef32185fc04d282918bc5a9`**,
+Windows [run 39554168185](https://github.com/gamesbyian/UR-Recomp/actions/runs/39554168185),
+artifact **12325690656**, found a packaging-only provenance defect despite
+passing gameplay and presentation checks:
+
+- All **nine retained original demo → Modern title → root P6 image files**
+  in the P1-wide, keyboard-4:3 and P2-wide archive cases match their recorded
+  SHA256. One fourth trio from the long real-main recovery was listed in its
+  receipt but **not included in the ZIP**, due to the upload allowlist.
+- All five source/preview/recovery native log receipts hashed their
+  **LF-normalized in-memory strings**, but Python `Path.write_text` on Windows
+  translated the actually archived log files to **CRLF**. Consequently,
+  their recorded digest did not match actual downloaded ZIP log bytes.
+  Normalizing archived CRLF to LF reproduces the old digest; **that is a
+  diagnostic explanation, not an acceptable audit workaround**.
+
+The corrected native capture producer `persist_exact_native_log` writes
+explicit UTF-8 bytes and returns their exact SHA256. The Windows upload
+allowlist retains all three actual P6 recovery screenshots and its presents
+CSV. A new independent, ROM-free
+`tools/verify_baldosa_modern_title_artifact.py --archive <path>` rejects
+mismatched original log bytes, any missing photograph listed in a receipt,
+wrong geometry, mixed executable hashes, duplicate archive entries, or
+unsupported claims of final SDL/release approval. Adversarial unit tests
+reproduce both historical failures. Original Windows screenshots are not
+repainted or retrospectively credited to the fixed candidate; new exact-head
+CI is required for an independently auditable retained artifact.
+
+**Still open:** genuine first named-profile Play after the original guest
+returns to settled MAIN, independent final SDL output and real hardware
+controller/display approval. The attract preview remains opt-in; Authentic
+is unmodified.
+
+
+## Exact two-process named-racer Play after original attract (candidate)
+
+Original demo/wake source admission now has an independent **named-player
+end-to-end consumer test**. This adds no shipping input path: the first
+fresh native Windows game uses existing test-only P1 X then A controller
+semantic edges to create a real canonical stock-preset racer via the
+shipping frontend/store. It exits, preserving the actual user root.
+The **same native executable** is cold-booted again with that selected
+profile, its typed product state and real guest SRAM. There is no
+temporary Python profile serializer, fabricated result or anonymous
+profile→named hot-swap.
+
+In this second game, smoke mode 23 lets the real cartridge reach its
+original attract race, consumes a genuine P1 wake at frame1600, opens the
+root via a distinct P1 A at1660, and refuses named Play at1710 while
+demo is racing and at3770 while D7 is not source-settled. At frame3900
+it requires **60** uninterrupted source MAIN observations and a playable
+named profile, then presses genuine P1 A through the existing root →
+original stock-menu route. The native log verifier requires an
+**actual stock 1P menu 0x3C acknowledgement**, not merely `stock_requested`,
+a synthetic guest menu byte or a root screenshot. The second original
+script allows the source route to run through frame4800; if it does not
+reach the 1P stock menu, the test is red and retains its bounded log.
+
+The final two-process capture uses the same Windows AOT source as the
+previous five attract scenarios. Retain only process logs/PE digest and
+the three pre-SDL P6 demo/title/root images, never the user's profile,
+raw SRAM or ROM. Even on success, **a completed named 1P event, save,
+independently checked final SDL pixels, physical controller and art
+approval are separate gates**. Keep stock attract opt-in until the
+full product owner/integration QA accepts the player journey.

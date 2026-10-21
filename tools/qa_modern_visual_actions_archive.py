@@ -42,6 +42,10 @@ ROUTE_STAGES = {
     "profile-first-p1": "profile-first-saved",
     "practice-picker-p1": "practice-picker",
     "multiplayer-unbound": "multiplayer-unrecorded-warning",
+    # Later native integrated host route names; exact last painted stage
+    # must still match the *pre-SDL-readback* destination log.
+    "multiplayer-unrecorded": "multiplayer-unrecorded-warning",
+    "practice-picker": "practice-picker",
 }
 
 

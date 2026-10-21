@@ -1066,7 +1066,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "19") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
-        std::strcmp(fixture, "22") != 0),
+        std::strcmp(fixture, "22") != 0 &&
+        std::strcmp(fixture, "23") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_painted_reported = false;
@@ -1984,13 +1985,13 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."22"; 15-22 retain the title.
+    // Smoke modes are decimal "1".."23"; 15-23 retain the title.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if ((!g_visible && !g_original_attract_visible) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 22) return;
+            mode < 1 || mode > 23) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2221,6 +2222,48 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::abort();
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=%u\n", frame);
+        return;
+    }
+    // CI-only mode 23: full two-process NAMED-P1 original attract to real
+    // source gameplay. First process created a canonical named racer through
+    // the shipping P1 X/A frontend. This second process boots that actual
+    // typed profile and shares the source D7/60-settle title journey with 20.
+    // Do not fake guest/menu/profile data; use the existing source router.
+    if (std::strcmp(opt, "23") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1))
+                std::abort();
+        } else if (frame == 1602) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1660) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1710 || frame == 3770) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                original_stock_attract_source_ready() ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0) ||
+                g_stock_target != -1 || g_named_profile_stale)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=%u source_admitted=0 guest_writes=0\n",
+                frame);
+        } else if (frame == 3900) {
+            const char* profile = ur_baldosa_modern_profile_selected_id();
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                !original_stock_attract_source_ready() || !profile ||
+                !*profile || !named_profile_still_playable() ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0) ||
+                g_stock_target != 0 || g_named_profile_stale)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=%u source_main=d7 source_stable=60\n",
+                frame);
+        }
         return;
     }
     // CI-only mode 21: actual native keyboard Enter wakes stock demo,

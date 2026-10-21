@@ -2,7 +2,8 @@
 import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
-    verify_original_guest_presentations, verify_source_driven_recovery)
+    verify_original_guest_presentations, verify_source_driven_recovery,
+    verify_named_original_play_after_recovery)
 
 OPEN = "UR_BALDOSA_MODERN_ROOT opened=1"
 MAIN = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1"
@@ -118,6 +119,41 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         ):
             with self.subTest(bad=bad[-110:]), self.assertRaises(ValueError):
                 verify_source_driven_recovery(bad)
+
+    def test_real_named_profile_after_source_recovery_requires_stock_one_player(self):
+        stages = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
+            MAIN,
+            TITLE,
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
+            DEMO.replace("overlay_title=1", "overlay_title=0"),
+            "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
+            "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        )
+        good = "\n".join(stages)
+        result = verify_named_original_play_after_recovery(good)
+        self.assertEqual(result[-1]["phase"], "original_stock_one_player_entered")
+        for index in range(len(stages)):
+            with self.subTest(missing=index), self.assertRaises(ValueError):
+                verify_named_original_play_after_recovery(
+                    "\n".join(s for i, s in enumerate(stages) if i != index))
+        for bad in (
+            good.replace("stock_entered players=1 menu=3c",
+                         "stock_entered players=2 menu=3d"),
+            good.replace("source_stable=60", "source_stable=1"),
+            good.replace("stable=60", "stable=2"),
+            good + "\nUR_BALDOSA_MODERN_ROOT active_profile_stale=1",
+            good + "\nUR_BALDOSA_MODERN_ROOT stock_aborted=1",
+            good + "\nUR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        ):
+            with self.subTest(bad=bad[-130:]), self.assertRaises(ValueError):
+                verify_named_original_play_after_recovery(bad)
 
     def test_reject_forged_guest_events(self):
         good = "\n".join((OPEN, MAIN, TITLE, DEMO))

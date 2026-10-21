@@ -159,6 +159,19 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
                 "UR_BALDOSA_MODERN_ROOT painted=1" in before):
             raise AuditError("Authentic capture contains Modern destination/paint")
         last_stage = "authentic-original"
+    elif route == "play-stock-handoff":
+        before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
+        handoff = "UR_BALDOSA_MODERN_ROOT stock_entered players=1"
+        if handoff not in before:
+            raise AuditError("Play native stock handoff was not witnessed before SDL screenshot")
+        prior, after_handoff = before.split(handoff, 1)
+        if "UR_BALDOSA_MODERN_DESTINATION stage=root " not in prior:
+            raise AuditError("Play stock handoff never started from native root")
+        if ("UR_BALDOSA_MODERN_DESTINATION stage=" in after_handoff or
+                "UR_BALDOSA_MODERN_ROOT reopened_painted=1" in after_handoff or
+                "UR_BALDOSA_MODERN_ROOT painted=1" in after_handoff):
+            raise AuditError("Modern frontend painted again after guest stock handoff")
+        last_stage = "original-stock-1p-after-handoff"
     elif route in ROUTE_STAGES:
         before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
         painted = re.findall(

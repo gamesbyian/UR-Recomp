@@ -49,6 +49,12 @@ def upstream_ppm_visibility(path: Path) -> dict:
 
 ROUTES = {
     "root-quit": ("14", 40, ""),
+    # Genuine native title owner branch #2043. The still route stops smoke
+    # input before frame60; the entered-root route uses real P1 A at frame60.
+    "title-still": ("15", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
+    "title-entered-root": ("15", 40, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
+    "title-reduced-still": ("15", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
+    "title-reduced-entered-root": ("15", 40, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
     # Compare actual P7 frames at two pinned UI-clock phases, plus a
     # reduced-motion negative control. Same guest route and SDL draw.
     "root-motion-normal-zero": ("14", 40, ""),
@@ -134,6 +140,12 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(expected[1]),
     })
     env.update(motion_phase_environment(route))
+    if route.startswith("title-"):
+        # These routes do not synthesize guest input; mode15 uses the
+        # title owner's existing REAL semantic P1 A callback at frame60.
+        env["UR_REDUCED_MOTION"] = "1" if "-reduced-" in route else "0"
+        if route.endswith("-still"):
+            env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME"] = "59"
     if execution_mode == "authentic":
         # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
         # Compare source composition against SDL3 final-drawable readback on
@@ -169,6 +181,15 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
+    if route.startswith("title-"):
+        if "UR_BALDOSA_MODERN_TITLE painted=1" not in log:
+            raise RuntimeError("Real native title raster was never painted")
+        if route.endswith("-still") and (
+                "UR_BALDOSA_MODERN_TITLE entered_root=1" in log):
+            raise RuntimeError("Static title capture accidentally entered root")
+        if route.endswith("-entered-root") and (
+                "UR_BALDOSA_MODERN_ROOT painted=1" not in log):
+            raise RuntimeError("Real native title never reached painted root")
     if route.startswith("root-motion-") and (
             "UR_BALDOSA_MODERN_ROOT quit_gamepad" in log):
         raise RuntimeError("native menu motion capture entered quit before SDL readback")

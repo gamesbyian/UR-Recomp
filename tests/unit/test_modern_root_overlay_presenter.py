@@ -26,6 +26,8 @@ class ModernRootOverlaySharedPresenterTest(unittest.TestCase):
         self.assertEqual(presenter.count("LOCAL TWO PLAYER"), 1)
         self.assertEqual(presenter.count("RUNS AND BEST TIMES"), 1)
         self.assertEqual(presenter.count("DISPLAY AND CONTROLS"), 1)
+        self.assertIn('"X CREATE RACER"', presenter)
+        self.assertNotIn("X CREATE STOCK RACER", presenter)
         self.assertNotIn("SDL_", presenter)
         self.assertNotIn("Rtl", presenter)
         self.assertNotIn("snesrecomp_desktop_", presenter)

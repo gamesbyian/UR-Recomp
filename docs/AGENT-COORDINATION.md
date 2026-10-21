@@ -1,6 +1,6 @@
 # Scheduled agent coordination and recovery protocol
 
-This is the authoritative protocol for all five hourly agents and manually launched integrators. The live ten-position dispatch board is `docs/HOURLY-AGENT-LINES.md`. Position numbers are **mutable slots**, not domain identities. Every scheduled prompt must resolve anchor positions from the board's *current agent table*, then three rotating support positions using its current formula. Ignore historical topic names and assignments in prior handoffs. Assign each active objective a stable work ID, independent of its board position, and preserve its journal when moved.
+This is the authoritative protocol for all five hourly agents and manually launched integrators. The live ten-position dispatch board is `docs/HOURLY-AGENT-LINES.md`. Position numbers are **mutable slots**, not domain identities. Every scheduled prompt resolves anchors from the board's *current agent table*. While closure-first mode is active, work one primary anchored deliverable to disposition and choose another anchor only if justified; historical three-support rotation is read-only awareness, never an extra publication quota. This overrides older five-line requirements but does not change hourly starting times. Ignore historical topic names and assignments in prior handoffs. Assign each active objective a stable work ID, independent of its board position, and preserve its journal when moved.
 
 ## Execution modes: manual GitHub-first vs scheduled recovery
 
@@ -23,10 +23,10 @@ Root: https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn
 ## Mandatory preflight before new research
 
 1. Fetch fresh GitHub main board, WORK-QUEUE, agent journals, current source/blob SHAs, relevant recent/open/merged/closed PRs, and issue comments.
-2. List the Vault root **and** the inbox, incoming, journals, integration receipts and recent evidence folders. Read new submissions and recent relevant material for **all five resolved assignments**; compare with the prior checkpoint and candidate identities, not just filenames.
+2. List the Vault root **and** the inbox, incoming, journals, integration receipts and recent evidence folders. Read new submissions for the primary deliverable and direct dependencies; scan the full Inbox for conflicting/duplicate ownership without deeply reading unrelated support-line archives. Compare candidate IDs and source hashes, not merely filenames.
 3. Reconcile every intended deliverable with both GitHub HEAD/PRs and Drive packages. Classify existing work as pending, in-review, merged, superseded, rejected, blocked, or unknown. Read dependencies, provenance, test results and actual remaining gaps.
 4. Record a preflight receipt containing UTC timestamp, main SHA, board SHA, work IDs/positions, folder inventory watermark, relevant Drive file IDs, PR/head SHAs, duplicates/supersessions and selected next actions. If a source cannot be accessed, say what was inaccessible; do not certify the preflight or assume absence.
-5. Prioritize qualified pending integration/extension and exact new discriminating tests. Five assigned lines require meaningful review and honest outcomes, **not** five invented new patches. Avoid rerunning inherited suites unless necessary for validation; distinguish new tests from inherited tests.
+5. Prioritize qualified pending integration/extension and exact new discriminating tests. One primary deliverable requires a meaningful closure attempt and honest outcome, **not** five new patches, PRs or handoff archives. Avoid rerunning inherited suites unless necessary for validation; distinguish new tests from inherited tests.
 
 ## Candidate package schema (scheduled/recovery-blocked submissions only)
 

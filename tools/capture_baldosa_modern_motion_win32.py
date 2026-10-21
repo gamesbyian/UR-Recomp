@@ -53,7 +53,7 @@ def validate_paths(exe: Path, rom: Path, out: Path) -> tuple[str, str]:
         exe.suffix.lower() != ".exe"):
         raise ValueError("not an actual native Windows x64 executable")
     pe = struct.unpack_from("<I", exe_bytes, 0x3C)[0]
-    if pe > len(exe_bytes) - 26 or exe_bytes[pe:pe + 4] != b"PE\\x00\\x00":
+    if pe > len(exe_bytes) - 26 or exe_bytes[pe:pe + 4] != b"PE\x00\x00":
         raise ValueError("original game has invalid PE source signature")
     if (struct.unpack_from("<H", exe_bytes, pe + 4)[0] != 0x8664 or
         struct.unpack_from("<H", exe_bytes, pe + 24)[0] != 0x20B):

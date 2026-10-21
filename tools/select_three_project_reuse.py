@@ -65,10 +65,21 @@ def validate(register: dict, matrix: dict, lanes: dict) -> list[str]:
         if entry.get("activation") not in ACTIVATIONS:
             errors.append(f"{name}: invalid activation")
         membership = entry.get("lanes")
-        if not isinstance(membership, list) or not membership or len(membership) != len(set(membership)):
+        # Validate element types before hashing. A nested mapping/list
+        # otherwise raises TypeError; an integer or null can evade
+        # a shape-only check and silently contaminate the preflight.
+        if (not isinstance(membership, list) or not membership or
+                any(type(item) is not str or not item.strip()
+                    for item in membership)):
             errors.append(f"{name}: invalid or duplicate lanes")
-        elif not set(membership) <= valid_lanes:
-            errors.append(f"{name}: nonexistent lane(s) {sorted(set(membership) - valid_lanes)}")
+        else:
+            distinct_lanes = set(membership)
+            if len(distinct_lanes) != len(membership):
+                errors.append(f"{name}: invalid or duplicate lanes")
+            elif not distinct_lanes <= valid_lanes:
+                errors.append(
+                    f"{name}: nonexistent lane(s) {sorted(distinct_lanes - valid_lanes)}"
+                )
         for key in sorted(REQUIRED - {"id", "activation", "lanes"}):
             if not isinstance(entry.get(key), str) or not entry[key].strip():
                 errors.append(f"{name}: missing {key}")
@@ -96,7 +107,13 @@ def candidates(register: dict, matrix: dict, *, lane: str = "all", focus: str = 
         by_id[row["id"]] = row
     selection: list[dict] = []
     for entry in register["entries"]:
-        if lane != "all" and lane not in entry["lanes"]:
+        membership = entry.get("lanes") if isinstance(entry, dict) else None
+        if (not isinstance(membership, list) or not membership or
+                any(type(item) is not str or not item.strip()
+                    for item in membership) or
+                len(membership) != len(set(membership))):
+            raise ValueError("invalid or duplicate lanes")
+        if lane != "all" and lane not in membership:
             continue
         activation = entry["activation"]
         if activation == "after_baseline" and not include_future:

@@ -2,6 +2,7 @@
 // the existing modern host. Host painter stubs record every visual operation.
 #include "native/product/modern_root_overlay_presenter.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -380,6 +381,71 @@ int main() {
     view.options_open = false;
     view.options_row_count = 0;
     view.options_notice = {};
+
+    // Optional original *source-pixel* header is now consumable by the
+    // ACTUAL shared root painter, not just the isolated atlas test. This
+    // synthetic buffer contains no copyrighted image and is opt-in only.
+    // Without it, all existing Windows/host callers paint identical text.
+    painted.clear();
+    view.europe = false;
+    std::vector<std::uint32_t> source_pixels(640u * 16u, 0xFF112233u);
+    const ModernMenuSourcePixels source_atlas{
+        source_pixels.data(), source_pixels.size(), 640, 640, 16};
+    std::vector<std::uint32_t> framebuffer(256u * 224u, 0u);
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &source_atlas));
+    assert(!contains("UNIRACERS")); // no synthetic duplicate/shadow draw
+    assert(contains("  PRACTICE")); // all other source-owned routes unchanged
+    assert(framebuffer[static_cast<std::size_t>(16) * 256 + 17] ==
+           0xFF112233u); // at 8+9, 10+6 source-heading origin
+
+    // Regional original source text must use UNIRALLY, not UNIRACERS.
+    painted.clear();
+    view.europe = true;
+    std::fill(framebuffer.begin(), framebuffer.end(), 0u);
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &source_atlas));
+    assert(!contains("UNIRALLY"));
+    assert(framebuffer[static_cast<std::size_t>(16) * 256 + 17] ==
+           0xFF112233u);
+
+    // Source raster is also scaled through the SAME native root at 4x
+    // density without changing source geometry or the host's content.
+    painted.clear();
+    std::vector<std::uint32_t> wide_framebuffer(1536u * 896u, 0u);
+    assert(render_modern_root_overlay(
+        painter, wide_framebuffer.data(), 1536, 896, 4, 356,
+        wide_view, view, &source_atlas));
+    assert(!contains("UNIRALLY"));
+    assert(wide_framebuffer[
+        static_cast<std::size_t>(20 + 6 * 4) * 1536 + (56 + 9 * 4)] ==
+           0xFF112233u);
+
+    // An invalid source buffer or unsupported intermediate alpha must
+    // fail atomically and fall back to the preexisting host title; it
+    // must not render half a real heading or skip the title altogether.
+    painted.clear();
+    std::fill(framebuffer.begin(), framebuffer.end(), 0u);
+    const ModernMenuSourcePixels short_atlas{
+        source_pixels.data(), 10, 640, 640, 16};
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &short_atlas));
+    assert(contains("UNIRALLY"));
+    assert(std::all_of(framebuffer.begin(), framebuffer.end(),
+                       [](std::uint32_t px) {return px == 0;}));
+    painted.clear();
+    source_pixels[0] = 0x80112233u;
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &source_atlas));
+    assert(contains("UNIRALLY"));
+    assert(std::all_of(framebuffer.begin(), framebuffer.end(),
+                       [](std::uint32_t px) {return px == 0;}));
+    source_pixels[0] = 0xFF112233u;
+    view.europe = false;
 
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,

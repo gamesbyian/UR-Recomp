@@ -129,8 +129,14 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         latest = runs["workflow_runs"]
         if not isinstance(latest, list):
             raise ValueError("invalid workflow sample")
+        cancel_groups = Counter((x.get("name") or "unnamed workflow")
+                                for x in latest if x.get("conclusion") == "cancelled")
         result["actions"] = {
             "scope": "latest_100_only_not_a_day_or_billing_measure",
+            "cancelled_by_workflow": [
+                {"workflow": name[:120], "count": count}
+                for name, count in sorted(cancel_groups.items(), key=lambda pair: (-pair[1], pair[0]))[:5]
+            ],
             "sampled": len(latest),
             "outcomes": dict(Counter(x.get("conclusion") or x.get("status") or "unknown"
                                      for x in latest)),
@@ -198,6 +204,10 @@ def markdown(s):
     rows.append("- Actions: " +
                 (f"latest {actions['sampled']} only " + repr(actions["outcomes"]) +
                  " (NOT daily totals or runner minutes)" if actions else "UNKNOWN"))
+    if actions and actions["cancelled_by_workflow"]:
+        rows.append("- Cancellation leads (same latest sample only): " +
+                    "; ".join(f"{x['workflow']}: {x['count']}" for x in actions["cancelled_by_workflow"]) +
+                    ". Counts are NOT lost runner minutes.")
     qa = s["qa"]
     rows.append("- Release ledger: " +
                 (("exact observed main" if qa["source_exact_main"] else "STALE / UNVERIFIED SOURCE") +

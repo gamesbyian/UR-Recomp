@@ -41,6 +41,23 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def read_original_source_p6(path: Path) -> dict:
+    """Exact guest/host P6 preceding SDL, never retroactively synthesized."""
+    if not path.is_file() or path.is_symlink():
+        raise ValueError("Missing genuine original-source pre-SDL witness")
+    b = path.read_bytes()
+    m = re.match(rb"\AP6\n(\d+) (\d+)\n255\n", b)
+    if not m:
+        raise ValueError("Malformed original guest P6 header")
+    w, h = map(int, m.groups())
+    if not (w in (256, 342) and h == 224) or len(b) != m.end() + w*h*3:
+        raise ValueError("Original P6 raster/length mismatch")
+    pixels = memoryview(b)[m.end():]
+    count = sum(any(pixels[i:i+3]) for i in range(0, len(pixels), 3))
+    return {"source_raster": [w,h], "nonblack_rgb_pixels": count,
+            "sha256": digest(path)}
+
+
 def verify_actual_attract_frames(frames: dict[str, bytes],
                                  drawable: tuple[int, int]) -> dict:
     if set(frames) != {name for name, _, _ in STAGES}:
@@ -63,7 +80,8 @@ def verify_actual_attract_frames(frames: dict[str, bytes],
 
 
 def run(exe: Path, rom: Path, out: Path, aspect: str,
-        source_sha: str, timeout: int = 110) -> dict:
+        source_sha: str, timeout: int = 110,
+        diagnose_title_only: bool = False) -> dict:
     if aspect not in ("wide", "4:3"):
         raise ValueError("Invalid original SDL aspect")
     if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
@@ -83,7 +101,9 @@ def run(exe: Path, rom: Path, out: Path, aspect: str,
     out.mkdir(parents=True, exist_ok=False)
     frames = {}
     evidence = []
-    for name, draw, expected_mode in STAGES:
+    stages_to_run = STAGES[:1] if diagnose_title_only else STAGES
+    source_title_diagnostic = None
+    for name, draw, expected_mode in stages_to_run:
         stage = out / name
         stage.mkdir()
         user = stage / "throwaway-test-user"
@@ -114,6 +134,10 @@ def run(exe: Path, rom: Path, out: Path, aspect: str,
             "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH": str(drawable[0]),
             "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(drawable[1]),
         })
+        if name == "original-title":
+            # Genuine guest renderer after original PPU/OSD, before SDL3 upload.
+            env["SNESRECOMP_SCREENSHOT"] = str(stage / "original-presdl.ppm")
+            env["SNESRECOMP_SCREENSHOT_FRAME"] = str(draw)
         proc = subprocess.run(
             [str(exe), "--no-launcher", "--config", str(cfg),
              "--script", str(script), str(rom)],
@@ -136,6 +160,23 @@ def run(exe: Path, rom: Path, out: Path, aspect: str,
                 "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674" not in log):
             raise ValueError("Genuine original demo and native Modern wake were not observed")
         frames[name] = read_p7(raw_file, drawable)
+        if name == "original-title":
+            p6 = read_original_source_p6(stage / "original-presdl.ppm")
+            rgb = frames[name]
+            sdl_nonblack = sum(bool(rgb[i] or rgb[i+1] or rgb[i+2])
+                               for i in range(0, len(rgb), 4))
+            source_title_diagnostic = {
+                "guest_frame": draw,
+                "original_rendered_before_sdl": p6,
+                "actual_sdl_rgb_nonblack_pixels": sdl_nonblack,
+                "actual_sdl_pixel_buffer_sha256": hashlib.sha256(rgb).hexdigest(),
+                "original_title_visible_in_source": p6["nonblack_rgb_pixels"] > 0,
+                "original_title_visible_in_sdl": sdl_nonblack > 0,
+                "source_versus_final_sdl_parity_proven": False,
+                "diagnostic_only": True, "release_gate_credit": 0,
+            }
+            (stage / "original-title-source-vs-sdl.json").write_text(
+                json.dumps(source_title_diagnostic, indent=2) + "\n", encoding="utf-8")
         png = stage / "native-sdl.png"
         convert(raw_file, png, expected_size=drawable)
         evidence.append({
@@ -146,6 +187,22 @@ def run(exe: Path, rom: Path, out: Path, aspect: str,
             "original_native_process_log_sha256": digest(log_path),
             "actual_original_source_events": original_source_events,
         })
+    if diagnose_title_only:
+        if source_title_diagnostic is None:
+            raise ValueError("No original-title diagnostic witness")
+        receipt = {
+            "schema_version": 1, "source_head": source_sha,
+            "actual_native_windows_executable_sha256": digest(exe),
+            "original_usa_rom_sha256": USA,
+            "drawable": list(drawable),
+            "source_guest_original_title_vs_sdl": source_title_diagnostic,
+            "art_and_hardware_approved": False,
+            "title_full_attract_sdl_accepted": False,
+            "release_gate_credit": 0,
+        }
+        (out / "original-title-diagnostic-only.json").write_text(
+            json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+        return receipt
     diffs = verify_actual_attract_frames(frames, drawable)
     receipt = {
         "schema_version": 1,
@@ -178,10 +235,13 @@ def main() -> int:
     p.add_argument("--source-sha", required=True)
     p.add_argument("--aspect", choices=("wide", "4:3"), default="wide")
     p.add_argument("--timeout", type=int, default=110)
+    p.add_argument("--diagnose-title-only", action="store_true",
+                   help="Only one original-source P6 versus final SDL draw, no acceptance verdict")
     args = p.parse_args()
     result = run(args.exe, args.rom, args.out, args.aspect,
-                 args.source_sha, args.timeout)
-    print("UR_MODERN_ORIGINAL_ATTRACT_REAL_SDL=passed")
+                 args.source_sha, args.timeout, args.diagnose_title_only)
+    print("UR_MODERN_ORIGINAL_TITLE_P6_P7_DIAGNOSTIC=collected" if args.diagnose_title_only
+          else "UR_MODERN_ORIGINAL_ATTRACT_REAL_SDL=passed")
     print(json.dumps(result, indent=2))
     return 0
 

@@ -881,3 +881,39 @@ and a safe host handoff can show in final SDL, without automatically approving
 the current Modern artwork or enabling the original attract flow by default.
 That default, the final source-faithful Modern title, owner human likeness
 approval, physical pads/4K/PAR and all original/native/release checks remain HOLD.
+
+
+### Source-versus-SDL attract-title blank-frame discriminator
+
+New genuine Windows x64 visual-QA run
+[39573993511](https://github.com/gamesbyian/UR-Recomp/actions/runs/39573993511),
+original bounded artifact **12334086711**, independently recomputed ZIP
+SHA256 `9f27885be146b2a08782f900d812c5787b1fc755cad9f12156ec1fdc97ee5f4c`,
+passed the exact title animation controls again and observed the original
+game's source state MAIN440→attract TITLE943→DEMO1532→P1 wake1600→Modern
+root1674. Its *full-original-title attempt* failed at the new stage
+`draw=1000 guest_frame=1000`: **real SDL RGB entirely black** at
+1280×720, 0 nonblack, 0 nonzero-alpha pixels. Its original-demo frame1584
+**did** contain 660713 nonblack RGB pixels (alpha zero, an existing SDL3
+readback characteristic), restored Modern title1616 contained 919040,
+and native root1696 contained 914827. All four source/PE-bound raw P7
+and lossless PNGs match pixel-for-pixel. This result proves demo→wake→root
+visible output while **refusing** to claim original title art at frame1000.
+
+The source `0x009F=84` flag at frame943 alone does **not** establish visible
+guest PPU graphics at frame1000. Next cheapest discriminator: reuse the native
+host's existing exact-frame `SNESRECOMP_SCREENSHOT` capture of the original
+pre-SDL guest-composed **P6 at the same guest/draw1000**; compare its
+nonblack RGB to SDL P7 in the same actual original game process. The new
+branch-only `--diagnose-title-only` test prints and retains both unmodified
+rasters, SHA256, source/PE identity and a negative-evidence JSON, without
+declaring success if either is blank. The full four-stage visual acceptance
+continues to fail closed until a source-visible correct original-title frame
+is explicitly chosen and then proved in real SDL. Source title artwork
+might be legitimately blank during course loading; **no game PPU or guest
+simulation patch is justified** without the same-frame source evidence.
+
+All diagnostics are retained using an exact file allowlist, excluding game
+ROM, game executable, save SRAM, test user roots or private material. This
+is a test-only observational addition, not source/native parity or release
+credit. Human source-character art design, 4K/PAR and real controllers HOLD.

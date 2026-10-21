@@ -135,6 +135,37 @@ jobs:
       # Title-owner-only original source identity check: active guest PPU
       # paints its *whole* original title and real 2P race; the native host
       # consumes P1 wake then opens the same Modern root without guest writes.
+      # Decision-first discriminator for the independently observed black
+      # original title at guest/draw1000: compare genuine guest-rendered P6
+      # before SDL with the exact SDL3 readback on SAME Windows native PE.
+      # This never asserts success/visibility from an intentionally blank frame.
+      - name: Diagnose original guest full title P6 versus final SDL at frame1000
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_modern_title_attract_sdl_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --aspect wide --diagnose-title-only \
+            --out "$RUNNER_TEMP/modern-title-original-p6-vs-sdl-diagnostic-pr2043"
+          echo "Measured exact P6 original guest versus P7 SDL at draw1000; do not infer title art visibility or acceptance from the source state flag alone." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded original-title source-versus-SDL diagnostic
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-original-source-vs-sdl-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title-diagnostic-only.json
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/original-presdl.ppm
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/original-title-source-vs-sdl.json
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/native-sdl.pam
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/native-sdl.png
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Prove actual original stock attract/demo and safe Modern wake SDL
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
         run: |
@@ -162,6 +193,8 @@ jobs:
             ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-sdl.pam
             ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-sdl.png
             ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-process.log
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/original-title/original-presdl.ppm
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/original-title/original-title-source-vs-sdl.json
           if-no-files-found: warn
           retention-days: 7
 

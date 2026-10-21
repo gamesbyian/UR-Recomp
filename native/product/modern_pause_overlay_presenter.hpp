@@ -33,7 +33,7 @@ inline bool render_native_modern_pause_overlay(
     paint.draw_text(pixels, stride, height, x + 18, y + 13,
                     "UNIRACERS", pal.title_yellow, 2);
     paint.draw_text(pixels, stride, height, x + 18, y + 41,
-                    "GAME PAUSED", pal.secondary_grey, 1);
+                    "GAME PAUSED", kModernMenuCheckerLegibleGrey, 1);
     struct Row {
         UrModernPauseItem item;
         const char* label;
@@ -105,7 +105,7 @@ inline bool render_native_modern_pause_options(
     paint.draw_text(pixels, stride, height, x + 9 * scale, y + 6 * scale,
                     "UNIRACERS", pal.title_yellow, 2 * scale);
     paint.draw_text(pixels, stride, height, x + 8 * scale, y + 36 * scale,
-                    "GAME PAUSED", pal.secondary_grey, scale);
+                    "GAME PAUSED", kModernMenuCheckerLegibleGrey, scale);
     render_modern_options_modal(paint, pixels, stride, height, scale,
                                 kPanelW, x, y, view);
     return true;

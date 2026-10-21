@@ -16,8 +16,10 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 try:
     from .agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
+    from .validate_history_custody import load as load_custody, validate as validate_custody
 except ImportError:
     from agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
+    from validate_history_custody import load as load_custody, validate as validate_custody
 
 REPO = "gamesbyian/UR-Recomp"
 def timestamp(value):
@@ -66,13 +68,13 @@ def paged(get, path, max_pages=3):
             return all_rows, True
     return all_rows, False
 
-def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=REPO):
+def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=REPO, custody=None):
     now = now or datetime.now(timezone.utc)
     base = "/repos/" + repo
     result = {
         "schema": "ur-ops-live/1", "observed_at_utc": now.isoformat().replace("+00:00", "Z"),
         "repository": repo, "main": None, "prs": None, "actions": None,
-        "qa": None, "errors": {}, "drive": "UNKNOWN_NOT_CONNECTED",
+        "qa": None, "backup": None, "errors": {}, "drive": "UNKNOWN_NOT_CONNECTED",
         "scheduled_agent_health": "UNKNOWN_NOT_CONNECTED",
         "dispatch": [{"agent": x["number"], "minute": x["minute"], "work_ids": x["work_ids"]}
                      for x in board["agents"]],
@@ -86,6 +88,24 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         result["main"] = {"sha": sha, "protected": b.get("protected")}
     except (ValueError, TypeError, KeyError, AttributeError) as err:
         result["errors"]["main"] = str(err)
+    if custody is not None:
+        try:
+            receipt = validate_custody(custody)
+            current = result["main"]["sha"] if result["main"] else None
+            result["backup"] = {
+                "source_commit": receipt["source_commit"],
+                "recorded_restored_commits": receipt["commit_count"],
+                "verified_at_utc_date": receipt["verification_date_utc"],
+                "multipart_drive_items": receipt["part_count"] + 1,
+                "status": "historical_restored_backup",
+                "observed_main_exactly_in_backup": current == receipt["source_commit"] if current else None,
+                "current_drive_integrity": "UNKNOWN_NOT_CHECKED",
+                "scope": "main_git_history_only",
+            }
+        except (TypeError, ValueError, KeyError) as err:
+            result["errors"]["backup"] = "invalid custody receipt: " + str(err)
+    else:
+        result["errors"]["backup"] = "no historical backup receipt available"
     try:
         prs, complete = paged(get, base + "/pulls?state=open")
         if not all(isinstance(x, dict) for x in prs):
@@ -184,6 +204,16 @@ def markdown(s):
                  f"; {qa['gate_count']} gates " + repr(qa["gate_statuses"]) +
                  f"; complete USA events {qa['usa_events_accepted']}/{qa['usa_events_total']}"
                  if qa else "UNKNOWN"))
+    backup = s["backup"]
+    if backup:
+        status = ("current main exactly matches saved backup" if backup["observed_main_exactly_in_backup"]
+                  else "historical backup only; current main not proved recoverable at this SHA")
+        rows.append("- **Drive backup (recorded):** " + backup["source_commit"][:12] +
+                    " / " + str(backup["recorded_restored_commits"]) + " commits, " +
+                    backup["verified_at_utc_date"] + "; " + status +
+                    ". Current Drive file integrity UNKNOWN (not checked in this run).")
+    else:
+        rows.append("- **Drive backup:** UNKNOWN (no valid historical custody receipt)")
     rows.extend(["", "## Dispatch definitions, not observed scheduled-agent activity", "",
                  "| Agent | Start | Primary / fallback |", "| --- | --- | --- |"])
     for a in s["dispatch"]:
@@ -209,10 +239,14 @@ def main():
     board = extract_board(BOARD.read_text(encoding="utf8"))
     registry = load_json(REGISTRY)
     validate_registry(registry, board)
+    try:
+        recorded_custody = load_custody()
+    except (OSError, ValueError):
+        recorded_custody = None
     report = snapshot(reader(os.environ.get("GITHUB_TOKEN", "")), board=board,
                       registry=registry,
                       ledger=load_json(ROOT / "docs/RELEASE-QUALITY-LEDGER.json"),
-                      local_head=head_sha())
+                      local_head=head_sha(), custody=recorded_custody)
     output = (markdown(report) if args.format == "markdown"
               else json.dumps(report, indent=2, ensure_ascii=False) + "\n")
     if args.json_output:

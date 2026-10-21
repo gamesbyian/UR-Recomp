@@ -7,6 +7,27 @@ proved Git-side restoration but hit the Drive transfer limit. The bounded
 chunk-transfer follow-up is
 [20261021-chunked.json](backup-requests/20261021-chunked.json).
 
+## Verified first Drive restore (2026-10-21)
+
+The first full multipart restore is now independently verified, beyond the
+GitHub-side self-test. The [machine-readable custody receipt](main-history-custody.json)
+records exact source commit `7e9a1be4016b7a094c93603e2bad116a7ebf6ba7`,
+8,118 ancestors, all five Drive-stored part digests, the reassembled
+408,610,900-byte bundle SHA-256, and a fresh successful `git clone`/`git fsck`
+of the bundle downloaded **from Drive**. The
+[verified private backup folder](https://drive.google.com/drive/folders/1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5)
+contains one manifest and five part ZIPs; the complete
+[source-bound verification discussion](https://github.com/gamesbyian/UR-Recomp/pull/2164#issuecomment-6310500375)
+includes exact Drive IDs. The `tools/validate_history_custody.py` command
+validates this receipt's internal consistency and fail-closed historical
+status; it does *not* re-download Drive bytes.
+
+**Currency and scope:** This is a valid historical committed-main recovery
+point, not a continuous mirror of every subsequent `main` commit. A new
+backup needs its own verified custody receipt and independent download/restore.
+Neither `git clone` nor a stored hash backs up GitHub issues, PR reviews,
+work-in-progress agent branches, or ChatGPT schedules.
+
 ## Creation and validation
 
 [Verified main history backup](https://github.com/gamesbyian/UR-Recomp/actions/workflows/verified-main-history-backup.yml)

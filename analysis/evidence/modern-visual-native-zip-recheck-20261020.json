@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "title": "Independent recheck of retained final SDL Modern title/menu frames and source-RGB contrast",
+  "observation_date": "2026-10-20 (America/Edmonton); historical run created 2026-10-21 UTC",
+  "authority": "docs/MODERN-UI-VISUAL-FIDELITY.md",
+  "source": {
+    "github_run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39536021531",
+    "run_id": 39536021531,
+    "merge_checkout_sha": "44c192d9c43e69068461f5d524b50a9d097ca907",
+    "windows_executable_artifact_id": 12318590276,
+    "windows_executable_architecture": "AMD64 PE32+",
+    "windows_executable_bytes": 20441088,
+    "windows_executable_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+    "original_artifact_ids": [
+      12317846089,
+      12317786197,
+      12317431511,
+      12318335412,
+      12318355357,
+      12317956183
+    ]
+  },
+  "independent_zip_recheck": {
+    "selected_successful_process_log_hash_match": 21,
+    "native_sdl_P7_matches_lossless_png_pixel_for_pixel": 21,
+    "original_native_sdl_P7_images_checked": 21,
+    "original_capture_artifacts_checked": 6,
+    "allowed_modes": [
+      "modern",
+      "authentic"
+    ],
+    "observed_window_dimensions": [
+      [
+        1024,
+        768
+      ],
+      [
+        1280,
+        720
+      ]
+    ],
+    "route_coverage": [
+      "normal 256/342 source root",
+      "keyboard Records",
+      "semantic P1 Options",
+      "P1 initial racer profile",
+      "Practice available",
+      "anonymous unbound local 2P warning",
+      "P1 Play-to-original handoff",
+      "original Authentic isolation",
+      "title normal/reduced and P1 title-to-root"
+    ],
+    "note": "Exact immutable original CI run. Real SDL rendered game executable on GitHub Windows runner, inspected from original zipped files. Semantic injected input is not physical P1/P2 hardware. No new current-main Windows executable was built in this follow-up."
+  },
+  "measured_original_frame": {
+    "path_within_artifact": "ur-modern-win32-visual-1280x720 native P7 selected by original receipt",
+    "source_P7_sha256": "851e058d918bc001f2a2571b8090a3870afeb551a38d2b30b742e19f70641150",
+    "physical_output_px": [
+      1280,
+      720
+    ],
+    "roi_xyxy": [
+      50,
+      140,
+      590,
+      182
+    ],
+    "foreground_rgb": [
+      152,
+      152,
+      152
+    ],
+    "foreground_pixels": 4670,
+    "background_samples": [
+      {
+        "rgb": [
+          47,
+          47,
+          47
+        ],
+        "original_pixels": 9103,
+        "source_rgb_contrast_ratio": 4.6412,
+        "text_pixels_within_two_px": 2466
+      },
+      {
+        "rgb": [
+          80,
+          80,
+          80
+        ],
+        "original_pixels": 8907,
+        "source_rgb_contrast_ratio": 2.7952,
+        "text_pixels_within_two_px": 1250
+      }
+    ],
+    "conventional_normal_text_contrast_reference": 4.5,
+    "source_rgb_reference_met": false,
+    "alpha_values_observed": [
+      224,
+      255
+    ],
+    "caution": "Source RGB only, not alpha-composited physical display. Later main added a legibility constant but this original executable predates it; no newer SDL proof or human sign-off is implied."
+  },
+  "acceptance": {
+    "matrix": "analysis/modern-visual-acceptance-matrix.json",
+    "matrix_exact_cases": 25,
+    "close_technical_candidates": 5,
+    "partial_related_evidence": 9,
+    "no_corresponding_exact_capture": 11,
+    "formal_visual_cases_accepted": 0,
+    "human_visual_approval": false,
+    "physical_controller_monitor_audio_approval": false,
+    "original_equivalence_approval": false,
+    "release_gate_credit": 0,
+    "remaining": [
+      "current-main exact Windows capture",
+      "strict 640x480/1920x1080 and virtual UHD screenshots in the nominated build",
+      "earned 1P/2P Records",
+      "named genuine P2 join",
+      "locked Practice",
+      "held confirm/back",
+      "focus-loss",
+      "physical controller, display and audio",
+      "independent art-direction judgment",
+      "guest-state/original CRC parity"
+    ]
+  }
+}

@@ -36,20 +36,118 @@ PARTIAL = {
     "transition-back-release": "native P1 title→root captured; held-confirm/back edge release not tested",
     "authentic-stock-wide": "original stock RGB at 1280x720 preserved; physical pad and source CRC oracle not established",
 }
-def reconcile(matrix: dict, evidence: dict) -> dict:
+# This consumer names one frozen historical run. New native captures need a new
+# independently verified cohort/contract, not an edited old manifest claiming
+# to be the same 21 screenshots.
+FROZEN_RUN_ID = 39536021531
+FROZEN_CHECKOUT_SHA = "44c192d9c43e69068461f5d524b50a9d097ca907"
+FROZEN_PE_SHA256 = "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad"
+CANONICAL_CASE_IDS = frozenset({
+    "title-wide-1080", "title-wide-keyboard", "title-compact-43",
+    "title-reduced-motion", "root-wide-720", "root-wide-1080",
+    "root-wide-4k-virtual", "root-43-768", "root-43-480",
+    "root-moved-selection", "root-keyboard", "root-disabled",
+    "profile-first-run", "profile-switch-existing", "multiplayer-p2-owner",
+    "practice-locked", "options-available", "options-refused",
+    "records-empty", "records-earned-1p", "records-earned-2p",
+    "transition-back-release", "authentic-title-stock",
+    "authentic-stock-wide", "focus-loss-modal",
+})
+# Exact input/state interpretation for the five close technical candidates,
+# deliberately not inferred from any other captured route.
+CANDIDATE_REQUIREMENTS = {
+    "title-reduced-motion": ("title", "modern", "16:9", "pad-p1", "reduced-motion"),
+    "root-wide-720": ("root", "modern", "16:9", "pad-p1", "normal"),
+    "root-43-768": ("root", "modern", "4:3", "pad-p1", "normal"),
+    "profile-first-run": ("profiles", "modern", "16:9", "pad-p1", "no-profile"),
+    "options-available": ("options", "modern", "4:3", "pad-p1", "normal"),
+}
+
+
+# Real ZIP inventory independently re-read on 2026-10-20. Reject a manifest
+# which silently rewrites a noncandidate route while retaining its total.
+# Full raw P7/log/PE revalidation is still performed by the archive checker.
+FROZEN_CAPTURES = {
+    "visual-1024x768": ("root-quit", "1024x768"),
+    "visual-1280x720": ("root-quit", "1280x720"),
+    "authentic-win32-control-1024x768": ("authentic-stock", "1024x768"),
+    "authentic-win32-control-1280x720": ("authentic-stock", "1280x720"),
+    "play-stock-1024x768": ("play-stock-handoff", "1024x768"),
+    "play-stock-1280x720": ("play-stock-handoff", "1280x720"),
+    "journey-multiplayer-unbound": ("multiplayer-unbound", "1024x768"),
+    "journey-options-p1": ("options-p1", "1024x768"),
+    "journey-practice-picker-p1": ("practice-picker-p1", "1024x768"),
+    "journey-profile-first-p1": ("profile-first-p1", "1280x720"),
+    "journey-records-keyboard": ("records-keyboard", "1024x768"),
+    "wide-destination-multiplayer-unbound": ("multiplayer-unbound", "1280x720"),
+    "wide-destination-options-open-p1": ("options-open-p1", "1280x720"),
+    "wide-destination-practice-picker-p1": ("practice-picker-p1", "1280x720"),
+    "wide-destination-profile-first-p1": ("profile-first-p1", "1280x720"),
+    "wide-destination-records-keyboard": ("records-keyboard", "1280x720"),
+    "integrated-title-title-intro-compact": ("title-intro-compact", "1024x768"),
+    "integrated-title-title-intro-reduced": ("title-intro-reduced", "1280x720"),
+    "integrated-title-title-intro-wide": ("title-intro-wide", "1280x720"),
+    "integrated-title-title-transition-root-reduced": ("title-transition-root-reduced", "1280x720"),
+    "integrated-title-title-transition-root": ("title-transition-root", "1280x720"),
+}
+
+
+def validate_frozen_cohort(matrix: dict, evidence: dict) -> tuple[list, list]:
+    """Refuse substituted source/PE, omitted capture flags or a rewritten case.
+
+    The source flags are independently reported observations, not raw P7
+    verification. Original Actions ZIP bytes must still be audited with
+    qa_modern_visual_actions_archive.py before this summary can be trusted.
+    """
     cases = matrix.get("cases")
     captures = evidence.get("cases")
     if not isinstance(cases, list) or not isinstance(captures, list):
         raise ValueError("matrix/evidence cases missing")
-    if len(cases) != 25 or len({x.get("id") for x in cases}) != 25:
+    if (len(cases) != 25 or not all(isinstance(x, dict) for x in cases)
+            or {x.get("id") for x in cases} != CANONICAL_CASE_IDS):
         raise ValueError("not the 25 canonical distinct cases")
-    if len(captures) != 21 or any(
-            x.get("actual_native_P7_png_RGBA_byte_equal") is not True or
-            x.get("successful_native_log_hash_verified") is not True
-            for x in captures):
-        raise ValueError("not the qualified 21-case original SDL cohort")
-    if evidence.get("counts",{}).get("lossless_exact_RGBA_matches") != 21:
-        raise ValueError("source-native capture count mismatch")
+    run = evidence.get("run")
+    if (evidence.get("schema_version") != 1 or not isinstance(run, dict)
+            or run.get("id") != FROZEN_RUN_ID
+            or run.get("merge_checkout_sha") != FROZEN_CHECKOUT_SHA
+            or run.get("win32_conclusion") != "success"
+            or not isinstance(run.get("executable"), dict)
+            or run["executable"].get("sha256") != FROZEN_PE_SHA256
+            or run["executable"].get("architecture") != "AMD64 PE32+"):
+        raise ValueError("unqualified historical source/PE/run identity")
+    counts = evidence.get("counts")
+    if (not isinstance(counts, dict)
+            or counts.get("original_native_capture_receipts") != 21
+            or counts.get("lossless_exact_RGBA_matches") != 21
+            or counts.get("successful_process_logs") != 21
+            or counts.get("actual_human_visual_signoffs") != 0
+            or counts.get("release_gate_credit") != 0):
+        raise ValueError("source-native capture count/approval mismatch")
+    if (len(captures) != 21 or not all(isinstance(x, dict) for x in captures)
+            or any(x.get(field) is not True for x in captures for field in (
+                "actual_native_P7_png_RGBA_byte_equal",
+                "successful_native_log_hash_verified",
+                "source_sha_exact", "exe_sha_exact"))):
+        raise ValueError("not the qualified 21-case source/PE-bound SDL cohort")
+    ids = [x.get("id") for x in captures]
+    if (any(not isinstance(x, str) or not x for x in ids)
+            or len(set(ids)) != 21):
+        raise ValueError("duplicate or missing original capture ID")
+    reported = {x["id"]: (x.get("route"), x.get("output")) for x in captures}
+    if reported != FROZEN_CAPTURES:
+        raise ValueError("frozen native capture ID/route/geometry inventory changed")
+    for case in cases:
+        if case["id"] in CANDIDATE_REQUIREMENTS:
+            expected = CANDIDATE_REQUIREMENTS[case["id"]]
+            actual = tuple(case.get(k) for k in (
+                "screen", "mode", "aspect", "input", "state"))
+            if actual != expected:
+                raise ValueError("technical candidate's matrix state/owner was rewritten: " + case["id"])
+    return cases, captures
+
+
+def reconcile(matrix: dict, evidence: dict) -> dict:
+    cases, captures = validate_frozen_cohort(matrix, evidence)
     if set(CASE_MAP) - {x["id"] for x in cases} or set(PARTIAL) - {x["id"] for x in cases}:
         raise ValueError("mapping references noncanonical acceptance cases")
     rows = []

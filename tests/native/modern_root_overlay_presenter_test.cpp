@@ -164,7 +164,8 @@ int main() {
     assert(contains("UNIRALLY"));
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
-    assert(contains("SELECTED"));
+    assert(contains("RECORDS")); // real active destination in wide preview
+    assert(!contains("SELECTED")); // generic engineering heading removed
     // Original stock-family wide context must expose both complete clauses.
     // Earlier 320px-panel output silently emitted only "RUNS AND BEST".
     assert(contains("RUNS AND"));
@@ -230,6 +231,13 @@ int main() {
                                           real_wide_view,view));
         assert(contains(expected_lines[i][0]));
         assert(contains(expected_lines[i][1]));
+        // Independent of the route hint, its yellow preview heading is
+        // exactly the selected source destination, never a stale label.
+        const char* active = modern_root_destination_label(
+            modern_root_destination_from_index(i));
+        assert(contains(active));
+        assert(drawn_in_color(active, kModernStockMenuPalette.title_yellow));
+        assert(!contains("SELECTED"));
         assert(text_draws_fit(real_wide_view));
         assert(rect_draws_fit(real_wide_view));
         assert(!contains("TOUR AND CONT")); // old silently cropped copy

@@ -41,6 +41,15 @@ def sample_art_files(directory):
 def receipt_for(paths):
     return {
         "schema_version": 1,
+        # Synthetic, explicitly non-original source digests prove only the
+        # manifest's required shape. They must not grant ROM provenance.
+        "source_fixture": mvl.SCRIPT,
+        "source_main_tag": "mvl-idle-000",
+        "source_detail_tag": "mvl-track-00",
+        "source_ppu_sha256": {
+            kind: hashlib.sha256(("synthetic-only:" + kind).encode()).hexdigest()
+            for kind in verify.SOURCE_PPU_FIELDS
+        },
         "reference_only": True,
         "asset_distribution_approved": False,
         "native_render_and_visual_acceptance": False,
@@ -83,6 +92,54 @@ class SourceArtBundleVerifierTest(unittest.TestCase):
             paths["cursor"].write_bytes(data[:-1] + bytes([data[-1] ^ 1]))
             with self.assertRaisesRegex(ValueError, "hash"):
                 verify.verify_source_art_bundle(receipt, paths)
+
+    def test_missing_or_forged_capture_receipt_must_fail_before_png_admission(self):
+        with tempfile.TemporaryDirectory() as temp:
+            paths = sample_art_files(Path(temp))
+            receipt = receipt_for(paths)
+            # Historical compatibility tests admitted all four PNGs even
+            # when the entire source VRAM/CGRAM identity was absent.
+            for missing in ("source_fixture", "source_main_tag",
+                            "source_detail_tag", "source_ppu_sha256"):
+                with self.subTest(missing=missing):
+                    bad = json.loads(json.dumps(receipt))
+                    del bad[missing]
+                    with self.assertRaisesRegex(
+                            ValueError, "source capture|source PPU"):
+                        verify.verify_source_art_bundle(bad, paths)
+            for tag, key in (("mvl-idle-002", "source_main_tag"),
+                             ("unrelated.script", "source_fixture"),
+                             ("mvl-track-evil", "source_detail_tag"),
+                             (None, "source_detail_tag")):
+                with self.subTest(tag=tag):
+                    bad = json.loads(json.dumps(receipt))
+                    bad[key] = tag
+                    with self.assertRaisesRegex(ValueError, "source capture"):
+                        verify.verify_source_art_bundle(bad, paths)
+            for changed in ("main_vram", "main_cgram",
+                            "detail_vram", "detail_cgram"):
+                with self.subTest(ppu_digest=changed):
+                    bad = json.loads(json.dumps(receipt))
+                    bad["source_ppu_sha256"][changed] = "not-a-sha256"
+                    with self.assertRaisesRegex(ValueError, "source PPU"):
+                        verify.verify_source_art_bundle(bad, paths)
+                    bad = json.loads(json.dumps(receipt))
+                    del bad["source_ppu_sha256"][changed]
+                    with self.assertRaisesRegex(ValueError, "source PPU"):
+                        verify.verify_source_art_bundle(bad, paths)
+            bad = json.loads(json.dumps(receipt))
+            bad["source_ppu_sha256"]["main_vram"] = "A" * 64
+            with self.assertRaisesRegex(ValueError, "source PPU"):
+                verify.verify_source_art_bundle(bad, paths)
+            bad = json.loads(json.dumps(receipt))
+            bad["source_ppu_sha256"]["unexpected"] = "0" * 64
+            with self.assertRaisesRegex(ValueError, "source PPU"):
+                verify.verify_source_art_bundle(bad, paths)
+            # Complete source fields remain a claim, not permission to ship.
+            good = verify.verify_source_art_bundle(receipt, paths)
+            self.assertTrue(good["source_bundle_verified"])
+            self.assertFalse(good["distribution_approved"])
+            self.assertFalse(good["final_native_capture_approved"])
 
     def test_bad_png_crc_filter_and_trailing_bytes_refused_even_with_matching_hash(self):
         with tempfile.TemporaryDirectory() as temp:

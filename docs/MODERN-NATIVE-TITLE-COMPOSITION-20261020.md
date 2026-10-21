@@ -724,3 +724,31 @@ harness gating mistake, not a genuine profile save corruption.
 The exact real Windows x64 owner run [39559925092](https://github.com/gamesbyian/UR-Recomp/actions/runs/39559925092), head `b9309e36d2464d7c7bed0d9fdcd1de55fa430d85`, original artifact **12327198452** (ZIP SHA256 `7523b277e1f5b24d74e74b7fbdbcc33aec70b9699359b94aa9d8ea075860e313`) proves that actually bootstrapped named P1 racer SRAM changes original-game first-cycle observation from anonymous MAIN440/TITLE943/DEMO1532 to **named MAIN437/TITLE940/DEMO1529**. Both preserve their measured 503/589-frame intervals. The stock guest naturally recovers MAIN and reaches 60 consecutive D7 observations at frame3815 (versus 3818 anonymous), then the real native router emits `stock_requested players=1`, diagnostic `named_play_requested frame=3900`, and `stock_entered players=1 menu=3c`. The named game was genuinely captured and safely entered; the old verifier rejected it because it required anonymous timestamps and reversed the source/router logging order.
 
 Correction: a strictly *named-SRAM-specific* checker validates all three original source phases and source pixels/visibility flags, exact observed cohort, one 60-observation native recovery, a single real 1P stock entry and event order. Adversarial tests reject anonymous substitution, altered timestamps, duplicate events, wrong overlay visibility, premature routing and reordered logs. No original clock, guest state, production preview default or controller logic changes. This earlier run and screenshots are evidence for the bug, not a green judgment about the new code; fresh exact-head Windows/tooling qualification is required. Human aesthetic approval, final named-case SDL P7, physical pads, 4K/7:6 display, and all release ledger gates remain HOLD.
+
+## Actual final SDL entry/sweep evidence expansion (2026-10-21)
+
+The original/native P6 title entry/lift and exit-sweep screenshots were already
+qualified; the combined SDL screenshots previously showed only a settled
+title and completed root. The title lane now adds
+\`tools/capture_modern_title_entry_sdl_win32.py\` to the **existing Windows AOT
+bridge**, strictly on draft title PR #2043. It reuses the existing Baldosa
+\`SDL_RenderReadPixels\` hook and the project's exact lossless P7→PNG
+converter, in two requested drawable configurations: 1280×720 (342 logical)
+and 1024×768 (256 logical). Six fresh original-game processes each capture
+draw/guest frame 16 entry, 40 settled, 64 confirmed exit, 100 root, and
+reduced-motion draws 16/40. A genuine semantic P1 A is supplied at frame60
+through the existing in-game route. No turbo, test renderer, guessed art,
+guest write, animation clock or second frontend is added.
+
+The source/PE/ROM-bound validator refuses absent native game/title markers,
+wrong logical/drawable geometry, source/SDL frame drift, missing/blank or
+truncated final SDL pixels, static entry logo, changed logo during exit,
+missing confirmation prompt motion, no visible root handoff, and any
+reduced-motion frame changes. The real raw P7, exact PNG, native process log,
+source SHA, executable digest and conservative no-release-credit receipt
+remain in the same branch-gated CI artifact for independent review.
+
+**Status:** pending actual Windows run at the introducing source head. A
+unit mock verifies rejection conditions only. Physical USB pads, 4K/PAR,
+human aesthetic approval, original font/arrow artwork and all release
+ledger gates remain separately on HOLD.

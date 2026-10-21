@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "kind": "independent-title-native-Win32-source-vs-host-presented-ROI-verification",
+  "title_pr": 2043,
+  "title_head_sha": "5b524bd2f7857d167bfce748b496b3282345e9df",
+  "workflow_run_id": 39517699832,
+  "title_source_artifact_id": 12309505531,
+  "candidate_artifact_id": 12309837038,
+  "tested_executable": {
+    "name": "UR-Recomp-Baldosa-Windows-x64/UniracersSNESRecomp.exe",
+    "bytes": 20408832,
+    "sha256": "09300a1f92f9942ab6154c43c84e32bdb346946eefd516c630130f63aea4377d",
+    "pe_architecture": "AMD64 PE32+"
+  },
+  "evidence_extraction": "Decompress original Actions artifact and nested ROMLESS candidate ZIP; independently parse P7 RGBA and host presented P6 RGB, SHA256-check each receipt/candidate, compare every source RGB pixel to same coordinate in presented PPM; report full frame separately from title/root interior.",
+  "cases": [
+    {
+      "id": "title-root-wide-gamepad",
+      "source_directory": "modern-title-native-pr2043",
+      "logical_raster": [
+        342,
+        224
+      ],
+      "title": {
+        "source_guest_frame": 48,
+        "present_frame": 32,
+        "roi": {
+          "x": 52,
+          "y": 27,
+          "w": 238,
+          "h": 81
+        },
+        "matched_rgb_pixels": 19278,
+        "total_roi_pixels": 19278,
+        "full_frame_matched_pixels": 76080,
+        "full_frame_pixels": 76608
+      },
+      "root": {
+        "source_guest_frame": 80,
+        "present_frame": 80,
+        "roi": {
+          "x": 61,
+          "y": 17,
+          "w": 218,
+          "h": 142
+        },
+        "matched_rgb_pixels": 30956,
+        "total_roi_pixels": 30956,
+        "full_frame_matched_pixels": 76080,
+        "full_frame_pixels": 76608
+      }
+    },
+    {
+      "id": "title-root-4by3-gamepad",
+      "source_directory": "modern-title-native-4by3-pr2043",
+      "logical_raster": [
+        256,
+        224
+      ],
+      "title": {
+        "source_guest_frame": 48,
+        "present_frame": 32,
+        "roi": {
+          "x": 9,
+          "y": 27,
+          "w": 238,
+          "h": 81
+        },
+        "matched_rgb_pixels": 19278,
+        "total_roi_pixels": 19278,
+        "full_frame_matched_pixels": 56816,
+        "full_frame_pixels": 57344
+      },
+      "root": {
+        "source_guest_frame": 80,
+        "present_frame": 80,
+        "roi": {
+          "x": 18,
+          "y": 17,
+          "w": 218,
+          "h": 142
+        },
+        "matched_rgb_pixels": 30956,
+        "total_roi_pixels": 30956,
+        "full_frame_matched_pixels": 56816,
+        "full_frame_pixels": 57344
+      }
+    },
+    {
+      "id": "title-root-wide-reduced-motion",
+      "source_directory": "modern-title-native-reduced-pr2043",
+      "logical_raster": [
+        342,
+        224
+      ],
+      "title": {
+        "source_guest_frame": 16,
+        "present_frame": 16,
+        "roi": {
+          "x": 52,
+          "y": 27,
+          "w": 238,
+          "h": 81
+        },
+        "matched_rgb_pixels": 19278,
+        "total_roi_pixels": 19278,
+        "full_frame_matched_pixels": 76080,
+        "full_frame_pixels": 76608
+      },
+      "root": {
+        "source_guest_frame": 64,
+        "present_frame": 64,
+        "roi": {
+          "x": 61,
+          "y": 17,
+          "w": 218,
+          "h": 142
+        },
+        "matched_rgb_pixels": 30956,
+        "total_roi_pixels": 30956,
+        "full_frame_matched_pixels": 76080,
+        "full_frame_pixels": 76608
+      }
+    },
+    {
+      "id": "title-root-wide-keyboard",
+      "source_directory": "modern-title-native-keyboard-pr2043",
+      "logical_raster": [
+        342,
+        224
+      ],
+      "title": {
+        "source_guest_frame": 48,
+        "present_frame": 32,
+        "roi": {
+          "x": 52,
+          "y": 27,
+          "w": 238,
+          "h": 81
+        },
+        "matched_rgb_pixels": 19278,
+        "total_roi_pixels": 19278,
+        "full_frame_matched_pixels": 76080,
+        "full_frame_pixels": 76608
+      },
+      "root": {
+        "source_guest_frame": 80,
+        "present_frame": 80,
+        "roi": {
+          "x": 61,
+          "y": 17,
+          "w": 218,
+          "h": 142
+        },
+        "matched_rgb_pixels": 30956,
+        "total_roi_pixels": 30956,
+        "full_frame_matched_pixels": 76080,
+        "full_frame_pixels": 76608
+      }
+    }
+  ],
+  "consistent_whole_frame_difference": {
+    "pixels": 528,
+    "bounding_rect_inclusive": {
+      "x0": 2,
+      "y0": 2,
+      "x1": 45,
+      "y1": 13
+    },
+    "cause": "native host post-source OSD/debugging overlay (diagnostic pixels observed after composing source raster)",
+    "effect": "source_match_fraction=1.0 applies ONLY to bounded logo/root ROIs; not whole-host-frame identity"
+  },
+  "authentic_mode_same_guest_frame": {
+    "source_directory": "modern-title-authentic-inert-pr2043",
+    "present_frame": 320,
+    "source_width": 256,
+    "source_height": 224,
+    "enabled_vs_disabled_same_bytes": true,
+    "sha256": "cca3a854db32a9f8b125ad0ca5a85a0bdf0c26417c36a7cd18b6bbe53adb7d82",
+    "recorded_common_frames": 20,
+    "qualified": "original host-presented P6 identical; final SDL drawable, physical monitor and original emulation CRC not qualified"
+  },
+  "status": {
+    "owner_pr_fully_integrated": false,
+    "final_SDL3_drawable_captured_by_title_pr": false,
+    "host_pre_SDL_ROI_pixel_qualified": true,
+    "authentic_host_P6_inert_frame_qualified": true,
+    "all_four_visual_PRs_combined": false,
+    "human_visual_approved": false,
+    "release_gate_credit": 0,
+    "modern_visual_final_cases_approved": 0
+  }
+}

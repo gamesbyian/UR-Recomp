@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "kind": "independent real combined Modern native final SDL evidence",
+  "date": "2026-10-21",
+  "run": {
+    "id": 39536021531,
+    "merge_checkout_sha": "44c192d9c43e69068461f5d524b50a9d097ca907",
+    "win32_conclusion": "success",
+    "executable": {
+      "artifact_id": 12318590276,
+      "name": "UniracersSNESRecomp.exe",
+      "bytes": 20441088,
+      "sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+      "architecture": "AMD64 PE32+"
+    }
+  },
+  "original_artifacts": {
+    "root": 12317846089,
+    "authentic": 12317786197,
+    "play": 12317431511,
+    "navigation": 12318335412,
+    "wide_destinations": 12318355357,
+    "title_and_transition": 12317956183
+  },
+  "independent_checks": [
+    "Retrieved original unchanged GitHub Actions ZIPs, extracted native PE and validated MZ/PE AMD64 headers",
+    "For every retained receipt, compared exact PNG SHA256, selected original native SDL P7 SHA256, selected successful same-process log SHA256",
+    "Decoded each actual PNG RGBA and compared every pixel to the unmodified native P7 frame, all 21 exactly equal",
+    "Confirmed original successful SDL3 readback marker and draw/window geometry in corresponding same-process log",
+    "Confirmed native source/PE SHA256 identical across all 21 screenshots and separately retained genuine Windows executable",
+    "Confirmed native destination source 342x224/root 11,10,320,204 for 1280x720, or 256x224/root 8,10,240,204 for 1024x768",
+    "Confirmed both Play 1P native stock handoffs and both Authentic original-only display controls",
+    "For five title/transition captures, independently recomputed 64-bit FNV1a from original native source-P7 pixel bytes, checked exact recorded source hash, stage order and real P1 confirmation edge"
+  ],
+  "cases": [
+    {
+      "id": "visual-1024x768",
+      "route": "root-quit",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "visual-1280x720",
+      "route": "root-quit",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "authentic-win32-control-1024x768",
+      "route": "authentic-stock",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "authentic-win32-control-1280x720",
+      "route": "authentic-stock",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "play-stock-1024x768",
+      "route": "play-stock-handoff",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "play-stock-1280x720",
+      "route": "play-stock-handoff",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "journey-multiplayer-unbound",
+      "route": "multiplayer-unbound",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "journey-options-p1",
+      "route": "options-p1",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "journey-practice-picker-p1",
+      "route": "practice-picker-p1",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "journey-profile-first-p1",
+      "route": "profile-first-p1",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "journey-records-keyboard",
+      "route": "records-keyboard",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "wide-destination-multiplayer-unbound",
+      "route": "multiplayer-unbound",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "wide-destination-options-open-p1",
+      "route": "options-open-p1",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "wide-destination-practice-picker-p1",
+      "route": "practice-picker-p1",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "wide-destination-profile-first-p1",
+      "route": "profile-first-p1",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "wide-destination-records-keyboard",
+      "route": "records-keyboard",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true
+    },
+    {
+      "id": "integrated-title-title-intro-compact",
+      "route": "title-intro-compact",
+      "output": "1024x768",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true,
+      "title_source_witness": {
+        "stage": "title",
+        "logical_size": [
+          256,
+          224
+        ],
+        "guest_frame": 40,
+        "native_rgba_fnv1a64": "61672ac5a543f7e2"
+      }
+    },
+    {
+      "id": "integrated-title-title-intro-reduced",
+      "route": "title-intro-reduced",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true,
+      "title_source_witness": {
+        "stage": "title",
+        "logical_size": [
+          342,
+          224
+        ],
+        "guest_frame": 1,
+        "native_rgba_fnv1a64": "145a28011a2a7b62"
+      }
+    },
+    {
+      "id": "integrated-title-title-intro-wide",
+      "route": "title-intro-wide",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true,
+      "title_source_witness": {
+        "stage": "title",
+        "logical_size": [
+          342,
+          224
+        ],
+        "guest_frame": 40,
+        "native_rgba_fnv1a64": "087cbca7b8b04aca"
+      }
+    },
+    {
+      "id": "integrated-title-title-transition-root-reduced",
+      "route": "title-transition-root-reduced",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true,
+      "title_source_witness": {
+        "stage": "root",
+        "logical_size": [
+          342,
+          224
+        ],
+        "guest_frame": 60,
+        "native_rgba_fnv1a64": "906aa30eec4e5a3b"
+      }
+    },
+    {
+      "id": "integrated-title-title-transition-root",
+      "route": "title-transition-root",
+      "output": "1280x720",
+      "actual_native_P7_png_RGBA_byte_equal": true,
+      "successful_native_log_hash_verified": true,
+      "source_sha_exact": true,
+      "exe_sha_exact": true,
+      "title_source_witness": {
+        "stage": "root",
+        "logical_size": [
+          342,
+          224
+        ],
+        "guest_frame": 74,
+        "native_rgba_fnv1a64": "906aa30eec4e5a3b"
+      }
+    }
+  ],
+  "counts": {
+    "original_native_capture_receipts": 21,
+    "lossless_exact_RGBA_matches": 21,
+    "successful_process_logs": 21,
+    "distinct_title_routes": 5,
+    "actual_human_visual_signoffs": 0,
+    "release_gate_credit": 0
+  },
+  "limits": "Exactly inspected original native final-SDL output of this run, not guest CPU/APU/WRAM CRC, physical Windows monitor/4K/controller/audio, all 25 distinct acceptance-state journeys or human likeness/legibility approval. This report does not assert source-to-SDL entire-frame equality for moving title art across different guest ticks."
+}

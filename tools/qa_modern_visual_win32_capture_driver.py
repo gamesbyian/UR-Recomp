@@ -52,9 +52,9 @@ ROUTES = {
     # Genuine native title owner branch #2043. The still route stops smoke
     # input before frame60; the entered-root route uses real P1 A at frame60.
     "title-still": ("15", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
-    "title-entered-root": ("15", 40, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
+    "title-entered-root": ("15", 100, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
     "title-reduced-still": ("15", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
-    "title-reduced-entered-root": ("15", 40, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
+    "title-reduced-entered-root": ("15", 100, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
     # Compare actual P7 frames at two pinned UI-clock phases, plus a
     # reduced-motion negative control. Same guest route and SDL draw.
     "root-motion-normal-zero": ("14", 40, ""),

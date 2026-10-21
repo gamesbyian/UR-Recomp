@@ -15,7 +15,7 @@ from pathlib import Path
 
 from tools.audit_modern_hero_source_clips import (
     CANONICAL_USA_SHA256, CANDIDATES, ClipAdmissionError, REGISTRY,
-    SOURCE, inspect_clip,
+    ROOT, SOURCE, inspect_clip,
 )
 from tools.prototype_racer_hd_replacement import (
     alpha_bounds, alpha_contact_anchor_x2_y2, build_stock_rgba,
@@ -90,9 +90,20 @@ def rasterize_original_clip(
     }, frames
 
 
+def require_private_output_dir(out_dir: Path) -> Path:
+    # Resolve existing parent symlinks too. ROM-derived plates must never be
+    # deposited in the tracked source tree, even when invoked carelessly.
+    resolved = out_dir.resolve()
+    root = ROOT.resolve()
+    if resolved == root or root in resolved.parents:
+        raise ClipAdmissionError("source art review output must be outside repository")
+    return resolved
+
+
 def write_private_review(
     report: dict, frames: list[bytes], out_dir: Path
 ) -> Path:
+    out_dir = require_private_output_dir(out_dir)
     if not frames or len(frames) != len(report["frames"]):
         raise ClipAdmissionError("incomplete source raster sequence")
     # Encode everything *before* writing; a malformed frame must not leave

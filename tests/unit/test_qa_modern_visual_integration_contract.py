@@ -18,7 +18,15 @@ FIXTURE = {
     "native/product/modern_menu_motion.hpp": "advance_modern_menu_motion(",
     "tools/baldosa_native_modern_root.cpp": """
 ur::product::render_modern_title(
-ur::product::render_modern_native_destination(
+const bool child_open = ur::product::modern_native_destination_is_open(view);
+const bool child_ok = !drawn || !child_open ||
+ur::product::render_modern_native_destination(painter, pixels, stride, height, 1, panel_w, root_rect, view);
+if (drawn && !child_ok) {
+  g_last_native_destination_stage.clear();
+  fprintf(stderr, "UR_BALDOSA_MODERN_DESTINATION paint_refused=1");
+  return 0;
+}
+const char* stage = ur::product::modern_native_destination_stage(view);
 ur::product::advance_modern_menu_motion(
 ur::product::paint_modern_menu_selection_motion(
 modern_title_confirm(
@@ -69,6 +77,55 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         self.assertFalse(result["eligible_for_native_acceptance_run"])
         self.assertIn("native_destinations_drawn", result["missing_native_integration_hooks"])
         self.assertTrue(result["checked"]["destination_renderer_available"]["present"])
+
+    def test_integrated_rehearsal_ignores_child_return_and_fails_closed(self):
+        host = self.root / "tools/baldosa_native_modern_root.cpp"
+        source = host.read_text(encoding="utf-8")
+        # Reproduce exactly the older integrated source's anti-pattern:
+        # successful shell + discarded child render return + green stage.
+        source = source.replace(
+            "const bool child_open = ur::product::modern_native_destination_is_open(view);"
+            "\nconst bool child_ok = !drawn || !child_open ||",
+            "if (drawn)"
+        ).replace(
+            "if (drawn && !child_ok) {"
+            "\n  g_last_native_destination_stage.clear();"
+            '\n  fprintf(stderr, "UR_BALDOSA_MODERN_DESTINATION paint_refused=1");'
+            "\n  return 0;"
+            "\n}",
+            ""
+        )
+        host.write_text(source, encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertEqual(result["missing_native_integration_hooks"], [])
+        self.assertIn(
+            "destination_child_refusal_can_claim_success",
+            result["known_host_geometry_conflicts"])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_child_refusal_without_source_receipt_clear_cannot_pass(self):
+        host = self.root / "tools/baldosa_native_modern_root.cpp"
+        host.write_text(
+            host.read_text(encoding="utf-8").replace(
+                "g_last_native_destination_stage.clear();", ""),
+            encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertIn("destination_child_refusal_can_claim_success",
+                      result["known_host_geometry_conflicts"])
+
+    def test_child_refusal_guard_after_success_receipt_is_too_late(self):
+        host = self.root / "tools/baldosa_native_modern_root.cpp"
+        source = host.read_text(encoding="utf-8")
+        guard = source.index("if (drawn && !child_ok) {")
+        receipt = source.index("const char* stage = ")
+        failure_block = source[guard:receipt]
+        source = source[:guard] + source[receipt:] + failure_block
+        host.write_text(source, encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+        self.assertIn("destination_child_refusal_can_claim_success",
+                      result["known_host_geometry_conflicts"])
 
     def test_missing_motion_hook_and_guest_mode_guard_detected(self):
         file = self.root / "tools/baldosa_native_modern_root.cpp"

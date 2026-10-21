@@ -129,8 +129,20 @@ inline ModernMenuStockHeroDraw paint_modern_menu_stock_hero(
     const std::int64_t safe_bottom =
         static_cast<std::int64_t>(safe_area.y) + safe_area.height;
 
-    // Prevalidate all poses at this placement, not just today's frame.
-    // This prevents frame-specific jumps from drawing a cropped racer.
+    // Source motion (modern_menu_motion.hpp) can move any admitted pose
+    // one logical pixel LEFT/RIGHT and two pixels UP. Validating only
+    // today's motion offset allows a later, equally authentic source pose
+    // to vanish near a screen edge, or to be cropped frame-by-frame.
+    // Fail closed for the ENTIRE future animated placement envelope,
+    // including when reduced motion is currently selected and may be
+    // disabled later. Original sprite pixels remain untouched.
+    if (motion.hero_lean_px < -1 || motion.hero_lean_px > 1 ||
+        motion.hero_bob_px < -2 || motion.hero_bob_px > 0)
+        return ModernMenuStockHeroDraw::OutOfBounds;
+    int min_x = kModernMenuStockHeroCanvas;
+    int min_y = kModernMenuStockHeroCanvas;
+    int max_x = -1;
+    int max_y = -1;
     for (std::size_t n = 0; n < sequence.frame_count; ++n) {
         const auto* frame = sequence.frames[n].argb_pixels;
         bool occupied = false;
@@ -140,18 +152,29 @@ inline ModernMenuStockHeroDraw paint_modern_menu_stock_hero(
                            kModernMenuStockHeroCanvas + x] >> 24) == 0u)
                     continue;
                 occupied = true;
-                const auto target_x = draw_x +
-                    static_cast<std::int64_t>(x) * placement.scale;
-                const auto target_y = draw_y +
-                    static_cast<std::int64_t>(y) * placement.scale;
-                if (target_x < safe_area.x || target_y < safe_area.y ||
-                    target_x + placement.scale > safe_right ||
-                    target_y + placement.scale > safe_bottom)
-                    return ModernMenuStockHeroDraw::OutOfBounds;
+                if (x < min_x) min_x = x;
+                if (x > max_x) max_x = x;
+                if (y < min_y) min_y = y;
+                if (y > max_y) max_y = y;
             }
         }
         if (!occupied) return ModernMenuStockHeroDraw::Unverified;
     }
+    const std::int64_t envelope_left =
+        static_cast<std::int64_t>(placement.left) +
+        static_cast<std::int64_t>(min_x - 1) * placement.scale;
+    const std::int64_t envelope_right =
+        static_cast<std::int64_t>(placement.left) +
+        static_cast<std::int64_t>(max_x + 2) * placement.scale;
+    const std::int64_t envelope_top =
+        static_cast<std::int64_t>(placement.top) +
+        static_cast<std::int64_t>(min_y - 2) * placement.scale;
+    const std::int64_t envelope_bottom =
+        static_cast<std::int64_t>(placement.top) +
+        static_cast<std::int64_t>(max_y + 1) * placement.scale;
+    if (envelope_left < safe_area.x || envelope_top < safe_area.y ||
+        envelope_right > safe_right || envelope_bottom > safe_bottom)
+        return ModernMenuStockHeroDraw::OutOfBounds;
 
     const std::size_t phase = motion.reduced_motion ? 0u :
         static_cast<std::size_t>(motion.hero_frame_ordinal) %

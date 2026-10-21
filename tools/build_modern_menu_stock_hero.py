@@ -16,8 +16,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import shutil
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -179,6 +182,110 @@ def cpp_header(rows: list[dict], frames: list[list[int]]) -> str:
     return "\n".join(lines)
 
 
+def publish_private_source_artifacts(
+    header: bytes, receipt: bytes, plates: list[tuple[str, bytes]],
+    output_header: Path, output_manifest: Path,
+    frames_dir: Path | None,
+) -> None:
+    """Fail closed on existing evidence; stage before exposing any outputs.
+
+    Exact original rasters may be generated at a deliberately git-ignored
+    native header pathname, but earlier evidence is NEVER overwritten.
+    Multiple independent output locations cannot share one atomic directory
+    rename. Every individual file is published with exclusive hard-link
+    creation; ordinary exceptions roll back newly created artifacts.
+    """
+    files = (output_header, output_manifest)
+    targets = files + ((frames_dir,) if frames_dir is not None else ())
+    resolved = [path.resolve() for path in targets]
+    if len(set(resolved)) != len(resolved):
+        raise ValueError("source header, manifest and plates must have distinct destinations")
+    if frames_dir is not None:
+        plate_root = frames_dir.resolve()
+        for file in files:
+            if plate_root in file.resolve().parents:
+                raise ValueError("individual output file cannot live inside new plates directory")
+    for target in targets:
+        if target.exists() or target.is_symlink():
+            raise ValueError("source artifact destination already exists; refuse overwrite")
+    if any(not isinstance(name, str) or
+           not name.startswith("original-stock-") or
+           not name.endswith(".png") or
+           "/" in name or "\\" in name or
+           name in (".", "..") or
+           not isinstance(data, bytes)
+           for name, data in plates):
+        raise ValueError("malformed original source review plate")
+    if len({name for name, _ in plates}) != len(plates):
+        raise ValueError("duplicate original source review plate")
+    if frames_dir is None and plates:
+        raise ValueError("review plates supplied without destination")
+    # Construct and stage all outputs before any final name appears.
+    staged_files: list[Path] = []
+    # Record exact staging inodes: never unlink a concurrently replaced output.
+    written: list[tuple[Path, Path]] = []
+    staged_dir: Path | None = None
+    dir_published = False
+    try:
+        for destination, data in zip(files, (header, receipt)):
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(
+                mode="wb", prefix=".original-source-staging-",
+                dir=destination.parent, delete=False
+            ) as handle:
+                staged_files.append(Path(handle.name))
+                handle.write(data)
+        if frames_dir is not None:
+            frames_dir.parent.mkdir(parents=True, exist_ok=True)
+            staged_dir = Path(tempfile.mkdtemp(
+                prefix=".original-plates-staging-", dir=frames_dir.parent))
+            for name, data in plates:
+                (staged_dir / name).write_bytes(data)
+        # Link to an absent name, never rename over a newer user file.
+        # Hard-links are on each target's own filesystem by construction.
+        for staged, destination in zip(staged_files, files):
+            os.link(staged, destination)
+            written.append((destination, staged))
+        if staged_dir is not None:
+            # Claim a *new* directory exclusively. An ordinary directory
+            # rename can replace a concurrently created empty directory on
+            # POSIX; mkdir fails instead of erasing another run's evidence.
+            frames_dir.mkdir(exist_ok=False)
+            dir_published = True
+            for name, _ in plates:
+                staged_plate = staged_dir / name
+                published_plate = frames_dir / name
+                os.link(staged_plate, published_plate)
+                written.append((published_plate, staged_plate))
+    except BaseException:
+        # A second process can claim or replace a published name after our
+        # hard link. Undo only links still pointing at OUR staged inode.
+        # This is best-effort per-file rollback, not a cross-process
+        # transaction or a substitute for Windows opened-handle binding.
+        for destination, staged in reversed(written):
+            try:
+                current = os.lstat(destination)
+                owned = os.lstat(staged)
+            except FileNotFoundError:
+                continue
+            if (current.st_dev, current.st_ino) == (owned.st_dev, owned.st_ino):
+                destination.unlink(missing_ok=True)
+        if dir_published and frames_dir is not None:
+            # Never recursively erase content a concurrent user placed in
+            # the freshly claimed folder. An occupied folder is evidence
+            # worth preserving; rmdir succeeds only when it is empty.
+            try:
+                frames_dir.rmdir()
+            except OSError:
+                pass
+        raise
+    finally:
+        for staged in staged_files:
+            staged.unlink(missing_ok=True)
+        if staged_dir is not None and staged_dir.exists():
+            shutil.rmtree(staged_dir, ignore_errors=True)
+
+
 def build(rom_path: Path, output_header: Path, output_manifest: Path,
           frames_dir: Path | None = None) -> dict:
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
@@ -201,19 +308,19 @@ def build(rom_path: Path, output_header: Path, output_manifest: Path,
         "generated_header_sha256": hashlib.sha256(header.encode()).hexdigest(),
         "frames": rows,
     }
+    plates: list[tuple[str, bytes]] = []
     if frames_dir is not None:
-        frames_dir.mkdir(parents=True, exist_ok=True)
         for row, argb in zip(rows, frames):
             png = encode_png_rgba(WIDTH, HEIGHT, argb_to_rgba(argb))
-            plate = frames_dir / f"original-stock-{row['original_guest_frame']:04d}.png"
-            plate.write_bytes(png)
+            name = f"original-stock-{row['original_guest_frame']:04d}.png"
+            plates.append((name, png))
             row["review_png_sha256"] = hashlib.sha256(png).hexdigest()
-        # Retain the plate fingerprints in the exact same source manifest.
+        # Retain original source SHA fingerprints in the same manifest.
         manifest["frames"] = rows
-    output_header.parent.mkdir(parents=True, exist_ok=True)
-    output_manifest.parent.mkdir(parents=True, exist_ok=True)
-    output_header.write_text(header, encoding="utf-8")
-    output_manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    receipt = (json.dumps(manifest, indent=2) + "\n").encode("utf-8")
+    publish_private_source_artifacts(
+        header.encode("utf-8"), receipt, plates,
+        output_header, output_manifest, frames_dir)
     return manifest
 
 

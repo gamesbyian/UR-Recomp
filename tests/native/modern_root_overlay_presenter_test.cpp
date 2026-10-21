@@ -122,6 +122,26 @@ int main() {
     assert(drawn_in_color("RACER: CHANGED - RESTART APP",
                           kModernMenuCheckerLegibleGrey));
     assert(text_draws_fit(old_view));
+    // Exact native host statuses keep the essential RESTART/SAVE action
+    // in every stock-width banner; ordinary names still use an ellipsis.
+    const char* const statuses[] = {
+        "RESTART TO USE NEW RACER",
+        "SECOND RACER SAVED - RESTART",
+        "P1 SWITCH QUEUED - QUIT TO SAVE"
+    };
+    const char* const compact[] = {
+        "RACER: RESTART FOR NEW RACER",
+        "RACER: P2 SAVED - RESTART",
+        "RACER: SWITCH: QUIT TO SAVE"
+    };
+    for (std::size_t i = 0; i < 3; ++i) {
+        painted.clear();
+        view.racer_name = statuses[i];
+        assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                          old_view,view));
+        assert(contains(compact[i]));
+        assert(text_draws_fit(old_view));
+    }
     painted.clear();
     view.racer_name = "THIS IS AN EXCESSIVELY LONG RACER NAME";
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
@@ -144,7 +164,8 @@ int main() {
     assert(contains("UNIRALLY"));
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
-    assert(contains("SELECTED"));
+    assert(contains("RECORDS")); // real active destination in wide preview
+    assert(!contains("SELECTED")); // generic engineering heading removed
     // Original stock-family wide context must expose both complete clauses.
     // Earlier 320px-panel output silently emitted only "RUNS AND BEST".
     assert(contains("RUNS AND"));
@@ -172,6 +193,17 @@ int main() {
     assert(contains("RACER: PROFILE CHANGED - RESTART APP"));
     assert(!contains("RACER: CHANGED - RESTART APP"));
     assert(text_draws_fit(wide_view));
+    // Native wide retains all original host statuses verbatim.
+    for (const char* status : {"RESTART TO USE NEW RACER",
+                                "SECOND RACER SAVED - RESTART",
+                                "P1 SWITCH QUEUED - QUIT TO SAVE"}) {
+        painted.clear();
+        view.racer_name = status;
+        assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
+                                          wide_view,view));
+        assert(contains(std::string("RACER: ") + status));
+        assert(text_draws_fit(wide_view));
+    }
     view.racer_name = "CUSTOM RACER";
 
     painted.clear();
@@ -199,6 +231,13 @@ int main() {
                                           real_wide_view,view));
         assert(contains(expected_lines[i][0]));
         assert(contains(expected_lines[i][1]));
+        // Independent of the route hint, its yellow preview heading is
+        // exactly the selected source destination, never a stale label.
+        const char* active = modern_root_destination_label(
+            modern_root_destination_from_index(i));
+        assert(contains(active));
+        assert(drawn_in_color(active, kModernStockMenuPalette.title_yellow));
+        assert(!contains("SELECTED"));
         assert(text_draws_fit(real_wide_view));
         assert(rect_draws_fit(real_wide_view));
         assert(!contains("TOUR AND CONT")); // old silently cropped copy
@@ -245,6 +284,23 @@ int main() {
     assert(contains("RUNS AND BEST TIMES"));
     assert(contains("X/F2 RACERS   F1 HELP"));
 
+    // One actual shipped P1 shortcut, no development-only "stock" jargon.
+    // Does not change what profile the existing shortcut creates.
+    // Source-bound geometry checks must count THIS compact draw alone;
+    // prior wide-root operations use incompatible (larger) coordinates.
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    view.racer_shortcuts_available = false;
+    view.first_racer_shortcut_available = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("X CREATE RACER"));
+    assert(!contains("X CREATE STOCK RACER"));
+    assert(text_draws_fit(old_view));
+    view.first_racer_shortcut_available = false;
+    view.racer_shortcuts_available = true;
+
     painted.clear();
     // Native Records uses the SAME shared root painter and a read-only
     // modal; old shipping host defaults to modal closed without new UI.
@@ -267,7 +323,7 @@ int main() {
     // must remain visible in the original 256x224 narrow presentation.
     assert(contains("VALID 2  UNAVAILABLE 1"));
     assert(contains("LAST: course:02 00:15.50"));
-    assert(contains("READ ONLY - NO REPLAY"));
+    assert(contains("REPLAY UNAVAILABLE"));
     assert(contains("A/ENTER  B/ESC BACK"));
     painted.clear();
     // The existing 1P modal is still the default for old consumers.
@@ -285,7 +341,7 @@ int main() {
     assert(contains("W 1  L 0  D 0"));
     assert(contains("LAST 01 WIN 00:28.76"));
     assert(contains("UP/DOWN 1P  B BACK"));
-    assert(contains("READ ONLY - NO REPLAY"));
+    assert(contains("REPLAY UNAVAILABLE"));
     painted.clear();
     view.read_only_records_two_player = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
@@ -298,7 +354,7 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("STORED RUNS"));
-    assert(!contains("READ ONLY - NO REPLAY"));
+    assert(!contains("REPLAY UNAVAILABLE"));
 
     // The native P1/P2 join is now a child of this SAME renderer, never
     // separately drawn by the execution adapter. Older hosts opt out by
@@ -316,9 +372,10 @@ int main() {
     assert(contains("TWO PLAYER PROFILES"));
     assert(contains("P1 MIKE ACTIVE"));
     assert(contains("P2 ANDREW CHOOSE"));
-    assert(contains("STOCK: MIKE / ANDREW"));
+    assert(contains("RACE AS: MIKE / ANDREW"));
     assert(contains("P1 A READY / B BACK"));
     assert(contains("P2 DPAD+A / B CLEAR"));
+    assert(!contains("STOCK: MIKE / ANDREW"));
     painted.clear();
     view.join_p1_confirmed = true;
     view.join_p2_confirmed = true;
@@ -337,14 +394,29 @@ int main() {
                                       old_view,view));
     assert(contains("UNRECORDED TWO PLAYER"));
     assert(contains("NEED TWO NAMED RACERS"));
-    assert(contains("NO MATCH HISTORY SAVED"));
-    assert(contains("PLAY STOCK 2P ANYWAY?"));
+    assert(contains("2P RESULTS NOT SAVED"));
+    assert(contains("PLAY LOCAL 2P ANYWAY?"));
     assert(contains("P1 A YES  B BACK"));
     painted.clear();
     view.unbound_two_player_warning_open = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("UNRECORDED TWO PLAYER"));
+    // Exact product flags must label both actual native racer modes.
+    painted.clear();
+    view.first_racer_open = true;
+    view.first_racer_is_switch = false;
+    view.first_racer_is_second = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("FIRST RACER"));
+    view.first_racer_is_second = true;
+    painted.clear();
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("SECOND RACER"));
+    view.first_racer_open = false;
+    view.first_racer_is_second = false;
 
     // A refused route or stale racer is stated in the root's hint line, and
     // multi-course Practice names its tour, kind and open-course count.
@@ -378,6 +450,14 @@ int main() {
                                       old_view,view));
     assert(contains("1 VERIFIED COURSE") && contains("A START  B BACK"));
     view.practice_picker_open = false;
+    // Existing source-owned launch pending keeps its actionable copy.
+    painted.clear();
+    view.practice_launch_pending = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("STARTING PRACTICE"));
+    assert(contains("WAIT FOR GO"));
+    view.practice_launch_pending = false;
 
     // Native OPTIONS is opt-in: the old host's exact layout is unchanged and
     // the modal shows only what the host supplied, with the selected

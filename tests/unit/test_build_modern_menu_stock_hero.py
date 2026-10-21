@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -47,6 +48,202 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
         target["palette_asset_id"] = "0x07"
         with self.assertRaisesRegex(ValueError, "unknown original P1"):
             hero.verified_clip(rom, bad, self.source)
+
+    def test_private_source_outputs_are_new_and_checksum_preserving(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header = root / "native-build" / "original.generated.hpp"
+            manifest = root / "provenance" / "source.json"
+            plate_dir = root / "source-plates"
+            plates = [("original-stock-1213.png", b"original-synthetic-png"),
+                      ("original-stock-1214.png", b"next-source-raster")]
+            hero.publish_private_source_artifacts(
+                b"source-qualified-cpp", b"source-qualified-json",
+                plates, header, manifest, plate_dir)
+            self.assertEqual(header.read_bytes(), b"source-qualified-cpp")
+            self.assertEqual(manifest.read_bytes(), b"source-qualified-json")
+            self.assertEqual(
+                (plate_dir / "original-stock-1213.png").read_bytes(),
+                b"original-synthetic-png")
+            self.assertEqual(len(list(plate_dir.glob("*.png"))), 2)
+            with self.assertRaisesRegex(ValueError, "refuse overwrite"):
+                hero.publish_private_source_artifacts(
+                    b"forged", b"forged", plates, header, manifest, plate_dir)
+            self.assertEqual(header.read_bytes(), b"source-qualified-cpp")
+            self.assertEqual(manifest.read_bytes(), b"source-qualified-json")
+            self.assertEqual(list(root.glob("**/.original*staging*")), [])
+
+    def test_refuse_symlink_collision_and_ambiguous_destinations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            h, m, plates = root / "hero.hpp", root / "receipt.json", root / "plates"
+            with self.assertRaisesRegex(ValueError, "distinct destinations"):
+                hero.publish_private_source_artifacts(
+                    b"h", b"m", [], h, h, None)
+            with self.assertRaisesRegex(ValueError, "inside new plates"):
+                hero.publish_private_source_artifacts(
+                    b"h", b"m", [], plates / "hero.hpp", m, plates)
+            h.symlink_to(root / "missing-real-file")
+            with self.assertRaisesRegex(ValueError, "refuse overwrite"):
+                hero.publish_private_source_artifacts(
+                    b"h", b"m", [], h, m, None)
+            h.unlink()
+            plates.symlink_to(root / "missing-art-folder", target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "refuse overwrite"):
+                hero.publish_private_source_artifacts(
+                    b"h", b"m", [("original-stock-1213.png", b"fake")],
+                    h, m, plates)
+            plates.unlink()
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_reject_duplicate_and_path_escape_review_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header, manifest, folder = (
+                root / "head.hpp", root / "receipt.json", root / "frames")
+            invalid = [
+                [("original-stock-1213.png", b"one"),
+                 ("original-stock-1213.png", b"two")],
+                [("../original-stock-1213.png", b"escape")],
+                [("original-stock-1213.png/../x.png", b"escape")],
+                [("other-1213.png", b"unregistered")],
+            ]
+            for plates in invalid:
+                with self.subTest(plates=plates), self.assertRaises(ValueError):
+                    hero.publish_private_source_artifacts(
+                        b"h", b"m", plates, header, manifest, folder)
+                self.assertEqual(list(root.iterdir()), [])
+
+    def test_fail_partial_publish_restores_absence_and_retry_is_clean(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header, manifest, folder = (
+                root / "head.hpp", root / "receipt.json", root / "frames")
+            plates = [("original-stock-1213.png", b"raster")]
+            real_link = hero.os.link
+            call_count = 0
+            def fail_second_file(source, target):
+                nonlocal call_count
+                call_count += 1
+                if call_count == 2:
+                    raise OSError("simulated second publication fault")
+                return real_link(source, target)
+            with patch.object(hero.os, "link", side_effect=fail_second_file):
+                with self.assertRaisesRegex(OSError, "simulated second"):
+                    hero.publish_private_source_artifacts(
+                        b"h", b"m", plates, header, manifest, folder)
+            self.assertFalse(header.exists())
+            self.assertFalse(manifest.exists())
+            self.assertFalse(folder.exists())
+            self.assertEqual(list(root.glob("**/.original*staging*")), [])
+            hero.publish_private_source_artifacts(
+                b"h", b"m", plates, header, manifest, folder)
+            self.assertEqual(header.read_bytes(), b"h")
+            self.assertEqual(manifest.read_bytes(), b"m")
+            self.assertEqual((folder / plates[0][0]).read_bytes(), b"raster")
+
+    def test_plate_publication_fault_removes_created_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header, manifest, folder = (
+                root / "hero.hpp", root / "receipt.json", root / "plates")
+            plates = [("original-stock-1213.png", b"source-only-test")]
+            genuine_link = hero.os.link
+            calls = 0
+            def interrupted_plate_link(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 3:
+                    raise OSError("simulated plate-publication failure")
+                return genuine_link(source, target)
+            with patch.object(hero.os, "link", side_effect=interrupted_plate_link):
+                with self.assertRaisesRegex(OSError, "plate-publication"):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"manifest", plates, header, manifest, folder)
+            self.assertEqual(list(root.iterdir()), [])
+            hero.publish_private_source_artifacts(
+                b"header", b"manifest", plates, header, manifest, folder)
+            self.assertEqual((folder / plates[0][0]).read_bytes(), plates[0][1])
+
+    def test_concurrent_directory_claim_never_overwrites_user_art(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header, manifest, folder = (
+                root / "hero.hpp", root / "receipt.json", root / "plates")
+            genuine_link = hero.os.link
+            calls = 0
+            def conflicting_creator(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    folder.mkdir()
+                    (folder / "keep.txt").write_text("must survive", encoding="utf-8")
+                return genuine_link(source, target)
+            with patch.object(hero.os, "link", side_effect=conflicting_creator):
+                with self.assertRaises(FileExistsError):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"manifest",
+                        [("original-stock-1213.png", b"clip")],
+                        header, manifest, folder)
+            self.assertFalse(header.exists())
+            self.assertFalse(manifest.exists())
+            self.assertEqual((folder / "keep.txt").read_text(), "must survive")
+            self.assertEqual(list(folder.iterdir()), [folder / "keep.txt"])
+            self.assertEqual(list(root.glob(".original-*")), [])
+
+    def test_late_plate_failure_keeps_other_writers_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            h, m, folder = root / "hero.hpp", root / "manifest.json", root / "plates"
+            plates = [("original-stock-1213.png", b"ours-a"),
+                      ("original-stock-1214.png", b"ours-b")]
+            real_link = hero.os.link
+            calls = 0
+
+            def late_failure(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 4:  # after mkdir and first plate link
+                    (folder / "other-writer.txt").write_bytes(b"preserve user evidence")
+                    raise OSError("synthetic late plate publication fault")
+                return real_link(source, target)
+
+            with patch.object(hero.os, "link", side_effect=late_failure):
+                with self.assertRaisesRegex(OSError, "late plate publication"):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"receipt", plates, h, m, folder)
+            self.assertFalse(h.exists())
+            self.assertFalse(m.exists())
+            self.assertEqual(sorted(p.name for p in folder.iterdir()),
+                             ["other-writer.txt"])
+            self.assertEqual((folder / "other-writer.txt").read_bytes(),
+                             b"preserve user evidence")
+            self.assertEqual(list(root.glob(".original-*")), [])
+
+    def test_rollback_does_not_delete_replaced_header(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            h, m, folder = root / "hero.hpp", root / "manifest.json", root / "plates"
+            real_link = hero.os.link
+            calls = 0
+
+            def replacement_then_failure(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    h.unlink()
+                    h.write_bytes(b"a different writer owns this name")
+                    raise OSError("synthetic manifest publication fault")
+                return real_link(source, target)
+
+            with patch.object(hero.os, "link", side_effect=replacement_then_failure):
+                with self.assertRaisesRegex(OSError, "manifest publication"):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"receipt", [], h, m, None)
+            self.assertEqual(h.read_bytes(), b"a different writer owns this name")
+            self.assertFalse(m.exists())
+            self.assertFalse(folder.exists())
+            self.assertEqual(list(root.glob(".original-*")), [])
 
     def test_original_raster_and_compiled_cpp_asset(self):
         if not hero.ROM.is_file():

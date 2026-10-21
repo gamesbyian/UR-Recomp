@@ -266,22 +266,32 @@ inline bool render_modern_root_overlay(
         modern_menu_paint_shadowed_heading(
             paint, pixels, stride, surface_height,
             x + 9 * scale, y + 6 * scale, title, 2, scale);
-    // A stock anonymous rider is a state, not a long player name. Keep
-    // that status readable at the real 240-logical-pixel 4:3 fallback.
-    // These two product-status sentinels are not user-entered racer names.
-    // In the real 240px root, naive clipping of the stale-profile notice
-    // drops the required RESTART APP action. Preserve its full instruction
-    // in 28 standard text cells instead of shortening it with ellipses.
+    // These exact product-status sentinels are not user-entered names.
+    // Native 4:3 SDL evidence showed a clipped first-racer instruction
+    // "RESTART TO USE NEW..." losing its final word. Abbreviate only
+    // recognized status text when the stock 240-wide budget requires it.
+    const auto identity_cells = modern_overlay_text_cells(panel_w);
+    const auto too_long = [identity_cells](std::string_view status) noexcept {
+        return std::string_view("RACER: ").size() + status.size() >
+            identity_cells;
+    };
     const std::string_view racer_name =
         view.racer_name == "STOCK RACER - NO PROFILE"
             ? std::string_view("NO PROFILE")
-            : view.racer_name == "PROFILE CHANGED - RESTART APP" &&
-              modern_overlay_text_cells(panel_w) <
-                  std::string_view("RACER: PROFILE CHANGED - RESTART APP").size()
-                ? std::string_view("CHANGED - RESTART APP")
-                : view.racer_name;
+        : view.racer_name == "PROFILE CHANGED - RESTART APP" &&
+          too_long(view.racer_name)
+            ? std::string_view("CHANGED - RESTART APP")
+        : view.racer_name == "RESTART TO USE NEW RACER" &&
+          too_long(view.racer_name)
+            ? std::string_view("RESTART FOR NEW RACER")
+        : view.racer_name == "SECOND RACER SAVED - RESTART" &&
+          too_long(view.racer_name)
+            ? std::string_view("P2 SAVED - RESTART")
+        : view.racer_name == "P1 SWITCH QUEUED - QUIT TO SAVE" &&
+          too_long(view.racer_name)
+            ? std::string_view("SWITCH: QUIT TO SAVE")
+        : view.racer_name;
     std::string identity = std::string("RACER: ") + std::string(racer_name);
-    const auto identity_cells = modern_overlay_text_cells(panel_w);
     if (identity.size() > identity_cells) {
         // Never silently present a clipped prefix as a complete racer name.
         // Keep the fixed identity label and mark unusually long names.
@@ -345,9 +355,14 @@ inline bool render_modern_root_overlay(
         paint.fill_rect(pixels, stride, surface_height,
             x + 184 * scale, y + 52 * scale,
             (panel_w - 191) * scale, 109 * scale, palette.header_band);
+        // The preview already has an active destination from the product
+        // menu. Name that destination instead of a generic SELECTED label;
+        // all five stock names fit the 13-cell native-wide header budget.
         paint.draw_text(pixels, stride, surface_height,
             x + 193 * scale, y + 64 * scale,
-            "SELECTED", palette.title_yellow, scale);
+            modern_root_destination_label(
+                modern_root_destination_from_index(selected_index)),
+            palette.title_yellow, scale);
         const bool preview_available =
             (view.available_destinations & (1u << selected_index)) != 0;
         const char* const* preview = preview_available
@@ -392,7 +407,7 @@ inline bool render_modern_root_overlay(
             : view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
             : view.first_racer_shortcut_available
-                ? "X CREATE STOCK RACER"
+                ? "X CREATE RACER"
                 : view.second_racer_shortcut_available
                     ? "X ADD SECOND RACER"
                     : view.existing_profile_switch_available
@@ -422,7 +437,7 @@ inline bool render_modern_root_overlay(
                         "QUICK PRACTICE", palette.title_yellow, scale);
         const auto cells = modern_overlay_text_cells(panel_w - 30);
         const std::string name = fit_modern_overlay_text(
-            view.practice_launch_pending ? "ENTERING ORIGINAL COURSE"
+            view.practice_launch_pending ? "STARTING PRACTICE"
                                          : std::string(view.practice_course_name),
             cells);
         paint.draw_text(pixels, stride, surface_height,
@@ -431,7 +446,7 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 62 * scale,
                         view.practice_launch_pending
-                            ? "WAIT FOR SOURCE GO"
+                            ? "WAIT FOR GO"
                             : fit_modern_overlay_text(
                                   std::string(view.practice_tour_name) + " - " +
                                       std::string(view.practice_kind_label),
@@ -515,7 +530,7 @@ inline bool render_modern_root_overlay(
                         bx + 9 * scale,
                         by + (view.read_only_records_two_player &&
                               !view.records_detail.empty() ? 99 : 85) * scale,
-                        "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
+                        "REPLAY UNAVAILABLE", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,
                         !view.read_only_records_pages_available
@@ -553,7 +568,7 @@ inline bool render_modern_root_overlay(
                         view.join_p2_confirmed
                             ? palette.title_yellow : 0xFFFFFFFFu, scale);
         const std::string stock = fit_modern_overlay_text(
-            std::string("STOCK: ") + std::string(view.join_p1_stock) +
+            std::string("RACE AS: ") + std::string(view.join_p1_stock) +
             " / " + std::string(view.join_p2_stock), cells);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 83 * scale,
@@ -579,7 +594,7 @@ inline bool render_modern_root_overlay(
                         view.first_racer_is_switch
                             ? "SWITCH ACTIVE P1"
                             : view.first_racer_is_second
-                            ? "SECOND STOCK RACER" : "FIRST STOCK RACER",
+                            ? "SECOND RACER" : "FIRST RACER",
                         palette.title_yellow, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 40 * scale,
@@ -604,7 +619,7 @@ inline bool render_modern_root_overlay(
                         view.first_racer_created
                             ? "QUIT AND RESTART GAME"
                             : view.first_racer_is_switch
-                                ? "NO LIVE RACER CHANGE"
+                                ? "RESTART TO SWITCH RACER"
                                 : "UP/DOWN CHOOSE PRESET",
                         palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
@@ -632,10 +647,10 @@ inline bool render_modern_root_overlay(
                         "NEED TWO NAMED RACERS", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 63 * scale,
-                        "NO MATCH HISTORY SAVED", palette.secondary_grey, scale);
+                        "2P RESULTS NOT SAVED", palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 92 * scale,
-                        "PLAY STOCK 2P ANYWAY?", 0xFFFFFFFFu, scale);
+                        "PLAY LOCAL 2P ANYWAY?", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 115 * scale,
                         "P1 A YES  B BACK", palette.cursor_blue, scale);

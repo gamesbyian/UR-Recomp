@@ -90,6 +90,54 @@ jobs:
             --video windows --timeout 100
           test -s "$RUNNER_TEMP/ur-modern-win32-visual-baseline/actual-sdl-drawable.png"
           echo "Actual integrated Windows Modern candidate: readback from SDL drawable; NO physical-pad, original-art or release approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture original Modern title and real P1-to-root transition on final SDL3
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # Source-owned mode 15 confirms via actual native P1 A at guest
+          # frame 60. The title frame is captured BEFORE that edge, while
+          # the root transition and reduced-motion alternatives are fresh,
+          # independent processes using this one exact tested PE.
+          for spec in \
+            title-intro-wide:1280x720 \
+            title-intro-compact:1024x768 \
+            title-intro-reduced:1280x720 \
+            title-transition-root:1280x720 \
+            title-transition-root-reduced:1280x720; do
+            route="${spec%%:*}"
+            size="${spec#*:}"
+            OUT="$RUNNER_TEMP/ur-integrated-title-$route"
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$OUT" --video windows --timeout 100 \
+              --window-size "$size" --route "$route"
+            test -s "$OUT/actual-sdl-drawable.png"
+            test -s "$OUT/readback-receipt.json"
+            test -s "$OUT/probe_first/actual-sdl-drawable.pam"
+            test -s "$OUT/probe_first/native-process.log"
+            if [[ "$route" == title-transition* ]]; then
+              test -s "$OUT/probe_first/original-native-source/modern-native-root-342x224.pam"
+            elif [[ "$route" == title-intro-compact ]]; then
+              test -s "$OUT/probe_first/original-native-source/modern-native-title-256x224.pam"
+            else
+              test -s "$OUT/probe_first/original-native-source/modern-native-title-342x224.pam"
+            fi
+          done
+          echo "Real Modern title/transition source P7 and final SDL3 P7 retained; no physical controller, animation approval or release credit." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain actual combined Modern title/transition SDL output and unmodified source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-title-final-sdl
+          path: |
+            ${{ runner.temp }}/ur-integrated-title-*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-integrated-title-*/readback-receipt.json
+            ${{ runner.temp }}/ur-integrated-title-*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-integrated-title-*/probe_first/native-process.log
+            ${{ runner.temp }}/ur-integrated-title-*/probe_first/original-native-source/modern-native-*.pam
+          if-no-files-found: warn
+          retention-days: 7
       - name: Capture native widescreen and fallback Windows output on SAME exact PE
         run: |
           set -euo pipefail

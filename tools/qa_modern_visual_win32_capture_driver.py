@@ -48,6 +48,15 @@ ROUTES = {
     # enters stock Practice or consents to unrecorded Multiplayer.
     "practice-picker-p1": ("11", 63, "UR_BALDOSA_MODERN_ROOT practice_opened=1"),
     "multiplayer-unbound": ("2", 65, "UR_BALDOSA_MODERN_ROOT unbound_2p_warning_open=1"),
+    # Test-only native mode 15 keeps actual title input ownership until the
+    # real P1 A edge at guest frame 60; it never fakes a guest/menu phase.
+    # Capture before and after that edge on the same tested native executable,
+    # not the pre-SDL source-only diagnostic or a separate frontend.
+    "title-intro-wide": ("15", 48, "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=title"),
+    "title-intro-compact": ("15", 48, "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=title"),
+    "title-intro-reduced": ("15", 48, "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=title"),
+    "title-transition-root": ("15", 88, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
+    "title-transition-root-reduced": ("15", 68, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
     "authentic-stock": ("0", 240, ""),
 }
 
@@ -131,6 +140,16 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     smoke, capture_draw, stage_marker = ROUTES[route]
     execution_mode = "authentic" if route == "authentic-stock" else "modern"
     env = dict(os.environ)
+    if route.startswith("title-"):
+        # Pin both original source P7 and the final SDL P7 from this same
+        # process so a future auditor can compare every sampled RGB pixel.
+        source_frames = stage / "original-native-source"
+        source_frames.mkdir()
+        env["UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR"] = str(source_frames)
+        # A CI host may inherit this setting. A normal title case may not
+        # silently run the accessible reduced-motion mode instead.
+        env["UR_REDUCED_MOTION"] = (
+            "1" if route.endswith("-reduced") else "0")
     env.update({
         "SNESRECOMP_USER_DATA_DIR": str(home),
         "UR_EXECUTION_MODE": execution_mode,
@@ -174,6 +193,26 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
+    if route.startswith("title-"):
+        # A stage mentioned after the capture is not a valid screenshot.
+        # Mode 15 provides an actual P1 gamepad edge at guest frame 60.
+        saved = "UR_MODERN_VISUAL_SDL_CAPTURE status=saved"
+        if saved not in log:
+            raise RuntimeError("Modern title final SDL presentation was not captured")
+        before = log.split(saved, 1)[0]
+        intro = "UR_BALDOSA_MODERN_TITLE painted=1"
+        source_title = "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=title"
+        confirmed = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+        entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
+        if route.startswith("title-intro"):
+            if (intro not in before or source_title not in before or
+                    confirmed in before or entered in before):
+                raise RuntimeError("Title intro was not present before native SDL capture")
+        else:
+            if (intro not in before or confirmed not in before or
+                    entered not in before or
+                    "UR_BALDOSA_MODERN_ROOT painted=1" not in before):
+                raise RuntimeError("Native title confirmation/root transition not reached before SDL capture")
     if route == "play-stock-handoff":
         # Request alone never establishes a guest handoff. The native host
         # must actually revoke Modern focus after observing the source 1P
@@ -255,6 +294,10 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
         "actual_sdl_renderer_output": list(selected["observed"]),
         "observed_in_draw": selected["capture_draw"],
         "native_semantic_route": route,
+        "title_stage_capture": (
+            "intro" if route.startswith("title-intro") else
+            "root-after-native-confirm" if route.startswith("title-transition") else None),
+        "reduced_motion_requested": route.endswith("-reduced"),
         "original_play_guest_rgb_witness": original_guest_witness,
         "execution_mode": selected["execution_mode"],
         "authentic_visible_raster_precondition": authentic_pixels,

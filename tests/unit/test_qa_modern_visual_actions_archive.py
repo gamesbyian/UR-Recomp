@@ -44,6 +44,8 @@ class ActionEvidenceTests(unittest.TestCase):
             "observed_in_draw":40,"png_sha256":sha(self.png),"p7_sha256":sha(self.p7),
             "native_process_log_sha256":sha(self.log),"exe_sha256":"a"*64,
             "source_sha":"b"*40,"native_semantic_route":"root-quit",
+            "execution_mode":"modern","native_route_marker_observed":True,
+            "authentic_isolation_approved":False,
             "visual_approved":False,"hardware_approved":False,"release_gate_credit":0,
         }
         self.stage="probe_first"
@@ -151,12 +153,16 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_authentic_original_refuses_modern_stage_even_with_valid_sdl3(self):
         self.receipt["native_semantic_route"]="authentic-stock"
+        self.receipt["execution_mode"]="authentic"
+        self.receipt["native_route_marker_observed"]=False
         self.pack()
         with self.assertRaisesRegex(qa.AuditError,"Authentic capture contains Modern"):
             qa.verify(self.path)
 
     def test_authentic_original_requires_stock_load_without_modern_stage(self):
         self.receipt["native_semantic_route"]="authentic-stock"
+        self.receipt["execution_mode"]="authentic"
+        self.receipt["native_route_marker_observed"]=False
         self.log=self.log.replace(
             b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\n",b"")
         self.receipt["native_process_log_sha256"]=sha(self.log)
@@ -164,6 +170,46 @@ class ActionEvidenceTests(unittest.TestCase):
         result=qa.verify(self.path)
         self.assertEqual(result["captures"][0]["native_painted_stage_at_capture"],
                          "authentic-original")
+
+    def test_authentic_refuses_modern_title_paint_without_root_stage(self):
+        # Real title renderer can paint without any root/destination event.
+        # The original control mode must remain completely host-title inert.
+        self.receipt["native_semantic_route"]="authentic-stock"
+        self.receipt["execution_mode"]="authentic"
+        self.receipt["native_route_marker_observed"]=False
+        self.log=self.log.replace(
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\\n",
+            b"UR_BALDOSA_MODERN_TITLE painted=1 raster=256x224 host=modern guest_frame=40\\n")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"Authentic capture contains Modern"):
+            qa.verify(self.path)
+
+    def test_authentic_route_cannot_launder_modern_mode_label(self):
+        self.receipt["native_semantic_route"]="authentic-stock"
+        self.log=self.log.replace(
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\\n",
+            b"")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"Authentic receipt mode/route"):
+            qa.verify(self.path)
+
+    def test_modern_route_cannot_use_authentic_receipt_flags(self):
+        for key,value in (("execution_mode","authentic"),
+                          ("native_route_marker_observed",False)):
+            with self.subTest(key=key):
+                self.receipt[key]=value
+                self.pack()
+                with self.assertRaisesRegex(qa.AuditError,"Modern receipt mode/route"):
+                    qa.verify(self.path)
+                self.receipt[key]="modern" if key=="execution_mode" else True
+
+    def test_authentic_isolation_approval_cannot_be_forged(self):
+        self.receipt["authentic_isolation_approved"]=True
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"overclaims Authentic"):
+            qa.verify(self.path)
 
     def test_342_canvas_cannot_masquerade_as_compact_43_source(self):
         self.log=self.log.replace(

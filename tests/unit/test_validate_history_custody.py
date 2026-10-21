@@ -28,7 +28,7 @@ class HistoricalDriveBackupReceiptTests(unittest.TestCase):
 
     def test_corrupted_or_reordered_parts_rejected(self):
         wrong = self.edited()
-        wrong["parts"][0]["bytes"] += 1
+        wrong["parts"][-1]["bytes"] += 1
         with self.assertRaisesRegex(ValueError, "part length sum"):
             validate(wrong)
         wrong = self.edited()

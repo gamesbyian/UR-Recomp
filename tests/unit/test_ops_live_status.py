@@ -1,0 +1,132 @@
+"""Live ops report must expose API loss, stale evidence and bounded sampling."""
+from datetime import datetime, timezone
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+from agent_control import BOARD, REGISTRY, extract_board, load_json
+from ops_live_status import markdown, snapshot, timestamp
+
+SHA = "a" * 40
+MERGE = "5cdbbc57dc991d77df10c1a2ecabab2772c8063c"
+NOW = datetime(2026, 10, 21, 12, 0, tzinfo=timezone.utc)
+
+class LiveOperationsTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.board = extract_board(BOARD.read_text(encoding="utf8"))
+        cls.registry = load_json(REGISTRY)
+        cls.ledger = {
+            "schema": "UR-RELEASE-QUALITY-LEDGER/1", "updated": "2026-10-21",
+            "gates": [{"id": "QA-01", "status": "in_progress",
+                       "coverage": {"complete_event_passes": 0, "denominator": 45}},
+                      {"id": "QA-02", "status": "unverified"}],
+            "candidate": {"physical_hardware_verified": False},
+        }
+
+    def request(self, path):
+        if path.endswith("/branches/main"):
+            return {"commit": {"sha": SHA}, "protected": True}
+        if "/pulls?state=open&" in path:
+            return [{"number": 101, "draft": True,
+                     "updated_at": "2026-10-18T11:00:00Z", "title": "Draft test"}]
+        if "/pulls/2110" in path:
+            return {"state": "closed", "merged_at": "2026-10-21T05:00:00Z",
+                    "merge_commit_sha": MERGE, "draft": False}
+        if "/pulls/2104" in path:
+            return {"state": "closed", "merged_at": "2026-10-21T05:00:00Z",
+                    "merge_commit_sha": "2321f3f4b6286204be43bb2502dce6573378fc2c"}
+        if "/pulls/1996" in path:
+            return {"state": "open", "merged_at": None, "draft": True}
+        if "/actions/runs" in path:
+            return {"total_count": 40000, "workflow_runs": [
+                {"created_at": "2026-10-21T06:00:00Z", "status": "completed",
+                 "conclusion": "success"},
+                {"created_at": "2026-10-21T05:59:00Z", "status": "completed",
+                 "conclusion": "cancelled"},
+            ]}
+        raise ValueError("unexpected route")
+
+    def report(self, get=None, local_head=SHA):
+        return snapshot(get or self.request, board=self.board,
+                        registry=self.registry, ledger=self.ledger,
+                        local_head=local_head, now=NOW)
+
+    def test_live_main_and_recency_are_explicit(self):
+        result = self.report()
+        self.assertTrue(result["main"]["protected"])
+        self.assertEqual(result["prs"]["count"], 1)
+        self.assertTrue(result["prs"]["census_complete"])
+        self.assertEqual(result["prs"]["unchanged_48h_count"], 1)
+        self.assertTrue(result["qa"]["source_exact_main"])
+
+    def test_latest_actions_is_not_day_or_full_billing(self):
+        result = self.report()
+        self.assertEqual(result["actions"]["outcomes"]["cancelled"], 1)
+        self.assertEqual(result["actions"]["sampled"], 2)
+        self.assertIn("latest_100_only", result["actions"]["scope"])
+        self.assertIn("NOT daily totals", markdown(result))
+
+    def test_uncorroborated_drive_and_schedule_state_are_unknown(self):
+        result = self.report()
+        self.assertEqual(result["drive"], "UNKNOWN_NOT_CONNECTED")
+        self.assertEqual(result["scheduled_agent_health"], "UNKNOWN_NOT_CONNECTED")
+        self.assertIn("Drive presence UNKNOWN", markdown(result))
+
+    def test_current_ledger_never_credited_when_checkout_differs(self):
+        result = self.report(local_head="b" * 40)
+        self.assertFalse(result["qa"]["source_exact_main"])
+        self.assertIn("historical ONLY", result["errors"]["qa"])
+        self.assertIn("STALE / UNVERIFIED SOURCE", markdown(result))
+
+    def test_merge_sha_cross_checks_the_registered_claim(self):
+        result = self.report()
+        matching = next(x for x in result["recovery"] if x["candidate_id"] == "h27-qa01-sparse-transition")
+        self.assertEqual(matching["check"], "MERGE_SHA_VERIFIED")
+        def changed(path):
+            if "/pulls/2110" in path:
+                return {"merged_at": "2026-10-21T05:00:00Z", "merge_commit_sha": "f"*40}
+            return self.request(path)
+        result = self.report(get=changed)
+        mismatch = next(x for x in result["recovery"] if x["candidate_id"] == "h27-qa01-sparse-transition")
+        self.assertEqual(mismatch["check"], "RECORDED_STATUS_OR_SHA_CONFLICT")
+
+    def test_github_failure_is_unknown_not_zero(self):
+        def offline(path):
+            if "/pulls?state=open" in path or "/branches/main" in path:
+                raise ValueError("HTTP 403")
+            return self.request(path)
+        result = self.report(get=offline)
+        self.assertIsNone(result["main"])
+        self.assertIsNone(result["prs"])
+        self.assertFalse(result["qa"]["source_exact_main"])
+        self.assertIn("Open PRs: UNKNOWN", markdown(result))
+
+    def test_failed_individual_pr_read_is_not_automatic_merge(self):
+        def blocked(path):
+            if "/pulls/2110" in path:
+                raise ValueError("HTTP 403")
+            return self.request(path)
+        item = next(x for x in self.report(get=blocked)["recovery"]
+                    if x["candidate_id"] == "h27-qa01-sparse-transition")
+        self.assertEqual(item["check"], "UNKNOWN")
+
+    def test_exact_page_boundary_does_not_claim_complete_census(self):
+        def full_page(path):
+            if "/pulls?state=open&" in path:
+                return [{"number": i, "updated_at": "2026-10-21T06:00:00Z"}
+                        for i in range(100)]
+            return self.request(path)
+        result = self.report(get=full_page)
+        self.assertFalse(result["prs"]["census_complete"])
+        self.assertEqual(result["prs"]["count"], 300)
+
+    def test_bad_time_rejected_without_implicit_timezone(self):
+        self.assertIsNone(timestamp("2026-10-21T12:00:00"))
+        self.assertIsNone(timestamp("not-a-time"))
+        self.assertIsNotNone(timestamp("2026-10-21T12:00:00Z"))
+
+if __name__ == "__main__":
+    unittest.main()

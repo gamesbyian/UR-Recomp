@@ -482,6 +482,52 @@ int main() {
     assert(contains(" CONTROLS SHOW"));
     assert(contains("SAVED"));
     assert(contains("L/R CHANGE  B BACK"));
+    // The genuine 342x224 native-wide shell has two independent readable
+    // columns instead of a long engineering-width concatenated string.
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    constexpr HostOverlayRect source_wide{11,10,320,204};
+    assert(render_modern_root_overlay(painter,pixels,342,224,1,320,
+                                      source_wide,view));
+    assert(contains(" DISPLAY"));
+    assert(contains("WINDOWED"));
+    assert(contains(">VSYNC"));
+    assert(contains("< ON >"));
+    assert(contains(" CONTROLS"));
+    assert(contains("SHOW"));
+    assert(!contains(">VSYNC    < ON >")); // retained only in 4:3
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 206 && d.y == 91 &&
+                   d.content == "< ON >" && d.scale == 1;
+        }));
+    assert(text_draws_fit(source_wide));
+    assert(rect_draws_fit(source_wide));
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,1368,896,4,320,
+                                      {44,40,1280,816},view));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 824 && d.y == 364 &&
+                   d.content == "< ON >" && d.scale == 4;
+        }));
+    assert(text_draws_fit({44,40,1280,816}));
+    assert(rect_draws_fit({44,40,1280,816}));
+    // Product-owned action rows sometimes carry no value, so their
+    // independent right column must not dispatch an empty glyph run.
+    view.options_rows[2] = {"CONTROLS", "", false};
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,342,224,1,320,
+                                      source_wide,view));
+    assert(contains(" CONTROLS"));
+    assert(!contains(""));
+    assert(text_draws_fit(source_wide));
+    view.options_rows[2] = {"CONTROLS", "SHOW", false};
     painted.clear();
     view.options_status = {};
     view.options_notice = "SAVED OPTIONS DAMAGED";

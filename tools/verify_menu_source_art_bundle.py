@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import struct
 import zlib
 from pathlib import Path
@@ -27,6 +28,11 @@ EXPECTED = {
 }
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MAX_PNG_BYTES = 4 * 1024 * 1024
+SOURCE_FIXTURE = "tests/input/menu-visual-language.script"
+SOURCE_MAIN_TAG = "mvl-idle-000"
+SOURCE_PPU_FIELDS = frozenset((
+    "main_vram", "main_cgram", "detail_vram", "detail_cgram",
+))
 
 
 def read_png_rgba(path: Path, width: int, height: int,
@@ -86,14 +92,64 @@ def read_png_rgba(path: Path, width: int, height: int,
     return bytes(pixels)
 
 
-def verify_source_art_bundle(receipt: dict, paths: dict[str, Path]) -> dict:
-    """Verify source-affinity receipt, file hashes and native painter inputs."""
+def verify_local_source_ppu_dumps(receipt: dict, directory: Path) -> None:
+    """Rehash user-local original capture bytes; never publish those bytes.
+
+    This optional original-snapshot consistency witness does not prove ROM
+    identity, source ownership or distribution rights. A complete textual
+    receipt alone cannot provide the underlying PPU-byte evidence.
+    """
+    if not directory.is_dir() or directory.is_symlink():
+        raise ValueError("source PPU dump directory missing or redirected")
+    roots = (
+        ("main_vram", receipt["source_main_tag"], "vram", 65536),
+        ("main_cgram", receipt["source_main_tag"], "cgram", 512),
+        ("detail_vram", receipt["source_detail_tag"], "vram", 65536),
+        ("detail_cgram", receipt["source_detail_tag"], "cgram", 512),
+    )
+    for digest_key, tag, segment, expected_size in roots:
+        path = directory / f"{tag}.{segment}.bin"
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"source PPU {digest_key}: capture file absent or redirected")
+        # A too-large malicious input is never read into memory, and a
+        # truncated file cannot pass via a prefix hash.
+        with path.open("rb") as handle:
+            raw = handle.read(expected_size + 1)
+        if len(raw) != expected_size:
+            raise ValueError(f"source PPU {digest_key}: exact dump length mismatch")
+        if hashlib.sha256(raw).hexdigest() != receipt["source_ppu_sha256"][digest_key]:
+            raise ValueError(f"source PPU {digest_key}: captured bytes disagree with receipt")
+
+
+def verify_source_art_bundle(receipt: dict, paths: dict[str, Path],
+                             source_dump_dir: Path | None = None) -> dict:
+    """Verify source-affinity receipt, optional PPU bytes and image inputs."""
     if not isinstance(receipt, dict) or receipt.get("schema_version") != 1:
         raise ValueError("unsupported original art bundle receipt")
     if receipt.get("reference_only") is not True or (
             receipt.get("asset_distribution_approved") is not False or
             receipt.get("native_render_and_visual_acceptance") is not False):
         raise ValueError("source-only rights and acceptance flags must remain false")
+    # The first-party exporter always supplies the source capture family,
+    # exact main-frame anchor and four original VRAM/CGRAM SHA256 digests.
+    # The old verifier accidentally admitted receipts with NONE of these.
+    # Requiring a complete, well-formed claim does not cryptographically
+    # establish that those PPU bytes came from a licensed source ROM: that
+    # remains an independent upstream capture/provenance responsibility.
+    if (receipt.get("source_fixture") != SOURCE_FIXTURE or
+            receipt.get("source_main_tag") != SOURCE_MAIN_TAG or
+            not isinstance(receipt.get("source_detail_tag"), str) or
+            re.fullmatch(r"mvl-track-[0-9]{2,3}",
+                         receipt["source_detail_tag"]) is None):
+        raise ValueError("source capture fixture or original frame tags missing")
+    ppu = receipt.get("source_ppu_sha256")
+    if not isinstance(ppu, dict) or set(ppu) != SOURCE_PPU_FIELDS or any(
+            not isinstance(v, str) or
+            re.fullmatch(r"[0-9a-f]{64}", v) is None
+            for v in ppu.values()):
+        raise ValueError("source PPU VRAM/CGRAM digest receipt incomplete")
+    if source_dump_dir is not None:
+        verify_local_source_ppu_dumps(receipt, source_dump_dir)
     if set(paths) != set(EXPECTED):
         raise ValueError("supply all four named PNG source sheets")
     hashes = receipt.get("asset_png_sha256")
@@ -143,6 +199,8 @@ def verify_source_art_bundle(receipt: dict, paths: dict[str, Path]) -> dict:
             raise ValueError(f"cursor: source phase {n} is blank")
     return {
         "source_bundle_verified": True,
+        "local_ppu_dump_hashes_verified": source_dump_dir is not None,
+        "rom_identity_verified": False,
         "reference_only": True,
         "distribution_approved": False,
         "final_native_capture_approved": False,
@@ -153,12 +211,16 @@ def verify_source_art_bundle(receipt: dict, paths: dict[str, Path]) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--bundle", required=True, type=Path)
+    ap.add_argument("--source-dumps", type=Path,
+                    help="Optional private PPU dump directory: rehash exact "
+                         "main/detail VRAM and CGRAM bytes (no ROM approval)")
     for key in EXPECTED:
         ap.add_argument("--" + key, required=True, type=Path)
     args = ap.parse_args()
     receipt = json.loads(args.bundle.read_text())
     result = verify_source_art_bundle(
-        receipt, {key: getattr(args, key) for key in EXPECTED})
+        receipt, {key: getattr(args, key) for key in EXPECTED},
+        source_dump_dir=args.source_dumps)
     print(json.dumps(result, indent=2))
     return 0
 

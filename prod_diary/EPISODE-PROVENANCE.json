@@ -1,0 +1,964 @@
+{
+  "schema": "ur-production-episode-provenance/1",
+  "scope": "retrospective reconstructed episode index; links are evidence leads, not automatic verification",
+  "created": "2026-10-20",
+  "episodes": [
+    {
+      "id": 1,
+      "title": "Ian asks whether the unicycle can come back",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 2,
+      "title": "The first result is a laboratory, not a trailer",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 3,
+      "title": "A definition of success begins to crystallize",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-09-28-TO-2026-10-04.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 4,
+      "title": "Reference work earns its place by answering questions",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 5,
+      "title": "Small deterministic tests outrank grand theories",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 6,
+      "title": "Ian's direction is part of the source record",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 7,
+      "title": "Historical players become technical collaborators across time",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 8,
+      "title": "The replay that was wrong for a useful reason",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-09-28-TO-2026-10-04.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 9,
+      "title": "Evidence from outside the repository acquires a chain of custody",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 10,
+      "title": "The agents discover what routines actually do",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        112
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 11,
+      "title": "Two-player racing exposes the limitations of easy parity",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 12,
+      "title": "The plan keeps changing because the evidence changes",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 13,
+      "title": "Ian's widescreen ambition meets a physical machine",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 14,
+      "title": "A false divergence gives way to a real rendering problem",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 15,
+      "title": "A remaster begins to appear around the original",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-09-28-TO-2026-10-04.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 16,
+      "title": "Widescreen can pass while split-screen fails",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 17,
+      "title": "High definition needs an artistic authority",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 18,
+      "title": "Modern pause becomes its own product problem",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 19,
+      "title": "SDL3 and practical desktop behavior consolidate",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 20,
+      "title": "The GitHub queue grows teeth",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 21,
+      "title": "The first retrospective already contains the larger story",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-09-28-TO-2026-10-04.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 22,
+      "title": "Ian turns five menu nouns into product architecture",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        483,
+        487,
+        488,
+        489
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 23,
+      "title": "The title has a secret regional identity",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        500
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 24,
+      "title": "One hundred and eight Actions runs announce a problem",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        505,
+        506
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-05.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 25,
+      "title": "Working features still need a common owner",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 26,
+      "title": "Racer HD acquires a measuring instrument",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 27,
+      "title": "CI reform becomes a design discipline",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-06.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 28,
+      "title": "A ZIP is only the beginning of distribution",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 29,
+      "title": "Histories and records must survive process boundaries",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 30,
+      "title": "The source corpus begins to pay compound interest",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-08.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 31,
+      "title": "Course archaeology learns to retire hypotheses",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        109,
+        110
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 32,
+      "title": "Ian asks for features that survive replay and failure",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 33,
+      "title": "Cutting CI delay changes what the agents can learn",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-08.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 34,
+      "title": "Ian confronts the cost of being rigorous",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 35,
+      "title": "Two legitimate processes cannot own the same tournament",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        1052
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 36,
+      "title": "An original race result exposes a one-frame seam",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [
+        1106
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-09.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 37,
+      "title": "Another remaster appears on the horizon",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 38,
+      "title": "The remaster stops being a separate imitation",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 39,
+      "title": "Ian states the product in one sentence",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-10.md",
+        "PRODUCTION-DIARY-EDITORIAL-GUIDE.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 40,
+      "title": "Ian wants ten thousand cases to teach something",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 41,
+      "title": "Twenty runners form a shared budget",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1444,
+        1470,
+        1475
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 42,
+      "title": "Online multiplayer gets a political architecture",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-CONVERSATIONS-2026-10-11-TO-2026-10-12-RECONSTRUCTED.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 43,
+      "title": "A thousand measurements do not make one accepted race",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 44,
+      "title": "Source independence becomes an organizational property",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 45,
+      "title": "The first real product paths need to cross a process boundary",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-11-TO-2026-10-13.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 46,
+      "title": "Ian divides the work without dividing the game's truth",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 47,
+      "title": "A stranger's first racer becomes a measurable journey",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1451
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 48,
+      "title": "Graphics evidence moves back to the hardware",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-11-TO-2026-10-13.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 49,
+      "title": "The director declines the temptation of a premature playtest",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 50,
+      "title": "“This ZIP” becomes more meaningful than “the build”",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1648,
+        1667
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 51,
+      "title": "Research from other reconstructions has to pass customs",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 52,
+      "title": "The Windows candidate earns specificity, not graduation",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 53,
+      "title": "The game's aesthetic identity becomes a hard requirement",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 54,
+      "title": "A release plan acquires an independent veto",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 55,
+      "title": "The sound timing puzzle narrows to an instruction",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1741
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 56,
+      "title": "A durable raw save can still have broken metadata",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1713,
+        1743
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 57,
+      "title": "Integration has to know which game source it compiled",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1744
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 58,
+      "title": "Ian asks for continued work, not a false green",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 59,
+      "title": "An ENOSPC fixture refuses to certify a crash path",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1713
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 60,
+      "title": "A quiet repository still holds unseen work",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [
+        1711
+      ],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 61,
+      "title": "Ian refuses to let the denominator become decoration",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 62,
+      "title": "A saved return address is not an executed return",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 63,
+      "title": "The authentic pixel witness remains a witness",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-18-TO-2026-10-19.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 64,
+      "title": "The compiled RTI path changes the hypothesis",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1971,
+        1974
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 65,
+      "title": "Experiments fail before they reach the hypothesis",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1975,
+        1976,
+        1973
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 66,
+      "title": "Thousands of differing pixels get a precise name",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        1978
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-18-TO-2026-10-19.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 67,
+      "title": "Ian asks how to move ten jobs without losing ten histories",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        2085,
+        2091
+      ],
+      "issue_numbers": [],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 68,
+      "title": "“Check GitHub and the Vault” becomes a recovery principle",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        2095,
+        2097,
+        2100
+      ],
+      "issue_numbers": [
+        2088
+      ],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 69,
+      "title": "The visual project is assigned four different kinds of beauty",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        2096
+      ],
+      "issue_numbers": [
+        2079
+      ],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 70,
+      "title": "A memory of failed publication cannot authorize bad shortcuts",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [
+        2089
+      ],
+      "issue_numbers": [
+        2075,
+        2076
+      ],
+      "archive_files": [],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    },
+    {
+      "id": 71,
+      "title": "A production problem larger than the game",
+      "volume": "PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PRODUCTION-DIARY-2026-10-20.md"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "Evidence leads extracted from the published episode; verify source identity and dispositions independently."
+    }
+  ]
+}

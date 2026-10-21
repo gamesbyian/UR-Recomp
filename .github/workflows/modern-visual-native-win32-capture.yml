@@ -119,7 +119,7 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           # Each route drives the real native production edge handler,
           # in a separate clean process on the SAME PE.
-          for spec in records-keyboard:1024x768 options-p1:1280x720 profile-first-p1:1280x720; do
+          for spec in records-keyboard:1024x768 options-p1:1280x720 profile-first-p1:1280x720 practice-picker:1280x720 multiplayer-unrecorded:1280x720; do
             route="${spec%%:*}"
             size="${spec#*:}"
             python tools/qa_modern_visual_win32_capture_driver.py \
@@ -130,7 +130,7 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-journey-$route/actual-sdl-drawable.png"
             test -s "$RUNNER_TEMP/ur-modern-win32-journey-$route/readback-receipt.json"
           done
-          echo "True-native Windows keyboard Records, P1 Options and first-profile journey screenshots; no physical-pad/visual approval." >> "$GITHUB_STEP_SUMMARY"
+          echo "True-native Windows Records, Options, first-profile, Practice picker and anonymous 2P warning screenshots on one PE; no physical-pad/visual approval." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain controller and keyboard journey SDL frames, never save roots
         if: always()
         uses: actions/upload-artifact@v4
@@ -154,6 +154,14 @@ jobs:
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker/probe_first/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unrecorded/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unrecorded/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unrecorded/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unrecorded/probe_first/native-process.log
           if-no-files-found: warn
           retention-days: 7
       - name: Capture stock Authentic control at 16-to-9 and 4-to-3

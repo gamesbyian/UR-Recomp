@@ -140,6 +140,10 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
     def test_admitted_native_navigation_routes_are_explicit_and_distinct(self):
         self.assertEqual(driver.ROUTES["root-quit"][0], "14")
         self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
+        self.assertEqual(driver.ROUTES["practice-picker"],
+                         ("11", 63, "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker"))
+        self.assertEqual(driver.ROUTES["multiplayer-unrecorded"],
+                         ("2", 65, "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-unrecorded-warning"))
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
         self.assertTrue(all(40 <= entry[1] < 100 for name, entry

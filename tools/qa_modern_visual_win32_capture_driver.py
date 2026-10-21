@@ -50,6 +50,10 @@ def upstream_ppm_visibility(path: Path) -> dict:
 ROUTES = {
     "root-quit": ("14", 40, ""),
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
+    # These existing native P1 edge fixtures expose two actual open child
+    # screens before the source guest/2P warning branch proceeds.
+    "practice-picker": ("11", 63, "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker"),
+    "multiplayer-unrecorded": ("2", 65, "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-unrecorded-warning"),
     # Options opens at guest frame 64; frame 66 adjusts Display, changing
     # the host drawable to borderless and invalidating an explicit window-size
     # screenshot request. Observe the opened, unmodified Options page first.

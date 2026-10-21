@@ -137,10 +137,16 @@ inline void modern_native_destination_line(
     int stride, int surface_height,
     const ModernNativeDestinationCanvas& c,
     int y, std::string_view value, std::uint32_t colour,
-    int x = 9, int text_scale = 1, bool keep_last_token = false) {
+    int x = 9, int text_scale = 1, bool keep_last_token = false,
+    int right_edge = -1) {
     // All text is contained within the panel. Never silently crop the right
     // edge of a stock name, saved time, controls legend or options value.
-    const int available = c.w / c.scale - x - 5;
+    // A second column may start before the canvas edge. Bound this text
+    // to its own cell budget; the shared host painter has no scissor.
+    const int canvas_end = c.w / c.scale - 5;
+    const int content_end = right_edge >= 0 && right_edge < canvas_end
+        ? right_edge : canvas_end;
+    const int available = content_end - x;
     if (available < 8 * text_scale || y + 8 * text_scale > c.h / c.scale)
         return;
     const auto fit = modern_native_destination_fit(
@@ -156,7 +162,7 @@ inline void modern_native_destination_row(
     const ModernRootOverlayPainter& p, std::uint32_t* pixels,
     int stride, int surface_height,
     const ModernNativeDestinationCanvas& c, int y, bool selected,
-    std::string_view text) {
+    std::string_view text, int right_edge = -1) {
     const auto& color = kModernStockMenuPalette;
     if (selected) {
         // Share the root's source-measured blue arrow and dark focus field,
@@ -172,7 +178,8 @@ inline void modern_native_destination_row(
     modern_native_destination_line(
         p, pixels, stride, surface_height, c, y,
         std::string(selected ? "> " : "  ") + std::string(text),
-        selected ? color.title_yellow : 0xFFFFFFFFu);
+        selected ? color.title_yellow : 0xFFFFFFFFu,
+        9, 1, false, right_edge);
 }
 
 // Compact seat labels must not let a long catalog name push the important
@@ -296,7 +303,7 @@ inline bool render_modern_native_destination(
                     // follows only the selected real product option.
                     modern_native_destination_row(
                         p, pixels, stride, surface_height, c,
-                        row_y, selected, row.label);
+                        row_y, selected, row.label, 175);
                     std::string value(row.value);
                     if (selected && row.adjustable)
                         value = "< " + value + " >";

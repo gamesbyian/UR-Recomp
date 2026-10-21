@@ -71,6 +71,23 @@ class LiveOperationsTests(unittest.TestCase):
             }],
         }
 
+    def merged_receipt_fixture(self):
+        # Isolate the fixed merge-SHA regression from the curated registry:
+        # after a Vault clearout, the original historical row may disappear.
+        return {
+            "schema": "ur-recovery-registry/1",
+            "scope": "curated_not_exhaustive",
+            "candidates": [{
+                "candidate_id": "fixture-pinned-merge",
+                "work_id": self.board["work"][0]["work_id"],
+                "drive_id": "test-verified-archive-00001",
+                "state": "merged", "github_pr": 2110,
+                "merge_sha": MERGE, "failure_class": "none",
+                "discriminator": "independent-merge-sha-receipt",
+                "next_action": "Retain source receipt", "release_gate_credit": False,
+            }],
+        }
+
     def test_live_main_and_recency_are_explicit(self):
         result = self.report()
         self.assertTrue(result["main"]["protected"])
@@ -202,15 +219,15 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertIn("STALE / UNVERIFIED SOURCE", markdown(result))
 
     def test_merge_sha_cross_checks_the_registered_claim(self):
-        result = self.report()
-        matching = next(x for x in result["recovery"] if x["candidate_id"] == "h27-qa01-sparse-transition")
+        result = self.report(registry=self.merged_receipt_fixture())
+        matching = next(x for x in result["recovery"] if x["candidate_id"] == "fixture-pinned-merge")
         self.assertEqual(matching["check"], "MERGE_SHA_VERIFIED")
         def changed(path):
             if "/pulls/2110" in path:
                 return {"merged_at": "2026-10-21T05:00:00Z", "merge_commit_sha": "f"*40}
             return self.request(path)
-        result = self.report(get=changed)
-        mismatch = next(x for x in result["recovery"] if x["candidate_id"] == "h27-qa01-sparse-transition")
+        result = self.report(get=changed, registry=self.merged_receipt_fixture())
+        mismatch = next(x for x in result["recovery"] if x["candidate_id"] == "fixture-pinned-merge")
         self.assertEqual(mismatch["check"], "RECORDED_STATUS_OR_SHA_CONFLICT")
 
     def test_github_failure_is_unknown_not_zero(self):
@@ -229,8 +246,8 @@ class LiveOperationsTests(unittest.TestCase):
             if "/pulls/2110" in path:
                 raise ValueError("HTTP 403")
             return self.request(path)
-        item = next(x for x in self.report(get=blocked)["recovery"]
-                    if x["candidate_id"] == "h27-qa01-sparse-transition")
+        item = next(x for x in self.report(get=blocked, registry=self.merged_receipt_fixture())["recovery"]
+                    if x["candidate_id"] == "fixture-pinned-merge")
         self.assertEqual(item["check"], "UNKNOWN")
 
     def test_exact_page_boundary_does_not_claim_complete_census(self):

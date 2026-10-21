@@ -272,6 +272,19 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                 self.assertIn(f"original guest frame {stop}", header)
                 self.assertIn("kFrames.data(), kFrames.size(), true", header)
                 self.assertEqual(header.count("original guest frame"), count)
+                metrics = hero.original_temporal_evidence(rows, frames)
+                self.assertEqual(metrics["frame_count"], count)
+                self.assertEqual(metrics["first_registered_guest_frame"], start)
+                self.assertEqual(metrics["last_registered_guest_frame"], stop)
+                self.assertEqual(len(metrics["consecutive_registered_edges"]),
+                                 count - 1)
+                seam = metrics["counterfactual_last_to_first_edge"]
+                self.assertEqual(seam["from_registered_guest_frame"], stop)
+                self.assertEqual(seam["to_registered_guest_frame"], start)
+                self.assertFalse(seam["is_observed_chronological_edge"])
+                self.assertFalse(metrics["loop_certified"])
+                self.assertFalse(
+                    metrics["source_guest_timing_independently_certified"])
                 bad = copy.deepcopy(rows)
                 bad[-1]["original_guest_frame"] = start
                 with self.assertRaisesRegex(ValueError, "registered window"):
@@ -313,6 +326,11 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                 self.assertFalse(report["source_clip_loop_certified"])
                 self.assertFalse(report["source_guest_timing_independently_certified"])
                 self.assertFalse(report["human_visual_approval"])
+                metrics = report["temporal_original_raster_metrics"]
+                self.assertEqual(metrics["frame_count"], stop - start + 1)
+                self.assertFalse(metrics["counterfactual_last_to_first_edge"][
+                    "is_observed_chronological_edge"])
+                self.assertFalse(metrics["loop_certified"])
                 self.assertIn(
                     f"std::array<ModernMenuStockHeroFrame, {stop - start + 1}>",
                     (root / "source.generated.hpp").read_text())
@@ -336,6 +354,10 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                 self.assertTrue(len(row["review_png_sha256"]) == 64)
             self.assertEqual(result["original_rom_sha256"],
                              self.source["rom_sha256"])
+            self.assertEqual(
+                result["temporal_original_raster_metrics"]["frame_count"], 8)
+            self.assertFalse(
+                result["temporal_original_raster_metrics"]["loop_certified"])
             self.assertEqual(len(result["frames"]), 8)
             self.assertEqual([x["original_guest_frame"] for x in result["frames"]],
                              list(range(1213, 1221)))

@@ -133,6 +133,26 @@ int main() {
     enter(true);
     assert(keyboard_root_activations == 1);
 
+    // Fixed 37-scanline circumference oracle from the former sqrt painter.
+    // Include both poles, left/right symmetry and adjacent outside bounds:
+    // image output must remain pixel-identical on every native platform.
+    constexpr int kStockWheelExtents[37] = {
+        0, 5, 8, 9, 11, 12, 13, 14, 14, 15, 16, 16, 16,
+        17, 17, 17, 17, 17, 18, 17, 17, 17, 17, 17, 16,
+        16, 16, 15, 14, 14, 13, 12, 11, 9, 8, 5, 0};
+    static_assert(modern_title_wheel_rim_extent(-18) == 0);
+    static_assert(modern_title_wheel_rim_extent(0) == 18);
+    static_assert(modern_title_wheel_rim_extent(18) == 0);
+    static_assert(modern_title_wheel_rim_extent(-19) == 0);
+    static_assert(modern_title_wheel_rim_extent(19) == 0);
+    for (int dy = -18; dy <= 18; ++dy) {
+        const int extent = modern_title_wheel_rim_extent(dy);
+        assert(extent == kStockWheelExtents[dy + 18]);
+        assert(extent == modern_title_wheel_rim_extent(-dy));
+        assert(extent * extent + dy * dy <= 324);
+        assert((extent + 1) * (extent + 1) + dy * dy > 324);
+    }
+
     // Every pixel of the original retail title stays identical while
     // its 24-tick entry lift settles (at tick16: exactly +4 rows).
     static_assert(modern_title_logical_width(1280, 720, true) == 342);

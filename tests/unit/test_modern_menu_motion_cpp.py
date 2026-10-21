@@ -62,6 +62,18 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("!view.quit_confirm", baldosa)
         self.assertIn("!view.two_seat_join_open", baldosa)
 
+    def test_original_source_pose_renderer_holds_final_rather_than_looping(self):
+        # Runtime ARGB equality/refusal is asserted by the compiled C++ test
+        # in this same unit suite. This contract also makes source-level
+        # regression to ordinal modulo (fabricated 1220->1213 seam) obvious.
+        hero = (ROOT / "native/product/modern_menu_stock_hero.hpp").read_text(
+            encoding="utf-8")
+        self.assertIn("motion.hero_frame_ordinal < 0", hero)
+        self.assertIn("ordinal >= sequence.frame_count ? sequence.frame_count - 1u",
+                      hero)
+        self.assertNotIn("static_cast<std::size_t>(motion.hero_frame_ordinal) %",
+                         hero)
+
     def test_source_measured_stock_motion_deltas_are_unchanged(self):
         source = json.loads(
             (ROOT / "analysis/generated/menu-visual-language.json").read_text(

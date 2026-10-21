@@ -165,6 +165,21 @@ class ActionEvidenceTests(unittest.TestCase):
         self.assertEqual(result["captures"][0]["native_painted_stage_at_capture"],
                          "authentic-original")
 
+    def test_342_canvas_cannot_masquerade_as_compact_43_source(self):
+        self.log=self.log.replace(
+            b"raster=256x224 root=8,10,240,204",
+            b"raster=342x224 root=11,10,320,204")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"source canvas/root geometry mismatch"):
+            qa.verify(self.path)
+
+    def test_geometry_metadata_in_accepted_original_compact_capture(self):
+        self.pack()
+        result=qa.verify(self.path)["captures"][0]
+        self.assertEqual(result["native_source_canvas_at_capture"],[256,224])
+        self.assertEqual(result["native_root_geometry_at_capture"],[8,10,240,204])
+
     def test_phony_approval_refused(self):
         self.receipt["visual_approved"]=True
         self.pack()

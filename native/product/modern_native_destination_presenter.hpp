@@ -239,6 +239,27 @@ inline bool render_modern_native_destination(
         p, pixels, stride, surface_height, c, 6,
         title, col.title_yellow, 10, 2);
 
+    // The extra native-wide header width is a quiet, source-colour identity
+    // rail. It tells the player which *existing* product surface is active,
+    // without placing new actions in the panel or truncating full racer names
+    // and saved Records times in the content below. The 4:3 title stays exact.
+    if (c.wide) {
+        const std::string_view tag = v.options_open
+            ? (v.options_controls_help ? "HELP" : "SETTINGS")
+            : (v.practice_picker_open || v.practice_launch_pending) ? "STOCK"
+            : v.read_only_records_open ? "ARCHIVE"
+            : v.first_racer_open ? "PROFILE"
+            : v.two_seat_join_open ? "P1 + P2" : "2P STOCK";
+        const int tag_x = c.w / c.scale - 10 -
+            static_cast<int>(tag.size()) * kModernOverlayCellPixels;
+        p.fill_rect(pixels, stride, surface_height,
+                    c.x + (tag_x - 7) * c.scale, c.y + 9 * c.scale,
+                    c.scale, 11 * c.scale, col.frame_grey);
+        p.draw_text(pixels, stride, surface_height,
+                    c.x + tag_x * c.scale, c.y + 12 * c.scale,
+                    tag.data(), col.secondary_grey, c.scale);
+    }
+
     if (v.options_open) {
         if (v.options_controls_help) {
             static constexpr const char* lines[] = {

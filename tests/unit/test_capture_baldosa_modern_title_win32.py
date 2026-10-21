@@ -178,6 +178,74 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             self.assertEqual(accepted["presentations_examined"], 3)
             self.assertEqual(accepted["matched"]["root"]["present_frame"], 80)
 
+    def test_original_logo_lift_and_native_exit_sweep_are_retained(self):
+        # Synthetic verifier tests are deliberately distinct from real Win32
+        # source/PE evidence. Positive geometry here must never award QA.
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            source, photos = base / "captures", base / "presented"
+            source.mkdir()
+            photos.mkdir()
+            w, h = 256, 224
+            base_rgba = bytes((31, 43, 61, 255))
+            title = bytearray(base_rgba * (w * h))
+            left = (w - 238) // 2
+            for y in range(27, 108):
+                for x in range(left, left + 238):
+                    i = (y * w + x) * 4
+                    title[i:i+3] = bytes(((x + y) & 255,
+                                         (x + 7*y) & 255,
+                                         (3*x + y) & 255))
+            root = bytes((88, 108, 128, 255)) * (w * h)
+            (source / "modern-native-title-256x224.pam").write_bytes(
+                pam(w, h, title))
+            (source / "modern-native-root-256x224.pam").write_bytes(
+                pam(w, h, root))
+            def rgb(rgba):
+                return b"".join(rgba[i:i + 3] for i in range(0, len(rgba), 4))
+            settled = rgb(title)
+            entry = bytearray(rgb(base_rgba * (w * h)))
+            for y in range(81):
+                for x in range(left, left + 238):
+                    start = ((y + 27) * w + x) * 3
+                    end = ((y + 31) * w + x) * 3
+                    entry[end:end+3] = settled[start:start+3]
+            leaving = bytearray(settled)
+            for x in range(90):
+                start = (192 * w + x) * 3
+                leaving[start:start+3] = bytes((0x6c, 0xbf, 0xeb))
+            def write_photo(i, content):
+                (photos / f"present_{i:06d}.ppm").write_bytes(
+                    b"P6\n256 224\n255\n" + content)
+            (photos / "presents.csv").write_text(
+                "present,frame,alpha,crc32,luma\n"
+                "0,16,0,12345678,11\n"
+                "1,32,0,12345678,11\n"
+                "2,64,0,12345678,11\n"
+                "3,80,0,12345678,11\n")
+            write_photo(0, settled)  # forged static title without +4px lift
+            write_photo(1, settled)
+            write_photo(2, leaving)
+            write_photo(3, rgb(root))
+            with self.assertRaisesRegex(ValueError, "exact \\+4px"):
+                verify_native_presented_frames(
+                    photos, source, w, require_motion_evidence=True)
+            write_photo(0, bytes(entry))
+            write_photo(2, settled)  # forged static title instead of exit sweep
+            with self.assertRaisesRegex(ValueError, "leaving sweep"):
+                verify_native_presented_frames(
+                    photos, source, w, require_motion_evidence=True)
+            write_photo(2, bytes(leaving))
+            accepted = verify_native_presented_frames(
+                photos, source, w, require_motion_evidence=True)
+            self.assertEqual(accepted["motion"]["entry"]["present_frame"], 16)
+            self.assertEqual(accepted["motion"]["leaving"]["present_frame"], 64)
+            self.assertEqual(accepted["motion"]["entry"]["source_logo_match_fraction"], 1.0)
+            self.assertEqual(accepted["motion"]["leaving"]["source_logo_match_fraction"], 1.0)
+            self.assertTrue((photos / "presented-entry.ppm").is_file())
+            self.assertTrue((photos / "presented-leaving.ppm").is_file())
+            self.assertFalse((photos / "present_000000.ppm").exists())
+
     def test_fake_log_cannot_turn_empty_pixels_into_real_art(self):
         with tempfile.TemporaryDirectory() as root:
             folder = Path(root)

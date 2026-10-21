@@ -65,9 +65,28 @@ def _pixel_match(reference: bytes, output: bytes,
     return matched / (rw * rh)
 
 
+def shifted_original_logo_fraction(
+    settled_rgba: bytes, entering_rgb: bytes, width: int, lift: int
+) -> float:
+    """Compare real entry artwork to the source-retail logo, at its shifted Y.
+
+    Original 238x81 pixels stay unscaled throughout the entrance. The actual
+    host P6 may contain a diagnostic top-left OSD, outside this retail ROI.
+    """
+    left = (width - 238) // 2
+    matches = 0
+    for y in range(81):
+        for x in range(left, left + 238):
+            original = ((y + 27) * width + x) * 4
+            entering = ((y + 27 + lift) * width + x) * 3
+            matches += settled_rgba[original:original + 3] == (
+                entering_rgb[entering:entering + 3])
+    return matches / (238 * 81)
+
+
 def verify_native_presented_frames(
     present_dir: Path, source_dir: Path, expected_width: int = 342,
-    reduced_motion: bool = False) -> dict:
+    reduced_motion: bool = False, require_motion_evidence: bool = False) -> dict:
     """Require both title and root to reach the real host's present path.
 
     SNESRecomp's WritePpm is AFTER RtlDrawPpuFrame/ComposeOsd and BEFORE
@@ -120,6 +139,56 @@ def verify_native_presented_frames(
             "file": keep.name,
             "sha256": hashlib.sha256(keep.read_bytes()).hexdigest(),
         }
+    motion = {}
+    if require_motion_evidence:
+        if reduced_motion:
+            raise ValueError("moving title witnesses cannot be required in reduced motion")
+        # The genuine pinned native screenshot cadence presents at 16-frame
+        # intervals; P1 confirms at guest frame 60 and reaches root after
+        # fourteen title ticks. These frames are real observed guest times,
+        # not synthesized animation screenshots or guessed wall clocks.
+        entries = [(rgb, file) for frame, rgb, file in photos if frame == 16]
+        leaving = [(rgb, file) for frame, rgb, file in photos if frame == 64]
+        if len(entries) != 1 or len(leaving) != 1:
+            raise ValueError("missing/duplicate native title entry/exit transition presents")
+        if matches["root"]["present_frame"] <= 64:
+            raise ValueError("root must visibly follow the native leaving sweep")
+        _, _, title_source = read_pam(
+            source_dir / f"modern-native-title-{expected_width}x224.pam",
+            expected_width)
+        early_rgb, early_file = entries[0]
+        leaving_rgb, leaving_file = leaving[0]
+        intro_ratio = shifted_original_logo_fraction(
+            title_source, early_rgb, expected_width, 4)
+        if intro_ratio < 0.995:
+            raise ValueError("native 16-frame title entry lacks exact +4px retail-logo lift")
+        logo_bounds = ((expected_width - 238) // 2, 27, 238, 81)
+        leaving_ratio = _pixel_match(
+            title_source, leaving_rgb, expected_width, logo_bounds)
+        if leaving_ratio < 0.995:
+            raise ValueError("native title artwork changed during leaving sweep")
+        # y=192 is the one uncovered row of the three-row blue sweep; the
+        # prompt strip is painted from y=193. This exact source pixel proves
+        # a real leaving frame, without treating a mere root/time log as art.
+        sweep = bytes((0x6c, 0xbf, 0xeb))
+        at = lambda data, x: data[(192 * expected_width + x) * 3:
+                                  (192 * expected_width + x) * 3 + 3]
+        if (at(early_rgb, 8) == sweep or
+                at(leaving_rgb, 8) != sweep or
+                at(leaving_rgb, expected_width - 8) == sweep):
+            raise ValueError("native title leaving sweep is missing, static or full width")
+        for phase, frame, file, fraction in (
+            ("entry", 16, early_file, intro_ratio),
+            ("leaving", 64, leaving_file, leaving_ratio),
+        ):
+            keep = present_dir / f"presented-{phase}.ppm"
+            keep.write_bytes(file.read_bytes())
+            motion[phase] = {
+                "present_frame": frame,
+                "source_logo_match_fraction": round(fraction, 6),
+                "file": keep.name,
+                "sha256": hashlib.sha256(keep.read_bytes()).hexdigest(),
+            }
     if reduced_motion:
         _, _, title_source = read_pam(
             source_dir / f"modern-native-title-{expected_width}x224.pam",
@@ -135,10 +204,14 @@ def verify_native_presented_frames(
                     f"reduced-motion original title moved at present frame {frame}")
     if matches["title"]["present_frame"] >= matches["root"]["present_frame"]:
         raise ValueError("host-presented root precedes title")
-    # Retain just the actual two host-presented matches and indexed CSV.
+    # Retain only verified title/root/transition frames and indexed CSV;
+    # the original native process and executable hashes are bound by main().
     for _, _, f in photos:
         f.unlink()
-    return {"presentations_examined": len(photos), "matched": matches}
+    receipt = {"presentations_examined": len(photos), "matched": matches}
+    if motion:
+        receipt["motion"] = motion
+    return receipt
 
 
 def fnv_pixels(pixels: bytes) -> int:
@@ -309,7 +382,8 @@ def main() -> int:
         reduced_motion=args.reduced_motion, confirm=args.confirm)
     receipt["native_presented"] = verify_native_presented_frames(
         presented, captures, expected_width=expected_width,
-        reduced_motion=args.reduced_motion)
+        reduced_motion=args.reduced_motion,
+        require_motion_evidence=not args.reduced_motion)
     receipt["drawable_aspect"] = args.aspect
     receipt["reduced_motion"] = args.reduced_motion
     receipt["native_confirm_route"] = args.confirm

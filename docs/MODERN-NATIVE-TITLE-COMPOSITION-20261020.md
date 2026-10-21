@@ -411,3 +411,33 @@ across the combined Modern root; final SDL3 drawables on exact integrated
 #2053 head, physical 4K/7:6 display and controllers, independent human
 aesthetic review, and original-stock idle attract/demo #2079 (real guest
 state and input wake required; no artificial clock-based handoff).
+
+
+## Native entry/exit frame evidence retention
+
+The title-owner native capture verifier previously compared only a steady
+title frame and a settled root frame, discarding the real intermediate
+host-presented frames. It now optionally requires **original-source-compatible
+entry and leaving pictures** for every moving-title Windows capture, while
+leaving the separate reduced-motion path's static checks unchanged:
+
+- At real native present frame 16 the 238×81 retail logo must agree in
+  colour and pixels with the captured settled logo **shifted exactly +4px**
+  vertically, proving actual entry art rather than only an entry state label.
+- At real present frame 64, after the native P1 confirmation at guest frame
+  60 and before root at frame 80, the full retail logo must remain stable,
+  and the uncovered y=192 blue sweep must occupy its near edge without
+  painting the far edge. A static or full-width substituted frame fails.
+- Both real source-host P6 \`presented-entry.ppm\` and
+  \`presented-leaving.ppm\`, along with their frame indices and SHA256,
+  survive into the same exact-executable receipt/ZIP as the established
+  title/root images. Raw numbered frames are removed only after approval.
+  No new runner or extra game build is introduced.
+
+This is native post-OSD P6 source-host compositor evidence, not SDL3 final
+drawable pixels. The existing title and root P7 ROI comparisons retain
+their independent source provenance; neither human visual quality, physical
+4K scaling nor full-frame pixel identity is inferred. Synthetic adversarial
+fixtures exercise missing +4px entry and missing exit sweep. **New exact-head
+Windows outcome remains pending** until the corresponding real native run
+and retained artifacts are checked.

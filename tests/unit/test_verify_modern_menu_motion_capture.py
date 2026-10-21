@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -210,6 +211,46 @@ class NativeModernMotionCaptureTests(unittest.TestCase):
             m.verify_log("no host motion observations")
         with self.assertRaisesRegex(ValueError, "no complete required"):
             m.verify_log(log(capture(count=39)))
+
+    def test_real_cpp_native_motion_model_agrees_with_independent_verifier(self):
+        # Deliberately not an authentic native HOST draw: compile the actual
+        # C++ motion state machine into a standalone synthetic clock fixture.
+        # The verifier must agree on EVERY row, including source-signed
+        # reversal offsets and reduced-motion hold/re-entry.
+        compiler = shutil.which("g++") or shutil.which("clang++")
+        if not compiler:
+            self.skipTest("native C++ compiler not available on this runner")
+        with tempfile.TemporaryDirectory() as tmp:
+            executable = Path(tmp) / "modern-motion-oracle"
+            src = ROOT / "tests/native/modern_menu_motion_capture_contract_test.cpp"
+            compile_result = subprocess.run([
+                compiler, "-std=c++17", "-O1", "-Wall", "-Wextra",
+                "-Werror", "-pedantic",
+                "-I", str(ROOT / "native/product"),
+                str(src), "-o", str(executable),
+            ], capture_output=True, text=True, check=False)
+            self.assertEqual(compile_result.returncode, 0,
+                             compile_result.stderr + compile_result.stdout)
+            for width, arg in ((256, []), (342, ["--wide"])):
+                with self.subTest(logical_width=width):
+                    result = subprocess.run([str(executable), *arg],
+                                            capture_output=True, text=True,
+                                            check=False)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    events = m.parse_log(result.stdout)
+                    self.assertEqual(len(events), 48)
+                    self.assertLess(events[1]["offset"], 0)
+                    self.assertEqual(events[1]["offset"], -16)
+                    self.assertEqual(events[4]["offset"], 11)
+                    self.assertEqual(events[8]["offset"], 0)
+                    self.assertEqual(events[25]["spin"], 0)
+                    self.assertEqual(events[25]["entrance"], 0)
+                    self.assertEqual(events[29]["entrance"], 0)
+                    receipt = m.verify_log(result.stdout)
+                    self.assertEqual(receipt["sessions"][0]["logical_width"], width)
+                    self.assertEqual(receipt["native_draw_count"], 48)
+                    self.assertEqual(receipt["sessions"][0][
+                        "reduced_motion_frames"], 4)
 
     def test_source_motion_contract_cannot_be_silently_reinterpreted(self):
         measured = source()

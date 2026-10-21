@@ -38,7 +38,7 @@ ROUTES = {
     # Production keyboard path closes Records and enters the original 1P
     # stock guest at frame 70. Capture AFTER the real host relinquishes its
     # frontend, never by painting a fake Play destination modal.
-    "play-stock-handoff": ("1", 90, "UR_BALDOSA_MODERN_ROOT stock_requested players=1"),
+    "play-stock-handoff": ("1", 1800, "UR_BALDOSA_MODERN_ROOT stock_entered players=1"),
     "options-p1": ("12", 74, "UR_BALDOSA_MODERN_ROOT options_opened"),
     # Capture the first genuine Options paint before mode-12 changes Display
     # to borderless at guest frame 66; test a strict 16:9 native child panel.
@@ -122,7 +122,11 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     # Capture host PRESENT 40, not guest frame 40. Turbo can simulate 62
     # guest frames in ~60ms while SDL draws only three frames, making that
     # ordinal unreachable. Use the normal native 60Hz presentation clock.
-    script.write_text("wait 480\nquit\n", encoding="ascii")
+    # Original Nintendo/title sequence can outlast hundreds of guest frames.
+    # Observe an actual stock MAIN→1P handoff before any Play screenshot;
+    # longer diagnostic waits are Play-only, leaving other routes untouched.
+    script_wait = 2400 if route == "play-stock-handoff" else 480
+    script.write_text(f"wait {script_wait}\nquit\n", encoding="ascii")
     capture = stage / "actual-sdl-drawable.pam"
     smoke, capture_draw, stage_marker = ROUTES[route]
     execution_mode = "authentic" if route == "authentic-stock" else "modern"
@@ -170,6 +174,14 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
+    if route == "play-stock-handoff":
+        # Request alone never establishes a guest handoff. The native host
+        # must actually revoke Modern focus after observing the source 1P
+        # menu BEFORE the SDL frame is captured.
+        presented = "UR_MODERN_VISUAL_SDL_CAPTURE status=saved"
+        if (presented in log and log.index(stage_marker) > log.index(presented):
+            raise RuntimeError("Play stock handoff occurred after screenshot")
+
     return {
         "stage": stage,
         "log": log,
@@ -230,6 +242,10 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
                         if route == "authentic-stock" else None)
     png = out / "actual-sdl-drawable.png"
     conversion = convert(raw, png, selected["observed"])
+    original_guest_witness = (
+        validate_authentic_pixels(raw, selected["observed"])
+        if route == "play-stock-handoff" else None)
+
     receipt = {
         "schema_version": 1,
         "scope": "one real Windows native display baseline/control, not four-agent visual integration",
@@ -239,6 +255,7 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
         "actual_sdl_renderer_output": list(selected["observed"]),
         "observed_in_draw": selected["capture_draw"],
         "native_semantic_route": route,
+        "original_play_guest_rgb_witness": original_guest_witness,
         "execution_mode": selected["execution_mode"],
         "authentic_visible_raster_precondition": authentic_pixels,
         "native_route_marker_observed": bool(ROUTES[route][2]),

@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "kind": "independently downloaded, source- and PE-bound Windows native Modern title/menu rehearsal audit",
+  "authority": "docs/MODERN-VISUAL-ACCEPTANCE.md",
+  "original_run": {
+    "workflow_run_id": 39555629743,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39555629743",
+    "result": "success",
+    "source_checkout_sha": "427fabc4252a66f7e60f27fec39ca7ce6f8e2275",
+    "pr_at_capture": 2149,
+    "pr_status_at_review": "draft",
+    "native_executable_sha256": "7b5a0ce58ac66e96850d3340f604665a94b8d9263fc295bbff27b53f216d1073",
+    "actual_executable_bytes": 20454912,
+    "architecture": "AMD64 PE32+"
+  },
+  "original_original_actions_artifacts": [
+    {
+      "role": "actual_native_executable",
+      "id": 12325282772,
+      "original_ZIP_SHA256": "e1da5c492bfc856e7619c617e84e6a224093b8438201cfbd5c7a98c78fc2e31c",
+      "expected_cases": 0
+    },
+    {
+      "role": "two_logical_root_aspect_outputs",
+      "id": 12325292677,
+      "original_ZIP_SHA256": "af75a7f7bb00852c8af07d948151436252183ef6d69f03ac4194def22271a571",
+      "expected_cases": 2
+    },
+    {
+      "role": "five_input_driven_destinations",
+      "id": 12325392541,
+      "original_ZIP_SHA256": "2a7889535d7392adc5e25feaaf0f33138a497c0cdbe02a8f33e16251dc9cd23f",
+      "expected_cases": 5
+    },
+    {
+      "role": "additional_native_root_output",
+      "id": 12325402655,
+      "original_ZIP_SHA256": "dc36310577fe960c9e9658bd93e193a813eacfcdf06d8a76fef296d29680b151",
+      "expected_cases": 1
+    },
+    {
+      "role": "Original_Authentic_control",
+      "id": 12325437530,
+      "original_ZIP_SHA256": "e55f2f70ed6dcc6e53a9da2633672f2f9fb7a265bc720fa83e8e47ec90367a08",
+      "expected_cases": 2
+    },
+    {
+      "role": "title_to_Modern_root_normal_reduced_4by3_16by9",
+      "id": 12325703003,
+      "original_ZIP_SHA256": "3f87d07726f555977214a25f6c763fd09fc99d0251fb46e1db2395c57af5dd2b",
+      "expected_cases": 8
+    }
+  ],
+  "independent_check_summary": {
+    "actual_frames_from_original_capture_zip": 18,
+    "exact_original_SDL_P7_to_lossless_PNG_RGBA_matches": 18,
+    "original_process_log_sha256_matches": 18,
+    "original_P7_sha256_matches_receipt": 18,
+    "same_observed_source_checkout_all_18": true,
+    "same_observed_executable_SHA256_all_18": true,
+    "original_process_exit_zero_all_18": true,
+    "original_SDL_driver_windows_all_18": true,
+    "native_executable_from_independent_ZIP_matches_all_receipts": true,
+    "no_physical_controller_paired_ever_observed": true,
+    "no_current_main_candidate_equivalence_asserted": true
+  },
+  "capture_case_inventory": [
+    {
+      "role": "two_logical_root_aspect_outputs",
+      "cases": [
+        [
+          "root-quit",
+          1024,
+          768
+        ],
+        [
+          "root-quit",
+          1280,
+          720
+        ]
+      ]
+    },
+    {
+      "role": "five_input_driven_destinations",
+      "cases": [
+        [
+          "multiplayer-unrecorded",
+          1280,
+          720
+        ],
+        [
+          "options-p1",
+          1280,
+          720
+        ],
+        [
+          "practice-picker",
+          1280,
+          720
+        ],
+        [
+          "profile-first-p1",
+          1280,
+          720
+        ],
+        [
+          "records-keyboard",
+          1024,
+          768
+        ]
+      ]
+    },
+    {
+      "role": "additional_native_root_output",
+      "cases": [
+        [
+          "root-quit",
+          856,
+          480
+        ]
+      ]
+    },
+    {
+      "role": "Original_Authentic_control",
+      "cases": [
+        [
+          "authentic-stock",
+          1024,
+          768
+        ],
+        [
+          "authentic-stock",
+          1280,
+          720
+        ]
+      ]
+    },
+    {
+      "role": "title_to_Modern_root_normal_reduced_4by3_16by9",
+      "cases": [
+        [
+          "title-still",
+          1024,
+          768
+        ],
+        [
+          "title-entered-root",
+          1024,
+          768
+        ],
+        [
+          "title-reduced-still",
+          1024,
+          768
+        ],
+        [
+          "title-reduced-entered-root",
+          1024,
+          768
+        ],
+        [
+          "title-still",
+          1280,
+          720
+        ],
+        [
+          "title-entered-root",
+          1280,
+          720
+        ],
+        [
+          "title-reduced-still",
+          1280,
+          720
+        ],
+        [
+          "title-reduced-entered-root",
+          1280,
+          720
+        ]
+      ]
+    }
+  ],
+  "independently_recomputed_genuine_source_visual_corrections": {
+    "identity_row_1280x720_sample": {
+      "old_observed_run": 39536021531,
+      "old_PE_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+      "old_original_P7_sha256": "851e058d918bc001f2a2571b8090a3870afeb551a38d2b30b742e19f70641150",
+      "current_native_case": "title-entered-root",
+      "current_original_P7_sha256": "3a122130db44c9e7bc647a7a4b762195cbeb30830daa520d06334ed18ca4807c",
+      "sample_roi_xyxy": [
+        50,
+        140,
+        590,
+        182
+      ],
+      "roi_pixels": 22680,
+      "unchanged_rgba_pixels": 18010,
+      "changed_rgba_pixels": 4670,
+      "changed_only_rgb_from": [
+        152,
+        152,
+        152
+      ],
+      "changed_only_rgb_to": [
+        200,
+        200,
+        200
+      ],
+      "all_other_RGBA_unchanged": true,
+      "old_rgb_80_checker_contrast_ratio": 2.7952,
+      "new_rgb_80_checker_contrast_ratio": 4.8194,
+      "foreground_near_rgb_80_checker_pixels": 1250,
+      "conventional_normal_text_reference_ratio": 4.5,
+      "post_change_sample_passes_raw_source_RGB_reference": true,
+      "physical_alpha_compositing_and_human_visual_approved": false
+    },
+    "authentic_original_RGB_transport": {
+      "native_original_source_P6_sha256": "a53524f883bf15bbc57297e3a8d5fd0670320aecbc165a6036a8ad316edbc6ee",
+      "exact_1024x768_RGB_viewport_pixels": 786432,
+      "exact_1280x720_RGB_viewport_pixels": 691200,
+      "exact_1280x720_black_side_pillar_pixels": 230400,
+      "nonzero_alpha_pixels_at_both_outputs": 0,
+      "source_to_final_SDL_RGB_exact_all_software_mapped_pixels": true,
+      "method": "independent per-pixel nearest-neighbour pixel-centre source P6 to original SDL P7 RGB, with separate black bar check",
+      "original_CPU_APU_guest_state_and_physical_GPU_approved": false
+    },
+    "title_root_genuine_native_timing": {
+      "normal_input_press_guest_frame": 60,
+      "normal_title_to_root_frame": 74,
+      "reduced_motion_root_guest_frame": 60,
+      "SDL_title_readback_draw": 40,
+      "SDL_root_readback_draw": 100,
+      "unapproved_scope": "semantic injected P1 route and actual SDL pixels on hosted Windows AOT, not physical pad or natural clock UI motion"
+    }
+  },
+  "exact_25_case_visual_acceptance": {
+    "canonical_count": 25,
+    "formally_approved": 0,
+    "human_source_faithful_art_approved": 0,
+    "physical_displays_and_controllers_approved": 0,
+    "release_gate_credit": 0,
+    "no_exhaustive_current_source_E2E_evidence_for": [
+      "4K final source/PAR",
+      "named hardware-independent P2",
+      "earned Records 1P/2P",
+      "disabled locked Practice",
+      "held confirm/back after destination",
+      "focus loss/recovery",
+      "profile cold reboot/corruption",
+      "Original complete guest event CRC",
+      "physical audio/screen assessment"
+    ],
+    "risk": "This is a single exact ephemeral PR merge source/PE, not current main or finally integrated shipping source. Final changed integration head demands its own comparable original native capture."
+  },
+  "retention": "Original GitHub Actions artifacts have short retention; original ZIP names/ids and SHA256 are pinned for external independent retrieval. Binary screenshot assets and retail ROM are NOT committed to the public repository."
+}

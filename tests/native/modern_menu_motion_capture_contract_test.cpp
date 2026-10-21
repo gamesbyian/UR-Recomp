@@ -31,27 +31,33 @@ bool inspect_actual_marker_pixels(const std::vector<std::uint32_t>& buffer,
                                   int stride, const ur::product::ModernMenuMotionPose& pose,
                                   int root_x) noexcept {
     using namespace ur::product;
-    int count = 0, x_min = stride, x_max = -1, y_min = 224, y_max = -1;
-    for (int y = 0; y < 224; ++y) {
-        for (int x = 0; x < stride; ++x) {
-            const auto value = buffer[static_cast<std::size_t>(y) * stride + x];
-            if (value == 0u) continue;
-            if (value != kModernStockMenuPalette.cursor_blue) return false;
-            ++count;
-            x_min = std::min(x_min, x);
-            x_max = std::max(x_max, x);
-            y_min = std::min(y_min, y);
-            y_max = std::max(y_max, y);
-        }
-    }
     const bool inset = !pose.reduced_motion &&
         pose.cursor_spin_phase >= 4 && pose.cursor_spin_phase < 12;
-    const int height = inset ? 10 : 12;
-    const int expected_y = 10 + 57 + 21 * pose.selection +
-        pose.cursor_remainder_px + (inset ? 1 : 0);
-    return count == 2 * height && x_min == root_x + 5 &&
-           x_max == root_x + 6 && y_min == expected_y &&
-           y_max == expected_y + height - 1;
+    const int baseline = 10 + 57 + 21 * pose.selection +
+        pose.cursor_remainder_px;
+    int count_blue = 0, count_focus_fill = 0;
+    for (int y = 0; y < 224; ++y) {
+        for (int x = 0; x < stride; ++x) {
+            const auto pixel = buffer[static_cast<std::size_t>(y) * stride + x];
+            if (pixel == 0u) continue;
+            if (x < root_x + 5 || x > root_x + 6 ||
+                y < baseline || y >= baseline + 12) return false;
+            const bool blue = !inset ||
+                (y > baseline && y < baseline + 11);
+            if (blue) {
+                if (pixel != kModernStockMenuPalette.cursor_blue) return false;
+                ++count_blue;
+            } else {
+                if (pixel != 0xE0283058u) return false;
+                ++count_focus_fill;
+            }
+        }
+    }
+    // All twelve source logical rows are explicitly painted; during the
+    // measured inset phase, two rows are source focus-band fill instead of
+    // indistinguishable blue-on-blue. Reduced mode never exposes a notch.
+    return count_blue == (inset ? 20 : 24) &&
+           count_focus_fill == (inset ? 4 : 0);
 }
 
 } // namespace

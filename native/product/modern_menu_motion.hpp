@@ -332,6 +332,16 @@ inline bool paint_modern_menu_selection_motion(
     const int inset = !pose.reduced_motion &&
                       pose.cursor_spin_phase >= 4 &&
                       pose.cursor_spin_phase < 12 ? scale : 0;
+    // The shared root focus band already paints a static 3px-wide stripe
+    // in EXACTLY palette.cursor_blue. Merely shortening another blue mark
+    // atop that stripe produces zero visible RGB movement at final SDL P7.
+    // Restore the source-grammar focus-band fill in the 2px motion track
+    // before painting the phase-specific blue portion. Only the tiny top/
+    // bottom notch changes; focus semantics, stock blue hue and text remain
+    // identical. The third static blue focus pixel stays as an anchor.
+    constexpr std::uint32_t kStockFocusBandFill = 0xE0283058u;
+    paint.fill_rect(pixels, stride, height,
+        px, py, 2 * scale, marker_height, kStockFocusBandFill);
     paint.fill_rect(pixels, stride, height,
         px, py + inset, 2 * scale, marker_height - 2 * inset,
         palette.cursor_blue);

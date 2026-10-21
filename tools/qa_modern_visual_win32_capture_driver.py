@@ -49,6 +49,12 @@ def upstream_ppm_visibility(path: Path) -> dict:
 
 ROUTES = {
     "root-quit": ("14", 40, ""),
+    # Compare actual P7 frames at two pinned UI-clock phases, plus a
+    # reduced-motion negative control. Same guest route and SDL draw.
+    "root-motion-normal-zero": ("14", 40, ""),
+    "root-motion-normal-eight": ("14", 40, ""),
+    "root-motion-reduced-zero": ("14", 40, ""),
+    "root-motion-reduced-eight": ("14", 40, ""),
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
     # These existing native P1 edge fixtures expose two actual open child
     # screens before the source guest/2P warning branch proceeds.
@@ -62,6 +68,26 @@ ROUTES = {
     # Boot-black at guest frame 40 is not visual parity evidence. Sample later.
     "authentic-stock": ("0", 240, ""),
 }
+
+
+def motion_phase_environment(route: str) -> dict[str, str]:
+    # Only these four exact host-clock experiments suppress the old mode14
+    # B/A quit edges. Ordinary launcher/root routes keep their normal input.
+    modes = {
+        "root-motion-normal-zero": ("0", "0"),
+        "root-motion-normal-eight": ("8", "0"),
+        "root-motion-reduced-zero": ("0", "1"),
+        "root-motion-reduced-eight": ("8", "1"),
+    }
+    if route not in modes:
+        return {}
+    tick, reduced = modes[route]
+    return {
+        "UR_MODERN_MENU_TEST_TICK60": tick,
+        "UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT": "0",
+        "UR_REDUCED_MOTION": reduced,
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME": "59",
+    }
 
 
 def sha256(path: Path) -> str:
@@ -107,6 +133,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH": str(expected[0]),
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(expected[1]),
     })
+    env.update(motion_phase_environment(route))
     if execution_mode == "authentic":
         # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
         # Compare source composition against SDL3 final-drawable readback on
@@ -142,6 +169,9 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
+    if route.startswith("root-motion-") and (
+            "UR_BALDOSA_MODERN_ROOT quit_gamepad" in log):
+        raise RuntimeError("native menu motion capture entered quit before SDL readback")
     if execution_mode == "authentic" and capture.is_file():
         # A valid SDL readback can be an entirely clear/transparent backbuffer.
         # At guest frame 40 that happened in both 16:9 and 4:3 despite the

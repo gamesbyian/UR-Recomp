@@ -154,7 +154,7 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                       driver.ROUTES["multiplayer-unbound"][2])
         self.assertTrue(all(40 <= entry[1] < 100
                             for key, entry in driver.ROUTES.items()
-                            if key not in ("authentic-stock", "play-stock-handoff"))
+                            if key not in ("authentic-stock", "play-stock-handoff")))
         self.assertLess(driver.ROUTES["play-stock-handoff"][1],
                         driver.ROUTES["authentic-stock"][1] * 10)
         self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)

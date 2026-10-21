@@ -690,3 +690,31 @@ raw SRAM or ROM. Even on success, **a completed named 1P event, save,
 independently checked final SDL pixels, physical controller and art
 approval are separate gates**. Keep stock attract opt-in until the
 full product owner/integration QA accepts the player journey.
+
+### Exact-head Windows named-bootstrap failure and correction
+
+Run [39558575645](https://github.com/gamesbyian/UR-Recomp/actions/runs/39558575645)
+at `b911b670` passed the original six-way title captures,
+genuine source attract, native keyboard 4:3 wake, unjoined P2 wake and
+natural/60-observation original-menu recovery. Its **first failed step**
+was the new two-process named profile fixture, *before* named Play could
+be tested. Preserved process A log in original artifact **12326931914**
+records real Modern root, X/A first-racer controls, then
+`first_racer_created=0 reason=canonical_create_rejected`.
+
+Source inspection found the diagnostic test had mistakenly set
+`UR_BALDOSA_MODERN_PROFILE_SELECT=0` for its profile-creation boot.
+That flag intentionally disables the native profile writer by
+`activated()`, although the anonymous root still paints. Production
+native fresh-profile creation requires `PROFILE_SELECT=1` and explicitly
+supports a missing `host-state-v1.txt` as `DEFAULT no_host_state=1`.
+The test harness now uses a separately tested bootstrap environment
+builder, requires the genuine default-root admission marker and real
+first-racer creation, and leaves the existing user-root and source save
+writer unchanged. `human_button_actions=0` in CI receipts reflects
+semantic scripted input rather than mislabeling these as physical humans.
+
+Do not credit a named-profile original 1P stock handoff until the
+**corrected head** passes Windows source admission and
+`stock_entered players=1 menu=3c`. Archive failure is evidence of a
+harness gating mistake, not a genuine profile save corruption.

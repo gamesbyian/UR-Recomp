@@ -261,6 +261,22 @@ def verify_original_guest_presentations(presented: Path, modern_width: int = 342
     return retained
 
 
+def native_first_profile_boot_environment(env: dict[str, str]) -> dict[str, str]:
+    """Enable the *shipping* first-racer writer on a clean Modern user root.
+
+    PROFILE_SELECT=0 disables the native profile bridge and silently refuses
+    first-racer creation despite the title/root screen remaining visible.
+    A fresh root with PROFILE_SELECT=1 is admitted as DEFAULT/no_host_state,
+    allowing real P1 X/A next-boot publication in the existing native writer.
+    """
+    boot_env = dict(env)
+    boot_env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "8"
+    boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
+    boot_env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
+    boot_env.pop("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", None)
+    return boot_env
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--exe", type=Path, required=True)
@@ -337,11 +353,7 @@ def main() -> int:
             raise ValueError("named-profile bootstrap must be separate original input route")
         boot_dir = out / "named-p1-bootstrapped"
         boot_dir.mkdir()
-        boot_env = dict(env)
-        boot_env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "8"
-        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "0"
-        boot_env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
-        boot_env.pop("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", None)
+        boot_env = native_first_profile_boot_environment(env)
         boot_cmd = [str(exe), "--no-launcher", "--config", str(cfg),
                     "--script", str(bootstrap), str(rom)]
         try:
@@ -355,6 +367,7 @@ def main() -> int:
         bootstrap_log_sha256 = persist_exact_native_log(
             out / "native-profile-bootstrap.log", boot_log)
         if (boot_result.returncode or
+                boot_log.count("UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1") != 1 or
                 boot_log.count("UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process") != 1 or
                 not (user / "profiles-v1.txt").is_file()):
             raise ValueError("genuine P1 X/A native profile creation did not persist")
@@ -407,7 +420,9 @@ def main() -> int:
         "genuine_native_profile_bootstrap_sha256": bootstrap_log_sha256,
         "named_source_play_verified": args.named_play,
         "diagnostic_guest_writes": False,
-        "human_button_actions": 2 if args.preview_wake else 0,
+        "human_button_actions": 0,
+        "test_only_native_semantic_input_route": args.preview_wake,
+        "test_only_two_process_native_racer_creation": args.named_play,
         "scripted_host_preview_only": args.preview_wake,
         "native_wake_route": args.wake_route if args.preview_wake else None,
         "drawable_aspect": args.aspect,

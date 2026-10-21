@@ -3,7 +3,8 @@ import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
     verify_original_guest_presentations, verify_source_driven_recovery,
-    verify_named_original_play_after_recovery)
+    verify_named_original_play_after_recovery,
+    native_first_profile_boot_environment)
 
 OPEN = "UR_BALDOSA_MODERN_ROOT opened=1"
 MAIN = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1"
@@ -12,6 +13,24 @@ DEMO = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=00 race=
 
 
 class StockIdleAttractWitnessTest(unittest.TestCase):
+    def test_first_racer_bootstrap_must_enable_canonical_native_writer(self):
+        original = {
+            "SNESRECOMP_USER_DATA_DIR": "C:\\Pinned\\UserRoot",
+            "UR_EXECUTION_MODE": "modern",
+            "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
+            "UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE": "1",
+            "UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW": "1",
+        }
+        boot = native_first_profile_boot_environment(original)
+        self.assertEqual(boot["UR_BALDOSA_MODERN_PROFILE_SELECT"], "1")
+        self.assertEqual(boot["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "8")
+        self.assertEqual(boot["SNESRECOMP_USER_DATA_DIR"], original["SNESRECOMP_USER_DATA_DIR"])
+        self.assertEqual(boot["UR_EXECUTION_MODE"], "modern")
+        self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", boot)
+        self.assertNotIn("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", boot)
+        self.assertEqual(original["UR_BALDOSA_MODERN_PROFILE_SELECT"], "0")
+        self.assertNotIn("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", original)
+
     def test_valid_stock_source_cycle_and_no_automatic_visible_credit(self):
         self.assertEqual(
             [x["frame"] for x in verify_original_source_attract(

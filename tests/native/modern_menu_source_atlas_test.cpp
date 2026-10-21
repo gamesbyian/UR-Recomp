@@ -107,7 +107,8 @@ int main() {
     assert(screen == before_invalid_gap);
 
     // Real detail/Records original font includes source closing-paren image.
-    small[35*8] = 0xFF989898u; // O's duplicate cell
+    small[0] = 0xFF989898u; // original zero
+    small[35*8] = 0xFF989898u; // O is pixel-exact zero alias
     small[43*8] = 0xFF686868u; // ) cell from extractor's H-flipped (
     assert(modern_menu_paint_source_text(
         small_view,ModernMenuSourceSheet::Detail,
@@ -118,7 +119,6 @@ int main() {
     // A caller cannot transform that into a phantom source glyph. Check
     // both individual-cell and full-word paths, with atomic framebuffer
     // rejection even if an earlier letter in the word was valid.
-    const auto before_detail_space = screen;
     assert(modern_menu_paint_source_text(
         small_view,ModernMenuSourceSheet::Detail,
         screen.data(),screen.size(),342,224,2,52,"O ",1));
@@ -134,7 +134,22 @@ int main() {
         screen.data(),screen.size(),342,224,2,70,"O ",1));
     assert(screen == before_corrupt_detail);
     small[44*8] = 0u;
-    (void)before_detail_space; // preserved non-space pixels intentionally
+    assert(modern_menu_source_detail_zero_alias(small_view));
+    // Deliberately forge a source whose letter O differs from digit 0.
+    // Both full-string and individual-cell painters must refuse it BEFORE
+    // touching pixels; a correctly shaped input sheet is not enough.
+    small[35*8] = 0xFFC8C8C8u;
+    assert(!modern_menu_source_detail_zero_alias(small_view));
+    const auto before_bad_alias = screen;
+    assert(!modern_menu_paint_source_text(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,2,90,"O)",1));
+    assert(!modern_menu_paint_source_cell(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,2,110,35,1));
+    assert(screen == before_bad_alias);
+    small[35*8] = small[0];
+    assert(modern_menu_source_detail_zero_alias(small_view));
 
     // At 4x scale an opaque pixel becomes an exact 4x4 block.
     cursor[15*39] = 0xFFA0D0F8u;

@@ -129,13 +129,13 @@ def validate_frozen_cohort(matrix: dict, evidence: dict) -> tuple[list, list]:
                 "successful_native_log_hash_verified",
                 "source_sha_exact", "exe_sha_exact"))):
         raise ValueError("not the qualified 21-case source/PE-bound SDL cohort")
-    reported = {x.get("id"): (x.get("route"), x.get("output")) for x in captures}
-    if reported != FROZEN_CAPTURES:
-        raise ValueError("frozen native capture ID/route/geometry inventory changed")
     ids = [x.get("id") for x in captures]
     if (any(not isinstance(x, str) or not x for x in ids)
             or len(set(ids)) != 21):
         raise ValueError("duplicate or missing original capture ID")
+    reported = {x["id"]: (x.get("route"), x.get("output")) for x in captures}
+    if reported != FROZEN_CAPTURES:
+        raise ValueError("frozen native capture ID/route/geometry inventory changed")
     for case in cases:
         if case["id"] in CANDIDATE_REQUIREMENTS:
             expected = CANDIDATE_REQUIREMENTS[case["id"]]

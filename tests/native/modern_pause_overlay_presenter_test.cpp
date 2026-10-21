@@ -126,6 +126,9 @@ int main() {
         {684,448,22,20,640,408},
         {1024,896,32,40,960,816},
         {1368,896,44,40,1280,816},
+        // Output-size buffers are not automatically 342-native widescreen.
+        {1024,768,272,180,480,408},
+        {1280,720,400,156,480,408},
     };
     for (const auto& c : source_cases) {
         active_w = c.w;

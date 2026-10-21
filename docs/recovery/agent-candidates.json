@@ -44,14 +44,14 @@
       "candidate_id": "h27-knowledge-malformed-lanes",
       "work_id": "UR-KNOWLEDGE-01",
       "discriminator": "malformed reuse lane input guard",
-      "state": "blocked",
+      "state": "merged",
       "drive_id": "1_RScoARFTHjfttOY87v9PKBepXmE8tK8",
       "archive_sha256": "b1e7bac1a1a1853c9d1c943143d5dfa24b3b75e6a9b2fb60db5fa2ee37ef6e77",
-      "github_pr": null,
-      "merge_sha": null,
+      "github_pr": 2194,
+      "merge_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
       "failure_class": "tool_safety_block",
       "release_gate_credit": false,
-      "next_action": "Review original update_file refusal and test applicability under #2118; no bypass of blocked invocation."
+      "next_action": "Retain the exact original safety-denied recovery ZIP (9/9 member hashes verified) as historical source/negative evidence; independently re-engineered malformed-lane guard and stricter direct-caller checks merged in #2194. Do not resubmit denied original update_file or treat preflight integrity as any USA/Windows release acceptance."
     },
     {
       "candidate_id": "h27-ppu-temporal-census",

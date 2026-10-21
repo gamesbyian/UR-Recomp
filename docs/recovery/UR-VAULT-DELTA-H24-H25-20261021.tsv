@@ -1,0 +1,29 @@
+# Vault supplemental ID inventory at 2026-10-21 01:15Z
+# Initial 340 IDs + H23 14 IDs + below 25 IDs = 379 top-level items
+# No record in this list is certified for deletion. ZIP integrity != source/release acceptance.
+# drive_file_id	filename	mime_type	bytes	disposition
+1XKwm-eXatsw6DwYpT21ZbxGx4sGB_Krv	20261021T0115Z-agent1-h25-five-line-handoff.md	text/markdown	4016	hold-for-current-head-review
+1DfUoZqu7jRKhTweJlmBu2Q7O0M9nJkSt	20261021T0115Z-agent1-h25-publication-receipt.json	application/json	2092	hold-for-current-head-review
+1bwyXOq-J87Dw6-f-1bbAH3chAV_TQ1VR	20261021T0115Z-agent1-h25-five-line-recovery.zip	application/zip	4425317	hold-for-current-head-review
+1bm0lHW-tItwXrTi_leiLk65BE8yZUhvE	20261021T0112Z-agent2-h25-publication-resolution.json	application/json	1487	hold-for-current-head-review
+1FgsZHa_YcXcCKndrdJGusaX-PPj7VuLw	20261021T0112Z-agent2-h25-machine-receipt.json	application/json	4050	hold-for-current-head-review
+1UOanDoTsZdjgL81byeJST4FNgSk-XGDE	20261021T0112Z-agent2-h25-source.patch	text/x-diff	19868	hold-for-current-head-review
+1tk8o3rFPa7Awh-ArN9V7BOPq1n3sODAV	20261021T0112Z-agent2-h25-handoff.md	text/markdown	4001	hold-for-current-head-review
+1bDrN1y5McDgrwIV4dSUe7x0GNGhcCait	20261021T0112Z-agent2-h25-five-line-recovery.zip	application/zip	24645725	hold-for-current-head-review
+16k8iqbTtWwat_xtGl3RQX0NqHHOKodTY	20261021T0053Z-agent5-h24-drive-readback-resolution.json	application/json	3539	hold-for-current-head-review
+1uSoRm_pFfbdIvEq9_HBL_usQFPH0oMye	20261021T0051Z-agent5-h24-line9.patch	text/x-diff	1510	hold-for-current-head-review
+1rFw5N5i-poO9F5TXmN93TUuF2Gd7He8G	20261021T0051Z-agent5-h24-line8.patch	text/x-diff	1701	hold-for-current-head-review
+1B_DfgJqfyvsRssdvvZvJuQuUsq6P2Juy	20261021T0051Z-agent5-h24-line7.patch	text/x-diff	3062	hold-for-current-head-review
+1XbNnCMS538ghJh8g5_A3ZtCToumO7-fu	20261021T0051Z-agent5-h24-line6.patch	text/x-diff	2278	hold-for-current-head-review
+1o30qduEKazcENHkh5Watfe2C4iaMjELw	20261021T0051Z-agent5-h24-line5.patch	text/x-diff	6138	hold-for-current-head-review
+1SjUBtsi3SwIpqHJBIyEbBsOrpJgxI7kG	20261021T0051Z-agent5-h24-tests.py	text/x-python	5648	hold-for-current-head-review
+1Vv5EmINiv0oBEDawml4eYM0KhahBolSz	20261021T0051Z-agent5-h24-manifest.json	application/json	4819	hold-for-current-head-review
+1EZ8-89wP3eReAyt-hW8Wr4hgMprdit4H	20261021T0051Z-agent5-h24-handoff.md	text/markdown	4388	hold-for-current-head-review
+1Wl1_7CUaS47jrknqvGT1hNWmP4_EgrpY	20261021T0051Z-agent5-h24-five-line-recovery.zip	application/zip	72737	hold-for-current-head-review
+1mjlYQazfr-IOsLC6TNELYmG6RzMMx6Cw	20261021T0044Z-agent4-h24-verified-drive-resolution.json	application/json	1876	hold-for-current-head-review
+1AX0Q-Q57pxWK9QXpIFEXl1Ez3scSy0-4	20261021T0041Z-agent4-five-line-h24-recovery.zip	application/zip	279785	hold-for-current-head-review
+1ReYRp8PC5mANZq2JMoUYbnKP6TU5wlyY	20261021T00-agent3-h24-post-recovery-addendum.json	application/json	1109	hold-for-current-head-review
+1dl1OcKLGKaxh5sannBv94IBOqS2FXHEc	20261021T00-agent3-h24-verified-drive-resolution.json	application/json	2083	hold-for-current-head-review
+1AxrMLv7qUGYLiAPbgkn0wsuxqwHlCxhi	20261021T00-agent3-five-line-h24-recovery.zip	application/zip	112941	hold-for-current-head-review
+1ALa-geqO_j2RsqQA4XrfybwVbHMnH-f6	20261021T0008Z-agent1-h23-drive-publication-receipt.json	application/json	1591	hold-for-current-head-review
+1BMf5xkUdne81Xz81x3Coc6ML3Ffa2t0v	20261021T000521Z-agent1-h23-five-line-recovery.zip	application/zip	4377015	hold-for-current-head-review

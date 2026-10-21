@@ -13,6 +13,8 @@
 
 [**Editorial and future-update guide**](PRODUCTION-DIARY-EDITORIAL-GUIDE.md): voice, director presence, evidence hierarchy, daily 3–8-episode target when busy, source preflight, QA distinctions, attribution, cadence, backfills, parity and review checks.
 
+[**Field guide for future agent-driven remaster teams**](AGENT-DRIVEN-REMASTER-FIELD-GUIDE.md): ten source-linked practices distilled from the project's decisions, successes, operational failures and unresolved gates.
+
 ## What is preserved
 
 The previous standard production diary is **not replaced or discarded**. It is consolidated, in original sequence, in [the frozen 154 KB pre-rebuild diary](ORIGINAL-PRODUCTION-DIARY-FROZEN-THROUGH-2026-10-20.md); all ten original dated Markdown files remain at their historical repository paths. The earlier [Cajun diary through October 13](PRODUCTION-DIARY-CAJUN-2026-09-28-TO-2026-10-13.md) remains untouched and is the stylistic antecedent of the new Bayou volumes.

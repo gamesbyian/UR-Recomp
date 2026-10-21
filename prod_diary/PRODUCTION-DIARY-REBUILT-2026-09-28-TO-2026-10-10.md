@@ -148,7 +148,7 @@ Course maps, symbols, texture descriptions and old autonomous-player artifacts w
 
 ### 31. Course archaeology learns to retire hypotheses
 
-The researchers resolved some spatial leads and demoted others when original source data failed to support them. More data did not automatically mean more work. When an old reference corpus already covered course images, another acquisition campaign became comparison-only. Later [#109](https://github.com/gamesbyian/UR-Recomp/pull/109) and [#110](https://github.com/gamesbyian/UR-Recomp/pull/110) would recover and classify Dessyreqt's eighty-file workspace, including exact course landmarks, bots and SRAM evidence.
+The researchers resolved some spatial leads and demoted others when original source data failed to support them. More data did not automatically mean more work. When an old reference corpus already covered course images, another acquisition campaign became comparison-only. The previously recovered Dessyreqt workspace ([#109](https://github.com/gamesbyian/UR-Recomp/pull/109), [#110](https://github.com/gamesbyian/UR-Recomp/pull/110)) had already supplied eighty classified files, including course landmarks, bots and SRAM evidence.
 
 ### 32. Ian asks for features that survive replay and failure
 

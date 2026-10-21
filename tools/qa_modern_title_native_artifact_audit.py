@@ -193,10 +193,7 @@ def audit(title_zip: Path, candidate_zip: Path) -> dict:
                    MAX_RASTER + 256)
         b = member(z, f"{prefix}/authentic-enabled-frame-000320-256x224.ppm",
                    MAX_RASTER + 256)
-        if (a != b or digest(a) !=
-                original["native_original_visible_pixel_witness"]["frame_320_sha256"]
-                if False else False):
-            # The receipt's actual schema stores separate nested SHA256s.
+        if a != b:
             raise AuditError("original native stock host output differs")
         original_sha = original["native_original_visible_pixel_witness"][
             "modern_root_enabled"]["sha256"]

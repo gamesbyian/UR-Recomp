@@ -132,20 +132,23 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
     # integration claim. Partial/failed closed-PR censuses are UNKNOWN.
     try:
         closed, complete = paged(get, base + "/pulls?state=closed")
-        if not complete:
-            result["handoff_drift"] = {
-                "status": "UNKNOWN_INCOMPLETE_PR_CENSUS",
-                "observed_closed_prs": len(closed),
-            }
+        # A partial census can still prove a positive match. It cannot
+        # prove absence of a match in unobserved older closed PRs.
+        drift = scan_handoff_drift(registry, closed)
+        if complete:
+            status = "REVIEW_HINTS" if drift["hints"] else "NO_HINTS_IN_CURATED_SCOPE"
         else:
-            drift = scan_handoff_drift(registry, closed)
-            result["handoff_drift"] = {
-                "status": "REVIEW_HINTS" if drift["hints"] else "NO_HINTS_IN_CURATED_SCOPE",
-                "merged_prs_checked": drift["merged_prs_checked"],
-                "candidates_checked": drift["candidate_count"],
-                "hints": drift["hints"],
-                "automatic_state_changes": 0,
-            }
+            status = ("PARTIAL_CENSUS_REVIEW_HINTS" if drift["hints"]
+                      else "UNKNOWN_INCOMPLETE_PR_CENSUS")
+        result["handoff_drift"] = {
+            "status": status,
+            "census_complete": complete,
+            "observed_closed_prs": len(closed),
+            "merged_prs_checked": drift["merged_prs_checked"],
+            "candidates_checked": drift["candidate_count"],
+            "hints": drift["hints"],
+            "automatic_state_changes": 0,
+        }
     except (ValueError, TypeError, KeyError, AttributeError) as err:
         result["handoff_drift"] = {"status": "UNKNOWN_API_OR_DATA_FAILURE"}
         result["errors"]["handoff_drift"] = str(err)

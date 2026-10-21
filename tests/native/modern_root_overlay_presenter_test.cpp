@@ -467,6 +467,30 @@ int main() {
     source_pixels[used_heading_pixel] = 0xFF112233u;
     view.europe = false;
 
+    // The public Options painter can be called by in-race pause screens.
+    // Missing host callbacks, invalid logical scale or a box which extends
+    // beyond the real output must return without ANY painter action.
+    painted.clear();
+    render_modern_options_modal({}, pixels, 256, 224, 1, 240, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, nullptr, 256, 224, 1, 240, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 5, 240, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 25, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 8, 45, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 513, 8, 10, view);
+    assert(painted.empty());
+    text_draws.clear();
+    rect_draws.clear();
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 8, 10, view);
+    assert(contains("OPTIONS"));
+    assert(rect_draws_fit(old_view));
+    assert(text_draws_fit(old_view));
+    painted.clear();
+
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));

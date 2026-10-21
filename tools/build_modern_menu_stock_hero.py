@@ -222,7 +222,8 @@ def publish_private_source_artifacts(
         raise ValueError("review plates supplied without destination")
     # Construct and stage all outputs before any final name appears.
     staged_files: list[Path] = []
-    written: list[Path] = []
+    # Record exact staging inodes: never unlink a concurrently replaced output.
+    written: list[tuple[Path, Path]] = []
     staged_dir: Path | None = None
     dir_published = False
     try:
@@ -244,7 +245,7 @@ def publish_private_source_artifacts(
         # Hard-links are on each target's own filesystem by construction.
         for staged, destination in zip(staged_files, files):
             os.link(staged, destination)
-            written.append(destination)
+            written.append((destination, staged))
         if staged_dir is not None:
             # Claim a *new* directory exclusively. An ordinary directory
             # rename can replace a concurrently created empty directory on
@@ -252,12 +253,31 @@ def publish_private_source_artifacts(
             frames_dir.mkdir(exist_ok=False)
             dir_published = True
             for name, _ in plates:
-                os.link(staged_dir / name, frames_dir / name)
+                staged_plate = staged_dir / name
+                published_plate = frames_dir / name
+                os.link(staged_plate, published_plate)
+                written.append((published_plate, staged_plate))
     except BaseException:
-        for destination in written:
-            destination.unlink(missing_ok=True)
+        # A second process can claim or replace a published name after our
+        # hard link. Undo only links still pointing at OUR staged inode.
+        # This is best-effort per-file rollback, not a cross-process
+        # transaction or a substitute for Windows opened-handle binding.
+        for destination, staged in reversed(written):
+            try:
+                current = os.lstat(destination)
+                owned = os.lstat(staged)
+            except FileNotFoundError:
+                continue
+            if (current.st_dev, current.st_ino) == (owned.st_dev, owned.st_ino):
+                destination.unlink(missing_ok=True)
         if dir_published and frames_dir is not None:
-            shutil.rmtree(frames_dir, ignore_errors=True)
+            # Never recursively erase content a concurrent user placed in
+            # the freshly claimed folder. An occupied folder is evidence
+            # worth preserving; rmdir succeeds only when it is empty.
+            try:
+                frames_dir.rmdir()
+            except OSError:
+                pass
         raise
     finally:
         for staged in staged_files:

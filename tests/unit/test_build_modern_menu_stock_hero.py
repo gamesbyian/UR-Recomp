@@ -191,6 +191,60 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             self.assertEqual(list(folder.iterdir()), [folder / "keep.txt"])
             self.assertEqual(list(root.glob(".original-*")), [])
 
+    def test_late_plate_failure_keeps_other_writers_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            h, m, folder = root / "hero.hpp", root / "manifest.json", root / "plates"
+            plates = [("original-stock-1213.png", b"ours-a"),
+                      ("original-stock-1214.png", b"ours-b")]
+            real_link = hero.os.link
+            calls = 0
+
+            def late_failure(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 4:  # after mkdir and first plate link
+                    (folder / "other-writer.txt").write_bytes(b"preserve user evidence")
+                    raise OSError("synthetic late plate publication fault")
+                return real_link(source, target)
+
+            with patch.object(hero.os, "link", side_effect=late_failure):
+                with self.assertRaisesRegex(OSError, "late plate publication"):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"receipt", plates, h, m, folder)
+            self.assertFalse(h.exists())
+            self.assertFalse(m.exists())
+            self.assertEqual(sorted(p.name for p in folder.iterdir()),
+                             ["other-writer.txt"])
+            self.assertEqual((folder / "other-writer.txt").read_bytes(),
+                             b"preserve user evidence")
+            self.assertEqual(list(root.glob(".original-*")), [])
+
+    def test_rollback_does_not_delete_replaced_header(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            h, m, folder = root / "hero.hpp", root / "manifest.json", root / "plates"
+            real_link = hero.os.link
+            calls = 0
+
+            def replacement_then_failure(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    h.unlink()
+                    h.write_bytes(b"a different writer owns this name")
+                    raise OSError("synthetic manifest publication fault")
+                return real_link(source, target)
+
+            with patch.object(hero.os, "link", side_effect=replacement_then_failure):
+                with self.assertRaisesRegex(OSError, "manifest publication"):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"receipt", [], h, m, None)
+            self.assertEqual(h.read_bytes(), b"a different writer owns this name")
+            self.assertFalse(m.exists())
+            self.assertFalse(folder.exists())
+            self.assertEqual(list(root.glob(".original-*")), [])
+
     def test_original_raster_and_compiled_cpp_asset(self):
         if not hero.ROM.is_file():
             self.skipTest("canonical private ROM unavailable")

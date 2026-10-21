@@ -179,7 +179,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         # must actually revoke Modern focus after observing the source 1P
         # menu BEFORE the SDL frame is captured.
         presented = "UR_MODERN_VISUAL_SDL_CAPTURE status=saved"
-        if (presented in log and log.index(stage_marker) > log.index(presented):
+        if presented in log and log.index(stage_marker) > log.index(presented):
             raise RuntimeError("Play stock handoff occurred after screenshot")
 
     return {

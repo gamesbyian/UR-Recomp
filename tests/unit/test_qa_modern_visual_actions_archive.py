@@ -36,13 +36,14 @@ class ActionEvidenceTests(unittest.TestCase):
                  "MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode()+rgba
         self.png=png_rgba(self.w,self.h,rgba)
         self.log=(f"[snes_load] name=UNIRACERS\n"
+                  f"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\n"
                   f"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 guest_frame=40 "
                   f"output={self.w}x{self.h} source=SDL_RenderReadPixels backend=sdl3\n").encode()
         self.receipt={
             "actual_sdl_renderer_output":[self.w,self.h],
             "observed_in_draw":40,"png_sha256":sha(self.png),"p7_sha256":sha(self.p7),
             "native_process_log_sha256":sha(self.log),"exe_sha256":"a"*64,
-            "source_sha":"b"*40,
+            "source_sha":"b"*40,"native_semantic_route":"root-quit",
             "visual_approved":False,"hardware_approved":False,"release_gate_credit":0,
         }
         self.stage="probe_first"
@@ -119,6 +120,50 @@ class ActionEvidenceTests(unittest.TestCase):
         self.pack()
         with self.assertRaisesRegex(qa.AuditError,"does not witness successful SDL3"):
             qa.verify(self.path)
+
+    def test_root_pixels_cannot_be_relabelled_as_records_screenshot(self):
+        self.receipt["native_semantic_route"]="records-keyboard"
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"native semantic destination"):
+            qa.verify(self.path)
+
+    def test_stale_records_stage_rejected_when_root_repainted_before_capture(self):
+        self.receipt["native_semantic_route"]="records-keyboard"
+        self.log=self.log.replace(
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root ",
+            b"UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=256x224 root=8,10,240,204 source=modern_product_view\n"
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root ")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"native semantic destination"):
+            qa.verify(self.path)
+
+    def test_last_records_1p_stage_admitted_not_later_root(self):
+        self.receipt["native_semantic_route"]="records-keyboard"
+        self.log=self.log.replace(
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root ",
+            b"UR_BALDOSA_MODERN_DESTINATION stage=records-1p ")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        result=qa.verify(self.path)
+        self.assertEqual(result["captures"][0]["native_painted_stage_at_capture"],
+                         "records-1p")
+
+    def test_authentic_original_refuses_modern_stage_even_with_valid_sdl3(self):
+        self.receipt["native_semantic_route"]="authentic-stock"
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"Authentic capture contains Modern"):
+            qa.verify(self.path)
+
+    def test_authentic_original_requires_stock_load_without_modern_stage(self):
+        self.receipt["native_semantic_route"]="authentic-stock"
+        self.log=self.log.replace(
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\n",b"")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        result=qa.verify(self.path)
+        self.assertEqual(result["captures"][0]["native_painted_stage_at_capture"],
+                         "authentic-original")
 
     def test_phony_approval_refused(self):
         self.receipt["visual_approved"]=True

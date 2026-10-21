@@ -1286,9 +1286,22 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     shell_view.unbound_two_player_warning_open = false;
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, pixels, stride, height, 1, panel_w, root_rect, shell_view);
-    if (drawn)
+    // A shell-only render is not evidence that a requested destination
+    // rendered successfully. If the child rejects bounds/painter state,
+    // refuse this frame and its QA stage receipt, rather than reporting
+    // a populated destination over a stale root.
+    const bool child_open =
+        ur::product::modern_native_destination_is_open(view);
+    const bool child_ok = !drawn || !child_open ||
         ur::product::render_modern_native_destination(
             painter, pixels, stride, height, 1, panel_w, root_rect, view);
+    if (drawn && !child_ok) {
+        g_last_native_destination_stage.clear();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_DESTINATION paint_refused=1 "
+            "source=modern_product_view\n");
+        return 0;
+    }
     if (drawn) {
         // Host-only motion overlays the existing focus row. Do not animate
         // through a modal, quit prompt or source guest handoff.

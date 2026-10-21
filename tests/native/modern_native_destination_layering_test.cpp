@@ -134,6 +134,14 @@ void exercise(int screen_w, int panel_w) {
         // margin. Its full-height solid body also removes the root footer.
         assert(sample(6, 60) == palette.header_band);
         assert(sample(11, 195) == palette.background);
+        // Only a single blue pixel happened to be checked originally.
+        // Every narrow edge gutter now has to be fully occluded, from just
+        // below the preserved identity baseline through the root footer.
+        // This catches focus/legend residues regardless of which row moves.
+        for (int yy = 47; yy < 202; ++yy) {
+            assert(sample(1, yy) == palette.background);
+            assert(sample(root.width - 2, yy) == palette.background);
+        }
         // Racer identity is at root y+36 with 8 original-sized glyph rows.
         // Masking from y+40 severed its bottom half in real SDL captures.
         assert(sample(15, 42) == identity_ink);

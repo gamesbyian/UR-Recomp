@@ -49,6 +49,23 @@ class StrictVaultManifest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"hash/size"):
             verify(stream.getvalue())
 
+    def test_extended_win32_aliases_controls_and_utf16_component_lengths(self):
+        # These have valid ZIP CRCs and internally consistent manifests but
+        # are unsafe/nonportable as Windows extraction member names.
+        rejected = (
+            "bad\\u0085.txt", "bad\\u007f.txt", "COM¹.txt",
+            "COM².log", "LPT³", "CON .txt", "aux .txt",
+            "é" * 256 + ".txt", "😀" * 128 + ".txt",
+        )
+        for name in rejected:
+            with self.subTest(name=name), self.assertRaisesRegex(
+                    ValueError, "unsafe archive member"):
+                verify(pack({name: b"x"}))
+        for name in ("normal.txt", "résumé/notes.txt",
+                     "name².txt", "COM0.txt", "é" * 251 + ".txt"):
+            with self.subTest(name=name):
+                self.assertEqual(verify(pack({name: b"x"}))["manifested_payloads"], 1)
+
     def test_unicode_alias_and_control(self):
         for name in ("e\u0301.txt","bad\u202etxt","bad. ","NUL.log"):
             with self.subTest(name=name),self.assertRaises(ValueError):

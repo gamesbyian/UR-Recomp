@@ -268,9 +268,16 @@ inline bool render_modern_root_overlay(
             x + 9 * scale, y + 6 * scale, title, 2, scale);
     // A stock anonymous rider is a state, not a long player name. Keep
     // that status readable at the real 240-logical-pixel 4:3 fallback.
+    // These two product-status sentinels are not user-entered racer names.
+    // In the real 240px root, naive clipping of the stale-profile notice
+    // drops the required RESTART APP action. Preserve its full instruction
+    // in 28 standard text cells instead of shortening it with ellipses.
     const std::string_view racer_name =
         view.racer_name == "STOCK RACER - NO PROFILE"
-            ? std::string_view("NO PROFILE") : view.racer_name;
+            ? std::string_view("NO PROFILE")
+            : view.racer_name == "PROFILE CHANGED - RESTART APP"
+                ? std::string_view("CHANGED - RESTART APP")
+                : view.racer_name;
     std::string identity = std::string("RACER: ") + std::string(racer_name);
     const auto identity_cells = modern_overlay_text_cells(panel_w);
     if (identity.size() > identity_cells) {

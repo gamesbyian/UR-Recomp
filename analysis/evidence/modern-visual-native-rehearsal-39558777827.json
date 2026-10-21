@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "purpose": "Independently downloaded actual Windows SDL P7/PNG/successful-process archives: per-candidate technical evidence only, never visual/art/hardware approval",
+  "github_run": 39558777827,
+  "source_checkout_sha": "a87d02debb237590578fe024e0a895bef6ce67fd",
+  "source_is_current_main": false,
+  "windows_executable": {
+    "artifact_id": 12327356500,
+    "zip_sha256": "fd0b85b7d8fe989ffdaccaffa034aea4346612629e841934a5ec3c24b866cbf1",
+    "exe_sha256": "74556a0cad1863fc8e8a656df63995a9a889840dff5b6e954f94e03a8b113d60",
+    "uncompressed_bytes": 20456448,
+    "format": "Windows x64 AMD64 PE32+"
+  },
+  "original_capture_archives": {
+    "size": {
+      "artifact_id": 12327545665,
+      "zip_sha256": "86ca95c40faaec520af2240eb0e470b1ac1f00c1d606e639789c445b8c6c96e3"
+    },
+    "navigation": {
+      "artifact_id": 12327206809,
+      "zip_sha256": "315c637801894623922e04f214f3dad47f65b585a4f7e9c934161dc9c4d1ec6c"
+    },
+    "title": {
+      "artifact_id": 12327216738,
+      "zip_sha256": "3505c377cb5f06a3a6a3b36ff679ead31f45481ad13086c15eced8e8f598e50f"
+    },
+    "authentic": {
+      "artifact_id": 12327470974,
+      "zip_sha256": "bb7e71241902093c2f41779eec8a4a371061407601bdba4717a44d175a935c02"
+    },
+    "root856": {
+      "artifact_id": 12327381363,
+      "zip_sha256": "06dc2cc24ef75e804d6af05e5550ebcaffec469753ef1bd796561c51a997c06a"
+    }
+  },
+  "independent_verifications": {
+    "archive_download_hashes_recorded": 5,
+    "exact_matching_executable_from_original_PE_archive": true,
+    "native_successful_process_logs_sha256_match": 18,
+    "original_P7_png_byte_exact_RGBA_matches": 18,
+    "last_native_stage_checked_before_sdl_readback": true,
+    "native_wide_source_342x224_open_destinations": [
+      "options",
+      "practice-picker",
+      "multiplayer-unrecorded-warning",
+      "profile-first-saved"
+    ],
+    "native_fallback_source_256x224_records": true,
+    "authentic_source_P6_to_final_SDL_RGB_exact_captures": 2,
+    "wide_root_to_child_unchanged_identity_glyphs_per_case": 4670,
+    "compact_root_to_records_unchanged_identity_glyphs": 5168,
+    "windows_logs_reported_physical_joysticks": 0
+  },
+  "scope_limits": {
+    "no_named_p2_join": true,
+    "no_locked_course": true,
+    "no_earned_1p_2p_records": true,
+    "no_hardware_controller": true,
+    "no_physical_monitor": true,
+    "no_authenticated_current_main_build": true,
+    "no_human_visual_approval": true,
+    "no_original_guest_parity": true,
+    "no_4k_output": true,
+    "formal_visual_approved": 0,
+    "release_gate_credit": 0
+  },
+  "cases": [
+    {
+      "artifact": "root856",
+      "route": "root-quit",
+      "last_native_stage": "root",
+      "output": [
+        856,
+        480
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "size",
+      "route": "root-quit",
+      "last_native_stage": "root",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "size",
+      "route": "root-quit",
+      "last_native_stage": "root",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "navigation",
+      "route": "multiplayer-unrecorded",
+      "last_native_stage": "multiplayer-unrecorded-warning",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "navigation",
+      "route": "options-p1",
+      "last_native_stage": "options",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "navigation",
+      "route": "practice-picker",
+      "last_native_stage": "practice-picker",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "navigation",
+      "route": "profile-first-p1",
+      "last_native_stage": "profile-first-saved",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "navigation",
+      "route": "records-keyboard",
+      "last_native_stage": "records-1p",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-still",
+      "last_native_stage": "title-intro",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-reduced-still",
+      "last_native_stage": "title-intro",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-entered-root",
+      "last_native_stage": "root",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-reduced-entered-root",
+      "last_native_stage": "root",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-still",
+      "last_native_stage": "title-intro",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-reduced-still",
+      "last_native_stage": "title-intro",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-entered-root",
+      "last_native_stage": "root",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "title",
+      "route": "title-reduced-entered-root",
+      "last_native_stage": "root",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        342,
+        224
+      ]
+    },
+    {
+      "artifact": "authentic",
+      "route": "authentic-stock",
+      "last_native_stage": "authentic-original",
+      "output": [
+        1280,
+        720
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    },
+    {
+      "artifact": "authentic",
+      "route": "authentic-stock",
+      "last_native_stage": "authentic-original",
+      "output": [
+        1024,
+        768
+      ],
+      "logical_source": [
+        256,
+        224
+      ]
+    }
+  ]
+}

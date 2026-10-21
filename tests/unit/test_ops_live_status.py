@@ -156,6 +156,20 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertEqual(drift["automatic_state_changes"], 0)
         self.assertIn("inspect every member", markdown(result))
 
+    def test_closed_pr_handoff_scan_prioritizes_recent_updates(self):
+        seen = []
+        def capture(path):
+            if "/pulls?state=closed&" in path:
+                seen.append(path)
+                return []
+            return self.request(path)
+        report = self.report(get=capture)
+        self.assertEqual(report["handoff_drift"]["status"],
+                         "NO_HINTS_IN_CURATED_SCOPE")
+        self.assertEqual(len(seen), 1)
+        self.assertIn("state=closed&sort=updated&direction=desc&per_page=100&page=1",
+                      seen[0])
+
     def test_partial_closed_census_never_claims_no_stale_handoffs(self):
         def partial(path):
             if "/pulls?state=closed&" in path:

@@ -35,6 +35,15 @@ def analyze_records(original, native):
                     frame!=native_first['frame'] or frame!=n['native_NMI_frame_label'] or
                     any(type(event.get('original_host_frame')) is not int or
                         event['original_host_frame'] != frame for event in (pending,before)) or
+                    # A re-pinned receipt must preserve original local wake PC/stack identity.
+                    o.get('original_source_wake_incremented_PC') is not False or
+                    o.get('original_source_wake_pc_before') != fetch.get('source_guest_PC_context') or
+                    o.get('original_source_wake_pc_after') != fetch.get('source_guest_PC_context') or
+                    any(event.get('source_guest_PC_context') != fetch.get('source_guest_PC_context')
+                        for event in (pending,before)) or
+                    any(event.get('source_stack_SP') != fetch.get('source_stack_SP')
+                        for event in (pending,before)) or
+                    re.fullmatch('[0-9A-F]{4}', fetch.get('source_stack_SP','')) is None or
                     re.fullmatch('[0-9A-F]{6}', fetch.get('source_guest_PC_context','')) is None or
                     re.fullmatch('[0-9A-F]{6}', native_first.get('decoded_guest_opcode_PC','')) is None or
                     any(type(x) is not int for x in original_seq+native_seq) or

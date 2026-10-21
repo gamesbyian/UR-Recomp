@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "kind": "real-Win32-source-bound native Modern identity glyph retention regression and verified fix",
+  "old": {
+    "run_id": 39532425201,
+    "checkout_sha": "675dd55f4cd8b24c2b2025d3844e276442a63ebd",
+    "pe_sha256": "69a17c1c66d75231a2aac00a79e514e49b8eb529d5e4f891cc17e7f599bc6952",
+    "native_child_backdrop_from_root_y": 40,
+    "wide": {
+      "root_rgb152_pixels": 4670,
+      "child_rgb152_pixels": 2755,
+      "lost_pixels": 1915,
+      "original_png_sha256": "ce9cdda26a1ea3aa99e2e0a1e5b8da0e9b43219e85e87274c2d6b787aa55aa72",
+      "lost_output_y_inclusive": [
+        161,
+        170
+      ]
+    },
+    "compact": {
+      "root_rgb152_pixels": 5408,
+      "child_rgb152_pixels": 3112,
+      "lost_pixels": 2296,
+      "lost_output_y_inclusive": [
+        171,
+        181
+      ]
+    }
+  },
+  "fixed": {
+    "run_id": 39533519663,
+    "checkout_sha": "c630002c879b015a139224016626a2a73bb5e500",
+    "pe_sha256": "4ecf260a9a27943ab1905e455954756b5659c59c23e3c72d17a83149e9b6d5a3",
+    "native_child_backdrop_from_root_y": 46,
+    "wide": {
+      "root_rgb152_pixels": 4670,
+      "child_rgb152_pixels": 4670,
+      "lost_pixels": 0,
+      "new_pixels": 0,
+      "original_png_sha256": "9661373660b4f7854d755e6ceb28d24b3843bbdcdb40e5601567a85ff1af9f99",
+      "roi": [
+        60,
+        130,
+        580,
+        180
+      ]
+    },
+    "compact": {
+      "root_rgb152_pixels": 5408,
+      "child_rgb152_pixels": 5408,
+      "lost_pixels": 0,
+      "new_pixels": 0,
+      "roi": [
+        30,
+        130,
+        900,
+        190
+      ]
+    }
+  },
+  "verification": "Independent actual Actions archive P7/PNG pixel inspection of fixed root and actual modal screenshot at same native output geometry; count exact source RGB 152,152,152 positions in identical ROIs. Source fix owner moved root masking start from y+40 to y+46. RGB loss eliminated without synthetic repaint or resizing.",
+  "scope": {
+    "bug_closed": "identity glyph clipping beneath child panel",
+    "contrast_over_bright_checker_still_open": true,
+    "physical_display_approved": false,
+    "human_style_approved": false,
+    "release_gate_credit": 0
+  }
+}

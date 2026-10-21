@@ -110,6 +110,18 @@ int main() {
     assert(!contains("RACER: STOCK RACER - NO PROF"));
     // In narrow mode the identity is truthful and never overflows.
     assert(text_draws_fit(old_view));
+    // The actual native host emits this status when the active SRAM/racer
+    // profile changes during a race. An ordinary prefix+truncation used to
+    // lose the only useful action, RESTART APP, at 240 logical pixels.
+    painted.clear();
+    view.racer_name = "PROFILE CHANGED - RESTART APP";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: CHANGED - RESTART APP"));
+    assert(!contains("RACER: PROFILE CHANGED - ..."));
+    assert(drawn_in_color("RACER: CHANGED - RESTART APP",
+                          kModernMenuCheckerLegibleGrey));
+    assert(text_draws_fit(old_view));
     painted.clear();
     view.racer_name = "THIS IS AN EXCESSIVELY LONG RACER NAME";
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,

@@ -273,6 +273,17 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));
     assert(has("SETTINGS"));
+    // Native-wide Options uses the same authoritative five rows, but the
+    // focus label and adjustable value occupy two stable presentation
+    // columns instead of depending on whitespace padding.
+    assert(has("> VSYNC") && has("< ON >"));
+    assert(has("  DISPLAY") && has("WINDOWED"));
+    assert(!has("> VSYNC    < ON >"));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 196 && t.y == 111 && t.cells == 6 &&
+                   t.colour == kModernStockMenuPalette.title_yellow;
+        }));
     bounds(342,224);
     clear();
     v.options_controls_help = true;

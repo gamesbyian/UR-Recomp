@@ -479,6 +479,10 @@ jobs:
             ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-root.ppm
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract.log
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-root.ppm
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-timeout.txt
             ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-timeout.txt
             ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/presents.csv

@@ -26,6 +26,18 @@ MARKER = re.compile(
 EXPECTED = ("main_menu", "attract_title", "demo_race")
 
 
+def persist_exact_native_log(path: Path, log: str) -> str:
+    """Receipt hashes actual retained ZIP bytes, even on Windows.
+
+    Path.write_text() converts LF to CRLF on native Windows by default;
+    previously that made the receipt describe a different byte stream
+    from the uploaded artifact. Explicit UTF-8 bytes forbid translation.
+    """
+    raw = log.encode("utf-8")
+    path.write_bytes(raw)
+    return hashlib.sha256(raw).hexdigest()
+
+
 def verify_original_source_attract(log: str) -> list[dict[str, int | str]]:
     if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
         raise ValueError("no real Modern native host opening in guest log")
@@ -293,7 +305,7 @@ def main() -> int:
         (out / "native-attract-timeout.txt").write_text(str(exc))
         raise
     log = run.stdout + "\n" + run.stderr
-    (out / "native-attract.log").write_text(log, encoding="utf-8")
+    retained_log_sha256 = persist_exact_native_log(out / "native-attract.log", log)
     if run.returncode:
         raise ValueError(f"real Windows native attract process exited {run.returncode}")
     observed = (
@@ -309,7 +321,7 @@ def main() -> int:
         "candidate_executable_sha256": hashlib.sha256(binary).hexdigest(),
         "pinned_original_usa_rom_sha256": EXPECTED_USA_ROM,
         "actual_guest_source_markers": observed,
-        "log_sha256": hashlib.sha256(log.encode("utf-8")).hexdigest(),
+        "log_sha256": retained_log_sha256,
         "script_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
         "diagnostic_guest_writes": False,
         "human_button_actions": 2 if args.preview_wake else 0,

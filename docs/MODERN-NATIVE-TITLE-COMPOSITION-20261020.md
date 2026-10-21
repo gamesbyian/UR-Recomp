@@ -621,3 +621,39 @@ These are the real original guest source states, one native AOT PE, exact
 P6 present-frame receipts and independent ROM-free negative fixtures, NOT
 physical two-pad signoff nor true final SDL pixel/hardware QA. Source guest
 state and Authentic mode remain untouched; default attract is still disabled.
+
+
+## Native attract artifact byte-integrity correction (2026-10-21)
+
+An independent download audit of **owner head `557f0c7dbe9777481ef32185fc04d282918bc5a9`**,
+Windows [run 39554168185](https://github.com/gamesbyian/UR-Recomp/actions/runs/39554168185),
+artifact **12325690656**, found a packaging-only provenance defect despite
+passing gameplay and presentation checks:
+
+- All **nine retained original demo → Modern title → root P6 image files**
+  in the P1-wide, keyboard-4:3 and P2-wide archive cases match their recorded
+  SHA256. One fourth trio from the long real-main recovery was listed in its
+  receipt but **not included in the ZIP**, due to the upload allowlist.
+- All five source/preview/recovery native log receipts hashed their
+  **LF-normalized in-memory strings**, but Python `Path.write_text` on Windows
+  translated the actually archived log files to **CRLF**. Consequently,
+  their recorded digest did not match actual downloaded ZIP log bytes.
+  Normalizing archived CRLF to LF reproduces the old digest; **that is a
+  diagnostic explanation, not an acceptable audit workaround**.
+
+The corrected native capture producer `persist_exact_native_log` writes
+explicit UTF-8 bytes and returns their exact SHA256. The Windows upload
+allowlist retains all three actual P6 recovery screenshots and its presents
+CSV. A new independent, ROM-free
+`tools/verify_baldosa_modern_title_artifact.py --archive <path>` rejects
+mismatched original log bytes, any missing photograph listed in a receipt,
+wrong geometry, mixed executable hashes, duplicate archive entries, or
+unsupported claims of final SDL/release approval. Adversarial unit tests
+reproduce both historical failures. Original Windows screenshots are not
+repainted or retrospectively credited to the fixed candidate; new exact-head
+CI is required for an independently auditable retained artifact.
+
+**Still open:** genuine first named-profile Play after the original guest
+returns to settled MAIN, independent final SDL output and real hardware
+controller/display approval. The attract preview remains opt-in; Authentic
+is unmodified.

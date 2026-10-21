@@ -109,7 +109,8 @@ int main() {
     // Real detail/Records original font includes source closing-paren image.
     small[0] = 0xFF989898u; // original zero
     small[35*8] = 0xFF989898u; // O is pixel-exact zero alias
-    small[43*8] = 0xFF686868u; // ) cell from extractor's H-flipped (
+    small[38*8+7] = 0xFF686868u; // source opening '(' at right edge
+    small[43*8] = 0xFF686868u; // mirrored ')' left edge
     assert(modern_menu_paint_source_text(
         small_view,ModernMenuSourceSheet::Detail,
         screen.data(),screen.size(),342,224,2,24,"O)",1));
@@ -134,12 +135,12 @@ int main() {
         screen.data(),screen.size(),342,224,2,70,"O ",1));
     assert(screen == before_corrupt_detail);
     small[44*8] = 0u;
-    assert(modern_menu_source_detail_zero_alias(small_view));
+    assert(modern_menu_source_detail_specials(small_view));
     // Deliberately forge a source whose letter O differs from digit 0.
     // Both full-string and individual-cell painters must refuse it BEFORE
     // touching pixels; a correctly shaped input sheet is not enough.
     small[35*8] = 0xFFC8C8C8u;
-    assert(!modern_menu_source_detail_zero_alias(small_view));
+    assert(!modern_menu_source_detail_specials(small_view));
     const auto before_bad_alias = screen;
     assert(!modern_menu_paint_source_text(
         small_view,ModernMenuSourceSheet::Detail,
@@ -149,7 +150,18 @@ int main() {
         screen.data(),screen.size(),342,224,2,110,35,1));
     assert(screen == before_bad_alias);
     small[35*8] = small[0];
-    assert(modern_menu_source_detail_zero_alias(small_view));
+    assert(modern_menu_source_detail_specials(small_view));
+    // A forged '))' that does not mirror source '(' must fail atomically,
+    // even if O/zero and transparent blank-space still agree.
+    small[43*8] = 0xFF112233u;
+    assert(!modern_menu_source_detail_specials(small_view));
+    const auto before_bad_paren = screen;
+    assert(!modern_menu_paint_source_text(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,2,130,"O)",1));
+    assert(screen == before_bad_paren);
+    small[43*8] = 0xFF686868u;
+    assert(modern_menu_source_detail_specials(small_view));
 
     // At 4x scale an opaque pixel becomes an exact 4x4 block.
     cursor[15*39] = 0xFFA0D0F8u;

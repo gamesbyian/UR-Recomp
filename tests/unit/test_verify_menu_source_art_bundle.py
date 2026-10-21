@@ -63,6 +63,23 @@ def receipt_for(paths):
     }
 
 
+def synthetic_source_dumps(directory: Path, receipt: dict) -> dict[str, Path]:
+    directory.mkdir()
+    files = {}
+    for key, tag, part, length in (
+            ("main_vram", "mvl-idle-000", "vram", 65536),
+            ("main_cgram", "mvl-idle-000", "cgram", 512),
+            ("detail_vram", "mvl-track-00", "vram", 65536),
+            ("detail_cgram", "mvl-track-00", "cgram", 512)):
+        # These fixed test patterns are deliberately NOT source ROM bytes.
+        payload = (key.encode() * ((length // len(key)) + 1))[:length]
+        path = directory / f"{tag}.{part}.bin"
+        path.write_bytes(payload)
+        receipt["source_ppu_sha256"][key] = hashlib.sha256(payload).hexdigest()
+        files[key] = path
+    return files
+
+
 class SourceArtBundleVerifierTest(unittest.TestCase):
     def test_valid_synthetic_four_source_sheets_and_failure_flags(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -140,6 +157,74 @@ class SourceArtBundleVerifierTest(unittest.TestCase):
             self.assertTrue(good["source_bundle_verified"])
             self.assertFalse(good["distribution_approved"])
             self.assertFalse(good["final_native_capture_approved"])
+
+    def test_private_ppu_byte_witness_is_optional_but_exact_when_requested(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            paths = sample_art_files(base)
+            receipt = receipt_for(paths)
+            without = verify.verify_source_art_bundle(receipt, paths)
+            self.assertFalse(without["local_ppu_dump_hashes_verified"])
+            self.assertFalse(without["rom_identity_verified"])
+            dumps = base / "private-captures"
+            files = synthetic_source_dumps(dumps, receipt)
+            qualified = verify.verify_source_art_bundle(
+                receipt, paths, source_dump_dir=dumps)
+            self.assertTrue(qualified["local_ppu_dump_hashes_verified"])
+            self.assertFalse(qualified["rom_identity_verified"])
+            self.assertFalse(qualified["distribution_approved"])
+            self.assertFalse(qualified["final_native_capture_approved"])
+
+            for key, file_path in files.items():
+                with self.subTest(tampered_file=key):
+                    original = file_path.read_bytes()
+                    file_path.write_bytes(original[:-1] + bytes([original[-1] ^ 1]))
+                    with self.assertRaisesRegex(ValueError, "captured bytes disagree"):
+                        verify.verify_source_art_bundle(
+                            receipt, paths, source_dump_dir=dumps)
+                    file_path.write_bytes(original)
+                with self.subTest(truncated_file=key):
+                    file_path.write_bytes(file_path.read_bytes()[:-1])
+                    with self.assertRaisesRegex(ValueError, "exact dump length"):
+                        verify.verify_source_art_bundle(
+                            receipt, paths, source_dump_dir=dumps)
+                    file_path.write_bytes(original)
+            # A forged textual digest alone is not enough when local bytes
+            # are independently available and explicitly requested.
+            receipt["source_ppu_sha256"]["main_vram"] = "f" * 64
+            with self.assertRaisesRegex(ValueError, "captured bytes disagree"):
+                verify.verify_source_art_bundle(
+                    receipt, paths, source_dump_dir=dumps)
+
+    def test_missing_oversize_or_symlink_ppu_capture_fails_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            paths = sample_art_files(base)
+            receipt = receipt_for(paths)
+            dumps = base / "private-captures"
+            files = synthetic_source_dumps(dumps, receipt)
+            main_path = files["main_vram"]
+            saved = main_path.read_bytes()
+            main_path.unlink()
+            with self.assertRaisesRegex(ValueError, "absent or redirected"):
+                verify.verify_source_art_bundle(
+                    receipt, paths, source_dump_dir=dumps)
+            main_path.write_bytes(saved + b"trailing")
+            with self.assertRaisesRegex(ValueError, "exact dump length"):
+                verify.verify_source_art_bundle(
+                    receipt, paths, source_dump_dir=dumps)
+            main_path.unlink()
+            try:
+                main_path.symlink_to(files["detail_vram"])
+            except (OSError, NotImplementedError):
+                pass  # Windows users may not have symlink creation privileges
+            else:
+                with self.assertRaisesRegex(ValueError, "absent or redirected"):
+                    verify.verify_source_art_bundle(
+                        receipt, paths, source_dump_dir=dumps)
+            with self.assertRaisesRegex(ValueError, "directory"):
+                verify.verify_source_art_bundle(
+                    receipt, paths, source_dump_dir=base / "missing")
 
     def test_bad_png_crc_filter_and_trailing_bytes_refused_even_with_matching_hash(self):
         with tempfile.TemporaryDirectory() as temp:

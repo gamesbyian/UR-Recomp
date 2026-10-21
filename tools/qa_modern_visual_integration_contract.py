@@ -178,10 +178,10 @@ def inventory(root: Path) -> dict:
             r"\bkStockFocusBandFill\s*=\s*0xE0283058u\b",
             painter_source)
         erase = re.search(
-            r"paint\.fill_rect\s*\([\s\S]{0,240}?\bkStockFocusBandFill\s*\)",
+            r"paint\.fill_rect\s*\([^;]{0,240}?\bkStockFocusBandFill\s*\)",
             painter_source)
         blue = re.search(
-            r"paint\.fill_rect\s*\([\s\S]{0,240}?\bpalette\.cursor_blue\s*\)",
+            r"paint\.fill_rect\s*\([^;]{0,240}?\bpalette\.cursor_blue\s*\)",
             painter_source)
         if not (fill and erase and blue and erase.start() < blue.start()):
             conflicts.append("motion_blue_on_blue_undertrack_can_be_invisible")

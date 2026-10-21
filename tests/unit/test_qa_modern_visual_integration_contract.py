@@ -143,8 +143,8 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         file = self.root / "native/product/modern_menu_motion.hpp"
         source = file.read_text(encoding="utf-8")
         source = source.replace(
-            "  paint.fill_rect(pixels, stride, height,\\n"
-            "                  px, py, 2*scale, marker_height, kStockFocusBandFill);\\n",
+            "  paint.fill_rect(pixels, stride, height,\n"
+            "                  px, py, 2*scale, marker_height, kStockFocusBandFill);\n",
             "")
         file.write_text(source, encoding="utf-8")
         result = check.inventory(self.root)
@@ -158,15 +158,15 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
     def test_blue_painted_before_dark_reset_cannot_make_valid_motion(self):
         file = self.root / "native/product/modern_menu_motion.hpp"
         source = file.read_text(encoding="utf-8")
-        first = ("  paint.fill_rect(pixels, stride, height,\\n"
+        first = ("  paint.fill_rect(pixels, stride, height,\n"
                  "                  px, py, 2*scale, marker_height, kStockFocusBandFill);")
-        second = ("  paint.fill_rect(pixels, stride, height,\\n"
-                  "                  px, py+inset, 2*scale, marker_height-2*inset,\\n"
+        second = ("  paint.fill_rect(pixels, stride, height,\n"
+                  "                  px, py+inset, 2*scale, marker_height-2*inset,\n"
                   "                  palette.cursor_blue);")
         self.assertIn(first, source)
         self.assertIn(second, source)
-        file.write_text(source.replace(first+"\\n"+second,
-                                       second+"\\n"+first), encoding="utf-8")
+        file.write_text(source.replace(first+"\n"+second,
+                                       second+"\n"+first), encoding="utf-8")
         result = check.inventory(self.root)
         self.assertIn("motion_blue_on_blue_undertrack_can_be_invisible",
                       result["known_host_geometry_conflicts"])

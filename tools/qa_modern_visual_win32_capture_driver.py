@@ -49,6 +49,12 @@ def upstream_ppm_visibility(path: Path) -> dict:
 
 ROUTES = {
     "root-quit": ("14", 40, ""),
+    # Compare actual P7 frames at two pinned UI-clock phases, plus a
+    # reduced-motion negative control. Same guest route and SDL draw.
+    "root-motion-normal-zero": ("14", 40, ""),
+    "root-motion-normal-eight": ("14", 40, ""),
+    "root-motion-reduced-zero": ("14", 40, ""),
+    "root-motion-reduced-eight": ("14", 40, ""),
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
     # Options opens at guest frame 64; frame 66 adjusts Display, changing
     # the host drawable to borderless and invalidating an explicit window-size
@@ -103,6 +109,14 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH": str(expected[0]),
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(expected[1]),
     })
+    if route.startswith("root-motion-"):
+        # A real SDL output comparison, not guest frame injection or a
+        # synthetic screenshot. Pin only the already-shipping UI-only clock.
+        env["UR_MODERN_MENU_TEST_TICK60"] = (
+            "8" if route.endswith("-eight") else "0")
+        env["UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT"] = "0"
+        env["UR_REDUCED_MOTION"] = (
+            "1" if "-reduced-" in route else "0")
     if execution_mode == "authentic":
         # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
         # Compare source composition against SDL3 final-drawable readback on

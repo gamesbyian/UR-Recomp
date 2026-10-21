@@ -13,8 +13,8 @@ from qa07_live_capture_eligibility import LiveCapture, State
 def _safe_identity(value):
     return (type(value) is str and bool(value.strip()) and
             unicodedata.normalize('NFC',value)==value and
-            len(value.encode('utf-8'))<=128 and
-            not any(unicodedata.category(ch) in ('Cc','Cf') for ch in value))
+            not any(unicodedata.category(ch) in ('Cc','Cf','Cs') for ch in value) and
+            len(value.encode('utf-8'))<=128)
 
 
 class LiveMediaWitness:

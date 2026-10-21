@@ -51,6 +51,19 @@ class ByteWitnessTests(unittest.TestCase):
                 LiveMediaWitness(width=1,height=1).start(
                     attempt=attempt,profile="P1",race_entry_frame=0,capture_start_frame=0)
 
+    def test_unpaired_surrogate_identity_fails_as_value_error(self):
+        # Invalid Unicode must not escape as UnicodeEncodeError while
+        # building a proposed live-capture attempt/profile identity.
+        for field in ("attempt", "profile"):
+            for bad in ("\\ud800", "\\udfff"):
+                with self.subTest(field=field, bad=repr(bad)):
+                    values = dict(attempt="attempt-1", profile="P1")
+                    values[field] = bad
+                    witness = LiveMediaWitness(width=1, height=1)
+                    with self.assertRaises(ValueError):
+                        witness.start(**values, race_entry_frame=0,
+                                      capture_start_frame=0)
+
     def test_wrong_attempt_and_terminal_refuse(self):
         w=self.start()
         w.append(attempt="other",frame_number=10,bgra=bytes(8),pcm_stereo_s16=bytes(8))

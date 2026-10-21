@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from audit_modern_hero_source_clips import CANDIDATES
 from build_modern_hero_reaction_plates import rasterize_original_clip
+from qualify_modern_original_hero_temporal import analyze_original_hero_temporal_clip
 from prototype_racer_hd_replacement import (
     alpha_contact_anchor_x2_y2,
     build_stock_rgba,
@@ -145,6 +146,21 @@ def verified_clip(rom: bytes, registry: dict, source: dict) -> tuple[list[dict],
     if signatures[1] == signatures[2] or len(set(signatures)) < 3:
         raise ValueError("Original source motion unexpectedly frozen")
     return report, buffer
+
+
+def original_temporal_evidence(rows: list[dict], frames: list[list[int]]) -> dict:
+    """Preserve source-pixel discontinuities in the private build receipt.
+
+    Never turn a counterfactual terminal->first seam into a loop permit, and
+    never translate registered guest-frame labels into independently certified
+    original menu/title 60Hz timing.
+    """
+    if len(rows) != len(frames) or len(rows) < 2:
+        raise ValueError("source temporal evidence requires corresponding frames")
+    labels = [row["original_guest_frame"] for row in rows]
+    return analyze_original_hero_temporal_clip(
+        [argb_to_rgba(frame) for frame in frames], labels,
+        width=WIDTH, height=HEIGHT)
 
 
 def cpp_header(rows: list[dict], frames: list[list[int]]) -> str:
@@ -307,6 +323,7 @@ def build(rom_path: Path, output_header: Path, output_manifest: Path,
     if not rom_path.is_file() or rom_path.stat().st_size > MAX_BYTES:
         raise ValueError("missing or oversized source ROM")
     rom = rom_path.read_bytes()
+    reaction_metrics = None
     if clip_id == DEFAULT_CLIP:
         rows, frames = verified_clip(rom, registry, source)
     else:
@@ -314,6 +331,7 @@ def build(rom_path: Path, output_header: Path, output_manifest: Path,
         # producer. No second raster decoder or user-authored poses.
         reaction, rgba_frames = rasterize_original_clip(
             rom, registry, source, clip_id)
+        reaction_metrics = reaction["temporal_original_raster_metrics"]
         rows, frames = [], []
         for candidate, rgba in zip(reaction["frames"], rgba_frames):
             argb = rgba_to_argb(rgba)
@@ -332,6 +350,12 @@ def build(rom_path: Path, output_header: Path, output_manifest: Path,
         if len(rows) != CLIP_WINDOWS[clip_id][1] - CLIP_WINDOWS[clip_id][0] + 1:
             raise ValueError("registered source reaction length mismatch")
     header = cpp_header(rows, frames)
+    temporal = original_temporal_evidence(rows, frames)
+    # The separate original-raster reaction producer and this generated
+    # native-header path must agree on every source pose transition, including
+    # the deliberately unobserved last->first counterfactual edge.
+    if reaction_metrics is not None and temporal != reaction_metrics:
+        raise ValueError("source-raster temporal receipt mismatch")
     manifest = {
         "schema_version": 1,
         "asset_kind": "experimental_original_native_menu_showroom_clip",
@@ -342,6 +366,7 @@ def build(rom_path: Path, output_header: Path, output_manifest: Path,
         "source_guest_timing_independently_certified": False,
         "source_clip_loop_certified": False,
         "human_visual_approval": False,
+        "temporal_original_raster_metrics": temporal,
         "source": SOURCE.relative_to(ROOT).as_posix(),
         "composition_register": MANIFEST.relative_to(ROOT).as_posix(),
         "sequence_contract": "one-shot original guest 60Hz P1 frames; never loop as if original idle",

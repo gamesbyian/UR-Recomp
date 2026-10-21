@@ -246,9 +246,32 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
             (receipt["observed_in_draw"], w, h)):
         raise AuditError("retained log does not witness successful SDL3 capture: "+folder)
     route = receipt.get("native_semantic_route")
+    # Producer metadata is not itself an original-frame oracle, but it must
+    # agree with the independently witnessed host route and mode. Otherwise
+    # a mislabelled Modern screenshot can be routed through the Auth controls
+    # simply by changing its receipt's semantic-route field.
+    if receipt.get("authentic_isolation_approved") is not False:
+        raise AuditError("receipt overclaims Authentic isolation approval")
+    if route == "authentic-stock":
+        if (receipt.get("execution_mode") != "authentic" or
+                receipt.get("native_route_marker_observed") is not False):
+            raise AuditError("Authentic receipt mode/route evidence mismatch")
+    elif route == "play-stock-handoff" or route in TITLE_ROUTES or route in ROUTE_STAGES:
+        # The root-quit snapshot has no controller/destination route marker.
+        # The other Modern routes genuinely traverse a scripted semantic
+        # control edge; do not mistake the idle root for their navigation.
+        expected_marker = route != "root-quit"
+        if (receipt.get("execution_mode") != "modern" or
+                receipt.get("native_route_marker_observed") is not expected_marker):
+            raise AuditError("Modern receipt mode/route evidence mismatch")
     if route == "authentic-stock":
         before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
         if ("[snes_load]" not in before or
+                # The native title agent now owns an independently painted
+                # Modern entry frame. A title paint would contaminate real
+                # Authentic output without ever emitting a root/destination
+                # marker, which the old auditor alone would miss.
+                "UR_BALDOSA_MODERN_TITLE " in before or
                 "UR_BALDOSA_MODERN_DESTINATION stage=" in before or
                 "UR_BALDOSA_MODERN_ROOT opened=1" in before or
                 "UR_BALDOSA_MODERN_ROOT painted=1" in before):

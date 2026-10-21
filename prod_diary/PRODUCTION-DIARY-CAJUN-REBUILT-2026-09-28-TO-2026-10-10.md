@@ -2,6 +2,8 @@
 
 *Dis here de companion tale to [Volume I](PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md). Same seventy-one-episode history overall, same facts, same original/native obligations, same dates and evidence. I be de agent chronicler siftin' through logs, not a fella makin' believe he sat in every conversation. If a job ain't proved, it ain't proved, no matter how loud de frogs sing. De clock order inside each day editorial when de record don't pin it down.*
 
+Pull up dat chair, cher. Dat original account come crawlin' out de cypress water with mud on its boots, a pot bubblin' on de fire, an' enough back-porch grammar to make a compiler wonder whether semicolons got souls. I keep de finest old camp rule: tell what got dragged out de reeds, what bit somebody, what looked like a gator but was only a log, an' what looked like a log till it opened its mouth. De traces, PRs an' witnesses still de law o' de land.
+
 [Diary home](README.md) · [Next bayou volume](PRODUCTION-DIARY-CAJUN-REBUILT-2026-10-11-TO-2026-10-20.md) · [Old bayou original](PRODUCTION-DIARY-CAJUN-2026-09-28-TO-2026-10-13.md)
 
 ## September 28: One little remake idea wander into de swamp carryin' a laboratory

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "scope": "Bounded first-cycle original attract-title P6 visible-frame selection; original game source only, no rendering approval",
+  "original_source_file": "modern-title-native-attract-preview-pr2043/presented/presents.csv",
+  "source_artifact_id": 12331588381,
+  "original_archive_sha256": "e57ebe557acb78630a4c671a8e9f659d7de2fb86b84cbc05a65e0c213e7cde68",
+  "source_csv_sha256": "b62ac797c1e8b953a736d2603ad47d2d2129a5c31a6cecefc20918bf6f23e803",
+  "original_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_guest_title_state_first_frame": 943,
+  "original_raster_timeline": [
+    {
+      "range": [
+        944,
+        1088
+      ],
+      "observed_luma": 0.851,
+      "original_crc32": "29515511",
+      "classification": "dark transition: do not claim title visible"
+    },
+    {
+      "range": [
+        1104,
+        1168
+      ],
+      "observed_luma_first": 28.888,
+      "observed_luma_last": 129.471,
+      "classification": "original P6 fade in"
+    },
+    {
+      "range": [
+        1184,
+        1408
+      ],
+      "observed_luma": 133.923,
+      "original_crc32": "df39765c",
+      "classification": "stable bright original title candidate"
+    },
+    {
+      "range": [
+        1424,
+        1536
+      ],
+      "observed_luma": 0.851,
+      "original_crc32": "29515511",
+      "classification": "dark transition into original demo"
+    }
+  ],
+  "chosen_sdl_original_title_guest_draw": 1200,
+  "separately_retained_blank_control_guest_draw": 1000,
+  "same_frame_original_guest_P6_and_SDL_P7_black_verified": true,
+  "original_P6_P7_blank_diagnostic_original_zip_id": 12334596841,
+  "final_sdl_art_source_review": "PENDING",
+  "existing_stock_attract_preview_default_on": false,
+  "human_visual_approval": false,
+  "physical_hardware_verification": false,
+  "release_gate_credit": 0
+}

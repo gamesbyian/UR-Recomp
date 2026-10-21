@@ -6,8 +6,15 @@ on:
       - ".github/workflows/modern-visual-native-win32-capture.yml"
       - "tools/qa_modern_visual_sdl_capture.py"
       - "tools/qa_modern_visual_win32_capture_driver.py"
+      - "tools/capture_modern_title_entry_sdl_win32.py"
+      - "tools/capture_modern_title_attract_sdl_win32.py"
+      - "tests/unit/test_capture_modern_title_attract_sdl_win32.py"
+      - "tests/unit/test_capture_modern_title_entry_sdl_win32.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
+      - "tools/qa_modern_title_final_sdl_transition.py"
+      - "tests/unit/test_qa_modern_title_final_sdl_transition.py"
+      - "native/product/modern_title_presenter.hpp"
       # Destination PR #2040 may request actual 4:3/wide native SDL evidence
       # with the existing independent QA driver, not a parallel test runtime.
       - "native/product/modern_native_destination_presenter.hpp"
@@ -23,7 +30,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/modern-title-final-sdl-transition-20261021' || github.event.pull_request.number == 2043
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -48,7 +55,10 @@ jobs:
           python -m unittest \
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
+            tests.unit.test_capture_modern_title_entry_sdl_win32 \
+            tests.unit.test_capture_modern_title_attract_sdl_win32 \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
+            tests.unit.test_qa_modern_title_final_sdl_transition \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
             tests.unit.test_check_modern_visual_capture_bundle \
             tests.unit.test_qa_authentic_presdl_sdl_rgb_parity
@@ -90,6 +100,138 @@ jobs:
           python tools/check_windows_pe_timestamp.py \
             --exe baldosa/build-ur-visual/UniracersSNESRecomp.exe \
             --source-epoch "$SOURCE_DATE_EPOCH"
+      # #2043 TITLE LANE ONLY: this real AOT PE already has the established
+      # SDL3 readback observer inserted above. No duplicate renderer/runtime.
+      - name: Prove actual Modern title SDL entry/sweep and reduced motion
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for aspect in wide 4:3; do
+            suffix="wide"
+            if [ "$aspect" = "4:3" ]; then suffix="4by3"; fi
+            python tools/capture_modern_title_entry_sdl_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --source-sha "$(git rev-parse HEAD)" \
+              --aspect "$aspect" \
+              --out "$RUNNER_TEMP/modern-title-sdl-motion-$suffix-pr2043"
+          done
+          echo "Real source-bound Windows SDL3 title logo lift/exit, confirmed root and reduced stillness at 16:9/4:3; no hardware or art approval." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded title SDL pixels and logs only
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-motion-final-sdl-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-sdl-motion-*/native-title-sdl-motion-receipt.json
+            ${{ runner.temp }}/modern-title-sdl-motion-*/*/sdl.pam
+            ${{ runner.temp }}/modern-title-sdl-motion-*/*/sdl.png
+            ${{ runner.temp }}/modern-title-sdl-motion-*/*/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      # Title-owner-only original source identity check: active guest PPU
+      # paints its *whole* original title and real 2P race; the native host
+      # consumes P1 wake then opens the same Modern root without guest writes.
+      # Decision-first discriminator for the independently observed black
+      # original title at guest/draw1000: compare genuine guest-rendered P6
+      # before SDL with the exact SDL3 readback on SAME Windows native PE.
+      # This never asserts success/visibility from an intentionally blank frame.
+      - name: Diagnose original guest full title P6 versus final SDL at frame1000
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_modern_title_attract_sdl_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --aspect wide --diagnose-title-only \
+            --out "$RUNNER_TEMP/modern-title-original-p6-vs-sdl-diagnostic-pr2043"
+          echo "Measured exact P6 original guest versus P7 SDL at draw1000; do not infer title art visibility or acceptance from the source state flag alone." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded original-title source-versus-SDL diagnostic
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-original-source-vs-sdl-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title-diagnostic-only.json
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/original-presdl.ppm
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/original-title-source-vs-sdl.json
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/native-sdl.pam
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/native-sdl.png
+            ${{ runner.temp }}/modern-title-original-p6-vs-sdl-diagnostic-pr2043/original-title/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Prove actual original stock attract/demo and safe Modern wake SDL
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for aspect in wide 4:3; do
+            suffix="wide"
+            if [ "$aspect" = "4:3" ]; then suffix="4by3"; fi
+            python tools/capture_modern_title_attract_sdl_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --source-sha "$(git rev-parse HEAD)" \
+              --aspect "$aspect" \
+              --out "$RUNNER_TEMP/modern-title-original-attract-sdl-$suffix-pr2043"
+          done
+          echo "Genuine original title→original two-player demo→P1 wake→Modern title→native root SDL capture at 16:9/4:3; preview stays opt-in, no hardware, art or release approval." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain only actual original/demo title SDL evidence
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-original-attract-final-sdl-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/real-stock-title-demo-wake-sdl-receipt.json
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-sdl.pam
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-sdl.png
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-process.log
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/original-title/original-presdl.ppm
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/original-title/original-title-source-vs-sdl.json
+          if-no-files-found: warn
+          retention-days: 7
+
+      # Bounded independent companion to draft native title owner #2043.
+      # Actual final SDL readback, not source P6 or guessed guest frames.
+      - name: Verify real native title-to-root final SDL at widescreen and 4x3
+        if: github.event_name == 'pull_request' && github.head_ref == 'qa/modern-title-final-sdl-transition-20261021'
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for size in 1280x720 1024x768; do
+            ROOT="$RUNNER_TEMP/ur-modern-title-final-sdl-$size"
+            for route in title-still title-entered-root title-reduced-still title-reduced-entered-root; do
+              python tools/qa_modern_visual_win32_capture_driver.py \
+                --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+                --out "$ROOT/$route" --video windows --timeout 100 \
+                --window-size "$size" --route "$route"
+            done
+            python tools/qa_modern_title_final_sdl_transition.py \
+              --case-root "$ROOT" --source-sha "$(git rev-parse HEAD)" \
+              --output "$ROOT/verified-final-sdl-title-to-root.json"
+          done
+          echo "Genuine Windows final SDL P7 title and five-way root, normal and reduced-motion, one source/PE across both 16:9 and 4:3. No natural clock, art, physical gamepad or release acceptance." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain actual final SDL native title and root readback witnesses
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'qa/modern-title-final-sdl-transition-20261021'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-final-native-win32-p7-16x9-4x3
+          path: |
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/verified-final-sdl-title-to-root.json
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 10
       - name: Launch real Win32 root and capture actual SDL drawable
         run: |
           set -euo pipefail

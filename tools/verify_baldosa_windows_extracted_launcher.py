@@ -303,8 +303,11 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     require(not user_root.exists(),
             "junction refusal unexpectedly initialized genuine user data")
 
-    # Real guest execution: options forwarded, Modern root opened and painted,
-    # cartridge SRAM written under the same canonical user root.
+    # Real guest execution: title-first Modern boot (Press Start) is drawn
+    # by the same native executable, but no scripted Confirm is sent here.
+    # It must NOT silently enter the five-way root without human input.
+    # A separate exact gamepad route confirms Title -> Root. Persist SRAM
+    # under the same canonical user root regardless of who owns UI ink.
     good = invoke_launcher(launcher, env, args, timeout)
     log = good.stdout + "\n" + good.stderr
     (output / "valid-launch.log").write_text(
@@ -312,9 +315,11 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     require(good.returncode == 0,
             f"extracted CMD launcher returned {good.returncode}: {log[-2500:]}")
     for marker in ("UR_BALDOSA_MODERN_ROOT opened=1",
-                   "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"):
+                   "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern"):
         require(log.count(marker) == 1,
-                f"real extracted launcher did not reach shared Modern painter: {marker}")
+                f"real extracted launcher did not display its native Modern title: {marker}")
+    require("UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared" not in log,
+            "extracted title boot unexpectedly entered root without a fresh confirm edge")
     save = user_root / "saves" / "save.srm"
     require(save.is_file() and save.stat().st_size == 8192,
             "real installed process did not publish exact 8KiB user SRAM")

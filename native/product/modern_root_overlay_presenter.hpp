@@ -198,7 +198,8 @@ inline bool render_modern_root_overlay(
     const ModernRootOverlayPainter& paint,
     std::uint32_t* pixels, int stride, int surface_height,
     int scale, int panel_w, HostOverlayRect rect,
-    const ModernRootOverlayView& view) {
+    const ModernRootOverlayView& view,
+    const ModernMenuSourcePixels* source_heading = nullptr) {
     // No partial drawing on an invalid layout or absent host primitives.
     if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
         scale <= 0 || panel_w <= 40 || rect.width <= 0 || rect.height <= 0 ||
@@ -220,9 +221,22 @@ inline bool render_modern_root_overlay(
     paint.stroke_rect(pixels, stride, surface_height,
         x, y, rect.width, rect.height, palette.frame_grey);
     const char* title = view.europe ? "UNIRALLY" : "UNIRACERS";
-    modern_menu_paint_shadowed_heading(
-        paint, pixels, stride, surface_height,
-        x + 9 * scale, y + 6 * scale, title, 2, scale);
+    // Optional caller-owned, previously verified ORIGINAL BG2 raster.
+    // No ROM bytes, PNG decoding, asset I/O or rights decisions live here.
+    // The stock image already includes its yellow fill, black outline and
+    // source grey shadow, so painting the synthetic host shadow over it would
+    // double-ink the heading. The old host fallback remains the default.
+    const bool drew_source_heading = source_heading &&
+        modern_menu_paint_source_text(
+            *source_heading, ModernMenuSourceSheet::Heading,
+            pixels, static_cast<std::size_t>(stride) *
+                    static_cast<std::size_t>(surface_height),
+            stride, surface_height,
+            x + 9 * scale, y + 6 * scale, title, scale);
+    if (!drew_source_heading)
+        modern_menu_paint_shadowed_heading(
+            paint, pixels, stride, surface_height,
+            x + 9 * scale, y + 6 * scale, title, 2, scale);
     // A stock anonymous rider is a state, not a long player name. Keep
     // that status readable at the real 240-logical-pixel 4:3 fallback.
     const std::string_view racer_name =

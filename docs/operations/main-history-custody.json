@@ -1,0 +1,69 @@
+{
+  "schema": "ur-main-history-drive-custody/1",
+  "verification_date_utc": "2026-10-21",
+  "scope": "committed_main_git_history_only",
+  "status": "historically_verified_at_source_commit",
+  "source_commit": "7e9a1be4016b7a094c93603e2bad116a7ebf6ba7",
+  "main_history_commits": 8118,
+  "bundle_bytes": 408610900,
+  "bundle_sha256": "322c4841ab82a4ed4434b8f4a442a922c2e78b3e28b6cd31fef014dbbdfbff49",
+  "github_actions_run_id": 39561218764,
+  "github_commit": "7e9a1be4016b7a094c93603e2bad116a7ebf6ba7",
+  "drive_folder_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+  "manifest_drive_id": "1VY1CCWsAUcC-9sKGFLyfsEfw0SJqf2ni",
+  "parts": [
+    {
+      "number": "01",
+      "drive_id": "1JTixAbBfsSjK5fFvHhGMLwWcUXff-j_q",
+      "bytes": 83886080,
+      "sha256": "96992aedb9cc263384cb40fc18ecb1102099f31a52dadf1ebd8072c442c76738"
+    },
+    {
+      "number": "02",
+      "drive_id": "12kR7_5fT43i57Zl-Bp5IoBRWb8dw1zXo",
+      "bytes": 83886080,
+      "sha256": "2cc55d3ca3f9eb42e8f9d540943e7c42d0ebe2f8eea5f81cbaa3187d20ee7581"
+    },
+    {
+      "number": "03",
+      "drive_id": "1twfDxRBCFhJ0P-sfphIuo5vHtNZIIVN1",
+      "bytes": 83886080,
+      "sha256": "be0747b74663172a73065fe332283e33c76847ef131317d8ceca8de3fb26376e"
+    },
+    {
+      "number": "04",
+      "drive_id": "1vIBqgoZrd6G6pVMFnshNaX4bW4GZyjWi",
+      "bytes": 83886080,
+      "sha256": "aea7be8138e68bda3550447bd6d2a34f99dae62cef33b8393bbe88bed5309f71"
+    },
+    {
+      "number": "05",
+      "drive_id": "10Ez78lv7bfGnn8NsK7bfgxHtCJrKsSl1",
+      "bytes": 73066580,
+      "sha256": "cbe8b4b01444d887495736d6dca2be71a45ddb861e51bf59ce95f01fad0af726"
+    }
+  ],
+  "checks": {
+    "drive_folder_private_owner_only": true,
+    "all_six_drive_items_read_back": true,
+    "all_drive_zip_sha256_match_github_artifact_zip": true,
+    "all_inner_part_sha256_verified": true,
+    "reassembled_bundle_sha256_verified": true,
+    "independent_git_clone_head_matched": true,
+    "git_fsck_connectivity_passed": true,
+    "restored_ancestor_count_matched": true
+  },
+  "live_drive_state": "not_continuously_monitored",
+  "release_qa_credit": false,
+  "exclusions": [
+    "unmerged Git branches and tags",
+    "GitHub PR/issue discussions, reviews and comments",
+    "GitHub Actions artifacts and logs",
+    "remote Git LFS objects and submodule repositories",
+    "uncommitted work",
+    "Drive recovery vault contents",
+    "ChatGPT scheduled-agent settings"
+  ],
+  "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2164#issuecomment-6310500375",
+  "note": "Receipt reflects one independently performed Google Drive download and clean git clone on 2026-10-21, not an evergreen current-head or current Drive integrity claim."
+}

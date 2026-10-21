@@ -10,6 +10,16 @@ To force a fresh observation, use GitHub's **Run workflow** on main. No new acco
 or scheduled agent is required. The workflow is manual-only and does not write to
 any branch or Drive folder.
 
+The dashboard additionally displays the last independently verified
+**historical main-history Drive backup** from
+[main-history-custody.json](main-history-custody.json), with its saved commit,
+date and commit count. It compares that stored source commit with freshly
+observed GitHub `main`, without claiming to monitor Drive bytes. Even when
+the commits happen to match, the current Drive copy is explicitly marked
+UNKNOWN until a new Drive download and integrity test is performed.
+The saved metadata is validated by
+`tools/validate_history_custody.py` and its contract tests.
+
 The output contains the exact observed main SHA/branch protection, open PR count
 (and whether pagination was exhaustive), draft count, PRs whose last update is
 older than 48 hours, a **bounded latest-100-run** Actions sample, the five

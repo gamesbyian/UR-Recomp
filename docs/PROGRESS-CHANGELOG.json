@@ -1,0 +1,58 @@
+{
+  "schema": "ur-progress-changelog/1",
+  "baseline_id": "2026-10-21-first-frozen",
+  "entries": [
+    {
+      "date": "2026-10-21",
+      "compare_to": "2026-10-20 previous conversational assessment",
+      "source_commit": "550307d5f6adf5de72d2074168b6420b7a217a35",
+      "classification": "implemented_or_tested_not_release_accepted",
+      "changes": [
+        {
+          "category": "modern_frontend",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2134",
+          "summary": "Source-bound cursor/type/animation grammar merged"
+        },
+        {
+          "category": "modern_frontend",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2152",
+          "summary": "Native paused Options 342-wide shared presentation merged"
+        },
+        {
+          "category": "modern_frontend",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2145",
+          "summary": "Native 256/342-sized pause menus merged"
+        },
+        {
+          "category": "visual_qa",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2155",
+          "summary": "Single-PE integrated Windows visual audit with contrast correction merged"
+        },
+        {
+          "category": "visual_qa",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2141",
+          "summary": "25-case fail-closed visual cross-epoch witness checker merged"
+        },
+        {
+          "category": "persistence",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2142",
+          "summary": "Concurrent private racer rollback file preservation merged"
+        },
+        {
+          "category": "operations",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2135",
+          "summary": "Ten-line shard board adopted"
+        },
+        {
+          "category": "operations",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2157",
+          "summary": "Independent QA provenance in live status merged"
+        }
+      ],
+      "formal_event_delta": 0,
+      "formal_qa_gate_delta": 0,
+      "quantified_completion_delta": null,
+      "reason": "No fixed itemized acceptance inventory exists to translate this evidence into objective percentage points. Do not invent gains."
+    }
+  ]
+}

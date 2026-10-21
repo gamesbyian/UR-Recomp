@@ -65,3 +65,20 @@ Do not equate all historical failures with permanent policy decisions. The [coor
 - Windows Records exporter [#2060](https://github.com/gamesbyian/UR-Recomp/pull/2060) is **already recovered** by [#2089](https://github.com/gamesbyian/UR-Recomp/pull/2089), six exact files and green fresh-head checks, squash `a3ae40508915889ff22ba728f0243d4a40d6959b`; #2060 was closed as superseded.
 
 This is an initial *index* of historical failure families, not a complete audit of all Vault members and not evidence that every original error was transient or a policy denial. Prioritize original raw responses and current-main semantic comparisons in subsequent runs; retain all archival data.
+
+## H27/H28 actionable publication dispositions (2026-10-21)
+
+Treat this as a pickup index. Source/agent errors and evidence are preserved under the exact Drive IDs; a linked issue is not a source integration.
+
+| Candidate | GitHub disposition | Drive evidence and outstanding qualification |
+| --- | --- | --- |
+| H27 QA01 RF081 sparse transition bounds | **Merged [#2110](https://github.com/gamesbyian/UR-Recomp/pull/2110)** at `5cdbbc57dc991d77df10c1a2ecabab2772c8063c`; green unit/hygiene | Original authenticated archive `1DHRV4082CWJ7YLxicGR20CINyWwFEc8N` moved to Integrated; 7/7 manifest entries verified, no USA event credit |
+| H27 Knowledge reuse matrix duplicate IDs | **Merged [#2104](https://github.com/gamesbyian/UR-Recomp/pull/2104)** at `2321f3f4b6286204be43bb2502dce6573378fc2c` | Archive `11x4qXDt8swIg52188tLpkkLHloauPyhf` in Integrated; further malformed lane inputs are separate |
+| H27 Knowledge source epoch and malformed lanes | **Open [#2118](https://github.com/gamesbyian/UR-Recomp/issues/2118)**, not published | Incoming archives `1p99v0BHznh173DpXFDwj0Yr8Q1ZmBTsX` (14/14) and `1_RScoARFTHjfttOY87v9PKBepXmE8tK8` (9/9), exact historical safety-check receipts, current review needed |
+| H27 QA08 temporal PPU census | **Draft [#1996](https://github.com/gamesbyian/UR-Recomp/pull/1996)** remains HOLD; source publication blocked, research comment added | Incoming `1wW_zP28K8OWA--3UMLX4Yc2_VuIVOgSq` (12/12); sampled source temporal phases do not prove effective-CGRAM final pixels |
+| H28 QA07 Unicode-surrogate test | **Open [#2116](https://github.com/gamesbyian/UR-Recomp/issues/2116)**; committed branch not qualified | Incoming `10zJs9NMaHWxFXBDyLFAAaKDOpLDenl00` (6/6); wrong double-escaped test literal, PR/correction attempts tool-blocked; do not merge broken branch |
+| H28 UHD numeric type receipt | **Owner comment on [#2113](https://github.com/gamesbyian/UR-Recomp/pull/2113)**; not published | Incoming `1XxdajwxMpiD8Xvdqr4yFTAAXeb9LXKB8` (7/7); old Inbox pointer retired into Evidence, current SDL source/owner tests required |
+| H27 P2P signed invite finish/replay | **Open [#2111](https://github.com/gamesbyian/UR-Recomp/issues/2111)**; no source published | Incoming `1cW_qjnxY8mfclORRfSCIHkQbenhZ4XcO` (7/7); only loopback tests, no restart/anti-rollback/WAN proof |
+| H27/H28 Records namespace/producer | **Open [#2103](https://github.com/gamesbyian/UR-Recomp/issues/2103)**; no new source merged | Existing #2089 baseline merged. Win32 colon filename and source-freeze races remain independent platform negatives |
+
+**Queue distinction:** Evidence Library stores resolved/historical pointers and research-only receipts without deleting their sources. Integration Inbox retains genuinely unresolved source-authorized pickup requests. Agents must deduplicate against current PRs and `main` before making a new recovery file. [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088) owns ZIP-member reconciliation. No completed source-recovery row automatically changes the 0/45 original/native USA or 0/12 physical Windows release acceptance.

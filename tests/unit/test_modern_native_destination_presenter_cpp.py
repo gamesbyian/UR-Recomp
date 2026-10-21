@@ -37,6 +37,19 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
         self.assertIn("width == 342 ? 320 : 240", source)
         self.assertIn("root_rect, shell_view);", source)
         self.assertIn("root_rect, view);", source)
+        # The shell is NOT enough to claim a child was actually rendered.
+        # Validate the false-child branch, its return and the ordering
+        # BEFORE any source-view/native-geometry receipt is emitted.
+        self.assertIn("modern_native_destination_is_open(view)", source)
+        self.assertIn("const bool child_ok = !drawn || !child_open ||", source)
+        self.assertIn("if (drawn && !child_ok) {", source)
+        guard = source.index("if (drawn && !child_ok) {")
+        receipt = source.index("modern_native_destination_stage(view)")
+        self.assertLess(guard, receipt)
+        self.assertIn("paint_refused=1", source[guard:receipt])
+        self.assertIn("return 0;", source[guard:receipt])
+        self.assertIn("g_last_native_destination_stage.clear();",
+                      source[guard:receipt])
         # Native diagnostic receipts are emitted only *after* successful
         # painting from the authoritative view, with the actual root/raster.
         self.assertIn("modern_native_destination_stage(view)", source)

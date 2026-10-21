@@ -21,8 +21,11 @@ void check_bounds(int x, int y, int w, int h) {
     assert(x >= 0 && y >= 0 && w > 0 && h > 0);
     assert(x <= active_w - w && y <= active_h - h);
 }
+struct DrawRect { int x, y, w, h; };
+std::vector<DrawRect> fill_rects;
 void fill(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
     check_bounds(x,y,w,h);
+    fill_rects.push_back({x,y,w,h});
 }
 void stroke(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
     check_bounds(x,y,w,h);
@@ -112,6 +115,36 @@ int main() {
     assert(legible_pause_status_draws == 1);
     assert(contains(">VOLUME   < 90% >") && contains("SAVED"));
     assert(contains("L/R CHANGE  B BACK"));
+    // Actual prepared 342 source and 2x/4x fallbacks now use the same
+    // centered 320-logical geometry as the native root and destinations.
+    // The original 256 source and 512x448 4:3 panel remain 240 logical.
+    struct SourceCase { int w, h, x, y, panel_w, panel_h; };
+    constexpr SourceCase source_cases[] = {
+        {256,224,8,10,240,204},
+        {342,224,11,10,320,204},
+        {512,448,16,20,480,408},
+        {684,448,22,20,640,408},
+        {1024,896,32,40,960,816},
+        {1368,896,44,40,1280,816},
+    };
+    for (const auto& c : source_cases) {
+        active_w = c.w;
+        active_h = c.h;
+        painted.clear();
+        fill_rects.clear();
+        legible_pause_status_draws = 0;
+        assert(render_native_modern_pause_options(
+            painter,pixels,c.w,c.w,c.h,view));
+        assert(!fill_rects.empty());
+        const auto& first = fill_rects.front();
+        assert(first.x == c.x && first.y == c.y &&
+               first.w == c.panel_w && first.h == c.panel_h);
+        assert(contains("GAME PAUSED") && contains("OPTIONS") &&
+               contains("SAVED"));
+        assert(legible_pause_status_draws == 1);
+    }
+    active_w = 512;
+    active_h = 448;
     // Too small a raster is refused, never partially drawn.
     painted.clear();
     assert(!render_native_modern_pause_options(

@@ -133,24 +133,32 @@ inline bool render_native_modern_pause_options(
     if (!paint.valid() || !pixels || width < 256 || stride < width ||
         height < 224 || !view.options_open)
         return false;
-    const int scale = width >= 512 && height >= 448 ? 2 : 1;
-    constexpr int kPanelW = 240;
+    // Share the real source-width contract with the native destination
+    // renderer: compact 256 -> 240, prepared wide 342 -> 320 logical px.
+    // 2x and 4x fallback rasters keep their original pixel aspect/scale.
+    const int scale = width >= 1024 && height >= 896 ? 4 :
+                      width >= 512 && height >= 448 ? 2 : 1;
+    const int panel_w = width >= 342 * scale ? 320 : 240;
     constexpr int kPanelH = 204;
-    const int x = (width - kPanelW * scale) / 2;
+    const int x = (width - panel_w * scale) / 2;
     const int y = (height - kPanelH * scale) / 2;
+    if (x < 0 || y < 0 ||
+        panel_w * scale > width - x ||
+        kPanelH * scale > height - y)
+        return false;
     const auto& pal = kModernStockMenuPalette;
-    paint.fill_rect(pixels, stride, height, x, y, kPanelW * scale,
+    paint.fill_rect(pixels, stride, height, x, y, panel_w * scale,
                     kPanelH * scale, pal.background);
-    paint.fill_rect(pixels, stride, height, x, y, kPanelW * scale,
+    paint.fill_rect(pixels, stride, height, x, y, panel_w * scale,
                     27 * scale, pal.header_band);
-    paint.stroke_rect(pixels, stride, height, x, y, kPanelW * scale,
+    paint.stroke_rect(pixels, stride, height, x, y, panel_w * scale,
                       kPanelH * scale, pal.frame_grey);
     paint.draw_text(pixels, stride, height, x + 9 * scale, y + 6 * scale,
                     "UNIRACERS", pal.title_yellow, 2 * scale);
     paint.draw_text(pixels, stride, height, x + 8 * scale, y + 36 * scale,
                     "GAME PAUSED", kModernMenuCheckerLegibleGrey, scale);
     render_modern_options_modal(paint, pixels, stride, height, scale,
-                                kPanelW, x, y, view);
+                                panel_w, x, y, view);
     return true;
 }
 

@@ -47,6 +47,7 @@ int ur_baldosa_modern_root_pause_options_input(int action);
 int ur_baldosa_modern_root_pause_options_draw(
     std::uint8_t* pixels, std::size_t pitch, int width, int height);
 int snesrecomp_desktop_product_get_volume(void);
+int snesrecomp_desktop_product_get_display(int* fullscreen, int* vsync);
 // Staged by baldosa_sdl_controller_lifecycle_spike.py: read-only seat view.
 long long snesrecomp_desktop_product_seat_source(int seat);
 int snesrecomp_desktop_product_input_scripted(void);
@@ -349,6 +350,35 @@ void apply_host_lifecycle_pause() {
         ur::product::baldosa_lifecycle_pause_reason_name(reason),
         g_lifecycle_pause.disconnected_seat() + 1,
         result == UR_MODERN_SESSION_APPLIED ? 1 : 0, notice ? notice : "-");
+    std::fflush(stderr);
+}
+
+// Alt+Enter / launcher display changes reach only config.ini, but Modern
+// boot restores the typed store over it. When the live display changes,
+// record it into the EXISTING store (the same one boot restores from, and
+// under the same Modern-root gate) so the next launch keeps it. Options'
+// own changes already match the store and are a no-op here.
+int g_adopt_live_display = -1;
+void adopt_live_display_change() {
+    int fullscreen = 0;
+    int vsync = 1;
+    if (!snesrecomp_desktop_product_get_display(&fullscreen, &vsync)) return;
+    const int live = fullscreen * 3 + vsync;
+    if (g_adopt_live_display < 0 || live == g_adopt_live_display) {
+        g_adopt_live_display = live;  // first frame: boot already restored
+        return;
+    }
+    g_adopt_live_display = live;
+    const char* root = std::getenv("UR_BALDOSA_MODERN_ROOT");
+    const char* mode = std::getenv("UR_EXECUTION_MODE");
+    const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!root || std::strcmp(root, "1") != 0 ||
+        (mode && std::strcmp(mode, "authentic") == 0) || !user_root || !*user_root)
+        return;
+    const auto result = ur::product::baldosa_options_adopt_live_display(
+        ur::product::baldosa_options_path(user_root).string(), fullscreen, vsync);
+    std::fprintf(stderr, "UR_BALDOSA_OPTIONS adopt_live_display fullscreen=%d vsync=%d result=%d\n",
+                 fullscreen, vsync, static_cast<int>(result));
     std::fflush(stderr);
 }
 
@@ -928,6 +958,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
             ur_modern_session_observe_race_active(
                 g_modern_session, g_native_live_race ? 1 : 0);
         apply_host_lifecycle_pause();
+        adopt_live_display_change();
         lifecycle_pause_smoke_frame();
 
         if (smoke_enabled() && g_delayed_restart_enabled &&

@@ -24,6 +24,8 @@ on:
       - "native/product/baldosa_host_lifecycle_pause.hpp"
       - "tests/native/baldosa_host_lifecycle_pause_test.cpp"
       - "tests/unit/test_baldosa_host_lifecycle_pause.py"
+      - "tests/native/baldosa_native_options_adopt_test.cpp"
+      - "tests/unit/test_baldosa_native_options_adopt_cpp.py"
       - "native/product/baldosa_native_options.hpp"
       - "tools/baldosa_native_modern_root.cpp"
       - "tools/baldosa_modern_profile_activation.cpp"
@@ -76,6 +78,7 @@ jobs:
           python3 tests/unit/test_baldosa_modern_options_spike.py
           python3 tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           python3 tests/unit/test_baldosa_host_lifecycle_pause.py
+          python3 tests/unit/test_baldosa_native_options_adopt_cpp.py
           # Reuse the real Modern codec and store, not dummy profile formats.
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
             -I native/product -I native/title \

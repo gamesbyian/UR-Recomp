@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "purpose": "Independent byte review of retained original Windows native Modern title post-OSD captures; no physical SDL/display, guest-event or visual-art gate granted.",
+  "repository": "gamesbyian/UR-Recomp",
+  "pull_request": 2043,
+  "owner_head_sha": "64a30fbc3097828fd33ebfcacd122c2a26010af8",
+  "main_parent_sha": "3cfe6dd010dc6f24f818547f91674d1555582490",
+  "actions_run_id": 39532968074,
+  "actions_run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39532968074",
+  "actions_conclusion": "success",
+  "original_capture_artifact_id": 12316382001,
+  "original_zip_sha256": "45acc65e34def71aa2403819b8334df09846dae98888bd3624b80eb25726ac8e",
+  "actual_windows_executable_sha256": "adae6d195e6c104dfd9cc10faa15a39641e711d6fa051ea4e9cd4ef4b48bcd51",
+  "reference_retail_original_logo_px": [
+    238,
+    81
+  ],
+  "pixel_comparison_scope": "Original host-owned P7 source RGB versus actual post-OSD P6 native host-presented RGB. Full-frame difference is only the 44x12 TURBO instrumentation OSD (528 pixels), absent in source; it is not source logo corruption.",
+  "capture_routes": [
+    {
+      "name": "p1-a-wide",
+      "logical_width": 342,
+      "source_vs_host_title_logo": {
+        "match": 19278,
+        "total": 19278
+      },
+      "source_vs_host_root_panel": {
+        "match": 30956,
+        "total": 30956
+      },
+      "source_vs_host_full_frame": {
+        "match": 76080,
+        "total": 76608,
+        "known_diagnostic_osd_pixels": 528
+      },
+      "title_presented_sha256": "bb4828c20ffddd37b3af98aba8121716b8c503927da296e4bf22dc8c93667ae1",
+      "root_presented_sha256": "88e2f5c58fe06e399fde51fdd12e9462f078aa0bba8fb2519f076ee0f6bfdb6b",
+      "motion_presented_sha256": {
+        "entry": "874638d1c81f3b25be2e79c4eb89dbf50e305c55694bd0f21725659e9f30ae8d",
+        "leaving": "2b7a04b80e426b6a781fb8a10801868cc89c0870291d06d3a64349722ef0d92a"
+      },
+      "entry_present_frame": 16,
+      "leaving_present_frame": 64
+    },
+    {
+      "name": "4by3",
+      "logical_width": 256,
+      "source_vs_host_title_logo": {
+        "match": 19278,
+        "total": 19278
+      },
+      "source_vs_host_root_panel": {
+        "match": 30956,
+        "total": 30956
+      },
+      "source_vs_host_full_frame": {
+        "match": 56816,
+        "total": 57344,
+        "known_diagnostic_osd_pixels": 528
+      },
+      "title_presented_sha256": "9284f36eb2ba57dfc9d1b4a3c1f1f6be853fd0e004db53e09a862baf49fa4a15",
+      "root_presented_sha256": "6d2d354bbce57b070340baa8e3e7add1bdbdba9e389438fec125f33ae89b1764",
+      "motion_presented_sha256": {
+        "entry": "05679ea05d530d0ce8030cc1482562fb273242dad5d0130a401096887cc8c66e",
+        "leaving": "baa754875a137dadbc5ccc9bd7da587f687d6545a1afb4a724ee8d8dfecbcb9d"
+      },
+      "entry_present_frame": 16,
+      "leaving_present_frame": 64
+    },
+    {
+      "name": "reduced-motion",
+      "logical_width": 342,
+      "source_vs_host_title_logo": {
+        "match": 19278,
+        "total": 19278
+      },
+      "source_vs_host_root_panel": {
+        "match": 30956,
+        "total": 30956
+      },
+      "source_vs_host_full_frame": {
+        "match": 76080,
+        "total": 76608,
+        "known_diagnostic_osd_pixels": 528
+      },
+      "title_presented_sha256": "235c1a74c35ecc5308c3f6b2a5443e3233ac7908a537654d9b183c1b078c70de",
+      "root_presented_sha256": "88e2f5c58fe06e399fde51fdd12e9462f078aa0bba8fb2519f076ee0f6bfdb6b"
+    },
+    {
+      "name": "keyboard-enter",
+      "logical_width": 342,
+      "source_vs_host_title_logo": {
+        "match": 19278,
+        "total": 19278
+      },
+      "source_vs_host_root_panel": {
+        "match": 30956,
+        "total": 30956
+      },
+      "source_vs_host_full_frame": {
+        "match": 76080,
+        "total": 76608,
+        "known_diagnostic_osd_pixels": 528
+      },
+      "title_presented_sha256": "bb4828c20ffddd37b3af98aba8121716b8c503927da296e4bf22dc8c93667ae1",
+      "root_presented_sha256": "88e2f5c58fe06e399fde51fdd12e9462f078aa0bba8fb2519f076ee0f6bfdb6b",
+      "motion_presented_sha256": {
+        "entry": "874638d1c81f3b25be2e79c4eb89dbf50e305c55694bd0f21725659e9f30ae8d",
+        "leaving": "2b7a04b80e426b6a781fb8a10801868cc89c0870291d06d3a64349722ef0d92a"
+      },
+      "entry_present_frame": 16,
+      "leaving_present_frame": 64
+    },
+    {
+      "name": "p1-start",
+      "logical_width": 342,
+      "source_vs_host_title_logo": {
+        "match": 19278,
+        "total": 19278
+      },
+      "source_vs_host_root_panel": {
+        "match": 30956,
+        "total": 30956
+      },
+      "source_vs_host_full_frame": {
+        "match": 76080,
+        "total": 76608,
+        "known_diagnostic_osd_pixels": 528
+      },
+      "title_presented_sha256": "bb4828c20ffddd37b3af98aba8121716b8c503927da296e4bf22dc8c93667ae1",
+      "root_presented_sha256": "88e2f5c58fe06e399fde51fdd12e9462f078aa0bba8fb2519f076ee0f6bfdb6b",
+      "motion_presented_sha256": {
+        "entry": "874638d1c81f3b25be2e79c4eb89dbf50e305c55694bd0f21725659e9f30ae8d",
+        "leaving": "2b7a04b80e426b6a781fb8a10801868cc89c0870291d06d3a64349722ef0d92a"
+      },
+      "entry_present_frame": 16,
+      "leaving_present_frame": 64
+    }
+  ],
+  "motion_validation": "Moving-title cases retain actual frame16 original retail art with exact +4px lift, frame64 with complete retail logo and partial blue y192 sweep, root at frame80; reduced-motion case has steady preconfirm art, root by frame64.",
+  "authentic": {
+    "original_guest_frames": 320,
+    "host_present_frames_compared": 20,
+    "identical_rgb_frames": 20,
+    "wram_crc_timeline_sha256": "c08094e25a12c9b1c85e278e9618f6d0cafe37278f7e3cfdf60abd3d63a9140e",
+    "both_original_frame320_p6_sha256": "cca3a854db32a9f8b125ad0ca5a85a0bdf0c26417c36a7cd18b6bbe53adb7d82",
+    "result": "bounded Modern-toggle RGB and WRAM-CRC inertness, not independent original/reference guest parity"
+  },
+  "verified_method": "Downloaded the exact Actions artifact ZIP; inspected all five native-title-receipt.json files; recomputed ZIP SHA256 and source P7 versus presented P6 exact pixel matches for original 238x81 title and root 218x142 ROIs; verified source/host diagnostic-only differences; checked P6 animation screenshot SHA256 against native receipts and one PE hash across routes. No raw ROM, game dump, player directory or binary redistributed.",
+  "human_art_approval": false,
+  "final_sdl_drawable_approval": false,
+  "physical_controller_display_approval": false,
+  "original_attract_handoff_accepted": false,
+  "release_gate_credit": 0
+}

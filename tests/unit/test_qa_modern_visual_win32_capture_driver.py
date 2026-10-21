@@ -146,8 +146,15 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                          ("2", 65, "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-unrecorded-warning"))
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
+        # Ordinary root/modal routes remain early bounded captures; the
+        # genuinely input-confirmed Modern title requires a later SDL draw
+        # after its P1 A at guest frame60 and source 14-frame exit.
         self.assertTrue(all(40 <= entry[1] < 100 for name, entry
-                            in driver.ROUTES.items() if name != "authentic-stock"))
+                            in driver.ROUTES.items()
+                            if name != "authentic-stock" and
+                            not name.startswith("title-")))
+        self.assertEqual(driver.ROUTES["title-entered-root"][1], 100)
+        self.assertEqual(driver.ROUTES["title-reduced-entered-root"][1], 100)
         self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)
 
     def test_native_destination_route_requires_actual_source_event(self):

@@ -35,7 +35,7 @@ def cross_stage_census(raw):
 
     This is a byte census, not semantic-phase equivalence or an event verdict.
     """
-    scene = census(raw)
+    scene = census(raw)  # independent SHA/coverage gate, never event credit
     stages = []
     with ZipFile(BytesIO(raw)) as z:
         for stage in ('result-onset', 'result-stable'):

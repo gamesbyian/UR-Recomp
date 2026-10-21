@@ -1,5 +1,6 @@
 """Restorability means a successful *independent* clone of all main ancestors."""
 import os
+import json
 import subprocess
 import sys
 import tempfile
@@ -60,6 +61,26 @@ class MainHistoryBackupTests(unittest.TestCase):
             create(self.repo, output, max_mib=1)
         self.assertFalse((output / "UR-Recomp-main-history.bundle").exists())
         self.assertFalse((output / "manifest.json").exists())
+
+
+    def test_transfer_parts_reassemble_to_identical_git_bundle(self):
+        (self.repo / "opaque.bin").write_bytes(os.urandom(2 * 1024 * 1024))
+        run("git", "-C", str(self.repo), "add", "opaque.bin")
+        run("git", "-C", str(self.repo), "commit", "-qm", "opaque")
+        output = self.root / "split"
+        manifest = create(self.repo, output, max_mib=5, part_mib=1)
+        parts = manifest["transfer_parts"]
+        self.assertGreaterEqual(len(parts), 3)
+        self.assertTrue(all(0 < x["bytes"] <= 1024 * 1024 for x in parts))
+        assembled = b"".join((output / "transfer" / x["file"]).read_bytes() for x in parts)
+        self.assertEqual(assembled, (output / manifest["bundle_file"]).read_bytes())
+        stored = json.loads((output / "manifest.json").read_text())
+        self.assertEqual(stored["transfer_parts"], parts)
+        self.assertEqual(stored["bundle_sha256"], digest(output / manifest["bundle_file"]))
+
+    def test_transfer_limit_rejects_oversized_parts(self):
+        with self.assertRaisesRegex(ValueError, "1..80 MiB"):
+            create(self.repo, self.root / "invalid-parts", max_mib=5, part_mib=81)
 
     def test_invalid_budget_rejected(self):
         for max_mib in (-1, 0, 1025, 1.25, "100"):

@@ -31,7 +31,7 @@ def digest(path):
             h.update(chunk)
     return h.hexdigest()
 
-def create(repo, out_dir, *, max_mib=650):
+def create(repo, out_dir, *, max_mib=650, part_mib=None):
     repo, out_dir = Path(repo).resolve(), Path(out_dir).resolve()
     if type(max_mib) is not int or not 1 <= max_mib <= 1024:
         raise ValueError("invalid MiB budget")
@@ -84,17 +84,53 @@ def create(repo, out_dir, *, max_mib=650):
             "ChatGPT schedules and Google Drive vault contents",
         ],
     }
+    if part_mib is not None:
+        manifest["transfer_parts"] = split_transfer(bundle, out_dir / "transfer", part_mib)
     (out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf8")
     return manifest
+
+
+def split_transfer(bundle, destination, part_mib):
+    """Produce independently hashed, under-100MiB transfer units.
+
+    Each part is uploaded separately as one GitHub artifact ZIP: do not wrap
+    all parts in a single large artifact, which the Drive connector cannot read.
+    """
+    if type(part_mib) is not int or not 1 <= part_mib <= 80:
+        raise ValueError("transfer part size must be 1..80 MiB")
+    destination.mkdir(parents=True, exist_ok=True)
+    if any(destination.iterdir()):
+        raise ValueError("refuse nonempty transfer destination")
+    rows = []
+    recombined = hashlib.sha256()
+    with bundle.open("rb") as source:
+        while True:
+            block = source.read(part_mib * MIB)
+            if not block:
+                break
+            if len(rows) >= 12:
+                raise ValueError("too many transfer parts")
+            name = f"UR-Recomp-main-history.part-{len(rows)+1:02d}"
+            target = destination / name
+            target.write_bytes(block)
+            if target.stat().st_size != len(block) or digest(target) != hashlib.sha256(block).hexdigest():
+                raise ValueError("part readback mismatch")
+            recombined.update(block)
+            rows.append({"file": name, "bytes": len(block),
+                         "sha256": hashlib.sha256(block).hexdigest()})
+    if not rows or recombined.hexdigest() != digest(bundle):
+        raise ValueError("transfer concatenation does not match bundle")
+    return rows
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--repo", type=Path, default=ROOT)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--max-mib", type=int, default=650)
+    p.add_argument("--part-mib", type=int, help="generate Drive-friendly transfer parts, max 80 MiB each")
     a = p.parse_args()
-    output = create(a.repo, a.out, max_mib=a.max_mib)
+    output = create(a.repo, a.out, max_mib=a.max_mib, part_mib=a.part_mib)
     print(f"RESTORE VERIFIED: {output['source_main_sha']} "
           f"({output['history_commit_count']} commits; "
           f"{output['bundle_bytes']} bytes)")

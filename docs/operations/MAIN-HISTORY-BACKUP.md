@@ -2,9 +2,10 @@
 
 This lane protects the **complete committed history of `main`**, separately
 from the existing recovery vault's unpublished candidate ZIPs. It does not
-silently expand the five hourly agents or add a subscription. The first
-one-shot request is
-[20261021-initial.json](backup-requests/20261021-initial.json).
+silently expand the five hourly agents or add a subscription. The first request [20261021-initial.json](backup-requests/20261021-initial.json)
+proved Git-side restoration but hit the Drive transfer limit. The bounded
+chunk-transfer follow-up is
+[20261021-chunked.json](backup-requests/20261021-chunked.json).
 
 ## Creation and validation
 
@@ -19,14 +20,25 @@ directory, compares exact source HEAD and ancestry count, and runs
 commit, number of ancestors, bundle bytes/SHA-256 and the exact restored
 commit. This is a real restore drill, not a ZIP file-open check.
 
-The bundle is rejected if it exceeds **650 MiB**. A successful workflow
-uploads a temporary GitHub artifact held for **two days**, with no write
-permissions. GitHub custody alone does **not** satisfy the independent backup
-objective. An existing connected integration agent or the manual integrator
-must download that run's exact artifact ZIP through GitHub and upload the
-returned file reference into the owner's private Drive
-[03 Evidence Library](https://drive.google.com/drive/folders/1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2),
-then read back the Drive ID, exact file size and available digest evidence.
+The bundle is rejected if it exceeds **650 MiB**. The current transport also
+splits the verified bundle into parts of **at most 80 MiB**. The
+`transfer_parts` array in `manifest.json` records exact order, names, bytes
+and SHA-256 of each part; concatenation is independently checked against the
+full bundle SHA-256 before publication. A successful workflow produces
+**one small manifest artifact and one GitHub artifact ZIP per actual part**
+(typically five), retained for **two days**, with no write permissions.
+Each artifact ZIP wraps exactly one part, keeping the connector download
+under its observed **100 MiB** limit. Do not upload a single larger ZIP:
+the first full-repository run successfully validated 8,117 commits but its
+408,593,426-byte artifact could not cross to Drive (HTTP 413, max
+104,857,600 bytes). That initial run is **not a Drive backup**.
+
+An existing connected integration agent or manual integrator downloads each
+exact artifact ZIP through GitHub and uploads the connector file references,
+plus the manifest artifact, into the owner's private Drive
+[03 Evidence Library](https://drive.google.com/drive/folders/1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2).
+Keep the set together, use stable run/source names and check IDs and sizes.
+GitHub custody alone does **not** satisfy independent backup.
 
 **Only claim an independently stored backup when the Drive upload succeeds**;
 only claim a fully verified Drive restore after downloading **the Drive copy**
@@ -38,13 +50,16 @@ GitHub artifact or assert durable independent custody.
 
 ## Restore procedure
 
-1. Obtain the ZIP **from Drive**, extract
-   `UR-Recomp-main-history.bundle` and `manifest.json`.
-2. Compare the bundle's `sha256sum` with the manifest's
-   `bundle_sha256`; check `bundle_bytes`.
-3. `git clone --branch ur-restorable-main UR-Recomp-main-history.bundle recovered`
-4. In `recovered`, run `git fsck --no-reflogs --connectivity-only`
-   and compare `git rev-parse HEAD` against `source_main_sha`.
+1. Obtain **all** the per-part ZIPs and the small manifest ZIP **from Drive**,
+   and extract their contents into the same clean directory.
+2. For every `transfer_parts` entry check filename, byte length and SHA-256,
+   in the recorded order. Refuse missing, duplicated, reordered or altered parts.
+3. Concatenate the ordered binary part files into
+   `UR-Recomp-main-history.bundle`; verify its byte length and SHA-256
+   against `bundle_bytes` and `bundle_sha256` in `manifest.json`.
+4. `git clone --branch ur-restorable-main UR-Recomp-main-history.bundle recovered`.
+   In `recovered` run `git fsck --no-reflogs --connectivity-only` and compare
+   `git rev-parse HEAD` against `source_main_sha`.
 
 If all checks pass, the committed `main` source and its ancestor history
 are independently restorable at the pinned commit. Recoveries **do not**

@@ -155,6 +155,7 @@ int main() {
                                              1,240,original,v));
     assert(has("PRACTICE") && has("ZOOM ZOO") && has("CRAWLER  /  CIRCUIT"));
     assert(has("5 STOCK-UNLOCKED COURSES"));
+    assert(!has("STOCK")); // narrow has no redundant wide-only header tag
     // Tour and course navigation are separate real native input actions.
     assert(has("UP/DN COURSE   L/R TOUR"));
     assert(has("A START   B BACK"));
@@ -181,6 +182,7 @@ int main() {
                                              1,320,wide,v));
     assert(has("ENTERING ORIGINAL COURSE"));
     assert(has("WAIT FOR SOURCE GO") && has("B CANCEL"));
+    assert(has("STOCK")); // widened layout identifies the original course route
     assert(has_body_scrim(wide, 1));
     bounds(342,224);
     clear();
@@ -231,6 +233,7 @@ int main() {
                                              1,320,wide,v));
     assert(has("> 2P MATCHES"));
     assert(has("LAST 01 WIN 00:28.76"));
+    assert(has("ARCHIVE")); // context rail appears only in prepared native-wide
     clear();
 
     v.read_only_records_open = false;
@@ -247,8 +250,21 @@ int main() {
                                              1,240,original,v));
     assert(has("> VSYNC    < ON >"));
     assert(has("SAVED") && has("OPTIONS"));
+    assert(!has("SETTINGS")); // compact renderer keeps its source-width title
     assert(has("L/R CHANGE   B BACK"));
     clear();
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has("SETTINGS"));
+    bounds(342,224);
+    clear();
+    v.options_controls_help = true;
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has("HELP") && !has("SETTINGS"));
+    bounds(342,224);
+    clear();
+    v.options_controls_help = false;
     v.options_selected = 3; // Controls opens with A, not left/right
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
@@ -382,6 +398,7 @@ int main() {
     assert(has("ACTIVE P1 AT NEXT BOOT"));
     assert(has("SAVED FOR NEXT LAUNCH"));
     assert(has("QUIT AND RESTART GAME"));
+    assert(has("PROFILE")); // native-wide stage identity, never a new route
     clear();
 
     v.first_racer_open = false;

@@ -201,11 +201,20 @@ inline bool render_modern_root_overlay(
     const ModernRootOverlayView& view,
     const ModernMenuSourcePixels* source_heading = nullptr) {
     // No partial drawing on an invalid layout or absent host primitives.
+    // Reject the entire host draw before a pixel is changed if the logical
+    // Modern menu does not fit its assigned framebuffer rectangle. The root
+    // uses copy down to y+193 and a 204px stock shell, including the 16:9
+    // secondary preview. Previously a narrow/short rectangle could pass the
+    // outer bounds test and forward out-of-panel writes to painter callbacks.
     if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
-        scale <= 0 || panel_w <= 40 || rect.width <= 0 || rect.height <= 0 ||
+        stride > 16384 || surface_height > 16384 ||
+        scale < 1 || scale > 4 || panel_w <= 40 || panel_w > 512 ||
+        rect.width <= 0 || rect.height <= 0 ||
         rect.x < 0 || rect.y < 0 || rect.x > stride ||
         rect.y > surface_height || rect.width > stride - rect.x ||
-        rect.height > surface_height - rect.y)
+        rect.height > surface_height - rect.y ||
+        panel_w * scale > rect.width ||
+        204 * scale > rect.height)
         return false;
 
     const int x = rect.x;

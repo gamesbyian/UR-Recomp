@@ -14,7 +14,7 @@ These are checkpoint inventories, not a static live count. File moves preserve t
 
 ## Integrated by exact source or bounded semantics
 
-- [#2060](https://github.com/gamesbyian/UR-Recomp/pull/2060) **OPEN**: recovered CI export-output path and workflow guard tests are committed with green hosted PR-head jobs. Not merge-tree or physical Windows acceptance; exporter source races/name guards remain held.
+- [#2089](https://github.com/gamesbyian/UR-Recomp/pull/2089) **MERGED** at `a3ae40508915889ff22ba728f0243d4a40d6959b`: fresh-main six-file Windows Records exporter/CI recovery, successful exact-head unit/hygiene/native Windows checks, and 6/6 source blobs equal to the former [#2060](https://github.com/gamesbyian/UR-Recomp/pull/2060), now **CLOSED UNMERGED** as superseded. H25 staging-race/name hardening held; no physical Windows gate.
 - [#2071](https://github.com/gamesbyian/UR-Recomp/pull/2071) OBJ-depth evidence-only verifier and controls, **merged**.
 - [#2072](https://github.com/gamesbyian/UR-Recomp/pull/2072) overflow-safe Modern text layout and tests, **merged**.
 - [#2073](https://github.com/gamesbyian/UR-Recomp/pull/2073) original Dragster result witness and tests, **merged**; [#2074](https://github.com/gamesbyian/UR-Recomp/pull/2074) ties it to marshal authority without same-input parity, **merged**.

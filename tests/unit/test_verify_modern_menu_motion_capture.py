@@ -30,7 +30,7 @@ def capture(width: int = 256, count: int = 40, seed: int = 14,
             "ordinal": i,
             "tick60": tick,
             "selection": 0,
-            "spin": (tick // 2) % 16,
+            "spin": 0 if reduced else (tick // 2) % 16,
             "offset": 0,
             "entrance": 0 if reduced else
                 256 - sum(steps[:min(39, i)]),
@@ -140,8 +140,57 @@ class NativeModernMotionCaptureTests(unittest.TestCase):
             m.verify_log(log(wrong))
         wrong = deepcopy(rows)
         wrong[18]["offset"] = 12
-        with self.assertRaisesRegex(ValueError, "jumped"):
+        with self.assertRaisesRegex(ValueError, "signed easing"):
             m.verify_log(log(wrong))
+
+    def test_original_signed_focus_interruption_and_wrap(self):
+        # Independent frame-exact expectations, calculated from the source
+        # steps rather than invoking the verifier's motion helper. In a
+        # controller-driven real log the same negative offset uses "%d".
+        rows = capture(count=40)
+        expected = [0, -16, -12, -9, 11, 8, -10, -8, 0, 0,
+                    16, 12, 22, 17, 13, 9, 7, 5, 4, 3,
+                    1, 1, 1, 0]
+        edges = {1: 1, 4: 0, 6: 1, 8: 3, 10: 2, 12: 1}
+        current = 0
+        for i, row in enumerate(rows):
+            if i in edges:
+                current = edges[i]
+            row["selection"] = current
+            row["offset"] = expected[i] if i < len(expected) else 0
+        self.assertEqual(m.parse_log(log(rows))[1]["offset"], -16)
+        result = m.verify_log(log(rows))
+        self.assertEqual(result["native_draw_count"], 40)
+
+        tampered = deepcopy(rows)
+        tampered[1]["offset"] = 16  # sign erased
+        with self.assertRaisesRegex(ValueError, "signed easing"):
+            m.verify_log(log(tampered))
+        tampered = deepcopy(rows)
+        tampered[2]["offset"] = -13  # plausible 1px drift
+        with self.assertRaisesRegex(ValueError, "signed easing"):
+            m.verify_log(log(tampered))
+        tampered = deepcopy(rows)
+        tampered[8]["offset"] = -10  # nonadjacent focus should snap
+        with self.assertRaisesRegex(ValueError, "signed easing"):
+            m.verify_log(log(tampered))
+
+    def test_reduced_motion_freezes_source_spin_then_resumes(self):
+        rows = capture()
+        for i, row in enumerate(rows):
+            if 4 <= i <= 7:
+                row["reduced"] = 1
+                row["entrance"] = 0
+                row["spin"] = 0
+            if i >= 8:
+                row["entrance"] = 0
+        self.assertEqual(m.verify_log(log(rows))["sessions"][0][
+            "reduced_motion_frames"], 4)
+        invalid = deepcopy(rows)
+        invalid[5]["spin"] = (invalid[5]["tick60"] // 2) % 16
+        self.assertNotEqual(invalid[5]["spin"], 0)
+        with self.assertRaisesRegex(ValueError, "spin phase"):
+            m.verify_log(log(invalid))
 
     def test_duplicate_broken_or_unbounded_records_fail_closed(self):
         witness = log(capture())

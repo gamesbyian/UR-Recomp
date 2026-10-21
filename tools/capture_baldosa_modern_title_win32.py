@@ -168,11 +168,13 @@ def verify_native_title_entry(
     # *successful* gamepad call; ordinary motion logs only after 14 frames.
     # Both orders are causally correct but MUST be explicitly selected.
     opened = "UR_BALDOSA_MODERN_ROOT opened=1"
-    if confirm not in ("gamepad", "keyboard"):
+    if confirm not in ("gamepad", "keyboard", "start"):
         raise ValueError("unsupported native title confirm route")
-    input_ack = ("UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
-                 if confirm == "gamepad" else
-                 "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=60")
+    input_ack = {
+        "gamepad": "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60",
+        "keyboard": "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=60",
+        "start": "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=60",
+    }[confirm]
     entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
     root_paint = "UR_BALDOSA_MODERN_ROOT painted=1"
     witness = (
@@ -234,7 +236,7 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
-    parser.add_argument("--confirm", choices=("gamepad", "keyboard"),
+    parser.add_argument("--confirm", choices=("gamepad", "keyboard", "start"),
                         default="gamepad",
                         help="exact native controller or Enter handler")
     parser.add_argument("--reduced-motion", action="store_true",
@@ -277,7 +279,8 @@ def main() -> int:
         "UR_BALDOSA_MODERN_ROOT": "1",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
         "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": (
-            "16" if args.confirm == "keyboard" else "15"),
+            "16" if args.confirm == "keyboard" else
+            "17" if args.confirm == "start" else "15"),
         "UR_REDUCED_MOTION": "1" if args.reduced_motion else "0",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),

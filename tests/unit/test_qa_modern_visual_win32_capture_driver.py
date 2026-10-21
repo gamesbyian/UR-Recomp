@@ -159,6 +159,85 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                         driver.ROUTES["authentic-stock"][1] * 10)
         self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)
 
+    def test_title_final_sdl_routes_use_real_native_p1_start_not_fake_guest(self):
+        for name in ("title-intro-wide", "title-intro-compact",
+                     "title-intro-reduced", "title-transition-root",
+                     "title-transition-root-reduced"):
+            self.assertEqual(driver.ROUTES[name][0], "15")
+        self.assertEqual(driver.ROUTES["title-intro-wide"][1], 48)
+        self.assertEqual(driver.ROUTES["title-intro-compact"][1], 48)
+        self.assertEqual(driver.ROUTES["title-intro-reduced"][1], 48)
+        self.assertEqual(driver.ROUTES["title-transition-root"][1], 88)
+        self.assertEqual(driver.ROUTES["title-transition-root-reduced"][1], 68)
+
+    def test_title_intro_reduced_motion_uses_original_host_source_and_p7(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            def fake_native(command, **kw):
+                env = kw["env"]
+                self.assertEqual(env["UR_REDUCED_MOTION"], "1")
+                self.assertEqual(env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "15")
+                self.assertEqual(env["UR_MODERN_VISUAL_SDL_CAPTURE_DRAW"], "48")
+                source = Path(env["UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR"])
+                self.assertTrue(source.is_dir())
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "UR_BALDOSA_MODERN_ROOT opened=1\\n"
+                    "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern\\n"
+                    "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=title guest_frame=40\\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=48 "
+                    "guest_frame=48 output=1280x720 "
+                    "source=SDL_RenderReadPixels backend=sdl3\\n"
+                    "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60\\n"
+                    "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=60\\n"),
+                    stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                result = driver.launch(base / "game", base / "rom", base,
+                                       "reduced-title", (1280, 720),
+                                       "windows", 5,
+                                       route="title-intro-reduced")
+            self.assertEqual(result["capture_draw"], 48)
+            self.assertEqual(result["execution_mode"], "modern")
+
+    def test_title_intro_snapshot_refuses_later_real_native_start(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            def fake_native(command, **kw):
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "UR_BALDOSA_MODERN_ROOT opened=1\\n"
+                    "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern\\n"
+                    "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=title\\n"
+                    "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60\\n"
+                    "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=74\\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=48 "
+                    "guest_frame=88 output=1280x720 "
+                    "source=SDL_RenderReadPixels backend=sdl3\\n"),
+                    stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                with self.assertRaisesRegex(RuntimeError, "intro was not present"):
+                    driver.launch(base / "game", base / "rom", base,
+                                  "bad-title", (1280, 720), "windows", 5,
+                                  route="title-intro-wide")
+
+    def test_title_transition_requires_confirm_and_painted_root_before_capture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            def fake_native(command, **kw):
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "UR_BALDOSA_MODERN_ROOT opened=1\\n"
+                    "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern\\n"
+                    "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60\\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=88 "
+                    "guest_frame=88 output=1280x720 "
+                    "source=SDL_RenderReadPixels backend=sdl3\\n"
+                    "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=90\\n"
+                    "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5\\n"),
+                    stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                with self.assertRaisesRegex(RuntimeError, "transition not reached"):
+                    driver.launch(base / "game", base / "rom", base,
+                                  "wrong-root", (1280, 720), "windows", 5,
+                                  route="title-transition-root")
+
     def test_native_destination_route_requires_actual_source_event(self):
         with tempfile.TemporaryDirectory() as tmp:
             stage = Path(tmp)

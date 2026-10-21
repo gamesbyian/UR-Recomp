@@ -211,12 +211,12 @@ inline bool render_modern_native_destination(
     // footer before drawing the real child. Merely hiding the old child model
     // leaves blue focus slivers and mutually contradictory shortcuts showing
     // outside a centred dialog on the actual SDL drawable.
-    // Keep the shell's outer border and profile/identity header untouched;
+    // Keep the shell's outer border and profile/identity glyphs (y+36..43) untouched;
     // this operation is entirely host-owned Modern UI presentation.
     p.fill_rect(pixels, stride, surface_height,
-                root.x + scale, root.y + 40 * scale,
+                root.x + scale, root.y + 46 * scale,
                 root.width - 2 * scale,
-                root.height - 41 * scale, col.background);
+                root.height - 47 * scale, col.background);
     p.fill_rect(pixels, stride, surface_height,
                 c.x, c.y, c.w, c.h, col.background);
     p.fill_rect(pixels, stride, surface_height,

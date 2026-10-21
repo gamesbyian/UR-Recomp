@@ -230,6 +230,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("synchronize", pr)
         self.assertIn("  workflow_dispatch:", workflow)
         self.assertIn("  workflow_call:", workflow)
+        self.assertIn("      run_on_draft:", workflow)
+        self.assertIn("        default: true", workflow.split("      run_on_draft:", 1)[1].split("\n\n", 1)[0])
         main_job = workflow.split("\njobs:\n", 1)[1]
         header = main_job.split("    steps:\n", 1)[0]
         self.assertIn(
@@ -237,6 +239,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "github.event.pull_request.draft == false",
             header,
         )
+        self.assertIn("|| inputs.run_on_draft == true", header)
         self.assertIn("runs-on: windows-2022", header)
         self.assertIn("timeout-minutes: 35", header)
         # Cancelling superseded PR jobs stays enabled and manual calls do

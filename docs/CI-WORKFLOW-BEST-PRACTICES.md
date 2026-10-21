@@ -39,7 +39,12 @@ The existing manual workflow_dispatch is the deliberate draft computational
 opt-in. Select the actual draft branch and use **Run workflow** on
 [Baldosa Windows bridge](https://github.com/gamesbyian/UR-Recomp/actions/workflows/baldosa-windows-native-bridge.yml);
 verify the checkout SHA matches the intended source commit. workflow_call
-campaign access is unaffected. No ROM, guest or release/physical gate is
+campaign access is preserved with an explicit default-true
+workflow_call `run_on_draft` input. GitHub passes the original caller's event
+context into reusable workflows; without that input, a caller on a draft PR
+could unintentionally skip an explicitly invoked Windows campaign.
+See [GitHub's reusable-workflow context reference](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+No ROM, guest or release/physical gate is
 substituted by a skipped draft check. A manually requested native Windows
 result is computational evidence, not physical/human acceptance.
 

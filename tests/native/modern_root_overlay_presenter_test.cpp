@@ -12,7 +12,7 @@ using namespace ur::product;
 
 namespace {
 std::vector<std::string> painted;
-struct TextDraw { int x; int y; int scale; std::string content; };
+struct TextDraw { int x; int y; int scale; std::string content; std::uint32_t color; };
 std::vector<TextDraw> text_draws;
 std::uint32_t chosen_color;
 void fill(std::uint32_t*,int,int,int,int,int,int,std::uint32_t color) {
@@ -23,12 +23,17 @@ void stroke(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {
     painted.emplace_back("stroke");
 }
 void text(std::uint32_t*,int,int,int x,int y,const char* t,
-          std::uint32_t,int scale) {
+          std::uint32_t color,int scale) {
     painted.emplace_back(t);
-    text_draws.push_back({x, y, scale, t});
+    text_draws.push_back({x, y, scale, t, color});
 }
 bool contains(const std::string& s) {
     for (const auto& item : painted) if (item == s) return true;
+    return false;
+}
+bool drawn_in_color(const std::string& value, std::uint32_t color) {
+    for (const auto& row : text_draws)
+        if (row.content == value && row.color == color) return true;
     return false;
 }
 int count(const std::string& s) {
@@ -63,6 +68,9 @@ int main() {
                                       old_view,view));
     assert(contains("UNIRACERS"));
     assert(contains("RACER: CREATE A RACER WITH X"));
+    assert(drawn_in_color("RACER: CREATE A RACER WITH X",
+                          kModernMenuCheckerLegibleGrey));
+    static_assert(kModernMenuCheckerLegibleGrey == 0xFFC8C8C8u);
     assert(contains("> PLAY"));
     assert(contains("  PRACTICE"));
     assert(contains("  MULTIPLAYER"));
@@ -80,6 +88,8 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(contains("RACER: NO PROFILE"));
+    assert(drawn_in_color("RACER: NO PROFILE",
+                          kModernMenuCheckerLegibleGrey));
     assert(!contains("RACER: STOCK RACER - NO PROF"));
     // In narrow mode the identity is truthful and never overflows.
     assert(text_draws_fit(old_view));
@@ -172,6 +182,8 @@ int main() {
                                       old_view,view));
     assert(contains("> RECORDS"));
     assert(count("SOON") == 3);
+    assert(drawn_in_color("SOON", kModernMenuCheckerLegibleGrey));
+    assert(drawn_in_color("> RECORDS", kModernMenuCheckerLegibleGrey));
     assert(contains("NOT YET AVAILABLE"));
     // No setup route is advertised for a host with no shortcut. The former
     // "RACER SETUP NOT YET LINKED" was an internal false player instruction.

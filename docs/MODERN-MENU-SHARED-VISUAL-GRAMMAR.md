@@ -65,6 +65,22 @@ The atlas painter **preflights the whole string** for bounds, alpha 0/255, valid
 
 The first-party exporter `build_menu_source_art_bundle` includes its capture-script identity (`tests/input/menu-visual-language.script`), original main-frame tag `mvl-idle-000`, a numbered `mvl-track-XX` detail-frame tag, and **four original VRAM/CGRAM SHA-256 receipts** (`main_vram`, `main_cgram`, `detail_vram`, `detail_cgram`). Earlier versions of `verify_menu_source_art_bundle.py` checked PNG image digests and dimensions but did not require any of those source-capture fields, so a receipt missing *all* source PPU metadata could still be marked `source_bundle_verified`. The local admission verifier now rejects missing or malformed source fields, non-lowercase or non-64-digit digests, invented or missing original frame tags and surplus/unexpected digest names **before reading the images**. Synthetic tests include each absence and corruption, and still exercise the original four PNGs and special glyph/pose checks.
 
+A new optional `--source-dumps /path/to/private-ppu-capture` flag can also verify those **actual local** original capture bytes. It reads only the exact four `mvl-idle-000.vram.bin` (65,536 bytes), `mvl-idle-000.cgram.bin` (512 bytes), `mvl-track-XX.vram.bin` (65,536 bytes) and `mvl-track-XX.cgram.bin` (512 bytes) paths named by the receipt, and recomputes SHA-256 of each against its declared `main_*/detail_*` digest. Wrong lengths, missing dumps, symlinks, unexpected SHA and nonexistent/redirected dump directories all fail **before any PNG is admitted**. Without the optional directory, no dump bytes are read and the explicit result field `local_ppu_dump_hashes_verified=false` remains visible; with all four exact matches it becomes true. Regardless, `rom_identity_verified=false` is always reported because the verifier does not independently authenticate the original retail game or capture apparatus. This is useful for private in-game original sprite/font comparison and never packages source files or the user's ROM.
+
+For example, after creating a first-party local source bundle with the reference capture script:
+
+```sh
+python3 tools/verify_menu_source_art_bundle.py \
+  --bundle /tmp/private-menu-art/bundle.json \
+  --heading /tmp/private-menu-art/heading.png \
+  --detail /tmp/private-menu-art/detail.png \
+  --cursor /tmp/private-menu-art/cursor.png \
+  --bg1 /tmp/private-menu-art/bg1.png \
+  --source-dumps /tmp/private-menu-ppu-captures
+```
+
+The file layout and `--source-dumps` path are examples, not asserted existing or distributed files. All added automated tests generate fake PPU bytes in isolated temporary directories. No art, video, PPU snapshot or ROM bytes are included in the repository.
+
 These fields are only a *completeness and format check of the declared capture evidence*. A caller able to invent all four hashes can still create a syntactically well-formed untrusted receipt. The verifier does **not** recompute PPU hashes from original VRAM/CGRAM dumps, authenticate a ROM or imply original-art redistribution permission. Independent capture/export provenance remains necessary before attaching any source original font/arrow/background data to a renderer; `distribution_approved` and `final_native_capture_approved` remain false unconditionally. No ROM/private source art or source atlas is distributed by this patch.
 
 ## Decoded original-art reference path (no copyrighted assets committed)

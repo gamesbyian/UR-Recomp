@@ -6,6 +6,7 @@
  * launch, Records callbacks, or route completeness for other destinations.
  */
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_native_destination_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
 #include "baldosa_native_multiplayer_records_summary.hpp"
@@ -224,6 +225,18 @@ std::string g_records_two_detail;
 bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
+// Receipt of the actually painted destination and source-root geometry.
+// Unchanged frames do not allocate or format debug messages.
+std::string g_last_native_destination_stage;
+struct NativeDestinationReceiptGeometry {
+    int raster_w = -1, raster_h = -1, x = -1, y = -1, w = -1, h = -1;
+    bool matches(int rw, int rh, ur::product::HostOverlayRect rect) const noexcept {
+        return raster_w == rw && raster_h == rh &&
+               x == rect.x && y == rect.y &&
+               w == rect.width && h == rect.height;
+    }
+};
+NativeDestinationReceiptGeometry g_last_native_destination_geometry{};
 // Native UI clock only, no guest or input simulation state.
 ur::product::ModernMenuMotionState g_native_menu_motion{};
 std::uint64_t g_native_menu_motion_root_presents = 0;
@@ -1165,11 +1178,13 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
     if (!g_visible &&
-        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None)
+        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None) {
+        g_last_native_destination_stage.clear();
         return 0;
-    // Retain the stock 256x224 output and exact pitch. The HD/widescreen
-    // compositors own all other raster modes; no attempt to fake density.
-    if (!dst || !field || width != 256 || height != 224 ||
+    }
+    // The host paints only the actually prepared 256x224 or 342x224
+    // Modern source. This branch never requests a new guest raster.
+    if (!dst || !field || (width != 256 && width != 342) || height != 224 ||
         pitch < static_cast<std::size_t>(width) * 4 ||
         pitch % 4 != 0) return 0;
     for (int y = 0; y < height; ++y)
@@ -1179,6 +1194,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     if (!g_visible) {
+        g_last_native_destination_stage.clear();
         g_native_menu_motion = {};
         g_native_menu_motion_root_presents = 0;
         return ur::product::render_baldosa_native_run_save_feedback(
@@ -1253,14 +1269,26 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     if (g_options.open) fill_options_view(view, option_text);
-    // The focus accent and the native root MUST use one identical rectangle.
-    // The standalone animation lane leaves widescreen reflow to #2040/#2053,
-    // whose reconciled host computes a 320-wide centred wide root rectangle.
-    const HostOverlayRect root_rect{8,10,240,204};
+    // Shared responsive shell and child use the same rectangle; the 60Hz
+    // root motion below uses that exact rectangle as well. Child state is
+    // hidden from only the presentation shell pass, never from product state.
+    const int panel_w = width == 342 ? 320 : 240;
+    const HostOverlayRect root_rect{(width - panel_w) / 2, 10, panel_w, 204};
+    const int stride = static_cast<int>(pitch / 4);
+    auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+    auto shell_view = view;
+    shell_view.practice_picker_open = false;
+    shell_view.practice_launch_pending = false;
+    shell_view.options_open = false;
+    shell_view.read_only_records_open = false;
+    shell_view.two_seat_join_open = false;
+    shell_view.first_racer_open = false;
+    shell_view.unbound_two_player_warning_open = false;
     const bool drawn = ur::product::render_modern_root_overlay(
-        painter, reinterpret_cast<std::uint32_t*>(dst),
-        static_cast<int>(pitch / 4), height, 1, 240,
-        root_rect, view);
+        painter, pixels, stride, height, 1, panel_w, root_rect, shell_view);
+    if (drawn)
+        ur::product::render_modern_native_destination(
+            painter, pixels, stride, height, 1, panel_w, root_rect, view);
     if (drawn) {
         // Host-only motion overlays the existing focus row. Do not animate
         // through a modal, quit prompt or source guest handoff.
@@ -1345,6 +1373,24 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
 #endif
         }
         ++g_paint_count;
+        // Source-bound observation from the actual authoritative product
+        // view, after both shell and destination have been drawn. A return
+        // to the root or a real 256↔342 change emits a new receipt.
+        const char* stage = ur::product::modern_native_destination_stage(view);
+        if (g_last_native_destination_stage != stage ||
+            !g_last_native_destination_geometry.matches(width, height,
+                                                         root_rect)) {
+            g_last_native_destination_stage = stage;
+            g_last_native_destination_geometry = {
+                width, height, root_rect.x, root_rect.y,
+                root_rect.width, root_rect.height};
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_DESTINATION stage=%s "
+                "raster=%dx%d root=%d,%d,%d,%d "
+                "source=modern_product_view\n",
+                stage, width, height, root_rect.x, root_rect.y,
+                root_rect.width, root_rect.height);
+        }
         if (g_reentry_needs_paint) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n");
@@ -1993,7 +2039,7 @@ extern "C" int ur_baldosa_modern_root_pause_options_draw(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     fill_options_view(view, option_text);
-    return ur::product::render_native_modern_pause_options(
+    return ur::product::render_modern_native_pause_destination(
         painter, reinterpret_cast<std::uint32_t*>(pixels),
         static_cast<int>(pitch / 4), width, height, view) ? 1 : 0;
 }

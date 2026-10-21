@@ -39,6 +39,7 @@ on:
       - "native/product/baldosa_native_first_profile.hpp"
       - "native/product/baldosa_native_second_profile.hpp"
       - "native/product/modern_root_overlay_presenter.hpp"
+      - "native/product/modern_native_destination_presenter.hpp"
       # Direct visual-input headers: a change alters the compiled Windows
       # Modern root even without changing the staging .cpp translation unit.
       - "native/product/modern_menu_motion.hpp"

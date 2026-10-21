@@ -51,6 +51,28 @@ class ByteWitnessTests(unittest.TestCase):
                 LiveMediaWitness(width=1,height=1).start(
                     attempt=attempt,profile="P1",race_entry_frame=0,capture_start_frame=0)
 
+    def test_identity_requires_valid_strict_utf8_for_both_fields(self):
+        # Build adversarial scalars programmatically; unlike the old
+        # archived patch, no escaped textual surrogate is mistaken for one.
+        for field in ("attempt", "profile"):
+            for codepoint in (0xD800, 0xDBFF, 0xDC00, 0xDFFF):
+                with self.subTest(field=field, codepoint=hex(codepoint)):
+                    kwargs = dict(attempt="attempt-1", profile="P1")
+                    kwargs[field] = chr(codepoint)
+                    with self.assertRaisesRegex(ValueError, "identity"):
+                        LiveMediaWitness(width=1, height=1).start(
+                            race_entry_frame=0, capture_start_frame=0, **kwargs)
+
+    def test_identity_utf8_byte_budget_boundary(self):
+        # The original 128-byte cap is byte-based, not codepoint-based.
+        LiveMediaWitness(width=1, height=1).start(
+            attempt="é" * 64, profile="P1",
+            race_entry_frame=0, capture_start_frame=0)
+        with self.assertRaisesRegex(ValueError, "identity"):
+            LiveMediaWitness(width=1, height=1).start(
+                attempt="é" * 65, profile="P1",
+                race_entry_frame=0, capture_start_frame=0)
+
     def test_wrong_attempt_and_terminal_refuse(self):
         w=self.start()
         w.append(attempt="other",frame_number=10,bgra=bytes(8),pcm_stereo_s16=bytes(8))

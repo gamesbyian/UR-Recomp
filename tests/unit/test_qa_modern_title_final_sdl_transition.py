@@ -36,15 +36,17 @@ def case(root, name, changed=False, *, source=SOURCE, exe=EXE):
     if name.endswith("-entered-root"):
         log += (b"UR_BALDOSA_MODERN_TITLE entered_root=1 frame=74 input_owned=1\n"
                 b"UR_BALDOSA_MODERN_ROOT painted=1\n")
-    log += (b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 "
-            b"guest_frame=80 output=320x224 source=SDL_RenderReadPixels\n")
+    capture_draw = 100 if name.endswith("-entered-root") else 40
+    log += (f"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw={capture_draw} "
+            f"guest_frame={capture_draw} output=320x224 "
+            "source=SDL_RenderReadPixels\n").encode("ascii")
     (stage / "probe_first/actual-sdl-drawable.pam").write_bytes(raster)
     (stage / "probe_first/native-process.log").write_bytes(log)
     receipt = {
         "source_sha": source, "exe_sha256": exe,
         "native_semantic_route": name, "execution_mode": "modern",
         "native_process_exit": 0, "SDL_driver": "windows",
-        "observed_in_draw": 40, "actual_sdl_renderer_output": [W, H],
+        "observed_in_draw": capture_draw, "actual_sdl_renderer_output": [W, H],
         "requested_window_size": [W, H],
         "native_process_log_sha256": hashlib.sha256(log).hexdigest(),
         "p7_sha256": hashlib.sha256(raster).hexdigest(),
@@ -63,7 +65,8 @@ class RealWin32TitleP7Test(unittest.TestCase):
         for name in proof.CASES:
             self.assertIn(name, driver.ROUTES)
             self.assertEqual(driver.ROUTES[name][0], "15")
-            self.assertEqual(driver.ROUTES[name][1], 40)
+            self.assertEqual(driver.ROUTES[name][1],
+                             100 if name.endswith("-entered-root") else 40)
         self.assertNotIn("UR_MODERN_MENU_TEST_TICK60",
                          driver.motion_phase_environment("title-still"))
 

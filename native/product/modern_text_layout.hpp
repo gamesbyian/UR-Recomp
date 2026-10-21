@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 
 namespace ur::product {
 
@@ -56,6 +57,16 @@ constexpr ModernTextLayout modern_text_layout_for_scale(
         return layout;
     }
 
+    // The caller controls every dimension. Reject impossible scaled metrics
+    // before multiplying signed ints, including a Large request that must
+    // safely fall back to a still-valid Standard layout.
+    constexpr int kIntMax = std::numeric_limits<int>::max();
+    if (request.standard_glyph_width > kIntMax / logical_glyph_scale ||
+        request.standard_glyph_height > kIntMax / logical_glyph_scale ||
+        request.standard_line_height > kIntMax / logical_glyph_scale) {
+        return layout;
+    }
+
     layout.logical_glyph_scale = logical_glyph_scale;
     layout.glyph_width =
         request.standard_glyph_width * logical_glyph_scale;
@@ -63,13 +74,21 @@ constexpr ModernTextLayout modern_text_layout_for_scale(
         request.standard_glyph_height * logical_glyph_scale;
     layout.line_height =
         request.standard_line_height * logical_glyph_scale;
-    layout.required_width =
-        request.horizontal_padding * 2 +
-        request.max_characters * layout.glyph_width;
-    layout.required_height =
-        request.vertical_padding * 2 +
-        (request.row_count - 1) * layout.line_height +
+
+    // Each input is a positive 32-bit int. Products fit in int64_t, but
+    // layout dimensions must fit int before narrowing or comparing to boxes.
+    const auto required_width =
+        static_cast<std::int64_t>(request.horizontal_padding) * 2 +
+        static_cast<std::int64_t>(request.max_characters) * layout.glyph_width;
+    const auto required_height =
+        static_cast<std::int64_t>(request.vertical_padding) * 2 +
+        static_cast<std::int64_t>(request.row_count - 1) * layout.line_height +
         layout.glyph_height;
+    if (required_width > kIntMax || required_height > kIntMax) {
+        return layout;
+    }
+    layout.required_width = static_cast<int>(required_width);
+    layout.required_height = static_cast<int>(required_height);
     layout.visible =
         layout.required_width <= request.box_width &&
         layout.required_height <= request.box_height;

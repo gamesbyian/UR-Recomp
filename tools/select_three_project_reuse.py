@@ -33,7 +33,19 @@ def validate(register: dict, matrix: dict, lanes: dict) -> list[str]:
         errors.append("reuse register does not refer to the audited capability matrix")
     if register.get("policy") != "docs/TRUSTED-UPSTREAM-ADOPTION.md":
         errors.append("reuse register does not link to the adopted policy")
-    expected = {row["id"]: row for row in matrix.get("entries", [])}
+    matrix_rows = matrix.get("entries", [])
+    if not isinstance(matrix_rows, list):
+        return errors + ["capability matrix entries are not a list"]
+    source_ids: set[str] = set()
+    for idx, row in enumerate(matrix_rows):
+        if not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"]:
+            errors.append(f"invalid capability matrix entry[{idx}]")
+            continue
+        if row["id"] in source_ids:
+            errors.append(f"duplicate capability matrix ID: {row['id']}")
+        source_ids.add(row["id"])
+    expected = {row["id"]: row for row in matrix_rows
+                if isinstance(row, dict) and isinstance(row.get("id"), str) and row["id"]}
     valid_lanes = set(lanes.get("lanes", {}))
     entries = register.get("entries")
     if not isinstance(entries, list) or not entries:
@@ -72,7 +84,16 @@ def validate(register: dict, matrix: dict, lanes: dict) -> list[str]:
 
 def candidates(register: dict, matrix: dict, *, lane: str = "all", focus: str = "",
                include_conditional: bool = False, include_future: bool = False) -> list[dict]:
-    by_id = {x["id"]: x for x in matrix["entries"]}
+    rows = matrix.get("entries")
+    if not isinstance(rows, list):
+        raise ValueError("capability matrix entries are not a list")
+    by_id: dict[str, dict] = {}
+    for idx, row in enumerate(rows):
+        if not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"]:
+            raise ValueError(f"invalid capability matrix entry[{idx}]")
+        if row["id"] in by_id:
+            raise ValueError(f"duplicate capability matrix ID: {row['id']}")
+        by_id[row["id"]] = row
     selection: list[dict] = []
     for entry in register["entries"]:
         if lane != "all" and lane not in entry["lanes"]:

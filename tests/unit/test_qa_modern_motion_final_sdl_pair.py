@@ -137,6 +137,15 @@ class FinalSDLNativeMenuMotionTests(unittest.TestCase):
             self.assertIn(name, driver.ROUTES)
             self.assertEqual(driver.ROUTES[name], ("14", 40, ""))
         self.assertEqual(driver.ROUTES["root-quit"], ("14", 40, ""))
+        self.assertEqual(driver.motion_phase_environment("root-quit"), {})
+        for route in proof.CASES:
+            env = driver.motion_phase_environment(route)
+            self.assertEqual(env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME"], "59")
+            self.assertEqual(env["UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT"], "0")
+            self.assertEqual(env["UR_MODERN_MENU_TEST_TICK60"],
+                             "8" if route.endswith("-eight") else "0")
+            self.assertEqual(env["UR_REDUCED_MOTION"],
+                             "1" if "-reduced-" in route else "0")
 
 
 if __name__ == "__main__":

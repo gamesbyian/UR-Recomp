@@ -355,3 +355,31 @@ simulation, race timing, title logo pixel provenance or the product's
 normal input mapping. **New native Windows CI outcome still pending**
 for the keyboard route; existing 16:9/4:3/reduced/Authentic green
 witnesses remain recorded above.
+
+## Independent native P1 Start acceptance
+
+The prompt advertises `PRESS A / START / ENTER`. Earlier native Windows
+journeys verified **P1 A** and **keyboard Enter** independently, but not
+P1 **Start** through the actual host/gamepad path. A separate test-only
+mode 17 now applies a true P1 Start press/release at native guest frame60
+using `ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, ...)`, while
+preserving the same original 14-frame title transition and shared-root
+render flow. Each P1 button retains its own edge latch; this is not a
+synthetic guest-SRAM write or physical-device test.
+
+`tools/capture_baldosa_modern_title_win32.py --confirm start` now requires
+an **exclusive** `UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=60`
+receipt, title-before-root causal order, matching original 238x81 source
+logo, actual native painter P7 and post-OSD host-presented P6 pixels, and
+an executable SHA. A and keyboard receipts cannot substitute for Start,
+and duplicate/out-of-order Start acknowledgements are rejected by
+ROM-free tests. CI archives its bounded native source artifact alongside
+the existing A, Enter, 16:9, true 4:3 and reduced-motion cases.
+
+**Validation status:** this Start-specific exact-head native Windows
+route is pending CI after its branch commit. Do not count as physical
+controller or final SDL-drawable certification. The preceding head
+`5b524bd2` passed tooling unit, native staging and the full pinned
+Windows AOT route, including original title artwork, A and Enter,
+reduced motion, 342/256 source geometry and 320-frame visible
+Authentic-mode isolation.

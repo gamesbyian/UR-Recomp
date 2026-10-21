@@ -364,6 +364,16 @@ int main() {
     assert(has("> VSYNC    < ON >"));
     bounds(256,224);
     clear();
+    // The pause header follows the same explicit regional flag as the root
+    // presentation. Modern must never relabel European Unirally as USA art.
+    v.europe = true;
+    assert(render_modern_native_pause_destination(
+        painter,scratch,256,256,224,v));
+    assert(has("UNIRALLY") && !has("UNIRACERS"));
+    assert(has("GAME PAUSED") && has("OPTIONS"));
+    bounds(256,224);
+    clear();
+    v.europe = false;
     assert(render_modern_native_pause_destination(
         painter,scratch,512,512,448,v));
     assert(has("GAME PAUSED"));
@@ -504,6 +514,10 @@ int main() {
     assert(!has("NO LIVE RACER CHANGE"));
     assert(has("SAVED FOR NEXT LAUNCH"));
     assert(has("QUIT AND RESTART GAME"));
+    // Native B dismisses this child panel; quitting is a separate root B
+    // action. Do not advertise a shortcut that does not exist.
+    assert(has("B BACK  THEN QUIT"));
+    assert(!has("B BACK / QUIT"));
     assert(has("PROFILE")); // native-wide stage identity, never a new route
     clear();
 

@@ -470,7 +470,7 @@ inline bool render_modern_native_destination(
                                       "UP/DOWN CHOOSE PRESET", col.secondary_grey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
-            v.first_racer_created ? "B BACK / QUIT" :
+            v.first_racer_created ? "B BACK  THEN QUIT" :
             v.first_racer_is_switch ? "A SWITCH   B CANCEL" :
                                       "A CREATE   B CANCEL", col.cursor_blue);
     } else if (v.unbound_two_player_warning_open) {
@@ -531,7 +531,8 @@ inline bool render_modern_native_pause_destination(
                   root.width, root.height, pal.frame_grey);
     p.draw_text(pixels, stride, height,
                 root.x + 9 * scale, root.y + 6 * scale,
-                "UNIRACERS", pal.title_yellow, 2 * scale);
+                view.europe ? "UNIRALLY" : "UNIRACERS",
+                pal.title_yellow, 2 * scale);
     p.draw_text(pixels, stride, height,
                 root.x + 8 * scale, root.y + 36 * scale,
                 "GAME PAUSED", kModernMenuCheckerLegibleGrey, scale);

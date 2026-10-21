@@ -84,7 +84,16 @@ def validate(register: dict, matrix: dict, lanes: dict) -> list[str]:
 
 def candidates(register: dict, matrix: dict, *, lane: str = "all", focus: str = "",
                include_conditional: bool = False, include_future: bool = False) -> list[dict]:
-    by_id = {x["id"]: x for x in matrix["entries"]}
+    rows = matrix.get("entries")
+    if not isinstance(rows, list):
+        raise ValueError("capability matrix entries are not a list")
+    by_id: dict[str, dict] = {}
+    for idx, row in enumerate(rows):
+        if not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"]:
+            raise ValueError(f"invalid capability matrix entry[{idx}]")
+        if row["id"] in by_id:
+            raise ValueError(f"duplicate capability matrix ID: {row['id']}")
+        by_id[row["id"]] = row
     selection: list[dict] = []
     for entry in register["entries"]:
         if lane != "all" and lane not in entry["lanes"]:

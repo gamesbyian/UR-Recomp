@@ -12,6 +12,10 @@ on:
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_modern_options_spike.py"
+      - "tools/baldosa_sdl_display_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_display_lifecycle_spike.py"
+      - "native/product/display_window_lifecycle_policy.h"
+      - "tests/native/display_window_lifecycle_policy_test.cpp"
       - "tests/unit/test_baldosa_modern_options_spike.py"
       - "tools/baldosa_sdl_controller_lifecycle_spike.py"
       - "tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py"
@@ -65,6 +69,7 @@ jobs:
           python3 tests/unit/test_baldosa_product_execution_spike.py
           python3 tests/unit/test_baldosa_product_pause_spike.py
           python3 tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python3 tests/unit/test_baldosa_sdl_display_lifecycle_spike.py
           python3 tests/unit/test_baldosa_modern_options_spike.py
           python3 tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           # Reuse the real Modern codec and store, not dummy profile formats.
@@ -245,6 +250,8 @@ jobs:
           # SDL2 compile coverage for the seat-ownership seam (SDL3 runs on Win32).
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # SDL2 compile coverage for the display seam (SDL3 runs on Win32).
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
             -DRECOMP_UI_SDL3=OFF

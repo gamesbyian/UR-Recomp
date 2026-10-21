@@ -192,6 +192,12 @@ on:
       - "tools/baldosa_native_product_execution.*"
       - "tools/baldosa_native_product_pause_authority.*"
       - "tools/baldosa_product_execution_spike.py"
+      # SDL3 display/window lifecycle staged into the pinned host.
+      - "tools/baldosa_sdl_display_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_display_lifecycle_spike.py"
+      - "native/product/display_window_lifecycle_policy.h"
+      - "tests/native/display_window_lifecycle_policy_test.cpp"
+      - "tools/run_baldosa_display_lifecycle_acceptance.py"
   workflow_dispatch:
     inputs:
       parallel_journeys:
@@ -275,6 +281,7 @@ jobs:
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
           python tests/unit/test_baldosa_native_practice_courses_probe.py
+          python tests/unit/test_baldosa_sdl_display_lifecycle_spike.py
           python tests/unit/test_modern_pause_overlay_presenter.py
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
           python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
@@ -314,6 +321,9 @@ jobs:
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # After the Options seam: SDL3 exclusive/borderless and display events.
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -355,6 +365,18 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE, real Win32 window: Options seam and Alt+Enter through
+      # windowed / borderless / exclusive, then an unreachable-window rescue.
+      - name: Exercise SDL3 display mode transitions on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_display_lifecycle_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-display-lifecycle" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-display-lifecycle.json"
+          echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |

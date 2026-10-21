@@ -40,6 +40,33 @@ truth; Baldosa owns the integrated native framebuffer/SDL handoff; Malmazuke
 is a PAL reference only. There is no justification for importing a second
 runtime, painting engine or copied game artwork for this seam correction.
 
+## Canonical transparent source pixels, direct-raster admission (2026-10-21)
+
+The optional original-art adapter accepts two ingress paths: RGBA bytes
+through `modern_menu_pack_source_rgba`, which already converts all alpha-zero
+pixels to **literal ARGB zero**, and a direct caller-supplied AARRGGBB sheet
+through `modern_menu_paint_source_cell/text`. The latter previously treated
+an alpha-zero pixel with nonzero hidden RGB as valid heading, small-font or
+BG1 art, even though the sixteen-pose cursor adapter rejected the identical
+malformation. This is an internal provenance/canonicalization inconsistency,
+not a visual difference in already-clean source buffers.
+
+Both direct single-cell and whole-string preflights now refuse alpha-zero /
+RGB-nonzero pixels, just as they already refuse fractional alpha, without
+touching the destination. The whole-string path checks **all referenced
+glyphs before the first write** so a malformed later P cannot leave the
+earlier O painted. Source BG1 uses the same no-partial-paint rule. The
+previously accepted real PNG-packer output and the separate all-pose cursor
+contract remain unchanged. ROM-free C++ tests use deliberately malformed
+synthetic 16px heading, 8px small font and 256×224 BG1 buffers, checking
+literal buffer identity after rejection.
+
+This protects the boundary for future *legally admitted* original font and
+BG1 art. It does **not** supply those assets, certify any ROM/image rights,
+prove source palette identity, or count as a new Windows SDL/human visual
+acceptance. No layout, transition, hero, route, controller or Authentic
+rendering changed.
+
 ## Source-first inventory (2026-10-20)
 
 Primary source is the ROM-observed **canonical USA clean-boot menu capture** in [`analysis/generated/menu-visual-language.json`](../analysis/generated/menu-visual-language.json), independently described in [`UI-STATE-MAP.md`](UI-STATE-MAP.md). It samples original MAIN_MENU, OPTIONS_MENU, PLAYER_SELECT_P1, TOUR_SELECT and TRACK_SELECT; it is stronger than impressionistic modern redesign sketches.

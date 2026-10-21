@@ -117,6 +117,12 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         env["UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT"] = "0"
         env["UR_REDUCED_MOTION"] = (
             "1" if "-reduced-" in route else "0")
+        # Existing smoke mode 14 presses B/A to EXIT the root at guest
+        # frames 60/62. The SDL draw-40 snapshot may occur AFTER those
+        # guest frames, falsely comparing four identical post-quit frames.
+        # The established last-frame admission stops those inputs while
+        # retaining the real root and standard bounded wait/quit script.
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME"] = "59"
     if execution_mode == "authentic":
         # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
         # Compare source composition against SDL3 final-drawable readback on
@@ -152,6 +158,9 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
+    if route.startswith("root-motion-") and (
+            "UR_BALDOSA_MODERN_ROOT quit_gamepad" in log):
+        raise RuntimeError("native menu motion capture entered quit before SDL readback")
     if execution_mode == "authentic" and capture.is_file():
         # A valid SDL readback can be an entirely clear/transparent backbuffer.
         # At guest frame 40 that happened in both 16:9 and 4:3 despite the

@@ -300,6 +300,31 @@ int main() {
         }));
     bounds(342,224);
     clear();
+    // The host glyph callback does not clip. A long future or localized
+    // setting name must stop before the real value column instead of
+    // drawing yellow text over the setting's authoritative ON/OFF value.
+    v.options_rows[1].label =
+        "PRESENTATION_MODE_WITH_MORE_CHARACTERS_THAN_THE_COLUMN";
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    const auto option_label = std::find_if(
+        painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 22 && t.y == 111 &&
+                   t.colour == kModernStockMenuPalette.title_yellow;
+        });
+    assert(option_label != painted_text.end());
+    assert(option_label->cells == 20);
+    assert(option_label->x + static_cast<int>(option_label->cells) *
+               8 * option_label->size <= 188);
+    assert(has("< ON >"));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 196 && t.y == 111 && t.cells == 6;
+        }));
+    bounds(342,224);
+    clear();
+    v.options_rows[1].label = "VSYNC";
     v.options_controls_help = true;
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));

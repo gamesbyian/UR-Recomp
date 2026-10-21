@@ -151,12 +151,22 @@ inline void render_modern_options_modal(
                 "LEFT/RIGHT  CHANGE",
                 "X  RACER SETUP",
             };
-            for (std::size_t i = 0; i < 5; ++i)
+            const bool has_racer_setup_shortcut =
+                view.racer_shortcuts_available ||
+                view.first_racer_shortcut_available ||
+                view.second_racer_shortcut_available ||
+                view.existing_profile_switch_available;
+            for (std::size_t i = 0; i < 5; ++i) {
+                // On native hosts without a reachable X/F2 racer action,
+                // a universal help panel must not advertise an imaginary
+                // route. The old host's default true retains its copy.
+                if (i == 4 && !has_racer_setup_shortcut) continue;
                 paint.draw_text(pixels, stride, surface_height,
                                 bx + 9 * scale,
                                 by + (26 + static_cast<int>(i) * 14) * scale,
                                 fit_modern_overlay_text(kHelp[i], cells).c_str(),
                                 0xFFFFFFFFu, scale);
+            }
             paint.draw_text(pixels, stride, surface_height,
                             bx + 9 * scale, by + 114 * scale,
                             "A/B BACK", palette.cursor_blue, scale);

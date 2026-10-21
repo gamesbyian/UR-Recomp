@@ -81,10 +81,16 @@ def validate_strict(strict: dict) -> dict:
     cases = strict.get("cases")
     if not isinstance(cases, list) or len(cases) != len(STRICT):
         raise ValueError("not four original strict native captures")
+    # Validate the full case-ID set *before* interpreting any route fields.
+    # A duplicated ID with a stale route should report duplicate identity,
+    # rather than disguising the substitution as a painter-state error.
+    if not all(isinstance(case, dict) for case in cases):
+        raise ValueError("non-object strict capture")
+    ids = [case.get("id") for case in cases]
+    if len(set(ids)) != len(STRICT) or set(ids) != set(STRICT):
+        raise ValueError("duplicate or unknown strict native case ID")
     seen = set()
     for case in cases:
-        if not isinstance(case, dict):
-            raise ValueError("non-object strict capture")
         cid = case.get("id")
         if not isinstance(cid, str) or cid not in STRICT or cid in seen:
             raise ValueError("duplicate or unknown strict native case ID")

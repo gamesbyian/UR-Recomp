@@ -4,8 +4,12 @@
 
 ## Fixed BG1-grid continuity in native Modern root (2026-10-21)
 
-The original screen's checker/leaf **BG1 stays fixed** while the 39-frame menu
-**BG2 text strip travels** (canonical source: `analysis/generated/menu-visual-language.json`).
+The original screen's checker/leaf **BG1 scroll/geometry stays fixed** while
+the 39-frame menu **BG2 text strip travels** (canonical source:
+`analysis/generated/menu-visual-language.json`). This is a spatial claim,
+**not** a claim that BG1's palette never changes: seven independently sampled
+native PPU captures establish several different grey colour assignments on
+unchanged BG1 tile geometry, as detailed below.
 The original shared checker fallback reset its 16px tile origin at every panel
 rectangle, which could move the checker phase with panel bounds or create a
 visible half-square discontinuity across adjacent cropped regions.
@@ -39,6 +43,55 @@ native product states and actual Windows capture route remain the source of
 truth; Baldosa owns the integrated native framebuffer/SDL handoff; Malmazuke
 is a PAL reference only. There is no justification for importing a second
 runtime, painting engine or copied game artwork for this seam correction.
+
+## Original BG1 palette phases on a stationary layout (2026-10-21)
+
+The actual native original-game PPU capture has enough VRAM, CGRAM and
+register state to reconstruct the original **256×224** Mode 3 BG1 artwork
+without guessing, via `tools/extract_menu_visual_language.py`. The source
+witness is the seven-state, SHA256-indexed
+[`modern-native-menu-bg1-ppu-palette-20261021.json`](../analysis/evidence/modern-native-menu-bg1-ppu-palette-20261021.json),
+from Windows-independent native Linux original-guest run
+[39568993910, artifact 12331730511](https://github.com/gamesbyian/UR-Recomp/actions/runs/39568993910/artifacts/12331730511),
+at immutable checkout `1981f199`. The original PPU/VRAM/CGRAM raw bytes
+and decoded art remain in the private capture; the repository stores
+**measurements, digests and palette-class counts only**.
+
+Across seven original menu/P1/2P/Options samples, BG1 scroll is `(0,0)`
+and all **57,344** decoded BG1 pixels are opaque with **110 distinct
+RGBA colours**. The first five samples use *identical complete VRAM*
+SHA256, but exhibit **four distinct BG1 RGBA digests**, because CGRAM
+changes. Against the frame506 reference, exactly **22,906** pixels change
+in each other sampled colour state. These differences comprise four
+disjoint, independently counted grey-tone classes:
+
+| Grey in frame506 | Exact pixel count | P1 frame503 | 2P frame525 | League frame569 |
+| --- | ---: | --- | --- | --- |
+| `#909090` | 7,719 | `#A8A8A8` | `#808080` | `#888888` |
+| `#808080` | 7,103 | `#888888` | `#909090` | `#A8A8A8` |
+| `#A8A8A8` | 4,075 | `#808080` | `#888888` | `#909090` |
+| `#888888` | 4,009 | `#909090` | `#A8A8A8` | `#808080` |
+
+Frame591 reproduces the BG1 decoded RGBA digest of frame506;
+Options-entry frame654 matches frame569; Options-return frame717 matches
+frame525, despite independently different complete VRAM/CGRAM snapshots
+elsewhere. This is strong evidence that the original has **spatially
+stationary BG1 patterns with changing grey shade assignments**.
+It is **not proof** of a repeating four-phase animation or any precise
+interval/input cause: these are sparse, noncontiguous state captures.
+A Modern animator must obtain contiguous source-timed PPU witnesses
+before offering an automatically timed backdrop shimmer. Do not
+fabricate cycles, paste proprietary extracted pixels into the repo,
+or infer human art approval from these hexadecimal colour matches.
+
+The merged `fixed_bg1_grid` checker is intentionally a clean, static
+host fallback: it solves geometry alignment only. The first-party native
+register adapter now preserves source `BGMODE ($2105)` and
+`OBJSEL ($2101)` for real local BG1/cursor export, but no original-art
+bundle has been legally admitted or visually approved for redistribution.
+Independent packaged Modern SDL screenshots at 4:3/16:9, Authentic
+isolation, controller/monitor tests and 25-case human visual acceptance
+remain separate **HOLD** items.
 
 ## Canonical transparent source pixels, direct-raster admission (2026-10-21)
 

@@ -130,7 +130,61 @@
     "scroll_changes_observed": false,
     "sampled_nonzero_bg1_difference_from_cgram_with_equal_vram": 22906,
     "pixels_per_layer": 57344,
-    "conclusion": "spatially fixed sampled BG1 with CGRAM-dependent decoded colour phases; timing/cycle of actual colour transitions NOT established"
+    "conclusion": "spatially fixed sampled BG1 with CGRAM-dependent decoded colour phases; timing/cycle of actual colour transitions NOT established",
+    "four_grey_palette_class_permutations": {
+      "baseline_member": "race-dumps/main-menu-ready",
+      "baseline_frame": 506,
+      "phase_members": [
+        "ui-dumps/ui-main-menu-1p",
+        "ui-dumps/ui-main-menu-2p",
+        "ui-dumps/ui-main-menu-league"
+      ],
+      "phase_frames": [
+        503,
+        525,
+        569
+      ],
+      "changed_pixels_each": 22906,
+      "baseline_class_to_phase_rgb": [
+        {
+          "baseline_rgb": "#909090",
+          "count": 7719,
+          "phase_rgb": [
+            "#A8A8A8",
+            "#808080",
+            "#888888"
+          ]
+        },
+        {
+          "baseline_rgb": "#808080",
+          "count": 7103,
+          "phase_rgb": [
+            "#888888",
+            "#909090",
+            "#A8A8A8"
+          ]
+        },
+        {
+          "baseline_rgb": "#A8A8A8",
+          "count": 4075,
+          "phase_rgb": [
+            "#808080",
+            "#888888",
+            "#909090"
+          ]
+        },
+        {
+          "baseline_rgb": "#888888",
+          "count": 4009,
+          "phase_rgb": [
+            "#909090",
+            "#A8A8A8",
+            "#808080"
+          ]
+        }
+      ],
+      "no_contiguous_timing_witness": true
+    }
   },
   "approval": {
     "source_colour_animation_cycle_proven": false,

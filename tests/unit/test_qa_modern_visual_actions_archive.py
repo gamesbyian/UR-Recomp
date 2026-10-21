@@ -40,6 +40,9 @@ class ActionEvidenceTests(unittest.TestCase):
                   f"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 guest_frame=40 "
                   f"output={self.w}x{self.h} source=SDL_RenderReadPixels backend=sdl3\n").encode()
         self.receipt={
+            "schema_version":1,
+            "native_process_exit":0,
+            "SDL_driver":"windows",
             "actual_sdl_renderer_output":[self.w,self.h],
             "observed_in_draw":40,"png_sha256":sha(self.png),"p7_sha256":sha(self.p7),
             "native_process_log_sha256":sha(self.log),"exe_sha256":"a"*64,
@@ -79,6 +82,21 @@ class ActionEvidenceTests(unittest.TestCase):
             qa.verify(self.path,expected_source_sha="c"*40)
         with self.assertRaisesRegex(qa.AuditError,"required Windows PE"):
             qa.verify(self.path,expected_exe_sha="d"*64)
+
+    def test_native_process_failure_or_wrong_host_cannot_be_called_success(self):
+        for field, value in (
+                ("schema_version",2), ("schema_version",True),
+                ("native_process_exit",1), ("native_process_exit",False),
+                ("native_process_exit",None), ("SDL_driver","dummy"),
+                ("SDL_driver","linux"), ("SDL_driver",None)):
+            with self.subTest(field=field, value=value):
+                old = self.receipt[field]
+                self.receipt[field] = value
+                self.pack()
+                with self.assertRaisesRegex(
+                        qa.AuditError,"successful Windows native SDL3 process"):
+                    qa.verify(self.path)
+                self.receipt[field] = old
 
     def test_fresh_process_selected_second_capture(self):
         self.stage="capture_observed"

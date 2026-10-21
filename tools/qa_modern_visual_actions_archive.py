@@ -201,6 +201,17 @@ def verify_title_native_source(
 
 def check_one(z: zipfile.ZipFile, folder: str) -> dict:
     receipt = json.loads(read(z, folder+"/readback-receipt.json", 64*1024))
+    # Retained SDL pixels are not a completed native journey if the original
+    # process exited unsuccessfully, the producer changed its receipt schema,
+    # or the capture came from a different host driver. These are necessary
+    # source-bound metadata checks, not independent OS execution proof.
+    if (not isinstance(receipt, dict) or
+            type(receipt.get("schema_version")) is not int or
+            receipt.get("schema_version") != 1 or
+            type(receipt.get("native_process_exit")) is not int or
+            receipt.get("native_process_exit") != 0 or
+            receipt.get("SDL_driver") != "windows"):
+        raise AuditError("not a successful Windows native SDL3 process receipt")
     if (not isinstance(receipt,dict) or
             receipt.get("visual_approved") is not False or
             receipt.get("hardware_approved") is not False or

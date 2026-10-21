@@ -263,9 +263,12 @@ inline bool render_modern_native_destination(
         p.fill_rect(pixels, stride, surface_height,
                     c.x + (tag_x - 7) * c.scale, c.y + 9 * c.scale,
                     c.scale, 11 * c.scale, col.frame_grey);
+        // The 8px tag sits on a #484848 header band. Stock #989898
+        // provides only 3.17:1 there; shared stock-grammar's legible
+        // neutral #C8C8C8 provides 5.47:1 without recolouring guest art.
         p.draw_text(pixels, stride, surface_height,
                     c.x + tag_x * c.scale, c.y + 12 * c.scale,
-                    tag.data(), col.secondary_grey, c.scale);
+                    tag.data(), 0xFFC8C8C8u, c.scale);
     }
 
     if (v.options_open) {

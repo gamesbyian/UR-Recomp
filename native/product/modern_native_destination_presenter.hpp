@@ -523,7 +523,7 @@ inline bool render_modern_native_pause_destination(
                 "UNIRACERS", pal.title_yellow, 2 * scale);
     p.draw_text(pixels, stride, height,
                 root.x + 8 * scale, root.y + 36 * scale,
-                "GAME PAUSED", pal.secondary_grey, scale);
+                "GAME PAUSED", kModernMenuCheckerLegibleGrey, scale);
     return render_modern_native_destination(
         p, pixels, stride, height, scale, logical_w, root, view);
 }

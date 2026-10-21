@@ -211,6 +211,38 @@ jobs:
             ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unbound/probe_first/native-process.log
           if-no-files-found: warn
           retention-days: 7
+      - name: Capture Play returning to original 1P guest at both display aspects
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # The existing production keyboard route closes Records and confirms
+          # Play on the ORIGINAL guest. No invented Play modal or fake RAM.
+          for size in 1280x720 1024x768; do
+            out="$RUNNER_TEMP/ur-modern-win32-play-stock-$size"
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$out" --video windows --timeout 110 \
+              --window-size "$size" --route play-stock-handoff
+            test -s "$out/actual-sdl-drawable.png"
+            test -s "$out/readback-receipt.json"
+            grep -Fq 'UR_BALDOSA_MODERN_ROOT stock_requested players=1' \
+              "$out/probe_first/native-process.log"
+          done
+          echo "Genuine Windows Modern→original Play handoff SDL images at 16:9/4:3; no race result/hardware approval." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain exact Play handoff screenshots separately from Modern art
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-play-original-handoff
+          path: |
+            ${{ runner.temp }}/ur-modern-win32-play-stock-*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-play-stock-*/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-play-stock-*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-play-stock-*/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Capture stock Authentic control at 16-to-9 and 4-to-3
         run: |
           set -euo pipefail

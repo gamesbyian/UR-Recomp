@@ -8,7 +8,7 @@
 // Usage: modern_root_layout_dump <width 256|342> <out.p7> [root|practice|
 //        join|options|records|warning|first-racer|pause|pause-controls, optionally prefixed
 //        "dest-" for the native-host composition: root shell + separate
-//        destination presenter] [--audit]
+//        destination presenter] [--audit|--texts]
 #include "native/product/modern_native_destination_presenter.hpp"
 #include "native/product/modern_pause_overlay_presenter.hpp"
 #include "native/product/modern_root_overlay_presenter.hpp"
@@ -26,6 +26,7 @@ using namespace ur::product;
 namespace {
 int g_h = 224;
 bool g_audit = false;
+bool g_texts = false;
 bool g_low = false;
 const char* g_variant = "root";
 int g_width = 0;
@@ -97,7 +98,7 @@ void put(std::uint32_t* p, int stride, int x, int y, std::uint32_t c) {
 void fill(std::uint32_t* p, int stride, int, int x, int y, int w, int h,
           std::uint32_t c) {
     // A near-opaque panel masks earlier text at least half beneath it.
-    if (g_audit && (c >> 24) >= 0xE0u)
+    if ((g_audit || g_texts) && (c >> 24) >= 0xE0u)
         g_boxes.erase(std::remove_if(g_boxes.begin(), g_boxes.end(),
             [&](const Box& b) {
                 const int ix = std::max(0, std::min(b.x + b.w, x + w) - std::max(b.x, x));
@@ -116,6 +117,7 @@ void stroke(std::uint32_t* p, int stride, int, int x, int y, int w, int h,
 }
 void text(std::uint32_t* p, int stride, int, int x, int y, const char* t,
           std::uint32_t c, int scale) {
+    if (g_texts) g_boxes.push_back({x, y, static_cast<int>(std::string(t).size()) * 8 * scale, 8 * scale, t});
     if (g_audit) {
         audit_text(p, stride, x, y, t, c, scale);
         audit_geometry(stride, x, y, t, scale);
@@ -141,6 +143,7 @@ int write_p7(const char* path, int width, const std::vector<std::uint32_t>& px) 
 int main(int argc, char** argv) {
     if (argc < 3 || argc > 5) return 2;
     g_audit = argc == 5 && std::string(argv[4]) == "--audit";
+    g_texts = argc == 5 && std::string(argv[4]) == "--texts";
     std::string variant = argc >= 4 ? argv[3] : "root";
     const bool dest = variant.rfind("dest-", 0) == 0;
     if (dest) variant = variant.substr(5);
@@ -197,6 +200,10 @@ int main(int argc, char** argv) {
             std::fprintf(stderr, "pause render refused\n");
             return 1;
         }
+        if (g_texts) {
+            for (const auto& b : g_boxes) std::printf("VISIBLE %s\n", b.t.c_str());
+            return 0;
+        }
         if (g_audit) return g_low ? 3 : 0;
         return write_p7(argv[2], width, px);
     }
@@ -218,6 +225,10 @@ int main(int argc, char** argv) {
                                                   1, panel_w, rect, view)) {
         std::fprintf(stderr, "destination render refused\n");
         return 1;
+    }
+    if (g_texts) {
+        for (const auto& b : g_boxes) std::printf("VISIBLE %s\n", b.t.c_str());
+        return 0;
     }
     if (g_audit) return g_low ? 3 : 0;
     return write_p7(argv[2], width, px);

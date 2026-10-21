@@ -49,6 +49,32 @@ class ModernRootLegibilityAudit(unittest.TestCase):
                      variant, "--audit"], capture_output=True, text=True)
                 self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
+    def visible_text(self, width, variant):
+        run = subprocess.run(
+            [str(self.exe), str(width), str(Path(self.tmp.name) / "x.p7"),
+             variant, "--texts"], capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        return [l[len("VISIBLE "):] for l in run.stdout.splitlines()
+                if l.startswith("VISIBLE ")]
+
+    def test_every_modal_shows_an_exit_hint_and_no_stale_quit_legend(self):
+        for variant in ("practice", "join", "options", "records", "warning",
+                        "first-racer", "pause",
+                        "dest-practice", "dest-join", "dest-options",
+                        "dest-records", "dest-warning", "dest-first-racer"):
+            for width in (256, 342):
+                text = self.visible_text(width, variant)
+                self.assertTrue(
+                    any(("B " in t or "B/" in t) and
+                        any(w in t for w in ("BACK", "CANCEL", "CLEAR", "RESUME"))
+                        for t in text), (variant, width, text))
+                # B means BACK inside a modal; the root's QUIT legend must
+                # not remain visible beneath it.
+                self.assertFalse(any("B/ESC QUIT" in t for t in text),
+                                 (variant, width))
+        root = self.visible_text(342, "root")
+        self.assertTrue(any("B/ESC QUIT" in t for t in root))
+
     def test_native_host_destinations_have_no_clip_or_overlap(self):
         for variant in DEST_VARIANTS:
             for width in (256, 342):

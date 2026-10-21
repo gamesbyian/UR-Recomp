@@ -421,12 +421,21 @@ inline bool render_modern_root_overlay(
                 modern_overlay_text_cells(panel_w)).c_str(),
             palette.title_yellow, scale);
     }
-    paint.draw_text(pixels, stride, surface_height,
-        x + 8 * scale, y + 181 * scale,
-        fit_modern_overlay_text(
-            "A/ENTER SELECT   B/ESC QUIT",
-            modern_overlay_text_cells(panel_w)).c_str(),
-        0xFFFFFFFFu, scale);
+    // An inline modal owns the controls: inside it B/ESC means BACK, and each
+    // modal prints its own legend. Leaving the root's "B/ESC QUIT" visible
+    // below it advertised the opposite of what B does.
+    const bool inline_modal_open =
+        view.practice_picker_open || view.practice_launch_pending ||
+        view.options_open || view.read_only_records_open ||
+        view.two_seat_join_open || view.first_racer_open ||
+        view.unbound_two_player_warning_open;
+    if (!inline_modal_open)
+        paint.draw_text(pixels, stride, surface_height,
+            x + 8 * scale, y + 181 * scale,
+            fit_modern_overlay_text(
+                "A/ENTER SELECT   B/ESC QUIT",
+                modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
     const std::string racer_hint = std::string(
         !view.root_notice.empty()
             ? view.root_notice

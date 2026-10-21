@@ -131,7 +131,9 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
     # Merge-to-vault handoff continuity is a hint, never an automatic
     # integration claim. Partial/failed closed-PR censuses are UNKNOWN.
     try:
-        closed, complete = paged(get, base + "/pulls?state=closed")
+        # Old PRs can merge today: sample by latest update rather than
+        # GitHub's default creation order. A bounded scan stays incomplete.
+        closed, complete = paged(get, base + "/pulls?state=closed&sort=updated&direction=desc")
         # A partial census can still prove a positive match. It cannot
         # prove absence of a match in unobserved older closed PRs.
         drift = scan_handoff_drift(registry, closed)

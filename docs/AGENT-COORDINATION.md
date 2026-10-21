@@ -18,7 +18,7 @@ Root: https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn
 - Integrated receipts: https://drive.google.com/drive/folders/1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU
 - Superseded/rejected: https://drive.google.com/drive/folders/1XuTGwAE7zsMhw20mvSPm3WYX94PiNxhY
 
-**Legacy archive safety:** The Vault root was reorganized and currently holds only its six folders; archived files survive in their assigned folders under unchanged Drive IDs. Historical root-only inventories are not present-day folder totals. Never bulk-move, overwrite, delete, or classify historical files merely by filename. Do not infer that inbox contents are already validated. Never treat a Drive proposal as permission to override independent QA, source provenance, art veto, or release gates.
+**Legacy archive safety:** The live Vault root currently *lists* only its six folders, but historic root artifacts are **not all confirmed present in those folders**. The historical 393-ID census overlaps the 90 current direct-child file IDs by only six, while some unlisted legacy IDs still resolve through exact-ID metadata/read. Their Drive retention/trash status is **UNKNOWN**, not independently certified deleted or integrated. See the dated warning in [the recovery entrypoint](recovery/README.md). Never bulk-restore, bulk-move, overwrite, delete, or classify historical files merely by filename, listing absence or an old parent ID. Do not infer that inbox contents are already validated. Never treat a Drive proposal as permission to override independent QA, source provenance, art veto, or release gates.
 
 ## Mandatory preflight before new research
 

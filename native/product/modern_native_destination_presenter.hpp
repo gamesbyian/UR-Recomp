@@ -162,10 +162,17 @@ inline void modern_native_destination_row(
         // Share the root's source-measured blue arrow and dark focus field,
         // rather than a contradictory cyan slab/black selected label.
         // Only presentation changes; the product view still owns selection.
-        modern_menu_paint_focus_band(
-            p, pixels, stride, surface_height,
-            c.x + 5 * c.scale, c.y + (y - 3) * c.scale,
-            c.w - 10 * c.scale, 13 * c.scale, c.scale);
+        // Same bounded pixels as the shared stock-grammar focus helper,
+        // but independently compilable until the shared-style PR merges.
+        // The child owns selection semantics; this only draws its focus.
+        const int bx = c.x + 5 * c.scale;
+        const int by = c.y + (y - 3) * c.scale;
+        const int bw = c.w - 10 * c.scale;
+        const int bh = 13 * c.scale;
+        p.fill_rect(pixels, stride, surface_height,
+                    bx, by, bw, bh, 0xE0283058u);
+        p.fill_rect(pixels, stride, surface_height,
+                    bx, by, 3 * c.scale, bh, color.cursor_blue);
     }
     modern_native_destination_line(
         p, pixels, stride, surface_height, c, y,

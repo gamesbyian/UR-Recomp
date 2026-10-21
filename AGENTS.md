@@ -38,6 +38,7 @@ For all publication and recovery decisions follow [GitHub-first publication and 
 | Adopting or adapting imported scripts/source | `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Three-project reuse / tool adoption decision | `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional`, then the relevant pinned source and `docs/TRUSTED-UPSTREAM-ADOPTION.md` |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
+| Production diary / historical chronicler updates | Read `prod_diary/README.md` and `prod_diary/PRODUCTION-DIARY-EDITORIAL-GUIDE.md`; continue the **rebuilt** first-person diary with director interactions and parallel Cajun episode parity. Frozen old diaries are archival evidence, never the active continuation. The diary is historical, not a work queue. |
 
 `docs/README.md` inventories document ownership. It is not a second agent guide.
 

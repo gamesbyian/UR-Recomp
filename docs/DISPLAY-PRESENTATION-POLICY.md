@@ -170,7 +170,7 @@ Presentation pacing still follows the active display's refresh through the host'
 
 The pinned 2P route's per-frame WRAM CRCs are unchanged. A hosted runner has one display, so multi-monitor hot-plug, physical DPI changes and real mode-switch hardware remain unaccepted.
 
-**Known gap:** Modern restores the persisted `HostSettings` display mode at boot. An Alt+Enter change only reaches the framework's `config.ini`, so it is lost on the next launch once `HostSettings` exists. Closing this needs a product-side sync of window-key changes into the typed store.
+**Window-key persistence:** Modern restores the persisted `HostSettings` display mode at boot. An Alt+Enter or launcher change is now adopted into that existing store when the live display changes (`baldosa_options_adopt_live_display`, see [MODERN-PRODUCT-LAYER](MODERN-PRODUCT-LAYER.md)), so it survives the next launch. A missing store keeps `config.ini` authoritative.
 
 ## Presentation cadence
 

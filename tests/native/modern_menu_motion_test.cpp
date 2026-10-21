@@ -397,6 +397,12 @@ void test_source_stock_hero() {
     // ordinal. Modulo previously wrapped to source pose zero, fabricating
     // an original guest animation seam that never occurred.
     pose.reduced_motion = false;
+    // The prior synthetic selection change carries an in-flight lean/bob.
+    // Pin these test-only offsets to zero and clear prior pixels so an old
+    // frame cannot accidentally satisfy this independent one-shot oracle.
+    pose.hero_bob_px = 0;
+    pose.hero_lean_px = 0;
+    output.assign(output.size(), 0xff101010u);
     pose.hero_frame_ordinal = 2; // exactly count, formerly wraps to red
     assert(paint_modern_menu_stock_hero(
         output.data(), 256, 224, safe, placement, sequence, pose) ==
@@ -404,6 +410,7 @@ void test_source_stock_hero() {
     assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
            == 0xff0000ffu);
     pose.hero_frame_ordinal = INT32_MAX;
+    output.assign(output.size(), 0xff101010u);
     assert(paint_modern_menu_stock_hero(
         output.data(), 256, 224, safe, placement, sequence, pose) ==
         ModernMenuStockHeroDraw::Drawn);

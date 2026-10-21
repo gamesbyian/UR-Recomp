@@ -77,6 +77,26 @@ class ThreeProjectReuseTest(unittest.TestCase):
         # The active queue has a strict compact-document budget.
         self.assertLess(len(queue), 16000)
 
+    def test_duplicate_capability_matrix_ids_fail_closed(self):
+        matrix = json.loads(json.dumps(self.matrix))
+        repeated = dict(matrix["entries"][0])
+        repeated["priority"] = "P3"  # the old dict comprehension silently chose this row
+        matrix["entries"].append(repeated)
+        cap_id = repeated["id"]
+        errors = validate(self.register, matrix, self.lanes)
+        self.assertIn(f"duplicate capability matrix ID: {cap_id}", errors)
+        with self.assertRaisesRegex(ValueError, "duplicate capability matrix ID"):
+            candidates(self.register, matrix)
+
+    def test_invalid_matrix_populations_fail_closed(self):
+        for bad_entries in ({}, None, [None], [{"id": ""}], [{"id": True}]):
+            matrix = json.loads(json.dumps(self.matrix))
+            matrix["entries"] = bad_entries
+            with self.subTest(entries=bad_entries):
+                self.assertTrue(validate(self.register, matrix, self.lanes))
+                with self.assertRaises(ValueError):
+                    candidates(self.register, matrix)
+
     def test_bad_rows_fail_closed(self):
         base = json.loads(json.dumps(self.register))
         base["entries"].append(dict(base["entries"][0]))

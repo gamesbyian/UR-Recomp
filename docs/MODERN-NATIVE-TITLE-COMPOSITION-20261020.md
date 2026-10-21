@@ -793,3 +793,41 @@ native composer, reviewed against the original full frame without distorting
 or reconstructing an unsupported 3D form. Existing title and stock-attract
 source rendering can supply evidence; a proposed image-only mock, extracted
 ROM pixels or new high-res horse-shaped rider do not grant shipping approval.
+
+
+### Native capture-owner correction: use the real SDL-instrumented PE
+
+The first post-hash-correction [Windows bridge run 39571307832](https://github.com/gamesbyian/UR-Recomp/actions/runs/39571307832)
+successfully built the real AOT game and passed the existing six-route title
+source/handoff, named Play recovery and Authentic tests. Its *new* SDL capture
+failed at the entry-stage witness: the **general Baldosa Windows build does
+not install the opt-in readback observer**; the process ran 130 guest/presented
+frames and correctly painted title+root, but emitted **no**
+`UR_MODERN_VISUAL_SDL_CAPTURE` log or SDL P7. This is a harness/observer
+placement failure, not evidence of an unrendered title.
+
+The same genuine native AOT game has a separately qualified SDL-observed build
+in the existing `.github/workflows/modern-visual-native-win32-capture.yml`.
+The title lane now uses **that workflow's existing**
+`qa_modern_visual_sdl_capture.py` injection and compiled
+`build-ur-visual/UniracersSNESRecomp.exe`, gated solely to PR #2043,
+for 342-wide and 256-wide motion frames. The duplicate capture step was
+removed from the general Windows bridge. No new renderer, runtime, scheduled
+task, workflow or Original/Authentic implementation was introduced.
+
+**Evidence handling correction:** the unsuccessful general-bridge attempt
+uploaded its entire temporary test stage, including a throwaway native
+`fresh-user/saves/save.srm` guest save and keybind/config files in artifact
+12331588381. They were CI-generated, **not the owner's personal files**, but
+save bytes are outside the narrow evidence allowlist. The corrected visual
+workflow's artifact specifies **only** final SDL raw P7, lossless PNG,
+actual-process logs and narrowly scoped JSON evidence; no temporary
+user-root directories, SRAM, ROM or executable. New source/test checks reject
+accidental broad directory capture and require the actual observer to be
+installed on the same compiled PE. Earlier artifact exposure remains an
+immutable historical error to dispose of under ordinary artifact retention;
+do not imply the artifact was retroactively cleaned.
+
+The corrected *observer workflow* needs its own exact-head Windows result.
+No SDL motion or artistic signoff is asserted based on the earlier failed
+probe. Hardware and complete-event release gates are unaffected.

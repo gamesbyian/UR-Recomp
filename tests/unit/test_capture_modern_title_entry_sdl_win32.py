@@ -36,6 +36,26 @@ class NativeSDLTitleMotionTest(unittest.TestCase):
         self.assertEqual(len(USA), 64)
         self.assertEqual(USA, "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478")
 
+
+    def test_native_capture_runs_only_with_real_sdl_observer_and_safe_archive(self):
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[2]
+        qa = (root / ".github/workflows/modern-visual-native-win32-capture.yml").read_text()
+        general = (root / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()
+        self.assertIn("python tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp", qa)
+        self.assertIn("github.event.pull_request.number == 2043", qa)
+        self.assertIn("build-ur-visual/UniracersSNESRecomp.exe", qa)
+        self.assertIn("name: modern-title-motion-final-sdl-pr2043", qa)
+        safe = qa.split("name: modern-title-motion-final-sdl-pr2043", 1)[1].split("if-no-files-found:", 1)[0]
+        self.assertIn("*/sdl.pam", safe)
+        self.assertIn("*/sdl.png", safe)
+        self.assertIn("*/native-process.log", safe)
+        self.assertNotIn("fresh-user", safe)
+        self.assertNotIn("save.srm", safe)
+        self.assertNotIn("modern-title-sdl-motion-wide-pr2043\n", safe)
+        self.assertNotIn("Capture genuine final SDL Modern title entry and exit", general)
+        self.assertNotIn("modern-title-native-sdl-motion-wide-pr2043", general)
+
     def test_source_clock_phases(self):
         self.assertEqual([x[1] for x in STAGES], [16,40,64,100,16,40])
         self.assertEqual(len(set(x[0] for x in STAGES)), 6)

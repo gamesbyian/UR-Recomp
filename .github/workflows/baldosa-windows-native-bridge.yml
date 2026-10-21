@@ -461,30 +461,12 @@ jobs:
             --timeout 100
           echo "Verified original title pixels and real host presentations on 16:9, 4:3, reduced motion, keyboard Enter, P1 Start and a held-confirm guard, plus two identical Authentic source/host timelines. SDL drawable and physical device approval remain pending." >> "$GITHUB_STEP_SUMMARY"
 
-      # Title-owner only, SAME real AOT PE and existing SDL_RenderReadPixels.
-      - name: Capture genuine final SDL Modern title entry and exit
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
-        run: |
-          set -euo pipefail
-          python tools/capture_modern_title_entry_sdl_win32.py \
-            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --source-sha "${{ github.event.pull_request.head.sha }}" \
-            --aspect wide --out "$RUNNER_TEMP/modern-title-native-sdl-motion-wide-pr2043"
-          python tools/capture_modern_title_entry_sdl_win32.py \
-            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --source-sha "${{ github.event.pull_request.head.sha }}" \
-            --aspect 4:3 --out "$RUNNER_TEMP/modern-title-native-sdl-motion-4by3-pr2043"
-
       - name: Retain native Modern title capture or failure diagnostics
         if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
         uses: actions/upload-artifact@v4
         with:
           name: modern-title-native-source-pr2043
           path: |
-            ${{ runner.temp }}/modern-title-native-sdl-motion-wide-pr2043
-            ${{ runner.temp }}/modern-title-native-sdl-motion-4by3-pr2043
             ${{ runner.temp }}/modern-title-native-pr2043
             ${{ runner.temp }}/modern-title-native-4by3-pr2043
             ${{ runner.temp }}/modern-title-native-reduced-pr2043

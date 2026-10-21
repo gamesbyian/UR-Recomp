@@ -6,6 +6,8 @@ on:
       - ".github/workflows/modern-visual-native-win32-capture.yml"
       - "tools/qa_modern_visual_sdl_capture.py"
       - "tools/qa_modern_visual_win32_capture_driver.py"
+      - "tools/capture_modern_title_entry_sdl_win32.py"
+      - "tests/unit/test_capture_modern_title_entry_sdl_win32.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
       - "tools/qa_modern_title_final_sdl_transition.py"
@@ -26,7 +28,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/modern-title-final-sdl-transition-20261021'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/modern-title-final-sdl-transition-20261021' || github.event.pull_request.number == 2043
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -51,6 +53,7 @@ jobs:
           python -m unittest \
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
+            tests.unit.test_capture_modern_title_entry_sdl_win32 \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
             tests.unit.test_qa_modern_title_final_sdl_transition \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
@@ -94,6 +97,38 @@ jobs:
           python tools/check_windows_pe_timestamp.py \
             --exe baldosa/build-ur-visual/UniracersSNESRecomp.exe \
             --source-epoch "$SOURCE_DATE_EPOCH"
+      # #2043 TITLE LANE ONLY: this real AOT PE already has the established
+      # SDL3 readback observer inserted above. No duplicate renderer/runtime.
+      - name: Prove actual Modern title SDL entry/sweep and reduced motion
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for aspect in wide 4:3; do
+            suffix="wide"
+            if [ "$aspect" = "4:3" ]; then suffix="4by3"; fi
+            python tools/capture_modern_title_entry_sdl_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --source-sha "$(git rev-parse HEAD)" \
+              --aspect "$aspect" \
+              --out "$RUNNER_TEMP/modern-title-sdl-motion-$suffix-pr2043"
+          done
+          echo "Real source-bound Windows SDL3 title logo lift/exit, confirmed root and reduced stillness at 16:9/4:3; no hardware or art approval." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded title SDL pixels and logs only
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-motion-final-sdl-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-sdl-motion-*/native-title-sdl-motion-receipt.json
+            ${{ runner.temp }}/modern-title-sdl-motion-*/*/sdl.pam
+            ${{ runner.temp }}/modern-title-sdl-motion-*/*/sdl.png
+            ${{ runner.temp }}/modern-title-sdl-motion-*/*/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+
       # Bounded independent companion to draft native title owner #2043.
       # Actual final SDL readback, not source P6 or guessed guest frames.
       - name: Verify real native title-to-root final SDL at widescreen and 4x3

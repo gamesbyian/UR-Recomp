@@ -49,10 +49,16 @@ void exercise(int screen_w, int panel_w) {
     const HostOverlayRect root{(screen_w - panel_w) / 2, 10, panel_w, 204};
     const auto palette = kModernStockMenuPalette;
     std::vector<std::uint32_t> pixels(static_cast<std::size_t>(screen_w) * height);
-    std::array<const char*, 5> names{
-        "options", "practice", "records", "multiplayer", "profile"};
+    // Exercise root compositing across every materially different child
+    // family, including alternate read-only / help / join / next-boot
+    // variants that previously had no raster-level occlusion witness.
+    std::array<const char*, 10> names{{
+        "options", "practice", "records", "multiplayer", "profile",
+        "options-help", "practice-entering", "records-2p",
+        "two-seat-join", "profile-switch"
+    }};
 
-    for (int which = 0; which < 5; ++which) {
+    for (int which = 0; which < static_cast<int>(names.size()); ++which) {
         std::fill(pixels.begin(), pixels.end(), 0u);
         ModernRootOverlayView actual{};
         actual.racer_name = "NO PROFILE";
@@ -69,9 +75,34 @@ void exercise(int screen_w, int panel_w) {
             actual.records_status = "NO RUNS YET";
         } else if (which == 3) {
             actual.unbound_two_player_warning_open = true;
-        } else {
+        } else if (which == 4) {
             actual.first_racer_open = true;
             actual.first_racer_preset_name = "MIKE";
+        } else if (which == 5) {
+            actual.options_open = true;
+            actual.options_controls_help = true;
+        } else if (which == 6) {
+            actual.practice_launch_pending = true;
+            actual.practice_course_name = "Dragster";
+        } else if (which == 7) {
+            actual.read_only_records_open = true;
+            actual.read_only_records_two_player = true;
+            actual.read_only_records_pages_available = true;
+            actual.records_status = "MY 2P 1";
+            actual.records_recent = "W 1 L 0 D 0";
+            actual.records_detail = "LAST 01 WIN 00:28.76";
+        } else if (which == 8) {
+            actual.two_seat_join_open = true;
+            actual.join_p1_name = "MIKE";
+            actual.join_p2_name = "MARTIN";
+            actual.join_p1_stock = "MIKE";
+            actual.join_p2_stock = "MARTIN";
+            actual.join_p1_confirmed = true;
+        } else {
+            actual.first_racer_open = true;
+            actual.first_racer_is_switch = true;
+            actual.first_racer_preset_name = "MARTIN";
+            actual.first_racer_created = true;
         }
         auto shell = actual;
         shell.practice_picker_open = false;

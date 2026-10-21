@@ -125,9 +125,16 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
     if len(selected_logs) != 1:
         raise AuditError(f"missing exact successful native route log for {folder}: retained={logs}")
     log = read(z,selected_logs[0],MAX_LOG).decode("utf8","replace")
-    if (f"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw={receipt['observed_in_draw']} "
-        f"guest_frame={receipt['observed_in_draw']} output={w}x{h} "
-        "source=SDL_RenderReadPixels backend=sdl3") not in log:
+    # A paused guest can have a frozen guest_frame while SDL PRESENT keeps
+    # advancing. Pin the *drawable* ordinal and parse the recorded guest
+    # frame as an independently witnessed nonnegative value.
+    evidence = re.findall(
+        r"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=(\d+) "
+        r"guest_frame=(\d+) output=(\d+)x(\d+) "
+        r"source=SDL_RenderReadPixels backend=sdl3", log)
+    if (len(evidence) != 1 or
+            tuple(map(int, (evidence[0][0], evidence[0][2], evidence[0][3]))) !=
+            (receipt["observed_in_draw"], w, h)):
         raise AuditError("retained log does not witness successful SDL3 capture: "+folder)
     if (not isinstance(receipt.get("exe_sha256"),str) or
             not HEX.fullmatch(receipt["exe_sha256"])):
@@ -138,6 +145,7 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         "successful_process_log":selected_logs[0],
         "png_sha256":digest(png), "p7_sha256":digest(p7),
         "exe_sha256":receipt["exe_sha256"], "exact_rgba_bytes":w*h*4,
+        "guest_frame_witness":int(evidence[0][1]),
         "human_approved":False, "release_gate_credit":0,
     }
 

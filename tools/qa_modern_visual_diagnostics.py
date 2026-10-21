@@ -19,7 +19,9 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import struct
 import sys
+import zlib
 
 try:
     from tools.qa_modern_visual_native_contrast import (
@@ -36,10 +38,80 @@ DISCLAIMER = {
 }
 
 
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+MAX_PIXELS = 3840 * 2160
+
+
+def unpack_png(data: bytes) -> tuple[int, int, bytes]:
+    """Strict 8-bit RGB/RGBA non-interlaced PNG -> RGBA bytes (no colour
+    management, gamma or resampling; anything else is refused)."""
+    if not data.startswith(PNG_SIGNATURE):
+        raise ValueError("not a PNG")
+    pos, ihdr, idat = len(PNG_SIGNATURE), None, []
+    while pos + 8 <= len(data):
+        length, tag = struct.unpack(">I4s", data[pos:pos + 8])
+        body = data[pos + 8:pos + 8 + length]
+        if len(body) != length or pos + 12 + length > len(data):
+            raise ValueError("truncated PNG chunk")
+        if zlib.crc32(tag + body) != struct.unpack(">I", data[pos + 8 + length:pos + 12 + length])[0]:
+            raise ValueError("PNG chunk CRC mismatch")
+        if tag == b"IHDR":
+            ihdr = struct.unpack(">IIBBBBB", body)
+        elif tag == b"IDAT":
+            idat.append(body)
+        elif tag == b"IEND":
+            break
+        pos += 12 + length
+    if ihdr is None or not idat:
+        raise ValueError("PNG missing IHDR or IDAT")
+    width, height, depth, ctype, _, _, interlace = ihdr
+    if depth != 8 or ctype not in (2, 6) or interlace:
+        raise ValueError("only 8-bit non-interlaced RGB/RGBA PNG supported")
+    if not (0 < width * height <= MAX_PIXELS):
+        raise ValueError("PNG dimensions out of range")
+    bpp = 3 if ctype == 2 else 4
+    stride = width * bpp
+    raw = zlib.decompress(b"".join(idat))
+    if len(raw) != height * (stride + 1):
+        raise ValueError("PNG scanline data length mismatch")
+    out = bytearray(width * height * 4)
+    prev = bytearray(stride)
+    for y in range(height):
+        base = y * (stride + 1)
+        ft, line = raw[base], bytearray(raw[base + 1:base + 1 + stride])
+        for i in range(stride):
+            a = line[i - bpp] if i >= bpp else 0
+            b = prev[i]
+            c = prev[i - bpp] if i >= bpp else 0
+            if ft == 0:
+                pred = 0
+            elif ft == 1:
+                pred = a
+            elif ft == 2:
+                pred = b
+            elif ft == 3:
+                pred = (a + b) >> 1
+            elif ft == 4:
+                pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
+                pred = a if pa <= pb and pa <= pc else (b if pb <= pc else c)
+            else:
+                raise ValueError("bad PNG filter")
+            line[i] = (line[i] + pred) & 255
+        for x in range(width):
+            o = (y * width + x) * 4
+            out[o:o + 3] = line[x * bpp:x * bpp + 3]
+            out[o + 3] = line[x * bpp + 3] if bpp == 4 else 255
+        prev = line
+    return width, height, bytes(out)
+
+
 class Frame:
     def __init__(self, data: bytes):
         self.sha256 = hashlib.sha256(data).hexdigest()
-        self.width, self.height, self.rgba = unpack_p7(data)
+        if data.startswith(PNG_SIGNATURE):
+            self.width, self.height, self.rgba = unpack_png(data)
+        else:
+            self.width, self.height, self.rgba = unpack_p7(data)
 
     def rgb(self, x: int, y: int) -> tuple[int, int, int]:
         i = (y * self.width + x) * 4

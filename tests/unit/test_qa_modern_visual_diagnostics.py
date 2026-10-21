@@ -3,6 +3,8 @@
 import contextlib
 import io
 import json
+import struct
+import zlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -42,7 +44,53 @@ def put(grid, lw, x, y, w, h, c):
             grid[yy * lw + xx] = c
 
 
+def png(width, height, pixels, ctype=6, filt=0):
+    bpp = 4 if ctype == 6 else 3
+    rows, prev = b"", bytes(width * bpp)
+    for y in range(height):
+        line = b"".join(bytes(pixels[y * width + x][:3]) + (b"\xff" if bpp == 4 else b"")
+                        for x in range(width))
+        enc = bytearray()
+        for i, v in enumerate(line):
+            a = line[i - bpp] if i >= bpp else 0
+            b = prev[i]
+            c = prev[i - bpp] if i >= bpp else 0
+            if filt == 1:
+                pred = a
+            elif filt == 4:
+                pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
+                pred = a if pa <= pb and pa <= pc else (b if pb <= pc else c)
+            else:
+                pred = 0
+            enc.append((v - pred) & 255)
+        rows += bytes([filt]) + bytes(enc)
+        prev = line
+
+    def chunk(tag, body):
+        return struct.pack(">I", len(body)) + tag + body + struct.pack(
+            ">I", zlib.crc32(tag + body))
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, ctype, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
+
+
 class DiagnosticsTest(unittest.TestCase):
+    def test_png_input_matches_p7_and_rejects_bad_files(self):
+        px = [(i * 7 % 256, i * 13 % 256, i * 29 % 256) for i in range(12 * 9)]
+        ref = d.Frame(p7(12, 9, px)).rgba
+        for ctype in (2, 6):
+            for filt in (0, 1, 4):
+                self.assertEqual(d.Frame(png(12, 9, px, ctype, filt)).rgba, ref,
+                                 (ctype, filt))
+        good = png(12, 9, px)
+        with self.assertRaises(ValueError):
+            d.Frame(good[:-20])
+        corrupt = bytearray(good)
+        corrupt[40] ^= 1
+        with self.assertRaises(ValueError):
+            d.Frame(bytes(corrupt))
+        with self.assertRaises(ValueError):
+            d.Frame(b"\x89PNG\r\n\x1a\n")
+
     def test_scale_and_safe_area_mirror_native_header(self):
         self.assertEqual(d.integer_scale(342, 224, 1280, 720), (3, 127, 24, 1026, 672))
         self.assertEqual(d.integer_scale(342, 224, 3840, 2160)[0], 9)

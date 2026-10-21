@@ -183,6 +183,7 @@ int main() {
                                              1,320,wide,v));
     assert(has("STARTING PRACTICE"));
     assert(has("WAIT FOR GO") && has("B CANCEL"));
+    assert(has("RACE STARTING"));
     assert(has("COURSES")); // the widescreen stage tag is not an implementation label
     // Source-grey #989898 fails normal small-text contrast on the real
     // #484848 header band. The derived brighter neutral must apply ONLY
@@ -232,6 +233,7 @@ int main() {
                                              1,240,original,v));
     assert(has("UP/DOWN PAGE  B BACK"));
     assert(has("REPLAY UNAVAILABLE"));
+    assert(!has("READ ONLY - NO REPLAY"));
     clear();
     v.read_only_records_two_player = true;
     v.records_status = "MY 2P 1  UNAVAILABLE 3";
@@ -404,8 +406,16 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
     assert(has("RACERS") && has("> PRESET: ANDREW"));
+    assert(has("FIRST RACER") && has("SEPARATE SAVED PROGRESS"));
     assert(has("A CREATE   B CANCEL"));
     clear();
+    v.first_racer_is_second = true;
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    assert(has("SECOND RACER"));
+    bounds(256,224);
+    clear();
+    v.first_racer_is_second = false;
     v.first_racer_is_switch = true;
     v.first_racer_created = true;
     assert(render_modern_native_destination(painter,scratch,342,224,
@@ -423,6 +433,7 @@ int main() {
                                              1,240,original,v));
     assert(has("LOCAL 2P STILL PLAYABLE"));
     assert(has("2P RESULTS NOT SAVED"));
+    assert(!has("STOCK 2P STILL PLAYABLE"));
     assert(has("NO MATCH HISTORY SAVED"));
     assert(has("P1 A ANYWAY   B BACK"));
     clear();

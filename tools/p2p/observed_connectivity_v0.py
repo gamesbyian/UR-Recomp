@@ -136,6 +136,23 @@ def classify(e: Evidence) -> Decision:
                   "Try reachable IPv6/manual port mapping, another network, or a consenting peer relay.")
 
 
+def _finite_json_float(token: str) -> float:
+    import math
+    number = float(token)
+    if not math.isfinite(number):
+        raise ValueError("nonfinite R5 observation: " + token)
+    return number
+
+
+def _unique_stage_fields(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate R5 observation key: " + key)
+        result[key] = value
+    return result
+
+
 def assess_mapping(raw: Any) -> dict[str, str]:
     """Tool-independent JSON boundary for repeatable external R5 fixtures."""
     return classify(Evidence.from_mapping(raw)).to_mapping()
@@ -151,7 +168,10 @@ def main() -> int:
             data = stream.read(MAX_EVIDENCE_BYTES + 1)
         if len(data) > MAX_EVIDENCE_BYTES:
             raise ValueError("evidence file exceeds bounded limit")
-        observed = json.loads(data.decode("utf-8"))
+        observed = json.loads(data.decode("utf-8"), object_pairs_hook=_unique_stage_fields,
+                             parse_float=_finite_json_float,
+                             parse_constant=lambda token: (_ for _ in ()).throw(
+                                 ValueError("nonfinite R5 observation: " + token)))
         print(json.dumps(assess_mapping(observed), sort_keys=True))
     except (ValueError, OSError, UnicodeDecodeError) as exc:
         p.error(str(exc))

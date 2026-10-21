@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "kind": "independent-authentic-presdl-to-sdl-rgb-pixel-oracle",
+  "run_id": 39483494667,
+  "artifact_id": 12292523002,
+  "source_branch_head": "4cf0e1a201f4c8ee9b7d1a23289643a3b939467e",
+  "mode": "authentic",
+  "drawable": [
+    1280,
+    720
+  ],
+  "draw_ordinal": 240,
+  "guest_frame": 240,
+  "before_sdl": {
+    "file": "stock-composed-before-sdl.ppm",
+    "geometry": [
+      256,
+      224
+    ],
+    "sha256": "a53524f883bf15bbc57297e3a8d5fd0670320aecbc165a6036a8ad316edbc6ee",
+    "nonblack_rgb_pixels": 57344,
+    "unique_rgb_colours": 16
+  },
+  "after_sdl": {
+    "file": "actual-sdl-drawable.pam",
+    "geometry": [
+      1280,
+      720
+    ],
+    "sha256": "2fd965fa672cf0f2ece5381b4bcbada2cd9bb761c6531bc6e867bde31b08a8b7",
+    "nonblack_rgb_pixels": 691200,
+    "nonzero_alpha_pixels": 0,
+    "unique_rgb_colours": 17,
+    "extra_rgb_colours": [
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "content_rect_inclusive": [
+      160,
+      0,
+      1119,
+      719
+    ],
+    "black_side_pillar_pixels": 230400
+  },
+  "exact_pixel_mapping": {
+    "formula": "For SDL image x in 160..1119, y in 0..719: source_x=floor((x-160+0.5)*256/960), source_y=floor((y+0.5)*224/720); output_RGB(x,y)=source_RGB(source_x,source_y). Outside content, output_RGB=(0,0,0).",
+    "scale": "nearest neighbour, centre-of-pixel; 960x720 viewport at x=160",
+    "rgb_pixels_checked": 921600,
+    "content_rgb_pixels_checked": 691200,
+    "content_rgb_pixel_exact_count": 691200,
+    "outside_black_exact_count": 230400,
+    "content_rgb_match_fraction": 1,
+    "full_drawable_rgb_match_fraction": 1,
+    "colors_added_by_sdl": "black pillarbox only",
+    "alpha_semantics": "all-zero source SDL3 readback alpha means a direct RGBA-to-PNG view appears transparent; preserve original P7, evaluate actual RGB separately"
+  },
+  "native_log_sha256": "0ed861ee563b58bee20850d6f20828ac54ae9321bccf83e26d97a33119958a1b",
+  "observed_native_events": [
+    "snes_load UNIRACERS",
+    "window created 1280x720",
+    "SDL capture status=saved draw=240 guest_frame=240 backend=sdl3",
+    "video totals simulations=480 presentations=480",
+    "no Modern root open or paint"
+  ],
+  "qualification": {
+    "source_vs_sdl_rgb_parity_proven": true,
+    "observed_original_logo": "Nintendo boot splash at frame240",
+    "stock_guest_oracle_crc_proven": false,
+    "physical_monitor_proven": false,
+    "original_actual_alpha_display_correctness_proven": false,
+    "integrated_redesign_title_accepted": false,
+    "final_25_cases_accepted": 0,
+    "release_gate_credit": 0
+  },
+  "revalidated_same_source_method": {
+    "workflow_run": 39485012221,
+    "artifact_id": 12293541719,
+    "verifier": "independent all-pixel nearest-centre read of retained raw P6/P7, before adding workflow enforcement",
+    "original_source_sha256": "a53524f883bf15bbc57297e3a8d5fd0670320aecbc165a6036a8ad316edbc6ee",
+    "cases": [
+      {
+        "output": [
+          1280,
+          720
+        ],
+        "p7_sha256": "2fd965fa672cf0f2ece5381b4bcbada2cd9bb761c6531bc6e867bde31b08a8b7",
+        "viewport": [
+          160,
+          0,
+          960,
+          720
+        ],
+        "matched_content_rgb_pixels": 691200,
+        "matched_outer_black_pixels": 230400,
+        "actual_output_pixels": 921600,
+        "nonzero_alpha_pixels": 0
+      },
+      {
+        "output": [
+          1024,
+          768
+        ],
+        "p7_sha256": "02e12619ff3692abbcd44c8fd4eb1805b33bc21aacc4d9e5caaefe5601e0aad2",
+        "viewport": [
+          0,
+          0,
+          1024,
+          768
+        ],
+        "matched_content_rgb_pixels": 786432,
+        "matched_outer_black_pixels": 0,
+        "actual_output_pixels": 786432,
+        "nonzero_alpha_pixels": 0
+      }
+    ],
+    "result": "exact RGB source-to-SDL mapping for every pixel at both aspect ratios",
+    "constraints": "no separate hardware compositor or emulated guest CRC oracle, no integrated redesign art verified",
+    "approved_final_cases": 0,
+    "release_gate_credit": 0
+  }
+}

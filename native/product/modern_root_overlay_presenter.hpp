@@ -7,6 +7,7 @@
 
 #include "modern_root_menu.hpp"
 #include "modern_stock_menu_palette.hpp"
+#include "modern_menu_visual_grammar.hpp"
 #include "modern_overlay_composition.hpp"
 #include "modern_overlay_text_fit.hpp"
 
@@ -119,6 +120,16 @@ inline void render_modern_options_modal(
     std::uint32_t* pixels, int stride, int surface_height,
     int scale, int panel_w, int x, int y,
     const ModernRootOverlayView& view) {
+    // This helper is public: future paused-game callers need the same
+    // no-partial-render contract as the full root. Its body extends to
+    // logical y+180 and logical x+panel_w-12. Validate before callbacks.
+    if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
+        stride > 16384 || surface_height > 16384 ||
+        scale < 1 || scale > 4 || panel_w < 176 || panel_w > 512 ||
+        x < 0 || y < 0 || x > stride || y > surface_height ||
+        panel_w * scale > stride - x ||
+        180 * scale > surface_height - y)
+        return;
     const auto& palette = kModernStockMenuPalette;
         const int bx = x + 12 * scale, by = y + 43 * scale;
         const int bw = (panel_w - 24) * scale, bh = 137 * scale;
@@ -140,12 +151,22 @@ inline void render_modern_options_modal(
                 "LEFT/RIGHT  CHANGE",
                 "X  RACER SETUP",
             };
-            for (std::size_t i = 0; i < 5; ++i)
+            const bool has_racer_setup_shortcut =
+                view.racer_shortcuts_available ||
+                view.first_racer_shortcut_available ||
+                view.second_racer_shortcut_available ||
+                view.existing_profile_switch_available;
+            for (std::size_t i = 0; i < 5; ++i) {
+                // On native hosts without a reachable X/F2 racer action,
+                // a universal help panel must not advertise an imaginary
+                // route. The old host's default true retains its copy.
+                if (i == 4 && !has_racer_setup_shortcut) continue;
                 paint.draw_text(pixels, stride, surface_height,
                                 bx + 9 * scale,
                                 by + (26 + static_cast<int>(i) * 14) * scale,
                                 fit_modern_overlay_text(kHelp[i], cells).c_str(),
                                 0xFFFFFFFFu, scale);
+            }
             paint.draw_text(pixels, stride, surface_height,
                             bx + 9 * scale, by + 114 * scale,
                             "A/B BACK", palette.cursor_blue, scale);
@@ -157,10 +178,10 @@ inline void render_modern_options_modal(
                 const bool selected = i == view.options_selected;
                 const int row_y = by + (24 + static_cast<int>(i) * 14) * scale;
                 if (selected)
-                    paint.fill_rect(pixels, stride, surface_height,
-                                    bx + 4 * scale, row_y - 3 * scale,
-                                    bw - 8 * scale, 13 * scale,
-                                    palette.cursor_blue);
+                    modern_menu_paint_focus_band(
+                        paint, pixels, stride, surface_height,
+                        bx + 4 * scale, row_y - 3 * scale,
+                        bw - 8 * scale, 13 * scale, scale);
                 const auto& row = view.options_rows[i];
                 std::string value(row.value);
                 if (row.adjustable && selected) value = "< " + value + " >";
@@ -171,7 +192,7 @@ inline void render_modern_options_modal(
                                 fit_modern_overlay_text(
                                     std::string(selected ? ">" : " ") +
                                     label + value, cells).c_str(),
-                                selected ? palette.shadow_black : 0xFFFFFFFFu,
+                                selected ? palette.title_yellow : 0xFFFFFFFFu,
                                 scale);
             }
             const bool has_status = !view.options_status.empty();
@@ -197,13 +218,23 @@ inline bool render_modern_root_overlay(
     const ModernRootOverlayPainter& paint,
     std::uint32_t* pixels, int stride, int surface_height,
     int scale, int panel_w, HostOverlayRect rect,
-    const ModernRootOverlayView& view) {
+    const ModernRootOverlayView& view,
+    const ModernMenuSourcePixels* source_heading = nullptr) {
     // No partial drawing on an invalid layout or absent host primitives.
+    // Reject the entire host draw before a pixel is changed if the logical
+    // Modern menu does not fit its assigned framebuffer rectangle. The root
+    // uses copy down to y+193 and a 204px stock shell, including the 16:9
+    // secondary preview. Previously a narrow/short rectangle could pass the
+    // outer bounds test and forward out-of-panel writes to painter callbacks.
     if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
-        scale <= 0 || panel_w <= 40 || rect.width <= 0 || rect.height <= 0 ||
+        stride > 16384 || surface_height > 16384 ||
+        scale < 1 || scale > 4 || panel_w < 176 || panel_w > 512 ||
+        rect.width <= 0 || rect.height <= 0 ||
         rect.x < 0 || rect.y < 0 || rect.x > stride ||
         rect.y > surface_height || rect.width > stride - rect.x ||
-        rect.height > surface_height - rect.y)
+        rect.height > surface_height - rect.y ||
+        panel_w * scale > rect.width ||
+        204 * scale > rect.height)
         return false;
 
     const int x = rect.x;
@@ -211,25 +242,69 @@ inline bool render_modern_root_overlay(
     const auto& palette = kModernStockMenuPalette;
     const bool wide = panel_w >= 320;
     const int list_w = wide ? 168 : panel_w - 16;
-    paint.fill_rect(pixels, stride, surface_height,
-        x, y, rect.width, rect.height, palette.background);
+    modern_menu_paint_checker_backdrop(
+        paint, pixels, stride, surface_height,
+        x, y, rect.width, rect.height, scale);
     paint.fill_rect(pixels, stride, surface_height,
         x, y, rect.width, 27 * scale, palette.header_band);
     paint.stroke_rect(pixels, stride, surface_height,
         x, y, rect.width, rect.height, palette.frame_grey);
     const char* title = view.europe ? "UNIRALLY" : "UNIRACERS";
-    paint.draw_text(pixels, stride, surface_height,
-        x + 10 * scale, y + 7 * scale, title,
-        palette.shadow_black, 2 * scale);
-    paint.draw_text(pixels, stride, surface_height,
-        x + 9 * scale, y + 6 * scale, title,
-        palette.title_yellow, 2 * scale);
-    const std::string identity = fit_modern_overlay_text(
-        std::string("RACER: ") + std::string(view.racer_name),
-        modern_overlay_text_cells(panel_w));
+    // Optional caller-owned, previously verified ORIGINAL BG2 raster.
+    // No ROM bytes, PNG decoding, asset I/O or rights decisions live here.
+    // The stock image already includes its yellow fill, black outline and
+    // source grey shadow, so painting the synthetic host shadow over it would
+    // double-ink the heading. The old host fallback remains the default.
+    const bool drew_source_heading = source_heading &&
+        modern_menu_paint_source_text(
+            *source_heading, ModernMenuSourceSheet::Heading,
+            pixels, static_cast<std::size_t>(stride) *
+                    static_cast<std::size_t>(surface_height),
+            stride, surface_height,
+            x + 9 * scale, y + 6 * scale, title, scale);
+    if (!drew_source_heading)
+        modern_menu_paint_shadowed_heading(
+            paint, pixels, stride, surface_height,
+            x + 9 * scale, y + 6 * scale, title, 2, scale);
+    // These exact product-status sentinels are not user-entered names.
+    // Native 4:3 SDL evidence showed a clipped first-racer instruction
+    // "RESTART TO USE NEW..." losing its final word. Abbreviate only
+    // recognized status text when the stock 240-wide budget requires it.
+    const auto identity_cells = modern_overlay_text_cells(panel_w);
+    const auto too_long = [identity_cells](std::string_view status) noexcept {
+        return std::string_view("RACER: ").size() + status.size() >
+            identity_cells;
+    };
+    const std::string_view racer_name =
+        view.racer_name == "STOCK RACER - NO PROFILE"
+            ? std::string_view("NO PROFILE")
+        : view.racer_name == "PROFILE CHANGED - RESTART APP" &&
+          too_long(view.racer_name)
+            ? std::string_view("CHANGED - RESTART APP")
+        : view.racer_name == "RESTART TO USE NEW RACER" &&
+          too_long(view.racer_name)
+            ? std::string_view("RESTART FOR NEW RACER")
+        : view.racer_name == "SECOND RACER SAVED - RESTART" &&
+          too_long(view.racer_name)
+            ? std::string_view("P2 SAVED - RESTART")
+        : view.racer_name == "P1 SWITCH QUEUED - QUIT TO SAVE" &&
+          too_long(view.racer_name)
+            ? std::string_view("SWITCH: QUIT TO SAVE")
+        : view.racer_name;
+    std::string identity = std::string("RACER: ") + std::string(racer_name);
+    if (identity.size() > identity_cells) {
+        // Never silently present a clipped prefix as a complete racer name.
+        // Keep the fixed identity label and mark unusually long names.
+        if (identity_cells >= 3) {
+            identity.resize(identity_cells - 3);
+            identity += "...";
+        } else {
+            identity = fit_modern_overlay_text(identity, identity_cells);
+        }
+    }
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 36 * scale,
-        identity.c_str(), palette.secondary_grey, scale);
+        identity.c_str(), kModernMenuCheckerLegibleGrey, scale);
     constexpr int kRootFirstRow = 57;
     constexpr int kRootRowStride = 21;
     for (std::size_t i = 0; i < kModernRootDestinationCount; ++i) {
@@ -240,24 +315,22 @@ inline bool render_modern_root_overlay(
         const int row_y = y + (kRootFirstRow +
             static_cast<int>(i) * kRootRowStride) * scale;
         if (selected) {
-            paint.fill_rect(pixels, stride, surface_height,
+            modern_menu_paint_focus_band(
+                paint, pixels, stride, surface_height,
                 x + 5 * scale, row_y - 3 * scale,
-                list_w * scale, 17 * scale, palette.cursor_blue);
-            paint.stroke_rect(pixels, stride, surface_height,
-                x + 5 * scale, row_y - 3 * scale,
-                list_w * scale, 17 * scale, palette.frame_grey);
+                list_w * scale, 17 * scale, scale);
         }
         const std::string label = std::string(selected ? "> " : "  ") +
             modern_root_destination_label(destination);
         paint.draw_text(pixels, stride, surface_height,
             x + 9 * scale, row_y,
             label.c_str(),
-            !available ? palette.secondary_grey :
-            selected ? palette.shadow_black : 0xFFFFFFFFu, scale);
+            !available ? kModernMenuCheckerLegibleGrey :
+            selected ? palette.title_yellow : 0xFFFFFFFFu, scale);
         if (!available)
             paint.draw_text(pixels, stride, surface_height,
                 x + (list_w - 43) * scale, row_y,
-                "SOON", palette.secondary_grey, scale);
+                "SOON", kModernMenuCheckerLegibleGrey, scale);
     }
     constexpr const char* kDetails[] = {
         "TOUR AND CONTINUE",
@@ -266,22 +339,46 @@ inline bool render_modern_root_overlay(
         "RUNS AND BEST TIMES",
         "DISPLAY AND CONTROLS"
     };
+    // The right-side preview at a 320px panel offers just 13 ASCII cells.
+    // Intentional two-line copy preserves each route's full meaning. This is
+    // a layout vocabulary, not a route or guest-state change.
+    constexpr const char* kWideDetails[][2] = {
+        {"TOUR AND", "CONTINUE"},
+        {"CHOOSE A", "COURSE"},
+        {"LOCAL", "TWO PLAYER"},
+        {"RUNS AND", "BEST TIMES"},
+        {"DISPLAY AND", "CONTROLS"}
+    };
     const auto selected_index = modern_root_destination_index(
         modern_root_menu_selected(view.menu));
     if (wide) {
         paint.fill_rect(pixels, stride, surface_height,
             x + 184 * scale, y + 52 * scale,
             (panel_w - 191) * scale, 109 * scale, palette.header_band);
+        // The preview already has an active destination from the product
+        // menu. Name that destination instead of a generic SELECTED label;
+        // all five stock names fit the 13-cell native-wide header budget.
         paint.draw_text(pixels, stride, surface_height,
             x + 193 * scale, y + 64 * scale,
-            "SELECTED", palette.title_yellow, scale);
-        paint.draw_text(pixels, stride, surface_height,
-            x + 193 * scale, y + 85 * scale,
-            fit_modern_overlay_text(
-                (view.available_destinations & (1u << selected_index))
-                    ? kDetails[selected_index] : "NOT YET AVAILABLE",
-                modern_overlay_text_cells(panel_w - 193)
-            ).c_str(), 0xFFFFFFFFu, scale);
+            modern_root_destination_label(
+                modern_root_destination_from_index(selected_index)),
+            palette.title_yellow, scale);
+        const bool preview_available =
+            (view.available_destinations & (1u << selected_index)) != 0;
+        const char* const* preview = preview_available
+            ? kWideDetails[selected_index] : nullptr;
+        const auto preview_cells = modern_overlay_text_cells(panel_w - 193);
+        // These two words/lines are deliberately short, not truncated
+        // source status. Never print an incomplete route as if complete.
+        for (int line = 0; line < 2; ++line) {
+            const char* copy = preview_available
+                ? preview[line]
+                : (line == 0 ? "NOT YET" : "AVAILABLE");
+            paint.draw_text(pixels, stride, surface_height,
+                x + 193 * scale, y + (85 + 12 * line) * scale,
+                fit_modern_overlay_text(copy, preview_cells).c_str(),
+                0xFFFFFFFFu, scale);
+        }
         if (selected_index == 0 && view.tour_continue_available) {
             paint.draw_text(pixels, stride, surface_height,
                 x + 193 * scale, y + 111 * scale,
@@ -310,20 +407,24 @@ inline bool render_modern_root_overlay(
             : view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
             : view.first_racer_shortcut_available
-                ? "X CREATE STOCK RACER"
+                ? "X CREATE RACER"
                 : view.second_racer_shortcut_available
                     ? "X ADD SECOND RACER"
                     : view.existing_profile_switch_available
                     ? "X SWITCH ACTIVE P1"
                     : view.racer_shortcuts_available
                     ? "X/F2 RACERS   F1 HELP"
-                    : "RACER SETUP NOT YET LINKED");
-    paint.draw_text(pixels, stride, surface_height,
-        x + 8 * scale, y + 193 * scale,
-        fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
-            .c_str(),
-        !view.root_notice.empty() ? palette.title_yellow
-                                  : palette.cursor_blue, scale);
+                    : ""); // No nonexistent button or internal engineering status.
+    // Empty means this host has no available setup shortcut. The selected
+    // racer's identity is already displayed above, and navigation help is
+    // already at y+181; do not paint a fabricated/duplicated footer.
+    if (!racer_hint.empty())
+        paint.draw_text(pixels, stride, surface_height,
+            x + 8 * scale, y + 193 * scale,
+            fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
+                .c_str(),
+            !view.root_notice.empty() ? palette.title_yellow
+                                      : palette.cursor_blue, scale);
     if (view.practice_picker_open || view.practice_launch_pending) {
         const int bx = x + 12 * scale, by = y + 43 * scale;
         const int bw = (panel_w - 24) * scale, bh = 137 * scale;
@@ -336,7 +437,7 @@ inline bool render_modern_root_overlay(
                         "QUICK PRACTICE", palette.title_yellow, scale);
         const auto cells = modern_overlay_text_cells(panel_w - 30);
         const std::string name = fit_modern_overlay_text(
-            view.practice_launch_pending ? "ENTERING ORIGINAL COURSE"
+            view.practice_launch_pending ? "STARTING PRACTICE"
                                          : std::string(view.practice_course_name),
             cells);
         paint.draw_text(pixels, stride, surface_height,
@@ -345,7 +446,7 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 62 * scale,
                         view.practice_launch_pending
-                            ? "WAIT FOR SOURCE GO"
+                            ? "WAIT FOR GO"
                             : fit_modern_overlay_text(
                                   std::string(view.practice_tour_name) + " - " +
                                       std::string(view.practice_kind_label),
@@ -429,7 +530,7 @@ inline bool render_modern_root_overlay(
                         bx + 9 * scale,
                         by + (view.read_only_records_two_player &&
                               !view.records_detail.empty() ? 99 : 85) * scale,
-                        "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
+                        "REPLAY UNAVAILABLE", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,
                         !view.read_only_records_pages_available
@@ -467,7 +568,7 @@ inline bool render_modern_root_overlay(
                         view.join_p2_confirmed
                             ? palette.title_yellow : 0xFFFFFFFFu, scale);
         const std::string stock = fit_modern_overlay_text(
-            std::string("STOCK: ") + std::string(view.join_p1_stock) +
+            std::string("RACE AS: ") + std::string(view.join_p1_stock) +
             " / " + std::string(view.join_p2_stock), cells);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 83 * scale,
@@ -493,7 +594,7 @@ inline bool render_modern_root_overlay(
                         view.first_racer_is_switch
                             ? "SWITCH ACTIVE P1"
                             : view.first_racer_is_second
-                            ? "SECOND STOCK RACER" : "FIRST STOCK RACER",
+                            ? "SECOND RACER" : "FIRST RACER",
                         palette.title_yellow, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 40 * scale,
@@ -518,7 +619,7 @@ inline bool render_modern_root_overlay(
                         view.first_racer_created
                             ? "QUIT AND RESTART GAME"
                             : view.first_racer_is_switch
-                                ? "NO LIVE RACER CHANGE"
+                                ? "RESTART TO SWITCH RACER"
                                 : "UP/DOWN CHOOSE PRESET",
                         palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
@@ -546,10 +647,10 @@ inline bool render_modern_root_overlay(
                         "NEED TWO NAMED RACERS", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 63 * scale,
-                        "NO MATCH HISTORY SAVED", palette.secondary_grey, scale);
+                        "2P RESULTS NOT SAVED", palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 92 * scale,
-                        "PLAY STOCK 2P ANYWAY?", 0xFFFFFFFFu, scale);
+                        "PLAY LOCAL 2P ANYWAY?", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 115 * scale,
                         "P1 A YES  B BACK", palette.cursor_blue, scale);

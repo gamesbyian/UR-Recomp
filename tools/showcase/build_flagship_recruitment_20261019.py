@@ -16,6 +16,7 @@ import tempfile
 import wave
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageStat
+from blue_trailer_art_direction import produce as produce_blue_assets
 
 ROOT = Path(__file__).resolve().parents[2]
 RECRUIT = ROOT / "media/showcase/2026-10-10/recruitment"
@@ -25,7 +26,7 @@ ART = ROOT / "media/showcase/art-reconstruction/2026-10-10"
 SOURCES = {
     "title": (RECRUIT/"native-menu/ur-native-title-menu-900f.mp4", "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3", 900, 60, "genuine_2026_10_10_native"),
     "reveal": (RECRUIT/"presentation-edits/authentic-widescreen-reveal-7s.mp4", "92ea56611a18ee001ae101f36bc0f2600dc9ca117581edd8072df9535f831414", 420, 60, "source_locked_presentation_edit"),
-    "race": (RECRUIT/"continuous/ur-native-2p-clean-600f.mp4", "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130", 600, 60, "genuine_2026_10_10_native"),
+    "action": (ROOT/"media/showcase/2026-10-19/dynamic-native-2p/native-dynamic-2p-three-courses-15s.mp4", "46b5bf43bcfb4f8bdd4874e7a9994f70996688c2c86a259bef01d5102630598d", 900, 60, "genuine_three_distinct_original_native_sessions_with_editorial_cuts"),
     "modern": (RECRUIT/"modern-root/ur-modern-root-600f.mp4", "e43b1c8b9461e94ac2380d164d850545742c958c0dfef98c99987e40197de7db", 600, 60, "genuine_2026_10_10_native"),
     "code": (TECH/"04-machine-code-to-native.mp4", "c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d", 270, 30, "editorial_source_qualified"),
     "raster": (TECH/"03-source-raster-xray.mp4", "b818ad56f8da43e6db94b75561373bc3caf258b516abaca81d6ce8ac14285d5b", 180, 30, "editorial_real_raster_crops"),
@@ -42,8 +43,7 @@ FILM = [
     ("title", 270, 90, "THE ORIGINAL / 1994", "capture"),
     ("title", 420, 90, "AUTHENTIC ORIGINAL GAME MENU", "capture"),
     ("reveal", 0, 420, "43 NEW WORLD COLUMNS PER SIDE", "editing"),
-    ("race", 0, 240, "GENUINE 2P NATIVE RACE  /  SOURCE FRAMES 2100–2339", "capture"),
-    ("modern", 0, 600, "REAL MODERN ROOT CAPTURE  /  OCT 10 BUILD", "capture"),
+    ("action", 0, 300, "MEGAJUMP  /  REAL 342-COLUMN TWO-PLAYER RACING", "capture"),
     ("card_windows", 0, 300, "SCRIPTED WIN32 JOURNEYS  /  OCT 19 EVIDENCE", "editorial"),
     ("code", 0, 270, "VERIFIED 65816 MAINLOOP → GENERATED C", "editorial"),
     ("raster", 0, 180, "SOURCE RASTER ARCHAEOLOGY", "editorial"),
@@ -52,7 +52,8 @@ FILM = [
     ("art", 0, 150, "EXPERIMENTAL 4× CHARACTER RECONSTRUCTION", "editorial"),
     ("animation", 0, 150, "ANIMATION ARCHAEOLOGY / SOURCE POSES", "editorial"),
     ("art_p2", 0, 150, "PROCEDURAL 4× STUDIES / LIKENESS NOT APPROVED", "editorial"),
-    ("race", 240, 360, "SAME ORIGINAL SESSION / CONTINUOUS FINAL 360 FRAMES", "capture"),
+    ("action", 300, 300, "JUMPS  /  INVERTED AIRBORNE RIDER", "capture"),
+    ("action", 600, 300, "LOOPER  /  ROLLING TRACK, NOT CERTIFIED FULL LOOP", "capture"),
     ("card_cta", 0, 540, "HELP BUILD THE NEXT VERSION", "editorial"),
 ]
 # 27-second portrait short, gameplay fitted rather than cutting either 2P band.
@@ -60,9 +61,9 @@ SHORT = [
     ("title", 270, 90, "THE ORIGINAL / 1994", "capture"),
     ("title", 420, 30, "AUTHENTIC CHECKERBOARD MENU", "capture"),
     ("reveal", 0, 420, "THE WORLD OPENS / ORIGINAL WIDE", "editing"),
-    ("modern", 0, 240, "A REAL MODERN FRONTEND CAPTURE", "capture"),
     ("code", 0, 120, "65816 → NATIVE C / VERIFIED SOURCE", "editorial"),
-    ("race", 240, 360, "GENUINE TWO-PLAYER RACING", "capture"),
+    ("action", 0, 300, "MEGAJUMP  /  SEPARATED RACERS", "capture"),
+    ("action", 300, 300, "JUMPS  /  ACTUAL AIRBORNE RIDER", "capture"),
     ("card_cta", 0, 240, "JOIN THE REBUILD", "editorial"),
 ]
 FPS = 60
@@ -180,7 +181,7 @@ def render_score(path,seconds=85,rate=22050):
             if len(buf)>=32768:f.writeframesraw(buf);buf.clear()
         if buf:f.writeframesraw(buf)
 
-def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False):
+def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False,blue_frame=None):
     dur=frames/source_fps
     if vertical:
         width,height=1080,1920
@@ -205,6 +206,27 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False)
         raise ValueError("Missing source for editorial card")
     fade="fade=t=in:st=0:d=0.10,fade=t=out:st="+str(max(0,dur-0.12))+":d=0.12"
     vf="fps=60,"+visual+stamp+","+fade+",format=yuv420p"
+    if blue_frame and not vertical:
+        filter_graph=(
+            "[0:v]fps=60,scale=1120:630:flags=neighbor,format=rgba[clip];"
+            "[1:v]format=rgba[design];"
+            "[design][clip]overlay=x=400:y=270:shortest=1,"
+            +fade+",format=yuv420p[final]")
+        run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+            "-loop","1","-framerate","60","-i",blue_frame,
+            "-ss",str(start/source_fps),"-i",src,
+            "-t",str(dur),"-filter_complex",
+            "[1:v]fps=60,scale=1120:630:flags=neighbor,format=rgba[clip];"
+            "[0:v]format=rgba[design];"
+            "[design][clip]overlay=x=400:y=270:shortest=1,"
+            +fade+",format=yuv420p[final]",
+            "-map","[final]","-an","-frames:v",str(round(dur*FPS)),
+            "-r","60","-c:v","libx264","-preset","ultrafast","-crf","20",
+            "-pix_fmt","yuv420p","-video_track_timescale","60000",output)
+        o=probe(output)
+        assert (o["width"],o["height"],o["r_frame_rate"],int(o["nb_read_frames"]))==(
+            1920,1080,"60/1",round(dur*FPS)),(output,o)
+        return
     run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
         "-ss",str(start/source_fps),"-i",src,
         "-t",str(dur),"-vf",vf,"-an","-frames:v",str(round(dur*FPS)),
@@ -241,10 +263,12 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
         else:
             input_path,_,_,source_fps,_=sources[key]
             part=tmp/f"part-{i:02d}.mp4"
-            make_segment(input_path,start,frames,source_fps,caption,kind,part,vertical)
+            make_segment(input_path,start,frames,source_fps,caption,kind,part,vertical,
+                blue_frame=(cards["__artdir__"] / (key+"-frame.png")
+                if not vertical and key in ("reveal","code","raster","parity","art","animation","art_p2") else None))
         parts.append(part)
         total+=round(frames/source_fps*FPS)
-    expected=27 if vertical else 85
+    expected=27 if vertical else 80
     assert total==expected*FPS,(total,expected)
     listing=tmp/"concat.txt"
     listing.write_text("".join("file '"+str(p.resolve())+"'\n" for p in parts))
@@ -271,30 +295,43 @@ def main():
         assert digest(path)==expected,(key,"source checksum mismatch")
         p=probe(path)
         assert (p["width"],p["height"],p["r_frame_rate"],int(p["nb_read_frames"]))==(1920,1080,f"{fps}/1",frames),(key,p)
-    assert digest(PAST_POSTER[0])==PAST_POSTER[1]
+    # Historical poster only for documentation; new edition uses source Jumps frame.
     # A source-derived poster remains an original-game recording, not a
     # fabricated Remastered gameplay still.
     with tempfile.TemporaryDirectory(prefix="ur-flagship-") as t:
         tmp=Path(t)
-        cards=make_cards(tmp)
+        produce_blue_assets(tmp / "blue-art")
+        cards={k:tmp/"blue-art"/(k.removeprefix("card_")+".png") for k in ("card_windows","card_4k","card_cta")}
+        cards["__artdir__"]=tmp/"blue-art"
         score=tmp/"original-flagship-score.wav"
         render_score(score)
-        master=a.outdir/"ur-recomp-flagship-85s-1080p.mp4"
-        vertical=a.outdir/"ur-recomp-flagship-27s-vertical.mp4"
+        master=a.outdir/"ur-recomp-blue-action-80s-1080p.mp4"
+        vertical=a.outdir/"ur-recomp-blue-action-27s-vertical.mp4"
         make_film(FILM,SOURCES,cards,master,score,tmp/"film")
         make_film(SHORT,SOURCES,cards,vertical,score,tmp/"short",vertical=True)
-        im=Image.open(PAST_POSTER[0]).convert("RGB")
+        # Genuine Jumps track/racer frame (source ordinal 570 in the verified
+        # 900-frame three-course reel), never an invented promotional scene.
+        still=tmp/"verified-jumps-gameplay-still.png"
+        run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+            "-i",SOURCES["action"][0],"-vf","select=eq(n\\,570)",
+            "-vsync","vfr","-frames:v","1",still)
+        im=Image.open(still).convert("RGB")
         d=ImageDraw.Draw(im)
-        d.rectangle((0,0,1920,58),fill=INK)
-        text_fit(d,(85,7),"THE GAME IS RUNNING     /     THE REBUILD CONTINUES",35,GOLD,True)
-        poster=a.outdir/"ur-recomp-flagship-poster.png";im.save(poster)
+        d.rectangle((0,0,1920,93),fill=INK)
+        d.rectangle((0,985,1920,1080),fill=INK)
+        text_fit(d,(102,14),"UNIRACERS RECOMP  /  NATIVE WIDESCREEN",46,GOLD,True)
+        text_fit(d,(108,1007),"JUMPS COURSE  •  AUTHENTIC GAMEPLAY FRAME",32,LIGHT,True)
+        poster=a.outdir/"ur-recomp-blue-action-poster.png";im.save(poster)
     claims={
         "release_status":"NOT A FINISHED BETA",
         "independently_accepted_USA_events":"0/45 as of 2026-10-19",
         "windows_release_QA_gates":"0/12 as of 2026-10-19",
         "source_gameplay_segments":"uninterpolated, source-contiguous per individual segment",
         "original_wide":"342x224 with 43 real additional source columns per side",
-        "modern_footage":"October 10 verified native root clip, NOT the newer October 19 Windows journey",
+        "action_reel":"Three separately captured authentic guest runs of MegaJump, Jumps, Looper, each 300 consecutive frames; editorial cuts and separate race sessions clearly identified",
+        "loop_claim":"Looper shows graded rolling geometry; no complete loop revolution confirmed",
+        "airborne_claim":"Jumps has independently reviewed inverted airborne rider source ordinal 570",
+        "modern_footage":"The obsolete October 10 temporary Modern menu video is excluded from this edition",
         "windows_journey_card":"editorial recap of scripted Win32 result/profile/Records evidence; not live footage",
         "full_SDL_4k_card":"bounded 2026-10-10 real 3840x2160 SDL pixel readback for Original-mode frame 2208; not 4k video",
         "art_demo":"procedural 4x prototypes under October 10 visual likeness veto, never finished approved character designs",
@@ -306,14 +343,14 @@ def main():
         "schema":"UR-FLAGSHIP-RECRUITMENT/1",
         "build_edition":"2026-10-19",
         "source_identity":{k:{"path":str(v[0].relative_to(ROOT)),"sha256":v[1],"frames":v[2],"fps":v[3],"classification":v[4]} for k,v in SOURCES.items()},
-        "poster_source":{"path":str(PAST_POSTER[0].relative_to(ROOT)),"sha256":PAST_POSTER[1]},
+        "poster_source":{"path":str(SOURCES["action"][0].relative_to(ROOT)),"sha256":SOURCES["action"][1],"source_ordinal":570,"actual_inverted_airborne_rider_source":True},
         "horizontal_shots":[{"source":k,"source_first_ordinal":start,"source_frame_count":n,
           "label":label,"classification":kind} for k,start,n,label,kind in FILM],
         "vertical_shots":[{"source":k,"source_first_ordinal":start,"source_frame_count":n,
           "label":label,"classification":kind} for k,start,n,label,kind in SHORT],
         "output_sha256":{p.name:digest(p) for p in outputs},
         "claims_and_exclusions":claims,
-        "total_horizontal_frames":5100,"total_vertical_frames":1620,
+        "total_horizontal_frames":4800,"total_vertical_frames":1620,
         "no_interpolation":True,
         "editorial_cards_not_gameplay":True
     }

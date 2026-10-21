@@ -1,0 +1,81 @@
+{
+  "schema": "ur-recovery-registry/1",
+  "scope": "curated_not_exhaustive",
+  "note": "Seeded from source-bound GitHub recovery index, 2026-10-21. Folder placement/Drive item presence, live PR state, and full archive membership must be independently rechecked at pickup. Unlisted artifacts remain unreviewed, not absent. This index confers no release gate or art approval.",
+  "candidates": [
+    {
+      "candidate_id": "h27-qa01-sparse-transition",
+      "work_id": "UR-QA01-01",
+      "discriminator": "RF081 sparse-transition bounds",
+      "state": "merged",
+      "drive_id": "1DHRV4082CWJ7YLxicGR20CINyWwFEc8N",
+      "github_pr": 2110,
+      "merge_sha": "5cdbbc57dc991d77df10c1a2ecabab2772c8063c",
+      "failure_class": "none",
+      "release_gate_credit": false,
+      "next_action": "Retain original archive and source witness; do not count bounded tool tests as a complete USA event."
+    },
+    {
+      "candidate_id": "h27-knowledge-duplicate-matrix",
+      "work_id": "UR-KNOWLEDGE-01",
+      "discriminator": "three-project matrix duplicate capability identifiers",
+      "state": "merged",
+      "drive_id": "11x4qXDt8swIg52188tLpkkLHloauPyhf",
+      "github_pr": 2104,
+      "merge_sha": "2321f3f4b6286204be43bb2502dce6573378fc2c",
+      "failure_class": "none",
+      "release_gate_credit": false,
+      "next_action": "Keep source archive; distinct source-epoch and malformed-lane cases remain unresolved."
+    },
+    {
+      "candidate_id": "h27-knowledge-source-epoch",
+      "work_id": "UR-KNOWLEDGE-01",
+      "discriminator": "source epoch preimage rejection",
+      "state": "blocked",
+      "drive_id": "1p99v0BHznh173DpXFDwj0Yr8Q1ZmBTsX",
+      "archive_sha256": "421dc23e0449ceb5826e7e60741c739f82b0c4c6e71adec61ae262a08783fc49",
+      "github_pr": null,
+      "merge_sha": null,
+      "failure_class": "tool_safety_block",
+      "release_gate_credit": false,
+      "next_action": "Review original create_file refusal and exact current source under #2118; no disguised retry of denied operation."
+    },
+    {
+      "candidate_id": "h27-knowledge-malformed-lanes",
+      "work_id": "UR-KNOWLEDGE-01",
+      "discriminator": "malformed reuse lane input guard",
+      "state": "blocked",
+      "drive_id": "1_RScoARFTHjfttOY87v9PKBepXmE8tK8",
+      "archive_sha256": "b1e7bac1a1a1853c9d1c943143d5dfa24b3b75e6a9b2fb60db5fa2ee37ef6e77",
+      "github_pr": null,
+      "merge_sha": null,
+      "failure_class": "tool_safety_block",
+      "release_gate_credit": false,
+      "next_action": "Review original update_file refusal and test applicability under #2118; no bypass of blocked invocation."
+    },
+    {
+      "candidate_id": "h27-ppu-temporal-census",
+      "work_id": "UR-PPU-01",
+      "discriminator": "temporal effective CGRAM census",
+      "state": "blocked",
+      "drive_id": "1wW_zP28K8OWA--3UMLX4Yc2_VuIVOgSq",
+      "github_pr": 1996,
+      "merge_sha": null,
+      "failure_class": "tool_safety_block",
+      "release_gate_credit": false,
+      "next_action": "Keep draft #1996 on HOLD; qualify same-epoch source consumed pixel witness with independent graphics reviewer."
+    },
+    {
+      "candidate_id": "h28-qa07-surrogate-negative",
+      "work_id": "UR-RECORDS-01",
+      "discriminator": "Windows Records Unicode surrogate negative test",
+      "state": "blocked",
+      "drive_id": "10zJs9NMaHWxFXBDyLFAAaKDOpLDenl00",
+      "github_pr": null,
+      "merge_sha": null,
+      "failure_class": "tool_safety_block",
+      "release_gate_credit": false,
+      "next_action": "Compare broken double-escaped test literal with current main under #2116 and obtain authorized correction, not blind merge."
+    }
+  ]
+}

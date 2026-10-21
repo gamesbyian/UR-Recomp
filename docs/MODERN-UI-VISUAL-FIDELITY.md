@@ -1,5 +1,7 @@
 # Modern frontend visual-fidelity contract
 
+The source-measured shared native palette, type, cursor/motion primitives and 256/342-wide layout contract are in [`MODERN-MENU-SHARED-VISUAL-GRAMMAR.md`](MODERN-MENU-SHARED-VISUAL-GRAMMAR.md). That source/test specification does not override the packaged screenshot and human art-direction release gate below.
+
 ## Screen system design companion
 
 The companion [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) details the proposed screen hierarchy, reusable menu-component grammar, contextual layouts, controller/focus and modal rules, and visual implementation sequence. This document remains the authoritative *quality and source-fidelity gate*: stock screenshot/SFX evidence must determine actual tokens and animation decisions, and a tidy new component library alone does not satisfy stock-family visual acceptance. Check responsive 4:3/16:9, original regional identity, packaged-native captures, and Authentic inertness.

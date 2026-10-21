@@ -1,0 +1,24 @@
+{
+  "decoded_witness_sha256": {
+    "ur-recomp-blue-action-27s-vertical-frame-0090.png": "b59c661a0562aca7aaa7d8737c7e5a3fce76c4b565ad7278e15b4ba6d7d00333",
+    "ur-recomp-blue-action-27s-vertical-frame-0420.png": "56f42465d3d7d5842aa8324b4d8063aad518f1b37a3bd2f64071ea24d7f7eb8e",
+    "ur-recomp-blue-action-27s-vertical-frame-0820.png": "6a9528907765c7535a6d85e31373a29ddc71e7b5e2abb6e4a441caa0597e7d89",
+    "ur-recomp-blue-action-27s-vertical-frame-1170.png": "1ab95e532b6ac3c59d2b9d9743defd1435405fff011d5f40768c01adf32edec3",
+    "ur-recomp-blue-action-27s-vertical-frame-1500.png": "28b1cf6445ffc061745a1cdc5ce48838c0c69ec853c4bbefa896bb366c9e86be",
+    "ur-recomp-blue-action-80s-1080p-frame-0090.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
+    "ur-recomp-blue-action-80s-1080p-frame-0570.png": "ac4ed559fe7b84067f9600018ce25b1dd614ec426ab1c14bf095056188988c21",
+    "ur-recomp-blue-action-80s-1080p-frame-0805.png": "0df69b3fd9733396d1aca1f4cf0dd0e1f1521474f7b7e9b247b8250b670ab37d",
+    "ur-recomp-blue-action-80s-1080p-frame-1110.png": "7179353e9675ffa6ee554f92da8a37bfec74a468ed99cbbdfec5e966b84c358f",
+    "ur-recomp-blue-action-80s-1080p-frame-1930.png": "dd230abdff2f0cfa0c4dbecd0be1aac33f2ce92749fa0c007574d37cd8f898f8",
+    "ur-recomp-blue-action-80s-1080p-frame-2700.png": "719ba57e8aefbf02e44357bbb1400469b9abf1d3c6573099dda41e9e2986a949",
+    "ur-recomp-blue-action-80s-1080p-frame-3330.png": "72d66c31c08746ffe631646cedcdd074b7907b901c557b35ad983d75b5f7f170",
+    "ur-recomp-blue-action-80s-1080p-frame-3980.png": "17542b1bf07d93719a39914857747c5a413eca5fc8ad99a791167236fc97a5ee",
+    "ur-recomp-blue-action-80s-1080p-frame-4290.png": "ca8044f2c7129c4bc0c2cd9e55f9e5417f27dc1e65715f4b24b9fe0f0f1461a0"
+  },
+  "exact_source_hash": "a95a3cfc6b94809896a1a954e02bd0b7867a7b128848a72ed9c2bda3ba53e683",
+  "fully_closed_loop_claimed": false,
+  "grey_temp_menus_removed": true,
+  "schema": "UR-BLUE-ACTION-FINAL-QA/1",
+  "status": "source and frame accepted; model visual review pending",
+  "three_qualified_original_2p_sessions": true
+}

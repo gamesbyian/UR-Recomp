@@ -29,6 +29,12 @@ class NativePausedOptionsPresenterTest(unittest.TestCase):
             self.assertEqual(run.returncode, 0, run.stderr)
             self.assertIn("wires OPTIONS", run.stdout)
 
+    def test_both_source_pause_branches_use_player_language(self):
+        source = (PRODUCT / "modern_pause_overlay_presenter.hpp").read_text()
+        # Legacy full, compact true-source and paused Options render paths.
+        self.assertEqual(source.count('"GAME PAUSED"'), 3)
+        self.assertNotIn('"PAUSED - GUEST FROZEN"', source)
+
     def test_pause_lifecycle_routes_only_owned_edges_and_stays_frozen(self):
         source = (ROOT / "tools/baldosa_native_pause_lifecycle.cpp").read_text()
         for token in (

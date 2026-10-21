@@ -1,0 +1,16 @@
+# QA01 independent RF081 receipt-epoch boundary (2026-10-19)
+
+**Verdict: HOLD.** This independently compares existing machine-readable metadata receipts. It is not a download or reopening of original archives, a new emulator replay, or a complete-event/Windows QA acceptance. Release ledger remains 0/45 accepted USA events and 0/12 Windows gates.
+
+## Two distinct cases
+
+1. [RF081 committed STZ](../analysis/data/rf081-authentic-first-STZ-committed-write-20261019.json): [run 39353520555](https://github.com/gamesbyian/UR-Recomp/actions/runs/39353520555), exact source checkout `e0abbf18212cbe7fd5e440ad1c4cf1b8e2900f45`, 202-member case ZIP SHA256 `df35ddcd8e87bd6664e4e01fe6cbc91fabef6b45292d92564bdab92214bcff37`, separate binary ZIP SHA256 `f7f5d657fa528e4e977dccd00e5cf72fa636268e809f0903ccef4560f187d29e`. At host labels 1017/1018, original true STZ and native paced AOT commit each write `00:0059=00`; its next original/native PLP getter bytes are `26`. Original BPL-to-write local deltas 44/12 versus native 62/62 are not comparable clock axes.
+2. [RF081 first common PLP consumed status](../analysis/data/rf081-first-common-plp-actual-consumed-status-20261019.json): its case ZIP SHA256 is `e23139e64f75099a43c0c77b6c53f3c4c87c1afb17ae12f82448f05f878ac412`, native RF047 sidecar SHA256 `1cab9fd4f9384d2043394957cf794daf9187b7fae5dd3b4ab4e59615d88dd424`. Actual original getter and native helper both report `00:01F1=26` at selected labels 1017/1018. This PLP-only receipt explicitly says it does not qualify the first committed STZ.
+
+**Independent consistency check:** Both receipts contain two 1017/1018 observations. The STZ receipt's source write ordering, native commit ordering and next-PLP byte assertions are internally consistent. The PLP-only receipt's getter equality is internally consistent. Six classes of metadata assertions were evaluated against the checked-in JSON with no inconsistencies found.
+
+**Adjudication:** The ZIP identities differ. Do not concatenate these two receipts into one continuous original/native STZ→PLP→RTS witness. The STZ receipt includes its own same-case next-PLP observation, but neither proves cross-guest semantic clock equality, first persistent causal divergence, unsampled course equivalence, or Windows disk persistence. [Producer guard draft #2016](https://github.com/gamesbyian/UR-Recomp/pull/2016) hardens reported source-local order, not release acceptance.
+
+**Cheapest next test:** In one exact source and compiled-binary epoch retain original fetched PCs, native executed markers, true STZ commit, consumed PLP and post-RTS first causally relevant read/write with source-local clocks and input identity. Independently reopen raw original archive and reject missing source observations. No controller rephase, assumed host-label phase equality, memory masks or event credit.
+
+**Three-project reuse:** Structurally inspected current release-qa registry/matrix (14 registry entries, 35 capability rows, six lanes). Existing P0 evidence-envelope, route-input-identity and first-divergence tools cover this review; no upstream import or second QA oracle is justified. The repository Python selector was not executed in the connector-only environment.

@@ -1,0 +1,30 @@
+name: Agent control and recovery contract
+
+on:
+  pull_request:
+    paths:
+      - "docs/HOURLY-AGENT-LINES.md"
+      - "docs/recovery/agent-candidates.json"
+      - ".github/workflows/agent-control-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-control-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject ambiguous ownership and false recovery acceptance
+        run: |
+          python3 -m unittest -v tests.unit.test_agent_control
+          python3 tools/agent_control.py --check
+      - name: Bounded control-plane summary
+        if: success()
+        run: python3 tools/agent_control.py >> "$GITHUB_STEP_SUMMARY"

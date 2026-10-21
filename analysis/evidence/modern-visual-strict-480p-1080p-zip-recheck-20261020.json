@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "kind": "independent exact output-size Windows final SDL 480p/1080p archive review",
+  "authority": "docs/MODERN-UI-VISUAL-FIDELITY.md",
+  "source": {
+    "run_id": 39539086749,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39539086749",
+    "artifact_id": 12319405071,
+    "executable_artifact_id": 12318866939,
+    "checkout_sha": "a20790e92c66b58a1630ec084db6f78596296a05",
+    "PE_bytes": 20441088,
+    "PE_SHA256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+    "PE_type": "Windows AMD64 PE32+"
+  },
+  "independent_checks": "Downloaded original native ZIP+separately archived PE. All PNG original bytes matched receipt SHA, every selected raw final SDL P7 decoded byte-equal to PNG pixel RGBA; same successful process log hashes and source/executable identity matched. Logs include backend=sdl3, source=SDL_RenderReadPixels and precisely matched output window. Source P7 title FNV-1a64 independently recomputed from original source pixel bytes; title source frame 40 is earlier than saved final SDL frame 48. No whole-frame source-P7-to-final-P7 equality claimed.",
+  "cases": [
+    {
+      "id": "root-43-480",
+      "acceptance_matrix_id": "root-43-480",
+      "route": "root-quit",
+      "output": [
+        640,
+        480
+      ],
+      "logical_source": [
+        256,
+        224
+      ],
+      "root": [
+        8,
+        10,
+        240,
+        204
+      ],
+      "input": "scripted P1 semantic quit in same native process, no physical pad",
+      "PNG_sha256": "906e078e9b22334dacfa77a025cf55c296381ef40c42be91ae33c6f0cda39d53",
+      "final_SDL_P7_sha256": "4e1c138cf578e2627136fc2a1533b72eff03c32b3e48ade71c1d08ba25386296"
+    },
+    {
+      "id": "root-wide-1080",
+      "acceptance_matrix_id": "root-wide-1080",
+      "route": "root-quit",
+      "output": [
+        1920,
+        1080
+      ],
+      "logical_source": [
+        342,
+        224
+      ],
+      "root": [
+        11,
+        10,
+        320,
+        204
+      ],
+      "input": "scripted P1 semantic quit in same native process, no physical pad",
+      "PNG_sha256": "f7b28ae3a60a1c6a5dcf3a3eabbac3e89fac19072c01407c7d5ba3e696540124",
+      "final_SDL_P7_sha256": "dc14fa61c4ef32231e0dc6c450b68a2cc118ca1727d6e08ac0da00670bbdf68f"
+    },
+    {
+      "id": "title-compact-43",
+      "acceptance_matrix_id": "title-compact-43",
+      "route": "title-intro-compact",
+      "output": [
+        640,
+        480
+      ],
+      "logical_source": [
+        256,
+        224
+      ],
+      "input": "native P1 title-route handler after capture, no physical pad",
+      "PNG_sha256": "2619b70646dfe3458479be8d597b1e38eb6496c3b8e430d62dc94cea875b4beb",
+      "final_SDL_P7_sha256": "5248d87e4dbcd9cedd9f90fb27b67b5e1e6bb832d42821962c47eddfe7f86970",
+      "original_title_P7_sha256": "3959250c9dc6466f291bcb4cc59636ee6f7cabec9e4eb0ea0c3162e3fdc186fe",
+      "original_title_source_RGBA_FNV64": "61672ac5a543f7e2"
+    },
+    {
+      "id": "title-wide-1080",
+      "acceptance_matrix_id": "title-wide-1080",
+      "route": "title-intro-wide",
+      "output": [
+        1920,
+        1080
+      ],
+      "logical_source": [
+        342,
+        224
+      ],
+      "input": "native P1 title-route handler after capture, no physical pad",
+      "PNG_sha256": "93b8b2e21b66412153c3b3829263cedbd8b5fc151fec8f2d7887d8652bb4cc1d",
+      "final_SDL_P7_sha256": "8e252b1b480ab944be5f7b0644f09fde60be490808bbface02afbaeed427c46b",
+      "original_title_P7_sha256": "f2ad1e081018afe7ef67cf3cf6cb40edccd890785e7a863d815d7e319eeaf592",
+      "original_title_source_RGBA_FNV64": "087cbca7b8b04aca"
+    }
+  ],
+  "result": {
+    "original_PNG_P7_exact_matches": 4,
+    "distinct_actual_output_dimensions": [
+      [
+        640,
+        480
+      ],
+      [
+        1920,
+        1080
+      ]
+    ],
+    "original_source_title_P7_FNV_matches": 2,
+    "technical_geometry_and_stage": "verified on this exact historical executable",
+    "different_executable_from_21_case_cohort": true,
+    "full_25_case_matrix_approvals": 0,
+    "human_approved": false,
+    "physical_hardware_approved": false,
+    "original_guest_parity_approved": false,
+    "release_gate_credit": 0
+  },
+  "explicit_limits": "Not a current-main final binary, no actual physical controller, display or audible speaker. Title screenshot predates P1 transition input, keyboard parity untested in this cohort. Compact root uses two-column collapse and plain source-style ASCII. No named P2 join, earned Records or Original guest CRC proved. Never pool these four with run 39536021531 as though same PE."
+}

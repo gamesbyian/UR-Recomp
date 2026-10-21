@@ -37,6 +37,31 @@ on:
       - "native/product/local_multiplayer_setup.hpp"
       - "native/product/modern_host_input_release_latch.hpp"
       - "native/product/modern_root_menu.hpp"
+      # Shared Modern root visuals are executable C++ painter contracts;
+      # source or test edits must run the actual ROM-free native test suite.
+      - "native/product/modern_root_overlay_presenter.hpp"
+      - "tests/native/modern_root_overlay_presenter_test.cpp"
+      # Both source-owned pause views must execute the compiled C++ painter
+      # regression even when no Python harness file changes.
+      - "native/product/modern_pause_overlay_presenter.hpp"
+      - "tests/native/modern_pause_overlay_presenter_test.cpp"
+      # Destination modal and real paused-Options source geometry are also
+      # executable C++ painter contracts, not only host-header metadata.
+      - "native/product/modern_native_destination_presenter.hpp"
+      - "tests/native/modern_native_destination_presenter_test.cpp"
+      - "tests/native/modern_native_destination_layering_test.cpp"
+      # Original-derived menu primitive and source atlas headers own
+      # executable C++ invariants. They must invalidate this same suite even
+      # if no Python shim or presenter was changed in the PR.
+      # Original measurements, palette tokens and native output use the same tests.
+      - "native/product/modern_stock_menu_palette.hpp"
+      - "tests/unit/test_modern_menu_visual_grammar_cpp.py"
+      - "tests/unit/test_modern_menu_original_source_tokens.py"
+      - "analysis/generated/menu-visual-language.json"
+      - "native/product/modern_menu_visual_grammar.hpp"
+      - "tests/native/modern_menu_visual_grammar_test.cpp"
+      - "native/product/modern_menu_source_atlas.hpp"
+      - "tests/native/modern_menu_source_atlas_test.cpp"
       - "native/product/modern_text_catalog.hpp"
       - "native/product/modern_text_layout.hpp"
       - "tests/native/local_multiplayer_setup_test.cpp"

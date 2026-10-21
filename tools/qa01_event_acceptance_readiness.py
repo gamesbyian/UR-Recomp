@@ -25,6 +25,29 @@ def require(value: bool, reason: str) -> None:
         raise ValueError(reason)
 
 
+def _finite_json_float(token: str) -> float:
+    import math
+    number = float(token)
+    if not math.isfinite(number):
+        raise ValueError("nonfinite QA01 receipt: " + token)
+    return number
+
+
+def _unique_receipt_keys(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate QA01 receipt key: " + key)
+        result[key] = value
+    return result
+
+
+def read_receipt_json(raw: str) -> dict:
+    return json.loads(raw, object_pairs_hook=_unique_receipt_keys, parse_float=_finite_json_float,
+                      parse_constant=lambda token: (_ for _ in ()).throw(
+                          ValueError("nonfinite QA01 receipt: " + token)))
+
+
 def assess(row: dict) -> dict:
     """Classify the bounded evidence and expose what it cannot certify. Always HOLD."""
     require(isinstance(row, dict) and row.get("schema") == "ur-qa01-event-campaign/1",
@@ -152,7 +175,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        report = assess(json.loads(args.case_result.read_text(encoding="utf-8")))
+        report = assess(read_receipt_json(args.case_result.read_text(encoding="utf-8")))
     except (OSError, ValueError, TypeError) as exc:
         parser.exit(2, f"QA01_READINESS_INVALID: {exc}\n")
     data = json.dumps(report, sort_keys=True, indent=2) + "\n"

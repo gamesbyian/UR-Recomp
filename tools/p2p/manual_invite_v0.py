@@ -176,7 +176,11 @@ def read_code(text: str, *, now: int | None = None) -> dict[str, Any]:
                                  InviteError("nonfinite JSON value")))
     except (ValueError, UnicodeDecodeError) as exc:
         raise InviteError("malformed invitation JSON") from exc
-    if not isinstance(decoded, dict) or _canonical(decoded) != raw:
+    try:
+        canonical = _canonical(decoded) if isinstance(decoded, dict) else None
+    except (ValueError, OverflowError) as exc:
+        raise InviteError("nonfinite invitation value") from exc
+    if canonical != raw:
         raise InviteError("noncanonical invitation JSON")
     return validate_fields(decoded, now=now)
 

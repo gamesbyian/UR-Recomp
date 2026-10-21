@@ -150,5 +150,17 @@ class ReadinessTests(unittest.TestCase):
                     readiness.assess(row)
 
 
+    def test_invalid_receipt_json_is_rejected(self):
+        import json
+        valid = json.dumps(fixture())
+        bad = [valid.replace('"release_credit": 0', '"release_credit": 1, "release_credit": 0', 1),
+               valid.replace('"release_credit": 0', '"release_credit": NaN', 1),
+               valid.replace('"release_credit": 0', '"release_credit": 1e999', 1)]
+        for raw in bad:
+            with self.subTest(raw=raw[:90]), self.assertRaises(ValueError):
+                readiness.read_receipt_json(raw)
+        self.assertEqual(readiness.read_receipt_json(valid), fixture())
+
+
 if __name__ == "__main__":
     unittest.main()

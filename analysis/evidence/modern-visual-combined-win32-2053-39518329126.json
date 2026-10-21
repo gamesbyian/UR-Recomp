@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "source": "independently re-read GitHub Actions original artifacts from combined native rehearsal",
+  "run_id": 39518329126,
+  "exact_pr_merge_checkout": "9b6b79ab764a88bf85e7f44390e45e9502535f5c",
+  "original_executable_sha256": "4cd221862d5931d8ed2b8f09ea3eac359b7e29f77ab2b4dcea83f2c85dc7edaf",
+  "executable_size_bytes": 20440064,
+  "executable_platform": "Windows AMD64 PE32+",
+  "artifacts": {
+    "root": 12311075191,
+    "journeys": 12310860251,
+    "authentic": 12310360452,
+    "executable": 12310700341
+  },
+  "cases": [
+    {
+      "id": "ur-modern-win32-visual-1280x720",
+      "route": "root-quit",
+      "window_pixels": [
+        1280,
+        720
+      ],
+      "observed_stage_at_capture": "root",
+      "source_raster": [
+        342,
+        224
+      ],
+      "root_rect": [
+        11,
+        10,
+        320,
+        204
+      ],
+      "original_png_sha256": "9a142190b61689304da9524b12dcccb40635bf269ed1b95b3b60e6a7fba79b7a",
+      "receipt_p7_sha256": "851e058d918bc001f2a2571b8090a3870afeb551a38d2b30b742e19f70641150",
+      "draw": 40,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-modern-win32-visual-1024x768",
+      "route": "root-quit",
+      "window_pixels": [
+        1024,
+        768
+      ],
+      "observed_stage_at_capture": "root",
+      "source_raster": [
+        256,
+        224
+      ],
+      "root_rect": [
+        8,
+        10,
+        240,
+        204
+      ],
+      "original_png_sha256": "7626410382858ef93dc86d7117cc0c335b927434c3ca6cd837e2c09fc8c9b14a",
+      "receipt_p7_sha256": "c4b355479699936908853de0b2a775e8bc3825849fe5943d268955064e3d2fbd",
+      "draw": 40,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-modern-win32-journey-records-keyboard",
+      "route": "records-keyboard",
+      "window_pixels": [
+        1024,
+        768
+      ],
+      "observed_stage_at_capture": "records-1p",
+      "source_raster": [
+        256,
+        224
+      ],
+      "root_rect": [
+        8,
+        10,
+        240,
+        204
+      ],
+      "original_png_sha256": "598994000be47233d577fad3e7199cc78e737ad949f9983f22c8ef648e974c37",
+      "receipt_p7_sha256": "91177d645e666944ddae8b3febd527c2228fa0fc3e50db276d110ce33dbb99c7",
+      "draw": 64,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-modern-win32-journey-options-p1",
+      "route": "options-p1",
+      "window_pixels": [
+        1024,
+        768
+      ],
+      "observed_stage_at_capture": "unverifiable-successful-log",
+      "source_raster": null,
+      "root_rect": null,
+      "original_png_sha256": "1d226718603323bf2f0413329034ed6c75d544dac0039f8fee31457927ddf057",
+      "receipt_p7_sha256": "5c045adcf842ef7821d1bd02ce87524f1fb24c086dc2eadff0f653d8341546f5",
+      "draw": 74,
+      "successful_p7_and_log_retained": false,
+      "raw_rgba_byte_parity_verified": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-modern-win32-journey-profile-first-p1",
+      "route": "profile-first-p1",
+      "window_pixels": [
+        1280,
+        720
+      ],
+      "observed_stage_at_capture": "profile-first-saved",
+      "source_raster": [
+        342,
+        224
+      ],
+      "root_rect": [
+        11,
+        10,
+        320,
+        204
+      ],
+      "original_png_sha256": "740e8d2ec8b137f9a9cb7ae26e73b98e5ecdd5f3343d6f1516fadba271704743",
+      "receipt_p7_sha256": "3802bb4b51f8ad05c79383936f71193c0c0ac6c638b65897d1a6e6ee4c7629c8",
+      "draw": 66,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-modern-win32-journey-practice-picker-p1",
+      "route": "practice-picker-p1",
+      "window_pixels": [
+        1024,
+        768
+      ],
+      "observed_stage_at_capture": "practice-picker",
+      "source_raster": [
+        256,
+        224
+      ],
+      "root_rect": [
+        8,
+        10,
+        240,
+        204
+      ],
+      "original_png_sha256": "dd9789ebf61c4b7f01baba4e1712102dc316f60ebeb8ccf3e29ea050552d0044",
+      "receipt_p7_sha256": "e13715752ec101803ccfb7c29f313ba1448830ce992421cf7fd49de2e919158b",
+      "draw": 63,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-modern-win32-journey-multiplayer-unbound",
+      "route": "multiplayer-unbound",
+      "window_pixels": [
+        1024,
+        768
+      ],
+      "observed_stage_at_capture": "multiplayer-unrecorded-warning",
+      "source_raster": [
+        256,
+        224
+      ],
+      "root_rect": [
+        8,
+        10,
+        240,
+        204
+      ],
+      "original_png_sha256": "4577393df59f73460d11e18bf4cfda558042aa8fc4aa0789251e45b55a8d2bba",
+      "receipt_p7_sha256": "b0c776c6c19fe8c5e4fbd87b32c9ee9dd4208be549b8847958b6739d11800992",
+      "draw": 65,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-authentic-win32-control-1280x720",
+      "route": "authentic-stock",
+      "window_pixels": [
+        1280,
+        720
+      ],
+      "observed_stage_at_capture": "authentic-original",
+      "source_raster": [
+        256,
+        224
+      ],
+      "root_rect": null,
+      "original_png_sha256": "5e28a299111e60301f85ba93f5d525c3f554861b790fd4089e429ce7cf63046e",
+      "receipt_p7_sha256": "2fd965fa672cf0f2ece5381b4bcbada2cd9bb761c6531bc6e867bde31b08a8b7",
+      "draw": 240,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "ur-authentic-win32-control-1024x768",
+      "route": "authentic-stock",
+      "window_pixels": [
+        1024,
+        768
+      ],
+      "observed_stage_at_capture": "authentic-original",
+      "source_raster": [
+        256,
+        224
+      ],
+      "root_rect": null,
+      "original_png_sha256": "08caa484279805c1f60a30d72eb5697f2a7bd12ebab45edfe5bf9a637cf2932d",
+      "receipt_p7_sha256": "02e12619ff3692abbcd44c8fd4eb1805b33bc21aacc4d9e5caaefe5601e0aad2",
+      "draw": 240,
+      "successful_p7_and_log_retained": true,
+      "raw_rgba_byte_parity_verified": true,
+      "release_gate_credit": 0
+    }
+  ],
+  "counts": {
+    "capture_receipts": 9,
+    "successful_p7_and_route_log_retained": 8,
+    "raw_source_evidence_missing": 1,
+    "authentic_original_rgb_controls": 2,
+    "final_redesign_visual_signoffs": 0
+  },
+  "qualification_note": "Historical exact-head technical capture source/raster/log proof only. The Options stage has PNG and receipt but missing selected successful P7+log. No human appearance, physical-display, product guest CRC or release approval."
+}

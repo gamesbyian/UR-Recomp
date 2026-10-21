@@ -1,0 +1,18 @@
+{
+  "sha256": {
+    "4k.png": "c4114eaf22a3057bd4db4ab64902308a51352845a50ee701a48748db86f59f7c",
+    "animation-frame.png": "7b6a178e9e044c8657d2dce10c1d6b9975f8ac649fd4dcbed7ce439324851f26",
+    "art-frame.png": "f9ba32c3a4fccfd2077b627c1b7aac8cdc371d7155281c6591723d26581922df",
+    "art_p2-frame.png": "e49446c72bf551b1fe704711356ce5859f1232062df8e095f994f258e947723c",
+    "code-frame.png": "fdd98f753dfcdc15ee2893a7aaee94d713aa5dd4b436ba45808c49797d509901",
+    "cta.png": "c5ee7a5e9fe6f4fa16d26bdb36ce1839df34c6b18a85e12560ec2d60bec5d721",
+    "modern-frame.png": "3bf77cd0a9e4d91c4a010c463697527a4484c1c7750dc9a4cf8acba85777a6bb",
+    "parity-frame.png": "450299403bb1c463ba23a27f12b43dceae3d47b15a58c2682ca6f1e70d3040ca",
+    "race-frame.png": "d2ed22f5281c1179be0b3b43052cb61bc3fd9fe66440e80d76bdf7ac1f95af36",
+    "raster-frame.png": "335b4783a8a2ec2db468c10f4f2d5d943083a80ce5a407513ab97fbb8a31a4b8",
+    "reveal-frame.png": "0a48bfd278d499776c4bf9920a740e5532530e175c5c844d165d7e7e01cff696",
+    "windows.png": "8f3c4a7d17aab8b16d94ee28170317ab8ba5df9fe8ceeee5a664533f53bfa73c"
+  },
+  "source": "deterministic blue_trailer_art_direction.py",
+  "gameplay_footage": false
+}

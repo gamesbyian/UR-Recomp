@@ -1,0 +1,649 @@
+{
+  "schema_version": 1,
+  "kind": "25-case independent historical Modern visual acceptance cross-epoch HOLD index",
+  "generated_from": [
+    "analysis/modern-visual-acceptance-matrix.json",
+    "analysis/evidence/modern-visual-integrated-final-sdl-21cases-20261021.json",
+    "analysis/evidence/modern-visual-strict-480p-1080p-zip-recheck-20261020.json"
+  ],
+  "counts": {
+    "canonical_cases": 25,
+    "old_run_21_close": 5,
+    "old_run_21_partial": 9,
+    "separate_strict_output_cases": 4,
+    "without_ANY_related_capture_across_both_epochs": 8,
+    "formally_accepted": 0
+  },
+  "limitations": [
+    "Two independently downloaded genuine Windows CI native executable epochs have distinct source/PE SHA and cannot be pooled as a single acceptance build",
+    "Source-P7 and SDL-P7 for an animated title represent different guest/presentation frames",
+    "Native semantic input script with SDL reporting 0 physical joysticks is not real hardware P1/P2",
+    "Uncaptured: earned Records, named P2 join, locked Practice, stale-profile disabled, held input/back/focus-loss and full Original state CRC parity",
+    "Original glyph/cursor likeness, typography, contrast, high resolution safe area and physical monitor/audio remain pending independent review",
+    "Nothing in this file grants human, physical or release quality approval; source runs are historical, not current main"
+  ],
+  "cases": [
+    {
+      "id": "title-wide-1080",
+      "required_screen": "title",
+      "required_mode": "modern",
+      "required_pixels": [
+        1920,
+        1080
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "default",
+      "review_target": "entry-animation / focus / overscan",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39539086749,
+          "source_checkout": "a20790e92c66b58a1630ec084db6f78596296a05",
+          "pe_sha256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+          "artifact_id": 12319405071,
+          "capture": "title-wide-1080",
+          "correspondence": "exact output pixels and native source stage only",
+          "unproven": "physical P1 input, human visual assessment and whole game"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "title-wide-keyboard",
+      "required_screen": "title",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "keyboard",
+      "required_state": "default",
+      "review_target": "Enter/Start semantic parity and title-to-root latch",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "title-compact-43",
+      "required_screen": "title",
+      "required_mode": "modern",
+      "required_pixels": [
+        640,
+        480
+      ],
+      "required_aspect": "4:3",
+      "required_input": "pad-p1",
+      "required_state": "default",
+      "review_target": "logo, safe area and transition under compact viewport",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        },
+        {
+          "native_run": 39539086749,
+          "source_checkout": "a20790e92c66b58a1630ec084db6f78596296a05",
+          "pe_sha256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+          "artifact_id": 12319405071,
+          "capture": "title-compact-43",
+          "correspondence": "exact output pixels and native source stage only",
+          "unproven": "physical P1 input, human visual assessment and whole game"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "title-reduced-motion",
+      "required_screen": "title",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "reduced-motion",
+      "review_target": "stable/frozen hero and entry without flashing",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "pe_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+          "capture": "integrated-title-title-intro-reduced",
+          "correspondence": "close geometry and semantic route only",
+          "unproven": "physical input, visual finish and source/game parity"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-wide-720",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "normal",
+      "review_target": "five rows, cursor, footer, visible focus",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "pe_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+          "capture": "visual-1280x720",
+          "correspondence": "close geometry and semantic route only",
+          "unproven": "physical input, visual finish and source/game parity"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-wide-1080",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        1920,
+        1080
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "normal",
+      "review_target": "spacing, typography and scaling",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39539086749,
+          "source_checkout": "a20790e92c66b58a1630ec084db6f78596296a05",
+          "pe_sha256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+          "artifact_id": 12319405071,
+          "capture": "root-wide-1080",
+          "correspondence": "exact output pixels and native source stage only",
+          "unproven": "physical P1 input, human visual assessment and whole game"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-wide-4k-virtual",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        3840,
+        2160
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "virtual-output",
+      "review_target": "image dimensions only: not physical monitor/4K signoff",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-43-768",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        1024,
+        768
+      ],
+      "required_aspect": "4:3",
+      "required_input": "pad-p1",
+      "required_state": "normal",
+      "review_target": "clipping, safe area, information hierarchy",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "pe_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+          "capture": "visual-1024x768",
+          "correspondence": "close geometry and semantic route only",
+          "unproven": "physical input, visual finish and source/game parity"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-43-480",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        640,
+        480
+      ],
+      "required_aspect": "4:3",
+      "required_input": "pad-p1",
+      "required_state": "normal",
+      "review_target": "small-type readable, no overlap",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39539086749,
+          "source_checkout": "a20790e92c66b58a1630ec084db6f78596296a05",
+          "pe_sha256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+          "artifact_id": 12319405071,
+          "capture": "root-43-480",
+          "correspondence": "exact output pixels and native source stage only",
+          "unproven": "physical P1 input, human visual assessment and whole game"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-moved-selection",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "selection-moved",
+      "review_target": "selected highlight stays unambiguous",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-keyboard",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "keyboard",
+      "required_state": "normal",
+      "review_target": "focus parity and mapped input hints",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "root-disabled",
+      "required_screen": "root",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "stale-profile",
+      "review_target": "Play blocked and reason visible",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "profile-first-run",
+      "required_screen": "profiles",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "no-profile",
+      "review_target": "creation, original preset and next-boot feedback",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "pe_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+          "capture": "journey-profile-first-p1",
+          "correspondence": "close geometry and semantic route only",
+          "unproven": "physical input, visual finish and source/game parity"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "profile-switch-existing",
+      "required_screen": "profiles",
+      "required_mode": "modern",
+      "required_pixels": [
+        1024,
+        768
+      ],
+      "required_aspect": "4:3",
+      "required_input": "pad-p1",
+      "required_state": "existing-profiles",
+      "review_target": "selection persists and does not hot-swap guest",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "multiplayer-p2-owner",
+      "required_screen": "multiplayer",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p2",
+      "required_state": "p1-p2-named",
+      "review_target": "P1 opens join; P2 owns only its seat, confirmed/released independently; no P2 root navigation claim",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "practice-locked",
+      "required_screen": "practice",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "locked-course",
+      "review_target": "actual locked-course explanation and Back",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "options-available",
+      "required_screen": "options",
+      "required_mode": "modern",
+      "required_pixels": [
+        1024,
+        768
+      ],
+      "required_aspect": "4:3",
+      "required_input": "pad-p1",
+      "required_state": "normal",
+      "review_target": "applied settings only, controls and defaults",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "pe_sha256": "b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad",
+          "capture": "journey-options-p1",
+          "correspondence": "close geometry and semantic route only",
+          "unproven": "physical input, visual finish and source/game parity"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "options-refused",
+      "required_screen": "options",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "keyboard",
+      "required_state": "display-apply-refused",
+      "review_target": "NOT APPLIED or honest refusal message",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "records-empty",
+      "required_screen": "records",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "no-records",
+      "review_target": "empty state and navigation",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "records-earned-1p",
+      "required_screen": "records",
+      "required_mode": "modern",
+      "required_pixels": [
+        1920,
+        1080
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "earned-1p",
+      "review_target": "correct source-earned record after fresh process",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "records-earned-2p",
+      "required_screen": "records",
+      "required_mode": "modern",
+      "required_pixels": [
+        1024,
+        768
+      ],
+      "required_aspect": "4:3",
+      "required_input": "pad-p1",
+      "required_state": "earned-2p",
+      "review_target": "P1 root Records after genuine 2P result, inspect both source-bound participants and their exact time; P2 remains join-only",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "transition-back-release",
+      "required_screen": "transition",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "held-confirm-back",
+      "review_target": "held input does not bleed into destination",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "authentic-title-stock",
+      "required_screen": "title",
+      "required_mode": "authentic",
+      "required_pixels": [
+        640,
+        480
+      ],
+      "required_aspect": "4:3",
+      "required_input": "keyboard",
+      "required_state": "original",
+      "review_target": "unaltered stock rendering/route; needs reference comparison",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "authentic-stock-wide",
+      "required_screen": "root",
+      "required_mode": "authentic",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "original",
+      "review_target": "Modern root must not be painted in Authentic",
+      "independent_historical_evidence": [
+        {
+          "native_run": 39536021531,
+          "source_checkout": "44c192d9c43e69068461f5d524b50a9d097ca907",
+          "correspondence": "related partial only",
+          "unproven": "case-specific input, display dimensions, guest state or navigation differs"
+        }
+      ],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    },
+    {
+      "id": "focus-loss-modal",
+      "required_screen": "options",
+      "required_mode": "modern",
+      "required_pixels": [
+        1280,
+        720
+      ],
+      "required_aspect": "16:9",
+      "required_input": "pad-p1",
+      "required_state": "focus-lost",
+      "review_target": "ownership and safe return; no guest input bleed",
+      "independent_historical_evidence": [],
+      "acceptance": "HOLD",
+      "visual_accepted": false,
+      "human_approved": false,
+      "hardware_approved": false,
+      "release_gate_credit": 0
+    }
+  ]
+}

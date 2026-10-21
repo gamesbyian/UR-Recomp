@@ -24,6 +24,19 @@ P7 = re.compile(rb"\AP7\nWIDTH ([1-9][0-9]*)\nHEIGHT ([1-9][0-9]*)\nDEPTH 4\nMAX
 PNG_SIG = b"\x89PNG\r\n\x1a\n"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 SOURCE_HEX = re.compile(r"[0-9a-f]{40}\Z")
+# Native host stage values are emitted by the real source painter and ordered
+# before the SDL EndDraw readback. An unrelated screenshot with correct
+# geometry/P7/log transport must NOT satisfy a route-specific visual case.
+ROUTE_STAGES = {
+    "root-quit": "root",
+    "records-keyboard": "records-1p",
+    "options-p1": "options",
+    "options-open-p1": "options",
+    "profile-first-p1": "profile-first-saved",
+    "practice-picker-p1": "practice-picker",
+    "multiplayer-unbound": "multiplayer-unrecorded-warning",
+}
+
 
 
 class AuditError(ValueError):
@@ -137,6 +150,27 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
             tuple(map(int, (evidence[0][0], evidence[0][2], evidence[0][3]))) !=
             (receipt["observed_in_draw"], w, h)):
         raise AuditError("retained log does not witness successful SDL3 capture: "+folder)
+    route = receipt.get("native_semantic_route")
+    if route == "authentic-stock":
+        before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
+        if ("[snes_load]" not in before or
+                "UR_BALDOSA_MODERN_DESTINATION stage=" in before or
+                "UR_BALDOSA_MODERN_ROOT opened=1" in before or
+                "UR_BALDOSA_MODERN_ROOT painted=1" in before):
+            raise AuditError("Authentic capture contains Modern destination/paint")
+        last_stage = "authentic-original"
+    elif route in ROUTE_STAGES:
+        before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
+        actual_stages = re.findall(
+            r"UR_BALDOSA_MODERN_DESTINATION stage=([^\s]+)", before)
+        expected_stage = ROUTE_STAGES[route]
+        if not actual_stages or actual_stages[-1] != expected_stage:
+            raise AuditError(
+                "native semantic destination at capture is wrong for "+
+                str(route)+": saw "+str(actual_stages[-1:] or "none"))
+        last_stage = actual_stages[-1]
+    else:
+        raise AuditError("unknown semantic capture route: "+str(route))
     if (not isinstance(receipt.get("exe_sha256"),str) or
             not HEX.fullmatch(receipt["exe_sha256"])):
         raise AuditError("no executable SHA")
@@ -151,6 +185,7 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         "exe_sha256":receipt["exe_sha256"],
         "source_sha":receipt["source_sha"], "exact_rgba_bytes":w*h*4,
         "guest_frame_witness":int(evidence[0][1]),
+        "native_painted_stage_at_capture":last_stage,
         "human_approved":False, "release_gate_credit":0,
     }
 

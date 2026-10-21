@@ -989,6 +989,15 @@ jobs:
 
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 
+      # Build and verify the private package above, but publish only bounded
+      # text evidence. The internal ZIP includes user-supplied retail data.
+      - name: Verify archive-free Windows artifact upload policy
+        if: always()
+        shell: bash
+        run: |
+          python tools/ci/check_windows_smoke_upload_policy.py
+          python tools/ci/check_windows_smoke_upload_policy.py --self-test
+
       - name: Upload Windows evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -1001,19 +1010,8 @@ jobs:
             ${{ runner.temp }}/package-boot-dumps/
             ${{ runner.temp }}/package-race-result-dumps/race-results.*
             ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
-            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Upload portable Windows package
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ur-recomp-windows-x64-portable
-          path: |
-            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
-            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
-            ${{ runner.temp }}/Test-URRecompPortable.ps1
-          if-no-files-found: error
-          retention-days: 7
+

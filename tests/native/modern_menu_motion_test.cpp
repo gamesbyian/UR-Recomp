@@ -243,7 +243,7 @@ void test_raster() {
         draws = {};
         assert(paint_modern_menu_selection_motion(
             FakePainter{}, pixels.data(), w, h, scale, panel, pose));
-        assert(draws.calls == 1);
+        assert(draws.calls == 2);
         assert(draws.x == panel.x + 5 * scale);
         assert(draws.y == panel.y + (57 + 21) * scale);
         assert(draws.width == 2 * scale);
@@ -272,10 +272,51 @@ void test_raster() {
         assert(draws.height == 12 * scale);
         pose.reduced_motion = false;
 
+        // The stock focus band already draws an identical blue stripe.
+        // The animation must change composited pixels *over that stripe*,
+        // not merely paint blue over the same blue: first/fourth source
+        // phase vs eighth source phase, and the reduced-motion control.
+        const int marker_x = panel.x + 5 * scale;
+        const int marker_y = panel.y + (57 + 21) * scale;
+        std::vector<std::uint32_t> stock_selected(
+            static_cast<std::size_t>(w) * h, 0xff111111u);
+        for (int row = -3 * scale; row < 14 * scale; ++row)
+            for (int col = 0; col < 3 * scale; ++col)
+                stock_selected[static_cast<std::size_t>(marker_y + row) * w +
+                               marker_x + col] =
+                    kModernStockMenuPalette.cursor_blue;
+        auto normal_zero = stock_selected;
+        auto normal_eight = stock_selected;
+        auto reduced_eight = stock_selected;
+        pose.cursor_spin_phase = 0;
+        assert(paint_modern_menu_selection_motion(
+            FakePainter{}, normal_zero.data(), w, h, scale, panel, pose));
+        pose.cursor_spin_phase = 8;
+        assert(paint_modern_menu_selection_motion(
+            FakePainter{}, normal_eight.data(), w, h, scale, panel, pose));
+        pose.reduced_motion = true;
+        assert(paint_modern_menu_selection_motion(
+            FakePainter{}, reduced_eight.data(), w, h, scale, panel, pose));
+        pose.reduced_motion = false;
+        assert(normal_zero != normal_eight);
+        assert(normal_zero == reduced_eight);
+        assert(normal_eight[static_cast<std::size_t>(marker_y) * w +
+                            marker_x] == 0xE0283058u);
+        assert(normal_zero[static_cast<std::size_t>(marker_y) * w +
+                           marker_x] ==
+            kModernStockMenuPalette.cursor_blue);
+        // The 3rd stock-blue pixel remains stable through the notch.
+        assert(normal_eight[static_cast<std::size_t>(marker_y) * w +
+                            marker_x + 2 * scale] ==
+            kModernStockMenuPalette.cursor_blue);
+
+        // The three visible comparison paints above legitimately increase
+        // the recorder. Reset before testing fail-closed refusal paths.
+        draws = {};
         pose.visible = false;
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, pixels.data(), w, h, scale, panel, pose));
-        assert(draws.calls == 1);
+        assert(draws.calls == 0);
         pose.visible = true;
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, nullptr, w, h, scale, panel, pose));

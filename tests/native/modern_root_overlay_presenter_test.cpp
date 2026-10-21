@@ -164,7 +164,8 @@ int main() {
     assert(contains("UNIRALLY"));
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
-    assert(contains("SELECTED"));
+    assert(contains("RECORDS")); // real active destination in wide preview
+    assert(!contains("SELECTED")); // generic engineering heading removed
     // Original stock-family wide context must expose both complete clauses.
     // Earlier 320px-panel output silently emitted only "RUNS AND BEST".
     assert(contains("RUNS AND"));
@@ -230,6 +231,13 @@ int main() {
                                           real_wide_view,view));
         assert(contains(expected_lines[i][0]));
         assert(contains(expected_lines[i][1]));
+        // Independent of the route hint, its yellow preview heading is
+        // exactly the selected source destination, never a stale label.
+        const char* active = modern_root_destination_label(
+            modern_root_destination_from_index(i));
+        assert(contains(active));
+        assert(drawn_in_color(active, kModernStockMenuPalette.title_yellow));
+        assert(!contains("SELECTED"));
         assert(text_draws_fit(real_wide_view));
         assert(rect_draws_fit(real_wide_view));
         assert(!contains("TOUR AND CONT")); // old silently cropped copy
@@ -275,6 +283,23 @@ int main() {
     assert(count("SOON") == 0);
     assert(contains("RUNS AND BEST TIMES"));
     assert(contains("X/F2 RACERS   F1 HELP"));
+
+    // One actual shipped P1 shortcut, no development-only "stock" jargon.
+    // Does not change what profile the existing shortcut creates.
+    // Source-bound geometry checks must count THIS compact draw alone;
+    // prior wide-root operations use incompatible (larger) coordinates.
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    view.racer_shortcuts_available = false;
+    view.first_racer_shortcut_available = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("X CREATE RACER"));
+    assert(!contains("X CREATE STOCK RACER"));
+    assert(text_draws_fit(old_view));
+    view.first_racer_shortcut_available = false;
+    view.racer_shortcuts_available = true;
 
     painted.clear();
     // Native Records uses the SAME shared root painter and a read-only
@@ -377,8 +402,7 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("UNRECORDED TWO PLAYER"));
-    // Actual first/second racer modal titles remain sourced from the
-    // authoritative view flags, but no technical "stock" adjective.
+    // Exact product flags must label both actual native racer modes.
     painted.clear();
     view.first_racer_open = true;
     view.first_racer_is_switch = false;
@@ -426,8 +450,7 @@ int main() {
                                       old_view,view));
     assert(contains("1 VERIFIED COURSE") && contains("A START  B BACK"));
     view.practice_picker_open = false;
-    // Source-owned launch is a real pending state. The host must never
-    // expose source/guest implementation language as an instruction.
+    // Existing source-owned launch pending keeps its actionable copy.
     painted.clear();
     view.practice_launch_pending = true;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,

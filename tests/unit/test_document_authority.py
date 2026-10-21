@@ -39,6 +39,11 @@ class CurrentDocumentationAuthoritiesTest(unittest.TestCase):
         self.assertGreater((ROOT / ARCHIVES[0]).stat().st_size, 80000)
         self.assertGreater((ROOT / ARCHIVES[1]).stat().st_size, 100000)
 
+    def test_live_authorities_contain_real_line_breaks_not_literal_escapes(self):
+        for rel in ("docs/PROJECT-PLAN.md", "docs/WORK-QUEUE.md"):
+            with self.subTest(rel=rel):
+                self.assertNotIn(r"\n\n", (ROOT / rel).read_text(encoding="utf-8"))
+
     def test_active_links_resolve(self):
         pages = (*PRIMARY, "docs/archive/README.md", "docs/FRAMEWORK-PIN.md",
             "docs/QA-PLAYER-JOURNEYS.md", "docs/VALIDATION.md",

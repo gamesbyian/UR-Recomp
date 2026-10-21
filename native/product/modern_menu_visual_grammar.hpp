@@ -12,6 +12,7 @@
 #include "modern_menu_source_atlas.hpp"  // optional source-verified raster adapter
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 
 namespace ur::product {
@@ -143,6 +144,24 @@ inline void modern_menu_paint_shadowed_heading(
         x < 0 || y < 0 || x >= stride || y >= surface_height ||
         glyph_scale < 1 || glyph_scale > 2 ||
         physical_scale < 1 || physical_scale > 4) return;
+    // This public primitive can be used outside the already bounded root.
+    // Its old guard admitted a title starting at the final framebuffer
+    // column, then issued BOTH text calls with most glyph pixels clipped.
+    // Preflight the whole 8px-pitch host string and the shadow offset first.
+    // Real root labels are short literals, but a malformed external label
+    // must not trigger either callback or scan without a bound.
+    std::size_t glyph_count = 0;
+    while (glyph_count <= 128u && label[glyph_count] != '\0')
+        ++glyph_count;
+    if (glyph_count == 0u || glyph_count > 128u) return;
+    const std::int64_t draw_scale =
+        static_cast<std::int64_t>(glyph_scale) * physical_scale;
+    const std::int64_t right =
+        static_cast<std::int64_t>(x) + glyph_count * 8 * draw_scale +
+        physical_scale;
+    const std::int64_t bottom =
+        static_cast<std::int64_t>(y) + 8 * draw_scale + physical_scale;
+    if (right > stride || bottom > surface_height) return;
     paint.draw_text(pixels, stride, surface_height,
                     x + physical_scale, y + physical_scale,
                     label, kModernStockMenuPalette.shadow_black,

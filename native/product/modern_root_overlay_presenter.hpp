@@ -355,9 +355,14 @@ inline bool render_modern_root_overlay(
         paint.fill_rect(pixels, stride, surface_height,
             x + 184 * scale, y + 52 * scale,
             (panel_w - 191) * scale, 109 * scale, palette.header_band);
+        // The preview already has an active destination from the product
+        // menu. Name that destination instead of a generic SELECTED label;
+        // all five stock names fit the 13-cell native-wide header budget.
         paint.draw_text(pixels, stride, surface_height,
             x + 193 * scale, y + 64 * scale,
-            "SELECTED", palette.title_yellow, scale);
+            modern_root_destination_label(
+                modern_root_destination_from_index(selected_index)),
+            palette.title_yellow, scale);
         const bool preview_available =
             (view.available_destinations & (1u << selected_index)) != 0;
         const char* const* preview = preview_available
@@ -402,7 +407,7 @@ inline bool render_modern_root_overlay(
             : view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
             : view.first_racer_shortcut_available
-                ? "X CREATE STOCK RACER"
+                ? "X CREATE RACER"
                 : view.second_racer_shortcut_available
                     ? "X ADD SECOND RACER"
                     : view.existing_profile_switch_available

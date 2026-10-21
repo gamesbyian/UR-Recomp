@@ -49,16 +49,26 @@ constexpr bool modern_menu_source_buffer(const ModernMenuSourcePixels& atlas,
                           static_cast<std::size_t>(atlas.height);
 }
 
-// The original small-letter O is a pixel-exact duplicate of numeral 0.
-// The first-party exporter constructs that alias. A correctly dimensioned
-// but contradictory caller sheet must not misrepresent that source rule.
-inline bool modern_menu_source_detail_zero_alias(
+// The original detail-font O/0, flipped ')' and transparent space are
+// explicit first-party exporter rules. A correctly sized but contradictory
+// caller sheet must not misrepresent the source menu. Full glyph metadata
+// and distribution provenance are separately checked before supply.
+inline bool modern_menu_source_detail_specials(
     const ModernMenuSourcePixels& atlas) noexcept {
     if (!modern_menu_source_buffer(atlas, 360, 16)) return false;
     for (int y = 0; y < 16; ++y)
         for (int x = 0; x < 8; ++x) {
             const auto row = static_cast<std::size_t>(y) * atlas.stride;
+            // Slot 35: source original O copies slot 0 (numeral zero).
             if (atlas.pixels[row + x] != atlas.pixels[row + 35 * 8 + x])
+                return false;
+            // Slot 43: closing parenthesis is the horizontal mirror of
+            // source opening parenthesis in slot 38 (whole 8px glyph).
+            if (atlas.pixels[row + 43 * 8 + x] !=
+                atlas.pixels[row + 38 * 8 + (7 - x)])
+                return false;
+            // Slot 44: the exporter preserves a genuinely empty space.
+            if (atlas.pixels[row + 44 * 8 + x] != 0u)
                 return false;
         }
     return true;
@@ -139,7 +149,7 @@ inline bool modern_menu_paint_source_cell(
                             static_cast<std::size_t>(height) ||
         left < 0 || top < 0 ||
         (sheet == ModernMenuSourceSheet::Detail &&
-         !modern_menu_source_detail_zero_alias(atlas))) return false;
+         !modern_menu_source_detail_specials(atlas))) return false;
 
     const int cw = sheet == ModernMenuSourceSheet::Heading ? 16 :
                    sheet == ModernMenuSourceSheet::Detail ? 8 :
@@ -206,7 +216,7 @@ inline bool modern_menu_paint_source_text(
          heading_word_gap_px != 8 && heading_word_gap_px != 16) ||
         static_cast<std::int64_t>(top) + 16 * scale > height ||
         (sheet == ModernMenuSourceSheet::Detail &&
-         !modern_menu_source_detail_zero_alias(atlas)))
+         !modern_menu_source_detail_specials(atlas)))
         return false;
     // Stock BG2 has both 8px (rider title) and 16px (main/options)
     // word gaps despite the fixed 16px heading glyph width. Preflight the

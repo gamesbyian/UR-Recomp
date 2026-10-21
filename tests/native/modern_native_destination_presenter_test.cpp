@@ -183,6 +183,13 @@ int main() {
     assert(has("ENTERING ORIGINAL COURSE"));
     assert(has("WAIT FOR SOURCE GO") && has("B CANCEL"));
     assert(has("STOCK")); // widened layout identifies the original course route
+    // Source-grey #989898 fails normal small-text contrast on the real
+    // #484848 header band. The derived brighter neutral must apply ONLY
+    // to the optional native-wide tag, never original menu/gameplay pixels.
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.cells == 5 && t.colour == 0xFFC8C8C8u;
+        }));
     assert(has_body_scrim(wide, 1));
     bounds(342,224);
     clear();

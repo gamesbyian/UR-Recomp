@@ -4,7 +4,8 @@ import unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[2] / "tools"))
 import qa01_rf046_zoo_nmi_checkpoint_crossphase as rf046
-from test_qa01_rf043_zoo_first_stack_window import FirstStack
+# CI partitions and loads tests as tests.unit.* modules, not top-level tests.
+from tests.unit.test_qa01_rf043_zoo_first_stack_window import FirstStack
 
 class NMICrossPhase(unittest.TestCase):
     def fixture(self):

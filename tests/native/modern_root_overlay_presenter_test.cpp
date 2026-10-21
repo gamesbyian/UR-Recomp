@@ -298,7 +298,7 @@ int main() {
     // must remain visible in the original 256x224 narrow presentation.
     assert(contains("VALID 2  UNAVAILABLE 1"));
     assert(contains("LAST: course:02 00:15.50"));
-    assert(contains("READ ONLY - NO REPLAY"));
+    assert(contains("REPLAY UNAVAILABLE"));
     assert(contains("A/ENTER  B/ESC BACK"));
     painted.clear();
     // The existing 1P modal is still the default for old consumers.
@@ -316,7 +316,7 @@ int main() {
     assert(contains("W 1  L 0  D 0"));
     assert(contains("LAST 01 WIN 00:28.76"));
     assert(contains("UP/DOWN 1P  B BACK"));
-    assert(contains("READ ONLY - NO REPLAY"));
+    assert(contains("REPLAY UNAVAILABLE"));
     painted.clear();
     view.read_only_records_two_player = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
@@ -329,7 +329,7 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("STORED RUNS"));
-    assert(!contains("READ ONLY - NO REPLAY"));
+    assert(!contains("REPLAY UNAVAILABLE"));
 
     // The native P1/P2 join is now a child of this SAME renderer, never
     // separately drawn by the execution adapter. Older hosts opt out by
@@ -347,9 +347,10 @@ int main() {
     assert(contains("TWO PLAYER PROFILES"));
     assert(contains("P1 MIKE ACTIVE"));
     assert(contains("P2 ANDREW CHOOSE"));
-    assert(contains("STOCK: MIKE / ANDREW"));
+    assert(contains("RACE AS: MIKE / ANDREW"));
     assert(contains("P1 A READY / B BACK"));
     assert(contains("P2 DPAD+A / B CLEAR"));
+    assert(!contains("STOCK: MIKE / ANDREW"));
     painted.clear();
     view.join_p1_confirmed = true;
     view.join_p2_confirmed = true;
@@ -368,14 +369,30 @@ int main() {
                                       old_view,view));
     assert(contains("UNRECORDED TWO PLAYER"));
     assert(contains("NEED TWO NAMED RACERS"));
-    assert(contains("NO MATCH HISTORY SAVED"));
-    assert(contains("PLAY STOCK 2P ANYWAY?"));
+    assert(contains("2P RESULTS NOT SAVED"));
+    assert(contains("PLAY LOCAL 2P ANYWAY?"));
     assert(contains("P1 A YES  B BACK"));
     painted.clear();
     view.unbound_two_player_warning_open = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("UNRECORDED TWO PLAYER"));
+    // Actual first/second racer modal titles remain sourced from the
+    // authoritative view flags, but no technical "stock" adjective.
+    painted.clear();
+    view.first_racer_open = true;
+    view.first_racer_is_switch = false;
+    view.first_racer_is_second = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("FIRST RACER"));
+    view.first_racer_is_second = true;
+    painted.clear();
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("SECOND RACER"));
+    view.first_racer_open = false;
+    view.first_racer_is_second = false;
 
     // A refused route or stale racer is stated in the root's hint line, and
     // multi-course Practice names its tour, kind and open-course count.
@@ -409,6 +426,15 @@ int main() {
                                       old_view,view));
     assert(contains("1 VERIFIED COURSE") && contains("A START  B BACK"));
     view.practice_picker_open = false;
+    // Source-owned launch is a real pending state. The host must never
+    // expose source/guest implementation language as an instruction.
+    painted.clear();
+    view.practice_launch_pending = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("STARTING PRACTICE"));
+    assert(contains("WAIT FOR GO"));
+    view.practice_launch_pending = false;
 
     // Native OPTIONS is opt-in: the old host's exact layout is unchanged and
     // the modal shows only what the host supplied, with the selected

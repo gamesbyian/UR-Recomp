@@ -81,6 +81,52 @@ class CancelledRunnerSampleTests(unittest.TestCase):
             "/repos/gamesbyian/UR-Recomp", rows,
         )
         self.assertEqual(s["observed_runner_seconds"], 0)
+        self.assertEqual(s["verified_job_censuses"], 0)
+        self.assertIn("UNKNOWN", s["unknown_censuses"][0]["reason"])
+
+    def test_started_job_without_finish_is_unknown_not_free(self):
+        rows = [{"id": 7, "name": "Cancelled", "conclusion": "cancelled"}]
+        response = lambda path: {
+            "total_count": 1,
+            "jobs": [{"id": 101, "started_at": "2026-10-21T08:00:00Z",
+                      "completed_at": None, "conclusion": "cancelled"}],
+        }
+        result = sample_cancelled_jobs(response, "/repos/gamesbyian/UR-Recomp", rows)
+        self.assertEqual(result["verified_job_censuses"], 0)
+        self.assertEqual(result["observed_runner_seconds"], 0)
+        self.assertIn("UNKNOWN", result["unknown_censuses"][0]["reason"])
+        self.assertEqual(result["workflows"], [])
+
+    def test_duplicate_job_ids_cannot_count_twice(self):
+        rows = [{"id": 9, "name": "Router", "conclusion": "cancelled"}]
+        job = {"id": 11, "started_at": "2026-10-21T08:00:00Z",
+               "completed_at": "2026-10-21T08:02:00Z"}
+        result = sample_cancelled_jobs(lambda path: {
+            "total_count": 2, "jobs": [job, dict(job)],
+        }, "/repos/gamesbyian/UR-Recomp", rows)
+        self.assertEqual(result["verified_job_censuses"], 0)
+        self.assertIn("duplicate", result["unknown_censuses"][0]["reason"])
+
+    def test_queued_jobs_with_both_timestamps_missing_count_zero(self):
+        rows = [{"id": 10, "name": "Queue", "conclusion": "cancelled"}]
+        result = sample_cancelled_jobs(lambda path: {
+            "total_count": 1,
+            "jobs": [{"id": 15, "started_at": None,
+                      "completed_at": None, "conclusion": "cancelled"}],
+        }, "/repos/gamesbyian/UR-Recomp", rows)
+        self.assertEqual(result["verified_job_censuses"], 1)
+        self.assertEqual(result["workflows"][0]["zero_started_jobs"], 1)
+        self.assertEqual(result["observed_runner_seconds"], 0)
+
+    def test_naive_time_does_not_carry_an_implicit_timezone(self):
+        rows = [{"id": 11, "name": "Unknown", "conclusion": "cancelled"}]
+        result = sample_cancelled_jobs(lambda path: {
+            "total_count": 1,
+            "jobs": [{"id": 16, "started_at": "2026-10-21T08:00:00",
+                      "completed_at": "2026-10-21T08:03:00"}],
+        }, "/repos/gamesbyian/UR-Recomp", rows)
+        self.assertEqual(result["verified_job_censuses"], 0)
+        self.assertIn("UNKNOWN", result["unknown_censuses"][0]["reason"])
 
     def test_bad_limits_and_missing_ids_fail_closed(self):
         for limit in (0, 21, -1, 1.5, "8"):

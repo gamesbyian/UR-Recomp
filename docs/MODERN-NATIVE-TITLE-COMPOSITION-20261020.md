@@ -1,6 +1,6 @@
 # Modern native title: original-source art + 16:9 host composition (2026-10-20)
 
-**Status: review candidate; no native screenshot or human visual approval claimed.**
+**Status: source-bound native Windows title/entry verified (342/256, A/Start/Enter, reduced motion and bounded Authentic inertness); independent SDL/physical/human visual approval still HOLD.**
 Exclusive lane is the *actual title screen* on the integrated Baldosa/Modern
 native executable. No second frontend/window, guest writes, new game input
 routing, Authentic change, or trailer assets. The five-item Modern root and
@@ -376,10 +376,38 @@ and duplicate/out-of-order Start acknowledgements are rejected by
 ROM-free tests. CI archives its bounded native source artifact alongside
 the existing A, Enter, 16:9, true 4:3 and reduced-motion cases.
 
-**Validation status:** this Start-specific exact-head native Windows
-route is pending CI after its branch commit. Do not count as physical
-controller or final SDL-drawable certification. The preceding head
-`5b524bd2` passed tooling unit, native staging and the full pinned
-Windows AOT route, including original title artwork, A and Enter,
-reduced motion, 342/256 source geometry and 320-frame visible
-Authentic-mode isolation.
+**Validation status (supersedes the pending note):** source head
+`f5ffe656eebe` passed the actual Windows AOT bridge [39527871045](https://github.com/gamesbyian/UR-Recomp/actions/runs/39527871045), tooling
+[39527871120](https://github.com/gamesbyian/UR-Recomp/actions/runs/39527871120),
+native staging [39527871033](https://github.com/gamesbyian/UR-Recomp/actions/runs/39527871033)
+and hygiene [39527871133](https://github.com/gamesbyian/UR-Recomp/actions/runs/39527871133).
+Downloaded source-bound Windows artifact **12314145908** reports the same
+actual PE SHA256 `86130c051465dec239b3982337e107ab30d905a866f8a2dea7b3a70581e8d4fe`
+for **A, Start, Enter, 342x224 wide, 256x224 real 4:3 and reduced-motion**
+routes. Original 238x81 title logo and selected host-P6/source-P7 ROIs
+agree exactly. Authentic Modern off/on retains identical 320 guest
+WRAM CRCs and 20/20 host-present RGB frames. These are specific bounded
+source/host results, not a whole-image SDL or physical acceptance: the
+diagnostic host OSD differs in a 44x12 top-left area (528 pixels) and
+must not be mistaken for original title artwork.
+
+## Title rim pixel determinism follow-up
+
+The decorative 18px lower unicycle ring formerly used a per-scanline
+`std::sqrt` call. Its 37 scanline extents are now computed by bounded
+**integer** squared-distance comparisons, preserving exactly the
+previous raster positions (0,5,8,...,18,...,8,5,0) while avoiding
+cross-platform floating-point dependencies. A compile-time pole bound
+and the entire fixed 37-row extent/symmetry oracle were added to
+`tests/native/modern_title_presenter_test.cpp`. This changes only the
+host title painter, neither source logo pixels nor timing, root routing,
+input, guest memory or Authentic. Unit/native Windows checks on this
+**new follow-up head** must be recorded separately before claiming
+verified screenshot parity; prior native evidence remains attached to
+its original SHA. Do not self-award art approval.
+
+**Visual holds:** original 16x16 lettering and source cursor treatment
+across the combined Modern root; final SDL3 drawables on exact integrated
+#2053 head, physical 4K/7:6 display and controllers, independent human
+aesthetic review, and original-stock idle attract/demo #2079 (real guest
+state and input wake required; no artificial clock-based handoff).

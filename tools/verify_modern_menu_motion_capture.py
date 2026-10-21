@@ -26,6 +26,63 @@ FIELDS = (
 MAX_EVENTS = 100_000
 
 
+def measured_cursor_offset(distance: int, age: int, steps: list[int]) -> int:
+    """Scale measured source travel to signed distance, round symmetrically."""
+    if age >= len(steps):
+        return 0
+    source_distance = sum(steps)
+    if source_distance != 23 or len(steps) != 12:
+        raise ValueError("unknown source cursor movement step contract")
+    remaining = source_distance - sum(steps[:age])
+    magnitude = (abs(distance) * remaining + source_distance // 2) // source_distance
+    return -magnitude if distance < 0 else magnitude
+
+
+def verify_source_focus_timeline(events: list[dict[str, int]],
+                                 source_steps: list[int]) -> None:
+    """Reconstruct controller-selected marker easing independently of C++.
+
+    Destination/semantic focus is authoritative immediately, while visible
+    paint follows measured original 6,4,3,... pixel travel within 21px rows.
+    Interruptions resume from their last computed onscreen cursor position,
+    wrap/multi-row changes snap, and reduced motion completes pending travel.
+    """
+    if not events:
+        raise ValueError("empty native focus timeline")
+    selected = events[0]["selection"]
+    origin_y = selected * 21
+    selection_tick = events[0]["tick60"]
+    for index, event in enumerate(events):
+        tick = event["tick60"]
+        next_selected = event["selection"]
+        if next_selected != selected:
+            old_target = selected * 21
+            elapsed = min(12, tick - selection_tick)
+            if origin_y != old_target and elapsed < 12:
+                elapsed += 1
+            old_y = old_target + measured_cursor_offset(
+                origin_y - old_target, elapsed, source_steps)
+            target_y = next_selected * 21
+            origin_y = (old_y if abs(next_selected - selected) == 1
+                        else target_y)
+            selected = next_selected
+            selection_tick = tick
+        if event["reduced"]:
+            origin_y = selected * 21
+            selection_tick = tick
+            expected_offset = 0
+        else:
+            age = min(12, tick - selection_tick)
+            if origin_y != selected * 21 and age < 12:
+                age += 1  # original visible response occurs on input frame
+            expected_offset = measured_cursor_offset(
+                origin_y - selected * 21, age, source_steps)
+        if event["offset"] != expected_offset:
+            raise ValueError(
+                "source cursor signed easing mismatches at native draw "
+                f"{index}: expected {expected_offset}, got {event['offset']}")
+
+
 def parse_log(log_text: str) -> list[dict[str, int]]:
     """Ignore unrelated host logs, reject every malformed motion witness."""
     events = []
@@ -41,10 +98,14 @@ def parse_log(log_text: str) -> list[dict[str, int]]:
             if token.count("=") != 1:
                 raise ValueError("malformed native motion record token")
             key, value = token.split("=", 1)
-            if key not in FIELDS or key in item or not re.fullmatch(r"[0-9]+", value):
-                raise ValueError("unexpected, duplicate or nondecimal motion field")
+            numeric = r"-?[0-9]+" if key == "offset" else r"[0-9]+"
+            if key not in FIELDS or key in item or not re.fullmatch(numeric, value):
+                raise ValueError("unexpected, duplicate or malformed motion field")
             number = int(value)
-            if number > (1 << 64) - 1:
+            if key == "offset":
+                if not -(1 << 31) <= number < (1 << 31):
+                    raise ValueError("native signed cursor offset overflow")
+            elif number > (1 << 64) - 1:
                 raise ValueError("native motion field integer overflow")
             item[key] = number
         if set(item) != set(FIELDS):
@@ -67,6 +128,7 @@ def verify_events(events: list[dict[str, int]], original: dict,
     slide = original["transition_main_to_options"]
     if (cursor["spin_period_frames"] != 32 or
         cursor["spin_frames_per_tile"] != [2] or
+        cursor["move_y_per_frame"] != [6, 4, 3, 3, 2, 1, 1, 1, 1, 0, 0, 1] or
         slide["distance_px"] != 256 or slide["enter_frames"] != 39 or
         len(slide["enter_velocity_px_per_frame"]) != 39 or
         sum(slide["enter_velocity_px_per_frame"]) != 256):
@@ -109,7 +171,9 @@ def verify_events(events: list[dict[str, int]], original: dict,
             raise ValueError("native root capture changed physical geometry mid-session")
         if current and event["tick60"] != current[-1]["tick60"] + 1:
             raise ValueError("native root animation failed one-tick-per-draw cadence")
-        if event["spin"] != (event["tick60"] // 2) % 16:
+        expected_spin = (
+            0 if event["reduced"] else (event["tick60"] // 2) % 16)
+        if event["spin"] != expected_spin:
             raise ValueError("stock 32-tick cursor spin phase disagrees with source")
         age = min(expected, 39)
         intro_suppressed = intro_suppressed or bool(event["reduced"])
@@ -117,18 +181,13 @@ def verify_events(events: list[dict[str, int]], original: dict,
             0 if intro_suppressed else 256 - cumulative[age])
         if event["entrance"] != measured_entrance:
             raise ValueError("root entrance phase mismatches original 39-tick scroll")
-        # No layout/guest command inferred from menu selection. For an
-        # unchanged focus index on consecutive frames, the measured marker
-        # must not leap more than the source-normalized first 6px step.
-        if current and event["selection"] == current[-1]["selection"] and \
-                event["reduced"] == current[-1]["reduced"] == 0:
-            if abs(event["offset"] - current[-1]["offset"]) > 6:
-                raise ValueError("source cursor movement jumped unexpectedly")
         current.append(event)
     if current:
         sessions.append(current)
     if any(len(session) < min_frames for session in sessions):
         raise ValueError("no complete required native motion draw sequence")
+    for session in sessions:
+        verify_source_focus_timeline(session, cursor["move_y_per_frame"])
     return [{
         "first_tick60": series[0]["tick60"],
         "last_tick60": series[-1]["tick60"],

@@ -242,7 +242,7 @@ inline bool render_modern_root_overlay(
     }
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 36 * scale,
-        identity.c_str(), palette.secondary_grey, scale);
+        identity.c_str(), kModernMenuCheckerLegibleGrey, scale);
     constexpr int kRootFirstRow = 57;
     constexpr int kRootRowStride = 21;
     for (std::size_t i = 0; i < kModernRootDestinationCount; ++i) {
@@ -263,12 +263,12 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
             x + 9 * scale, row_y,
             label.c_str(),
-            !available ? palette.secondary_grey :
+            !available ? kModernMenuCheckerLegibleGrey :
             selected ? palette.title_yellow : 0xFFFFFFFFu, scale);
         if (!available)
             paint.draw_text(pixels, stride, surface_height,
                 x + (list_w - 43) * scale, row_y,
-                "SOON", palette.secondary_grey, scale);
+                "SOON", kModernMenuCheckerLegibleGrey, scale);
     }
     constexpr const char* kDetails[] = {
         "TOUR AND CONTINUE",

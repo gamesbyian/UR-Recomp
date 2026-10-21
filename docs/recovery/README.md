@@ -35,6 +35,12 @@ For each exact Drive ID and useful inner member, record one of: **source-exact i
 
 This is a living index for future recovery passes. When the vault changes, first traverse the root and all nested folders, then add a new immutable ID delta rather than overwriting historic snapshots.
 
+## Current GitHub-first recovery practice
+
+Follow the [publication runbook](GITHUB-FIRST-PUBLICATION-RUNBOOK.md). An invocation-level safety-check block is not proof that source code is permanently invalid. Preserve original errors and artifacts; do not repeatedly resubmit a blocked operation to evade the check. Future runs independently re-evaluate current GitHub state and permissible publication options. Ordinary transport/API failures get bounded fresh-HEAD retries. Successful GitHub work does not need Drive status mirrors.
+
+**RF081 H26:** [#2099](https://github.com/gamesbyian/UR-Recomp/pull/2099) merged at `8a38454f3edd1a493101258d6f9e42f9f17c1afd` after unit and hygiene success. Original wake-PC and stack coherence guard/tests came from Agent 1 H26 Vault archive ID `1kULfQIJSV-YJ1lwWBPJAnH6iLtzt5W9d`. Remaining H26 P2P, QA04, QA08 and UHD proposals are not integrated by that PR; no QA gate or physical credit.
+
 ## Historical GitHub write-failure triage (2026-10-21)
 
 Do not equate all historical failures with permanent policy decisions. The [coordination protocol](../AGENT-COORDINATION.md) now requires the **original error response** and classifies each unresolved operation as technical-retryable, source-conflict, explicit-safety-denial, unknown or already resolved in main. Ordinary transient failures warrant bounded attempts using fresh HEADs. Explicit safety denials remain restricted and must not be repeated via alternate publication routes. If the original response was not independently retrieved, retain UNKNOWN rather than trusting a handoff label.

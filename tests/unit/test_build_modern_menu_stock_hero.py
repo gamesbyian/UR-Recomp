@@ -362,6 +362,34 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                     [str(exe)], text=True, capture_output=True, check=False)
                 self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
+    def test_private_original_asset_paths_never_escape_into_tracked_tree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            external = Path(tmp)
+            fake_rom = external / "missing-rom.sfc"
+            allowed = ROOT / "native/product/modern_menu_stock_hero_original.generated.hpp"
+            # Exact ignored native header is allowed; the canonical ROM
+            # validation remains a separate fail-closed producer gate.
+            hero.require_private_artifact_paths(
+                allowed, external / "receipt.json", external / "plates")
+            for header, manifest, plates in (
+                (ROOT / "native/product/private-new-art.hpp",
+                 external / "receipt.json", None),
+                (external / "hero.hpp",
+                 ROOT / "analysis/private-hero-manifest.json", None),
+                (external / "hero.hpp", external / "receipt.json",
+                 ROOT / "analysis/private-hero-plates"),
+                (ROOT, external / "receipt.json", None),
+            ):
+                with self.subTest(header=header, manifest=manifest, plates=plates):
+                    with self.assertRaisesRegex(ValueError, "tracked source"):
+                        hero.require_private_artifact_paths(
+                            header, manifest, plates)
+            with self.assertRaisesRegex(ValueError, "tracked source"):
+                hero.build(fake_rom, external / "hero.hpp",
+                           ROOT / "analysis/accident.json")
+            self.assertFalse((ROOT / "analysis/accident.json").exists())
+            self.assertFalse((external / "hero.hpp").exists())
+
     def test_direct_cli_lists_registered_source_clips(self):
         with tempfile.TemporaryDirectory() as cwd:
             result = subprocess.run(

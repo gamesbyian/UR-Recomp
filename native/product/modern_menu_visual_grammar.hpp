@@ -30,6 +30,14 @@ inline constexpr std::array<std::uint32_t, 5> kModernMenuGreyRamp{{
 
 // Stock main-menu arrow OBJ palette 7, brightest sampled outline/highlight
 // and the shadow's measured +7/+7 raster displacement.
+// A narrowly scoped host accessibility adaptation, not an original CGRAM
+// assertion: #989898 stock-family grey has only 2.80:1 contrast against
+// the bright #505050 checker squares in the native root. #C8C8C8 preserves
+// the neutral secondary hierarchy but meets 4.82:1 on the worst square.
+// Applied only to root supporting copy drawn directly over the checker;
+// source raster palettes and Authentic remain completely untouched.
+inline constexpr std::uint32_t kModernMenuCheckerLegibleGrey = 0xFFC8C8C8u;
+
 inline constexpr std::uint32_t kModernMenuCursorLight = 0xFFA0D0F8u;
 inline constexpr std::uint32_t kModernMenuCursorDark = 0xFF283058u;
 inline constexpr int kModernMenuCursorWidth = 32;

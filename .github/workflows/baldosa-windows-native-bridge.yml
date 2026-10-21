@@ -777,7 +777,7 @@ jobs:
           set -euo pipefail
           python tools/export_baldosa_earned_1p_run.py \
             --journey "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_first_racer_earned_records" \
-            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/ci-owned-earned-1p-run"
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/ci-owned-earned-1p-run"
 
       # Separate, bounded evidence for independent QA. The fixed strict
       # baldosa-win32-native-pause-evidence ZIP is deliberately NOT touched.
@@ -1357,7 +1357,7 @@ jobs:
           name: baldosa-win32-native-earned-1p-run
           if-no-files-found: warn
           retention-days: 14
-          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/ci-owned-earned-1p-run/
+          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/ci-owned-earned-1p-run/
 
       # Do NOT place pre-view bytes inside the independently fixed-members
       # baldosa-win32-native-pause-evidence ZIP. QA-12 #1549 rejects additional

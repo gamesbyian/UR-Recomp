@@ -392,6 +392,40 @@ void test_source_stock_hero() {
     assert(pose.hero_frame_ordinal == 7);
     pose = advance_modern_menu_motion(animator, {102, 1, true, false});
     assert(pose.hero_frame_ordinal == 0);
+    // Renderer-level one-shot guarantee: the eight-frame original event
+    // must HOLD its final supplied pose when a late caller asks for a later
+    // ordinal. Modulo previously wrapped to source pose zero, fabricating
+    // an original guest animation seam that never occurred.
+    pose.reduced_motion = false;
+    pose.hero_frame_ordinal = 2; // exactly count, formerly wraps to red
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xff0000ffu);
+    pose.hero_frame_ordinal = INT32_MAX;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xff0000ffu);
+    pose.hero_frame_ordinal = -1;
+    const auto reject_negative = output;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Unverified);
+    assert(output == reject_negative);
+    // Reduced motion intentionally selects a single static first image.
+    pose.hero_frame_ordinal = INT32_MAX;
+    pose.reduced_motion = true;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xffff0000u);
+    pose.reduced_motion = false;
+    pose.hero_frame_ordinal = 0;
+
     // A wrong digest or unproven order never touches a pixel.
     const auto before = output;
     frames[1].source_argb_digest ^= 1u;

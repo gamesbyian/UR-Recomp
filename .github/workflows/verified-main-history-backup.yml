@@ -30,18 +30,99 @@ jobs:
       - name: Prove complete main bundle can be cloned and verified
         run: |
           python3 -m unittest -v tests.unit.test_backup_main_history
-          python3 tools/backup_main_history.py --out "$RUNNER_TEMP/main-history-backup" --max-mib 650
+          python3 tools/backup_main_history.py --out "$RUNNER_TEMP/main-history-backup" --max-mib 650 --part-mib 80
       - name: Publish source-bound restoration manifest
         if: success()
         run: |
           cat "$RUNNER_TEMP/main-history-backup/manifest.json" >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo 'GitHub artifact only until separately downloaded to restricted Google Drive and read back.' >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - name: Upload compact source and per-part digest manifest
+        uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: ur-main-history-${{ github.sha }}
-          path: ${{ runner.temp }}/main-history-backup/
+          name: ur-main-history-${{ github.sha }}-manifest
+          path: ${{ runner.temp }}/main-history-backup/manifest.json
           if-no-files-found: error
+          retention-days: 2
+      - name: Transfer-safe source bundle part 01
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-01
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-01
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 02
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-02
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-02
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 03
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-03
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-03
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 04
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-04
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-04
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 05
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-05
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-05
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 06
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-06
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-06
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 07
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-07
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-07
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 08
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-08
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-08
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 2
+      - name: Transfer-safe source bundle part 09
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}-part-09
+          path: ${{ runner.temp }}/main-history-backup/transfer/UR-Recomp-main-history.part-09
+          if-no-files-found: ignore
           compression-level: 0
           retention-days: 2

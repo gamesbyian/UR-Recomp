@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from agent_control import BOARD, REGISTRY, extract_board, load_json
 from ops_live_status import markdown, snapshot, timestamp
+from validate_history_custody import load as load_custody
 
 SHA = "a" * 40
 MERGE = "5cdbbc57dc991d77df10c1a2ecabab2772c8063c"
@@ -69,6 +70,36 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertIn("latest_100_only", result["actions"]["scope"])
         self.assertIn("NOT daily totals", markdown(result))
 
+    def test_cancellation_leads_ranked_only_within_latest_bounded_sample(self):
+        def fake(path):
+            if "/actions/runs?" in path:
+                rows = [
+                    {"created_at": "2026-10-21T06:00:00Z", "conclusion": "cancelled",
+                     "name": name} for name in ("Windows", "Unit", "Windows", "Windows", "Unit")
+                ]
+                rows.append({"created_at": "2026-10-21T05:59:00Z",
+                             "conclusion": "success", "name": "Windows"})
+                return {"workflow_runs": rows}
+            return self.request(path)
+        report = self.report(get=fake)
+        self.assertEqual(
+            report["actions"]["cancelled_by_workflow"],
+            [{"workflow": "Windows", "count": 3},
+             {"workflow": "Unit", "count": 2}],
+        )
+        self.assertIn("Counts are NOT lost runner minutes", markdown(report))
+        self.assertIn("latest_100_only", report["actions"]["scope"])
+
+    def test_workflow_names_without_cancellations_are_not_inferred_as_waste(self):
+        def all_green(path):
+            if "/actions/runs?" in path:
+                return {"workflow_runs": [{"conclusion": "success",
+                                          "name": "Windows", "created_at": "2026-10-21T06:00:00Z"}]}
+            return self.request(path)
+        report = self.report(get=all_green)
+        self.assertEqual(report["actions"]["cancelled_by_workflow"], [])
+        self.assertNotIn("Cancellation leads", markdown(report))
+
     def test_uncorroborated_drive_and_schedule_state_are_unknown(self):
         result = self.report()
         self.assertEqual(result["drive"], "UNKNOWN_NOT_CONNECTED")
@@ -122,6 +153,36 @@ class LiveOperationsTests(unittest.TestCase):
         result = self.report(get=full_page)
         self.assertFalse(result["prs"]["census_complete"])
         self.assertEqual(result["prs"]["count"], 300)
+
+    def test_historical_backup_is_never_live_drive_attestation(self):
+        record = load_custody()
+        report = snapshot(self.request, board=self.board, registry=self.registry,
+                          ledger=self.ledger, local_head=SHA, now=NOW, custody=record)
+        self.assertEqual(report["backup"]["source_commit"], record["source_commit"])
+        self.assertEqual(report["backup"]["current_drive_integrity"], "UNKNOWN_NOT_CHECKED")
+        self.assertFalse(report["backup"]["observed_main_exactly_in_backup"])
+        self.assertIn("historical backup only", markdown(report))
+
+    def test_invalid_record_does_not_launder_release_or_backup_claim(self):
+        record = load_custody()
+        record["release_qa_credit"] = True
+        report = snapshot(self.request, board=self.board, registry=self.registry,
+                          ledger=self.ledger, local_head=SHA, now=NOW, custody=record)
+        self.assertIsNone(report["backup"])
+        self.assertIn("invalid custody receipt", report["errors"]["backup"])
+        self.assertIn("Drive backup:** UNKNOWN", markdown(report))
+
+    def test_exact_backup_commit_never_implies_future_drive_readback(self):
+        record = load_custody()
+        def same_head(path):
+            if path.endswith("/branches/main"):
+                return {"commit": {"sha": record["source_commit"]}, "protected": True}
+            return self.request(path)
+        report = snapshot(same_head, board=self.board, registry=self.registry,
+                          ledger=self.ledger, local_head=record["source_commit"],
+                          now=NOW, custody=record)
+        self.assertTrue(report["backup"]["observed_main_exactly_in_backup"])
+        self.assertEqual(report["backup"]["current_drive_integrity"], "UNKNOWN_NOT_CHECKED")
 
     def test_bad_time_rejected_without_implicit_timezone(self):
         self.assertIsNone(timestamp("2026-10-21T12:00:00"))

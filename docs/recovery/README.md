@@ -2,6 +2,12 @@
 
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.
 
+## Subsequent H29 routing checkpoint (2026-10-21 UTC)
+
+An independent Drive metadata/readback sweep moved **16 surviving administrative files** from `02 Incoming`: 13 preflight/result/manifest receipts to `03 Evidence Library`, three historic continuations/handoffs to `01 Work Journals`. Post-move direct-child counts: **0 Inbox, 29 Incoming, 34 Evidence, 25 Journals, 3 Integrated, 0 Superseded**. File IDs were preserved; no source archive, source patch, candidate manifest or held source write was deleted/integrated. Full 16-ID routing receipt and limits: [H29 metadata routing](VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md).
+
+The Evidence Library also contains a nested **six-file historical-main Git backup** (five transfer ZIPs and a manifest ZIP). Its creation-time manifest said independent Drive verification was pending. This pickup **subsequently downloaded and independently verified all five ZIP CRCs, per-part SHA-256 values, the reconstructed 408,610,900-byte bundle SHA-256, Git bundle completeness, and a fresh bare-repository restore/fsck**: recovered main `7e9a1be4016b7a094c93603e2bad116a7ebf6ba7`, 8,118 commits. The original manifest is unchanged. Newer main commits and non-main GitHub state remain outside the backup scope; keep the backup restricted. Exact commands, hashes and limits appear in the [H29 receipt](VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md).
+
 ## Verified live folder-routing checkpoint (2026-10-21 UTC)
 
 A fresh direct listing of all six Vault folders, with readback after routing the latest blocked P2P pointer, observed **0 Integration Inbox items**, **45 Incoming files**, **20 Evidence Library files**, **3 Integrated files**, **22 Work Journal files** and **0 Superseded files**; the root held only those six folders. These are moment-in-time **direct-child counts, not permanent inventory totals or member-level classifications**. No files were deleted, and no unpublished code was marked integrated.

@@ -36,6 +36,9 @@ class ModernMenuVisualGrammarTest(unittest.TestCase):
         self.assertIn('#include "modern_menu_visual_grammar.hpp"', host)
         self.assertIn("modern_menu_paint_checker_backdrop(", host)
         self.assertIn("modern_menu_paint_focus_band(", host)
+        # Shared root uses one globally anchored BG1 checker phase across
+        # widescreen/compact backgrounds; the stock guest is untouched.
+        self.assertIn("rect.width, rect.height, scale, true);", host)
         # Render-only layer must not acquire independent input/routing.
         grammar = (ROOT / "native/product/modern_menu_visual_grammar.hpp").read_text()
         for forbidden in ("SDL_", "snesrecomp_", "write_sram", "std::filesystem"):

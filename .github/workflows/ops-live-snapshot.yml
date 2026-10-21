@@ -1,7 +1,11 @@
 name: Live operations snapshot
 
+# UTC 14:30 means 07:30 MST / 08:30 MDT in Edmonton.
+# One inexpensive daily report, no sixth ChatGPT agent or auto-merge action.
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '30 14 * * *'
 
 permissions:
   contents: read

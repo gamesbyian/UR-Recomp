@@ -44,6 +44,7 @@ extern "C" {
 #include "modern_root_menu.hpp"
 #include "modern_root_overlay_presenter.hpp"
 #include "modern_menu_motion.hpp"
+#include "modern_reduced_motion_preference.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
@@ -10087,10 +10088,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
                      ur::product::modern_root_destination_index(
                          ur::product::modern_root_menu_selected(view.menu))),
                  true,
-                 [] {
-                     const char* value = std::getenv("UR_REDUCED_MOTION");
-                     return value && std::strcmp(value, "1") == 0;
-                 }()});
+                 ur::product::modern_reduced_motion_preference(
+                     std::getenv("UR_REDUCED_MOTION"))});
             if (g_modern_root_motion_root_presents < UINT64_MAX)
                 ++g_modern_root_motion_root_presents;
             (void)ur::product::paint_modern_menu_selection_motion(

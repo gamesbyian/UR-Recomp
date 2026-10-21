@@ -1,4 +1,5 @@
 """Live ops report must expose API loss, stale evidence and bounded sampling."""
+import copy
 from datetime import datetime, timezone
 import sys
 import unittest
@@ -50,10 +51,19 @@ class LiveOperationsTests(unittest.TestCase):
             ]}
         raise ValueError("unexpected route")
 
-    def report(self, get=None, local_head=SHA):
+    def report(self, get=None, local_head=SHA, registry=None):
         return snapshot(get or self.request, board=self.board,
-                        registry=self.registry, ledger=self.ledger,
-                        local_head=local_head, now=NOW)
+                        registry=self.registry if registry is None else registry,
+                        ledger=self.ledger, local_head=local_head, now=NOW)
+
+    def historically_blocked_lanes(self):
+        # Real current registry can resolve this exact candidate without
+        # turning the old failed handoff into an untestable fixture.
+        old = copy.deepcopy(self.registry)
+        record = next(x for x in old["candidates"]
+                      if x["candidate_id"] == "h27-knowledge-malformed-lanes")
+        record.update(state="blocked", github_pr=None, merge_sha=None)
+        return old
 
     def test_live_main_and_recency_are_explicit(self):
         result = self.report()
@@ -105,6 +115,72 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertEqual(result["drive"], "UNKNOWN_NOT_CONNECTED")
         self.assertEqual(result["scheduled_agent_health"], "UNKNOWN_NOT_CONNECTED")
         self.assertIn("Drive presence UNKNOWN", markdown(result))
+
+    def test_verified_closed_pr_census_surfaces_stale_handoff_without_mutation(self):
+        def request(path):
+            if "/pulls?state=closed&" in path:
+                return [{
+                    "number": 2194, "merged_at": "2026-10-21T19:55:59Z",
+                    "merge_commit_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
+                    "body": "Independent archive 1_RScoARFTHjfttOY87v9PKBepXmE8tK8"
+                }]
+            if "/pulls/2194" in path:
+                return {"state": "closed", "merged_at": "2026-10-21T19:55:59Z",
+                        "merge_commit_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
+                        "draft": False}
+            return self.request(path)
+        # Reproduce the old candidate handoff explicitly; the live registry
+        # has since been source-reviewed and legitimately resolved.
+        before = self.report(get=request, registry=self.historically_blocked_lanes())
+        drift = before["handoff_drift"]
+        self.assertEqual(drift["status"], "REVIEW_HINTS")
+        self.assertEqual(drift["hints"][0]["candidate_id"],
+                         "h27-knowledge-malformed-lanes")
+        self.assertEqual(drift["automatic_state_changes"], 0)
+        self.assertIn("inspect every member", markdown(before))
+        after = self.report(get=request)
+        self.assertEqual(after["handoff_drift"]["status"],
+                         "NO_HINTS_IN_CURATED_SCOPE")
+        verified = next(x for x in after["recovery"]
+                        if x["candidate_id"] == "h27-knowledge-malformed-lanes")
+        self.assertEqual(verified["check"], "MERGE_SHA_VERIFIED")
+        self.assertEqual(after["handoff_drift"]["automatic_state_changes"], 0)
+
+    def test_partial_closed_census_never_claims_no_stale_handoffs(self):
+        def partial(path):
+            if "/pulls?state=closed&" in path:
+                return [{"number": x, "merged_at": None} for x in range(100)]
+            return self.request(path)
+        report = self.report(get=partial)
+        self.assertEqual(report["handoff_drift"]["status"],
+                         "UNKNOWN_INCOMPLETE_PR_CENSUS")
+        self.assertEqual(report["handoff_drift"]["hints"], [])
+        self.assertFalse(report["handoff_drift"]["census_complete"])
+
+    def test_partial_census_preserves_positive_evidence_without_completeness(self):
+        def partial(path):
+            if "/pulls?state=closed&" in path:
+                valid = {
+                    "number": 2194, "merged_at": "2026-10-21T19:55:59Z",
+                    "merge_commit_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
+                    "body": "Drive source 1_RScoARFTHjfttOY87v9PKBepXmE8tK8",
+                }
+                return [valid] + [
+                    {"number": x, "merged_at": None} for x in range(99)
+                ]
+            return self.request(path)
+        report = self.report(get=partial, registry=self.historically_blocked_lanes())
+        result = report["handoff_drift"]
+        self.assertEqual(result["status"], "PARTIAL_CENSUS_REVIEW_HINTS")
+        self.assertFalse(result["census_complete"])
+        self.assertEqual(result["hints"][0]["linked_merged_pr"], 2194)
+        self.assertEqual(result["automatic_state_changes"], 0)
+
+    def test_failed_closed_census_is_unknown(self):
+        result = self.report()
+        self.assertEqual(result["handoff_drift"]["status"],
+                         "UNKNOWN_API_OR_DATA_FAILURE")
+        self.assertIn("handoff_drift", result["errors"])
 
     def test_current_ledger_never_credited_when_checkout_differs(self):
         result = self.report(local_head="b" * 40)

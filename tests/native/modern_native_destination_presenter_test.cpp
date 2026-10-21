@@ -281,11 +281,39 @@ int main() {
     assert(has("OPTIONS"));
     bounds(512,448);
     clear();
+    // Pause is a child of the real Modern framebuffer, not a fixed 4:3
+    // island. Assert the first opaque root paint uses matching 320-logical
+    // wide geometry, while 256-wide/four-times compact stays 240-logical.
+    assert(render_modern_native_pause_destination(
+        painter,scratch,342,342,224,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 11 && painted.front().y == 10);
+    assert(painted.front().w == 320 && painted.front().h == 204);
+    assert(has("PAUSED - GUEST FROZEN") && has("OPTIONS"));
+    bounds(342,224);
+    clear();
+    assert(render_modern_native_pause_destination(
+        painter,scratch,684,684,448,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 22 && painted.front().y == 20);
+    assert(painted.front().w == 640 && painted.front().h == 408);
+    bounds(684,448);
+    clear();
     assert(render_modern_native_pause_destination(
         painter,scratch,1368,1368,896,v));
     assert(has("UNIRACERS") && has("PAUSED - GUEST FROZEN"));
     assert(has("OPTIONS"));
+    assert(!painted.empty());
+    assert(painted.front().x == 44 && painted.front().y == 40);
+    assert(painted.front().w == 1280 && painted.front().h == 816);
     bounds(1368,896);
+    clear();
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1024,1024,896,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 32 && painted.front().y == 40);
+    assert(painted.front().w == 960 && painted.front().h == 816);
+    bounds(1024,896);
     clear();
     assert(!render_modern_native_pause_destination(
         painter,scratch,240,240,224,v));

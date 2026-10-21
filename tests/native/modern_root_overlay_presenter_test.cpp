@@ -161,7 +161,11 @@ int main() {
     assert(contains("CONTINUE READY"));
     // This same native sentinel has enough room to retain its full wording
     // in the wide panel: only the 240px fallback requires compact copy.
+    // Isolate geometry receipts by draw: compact coordinates accumulated
+    // above must never be treated as output of this 4x widescreen render.
     painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
     view.racer_name = "PROFILE CHANGED - RESTART APP";
     assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
                                       wide_view,view));

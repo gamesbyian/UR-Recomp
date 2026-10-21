@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <string>
 
 using namespace ur::product;
 
@@ -99,6 +100,27 @@ int main() {
     modern_menu_paint_shadowed_heading(
         painter, framebuffer, 256, 224, 20, 6, "UNIRACERS", 3, 1);
     assert(text_draws == 2); // invalid text density fails closed
+
+    // The shared heading is a public host primitive, not a framebuffer
+    // clipper. An entire 9-glyph shadowed 2x heading fits at x=111/y=207;
+    // moving it only 1px farther right or down must paint neither layer.
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 111, 207, "UNIRACERS", 2, 1);
+    assert(text_draws == 4);
+    const int bounded_draws = text_draws;
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 112, 207, "UNIRACERS", 2, 1);
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 111, 208, "UNIRACERS", 2, 1);
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 255, 10, "UNIRACERS", 2, 1);
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 20, 6, "", 2, 1);
+    const std::string excessive_heading(129, 'A');
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 20, 6,
+        excessive_heading.c_str(), 2, 1);
+    assert(text_draws == bounded_draws);
 
     modern_menu_paint_checker_backdrop(
         painter, framebuffer, 256, 224, 8, 10, 240, 204, 1);

@@ -49,6 +49,21 @@ constexpr bool modern_menu_source_buffer(const ModernMenuSourcePixels& atlas,
                           static_cast<std::size_t>(atlas.height);
 }
 
+// The original small-letter O is a pixel-exact duplicate of numeral 0.
+// The first-party exporter constructs that alias. A correctly dimensioned
+// but contradictory caller sheet must not misrepresent that source rule.
+inline bool modern_menu_source_detail_zero_alias(
+    const ModernMenuSourcePixels& atlas) noexcept {
+    if (!modern_menu_source_buffer(atlas, 360, 16)) return false;
+    for (int y = 0; y < 16; ++y)
+        for (int x = 0; x < 8; ++x) {
+            const auto row = static_cast<std::size_t>(y) * atlas.stride;
+            if (atlas.pixels[row + x] != atlas.pixels[row + 35 * 8 + x])
+                return false;
+        }
+    return true;
+}
+
 // Source PNG decompression yields straight RGBA *bytes*. Do not cast that
 // memory to uint32_t*: the framebuffer ABI is AARRGGBB words and host byte
 // order differs. This narrow packer works after a separately verified PNG
@@ -122,7 +137,9 @@ inline bool modern_menu_paint_source_cell(
         stride > 16384 || height > 16384 ||
         destination_count < static_cast<std::size_t>(stride) *
                             static_cast<std::size_t>(height) ||
-        left < 0 || top < 0) return false;
+        left < 0 || top < 0 ||
+        (sheet == ModernMenuSourceSheet::Detail &&
+         !modern_menu_source_detail_zero_alias(atlas))) return false;
 
     const int cw = sheet == ModernMenuSourceSheet::Heading ? 16 :
                    sheet == ModernMenuSourceSheet::Detail ? 8 :
@@ -187,7 +204,9 @@ inline bool modern_menu_paint_source_text(
         value.empty() || value.size() > 256 ||
         (sheet == ModernMenuSourceSheet::Heading &&
          heading_word_gap_px != 8 && heading_word_gap_px != 16) ||
-        static_cast<std::int64_t>(top) + 16 * scale > height)
+        static_cast<std::int64_t>(top) + 16 * scale > height ||
+        (sheet == ModernMenuSourceSheet::Detail &&
+         !modern_menu_source_detail_zero_alias(atlas)))
         return false;
     // Stock BG2 has both 8px (rider title) and 16px (main/options)
     // word gaps despite the fixed 16px heading glyph width. Preflight the

@@ -13,11 +13,12 @@ from tools import qa_modern_visual_diagnostics as d
 
 ROOT = Path(__file__).resolve().parents[2]
 VARIANTS = ("root", "practice", "join", "options", "records", "warning",
-            "first-racer")
+            "first-racer", "pause", "pause-controls")
 # Native-host composition (root shell + separate destination presenter).
 # Its supporting-copy contrast belongs to the destination owner (#2167);
 # its geometry is audited here.
-DEST_VARIANTS = tuple("dest-" + v for v in VARIANTS[1:])
+DEST_VARIANTS = tuple("dest-" + v for v in VARIANTS[1:]
+                      if not v.startswith("pause"))
 
 
 class ModernRootLegibilityAudit(unittest.TestCase):
@@ -32,6 +33,7 @@ class ModernRootLegibilityAudit(unittest.TestCase):
             [compiler, "-std=c++17", "-O1", "-Wall", "-Wextra", "-Werror",
              "-pedantic", "-I", str(ROOT),
              str(ROOT / "tests/native/modern_root_layout_dump.cpp"),
+             str(ROOT / "native/product/modern_pause_menu.cpp"),
              "-o", str(cls.exe)], capture_output=True, text=True)
         assert build.returncode == 0, build.stdout + build.stderr
 

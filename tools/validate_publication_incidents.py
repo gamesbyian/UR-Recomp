@@ -8,9 +8,9 @@ from agent_control import BOARD, REGISTRY, extract_board, load_json, validate_re
 
 ROOT = Path(__file__).resolve().parents[1]
 INCIDENTS = ROOT / "docs/recovery/publication-incidents.json"
-DRIVE_ID = re.compile(r"[A-Za-z0-9_-]{15,}\\Z")
-SHA40 = re.compile(r"[0-9a-f]{40}\\Z")
-SHA64 = re.compile(r"[0-9a-f]{64}\\Z")
+DRIVE_ID = re.compile(r"[A-Za-z0-9_-]{15,}\Z")
+SHA40 = re.compile(r"[0-9a-f]{40}\Z")
+SHA64 = re.compile(r"[0-9a-f]{64}\Z")
 READBACK = {"pending", "verified", "failed", "unknown"}
 DISPOSITIONS = {"held_for_independent_review", "escalated", "independently_resolved", "unknown"}
 DENIALS = {"explicit_safety_denial", "explicit_policy_denial"}

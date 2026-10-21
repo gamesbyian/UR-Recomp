@@ -390,6 +390,27 @@ int main() {
     assert(contains("LEFT/RIGHT  CHANGE"));
     assert(contains("B/ESC    BACK"));
     assert(!contains(">VSYNC    < ON >"));
+    assert(contains("X  RACER SETUP")); // historical capable host
+    // Native without an actual racer action must never advertise the X
+    // shortcut, even on the deep Controls help screen. The other movement
+    // and select/back help remains untouched and reachable.
+    painted.clear();
+    view.racer_shortcuts_available = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("X  RACER SETUP"));
+    assert(contains("MENU CONTROLS"));
+    assert(contains("UP/DOWN  MOVE"));
+    assert(contains("B/ESC    BACK"));
+    // A host may explicitly support first-time racer creation without the
+    // legacy F2 shortcut family. That is still a real X destination.
+    painted.clear();
+    view.first_racer_shortcut_available = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("X  RACER SETUP"));
+    view.first_racer_shortcut_available = false;
+    view.racer_shortcuts_available = true;
     // A host cannot over-declare rows past the fixed bound.
     painted.clear();
     view.options_controls_help = false;

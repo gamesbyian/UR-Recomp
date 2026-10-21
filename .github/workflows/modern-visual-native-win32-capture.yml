@@ -18,10 +18,10 @@ concurrency:
   cancel-in-progress: true
 jobs:
   actual-sdl-root:
-    # Only independent QA #2041 or its destination owner #2040 can
-    # request source-bound real Windows screenshots from this workflow.
-    # Neither job grants artwork, physical-controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040
+    # Independent QA #2041, merged destination owner #2040 or its narrow
+    # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
+    # These jobs do not grant artwork, controller or release acceptance.
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:

@@ -148,7 +148,8 @@ class SecondNativeRacerProofTests(unittest.TestCase):
         ):
             self.assertIn(token, root)
         self.assertIn("create_baldosa_second_preset_for_next_boot", adapter)
-        self.assertIn("SECOND STOCK RACER", presenter)
+        self.assertIn("SECOND RACER", presenter)
+        self.assertNotIn("SECOND STOCK RACER", presenter)
         self.assertNotIn("RtlWriteSram(", root)
 
 

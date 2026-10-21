@@ -275,7 +275,9 @@ inline bool render_modern_root_overlay(
     const std::string_view racer_name =
         view.racer_name == "STOCK RACER - NO PROFILE"
             ? std::string_view("NO PROFILE")
-            : view.racer_name == "PROFILE CHANGED - RESTART APP"
+            : view.racer_name == "PROFILE CHANGED - RESTART APP" &&
+              modern_overlay_text_cells(panel_w) <
+                  std::string_view("RACER: PROFILE CHANGED - RESTART APP").size()
                 ? std::string_view("CHANGED - RESTART APP")
                 : view.racer_name;
     std::string identity = std::string("RACER: ") + std::string(racer_name);

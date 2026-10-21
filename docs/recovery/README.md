@@ -2,6 +2,12 @@
 
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.
 
+## Subsequent H29 routing checkpoint (2026-10-21 UTC)
+
+An independent Drive metadata/readback sweep moved **16 surviving administrative files** from `02 Incoming`: 13 preflight/result/manifest receipts to `03 Evidence Library`, three historic continuations/handoffs to `01 Work Journals`. Post-move direct-child counts: **0 Inbox, 29 Incoming, 34 Evidence, 25 Journals, 3 Integrated, 0 Superseded**. File IDs were preserved; no source archive, source patch, candidate manifest or held source write was deleted/integrated. Full 16-ID routing receipt and limits: [H29 metadata routing](VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md).
+
+The Evidence Library also contains a nested **six-file historical-main Git backup** (five transfer ZIPs and a manifest ZIP). Its manifest claims a successful original local self-restore, but explicitly marks **independent Drive-copy verification false**; later main commits and non-main GitHub state are outside the stated backup scope. Treat the source as restricted historical preservation, not a verified restorable complete current repository. Details and source SHA are in the H29 receipt.
+
 ## Verified live folder-routing checkpoint (2026-10-21 UTC)
 
 A fresh direct listing of all six Vault folders, with readback after routing the latest blocked P2P pointer, observed **0 Integration Inbox items**, **45 Incoming files**, **20 Evidence Library files**, **3 Integrated files**, **22 Work Journal files** and **0 Superseded files**; the root held only those six folders. These are moment-in-time **direct-child counts, not permanent inventory totals or member-level classifications**. No files were deleted, and no unpublished code was marked integrated.

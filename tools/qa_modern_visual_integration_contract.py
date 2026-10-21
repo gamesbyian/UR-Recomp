@@ -220,6 +220,60 @@ def inventory(root: Path) -> dict:
         )
         if not guarded:
             conflicts.append("destination_child_refusal_can_claim_success")
+    # Exact source-bound regression spotted independently on title owner
+    # #2043 head 5a3b3b4: a new SDL capture probe embedded a 53-character
+    # partial USA digest, making all genuine Windows runs fail preflight.
+    # This cheap optional integration check runs only if that title-owner
+    # tool exists. Absence is not approval of a missing title integration;
+    # core native hooks above still decide eligibility. Preserve strict ROM
+    # identity; never "fix" CI by removing the SHA preflight from the probe.
+    title_capture_tool = root / "tools/capture_modern_title_entry_sdl_win32.py"
+    if title_capture_tool.is_symlink():
+        conflicts.append("title_sdl_capture_tool_redirected")
+    elif title_capture_tool.is_file():
+        title_capture_source = title_capture_tool.read_text(encoding="utf-8")
+        literal = re.search(
+            r'^\s*USA\s*=\s*["\\\']([0-9a-f]+)["\\\']\s*
+        "missing": missing,
+        "missing_native_integration_hooks": native_missing,
+        "known_host_geometry_conflicts": conflicts,
+        "eligible_for_native_acceptance_run": not missing and not conflicts,
+        "native_executed": False,
+        "screenshots_captured": 0,
+        "human_visual_approved": False,
+        "authentic_isolation_approved": False,
+        "release_gate_credit": 0,
+        "scope": "source-callsite and module-presence inventory only",
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--strict", action="store_true",
+                        help="Fail if any required native hook is absent")
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args()
+    try:
+        result = inventory(args.root)
+        if args.out:
+            args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps(result, indent=2))
+        return 2 if args.strict and (result["missing"] or
+                                   result["known_host_geometry_conflicts"]) else 0
+    except (OSError, ValueError, UnicodeError) as exc:
+        print("MODERN_VISUAL_INTEGRATION_INCONCLUSIVE:", exc)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+,
+            title_capture_source, re.MULTILINE)
+        if literal and literal.group(1) != (
+                "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"):
+            conflicts.append("title_sdl_capture_incomplete_canonical_rom_digest")
+
     return {
         "schema_version": 1,
         "checked": checked,

@@ -26,6 +26,10 @@ class ModernRootOverlaySharedPresenterTest(unittest.TestCase):
         self.assertEqual(presenter.count("LOCAL TWO PLAYER"), 1)
         self.assertEqual(presenter.count("RUNS AND BEST TIMES"), 1)
         self.assertEqual(presenter.count("DISPLAY AND CONTROLS"), 1)
+        # Preserve the independent #2125 first-racer shortcut contract
+        # while adding the shared-root child screens' new language guards.
+        self.assertIn('"X CREATE RACER"', presenter)
+        self.assertNotIn("X CREATE STOCK RACER", presenter)
         # Both original shared-root renderer and separately owned native
         # child must present user-facing copy, not internal guest terminology.
         for phrase in ("ENTERING ORIGINAL COURSE", "WAIT FOR SOURCE GO",

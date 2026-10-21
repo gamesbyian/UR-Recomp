@@ -241,12 +241,13 @@ def verify_native_title_entry(
     # *successful* gamepad call; ordinary motion logs only after 14 frames.
     # Both orders are causally correct but MUST be explicitly selected.
     opened = "UR_BALDOSA_MODERN_ROOT opened=1"
-    if confirm not in ("gamepad", "keyboard", "start"):
+    if confirm not in ("gamepad", "keyboard", "start", "held"):
         raise ValueError("unsupported native title confirm route")
     input_ack = {
         "gamepad": "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60",
         "keyboard": "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=60",
         "start": "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=60",
+        "held": "UR_BALDOSA_MODERN_TITLE native_p1_held_begin=1 frame=60",
     }[confirm]
     entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
     root_paint = "UR_BALDOSA_MODERN_ROOT painted=1"
@@ -262,6 +263,19 @@ def verify_native_title_entry(
         if pos < 0:
             raise ValueError(f"missing/out-of-order genuine native guest witness: {marker}")
         prev = pos
+    if confirm == "held":
+        if reduced_motion:
+            raise ValueError("held native title route requires actual exit animation")
+        # Frame80's held-button callback and the first root compositor
+        # paint may run in either order within the same host frame.
+        prev = log.find(entered)
+        for marker in (
+            "UR_BALDOSA_MODERN_TITLE native_p1_held_filtered=1 frame=80",
+            "UR_BALDOSA_MODERN_TITLE native_p1_held_isolated=1 frame=120",
+        ):
+            if log.count(marker) != 1 or log.find(marker, prev + 1) < 0:
+                raise ValueError("missing/out-of-order held P1 input isolation: " + marker)
+            prev = log.find(marker, prev + 1)
 
 
 def validate_native_capture(
@@ -309,7 +323,7 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
-    parser.add_argument("--confirm", choices=("gamepad", "keyboard", "start"),
+    parser.add_argument("--confirm", choices=("gamepad", "keyboard", "start", "held"),
                         default="gamepad",
                         help="exact native controller or Enter handler")
     parser.add_argument("--reduced-motion", action="store_true",
@@ -353,7 +367,8 @@ def main() -> int:
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
         "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": (
             "16" if args.confirm == "keyboard" else
-            "17" if args.confirm == "start" else "15"),
+            "17" if args.confirm == "start" else
+            "18" if args.confirm == "held" else "15"),
         "UR_REDUCED_MOTION": "1" if args.reduced_motion else "0",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),

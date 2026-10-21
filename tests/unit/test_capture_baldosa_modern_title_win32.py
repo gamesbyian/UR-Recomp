@@ -78,6 +78,31 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
                 "\n".join((opened, entered, pressed, painted)),
                 confirm="start")
 
+    def test_held_real_p1_title_root_handoff_refuses_missing_release_guard(self):
+        opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+        down = "UR_BALDOSA_MODERN_TITLE native_p1_held_begin=1 frame=60"
+        entered = "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=74 input_owned=1"
+        painted = "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"
+        filtered = "UR_BALDOSA_MODERN_TITLE native_p1_held_filtered=1 frame=80"
+        isolated = "UR_BALDOSA_MODERN_TITLE native_p1_held_isolated=1 frame=120"
+        for log in (
+            "\n".join((opened, down, entered, painted, filtered, isolated)),
+            "\n".join((opened, down, entered, filtered, painted, isolated)),
+        ):
+            verify_native_title_entry(log, confirm="held")
+            with self.assertRaisesRegex(ValueError, "requires actual exit animation"):
+                verify_native_title_entry(log, reduced_motion=True, confirm="held")
+            with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+                verify_native_title_entry(log, confirm="gamepad")
+        for bad in (
+            "\n".join((opened, down, entered, painted, isolated)),
+            "\n".join((opened, down, entered, painted, filtered)),
+            "\n".join((opened, down, entered, painted, isolated, filtered)),
+            "\n".join((opened, down, entered, painted, filtered, filtered, isolated)),
+        ):
+            with self.assertRaisesRegex(ValueError, "held P1 input isolation"):
+                verify_native_title_entry(bad, confirm="held")
+
     def test_bad_header_and_dimensions_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "capture.pam"

@@ -1002,7 +1002,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_title = ur::product::modern_title_boot(
         !(fixture && *fixture && std::strcmp(fixture, "15") != 0 &&
         std::strcmp(fixture, "16") != 0 &&
-        std::strcmp(fixture, "17") != 0),
+        std::strcmp(fixture, "17") != 0 &&
+        std::strcmp(fixture, "18") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_painted_reported = false;
@@ -1658,12 +1659,12 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."17"; 15/16/17 retain the title.
+    // Smoke modes are decimal "1".."18"; 15-18 retain the title.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 17) return;
+            mode < 1 || mode > 18) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -1894,6 +1895,37 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::abort();
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=%u\n", frame);
+        return;
+    }
+    // CI-only mode 18: keep the ACTUAL P1 A physical edge held across
+    // the title->root handoff. A repeated down is deliberately delivered to
+    // the real root handler at frame80. It must be consumed without opening
+    // Play, changing a menu or injecting guest input; release only at frame150.
+    if (std::strcmp(opt, "18") == 0) {
+        if (frame == 60) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_TITLE native_p1_held_begin=1 frame=%u\n", frame);
+        } else if (frame == 80) {
+            if (ur::product::modern_title_active(g_title) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !g_visible || g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_TITLE native_p1_held_filtered=1 frame=%u\n", frame);
+        } else if (frame == 120) {
+            if (ur::product::modern_title_active(g_title) || !g_visible ||
+                g_stock_target != -1 || g_confirm_quit || g_records_open ||
+                g_first_racer_open || g_practice_picker.visible ||
+                g_two_seat_join.open())
+                std::abort();
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_TITLE native_p1_held_isolated=1 frame=%u\n", frame);
+        } else if (frame == 150) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        }
         return;
     }
     // CI-only mode 15: drive title -> existing root via actual native P1 A.

@@ -441,3 +441,28 @@ their independent source provenance; neither human visual quality, physical
 fixtures exercise missing +4px entry and missing exit sweep. **New exact-head
 Windows outcome remains pending** until the corresponding real native run
 and retained artifacts are checked.
+
+## Held physical confirmation: native route 18
+
+The existing `ModernRootPhysicalEdges` C++ unit test proves title/root latch
+logic, but a separate **actual pinned Win32 game** fixture now probes the same
+edge across the full native callback boundary. Test-only smoke mode 18 presses
+P1 A once at genuine guest frame 60 **without releasing**, sends a second
+physical down to the production P1 handler at frame 80 after the title has
+entered root, checks that no root command/menu/modal/guest stock route was
+activated through frame 120, and only releases at frame 150.
+
+`tools/capture_baldosa_modern_title_win32.py --confirm held` requires
+independent chronological native handler markers at frames 60, 80 and 120,
+plus the established title→root and exact original-logo/native-present
+images. The verifier permits the frame80 root paint and repeated-input call
+to occur in either legitimate callback order; it does not accept a missing,
+duplicate or out-of-order held guard. The reduced-motion path is distinct.
+The existing branch-restricted Windows AOT workflow now retains a sixth
+self-contained fresh-user-root capture directory in its original title ZIP.
+ROM-free negative fixtures reject source-only false positives.
+
+This probes **host-owned, held physical semantic input**, not an attached
+USB pad or an accepted physical-hardware gate. No customer-visible key,
+guest input/physics, SRAM or root menu logic has changed. Exact-head Windows
+native artifact and independent evidence review are pending.

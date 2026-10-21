@@ -221,7 +221,7 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     return [
         {"phase": "named_play_denied_while_demo", "frame": 1710},
         {"phase": "named_play_denied_while_menu_unsettled", "frame": 3770},
-        {"phase": "original_main_stable", "frame": 3818},
+        {"phase": "original_main_stable", "frame": 3815},
         {"phase": "original_stock_one_player_entered", "frame": 3900},
     ]
 

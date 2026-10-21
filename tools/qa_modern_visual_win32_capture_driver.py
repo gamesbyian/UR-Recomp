@@ -35,6 +35,10 @@ MAX_DIM = (3840, 2160)
 ROUTES = {
     "root-quit": ("14", 40, ""),
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
+    # Production keyboard path closes Records and enters the original 1P
+    # stock guest at frame 70. Capture AFTER the real host relinquishes its
+    # frontend, never by painting a fake Play destination modal.
+    "play-stock-handoff": ("1", 90, "UR_BALDOSA_MODERN_ROOT stock_requested players=1"),
     "options-p1": ("12", 74, "UR_BALDOSA_MODERN_ROOT options_opened"),
     # Capture the first genuine Options paint before mode-12 changes Display
     # to borderless at guest frame 66; test a strict 16:9 native child panel.

@@ -64,6 +64,34 @@ CANDIDATE_REQUIREMENTS = {
 }
 
 
+# Real ZIP inventory independently re-read on 2026-10-20. Reject a manifest
+# which silently rewrites a noncandidate route while retaining its total.
+# Full raw P7/log/PE revalidation is still performed by the archive checker.
+FROZEN_CAPTURES = {
+    "visual-1024x768": ("root-quit", "1024x768"),
+    "visual-1280x720": ("root-quit", "1280x720"),
+    "authentic-win32-control-1024x768": ("authentic-stock", "1024x768"),
+    "authentic-win32-control-1280x720": ("authentic-stock", "1280x720"),
+    "play-stock-1024x768": ("play-stock-handoff", "1024x768"),
+    "play-stock-1280x720": ("play-stock-handoff", "1280x720"),
+    "journey-multiplayer-unbound": ("multiplayer-unbound", "1024x768"),
+    "journey-options-p1": ("options-p1", "1024x768"),
+    "journey-practice-picker-p1": ("practice-picker-p1", "1024x768"),
+    "journey-profile-first-p1": ("profile-first-p1", "1280x720"),
+    "journey-records-keyboard": ("records-keyboard", "1024x768"),
+    "wide-destination-multiplayer-unbound": ("multiplayer-unbound", "1280x720"),
+    "wide-destination-options-open-p1": ("options-open-p1", "1280x720"),
+    "wide-destination-practice-picker-p1": ("practice-picker-p1", "1280x720"),
+    "wide-destination-profile-first-p1": ("profile-first-p1", "1280x720"),
+    "wide-destination-records-keyboard": ("records-keyboard", "1280x720"),
+    "integrated-title-title-intro-compact": ("title-intro-compact", "1024x768"),
+    "integrated-title-title-intro-reduced": ("title-intro-reduced", "1280x720"),
+    "integrated-title-title-intro-wide": ("title-intro-wide", "1280x720"),
+    "integrated-title-title-transition-root-reduced": ("title-transition-root-reduced", "1280x720"),
+    "integrated-title-title-transition-root": ("title-transition-root", "1280x720"),
+}
+
+
 def validate_frozen_cohort(matrix: dict, evidence: dict) -> tuple[list, list]:
     """Refuse substituted source/PE, omitted capture flags or a rewritten case.
 
@@ -101,6 +129,9 @@ def validate_frozen_cohort(matrix: dict, evidence: dict) -> tuple[list, list]:
                 "successful_native_log_hash_verified",
                 "source_sha_exact", "exe_sha_exact"))):
         raise ValueError("not the qualified 21-case source/PE-bound SDL cohort")
+    reported = {x.get("id"): (x.get("route"), x.get("output")) for x in captures}
+    if reported != FROZEN_CAPTURES:
+        raise ValueError("frozen native capture ID/route/geometry inventory changed")
     ids = [x.get("id") for x in captures]
     if (any(not isinstance(x, str) or not x for x in ids)
             or len(set(ids)) != 21):

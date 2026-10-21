@@ -43,7 +43,7 @@ class AgentBoardControlTests(unittest.TestCase):
             "1c: only then narrow causality probe", "1d: only then narrow causality probe", 1
         )
         self.assertNotEqual(bad, self.text)
-        with self.assertRaisesRegex(ValueError, "malformed shard"):
+        with self.assertRaisesRegex(ValueError, "expected a/b/c shards"):
             extract_board(bad)
 
     def test_board_never_scrapes_old_prose_as_dispatch(self):

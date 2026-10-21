@@ -246,10 +246,13 @@ def publish_private_source_artifacts(
             os.link(staged, destination)
             written.append(destination)
         if staged_dir is not None:
-            if frames_dir.exists() or frames_dir.is_symlink():
-                raise ValueError("source plates destination appeared during staging")
-            os.rename(staged_dir, frames_dir)
+            # Claim a *new* directory exclusively. An ordinary directory
+            # rename can replace a concurrently created empty directory on
+            # POSIX; mkdir fails instead of erasing another run's evidence.
+            frames_dir.mkdir(exist_ok=False)
             dir_published = True
+            for name, _ in plates:
+                os.link(staged_dir / name, frames_dir / name)
     except BaseException:
         for destination in written:
             destination.unlink(missing_ok=True)

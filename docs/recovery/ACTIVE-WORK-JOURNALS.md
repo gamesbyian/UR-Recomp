@@ -24,3 +24,22 @@ This is a **seed journal and navigation map**, not a substitute for current GitH
 - **Drive**: original folder 1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn; inbox 1iq2MP6yzsMK6f-0VIhIUL43IfIL6GT3o; verify actual Drive-ID and source SHAs before action; archives are retained.
 
 A journal update should include work ID, UTC time, board position at that time, source/main SHA, exact PR and Drive IDs, tested findings, rejected hypotheses and next experiment. If Github edits are unavailable preserve an immutable Drive continuation record, with the integration owner reconciling the doc when possible.
+
+## Connected Drive continuation journals (verified 2026-10-21)
+
+These ten native Docs are seeded, placed in the [Work Journals folder](https://drive.google.com/drive/folders/1QvlB3V-aa8so0HPx_1dTcV8jL9TeD3kr), and intended for **append-only** scheduled-run entries when GitHub is unavailable. GitHub remains source/merge authority; these Docs neither grant release acceptance nor replace source-bound evidence. When a work objective moves to another numbered board slot, keep using its existing Doc. If replaced by a different objective, mint a new stable ID and Doc without overwriting the retired history.
+
+| Stable work ID | Drive journal |
+| --- | --- |
+| `UR-CPU-01` | [Persistent journal](https://docs.google.com/document/d/1wmyrgR8T_oR3cvocpg-cicNhf0h5NJKZTuiPs-NQ2w0/edit) |
+| `UR-QA01-01` | [Persistent journal](https://docs.google.com/document/d/1wkZksNDwaTuKYmXWnMibyU_YPX1MNc9YwzmIBRiOc98/edit) |
+| `UR-WINSTORAGE-01` | [Persistent journal](https://docs.google.com/document/d/1buUMGEcv6Z94AIsuAISPmBvQ5AbF_6JduBTdX3PJMyw/edit) |
+| `UR-WINQA-01` | [Persistent journal](https://docs.google.com/document/d/1JMd9IydWM4wK8YgLt8YxLS3rxu6y5Hl5gbrGZKTUBHc/edit) |
+| `UR-PPU-01` | [Persistent journal](https://docs.google.com/document/d/1Xpz3nfRJN1zaZQm32onvRAGuwuc9xuo4z12zfKs9900/edit) |
+| `UR-UHD-01` | [Persistent journal](https://docs.google.com/document/d/14opuW9awK0d4z3TdnIKF_VoXVDt4auV1iICK0Xx7sYE/edit) |
+| `UR-RECORDS-01` | [Persistent journal](https://docs.google.com/document/d/1QgKYWDGkdo0P2hGPdUUjSP9tVqqKx86FxWuuhCcQxqA/edit) |
+| `UR-P2P-01` | [Persistent journal](https://docs.google.com/document/d/1PZMV87cfjxhuz-_n13w748QZTHBsLM-ovNkiKFkxB7U/edit) |
+| `UR-INTEGRATION-01` | [Persistent journal](https://docs.google.com/document/d/10lwjdtTbY3RfLsATv1wklGQ0a5pxZ4mhC-EKLIPNcPA/edit) |
+| `UR-KNOWLEDGE-01` | [Persistent journal](https://docs.google.com/document/d/1D2ixWMp7Pefj2JIQFZMC6AO90lPOfK_OxugH8aK8Ask/edit) |
+
+Agent 2's 2026-10-21 02 UTC handoff predates this canonical work-ID set and wrote five immutable candidate snapshots under descriptive aliases (`UR-QA01-COMPLETE-EVENT`, `UR-QA08-EFFECTIVE-PIXEL`, `UR-QA06-PRESENTATION`, `UR-RECORDS-LIVE-CAPTURE`, `UR-KNOWLEDGE-RECOVERY-PROVENANCE`). The corresponding five stable-ID Google Docs contain explicit links to these legacy evidence snapshots. Do not duplicate or drop them. [Original Agent 2 continuation](https://drive.google.com/file/d/1d7KVQfkCA4dUIpmvPbaeEEwf1y-P_rLh/view) is preserved. Root archive and per-Drive-ID index remain governed by [recovery README](README.md).

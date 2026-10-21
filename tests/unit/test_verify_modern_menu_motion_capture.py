@@ -78,11 +78,25 @@ class NativeModernMotionCaptureTests(unittest.TestCase):
 
     def test_repeated_root_sessions_are_independently_reset(self):
         records = capture(256) + capture(342, seed=100)
-        result = m.verify_log(log(records))
+        with self.assertRaisesRegex(ValueError, "unexpected native root session"):
+            m.verify_log(log(records))
+        result = m.verify_log(log(records), allow_multi_session=True)
         self.assertEqual(result["session_count"], 2)
         self.assertEqual([r["logical_width"] for r in result["sessions"]],
                          [256, 342])
         self.assertEqual(result["native_draw_count"], 80)
+
+    def test_partial_session_cannot_hide_behind_later_complete_session(self):
+        # Without source hide/reentry proof, a fresh ordinal zero is a
+        # duplicate, not evidence of a second independently valid session.
+        short_then_full = capture(count=12) + capture(seed=200)
+        with self.assertRaisesRegex(ValueError, "unexpected native root session"):
+            m.verify_log(log(short_then_full))
+        with self.assertRaisesRegex(ValueError, "truncated native root session"):
+            m.verify_log(log(short_then_full), allow_multi_session=True)
+        complete_then_short = capture() + capture(count=12, seed=200)
+        with self.assertRaisesRegex(ValueError, "no complete required"):
+            m.verify_log(log(complete_then_short), allow_multi_session=True)
 
     def test_reduced_motion_and_reenable_never_replay_old_entrance(self):
         records = capture(reduced_start=4)

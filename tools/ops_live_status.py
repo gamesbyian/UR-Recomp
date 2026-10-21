@@ -204,6 +204,7 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--format", choices=("markdown", "json"), default="markdown")
     p.add_argument("--output", type=Path)
+    p.add_argument("--json-output", type=Path, help="also save same observation as JSON")
     args = p.parse_args()
     board = extract_board(BOARD.read_text(encoding="utf8"))
     registry = load_json(REGISTRY)
@@ -214,6 +215,8 @@ def main():
                       local_head=head_sha())
     output = (markdown(report) if args.format == "markdown"
               else json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+    if args.json_output:
+        args.json_output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf8")
     if args.output:
         args.output.write_text(output, encoding="utf8")
     else:

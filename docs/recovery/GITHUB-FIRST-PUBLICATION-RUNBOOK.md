@@ -14,6 +14,18 @@ This document is a **workflow**, not an authorization to evade a safety restrict
 4. If publication remains unavailable, preserve **one complete immutable recovery bundle per distinct deliverable** in Drive (source/preimage SHAs, patch, tests, logs, negative findings, exact error, PR/issue link, candidate ID, archive/member digests). Verify readback, update work-ID continuation and place a **short actionable pointer** in the Integration Inbox. Do not accumulate competing cumulative bundles as separate jobs.
 5. At the start of each future run, check whether that candidate was merged, superseded, rejected, or is still pending. Prefer reconciling and integrating useful pending work to generating a new version. Do not count a Drive file as integration or synthetic tests as release acceptance.
 
+## Active recovery after an invocation-level refusal
+
+**Do not treat a single rejected tool call as a permanent embargo on the deliverable.** Record exactly what failed, why it was classified that way and what the normal approved integration path requires. Every unresolved candidate retains an owner and a next review action. Review at each later pickup; do not automatically declare it unpublishable.
+
+1. **Establish the desired behavior independently.** Reproduce the defect against fresh `main` and confirm that the work is still needed. Separate code, tests, logs, third-party content, credentials, unrelated file modifications and hardware evidence.
+2. **Improve the deliverable substantively for review**, not just its wrapper. Prefer a source-native implementation with explicit preimages, minimum affected files, regression controls, documented provenance, and the ordinary PR/CI workflow. A re-engineered fix or independent test may be an appropriate separate contribution when its intent and operation are legitimate.
+3. **Do not submit the same denied invocation through another endpoint, by renaming files, or by cosmetically rewriting content to defeat a restriction.** If a refusal specifically bars an operation, escalate or request review of that restriction. Differently scoped, independently justified work is assessed on its own merits.
+4. **Keep the ledger outcome honest:** original candidate preserved, exact implementation merged, equivalent independent implementation merged, subset/test-only merged, awaiting approval, superseded, or rejected. A merged related test does not automatically close the source candidate.
+5. **Prefer closure over indefinite packaging:** escalate an unexplained repeating connector false positive with original request type, raw error, reproducible safe scope, and contextual success/failure evidence. No automatic requeue without a substantive next step.
+
+Examples: A blocked multi-file implementation can be independently reviewed, split along actual feature boundaries and qualified with CI. A source-observation archive may instead yield a standalone archive-free mathematical regression test; mark that as *partial semantic recovery*, not complete source publication. The authorized GitHub endpoint and ordinary reviews remain the same.
+
 ## Manual integrator pickup
 
 Use only the normal GitHub publication path. Scan Integration Inbox, current PRs and `main`; verify exact source bytes and tests. Sort by verified source compatibility, relevance and independence, not ZIP creation time. Package narrow PRs, wait for required checks, merge only after review and record source/head/merge SHA. **GitHub PR and issue comments are the routine receipt.** Use Drive resolution records only where needed to disambiguate a Drive-only candidate. Preserve originals and update [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088) for member-level disposition.

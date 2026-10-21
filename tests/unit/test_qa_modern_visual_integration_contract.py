@@ -29,6 +29,8 @@ g_navigation_edges.p1_gamepad(
 g_navigation_edges.keyboard(
 std::strcmp(mode, "authentic")
 UR_REDUCED_MOTION
+const int panel_w = width == 342 ? 320 : 240;
+const HostOverlayRect root_rect{(width - panel_w) / 2,10,panel_w,204};
 """,
     "tools/baldosa_modern_profile_activation_spike.py": """
 .native_widescreen = 1
@@ -90,6 +92,22 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         self.assertFalse(result["eligible_for_native_acceptance_run"])
         self.assertEqual(result["known_host_geometry_conflicts"],
                          ["motion_uses_240px_root_under_342px_child_canvas"])
+
+    def test_variable_name_does_not_hide_fixed_wide_motion_geometry(self):
+        file = self.root / "tools/baldosa_native_modern_root.cpp"
+        source = FIXTURE[file.relative_to(self.root).as_posix()]
+        source = source.replace(
+            "const int panel_w = width == 342 ? 320 : 240;\n"
+            "const HostOverlayRect root_rect{(width - panel_w) / 2,10,panel_w,204};",
+            "const HostOverlayRect root_rect{8,10,240,204};")
+        source += ("\nur::product::paint_modern_menu_selection_motion("
+                   "painter, pixels, stride, height, 1, root_rect, phase);")
+        file.write_text(source, encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertEqual(result["missing_native_integration_hooks"], [])
+        self.assertEqual(result["known_host_geometry_conflicts"], [
+            "motion_and_destination_share_fixed_240px_root_on_wide_canvas"])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
 
     def test_motion_using_shared_root_rect_is_eligible_to_be_run(self):
         file = self.root / "tools/baldosa_native_modern_root.cpp"

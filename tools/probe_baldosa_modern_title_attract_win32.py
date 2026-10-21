@@ -94,6 +94,56 @@ def verify_source_driven_preview(log: str) -> list[dict[str, int | str]]:
     return markers
 
 
+def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
+    """Real guest demo must finish before *new* gameplay selection is admitted.
+
+    No host timer, spoofed stock menu, profile activation or injected input.
+    This deliberately does not claim the anonymous first-run Play journey.
+    """
+    required = (
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600",
+        "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674",
+        "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=1710",
+        "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied=1 frame=1710 profile_stale=0",
+    )
+    previous = -1
+    for witness in required:
+        if log.count(witness) != 1:
+            raise ValueError("missing/duplicated real stock recovery witness: " + witness)
+        pos = log.find(witness, previous + 1)
+        if pos < 0:
+            raise ValueError("out-of-order real stock recovery witness: " + witness)
+        previous = pos
+    marker = re.compile(
+        r"UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 "
+        r"frame=(\d+) menu=d7 race=([0-9a-f]{2}) guest_writes=0"
+    )
+    observations = list(marker.finditer(log))
+    if len(observations) != 1:
+        raise ValueError("missing/duplicated native original MAIN recovery")
+    recovery = observations[0]
+    frame = int(recovery[1])
+    if recovery.start() <= previous or not 3745 <= frame <= 3780:
+        raise ValueError("real source MAIN recovery time/ordering mismatch")
+    if recovery[2] == "01":
+        raise ValueError("cannot rearm Play while stock demo is in race")
+    marker = "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=3800 source_main=d7 guest_writes=0"
+    if log.count(marker) != 1 or log.find(marker, recovery.end()) < 0:
+        raise ValueError("no new source-admitted gameplay after stock MAIN")
+    if ("UR_BALDOSA_MODERN_ROOT active_profile_stale=1" in log or
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=" in log):
+        raise ValueError("stock source guard incorrectly mutated route/profile state")
+    return [
+        {"phase": "denied_while_demo", "frame": 1710},
+        {"phase": "native_main_recovered", "frame": frame},
+        {"phase": "source_admission_rearmed", "frame": 3800},
+    ]
+
+
 def verify_original_guest_presentations(presented: Path) -> list[dict]:
     """Actual after-host P6, not final SDL/window, across the source handoff."""
     frame_path = presented / "presents.csv"
@@ -147,7 +197,11 @@ def main() -> int:
     p.add_argument("--timeout", type=int, default=120)
     p.add_argument("--preview-wake", action="store_true",
                    help="opt-in source title/demo reveal with consumed real P1 wake")
+    p.add_argument("--recovery", action="store_true",
+                   help="exercise source-admitted Play gating through genuine MAIN return")
     args = p.parse_args()
+    if args.recovery and not args.preview_wake:
+        p.error("--recovery requires --preview-wake")
     if os.name != "nt":
         p.error("native original-guest attract requires real Windows AOT")
     if not 30 <= args.timeout <= 150:
@@ -168,7 +222,7 @@ def main() -> int:
     env = dict(os.environ)
     env.pop("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", None)
     if args.preview_wake:
-        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "19"
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "20" if args.recovery else "19"
         env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
         presented = out / "presented"
         presented.mkdir()
@@ -211,7 +265,8 @@ def main() -> int:
     if run.returncode:
         raise ValueError(f"real Windows native attract process exited {run.returncode}")
     observed = (
-        verify_source_driven_preview(log) if args.preview_wake
+        verify_source_driven_recovery(log) if args.recovery
+        else verify_source_driven_preview(log) if args.preview_wake
         else verify_original_source_attract(log))
     presented_receipt = (
         verify_original_guest_presentations(presented)
@@ -232,6 +287,8 @@ def main() -> int:
         "modern_host_title_remained_visible": not args.preview_wake,
         "original_attract_displayed_on_native_P6": args.preview_wake,
         "wake_input_tested": args.preview_wake,
+        "real_guest_main_recovery_verified": args.recovery,
+        "play_source_admission_guard_tested": args.recovery,
         "final_sdl_capture": False,
         "release_gate_credit": 0,
     }
@@ -240,6 +297,8 @@ def main() -> int:
     print("UR_MODERN_TITLE_GENUINE_ATTRACT_SOURCE=passed")
     if args.preview_wake:
         print("UR_MODERN_TITLE_ORIGINAL_P6_WAKE=passed")
+    if args.recovery:
+        print("UR_MODERN_TITLE_ORIGINAL_PLAY_RECOVERY=passed")
     for m in observed:
         print(f"{m['phase']}={m['frame']}")
     return 0

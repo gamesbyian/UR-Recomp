@@ -2,7 +2,7 @@
 import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
-    verify_original_guest_presentations)
+    verify_original_guest_presentations, verify_source_driven_recovery)
 
 OPEN = "UR_BALDOSA_MODERN_ROOT opened=1"
 MAIN = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1"
@@ -44,6 +44,34 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             verify_source_driven_preview(good.replace(
                 "separate_confirm=1 frame=1660",
                 "separate_confirm=1 frame=1640"))
+
+    def test_genuine_main_source_recovery_is_distinct_from_wake(self):
+        good = "\n".join((
+            OPEN, MAIN, TITLE,
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
+            DEMO.replace("overlay_title=1", "overlay_title=0"),
+            "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
+            "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=1710 source_menu=00 source_race=01 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied=1 frame=1710 profile_stale=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3759 menu=d7 race=00 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=3800 source_main=d7 guest_writes=0",
+        ))
+        result = verify_source_driven_recovery(good)
+        self.assertEqual([item["frame"] for item in result], [1710, 3759, 3800])
+        for bad in (
+            good.replace("frame=3759", "frame=1711"),
+            good.replace("frame=3759", "frame=3781"),
+            good.replace("menu=d7 race=00 guest_writes=0",
+                         "menu=d7 race=01 guest_writes=0"),
+            good.replace("native_play_denied=1", "native_play_denied=0"),
+            good.replace("play_rearmed=1", "play_rearmed=0"),
+            good + "\\nUR_BALDOSA_MODERN_ROOT stock_requested players=1",
+            good + "\\nUR_BALDOSA_MODERN_ROOT active_profile_stale=1",
+            good + "\\nUR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3759 menu=d7 race=00 guest_writes=0",
+        ):
+            with self.subTest(bad=bad[-110:]), self.assertRaises(ValueError):
+                verify_source_driven_recovery(bad)
 
     def test_reject_forged_guest_events(self):
         good = "\n".join((OPEN, MAIN, TITLE, DEMO))

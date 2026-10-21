@@ -132,6 +132,8 @@ bool g_title_root_captured = false;
 // Strictly opt-in preview, not yet the default stock-attract player path.
 bool g_original_attract_seen_main = false;
 bool g_original_attract_visible = false;
+bool g_original_attract_woken = false;
+bool g_original_attract_main_recovered = false;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -623,6 +625,14 @@ void open_stock_racer_setup() {
         "UR_BALDOSA_MODERN_ROOT second_racer_opened=1 preset=%zu "
         "activation=next_process\n", g_second_racer_preset);
 }
+// A real stock attract demo continues in the original guest after wake.
+// Keep host navigation available, but never offer source-gameplay entry until
+// the original cartridge has returned to its ACTUAL main-menu authority.
+// This is a read-only guarded admission, not a synthetic guest input.
+bool original_stock_attract_source_ready() noexcept {
+    return !g_original_attract_woken ||
+        (g_ram[0x009fu] == 0xd7u && g_ram[0x0313u] != 1u);
+}
 void choose() {
     if (g_stock_target != -1 ||
         ur::product::quick_practice_launch_owns_player_input(g_practice_launch))
@@ -757,6 +767,19 @@ void choose() {
         return;
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);
+    // Non-gameplay Records/Options remain usable while the real guest is
+    // still playing the demo. Source menus must not be faked as D7 to start
+    // a course; block Play/Practice/Multiplayer before profile admission.
+    if (!original_stock_attract_source_ready() &&
+        selected != ModernRootDestination::Records &&
+        selected != ModernRootDestination::Options) {
+        g_root_notice = "ORIGINAL DEMO RUNNING";
+        std::fprintf(stderr,
+            "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=%u source_menu=%02x source_race=%02x guest_writes=0\n",
+            g_title_guest_frame, static_cast<unsigned>(g_ram[0x009fu]),
+            static_cast<unsigned>(g_ram[0x0313u]));
+        return;
+    }
     const auto index = ur::product::modern_root_destination_index(selected);
     if (selected == ModernRootDestination::Practice) {
         if (!named_profile_still_playable()) return;
@@ -1036,7 +1059,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "16") != 0 &&
         std::strcmp(fixture, "17") != 0 &&
         std::strcmp(fixture, "18") != 0 &&
-        std::strcmp(fixture, "19") != 0),
+        std::strcmp(fixture, "19") != 0 &&
+        std::strcmp(fixture, "20") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_painted_reported = false;
@@ -1044,6 +1068,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_title_root_captured = false;
     g_original_attract_seen_main = false;
     g_original_attract_visible = false;
+    g_original_attract_woken = false;
+    g_original_attract_main_recovered = false;
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1134,6 +1160,7 @@ void wake_original_stock_attract() {
     // A wake is host-only. Keep the original demo running underneath;
     // never forward, retype, rewind or modify the guest input/WRAM.
     g_original_attract_visible = false;
+    g_original_attract_woken = true;
     g_visible = true;
     g_title = ur::product::modern_title_boot(true, g_title.reduced_motion);
     g_title.age = 40; // restored settled title, not a second opening flourish
@@ -1811,6 +1838,15 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
     }
     ur_baldosa_modern_root_stock_observe_guest();
+    if (g_original_attract_woken && !g_original_attract_main_recovered &&
+        g_ram[0x009fu] == 0xd7u && g_ram[0x0313u] != 1u) {
+        g_original_attract_main_recovered = true;
+        if (g_root_notice == "ORIGINAL DEMO RUNNING")
+            g_root_notice = "READY TO PLAY";
+        std::fprintf(stderr,
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=%u menu=d7 race=%02x guest_writes=0\n",
+            frame, static_cast<unsigned>(g_ram[0x0313u]));
+    }
     // The original guest's *observed* MAIN D7 -> TITLE 84 transition,
     // not a guessed 503-frame timeout, gates experimental guest display.
     // Guest inputs/WRAM are never synthesized; focus remains host-owned.
@@ -1906,13 +1942,13 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."19"; 15-19 retain the title.
+    // Smoke modes are decimal "1".."20"; 15-20 retain the title.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if ((!g_visible && !g_original_attract_visible) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 19) return;
+            mode < 1 || mode > 20) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2143,6 +2179,45 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::abort();
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=%u\n", frame);
+        return;
+    }
+    // CI-only mode 20: extend identical real source attract/wake fixture
+    // until the guest returns NATURALLY to MAIN D7. P1 A at 1710 must be
+    // consumed as a denied Play, not mutate stock guest, stale the profile
+    // or request a course. Subsequent frame3800 observes source recovery.
+    if (std::strcmp(opt, "20") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1))
+                std::abort();
+        } else if (frame == 1602) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1660) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1710) {
+            if (ur::product::modern_title_active(g_title) ||
+                original_stock_attract_source_ready() ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0) ||
+                g_stock_target != -1 || g_named_profile_stale ||
+                g_root_notice != "ORIGINAL DEMO RUNNING")
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied=1 frame=%u profile_stale=0\n", frame);
+        } else if (frame == 3800) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                !g_original_attract_main_recovered ||
+                !original_stock_attract_source_ready() ||
+                g_ram[0x009fu] != 0xd7u ||
+                g_ram[0x0313u] == 1u ||
+                g_stock_target != -1 || g_named_profile_stale)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=%u source_main=d7 guest_writes=0\n", frame);
+        }
         return;
     }
     // CI-only mode 19: source-driven opt-in ORIGINAL demo to Modern title

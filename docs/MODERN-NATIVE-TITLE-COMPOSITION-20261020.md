@@ -573,3 +573,32 @@ it does NOT establish the real consumer-default attract behavior, UX of
 the still-running guest after wake, 1P Play eligibility while a demo is
 running, independent P2 hardware behavior or final title art approval.
 Until those gates pass, the product defaults to the existing host title.
+
+## Recovery of original stock gameplay authority after attract wake
+
+A user can wake the genuine stock attract demo back into Modern title/root
+while original guest is still in a split-screen race. Preview now guards
+**Play, Practice and Multiplayer** until actual live guest state shows
+`$009F=D7` and `$0313!=01`. This is checked on each fresh gameplay
+activation, not a timer, guest WRAM write, forged MENU event or a profile
+rebind. Records and Options remain navigable. An early Play press shows
+`ORIGINAL DEMO RUNNING` without calling profile validity (avoiding
+the permanent stale-profile state for an anonymous/uncertain guest).
+
+A separate **test-only mode 20** waits until the source cycle completes:
+on the genuine P1 hardware semantic path it wakes during demo at1600,
+enters root on a new button at1660, attempts Play at1710 and asserts that
+it was denied *without stock route or stale profile*. Only after the source
+naturally re-enters D7 around frame3759 may the source admission predicate
+turn true; at frame3800 the native test asserts the root is still reachable
+and no guest writes occurred. A 3900-frame no-guest-input script, explicit
+source log verifier with adversarial unit cases and same-PE evidence receipt
+support this separate acceptance criterion. If native menu return differs
+from the original reference, it fails and the actual Windows log decides
+follow-up. P6 evidence is still sourced from the same previous original-demo
+wake visual route.
+
+This narrows the outstanding **safe gameplay after demo** issue. The first
+valid human Play with an actually named profile and resulting original 1P
+course remains a separate consumer journey, along with real SDL/physical
+controller signoff. The preview is not switched on by default.

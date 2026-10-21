@@ -9,7 +9,6 @@
 #include "modern_title_retail_reference.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
 
 namespace ur::product {
@@ -49,6 +48,19 @@ constexpr ModernTitleState modern_title_boot(
 
 constexpr bool modern_title_active(ModernTitleState state) noexcept {
     return state.phase != ModernTitlePhase::Root;
+}
+
+// Preserve the exact 18px stock-palette wheel outline using integer pixels.
+// For each signed scanline, floor(sqrt(18*18 - dy*dy)) is calculated
+// without floating-point rounding, platform math libraries or frame jitter.
+constexpr int modern_title_wheel_rim_extent(int dy) noexcept {
+    constexpr int radius = 18;
+    if (dy < -radius || dy > radius) return 0;
+    const int squared = radius * radius - dy * dy;
+    int extent = 0;
+    while ((extent + 1) * (extent + 1) <= squared)
+        ++extent;
+    return extent;
 }
 
 // Root handoff is a one-way confirmation on a genuine *new* A/Start/Enter
@@ -179,9 +191,7 @@ inline bool render_modern_title(
         // Pixel-rim ring and dark tyre. Every scanline explicitly paints
         // the top/bottom points, never leaves the wheel as open brackets.
         for (int dy = -radius; dy <= radius; ++dy) {
-            const double unit = static_cast<double>(dy) / radius;
-            const int extent = static_cast<int>(
-                std::sqrt(std::max(0.0, 1.0 - unit * unit)) * radius);
+            const int extent = modern_title_wheel_rim_extent(dy);
             const int y = wheel_cy + dy;
             paint.fill_rect(pixels, stride, surface_height,
                 wheel_cx - extent, y, 2, 1, gold);

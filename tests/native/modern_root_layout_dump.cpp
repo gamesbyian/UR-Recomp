@@ -6,7 +6,10 @@
 // clipping, focus and exact text colours of the production layout, never the
 // glyph art.
 // Usage: modern_root_layout_dump <width 256|342> <out.p7> [root|practice|
-//        join|options|records|warning] [--audit]
+//        join|options|records|warning|first-racer, optionally prefixed
+//        "dest-" for the native-host composition: root shell + separate
+//        destination presenter] [--audit]
+#include "native/product/modern_native_destination_presenter.hpp"
 #include "native/product/modern_root_overlay_presenter.hpp"
 #include "native/product/modern_ui_access.hpp"
 
@@ -83,8 +86,10 @@ void text(std::uint32_t* p, int stride, int, int x, int y, const char* t,
 int main(int argc, char** argv) {
     if (argc < 3 || argc > 5) return 2;
     g_audit = argc == 5 && std::string(argv[4]) == "--audit";
-    const std::string variant = argc >= 4 ? argv[3] : "root";
-    g_variant = variant == "root" ? "root" : argv[3];
+    std::string variant = argc >= 4 ? argv[3] : "root";
+    const bool dest = variant.rfind("dest-", 0) == 0;
+    if (dest) variant = variant.substr(5);
+    g_variant = argc >= 4 ? argv[3] : "root";
     const int width = std::atoi(argv[1]);
     if (width != 256 && width != 342) return 2;
     g_width = width;
@@ -117,12 +122,29 @@ int main(int argc, char** argv) {
         view.records_recent = "COMPLETE A RACE";
     } else if (variant == "warning") {
         view.unbound_two_player_warning_open = true;
+    } else if (variant == "first-racer") {
+        view.first_racer_open = true;
+        view.first_racer_preset_name = "BLADE";
     } else if (variant != "root") {
         return 2;
     }
+    ModernRootOverlayView shell = view;
+    if (dest) {
+        // Native host composition: modal flags are cleared for the shell,
+        // then the separate destination presenter paints the child.
+        shell.practice_picker_open = shell.practice_launch_pending = false;
+        shell.options_open = shell.read_only_records_open = false;
+        shell.two_seat_join_open = shell.first_racer_open = false;
+        shell.unbound_two_player_warning_open = false;
+    }
     if (!render_modern_root_overlay(painter, px.data(), width, g_h, 1, panel_w,
-                                    rect, view)) {
+                                    rect, shell)) {
         std::fprintf(stderr, "root render refused\n");
+        return 1;
+    }
+    if (dest && !render_modern_native_destination(painter, px.data(), width, g_h,
+                                                  1, panel_w, rect, view)) {
+        std::fprintf(stderr, "destination render refused\n");
         return 1;
     }
     if (g_audit) return g_low ? 3 : 0;

@@ -1,0 +1,17 @@
+# UR-Recomp recovery vault delta after initial 340-file checkpoint
+# Full exact folder listing at this checkpoint returned 354 Drive records; 14 new IDs since the 340-item baseline. No Drive deletion. Each row requires content/owner disposition.
+# Column: drive_file_id	name	mime_type	bytes	preliminary_disposition
+1Qek4C07W2xVum0ZK5duoT5KDTiZdMQ2o	20261020T2351Z-agent5-h23-verified-drive-readback.json	application/json	2469	held-recovery-and-evidence
+1h3FXPu2D9JHy6tETASlYaByt8V-Ux3C0	20261020T2351Z-agent5-h23-patch-manifest.json	application/json	1714	held-recovery-and-evidence
+1w9QBCSNvi6xHGZ8Ma-Dz8nWB-9wIe6B6	20261020T2351Z-agent5-h23-tests.py	text/x-python	7209	held-recovery-and-evidence
+18XfSKnDR_jLXhOSMdlIL6iZWdRF5yWUH	20261020T2351Z-agent5-line8-p2p-read-validation.patch	text/x-diff	1347	held-isolated-pilot
+13psqH_bBwt0qVtrHQqlTMrRfGx3GJgkL	20261020T2351Z-agent5-line7-presented-entry-id.patch	text/x-diff	1916	held-isolated-pilot
+15Qw1jAb9sjq2TXUp9O2BqTxP1T07f2zZ	20261020T2351Z-agent5-line4-qa04-C1-controls.patch	text/x-diff	569	held-isolated-pilot
+1bWDjRhQs94wVCJOcZERBoo5SkGnefrRU	20261020T2351Z-agent5-line6-qa06-strict-census.patch	text/x-diff	1528	held-isolated-pilot
+1Pz_uN7xD7pCW4mgoWgJbiSM4TE-Eg8Pt	20261020T2351Z-agent5-line5-qa08-exact-main-composite.patch	text/x-diff	4893	held-supersedes-old-composites
+1J6YrOiH5mbx8nWaRnfsMnbZr0a7dqG-U	20261020T2351Z-agent5-h23-resolution.json	application/json	764	held-recovery-and-evidence
+1esnaoYB739PtsyLHol0oytzLgvjS_1Q3	20261020T2351Z-agent5-h23-handoff.md	text/markdown	5882	held-recovery-and-evidence
+1E7lAeheTxRvy6V9VotgeKEkSprEl24f0	20261020T2351Z-agent5-h23-five-line-recovery.zip	application/zip	96575	held-recovery-and-evidence
+1iJhmXAJ8CeMt_U1k9xsHw95bjydO9hck	20261020T2344Z-agent4-h23-verified-drive-resolution.json	application/json	1429	held-evidence-and-recovery
+1oskcrNuT6XIBKDNdkq5ucWhYtY1KIipE	20261020T2342Z-agent4-h23-resolution.json	application/json	1339	held-evidence-and-recovery
+1h-h_S5i15Shi2ZyY7BjxJIayjKmJwInJ	20261020T2342Z-agent4-h23-five-line-recovery.zip	application/zip	66325	held-evidence-and-recovery

@@ -9,6 +9,7 @@ from collections import Counter, defaultdict
 import hashlib
 import json
 from pathlib import Path
+from io import BytesIO
 from zipfile import ZipFile
 
 ARCHIVE_SHA = "10bd91c7be06e3ac832675f2b5268bf179a2b03b5f07dcf8fd632fad18372ec2"
@@ -42,7 +43,11 @@ def parse_rows(rows):
         xy = int(kv["x"]), int(kv["logical_y"])
         if frame not in PALETTES or xy not in POINTS or int(kv["ppu_line"]) != xy[1] + 1:
             raise ValueError("unexpected frame or coordinate")
-        sub = kv.get("sub", "final") if kind.endswith("SOURCE") else "final"
+        sub = kv["sub"] if kind == "UR_QA08_LATE_PPU_SOURCE" else "final"
+        if kind == "UR_QA08_LATE_PPU_SOURCE" and sub not in ("0", "1"):
+            raise ValueError("source row cannot impersonate final stage")
+        if kind == "UR_QA08_LATE_PPU_FINAL" and "sub" in kv:
+            raise ValueError("final row cannot carry source sub stage")
         key = xy, sub
         if key in observations[frame]:
             raise ValueError("duplicate stage")
@@ -111,7 +116,7 @@ def audit(path: Path):
     blob = path.read_bytes()
     if hashlib.sha256(blob).hexdigest() != ARCHIVE_SHA:
         raise ValueError("immutable hosted archive SHA mismatch")
-    with ZipFile(path) as z:
+    with ZipFile(BytesIO(blob)) as z:
         if z.testzip() is not None:
             raise ValueError("ZIP CRC failure")
         rows = z.read("on-source.log").decode("ascii").splitlines()

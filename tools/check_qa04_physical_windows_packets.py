@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
+import unicodedata
 
 from validate_release_quality_ledger import qa04_physical_coverage
 
@@ -69,6 +70,18 @@ def safe_member(root: Path, name: object) -> Path:
     require(len(parts) <= 6 and all(p not in ("", ".", "..") for p in parts)
             and not name.endswith("/") and PurePosixPath(name).parts == tuple(parts),
             "evidence path traversal or alias")
+    # Refuse aliases that Linux accepts but Win32 cannot reopen faithfully.
+    for part in (root.name, *parts):
+        stem = part.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+        reserved = {'CON', 'PRN', 'AUX', 'NUL'}
+        reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
+        require(bool(part) and not part.endswith((' ', '.'))
+                and unicodedata.normalize('NFC', part) == part
+                and len(part.encode('utf-16-le')) // 2 <= 255
+                and not any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+                            or ch in '<>:"|?*\\/' for ch in part)
+                and stem not in reserved,
+                "nonportable Win32 attachment or packet root name")
     path = root
     for part in parts:
         path = path / part

@@ -17,10 +17,10 @@ class ScreenshotROIPolicy(unittest.TestCase):
         self.assertEqual(x["pixel_margin_tb"], [0, 0])
 
     def test_4k_wide_uses_all_source_rows(self):
-        x = raster_roi(342, 224, 3840, 2160)
-        self.assertEqual(x["roi_xywh"], [0, 2, 3840, 2156])
+        x = raster_roi(342, 224, 3840, 2160, horizontal_fit=F(512,513))
+        self.assertEqual(x["roi_xywh"], [0, 0, 3840, 2160])
         self.assertEqual(x["full_source_interval"], [0, 342, 0, 224])
-        self.assertEqual(x["pixel_margin_tb"], [2, 2])
+        self.assertEqual(x["pixel_margin_tb"], [0, 0])
         self.assertFalse(x["physical_acceptance"])
 
     def test_216_crop_is_not_the_original_reference(self):

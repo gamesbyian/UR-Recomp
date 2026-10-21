@@ -1,0 +1,10 @@
+{
+  "schema": "ur-history-backup-request/1",
+  "requested_utc": "2026-10-21",
+  "requested_ref": "main",
+  "purpose": "Initial independently restorable source/history backup for restricted Drive vault; one-shot request, not a recurrence.",
+  "drive_destination_folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
+  "owner_role": "existing Agent 4 integration slot or current manual integrator",
+  "source_artifact_release_credit": false,
+  "require_restore_and_hash_verification": true
+}

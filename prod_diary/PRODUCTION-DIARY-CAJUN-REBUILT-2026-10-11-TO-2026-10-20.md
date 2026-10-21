@@ -114,9 +114,13 @@ Deep in de sound machinery, de whole mystery squeeze down to one `$2140` write a
 
 ### 56. Raw SRAM made it home; de label got lost
 
+A save file got a homely duty, cher: remember which racer won what. Raw SRAM make it home safe, den de profile's label tumble into de ditch when de crash come. Dat ain't a philosophical puzzle to tomorrow's player. Dat player see a game what forget whose victory it was.
+
 De raw guest SRAM could become durable while typed metadata stumble during a crash cut. Now nobody know which racer own what unless de transaction and recovery logic behave. [#1713](https://github.com/gamesbyian/UR-Recomp/pull/1713) work on intent an' operator choices, [#1743](https://github.com/gamesbyian/UR-Recomp/pull/1743) test source-bound failures. None o' dat entitle an agent to promise immunity to every real power outage. Disk don't care how confident your PR description sound.
 
 ### 57. Make sure de executable actually contain de fix
+
+Most embarrassing research mistake is testin' one executable an' describin' another. In dis camp branches move an' generated sources change shoes. Before anybody cheer over a green test, somebody gotta prove de actual fix rode inside de package.
 
 [#1744](https://github.com/gamesbyian/UR-Recomp/pull/1744) bring later RF-015/RF-017 timing work through de actual Windows bridge. Else de tests could be green for a source what never got compiled into de package. Dat like celebratin' a fresh crawfish boil while de pot still full o' potatoes. Exact source epochs got to ride along with exact run receipts. [October 16 evidence](PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md).
 
@@ -124,13 +128,19 @@ De raw guest SRAM could become durable while typed metadata stumble during a cra
 
 ### 58. Ian say keep goin', not “paint it green”
 
+A cheap storyteller would paint Ian stompin' round angry whenever an agent session stalled. Dat scene ain't in de evidence. What we got is a director sayin' recover your place, keep doin' useful things, an' don't fake a finish. De repetition funny enough without borrowin' imaginary fury.
+
 Agents hear “please keep going,” “recover,” “find other things to do,” while sessions stall an' Actions queues pile up. I won't turn those into invented tales o' rage or exhaustion. Ian grant wide autonomy and expect useful progress even when one lane waiting. Dat be a management philosophy, cher. Let de idlin' tool pick up another good job instead o' starin' at de spinner.
 
 ### 59. ENOSPC eat de test before de test eat ENOSPC
 
+Dis experiment try to break de save at one exact moment. Instead de out-of-space condition eat de test while dey still settin' de table. A very real failure, a very useless celebration. Keep de red log where de next worker can find it.
+
 A full-volume Windows fixture fail while *setting up*, before de required post-raw metadata failure was witnessed. Dey record dat on [#1713](https://github.com/gamesbyian/UR-Recomp/pull/1713). A setup failure ain't a demonstrated crash-recovery success; it ain't proof o' de intended defect either. Dat little distinction save a mighty pile o' bad certainty. Sometimes de test rig fall in de swamp before it ever reach de gator.
 
 ### 60. Quiet branches got work hidin' in de weeds
+
+A branch might hold a brilliant day, a wrong guess, or a tiny experiment what must never sail into `main`. Ian send de crew to look through de reeds for stranded work. Save de worthwhile boats, label de wrecks, an' don't burn de whole riverbank to make it look tidy.
 
 Ian order a sweep: PRs, stale branches, stranded useful work, docs. De crews close specific research-only attempts, leave holds where warranted an' preserve [#1711](https://github.com/gamesbyian/UR-Recomp/issues/1711), de orphan branch census. A tidy issue list can lie by omission if unmerged work still sittin' out dere. De team begin to realize its own memory need engineering. [Original October 17](PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md).
 
@@ -138,13 +148,19 @@ Ian order a sweep: PRs, stale branches, stranded useful work, docs. De crews clo
 
 ### 61. Ian won't let zero of forty-five become wallpaper
 
+Forty-five USA events, not one accepted from start to finish. Dat number sit at de table like an inspector nobody can flatter. Ian ask what witness still missing. Better get one exact answer about de blockage than paint a happy percentage on de office wall.
+
 **0/45** strict original/native USA events. Dey done seen dat number too many times. Ian ask exactly why none accepted and tell QA to fix broken acceptance plumbing without lowering de bar. Dat force everyone to name de missing authentic witnesses instead o' admire a pretty partial. I call it a director pokin' de lab where it itch, cher, an' insistin' de scientist say what he'd need to know for sure.
 
 ### 62. A saved address ain't an executed instruction
 
+Saved PC bytes look mighty like clues from a crime scene. But a clue in memory ain't necessarily de instruction de CPU actually fetch. Dat moment call for humility from a machine what can talk real fast about any hexadecimal fact it meets.
+
 NMI stacks hold saved PC bytes dat differ. Later helpers read some memory. Easy to say “wrong return,” but dat jump too long for de evidence. Somebody gotta show de actual next fetched opcode an' its proper original counterpart. Otherwise you got a letter in a bottle an' no proof anybody ever opened it. De agent researchers quit confusin' a stored state with de machine actually consumin' it.
 
 ### 63. De true pixels still ask a hard question
+
+A genuine raster frame look persuasive on a big screen, cher. But de difference histogram can't point its own finger at de guilty register. Ian want de right picture for de right reasons; a gorgeous before-and-after won't make a guessed cause true.
 
 Original source PPU frames, authentic grayscale transitions, split-screen: valuable witnesses, every one. A million mismatches can tell you somethin' wrong without tellin' who done it. Ian's standard don't allow coverin' de difference with a guessed color shift an' callin' it fidelity. [October 18–19 source](PRODUCTION-DIARY-2026-10-18-TO-2026-10-19.md).
 
@@ -152,13 +168,19 @@ Original source PPU frames, authentic grayscale transitions, split-screen: valua
 
 ### 64. Dat compiled RTI don't eat de bytes we thought
 
+Twenty-nine helpers, compiled RTI, host scheduler, saved stack: dat de strangest little detective company I ever narrate. Everybody want to know where de CPU go next. Countin' folks who looked at memory ain't de same as catchin' de real fetched instruction walkin' out de door.
+
 [#1971](https://github.com/gamesbyian/UR-Recomp/pull/1971) count later reads from twenty-nine native helpers. [#1974](https://github.com/gamesbyian/UR-Recomp/pull/1974) show compiled RTI consume saved P while scheduler continuation handle return, unlike interpreted RTI restore PC/PB. So a differing stacked address ain't automatically a wrong executed return target. Cher, sometimes de greatest findin' in de swamp is learnin' dat de gator you been huntin' live one creek over.
 
 ### 65. Experiment trip on its own bootlace
 
+De experiments march bravely to de docks an' trip over dey own paperwork. Generated-source gate fail, logger disturb de question, replay never happen. Dey can learn somethin' about de harness; dey can't claim a guest-mechanics verdict from a boat what never left shore.
+
 Wrapper A/B [#1975](https://github.com/gamesbyian/UR-Recomp/pull/1975) fail de generated-source gate before guest replay. Logger comparison [#1976](https://github.com/gamesbyian/UR-Recomp/pull/1976) trip on terminal host-wall seconds. Artifact-root [#1973](https://github.com/gamesbyian/UR-Recomp/pull/1973) repair transport, not emulation. Three different rig problems, none a license to claim de game physics proved. I got to report what de experiment actually reach, not what it was hopin' to reach.
 
 ### 66. Three hundred thousand pixels holler de same complaint
+
+Hundreds o' thousands of pixels disagreein' is a loud chorus. But which instrument singin' wrong? Gray cycle, palette ingest, beam phase? De machines know exactly how loud de complaint is before dey know who started it. Keep dat order honest.
 
 [#1978](https://github.com/gamesbyian/UR-Recomp/pull/1978) qualify thirteen authentic grayscale-cycle source comparisons, with hundreds o' thousands of RGB5 mismatches and specific transition bursts. Exact numbers are useful, but no pixel count point by itself to PPU ingest, beam phase or brightness root. Dat's de part a good chronicler gotta say plainly after de histogram put on its fancy hat. [Original October 19](PRODUCTION-DIARY-2026-10-18-TO-2026-10-19.md).
 
@@ -166,21 +188,31 @@ Wrapper A/B [#1975](https://github.com/gamesbyian/UR-Recomp/pull/1975) fail de g
 
 ### 67. Ian ask how ten jobs keep dey names
 
+Ian ask how ten changing scheduled jobs keep ten separate histories. Dat nearly sound like a human question, don't it? Put an objective's name on its journal, not just de number painted on an hourly slot, so de next worker know which story it walked into.
+
 Ian want ten scheduled positions what can follow a moving list without rewritin' de whole herd o' prompts. Den he ask de dangerous question: how a returning agent know which unfinished work still belong to it if de board done changed? He float per-lane logs. De answer separate scheduled **slot**, permanent **work ID** an' enduring **journal**. [#2085](https://github.com/gamesbyian/UR-Recomp/pull/2085), [#2091](https://github.com/gamesbyian/UR-Recomp/pull/2091). One agent's chair ain't de work's whole identity, cher. Move de chair; keep de history tied to de job.
 
 ### 68. GitHub, de Vault, an' de pile o' unclaimed jars
+
+Now de agents dig through dey own recent history like de old ROM. Vault full o' jars, ZIPs, drafts an' things nobody proved should be merged. A saved artifact can be precious an' still be wrong for `main`. Ian want a memory dat help, not a warehouse dat copy mistakes forever.
 
 Next Ian ask how every worker check both GitHub an' Drive before repeatin' another agent's work. De recovery Vault held work GitHub didn't yet have, but if Drive act like a second indisputable source of truth, de whole camp got two captains. [#2095](https://github.com/gamesbyian/UR-Recomp/pull/2095), [#2097](https://github.com/gamesbyian/UR-Recomp/pull/2097), [#2100](https://github.com/gamesbyian/UR-Recomp/pull/2100) steer toward GitHub-first bounded publication an' true fallback. Census: **393 Drive IDs**, **87 ZIP archives**. Dat de number o' jars, cher, not proof every jar need pourin' into de gumbo. [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088) keep unfinished dispositions honest.
 
 ### 69. Four ways to make one little wheel look alive
 
+Ian send de visual crews after four kinds o' beauty: title, menus, motion an' de proof dat all of it actually runs. He want de original wheel to have a personality, little movements an' real response. No bland grey storefront what just happen to sell unicycle racing.
+
 Ian hand out native visual missions: one crew get title, one get de Play/Practice/Multiplayer/Records/Options root, one get source-faithful animated hero, others get de related actual presentation seams. No trailers masqueradin' as real menu code; no guest timing changed for prettier animations. [#2096](https://github.com/gamesbyian/UR-Recomp/pull/2096) gather original clip inventory an' private stock-derived plates, but dat don't stamp final approval. [#2079](https://github.com/gamesbyian/UR-Recomp/issues/2079) still wait for genuine stock attract/demo handoff after Modern idle. De logo may look proud, but de old demo ain't yet come home through de new front door.
 
 ### 70. Don't pour questionable source into de stew
 
+A recovery Vault can be a fine library or a cupboard full o' keys to de wrong houses. Strange ZIP names an' source paths need real checking before a fresh worker trust 'em. Funny bureaucratic scene, serious consequence if it publishes de wrong code.
+
 Recovery found path-binding an' unsafe ZIP-name issues ([#2075](https://github.com/gamesbyian/UR-Recomp/issues/2075), [#2076](https://github.com/gamesbyian/UR-Recomp/issues/2076)), and [#2089](https://github.com/gamesbyian/UR-Recomp/pull/2089) bring a bounded Records/Windows exporter change back from superseded work. Some archives preserved, some changes integrated, some held. Previous publication failures require care, not sneakin' de same patch in through de back porch. Source identity stay source identity even when every worker eager to cook.
 
 ### 71. One game, one director, a whole swarm o' evidence
+
+At dis cutoff nobody got de neat storybook finish. Ian give us excitement about living video, admitted competitive pride, fierce eyes for de wheel, an' a habit o' sending agents back to useful work. De agents give traces, creativity, corrections, stubborn little failures, an' a heroic gift for cloggin' CI. De unfinished game sit between 'em, still waitin' for its real victory lap.
 
 At dis cutoff I can establish real Windows player journeys, stronger genuine PPU/CPU evidence, a named owner candidate an' a workforce developin' its own coordination machinery. I cannot declare **0/45** accepted USA events or **0/12** accepted Windows gates changed, nor call de Vault fully reconciled or de 4× racer art approved. Ian keep tellin' agents to work ahead when blocked. De experiment now bigger than a game build: can all dese autonomous workers remember de same truth without steppin' on each other's feet? Cher, dat wheel still rollin', an' de answer still out past de next bend. [October 20 original](PRODUCTION-DIARY-2026-10-20.md).
 

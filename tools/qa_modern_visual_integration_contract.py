@@ -231,7 +231,7 @@ def inventory(root: Path) -> dict:
     elif title_capture_tool.is_file():
         title_capture_source = title_capture_tool.read_text(encoding="utf-8")
         literal = re.search(
-            r'^\\s*USA\\s*=\\s*"([0-9a-f]+)"\\s*$',
+            r'^\s*USA\s*=\s*"([0-9a-f]+)"\s*$',
             title_capture_source, re.MULTILINE)
         if literal and literal.group(1) != (
                 "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"):

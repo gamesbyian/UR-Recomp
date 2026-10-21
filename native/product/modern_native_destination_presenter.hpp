@@ -206,8 +206,13 @@ inline bool render_modern_native_destination(
     if (c.scale == 0) return false;
 
     const auto& col = kModernStockMenuPalette;
-    // Overpaint only the original child modal; do not recolour the original
-    // guest, alter the global root, or touch the bottom identity/Back strip.
+    // Modal focus owns the entire body and its controls footer. Mask the
+    // underlying root's focus band, preview and "B/ESC QUIT" instructions.
+    // Keep the independent outer frame and racer identity header intact.
+    p.fill_rect(pixels, stride, surface_height,
+                root.x + scale, root.y + 40 * scale,
+                root.width - 2 * scale,
+                root.height - 41 * scale, col.background);
     p.fill_rect(pixels, stride, surface_height,
                 c.x, c.y, c.w, c.h, col.background);
     p.fill_rect(pixels, stride, surface_height,

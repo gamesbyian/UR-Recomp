@@ -91,6 +91,8 @@ void exercise(int screen_w, int panel_w) {
         // Prove the shell ACTUALLY rendered a bright selected band and both
         // rows of its stock root controller bar before the child overpaints.
         const auto exposed_cursor_ink = sample(6, 60);
+        const auto identity_ink = sample(15, 42);
+        assert(identity_ink == palette.secondary_grey);
         const auto exposed_footer_ink = sample(11, 195);
         assert(exposed_cursor_ink != palette.header_band);
         assert(exposed_footer_ink != palette.background);
@@ -101,6 +103,9 @@ void exercise(int screen_w, int panel_w) {
         // margin. Its full-height solid body also removes the root footer.
         assert(sample(6, 60) == palette.header_band);
         assert(sample(11, 195) == palette.background);
+        // Racer identity is at root y+36 with 8 original-sized glyph rows.
+        // Masking from y+40 severed its bottom half in real SDL captures.
+        assert(sample(15, 42) == identity_ink);
         // Outer root border remains undamaged by a properly inset child.
         assert(sample(0, 203) == palette.frame_grey);
         std::printf("occlusion %s %dx224 root=%d\n",

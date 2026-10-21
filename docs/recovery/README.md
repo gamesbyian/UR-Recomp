@@ -25,7 +25,7 @@ These are checkpoint inventories, not a static live count. File moves preserve t
 
 - [#2075](https://github.com/gamesbyian/UR-Recomp/issues/2075) ZIP portability verifier Win32 aliases/Unicode;
   [#2076](https://github.com/gamesbyian/UR-Recomp/issues/2076) QA04 validated-path/reopened-file TOCTOU.
-- [#1996](https://github.com/gamesbyian/UR-Recomp/pull/1996) QA08 chromatic/source-PUU provenance remains draft/HOLD, with an earlier explicit source-publication safety denial. Do not retry denied writes or stack old composites.
+- [#1996](https://github.com/gamesbyian/UR-Recomp/pull/1996) QA08 chromatic/source-PPU provenance remains draft/HOLD, with an earlier explicit source-publication safety denial. Do not retry denied writes or stack old composites.
 - H24/H25 P2P signed SQLite trust, UHD raster-comparison, presented-frame/audio and CI merge-epoch source proposals remain **research-only** unless an independently authorized owner publishes narrow current-head source plus tests.
 - No complete original/native USA events, physical Windows acceptance, release gate or art likeness approval was granted by this archive audit. Do not infer it from a synthetic test or folder named `Integrated`.
 

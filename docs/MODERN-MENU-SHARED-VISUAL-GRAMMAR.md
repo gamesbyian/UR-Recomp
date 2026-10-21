@@ -109,6 +109,12 @@ Used the source-grounded [reuse register](../analysis/three-project-reuse-opport
 - **malmazuke PAL:** existing `src/app/frontend.cpp` is a cross-project semantic/reference candidate, not a matched USA menu art or shipping host component; PAL-native implementation and map cannot certify menu raster provenance. No code/assets imported.
 - **Decision:** extend first-party host-presentation seam without new dependencies or copying game assets; stop at a small testable component family.
 
+## Host checkerboard contrast, source palette preserved
+
+The real integrated Windows SDL root capture shows supporting racer text in neutral `#989898` over alternating `#303030` and `#505050` checker squares. In sRGB WCAG contrast calculations, the lighter squares give only **2.80:1**, which misses the ordinary small-text 4.5:1 target, even though `#989898` reaches 4.58:1 on the darker squares. The shared Modern root now uses **`kModernMenuCheckerLegibleGrey = #C8C8C8`** exclusively for its supporting identity and disabled-route/`SOON` labels drawn directly on the checker. The neutral colour retains the lighter-than-background stock-family hierarchy and reaches **4.82:1 on #505050** (7.89:1 on #303030), rather than redesigning the colour scheme. This is an explicitly modern accessibility adjustment, **not** a claim that retail CGRAM contains this RGB step. Original sprite/font source export data, all true source palettes, Authentic mode and game logic are untouched. The selected yellow text, white normal destinations, blue focus and already-contrasting title remain unchanged.
+
+The native root painter regression records both actual text and colour callback values for the racer identity and disabled controls. It is not enough to establish the final on-device perceptual contrast: the integration rehearsal must recapture both 4:3 and 16:9 post-composition SDL pixels at an exact new Windows PE hash, while independent QA/human review checks character readability and faithful identity. Provenance: [integrated Windows SDL capture run 39518329126](https://github.com/gamesbyian/UR-Recomp/actions/runs/39518329126), comparison artifact `12311075191`. No release/accessibility certification is claimed without that recapture.
+
 ## Three native presentation defects corrected from independent QA
 
 Independent QA identified three **reproducible** player-facing defects in the original shared root, not theoretical design concerns:

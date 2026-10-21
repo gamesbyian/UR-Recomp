@@ -483,6 +483,8 @@ int main() {
     assert(painted.empty());
     render_modern_options_modal(painter, pixels, 256, 224, 1, 513, 8, 10, view);
     assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 175, 8, 10, view);
+    assert(painted.empty());
     text_draws.clear();
     rect_draws.clear();
     render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 8, 10, view);
@@ -516,6 +518,8 @@ int main() {
     // Extreme numeric values must be rejected before 27*scale etc are used
     // to draw. A valid surface bounds check alone is not enough.
     assert(!render_modern_root_overlay(painter,pixels,256,224,1,513,
+                                       old_view,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,175,
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,nullptr,256,224,1,240,
                                        old_view,view));

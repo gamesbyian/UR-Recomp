@@ -26,7 +26,7 @@ All sixteen files had their original `02 Incoming` parent `1cdovDqle9IRYKX2lCt51
 | 03 Evidence Library | `1JNvMAuPBkP273XGJRdJ4x51kLW5FLiAo`, `1XnBXvWsM9mDyy3xsfKt_dHkfVNGE84QE`, `1IYBwv_OWk7aKfhvNfDeQUSLP7HaqXbD1`, `1kcgSq7omzpxsLqPUzFuQNAejtYzqhVO9`, `1ngXWIRgzx-x0GK3FeLOUXw35dTndSpyQ` | Earlier PR reconciliation, readback, publication/results and preserved H25 manifest |
 | 01 Work Journals (`1QvlB3V-aa8so0HPx_1dTcV8jL9TeD3kr`) | `1VWLJUbPTFtc6EnyRLX5c0Zz6Zc8w0b7i`, `1ghvPj6jRluWgJP5Dw7lz96TB5I6PdyxQ`, `1kdTXTJScqcls0hA3KFslXvw54tZQcgZ7` | H25/H26 handoff and continuation Markdown |
 
-The remaining **29** Incoming direct children consist of 20 ZIP recovery/source archives, four source patch files and five candidate JSON manifests. These are **not 29 independently missing implementations**. Each needs a source/member-level disposition under #2088; the absence of Inbox pointers does not award integration or justify deletion.
+The remaining **29** Incoming direct children consist of 21 ZIP recovery/source archives, three source patch files and five candidate JSON manifests. These are **not 29 independently missing implementations**. Each needs a source/member-level disposition under #2088; the absence of Inbox pointers does not award integration or justify deletion.
 
 ## Nested Git-history backup: evidence and limitation
 

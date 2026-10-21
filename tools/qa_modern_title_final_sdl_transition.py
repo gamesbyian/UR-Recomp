@@ -35,12 +35,13 @@ def load_real_case(root: Path, name: str, expected_source: str):
     receipt = json.loads((stage / names[0]).read_text(encoding="utf-8"))
     raster = (stage / names[1]).read_bytes()
     log = (stage / names[2]).read_bytes()
+    expected_draw = 100 if name.endswith("-entered-root") else 40
     if (receipt.get("source_sha") != expected_source or
             receipt.get("native_semantic_route") != name or
             receipt.get("native_process_exit") != 0 or
             receipt.get("execution_mode") != "modern" or
             receipt.get("SDL_driver") != "windows" or
-            receipt.get("observed_in_draw") != 40 or
+            receipt.get("observed_in_draw") != expected_draw or
             receipt.get("native_process_log_sha256") != sha(log) or
             receipt.get("p7_sha256") != sha(raster) or
             not SHA64.fullmatch(str(receipt.get("exe_sha256", "")))):
@@ -60,7 +61,19 @@ def load_real_case(root: Path, name: str, expected_source: str):
             b"UR_BALDOSA_MODERN_TITLE painted=1" not in log or
             f"output={dims[0]}x{dims[1]} source=SDL_RenderReadPixels".encode() not in log):
         raise ValueError("real native title or SDL readback witness missing")
+    # Correlate actual SDL readback with the guest input boundary.
+    # The owner's real P1 A press is at guest frame 60, then a 14-frame
+    # exit; draw40 can only show title, draw100 must be AFTER handoff.
+    observed = re.findall(
+        rb"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=(\d+) "
+        rb"guest_frame=(\d+) output=", log)
+    if len(observed) != 1 or int(observed[0][0]) != expected_draw:
+        raise ValueError("ambiguous real native title SDL capture draw")
+    guest_frame = int(observed[0][1])
     is_root = name.endswith("-entered-root")
+    if (is_root and guest_frame < 74) or (
+            not is_root and guest_frame >= 60):
+        raise ValueError("title/root final SDL readback is on wrong guest stage")
     if is_root:
         if (b"UR_BALDOSA_MODERN_TITLE entered_root=1" not in log or
                 b"UR_BALDOSA_MODERN_ROOT painted=1" not in log):
@@ -108,7 +121,7 @@ def verify(root: Path, source_sha: str) -> dict:
     receipts, images = {}, {}
     for case in CASES:
         receipts[case], images[case] = load_real_case(root, case, source_sha)
-    keys = ("source_sha", "exe_sha256", "observed_in_draw", "SDL_driver",
+    keys = ("source_sha", "exe_sha256", "SDL_driver",
             "requested_window_size", "actual_sdl_renderer_output")
     for key in keys:
         if len({json.dumps(receipts[name][key]) for name in CASES}) != 1:
@@ -129,7 +142,7 @@ def verify(root: Path, source_sha: str) -> dict:
         "source_sha": source_sha,
         "exe_sha256": receipts[CASES[0]]["exe_sha256"],
         "drawable": [width, height],
-        "SDL_capture_draw_ordinal": 40,
+        "SDL_capture_draw_ordinals": {name: receipts[name]["observed_in_draw"] for name in CASES},
         "normal": normal,
         "reduced_motion": reduced,
         "source_P6_to_final_SDL_exact_pixel_parity_proven": False,

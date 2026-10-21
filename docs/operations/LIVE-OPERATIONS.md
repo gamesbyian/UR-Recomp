@@ -20,6 +20,25 @@ UNKNOWN until a new Drive download and integrity test is performed.
 The saved metadata is validated by
 `tools/validate_history_custody.py` and its contract tests.
 
+**Real cancellation occupancy:** the daily report now also fetches the latest-attempt
+GitHub job records for **up to eight cancelled runs** selected from the
+existing latest-100-run sample. It sums actual started/completed job intervals,
+not the run's wall-clock span; concurrently active jobs contribute separate
+runner-seconds. An API error, incomplete job pagination or invalid job record
+is **UNKNOWN**, never silently zero. The report shows how many of the selected
+runs had complete job censuses, how many others were not sampled, and the
+measured totals grouped by workflow. These are measured occupancy intervals
+for a small, biased sample, **not** a last-24-hours bill, total workflow cost,
+estimated cost saving or proof a cancelled job did useless work.
+
+In a separate bounded 20-cancelled-run inspection on 2026-10-21, the three
+most frequently cancelled CI workflows already showed approximately **80
+runner-minutes** of aggregate occupied job intervals before cancellation.
+This motivated the source-based metric but does not imply all 80 minutes could
+have been saved. Before changing production triggers, inspect the source/PR
+update cadence, existing concurrency grouping, and downstream required-test
+coverage; keep release gates and independent QA intact.
+
 The output contains the exact observed main SHA/branch protection, open PR count
 (and whether pagination was exhaustive), draft count, PRs whose last update is
 older than 48 hours, a **bounded latest-100-run** Actions sample, the five

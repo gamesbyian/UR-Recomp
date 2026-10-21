@@ -84,6 +84,10 @@ on:
       - ".github/workflows/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: read
+
 concurrency:
   group: tooling-unit-tests-${{ github.ref }}
   cancel-in-progress: true
@@ -94,11 +98,26 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      # Preserve the existing required 'unit' check; use a focused suite only
+      # for a fully enumerated, exact allowlist of non-product operations files.
+      # PR API/auth/pagination errors, mixed changes and dispatch all run FULL.
+      - name: Select unit test scope from the exact GitHub PR file census
+        id: unit-scope
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          mode="$(python3 tools/ci_select_unit_suite.py)"
+          test "$mode" = ops || test "$mode" = full
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Unit suite mode: $mode" >> "$GITHUB_STEP_SUMMARY"
       - name: Fast-fail Python and workflow syntax
         run: |
           python3 -m compileall -q tests/unit tools
           ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
       - name: Restore compile cache
+        if: steps.unit-scope.outputs.mode != 'ops'
         id: cxx-cache
         uses: actions/cache/restore@v4
         with:
@@ -107,6 +126,7 @@ jobs:
           restore-keys: |
             ur-unit-cxx-${{ runner.os }}-
       - name: Enable content-addressed compile cache for unit-test fixtures
+        if: steps.unit-scope.outputs.mode != 'ops'
         shell: bash
         run: |
           # Keys hash the preprocessed translation unit and every compile flag,
@@ -119,7 +139,28 @@ jobs:
           echo "$shim" >> "$GITHUB_PATH"
           echo "UR_COMPILE_CACHE_DIR=$RUNNER_TEMP/cxx-cache" >> "$GITHUB_ENV"
 
-      - name: Run dependency-free Python unit tests in timing-balanced shards
+      - name: Execute complete operations regression on exactly scoped PRs
+        if: steps.unit-scope.outputs.mode == 'ops'
+        shell: bash
+        run: |
+          set -uo pipefail
+          python3 -m unittest -v \
+            tests.unit.test_agent_control \
+            tests.unit.test_ops_live_status \
+            tests.unit.test_ci_cancelled_job_sample \
+            tests.unit.test_validate_history_custody \
+            tests.unit.test_backup_main_history \
+            tests.unit.test_report_ci_runtime \
+            tests.unit.test_ci_select_unit_suite \
+            tests.unit.test_ci_trigger_policy \
+            >"$RUNNER_TEMP/unit-shard0.log" 2>&1
+          rc=$?
+          printf 'shard0=%s\n' "$rc" > "$RUNNER_TEMP/unit-shard-exits.txt"
+          grep -E '^(Ran [0-9]+ tests?|OK|FAILED|FAIL:|ERROR:)' "$RUNNER_TEMP/unit-shard0.log" || true
+          exit "$rc"
+
+      - name: Run full dependency-free Python unit tests in timing-balanced shards
+        if: steps.unit-scope.outputs.mode != 'ops'
         shell: bash
         run: |
           set -euo pipefail
@@ -181,7 +222,7 @@ jobs:
           retention-days: 7
 
       - name: Save compile cache
-        if: always() && steps.cxx-cache.outputs.cache-hit != 'true'
+        if: always() && steps.unit-scope.outputs.mode != 'ops' && steps.cxx-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/cxx-cache

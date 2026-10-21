@@ -140,6 +140,9 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
     def test_admitted_native_navigation_routes_are_explicit_and_distinct(self):
         self.assertEqual(driver.ROUTES["root-quit"][0], "14")
         self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
+        self.assertEqual(driver.ROUTES["play-stock-handoff"][:2], ("1", 90))
+        self.assertIn("stock_requested players=1",
+                      driver.ROUTES["play-stock-handoff"][2])
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["options-open-p1"][:2], ("12", 65))
         self.assertIn("options_opened", driver.ROUTES["options-open-p1"][2])

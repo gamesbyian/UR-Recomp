@@ -49,6 +49,7 @@ int ur_baldosa_modern_root_pause_options_draw(
 int snesrecomp_desktop_product_get_volume(void);
 // Staged by baldosa_sdl_controller_lifecycle_spike.py: read-only seat view.
 long long snesrecomp_desktop_product_seat_source(int seat);
+int snesrecomp_desktop_product_input_scripted(void);
 int ur_baldosa_product_system_gamepad(int player, int button, int pressed);
 int snesrecomp_desktop_product_is_paused(void);
 unsigned snesrecomp_desktop_product_pause_presentations(void);
@@ -318,6 +319,8 @@ bool load_focus_pause_setting() {
         : ur::product::HostSettings{}.pause_on_focus_loss;
 }
 
+int lifecycle_smoke_mode();
+
 void apply_host_lifecycle_pause() {
     ur::product::BaldosaLifecycleObservation in;
     for (int seat = 0; seat < static_cast<int>(ur::product::kControllerSeatCount); ++seat)
@@ -328,6 +331,9 @@ void apply_host_lifecycle_pause() {
                                         : ur::product::ExecutionMode::Authentic;
     in.pause_surface = g_modern_session && g_native_live_race;
     in.already_paused = g_modern_session && ur_modern_session_is_paused(g_modern_session);
+    // The focus smoke stands in for the player a script otherwise lacks.
+    in.focus_pause_eligible =
+        !snesrecomp_desktop_product_input_scripted() || lifecycle_smoke_mode() == 2;
     const auto reason = g_lifecycle_pause.step(in, &load_focus_pause_setting);
     if (reason == ur::product::BaldosaLifecyclePauseReason::None) return;
     g_lifecycle_last_reason = reason;

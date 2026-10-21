@@ -208,6 +208,11 @@ def helpers(policy: Path) -> str:
         "  return g_gamepad[seat].joystick_id != -1\n"
         "      ? (long long)g_gamepad[seat].joystick_id : -1;\n"
         "}\n"
+        "/* Product-facing, read-only: input comes from a --script, so no player\n"
+        " * is present to resume a pause the host did not ask for. */\n"
+        "int snesrecomp_desktop_product_input_scripted(void) {\n"
+        "  return g_script_count > 0;\n"
+        "}\n"
         + ACCEPTANCE + "\n"
     )
 

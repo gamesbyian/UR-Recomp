@@ -105,6 +105,22 @@ void focus_setting_off_and_non_race_surfaces_do_not_pause() {
     assert(g_setting_reads == 0);
 }
 
+void a_scripted_session_does_not_pause_on_focus_loss() {
+    g_setting = true;
+    g_setting_reads = 0;
+    BaldosaHostLifecyclePause lifecycle;
+    auto in = race(7, -1);
+    in.focus_pause_eligible = false;
+    lifecycle.step(in, load_setting);
+    in.focused = false;
+    assert(lifecycle.step(in, load_setting) == BaldosaLifecyclePauseReason::None);
+    assert(g_setting_reads == 0);
+    // ...but a seat owner leaving still pauses it.
+    in.seat_sources = {{-1, -1}};
+    assert(lifecycle.step(in, load_setting) ==
+           BaldosaLifecyclePauseReason::ControllerDisconnect);
+}
+
 void authentic_never_pauses() {
     g_setting = true;
     g_setting_reads = 0;
@@ -140,6 +156,7 @@ int main() {
     a_seat_swap_reports_the_old_owner_leaving();
     focus_loss_pauses_once_per_loss();
     focus_setting_off_and_non_race_surfaces_do_not_pause();
+    a_scripted_session_does_not_pause_on_focus_loss();
     authentic_never_pauses();
     disconnect_wins_over_simultaneous_focus_loss();
     return 0;

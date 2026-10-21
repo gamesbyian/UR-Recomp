@@ -64,6 +64,8 @@ class BaldosaHostLifecyclePauseTests(unittest.TestCase):
         # Authentic is never Modern, so the shared policies never pause it.
         self.assertIn("physical_modern_enabled() ? ur::product::ExecutionMode::Modern", glue)
         self.assertIn("snesrecomp_desktop_product_seat_source(seat)", glue)
+        # Scripted automation has no player to resume a focus pause.
+        self.assertIn("!snesrecomp_desktop_product_input_scripted()", glue)
         for forbidden in ("g_ram[", "g_sram", "keybinds_", "RtlRunFrame",
                           "snesrecomp_desktop_product_set_paused"):
             self.assertNotIn(forbidden, glue, forbidden)

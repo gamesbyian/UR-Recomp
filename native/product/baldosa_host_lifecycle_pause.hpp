@@ -36,6 +36,10 @@ struct BaldosaLifecycleObservation {
     // A live race with a Modern session that can pause.
     bool pause_surface = false;
     bool already_paused = false;
+    // False for a scripted (automated) session: there is no player to
+    // resume a focus pause, and parallel automated windows steal focus
+    // from each other. Disconnects still pause; a pad is a human signal.
+    bool focus_pause_eligible = true;
 };
 
 class BaldosaHostLifecyclePause {
@@ -74,8 +78,8 @@ public:
         const bool focus_lost = focused_ && !in.focused;
         focused_ = in.focused;
         bool focus_pause = false;
-        if (focus_lost && in.pause_surface && !in.already_paused &&
-            policy_for(in.mode).host_settings) {
+        if (focus_lost && in.focus_pause_eligible && in.pause_surface &&
+            !in.already_paused && policy_for(in.mode).host_settings) {
             HostSettings settings;
             settings.pause_on_focus_loss = load_focus_setting();
             focus_pause = should_pause_on_focus_loss(

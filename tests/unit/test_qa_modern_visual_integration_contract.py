@@ -13,7 +13,12 @@ from tools import qa_modern_visual_integration_contract as check
 
 FIXTURE = {
     "native/product/modern_title_presenter.hpp": "render_modern_title(",
-    "native/product/modern_menu_visual_grammar.hpp": "modern_menu_paint_focus_band(",
+    "native/product/modern_menu_visual_grammar.hpp": "modern_menu_paint_focus_band(\nbool fixed_bg1_grid = false;",
+    "native/product/modern_root_overlay_presenter.hpp": """
+modern_menu_paint_checker_backdrop(
+        paint, pixels, stride, surface_height,
+        x, y, rect.width, rect.height, scale, true);
+""",
     "native/product/modern_native_destination_presenter.hpp": "render_modern_native_destination(",
     "native/product/modern_menu_motion.hpp": """
 advance_modern_menu_motion(
@@ -228,6 +233,33 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         result = check.inventory(self.root)
         self.assertEqual(result["known_host_geometry_conflicts"], [])
         self.assertTrue(result["eligible_for_native_acceptance_run"])
+
+    def test_merged_bg1_root_cannot_silently_revert_to_panel_local_grid(self):
+        # An old title-owner file can have the helper and main root
+        # callsite while resetting the checker grid on every panel.
+        path = self.root / "native/product/modern_root_overlay_presenter.hpp"
+        source = path.read_text(encoding="utf-8")
+        path.write_text(source.replace("scale, true);", "scale);"),
+                        encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+        self.assertIn("native_root_fixed_bg1_opt_in",
+                      result["missing_native_integration_hooks"])
+        self.assertFalse(result["native_executed"])
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_bg1_feature_must_retain_original_default_off(self):
+        # Consumers besides the Modern root rely on the preserved local
+        # grid. A helper signature changed by an overlapping source merge
+        # must be treated as a fresh integration risk.
+        path = self.root / "native/product/modern_menu_visual_grammar.hpp"
+        path.write_text(path.read_text(encoding="utf-8").replace(
+            "bool fixed_bg1_grid = false", "bool fixed_bg1_grid = true"),
+            encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertIn("fixed_bg1_grammar_available",
+                      result["missing_native_integration_hooks"])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
 
     def test_missing_source_module_and_symlink_rejected(self):
         file = self.root / "native/product/modern_title_presenter.hpp"

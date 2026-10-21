@@ -48,6 +48,22 @@ def canonical_hex_digest(value: object, length: int) -> bool:
     ) is not None
 
 
+def valid_evidence_ref(value: object) -> bool:
+    """Only a canonical repo-relative locator; never proof of source identity.
+
+    The independent reviewer must still authenticate the referenced bytes.
+    """
+    return (
+        type(value) is str
+        and bool(value)
+        and value == value.strip()
+        and "\\" not in value
+        and ":" not in value
+        and all(part not in ("", ".", "..") for part in value.split("/"))
+        and not any(ord(ch) < 32 or 127 <= ord(ch) <= 159 for ch in value)
+    )
+
+
 def validate_catalog(catalog: dict) -> list[dict]:
     courses = catalog.get("courses")
     if not isinstance(courses, list) or len(courses) != 45:
@@ -134,7 +150,7 @@ def validated_witness(witness: dict, kind: str, *, rom: str | None = None) -> bo
 def build_census(catalog: dict, source: dict) -> dict:
     courses = validate_catalog(catalog)
     observations = source.get("observations")
-    if source.get("schema_version") != 1 or not isinstance(observations, list):
+    if type(source.get("schema_version")) is not int or source["schema_version"] != 1 or not isinstance(observations, list):
         raise ValueError("expected version-1 independent observation register")
     known = {c["id"]: c for c in courses}
     keyed = {}
@@ -150,8 +166,8 @@ def build_census(catalog: dict, source: dict) -> dict:
             raise ValueError(f"duplicate course/ROM observation: {key}")
         if observation.get("status") not in ("partial", "passed", "failed", "blocked"):
             raise ValueError(f"unsupported observation status: {key}")
-        if not observation.get("evidence_ref"):
-            raise ValueError(f"observation missing evidence path: {key}")
+        if not valid_evidence_ref(observation.get("evidence_ref")):
+            raise ValueError(f"observation invalid evidence path: {key}")
         if observation["status"] == "passed" and not validated_witness(
             observation, known[cid]["track_kind"], rom=region
         ):

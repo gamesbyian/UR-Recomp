@@ -58,7 +58,8 @@ def parse_log(log_text: str) -> list[dict[str, int]]:
 
 
 def verify_events(events: list[dict[str, int]], original: dict,
-                  min_frames: int = 40) -> list[dict]:
+                  min_frames: int = 40,
+                  allow_multi_session: bool = False) -> list[dict]:
     """Source timing independent of C++ constants and final SDL readback."""
     if not 1 <= min_frames <= MAX_EVENTS:
         raise ValueError("invalid minimum source native draw count")
@@ -80,6 +81,12 @@ def verify_events(events: list[dict[str, int]], original: dict,
     intro_suppressed = False
     for event in events:
         if event["ordinal"] == 0 and current:
+            if not allow_multi_session:
+                raise ValueError("unexpected native root session restart; "
+                                 "pass --allow-multi-session only with "
+                                 "independent hide/reentry evidence")
+            if len(current) < min_frames:
+                raise ValueError("truncated native root session before restart")
             sessions.append(current)
             current = []
             intro_suppressed = False
@@ -120,7 +127,7 @@ def verify_events(events: list[dict[str, int]], original: dict,
         current.append(event)
     if current:
         sessions.append(current)
-    if max(map(len, sessions)) < min_frames:
+    if any(len(session) < min_frames for session in sessions):
         raise ValueError("no complete required native motion draw sequence")
     return [{
         "first_tick60": series[0]["tick60"],
@@ -135,10 +142,11 @@ def verify_events(events: list[dict[str, int]], original: dict,
     } for series in sessions]
 
 
-def verify_log(text: str, min_frames: int = 40) -> dict:
+def verify_log(text: str, min_frames: int = 40,
+               allow_multi_session: bool = False) -> dict:
     data = json.loads(SOURCE.read_text(encoding="utf-8"))
     records = parse_log(text)
-    sessions = verify_events(records, data, min_frames)
+    sessions = verify_events(records, data, min_frames, allow_multi_session)
     return {
         "schema_version": 1,
         "evidence_kind": "actual_native_root_compositor_draw_receipts",
@@ -159,10 +167,12 @@ def main() -> int:
     p.add_argument("--host-log", required=True, type=Path)
     p.add_argument("--out", required=True, type=Path)
     p.add_argument("--min-frames", type=int, default=40)
+    p.add_argument("--allow-multi-session", action="store_true",
+                   help="Require external hide/reentry evidence for each session")
     args = p.parse_args()
     logfile = args.host_log.read_bytes()
     decoded = logfile.decode("utf-8", errors="replace")
-    report = verify_log(decoded, args.min_frames)
+    report = verify_log(decoded, args.min_frames, args.allow_multi_session)
     report["original_host_log_sha256"] = hashlib.sha256(logfile).hexdigest()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",

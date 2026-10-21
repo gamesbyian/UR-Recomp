@@ -373,7 +373,16 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/modern-menu-actual-win32-motion-pr2042" \
             --timeout 120
-          echo "PASS: exact-current-head Windows native P6 Modern root motion draw proof; 40+ monotonic source-timed real native compositor draws, no SDL P7/human/hardware/release credit." >> "$GITHUB_STEP_SUMMARY"
+          # Same exact native PE, independent anonymous state. The EXISTING
+          # test-only SDL keyboard route presses Down on frames 60,61,62,
+          # stops BEFORE its frame63 confirm, then returns to idle. Every
+          # actual interpolated frame is audited against stock timing.
+          python tools/capture_baldosa_modern_motion_win32.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/modern-menu-actual-win32-navigation-pr2042" \
+            --timeout 120 --scripted-navigation
+          echo "PASS: exact-current-head real Windows P6 Modern root draws plus three SDL-scripted native Down focus edges/source-signed cursor positions; no physical controller, SDL P7, human or release credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded actual native Modern motion evidence (PR 2042)
         if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-menu-motion-source-safe-20261020' }}
@@ -385,6 +394,8 @@ jobs:
           path: |
             ${{ runner.temp }}/modern-menu-actual-win32-motion-pr2042/native-game.log
             ${{ runner.temp }}/modern-menu-actual-win32-motion-pr2042/motion-native-draw-receipt.json
+            ${{ runner.temp }}/modern-menu-actual-win32-navigation-pr2042/native-game.log
+            ${{ runner.temp }}/modern-menu-actual-win32-navigation-pr2042/motion-native-draw-receipt.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

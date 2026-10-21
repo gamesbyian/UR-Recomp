@@ -466,3 +466,14 @@ This probes **host-owned, held physical semantic input**, not an attached
 USB pad or an accepted physical-hardware gate. No customer-visible key,
 guest input/physics, SRAM or root menu logic has changed. Exact-head Windows
 native artifact and independent evidence review are pending.
+
+## Accurate native title transition copy
+
+Real native screenshots revealed the transient string `SELECTING RACER` when
+P1 A/Start or Enter enters the **five-destination Modern root**, even on a
+fresh install without a racer profile. No racer is selected by the title
+confirm itself. The brief 14-tick exit footer now reads **READY TO ROLL**
+and uses the corrected centred width of 13 glyphs. This remains presentational
+only: no input, menu state, profile creation or guest semantics change.
+The actual native Windows capture and 4:3 clipping checks must be rerun on
+this exact revision; historical screenshots retain their previous text.

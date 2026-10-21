@@ -234,7 +234,8 @@ int main() {
         opening = modern_title_confirm(opening);
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening));
-        assert(saw("SELECTING RACER"));
+        assert(saw("READY TO ROLL"));
+        assert(!saw("SELECTING RACER"));
         assert(!saw("PRESS A / START / ENTER"));
         words.clear();
         assert(!render_modern_title(paint, surf.pixels.data(),

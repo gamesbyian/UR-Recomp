@@ -239,9 +239,9 @@ inline bool render_modern_title(
             (static_cast<unsigned>(w) * state.exit_age) / 14u);
         paint.fill_rect(pixels, stride, surface_height,
                         0, 192, sweep, 3, blue);
-        constexpr char opening[] = "SELECTING RACER";
+        constexpr char opening[] = "READY TO ROLL";
         paint.draw_text(pixels, stride, surface_height,
-                        center - 15 * 4, h - 21, opening, gold, 1);
+                        center - 13 * 4, h - 21, opening, gold, 1);
     }
     return true;
 }

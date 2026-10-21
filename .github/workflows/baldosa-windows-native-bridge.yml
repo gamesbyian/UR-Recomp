@@ -5,7 +5,7 @@ name: Baldosa native Windows x64 bridge feasibility
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
@@ -216,6 +216,11 @@ concurrency:
 
 jobs:
   native-windows-x64:
+    # Draft computational PRs may opt into this exact-source Windows route via
+    # workflow_dispatch. The automatic 35-minute job is deferred until review,
+    # then ready_for_review invokes the full unmodified source+Windows journeys.
+    # Converting a running PR back to draft cancels its superseded run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:

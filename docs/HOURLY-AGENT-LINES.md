@@ -20,7 +20,7 @@ The **scheduling authority** is five runs per hour, evenly staggered. Each invoc
 
 ## Current ten lines (all provisional)
 
-Stable work IDs follow their **objective** when moved between numbered positions. Reorder or replace slots freely, but never recycle an existing work ID for a different problem. Retired IDs and historical evidence remain discoverable. See `docs/recovery/ACTIVE-WORK-JOURNALS.md` for compact cross-line continuity; maintain verified Drive follow-ups for detailed artifacts.
+Stable work IDs follow their **objective** when moved between numbered positions. Reorder or replace slots freely, but never recycle an existing work ID for a different problem. Retired IDs and historical evidence remain discoverable. See `docs/recovery/ACTIVE-WORK-JOURNALS.md` for compact cross-line continuity; scheduled agents maintain verified Drive recovery follow-ups when needed; manually dispatched agents keep ordinary work and progress in GitHub.
 
 | Line / former minute (non-scheduling) | Stable work ID | Current line | Bounded next deliverable | Exclusive write boundary |
 | --- | --- | --- | --- | --- |

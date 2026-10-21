@@ -2,6 +2,12 @@
 
 This is the authoritative protocol for all five hourly agents and manually launched integrators. The live ten-position dispatch board is `docs/HOURLY-AGENT-LINES.md`. Position numbers are **mutable slots**, not domain identities. Every scheduled prompt must resolve anchor positions from the board's *current agent table*, then three rotating support positions using its current formula. Ignore historical topic names and assignments in prior handoffs. Assign each active objective a stable work ID, independent of its board position, and preserve its journal when moved.
 
+## Execution modes: manual GitHub-first vs scheduled recovery
+
+**Manually dispatched agents (including visual, product, QA and manual integrators) use GitHub as the sole routine progress, status and handoff authority.** Work in dedicated branches/PRs; write updates, logs, tests, screenshots, decisions and next actions to the PR, issues or repository docs. Read the Drive Vault at startup *only to locate relevant unresolved research and avoid duplication*. Do **not** create routine Drive journals, progress summaries, integration receipts, candidate manifests or redundant mirrors of GitHub changes. A manual agent may write to Drive only when GitHub publication is genuinely impossible and substantive unpublished bytes/evidence would otherwise be lost, or when the owner explicitly requests a Drive artifact. Such an exception must include exact failed write, source identity, artifact, readback and intended later GitHub recovery. When GitHub is restored, reconcile and retire the exception without deleting evidence. In particular, **a successful GitHub PR/commit is already the handoff**; no Drive report is needed.
+
+**Scheduled hourly agents** use Drive recovery workflows where GitHub source publication is unavailable. Their immutable recovery proposals and continuity data are for the manual integrator to consume, not a reporting obligation imposed on manual agents. Both modes read the relevant GitHub/Drive history before duplicating work, but only the recovery-blocked mode routinely writes to Drive.
+
 ## Recovery vault
 
 Root: https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn
@@ -22,7 +28,7 @@ Root: https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn
 4. Record a preflight receipt containing UTC timestamp, main SHA, board SHA, work IDs/positions, folder inventory watermark, relevant Drive file IDs, PR/head SHAs, duplicates/supersessions and selected next actions. If a source cannot be accessed, say what was inaccessible; do not certify the preflight or assume absence.
 5. Prioritize qualified pending integration/extension and exact new discriminating tests. Five assigned lines require meaningful review and honest outcomes, **not** five invented new patches. Avoid rerunning inherited suites unless necessary for validation; distinguish new tests from inherited tests.
 
-## Candidate package schema (one independent deliverable per candidate)
+## Candidate package schema (scheduled/recovery-blocked submissions only)
 
 Use a stable `candidate_id`, `work_id`, `board_position_at_submission`, `agent_id`, `timestamp_utc`, `title`, `status`, `relationship` (new/extends/supersedes/duplicate), `related_candidate_ids`, `source_main_sha`, `source_blob_shas`, `target_paths`, `patch_drive_id`, `bundle_drive_id`, `tests` (commands and observed results), `evidence_drive_ids`, `relevant_prs`, `dependencies`, `limitations`, `next_action`, `release_credit=false`. Never assert a completed test or a merge without verifying it.
 
@@ -30,11 +36,11 @@ Preserve an immutable complete archive in Incoming or Evidence; submit current i
 
 ## Continuity and ownership
 
-Maintain one **work-ID journal** (stable across position changes) with established results, rejected hypotheses, source-bound references, pending candidates, next discriminating step and last reconciliation. Maintain one short **agent continuation record** per hourly agent, listing active candidate IDs and unpublished state. Prefer append-only immutable run receipts if concurrent writers cannot safely update a shared document. Agent 4 is the *Drive triage coordinator* for inbox dedup/indexing, but is not authorized to award independent QA or resolve GitHub write denials; other agents may submit independent candidate manifests. A task claim is advisory, scoped to a deliverable, and expires after the next missed scheduled checkpoint; it never blocks independent QA or recovery.
+For scheduled/recovery-blocked agents, maintain one **work-ID journal** (stable across position changes) with established results, rejected hypotheses, source-bound references, pending candidates, next discriminating step and last reconciliation. Maintain one short **agent continuation record** per hourly agent, listing active candidate IDs and unpublished state. Prefer append-only immutable run receipts if concurrent writers cannot safely update a shared document. Agent 4 is the *Drive triage coordinator* for inbox dedup/indexing, but is not authorized to award independent QA or resolve GitHub write denials; other agents may submit independent candidate manifests. A task claim is advisory, scoped to a deliverable, and expires after the next missed scheduled checkpoint; it never blocks independent QA or recovery.
 
 ## Manual integration
 
-Manual integrators must reconcile the inbox with GitHub at the start and before **each** publication. Order qualified independent packages by priority and dependency; verify source exactness and tests, create narrow PRs, respect checks and approval. Write resolution receipt with candidate ID, actual PR/commit/head, status and rationale in Integrated or Superseded/Rejected. Update journals/index where safe. Do not bulk-apply unreviewed recovery archives.
+Manual integrators must reconcile the inbox with GitHub at the start and before **each** publication. They write normal resolutions and handoffs to GitHub PRs/issues or versioned recovery index docs, **not** to Drive. Order qualified independent packages by priority and dependency; verify source exactness and tests, create narrow PRs, respect checks and approval. Record resolution with candidate ID, actual PR/commit/head, status and rationale in GitHub. A Drive receipt is optional only when a specifically pending Drive-only recovery requires a disposition that scheduled agents cannot otherwise discover from the GitHub index. Update the GitHub journals/index where safe. Do not bulk-apply unreviewed recovery archives.
 
 ## Failure and publication rules
 

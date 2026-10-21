@@ -2,6 +2,10 @@
 
 Compact router for coding and research agents. **Current priority: independently close original/native complete USA events and the named-profile Windows crash-recovery P0 on the integrated Baldosa/Modern product, while qualifying graphics and player-visible release QA on exact source-bound artifacts.** Start with `docs/WORK-QUEUE.md` (live) and `docs/PROJECT-PLAN.md` (durable intent), then only your owning specialist authority. Use `docs/README.md` to find it. Historical project plan, queue and resource notes now live under `docs/archive/` and are not assignments. Repository state and latest merged evidence supersede conversation recaps.
 
+## Progress and handoff location
+
+Manually launched agents work **GitHub-first**. Commit code, tests and evidence to dedicated branches; keep ongoing progress, review context, blockers and next actions in their PRs/issues and repository documentation. Read the Drive recovery vault for existing unpublished proposals when relevant, but **do not upload routine progress reports, status summaries, journal copies or PR mirrors to Drive**. Drive writes are exceptional: preserve otherwise-unpublishable substantive work after an actual GitHub publication failure, or fulfill an explicit owner request. Scheduled hourly recovery agents have a separate Drive fallback in `docs/AGENT-COORDINATION.md`; do not apply their Drive reporting requirements to manually dispatched agents. A normal GitHub handoff is sufficient.
+
 ## Route by task
 
 | Task | Read first |

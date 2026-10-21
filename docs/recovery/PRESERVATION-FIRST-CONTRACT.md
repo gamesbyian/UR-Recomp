@@ -11,6 +11,22 @@ Owner decision (2026-10-21): **A failed GitHub write must not cause the loss of 
 5. **On nonpublication:** if no verified Drive rescue already exists, upload one complete immutable archive per distinct deliverable to Incoming, independently read back, update its incident/continuation, and place a short actionable pointer in Inbox only if new intake is necessary. If Drive also fails, classify **AT RISK / NOT DURABLY PRESERVED**, keep the best existing session artifact, and explicitly say what cannot be recovered. Never assert a merge, ZIP integrity or success without direct evidence.
 6. **Resolve rather than repeat:** an independent reviewer checks current main, exact existing PRs, recovered source/tests and the real engineering need. The reviewer can ship genuinely distinct, independently justified code using normal contribution flow, identify semantic supersession, or keep a documented hold and raise a support ticket. No relabelled payload submission, alternate endpoint trick, or cosmetic rewrite of the rejected operation.
 
+## Machine-checkable incident integrity
+
+The curated `publication-incidents.json` is validated by
+`python3 tools/validate_publication_incidents.py` and the
+[agent control contract workflow](../../.github/workflows/agent-control-contract.yml)
+whenever an incident is changed. The validator ensures distinct incident IDs,
+active board work IDs, exact original operation/error, consistent source and
+Drive identifiers, no release credit, and no conversion of an explicit policy
+denial into an automatic retry. A `verified` byte-readback claim must have
+a valid outer SHA-256. This is **offline structural validation only**: it
+neither accesses Google Drive nor authenticates a digest, owner, refusal,
+independent approval or physical/release evidence. A real receipt still needs
+the separately observed Drive download and source comparison in the contract
+below. The vault-clearing integration owner retains sole candidate
+disposition, Inbox and folder-move ownership; this check is read-only.
+
 ## Offline staging and readback
 
 From a local repo checkout:

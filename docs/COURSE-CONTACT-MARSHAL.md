@@ -52,6 +52,27 @@ The snapshots alone cannot prove that every branch executed in every
 frame, but they no longer present a contradiction with the dispatcher's
 known shared-register input.
 
+## Separate original 2014 Dragster result witness
+
+The recovered [original 2014 first-race record](../analysis/data/dragster-original-2014-race-result.json)
+comes from source movie `reference/imported/tas-bots/dessyreqt-4250-submission.smv`,
+Actions run `37184022134`, artifact `11296685866`, and 669,690
+raw original trace records (SHA-256
+`5fc0e88c89d2dc35b945a2c1f37f522fe8ba3090ea64a0efe50e1748b39f93ab`).
+Its first active frame is 794; it retains three checkpoint/lap state
+transitions at original frames 1031, 1772 and 2505, followed by entry
+to the original result screen at frame 2874.
+[Independent regression tests](../tests/unit/test_dragster_original_2014_race_result.py)
+pin these bounded facts, including the result menu path.
+
+**Comparison boundary:** the native Dragster finish transition described
+below is from a **different input/scene**, entering its finish-state
+transition at native frame 2903. Its before/after state has the same
+shape as the original last event, but the frame labels, contact words
+and input runs are not source-equivalent. Neither this source witness
+nor that structural similarity establishes original/native parity,
+the first causal CPU divergence, or any complete USA-event release credit.
+
 ## Course-fidelity consequence
 
 At guest frame 2902 the P1 word `0x2024` selects C000 slot 10, whose

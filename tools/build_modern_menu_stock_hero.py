@@ -313,11 +313,42 @@ def publish_private_source_artifacts(
             shutil.rmtree(staged_dir, ignore_errors=True)
 
 
+def require_private_artifact_paths(
+    output_header: Path, output_manifest: Path, frames_dir: Path | None
+) -> None:
+    """Keep private original raster evidence out of versioned source paths.
+
+    The one exception is the EXACT deliberately git-ignored native include
+    filename, which is still opt-in/experimental and must not be committed.
+    An external worktree/output directory is also legitimate. Resolve parent
+    symlinks before checking so an apparent external directory cannot
+    silently point back into the source tree.
+    """
+    root = ROOT.resolve()
+    allowed_header = (ROOT / "native/product/"
+                      "modern_menu_stock_hero_original.generated.hpp").resolve()
+    for kind, path in (
+        ("source header", output_header),
+        ("source manifest", output_manifest),
+        ("source review frames", frames_dir),
+    ):
+        if path is None:
+            continue
+        resolved = path.resolve()
+        if resolved == root or root in resolved.parents:
+            if kind != "source header" or resolved != allowed_header:
+                raise ValueError(
+                    f"{kind} must be outside the tracked source tree")
+    # Filesystem link collisions and no-clobber publication are independently
+    # enforced by publish_private_source_artifacts after source verification.
+
+
 def build(rom_path: Path, output_header: Path, output_manifest: Path,
           frames_dir: Path | None = None,
           clip_id: str = DEFAULT_CLIP) -> dict:
     if clip_id not in CLIP_WINDOWS:
         raise ValueError("unregistered original source clip")
+    require_private_artifact_paths(output_header, output_manifest, frames_dir)
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     registry = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if not rom_path.is_file() or rom_path.stat().st_size > MAX_BYTES:

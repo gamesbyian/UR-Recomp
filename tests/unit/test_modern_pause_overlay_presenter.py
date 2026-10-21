@@ -31,7 +31,8 @@ class NativePausedOptionsPresenterTest(unittest.TestCase):
 
     def test_both_source_pause_branches_use_player_language(self):
         source = (PRODUCT / "modern_pause_overlay_presenter.hpp").read_text()
-        self.assertEqual(source.count('"GAME PAUSED"'), 2)
+        # Legacy full, compact true-source and paused Options render paths.
+        self.assertEqual(source.count('"GAME PAUSED"'), 3)
         self.assertNotIn('"PAUSED - GUEST FROZEN"', source)
 
     def test_pause_lifecycle_routes_only_owned_edges_and_stays_frozen(self):

@@ -44,6 +44,24 @@ static_assert(modern_ui_text_legible_on_all(
 static_assert(modern_ui_text_legible(kModernStockMenuPalette.secondary_grey, 0xFF2F2F2Fu));
 static_assert(modern_ui_text_legible(kModernStockMenuPalette.secondary_grey, 0xFF000000u));
 static_assert(!modern_ui_text_legible(kModernStockMenuPalette.secondary_grey, 0xFF505050u));
+// Focus markers (the 3px leading bar and arrow colours) are non-text
+// indicators: every source cursor context must clear 3:1 against both the
+// dark panel and the selected-row field they sit beside.
+static_assert(modern_ui_contrast_x100(
+    modern_menu_cursor_highlight(ModernMenuSourceCursor::Main), 0xFF2F2F2Fu)
+    >= kModernUiFocusContrastX100);
+static_assert(modern_ui_contrast_x100(
+    modern_menu_cursor_highlight(ModernMenuSourceCursor::Rider), 0xFF2F2F2Fu)
+    >= kModernUiFocusContrastX100);
+static_assert(modern_ui_contrast_x100(
+    modern_menu_cursor_highlight(ModernMenuSourceCursor::Tour), 0xFF2F2F2Fu)
+    >= kModernUiFocusContrastX100);
+static_assert(modern_ui_contrast_x100(
+    modern_menu_cursor_highlight(ModernMenuSourceCursor::Track), 0xFF283058u)
+    >= kModernUiFocusContrastX100);
+static_assert(modern_ui_contrast_x100(
+    modern_menu_cursor_highlight(ModernMenuSourceCursor::Main), 0xFF283058u)
+    >= kModernUiFocusContrastX100);
 }  // namespace token_audit
 
 static_assert(modern_ui_min_text_scale(8) == 1);

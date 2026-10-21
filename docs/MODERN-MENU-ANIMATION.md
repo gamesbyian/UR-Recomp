@@ -63,6 +63,21 @@ python3 tools/reconstruct_modern_menu_cursor.py \
 
 The recovered sprite's actual appearance must be visually checked against original menu captures and native selection placement before it replaces the provisional two-pixel source-blue accent. The 32×32 source cursor, its +7px shadow and wide-screen layout are owned jointly with the shared visual grammar / root composition agents in #2038 / #2040. **No decoded original cursor is yet active in the native game.** This is source-reconstruction tooling only, not evidence of verified release artwork or final 4:3/16:9 screenshots.
 
+### Independently verifying real native motion receipts (P6 only)
+
+The source-bound Modern root can emit `UR_MODERN_MENU_MOTION_CAPTURE` rows during a private test build/run when **both** `UR_MODERN_MENU_TEST_TICK60=0` and `UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT=1` are set. The new `tools/verify_modern_menu_motion_capture.py` consumes this **actual native log**, compares its 32-tick cursor spin and 39-frame entrance-distance model against `analysis/generated/menu-visual-language.json`, and checks the source-grounded logical menu geometry: 256×224 with root (x=8, width=240) or 342×224 with root (x=11, width=320). This deliberately makes a wrong 240px wide-root marker placement fail. Source entrance distance is a **model field**, not an on-screen proof of a 256px BG2 root transition.
+
+```bash
+python3 tools/verify_modern_menu_motion_capture.py \
+  --host-log /path/to/exact-native-host.log \
+  --out /tmp/modern-menu-motion-native-receipt.json \
+  --min-frames 40
+```
+
+The verifier refuses dropped/duplicated draw ordinals, discontinuous injected UI ticks, changed viewport mid-sequence, bad stock spin phases, wrong 39-frame curve, invalid selection/rectangles, painter failures and suspicious same-row jumps. It recognizes explicitly restarted root sessions and reduced-motion suppression of an unfinished entrance (including correct non-restart after the preference is switched off). `tests/unit/test_verify_modern_menu_motion_capture.py` covers malicious and truncated log data, both layout sizes, two root sessions, independent CLI JSON output and source-manifest cadence corruption.
+
+**Evidence boundary:** these are **native root compositor draw receipts**, not SDL P7 presented frames, audio/SFX kinetics, real controller input proof, all guest frames or visual/art approval. QA #2041 and integrated #2053 must correlate source-bound P6 draw events to the *separate* actual SDL readback on one exact Windows PE, keeping every untouched image hash and viewport. This tool does not manufacture art, simulate native draws, certify human review, or advance guest execution.
+
 ## Three-project reuse preflight
 
 Consulted `tools/select_three_project_reuse.py` and its sourced `analysis/three-project-reuse-opportunities.json` / `analysis/data/three-project-apparatus-capability-matrix-20261010.json` with lane `modern-product`: retain **UR** typed root / renderer and evidence contracts, **Baldosa** pinned guest/SDL presentation lifecycle, and **Malmazuke** as a contextual frontend reference only. The registry classifies `modern-controller-journey` / `baldosa-native-core` as keep-existing and `candidate-evidence-envelope` as a shared provenance seam. Nothing justifies a new emulator, frontend authority, asset format or another menu engine. This preflight is source-inspection of the established algorithm and registry; no local full repository checkout was available to execute the command itself.

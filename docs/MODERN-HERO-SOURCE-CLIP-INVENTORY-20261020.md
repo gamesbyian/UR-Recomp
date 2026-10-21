@@ -25,7 +25,22 @@ python3 tools/audit_modern_hero_source_clips.py --output /tmp/modern-hero-source
 python3 -m unittest tests.unit.test_audit_modern_hero_source_clips
 ```
 
-The tests inspect the repository's real source register and fail closed on wrong ROM identity, absent/reordered/duplicated frames, unaccepted status, changed P1 palette, composition-guard disagreement, ambiguous representation IDs and invented source windows. The output is intentionally ephemeral until a renderer consumer needs a pinned manifest.
+The inventory tests inspect the repository's real source register and fail closed on wrong ROM identity, absent/reordered/duplicated frames, unaccepted status, changed P1 palette, composition-guard disagreement, ambiguous representation IDs and invented source windows. The output is intentionally ephemeral until a renderer consumer needs a pinned manifest.
+
+## Private original-raster plate proof (additional deliverable)
+
+A separately bounded, explicit-ROM opt-in producer `tools/build_modern_hero_reaction_plates.py` uses the **existing** `prototype_racer_hd_replacement.build_stock_rgba` Original 64×64 raster compositor to extract either *settle-and-recover* or *long-hold-recovery* in the accepted registered order. No new sprite decoder, original-content distributor, HD procedure or saved in-game asset is introduced. The producer validates the USA ROM SHA256 and exact 2,097,152 bytes, registered P1 semantic/palette and composition, per-pose stock contact/pivot, plausible occupied pixels, chronological frame count and identical pixels for repeated registration IDs. It refuses an entirely static candidate. It writes 64×64 original lossless PNG review plates and a SHA-bound JSON manifest **only into the explicitly requested private output folder**, never the git tree.
+
+```sh
+python3 tools/build_modern_hero_reaction_plates.py \
+  --rom reference/roms/retail/Uniracers_USA.sfc \
+  --clip settle-and-recover \
+  --out-dir /tmp/modern-original-reaction-plates
+python3 -m unittest tests.unit.test_build_modern_hero_reaction_plates
+```
+
+The unit tests generate synthetic images under a **synthetic non-retail ROM identity** and patch only the isolated test process. These are rejection-path tests, never the user's actual art or native screenshots. Real source raster generation must be performed privately with a verified canonical ROM and visually compared to the independently captured original/native game before promoting a new reaction animation. Source plates do not prove visible on-screen 342×224 or 256×224 behaviour. The currently integrated eight-pose hero clip and motion module in #2042 are untouched.
+
 
 ## Three-project reuse preflight and interfaces
 

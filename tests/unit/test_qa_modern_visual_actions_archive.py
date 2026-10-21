@@ -191,6 +191,8 @@ class ActionEvidenceTests(unittest.TestCase):
         report=qa.verify(self.path)["captures"][0]
         self.assertEqual(report["native_painted_stage_at_capture"],
                          "original-stock-1p-after-handoff")
+        self.assertEqual(report["native_source_canvas_at_capture"],[256,224])
+        self.assertIsNone(report["native_root_geometry_at_capture"])
 
     def test_play_request_without_guest_handoff_is_not_proof(self):
         self.receipt["native_semantic_route"]="play-stock-handoff"

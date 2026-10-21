@@ -28,6 +28,7 @@ HOST_STUB = "\n".join((
     seam.CREATED,
     "  while (running) {",
     seam.TICK_ANCHOR + "  }\n}",
+    seam.PRODUCT_KEY + "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n}",
     "static void HandleCommand(uint32 j, bool pressed) {",
     "    case kKeys_Fullscreen:",
     seam.HOTKEY + "}",
@@ -72,6 +73,14 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         created = staged[staged.index(seam.CREATED):]
         self.assertIn("if (g_config.fullscreen == 2 && !UrApplyFullscreenMode(2))", created)
 
+    def test_alt_enter_is_never_a_modern_menu_key(self):
+        staged = self.staged()
+        handler = staged[staged.index("static void HandleInput(int keyCode"):]
+        handler = handler[:handler.index("\n}")]
+        command = handler.index("== kKeys_Fullscreen;")
+        self.assertLess(command, handler.index("g_game->product_system_key(keyCode"))
+        self.assertIn("if (!ur_window_command && g_game->product_system_key &&", handler)
+
     def test_exclusive_uses_the_displays_own_desktop_mode(self):
         staged = self.staged()
         self.assertIn("SDL_GetClosestFullscreenDisplayMode(display, desktop->w, desktop->h", staged)
@@ -111,7 +120,8 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "options_spike"):
             seam.patch_host_main(HOST_STUB.replace(seam.OPTIONS_MARK, "X"), POLICY)
         for needle in (seam.HELPERS_ANCHOR, seam.DEFAULT_BRANCH, seam.OPTIONS_SDL3,
-                       seam.LAUNCHER, seam.HOTKEY, seam.CREATED, seam.TICK_ANCHOR):
+                       seam.LAUNCHER, seam.HOTKEY, seam.CREATED, seam.TICK_ANCHOR,
+                       seam.PRODUCT_KEY):
             with self.assertRaisesRegex(ValueError, "diverged"):
                 seam.patch_host_main(HOST_STUB.replace(needle, ""), POLICY)
         with self.assertRaisesRegex(ValueError, "diverged"):
@@ -140,6 +150,9 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
             runner.verify_log(acceptance_log(result="fail"))
         with self.assertRaisesRegex(ValueError, "differ"):
             runner.verify_log(acceptance_log().replace("step=borderless pass", "step=x pass"))
+        with self.assertRaisesRegex(ValueError, "menu confirm"):
+            runner.verify_log(acceptance_log() +
+                              "UR_BALDOSA_MODERN_ROOT stock_requested players=1\n")
         with self.assertRaisesRegex(ValueError, "exclusive"):
             runner.verify_log("\n".join(
                 l for l in acceptance_log().splitlines()

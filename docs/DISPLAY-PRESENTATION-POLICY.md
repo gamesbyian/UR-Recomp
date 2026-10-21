@@ -155,6 +155,7 @@ The Display setting has three meanings, and every desktop host must keep them di
 - **Fullscreen mode before every transition.** Before each fullscreen transition (Options, the in-game launcher, Alt+Enter, and window creation), Fullscreen gets SDL's closest exclusive mode to the window's display desktop mode, and Windowed/Borderless clear it. Output Resolution is not a Baldosa Options row yet, so "Native" is the only resolution.
 - **No exclusive mode means a refusal.** A display offering no such mode makes Options report a refusal, which the Options seam already rolls back.
 - **Alt+Enter stays borderless.** Alt+Enter moves between windowed and borderless only, so it clears any mode left from an earlier Fullscreen.
+- **Alt+Enter is never a menu key.** The product key hook runs before the framework's command lookup and sees no modifiers, so a visible Modern root took Alt+Enter's Return as CONFIRM and started a 1P game while the window stayed windowed. A key that maps to the framework's fullscreen command now always reaches the framework.
 - **Display events are reconciled, never consumed.** They are handled in all host event pumps:
   - an exclusive window that lands on another display, or whose display's desktop mode changes, is re-moded for that display;
   - a windowed window whose title strip no longer shows at least 32 px on any display's usable area (for example after its monitor was removed) is centred on the primary display, shrunk to fit if necessary;
@@ -165,6 +166,7 @@ Presentation pacing still follows the active display's refresh through the host'
 `tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
 - without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;
 - without the Alt+Enter clear, `hotkey_enters_borderless` fails.
+- without the key routing, a visible Modern root takes Alt+Enter as CONFIRM (`stock_requested players=1`), and both hotkey steps fail. The acceptance runs with the Modern root visible and the runner rejects any `stock_requested`.
 
 The pinned 2P route's per-frame WRAM CRCs are unchanged. A hosted runner has one display, so multi-monitor hot-plug, physical DPI changes and real mode-switch hardware remain unaccepted.
 

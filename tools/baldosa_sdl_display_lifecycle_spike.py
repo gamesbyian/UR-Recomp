@@ -95,6 +95,23 @@ CREATED_NEW = (
     "    printf(\"UR_DISPLAY startup exclusive unavailable; staying borderless\\n\");\n"
 )
 
+# Staged by baldosa_product_pause_spike.py: product keys come first and get
+# no modifiers, so a visible Modern root took Alt+Enter's Return as CONFIRM.
+PRODUCT_KEY = (
+    "static void HandleInput(int keyCode, int keyMod, bool pressed) {\n"
+    "  if (g_game->product_system_key &&\n"
+    "      g_game->product_system_key(keyCode, pressed ? 1 : 0)) return;\n"
+)
+PRODUCT_KEY_NEW = (
+    "static void HandleInput(int keyCode, int keyMod, bool pressed) {\n"
+    "  /* " + MARK + ": the window command (Alt+Enter) always reaches the\n"
+    "   * framework; it is never a Modern menu confirm. */\n"
+    "  const bool ur_window_command =\n"
+    "      FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod) == kKeys_Fullscreen;\n"
+    "  if (!ur_window_command && g_game->product_system_key &&\n"
+    "      g_game->product_system_key(keyCode, pressed ? 1 : 0)) return;\n"
+)
+
 TICK_ANCHOR = "    OverlaySelftestPadMainTick(frameCtr);\n"
 TICK_NEW = TICK_ANCHOR + "    UrDisplayLifecycleAcceptanceTick();  /* " + MARK + " */\n"
 
@@ -310,14 +327,16 @@ static void UrDisplayLifecycleAcceptanceTick(void) {
     break;
   case 6:
     UrDisplayAcceptExpect("windowed_to_exclusive", g_ur_disp_applied && UrDisplayIsExclusive());
-    HandleCommand(kKeys_Fullscreen, true);   /* the framework's Alt+Enter */
-    HandleCommand(kKeys_Fullscreen, false);
+    /* A real Alt+Enter through the host key path, product hook included:
+     * with the Modern root visible it must not be taken as CONFIRM. */
+    HandleInput(SDLK_RETURN, SDL_KMOD_LALT, true);
+    HandleInput(SDLK_RETURN, SDL_KMOD_LALT, false);
     break;
   case 7:
     UrDisplayAcceptExpect("hotkey_leaves_fullscreen",
                           UrDisplayIsWindowed() && g_config.fullscreen == 0);
-    HandleCommand(kKeys_Fullscreen, true);
-    HandleCommand(kKeys_Fullscreen, false);
+    HandleInput(SDLK_RETURN, SDL_KMOD_LALT, true);
+    HandleInput(SDLK_RETURN, SDL_KMOD_LALT, false);
     break;
   case 8:
     /* Alt+Enter means borderless, never the exclusive mode used earlier. */
@@ -384,7 +403,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     if OPTIONS_MARK not in source:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
-                   HOTKEY, CREATED, TICK_ANCHOR):
+                   HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -393,6 +412,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, LAUNCHER, LAUNCHER_NEW)
     source = once(source, HOTKEY, HOTKEY_NEW)
     source = once(source, CREATED, CREATED_NEW)
+    source = once(source, PRODUCT_KEY, PRODUCT_KEY_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

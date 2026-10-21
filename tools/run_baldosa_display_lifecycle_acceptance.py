@@ -61,6 +61,8 @@ def verify_log(log: str) -> dict:
     results = RESULT.findall(log)
     if [r for r, _ in results] != ["pass"]:
         raise ValueError(f"display acceptance result is not a single pass: {results}")
+    if "UR_BALDOSA_MODERN_ROOT stock_requested" in log:
+        raise ValueError("Alt+Enter reached the Modern root as a menu confirm")
     modes = EXCLUSIVE.findall(log)
     if len(modes) < 2:
         raise ValueError("exclusive fullscreen mode was not applied twice")
@@ -87,6 +89,10 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     env = {**os.environ,
            "SNESRECOMP_USER_DATA_DIR": str(user),
            "SNESRECOMP_UR_DISPLAY_LIFECYCLE_ACCEPTANCE": "exit",
+           # The visible Modern root must not take Alt+Enter as CONFIRM.
+           "UR_EXECUTION_MODE": "modern",
+           "UR_BALDOSA_MODERN_ROOT": "1",
+           "UR_BALDOSA_MODERN_INPUT": "1",
            "SDL_VIDEODRIVER": video,
            "SDL_AUDIODRIVER": "dummy"}
     command = [str(exe), "--no-launcher", "--config", str(config), str(rom)]

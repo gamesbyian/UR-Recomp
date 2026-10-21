@@ -38,11 +38,13 @@ class TitleSourceArchiveTests(unittest.TestCase):
         self.archive = Path(self.tmp.name)/"original-native-title.zip"
 
     def pack(self, route: str, *, bad_pixel=False, confirm_before=False,
-             late_root=False, missing_source=False, wrong_phase=False):
+             late_root=False, missing_source=False, wrong_phase=False,
+             actual_output=None):
         stage = "root" if route.startswith("title-transition") else "title"
         reduced = route.endswith("-reduced")
         sw = 256 if route == "title-intro-compact" else 342
-        w,h = ((1024,768) if sw == 256 else (1280,720))
+        w,h = (actual_output if actual_output is not None else
+               ((1024,768) if sw == 256 else (1280,720)))
         prefix = "ur-integrated-title-"+route
         # Native raw source, intentionally not identical to later moving
         # final SDL image: provenance uses its real P7 FNV and stage timing.
@@ -134,6 +136,24 @@ class TitleSourceArchiveTests(unittest.TestCase):
                                 ["title_original_guest_confirmed_before_sdl"])
                 self.assertEqual(row["native_root_geometry_at_capture"],
                                  [11,10,320,204])
+
+    def test_real_compact_480p_title_keeps_original_256_source(self):
+        self.pack("title-intro-compact",actual_output=(640,480))
+        row=audit.verify(self.archive)["captures"][0]
+        self.assertEqual(row["pixels"],[640,480])
+        self.assertEqual(row["native_source_canvas_at_capture"],[256,224])
+
+    def test_real_wide_1080p_title_keeps_original_342_source(self):
+        self.pack("title-intro-wide",actual_output=(1920,1080))
+        row=audit.verify(self.archive)["captures"][0]
+        self.assertEqual(row["pixels"],[1920,1080])
+        self.assertEqual(row["native_source_canvas_at_capture"],[342,224])
+
+    def test_unmatched_43_window_and_native_wide_title_fail_closed(self):
+        self.pack("title-intro-wide",actual_output=(1024,768))
+        with self.assertRaisesRegex(audit.AuditError,
+                                    "aspect does not match"):
+            audit.verify(self.archive)
 
     def test_reject_source_pixel_edit_even_with_valid_original_png(self):
         self.pack("title-intro-wide",bad_pixel=True)

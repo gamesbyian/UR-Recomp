@@ -206,6 +206,33 @@ jobs:
             test -s "$OUT/readback-receipt.json"
             test -s "$OUT/actual-sdl-drawable.png"
           done
+          # Bind the four actual native captures to the same independent
+          # compiled PE and the exact checkout (not merely coherent art).
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import os
+          import subprocess
+
+          workspace=Path(os.environ["GITHUB_WORKSPACE"])
+          temp=Path(os.environ["RUNNER_TEMP"])
+          exe=workspace/"baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          executable_sha=hashlib.sha256(exe.read_bytes()).hexdigest()
+          source_sha=subprocess.check_output(
+              ["git","rev-parse","HEAD"],cwd=workspace,text=True).strip()
+          for variant in ("normal_tick0","normal_tick10",
+                          "reduced_tick0","reduced_tick10"):
+              folder=temp/("ur-integrated-motion-"+variant)
+              receipt=json.loads((folder/"readback-receipt.json").read_text())
+              assert receipt["exe_sha256"]==executable_sha
+              assert receipt["source_sha"]==source_sha
+              assert receipt["actual_sdl_renderer_output"]==[1280,720]
+              assert receipt["native_semantic_route"]=="root-quit"
+              assert receipt["visual_approved"] is False
+              assert receipt["hardware_approved"] is False
+              assert receipt["release_gate_credit"]==0
+          PY
           python tools/qa_modern_root_motion_sdl_pixels.py \
             --normal-tick0 "$RUNNER_TEMP/ur-integrated-motion-normal_tick0/probe_first/actual-sdl-drawable.pam" \
             --normal-tick10 "$RUNNER_TEMP/ur-integrated-motion-normal_tick10/probe_first/actual-sdl-drawable.pam" \

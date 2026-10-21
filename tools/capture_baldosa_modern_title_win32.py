@@ -243,6 +243,8 @@ def verify_native_title_entry(
     opened = "UR_BALDOSA_MODERN_ROOT opened=1"
     if confirm not in ("gamepad", "keyboard", "start", "held"):
         raise ValueError("unsupported native title confirm route")
+    if confirm == "held" and reduced_motion:
+        raise ValueError("held native title route requires actual exit animation")
     input_ack = {
         "gamepad": "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60",
         "keyboard": "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=60",
@@ -264,8 +266,6 @@ def verify_native_title_entry(
             raise ValueError(f"missing/out-of-order genuine native guest witness: {marker}")
         prev = pos
     if confirm == "held":
-        if reduced_motion:
-            raise ValueError("held native title route requires actual exit animation")
         # Frame80's held-button callback and the first root compositor
         # paint may run in either order within the same host frame.
         prev = log.find(entered)

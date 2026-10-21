@@ -320,6 +320,7 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                     hero.cpp_header(rows, frames), encoding="utf-8")
                 (out / "main.cpp").write_text(
                     '#include "original.generated.hpp"\n'
+                    '#include <algorithm>\n'
                     '#include <cassert>\n'
                     '#include <cstdint>\n'
                     '#include <vector>\n'

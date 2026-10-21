@@ -31,7 +31,7 @@ class ModernVisualCoverageTests(unittest.TestCase):
         for row in e["cases"]:
             if row["route"]=="root-quit" and row["output"]=="1024x768":
                 row["output"]="1280x720"
-        with self.assertRaisesRegex(ValueError,"no exact evidence"):
+        with self.assertRaisesRegex(ValueError,"frozen native capture"):
             coverage.reconcile(self.matrix,e)
 
     def test_wrong_semantic_route_not_sufficient(self):
@@ -39,7 +39,7 @@ class ModernVisualCoverageTests(unittest.TestCase):
         for row in e["cases"]:
             if row["route"]=="options-p1":
                 row["route"]="root-quit"
-        with self.assertRaisesRegex(ValueError,"no exact evidence"):
+        with self.assertRaisesRegex(ValueError,"frozen native capture"):
             coverage.reconcile(self.matrix,e)
 
     def test_failed_original_png_byte_identity_rejected(self):
@@ -73,6 +73,18 @@ class ModernVisualCoverageTests(unittest.TestCase):
                 e=copy.deepcopy(self.evidence)
                 del e["cases"][0][flag]
                 with self.assertRaisesRegex(ValueError,"source/PE-bound"):
+                    coverage.reconcile(self.matrix,e)
+
+    def test_non_candidate_capture_route_and_geometry_are_frozen(self):
+        # Swapping Authentic, noncandidate keyboard and title receipts must
+        # never be hidden by the five headline acceptance candidates.
+        for index, key, wrong in ((2, "route", "records-keyboard"),
+                                  (5, "output", "1024x768"),
+                                  (7, "route", "root-quit")):
+            with self.subTest(index=index, key=key):
+                e=copy.deepcopy(self.evidence)
+                e["cases"][index][key]=wrong
+                with self.assertRaisesRegex(ValueError,"frozen native capture"):
                     coverage.reconcile(self.matrix,e)
 
     def test_original_capture_ids_cannot_be_duplicated(self):

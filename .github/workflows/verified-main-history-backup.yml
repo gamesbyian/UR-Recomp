@@ -1,0 +1,47 @@
+name: Verified main history backup
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "docs/operations/backup-requests/*.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ur-main-history-backup
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Fetch complete main ancestry without all secondary branches
+        run: |
+          git fetch --no-tags --unshallow origin '+refs/heads/main:refs/remotes/origin/main'
+          test "$(git rev-parse --is-shallow-repository)" = false
+      - name: Prove complete main bundle can be cloned and verified
+        run: |
+          python3 -m unittest -v tests.unit.test_backup_main_history
+          python3 tools/backup_main_history.py --out "$RUNNER_TEMP/main-history-backup" --max-mib 650
+      - name: Publish source-bound restoration manifest
+        if: success()
+        run: |
+          cat "$RUNNER_TEMP/main-history-backup/manifest.json" >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'GitHub artifact only until separately downloaded to restricted Google Drive and read back.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ur-main-history-${{ github.sha }}
+          path: ${{ runner.temp }}/main-history-backup/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 2

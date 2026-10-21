@@ -27,6 +27,11 @@ STOCK_VIEWS = {
 OUTPUT_SIZES = {
     (1024, 768): (256, 224),
     (1280, 720): (342, 224),
+    # Exact genuine 856x480 Windows SDL3 root in original Actions
+    # run 39555629743 / artifact 12325402655, logical 342x224 and
+    # native 320-wide root. The output is near-16:9 due host pixel rounding;
+    # never infer 4K/monitor acceptance from this bounded source-RGB check.
+    (856, 480): (342, 224),
     (3840, 2160): (342, 224),
 }
 MAX_CAPTURE_PNG_BYTES = 64 * 1024 * 1024

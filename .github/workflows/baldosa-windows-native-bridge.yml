@@ -187,6 +187,13 @@ on:
       - "native/product/controller_seat_assignment_policy.h"
       - "tests/native/controller_seat_assignment_policy_test.cpp"
       - "tools/run_baldosa_controller_lifecycle_acceptance.py"
+      # Focus-loss / seat-owner-disconnect pause in the native pause lifecycle.
+      - "native/product/baldosa_host_lifecycle_pause.hpp"
+      - "native/product/controller_hotplug_policy.hpp"
+      - "native/product/focus_pause_policy.hpp"
+      - "tests/native/baldosa_host_lifecycle_pause_test.cpp"
+      - "tests/unit/test_baldosa_host_lifecycle_pause.py"
+      - "tools/run_baldosa_lifecycle_pause_acceptance.py"
       - "tools/baldosa_guest_snapshot_probe.*"
       - "tools/baldosa_native_modern_root.*"
       - "tools/baldosa_native_product_execution.*"
@@ -285,6 +292,7 @@ jobs:
           python tests/unit/test_modern_pause_overlay_presenter.py
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
           python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
+          python tests/unit/test_baldosa_host_lifecycle_pause.py
 
       - name: Verify immutable native source pins
         run: |
@@ -418,6 +426,26 @@ jobs:
             --out "$RUNNER_TEMP/ur-controller-lifecycle" \
             --video windows --timeout 120
           echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap. Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE on the pinned 2P race route in Modern: unplugging the
+      # seated pad, then minimizing the real window, must each pause through
+      # the ordinary session, hold the guest frozen, and resume.
+      - name: Exercise Win32 Modern disconnect and focus-loss pause on a live race
+        run: |
+          set -euo pipefail
+          for mode in disconnect focus; do
+            extra=()
+            [ "$mode" = focus ] && extra=(--allow-not-exercised)
+            python tools/run_baldosa_lifecycle_pause_acceptance.py \
+              --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+              --rom "reference/roms/retail/Uniracers_USA.sfc" \
+              --script "baldosa/tests/routes/race_2p_split.txt" \
+              --out "$RUNNER_TEMP/ur-lifecycle-pause-$mode" \
+              --mode "$mode" --video windows --timeout 200 "${extra[@]}" \
+              | tee "$RUNNER_TEMP/ur-lifecycle-pause-$mode.json"
+            result=$(python -c "import json,sys; print(json.load(open(sys.argv[1]))['result'])" "$RUNNER_TEMP/ur-lifecycle-pause-$mode.json")
+            echo "Win32 Modern $mode lifecycle pause: $result (virtual pad / scripted minimize; not physical acceptance)." >> "$GITHUB_STEP_SUMMARY"
+          done
 
       # Owned visual-motion lane. Run ONCE against the same exact-native PE
       # produced above, not a separate renderer or a branch-mutating fixture.

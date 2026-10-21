@@ -200,6 +200,14 @@ def helpers(policy: Path) -> str:
         "  }\n"
         "  memset(g_ur_seats, 0, sizeof(g_ur_seats));\n"
         "}\n"
+        "/* Product-facing, read-only: the SDL instance occupying a seat, or -1.\n"
+        " * Modern polls this at the completed-frame boundary to notice a seat\n"
+        " * owner leaving; it never chooses or changes a seat. */\n"
+        "long long snesrecomp_desktop_product_seat_source(int seat) {\n"
+        "  if (seat < 0 || seat >= UR_CONTROLLER_SEAT_COUNT) return -1;\n"
+        "  return g_gamepad[seat].joystick_id != -1\n"
+        "      ? (long long)g_gamepad[seat].joystick_id : -1;\n"
+        "}\n"
         + ACCEPTANCE + "\n"
     )
 

@@ -161,14 +161,27 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         last_stage = "authentic-original"
     elif route in ROUTE_STAGES:
         before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
-        actual_stages = re.findall(
-            r"UR_BALDOSA_MODERN_DESTINATION stage=([^\s]+)", before)
+        painted = re.findall(
+            r"UR_BALDOSA_MODERN_DESTINATION stage=([^\s]+) "
+            r"raster=(\d+)x(\d+) root=(\d+),(\d+),(\d+),(\d+) "
+            r"source=modern_product_view", before)
         expected_stage = ROUTE_STAGES[route]
-        if not actual_stages or actual_stages[-1] != expected_stage:
+        if not painted or painted[-1][0] != expected_stage:
             raise AuditError(
                 "native semantic destination at capture is wrong for "+
-                str(route)+": saw "+str(actual_stages[-1:] or "none"))
-        last_stage = actual_stages[-1]
+                str(route)+": saw "+str([p[0] for p in painted[-1:]] or "none"))
+        # The source selection contract is explicit: compact 4:3 (and 3:2)
+        # allocates 256x224 with 240px root; wide allocates 342x224 with
+        # 320px root. This prevents a 342-wide letterboxed root from being
+        # mistaken for actual 4:3 layout simply because SDL output is 4:3.
+        wide = w * 2 > h * 3
+        expected_source = (342, 224, 11, 10, 320, 204) if wide else (
+            256, 224, 8, 10, 240, 204)
+        actual_source = tuple(map(int, painted[-1][1:]))
+        if actual_source != expected_source:
+            raise AuditError("native source canvas/root geometry mismatch: "
+                             +str(actual_source)+" != "+str(expected_source))
+        last_stage = painted[-1][0]
     else:
         raise AuditError("unknown semantic capture route: "+str(route))
     if (not isinstance(receipt.get("exe_sha256"),str) or
@@ -186,6 +199,8 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         "source_sha":receipt["source_sha"], "exact_rgba_bytes":w*h*4,
         "guest_frame_witness":int(evidence[0][1]),
         "native_painted_stage_at_capture":last_stage,
+        "native_source_canvas_at_capture":list(actual_source[:2]) if route != "authentic-stock" else [256,224],
+        "native_root_geometry_at_capture":list(actual_source[2:]) if route != "authentic-stock" else None,
         "human_approved":False, "release_gate_credit":0,
     }
 

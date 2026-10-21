@@ -170,6 +170,27 @@ class ModernVisualCoverageTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "protected visual matrix"):
                     coverage.reconcile(m, self.evidence)
 
+    def test_visual_review_obligations_cannot_disappear(self):
+        for cid in ("title-wide-1080", "root-disabled",
+                    "multiplayer-p2-owner", "practice-locked",
+                    "records-earned-2p", "authentic-stock-wide"):
+            with self.subTest(cid=cid):
+                m = copy.deepcopy(self.matrix)
+                next(x for x in m["cases"] if x["id"] == cid)["review_target"] = (
+                    "ordinary screen only")
+                with self.assertRaisesRegex(ValueError, "visual review target"):
+                    coverage.reconcile(m, self.evidence)
+        for field in ("human_checks", "required_fields", "authority"):
+            with self.subTest(field=field):
+                m = copy.deepcopy(self.matrix)
+                del m[field]
+                with self.assertRaisesRegex(ValueError, "visual review policy"):
+                    coverage.reconcile(m, self.evidence)
+        m = copy.deepcopy(self.matrix)
+        m["human_checks"].remove("physical controller ownership")
+        with self.assertRaisesRegex(ValueError, "visual review policy"):
+            coverage.reconcile(m, self.evidence)
+
     def test_candidate_ownership_and_state_cannot_be_rewritten(self):
         for key,value in (("input","keyboard"),("state","p1-p2-named"),
                           ("mode","authentic"),("aspect","4:3")):

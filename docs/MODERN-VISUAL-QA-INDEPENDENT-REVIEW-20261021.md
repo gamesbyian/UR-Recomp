@@ -1,0 +1,70 @@
+# Independent Modern visual acceptance: candidate-bound QA review, 2026-10-21
+
+**Purpose and boundary.** This is a dated *review receipt* for the current visual acceptance workstream, not a second work queue, matrix authority, release ledger, or assertion of new Windows execution. It was prepared from GitHub source and existing primary-evidence receipts. The session had access to GitHub source/Actions logs but **no mounted native checkout, Windows runner, display or controllers**; no new native screenshot, raw artifact download, physical test or aesthetic approval is claimed here. Canonical 25-case requirements stay in [`analysis/modern-visual-acceptance-matrix.json`](../analysis/modern-visual-acceptance-matrix.json), and the owning analysis is [`docs/MODERN-VISUAL-ACCEPTANCE.md`](MODERN-VISUAL-ACCEPTANCE.md). Release QA remains solely in the release ledger.
+
+## Source and producer boundary
+
+- Inspected `main` at **`ec3a65fc9ff7e70af49937d46915ccf73ff6cf5b`**. This does **not** include title owner [#2043](https://github.com/gamesbyian/UR-Recomp/pull/2043) or current integration draft [#2149](https://github.com/gamesbyian/UR-Recomp/pull/2149), nor independently accepted future #2165/#2166/#2167 changes.
+- #2149 head **`dabda1ae56f099bf4529f44dfdd80316a492328f`** has a successful existing Windows native visual baseline workflow [run 39558777827](https://github.com/gamesbyian/UR-Recomp/actions/runs/39558777827) and Windows bridge [run 39558777846](https://github.com/gamesbyian/UR-Recomp/actions/runs/39558777846). These runs describe that **integration head**, not automatically current main or any newer visual owner head.
+- Existing independently audited original P7/PNG/PE source evidence includes the **21-case** final SDL single-PE cohort [run 39536021531](https://github.com/gamesbyian/UR-Recomp/actions/runs/39536021531), checkout `44c192d9c43e69068461f5d524b50a9d097ca907`, PE SHA256 `b36b76f5c15f225fd69351e83d6969fcebabab3b033f3250c60f01ccefce9cad`. It has five close technical matches, nine merely related routes, eleven missing, **zero** formal acceptance approvals per `tools/qa_modern_visual_case_coverage.py`. See [the original evidence register](../analysis/evidence/modern-visual-integrated-final-sdl-21cases-20261021.json).
+- A **separate** genuine Windows 4-shot viewport cohort [run 39539086749](https://github.com/gamesbyian/UR-Recomp/actions/runs/39539086749), checkout `a20790e92c66b58a1630ec084db6f78596296a05`, PE SHA256 `5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7`, covers 640×480 and 1920×1080 source-sized cases. **Different PE and epoch**: never merge those observations into a fictitious single source-head controller journey.
+- Later [run 39555629743](https://github.com/gamesbyian/UR-Recomp/actions/runs/39555629743) genuinely showed 342×224 *title→root* in 856×480 Windows SDL on the #2149 candidate, with distinct source/PE; **opened 342-wide child destinations, real 2P named join, earned Records, paused guest and 3840×2160 outputs were not in those original captured cases**. See [#2155](https://github.com/gamesbyian/UR-Recomp/pull/2155) and [#2158](https://github.com/gamesbyian/UR-Recomp/pull/2158) for independent evidence and limits.
+- #2043 newest head **`b9309e36d2464d7c7bed0d9fdcd1de55fa430d85`** has a **red** latest Windows bridge [run 39559925092](https://github.com/gamesbyian/UR-Recomp/actions/runs/39559925092) at the native title source capture step: `verify_named_original_play_after_recovery` rejected the missing/duplicate marker `UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440`. Its latest tooling unit run [39559924990](https://github.com/gamesbyian/UR-Recomp/actions/runs/39559924990) also failed, with unrelated `test_qa01_rf046_zoo_nmi_checkpoint_crossphase` test import. Neither should be called green or merged; inspect the real producer log and whether source/expected original stage changed, without weakening an exact-source guard.
+
+## 25-case evidence-based matrix (historical, explicitly not approved)
+
+The *required* output size, semantic input owner and state below are read from the canonical matrix; status is bounded to the **historical 21-case** single-PE cohort. “Separate 4-shot epoch” annotates a distinct verified geometry observation; it does **not** upgrade 21-shot per-case credit. All cases have human, physical and final art approval **HOLD**.
+
+| Requirement | Required final SDL | Required semantic input/state | Historical technical evidence |
+| --- | --- | --- | --- |
+| `title-wide-1080` | 1920×1080 | pad-p1, default | 21-shot: no matching case; separate 4-shot epoch |
+| `title-wide-keyboard` | 1280×720 | keyboard, default | 21-shot: related only |
+| `title-compact-43` | 640×480 | pad-p1, default | 21-shot: related only; separate 4-shot epoch |
+| `title-reduced-motion` | 1280×720 | pad-p1, reduced-motion | 21-shot: bounded technical match |
+| `root-wide-720` | 1280×720 | pad-p1, normal | 21-shot: bounded technical match |
+| `root-wide-1080` | 1920×1080 | pad-p1, normal | 21-shot: no matching case; separate 4-shot epoch |
+| `root-wide-4k-virtual` | 3840×2160 | pad-p1, virtual-output | 21-shot: no matching case |
+| `root-43-768` | 1024×768 | pad-p1, normal | 21-shot: bounded technical match |
+| `root-43-480` | 640×480 | pad-p1, normal | 21-shot: no matching case; separate 4-shot epoch |
+| `root-moved-selection` | 1280×720 | pad-p1, selection-moved | 21-shot: no matching case |
+| `root-keyboard` | 1280×720 | keyboard, normal | 21-shot: related only |
+| `root-disabled` | 1280×720 | pad-p1, stale-profile | 21-shot: related only |
+| `profile-first-run` | 1280×720 | pad-p1, no-profile | 21-shot: bounded technical match |
+| `profile-switch-existing` | 1024×768 | pad-p1, existing-profiles | 21-shot: no matching case |
+| `multiplayer-p2-owner` | 1280×720 | pad-p2, p1-p2-named | 21-shot: related only |
+| `practice-locked` | 1280×720 | pad-p1, locked-course | 21-shot: related only |
+| `options-available` | 1024×768 | pad-p1, normal | 21-shot: bounded technical match |
+| `options-refused` | 1280×720 | keyboard, display-apply-refused | 21-shot: no matching case |
+| `records-empty` | 1280×720 | pad-p1, no-records | 21-shot: related only |
+| `records-earned-1p` | 1920×1080 | pad-p1, earned-1p | 21-shot: no matching case |
+| `records-earned-2p` | 1024×768 | pad-p1, earned-2p | 21-shot: no matching case |
+| `transition-back-release` | 1280×720 | pad-p1, held-confirm-back | 21-shot: related only |
+| `authentic-title-stock` | 640×480 | keyboard, original | 21-shot: no matching case |
+| `authentic-stock-wide` | 1280×720 | pad-p1, original | 21-shot: related only |
+| `focus-loss-modal` | 1280×720 | pad-p1, focus-lost | 21-shot: no matching case |
+
+Five close geometry/route candidates are *not* 5/25 design approvals. The 21-case machine checker explicitly sets `formal_visual_accepted = 0` and `release_gate_credit = 0`. Existing source-bound pixel evidence can help an independent reviewer evaluate typography, no-clipping, safe areas and contrast, but cannot silently certify them without actual inspected screenshot pixels. Physical controller ownership, external-monitor PAR, real 4K and speaker audio require separate evidence.
+
+## New deterministic QA guard, intentionally separate from product owners
+
+`tools/qa_modern_visual_case_coverage.py` historically froze the five close-match candidate states, but the other **20** requirements could silently mutate while preserving their canonical ID: for example a P2-owned join could become a P1 acceptance target, a stale/disabled screen could become normal, Authentic could change to Modern, or the 4K virtual-output pixels could shrink. This branch pins all 20 remaining requirements' screen/mode/aspect/input/state/target pixels, and adds tamper tests for representative P2, keyboard, disabled, locked, output-scale, earned Records, held-confirm and Authentic isolation cases. This changes **no renderer, guest, product router, host input bindings, artwork, workflow, or release ledger**. Legitimate future matrix revisions must consciously update the independent freeze alongside the new evidence scope.
+
+## Owner PR review and integration conflicts
+
+- **Title #2043:** native title and source-aware A/Start/Enter handoff belong to this owner; latest red Windows capture needs a source-specific diagnosis before using its latest head as current acceptance. Do not reuse the old successful title PE for newer edits.
+- **Shared visuals #2165:** source shows opt-in fixed viewport-anchored checker BG1, with 256/342 and 1×/4× native rectangle-partition oracle, while keeping old consumers default-local. Unit tests green at [run 39561805148](https://github.com/gamesbyian/UR-Recomp/actions/runs/39561805148); latest bridge was still in progress at inspection. Review points: pixel phase across moving panel bounds and final SDL root integration on the same head; cannot judge source-inspired visual quality from unit tests.
+- **Destination #2167:** bounds the Options left text cell before the value column and refuses false wide-source pause geometry on SDL-output-sized canvases; includes native long-label and 1280×720 negative geometry cases. Unit tests green at [run 39561845713](https://github.com/gamesbyian/UR-Recomp/actions/runs/39561845713); latest bridge was still in progress at inspection. Do not overwrite destination presenter.
+- **Hero motion #2166:** bounded original 8/9/10 registered one-shot poses, reduced-motion hold, and no default unlicensed private raster publication; tooling unit tests green at [run 39561478991](https://github.com/gamesbyian/UR-Recomp/actions/runs/39561478991). No new 9/10-frame actual source-raster/SDL artistic approval is inferred; title/root must use the exact source clock/input ownership on the final combined head.
+- **Integration draft #2149:** already has real title/root native SDL success, but source/PE drift against advancing #2043/#2165/#2166/#2167 heads and missing **opened wide child** frames make it a rehearsal only. The integration owner alone reconciles overlapping renderer interfaces; QA owner checks the *resulting single* candidate independently, not by splicing other PEs' successes.
+
+## Next smallest native acceptance run (for integration/title owners; no duplicate capture framework)
+
+1. Reconcile all qualified owner heads on one immutable merge checkout, retain exact source SHA, Windows PE bytes/hash, ROM/private-read identity and negative Authentic control. **Stop on a merge discrepancy or failing first producer step.** Use the existing `modern-visual-native-win32-capture.yml` and `qa_modern_visual_win32_capture_driver.py` / archive verifier, not another frontend or screenshot generator.
+2. Capture source geometry *and actual final SDL readback* for **342×224 opened Practice, Options, Records, profile** at 1280×720/1920×1080, plus **256×224** fallback at 640×480/1024×768, as separate testable cases on the **same PE**. Include selected row/focus changes, clipping boundaries, safe area, contrast/legibility and the source/P7/PNG hash triad. Verify Play yields unmodified guest after handoff, title confirms are released, and the last screen stage is correct before pixel readback.
+3. Exercise **P1/P2 named join** with P2 owning its seat only; test unavailable/locked Practice, disabled Play, keyboard Options refusal, first/second/switch profile persistence and both empty and source-earned 1P/2P Records on a fresh process. Do not relabel anonymous 2P warning or keyboard Records as these cases.
+4. Compare normal versus **reduced-motion** captured actual final SDL frames from fixed UI ticks, and test focus-loss return/held input ownership. Preserve Original/Authentic cold controls and 7:6 PAR at integer/native scale and 4K virtual output; only a real monitor and physical pads/audio can close those respective human/hardware checks.
+5. Feed exact source-bound receipts to the existing 25-case consumer. Keep unresolved rows **HOLD**, and preserve explicit human source-art comparison for original logo/type/cursor/hero, selected-state hierarchy and clipping/contrast. No release-gate credit until its independent owner rules.
+
+## Reuse preflight (three projects, before this implementation)
+
+Read `tools/select_three_project_reuse.py`, `analysis/three-project-reuse-opportunities.json`, `analysis/data/three-project-apparatus-capability-matrix-20261010.json`, `analysis/agent-context-lanes.json`, and `docs/TRUSTED-UPSTREAM-ADOPTION.md`. Evaluated the published lane selector rules for `baldosa-integration` / `modern-product` / `release-qa` / `widescreen`: *now* opportunities include `baldosa-native-core`, `modern-controller-journey`, `candidate-evidence-envelope`, `route-input-identity` and `agent-work-packets`. **Decision:** reuse existing Baldosa native guest, UR typed frontend, native SDL/PE archive checker and existing evidence contracts, without importing any new Baldosa/Malmazuke code. `on_blocker` framework-delta or PPU pilots are not triggered by a missing QA matrix guard; `after_baseline` research/fuzz is deferred. This assessment inspected the exact registry/source via GitHub rather than executing the repository Python selector on a local checkout, which was unavailable in this session.

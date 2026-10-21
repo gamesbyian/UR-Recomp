@@ -62,7 +62,7 @@ class CIExportPathContractTests(unittest.TestCase):
       - name: Retain bounded evidence
         with:
           name: baldosa-win32-native-earned-1p-run
-          path: \${{ runner.temp }}/UR Baldosa Win32 Pause Route/ci-owned-earned-1p-run/
+          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/ci-owned-earned-1p-run/
 
 '''
 
@@ -79,8 +79,8 @@ class CIExportPathContractTests(unittest.TestCase):
             validate_earned_run_export_paths(bad)
 
     def test_refuses_upload_destination_disagreeing_with_output(self):
-        bad = self.fixture().replace('          path: \${{ runner.temp }}/UR Baldosa Win32 Pause Route/ci-owned-earned-1p-run/',
-                                     '          path: \${{ runner.temp }}/UR Baldosa Win32 Pause Route/elsewhere/')
+        bad = self.fixture().replace('          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/ci-owned-earned-1p-run/',
+                                     '          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/elsewhere/')
         with self.assertRaisesRegex(ValueError, 'differs from exporter output'):
             validate_earned_run_export_paths(bad)
 

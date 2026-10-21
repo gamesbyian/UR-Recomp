@@ -138,6 +138,50 @@ jobs:
             ${{ runner.temp }}/ur-integrated-title-*/probe_first/original-native-source/modern-native-*.pam
           if-no-files-found: warn
           retention-days: 7
+      - name: Capture exact 480p compact and 1080p wide Modern title/root
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # Genuine native game only. Never resize 720p screenshots to claim
+          # successful 1080p/480p. The driver hard-refuses nonmatching SDL
+          # drawable and requires actual source stage before snapshot.
+          for spec in \
+            title-intro-compact:640x480 \
+            root-quit:640x480 \
+            title-intro-wide:1920x1080 \
+            root-quit:1920x1080; do
+            route="${spec%%:*}"
+            size="${spec#*:}"
+            OUT="$RUNNER_TEMP/ur-integrated-viewport-$route-$size"
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$OUT" --video windows --timeout 100 \
+              --window-size "$size" --route "$route"
+            test -s "$OUT/actual-sdl-drawable.png"
+            test -s "$OUT/readback-receipt.json"
+            test -s "$OUT/probe_first/actual-sdl-drawable.pam"
+            test -s "$OUT/probe_first/native-process.log"
+            if [[ "$route" == title-intro* ]]; then
+              source_w=342
+              if [[ "$route" == title-intro-compact ]]; then source_w=256; fi
+              test -s "$OUT/probe_first/original-native-source/modern-native-title-"$source_w"x224.pam"
+            fi
+          done
+          echo "Exact 640x480 and 1920x1080 genuine Modern title/root SDL windows captured; 4K physical monitor still untested." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain unchanged strict 480p/1080p SDL drawables and native source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-480p-1080p-title-root
+          path: |
+            ${{ runner.temp }}/ur-integrated-viewport-*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-integrated-viewport-*/readback-receipt.json
+            ${{ runner.temp }}/ur-integrated-viewport-*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-integrated-viewport-*/probe_first/native-process.log
+            ${{ runner.temp }}/ur-integrated-viewport-*/probe_first/original-native-source/modern-native-title-*.pam
+          if-no-files-found: warn
+          retention-days: 7
       - name: Capture native widescreen and fallback Windows output on SAME exact PE
         run: |
           set -euo pipefail

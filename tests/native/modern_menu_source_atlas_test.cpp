@@ -114,6 +114,27 @@ int main() {
         screen.data(),screen.size(),342,224,2,24,"O)",1));
     assert(screen[24*342+2] == 0xFF989898u);
     assert(screen[24*342+10] == 0xFF686868u);
+    // The original detail-font slot 44 is a deliberately blank space.
+    // A caller cannot transform that into a phantom source glyph. Check
+    // both individual-cell and full-word paths, with atomic framebuffer
+    // rejection even if an earlier letter in the word was valid.
+    const auto before_detail_space = screen;
+    assert(modern_menu_paint_source_text(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,2,52,"O ",1));
+    assert(screen[52*342+2] == 0xFF989898u);
+    assert(screen[52*342+10] == 0xFF101010u);
+    small[44*8] = 0xFF989898u; // forged ink in actual space slot
+    const auto before_corrupt_detail = screen;
+    assert(!modern_menu_paint_source_cell(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,2,65,44,1));
+    assert(!modern_menu_paint_source_text(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,2,70,"O ",1));
+    assert(screen == before_corrupt_detail);
+    small[44*8] = 0u;
+    (void)before_detail_space; // preserved non-space pixels intentionally
 
     // At 4x scale an opaque pixel becomes an exact 4x4 block.
     cursor[15*39] = 0xFFA0D0F8u;

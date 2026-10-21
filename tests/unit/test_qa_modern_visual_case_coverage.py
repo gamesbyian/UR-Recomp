@@ -62,5 +62,74 @@ class ModernVisualCoverageTests(unittest.TestCase):
         self.assertFalse(r["physical_device_approved"])
 
 
+    def test_unqualified_source_or_executable_binding_is_rejected(self):
+        for flag in ("source_sha_exact", "exe_sha_exact"):
+            with self.subTest(flag=flag):
+                e=copy.deepcopy(self.evidence)
+                e["cases"][0][flag]=False
+                with self.assertRaisesRegex(ValueError,"source/PE-bound"):
+                    coverage.reconcile(self.matrix,e)
+            with self.subTest(flag=flag+" missing"):
+                e=copy.deepcopy(self.evidence)
+                del e["cases"][0][flag]
+                with self.assertRaisesRegex(ValueError,"source/PE-bound"):
+                    coverage.reconcile(self.matrix,e)
+
+    def test_original_capture_ids_cannot_be_duplicated(self):
+        e=copy.deepcopy(self.evidence)
+        # Duplicate a noncandidate route so the five technical candidates
+        # would still have passed the previous geometry/route-only reconciler.
+        e["cases"][4]["id"]=e["cases"][5]["id"]
+        with self.assertRaisesRegex(ValueError,"duplicate or missing"):
+            coverage.reconcile(self.matrix,e)
+
+    def test_historical_run_cannot_be_relabeled_as_another_binary(self):
+        for key,value in (
+            ("merge_checkout_sha", "0"*40),
+            ("win32_conclusion", "failure"),
+            ("id", 1),
+        ):
+            with self.subTest(key=key):
+                e=copy.deepcopy(self.evidence)
+                e["run"][key]=value
+                with self.assertRaisesRegex(ValueError,"source/PE/run identity"):
+                    coverage.reconcile(self.matrix,e)
+        e=copy.deepcopy(self.evidence)
+        e["run"]["executable"]["sha256"]="0"*64
+        with self.assertRaisesRegex(ValueError,"source/PE/run identity"):
+            coverage.reconcile(self.matrix,e)
+
+    def test_approval_or_log_count_overclaim_rejected(self):
+        for key,value in (
+            ("actual_human_visual_signoffs",1),
+            ("release_gate_credit",1),
+            ("successful_process_logs",20),
+            ("original_native_capture_receipts",20),
+        ):
+            with self.subTest(key=key):
+                e=copy.deepcopy(self.evidence)
+                e["counts"][key]=value
+                with self.assertRaisesRegex(ValueError,"count/approval mismatch"):
+                    coverage.reconcile(self.matrix,e)
+
+    def test_unknown_25th_matrix_case_cannot_silently_replace_real_case(self):
+        m=copy.deepcopy(self.matrix)
+        # Previously 25 distinct IDs plus the five CASE_MAP IDs sufficed.
+        # Removing a missing-evidence case went unnoticed.
+        m["cases"][-1]["id"]="invented-layout-approval"
+        with self.assertRaisesRegex(ValueError,"25 canonical"):
+            coverage.reconcile(m,self.evidence)
+
+    def test_candidate_ownership_and_state_cannot_be_rewritten(self):
+        for key,value in (("input","keyboard"),("state","p1-p2-named"),
+                          ("mode","authentic"),("aspect","4:3")):
+            with self.subTest(key=key):
+                m=copy.deepcopy(self.matrix)
+                target=next(x for x in m["cases"] if x["id"]=="root-wide-720")
+                target[key]=value
+                with self.assertRaisesRegex(ValueError,"matrix state/owner"):
+                    coverage.reconcile(m,self.evidence)
+
+
 if __name__=="__main__":
     unittest.main()

@@ -123,7 +123,10 @@ void exercise(int screen_w, int panel_w) {
         // rows of its stock root controller bar before the child overpaints.
         const auto exposed_cursor_ink = sample(6, 60);
         const auto identity_ink = sample(15, 42);
-        assert(identity_ink == palette.secondary_grey);
+        // Main's shared root now paints profile identity in the measured
+        // checker-legible grey (not the old low-contrast stock UI grey).
+        // Preserve those actual source-root glyph pixels under the child.
+        assert(identity_ink == kModernMenuCheckerLegibleGrey);
         const auto exposed_footer_ink = sample(11, 195);
         assert(exposed_cursor_ink != palette.header_band);
         assert(exposed_footer_ink != palette.background);

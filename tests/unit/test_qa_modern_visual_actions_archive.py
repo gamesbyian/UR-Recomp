@@ -178,8 +178,8 @@ class ActionEvidenceTests(unittest.TestCase):
         self.receipt["execution_mode"]="authentic"
         self.receipt["native_route_marker_observed"]=False
         self.log=self.log.replace(
-            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\\n",
-            b"UR_BALDOSA_MODERN_TITLE painted=1 raster=256x224 host=modern guest_frame=40\\n")
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\n",
+            b"UR_BALDOSA_MODERN_TITLE painted=1 raster=256x224 host=modern guest_frame=40\n")
         self.receipt["native_process_log_sha256"]=sha(self.log)
         self.pack()
         with self.assertRaisesRegex(qa.AuditError,"Authentic capture contains Modern"):
@@ -188,7 +188,7 @@ class ActionEvidenceTests(unittest.TestCase):
     def test_authentic_route_cannot_launder_modern_mode_label(self):
         self.receipt["native_semantic_route"]="authentic-stock"
         self.log=self.log.replace(
-            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\\n",
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\n",
             b"")
         self.receipt["native_process_log_sha256"]=sha(self.log)
         self.pack()

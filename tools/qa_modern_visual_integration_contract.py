@@ -154,6 +154,38 @@ def inventory(root: Path) -> dict:
         if has_fixed_root and not has_wide_root:
             conflicts.append("motion_and_destination_share_fixed_240px_root_on_wide_canvas")
 
+    # Merged #2113 fixed a *measured real SDL* bug: the blue motion ink
+    # previously repainted identical blue on the already-blue selected-band
+    # stripe, so four native output frames were pixel-identical despite
+    # advancing source motion ticks. A stale rehearsal merge can reintroduce
+    # that invisible overlay while all four integration callsites still exist.
+    # Demand a dark source-band undertrack BEFORE the constant-blue accent.
+    # This is a cheap source reject only; genuine final-SDL pixel-motion
+    # capture and reduced-motion comparison remain independently mandatory.
+    motion_header = root / "native/product/modern_menu_motion.hpp"
+    motion_source = (
+        motion_header.read_text(encoding="utf-8")
+        if motion_header.is_file() and not motion_header.is_symlink() else ""
+    )
+    if all(checked[key]["present"] for key in (
+            "motion_model_available", "native_motion_painted",
+            "source_grammar_available")):
+        motion_painter = re.search(
+            r"\bpaint_modern_menu_selection_motion\s*\([\s\S]{0,7000}?\n\}",
+            motion_source)
+        painter_source = motion_painter.group(0) if motion_painter else ""
+        fill = re.search(
+            r"\bkStockFocusBandFill\s*=\s*0xE0283058u\b",
+            painter_source)
+        erase = re.search(
+            r"paint\.fill_rect\s*\([^;]{0,240}?\bkStockFocusBandFill\s*\)",
+            painter_source)
+        blue = re.search(
+            r"paint\.fill_rect\s*\([^;]{0,240}?\bpalette\.cursor_blue\s*\)",
+            painter_source)
+        if not (fill and erase and blue and erase.start() < blue.start()):
+            conflicts.append("motion_blue_on_blue_undertrack_can_be_invisible")
+
     # Merged #2119 repaired a source-only success-receipt bug: if a child
     # destination refuses painting, the native host must not silently keep
     # the shell and claim the child appeared. In-progress integration #2053

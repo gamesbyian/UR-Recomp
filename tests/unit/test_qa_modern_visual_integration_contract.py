@@ -15,7 +15,18 @@ FIXTURE = {
     "native/product/modern_title_presenter.hpp": "render_modern_title(",
     "native/product/modern_menu_visual_grammar.hpp": "modern_menu_paint_focus_band(",
     "native/product/modern_native_destination_presenter.hpp": "render_modern_native_destination(",
-    "native/product/modern_menu_motion.hpp": "advance_modern_menu_motion(",
+    "native/product/modern_menu_motion.hpp": """
+advance_modern_menu_motion(
+inline bool paint_modern_menu_selection_motion(...) {
+  const auto& palette = kModernStockMenuPalette;
+  constexpr std::uint32_t kStockFocusBandFill = 0xE0283058u;
+  paint.fill_rect(pixels, stride, height,
+                  px, py, 2*scale, marker_height, kStockFocusBandFill);
+  paint.fill_rect(pixels, stride, height,
+                  px, py+inset, 2*scale, marker_height-2*inset,
+                  palette.cursor_blue);
+}
+""",
     "tools/baldosa_native_modern_root.cpp": """
 ur::product::render_modern_title(
 const bool child_open = ur::product::modern_native_destination_is_open(view);
@@ -125,6 +136,48 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         result = check.inventory(self.root)
         self.assertFalse(result["eligible_for_native_acceptance_run"])
         self.assertIn("destination_child_refusal_can_claim_success",
+                      result["known_host_geometry_conflicts"])
+
+    def test_stale_blue_only_motion_painter_is_not_integration_ready(self):
+        # Actual #2053 earlier header overlapped static blue with moving blue.
+        file = self.root / "native/product/modern_menu_motion.hpp"
+        source = file.read_text(encoding="utf-8")
+        source = source.replace(
+            "  paint.fill_rect(pixels, stride, height,\n"
+            "                  px, py, 2*scale, marker_height, kStockFocusBandFill);\n",
+            "")
+        file.write_text(source, encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertEqual(result["missing_native_integration_hooks"], [])
+        self.assertEqual(result["known_host_geometry_conflicts"], [
+            "motion_blue_on_blue_undertrack_can_be_invisible"])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+        self.assertEqual(result["screenshots_captured"], 0)
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_blue_painted_before_dark_reset_cannot_make_valid_motion(self):
+        file = self.root / "native/product/modern_menu_motion.hpp"
+        source = file.read_text(encoding="utf-8")
+        first = ("  paint.fill_rect(pixels, stride, height,\n"
+                 "                  px, py, 2*scale, marker_height, kStockFocusBandFill);")
+        second = ("  paint.fill_rect(pixels, stride, height,\n"
+                  "                  px, py+inset, 2*scale, marker_height-2*inset,\n"
+                  "                  palette.cursor_blue);")
+        self.assertIn(first, source)
+        self.assertIn(second, source)
+        file.write_text(source.replace(first+"\n"+second,
+                                       second+"\n"+first), encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertIn("motion_blue_on_blue_undertrack_can_be_invisible",
+                      result["known_host_geometry_conflicts"])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+
+    def test_motion_undertrack_must_have_exact_source_colour(self):
+        file = self.root / "native/product/modern_menu_motion.hpp"
+        file.write_text(file.read_text(encoding="utf-8").replace(
+            "0xE0283058u", "0xE0505050u"), encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertIn("motion_blue_on_blue_undertrack_can_be_invisible",
                       result["known_host_geometry_conflicts"])
 
     def test_missing_motion_hook_and_guest_mode_guard_detected(self):

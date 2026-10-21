@@ -63,6 +63,36 @@ CANDIDATE_REQUIREMENTS = {
     "options-available": ("options", "modern", "4:3", "pad-p1", "normal"),
 }
 
+# These historical acceptance requirements are individually frozen. The older
+# five exact-candidate requirements above were guarded already, but a mistaken
+# edit to P2 input ownership, locked/disabled state, keyboard focus, earned
+# Records or Authentic isolation could previously pass reconciliation because
+# the 20 other cases were checked by ID alone.  Keep this review-only guard
+# distinct from any future versioned acceptance matrix or release decision.
+# Tuple: (screen, execution mode, aspect, input owner, state, output pixels).
+PROTECTED_REQUIREMENTS = {
+    "title-wide-1080": ("title", "modern", "16:9", "pad-p1", "default", (1920, 1080)),
+    "title-wide-keyboard": ("title", "modern", "16:9", "keyboard", "default", (1280, 720)),
+    "title-compact-43": ("title", "modern", "4:3", "pad-p1", "default", (640, 480)),
+    "root-wide-1080": ("root", "modern", "16:9", "pad-p1", "normal", (1920, 1080)),
+    "root-wide-4k-virtual": ("root", "modern", "16:9", "pad-p1", "virtual-output", (3840, 2160)),
+    "root-43-480": ("root", "modern", "4:3", "pad-p1", "normal", (640, 480)),
+    "root-moved-selection": ("root", "modern", "16:9", "pad-p1", "selection-moved", (1280, 720)),
+    "root-keyboard": ("root", "modern", "16:9", "keyboard", "normal", (1280, 720)),
+    "root-disabled": ("root", "modern", "16:9", "pad-p1", "stale-profile", (1280, 720)),
+    "profile-switch-existing": ("profiles", "modern", "4:3", "pad-p1", "existing-profiles", (1024, 768)),
+    "multiplayer-p2-owner": ("multiplayer", "modern", "16:9", "pad-p2", "p1-p2-named", (1280, 720)),
+    "practice-locked": ("practice", "modern", "16:9", "pad-p1", "locked-course", (1280, 720)),
+    "options-refused": ("options", "modern", "16:9", "keyboard", "display-apply-refused", (1280, 720)),
+    "records-empty": ("records", "modern", "16:9", "pad-p1", "no-records", (1280, 720)),
+    "records-earned-1p": ("records", "modern", "16:9", "pad-p1", "earned-1p", (1920, 1080)),
+    "records-earned-2p": ("records", "modern", "4:3", "pad-p1", "earned-2p", (1024, 768)),
+    "transition-back-release": ("transition", "modern", "16:9", "pad-p1", "held-confirm-back", (1280, 720)),
+    "authentic-title-stock": ("title", "authentic", "4:3", "keyboard", "original", (640, 480)),
+    "authentic-stock-wide": ("root", "authentic", "16:9", "pad-p1", "original", (1280, 720)),
+    "focus-loss-modal": ("options", "modern", "16:9", "pad-p1", "focus-lost", (1280, 720)),
+}
+
 
 # Real ZIP inventory independently re-read on 2026-10-20. Reject a manifest
 # which silently rewrites a noncandidate route while retaining its total.
@@ -137,12 +167,24 @@ def validate_frozen_cohort(matrix: dict, evidence: dict) -> tuple[list, list]:
     if reported != FROZEN_CAPTURES:
         raise ValueError("frozen native capture ID/route/geometry inventory changed")
     for case in cases:
-        if case["id"] in CANDIDATE_REQUIREMENTS:
-            expected = CANDIDATE_REQUIREMENTS[case["id"]]
+        cid = case["id"]
+        if cid in CANDIDATE_REQUIREMENTS:
+            expected = CANDIDATE_REQUIREMENTS[cid]
             actual = tuple(case.get(k) for k in (
                 "screen", "mode", "aspect", "input", "state"))
             if actual != expected:
-                raise ValueError("technical candidate's matrix state/owner was rewritten: " + case["id"])
+                raise ValueError("technical candidate's matrix state/owner was rewritten: " + cid)
+        else:
+            expected = PROTECTED_REQUIREMENTS.get(cid)
+            # The case-ID set is frozen above, so absent specs are an error,
+            # not a license to stop protecting an unreviewed requirement.
+            actual = tuple(case.get(k) for k in (
+                "screen", "mode", "aspect", "input", "state"))
+            pixels = case.get("pixels")
+            if (expected is None or actual != expected[:5]
+                    or not isinstance(pixels, list)
+                    or tuple(pixels) != expected[5]):
+                raise ValueError("protected visual matrix state/input/output was rewritten: " + cid)
     return cases, captures
 
 

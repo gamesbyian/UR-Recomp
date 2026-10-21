@@ -509,7 +509,11 @@ inline bool render_modern_native_pause_destination(
     // original 256-wide guest / 4:3 frame stays 240-wide at every scale.
     // This changes presentation geometry only, never the frozen guest image,
     // option store, input owner or resume state.
-    const int logical_w = width >= 342 * scale ? 320 : 240;
+    // Output-sized buffers (such as 1280x720) are not evidence that the
+    // game actually prepared a 342x224 logical native frame. Only the exact
+    // source-size family may use the 320px destination composition.
+    const int logical_w = width == 342 * scale && height == 224 * scale
+        ? 320 : 240;
     constexpr int logical_h = 204;
     const HostOverlayRect root{
         (width - logical_w * scale) / 2,

@@ -159,6 +159,16 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
                                       wide_view,view));
     assert(contains("CONTINUE READY"));
+    // This same native sentinel has enough room to retain its full wording
+    // in the wide panel: only the 240px fallback requires compact copy.
+    painted.clear();
+    view.racer_name = "PROFILE CHANGED - RESTART APP";
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
+                                      wide_view,view));
+    assert(contains("RACER: PROFILE CHANGED - RESTART APP"));
+    assert(!contains("RACER: CHANGED - RESTART APP"));
+    assert(text_draws_fit(wide_view));
+    view.racer_name = "CUSTOM RACER";
 
     painted.clear();
     // The actual 320-logical-pixel Modern root admits just 13 text cells

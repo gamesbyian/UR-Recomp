@@ -9,10 +9,14 @@ approval require independent review of the output, not this generator's word.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
+import os
 from pathlib import Path
+import shutil
 import sys
+import tempfile
 
 # Support both tests importing tools.* and direct `python3 tools/<script>.py`.
 ROOT = Path(__file__).resolve().parents[1]
@@ -113,26 +117,108 @@ def require_private_output_dir(out_dir: Path) -> Path:
     return resolved
 
 
+SHEET_SCALE = 4
+SHEET_COLUMNS = 5
+SHEET_FILENAME = "original-hero-contact-sheet-4x.png"
+
+
+def nearest_original_contact_sheet(frames: list[bytes]) -> tuple[bytes, int, int]:
+    """Magnify untouched 64x64 source pixels exactly 4x, in manifest order.
+
+    No fabricated poses, blended transitions, postprocessing or background:
+    canvas is transparent and unused final-row slots remain transparent.
+    """
+    if not 1 <= len(frames) <= 20:
+        raise ClipAdmissionError("source contact sheet frame count out of bounds")
+    for rgba in frames:
+        if not isinstance(rgba, bytes) or len(rgba) != W * H * 4:
+            raise ClipAdmissionError("malformed original 64x64 RGBA review raster")
+    width = W * SHEET_SCALE * SHEET_COLUMNS
+    rows = (len(frames) + SHEET_COLUMNS - 1) // SHEET_COLUMNS
+    height = H * SHEET_SCALE * rows
+    canvas = bytearray(width * height * 4)
+    stride = width * 4
+    tile_stride = W * SHEET_SCALE * 4
+    for index, rgba in enumerate(frames):
+        tile_x = (index % SHEET_COLUMNS) * tile_stride
+        tile_y = (index // SHEET_COLUMNS) * H * SHEET_SCALE
+        for source_y in range(H):
+            row = rgba[source_y * W * 4:(source_y + 1) * W * 4]
+            enlarged = b"".join(row[x * 4:x * 4 + 4] * SHEET_SCALE
+                                for x in range(W))
+            for subrow in range(SHEET_SCALE):
+                pos = ((tile_y + source_y * SHEET_SCALE + subrow)
+                       * stride + tile_x)
+                canvas[pos:pos + tile_stride] = enlarged
+    return bytes(canvas), width, height
+
+
 def write_private_review(
     report: dict, frames: list[bytes], out_dir: Path
 ) -> Path:
+    """Atomically publish ROM-derived review material to a *new* private dir.
+
+    Existing files and symlink destinations are refused; an interrupted
+    extraction leaves no partial/counterfeit review folder behind.
+    """
     out_dir = require_private_output_dir(out_dir)
-    if not frames or len(frames) != len(report["frames"]):
+    if out_dir.exists() or out_dir.is_symlink():
+        raise ClipAdmissionError("private review destination must be new and absent")
+    if not frames or len(frames) != len(report["frames"]) or len(frames) > 20:
         raise ClipAdmissionError("incomplete source raster sequence")
-    # Encode everything *before* writing; a malformed frame must not leave
-    # a partly published source-art review directory.
-    images = [
-        encode_png_rgba(W, H, rgba)
-        for rgba in frames
-    ]
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for row, png in zip(report["frames"], images):
-        path = out_dir / f"original-guest-{row['registered_guest_frame']:04d}.png"
-        path.write_bytes(png)
+
+    receipt = copy.deepcopy(report)
+    registered = []
+    images = []
+    for row, rgba in zip(receipt["frames"], frames):
+        if (type(row.get("registered_guest_frame")) is not int or
+                row["registered_guest_frame"] < 0):
+            raise ClipAdmissionError("invalid original guest-frame label")
+        if (not isinstance(rgba, bytes) or len(rgba) != W * H * 4 or
+                hashlib.sha256(rgba).hexdigest() !=
+                row.get("original_rgba_sha256")):
+            raise ClipAdmissionError("private original raster does not match source receipt")
+        registered.append(row["registered_guest_frame"])
+        png = encode_png_rgba(W, H, rgba)
         row["review_png_sha256"] = hashlib.sha256(png).hexdigest()
-    path = out_dir / "original-hero-reaction-manifest.json"
-    path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    return path
+        images.append(png)
+    if len(set(registered)) != len(registered):
+        raise ClipAdmissionError("duplicate original guest-frame output labels")
+    if registered != list(range(registered[0], registered[0] + len(registered))):
+        raise ClipAdmissionError("out-of-order original guest-frame output labels")
+    rgba_sheet, sheet_width, sheet_height = nearest_original_contact_sheet(frames)
+    sheet_png = encode_png_rgba(sheet_width, sheet_height, rgba_sheet)
+    receipt["source_contact_sheet"] = {
+        "filename": SHEET_FILENAME,
+        "nearest_scale": SHEET_SCALE,
+        "columns": SHEET_COLUMNS,
+        "source_registered_guest_frames": registered,
+        "width": sheet_width,
+        "height": sheet_height,
+        "review_png_sha256": hashlib.sha256(sheet_png).hexdigest(),
+        "source_frame_content_unchanged": True,
+        "source_timing_certified": False,
+        "native_screenshot": False,
+        "human_visual_approval": False,
+    }
+    manifest_bytes = (json.dumps(receipt, indent=2) + "\n").encode("utf-8")
+    # Stage every file on the destination filesystem before renaming the
+    # complete directory. Existing output is never silently overwritten.
+    out_dir.parent.mkdir(parents=True, exist_ok=True)
+    staged = Path(tempfile.mkdtemp(
+        prefix=".modern-original-hero-staging-", dir=out_dir.parent))
+    try:
+        for row, png in zip(receipt["frames"], images):
+            (staged / f"original-guest-{row['registered_guest_frame']:04d}.png").write_bytes(png)
+        (staged / SHEET_FILENAME).write_bytes(sheet_png)
+        (staged / "original-hero-reaction-manifest.json").write_bytes(manifest_bytes)
+        if out_dir.exists() or out_dir.is_symlink():
+            raise ClipAdmissionError("private review destination appeared during staging")
+        os.rename(staged, out_dir)
+    except BaseException:
+        shutil.rmtree(staged, ignore_errors=True)
+        raise
+    return out_dir / "original-hero-reaction-manifest.json"
 
 
 def main() -> int:

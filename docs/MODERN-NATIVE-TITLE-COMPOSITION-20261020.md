@@ -917,3 +917,42 @@ All diagnostics are retained using an exact file allowlist, excluding game
 ROM, game executable, save SRAM, test user roots or private material. This
 is a test-only observational addition, not source/native parity or release
 credit. Human source-character art design, 4K/PAR and real controllers HOLD.
+
+### Source-visible original attract-title chosen from actual P6 frames
+
+The first Windows P6/P7 diagnostic at frame1000 is complete and shows an
+**identical blank original source and SDL presentation**, not an SDL defect.
+[Original Actions run 39575694104](https://github.com/gamesbyian/UR-Recomp/actions/runs/39575694104)
+produced bounded diagnostic artifact `12334596841`, original ZIP SHA256
+`b1af95c83849598e0ce2283773d4efa48c0d0805a28eade344f7dc324954eea1`.
+The genuine original pre-SDL 256×224 P6 has **zero** nonblack pixels,
+SHA256 `0bed1ceb80b6d20f94736cb8c7fcf4f3eba1b8b5ec054a7af6b8b9de0915c384`;
+final 1280×720 SDL P7 also has zero nonblack RGB, exact in draw1000,
+with one original PE `4120056601df38b3e1134ceb08105530103034e2ef150ecd4304778c14787a00`.
+Keep the black frame as a strict *diagnostic*, not as an artistic title proof.
+
+**No new broad capture necessary to choose a better source frame.**
+Previously archived exact original P6 presentation metadata in
+`modern-title-native-attract-preview-pr2043/presented/presents.csv`
+contains one row per 16 native frames; the independently retained CSV
+SHA256 is `b62ac797c1e8b953a736d2603ad47d2d2129a5c31a6cecefc20918bf6f23e803`.
+Original attract TITLE source begins at943. Frames944..1088 have low luminance
+0.851 and identical CRC `29515511`; 1104..1168 fade up; frames
+**1184..1408** hold original full-bright source content, luminance
+**133.923** and stable CRC `df39765c`; frame1424 returns to
+dark transition through the demo setup at1532. This explains why
+display frame1000 had no image despite menu state 84. A compact
+machine-readable evidence receipt preserves the exact distinguishing
+observations at
+`analysis/evidence/modern-title-attract-visible-source-window-20261021.json`.
+These are specific to the original source capture, not a release design approval.
+
+The final SDL *original-title visual* now targets **guest/draw1200**,
+safely within that source-observed bright interval. Frame1000 remains
+available as `--diagnose-title-only`, and the full acceptance refuses
+any newly blank original P6 at1200 *and* any blank actual SDL bitmap;
+the original demo1584, consumed wake→Modern1616, separate confirm→root1696
+remain unchanged. Real Windows rerun must independently qualify those
+four actual presented images at 16:9 and 4:3 and retain identical source/PE
+hashes. Do not infer unperformed physical, human art, boot-title asset
+licensing or release approvals from a successful source-visible sample.

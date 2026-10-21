@@ -30,7 +30,9 @@ except ModuleNotFoundError:
 # wake frame1600 and new confirm frame1660. These are observed source
 # events, not title art invented at a guessed host timeout.
 STAGES = (
-    ("original-title", 1000, "original"),
+    # Prior real original-source P6 series proves frames1184..1408 hold
+    # the fully bright guest title. Frame1000 is correctly source black.
+    ("original-title", 1200, "original"),
     ("original-demo", 1584, "original"),
     ("woken-modern", 1616, "modern"),
     ("confirmed-root", 1696, "root"),
@@ -101,7 +103,9 @@ def run(exe: Path, rom: Path, out: Path, aspect: str,
     out.mkdir(parents=True, exist_ok=False)
     frames = {}
     evidence = []
-    stages_to_run = STAGES[:1] if diagnose_title_only else STAGES
+    # Keep the source-verified black transition at frame1000 as a separate
+    # diagnostic, while the positive visual case samples the real title at1200.
+    stages_to_run = (("original-title", 1000, "original"),) if diagnose_title_only else STAGES
     source_title_diagnostic = None
     for name, draw, expected_mode in stages_to_run:
         stage = out / name
@@ -175,6 +179,8 @@ def run(exe: Path, rom: Path, out: Path, aspect: str,
                 "source_versus_final_sdl_parity_proven": False,
                 "diagnostic_only": True, "release_gate_credit": 0,
             }
+            if not diagnose_title_only and not p6["nonblack_rgb_pixels"]:
+                raise ValueError("Source guest title was blank at accepted display frame")
             (stage / "original-title-source-vs-sdl.json").write_text(
                 json.dumps(source_title_diagnostic, indent=2) + "\n", encoding="utf-8")
         png = stage / "native-sdl.png"

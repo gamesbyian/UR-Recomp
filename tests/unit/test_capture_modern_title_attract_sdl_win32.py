@@ -17,8 +17,9 @@ class ActualOriginalTitleAttractSDLTest(unittest.TestCase):
     def test_source_order_and_rom_id_are_exact(self):
         self.assertEqual([v[0] for v in STAGES],
                          ["original-title", "original-demo", "woken-modern", "confirmed-root"])
-        self.assertEqual([v[1] for v in STAGES], [1000, 1584, 1616, 1696])
+        self.assertEqual([v[1] for v in STAGES], [1200, 1584, 1616, 1696])
         self.assertEqual([v[2] for v in STAGES], ["original", "original", "modern", "root"])
+        self.assertNotEqual(STAGES[0][1], 1000)  # Source-confirmed blank transition
         self.assertEqual(len(USA), 64)
 
     def test_reject_static_or_blank_guest_or_root(self):

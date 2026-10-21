@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "kind": "independent exact host Windows original SDL viewport capture audit",
+  "run_id": 39539086749,
+  "source_sha": "a20790e92c66b58a1630ec084db6f78596296a05",
+  "original_capture_artifact_id": 12319405071,
+  "original_separately_retained_executable_artifact_id": 12318866939,
+  "executable": {
+    "name": "UniracersSNESRecomp.exe",
+    "bytes": 20441088,
+    "sha256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+    "machine": "AMD64 PE32+"
+  },
+  "cases": [
+    {
+      "id": "ur-integrated-viewport-root-quit-1920x1080",
+      "route": "root-quit",
+      "output_pixels": [
+        1920,
+        1080
+      ],
+      "native_original_source_pixels": [
+        342,
+        224
+      ],
+      "native_root_rect": [
+        11,
+        10,
+        320,
+        204
+      ],
+      "png_sha256": "f7b28ae3a60a1c6a5dcf3a3eabbac3e89fac19072c01407c7d5ba3e696540124",
+      "native_sdl_P7_sha256": "dc14fa61c4ef32231e0dc6c450b68a2cc118ca1727d6e08ac0da00670bbdf68f",
+      "successful_native_log_sha256": "bfc3ef3c02f941f586a2abd9f805e4e388bb97d306aedefead96378db051befc",
+      "independent_P7_RGBA_equal_PNG_RGBA": true,
+      "independent_same_exe_and_source": true
+    },
+    {
+      "id": "ur-integrated-viewport-root-quit-640x480",
+      "route": "root-quit",
+      "output_pixels": [
+        640,
+        480
+      ],
+      "native_original_source_pixels": [
+        256,
+        224
+      ],
+      "native_root_rect": [
+        8,
+        10,
+        240,
+        204
+      ],
+      "png_sha256": "906e078e9b22334dacfa77a025cf55c296381ef40c42be91ae33c6f0cda39d53",
+      "native_sdl_P7_sha256": "4e1c138cf578e2627136fc2a1533b72eff03c32b3e48ade71c1d08ba25386296",
+      "successful_native_log_sha256": "e00864debf0c04f8633032a63698dd9cd302b1ef8f3a5d13d3cbe0fc6048b88a",
+      "independent_P7_RGBA_equal_PNG_RGBA": true,
+      "independent_same_exe_and_source": true
+    },
+    {
+      "id": "ur-integrated-viewport-title-intro-compact-640x480",
+      "route": "title-intro-compact",
+      "output_pixels": [
+        640,
+        480
+      ],
+      "native_original_source_pixels": [
+        256,
+        224
+      ],
+      "native_root_rect": null,
+      "png_sha256": "2619b70646dfe3458479be8d597b1e38eb6496c3b8e430d62dc94cea875b4beb",
+      "native_sdl_P7_sha256": "5248d87e4dbcd9cedd9f90fb27b67b5e1e6bb832d42821962c47eddfe7f86970",
+      "successful_native_log_sha256": "3bfb435a7ecb1e4392ec3f313e3016de4c13c0e1044f27b47732f732a3134a56",
+      "independent_P7_RGBA_equal_PNG_RGBA": true,
+      "independent_same_exe_and_source": true,
+      "original_native_source_FNV1a64": "61672ac5a543f7e2",
+      "source_guest_frame": 40,
+      "native_P1_confirm_after_SDL_capture": true
+    },
+    {
+      "id": "ur-integrated-viewport-title-intro-wide-1920x1080",
+      "route": "title-intro-wide",
+      "output_pixels": [
+        1920,
+        1080
+      ],
+      "native_original_source_pixels": [
+        342,
+        224
+      ],
+      "native_root_rect": null,
+      "png_sha256": "93b8b2e21b66412153c3b3829263cedbd8b5fc151fec8f2d7887d8652bb4cc1d",
+      "native_sdl_P7_sha256": "8e252b1b480ab944be5f7b0644f09fde60be490808bbface02afbaeed427c46b",
+      "successful_native_log_sha256": "686f63eec2895bf283b56d5c6610ab2dd07a3db9de2e16e3099321014f535a43",
+      "independent_P7_RGBA_equal_PNG_RGBA": true,
+      "independent_same_exe_and_source": true,
+      "original_native_source_FNV1a64": "087cbca7b8b04aca",
+      "source_guest_frame": 40,
+      "native_P1_confirm_after_SDL_capture": true
+    }
+  ],
+  "count": {
+    "captured": 4,
+    "byte_identical_native_png_P7": 4,
+    "correct_256_compact": 2,
+    "correct_342_wide": 2,
+    "real_HID_joystick": 0,
+    "human_visual_signoffs": 0,
+    "release_gate_credit": 0
+  },
+  "limits": "Exact virtual Windows SDL drawable only. No physical 1080p/4K monitor, visual approval, original guest CRC or captured title keyboard route claim."
+}

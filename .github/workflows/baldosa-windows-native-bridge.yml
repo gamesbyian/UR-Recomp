@@ -39,6 +39,16 @@ on:
       - "native/product/baldosa_native_first_profile.hpp"
       - "native/product/baldosa_native_second_profile.hpp"
       - "native/product/modern_root_overlay_presenter.hpp"
+      # Direct visual-input headers: a change alters the compiled Windows
+      # Modern root even without changing the staging .cpp translation unit.
+      - "native/product/modern_menu_motion.hpp"
+      - "native/product/modern_menu_stock_hero.hpp"
+      # Exact branch-only genuine Windows native UI movement proof.
+      - "tools/capture_baldosa_modern_motion_win32.py"
+      - "tools/verify_modern_menu_motion_capture.py"
+      - "tests/unit/test_capture_baldosa_modern_motion_win32.py"
+      - "tests/unit/test_verify_modern_menu_motion_capture.py"
+      - "tests/native/modern_menu_motion_capture_contract_test.cpp"
       - "native/product/modern_root_physical_edges.hpp"
       - "tests/native/baldosa_native_first_profile_test.cpp"
       - "tests/unit/test_baldosa_native_first_profile_cpp.py"
@@ -158,6 +168,9 @@ on:
       - "native/product/modern_overlay_composition.hpp"
       - "native/product/modern_overlay_text_fit.hpp"
       - "native/product/modern_stock_menu_palette.hpp"
+      # Compiled by the shared native Modern root/title visual presenter.
+      - "native/product/modern_menu_visual_grammar.hpp"
+      - "native/product/modern_menu_source_atlas.hpp"
       - "native/product/modern_text_catalog.hpp"
       - "native/product/modern_text_layout.hpp"
       - "native/product/quick_practice_availability.hpp"
@@ -443,6 +456,44 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      # Owned visual-motion lane. Run ONCE against the same exact-native PE
+      # produced above, not a separate renderer or a branch-mutating fixture.
+      # Reuses the original USA game and after-config production root:
+      # this DOES NOT certify original source D7 menu admission. Requires
+      # 40+ genuine compositor draws; SDL P7/hardware are separate.
+      - name: Capture real original-paced Modern root native motion (PR 2042)
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-menu-motion-source-safe-20261020' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_baldosa_modern_motion_win32.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/modern-menu-actual-win32-motion-pr2042" \
+            --timeout 120
+          # Same exact native PE, independent anonymous state. The EXISTING
+          # test-only SDL keyboard route presses Down on frames 60,61,62,
+          # stops BEFORE its frame63 confirm, then returns to idle. Every
+          # actual interpolated frame is audited against stock timing.
+          python tools/capture_baldosa_modern_motion_win32.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/modern-menu-actual-win32-navigation-pr2042" \
+            --timeout 120 --scripted-navigation
+          echo "PASS: exact-current-head real Windows P6 Modern root draws plus three SDL-scripted native Down focus edges/source-signed cursor positions; no physical controller, SDL P7, human or release credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded actual native Modern motion evidence (PR 2042)
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-menu-motion-source-safe-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-menu-native-motion-pr2042
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/modern-menu-actual-win32-motion-pr2042/native-game.log
+            ${{ runner.temp }}/modern-menu-actual-win32-motion-pr2042/motion-native-draw-receipt.json
+            ${{ runner.temp }}/modern-menu-actual-win32-navigation-pr2042/native-game.log
+            ${{ runner.temp }}/modern-menu-actual-win32-navigation-pr2042/motion-native-draw-receipt.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

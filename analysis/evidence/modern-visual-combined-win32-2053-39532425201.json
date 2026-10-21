@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "kind": "independent exact-source combined native Win32 SDL3 archive audit",
+  "run_id": 39532425201,
+  "checkout_sha": "675dd55f4cd8b24c2b2025d3844e276442a63ebd",
+  "executable": {
+    "file": "UniracersSNESRecomp.exe",
+    "architecture": "AMD64 PE32+",
+    "bytes": 20440576,
+    "sha256": "69a17c1c66d75231a2aac00a79e514e49b8eb529d5e4f891cc17e7f599bc6952",
+    "download_artifact_id": 12316541308
+  },
+  "artifacts": {
+    "root": 12316606126,
+    "authentic": 12316571319,
+    "play": 12315554310,
+    "journeys": 12315579080,
+    "wide_destinations": 12315444271
+  },
+  "cases": [
+    {
+      "id": "ur-authentic-win32-control-1280x720",
+      "route": "authentic-stock",
+      "drawable": "1280x720",
+      "png_sha256": "5e28a299111e60301f85ba93f5d525c3f554861b790fd4089e429ce7cf63046e",
+      "p7_sha256": "2fd965fa672cf0f2ece5381b4bcbada2cd9bb761c6531bc6e867bde31b08a8b7",
+      "paint_before_sdl": "authentic-original",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-authentic-win32-control-1024x768",
+      "route": "authentic-stock",
+      "drawable": "1024x768",
+      "png_sha256": "08caa484279805c1f60a30d72eb5697f2a7bd12ebab45edfe5bf9a637cf2932d",
+      "p7_sha256": "02e12619ff3692abbcd44c8fd4eb1805b33bc21aacc4d9e5caaefe5601e0aad2",
+      "paint_before_sdl": "authentic-original",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-journey-records-keyboard",
+      "route": "records-keyboard",
+      "drawable": "1024x768",
+      "png_sha256": "90cf7bebd8f1226b245b4841dcc1cc35842dee06cd61b83de21f551d8f0aa1b7",
+      "p7_sha256": "5ff941506f811429f5ba7ef1142dfda4cbc14c8c6715f3d0f7a6cc41a1e413ed",
+      "paint_before_sdl": "records-1p",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-journey-options-p1",
+      "route": "options-p1",
+      "drawable": "1024x768",
+      "png_sha256": "e1522cfb2fd458c815b596866732d4a1b731d3424dec01745ca0038f87b52f1c",
+      "p7_sha256": "b41a91ac41647206fde6224b1824f6395155504d76215f6a2e698e803a6fcd1f",
+      "paint_before_sdl": "no-successful-log",
+      "raw_rgba_and_successful_native_log_independently_verified": false
+    },
+    {
+      "id": "ur-modern-win32-journey-profile-first-p1",
+      "route": "profile-first-p1",
+      "drawable": "1280x720",
+      "png_sha256": "991b7148e82c33872b8003ced36125e5ab36384ac2ad674878b4bc21808b7286",
+      "p7_sha256": "ae42172bf4af46e345f33ed91e27b034c767871c96380707387d2c70ca3eb023",
+      "paint_before_sdl": "profile-first-saved",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-journey-practice-picker-p1",
+      "route": "practice-picker-p1",
+      "drawable": "1024x768",
+      "png_sha256": "1f3a0423af240ce2e9b3a7b10c764666854d944545f53c830211b6636a36d2ab",
+      "p7_sha256": "da852c492a1990bc90b6cb1f6ae3d8ea764c810af09c6ebc86d8a3c3865763bd",
+      "paint_before_sdl": "practice-picker",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-journey-multiplayer-unbound",
+      "route": "multiplayer-unbound",
+      "drawable": "1024x768",
+      "png_sha256": "48328fff7f1d57e0bc499c93c26b477d9776148bed1b3e1a505559996014e9a5",
+      "p7_sha256": "3d9f817e1ea64e587130edfebebbe5d21cb1279c7e846b3c441103ccfa205923",
+      "paint_before_sdl": "multiplayer-unrecorded-warning",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-play-stock-1024x768",
+      "route": "play-stock-handoff",
+      "drawable": "1024x768",
+      "png_sha256": "4a5af6bf468ed5ef86e11db4e4c807beb576f011704b9691ca39f15c98ac88f3",
+      "p7_sha256": "aadf086a13583a321a7898c0c076d7ce91eaded049dabb1d46968c1a8a391e58",
+      "paint_before_sdl": "original-stock-1p-after-handoff",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-play-stock-1280x720",
+      "route": "play-stock-handoff",
+      "drawable": "1280x720",
+      "png_sha256": "5510d0f48c3d823a22fcc992b517779ba96066a040205e65c5e8c6d125967344",
+      "p7_sha256": "122c1b98fb4504b45fddbf38edc41361751843ce13e740422fdcf0b19fe52fcc",
+      "paint_before_sdl": "original-stock-1p-after-handoff",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-visual-1280x720",
+      "route": "root-quit",
+      "drawable": "1280x720",
+      "png_sha256": "9a142190b61689304da9524b12dcccb40635bf269ed1b95b3b60e6a7fba79b7a",
+      "p7_sha256": "851e058d918bc001f2a2571b8090a3870afeb551a38d2b30b742e19f70641150",
+      "paint_before_sdl": "root",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-visual-1024x768",
+      "route": "root-quit",
+      "drawable": "1024x768",
+      "png_sha256": "7626410382858ef93dc86d7117cc0c335b927434c3ca6cd837e2c09fc8c9b14a",
+      "p7_sha256": "c4b355479699936908853de0b2a775e8bc3825849fe5943d268955064e3d2fbd",
+      "paint_before_sdl": "root",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-wide-destination-multiplayer-unbound",
+      "route": "multiplayer-unbound",
+      "drawable": "1280x720",
+      "png_sha256": "c81f37b93ce79f08baa072674aa49e265986f8317ef2c6e2e40fd1b313ef9318",
+      "p7_sha256": "f342bdad8d73e03fb37ff64079f6caa61e9213ad317062dfdbf720b015f9e4fc",
+      "paint_before_sdl": "multiplayer-unrecorded-warning",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-wide-destination-options-open-p1",
+      "route": "options-open-p1",
+      "drawable": "1280x720",
+      "png_sha256": "ce9cdda26a1ea3aa99e2e0a1e5b8da0e9b43219e85e87274c2d6b787aa55aa72",
+      "p7_sha256": "1f47cdf60054dd909cb53a8573ba36380b889b8bc8b526a622f208781124134c",
+      "paint_before_sdl": "options",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-wide-destination-practice-picker-p1",
+      "route": "practice-picker-p1",
+      "drawable": "1280x720",
+      "png_sha256": "3765a3e26b031634e6288b0788f1a4b738bfee2cd9e047e1b844fab742ce2578",
+      "p7_sha256": "009ccf42c6e77227ddbdfae24c04eab44cbe0f844b0ed206faa0fe5d47178efc",
+      "paint_before_sdl": "practice-picker",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-wide-destination-profile-first-p1",
+      "route": "profile-first-p1",
+      "drawable": "1280x720",
+      "png_sha256": "991b7148e82c33872b8003ced36125e5ab36384ac2ad674878b4bc21808b7286",
+      "p7_sha256": "ae42172bf4af46e345f33ed91e27b034c767871c96380707387d2c70ca3eb023",
+      "paint_before_sdl": "profile-first-saved",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    },
+    {
+      "id": "ur-modern-win32-wide-destination-records-keyboard",
+      "route": "records-keyboard",
+      "drawable": "1280x720",
+      "png_sha256": "74bee60d23f1cd37aa460540d2c850570d37f009b3f71f12e0ed64da040b4b0e",
+      "p7_sha256": "158adcede83c426eeb4afad7c280aff89dd5b67edf532aa2b3b54e5a875962e9",
+      "paint_before_sdl": "records-1p",
+      "raw_rgba_and_successful_native_log_independently_verified": true
+    }
+  ],
+  "observed": {
+    "capture_receipts": 16,
+    "png_sha256_matches": 16,
+    "successful_original_p7_rgba_and_log_checks": 15,
+    "missing_raw_log_cases": [
+      "ur-modern-win32-journey-options-p1"
+    ],
+    "genuine_original_stock_handoffs": 2,
+    "authentic_controls": 2,
+    "wide_destination_states": 5,
+    "combined_title_final_sdl_capture": false
+  },
+  "known_gap": "Options changes display mode; second-process capture_observed P7 and native-process.log are absent from original navigation artifact despite PNG and receipt. Targeted helper PR #2093, no image-size normalization.",
+  "acceptance": {
+    "human_aesthetic_approved": false,
+    "physical_gamepad_approved": false,
+    "physical_4k_approved": false,
+    "full_original_guest_crc_approved": false,
+    "formal_visual_cases_approved": 0,
+    "release_gate_credit": 0
+  }
+}

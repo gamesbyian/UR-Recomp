@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "source-bound-engineering-native-journeys",
+  "native_run_id": 39481155085,
+  "checkout_source_sha": "018085b4852b39c0bc279ee48f391a37b5e84270",
+  "executable_sha256": "cfc17a3694d3a40e1934a1af322f127a8a8343738b0f425ea38da2f8201ea49c",
+  "nav_artifact_id": 12290874605,
+  "authentic_artifact_id": 12291613204,
+  "platform": "Win32 AMD64 SDL3 native Baldosa AOT",
+  "controller": "native semantic P1 gamepad handler and keyboard; no physical joystick detected",
+  "captured_destinations": [
+    {
+      "id": "records-keyboard-43",
+      "geometry": [
+        1024,
+        768
+      ],
+      "draw_ordinal": 64,
+      "guest_frame": 64,
+      "png_sha256": "799750def62cfaf3b1cb5977c8c7f025946b145bc06bb84c996c216747edd2dd",
+      "p7_sha256": "b21da8ee07b79e2c336ccbfe4aec380cca93baa43509ff1e17b98a71ec7051a3",
+      "route_log_sha256": "b0addcdfdd419a29bd1aa350b2afb9bb54566fe0fb7e605dbf65a86eb37bb64a",
+      "native_events": [
+        "records_page=1p",
+        "records_opened=1",
+        "records_page=2p",
+        "records_page=1p",
+        "records_closed=1"
+      ],
+      "rgba_exact_to_retained_p7": true
+    },
+    {
+      "id": "options-p1-wide",
+      "geometry": [
+        1280,
+        720
+      ],
+      "draw_ordinal": 65,
+      "guest_frame": 65,
+      "png_sha256": "4972d680eaed1ab0d86f4b391fa813f0ff82ccaf81efb0e78b6e3e77e02cdda9",
+      "p7_sha256": "b257f6787bac6b2a07de2acc03e6b67844cc831220b84defdba6199e970b4a4d",
+      "route_log_sha256": "5e9b4f3ec529b98831ba367117a862abfd6e388bd8e54c7f20fa5c494cc0a602",
+      "native_events": [
+        "options_opened",
+        "options_adjusted row=DISPLAY",
+        "options_adjusted row=VSYNC",
+        "options_adjusted row=VOLUME"
+      ],
+      "rgba_exact_to_retained_p7": true,
+      "notes": "screenshot occurs before Display changes to borderless at native frame66; subsequent observed output changes to 1024x768"
+    },
+    {
+      "id": "profile-first-p1-wide",
+      "geometry": [
+        1280,
+        720
+      ],
+      "draw_ordinal": 66,
+      "guest_frame": 66,
+      "png_sha256": "f277c33a29325b91f4b1a22f18b87ccc76365b8d0d3a1f27aaabbdc9b501dcc8",
+      "p7_sha256": "40a81cf31a83198598dce4a0aa1c5fec6cec45ab05cb48b65487002d270dd4cf",
+      "route_log_sha256": "b694d92945e2f09f500b768dc22efe0c1fce85ebc38ff65862cfad573f5db310",
+      "native_events": [
+        "first_racer_opened=1 activation=next_process",
+        "first_racer_created=1 activation=next_process"
+      ],
+      "rgba_exact_to_retained_p7": true,
+      "notes": "actual named first-racer creation; next-process persistence not independently measured by this screenshot"
+    }
+  ],
+  "authentic_control": {
+    "tested_geometry": [
+      [
+        1280,
+        720
+      ],
+      [
+        1024,
+        768
+      ]
+    ],
+    "draw_ordinal": 40,
+    "guest_frame": 40,
+    "both_png_frames_entirely_rgba_zero": true,
+    "authentic_execution_mode": true,
+    "modern_root_open_or_paint_log_seen": false,
+    "visible_original_graphics_qualified": false,
+    "later_retest_draw_ordinal": 240,
+    "verdict": "source-level Modern gating witnessed; visible original pixel parity unproven and late contrast test underway"
+  },
+  "gates": {
+    "final_integrated_visual_cases_approved": 0,
+    "human_design_approved": false,
+    "hardware_approved": false,
+    "authentic_visual_parity_approved": false,
+    "release_gate_credit": 0
+  }
+}

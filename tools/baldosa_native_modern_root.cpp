@@ -15,6 +15,19 @@
 #include "baldosa_native_two_seat_join.hpp"
 #include "baldosa_native_options.hpp"
 #include "modern_pause_overlay_presenter.hpp"
+#include "modern_menu_motion.hpp"
+#include "modern_menu_stock_hero.hpp"
+// Original art is generated only from a verified USA ROM by
+// tools/build_modern_menu_stock_hero.py before the native build. It is absent
+// in normal builds: never replace it with vetoed procedural 4x racer art.
+#if defined(UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD) && \
+    UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD == 1
+#if !__has_include("modern_menu_stock_hero_original.generated.hpp")
+#error "Opt-in original menu hero build requires canonical ROM-derived generated sprite header"
+#endif
+#include "modern_menu_stock_hero_original.generated.hpp"
+#define UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE 1
+#endif
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
@@ -218,6 +231,9 @@ std::string g_records_two_detail;
 bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
+// Native UI clock only, no guest or input simulation state.
+ur::product::ModernMenuMotionState g_native_menu_motion{};
+std::uint64_t g_native_menu_motion_root_presents = 0;
 int g_stock_target = -1;
 std::uint16_t g_stock_settle = 0;
 std::uint32_t g_stock_budget = 0;
@@ -1288,10 +1304,13 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                     static_cast<std::size_t>(width) * 4);
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
-    if (!g_visible)
+    if (!g_visible) {
+        g_native_menu_motion = {};
+        g_native_menu_motion_root_presents = 0;
         return ur::product::render_baldosa_native_run_save_feedback(
             painter, reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
+    }
     if (ur::product::modern_title_active(g_title)) {
         const bool drawn = ur::product::render_modern_title(
             painter, reinterpret_cast<std::uint32_t*>(dst),
@@ -1382,11 +1401,94 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     if (g_options.open) fill_options_view(view, option_text);
+    // Title and motion must share the same centred 4:3-safe focus rectangle.
+    const HostOverlayRect root_rect{(width - 240) / 2,10,240,204};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
-        static_cast<int>(pitch / 4), height, 1, 240,
-        HostOverlayRect{(width - 240) / 2,10,240,204}, view);
+        static_cast<int>(pitch / 4), height, 1, 240, root_rect, view);
     if (drawn) {
+        // Host-only motion overlays the existing focus row. Do not animate
+        // through a modal, quit prompt or source guest handoff.
+        const bool root_focus_visible = !view.quit_confirm &&
+            !view.practice_picker_open && !view.practice_launch_pending &&
+            !view.options_open && !view.read_only_records_open &&
+            !view.two_seat_join_open && !view.first_racer_open &&
+            !view.unbound_two_player_warning_open;
+        if (!root_focus_visible) g_native_menu_motion_root_presents = 0;
+        const char* capture_advance =
+            std::getenv("UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT");
+        const bool stepped_capture = capture_advance &&
+            std::strcmp(capture_advance, "1") == 0;
+        const char* reduced = std::getenv("UR_REDUCED_MOTION");
+        const bool reduced_motion =
+            reduced && std::strcmp(reduced, "1") == 0;
+        const char* seed = std::getenv("UR_MODERN_MENU_TEST_TICK60");
+        std::uint64_t parsed_seed = 0;
+        const bool provenance_log = stepped_capture &&
+            ur::product::modern_menu_parse_test_tick60(seed, parsed_seed);
+        const auto ordinal = g_native_menu_motion_root_presents;
+        const auto capture_tick = ur::product::modern_menu_capture_test_tick60(
+            ur::product::modern_menu_tick60(
+                static_cast<std::uint64_t>(SDL_GetTicks())),
+            seed, stepped_capture, ordinal);
+        const auto phase = ur::product::advance_modern_menu_motion(
+            g_native_menu_motion,
+            {capture_tick,
+             static_cast<std::uint8_t>(
+                 ur::product::modern_root_destination_index(
+                     ur::product::modern_root_menu_selected(g_menu))),
+             root_focus_visible, reduced_motion});
+        if (root_focus_visible) {
+            const bool motion_painted =
+                ur::product::paint_modern_menu_selection_motion(
+                    painter, reinterpret_cast<std::uint32_t*>(dst),
+                    static_cast<int>(pitch / 4), height, 1,
+                    root_rect, phase);
+            // Native QA only: one ACTUAL native root compositor paint per
+            // record, NOT a guaranteed SDL swap/present. The final P7
+            // readback must be independently matched to this draw and its
+            // selection/clock; never synthesize or claim a guest frame.
+            if (provenance_log) {
+                std::fprintf(stderr,
+                    "UR_MODERN_MENU_MOTION_CAPTURE ordinal=%llu tick60=%llu "
+                    "selection=%u spin=%d offset=%d entrance=%d reduced=%d "
+                    "root_x=%d root_w=%d surface_w=%d surface_h=%d painted=%d\n",
+                    static_cast<unsigned long long>(ordinal),
+                    static_cast<unsigned long long>(capture_tick),
+                    static_cast<unsigned>(phase.selection),
+                    phase.cursor_spin_phase, phase.cursor_remainder_px,
+                    phase.entrance_distance_px, reduced_motion ? 1 : 0,
+                    root_rect.x, root_rect.width, width, height,
+                    motion_painted ? 1 : 0);
+            }
+            if (g_native_menu_motion_root_presents < UINT64_MAX)
+                ++g_native_menu_motion_root_presents;
+#if defined(UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE)
+            // Real game opt-in ONLY. These are original cartridge racer poses,
+            // but their one-shot 2P-race clip is NOT approved as title artwork
+            // or a polished showroom cycle. Keep this separate from normal UI.
+            const char* stock_preview =
+                std::getenv("UR_MODERN_SOURCE_HERO_EXPERIMENTAL");
+            if (stock_preview && std::strcmp(stock_preview, "1") == 0 &&
+                width == 342) {
+                const auto drawn_hero =
+                    ur::product::paint_modern_menu_stock_hero(
+                        reinterpret_cast<std::uint32_t*>(dst),
+                        static_cast<int>(pitch / 4), height,
+                        HostOverlayRect{0, 0, width, height},
+                        ur::product::ModernMenuStockHeroPlacement{90, 12, 4},
+                        ur::product::modern_menu_source_hero::kClip, phase);
+                if (drawn_hero ==
+                    ur::product::ModernMenuStockHeroDraw::Drawn)
+                    painter.draw_text(
+                        reinterpret_cast<std::uint32_t*>(dst),
+                        static_cast<int>(pitch / 4), height, 184, 168,
+                        "ORIGINAL ART TEST",
+                        ur::product::kModernStockMenuPalette.secondary_grey,
+                        1);
+            }
+#endif
+        }
         ++g_paint_count;
         if (g_title_logged && !g_title_root_captured) {
             g_title_root_captured = true;

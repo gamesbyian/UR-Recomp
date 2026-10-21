@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "evidence_kind": "independent-native-frontend-engineering-baseline",
+  "run_id": 39413231035,
+  "head_sha": "7b9d756fc1f0427c98279657d4be39912cc1a435",
+  "checkout_source_sha": "2a24fb734f2c5f9b38dcb767e27f751c7ecc4b3e",
+  "exe_sha256": "5cbcd8ee8224d72be6eba7b55fdfc810f0b0f6c8e5ec74c1ee2d6426c9386e48",
+  "artifact_id": 12259948598,
+  "artifact_name": "modern-visual-win32-size-comparison",
+  "backend": "sdl3",
+  "simulation_frames": 62,
+  "presentations": 62,
+  "capture_ordinal": 40,
+  "semantic_route": "Modern P1 test-only quit-gamepad mode 14, no physical controller",
+  "capture_cases": [
+    {
+      "id": "baseline-root-1280x720",
+      "width": 1280,
+      "height": 720,
+      "aspect": "16:9",
+      "png_sha256": "5ca95395eaf12ead9e5fbccdaef717a5cf7be2ee47d97ee4b6f18adf6a4189ca",
+      "p7_sha256": "772b46dda5b7f9b7dea25963becba711d375f2909d0b79a9afa08d4d3691b82d",
+      "nonblack_bounds": {
+        "x0": 190,
+        "y0": 32,
+        "x1": 1089,
+        "y1": 687
+      },
+      "content_size": {
+        "width": 900,
+        "height": 656
+      },
+      "exact_sdl_p7_png_pixel_parity": true,
+      "actual_log_marker": "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 guest_frame=40 output=1280x720 source=SDL_RenderReadPixels backend=sdl3"
+    },
+    {
+      "id": "baseline-root-1024x768",
+      "width": 1024,
+      "height": 768,
+      "aspect": "4:3",
+      "png_sha256": "16ca946a0e97ee2d98a5c62c609563c4c3387750817bcb69e64a1ff425942201",
+      "p7_sha256": "273757b0c9d515a47d7d7c194391bb6f5eadb2d027869f88ceb0ce197fbea21a",
+      "nonblack_bounds": {
+        "x0": 32,
+        "y0": 34,
+        "x1": 991,
+        "y1": 733
+      },
+      "content_size": {
+        "width": 960,
+        "height": 700
+      },
+      "exact_sdl_p7_png_pixel_parity": true,
+      "actual_log_marker": "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 guest_frame=40 output=1024x768 source=SDL_RenderReadPixels backend=sdl3"
+    }
+  ],
+  "observations": [
+    "1280x720 is physical SDL output 16:9 but guest/engineering root remains pillarboxed 4:3",
+    "1024x768 shows centered 4:3 presentation",
+    "RACER: STOCK RACER - NO PROF visibly cut off at the right edge in both captures; source label should not be falsely treated as fully visible"
+  ],
+  "claims": {
+    "visual_redesign_acceptance_cases_passed": 0,
+    "visual_approved": false,
+    "hardware_approved": false,
+    "authentic_isolation_approved": false,
+    "release_gate_credit": 0,
+    "source_bound_by_independent_rebuild": false
+  }
+}

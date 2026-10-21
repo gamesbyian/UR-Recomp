@@ -2,6 +2,7 @@
 // the existing modern host. Host painter stubs record every visual operation.
 #include "native/product/modern_root_overlay_presenter.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -12,25 +13,61 @@ using namespace ur::product;
 
 namespace {
 std::vector<std::string> painted;
+struct TextDraw { int x; int y; int scale; std::string content; std::uint32_t color; };
+struct RectDraw { int x; int y; int width; int height; };
+std::vector<TextDraw> text_draws;
+std::vector<RectDraw> rect_draws;
 std::uint32_t chosen_color;
-void fill(std::uint32_t*,int,int,int,int,int,int,std::uint32_t color) {
+void fill(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t color) {
     painted.emplace_back("fill");
+    rect_draws.push_back({x,y,w,h});
     chosen_color = color;
 }
-void stroke(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {
+void stroke(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
     painted.emplace_back("stroke");
+    rect_draws.push_back({x,y,w,h});
 }
-void text(std::uint32_t*,int,int,int,int,const char* t,std::uint32_t,int) {
+void text(std::uint32_t*,int,int,int x,int y,const char* t,
+          std::uint32_t color,int scale) {
     painted.emplace_back(t);
+    text_draws.push_back({x, y, scale, t, color});
 }
 bool contains(const std::string& s) {
     for (const auto& item : painted) if (item == s) return true;
+    return false;
+}
+bool drawn_in_color(const std::string& value, std::uint32_t color) {
+    for (const auto& row : text_draws)
+        if (row.content == value && row.color == color) return true;
     return false;
 }
 int count(const std::string& s) {
     int result=0;
     for (const auto& item : painted) if (item == s) ++result;
     return result;
+}
+// First-party native text ABI draws 8px source glyphs at integer scale.
+// Check actual coordinates, not just that particular strings were sent.
+bool rect_draws_fit(HostOverlayRect panel) {
+    for (const auto& draw : rect_draws)
+        if (draw.width <= 0 || draw.height <= 0 ||
+            draw.x < panel.x || draw.y < panel.y ||
+            static_cast<std::int64_t>(draw.x) + draw.width >
+                static_cast<std::int64_t>(panel.x) + panel.width ||
+            static_cast<std::int64_t>(draw.y) + draw.height >
+                static_cast<std::int64_t>(panel.y) + panel.height)
+            return false;
+    return true;
+}
+bool text_draws_fit(HostOverlayRect panel) {
+    for (const auto& draw : text_draws) {
+        if (draw.scale <= 0 || draw.x < panel.x || draw.y < panel.y ||
+            draw.x + static_cast<int>(draw.content.size()) * 8 * draw.scale >
+                panel.x + panel.width ||
+            draw.y + 8 * draw.scale > panel.y + panel.height)
+            return false;
+    }
+    return true;
 }
 } // namespace
 
@@ -47,6 +84,9 @@ int main() {
                                       old_view,view));
     assert(contains("UNIRACERS"));
     assert(contains("RACER: CREATE A RACER WITH X"));
+    assert(drawn_in_color("RACER: CREATE A RACER WITH X",
+                          kModernMenuCheckerLegibleGrey));
+    static_assert(kModernMenuCheckerLegibleGrey == 0xFFC8C8C8u);
     assert(contains("> PLAY"));
     assert(contains("  PRACTICE"));
     assert(contains("  MULTIPLAYER"));
@@ -56,6 +96,39 @@ int main() {
     assert(contains("A/ENTER SELECT   B/ESC QUIT"));
     assert(count("UNIRACERS") == 2); // unchanged title/shadow
     assert(!contains("SELECTED")); // narrow default shell
+    assert(text_draws_fit(old_view)); // every root label stays in 240px panel
+    assert(rect_draws_fit(old_view)); // checker, focus and frame remain inside
+    // Real 640x480 SDL baseline: the anonymous rider was previously printed
+    // as "RACER: STOCK RACER - NO PROF", losing the source state.
+    painted.clear();
+    view.racer_name = "STOCK RACER - NO PROFILE";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: NO PROFILE"));
+    assert(drawn_in_color("RACER: NO PROFILE",
+                          kModernMenuCheckerLegibleGrey));
+    assert(!contains("RACER: STOCK RACER - NO PROF"));
+    // In narrow mode the identity is truthful and never overflows.
+    assert(text_draws_fit(old_view));
+    // The actual native host emits this status when the active SRAM/racer
+    // profile changes during a race. An ordinary prefix+truncation used to
+    // lose the only useful action, RESTART APP, at 240 logical pixels.
+    painted.clear();
+    view.racer_name = "PROFILE CHANGED - RESTART APP";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: CHANGED - RESTART APP"));
+    assert(!contains("RACER: PROFILE CHANGED - ..."));
+    assert(drawn_in_color("RACER: CHANGED - RESTART APP",
+                          kModernMenuCheckerLegibleGrey));
+    assert(text_draws_fit(old_view));
+    painted.clear();
+    view.racer_name = "THIS IS AN EXCESSIVELY LONG RACER NAME";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: THIS IS AN EXCESSI..."));
+    assert(!contains("RACER: THIS IS AN EXCESSIV"));
+    painted.clear();
 
     painted.clear();
     view.europe = true;
@@ -72,9 +145,11 @@ int main() {
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
     assert(contains("SELECTED"));
-    // The shared painter applies the existing cell budget to detail copy.
-    assert(contains(fit_modern_overlay_text(
-        "RUNS AND BEST TIMES", modern_overlay_text_cells(356 - 193))));
+    // Original stock-family wide context must expose both complete clauses.
+    // Earlier 320px-panel output silently emitted only "RUNS AND BEST".
+    assert(contains("RUNS AND"));
+    assert(contains("BEST TIMES"));
+    assert(!contains("RUNS AND BEST"));
     assert(contains("QUIT TO DESKTOP?"));
     assert(contains("A/ENTER YES   B/ESC NO"));
     assert(!contains("CONTINUE READY")); // only on selected Play
@@ -84,7 +159,59 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
                                       wide_view,view));
     assert(contains("CONTINUE READY"));
+    // This same native sentinel has enough room to retain its full wording
+    // in the wide panel: only the 240px fallback requires compact copy.
+    // Isolate geometry receipts by draw: compact coordinates accumulated
+    // above must never be treated as output of this 4x widescreen render.
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    view.racer_name = "PROFILE CHANGED - RESTART APP";
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
+                                      wide_view,view));
+    assert(contains("RACER: PROFILE CHANGED - RESTART APP"));
+    assert(!contains("RACER: CHANGED - RESTART APP"));
+    assert(text_draws_fit(wide_view));
+    view.racer_name = "CUSTOM RACER";
 
+    painted.clear();
+    // The actual 320-logical-pixel Modern root admits just 13 text cells
+    // in the secondary column, at both 1x logical size and 4x scaling.
+    constexpr HostOverlayRect real_wide_view{0,0,320*4,204*4};
+    view.available_destinations = 0x1fu;
+    view.quit_confirm = false;
+    view.tour_continue_available = false;
+    constexpr const char* expected_lines[][2] = {
+        {"TOUR AND", "CONTINUE"},
+        {"CHOOSE A", "COURSE"},
+        {"LOCAL", "TWO PLAYER"},
+        {"RUNS AND", "BEST TIMES"},
+        {"DISPLAY AND", "CONTROLS"}
+    };
+    for (unsigned i = 0; i < kModernRootDestinationCount; ++i) {
+        painted.clear();
+        text_draws.clear();
+        rect_draws.clear();
+        view.menu = modern_root_menu_reset();
+        for (unsigned j = 0; j < i; ++j)
+            view.menu = modern_root_menu_move(view.menu, 1);
+        assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                          real_wide_view,view));
+        assert(contains(expected_lines[i][0]));
+        assert(contains(expected_lines[i][1]));
+        assert(text_draws_fit(real_wide_view));
+        assert(rect_draws_fit(real_wide_view));
+        assert(!contains("TOUR AND CONT")); // old silently cropped copy
+        assert(!contains("DISPLAY AND CON")); // old silently cropped copy
+    }
+    painted.clear();
+    view.menu = modern_root_menu_reset();
+    view.available_destinations = 0;
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                      real_wide_view,view));
+    assert(contains("NOT YET"));
+    assert(contains("AVAILABLE"));
+    assert(!contains("NOT YET AVAI"));
     painted.clear();
     // Native Baldosa exposes only Play and Multiplayer until the underlying
     // Modern routes are wired. The shared ship renderer remains unchanged.
@@ -100,9 +227,15 @@ int main() {
                                       old_view,view));
     assert(contains("> RECORDS"));
     assert(count("SOON") == 3);
+    assert(drawn_in_color("SOON", kModernMenuCheckerLegibleGrey));
+    assert(drawn_in_color("> RECORDS", kModernMenuCheckerLegibleGrey));
     assert(contains("NOT YET AVAILABLE"));
-    assert(contains("RACER SETUP NOT YET LINKED"));
+    // No setup route is advertised for a host with no shortcut. The former
+    // "RACER SETUP NOT YET LINKED" was an internal false player instruction.
+    assert(!contains("RACER SETUP NOT YET LINKED"));
     assert(!contains("X/F2 RACERS   F1 HELP"));
+    assert(!contains("")); // do not issue an empty draw-text command
+    assert(contains("A/ENTER SELECT   B/ESC QUIT"));
     painted.clear();
     view.available_destinations = 0x1fu;
     view.racer_shortcuts_available = true;
@@ -283,6 +416,27 @@ int main() {
     assert(contains("LEFT/RIGHT  CHANGE"));
     assert(contains("B/ESC    BACK"));
     assert(!contains(">VSYNC    < ON >"));
+    assert(contains("X  RACER SETUP")); // historical capable host
+    // Native without an actual racer action must never advertise the X
+    // shortcut, even on the deep Controls help screen. The other movement
+    // and select/back help remains untouched and reachable.
+    painted.clear();
+    view.racer_shortcuts_available = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("X  RACER SETUP"));
+    assert(contains("MENU CONTROLS"));
+    assert(contains("UP/DOWN  MOVE"));
+    assert(contains("B/ESC    BACK"));
+    // A host may explicitly support first-time racer creation without the
+    // legacy F2 shortcut family. That is still a real X destination.
+    painted.clear();
+    view.first_racer_shortcut_available = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("X  RACER SETUP"));
+    view.first_racer_shortcut_available = false;
+    view.racer_shortcuts_available = true;
     // A host cannot over-declare rows past the fixed bound.
     painted.clear();
     view.options_controls_help = false;
@@ -293,10 +447,126 @@ int main() {
     view.options_row_count = 0;
     view.options_notice = {};
 
+    // Optional original *source-pixel* header is now consumable by the
+    // ACTUAL shared root painter, not just the isolated atlas test. This
+    // synthetic buffer contains no copyrighted image and is opt-in only.
+    // Without it, all existing Windows/host callers paint identical text.
+    painted.clear();
+    view.europe = false;
+    std::vector<std::uint32_t> source_pixels(640u * 16u, 0xFF112233u);
+    const ModernMenuSourcePixels source_atlas{
+        source_pixels.data(), source_pixels.size(), 640, 640, 16};
+    std::vector<std::uint32_t> framebuffer(256u * 224u, 0u);
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &source_atlas));
+    assert(!contains("UNIRACERS")); // no synthetic duplicate/shadow draw
+    assert(contains("  PRACTICE")); // all other source-owned routes unchanged
+    assert(framebuffer[static_cast<std::size_t>(16) * 256 + 17] ==
+           0xFF112233u); // at 8+9, 10+6 source-heading origin
+
+    // Regional original source text must use UNIRALLY, not UNIRACERS.
+    painted.clear();
+    view.europe = true;
+    std::fill(framebuffer.begin(), framebuffer.end(), 0u);
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &source_atlas));
+    assert(!contains("UNIRALLY"));
+    assert(framebuffer[static_cast<std::size_t>(16) * 256 + 17] ==
+           0xFF112233u);
+
+    // Source raster is also scaled through the SAME native root at 4x
+    // density without changing source geometry or the host's content.
+    painted.clear();
+    std::vector<std::uint32_t> wide_framebuffer(1536u * 896u, 0u);
+    assert(render_modern_root_overlay(
+        painter, wide_framebuffer.data(), 1536, 896, 4, 356,
+        wide_view, view, &source_atlas));
+    assert(!contains("UNIRALLY"));
+    assert(wide_framebuffer[
+        static_cast<std::size_t>(20 + 6 * 4) * 1536 + (56 + 9 * 4)] ==
+           0xFF112233u);
+
+    // An invalid source buffer or unsupported intermediate alpha must
+    // fail atomically and fall back to the preexisting host title; it
+    // must not render half a real heading or skip the title altogether.
+    painted.clear();
+    std::fill(framebuffer.begin(), framebuffer.end(), 0u);
+    const ModernMenuSourcePixels short_atlas{
+        source_pixels.data(), 10, 640, 640, 16};
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &short_atlas));
+    assert(contains("UNIRALLY"));
+    assert(std::all_of(framebuffer.begin(), framebuffer.end(),
+                       [](std::uint32_t px) {return px == 0;}));
+    painted.clear();
+    const std::size_t used_heading_pixel =
+        static_cast<std::size_t>(modern_menu_heading_slot('U')) * 16u;
+    source_pixels[used_heading_pixel] = 0x80112233u;
+    assert(render_modern_root_overlay(
+        painter, framebuffer.data(), 256, 224, 1, 240,
+        old_view, view, &source_atlas));
+    assert(contains("UNIRALLY"));
+    assert(std::all_of(framebuffer.begin(), framebuffer.end(),
+                       [](std::uint32_t px) {return px == 0;}));
+    source_pixels[used_heading_pixel] = 0xFF112233u;
+    view.europe = false;
+
+    // The public Options painter can be called by in-race pause screens.
+    // Missing host callbacks, invalid logical scale or a box which extends
+    // beyond the real output must return without ANY painter action.
+    painted.clear();
+    render_modern_options_modal({}, pixels, 256, 224, 1, 240, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, nullptr, 256, 224, 1, 240, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 5, 240, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 25, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 8, 45, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 513, 8, 10, view);
+    assert(painted.empty());
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 175, 8, 10, view);
+    assert(painted.empty());
+    text_draws.clear();
+    rect_draws.clear();
+    render_modern_options_modal(painter, pixels, 256, 224, 1, 240, 8, 10, view);
+    assert(contains("OPTIONS"));
+    assert(rect_draws_fit(old_view));
+    assert(text_draws_fit(old_view));
+    painted.clear();
+
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,pixels,256,224,0,240,
+                                       old_view,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,5,240,
+                                       old_view,view));
+    // Host must not expose any part of the root outside its own panel.
+    // These boxes lie INSIDE a valid framebuffer but cannot contain the
+    // complete 240x204 source menu shell or 320-wide preview.
+    constexpr HostOverlayRect short_panel{8, 10, 240, 203};
+    constexpr HostOverlayRect thin_panel{8, 10, 239, 204};
+    constexpr HostOverlayRect not_scaled{8, 10, 240, 204};
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                       short_panel,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                       thin_panel,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,4,240,
+                                       not_scaled,view));
+    constexpr HostOverlayRect small_wide{56,20,319*4,204*4};
+    assert(!render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                       small_wide,view));
+    // Extreme numeric values must be rejected before 27*scale etc are used
+    // to draw. A valid surface bounds check alone is not enough.
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,513,
+                                       old_view,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,175,
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,nullptr,256,224,1,240,
                                        old_view,view));

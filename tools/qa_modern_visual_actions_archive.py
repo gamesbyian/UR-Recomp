@@ -122,8 +122,16 @@ def verify_title_native_source(
     claim the whole frame is identical at a later moving-animation tick.
     """
     stage, src_width, reduced = TITLE_ROUTES[route]
-    if (width, height) != ((1024, 768) if src_width == 256 else (1280, 720)):
-        raise AuditError("title final SDL output is not its requested aspect")
+    # The exact native producer screenshot may use 640x480, 1024x768,
+    # 1280x720 or 1920x1080 (and later 4K virtual), but the source's
+    # 256/342 logical width MUST correspond to its real captured aspect.
+    # Exact requested physical output dimensions remain receipt-bound and
+    # are separately pinned in the whole-run acceptance manifest.
+    aspect_ok = (
+        width * 3 == height * 4 if src_width == 256 else
+        width * 9 == height * 16)
+    if not aspect_ok:
+        raise AuditError("title final SDL output aspect does not match original native source canvas")
     if (receipt.get("title_stage_capture") !=
             ("intro" if stage == "title" else "root-after-native-confirm")
             or receipt.get("reduced_motion_requested") is not reduced):

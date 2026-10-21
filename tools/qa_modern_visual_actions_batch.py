@@ -19,7 +19,12 @@ from pathlib import Path
 import struct
 import zipfile
 
-from tools import qa_modern_visual_actions_archive as capture
+# Support both `python -m tools.qa_modern_visual_actions_batch` and direct
+# `python tools/qa_modern_visual_actions_batch.py` from a clean checkout.
+if __package__:
+    from tools import qa_modern_visual_actions_archive as capture
+else:
+    import qa_modern_visual_actions_archive as capture
 
 EXPECTED = {
     "root": {

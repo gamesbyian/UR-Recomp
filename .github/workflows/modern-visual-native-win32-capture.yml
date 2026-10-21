@@ -71,6 +71,7 @@ jobs:
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp
           grep -Fq UR_MODERN_UI_SDL_DRAWABLE_CAPTURE \
             baldosa/snesrecomp/runner/src/desktop/host_main.c

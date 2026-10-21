@@ -146,6 +146,30 @@ With Remastered Racer HD enabled, Internal Render Scale is resolved from the per
 
 Widened world composition now preserves the configured 1x–4x presentation density without changing the accepted 342×224 logical view, +48 backing/materializer coverage, +43 visible world extent, 7:6 Original PAR or final viewport policy. SNESRecomp allocates the presentation buffer from logical width/height multiplied by density; if the Racer-HD replacement presenter declines the widened frame, the generic nearest-density compositor expands the entire completed widened field, including host-owned margins, exactly. Regional-title replacement likewise preserves its logical retail crop at 1x–4x by nearest-composing the canonical guest title at the selected density, painting the proven Europe crop in logical coordinates expanded by that same integer scale, verifying the density-aware crop digest, and restoring the canonical composed frame on any failure. Current Modern presentation therefore has no global 1x density holdout.
 
+## Desktop display modes and monitor changes
+
+The Display setting has three meanings, and every desktop host must keep them distinct: **Windowed**; **Borderless** (fullscreen at the desktop mode, no mode switch); **Fullscreen** (exclusive, with a concrete display mode). SDL3 has no separate "fullscreen desktop" flag. A fullscreen SDL3 window is borderless unless the host first gives it a mode with `SDL_SetWindowFullscreenMode`. The pinned Baldosa host and Modern Options seam never did, so on the SDL3 Windows product Fullscreen was silently Borderless and switching between the two did nothing.
+
+`tools/baldosa_sdl_display_lifecycle_spike.py` closes this with decisions from `native/product/display_window_lifecycle_policy.h`:
+
+- **Fullscreen mode before every transition.** Before each fullscreen transition (Options, the in-game launcher, Alt+Enter, and window creation), Fullscreen gets SDL's closest exclusive mode to the window's display desktop mode, and Windowed/Borderless clear it. Output Resolution is not a Baldosa Options row yet, so "Native" is the only resolution.
+- **No exclusive mode means a refusal.** A display offering no such mode makes Options report a refusal, which the Options seam already rolls back.
+- **Alt+Enter stays borderless.** Alt+Enter moves between windowed and borderless only, so it clears any mode left from an earlier Fullscreen.
+- **Display events are reconciled, never consumed.** They are handled in all host event pumps:
+  - an exclusive window that lands on another display, or whose display's desktop mode changes, is re-moded for that display;
+  - a windowed window whose title strip no longer shows at least 32 px on any display's usable area (for example after its monitor was removed) is centred on the primary display, shrunk to fit if necessary;
+  - after a DPI change, a default-sized window that no longer fits is re-clamped through the framework's own window-scale rule.
+
+Presentation pacing still follows the active display's refresh through the host's existing 250 ms re-check.
+
+`tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
+- without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;
+- without the Alt+Enter clear, `hotkey_enters_borderless` fails.
+
+The pinned 2P route's per-frame WRAM CRCs are unchanged. A hosted runner has one display, so multi-monitor hot-plug, physical DPI changes and real mode-switch hardware remain unaccepted.
+
+**Known gap:** Modern restores the persisted `HostSettings` display mode at boot. An Alt+Enter change only reaches the framework's `config.ini`, so it is lost on the next launch once `HostSettings` exists. Closing this needs a product-side sync of window-key changes into the typed store.
+
 ## Presentation cadence
 
 The authoritative simulation remains fixed to original game cadence.

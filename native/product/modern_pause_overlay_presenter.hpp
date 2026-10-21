@@ -15,7 +15,10 @@ namespace ur::product {
 inline bool render_native_modern_pause_overlay(
     const ModernRootOverlayPainter& paint, std::uint32_t* pixels,
     int stride, int width, int height, const UrModernPauseMenu& menu,
-    bool restart_available) {
+    bool restart_available, const char* status = nullptr) {
+    // `status` (static text, at most 26 cells: "P1 CONTROLLER DISCONNECTED")
+    // says why the host paused; it replaces the subtitle and is otherwise
+    // absent, so an ordinary pause renders exactly as before.
     // The frozen source may be the real 256x224 (original gameplay) or
     // 342x224 (prepared wide) guest raster. Neither can accept the legacy
     // 400x400 panel. Never step the guest or invent a larger surface.
@@ -56,7 +59,8 @@ inline bool render_native_modern_pause_overlay(
         paint.draw_text(pixels, stride, height, x + 9, y + 5,
                         "UNIRACERS", pal.title_yellow, 2);
         paint.draw_text(pixels, stride, height, x + 9, y + 27,
-                        "GAME PAUSED", kModernMenuCheckerLegibleGrey, 1);
+                        status ? status : "GAME PAUSED",
+                        kModernMenuCheckerLegibleGrey, 1);
         for (int i = 0; i < 8; ++i) {
             const auto& row = rows[i];
             const bool enabled = row.wired &&
@@ -99,7 +103,8 @@ inline bool render_native_modern_pause_overlay(
     paint.draw_text(pixels, stride, height, x + 18, y + 13,
                     "UNIRACERS", pal.title_yellow, 2);
     paint.draw_text(pixels, stride, height, x + 18, y + 41,
-                    "GAME PAUSED", kModernMenuCheckerLegibleGrey, 1);
+                    status ? status : "GAME PAUSED",
+                    kModernMenuCheckerLegibleGrey, 1);
 
     const int first_y = y + 71;
     for (int i = 0; i < 8; ++i) {

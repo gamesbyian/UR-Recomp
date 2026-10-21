@@ -80,6 +80,15 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("if (!gi && event->type == SDL_CONTROLLERBUTTONDOWN)", button)
         self.assertIn("if (SelftestPadExcludes(id)) return;", staged)
 
+    def test_product_seat_view_is_read_only_and_bounded(self):
+        staged = self.staged()
+        getter = staged[staged.index("long long snesrecomp_desktop_product_seat_source(int seat) {"):]
+        getter = getter[:getter.index("\n}\n")]
+        self.assertIn("if (seat < 0 || seat >= UR_CONTROLLER_SEAT_COUNT) return -1;", getter)
+        self.assertIn("int snesrecomp_desktop_product_input_scripted(void) {\n"
+                      "  return g_script_count > 0;\n}", staged)
+        self.assertNotIn("=", getter.replace("!=", "").replace(">=", "").replace("<=", ""))
+
     def test_no_guest_binding_or_keyboard_code_is_reachable(self):
         helpers = self.staged().split(seam.HELPERS_ANCHOR)[0]
         for forbidden in ("RtlRunFrame", "g_ram", "g_sram", "keybinds_",

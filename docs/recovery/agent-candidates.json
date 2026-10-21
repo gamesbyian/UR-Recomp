@@ -76,18 +76,6 @@
       "failure_class": "tool_safety_block",
       "release_gate_credit": false,
       "next_action": "Compare broken double-escaped test literal with current main under #2116 and obtain authorized correction, not blind merge."
-    },
-    {
-      "candidate_id": "h27-p2p-signed-finish",
-      "work_id": "UR-P2P-01",
-      "discriminator": "signed finish before replay-token commitment",
-      "state": "research_only",
-      "drive_id": "1d7KVQfkCA4dUIpmvPbaeEEwf1y-P_rLh",
-      "github_pr": null,
-      "merge_sha": null,
-      "failure_class": "unknown",
-      "release_gate_credit": false,
-      "next_action": "Review scoped #2111 source/test proposal and signed-message trust assumptions; referenced Drive file is a historical continuation, not a qualified patch."
     }
   ]
 }

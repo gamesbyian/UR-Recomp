@@ -78,7 +78,8 @@ class ExistingP1ControllerSwitchTest(unittest.TestCase):
         self.assertIn("UR-BALDOSA-SWITCH-FAILED", original)
         self.assertIn("SWITCH ACTIVE P1", presenter)
         self.assertIn("A SWITCH  B CANCEL", presenter)
-        self.assertIn("NO LIVE RACER CHANGE", presenter)
+        self.assertIn("RESTART TO SWITCH RACER", presenter)
+        self.assertNotIn("NO LIVE RACER CHANGE", presenter)
         self.assertNotIn("RtlWriteSram(", root)
         self.assertNotIn("RtlRunFrame(", root)
 

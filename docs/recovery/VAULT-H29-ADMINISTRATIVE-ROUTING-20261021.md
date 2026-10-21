@@ -1,6 +1,6 @@
 # Vault H29 administrative routing receipt (2026-10-21 UTC)
 
-This is an immutable, **non-deletion** file-location checkpoint for the surviving six-folder UR-Recomp Agent Recovery Vault. It records metadata moves, not code integration or member-level adjudication. Base GitHub main when the routing PR was prepared: `bfc8420e628092e92009334a79a44ef1037f53d4`. Primary source of ongoing dispositions: [recovery index](README.md) and [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088).
+**H29 in this receipt denotes 29 remaining Incoming items, not the scheduled agents' H29 hour.** This is an immutable, **non-deletion** file-location checkpoint for the surviving six-folder UR-Recomp Agent Recovery Vault. It records metadata moves, not code integration or member-level adjudication. Base GitHub main when the routing PR was prepared: `bfc8420e628092e92009334a79a44ef1037f53d4`. Primary source of ongoing dispositions: [recovery index](README.md) and [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088).
 
 ## Direct-child census after routing
 
@@ -36,8 +36,8 @@ The manifest's original `independent_drive_copy_verified=false` describes its **
 
 The reconstructed Drive bundle was then tested **in a newly initialized bare Git repository** (not the creator's source repo): `git bundle verify` reported a complete history, `git fetch <bundle> refs/heads/ur-restorable-main:refs/heads/restored-main` succeeded, `git rev-parse refs/heads/restored-main` returned **`7e9a1be4016b7a094c93603e2bad116a7ebf6ba7`**, `git rev-list --count` returned **8,118**, and `git fsck --strict --full --no-reflogs` exited zero (the only note was that the fresh bare repository's default `HEAD` still pointed to the unborn `master`, independent of the verified restored ref). `git ls-tree` listed the expected project root. **Drive-byte integrity and independent historical-main cold-restore are now verified.** The original immutable manifest was not altered.
 
-The backup remains a historical `main` backup, not a current complete repository backup: it excludes unmerged refs, PR/issues, Actions artifacts, LFS/submodules and Drive. It contains a copy of historical Git objects and must remain restricted. Do not describe it as independently restored or current-main-complete until an independent Drive-download/concatenation/hash/restore test succeeds.
+The backup remains a historical `main` backup, not a current complete repository backup: it excludes unmerged refs, PR/issues, Actions artifacts, LFS/submodules and Drive. It contains a copy of historical Git objects and must remain restricted. Its pinned historical-main cold restoration is now independently verified; do not describe it as a complete current-main or all-refs backup.
 
 ## Boundary
 
-No GitHub code changes, CI/test execution, ROM source moves, art approval or release/Windows/USA acceptance were performed by this receipt. Existing source-publication safety denials and project owner dispositions remain binding. The next eligible cleanup is member-level triage of retained source archives against exact current main, not another generation of general archive manifests.
+No game source changes, project CI/unit tests, ROM source moves, art approval or release/Windows/USA acceptance were performed by this receipt. Existing source-publication safety denials and project owner dispositions remain binding. The next eligible cleanup is member-level triage of retained source archives against exact current main, not another generation of general archive manifests.

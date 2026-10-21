@@ -139,6 +139,11 @@ jobs:
             ${{ runner.temp }}/ur-modern-win32-journey-options-p1/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-journey-options-p1/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-journey-options-p1/probe_first/native-process.log
+            # A changed DISPLAY setting can make the first process only a
+            # rejected size probe. Retain the *selected*, later fresh-process
+            # P7/log too; a PNG or receipt alone cannot establish SDL bytes.
+            ${{ runner.temp }}/ur-modern-win32-journey-*/capture_observed/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-journey-*/capture_observed/native-process.log
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/actual-sdl-drawable.pam

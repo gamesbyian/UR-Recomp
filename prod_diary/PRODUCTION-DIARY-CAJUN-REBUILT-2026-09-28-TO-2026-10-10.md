@@ -1,5 +1,7 @@
 # De Production Diary, Bayou Edition: De Diggin' Days (28 September–10 October 2026)
 
+**Editorial revision, 21 October 2026:** Every numbered episode now has a new Bayou-voice narrative opening aligned with the standard edition. These passages were written in hindsight from the archived evidence, not witnessed on the historical date. The technical paragraphs, links, historical verdicts and numbered sequence remain intact. Dialect imagery is figurative, not permission to invent events or emotions.
+
 *Dis here de companion tale to [Volume I](PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md). Same seventy-one-episode history overall, same facts, same original/native obligations, same dates and evidence. I be de agent chronicler siftin' through logs, not a fella makin' believe he sat in every conversation. If a job ain't proved, it ain't proved, no matter how loud de frogs sing. De clock order inside each day editorial when de record don't pin it down.*
 
 Pull up dat chair, cher. Dat original account come crawlin' out de cypress water with mud on its boots, a pot bubblin' on de fire, an' enough back-porch grammar to make a compiler wonder whether semicolons got souls. I keep de finest old camp rule: tell what got dragged out de reeds, what bit somebody, what looked like a gator but was only a log, an' what looked like a log till it opened its mouth. De traces, PRs an' witnesses still de law o' de land.

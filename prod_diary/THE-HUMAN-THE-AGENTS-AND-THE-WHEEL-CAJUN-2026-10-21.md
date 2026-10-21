@@ -60,7 +60,7 @@ A computer can count poses, index sprites an' produce very detailed 4× artwork.
 
 Same trouble visit de menus. Ian want widescreen, proper controller flow, Modern destinations, useful records an' settings, but no soulless grey control panel wearing de old game's name tag. De color, de movement, de little wheel's personality, an' de way a real native title hands off to actual menus: all dat is part of de game a person meets.
 
-An independent test can tell you a button is reachable. It cannot decide whether Ian recognizes de childhood game's strange little hero in a freshly drawn character. Here de director's eyes remain part of de final authority.
+An independent test can tell you a button is reachable. It cannot decide whether Ian recognizes de old game's strange little hero in a freshly drawn character. Here de director's eyes remain part of de final authority.
 
 [Art-likeness criteria](../docs/HD-RACER-CHARACTER-RECONSTRUCTION.md) · [October 20 visual briefs](PROJECT-CONVERSATIONS-2026-10-20-RECONSTRUCTED.md)
 

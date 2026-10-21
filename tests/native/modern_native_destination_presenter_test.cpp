@@ -177,6 +177,20 @@ int main() {
     assert(has_body_scrim(original, 1));
     bounds(256,224);
     clear();
+    // On a prepared 342-wide Practice frame the original course's tour and
+    // race-kind fields use distinct columns, preserving their actual model
+    // values rather than inventing a second course picker.
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has("TOUR  CRAWLER") && has("CIRCUIT"));
+    assert(!has("CRAWLER  /  CIRCUIT"));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 196 && t.y == 123 && t.cells == 7 &&
+                   t.colour == 0xFFFFFFFFu;
+        }));
+    bounds(342,224);
+    clear();
     v.practice_picker_open = false;
     v.practice_launch_pending = true;
     assert(render_modern_native_destination(painter,scratch,342,224,

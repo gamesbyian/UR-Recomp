@@ -266,22 +266,32 @@ inline bool render_modern_root_overlay(
         modern_menu_paint_shadowed_heading(
             paint, pixels, stride, surface_height,
             x + 9 * scale, y + 6 * scale, title, 2, scale);
-    // A stock anonymous rider is a state, not a long player name. Keep
-    // that status readable at the real 240-logical-pixel 4:3 fallback.
-    // These two product-status sentinels are not user-entered racer names.
-    // In the real 240px root, naive clipping of the stale-profile notice
-    // drops the required RESTART APP action. Preserve its full instruction
-    // in 28 standard text cells instead of shortening it with ellipses.
+    // These exact product-status sentinels are not user-entered names.
+    // Native 4:3 SDL evidence showed a clipped first-racer instruction
+    // "RESTART TO USE NEW..." losing its final word. Abbreviate only
+    // recognized status text when the stock 240-wide budget requires it.
+    const auto identity_cells = modern_overlay_text_cells(panel_w);
+    const auto too_long = [identity_cells](std::string_view status) noexcept {
+        return std::string_view("RACER: ").size() + status.size() >
+            identity_cells;
+    };
     const std::string_view racer_name =
         view.racer_name == "STOCK RACER - NO PROFILE"
             ? std::string_view("NO PROFILE")
-            : view.racer_name == "PROFILE CHANGED - RESTART APP" &&
-              modern_overlay_text_cells(panel_w) <
-                  std::string_view("RACER: PROFILE CHANGED - RESTART APP").size()
-                ? std::string_view("CHANGED - RESTART APP")
-                : view.racer_name;
+        : view.racer_name == "PROFILE CHANGED - RESTART APP" &&
+          too_long(view.racer_name)
+            ? std::string_view("CHANGED - RESTART APP")
+        : view.racer_name == "RESTART TO USE NEW RACER" &&
+          too_long(view.racer_name)
+            ? std::string_view("RESTART FOR NEW RACER")
+        : view.racer_name == "SECOND RACER SAVED - RESTART" &&
+          too_long(view.racer_name)
+            ? std::string_view("P2 SAVED - RESTART")
+        : view.racer_name == "P1 SWITCH QUEUED - QUIT TO SAVE" &&
+          too_long(view.racer_name)
+            ? std::string_view("SWITCH: QUIT TO SAVE")
+        : view.racer_name;
     std::string identity = std::string("RACER: ") + std::string(racer_name);
-    const auto identity_cells = modern_overlay_text_cells(panel_w);
     if (identity.size() > identity_cells) {
         // Never silently present a clipped prefix as a complete racer name.
         // Keep the fixed identity label and mark unusually long names.

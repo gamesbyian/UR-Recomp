@@ -3,7 +3,7 @@
 
 Uses the already compiled Baldosa/UR game, original USA retail ROM and the
 production Modern root host (not a mock, no new emulator or game renderer).
-The root is reached through the genuine frozen-guest menu; no controller
+The host root opens through the production after-config callback; no controller
 events, user files, guest memory or save writes are injected by this tool.
 
 Deliberately measures only P6 native root compositor paints. This does not
@@ -39,7 +39,7 @@ EXPECTED_CAPTURE_ENV = {
     "SDL_VIDEODRIVER": "dummy",
     "SDL_AUDIODRIVER": "dummy",
 }
-FRAMES = 840  # source root admitted by guest main mode D7, before idle attract
+FRAMES = 840  # ordinary guest clock; long enough for 40+ native root draws
 
 
 def validate_paths(exe: Path, rom: Path, out: Path) -> tuple[str, str]:
@@ -83,7 +83,7 @@ def run_native(exe: Path, rom: Path, out: Path, *,
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     route = out / "source-idle-root.script"
     # 840 genuine, ordinarily paced guest frames; do not turbo/skip the
-    # 440-frame source-menu admission or accidentally cross idle attract.
+    # independently sampled native root draws or enter a later attract cycle.
     route.write_text(f"wait {FRAMES}\nquit\n", encoding="ascii")
     env = {**os.environ, **EXPECTED_CAPTURE_ENV,
            "SNESRECOMP_USER_DATA_DIR": str(user)}
@@ -114,7 +114,10 @@ def run_native(exe: Path, rom: Path, out: Path, *,
     receipt["rom_sha256"] = rom_hash
     receipt["source_guest_script_frames"] = FRAMES
     receipt["video_driver"] = video
-    receipt["host_original_mode_admitted"] = True
+    # Initial root opens in after_config(), BEFORE independent proof of
+    # the guest's stock D7 main state. Never claim source D7 admission here.
+    receipt["native_root_opened_after_config"] = True
+    receipt["source_guest_d7_admission_proven"] = False
     receipt["real_windows_game_process"] = True
     receipt["test_clock_per_native_root_draw"] = True
     receipt["not_proven"].extend([

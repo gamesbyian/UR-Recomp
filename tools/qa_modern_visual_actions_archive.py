@@ -27,6 +27,13 @@ SOURCE_HEX = re.compile(r"[0-9a-f]{40}\Z")
 # Native host stage values are emitted by the real source painter and ordered
 # before the SDL EndDraw readback. An unrelated screenshot with correct
 # geometry/P7/log transport must NOT satisfy a route-specific visual case.
+TITLE_ROUTES = {
+    "title-intro-wide": ("title", 342, False),
+    "title-intro-compact": ("title", 256, False),
+    "title-intro-reduced": ("title", 342, True),
+    "title-transition-root": ("root", 342, False),
+    "title-transition-root-reduced": ("root", 342, True),
+}
 ROUTE_STAGES = {
     "root-quit": "root",
     "records-keyboard": "records-1p",
@@ -104,6 +111,86 @@ def png_rgba(png: bytes, expected: tuple[int, int]) -> bytes:
     return b"".join(raw[y*(stride+1)+1:(y+1)*(stride+1)] for y in range(h))
 
 
+def verify_title_native_source(
+    z: zipfile.ZipFile, folder: str, log: str, before: str,
+    receipt: dict, route: str, width: int, height: int,
+) -> dict:
+    """Bind final SDL title screenshot to its original source raster and edge.
+
+    Source first Intro / first Root can predate the final SDL readback; the
+    FNV proves which genuine native source frame was retained but does NOT
+    claim the whole frame is identical at a later moving-animation tick.
+    """
+    stage, src_width, reduced = TITLE_ROUTES[route]
+    if (width, height) != ((1024, 768) if src_width == 256 else (1280, 720)):
+        raise AuditError("title final SDL output is not its requested aspect")
+    if (receipt.get("title_stage_capture") !=
+            ("intro" if stage == "title" else "root-after-native-confirm")
+            or receipt.get("reduced_motion_requested") is not reduced):
+        raise AuditError("title source route/stage/reduced-motion receipt mismatch")
+    painted = f"UR_BALDOSA_MODERN_TITLE painted=1 raster={src_width}x224 host=modern"
+    if painted not in before:
+        raise AuditError("real source title did not paint before final SDL")
+    confirm = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+    entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
+    if stage == "title":
+        if confirm in before or entered in before:
+            raise AuditError("title intro already confirmed before SDL screenshot")
+    else:
+        if confirm not in before or entered not in before:
+            raise AuditError("native P1 title handoff absent before root SDL screenshot")
+        root_entered = re.search(
+            r"UR_BALDOSA_MODERN_TITLE entered_root=1 frame=(\d+)", before)
+        if root_entered is None:
+            raise AuditError("native root title handoff has no guest frame witness")
+        enter_frame = int(root_entered.group(1))
+        if (reduced and enter_frame != 60) or (
+                not reduced and enter_frame < 73):
+            raise AuditError("normal versus reduced-motion title exit timing inconsistent")
+        actual = re.findall(
+            r"UR_BALDOSA_MODERN_DESTINATION stage=root "
+            r"raster=(\d+)x(\d+) root=(\d+),(\d+),(\d+),(\d+) "
+            r"source=modern_product_view", before)
+        if not actual or tuple(map(int, actual[-1])) != (
+                342, 224, 11, 10, 320, 204):
+            raise AuditError("root after title did not paint in real wide native canvas")
+
+    # Actual title source raster is retained by opt-in Baldosa host, as
+    # original P7 bytes. Verify its native 64-bit FNV over *pixel bytes*,
+    # using the existing source host's exact 1469598103934665603 seed.
+    original_name = (
+        f"{folder}/probe_first/original-native-source/"
+        f"modern-native-{stage}-{src_width}x224.pam")
+    original = read(z, original_name, 342 * 224 * 4 + 256)
+    m = P7.match(original)
+    if not m or tuple(map(int,m.groups())) != (src_width,224):
+        raise AuditError("native source title P7 malformed or wrong logical raster")
+    raw = original[m.end():]
+    if len(raw) != src_width * 224 * 4:
+        raise AuditError("native source title P7 truncated")
+    source_line = re.findall(
+        rf"UR_BALDOSA_MODERN_TITLE native_capture=1 stage={stage} "
+        rf"guest_frame=(\d+) raster={src_width}x224 "
+        r"rgba_fnv1a64=([a-f0-9]{16}) path=[^\r\n]+", before)
+    if len(source_line) != 1:
+        raise AuditError("native title source frame/tick/hash witness missing before SDL")
+    hash64 = 1469598103934665603
+    for ch in raw:
+        hash64 = ((hash64 ^ ch) * 1099511628211) & 0xffffffffffffffff
+    if f"{hash64:016x}" != source_line[0][1]:
+        raise AuditError("original native title source pixel FNV not equal to host log")
+    return {
+        "title_source_stage":stage,
+        "title_native_source_sha256":digest(original),
+        "title_native_source_rgba_fnv1a64":f"{hash64:016x}",
+        "title_source_raster":[src_width,224],
+        "title_source_guest_frame":int(source_line[0][0]),
+        "title_reduced_motion_requested":reduced,
+        "title_original_guest_confirmed_before_sdl":stage=="root",
+        "final_sdl_rgba_pixel_equal_to_source":None,
+    }
+
+
 def check_one(z: zipfile.ZipFile, folder: str) -> dict:
     receipt = json.loads(read(z, folder+"/readback-receipt.json", 64*1024))
     if (not isinstance(receipt,dict) or
@@ -172,6 +259,13 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
                 "UR_BALDOSA_MODERN_ROOT painted=1" in after_handoff):
             raise AuditError("Modern frontend painted again after guest stock handoff")
         last_stage = "original-stock-1p-after-handoff"
+    elif route in TITLE_ROUTES:
+        before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
+        title_source = verify_title_native_source(
+            z, folder, log, before, receipt, route, w, h)
+        last_stage = (
+            "title-intro-before-p1" if TITLE_ROUTES[route][0] == "title"
+            else "title-original-p1-to-root")
     elif route in ROUTE_STAGES:
         before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]
         painted = re.findall(
@@ -212,6 +306,7 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         "source_sha":receipt["source_sha"], "exact_rgba_bytes":w*h*4,
         "guest_frame_witness":int(evidence[0][1]),
         "native_painted_stage_at_capture":last_stage,
+        "verified_native_title_source":title_source if route in TITLE_ROUTES else None,
         # Once Play hands focus to guest stock, no current Modern root
         # geometry is authoritative. Only active Modern destination routes
         # advertise their native 342/256 source and panel dimensions.

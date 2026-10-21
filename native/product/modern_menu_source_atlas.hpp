@@ -166,10 +166,16 @@ inline bool modern_menu_paint_source_cell(
     bool has_ink = false;
     for (int y = 0; y < ch; ++y)
         for (int x = 0; x < cw; ++x) {
-            const auto alpha = atlas.pixels[
+            const auto pixel = atlas.pixels[
                 static_cast<std::size_t>(y) * atlas.stride +
-                static_cast<std::size_t>(cell * cw + x)] >> 24;
-            if (alpha != 0 && alpha != 255) return false;
+                static_cast<std::size_t>(cell * cw + x)];
+            const auto alpha = pixel >> 24;
+            // The source RGBA packer canonicalizes every transparent pixel
+            // to zero, and the 16-pose cursor verifier already requires it.
+            // Direct supplied heading/detail/BG1 sheets must obey the same
+            // invariant: hidden RGB under alpha zero is not source art.
+            if ((alpha == 0 && pixel != 0u) ||
+                (alpha != 0 && alpha != 255)) return false;
             if (alpha == 255) has_ink = true;
         }
     // Slot 44 in the original detail sheet is a transparent *space*,
@@ -244,7 +250,11 @@ inline bool modern_menu_paint_source_text(
                     static_cast<std::size_t>(yy) * atlas.stride +
                     static_cast<std::size_t>(index * cw + xx)];
                 const auto alpha = pixel >> 24;
-                if (alpha != 0 && alpha != 255) return false;
+                // Preflight all referenced cells before the first glyph.
+                // Otherwise an otherwise valid word can partially paint
+                // before a later uncanonical transparent pixel is found.
+                if ((alpha == 0 && pixel != 0u) ||
+                    (alpha != 0 && alpha != 255)) return false;
                 if (alpha == 255) has_ink = true;
             }
         if (sheet == ModernMenuSourceSheet::Detail && c == ' ')

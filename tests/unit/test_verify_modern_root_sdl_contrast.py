@@ -15,11 +15,14 @@ import verify_modern_root_sdl_contrast as audit
 
 
 def source_files(base: Path, wide: bool, ink: int = 200,
-                 uhd: bool = False):
-    if uhd and not wide:
-        raise ValueError("4K source preview is 342-wide")
+                 uhd: bool = False, native_480p: bool = False):
+    if uhd and (not wide or native_480p):
+        raise ValueError("4K source preview is 342-wide and not 480p")
+    if native_480p and not wide:
+        raise ValueError("native 856x480 source is 342-wide")
     source_w, w, h, root_x, root_width = (
         (342, 3840, 2160, 11, 320) if uhd else
+        (342, 856, 480, 11, 320) if native_480p else
         (342, 1280, 720, 11, 320) if wide
         else (256, 1024, 768, 8, 240))
     surface = bytearray(w * h * 4)
@@ -83,6 +86,32 @@ class NativeRootSdlContrastTests(unittest.TestCase):
                 self.assertFalse(observed["visual_approved"])
                 self.assertFalse(observed["hardware_approved"])
                 self.assertEqual(observed["release_gate_credit"], 0)
+
+    def test_actual_856x480_widescreen_source_geometry_and_contrast(self):
+        # Newly observed in the exact successful source/PE-bound Windows
+        # root snapshot from native Actions run 39555629743, artifact
+        # 12325402655. Only its size and source palette are reconstructed
+        # here; this synthetic fixture is not that original image.
+        with tempfile.TemporaryDirectory() as td:
+            receipt, png, p7, log = source_files(
+                Path(td), True, native_480p=True)
+            result = audit.verify_capture(receipt, png, p7, log)
+            self.assertEqual(result["native_output"], [856, 480])
+            self.assertEqual(result["native_source"], [342, 224])
+            self.assertEqual(result["identity_rgb"], [[200, 200, 200]])
+            self.assertGreaterEqual(result["minimum_contrast_ratio"], 4.5)
+            self.assertFalse(result["visual_approved"])
+            self.assertFalse(result["hardware_approved"])
+            self.assertEqual(result["release_gate_credit"], 0)
+            # A 256x224 root cannot masquerade as this actual wide host
+            # merely by changing the successful native process marker.
+            log.write_text(log.read_text().replace(
+                "raster=342x224 root=11,10,320,204",
+                "raster=256x224 root=8,10,240,204"))
+            receipt["native_process_log_sha256"] = hashlib.sha256(
+                log.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(ValueError,"not recognized"):
+                audit.verify_capture(receipt, png, p7, log)
 
     def test_4k_is_prospective_real_native_geometry_not_auto_approved(self):
         # 4K source-side pixel admission is distinct from physical display

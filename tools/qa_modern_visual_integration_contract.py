@@ -154,6 +154,26 @@ def inventory(root: Path) -> dict:
         if has_fixed_root and not has_wide_root:
             conflicts.append("motion_and_destination_share_fixed_240px_root_on_wide_canvas")
 
+    # Merged #2119 repaired a source-only success-receipt bug: if a child
+    # destination refuses painting, the native host must not silently keep
+    # the shell and claim the child appeared. In-progress integration #2053
+    # predates this protection, and a conflicting host merge can regress it
+    # while all header/callsite presence checks still look green.
+    child_predicate = text.find("modern_native_destination_is_open(view)")
+    child_guard = text.find("if (drawn && !child_ok)")
+    child_receipt = text.find("modern_native_destination_stage(view)")
+    child_result = text.find("const bool child_ok")
+    if checked["native_destinations_drawn"]["present"]:
+        guarded = (
+            0 <= child_predicate < child_result < child_guard < child_receipt
+            and "render_modern_native_destination(" in
+                text[child_result:child_guard]
+            and all(token in text[child_guard:child_receipt] for token in (
+                "g_last_native_destination_stage.clear();",
+                "paint_refused=1", "return 0;"))
+        )
+        if not guarded:
+            conflicts.append("destination_child_refusal_can_claim_success")
     return {
         "schema_version": 1,
         "checked": checked,

@@ -6,6 +6,8 @@
 
 [QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md](QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md) owns the bounded, ROM-free causal bus consumer and continuous full-memory capture auditor contracts. These are diagnostic candidates only. The current QA01 acceptance boundary, event census and release ledger retain exclusive course/release verdict authority; no live event or original/native producer is qualified by the synthetic tool tests.
 
+The pinned RF081 sparse memory archive census is implemented in [`tools/qa01_rf081_coverage.py`](../tools/qa01_rf081_coverage.py) and [`tools/qa01_rf081_pair_diff_census.py`](../tools/qa01_rf081_pair_diff_census.py), with ROM-free guards in [`test_qa01_rf081_sampled_census.py`](../tests/unit/test_qa01_rf081_sampled_census.py). It reports original/native WRAM/SRAM snapshot differences without asserting continuous instruction-phase equivalence or USA event acceptance.
+
 ## Desktop post-race video
 
 [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md) owns the Windows/macOS/Linux Modern **Save Race Video / Discard Video** result feature, evidence-backed capture/export backend choices, concrete resource/latency expectations, playback/job confirmation semantics, and staged acceptance. It is not an implemented feature or a new P0. Existing `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `MODERN-RESULTS-NAVIGATION.md` retain their separate run/replay/navigation authorities.

@@ -237,24 +237,42 @@ template <typename Painter>
 inline void modern_menu_paint_checker_backdrop(
     const Painter& paint, std::uint32_t* pixels,
     int stride, int surface_height,
-    int x, int y, int width, int height, int logical_scale) {
+    int x, int y, int width, int height, int logical_scale,
+    bool fixed_bg1_grid = false) {
     if (!paint.fill_rect || !pixels || stride <= 0 || surface_height <= 0 ||
         x < 0 || y < 0 || width <= 0 || height <= 0 ||
         x > stride || y > surface_height ||
         width > stride - x || height > surface_height - y ||
+        // Bound loop arithmetic to native source/presentation dimensions.
+        stride > 16384 || surface_height > 16384 ||
         logical_scale < 1 || logical_scale > 4) return;
 
     const int cell = kModernMenuCheckerCell * logical_scale;
     paint.fill_rect(pixels, stride, surface_height, x, y, width, height,
                     kModernStockMenuPalette.background);
-    // Sparse every-other-square underlay. Grey palette ramp RGB8 48/80;
-    // alpha retains the caller's existing host overlay convention.
-    for (int yy = 0, row = 0; yy < height; yy += cell, ++row) {
-        for (int xx = (row & 1) ? 0 : cell; xx < width; xx += 2 * cell) {
-            const int w = xx + cell > width ? width - xx : cell;
-            const int h = yy + cell > height ? height - yy : cell;
+    // Retail BG1 remains stationary while BG2/menu entries slide. By
+    // default the old local panel grid remains pixel-identical; a shared
+    // screen surface can opt in to one viewport-anchored grid so its split
+    // rectangles, animated masks and adjacent panels never reset the motif.
+    // This is still a checker-only fallback, not the missing retail leaf art.
+    const int phase_x = fixed_bg1_grid ? x % cell : 0;
+    const int phase_y = fixed_bg1_grid ? y % cell : 0;
+    const int row_start = fixed_bg1_grid ? y / cell : 0;
+    const int col_start = fixed_bg1_grid ? x / cell : 0;
+    for (int yy = -phase_y, row = row_start;
+         yy < height; yy += cell, ++row) {
+        const int clipped_y = yy < 0 ? 0 : yy;
+        const int bottom = yy + cell < height ? yy + cell : height;
+        for (int xx = -phase_x, col = col_start;
+             xx < width; xx += cell, ++col) {
+            if (((row + col) & 1) == 0) continue;
+            const int clipped_x = xx < 0 ? 0 : xx;
+            const int right = xx + cell < width ? xx + cell : width;
+            // Partial tiles at the viewport/child bounds remain continuous.
             paint.fill_rect(pixels, stride, surface_height,
-                            x + xx, y + yy, w, h, 0xE0505050u);
+                            x + clipped_x, y + clipped_y,
+                            right - clipped_x, bottom - clipped_y,
+                            0xE0505050u);
         }
     }
 }

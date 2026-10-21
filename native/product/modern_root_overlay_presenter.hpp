@@ -272,7 +272,7 @@ inline bool render_modern_root_overlay(
     const int list_w = wide ? 168 : panel_w - 16;
     modern_menu_paint_checker_backdrop(
         paint, pixels, stride, surface_height,
-        x, y, rect.width, rect.height, scale);
+        x, y, rect.width, rect.height, scale, true);
     paint.fill_rect(pixels, stride, surface_height,
         x, y, rect.width, 27 * scale, palette.header_band);
     paint.stroke_rect(pixels, stride, surface_height,

@@ -189,6 +189,54 @@ int main() {
     assert(framebuffer[10 * 256 + 24] == 0xE0505050u);
     assert(framebuffer[10 * 256 + 248] == 0u); // no out-of-panel write
 
+    // BG1 is stationary across screen transitions. A panel split at
+    // arbitrary non-tile boundaries must produce exactly the same native
+    // ARGB as one contiguous fill when the grid is locked to the viewport.
+    // Exercise both supported canvases and 1x/4x native pixel densities.
+    for (const int native_width : {256, 342}) {
+        for (const int density : {1, 4}) {
+            const int sw = native_width * density;
+            const int sh = 224 * density;
+            std::vector<std::uint32_t> whole(sw * sh, 0xFF010203u);
+            std::vector<std::uint32_t> tiled = whole;
+            const int left = 7 * density;
+            const int top = 10 * density;
+            const int rw = (native_width - 15) * density;
+            const int rh = 204 * density;
+            const int x_split = 83 * density + 1; // deliberately not 16-aligned
+            const int y_split = 91 * density + 1;
+            modern_menu_paint_checker_backdrop(
+                painter, whole.data(), sw, sh,
+                left, top, rw, rh, density, true);
+            for (int side_y = 0; side_y < 2; ++side_y)
+                for (int side_x = 0; side_x < 2; ++side_x) {
+                    const int sx = side_x ? x_split : left;
+                    const int sy = side_y ? y_split : top;
+                    const int ew = side_x ? left + rw - x_split
+                                          : x_split - left;
+                    const int eh = side_y ? top + rh - y_split
+                                          : y_split - top;
+                    modern_menu_paint_checker_backdrop(
+                        painter, tiled.data(), sw, sh,
+                        sx, sy, ew, eh, density, true);
+                }
+            assert(tiled == whole);
+            // The fixed grid references framebuffer (0,0), not panel origin.
+            const auto expected = ((left / (16 * density) +
+                                    top / (16 * density)) & 1)
+                ? 0xE0505050u : kModernStockMenuPalette.background;
+            assert(whole[top * sw + left] == expected);
+            const auto stable = whole;
+            modern_menu_paint_checker_backdrop(
+                painter, whole.data(), sw, sh, -1, top, rw, rh,
+                density, true);
+            modern_menu_paint_checker_backdrop(
+                painter, whole.data(), sw, sh, left, top,
+                rw + sw, rh, density, true);
+            assert(whole == stable); // atomic refusal on bad rectangles
+        }
+    }
+
     // Draw the focus treatment on top of the same real pixel buffer.
     modern_menu_paint_focus_band(
         painter, framebuffer, 256, 224, 13, 50, 168, 17, 1);

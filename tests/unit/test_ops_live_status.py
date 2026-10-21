@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from agent_control import BOARD, REGISTRY, extract_board, load_json
 from ops_live_status import markdown, snapshot, timestamp
+from validate_history_custody import load as load_custody
 
 SHA = "a" * 40
 MERGE = "5cdbbc57dc991d77df10c1a2ecabab2772c8063c"
@@ -122,6 +123,36 @@ class LiveOperationsTests(unittest.TestCase):
         result = self.report(get=full_page)
         self.assertFalse(result["prs"]["census_complete"])
         self.assertEqual(result["prs"]["count"], 300)
+
+    def test_historical_backup_is_never_live_drive_attestation(self):
+        record = load_custody()
+        report = snapshot(self.request, board=self.board, registry=self.registry,
+                          ledger=self.ledger, local_head=SHA, now=NOW, custody=record)
+        self.assertEqual(report["backup"]["source_commit"], record["source_commit"])
+        self.assertEqual(report["backup"]["current_drive_integrity"], "UNKNOWN_NOT_CHECKED")
+        self.assertFalse(report["backup"]["observed_main_exactly_in_backup"])
+        self.assertIn("historical backup only", markdown(report))
+
+    def test_invalid_record_does_not_launder_release_or_backup_claim(self):
+        record = load_custody()
+        record["release_qa_credit"] = True
+        report = snapshot(self.request, board=self.board, registry=self.registry,
+                          ledger=self.ledger, local_head=SHA, now=NOW, custody=record)
+        self.assertIsNone(report["backup"])
+        self.assertIn("invalid custody receipt", report["errors"]["backup"])
+        self.assertIn("Drive backup: UNKNOWN", markdown(report))
+
+    def test_exact_backup_commit_never_implies_future_drive_readback(self):
+        record = load_custody()
+        def same_head(path):
+            if path.endswith("/branches/main"):
+                return {"commit": {"sha": record["source_commit"]}, "protected": True}
+            return self.request(path)
+        report = snapshot(same_head, board=self.board, registry=self.registry,
+                          ledger=self.ledger, local_head=record["source_commit"],
+                          now=NOW, custody=record)
+        self.assertTrue(report["backup"]["observed_main_exactly_in_backup"])
+        self.assertEqual(report["backup"]["current_drive_integrity"], "UNKNOWN_NOT_CHECKED")
 
     def test_bad_time_rejected_without_implicit_timezone(self):
         self.assertIsNone(timestamp("2026-10-21T12:00:00"))

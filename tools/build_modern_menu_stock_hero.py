@@ -1,0 +1,234 @@
+#!/usr/bin/env python3
+"""Reconstruct an experimental ORIGINAL-raster Modern unicycle preview.
+
+Provenance: the exact eight consecutive source-visible guest frames 1213..1220
+from analysis/data/racer-hd-replacement-prototype.json. Uses the same signed-off
+Original 64x64 P1 composition path as the established HD/fallback evidence,
+NEVER any authored/Scale2x/procedural replacement. This is a single original
+eight-frame event, not a cyclic idle animation, a title-frame pose, or approved
+4x new character art.
+
+No generated asset is committed. Only a caller explicitly supplying a verified
+canonical USA retail ROM can generate a host C++ header and a source manifest.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+from prototype_racer_hd_replacement import (
+    alpha_contact_anchor_x2_y2,
+    build_stock_rgba,
+    encode_png_rgba,
+    object_flip_pivot_x2_y2,
+)
+
+MANIFEST = ROOT / "analysis/data/racer-hd-replacement-prototype.json"
+SOURCE = ROOT / "analysis/generated/racer-presentation-family.json"
+ROM = ROOT / "reference/roms/retail/Uniracers_USA.sfc"
+WIDTH = HEIGHT = 64
+START, STOP = 1213, 1220
+FRAME_COUNT = STOP - START + 1
+MAX_BYTES = 3 * 1024 * 1024
+SOURCE_PROVENANCE = "original-synchronized-p1-guest-1213-through-1220"
+FNV_OFFSET = 1469598103934665603
+FNV_PRIME = 1099511628211
+
+
+def source_digest(argb: list[int]) -> int:
+    h = FNV_OFFSET
+    for p in argb:
+        for shift in (24, 16, 8, 0):
+            h ^= (p >> shift) & 255
+            h = (h * FNV_PRIME) & ((1 << 64) - 1)
+    return h
+
+
+def rgba_to_argb(rgba: bytes) -> list[int]:
+    if len(rgba) != WIDTH * HEIGHT * 4:
+        raise ValueError("source raster must be exactly 64x64 RGBA")
+    return [
+        (rgba[q + 3] << 24) | (rgba[q] << 16) |
+        (rgba[q + 1] << 8) | rgba[q + 2]
+        for q in range(0, len(rgba), 4)
+    ]
+
+
+def argb_to_rgba(frame: list[int]) -> bytes:
+    if len(frame) != WIDTH * HEIGHT:
+        raise ValueError("source plate is not a 64x64 original raster")
+    result = bytearray()
+    for p in frame:
+        result.extend(((p >> 16) & 255, (p >> 8) & 255,
+                       p & 255, (p >> 24) & 255))
+    return bytes(result)
+
+
+def verified_clip(rom: bytes, registry: dict, source: dict) -> tuple[list[dict], list[list[int]]]:
+    actual = hashlib.sha256(rom).hexdigest()
+    if actual != source["rom_sha256"] or len(rom) != 2_097_152:
+        raise ValueError("canonical USA retail ROM SHA-256 or length mismatch")
+    if registry.get("schema_version") != 1:
+        raise ValueError("unexpected registered source-composition schema")
+
+    timeline = registry["motion_review_sequence"]
+    if timeline["window_start"] > START or timeline["window_end"] < STOP:
+        raise ValueError("requested original source window is unregistered")
+    frames = [row for row in timeline["frames"]
+              if START <= row["frame"] <= STOP]
+    if len(frames) != FRAME_COUNT or [r["frame"] for r in frames] != list(range(START, STOP + 1)):
+        raise ValueError("missing, duplicate or out-of-order genuine source frames")
+
+    entries = {}
+    for row in registry["entries"]:
+        rid = row["representation_id"]
+        if rid in entries:
+            raise ValueError("ambiguous original pose registry ID")
+        entries[rid] = row
+
+    report = []
+    buffer = []
+    for row in frames:
+        representation = row["p1_representation_id"]
+        entry = entries.get(representation)
+        if entry is None or entry.get("player") != "p1" or entry.get("palette_asset_id") != "0x06":
+            raise ValueError("unknown original P1 representation or palette")
+        semantic = int(entry["semantic_frame_id"], 16)
+        if semantic == 0 or semantic != int(entry["composition_guards"]["p1_primary"], 16):
+            raise ValueError("semantic frame disagrees with exact live P1 composition")
+        rgba = build_stock_rgba(rom, entry)
+        argb = rgba_to_argb(rgba)
+        opaque = sum(bool(p >> 24) for p in argb)
+        if opaque < 100 or opaque > 2000:
+            raise ValueError("original pose alpha occupancy outside admission window")
+        anchor = entry.get("registration", {}).get("semantic_anchors", {})
+        stock_contact = alpha_contact_anchor_x2_y2(rgba, WIDTH, HEIGHT)
+        if (anchor.get("fixed_point_scale") != 2 or
+            stock_contact != anchor.get("wheel_contact_x2_y2") or
+            anchor.get("flip_pivot_x2_y2") !=
+                object_flip_pivot_x2_y2(WIDTH, HEIGHT)):
+            raise ValueError("source Original wheel contact or flip pivot disagrees with registration")
+        report.append({
+            "original_guest_frame": row["frame"],
+            "representation_id": representation,
+            "semantic_frame_id": f"0x{semantic:04X}",
+            "palette_asset_id": entry["palette_asset_id"],
+            "source_rgba_sha256": hashlib.sha256(rgba).hexdigest(),
+            "argb_fnv1a64": f"{source_digest(argb):016x}",
+            "opaque_pixels": opaque,
+            "stock_contact_x2_y2": stock_contact,
+            "stock_flip_pivot_x2_y2": anchor["flip_pivot_x2_y2"],
+            "composition_guards": entry["composition_guards"],
+        })
+        buffer.append(argb)
+    if len({r["semantic_frame_id"] for r in report}) < 3:
+        raise ValueError("source clip lacks qualified distinct poses")
+    signatures = [r["source_rgba_sha256"] for r in report]
+    # These pairs are byte-static in the measured Original guest: a single
+    # semantic state is held for two consecutive 60Hz frames.
+    if signatures[0] != signatures[1] or signatures[2] != signatures[3]:
+        raise ValueError("Original source retained static-pose pairs diverged")
+    if signatures[1] == signatures[2] or len(set(signatures)) < 3:
+        raise ValueError("Original source motion unexpectedly frozen")
+    return report, buffer
+
+
+def cpp_header(rows: list[dict], frames: list[list[int]]) -> str:
+    """Produce a single self-contained generated read-only C++17 header."""
+    if len(rows) != FRAME_COUNT or len(frames) != FRAME_COUNT:
+        raise ValueError("incomplete source frame family")
+    lines = [
+        "#pragma once",
+        "// GENERATED from ORIGINAL USA ROM, not authored/remastered artwork.",
+        "// Experimental fixed source sequence: guest frames 1213..1220.",
+        "// DO NOT hand-edit. Source manifest binds actual ROM, pose and palette.",
+        '#include "modern_menu_stock_hero.hpp"',
+        "#include <array>",
+        "#include <cstdint>",
+        "namespace ur::product::modern_menu_source_hero {",
+        "inline constexpr std::array<std::uint32_t, 32768> kOriginalArgb{{",
+    ]
+    for index, frame in enumerate(frames):
+        if len(frame) != WIDTH * HEIGHT:
+            raise ValueError("incomplete source raster frame")
+        lines.append(f"  // original guest frame {START + index}")
+        for i in range(0, len(frame), 8):
+            lines.append("  " + ", ".join(f"0x{n:08x}u" for n in frame[i:i+8]) + ",")
+    lines.extend([
+        "}};",
+        "inline constexpr std::array<ModernMenuStockHeroFrame, 8> kFrames{{",
+    ])
+    for i, row in enumerate(rows):
+        semantic = row["semantic_frame_id"]
+        digest = row["argb_fnv1a64"]
+        lines.append(
+            f"  {{kOriginalArgb.data() + {i * WIDTH * HEIGHT}, "
+            f"kModernMenuStockHeroPixels, {semantic}, 0x{digest}ull, true}},")
+    lines.extend([
+        "}};",
+        "inline constexpr ModernMenuStockHeroSequence kClip{",
+        "  kFrames.data(), kFrames.size(), true};",
+        "} // namespace ur::product::modern_menu_source_hero",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def build(rom_path: Path, output_header: Path, output_manifest: Path,
+          frames_dir: Path | None = None) -> dict:
+    source = json.loads(SOURCE.read_text(encoding="utf-8"))
+    registry = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    if not rom_path.is_file() or rom_path.stat().st_size > MAX_BYTES:
+        raise ValueError("missing or oversized source ROM")
+    rom = rom_path.read_bytes()
+    rows, frames = verified_clip(rom, registry, source)
+    header = cpp_header(rows, frames)
+    manifest = {
+        "schema_version": 1,
+        "asset_kind": "experimental_original_native_menu_showroom_clip",
+        "status": "technical Original sprite reconstruction only; user visual acceptance pending",
+        "original_rom_sha256": source["rom_sha256"],
+        "original_motion_window": [START, STOP],
+        "source": SOURCE.relative_to(ROOT).as_posix(),
+        "composition_register": MANIFEST.relative_to(ROOT).as_posix(),
+        "sequence_contract": "one-shot original guest 60Hz P1 frames; never loop as if original idle",
+        "raster": {"width": WIDTH, "height": HEIGHT, "format": "ARGB8888"},
+        "generated_header_sha256": hashlib.sha256(header.encode()).hexdigest(),
+        "frames": rows,
+    }
+    if frames_dir is not None:
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        for row, argb in zip(rows, frames):
+            png = encode_png_rgba(WIDTH, HEIGHT, argb_to_rgba(argb))
+            plate = frames_dir / f"original-stock-{row['original_guest_frame']:04d}.png"
+            plate.write_bytes(png)
+            row["review_png_sha256"] = hashlib.sha256(png).hexdigest()
+        # Retain the plate fingerprints in the exact same source manifest.
+        manifest["frames"] = rows
+    output_header.parent.mkdir(parents=True, exist_ok=True)
+    output_manifest.parent.mkdir(parents=True, exist_ok=True)
+    output_header.write_text(header, encoding="utf-8")
+    output_manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return manifest
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--rom", type=Path, default=ROM)
+    parser.add_argument("--header", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--frames-dir", type=Path, help="Optional original-raster review PNGs; not native screenshot evidence")
+    args = parser.parse_args()
+    result = build(args.rom, args.header, args.manifest, args.frames_dir)
+    print("ORIGINAL_MENU_HERO_EXPERIMENTAL_OK frames=" +
+          str(len(result["frames"])) + " source=" + SOURCE_PROVENANCE)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -138,6 +138,51 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-journey-$route/readback-receipt.json"
           done
           echo "True-native Windows keyboard Records, P1 Options and first-profile journey screenshots; no physical-pad/visual approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture all opened destinations at exact 16-to-9 drawable
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # Each route is a separate *real* Windows process of the SAME PE.
+          # The Options variant takes its image before frame-66 Display change.
+          # A requested 1280x720 drawable must not silently fall back.
+          for route in practice-picker-p1 multiplayer-unbound records-keyboard options-open-p1 profile-first-p1; do
+            out="$RUNNER_TEMP/ur-modern-win32-wide-destination-$route"
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$out" --video windows --timeout 110 \
+              --window-size 1280x720 --route "$route"
+            test -s "$out/actual-sdl-drawable.png"
+            test -s "$out/readback-receipt.json"
+            # Bind the exact child stage and *source-native* 342 wide geometry
+            # to the same process that emitted SDL's 1280x720 readback.
+            case "$route" in
+              practice-picker-p1) stage=practice-picker ;;
+              multiplayer-unbound) stage=multiplayer-unrecorded-warning ;;
+              records-keyboard) stage=records-1p ;;
+              options-open-p1) stage=options ;;
+              profile-first-p1) stage=profile-first ;;
+              *) exit 2 ;;
+            esac
+            grep -Fq "UR_BALDOSA_MODERN_DESTINATION stage=$stage raster=342x224 root=11,10,320,204 source=modern_product_view" \
+              "$out/probe_first/native-process.log"
+            grep -Fq 'output=1280x720 source=SDL_RenderReadPixels' \
+              "$out/probe_first/native-process.log"
+          done
+          echo "Five real native 342-wide destination states reached at 1280x720 SDL output; human/physical approval not implied." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain exact wide destination screenshots and native receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-wide-destinations
+          path: |
+            ${{ runner.temp }}/ur-modern-win32-wide-destination-*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-wide-destination-*/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-wide-destination-*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-wide-destination-*/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Retain controller and keyboard journey SDL frames, never save roots
         if: always()
         uses: actions/upload-artifact@v4

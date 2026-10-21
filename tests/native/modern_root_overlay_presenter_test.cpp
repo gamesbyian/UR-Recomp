@@ -700,5 +700,58 @@ int main() {
     assert(!render_modern_root_overlay(painter,pixels,256,224,1,240,
                                        out_of_bounds,view));
     assert(painted.empty()); // rejection never partially draws an overlay
+    // Full production-root integration oracle. Previous host tests logged
+    // paint callbacks without writing their colours to the framebuffer;
+    // that cannot catch a phase reset between the shared checker primitive
+    // and the real root compositor. Exercise the actual shared render call
+    // with a pixel-writing native painter, at both source aspect ratios and
+    // 1x/4x integer host densities. Text and strokes remain nonpainting
+    // stubs so these samples isolate the BG1 underlay.
+    const ModernRootOverlayPainter actual_pixel_painter{
+        +[](std::uint32_t* dst, int stride, int height,
+            int x, int y, int w, int h, std::uint32_t ink) {
+            assert(dst && x >= 0 && y >= 0 && w > 0 && h > 0);
+            assert(x + w <= stride && y + h <= height);
+            for (int py = y; py < y + h; ++py)
+                for (int px = x; px < x + w; ++px)
+                    dst[static_cast<std::size_t>(py) * stride + px] = ink;
+        },
+        &stroke, &text
+    };
+    for (int source_width : {256, 342}) {
+        for (int density : {1, 4}) {
+            const int sw = source_width * density;
+            const int sh = 224 * density;
+            const int panel_width = source_width == 256 ? 240 : 320;
+            const int left = (source_width - panel_width) / 2 * density;
+            const int top = 10 * density;
+            const HostOverlayRect root{left, top,
+                                       panel_width * density, 204 * density};
+            std::vector<std::uint32_t> actual(
+                static_cast<std::size_t>(sw) * sh, 0xFF010203u);
+            ModernRootOverlayView root_view{};
+            root_view.available_destinations = 0x1fu;
+            assert(render_modern_root_overlay(
+                actual_pixel_painter, actual.data(), sw, sh,
+                density, panel_width, root, root_view));
+
+            // Under the header (27px) and before the first row (54px),
+            // y=29 logical is the true unoccluded checker underlay.
+            // The panel itself begins at y=10 and x=8/11 logical: these
+            // offsets are intentionally NOT whole 16px checker cells.
+            const int scan_y = top + 29 * density;
+            const int scan_x = left;
+            const auto pixel_at = [&](int x) {
+                return actual[static_cast<std::size_t>(scan_y) * sw + x];
+            };
+            assert(pixel_at(scan_x) ==
+                   kModernStockMenuPalette.background);
+            assert(pixel_at(scan_x + 16 * density) == 0xE0505050u);
+            assert(pixel_at(scan_x + 32 * density) ==
+                   kModernStockMenuPalette.background);
+            assert(pixel_at(scan_x - 1) == 0xFF010203u);
+            assert(actual[0] == 0xFF010203u);
+        }
+    }
     std::puts("PASS: one shared Modern root artwork presenter, five routes, old+wide views");
 }

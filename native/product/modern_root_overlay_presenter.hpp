@@ -185,15 +185,40 @@ inline void render_modern_options_modal(
                 const auto& row = view.options_rows[i];
                 std::string value(row.value);
                 if (row.adjustable && selected) value = "< " + value + " >";
-                std::string label(row.label);
-                if (label.size() < 9) label.append(9 - label.size(), ' ');
-                paint.draw_text(pixels, stride, surface_height,
-                                bx + 9 * scale, row_y,
-                                fit_modern_overlay_text(
-                                    std::string(selected ? ">" : " ") +
-                                    label + value, cells).c_str(),
-                                selected ? palette.title_yellow : 0xFFFFFFFFu,
-                                scale);
+                const auto colour = selected ? palette.title_yellow :
+                                               0xFFFFFFFFu;
+                if (panel_w >= 320) {
+                    // Match native destination's true prepared-wide layout:
+                    // a stable label column and independent value column.
+                    // Never turn an arbitrary large SDL window into a wide
+                    // logical panel; the caller supplies panel_w explicitly.
+                    constexpr int kValueColumn = 183;
+                    const auto value_cells = modern_overlay_text_cells(
+                        panel_w - kValueColumn - 20);
+                    paint.draw_text(pixels, stride, surface_height,
+                                    bx + 9 * scale, row_y,
+                                    fit_modern_overlay_text(
+                                        std::string(selected ? ">" : " ") +
+                                        std::string(row.label),
+                                        modern_overlay_text_cells(
+                                            kValueColumn - 12)).c_str(),
+                                    colour, scale);
+                    paint.draw_text(pixels, stride, surface_height,
+                                    bx + kValueColumn * scale, row_y,
+                                    fit_modern_overlay_text(
+                                        value, value_cells).c_str(),
+                                    colour, scale);
+                } else {
+                    // Preserve the original compact 4:3 string and spacing.
+                    std::string label(row.label);
+                    if (label.size() < 9) label.append(9 - label.size(), ' ');
+                    paint.draw_text(pixels, stride, surface_height,
+                                    bx + 9 * scale, row_y,
+                                    fit_modern_overlay_text(
+                                        std::string(selected ? ">" : " ") +
+                                        label + value, cells).c_str(),
+                                    colour, scale);
+                }
             }
             const bool has_status = !view.options_status.empty();
             const bool has_notice = !view.options_notice.empty();

@@ -144,8 +144,13 @@ class ModernHeroReactionPlatesTests(unittest.TestCase):
                 builder.write_private_review(report, [frame], target)
             target.rmdir()
             target.symlink_to(tmp, target_is_directory=True)
-            with self.assertRaisesRegex(audit.ClipAdmissionError, "new and absent"):
+            with self.assertRaisesRegex(audit.ClipAdmissionError, "must not be a symlink"):
                 builder.write_private_review(report, [frame], target)
+            target.unlink()
+            target.symlink_to(tmp / "absent-target", target_is_directory=True)
+            with self.assertRaisesRegex(audit.ClipAdmissionError, "must not be a symlink"):
+                builder.write_private_review(report, [frame], target)
+            self.assertFalse((tmp / "absent-target").exists())
             target.unlink()
             bad = copy.deepcopy(report)
             bad["frames"][0]["original_rgba_sha256"] = "0" * 64

@@ -3,8 +3,10 @@
 
 Uses the already compiled Baldosa/UR game, original USA retail ROM and the
 production Modern root host (not a mock, no new emulator or game renderer).
-The host root opens through the production after-config callback; no controller
-events, user files, guest memory or save writes are injected by this tool.
+The host root opens through the production after-config callback. An opt-in
+second scenario uses the EXISTING test-only SDL keyboard Down pulse route to
+exercise three real production root-navigation edges, not physical hardware.
+No user files, guest memory or save writes are injected by this tool.
 
 Deliberately measures only P6 native root compositor paints. This does not
 certify post-SDL P7, natural frame cadence, controller hardware, 4K, hero art
@@ -67,7 +69,8 @@ def validate_paths(exe: Path, rom: Path, out: Path) -> tuple[str, str]:
 
 
 def run_native(exe: Path, rom: Path, out: Path, *,
-               timeout: int = 120, video: str = "dummy") -> dict:
+               timeout: int = 120, video: str = "dummy",
+               scripted_navigation: bool = False) -> dict:
     if not 30 <= timeout <= 150:
         raise ValueError("native motion process timeout must be 30..150 seconds")
     if video != "dummy":
@@ -87,6 +90,12 @@ def run_native(exe: Path, rom: Path, out: Path, *,
     route.write_text(f"wait {FRAMES}\nquit\n", encoding="ascii")
     env = {**os.environ, **EXPECTED_CAPTURE_ENV,
            "SNESRECOMP_USER_DATA_DIR": str(user)}
+    if scripted_navigation:
+        # Reuse the native host's proven SDL KEYDOWN/UP smoke route. Only
+        # frames 60,61,62 emit Down; frame63 would confirm a destination and
+        # is explicitly excluded. This does NOT attest physical gamepads.
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "1"
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME"] = "62"
     command = [str(exe), "--no-launcher", "--config", str(config),
                "--script", str(route), str(rom)]
     proc = subprocess.run(command, cwd=out, env=env, timeout=timeout,
@@ -98,8 +107,19 @@ def run_native(exe: Path, rom: Path, out: Path, *,
                          f"{log[-1500:]}")
     if log.count("UR_BALDOSA_MODERN_ROOT opened=1") != 1:
         raise ValueError("source-admitted native root did not open exactly once")
-    if "UR_BALDOSA_MODERN_ROOT selected=" in log:
-        raise ValueError("motion capture unexpectedly injected native navigation")
+    selected_lines = [
+        line.split("UR_BALDOSA_MODERN_ROOT selected=", 1)[1].strip()
+        for line in log.splitlines()
+        if "UR_BALDOSA_MODERN_ROOT selected=" in line
+    ]
+    if scripted_navigation:
+        # Accept three and ONLY three distinct production root selections;
+        # the pre-existing smoke route generates one SDL Down edge per frame.
+        if selected_lines != ["1", "2", "3"]:
+            raise ValueError(
+                "native scripted navigation did not traverse exactly 1,2,3")
+    elif selected_lines:
+        raise ValueError("idle motion capture unexpectedly injected navigation")
     receipt = verify_log(log, min_frames=40)
     if receipt["session_count"] != 1:
         raise ValueError("captured unexpected native root re-entry")
@@ -109,6 +129,18 @@ def run_native(exe: Path, rom: Path, out: Path, *,
         raise ValueError("native compact source root geometry is not qualified")
     if session["reduced_motion_frames"]:
         raise ValueError("default native root unexpectedly enabled reduced motion")
+    if scripted_navigation:
+        from verify_modern_menu_motion_capture import parse_log
+        events = parse_log(log)
+        witnessed = [row["selection"] for row in events]
+        if (not all(k in witnessed for k in (0, 1, 2, 3)) or
+            not any(row["offset"] < 0 for row in events) or
+            witnessed[-1] != 3):
+            raise ValueError(
+                "real native root draw missed the scripted moving cursor")
+    receipt["scripted_navigation"] = scripted_navigation
+    receipt["scripted_keyboard_edges"] = 3 if scripted_navigation else 0
+    receipt["physical_controller_tested"] = False
     receipt["source_commit"] = os.environ.get("GITHUB_SHA")
     receipt["exe_sha256"] = exe_hash
     receipt["rom_sha256"] = rom_hash
@@ -121,7 +153,7 @@ def run_native(exe: Path, rom: Path, out: Path, *,
     receipt["real_windows_game_process"] = True
     receipt["test_clock_per_native_root_draw"] = True
     receipt["not_proven"].extend([
-        "SDL P7 final-screen motion", "input-driven cursor navigation",
+        "SDL P7 final-screen motion", "physical controller navigation",
         "true Modern 342-wide root", "frame-to-swap pacing",
     ])
     report = out / "motion-native-draw-receipt.json"
@@ -136,12 +168,20 @@ def main() -> int:
     parser.add_argument("--rom", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=120)
+    parser.add_argument("--scripted-navigation", action="store_true",
+                        help="Existing native SDL keyboard Down x3 smoke; "
+                             "no physical gamepad or guest input")
     args = parser.parse_args()
-    report = run_native(args.exe, args.rom, args.out, timeout=args.timeout)
+    report = run_native(
+        args.exe, args.rom, args.out, timeout=args.timeout,
+        scripted_navigation=args.scripted_navigation)
     print("ACTUAL_WIN32_NATIVE_ROOT_MOTION_P6_OK")
     print("exe_sha256=" + report["exe_sha256"])
     print("native_root_draws=" + str(report["native_draw_count"]))
     print("source_60hz_model=passed")
+    print("scripted_keyboard_navigation=" +
+          ("three-real-native-focus-edges" if args.scripted_navigation
+           else "not_requested"))
     print("sdl_p7_or_human_approval=not_proven")
     return 0
 

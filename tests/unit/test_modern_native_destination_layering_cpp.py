@@ -44,8 +44,14 @@ class ModernNativeDestinationLayeringTest(unittest.TestCase):
             run = subprocess.run([str(binary)], capture_output=True, text=True)
             self.assertEqual(run.returncode, 0,
                              run.stdout + run.stderr)
+            # Ten substantive child states at both real native geometries.
+            # Count actual per-state raster passes, never the final PASS line.
             self.assertEqual(sum(line.startswith("occlusion ")
-                                 for line in run.stdout.splitlines()), 10)
+                                 for line in run.stdout.splitlines()), 20)
+            for state in ("options-help", "practice-entering", "records-2p",
+                          "two-seat-join", "profile-switch"):
+                self.assertIn(f"occlusion {state} 256x224", run.stdout)
+                self.assertIn(f"occlusion {state} 342x224", run.stdout)
             self.assertIn("PASS: destination occlusion", run.stdout)
 
 

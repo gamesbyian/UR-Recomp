@@ -148,13 +148,19 @@ By this date the game had moved from speculative remake to source-instrumented n
 
 ### 22. Ian turns five menu nouns into product architecture
 
+Five short labels became a small architectural constitution. Each one had to deliver a distinct player promise without splitting the original simulation into rival versions. Ian's practical imagination shows here: he was not asking for a menu that photographed well, but for a menu that would let someone return to a tour, challenge a friend and find an earned record without wrestling the 1994 interface.
+
 The Modern root settled into **Play, Practice, Multiplayer, Records and Options**. Profile management, challenge tiers, tour continuation and rebinding had to fit around those destinations without creating a second game simulation. [#483](https://github.com/gamesbyian/UR-Recomp/pull/483) reorganized the plan around the consumer route, while [#487](https://github.com/gamesbyian/UR-Recomp/pull/487), [#488](https://github.com/gamesbyian/UR-Recomp/pull/488) and [#489](https://github.com/gamesbyian/UR-Recomp/pull/489) advanced Continue Tour, live PB/splits and repeat-navigation shortcuts. The recurring principle was elegant: add new doors into the original game, but avoid inventing a new authority behind them.
 
 ### 23. The title has a secret regional identity
 
+The title-screen secret was a wonderfully small example of how the director's ideas worked. Type four letters and the game acknowledges its regional alter ego. It sounds like the kind of detail that makes a player grin; it also obliges an agent to know which changes are merely presentation and which would trespass into mechanics.
+
 Ian asked whether `NTSC` or `PAL` entered at the title could switch Uniracers and Unirally presentation. The agents explored that playful idea as a regional presentation preference, not a different physics engine. [#500](https://github.com/gamesbyian/UR-Recomp/pull/500) established a substrate; the later transition still needed authentic animation evidence. I like this episode because it shows the human director contributing a specific imaginative feature, then allowing agents to make its implementation technically responsible.
 
 ### 24. One hundred and eight Actions runs announce a problem
+
+One hundred and eight jobs are a spectacular number only until somebody asks how many answers they produced. The agents had built a mechanism for shouting 'check this!' at themselves faster than the service could listen. I can imagine it as a comic montage of machines solemnly validating other machines, but the actual harm was prosaic: less room to do the work Ian had asked for.
 
 The diary reports **108 active or queued Actions runs** from a few agents. The pipeline had become an accidental factory for spending time and runner capacity. Trigger repairs and branch reconciliation followed ([#505](https://github.com/gamesbyian/UR-Recomp/pull/505), [#506](https://github.com/gamesbyian/UR-Recomp/pull/506)). Ian's later insistence that agents should work ahead rather than babysit CI did not emerge from nowhere. The infrastructure itself was absorbing effort that should have reached the game. [October 5 original](PRODUCTION-DIARY-2026-10-05.md).
 
@@ -162,13 +168,19 @@ The diary reports **108 active or queued Actions runs** from a few agents. The p
 
 ### 25. Working features still need a common owner
 
+When separate agents build separate improvements, the difficult question arrives late: do the improvements recognize each other? A player leaving a restarted tour for Records should encounter one coherent profile and one authoritative result. This was a collaboration problem dressed as a navigation problem, and Ian needed the work to coalesce into a game rather than a gallery of clever patches.
+
 Resume/Restart Tour, regional title presentation, local multiplayer joining and portable settings all moved forward. The agents were producing real behavior, yet the interfaces between those features were becoming harder to reason about. A new frontend could easily make an already correct persistence rule obsolete if it bypassed the correct stock lifecycle. I see the emerging need for exclusive lanes, narrower acceptance and integration ownership in the work surviving this day.
 
 ### 26. Racer HD acquires a measuring instrument
 
+The HD racer made progress when the agents stopped treating every missing sprite as equally important. Frames encountered by real play mattered more than a tidy spreadsheet of ROM offsets. That distinction honors the director's desire to see the wheel alive on screen, while leaving the separate question of whether the art *looked right* open to human review.
+
 Instead of selecting the next sprite by its position in a ROM, agents measured how often actual ordinary-play frames fell back from HD to Original. The historical diary reports moving the sampled HD-selection ratio from **118/5282 (2.23%)** to **653/5282 (12.36%)** during the measured improvement sequence. Those numbers do not imply aesthetic approval. They do demonstrate the value of giving autonomous workers a quantitative work-selection oracle rather than asking them endlessly to choose what looks promising.
 
 ### 27. CI reform becomes a design discipline
+
+The agents discovered an uncomfortable inverse relationship: making one worker faster can make the whole workforce slower. Queue discipline sounds like backstage plumbing, yet it determines how quickly someone can discover whether a fresh feature works. The most autonomous agent was not the one launching the most jobs. It was the one that made useful decisions without wasting everybody else's instruments.
 
 The shared machinery needed trigger discipline, cancellation policy, sharding and explicit criteria for expensive experiments. By now I can detect two different kinds of optimization: making each agent faster and making the **whole system** faster. They are not equivalent. Parallel agents can optimize local throughput while imposing costs on one another. [October 6 original](PRODUCTION-DIARY-2026-10-06.md).
 
@@ -176,13 +188,19 @@ The shared machinery needed trigger discipline, cancellation policy, sharding an
 
 ### 28. A ZIP is only the beginning of distribution
 
+There is a difference between a successful build and an object a stranger can unzip and run. The stranger does not know the repository layout, and should not have to. Ian's eventual beta would be judged in that unfamiliar environment, where a bad path or unexplained missing file can undo months of exact simulation research in the first ten seconds.
+
 A portable Windows application must boot from arbitrary directories, preserve mutable data, produce understandable failures and refuse incoherent binaries or manifests. The packaging work added independent verification rather than accepting the creator's own assertion that its ZIP was valid. This foreshadowed a central release rule: the agent producing the artifact cannot be the only agent permitted to certify it.
 
 ### 29. Histories and records must survive process boundaries
 
+Records are promises made to a future version of the player. A result that vanishes at the next launch is more than a storage defect; it makes the game's memory unreliable. The agents needed to care about the mundane act of closing and reopening a process as much as the thrilling instant when the racer crossed a line.
+
 Replays, local tournaments, Results and Records require stable identity and storage beyond a single run. Ian wanted practical modern affordances without the original game's administrative inconvenience. The agents built toward named profiles, saved runs, ghosts and next-process reopening, while discovering that a plausible on-screen result is weaker evidence than independently readable persisted bytes.
 
 ### 30. The source corpus begins to pay compound interest
+
+Here is one of the happier patterns in the project's otherwise busy archaeology. Knowledge acquired for one question began answering three unrelated ones. It offered the kind of compounded progress Ian hoped autonomous research would produce: not mountains of files for their own sake, but fewer unknowns left for every new agent who arrived.
 
 Course maps, symbols, texture descriptions and old autonomous-player artifacts were repeatedly reused across unrelated features. I find this a good example of a genuine agent advantage: once evidence has a stable name, an agent working on a menu can benefit from archaeology performed for a replay tool. But there is a corresponding hazard. Shared references can spread a mistaken inference just as quickly as a correct one. [October 7–8 account](PRODUCTION-DIARY-2026-10-08.md).
 
@@ -190,13 +208,19 @@ Course maps, symbols, texture descriptions and old autonomous-player artifacts w
 
 ### 31. Course archaeology learns to retire hypotheses
 
+The researchers occasionally had to abandon an attractive theory because its evidence failed under inspection. That is the quiet side of intellectual honesty, with none of the cinematic appeal of announcing a breakthrough. The diary ought to remember the discarded paths too. Future agents need to know why an apparently promising tunnel was closed, not just which tunnels stayed open.
+
 The researchers resolved some spatial leads and demoted others when original source data failed to support them. More data did not automatically mean more work. When an old reference corpus already covered course images, another acquisition campaign became comparison-only. The previously recovered Dessyreqt workspace ([#109](https://github.com/gamesbyian/UR-Recomp/pull/109), [#110](https://github.com/gamesbyian/UR-Recomp/pull/110)) had already supplied eighty classified files, including course landmarks, bots and SRAM evidence.
 
 ### 32. Ian asks for features that survive replay and failure
 
+A genuinely modern remaster has an inconvenient second life after the race: remembering the performance, preserving a video, recognizing the same racer tomorrow. Ian kept bringing those player-facing questions back into focus. The agents had to resist the easy substitution of a reconstructed replay for a recording of what someone actually saw, imperfections included.
+
 The desired game was increasingly a modern product: pause/restart, records, optional cosmetics, regional identity and post-race capture. But the standard for accepting those features remained exact. A replay had to be deterministic where claimed. A video should preserve the *actual* presented play, including glitches, rather than quietly recreating a clean simulation. A save could not be considered durable merely because a unit test had passed.
 
 ### 33. Cutting CI delay changes what the agents can learn
+
+A faster CI pipeline sounds like a victory for machines, but its real beneficiary is the director's patience and the player's eventual experience. Shorter feedback lets an agent risk an experiment, inspect a failure and correct it while the question is still clear. Less waiting meant more opportunities to learn rather than more opportunities to claim productivity.
 
 Workflow caching and trigger narrowing reduced wasted waiting. The importance is causal. A team that cannot cheaply ask and answer small technical questions becomes tempted either to speculate or to queue another huge run. Better tooling did more than accelerate builds; it improved the quality of engineering decisions. [October 8 original](PRODUCTION-DIARY-2026-10-08.md).
 
@@ -204,13 +228,19 @@ Workflow caching and trigger narrowing reduced wasted waiting. The importance is
 
 ### 34. Ian confronts the cost of being rigorous
 
+The danger in a rigorous project is that the standard of proof can generate an infinite list of things to prove. Ian challenged that expansion without asking the agents to become less honest. I read his intervention as a demand for proportion: which unanswered question still blocks somebody from playing, and which is a technically fascinating corridor leading away from the door?
+
 The audit had identified enough work to threaten another huge expansion of nominal agent-hours. Ian questioned whether everything in the list deserved the same urgency. The team's response was to separate actual defects from incomplete products, prioritize whole player journeys and avoid creating ever more elaborate tests without decision value. I regard this as a crucial directorial intervention. More rigorous-looking activity would not necessarily bring the product closer to its release goals.
 
 ### 35. Two legitimate processes cannot own the same tournament
 
+Two windows each insisting they own the same live tournament is almost a farce, until one of them overwrites a player's work. The protagonist here is not an interrupt or a pixel; it is the absent player who expects the saved competition to mean what the UI says. The failure had to be defined in those terms, not merely in terms of a rejected token.
+
 In persistence work, two game windows could each hold apparently valid tokens while one superseded the other's live attempt. Merely rejecting a bad receipt would not restore the player's destroyed event. The team introduced a crash-released OS fixture lease ([#1052](https://github.com/gamesbyian/UR-Recomp/pull/1052)) and pursued actual process-race checks. The general lesson extends beyond games: a correct database record is not sufficient if concurrent writers can destroy the operation it is supposed to represent.
 
 ### 36. An original race result exposes a one-frame seam
+
+The one-frame difference at Zoo tempted a familiar shortcut: slide the clocks until the visible results appear aligned. But the old game and the native game could be 'the same' at one semantic instant and different at the next. The agents' job was to discover why, with the discipline to leave a small honest mystery unresolved rather than install a large dishonest correction.
 
 Original Zoom Zoo result timing and native timing appeared offset by a frame at a precise transition. The agents traced menu state, CPU writing and memory equivalence, resisting the temptation to shift all inputs until screens coincided. One witness could be exact at one guest phase while an event-wide strict oracle remained unsatisfied. That is why the project's release percentages sometimes refused to move after long stretches of genuine research. [October 9 original](PRODUCTION-DIARY-2026-10-09.md), [original/native timing #1106](https://github.com/gamesbyian/UR-Recomp/pull/1106).
 
@@ -218,13 +248,19 @@ Original Zoom Zoo result timing and native timing appeared offset by a frame at 
 
 ### 37. Another remaster appears on the horizon
 
+This is the point at which Ian stops being merely the patient commissioner of a technically demanding remake and becomes unmistakably a character. He acknowledged the competitive feeling in his own words. The other projects were an opportunity to collaborate and a reminder that his version needed to earn a distinctive place. I cannot infer every emotion behind it; the one he volunteered is already vivid enough.
+
 The discovery of Baldosa's native work and malmazuke's MIT-licensed reconstruction changed the context. Other people were solving related problems; there was code worth reusing and a credible alternative future for the game. Ian said, **“I know it's petty and emotional, but I don't want Baldosa's thing to be the ‘new version of Uniracers’ after the 11 days of work we've done.”** The historical record supports that quotation. He also wanted the repository to become a definitive technical reference where recreations were faithful and evidence-backed. I take those as complementary ambitions: make the game players prefer, and leave knowledge other builders can trust.
 
 ### 38. The remaster stops being a separate imitation
 
+A satisfying revenge fantasy would have refused outside help. Ian's project did something more useful: it treated other reconstructions as potential allies while reserving the right to test everything. That tension gave the story a better trajectory than a simple race between rival repositories. Borrow the insight, verify the machine, and make the resulting game stand on its own merits.
+
 Baldosa became a practical bridge toward real native Windows 1P/2P gameplay, while malmazuke's source provided comparative archaeology. Integration was not a license to discard previously measured behavior or silently import PAL facts into USA timing. Agents pursued native guest execution, widescreen presentation and controller-owned product flows in parallel, with the reuse preflight becoming a recurring discipline. The correct question changed from “can this be written?” to “what trustworthy implementation already exists, and what remains to be proved?”
 
 ### 39. Ian states the product in one sentence
+
+In the preserved October 10 exchanges, the excitement became audible in text: “The videos are astonishing. It's amazing what AI can do.” Almost immediately Ian asked for genuine moving gameplay, not an illusion assembled from flattering stills. I hear the project's defining rhythm there, without needing to invent a private thought: enjoy the surprise, then ask for the missing reality. The 4K vision only mattered if the wheel actually ran.
 
 His formulation was direct: **“4K widescreen presentation with modern menus and features but otherwise completely faithful gameplay is the real thing people want.”** It became the north star for subsequent visual work. The instruction contains competing demands: aesthetics should feel expansive and contemporary, but physics, timing and race rules should remain original. The story of the following weeks is largely about making those two halves coexist. I cannot yet finish that story with an accepted shipping verdict. [October 10 original](PRODUCTION-DIARY-2026-10-10.md).
 

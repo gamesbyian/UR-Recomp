@@ -8,13 +8,19 @@
 
 ### 40. Ian want ten thousand cases to teach somethin'
 
+Ten thousand experiments sound like a grand challenge to a bunch o' eager silicon workers. Ian ask why nibble one little mystery at a time when de farm can test by de thousands. Good ambition, cher, but every batch still need a question worth askin' an' a stop sign worth obeyin'.
+
 Ian look at all dem little experiments an' ask: why nibble one cracker at a time when de machines could test ten thousand cases? Dat ain't an order to make a bigger number for its own sake, cher. He want cumulative knowledge, exact findings, an' a way for de factory to know when another run ain't buyin' nothin'. De agents start buildin' resumable campaigns with yield an' stop rules. A ten-thousand-case parade what don't change de next decision just a very expensive line o' crawfish walkin' in circles.
 
 ### 41. Twenty runners, an' everybody want a chair
 
+Twenty seats at de Actions table, more agents than chairs, an' everybody carryin' a whole basket o' work. One eager researcher can hog de bench while another waits to prove a real fix. Ian's autonomy gotta learn some table manners or all twenty seats become a mighty fine traffic jam.
+
 GitHub give de account twenty Actions runners, an' multiple agents want to sit down all at once. Add a great big research factory, an' de builders start starvin' for CI time. Ian ask for a hybrid: let independent workers work, but send de long runners after evidence nobody can get cheap. [#1444](https://github.com/gamesbyian/UR-Recomp/pull/1444) bring admission an' stopping discipline, [#1470](https://github.com/gamesbyian/UR-Recomp/pull/1470) try guarded turbo work, [#1475](https://github.com/gamesbyian/UR-Recomp/pull/1475) quit rotating into dead-end lanes. De machine farm need a foreman, not a bigger dinner bell.
 
 ### 42. De multiplayer boat don't need no permanent dock
+
+Dis plan tell us somethin' about Ian's idea o' ownership. He want folks to play even if tomorrow nobody mind de project's servers. No permanent gatekeeper, no proprietary club membership, just peers meetin' to race. NAT ain't easy, but de desire for players to keep de keys is plain enough.
 
 Ian describe online multiplayer what could keep sailin' even if de project disappear: P2P, no permanent central server, no proprietary account, an' a shareable rendezvous link or code when automatic discovery fail. Dat philosophical enough to change real network architecture, cher. NATs, peers, host authority an' reconnect all need honest work. I find a design commitment, not a shipped multiplayer victory, in [de preserved conversation](PROJECT-CONVERSATIONS-2026-10-11-TO-2026-10-12-RECONSTRUCTED.md).
 
@@ -22,13 +28,19 @@ Ian describe online multiplayer what could keep sailin' even if de project disap
 
 ### 43. A mountain of samples ain't one accepted race
 
+Zero become a regular character in dis tale. Mountains o' traces come home, an' dat number still ask whether one full original/native race passed independent inspection. Every small victory deserve its own name; none get to borrow de finish-line trophy without runnin' de whole course.
+
 Memory dumps, source frames, checkpoint bytes, great big spreadsheets: we got enough evidence to fill a bayou barge. But a full original/native USA event still refuse to pass de strict oracle. Ian keep askin' for exact knowledge instead o' estimates an' impressive totals. Dat question worth more than another thousand ambiguous captures. An earned SRAM pair good for SRAM; it ain't automatically good for de whole race.
 
 ### 44. Let de witness speak; don't let him sentence his own case
 
+A proud agent ain't de best jury for its own shiny experiment. Give de test producer one job, de QA reviewer another, an' let 'em disagree without throwin' away de evidence. Ian can trust workers to create while still insistin' another worker earn de right to say 'proved'.
+
 CPU/APU agents build traces. Independent QA agents test what dem traces really prove. Windows packagers make ZIPs; another authority check de actual bytes. I like dat division, cher, even when it makes de score look stubborn. No worker ought to walk out de courtroom wearin' de prosecutor's hat, de judge's wig an' de defendant's boots all at once.
 
 ### 45. De player gotta come back tomorrow an' find his records
+
+At last de player get a plain human itinerary. Launch de game, choose de course, race, close de window, return, find de record. Dat feel ordinary, which is exactly why it matter. A clever console trace can't substitute for de thing a new Windows player try first.
 
 Fresh racer created, race entered, actual result earned, game closed, Records reopened next process. Dat de journey de product must prove. Every transfer between guest, host, profile, SRAM an' typed record be another bridge over deep water. A pretty “Results” screen don't certify de bridge behind it. [October 11–13 source](PRODUCTION-DIARY-2026-10-11-TO-2026-10-13.md).
 
@@ -36,13 +48,19 @@ Fresh racer created, race entered, actual result earned, game closed, Records re
 
 ### 46. Ian tell de crews where dey can swing de hammers
 
+Now Ian act like director o' a real crew, not proprietor of five magic lamps. Every worker need elbow room, but elbow room without boundary turn to cracked code an' contradictory verdicts. Give each one a lane, keep one owner for release truth, an' let useful findings cross de fences.
+
 Modern Windows/Baldosa get its lane. CPU/APU and original/native fidelity get another. Graphics own OAM, raster an' UHD. Independent QA get permission to say no. Ian tell 'em keep going, recover stalled sessions, commit what dey can prove. Dat “session stalled” ain't somebody hollerin' in anger; it mean de machine's conversation hit a ditch an' needs a tow. Four shops can build one fine wheel, cher, if each shop know which bolts belong to it.
 
 ### 47. De stranger's first racer finally got a real road
 
+A stranger make a racer, earn a result, an' open Records next day. Dat's about as glamorous as finding your shoes where you left 'em, which is to say it make a product feel civilized. Beneath dat modest welcome sit native execution, storage and quite a few unfriendly tests.
+
 Fresh player create a racer, run a native 1P course, earn de result an' open Records after relaunch. [#1451](https://github.com/gamesbyian/UR-Recomp/pull/1451) an' neighbor work help make dat a real Windows journey. Paired 2P storage improve too. I won't call a hosted keyboard-or-script journey a physically tested two-pad Windows release. De QA gate ain't de kind o' gate you crawl under just because de sun go down.
 
 ### 48. De sprite gotta answer to de old machine
+
+De source SNES get called to de witness stand for every pixel. Sprite layers, palettes, HDMA, timing, pose: all testify. Ian still hold de artistic veto, 'cause an accurate description o' how pixels arrive don't automatically make a bigger unicycle look like its own self.
 
 Real OAM shadow, BG/OBJ, fixed color, HDMA, grayscale, twelve-pose racer evidence: de graphics crews go ask de SNES where de pixels come from. Ian still look at dat procedural four-times unicycle an' withhold likeness approval. Mais, dat right. A mathematically accurate wheel can still look like a cousin who never met de family. De source work stay useful even when de art don't get its crown.
 
@@ -50,13 +68,19 @@ Real OAM shadow, BG/OBJ, fixed color, HDMA, grayscale, twelve-pose racer evidenc
 
 ### 49. Ian don't want to spend his playtest on half a game
 
+Ian didn't need every half-built package pressed into his hands for a serious playtest. He wanted de agents to spend dey cheap automated checks before askin' him to spend de expensive human attention. Dat ain't disinterest in de game, cher; it's a concrete instruction about what kind o' handoff deserve a director's eyes.
+
 He want a polished controller-first Windows 4K remaster, an' he prefer de agents chase unfinished technical work before handin' him every rough interim alpha. I ain't inventin' a rule dat no human should test early. I record his stated threshold for his own serious playtest. De workers gotta earn dat handoff, cher, with actual native routes an' defensible evidence.
 
 ### 50. “Dat ZIP” finally mean one exact ZIP
 
+'De build' sound impressive until nobody can tell which file de sentence mean. 'Dis ZIP, dese hashes, dat exact source' got less romance an' much more power. A stranger can inspect de real object without trustin' de builder's excellent recollection.
+
 [#1648](https://github.com/gamesbyian/UR-Recomp/pull/1648) brought de Modern five-door flow into real Windows journeys. [#1667](https://github.com/gamesbyian/UR-Recomp/pull/1667) name source `11501a15dea38fa912335cfc63103ce3a7208001` an' ZIP SHA256 `5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7` for owner testing. Cher, dat a long hash, but it tell you which boat crossed de river. A later shiny build don't turn yesterday's boat into today's boat by magic.
 
 ### 51. PAL discoveries gotta show a USA passport
+
+PAL archaeology come to de USA project's border with interesting papers. Maybe good, maybe useful, but a different region ain't automatically de same law. Ian wanted every outside lesson worth borrowin', not every guess smuggled in with de crates.
 
 Ian ask de agents to look again at malmazuke and other outside work. Good comparative archaeology, valuable source, but PAL tricks don't automatically become USA truths. Dey need de three-project reuse preflight an' original-ROM corroboration. Borrow de useful timber, don't import de whole foreign riverbed. [Original source account](PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md).
 
@@ -64,19 +88,27 @@ Ian ask de agents to look again at malmazuke and other outside work. Good compar
 
 ### 52. Hosted green ain't de same as Grandma's Windows PC
 
+Hosted tests go green, everybody tempted to hang party lights. De ledger just sit dere an' ask for real controllers, sound, a physical Windows machine and exact bytes. No disgrace in a useful partial pass; plenty disgrace in puttin' a finished label on somethin' still askin' questions.
+
 Packaged boot, Modern menus, saved results, controller scripts: real accomplishments all. But de ledger still have **zero accepted Windows gates** because physical hardware, real audio, two pads, power/disk failures an' exact candidate signoff ain't done. I can admire de working thing without puttin' a shipping ribbon on it. Dat independent QA agent keep de rope across de road for a reason.
 
 ### 53. Ian got a picture in his head, an' de pixels gotta earn it
 
+Ian look at de grey engineering menus an' ask for a game with its own face back. Modern proportions, original spirit, de right wheel, de right colors an' little movements what make de character feel alive. More pixels ain't gonna vote his taste off de island.
+
 Original-feelin' UI and HUD, recognizable unicycle, true wider world, proper 7:6 shape. Ian want de 4K version to look like de old game grew up an' learned new tricks, not like a transparent dashboard stole its clothes. Procedural 4× forms retain all dey technical evidence but no artistic pardon. One source frame can satisfy a hash, cher; it still gotta satisfy de director's eye.
 
 ### 54. A QA veto ain't a personal insult
+
+Independent QA carry de right to say 'no' even when somebody work mighty hard. Dat make a strange good partnership: creative energy push de boat downriver, skeptical evidence keep it from runnin' aground. An honest veto save a future player a dishonest celebration.
 
 Independent agents check original/native event continuity, Windows disk recovery, archive identity an' physically real journeys. Dey can reject a producer's favorite candidate without claimin' de producer done no work. I read dat as mature division o' labor. No red gate gets colored green just because de rest o' de team ready for supper. [Release authority](../docs/RELEASE-QUALITY-LEDGER.json).
 
 ## October 16: One tiny clock edge an' one dangerous save
 
 ### 55. De SPC catch a message on de wrong side o' a beat
+
+Deep in de sound machinery, de whole mystery squeeze down to one `$2140` write an' one SPC instruction edge. Reader don't need to love register names to see de risk: shift every clock for one little mismatch an' you might spoil de music elsewhere.
 
 [#1741](https://github.com/gamesbyian/UR-Recomp/pull/1741) narrow de CPU `$2140=$CC` publication to its relationship with one real SPC opcode boundary. Original an' native land on opposite sides of dat edge. Dat a useful causal observation, not a command to push every clock by some arbitrary offset. Fix de whole river by shiftin' de sun? Mais non. It take source-exact experiments to know which bank moved.
 

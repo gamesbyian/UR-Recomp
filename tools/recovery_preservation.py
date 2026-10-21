@@ -13,7 +13,10 @@ import re
 import sys
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
-from strict_vault_manifest import verify as verify_zip
+if __package__:
+    from .strict_vault_manifest import verify as verify_zip
+else:
+    from strict_vault_manifest import verify as verify_zip
 
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")

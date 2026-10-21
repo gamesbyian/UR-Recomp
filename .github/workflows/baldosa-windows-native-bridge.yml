@@ -181,6 +181,12 @@ on:
       - "native/title/uniracers_run_data.*"
       - "native/title/uniracers_two_player_result.*"
       - "tools/baldosa_guest_adapter_spike.py"
+      # SDL3 controller seat ownership staged into the pinned host.
+      - "tools/baldosa_sdl_controller_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py"
+      - "native/product/controller_seat_assignment_policy.h"
+      - "tests/native/controller_seat_assignment_policy_test.cpp"
+      - "tools/run_baldosa_controller_lifecycle_acceptance.py"
       - "tools/baldosa_guest_snapshot_probe.*"
       - "tools/baldosa_native_modern_root.*"
       - "tools/baldosa_native_product_execution.*"
@@ -271,6 +277,7 @@ jobs:
           python tests/unit/test_baldosa_native_practice_courses_probe.py
           python tests/unit/test_modern_pause_overlay_presenter.py
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
+          python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
 
       - name: Verify immutable native source pins
         run: |
@@ -305,6 +312,8 @@ jobs:
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -375,6 +384,18 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE. SDL virtual gamepads are hot-plugged through the
+      # host's ordinary event loop; each step checks the live seat table.
+      - name: Exercise SDL3 controller seat ownership through hotplug on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_controller_lifecycle_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-controller-lifecycle" \
+            --video windows --timeout 120
+          echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap. Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       # Owned visual-motion lane. Run ONCE against the same exact-native PE
       # produced above, not a separate renderer or a branch-mutating fixture.

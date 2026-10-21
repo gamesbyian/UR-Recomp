@@ -25,6 +25,7 @@ STAGING_SCRIPTS = {
     "tools/baldosa_product_pause_spike.py",
     "tools/baldosa_modern_user_data_spike.py",
     "tools/baldosa_modern_profile_activation_spike.py",
+    "tools/baldosa_sdl_controller_lifecycle_spike.py",
 }
 # These non-sibling bridge headers control game input and native title routing.
 # Normal .cpp sibling .hpp/.h files are discovered automatically below.
@@ -123,6 +124,8 @@ OPTIONAL_NATIVE_OPTIONS_INPUTS = {
 
 
 BRIDGE_HEADERS = {
+    # Included into the pinned host_main.c by absolute path, not by CMake.
+    "native/product/controller_seat_assignment_policy.h",
     "native/product/baldosa_execution_backend.hpp",
     "native/product/baldosa_modern_session_binding.hpp",
     "native/product/modern_host_input_release_latch.hpp",

@@ -16,9 +16,13 @@ New read-only `tools/qa_modern_visual_actions_archive.py` independently consumes
 
 ```sh
 python3 tools/qa_modern_visual_actions_archive.py \
-  --artifact original-modern-visual-win32-size-comparison.zip
+  --artifact original-modern-visual-win32-size-comparison.zip \
+  --expected-source-sha 9b6b79ab764a88bf85e7f44390e45e9502535f5c \
+  --expected-exe-sha 4cd221862d5931d8ed2b8f09ea3eac359b7e29f77ab2b4dcea83f2c85dc7edaf
 python3 tools/qa_modern_visual_actions_archive.py \
-  --artifact original-modern-visual-win32-navigation-journeys.zip
+  --artifact original-modern-visual-win32-navigation-journeys.zip \
+  --expected-source-sha 9b6b79ab764a88bf85e7f44390e45e9502535f5c \
+  --expected-exe-sha 4cd221862d5931d8ed2b8f09ea3eac359b7e29f77ab2b4dcea83f2c85dc7edaf
 ```
 
 The first command accepts the authentic combined root evidence; the second **must reject the old run** until the missing second-process Options bytes are archived. This is a retention defect, not evidence of a bad Options painter or changed guest mode. The full combined screenshot verdict remains **0/25 formal visual approvals**; no physical controller/display, original-state CRC, hearing, release ledger or human-original-likeness credit is inferred.

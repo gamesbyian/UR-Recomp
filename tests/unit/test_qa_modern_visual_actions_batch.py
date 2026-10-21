@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from pathlib import Path
 import struct
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -47,6 +49,17 @@ class IntegratedWindowsBundleTests(unittest.TestCase):
             "verified_native_title_source":(
                 {"title_source_stage":"title"} if role=="title" else None)}
             for name,route in qa.EXPECTED[role].items()]}
+
+    def test_direct_script_help_from_clean_checkout(self):
+        script = Path(__file__).resolve().parents[2] / "tools" / (
+            "qa_modern_visual_actions_batch.py")
+        r = subprocess.run(
+            [sys.executable, str(script), "--help"],
+            cwd=script.parents[1], capture_output=True, text=True,
+            timeout=10)
+        self.assertEqual(r.returncode,0,r.stderr)
+        self.assertIn("--native-executable",r.stdout)
+        self.assertIn("--wide-destinations",r.stdout)
 
     def test_all_21_exact_route_receipts_same_source_and_pe(self):
         with patch.object(qa.capture,"verify",side_effect=self.fake_verify):

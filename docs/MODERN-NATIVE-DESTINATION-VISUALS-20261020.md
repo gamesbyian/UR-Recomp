@@ -1,6 +1,6 @@
 # Native Modern destination presentation | 2026-10-20
 
-Status: **implementation candidate; human visual approval and packaged native screenshots pending.** This is a destination-composition note, not a release-gate change.
+Status (2026-10-21): **Native destination implementation merged to `main` via [#2040](https://github.com/gamesbyian/UR-Recomp/pull/2040); initial same-PE genuine Windows SDL destination screenshots have been captured and independently audited, but full prepared-wide destination/paused-game screenshots, human visual approval, physical controller/4K/PAR and release acceptance remain HOLD.** This is a composition and evidence note, not the release-gate authority.
 
 ## Scope and authority
 
@@ -24,12 +24,14 @@ Source-grounded equivalent of `tools/select_three_project_reuse.py --lane modern
 
 Native ROM-free C++ contract: `tests/native/modern_native_destination_presenter_test.cpp` (all child view states, narrow and actual 342x224 logical-wide geometry, frozen-guest pause Options at 1x/2x, full 1P record time, selected rows, help, 2P confirmations, profile next-launch status, invalid-bounds no-draw). Python compile runner: `tests/unit/test_modern_native_destination_presenter_cpp.py`, including a check that the **real** Baldosa draw entrypoint contains exactly one destination hook and forwards product-owned view fields. These are functional and layout contracts, **not photographic quality or packaged Windows certification**.
 
-Required screenshot evidence still open:
+**Remaining screen and release evidence after partial Windows closure:** The source-specific [#2040 Windows run 39541709425](https://github.com/gamesbyian/UR-Recomp/actions/runs/39541709425) independently yielded 8/8 same-PE final SDL P7↔PNG byte-exact frames for initial native root, Options, Records, first-profile and Authentic controls; those *Modern source receipts were 256×224*, despite 1280×720 output windows. Independently merged [#2117](https://github.com/gamesbyian/UR-Recomp/pull/2117) later captured genuine Practice and anonymous 2P warning source screens on one other PE. Separately, [#2149](https://github.com/gamesbyian/UR-Recomp/pull/2149)'s draft combined-title Windows [run 39555629743](https://github.com/gamesbyian/UR-Recomp/actions/runs/39555629743) independently yielded actual **342×224 title→root** SDL, with `root=11,10,320,204`, but no opened destination or paused gameplay. These two source epochs must **never** be combined into a fictitious single 342-wide destination/playtest certification.
+
+**Outstanding same-candidate screenshot and acceptance evidence:**
 1. Build and boot one immutable Windows native package with the real generated guest; log source commit, compiled executable SHA256, archive SHA256, configuration and output mode. Capture actual Play-selected root, Practice course, both Records pages, selected/adjusted Options, 2P join/unrecorded warning and first/second/switch racer panels. Include selection moved, saved/failed status and pressed/back paths without modifying guest state.
 2. Capture the same family in genuine native `342x224` wide logical / `3840x2160` calibrated display output and stock `256x224` fallback once wide root composition is wired. Include 1x and final high-density rendering and note 7:6 PAR.
 3. Have the owner compare actual pixels against source title/menu atlas for lettering, palette, cursor, panel/background detail, motion and high contrast. Original-derived typography and composed 16:9 art still require human approval. Capture real P1/P2 pads, pause/Options, cold relaunch and unmodified Authentic output. No QA ledger or art sign-off is granted here.
 
-One owner handoff: integration/title/common visual agents may change the root shell or glyph primitives but must retain the presenter view contract. The next implementer can attach the pure 342x224 destination painter when the wide native overlay entrypoint is genuinely available, then take source-bound screenshots. **No trailer/media work belongs in this lane.**
+One owner handoff: integration/title/common visual agents may change the root shell or glyph primitives but must retain the presenter view contract. The destination painter and native pause geometry are already merged on current main, including genuine-source panels via [#2145](https://github.com/gamesbyian/UR-Recomp/pull/2145), [#2147](https://github.com/gamesbyian/UR-Recomp/pull/2147) and [#2152](https://github.com/gamesbyian/UR-Recomp/pull/2152). The next integrator should take new source-bound **opened destination plus paused Options** screenshots from a single exact combined Windows executable, rather than importing old child sources or inferring success from title/root-only SDL. **No trailer/media work belongs in this lane.**
 
 ## First CI findings and repairs
 

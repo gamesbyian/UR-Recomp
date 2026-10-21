@@ -257,8 +257,12 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
                 receipt.get("native_route_marker_observed") is not False):
             raise AuditError("Authentic receipt mode/route evidence mismatch")
     elif route == "play-stock-handoff" or route in TITLE_ROUTES or route in ROUTE_STAGES:
+        # The root-quit snapshot has no controller/destination route marker.
+        # The other Modern routes genuinely traverse a scripted semantic
+        # control edge; do not mistake the idle root for their navigation.
+        expected_marker = route != "root-quit"
         if (receipt.get("execution_mode") != "modern" or
-                receipt.get("native_route_marker_observed") is not True):
+                receipt.get("native_route_marker_observed") is not expected_marker):
             raise AuditError("Modern receipt mode/route evidence mismatch")
     if route == "authentic-stock":
         before = log.split("UR_MODERN_VISUAL_SDL_CAPTURE status=saved",1)[0]

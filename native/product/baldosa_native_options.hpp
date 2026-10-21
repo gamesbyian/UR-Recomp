@@ -284,6 +284,46 @@ inline void baldosa_options_boot(
     baldosa_options_detail::pull_live(model);
 }
 
+enum class BaldosaOptionsAdopt : std::uint8_t {
+    NoStore,    // no readable typed store: config.ini stays authoritative
+    Unchanged,  // the store already records the live display
+    Saved,      // the live display was written to the store
+    Conflict,   // another writer changed the store between read and write
+    Failed,     // out-of-range values or the write failed
+};
+
+// A display change made outside Options (the framework's Alt+Enter, the
+// in-game launcher) reaches only config.ini. Boot restores the typed store
+// over config.ini, so once a store exists such a change would be lost on the
+// next launch. Record the live display/vsync into an EXISTING store with a
+// compare-and-swap against what was just read; never create one (a missing
+// store keeps config.ini authoritative) and never rewrite a damaged one.
+inline BaldosaOptionsAdopt baldosa_options_adopt_live_display(
+    const std::string& path, int fullscreen, int vsync) {
+    if (!baldosa_options_detail::display_in_range(fullscreen) ||
+        !baldosa_options_detail::display_in_range(vsync))
+        return BaldosaOptionsAdopt::Failed;
+    std::optional<HostProductState> current;
+    if (baldosa_options_detail::read_state(path, current) !=
+            BaldosaOptionsLoad::Loaded || !current)
+        return BaldosaOptionsAdopt::NoStore;
+    const auto display = static_cast<HostDisplayMode>(fullscreen);
+    const auto sync = static_cast<HostVSyncMode>(vsync);
+    if (current->settings.display_mode == display &&
+        current->settings.vsync_mode == sync)
+        return BaldosaOptionsAdopt::Unchanged;
+    HostProductState next = *current;
+    next.settings.display_mode = display;
+    next.settings.vsync_mode = sync;
+    switch (save_host_product_state_file_if_current(path, current, next)) {
+    case HostProductSaveStatus::Saved: return BaldosaOptionsAdopt::Saved;
+    case HostProductSaveStatus::Conflict: return BaldosaOptionsAdopt::Conflict;
+    case HostProductSaveStatus::Rejected:
+    case HostProductSaveStatus::IoError: break;
+    }
+    return BaldosaOptionsAdopt::Failed;
+}
+
 inline void baldosa_options_open(BaldosaNativeOptions& model) {
     // Re-read both the live host and the file so the panel is truthful about
     // window-key changes and edits made by another process.

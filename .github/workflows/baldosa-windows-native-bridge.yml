@@ -195,6 +195,8 @@ on:
       - "tests/native/baldosa_host_lifecycle_pause_test.cpp"
       - "tests/unit/test_baldosa_host_lifecycle_pause.py"
       - "tools/run_baldosa_lifecycle_pause_acceptance.py"
+      - "tests/native/baldosa_native_options_adopt_test.cpp"
+      - "tests/unit/test_baldosa_native_options_adopt_cpp.py"
       - "tools/baldosa_guest_snapshot_probe.*"
       - "tools/baldosa_native_modern_root.*"
       - "tools/baldosa_native_product_execution.*"
@@ -294,6 +296,7 @@ jobs:
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
           python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           python tests/unit/test_baldosa_host_lifecycle_pause.py
+          python tests/unit/test_baldosa_native_options_adopt_cpp.py
 
       - name: Verify immutable native source pins
         run: |

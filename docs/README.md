@@ -8,6 +8,8 @@
 
 The pinned RF081 sparse memory archive census is implemented in [`tools/qa01_rf081_coverage.py`](../tools/qa01_rf081_coverage.py) and [`tools/qa01_rf081_pair_diff_census.py`](../tools/qa01_rf081_pair_diff_census.py), with ROM-free guards in [`test_qa01_rf081_sampled_census.py`](../tests/unit/test_qa01_rf081_sampled_census.py). It reports original/native WRAM/SRAM snapshot differences without asserting continuous instruction-phase equivalence or USA event acceptance.
 
+The same pinned archive's nine-frame **NMI sequence-gap** evidence is guarded by [`tools/rf081_nmi_sequence_gaps.py`](../tools/rf081_nmi_sequence_gaps.py) ([tests](../tests/unit/test_rf081_nmi_sequence_gaps_contract.py)), and its **selected-PC candidate census** by [`tools/rf081_selected_pc_candidate_census.py`](../tools/rf081_selected_pc_candidate_census.py) ([tests](../tests/unit/test_rf081_selected_pc_candidate_census.py)). Selected PC labels and per-source sequence numbers are not equivalent instruction phases; neither tool proves the first causal CPU divergence or grants USA-event credit.
+
 ## Desktop post-race video
 
 [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md) owns the Windows/macOS/Linux Modern **Save Race Video / Discard Video** result feature, evidence-backed capture/export backend choices, concrete resource/latency expectations, playback/job confirmation semantics, and staged acceptance. It is not an implemented feature or a new P0. Existing `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `MODERN-RESULTS-NAVIGATION.md` retain their separate run/replay/navigation authorities.

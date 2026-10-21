@@ -135,6 +135,52 @@ def audit(original, downloaded, expected_sha256):
             "release_gate_credit": False}
 
 
+def validate_incidents(document):
+    """Fail closed on invented acceptance or unverified remote recovery."""
+    if (type(document) is not dict or
+            document.get("schema") != "ur-publication-incidents/1" or
+            document.get("scope") != "curated_not_exhaustive" or
+            type(document.get("incidents")) is not list):
+        raise ValueError("unknown incident register schema or scope")
+    seen = set()
+    for entry in document["incidents"]:
+        needed = {"incident_id", "work_id", "candidate_id", "source_main_sha",
+                  "operation", "target_path", "original_error", "classification",
+                  "vault_file_id", "vault_sha256", "byte_readback", "disposition",
+                  "next_authorized_action", "release_gate_credit"}
+        if type(entry) is not dict or not needed.issubset(entry):
+            raise ValueError("incomplete publication incident")
+        inc = entry["incident_id"]
+        if not isinstance(inc, str) or not ID.fullmatch(inc) or inc in seen:
+            raise ValueError("invalid/duplicate publication incident ID")
+        seen.add(inc)
+        if not isinstance(entry["work_id"], str) or not WORK.fullmatch(entry["work_id"]):
+            raise ValueError("invalid work ID")
+        if not isinstance(entry["original_error"], str) or not entry["original_error"].strip():
+            raise ValueError("incident must preserve exact raw error")
+        if entry["classification"] not in {
+                "explicit_safety_denial", "technical_retryable", "source_conflict",
+                "unknown", "resolved_in_main"}:
+            raise ValueError("invalid failure classification")
+        if entry["byte_readback"] not in {"pending", "failed", "verified", "unavailable"}:
+            raise ValueError("invalid byte readback claim")
+        sha = entry["vault_sha256"]
+        if sha is not None and (type(sha) is not str or not HEX64.fullmatch(sha)):
+            raise ValueError("invalid archive hash")
+        source = entry["source_main_sha"]
+        if source is not None and (type(source) is not str or not HEX40.fullmatch(source)):
+            raise ValueError("invalid source hash")
+        if entry["byte_readback"] == "verified" and (
+                sha is None or not isinstance(entry["vault_file_id"], str)
+                or len(entry["vault_file_id"]) < 15):
+            raise ValueError("cannot claim verified readback without ID and outer SHA")
+        if entry["release_gate_credit"] is not False:
+            raise ValueError("incident cannot award release credit")
+        if not isinstance(entry["next_authorized_action"], str) or not entry["next_authorized_action"].strip():
+            raise ValueError("missing independent next action")
+    return {"incidents_validated": len(seen), "release_gate_credit": False}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="action", required=True)
@@ -149,12 +195,17 @@ def main(argv=None):
     check.add_argument("--original", required=True)
     check.add_argument("--downloaded", required=True)
     check.add_argument("--expected-sha256", required=True)
+    incidents = sub.add_parser("check-incidents", help="validate exact-error incident register")
+    incidents.add_argument("--registry", required=True)
     args = parser.parse_args(argv)
     try:
-        result = (stage(args.root, args.file, args.out, args.candidate_id,
-                        args.work_id, args.source_main_sha)
-                  if args.action == "stage" else
-                  audit(args.original, args.downloaded, args.expected_sha256))
+        if args.action == "stage":
+            result = stage(args.root, args.file, args.out, args.candidate_id,
+                           args.work_id, args.source_main_sha)
+        elif args.action == "readback":
+            result = audit(args.original, args.downloaded, args.expected_sha256)
+        else:
+            result = validate_incidents(json.loads(Path(args.registry).read_text(encoding="utf-8")))
     except (ValueError, OSError) as exc:
         parser.error(str(exc))
     print(json.dumps(result, sort_keys=True))

@@ -106,6 +106,39 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertEqual(result["scheduled_agent_health"], "UNKNOWN_NOT_CONNECTED")
         self.assertIn("Drive presence UNKNOWN", markdown(result))
 
+    def test_verified_closed_pr_census_surfaces_stale_handoff_without_mutation(self):
+        def request(path):
+            if "/pulls?state=closed&" in path:
+                return [{
+                    "number": 2194, "merged_at": "2026-10-21T19:55:59Z",
+                    "merge_commit_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
+                    "body": "Independent archive 1_RScoARFTHjfttOY87v9PKBepXmE8tK8"
+                }]
+            return self.request(path)
+        result = self.report(get=request)
+        drift = result["handoff_drift"]
+        self.assertEqual(drift["status"], "REVIEW_HINTS")
+        self.assertEqual(drift["hints"][0]["candidate_id"],
+                         "h27-knowledge-malformed-lanes")
+        self.assertEqual(drift["automatic_state_changes"], 0)
+        self.assertIn("inspect every member", markdown(result))
+
+    def test_partial_closed_census_never_claims_no_stale_handoffs(self):
+        def partial(path):
+            if "/pulls?state=closed&" in path:
+                return [{"number": x, "merged_at": None} for x in range(100)]
+            return self.request(path)
+        report = self.report(get=partial)
+        self.assertEqual(report["handoff_drift"]["status"],
+                         "UNKNOWN_INCOMPLETE_PR_CENSUS")
+        self.assertNotIn("hints", report["handoff_drift"])
+
+    def test_failed_closed_census_is_unknown(self):
+        result = self.report()
+        self.assertEqual(result["handoff_drift"]["status"],
+                         "UNKNOWN_API_OR_DATA_FAILURE")
+        self.assertIn("handoff_drift", result["errors"])
+
     def test_current_ledger_never_credited_when_checkout_differs(self):
         result = self.report(local_head="b" * 40)
         self.assertFalse(result["qa"]["source_exact_main"])

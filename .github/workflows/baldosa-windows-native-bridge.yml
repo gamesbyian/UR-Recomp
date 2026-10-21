@@ -361,8 +361,9 @@ jobs:
 
       # Owned visual-motion lane. Run ONCE against the same exact-native PE
       # produced above, not a separate renderer or a branch-mutating fixture.
-      # Reuses the original USA game and production root, proves 40+ real
-      # source-paced native compositor frames. Does NOT claim SDL P7 evidence.
+      # Reuses the original USA game and after-config production root:
+      # this DOES NOT certify original source D7 menu admission. Requires
+      # 40+ genuine compositor draws; SDL P7/hardware are separate.
       - name: Capture real original-paced Modern root native motion (PR 2042)
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-menu-motion-source-safe-20261020' }}
         run: |

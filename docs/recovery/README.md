@@ -2,6 +2,17 @@
 
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.
 
+## Live integration intake crosswalk (2026-10-21, independently checked)
+
+The latest six-folder direct listing found **3 Integration Inbox pointers, 33 Incoming files, 35 Evidence Library files, 29 Work Journals, 3 Integrated receipts and 0 Superseded**. These are point-in-time direct-child counts, not an archive-member inventory or release proof; retain all source archives and the historical checkpoints above.
+
+The three Inbox pointers represent **two distinct outstanding deliverables**, not three independent integration jobs:
+
+- Original-title/source-to-SDL geometry evidence: pointer `1BRdWTbWMyI6toXGtRCos_jbw2nRPEs06`, extended by original-demo/cross-aspect pointer `1559xj-XZwwaCFM50etdOGRJnrcbSblGE`. Both belong to the same visual evidence candidate. Source-owner reconciliation with draft [#2149](https://github.com/gamesbyian/UR-Recomp/pull/2149) and original-title owner [#2043](https://github.com/gamesbyian/UR-Recomp/pull/2043) remains necessary; no physical/art/source-parity signoff follows from the evidence.
+- Windows smoke ZIP distribution safeguard: pointer `1CJh91PEzzexmDYvESfcKND-d1G0W74YB`. Requires authorized independent review of ROM-containing artifact publication, current workflow source, and retention of already-uploaded artifacts. The pointer is an unpublished candidate, not a merged fix.
+
+This crosswalk supersedes **only** prior claims that the Inbox is still empty. It does not change candidate owners, qualifying source SHAs, historical recovery receipts, or the release ledger. Verify live GitHub heads and exact candidate archives before integration; avoid duplicate ZIPs or separate PRs for an extension of the same work ID.
+
 ## Subsequent H29 routing checkpoint (2026-10-21 UTC)
 
 An independent Drive metadata/readback sweep moved **16 surviving administrative files** from `02 Incoming`: 13 preflight/result/manifest receipts to `03 Evidence Library`, three historic continuations/handoffs to `01 Work Journals`. Post-move direct-child counts: **0 Inbox, 29 Incoming, 34 Evidence, 25 Journals, 3 Integrated, 0 Superseded**. File IDs were preserved; no source archive, source patch, candidate manifest or held source write was deleted/integrated. Full 16-ID routing receipt and limits: [H29 metadata routing](VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md).

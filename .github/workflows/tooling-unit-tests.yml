@@ -41,6 +41,13 @@ on:
       # source or test edits must run the actual ROM-free native test suite.
       - "native/product/modern_root_overlay_presenter.hpp"
       - "tests/native/modern_root_overlay_presenter_test.cpp"
+      # Original-derived menu primitive and source atlas headers own
+      # executable C++ invariants. They must invalidate this same suite even
+      # if no Python shim or presenter was changed in the PR.
+      - "native/product/modern_menu_visual_grammar.hpp"
+      - "tests/native/modern_menu_visual_grammar_test.cpp"
+      - "native/product/modern_menu_source_atlas.hpp"
+      - "tests/native/modern_menu_source_atlas_test.cpp"
       - "native/product/modern_text_catalog.hpp"
       - "native/product/modern_text_layout.hpp"
       - "tests/native/local_multiplayer_setup_test.cpp"

@@ -410,6 +410,24 @@ int main() {
     assert(painted.front().w == 960 && painted.front().h == 816);
     bounds(1024,896);
     clear();
+    // SDL/output window dimensions alone never certify native 342x224
+    // source preparation. These sizes previously selected a false 320px
+    // root because width >= 342*scale; keep the 240px fallback instead.
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1280,1280,720,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 400 && painted.front().y == 156);
+    assert(painted.front().w == 480 && painted.front().h == 408);
+    assert(has("> VSYNC    < ON >") && !has("SETTINGS"));
+    bounds(1280,720);
+    clear();
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1024,1024,768,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 272 && painted.front().y == 180);
+    assert(painted.front().w == 480 && painted.front().h == 408);
+    bounds(1024,768);
+    clear();
     assert(!render_modern_native_pause_destination(
         painter,scratch,240,240,224,v));
     assert(painted.empty());

@@ -93,6 +93,54 @@ PROTECTED_REQUIREMENTS = {
     "focus-loss-modal": ("options", "modern", "16:9", "pad-p1", "focus-lost", (1280, 720)),
 }
 
+# Presentation-review obligations are requirements too. Without this guard a
+# future change could erase the clipping, selection, PAR or ownership check
+# while leaving identical screen/mode/size fields. This is a frozen historical
+# 25-case review consumer: intentional redesign of the matrix requires a
+# visible change to these expectations, not a silent approval shortcut.
+PROTECTED_VISUAL_REVIEW_TARGETS = {
+    "title-wide-1080": "entry-animation / focus / overscan",
+    "title-wide-keyboard": "Enter/Start semantic parity and title-to-root latch",
+    "title-compact-43": "logo, safe area and transition under compact viewport",
+    "title-reduced-motion": "stable/frozen hero and entry without flashing",
+    "root-wide-720": "five rows, cursor, footer, visible focus",
+    "root-wide-1080": "spacing, typography and scaling",
+    "root-wide-4k-virtual": "image dimensions only: not physical monitor/4K signoff",
+    "root-43-768": "clipping, safe area, information hierarchy",
+    "root-43-480": "small-type readable, no overlap",
+    "root-moved-selection": "selected highlight stays unambiguous",
+    "root-keyboard": "focus parity and mapped input hints",
+    "root-disabled": "Play blocked and reason visible",
+    "profile-first-run": "creation, original preset and next-boot feedback",
+    "profile-switch-existing": "selection persists and does not hot-swap guest",
+    "multiplayer-p2-owner": "P1 opens join; P2 owns only its seat, confirmed/released independently; no P2 root navigation claim",
+    "practice-locked": "actual locked-course explanation and Back",
+    "options-available": "applied settings only, controls and defaults",
+    "options-refused": "NOT APPLIED or honest refusal message",
+    "records-empty": "empty state and navigation",
+    "records-earned-1p": "correct source-earned record after fresh process",
+    "records-earned-2p": "P1 root Records after genuine 2P result, inspect both source-bound participants and their exact time; P2 remains join-only",
+    "transition-back-release": "held input does not bleed into destination",
+    "authentic-title-stock": "unaltered stock rendering/route; needs reference comparison",
+    "authentic-stock-wide": "Modern root must not be painted in Authentic",
+    "focus-loss-modal": "ownership and safe return; no guest input bleed",
+}
+PROTECTED_MATRIX_HUMAN_CHECKS = [
+  "original likeness",
+  "typography fidelity",
+  "text clipping and legibility",
+  "safe area",
+  "contrast",
+  "selected-state focus",
+  "motion and reduced-motion quality",
+  "speaker-audible cue",
+  "physical controller ownership",
+  "physical monitor output",
+  "Original/Authentic pixel and state isolation"
+]
+PROTECTED_MATRIX_REQUIRED_FIELDS = ["id","screen","mode","aspect","pixels","input","state","review_target"]
+PROTECTED_MATRIX_AUTHORITY = "docs/MODERN-UI-VISUAL-FIDELITY.md"
+
 
 # Real ZIP inventory independently re-read on 2026-10-20. Reject a manifest
 # which silently rewrites a noncandidate route while retaining its total.
@@ -166,8 +214,15 @@ def validate_frozen_cohort(matrix: dict, evidence: dict) -> tuple[list, list]:
     reported = {x["id"]: (x.get("route"), x.get("output")) for x in captures}
     if reported != FROZEN_CAPTURES:
         raise ValueError("frozen native capture ID/route/geometry inventory changed")
+    if (matrix.get("schema_version") != 1
+            or matrix.get("authority") != PROTECTED_MATRIX_AUTHORITY
+            or matrix.get("required_fields") != PROTECTED_MATRIX_REQUIRED_FIELDS
+            or matrix.get("human_checks") != PROTECTED_MATRIX_HUMAN_CHECKS):
+        raise ValueError("visual review policy/human gate was rewritten")
     for case in cases:
         cid = case["id"]
+        if case.get("review_target") != PROTECTED_VISUAL_REVIEW_TARGETS.get(cid):
+            raise ValueError("visual review target was rewritten: " + cid)
         if cid in CANDIDATE_REQUIREMENTS:
             expected = CANDIDATE_REQUIREMENTS[cid]
             actual = tuple(case.get(k) for k in (

@@ -204,7 +204,7 @@ int main() {
     // to the optional native-wide tag, never original menu/gameplay pixels.
     assert(std::any_of(painted_text.begin(), painted_text.end(),
         [](const PaintedText& t) {
-            return t.cells == 5 && t.colour == 0xFFC8C8C8u;
+            return t.cells == 7 && t.colour == 0xFFC8C8C8u;
         }));
     assert(has_body_scrim(wide, 1));
     bounds(342,224);

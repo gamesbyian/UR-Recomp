@@ -1,0 +1,11 @@
+{
+  "schema": "ur-history-backup-request/1",
+  "requested_utc": "2026-10-21",
+  "requested_ref": "main",
+  "purpose": "Replace GitHub-only validated full main backup with exact SHA-256 verified <=80MiB part artifacts acceptable to the existing Google Drive connector 100MiB limit.",
+  "supersedes_run_id": 39559897146,
+  "supersedes_artifact_id": 12327168409,
+  "drive_destination_folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
+  "release_gate_credit": false,
+  "require_reassembly_sha256_and_drive_copy_restore": true
+}

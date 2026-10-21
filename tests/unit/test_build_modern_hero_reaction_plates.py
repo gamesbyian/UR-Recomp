@@ -3,6 +3,8 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -67,6 +69,16 @@ class ModernHeroReactionPlatesTests(unittest.TestCase):
         self.assertFalse(report["may_reverse_or_loop"])
         self.assertFalse(report["native_hero_admitted"])
         self.assertEqual(report["canonical_rom_sha256"], digest)
+        metrics = report["temporal_original_raster_metrics"]
+        self.assertEqual(metrics["frame_count"], 10)
+        self.assertEqual(metrics["distinct_rgba_frames"], 3)
+        self.assertEqual(metrics["observed_static_edges"], 6)
+        self.assertEqual(metrics["observed_dynamic_edges"], 3)
+        self.assertEqual(metrics["max_observed_visible_change_pixels"], 400)
+        self.assertEqual(metrics["counterfactual_last_to_first_edge"][
+            "visible_changed_pixels"], 400)
+        self.assertFalse(metrics["loop_certified"])
+        self.assertFalse(metrics["source_guest_timing_independently_certified"])
         with tempfile.TemporaryDirectory() as tmp:
             path = builder.write_private_review(report, frames, Path(tmp))
             self.assertTrue(path.is_file())
@@ -77,6 +89,18 @@ class ModernHeroReactionPlatesTests(unittest.TestCase):
                     f"original-guest-{frame['registered_guest_frame']:04d}.png")
                 self.assertEqual(hashlib.sha256(image_path.read_bytes()).hexdigest(),
                                  frame["review_png_sha256"])
+
+    def test_direct_executable_help_imports_in_a_foreign_cwd(self):
+        # Prior version worked as tools.* import but relied on PYTHONPATH
+        # when invoked directly. Test the documented real CLI launch form.
+        script = builder.ROOT / "tools" / "build_modern_hero_reaction_plates.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            result = subprocess.run(
+                [sys.executable, str(script), "--help"], cwd=tmp,
+                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--clip", result.stdout)
+        self.assertIn("--out-dir", result.stdout)
 
     def test_review_art_must_not_write_into_checkout(self):
         with self.assertRaisesRegex(audit.ClipAdmissionError, "outside repository"):

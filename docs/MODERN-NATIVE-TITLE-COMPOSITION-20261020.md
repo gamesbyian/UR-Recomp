@@ -589,8 +589,11 @@ A separate **test-only mode 20** waits until the source cycle completes:
 on the genuine P1 hardware semantic path it wakes during demo at1600,
 enters root on a new button at1660, attempts Play at1710 and asserts that
 it was denied *without stock route or stale profile*. Only after the source
-naturally re-enters D7 around frame3759 may the source admission predicate
-turn true; at frame3800 the native test asserts the root is still reachable
+naturally re-enters D7 around frame3759 **and has maintained the exact
+original stock-menu route's 60 successive settled observations** may the
+source admission predicate turn true. A press at frame3770, while D7 is
+real but still settling, must remain denied; at frame3900 the native test
+asserts the root is still reachable
 and no guest writes occurred. A 3900-frame no-guest-input script, explicit
 source log verifier with adversarial unit cases and same-PE evidence receipt
 support this separate acceptance criterion. If native menu return differs

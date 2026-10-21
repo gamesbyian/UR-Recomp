@@ -54,21 +54,26 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
             "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=1710 source_menu=00 source_race=01 guest_writes=0",
             "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied=1 frame=1710 profile_stale=0",
-            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3759 menu=d7 race=00 guest_writes=0",
-            "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=3800 source_main=d7 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=3770 source_menu=d7 source_race=00 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied_settling=1 frame=3770 menu=d7 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=3900 source_main=d7 stable=60 guest_writes=0",
         ))
         result = verify_source_driven_recovery(good)
-        self.assertEqual([item["frame"] for item in result], [1710, 3759, 3800])
+        self.assertEqual([item["frame"] for item in result], [1710, 3770, 3818, 3900])
         for bad in (
-            good.replace("frame=3759", "frame=1711"),
-            good.replace("frame=3759", "frame=3781"),
+            good.replace("frame=3818", "frame=1711"),
+            good.replace("frame=3818", "frame=3841"),
+            good.replace("stable=60", "stable=2"),
+            good.replace("native_play_denied_settling=1", "native_play_denied_settling=0"),
             good.replace("menu=d7 race=00 guest_writes=0",
                          "menu=d7 race=01 guest_writes=0"),
             good.replace("native_play_denied=1", "native_play_denied=0"),
             good.replace("play_rearmed=1", "play_rearmed=0"),
+            good.replace("frame=3900", "frame=3800"),
             good + "\\nUR_BALDOSA_MODERN_ROOT stock_requested players=1",
             good + "\\nUR_BALDOSA_MODERN_ROOT active_profile_stale=1",
-            good + "\\nUR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3759 menu=d7 race=00 guest_writes=0",
+            good + "\\nUR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60 guest_writes=0",
         ):
             with self.subTest(bad=bad[-110:]), self.assertRaises(ValueError):
                 verify_source_driven_recovery(bad)

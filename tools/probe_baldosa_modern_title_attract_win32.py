@@ -109,6 +109,8 @@ def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674",
         "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=1710",
         "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied=1 frame=1710 profile_stale=0",
+        "UR_MODERN_TITLE_STOCK_ATTRACT play_deferred=1 frame=3770",
+        "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied_settling=1 frame=3770 menu=d7 guest_writes=0",
     )
     previous = -1
     for witness in required:
@@ -120,18 +122,18 @@ def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
         previous = pos
     marker = re.compile(
         r"UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 "
-        r"frame=(\d+) menu=d7 race=([0-9a-f]{2}) guest_writes=0"
+        r"frame=(\d+) menu=d7 race=([0-9a-f]{2}) stable=(\d+) guest_writes=0"
     )
     observations = list(marker.finditer(log))
     if len(observations) != 1:
         raise ValueError("missing/duplicated native original MAIN recovery")
     recovery = observations[0]
     frame = int(recovery[1])
-    if recovery.start() <= previous or not 3745 <= frame <= 3780:
+    if recovery.start() <= previous or not 3810 <= frame <= 3840:
         raise ValueError("real source MAIN recovery time/ordering mismatch")
-    if recovery[2] == "01":
-        raise ValueError("cannot rearm Play while stock demo is in race")
-    marker = "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=3800 source_main=d7 guest_writes=0"
+    if recovery[2] == "01" or int(recovery[3]) != 60:
+        raise ValueError("cannot rearm Play without 60 clean stock MAIN observations")
+    marker = "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=3900 source_main=d7 stable=60 guest_writes=0"
     if log.count(marker) != 1 or log.find(marker, recovery.end()) < 0:
         raise ValueError("no new source-admitted gameplay after stock MAIN")
     if ("UR_BALDOSA_MODERN_ROOT active_profile_stale=1" in log or
@@ -139,8 +141,9 @@ def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
         raise ValueError("stock source guard incorrectly mutated route/profile state")
     return [
         {"phase": "denied_while_demo", "frame": 1710},
+        {"phase": "denied_during_stock_menu_settling", "frame": 3770},
         {"phase": "native_main_recovered", "frame": frame},
-        {"phase": "source_admission_rearmed", "frame": 3800},
+        {"phase": "source_admission_rearmed", "frame": 3900},
     ]
 
 

@@ -134,6 +134,7 @@ bool g_original_attract_seen_main = false;
 bool g_original_attract_visible = false;
 bool g_original_attract_woken = false;
 bool g_original_attract_main_recovered = false;
+std::uint16_t g_original_attract_main_stable = 0;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -631,7 +632,9 @@ void open_stock_racer_setup() {
 // This is a read-only guarded admission, not a synthetic guest input.
 bool original_stock_attract_source_ready() noexcept {
     return !g_original_attract_woken ||
-        (g_ram[0x009fu] == 0xd7u && g_ram[0x0313u] != 1u);
+        (g_original_attract_main_stable >=
+             ur::product::kQuickPracticeMenuSettleObservations &&
+         g_ram[0x009fu] == 0xd7u && g_ram[0x0313u] != 1u);
 }
 void choose() {
     if (g_stock_target != -1 ||
@@ -1070,6 +1073,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_original_attract_visible = false;
     g_original_attract_woken = false;
     g_original_attract_main_recovered = false;
+    g_original_attract_main_stable = 0;
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1838,14 +1842,27 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
     }
     ur_baldosa_modern_root_stock_observe_guest();
-    if (g_original_attract_woken && !g_original_attract_main_recovered &&
-        g_ram[0x009fu] == 0xd7u && g_ram[0x0313u] != 1u) {
-        g_original_attract_main_recovered = true;
-        if (g_root_notice == "ORIGINAL DEMO RUNNING")
-            g_root_notice = "READY TO PLAY";
-        std::fprintf(stderr,
-            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=%u menu=d7 race=%02x guest_writes=0\n",
-            frame, static_cast<unsigned>(g_ram[0x0313u]));
+    // The stock menu ID is also used as scratch during scene loads.
+    // Require the SAME 60 consecutive MAIN observations as the already
+    // shipping source-menu route before the demo can unlock Play.
+    if (g_original_attract_woken) {
+        if (g_ram[0x009fu] == 0xd7u && g_ram[0x0313u] != 1u) {
+            if (g_original_attract_main_stable <
+                    ur::product::kQuickPracticeMenuSettleObservations)
+                ++g_original_attract_main_stable;
+        } else {
+            g_original_attract_main_stable = 0;
+        }
+        if (!g_original_attract_main_recovered &&
+            original_stock_attract_source_ready()) {
+            g_original_attract_main_recovered = true;
+            if (g_root_notice == "ORIGINAL DEMO RUNNING")
+                g_root_notice = "READY TO PLAY";
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=%u menu=d7 race=%02x stable=%u guest_writes=0\n",
+                frame, static_cast<unsigned>(g_ram[0x0313u]),
+                static_cast<unsigned>(g_original_attract_main_stable));
+        }
     }
     // The original guest's *observed* MAIN D7 -> TITLE 84 transition,
     // not a guessed 503-frame timeout, gates experimental guest display.
@@ -2207,16 +2224,31 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 std::abort();
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied=1 frame=%u profile_stale=0\n", frame);
-        } else if (frame == 3800) {
+        } else if (frame == 3770) {
+            // Even authentic MAIN D7 is not yet source-settled. An early
+            // Play press must remain denied, without stale-profile effects.
+            if (g_ram[0x009fu] != 0xd7u || g_ram[0x0313u] == 1u ||
+                original_stock_attract_source_ready() ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0) ||
+                g_stock_target != -1 || g_named_profile_stale ||
+                g_root_notice != "ORIGINAL DEMO RUNNING")
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT native_play_denied_settling=1 frame=%u menu=d7 guest_writes=0\n", frame);
+        } else if (frame == 3900) {
             if (!g_visible || ur::product::modern_title_active(g_title) ||
                 !g_original_attract_main_recovered ||
                 !original_stock_attract_source_ready() ||
+                g_original_attract_main_stable <
+                    ur::product::kQuickPracticeMenuSettleObservations ||
                 g_ram[0x009fu] != 0xd7u ||
                 g_ram[0x0313u] == 1u ||
                 g_stock_target != -1 || g_named_profile_stale)
                 std::abort();
             std::fprintf(stderr,
-                "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=%u source_main=d7 guest_writes=0\n", frame);
+                "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=%u source_main=d7 stable=%u guest_writes=0\n",
+                frame, static_cast<unsigned>(g_original_attract_main_stable));
         }
         return;
     }

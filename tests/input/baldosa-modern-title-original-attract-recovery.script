@@ -1,6 +1,7 @@
-# Genuine 1st original stock idle cycle, wake via real gamepad, remain
-# on Modern root until guest naturally returns MAIN D7 ~3759. No guest
-# input commands or test fixtures that write source menu/WRAM.
+# Unmodified original USA cartridge: long idle attracts a true demo, real
+# P1 wake is consumed, Play denied during demo and for source MAIN settling,
+# then rearmed only after 60 consecutive original menu observations.
+# No guest input commands, fake SRAM/WRAM or synthetic demo.
 turbo on
-wait 3900
+wait 4000
 quit

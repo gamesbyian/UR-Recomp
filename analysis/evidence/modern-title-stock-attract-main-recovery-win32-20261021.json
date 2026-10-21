@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "scope": "Original game stock attract wake to natural original main recovery: exact native Windows test result, not physical/final SDL or named Play acceptance",
+  "repo": "gamesbyian/UR-Recomp",
+  "owner_pr": 2043,
+  "source_head": "6a6ccab6a10acbc315b75b1ddc02e565ec3006ec",
+  "actions_run_id": 39551415579,
+  "original_artifact_id": 12323553408,
+  "original_artifact_name": "modern-title-native-source-pr2043",
+  "zip_sha256": "9b594ba7748bfc6ebfe75f46f6324f2923629050be4129aa027d831150e2381f",
+  "native_windows_executable_sha256": "540ba621882910f16f997ce95c684c4bc5a0aea970c67f3b51654115fb7c62df",
+  "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "script_sha256": "4dca17e1758f8f6ff4cb84737f2ffc6302dc392c6735e830ab9e89d302293558",
+  "process_log_sha256": "95a407ec629938ed8c639023d72e28a5a73693793fa34e27a7265ed68e910a8d",
+  "native_source_events": [
+    {
+      "frame": 440,
+      "menu": "d7",
+      "note": "original MAIN, Modern title covers guest"
+    },
+    {
+      "frame": 943,
+      "menu": "84",
+      "note": "original attract title, source guest visible in opt-in preview"
+    },
+    {
+      "frame": 1532,
+      "race": "01",
+      "note": "first post-frame source race flag; separate visual first frame 1531"
+    },
+    {
+      "frame": 1600,
+      "button": "P1 A",
+      "action": "wake consumed, no source guest input"
+    },
+    {
+      "frame": 1660,
+      "button": "new P1 A",
+      "action": "separate Modern title confirm"
+    },
+    {
+      "frame": 1674,
+      "action": "native root entered"
+    },
+    {
+      "frame": 1710,
+      "button": "new P1 A",
+      "action": "Play denied during source demo, profile not marked stale, no guest route"
+    },
+    {
+      "frame": 3759,
+      "menu": "d7",
+      "action": "original guest naturally returned to MAIN"
+    },
+    {
+      "frame": 3800,
+      "menu": "d7",
+      "action": "live source predicate rearmed, no guest writes"
+    }
+  ],
+  "retained_original_native_p6": [
+    {
+      "frame": 1584,
+      "stage": "original_demo",
+      "width": 256,
+      "height": 224,
+      "sha256": "bb122f399588e04944643465bc9ac502dc6241934d9bd8fc823dbae54719addd"
+    },
+    {
+      "frame": 1616,
+      "stage": "modern_title",
+      "width": 342,
+      "height": 224,
+      "sha256": "235c1a74c35ecc5308c3f6b2a5443e3233ac7908a537654d9b183c1b078c70de"
+    },
+    {
+      "frame": 1696,
+      "stage": "modern_root",
+      "width": 342,
+      "height": 224,
+      "sha256": "51d517d57f083f0ceeaa3dd9d965c0171e7a94100e3511e6f0ddb297f6fc84c2"
+    }
+  ],
+  "verification": "Independently downloaded original artifact and recomputed original ZIP digest; inspected exact retained process log, title screenshot file receipts, binary and script hashes. Result pertains only to immutable source_head above.",
+  "limitation": "Single matching D7 observation was accepted at this head. Follow-up hardening requires 60 consecutive source MAIN observations in accordance with production stock-route settling; this manifest is not evidence of that stricter candidate.",
+  "real_named_profile_play_verified": false,
+  "final_sdl_verified": false,
+  "physical_controller_verified": false,
+  "human_art_approved": false,
+  "default_stock_attract_enabled": false,
+  "release_gate_credit": 0
+}

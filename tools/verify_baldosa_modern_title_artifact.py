@@ -54,6 +54,10 @@ def audit_title_archive(path: Path) -> dict:
             log = archive.read(logpath)
             if _digest(log) != receipt.get("log_sha256"):
                 raise ValueError("retained native log byte SHA256 mismatch: " + folder)
+            if receipt.get("named_source_play_verified") is True:
+                boot = folder + "/native-profile-bootstrap.log"
+                if boot not in names or _digest(archive.read(boot)) != receipt.get("genuine_native_profile_bootstrap_sha256"):
+                    raise ValueError("missing/mismatched genuine native P1 profile-bootstrap bytes")
             photos = receipt.get("native_stock_demo_and_wake_presentations", [])
             if not isinstance(photos, list):
                 raise ValueError("native photograph receipt is not a list")

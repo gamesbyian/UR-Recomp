@@ -441,6 +441,18 @@ jobs:
             --preview-wake --recovery \
             --out "$RUNNER_TEMP/modern-title-native-attract-recovery-pr2043" \
             --timeout 140
+          # Test-only two ACTUAL game processes: create first racer via
+          # shipped P1 X/A profile UI, then cold-boot its canonical files,
+          # consume original demo wake and require real stock 1P admission
+          # only after 60 consecutive original MAIN D7 observations.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-named-play.script" \
+            --bootstrap-script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-first-profile-bootstrap.script" \
+            --preview-wake --recovery --named-play \
+            --out "$RUNNER_TEMP/modern-title-native-attract-named-play-pr2043" \
+            --timeout 140
           python tools/verify_baldosa_modern_title_authentic_inert.py \
             --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
@@ -483,6 +495,15 @@ jobs:
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-original-demo.ppm
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-restored-title.ppm
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-profile-bootstrap.log
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-attract-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-profile-bootstrap-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/native-root.ppm
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-timeout.txt
             ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-timeout.txt
             ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/presents.csv

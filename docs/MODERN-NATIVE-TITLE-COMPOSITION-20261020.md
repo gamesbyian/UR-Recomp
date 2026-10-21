@@ -657,3 +657,36 @@ CI is required for an independently auditable retained artifact.
 returns to settled MAIN, independent final SDL output and real hardware
 controller/display approval. The attract preview remains opt-in; Authentic
 is unmodified.
+
+
+## Exact two-process named-racer Play after original attract (candidate)
+
+Original demo/wake source admission now has an independent **named-player
+end-to-end consumer test**. This adds no shipping input path: the first
+fresh native Windows game uses existing test-only P1 X then A controller
+semantic edges to create a real canonical stock-preset racer via the
+shipping frontend/store. It exits, preserving the actual user root.
+The **same native executable** is cold-booted again with that selected
+profile, its typed product state and real guest SRAM. There is no
+temporary Python profile serializer, fabricated result or anonymous
+profile→named hot-swap.
+
+In this second game, smoke mode 23 lets the real cartridge reach its
+original attract race, consumes a genuine P1 wake at frame1600, opens the
+root via a distinct P1 A at1660, and refuses named Play at1710 while
+demo is racing and at3770 while D7 is not source-settled. At frame3900
+it requires **60** uninterrupted source MAIN observations and a playable
+named profile, then presses genuine P1 A through the existing root →
+original stock-menu route. The native log verifier requires an
+**actual stock 1P menu 0x3C acknowledgement**, not merely `stock_requested`,
+a synthetic guest menu byte or a root screenshot. The second original
+script allows the source route to run through frame4800; if it does not
+reach the 1P stock menu, the test is red and retains its bounded log.
+
+The final two-process capture uses the same Windows AOT source as the
+previous five attract scenarios. Retain only process logs/PE digest and
+the three pre-SDL P6 demo/title/root images, never the user's profile,
+raw SRAM or ROM. Even on success, **a completed named 1P event, save,
+independently checked final SDL pixels, physical controller and art
+approval are separate gates**. Keep stock attract opt-in until the
+full product owner/integration QA accepts the player journey.

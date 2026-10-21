@@ -14,13 +14,17 @@ from tools.verify_baldosa_modern_title_artifact import audit_title_archive
 
 class ExactRetainedTitleEvidenceTests(unittest.TestCase):
     def make_bundle(self, root: Path, *, crlf: bool = False, drop_root: bool = False,
-                    preview: bool = True) -> Path:
+                    preview: bool = True, named: bool = False,
+                    drop_bootstrap: bool = False) -> Path:
         archive = root / "evidence.zip"
         folder = "modern-title-native-attract-recovery-pr2043"
         log = b"real native guest source\nwake consumed\n"
         bytes_retained = log.replace(b"\n", b"\r\n") if crlf else log
         images = []
         entries = {folder + "/native-attract.log": bytes_retained}
+        boot = b"real native P1 racer created through X/A\n"
+        if named and not drop_bootstrap:
+            entries[folder + "/native-profile-bootstrap.log"] = boot
         if preview:
             for stage, width in (("original-demo", 256), ("restored-title", 342),
                                  ("root", 342)):
@@ -42,6 +46,9 @@ class ExactRetainedTitleEvidenceTests(unittest.TestCase):
             "native_stock_demo_and_wake_presentations": images,
             "scripted_host_preview_only": preview, "drawable_aspect": "wide",
             "real_guest_main_recovery_verified": preview,
+            "named_source_play_verified": named,
+            "genuine_native_profile_bootstrap_sha256": (
+                hashlib.sha256(boot).hexdigest() if named else None),
             "final_sdl_capture": False, "release_gate_credit": 0,
         }
         entries[folder + "/native-attract-receipt.json"] = (
@@ -71,6 +78,16 @@ class ExactRetainedTitleEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             result = audit_title_archive(self.make_bundle(Path(tmp), preview=False))
             self.assertEqual(result["native_presented_images_verified"], 0)
+
+    def test_named_profile_must_keep_actual_first_process_log(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.assertEqual(
+                audit_title_archive(self.make_bundle(root, named=True))[
+                    "native_presented_images_verified"], 3)
+            with self.assertRaisesRegex(ValueError, "profile-bootstrap bytes"):
+                audit_title_archive(self.make_bundle(root, named=True,
+                                                     drop_bootstrap=True))
 
     def test_rejects_old_windows_crlf_sha_divergence(self):
         with tempfile.TemporaryDirectory() as tmp:

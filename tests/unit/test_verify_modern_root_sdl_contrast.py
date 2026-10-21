@@ -14,8 +14,12 @@ import extract_menu_visual_language as atlas
 import verify_modern_root_sdl_contrast as audit
 
 
-def source_files(base: Path, wide: bool, ink: int = 200):
+def source_files(base: Path, wide: bool, ink: int = 200,
+                 uhd: bool = False):
+    if uhd and not wide:
+        raise ValueError("4K source preview is 342-wide")
     source_w, w, h, root_x, root_width = (
+        (342, 3840, 2160, 11, 320) if uhd else
         (342, 1280, 720, 11, 320) if wide
         else (256, 1024, 768, 8, 240))
     surface = bytearray(w * h * 4)
@@ -79,6 +83,24 @@ class NativeRootSdlContrastTests(unittest.TestCase):
                 self.assertFalse(observed["visual_approved"])
                 self.assertFalse(observed["hardware_approved"])
                 self.assertEqual(observed["release_gate_credit"], 0)
+
+    def test_4k_is_prospective_real_native_geometry_not_auto_approved(self):
+        # 4K source-side pixel admission is distinct from physical display
+        # or original artwork QA. A 342-wide host must be independently
+        # present in the real process log; a 256-wide source cannot pass
+        # simply by renaming its output to 3840x2160.
+        with tempfile.TemporaryDirectory() as td:
+            receipt, png, p7, log = source_files(Path(td), True, uhd=True)
+            observed = audit.verify_capture(receipt, png, p7, log)
+            self.assertEqual(observed["native_output"], [3840, 2160])
+            self.assertEqual(observed["native_source"], [342, 224])
+            self.assertFalse(observed["hardware_approved"])
+            with self.assertRaisesRegex(ValueError, "not recognized"):
+                bad = log.read_text().replace("raster=342x224", "raster=256x224")
+                log.write_text(bad)
+                receipt["native_process_log_sha256"] = hashlib.sha256(
+                    log.read_bytes()).hexdigest()
+                audit.verify_capture(receipt, png, p7, log)
 
     def test_real_old_screenshot_grey_fails_even_with_consistent_receipt(self):
         with tempfile.TemporaryDirectory() as td:

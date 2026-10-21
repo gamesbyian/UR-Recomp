@@ -90,6 +90,13 @@ def validate_strict(strict: dict) -> dict:
             raise ValueError("duplicate or unknown strict native case ID")
         seen.add(cid)
         (folder, route, pixels, canvas, root, png, p7, original, fnv) = STRICT[cid]
+        required_input = (
+            "native P1 title-route handler after capture, no physical pad"
+            if original is not None else
+            "scripted P1 semantic quit in same native process, no physical pad"
+        )
+        if (case.get("input") != required_input):
+            raise ValueError("strict input is not an observed physical controller: " + cid)
         if (case.get("acceptance_matrix_id") != cid or
                 case.get("route") != route or case.get("output") != list(pixels) or
                 case.get("logical_source") != list(canvas) or
@@ -106,6 +113,7 @@ def validate_strict(strict: dict) -> dict:
     if (not isinstance(result, dict) or
             result.get("original_PNG_P7_exact_matches") != 4 or
             result.get("original_source_title_P7_FNV_matches") != 2 or
+            result.get("distinct_actual_output_dimensions") != [[640,480],[1920,1080]] or
             result.get("full_25_case_matrix_approvals") != 0 or
             result.get("human_approved") is not False or
             result.get("physical_hardware_approved") is not False or

@@ -14,6 +14,8 @@
 
 **From October 21 onward:** publish new dated episodes as `PRODUCTION-DIARY-YYYY-MM-DD.md`, add each file to this index, and maintain the matching Cajun volume/episode where practical. Dates follow Calgary's local calendar with UTC offsets noted when cross-midnight execution matters. Do not quietly revise the retrospective chapters to imply later knowledge was available at the time; issue a dated correction or reconsideration.
 
+[**October 21 director narrative brief (verbatim excerpt)**](DIRECTOR-EXCERPT-2026-10-21-NARRATIVE-BRIEF.md) records the specific editorial correction and its source limitations.
+
 [**Conversation preservation protocol**](CONVERSATION-PRESERVATION-PROTOCOL.md) and [**episode provenance manifest**](EPISODE-PROVENANCE.json): source classes, safe exports, gaps in historical transcripts and links from each of the 71 episodes to recorded evidence leads.
 
 [**Editorial and future-update guide**](PRODUCTION-DIARY-EDITORIAL-GUIDE.md): voice, director presence, evidence hierarchy, daily 3–8-episode target when busy, source preflight, QA distinctions, attribution, cadence, backfills, parity and review checks.

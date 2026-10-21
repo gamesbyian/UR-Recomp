@@ -7,6 +7,7 @@ attract or can safely wake from it. The original guest supplies every marker.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -57,6 +58,86 @@ def verify_original_source_attract(log: str) -> list[dict[str, int | str]]:
     return markers
 
 
+# The source did not change; only the host briefly revealed original
+# 256px game pixels, and consumed a P1 wake before accepting a later A.
+def verify_source_driven_preview(log: str) -> list[dict[str, int | str]]:
+    if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
+        raise ValueError("preview missing real native game")
+    markers = [
+        {"phase": m[1], "frame": int(m[2]), "menu": m[3],
+         "race": m[4], "overlay_title": int(m[5])}
+        for m in MARKER.finditer(log)
+    ]
+    if (tuple(m["phase"] for m in markers) != EXPECTED or
+            [m["frame"] for m in markers] != [440, 943, 1532] or
+            [m["overlay_title"] for m in markers] != [1, 1, 0] or
+            markers[0]["menu"] != "d7" or markers[1]["menu"] != "84" or
+            markers[2]["race"] != "01"):
+        raise ValueError("preview source guest lifecycle mismatch")
+    required = (
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
+        "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600 race=01",
+        "UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=1640 root_unselected=1",
+        "UR_MODERN_TITLE_STOCK_ATTRACT separate_confirm=1 frame=1660",
+        "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
+        "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=1690 no_stock_route=1",
+    )
+    before = -1
+    for line in required:
+        if log.count(line) != 1 or log.find(line, before + 1) < 0:
+            raise ValueError("missing/duplicate/out-of-order original attract wake: " + line)
+        before = log.find(line, before + 1)
+    return markers
+
+
+def verify_original_guest_presentations(presented: Path) -> list[dict]:
+    """Actual after-host P6, not final SDL/window, across the source handoff."""
+    frame_path = presented / "presents.csv"
+    if not frame_path.is_file():
+        raise ValueError("missing native presented original stock screenshots")
+    with frame_path.open(newline="", encoding="utf-8") as fd:
+        rows = list(csv.DictReader(fd))
+    if not 30 <= len(rows) <= 140:
+        raise ValueError("unexpected stock preview native presentation count")
+    photos = {}
+    for i, row in enumerate(rows):
+        if int(row["present"]) != i:
+            raise ValueError("original stock presentation ordinal drift")
+        frame = int(row["frame"])
+        raw = (presented / f"present_{i:06d}.ppm").read_bytes()
+        m = re.match(rb"\AP6\n(\d+) (\d+)\n255\n", raw)
+        if not m:
+            raise ValueError("missing real native P6 image")
+        width, height = map(int, m.groups())
+        if (height != 224 or width not in (256, 342) or
+                len(raw) - m.end() != width * height * 3):
+            raise ValueError("wrong stock/Modern presented image geometry")
+        photos[frame] = (width, raw)
+    expected = ((1568, 256), (1584, 256), (1616, 342), (1696, 342))
+    for frame, width in expected:
+        if frame not in photos or photos[frame][0] != width:
+            raise ValueError(f"missing actual guest/host viewport witness at {frame}")
+    if photos[1568][1] == photos[1584][1]:
+        raise ValueError("original two-player demo image did not advance")
+    retained = []
+    for stage, frame in (("original-demo", 1584),
+                         ("restored-title", 1616),
+                         ("root", 1696)):
+        width, raw = photos[frame]
+        output = presented / f"native-{stage}.ppm"
+        output.write_bytes(raw)
+        retained.append({
+            "stage": stage, "guest_frame": frame, "width": width,
+            "height": 224, "sha256": hashlib.sha256(raw).hexdigest(),
+            "file": output.name,
+        })
+    return retained
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--exe", type=Path, required=True)
@@ -64,6 +145,8 @@ def main() -> int:
     p.add_argument("--script", type=Path, required=True)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--timeout", type=int, default=120)
+    p.add_argument("--preview-wake", action="store_true",
+                   help="opt-in source title/demo reveal with consumed real P1 wake")
     args = p.parse_args()
     if os.name != "nt":
         p.error("native original-guest attract requires real Windows AOT")
@@ -84,6 +167,11 @@ def main() -> int:
     cfg.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     env = dict(os.environ)
     env.pop("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", None)
+    if args.preview_wake:
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "19"
+        env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
+        presented = out / "presented"
+        presented.mkdir()
     env.update({
         "SDL_VIDEODRIVER": "dummy",
         "SDL_AUDIODRIVER": "dummy",
@@ -94,8 +182,23 @@ def main() -> int:
         "UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE": "1",
         "UR_REDUCED_MOTION": "0",
     })
+    if args.preview_wake:
+        env.update({
+            "SNESRECOMP_SCREENSHOT_DIR": str(presented),
+            "SNESRECOMP_SCREENSHOT_FROM": "0",
+            "SNESRECOMP_SCREENSHOT_TO": "1800",
+            "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
+        })
     cmd = [str(exe), "--no-launcher", "--config", str(cfg),
-           "--script", str(script), str(rom)]
+           "--script", str(script)]
+    if args.preview_wake:
+        # Keep the native screenshot path on the identical known working
+        # framedump invocation as ordinary title proof. Pixel dumps per
+        # frame are disabled; only requested native P6 presents are kept.
+        dump = out / "framedump"
+        dump.mkdir()
+        cmd.extend(("--framedump", str(dump)))
+    cmd.append(str(rom))
     try:
         run = subprocess.run(
             cmd, cwd=out, env=env, timeout=args.timeout,
@@ -107,7 +210,12 @@ def main() -> int:
     (out / "native-attract.log").write_text(log, encoding="utf-8")
     if run.returncode:
         raise ValueError(f"real Windows native attract process exited {run.returncode}")
-    observed = verify_original_source_attract(log)
+    observed = (
+        verify_source_driven_preview(log) if args.preview_wake
+        else verify_original_source_attract(log))
+    presented_receipt = (
+        verify_original_guest_presentations(presented)
+        if args.preview_wake else [])
     receipt = {
         "schema_version": 1,
         "candidate_executable_sha256": hashlib.sha256(binary).hexdigest(),
@@ -116,18 +224,22 @@ def main() -> int:
         "log_sha256": hashlib.sha256(log.encode("utf-8")).hexdigest(),
         "script_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
         "diagnostic_guest_writes": False,
-        "human_button_actions": 0,
+        "human_button_actions": 2 if args.preview_wake else 0,
+        "scripted_host_preview_only": args.preview_wake,
+        "native_stock_demo_and_wake_presentations": presented_receipt,
         "original_visual_demo_first_frame_reference": 1531,
         "native_post_frame_race_flag_first_observed": 1532,
-        "modern_host_title_remained_visible": True,
-        "original_attract_displayed": False,
-        "wake_input_tested": False,
+        "modern_host_title_remained_visible": not args.preview_wake,
+        "original_attract_displayed_on_native_P6": args.preview_wake,
+        "wake_input_tested": args.preview_wake,
         "final_sdl_capture": False,
         "release_gate_credit": 0,
     }
     (out / "native-attract-receipt.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     print("UR_MODERN_TITLE_GENUINE_ATTRACT_SOURCE=passed")
+    if args.preview_wake:
+        print("UR_MODERN_TITLE_ORIGINAL_P6_WAKE=passed")
     for m in observed:
         print(f"{m['phase']}={m['frame']}")
     return 0

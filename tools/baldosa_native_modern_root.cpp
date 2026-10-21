@@ -6,6 +6,7 @@
  * launch, Records callbacks, or route completeness for other destinations.
  */
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_native_destination_presenter.hpp"
 #include "modern_title_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
@@ -128,6 +129,9 @@ bool g_title_painted_reported = false;
 unsigned g_title_guest_frame = 0;
 bool g_title_intro_captured = false;
 bool g_title_root_captured = false;
+// Strictly opt-in preview, not yet the default stock-attract player path.
+bool g_original_attract_seen_main = false;
+bool g_original_attract_visible = false;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -231,6 +235,18 @@ std::string g_records_two_detail;
 bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
+// Receipt of the actually painted destination and source-root geometry.
+// Unchanged frames do not allocate or format debug messages.
+std::string g_last_native_destination_stage;
+struct NativeDestinationReceiptGeometry {
+    int raster_w = -1, raster_h = -1, x = -1, y = -1, w = -1, h = -1;
+    bool matches(int rw, int rh, ur::product::HostOverlayRect rect) const noexcept {
+        return raster_w == rw && raster_h == rh &&
+               x == rect.x && y == rect.y &&
+               w == rect.width && h == rect.height;
+    }
+};
+NativeDestinationReceiptGeometry g_last_native_destination_geometry{};
 // Native UI clock only, no guest or input simulation state.
 ur::product::ModernMenuMotionState g_native_menu_motion{};
 std::uint64_t g_native_menu_motion_root_presents = 0;
@@ -1019,12 +1035,15 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         !(fixture && *fixture && std::strcmp(fixture, "15") != 0 &&
         std::strcmp(fixture, "16") != 0 &&
         std::strcmp(fixture, "17") != 0 &&
-        std::strcmp(fixture, "18") != 0),
+        std::strcmp(fixture, "18") != 0 &&
+        std::strcmp(fixture, "19") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_painted_reported = false;
     g_title_intro_captured = false;
     g_title_root_captured = false;
+    g_original_attract_seen_main = false;
+    g_original_attract_visible = false;
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1111,7 +1130,35 @@ void confirm_modern_native_title() {
     }
 }
 
+void wake_original_stock_attract() {
+    // A wake is host-only. Keep the original demo running underneath;
+    // never forward, retype, rewind or modify the guest input/WRAM.
+    g_original_attract_visible = false;
+    g_visible = true;
+    g_title = ur::product::modern_title_boot(true, g_title.reduced_motion);
+    g_title.age = 40; // restored settled title, not a second opening flourish
+    g_title_logged = false;
+    g_title_painted_reported = false;
+    g_title_intro_captured = false;
+    g_title_root_captured = false;
+    g_render_reported = false;
+    std::fprintf(stderr,
+        "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=%u guest_writes=0\n",
+        g_title_guest_frame);
+}
+
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
+    // The authentic demo's first keyboard wake is always consumed. Unknown
+    // keyboard keys also restore the title, never reach the hidden guest.
+    if (g_original_attract_visible) {
+        const bool known = key == SDLK_UP || key == SDLK_DOWN ||
+            key == SDLK_RETURN || key == SDLK_ESCAPE || key == SDLK_x ||
+            key == SDLK_LEFT || key == SDLK_RIGHT;
+        if (!known) {
+            if (pressed) wake_original_stock_attract();
+            return 1;
+        }
+    }
     int action = 0;
     std::size_t physical = 0;
     switch (key) {
@@ -1129,6 +1176,10 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     // on SDL key-repeat; a new physical press is required.
     const bool first_press =
         g_navigation_edges.keyboard(physical, pressed != 0);
+    if (g_original_attract_visible) {
+        if (first_press) wake_original_stock_attract();
+        return 1; // retain actual physical latch across the wake
+    }
     if (!g_visible)
         return key == SDLK_ESCAPE && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
@@ -1150,6 +1201,11 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
 
 extern "C" int ur_baldosa_modern_root_gamepad(
     int player, int button, int pressed) {
+    if (g_original_attract_visible && player == 1) {
+        // Unjoined P2 may wake the title, but never choose a P1 destination.
+        if (pressed) wake_original_stock_attract();
+        return 1;
+    }
     if (player == 1 && g_visible && g_two_seat_join.open()) {
         int action = 0;
         std::size_t physical = 0;
@@ -1187,6 +1243,10 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     // P2 never owns this root. These latches do not alter the guest word.
     const bool first_press =
         g_navigation_edges.p1_gamepad(physical, pressed != 0);
+    if (g_original_attract_visible) {
+        if (first_press) wake_original_stock_attract();
+        return 1; // repeated/held physical down never launches Play
+    }
     if (!g_visible)
         return button == kGamepadBtn_B && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
@@ -1291,10 +1351,11 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
     if (!g_visible &&
-        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None)
+        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None) {
+        g_last_native_destination_stage.clear();
         return 0;
-    // Retain the stock 256x224 output and exact pitch. The HD/widescreen
-    // compositors own all other raster modes; no attempt to fake density.
+    }
+    // The host paints only the prepared 256/342 source; gameplay guest stays native.
     if (!dst || !field || (width != 256 && width != 342) || height != 224 ||
         pitch < static_cast<std::size_t>(width) * 4 ||
         pitch % 4 != 0) return 0;
@@ -1305,6 +1366,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     if (!g_visible) {
+        g_last_native_destination_stage.clear();
         g_native_menu_motion = {};
         g_native_menu_motion_root_presents = 0;
         return ur::product::render_baldosa_native_run_save_feedback(
@@ -1401,12 +1463,28 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     if (g_options.open) fill_options_view(view, option_text);
-    // Title and motion must share the same centred 4:3-safe focus rectangle.
-    const HostOverlayRect root_rect{(width - 240) / 2,10,240,204};
+    // Shared responsive shell and child use the same rectangle; the 60Hz
+    // root motion below uses that exact rectangle as well. Child state is
+    // hidden from only the presentation shell pass, never from product state.
+    const int panel_w = width == 342 ? 320 : 240;
+    const HostOverlayRect root_rect{(width - panel_w) / 2, 10, panel_w, 204};
+    const int stride = static_cast<int>(pitch / 4);
+    auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+    auto shell_view = view;
+    shell_view.practice_picker_open = false;
+    shell_view.practice_launch_pending = false;
+    shell_view.options_open = false;
+    shell_view.read_only_records_open = false;
+    shell_view.two_seat_join_open = false;
+    shell_view.first_racer_open = false;
+    shell_view.unbound_two_player_warning_open = false;
     const bool drawn = ur::product::render_modern_root_overlay(
-        painter, reinterpret_cast<std::uint32_t*>(dst),
-        static_cast<int>(pitch / 4), height, 1, 240, root_rect, view);
+        painter, pixels, stride, height, 1, panel_w, root_rect, shell_view);
+    if (drawn)
+        ur::product::render_modern_native_destination(
+            painter, pixels, stride, height, 1, panel_w, root_rect, view);
     if (drawn) {
+
         // Host-only motion overlays the existing focus row. Do not animate
         // through a modal, quit prompt or source guest handoff.
         const bool root_focus_visible = !view.quit_confirm &&
@@ -1490,6 +1568,24 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
 #endif
         }
         ++g_paint_count;
+        // Source-bound observation from the actual authoritative product
+        // view, after both shell and destination have been drawn. A return
+        // to the root or a real 256↔342 change emits a new receipt.
+        const char* stage = ur::product::modern_native_destination_stage(view);
+        if (g_last_native_destination_stage != stage ||
+            !g_last_native_destination_geometry.matches(width, height,
+                                                         root_rect)) {
+            g_last_native_destination_stage = stage;
+            g_last_native_destination_geometry = {
+                width, height, root_rect.x, root_rect.y,
+                root_rect.width, root_rect.height};
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_DESTINATION stage=%s "
+                "raster=%dx%d root=%d,%d,%d,%d "
+                "source=modern_product_view\n",
+                stage, width, height, root_rect.x, root_rect.y,
+                root_rect.width, root_rect.height);
+        }
         if (g_title_logged && !g_title_root_captured) {
             g_title_root_captured = true;
             capture_modern_title_native_frame(dst, pitch, width,
@@ -1692,7 +1788,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // This probe never switches host focus or writes/injects guest input.
     const char* attract_probe = std::getenv("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE");
     if (attract_probe && std::strcmp(attract_probe, "1") == 0 &&
-        configured() && g_visible && g_stock_target == -1) {
+        configured() && (g_visible || g_original_attract_visible) &&
+        g_stock_target == -1) {
         static unsigned stage = 0;
         const unsigned menu = g_ram[0x009fu];
         const unsigned race = g_ram[0x0313u];
@@ -1700,20 +1797,40 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             stage = 1;
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=%u menu=d7 race=%02x overlay_title=%d\n",
-                frame, race, ur::product::modern_title_active(g_title) ? 1 : 0);
+                frame, race, (g_visible && ur::product::modern_title_active(g_title)) ? 1 : 0);
         } else if (stage == 1 && menu == 0x84u && race != 1u) {
             stage = 2;
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=%u menu=84 race=%02x overlay_title=%d\n",
-                frame, race, ur::product::modern_title_active(g_title) ? 1 : 0);
+                frame, race, (g_visible && ur::product::modern_title_active(g_title)) ? 1 : 0);
         } else if (stage == 2 && race == 1u) {
             stage = 3;
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=%u menu=%02x race=01 overlay_title=%d\n",
-                frame, menu, ur::product::modern_title_active(g_title) ? 1 : 0);
+                frame, menu, (g_visible && ur::product::modern_title_active(g_title)) ? 1 : 0);
         }
     }
     ur_baldosa_modern_root_stock_observe_guest();
+    // The original guest's *observed* MAIN D7 -> TITLE 84 transition,
+    // not a guessed 503-frame timeout, gates experimental guest display.
+    // Guest inputs/WRAM are never synthesized; focus remains host-owned.
+    if (g_visible && g_stock_target == -1 &&
+        g_title.phase == ur::product::ModernTitlePhase::Intro) {
+        const unsigned source_menu = g_ram[0x009fu];
+        const bool guest_in_race = g_ram[0x0313u] == 1u;
+        if (!guest_in_race && source_menu == 0xd7u)
+            g_original_attract_seen_main = true;
+        const char* preview = std::getenv("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW");
+        if (g_original_attract_seen_main && !guest_in_race &&
+            source_menu == 0x84u && preview &&
+            std::strcmp(preview, "1") == 0) {
+            g_original_attract_visible = true;
+            g_visible = false;
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=%u menu=84 focus=host guest_writes=0\n",
+                frame);
+        }
+    }
     if (g_visible && ur::product::modern_title_active(g_title)) {
         g_title = ur::product::modern_title_advance(g_title);
         if (!ur::product::modern_title_active(g_title) && !g_title_logged) {
@@ -1789,12 +1906,13 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."18"; 15-18 retain the title.
+    // Smoke modes are decimal "1".."19"; 15-19 retain the title.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
-        if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 18) return;
+        if ((!g_visible && !g_original_attract_visible) ||
+            !opt || !parse_end || *parse_end != '\0' ||
+            mode < 1 || mode > 19) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2027,6 +2145,43 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=%u\n", frame);
         return;
     }
+    // CI-only mode 19: source-driven opt-in ORIGINAL demo to Modern title
+    // wake, through the REAL existing P1 semantic handler. One wake edge
+    // cannot select the root; only a separate later physical A may confirm.
+    if (std::strcmp(opt, "19") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible || g_visible ||
+                g_ram[0x0313u] != 1u ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !g_visible || !ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=%u race=01\n", frame);
+        } else if (frame == 1602) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1640) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || g_confirm_quit || g_records_open)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=%u root_unselected=1\n", frame);
+        } else if (frame == 1660) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT separate_confirm=1 frame=%u\n", frame);
+        } else if (frame == 1690) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || g_confirm_quit || g_records_open)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=%u no_stock_route=1\n", frame);
+        }
+        return;
+    }
     // CI-only mode 18: keep the ACTUAL P1 A physical edge held across
     // the title->root handoff. A repeated down is deliberately delivered to
     // the real root handler at frame80. It must be consumed without opening
@@ -2245,7 +2400,7 @@ extern "C" int ur_baldosa_modern_root_pause_options_draw(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     fill_options_view(view, option_text);
-    return ur::product::render_native_modern_pause_options(
+    return ur::product::render_modern_native_pause_destination(
         painter, reinterpret_cast<std::uint32_t*>(pixels),
         static_cast<int>(pitch / 4), width, height, view) ? 1 : 0;
 }

@@ -39,6 +39,7 @@ on:
       - "native/product/baldosa_native_first_profile.hpp"
       - "native/product/baldosa_native_second_profile.hpp"
       - "native/product/modern_root_overlay_presenter.hpp"
+      - "native/product/modern_native_destination_presenter.hpp"
       # Direct visual-input headers: a change alters the compiled Windows
       # Modern root even without changing the staging .cpp translation unit.
       - "native/product/modern_menu_motion.hpp"
@@ -403,6 +404,16 @@ jobs:
             --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
             --out "$RUNNER_TEMP/modern-title-native-original-attract-pr2043" \
             --timeout 140
+          # Opt-in, TEST-ONLY original demo P6 reveal, followed by the
+          # *real* P1 button wake and a deliberately separate confirm edge.
+          # This is NOT the default frontend or an SDL/physical signoff.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --preview-wake \
+            --out "$RUNNER_TEMP/modern-title-native-attract-preview-pr2043" \
+            --timeout 140
           python tools/verify_baldosa_modern_title_authentic_inert.py \
             --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
@@ -425,6 +436,13 @@ jobs:
             ${{ runner.temp }}/modern-title-native-held-pr2043
             ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract.log
             ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/native-root.ppm
             ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-timeout.txt
             ${{ runner.temp }}/modern-title-authentic-inert-pr2043
           if-no-files-found: warn

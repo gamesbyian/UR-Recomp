@@ -25,6 +25,8 @@ Use:
 
 Do not manufacture clock times or imply live monitoring when source records only establish dates. Distinguish **event time, evidence publication time and diary editorial time** if they differ. A backfilled episode must be labeled reconstructed and should not pretend it was written as events unfolded.
 
+For authentic source preservation and transcript completeness, follow [the conversation protocol](CONVERSATION-PRESERVATION-PROTOCOL.md) and maintain [the episode index](EPISODE-PROVENANCE.json). Do not imply that merely updating the guide creates scheduled capture or access to other agent sessions.
+
 ## 3. Required investigation before writing
 
 1. Read `AGENTS.md`, latest `docs/WORK-QUEUE.md`, active release ledger and relevant specialty authorities *for factual boundaries only*; historical documentation is not a task assignment.

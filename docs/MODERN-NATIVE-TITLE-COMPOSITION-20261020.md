@@ -541,3 +541,35 @@ presented original demo P6 plus final SDL capture is required to assert the
 visible start frame. Do not replace this observed +1 boundary with a guessed
 timeout. Original run's diagnostic ZIP SHA256:
 `818cf7380a5b1ddb52d718d7218cb18b9ef1ebe9e572089d2d1f039225811297`.
+
+## Test-only true stock-demo reveal/wake candidate
+
+After native frame440 MAIN / frame943 attract-title / frame1532 post-frame
+race-flag were independently observed, the title lane prepared **a strictly
+opt-in preview**, `UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW=1`, never enabled
+by default. In that preview only, the host watches the actual guest MAIN D7
+followed by authentic title 84 and *releases title overlay painting* to show
+the original game's actual 256-wide framebuffer. It keeps host input focus
+and **never changes guest state or queues demo inputs**. Any first recognised
+P1/P2 or keyboard wake is consumed and restores the settled Modern title;
+a held P1 A remains latched and cannot also confirm Play. Only a genuinely
+separate press may transition to the five-way root.
+
+The additional CI-only route 19 drives original guest source to the real
+two-player demo, wakes via the actual P1 semantic gamepad handler at frame
+1600, checks the title still owns the UI at frame 1640 and performs a fresh
+confirmation at 1660; the original root must own the view by 1690. A
+**genuine P6 native host screenshot witness**, not a synthetic rendering,
+requires moving 256×224 original demo at 1568/1584, 342×224 restored title
+at 1616, and 342×224 root at 1696. Only the four chosen P6 image
+samples, process log, CSV and hash receipt are retained, not transient
+anonymous guest saves or a ROM. The source-marker observer explicitly
+distinguishes *host title visible* from *its stale title phase stored in
+memory*.
+
+This is an experiment pending the first same-executable Windows run and
+separate independent **SDL final drawable / physical controller** checks;
+it does NOT establish the real consumer-default attract behavior, UX of
+the still-running guest after wake, 1P Play eligibility while a demo is
+running, independent P2 hardware behavior or final title art approval.
+Until those gates pass, the product defaults to the existing host title.

@@ -87,6 +87,9 @@ class TitleSourceArchiveTests(unittest.TestCase):
             log = first + transition + source_event + saved
         receipt = {
             "native_semantic_route":route,
+            "execution_mode":"modern",
+            "native_route_marker_observed":True,
+            "authentic_isolation_approved":False,
             "actual_sdl_renderer_output":[w,h],
             "observed_in_draw":capture_draw,
             "png_sha256":sha(png),

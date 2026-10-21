@@ -21,6 +21,15 @@ STOCK_VIEWS = {
     (256, 224): (8, 10, 240, 204),
     (342, 224): (11, 10, 320, 204),
 }
+# Calibrated Windows output sizes, including an optional 4K resolution.
+# Source layout must STILL be attested independently by the real host log;
+# a 4K output alone does not prove 342-wide source or a physical display.
+OUTPUT_SIZES = {
+    (1024, 768): (256, 224),
+    (1280, 720): (342, 224),
+    (3840, 2160): (342, 224),
+}
+MAX_CAPTURE_PNG_BYTES = 64 * 1024 * 1024
 ROOT_LINE = re.compile(
     r"UR_BALDOSA_MODERN_DESTINATION stage=root "
     r"raster=(\d+)x(\d+) root=(\d+),(\d+),(\d+),(\d+)\b"
@@ -76,8 +85,8 @@ def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
             type(x) is not int or not 1 <= x <= 4096 for x in dims):
         raise ValueError("invalid native SDL output size")
     width, height = dims
-    if (width, height) not in ((1024, 768), (1280, 720)):
-        raise ValueError("check only calibrated native 4:3 and 16:9 sizes")
+    if (width, height) not in OUTPUT_SIZES:
+        raise ValueError("check only calibrated native 4:3, 16:9 and 4K sizes")
     for key, data in (("png_sha256", png), ("p7_sha256", p7),
                       ("native_process_log_sha256", log)):
         if not isinstance(receipt.get(key), str) or (
@@ -103,10 +112,13 @@ def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
         raise ValueError("native log mixes source root geometry")
     source_w, source_h, rx, ry, rw, rh = geometries.pop()
     expected = STOCK_VIEWS.get((source_w, source_h))
-    if expected is None or (rx, ry, rw, rh) != expected:
-        raise ValueError("source root geometry not recognized")
+    if (expected is None or (source_w, source_h) !=
+            OUTPUT_SIZES[(width, height)] or
+            (rx, ry, rw, rh) != expected):
+        raise ValueError("source root geometry not recognized for SDL output")
     native_rgba = read_p7_rgba(p7, width, height)
-    converted_rgba = read_png_rgba(png, width, height)
+    converted_rgba = read_png_rgba(
+        png, width, height, max_png_bytes=MAX_CAPTURE_PNG_BYTES)
     if native_rgba != converted_rgba:
         raise ValueError("PNG pixels differ from original native SDL P7")
     # Fit host source-pixel UI rectangle to actual SDL dimensions. This

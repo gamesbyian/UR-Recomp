@@ -37,6 +37,18 @@ On [title PR #2043](https://github.com/gamesbyian/UR-Recomp/pull/2043) source `5
 
 Independent byte-by-byte P7 source RGB vs P6 native host presentation comparisons gave **19,278/19,278 exact retail logo-region pixels** and **30,956/30,956 exact root interior pixels**, in all four capture cases. The `source_match_fraction=1.0` in title's producer receipt refers only to these bounded **ROIs**. On every complete source-vs-presented raster there are precisely **528 mismatched RGB pixels**, limited to x2..45, y2..13, consistent with the pinned host's small post-source diagnostic OSD: full-frame equality is therefore **76,080/76,608** at 342×224 or **56,816/57,344** at 256×224. Do not silently convert a 100% ROI score to a claim that every output pixel equals the source; the independent score explicitly retains and scopes the 528 present-only diagnostic pixels. Exact frame numbers, logical dimensions, hashes and zero-gate boundaries are in [`analysis/evidence/modern-title-native-host-roi-independent-20261020.json`](../analysis/evidence/modern-title-native-host-roi-independent-20261020.json).
 
+For repeatable acceptance of the two **separately downloaded, original GitHub artifacts** without relying on the producer's green verdict, run the independent read-only ZIP verifier:
+
+```sh
+python3 tools/qa_modern_title_native_artifact_audit.py \
+  --title-artifact modern-title-native-source-pr2043.zip \
+  --candidate-artifact baldosa-modern-windows-x64-romless-candidate.zip \
+  --report /tmp/modern-title-original-native-audit.json
+python3 -m unittest tests.unit.test_qa_modern_title_native_artifact_audit
+```
+
+The verifier binds the archive source rasters and host-presented frames to the **same actual AMD64 PE** extracted from the nested candidate ZIP, checks exact retail-logo/root-interior RGB pixels across gamepad/keyboard, 4:3/16:9 and reduced-motion journeys, refuses undocumented differences outside the known OSD bounds, and independently compares the two visible Authentic stock frames. It reports 0 gate credit and does not confuse host pre-SDL PPM with the consumer's final SDL presentation. Tests intentionally forge ROI pixel changes, non-OSD ink, bad PE architecture, missing root frames and altered Authentic captures.
+
 This establishes a real title→root native handoff with authentic original title artwork in the host's raster, including 4:3, keyboard and reduced-motion routes. It is **not** a final SDL drawable screenshot or 342-wide combined Modern menu with #2038/#2040/#2042 integrated. The source-derived styling, resolved shared geometry and physical-device/human appearance gates remain pending, with **0/25** final redesign acceptance cases.
 
 ## Three-project reuse preflight

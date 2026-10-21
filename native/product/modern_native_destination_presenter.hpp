@@ -159,17 +159,18 @@ inline void modern_native_destination_row(
     std::string_view text) {
     const auto& color = kModernStockMenuPalette;
     if (selected) {
-        p.fill_rect(pixels, stride, surface_height,
-                    c.x + 5 * c.scale, c.y + (y - 3) * c.scale,
-                    c.w - 10 * c.scale, 13 * c.scale, color.cursor_blue);
-        p.stroke_rect(pixels, stride, surface_height,
-                      c.x + 5 * c.scale, c.y + (y - 3) * c.scale,
-                      c.w - 10 * c.scale, 13 * c.scale, color.shadow_black);
+        // Share the root's source-measured blue arrow and dark focus field,
+        // rather than a contradictory cyan slab/black selected label.
+        // Only presentation changes; the product view still owns selection.
+        modern_menu_paint_focus_band(
+            p, pixels, stride, surface_height,
+            c.x + 5 * c.scale, c.y + (y - 3) * c.scale,
+            c.w - 10 * c.scale, 13 * c.scale, c.scale);
     }
     modern_native_destination_line(
         p, pixels, stride, surface_height, c, y,
         std::string(selected ? "> " : "  ") + std::string(text),
-        selected ? color.shadow_black : 0xFFFFFFFFu);
+        selected ? color.title_yellow : 0xFFFFFFFFu);
 }
 
 // Compact seat labels must not let a long catalog name push the important

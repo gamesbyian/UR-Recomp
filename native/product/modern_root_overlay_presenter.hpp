@@ -120,6 +120,16 @@ inline void render_modern_options_modal(
     std::uint32_t* pixels, int stride, int surface_height,
     int scale, int panel_w, int x, int y,
     const ModernRootOverlayView& view) {
+    // This helper is public: future paused-game callers need the same
+    // no-partial-render contract as the full root. Its body extends to
+    // logical y+180 and logical x+panel_w-12. Validate before callbacks.
+    if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
+        stride > 16384 || surface_height > 16384 ||
+        scale < 1 || scale > 4 || panel_w <= 40 || panel_w > 512 ||
+        x < 0 || y < 0 || x > stride || y > surface_height ||
+        panel_w * scale > stride - x ||
+        180 * scale > surface_height - y)
+        return;
     const auto& palette = kModernStockMenuPalette;
         const int bx = x + 12 * scale, by = y + 43 * scale;
         const int bw = (panel_w - 24) * scale, bh = 137 * scale;

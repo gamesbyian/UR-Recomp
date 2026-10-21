@@ -75,10 +75,14 @@ def verify_events(events: list[dict[str, int]], original: dict,
         cumulative.append(cumulative[-1] + delta)
     sessions = []
     current: list[dict[str, int]] = []
+    # Reduced motion finishes an already visible source entrance. Turning
+    # motion back on must not falsely replay it, per live C++ state contract.
+    intro_suppressed = False
     for event in events:
         if event["ordinal"] == 0 and current:
             sessions.append(current)
             current = []
+            intro_suppressed = False
         expected = len(current)
         if event["ordinal"] != expected:
             raise ValueError("missing, duplicate or out-of-order root draw ordinal")
@@ -92,12 +96,18 @@ def verify_events(events: list[dict[str, int]], original: dict,
         expected_x, expected_w = ((8, 240) if width == 256 else (11, 320))
         if (event["root_x"], event["root_w"]) != (expected_x, expected_w):
             raise ValueError("focus animation rectangle differs from native root")
+        if current and (width, height, expected_x, expected_w) != (
+                current[0]["surface_w"], current[0]["surface_h"],
+                current[0]["root_x"], current[0]["root_w"]):
+            raise ValueError("native root capture changed physical geometry mid-session")
         if current and event["tick60"] != current[-1]["tick60"] + 1:
             raise ValueError("native root animation failed one-tick-per-draw cadence")
         if event["spin"] != (event["tick60"] // 2) % 16:
             raise ValueError("stock 32-tick cursor spin phase disagrees with source")
         age = min(expected, 39)
-        measured_entrance = 0 if event["reduced"] else 256 - cumulative[age]
+        intro_suppressed = intro_suppressed or bool(event["reduced"])
+        measured_entrance = (
+            0 if intro_suppressed else 256 - cumulative[age])
         if event["entrance"] != measured_entrance:
             raise ValueError("root entrance phase mismatches original 39-tick scroll")
         # No layout/guest command inferred from menu selection. For an

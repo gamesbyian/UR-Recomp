@@ -4,6 +4,9 @@
 
 ## Start reading
 
+**New narrative entrance:** [**The Human, the Agents, and the Riderless Wheel**](THE-HUMAN-THE-AGENTS-AND-THE-WHEEL-2026-10-21.md) is an editorial overture for readers who want the *story* first: Ian's delight, confessed competitiveness, visual taste, relentless directions to the agents, the agents' fallibility and the uncompleted game. It is retrospective and source-qualified, not an invented eyewitness account or a replacement for the technical chronology.
+
+
 | Canonical chronological edition | Corresponding bayou edition |
 | --- | --- |
 | [Volume I: Excavation and the First Product, 28 September–10 October](PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md) — entries **01–39** | [Volume I, Bayou Edition](PRODUCTION-DIARY-CAJUN-REBUILT-2026-09-28-TO-2026-10-10.md) — entries **01–39** |
@@ -26,6 +29,9 @@ The original [early first-week narrative](PRODUCTION-DIARY-2026-09-28-TO-2026-10
 Preserved user-agent conversation collections are primary context when available, but most later collections are explicitly **reconstructed summaries**, not verbatim messages or complete unseen sessions. Useful entry points include [October 11–12](PROJECT-CONVERSATIONS-2026-10-11-TO-2026-10-12-RECONSTRUCTED.md), [October 14–17](PROJECT-CONVERSATIONS-2026-10-14-TO-2026-10-17-RECONSTRUCTED.md), [October 18–19](PROJECT-CONVERSATIONS-2026-10-18-TO-2026-10-19-RECONSTRUCTED.md) and [October 20](PROJECT-CONVERSATIONS-2026-10-20-RECONSTRUCTED.md). The October 5 topic-specific conversation archives also remain under `prod_diary/`.
 
 ## Reader's bearings
+
+**Two ways to read:** begin with the narrative overture for character, tension and human stakes, then read Volumes I–II for the dated engineering and production story. The [archival diaries and conversation sources](#what-is-preserved) preserve the granular evidence. The diary should be an enjoyable book *and* an auditable historical record, with neither ambition erasing the other.
+
 
 The game: *Uniracers* (known as *Unirally* in other regions), a SNES game built around riderless unicycle racing and stunt play. The objective: make a Windows-first, later potentially cross-platform, genuinely modern 4K widescreen version without modifying original gameplay rules. The method: original-ROM archaeology, native recompilation and reuse, source-bound execution comparisons, modern host-side presentation and product state, independent release QA, and a human director orchestrating autonomous agents.
 

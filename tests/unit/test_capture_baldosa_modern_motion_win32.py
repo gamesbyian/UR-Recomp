@@ -21,13 +21,34 @@ import capture_baldosa_modern_motion_win32 as capture
 import verify_modern_menu_motion_capture as proof
 
 
-def simulated_original_menu_receipts(count: int = 48) -> str:
+def simulated_original_menu_receipts(
+        count: int = 48, scripted_navigation: bool = False) -> str:
     source = json.loads(proof.SOURCE.read_text(encoding="utf-8"))
     steps = source["transition_main_to_options"]["enter_velocity_px_per_frame"]
     lines = ["UR_BALDOSA_MODERN_ROOT opened=1"]
+    selected, origin_y, selection_tick = 0, 0, 0
     for i in range(count):
-        stamp = dict(ordinal=i, tick60=i, selection=0,
-                     spin=(i // 2) % 16, offset=0,
+        if scripted_navigation and i in (60, 61, 62):
+            chosen = i - 59
+            old_y = selected * 21
+            elapsed = min(12, i - selection_tick)
+            if origin_y != old_y and elapsed < 12:
+                elapsed += 1
+            old_display_y = old_y + proof.measured_cursor_offset(
+                origin_y - old_y, elapsed,
+                source["cursor"]["move_y_per_frame"])
+            origin_y = old_display_y
+            selected = chosen
+            selection_tick = i
+            lines.append(f"UR_BALDOSA_MODERN_ROOT selected={chosen}")
+        age = min(12, i - selection_tick)
+        if origin_y != selected * 21 and age < 12:
+            age += 1
+        offset = proof.measured_cursor_offset(
+            origin_y - selected * 21, age,
+            source["cursor"]["move_y_per_frame"])
+        stamp = dict(ordinal=i, tick60=i, selection=selected,
+                     spin=(i // 2) % 16, offset=offset,
                      entrance=256 - sum(steps[:min(i, 39)]), reduced=0,
                      root_x=8, root_w=240, surface_w=256,
                      surface_h=224, painted=1)
@@ -83,6 +104,39 @@ class WindowsModernMenuMotionNativeReceiptTests(unittest.TestCase):
             self.assertEqual(
                 json.loads((out / "motion-native-draw-receipt.json").read_text())
                     ["native_draw_count"], 48)
+
+    def test_existing_native_keyboard_navigation_paints_three_real_focus_rows(self):
+        # All rows here are SYNTHETIC unit data, not actual Win32 proof.
+        # The real bridge runs this same mode inside the actual Windows PE.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            exe, rom, out = root/"game.exe", root/"game.sfc", root/"navigation"
+            exe.write_bytes(b"not-real-game")
+            rom.write_bytes(b"not-real-rom")
+            seen = []
+            def fake_run(command, *, cwd, env, timeout, text, capture_output, errors):
+                seen.append(env.copy())
+                return SimpleNamespace(returncode=0,
+                    stdout=simulated_original_menu_receipts(
+                        count=120, scripted_navigation=True), stderr="")
+            with patch.object(capture, "validate_paths",
+                              return_value=("b" * 64, capture.USA_SHA256)):
+                with patch.object(capture.subprocess, "run", side_effect=fake_run):
+                    receipt = capture.run_native(
+                        exe, rom, out, timeout=60, scripted_navigation=True)
+            self.assertEqual(receipt["native_draw_count"], 120)
+            self.assertTrue(receipt["scripted_navigation"])
+            self.assertEqual(receipt["scripted_keyboard_edges"], 3)
+            self.assertFalse(receipt["physical_controller_tested"])
+            self.assertEqual(seen[0]["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "1")
+            self.assertEqual(seen[0][
+                "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME"], "62")
+            records = proof.parse_log((out / "native-game.log").read_text())
+            self.assertEqual(records[-1]["selection"], 3)
+            self.assertTrue(any(event["offset"] < 0 for event in records))
+            self.assertEqual(receipt["session_count"], 1)
+            self.assertEqual(receipt["sessions"][0]["root_width"], 240)
+            self.assertIn("physical controller navigation", receipt["not_proven"])
 
     def test_missing_source_root_and_partial_motion_cannot_pass(self):
         with tempfile.TemporaryDirectory() as tmp:

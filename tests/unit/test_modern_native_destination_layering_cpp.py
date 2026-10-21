@@ -44,7 +44,7 @@ class ModernNativeDestinationLayeringTest(unittest.TestCase):
             run = subprocess.run([str(binary)], capture_output=True, text=True)
             self.assertEqual(run.returncode, 0,
                              run.stdout + run.stderr)
-            self.assertEqual(run.stdout.count("occlusion "), 10)
+            self.assertEqual(sum(line.startswith("occlusion ")\n                                 for line in run.stdout.splitlines()), 10)
             self.assertIn("PASS: destination occlusion", run.stdout)
 
 

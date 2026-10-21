@@ -349,10 +349,27 @@ inline bool render_modern_native_destination(
             if (!context.empty()) context += "  /  ";
             context += modern_native_display_caps(v.practice_kind_label);
         }
-        modern_native_destination_line(
-            p, pixels, stride, surface_height, c, 63,
-            v.practice_launch_pending ? "WAIT FOR GO" : context,
-            0xFFFFFFFFu);
+        if (c.wide && !v.practice_launch_pending &&
+            !v.practice_kind_label.empty()) {
+            // The two source-owned course dimensions get independent
+            // columns. Keep the stock tour string fully visible when it
+            // fits; visually mark only overlong labels as truncated.
+            const std::string tour = modern_native_destination_fit(
+                "TOUR  " + modern_native_display_caps(v.practice_tour_name),
+                20);
+            modern_native_destination_line(
+                p, pixels, stride, surface_height, c, 63,
+                tour, 0xFFFFFFFFu);
+            modern_native_destination_line(
+                p, pixels, stride, surface_height, c, 63,
+                modern_native_display_caps(v.practice_kind_label),
+                0xFFFFFFFFu, 183);
+        } else {
+            modern_native_destination_line(
+                p, pixels, stride, surface_height, c, 63,
+                v.practice_launch_pending ? "WAIT FOR GO" : context,
+                0xFFFFFFFFu);
+        }
         const std::string unlocked =
             v.practice_courses_open > 1
             ? std::to_string(v.practice_courses_open) +

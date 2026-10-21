@@ -182,6 +182,50 @@ jobs:
             ${{ runner.temp }}/ur-integrated-viewport-*/probe_first/original-native-source/modern-native-title-*.pam
           if-no-files-found: warn
           retention-days: 7
+      - name: Verify real source-ticked Modern root accent and pixel-stable reduced motion
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # Four new *native game* processes; no synthetic guest RAM/input or
+          # duplicate renderer. Pin 0/10 source ticks without affecting SNES.
+          for spec in normal_tick0:0:0 normal_tick10:10:0 \
+                      reduced_tick0:0:1 reduced_tick10:10:1; do
+            key="${spec%%:*}"
+            rest="${spec#*:}"
+            tick="${rest%%:*}"
+            reduced="${rest#*:}"
+            OUT="$RUNNER_TEMP/ur-integrated-motion-$key"
+            UR_MODERN_MENU_TEST_TICK60="$tick" UR_REDUCED_MOTION="$reduced" \
+              python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$OUT" --video windows --timeout 100 \
+              --window-size 1280x720 --route root-quit
+            test -s "$OUT/probe_first/actual-sdl-drawable.pam"
+            test -s "$OUT/probe_first/native-process.log"
+            test -s "$OUT/readback-receipt.json"
+            test -s "$OUT/actual-sdl-drawable.png"
+          done
+          python tools/qa_modern_root_motion_sdl_pixels.py \
+            --normal-tick0 "$RUNNER_TEMP/ur-integrated-motion-normal_tick0/probe_first/actual-sdl-drawable.pam" \
+            --normal-tick10 "$RUNNER_TEMP/ur-integrated-motion-normal_tick10/probe_first/actual-sdl-drawable.pam" \
+            --reduced-tick0 "$RUNNER_TEMP/ur-integrated-motion-reduced_tick0/probe_first/actual-sdl-drawable.pam" \
+            --reduced-tick10 "$RUNNER_TEMP/ur-integrated-motion-reduced_tick10/probe_first/actual-sdl-drawable.pam" \
+            --report "$RUNNER_TEMP/ur-integrated-motion-source-pixel-audit.json"
+          echo "Win32 SDL normal source marker moves only in focus ROI; reduced-motion source canvas remains byte-exact for tick changes." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain unmodified 4-way Windows root motion and reduced native SDL P7
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-root-motion-reduced-fourway
+          path: |
+            ${{ runner.temp }}/ur-integrated-motion-*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-integrated-motion-*/readback-receipt.json
+            ${{ runner.temp }}/ur-integrated-motion-*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-integrated-motion-*/probe_first/native-process.log
+            ${{ runner.temp }}/ur-integrated-motion-source-pixel-audit.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Capture native widescreen and fallback Windows output on SAME exact PE
         run: |
           set -euo pipefail

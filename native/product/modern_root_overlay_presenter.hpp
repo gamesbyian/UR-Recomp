@@ -203,11 +203,14 @@ inline void render_modern_options_modal(
                                         modern_overlay_text_cells(
                                             kValueColumn - 12)).c_str(),
                                     colour, scale);
-                    paint.draw_text(pixels, stride, surface_height,
-                                    bx + kValueColumn * scale, row_y,
-                                    fit_modern_overlay_text(
-                                        value, value_cells).c_str(),
-                                    colour, scale);
+                    // Action rows can legitimately have no value. Do not
+                    // issue an empty-glyph draw on the right column.
+                    if (!value.empty())
+                        paint.draw_text(pixels, stride, surface_height,
+                                        bx + kValueColumn * scale, row_y,
+                                        fit_modern_overlay_text(
+                                            value, value_cells).c_str(),
+                                        colour, scale);
                 } else {
                     // Preserve the original compact 4:3 string and spacing.
                     std::string label(row.label);

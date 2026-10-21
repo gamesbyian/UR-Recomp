@@ -14,7 +14,7 @@ using namespace ur::product;
 
 namespace {
 std::vector<std::string> text_seen;
-struct PaintedText { int x, y, size; std::size_t cells; };
+struct PaintedText { int x, y, size; std::size_t cells; std::uint32_t colour; };
 std::vector<PaintedText> painted_text;
 struct Rectangle {int x,y,w,h; std::uint32_t colour;};
 std::vector<Rectangle> painted;
@@ -23,10 +23,10 @@ void fill(std::uint32_t*, int, int, int x, int y, int w, int h,
 void stroke(std::uint32_t*, int, int, int x, int y, int w, int h,
             std::uint32_t colour) { painted.push_back({x,y,w,h,colour}); }
 void draw(std::uint32_t*, int, int, int x, int y, const char* str,
-          std::uint32_t, int size) {
+          std::uint32_t colour, int size) {
     // Preserve actual text/scale and catch glyph overdraw on both surfaces.
     text_seen.emplace_back(str);
-    painted_text.push_back({x,y,size,std::string(str).size()});
+    painted_text.push_back({x,y,size,std::string(str).size(),colour});
     assert(x >= 0 && y >= 0 && size > 0);
 }
 bool has(std::string_view text) {
@@ -249,6 +249,13 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
     assert(has("> VSYNC    < ON >"));
+    // The 4:3 child uses the SAME stock-blue field / yellow selected label
+    // visual contract as the native root, not the former cyan-black slab.
+    assert(std::any_of(painted.begin(), painted.end(),
+        [](const Rectangle& b) { return b.colour == 0xE0283058u; }));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) { return t.colour ==
+            kModernStockMenuPalette.title_yellow && t.cells > 14; }));
     assert(has("SAVED") && has("OPTIONS"));
     assert(!has("SETTINGS")); // compact renderer keeps its source-width title
     assert(has("L/R CHANGE   B BACK"));

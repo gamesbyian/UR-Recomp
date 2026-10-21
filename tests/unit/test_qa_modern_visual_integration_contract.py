@@ -261,6 +261,35 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
                       result["missing_native_integration_hooks"])
         self.assertFalse(result["eligible_for_native_acceptance_run"])
 
+    def test_partial_rom_digest_must_not_block_native_title_capture(self):
+        # Regression against a real failed original Windows source probe:
+        # a truncated hardcoded digest rejects the correct canonical ROM
+        # before any SDL scene can execute. The QA lane does not edit the
+        # title owner's capture producer.
+        path = self.root / "tools/capture_modern_title_entry_sdl_win32.py"
+        path.write_text(
+            'USA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa97bd6ed478"\n',
+            encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertIn("title_sdl_capture_incomplete_canonical_rom_digest",
+                      result["known_host_geometry_conflicts"])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+        self.assertFalse(result["native_executed"])
+        self.assertEqual(result["release_gate_credit"], 0)
+
+        # A complete canonical digest is permitted. An owner may equally
+        # import it from its existing shared source rather than hardcode it.
+        path.write_text(
+            'USA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"\n',
+            encoding="utf-8")
+        self.assertTrue(check.inventory(self.root)["eligible_for_native_acceptance_run"])
+
+    def test_title_capture_tool_symlink_is_not_an_integration_witness(self):
+        path = self.root / "tools/capture_modern_title_entry_sdl_win32.py"
+        path.symlink_to(self.root / "tools/baldosa_native_modern_root.cpp")
+        self.assertIn("title_sdl_capture_tool_redirected",
+                      check.inventory(self.root)["known_host_geometry_conflicts"])
+
     def test_missing_source_module_and_symlink_rejected(self):
         file = self.root / "native/product/modern_title_presenter.hpp"
         file.unlink()

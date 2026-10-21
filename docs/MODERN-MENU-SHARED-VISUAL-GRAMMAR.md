@@ -109,6 +109,23 @@ Used the source-grounded [reuse register](../analysis/three-project-reuse-opport
 - **malmazuke PAL:** existing `src/app/frontend.cpp` is a cross-project semantic/reference candidate, not a matched USA menu art or shipping host component; PAL-native implementation and map cannot certify menu raster provenance. No code/assets imported.
 - **Decision:** extend first-party host-presentation seam without new dependencies or copying game assets; stop at a small testable component family.
 
+## Image-level native SDL checker contrast admission
+
+The independent `tools/verify_modern_root_sdl_contrast.py` tests the **captured output pixels**, not merely C++ palette definitions:
+
+```sh
+python3 tools/verify_modern_root_sdl_contrast.py \
+  --receipt path/to/readback-receipt.json \
+  --png path/to/actual-sdl-drawable.png \
+  --p7 path/to/actual-sdl-drawable.pam \
+  --native-log path/to/native-process.log \
+  --out local-root-contrast-receipt.json
+```
+
+It accepts only the independently archived **1024×768 / 1280×720** Windows SDL readbacks and their actual 256×224/root 240×204 or 342×224/root 320×204 native geometry markers. The PNG, original unmodified P7 bytes and native process log must all match the receipt's SHA256 values; PNG pixels must **exactly equal the raw P7 RGBA bytes**. It checks the screen-captured racer-identity line at the observed 8px source cell band, requires real opaque foreground pixels above two checker tones, computes proper sRGB luminance for the worst background square, and rejects text below **4.5:1**. It rejects the old native #989898 and accepts the expected updated #C8C8C8 **only if it actually appears in the submitted native output**. Adversarial ROM-free tests cover old colours, forged hashes/P7, noncanonical source geometry, missing SDL readback logs, malformed trailing pixels and approval flags.
+
+This verifier is deliberately narrower than #2041's full screenshot and native executable admission. It is an additional **bounded contrast discriminator** after QA has established real process/PE provenance, not an authority to certify that its untrusted local inputs truly came from a hardware renderer, that every selected/modal state is legible, or that artwork is polished. It emits `visual_approved=false`, `hardware_approved=false`, and `release_gate_credit=0` even when the pixels pass. An older pre-contrast capture is an intentional **negative fixture**; only a fresh exact integrated Windows PE after importing the new host color should pass.
+
 ## Host checkerboard contrast, source palette preserved
 
 The real integrated Windows SDL root capture shows supporting racer text in neutral `#989898` over alternating `#303030` and `#505050` checker squares. In sRGB WCAG contrast calculations, the lighter squares give only **2.80:1**, which misses the ordinary small-text 4.5:1 target, even though `#989898` reaches 4.58:1 on the darker squares. The shared Modern root now uses **`kModernMenuCheckerLegibleGrey = #C8C8C8`** exclusively for its supporting identity and disabled-route/`SOON` labels drawn directly on the checker. The neutral colour retains the lighter-than-background stock-family hierarchy and reaches **4.82:1 on #505050** (7.89:1 on #303030), rather than redesigning the colour scheme. This is an explicitly modern accessibility adjustment, **not** a claim that retail CGRAM contains this RGB step. Original sprite/font source export data, all true source palettes, Authentic mode and game logic are untouched. The selected yellow text, white normal destinations, blue focus and already-contrasting title remain unchanged.

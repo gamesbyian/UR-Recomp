@@ -44,7 +44,7 @@ class ActionEvidenceTests(unittest.TestCase):
             "observed_in_draw":40,"png_sha256":sha(self.png),"p7_sha256":sha(self.p7),
             "native_process_log_sha256":sha(self.log),"exe_sha256":"a"*64,
             "source_sha":"b"*40,"native_semantic_route":"root-quit",
-            "execution_mode":"modern","native_route_marker_observed":True,
+            "execution_mode":"modern","native_route_marker_observed":False,
             "authentic_isolation_approved":False,
             "visual_approved":False,"hardware_approved":False,"release_gate_credit":0,
         }
@@ -125,12 +125,14 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_root_pixels_cannot_be_relabelled_as_records_screenshot(self):
         self.receipt["native_semantic_route"]="records-keyboard"
+        self.receipt["native_route_marker_observed"]=True
         self.pack()
         with self.assertRaisesRegex(qa.AuditError,"native semantic destination"):
             qa.verify(self.path)
 
     def test_stale_records_stage_rejected_when_root_repainted_before_capture(self):
         self.receipt["native_semantic_route"]="records-keyboard"
+        self.receipt["native_route_marker_observed"]=True
         self.log=self.log.replace(
             b"UR_BALDOSA_MODERN_DESTINATION stage=root ",
             b"UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=256x224 root=8,10,240,204 source=modern_product_view\n"
@@ -142,6 +144,7 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_last_records_1p_stage_admitted_not_later_root(self):
         self.receipt["native_semantic_route"]="records-keyboard"
+        self.receipt["native_route_marker_observed"]=True
         self.log=self.log.replace(
             b"UR_BALDOSA_MODERN_DESTINATION stage=root ",
             b"UR_BALDOSA_MODERN_DESTINATION stage=records-1p ")
@@ -197,13 +200,13 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_modern_route_cannot_use_authentic_receipt_flags(self):
         for key,value in (("execution_mode","authentic"),
-                          ("native_route_marker_observed",False)):
+                          ("native_route_marker_observed",True)):
             with self.subTest(key=key):
                 self.receipt[key]=value
                 self.pack()
                 with self.assertRaisesRegex(qa.AuditError,"Modern receipt mode/route"):
                     qa.verify(self.path)
-                self.receipt[key]="modern" if key=="execution_mode" else True
+                self.receipt[key]="modern" if key=="execution_mode" else False
 
     def test_authentic_isolation_approval_cannot_be_forged(self):
         self.receipt["authentic_isolation_approved"]=True
@@ -228,6 +231,7 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_real_play_guest_handoff_happens_before_sdl_present(self):
         self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.receipt["native_route_marker_observed"]=True
         self.log=self.log.replace(
             b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved",
             b"UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
@@ -242,12 +246,14 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_play_request_without_guest_handoff_is_not_proof(self):
         self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.receipt["native_route_marker_observed"]=True
         self.pack()
         with self.assertRaisesRegex(qa.AuditError,"stock handoff was not witnessed"):
             qa.verify(self.path)
 
     def test_play_guest_handoff_after_snapshot_is_not_proof(self):
         self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.receipt["native_route_marker_observed"]=True
         self.log += b"UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
         self.receipt["native_process_log_sha256"]=sha(self.log)
         self.pack()
@@ -256,6 +262,7 @@ class ActionEvidenceTests(unittest.TestCase):
 
     def test_repainted_modern_after_stock_handoff_is_rejected(self):
         self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.receipt["native_route_marker_observed"]=True
         self.log=self.log.replace(
             b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved",
             b"UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"

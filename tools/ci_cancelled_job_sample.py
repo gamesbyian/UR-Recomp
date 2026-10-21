@@ -5,12 +5,36 @@ runs without started jobs have zero observed occupancy in the sampled latest
 attempt; incomplete/paginated job lists are UNKNOWN, not zero.
 """
 from collections import defaultdict
-import re
 
 try:
-    from .report_ci_runtime import job_parallelism_profile
+    from .report_ci_runtime import job_parallelism_profile, parse_time
 except ImportError:
-    from report_ci_runtime import job_parallelism_profile
+    from report_ci_runtime import job_parallelism_profile, parse_time
+
+
+
+def check_complete_intervals(jobs):
+    """Never count a started but incomplete/corrupt job as zero occupancy."""
+    seen_ids = set()
+    for job in jobs:
+        jid = job.get("id")
+        if jid is not None:
+            if type(jid) is not int or jid <= 0 or jid in seen_ids:
+                raise ValueError("duplicate or invalid job ID")
+            seen_ids.add(jid)
+        started = job.get("started_at")
+        completed = job.get("completed_at")
+        if started is None and completed is None:
+            continue  # explicitly unstarted/queued job: zero observed occupancy
+        if started is None or completed is None:
+            raise ValueError("incomplete job timing is UNKNOWN, not zero")
+        start = parse_time(started)
+        end = parse_time(completed)
+        if (start is None or end is None or start.tzinfo is None
+                or end.tzinfo is None or end < start):
+            raise ValueError("invalid or reversed job interval is UNKNOWN")
+        # Equal timestamps can describe a legitimate sub-second job rounded
+        # by the API to whole seconds; zero observed seconds is conservative.
 
 
 def sample_cancelled_jobs(read, base, runs, *, limit=8):
@@ -37,6 +61,7 @@ def sample_cancelled_jobs(read, base, runs, *, limit=8):
                 raise ValueError("invalid job list")
             if len(jobs) >= 100 or (type(count) is int and count > len(jobs)):
                 raise ValueError("job census not complete")
+            check_complete_intervals(jobs)
             profile = job_parallelism_profile(jobs)
             secs = profile["runner_seconds"] if profile else 0.0
             workflow = str(run.get("name") or "unnamed workflow")[:120]

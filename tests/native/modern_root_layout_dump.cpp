@@ -6,10 +6,11 @@
 // clipping, focus and exact text colours of the production layout, never the
 // glyph art.
 // Usage: modern_root_layout_dump <width 256|342> <out.p7> [root|practice|
-//        join|options|records|warning|first-racer, optionally prefixed
+//        join|options|records|warning|first-racer|pause|pause-controls, optionally prefixed
 //        "dest-" for the native-host composition: root shell + separate
 //        destination presenter] [--audit]
 #include "native/product/modern_native_destination_presenter.hpp"
+#include "native/product/modern_pause_overlay_presenter.hpp"
 #include "native/product/modern_root_overlay_presenter.hpp"
 #include "native/product/modern_ui_access.hpp"
 
@@ -68,7 +69,14 @@ void audit_text(const std::uint32_t* p, int stride, int x, int y,
                 if (r < worst) { worst = r; worst_bg = bg; }
             }
     }
-    if (worst < ur::product::kModernUiTextContrastX100) {
+    // Intentionally dimmed unavailable pause rows (and their SOON tag) are
+    // disabled controls: held to the 3:1 non-text floor, not body-text 4.5:1.
+    // Focused rows and every enabled draw keep the full text floor.
+    const bool dimmed_pause_row = std::string(g_variant).rfind("pause", 0) == 0 &&
+        c == ur::product::kModernStockMenuPalette.secondary_grey;
+    const auto floor = dimmed_pause_row ? ur::product::kModernUiFocusContrastX100
+                                        : ur::product::kModernUiTextContrastX100;
+    if (worst < floor) {
         g_low = true;
         std::printf("LOW %s %d \"%s\" fg=%08X bg=%08X ratio=%u.%02u\n",
                     g_variant, g_width, t, c, worst_bg, worst / 100, worst % 100);
@@ -116,6 +124,18 @@ void text(std::uint32_t* p, int stride, int, int x, int y, const char* t,
         if (t[i] != ' ')
             fill(p, stride, 0, x + i * 8 * scale, y, 7 * scale, 7 * scale, c);
 }
+int write_p7(const char* path, int width, const std::vector<std::uint32_t>& px) {
+    std::FILE* f = std::fopen(path, "wb");
+    if (!f) return 1;
+    std::fprintf(f, "P7\nWIDTH %d\nHEIGHT %d\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n", width, g_h);
+    for (auto v : px) {
+        const unsigned char rgba[4] = {static_cast<unsigned char>(v >> 16),
+            static_cast<unsigned char>(v >> 8), static_cast<unsigned char>(v), 255};
+        std::fwrite(rgba, 1, 4, f);
+    }
+    std::fclose(f);
+    return 0;
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -160,8 +180,25 @@ int main(int argc, char** argv) {
     } else if (variant == "first-racer") {
         view.first_racer_open = true;
         view.first_racer_preset_name = "BLADE";
-    } else if (variant != "root") {
+    } else if (variant != "root" && variant != "pause" &&
+               variant != "pause-controls") {
         return 2;
+    }
+    if (variant == "pause" || variant == "pause-controls") {
+        UrModernPauseMenu menu{};
+        ur_modern_pause_menu_reset(&menu);
+        // A focused not-yet-wired row sits on the light focus bar.
+        if (variant == "pause-controls") menu.selected = UR_MODERN_PAUSE_CONTROLS;
+        // Pause draws over live gameplay; use a bright mid-tone backdrop as a
+        // conservative stand-in.
+        std::fill(px.begin(), px.end(), 0xFF808080u);
+        if (!render_native_modern_pause_overlay(painter, px.data(), width, width,
+                                                g_h, menu, true)) {
+            std::fprintf(stderr, "pause render refused\n");
+            return 1;
+        }
+        if (g_audit) return g_low ? 3 : 0;
+        return write_p7(argv[2], width, px);
     }
     ModernRootOverlayView shell = view;
     if (dest) {
@@ -183,14 +220,5 @@ int main(int argc, char** argv) {
         return 1;
     }
     if (g_audit) return g_low ? 3 : 0;
-    std::FILE* f = std::fopen(argv[2], "wb");
-    if (!f) return 1;
-    std::fprintf(f, "P7\nWIDTH %d\nHEIGHT %d\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n", width, g_h);
-    for (auto v : px) {
-        const unsigned char rgba[4] = {static_cast<unsigned char>(v >> 16),
-            static_cast<unsigned char>(v >> 8), static_cast<unsigned char>(v), 255};
-        std::fwrite(rgba, 1, 4, f);
-    }
-    std::fclose(f);
-    return 0;
+    return write_p7(argv[2], width, px);
 }

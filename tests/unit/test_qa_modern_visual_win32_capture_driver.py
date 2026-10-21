@@ -140,8 +140,8 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
     def test_admitted_native_navigation_routes_are_explicit_and_distinct(self):
         self.assertEqual(driver.ROUTES["root-quit"][0], "14")
         self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
-        self.assertEqual(driver.ROUTES["play-stock-handoff"][:2], ("1", 90))
-        self.assertIn("stock_requested players=1",
+        self.assertEqual(driver.ROUTES["play-stock-handoff"][:2], ("1", 1800))
+        self.assertIn("stock_entered players=1",
                       driver.ROUTES["play-stock-handoff"][2])
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["options-open-p1"][:2], ("12", 65))
@@ -154,7 +154,9 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                       driver.ROUTES["multiplayer-unbound"][2])
         self.assertTrue(all(40 <= entry[1] < 100
                             for key, entry in driver.ROUTES.items()
-                            if key != "authentic-stock"))
+                            if key not in ("authentic-stock", "play-stock-handoff"))
+        self.assertLess(driver.ROUTES["play-stock-handoff"][1],
+                        driver.ROUTES["authentic-stock"][1] * 10)
         self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)
 
     def test_native_destination_route_requires_actual_source_event(self):

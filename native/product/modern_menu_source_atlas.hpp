@@ -145,8 +145,12 @@ inline bool modern_menu_paint_source_cell(
             if (alpha != 0 && alpha != 255) return false;
             if (alpha == 255) has_ink = true;
         }
-    if (!has_ink &&
-        !(sheet == ModernMenuSourceSheet::Detail && cell == 44)) return false;
+    // Slot 44 in the original detail sheet is a transparent *space*,
+    // never a drawable glyph. Do not accept invented pixels merely because
+    // the caller supplied an otherwise correctly sized bitmap.
+    if (sheet == ModernMenuSourceSheet::Detail && cell == 44)
+        { if (has_ink) return false; }
+    else if (!has_ink) return false;
     for (int y = 0; y < ch; ++y) {
         for (int x = 0; x < cw; ++x) {
             const std::uint32_t pixel =
@@ -214,8 +218,9 @@ inline bool modern_menu_paint_source_text(
                 if (alpha != 0 && alpha != 255) return false;
                 if (alpha == 255) has_ink = true;
             }
-        if (!has_ink && !(sheet == ModernMenuSourceSheet::Detail &&
-                          c == ' ')) return false;
+        if (sheet == ModernMenuSourceSheet::Detail && c == ' ')
+            { if (has_ink) return false; }
+        else if (!has_ink) return false;
     }
     int pen_x = left;
     for (char c : value) {

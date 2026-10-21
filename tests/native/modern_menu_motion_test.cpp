@@ -310,10 +310,13 @@ void test_raster() {
                             marker_x + 2 * scale] ==
             kModernStockMenuPalette.cursor_blue);
 
+        // The three visible comparison paints above legitimately increase
+        // the recorder. Reset before testing fail-closed refusal paths.
+        draws = {};
         pose.visible = false;
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, pixels.data(), w, h, scale, panel, pose));
-        assert(draws.calls == 2);
+        assert(draws.calls == 0);
         pose.visible = true;
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, nullptr, w, h, scale, panel, pose));

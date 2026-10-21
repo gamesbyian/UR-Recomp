@@ -42,6 +42,7 @@ class ActionEvidenceTests(unittest.TestCase):
             "actual_sdl_renderer_output":[self.w,self.h],
             "observed_in_draw":40,"png_sha256":sha(self.png),"p7_sha256":sha(self.p7),
             "native_process_log_sha256":sha(self.log),"exe_sha256":"a"*64,
+            "source_sha":"b"*40,
             "visual_approved":False,"hardware_approved":False,"release_gate_credit":0,
         }
         self.stage="probe_first"
@@ -66,6 +67,15 @@ class ActionEvidenceTests(unittest.TestCase):
             "probe_first/actual-sdl-drawable.pam"))
         self.assertFalse(report["visual_approved"])
         self.assertEqual(report["release_gate_credit"],0)
+
+    def test_reject_other_native_checkout_or_other_executable_epoch(self):
+        self.pack()
+        self.assertEqual(len(qa.verify(
+            self.path,expected_source_sha="b"*40,expected_exe_sha="a"*64)["captures"]),1)
+        with self.assertRaisesRegex(qa.AuditError,"required source SHA"):
+            qa.verify(self.path,expected_source_sha="c"*40)
+        with self.assertRaisesRegex(qa.AuditError,"required Windows PE"):
+            qa.verify(self.path,expected_exe_sha="d"*64)
 
     def test_fresh_process_selected_second_capture(self):
         self.stage="capture_observed"

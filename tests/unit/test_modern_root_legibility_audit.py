@@ -12,7 +12,12 @@ import unittest
 from tools import qa_modern_visual_diagnostics as d
 
 ROOT = Path(__file__).resolve().parents[2]
-VARIANTS = ("root", "practice", "join", "options", "records", "warning")
+VARIANTS = ("root", "practice", "join", "options", "records", "warning",
+            "first-racer")
+# Native-host composition (root shell + separate destination presenter).
+# Its supporting-copy contrast belongs to the destination owner (#2167);
+# its geometry is audited here.
+DEST_VARIANTS = tuple("dest-" + v for v in VARIANTS[1:])
 
 
 class ModernRootLegibilityAudit(unittest.TestCase):
@@ -41,6 +46,16 @@ class ModernRootLegibilityAudit(unittest.TestCase):
                     [str(self.exe), str(width), str(Path(self.tmp.name) / "x.p7"),
                      variant, "--audit"], capture_output=True, text=True)
                 self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_native_host_destinations_have_no_clip_or_overlap(self):
+        for variant in DEST_VARIANTS:
+            for width in (256, 342):
+                run = subprocess.run(
+                    [str(self.exe), str(width), str(Path(self.tmp.name) / "x.p7"),
+                     variant, "--audit"], capture_output=True, text=True)
+                geometry = [l for l in run.stdout.splitlines()
+                            if l.startswith(("CLIP", "OVERLAP"))]
+                self.assertEqual(geometry, [], (variant, width))
 
     def test_root_layout_within_action_safe_and_single_focus_bar(self):
         for width in (256, 342):

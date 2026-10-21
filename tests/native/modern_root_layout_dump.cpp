@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,29 @@ const char* g_variant = "root";
 int g_width = 0;
 // Legibility audit: contrast of each text draw against the WORST pixel
 // already on the surface under its 8x8 cells (font independent).
+struct Box { int x, y, w, h; std::string t; };
+std::vector<Box> g_boxes;
+// Geometry audit: every text box inside the action-safe region and no two
+// differently-worded text boxes overlapping (duplicates are shadows).
+void audit_geometry(int stride, int x, int y, const char* t, int scale) {
+    const auto safe = ur::product::modern_ui_action_safe(stride, g_h);
+    const ur::product::ModernUiRect box{x, y,
+        static_cast<int>(std::string(t).size()) * 8 * scale, 8 * scale};
+    if (box.width > 0 && !ur::product::modern_ui_rect_contains(safe, box)) {
+        g_low = true;
+        std::printf("CLIP %s %d \"%s\" box=%d,%d,%d,%d\n", g_variant, g_width,
+                    t, box.x, box.y, box.width, box.height);
+    }
+    for (const auto& o : g_boxes) {
+        if (o.t == t) continue;
+        if (x < o.x + o.w && o.x < x + box.width && y < o.y + o.h && o.y < y + box.height) {
+            g_low = true;
+            std::printf("OVERLAP %s %d \"%s\" with \"%s\"\n", g_variant, g_width,
+                        t, o.t.c_str());
+        }
+    }
+    g_boxes.push_back({x, y, box.width, box.height, t});
+}
 void audit_text(const std::uint32_t* p, int stride, int x, int y,
                 const char* t, std::uint32_t c, int scale) {
     // Drop shadows are decorative duplicates of a legible heading.
@@ -64,6 +88,14 @@ void put(std::uint32_t* p, int stride, int x, int y, std::uint32_t c) {
 }
 void fill(std::uint32_t* p, int stride, int, int x, int y, int w, int h,
           std::uint32_t c) {
+    // A near-opaque panel masks earlier text at least half beneath it.
+    if (g_audit && (c >> 24) >= 0xE0u)
+        g_boxes.erase(std::remove_if(g_boxes.begin(), g_boxes.end(),
+            [&](const Box& b) {
+                const int ix = std::max(0, std::min(b.x + b.w, x + w) - std::max(b.x, x));
+                const int iy = std::max(0, std::min(b.y + b.h, y + h) - std::max(b.y, y));
+                return ix * iy * 2 >= b.w * b.h;
+            }), g_boxes.end());
     for (int yy = y; yy < y + h; ++yy)
         for (int xx = x; xx < x + w; ++xx) put(p, stride, xx, yy, c);
 }
@@ -76,7 +108,10 @@ void stroke(std::uint32_t* p, int stride, int, int x, int y, int w, int h,
 }
 void text(std::uint32_t* p, int stride, int, int x, int y, const char* t,
           std::uint32_t c, int scale) {
-    if (g_audit) audit_text(p, stride, x, y, t, c, scale);
+    if (g_audit) {
+        audit_text(p, stride, x, y, t, c, scale);
+        audit_geometry(stride, x, y, t, scale);
+    }
     for (int i = 0; t[i]; ++i)
         if (t[i] != ' ')
             fill(p, stride, 0, x + i * 8 * scale, y, 7 * scale, 7 * scale, c);

@@ -12,9 +12,7 @@
 
 ## Rebuild instructions
 
-> Please go ahead and use all saved transcripts and all historical pr descriptions and any project logs and docs as needed to rebuild the production diary as we've discussed as well as a guide for future updates. Preserve the existing diary doc as a separate file for prosperity but use the rebuild going forward.
->
-> When the rebuild is complete, generate a new Cajun version to match, using the style of the existing Cajun and preserving all the best turns of phrase, please. If you're not sure if it's Cajun enough, err on the side of more Cajun. Don't hesitate to research both popular stereotypes and exaggerations of Cajun voice as well as actual Cajun vernacular for inspiration. 
+The director requested a comprehensive rebuilt canonical diary, preservation of previous material and editorial guidance for future updates. This is a paraphrase, not a verbatim quotation; consult the original conversation for exact wording.
 
 ## Later source preservation questions
 
@@ -28,6 +26,6 @@
 
 ## Use and limitations
 
-These excerpts establish **the director's instructions**, not the success of the resulting work. Their sequence is preserved as visible in the current conversation; no timestamps for individual messages, external session IDs, tool traces or complete assistant answers are reconstructed. The source can support exact quotation of the included phrases, but must never be described as an independently downloaded full transcript. The user's instruction not to discuss the alternate edition's commissioning *inside the diary narrative* remains an editorial constraint; these archival directions are kept outside the narrative diary.
+These excerpts establish **the director's instructions**, not the success of the resulting work. Their sequence is preserved as visible in the current conversation; no timestamps for individual messages, external session IDs, tool traces or complete assistant answers are reconstructed. The source can support exact quotation of the included phrases, but must never be described as an independently downloaded full transcript. These excerpts are separate from the narrative diary.
 
 **Related publication:** [canonical diary](README.md), [editorial guide](PRODUCTION-DIARY-EDITORIAL-GUIDE.md), [provenance protocol](CONVERSATION-PRESERVATION-PROTOCOL.md).

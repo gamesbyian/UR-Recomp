@@ -13,6 +13,11 @@ import hashlib
 import json
 from pathlib import Path
 import zipfile
+import sys
+
+# Work both as `python -m tools...` and as a direct path CLI on Windows.
+if not __package__:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools import qa_modern_visual_case_coverage as legacy
 from tools import qa_modern_visual_actions_archive as archive
@@ -152,7 +157,7 @@ def verify_original_archives(strict: dict, capture_zip: Path, executable_zip: Pa
     if hashlib.sha256(data).hexdigest() != PE or data[:2] != b"MZ":
         raise ValueError("original Windows PE bytes/hash mismatch")
     pe_offset = int.from_bytes(data[0x3c:0x40], "little")
-    if (pe_offset >= len(data) - 26 or data[pe_offset:pe_offset+4] != b"PE\\0\\0" or
+    if (pe_offset >= len(data) - 26 or data[pe_offset:pe_offset+4] != b"PE" + bytes((0, 0)) or
             int.from_bytes(data[pe_offset+4:pe_offset+6], "little") != 0x8664 or
             int.from_bytes(data[pe_offset+24:pe_offset+26], "little") != 0x20b):
         raise ValueError("original executable is not AMD64 PE32+")

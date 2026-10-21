@@ -454,6 +454,27 @@ int main() {
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,pixels,256,224,0,240,
                                        old_view,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,5,240,
+                                       old_view,view));
+    // Host must not expose any part of the root outside its own panel.
+    // These boxes lie INSIDE a valid framebuffer but cannot contain the
+    // complete 240x204 source menu shell or 320-wide preview.
+    constexpr HostOverlayRect short_panel{8, 10, 240, 203};
+    constexpr HostOverlayRect thin_panel{8, 10, 239, 204};
+    constexpr HostOverlayRect not_scaled{8, 10, 240, 204};
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                       short_panel,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                       thin_panel,view));
+    assert(!render_modern_root_overlay(painter,pixels,256,224,4,240,
+                                       not_scaled,view));
+    constexpr HostOverlayRect small_wide{56,20,319*4,204*4};
+    assert(!render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                       small_wide,view));
+    // Extreme numeric values must be rejected before 27*scale etc are used
+    // to draw. A valid surface bounds check alone is not enough.
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,513,
+                                       old_view,view));
     assert(!render_modern_root_overlay(painter,nullptr,256,224,1,240,
                                        old_view,view));
     const HostOverlayRect out_of_bounds{30,10,240,204};

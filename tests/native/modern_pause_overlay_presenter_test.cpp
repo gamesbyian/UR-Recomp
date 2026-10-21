@@ -13,10 +13,14 @@ using namespace ur::product;
 
 namespace {
 std::vector<std::string> painted;
+int legible_pause_status_draws = 0;
 void fill(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {}
 void stroke(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {}
-void text(std::uint32_t*,int,int,int,int,const char* t,std::uint32_t,int) {
+void text(std::uint32_t*,int,int,int,int,const char* t,std::uint32_t colour,int) {
     painted.emplace_back(t);
+    if (std::string(t) == "GAME PAUSED" &&
+        colour == kModernMenuCheckerLegibleGrey)
+        ++legible_pause_status_draws;
 }
 bool contains(const std::string& s) {
     for (const auto& item : painted) if (item == s) return true;
@@ -42,6 +46,7 @@ int main() {
     assert(contains("OPTIONS") && contains("RESUME") && contains("QUIT DESKTOP"));
     assert(contains("GAME PAUSED"));
     assert(!contains("PAUSED - GUEST FROZEN"));
+    assert(legible_pause_status_draws == 1);
     assert(count("SOON") == 4);
 
     // Paused Options: refuses to draw unless the shared view says it is open.
@@ -61,6 +66,7 @@ int main() {
         painter, pixels, 512, 512, 448, view));
     assert(contains("GAME PAUSED") && contains("OPTIONS"));
     assert(!contains("PAUSED - GUEST FROZEN"));
+    assert(legible_pause_status_draws == 2);
     assert(contains(">VOLUME   < 90% >") && contains("SAVED"));
     assert(contains("L/R CHANGE  B BACK"));
     // Too small a raster is refused, never partially drawn.

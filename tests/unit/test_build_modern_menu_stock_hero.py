@@ -297,6 +297,70 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                 hero.build(root / "unavailable.rom", root / "x.hpp",
                            root / "x.json", clip_id="invented-id")
 
+    def test_generated_registered_long_clip_compiles_into_real_native_compositor(self):
+        """No private ROM required: synthetic pixels, real generated header ABI."""
+        compiler = shutil.which("g++") or shutil.which("clang++")
+        if not compiler:
+            self.skipTest("C++17 compiler unavailable")
+        for clip_id in ("long-hold-recovery", "settle-and-recover"):
+            with self.subTest(clip_id=clip_id), tempfile.TemporaryDirectory() as tmp:
+                start, stop = hero.CLIP_WINDOWS[clip_id]
+                count = stop - start + 1
+                rows, frames = [], []
+                for i in range(count):
+                    pixels = [0xff050500 + i] * hero.WIDTH * hero.HEIGHT
+                    frames.append(pixels)
+                    rows.append({
+                        "original_guest_frame": start + i,
+                        "semantic_frame_id": "0x0541",
+                        "argb_fnv1a64": f"{hero.source_digest(pixels):016x}",
+                    })
+                out = Path(tmp)
+                (out / "original.generated.hpp").write_text(
+                    hero.cpp_header(rows, frames), encoding="utf-8")
+                (out / "main.cpp").write_text(
+                    '#include "original.generated.hpp"\n'
+                    '#include <cassert>\n'
+                    '#include <cstdint>\n'
+                    '#include <vector>\n'
+                    'int main() {\n'
+                    ' using namespace ur::product;\n'
+                    ' using namespace ur::product::modern_menu_source_hero;\n'
+                    f' assert(kClip.frame_count == {count});\n'
+                    ' assert(modern_menu_stock_hero_sequence_eligible(kClip));\n'
+                    ' for (int width : {256, 342}) {\n'
+                    '  std::vector<std::uint32_t> dst(width * 224, 0xff101010u);\n'
+                    '  ModernMenuMotionState state{};\n'
+                    f'  for (int tick = 0; tick < {count + 3}; ++tick) {{\n'
+                    '   auto pose = advance_modern_menu_motion(state,\n'
+                    f'      {{static_cast<std::uint64_t>(tick), 0, true, false, {count}}});\n'
+                    f'   const int expected = tick < {count} ? tick : {count - 1};\n'
+                    '   assert(pose.hero_frame_ordinal == expected);\n'
+                    '   pose.hero_bob_px = 0; pose.hero_lean_px = 0;\n'
+                    '   std::fill(dst.begin(), dst.end(), 0xff101010u);\n'
+                    '   assert(paint_modern_menu_stock_hero(\n'
+                    '      dst.data(), width, 224, {0, 0, width, 224},\n'
+                    '      {60, 20, 2}, kClip, pose) == ModernMenuStockHeroDraw::Drawn);\n'
+                    '   assert(dst[84 * width + 124] ==\n'
+                    '      (0xff050500u + static_cast<std::uint32_t>(expected)));\n'
+                    '   assert(dst[0] == 0xff101010u);\n'
+                    '  }\n'
+                    ' }\n'
+                    ' return 0;\n'
+                    '}\n',
+                    encoding="utf-8")
+                exe = out / "native-long-clip"
+                build = subprocess.run(
+                    [compiler, "-std=c++17", "-O0", "-Wall", "-Wextra",
+                     "-Werror", "-pedantic", "-I", str(out),
+                     "-I", str(ROOT / "native/product"),
+                     str(out / "main.cpp"), "-o", str(exe)],
+                    text=True, capture_output=True, check=False)
+                self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+                run = subprocess.run(
+                    [str(exe)], text=True, capture_output=True, check=False)
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
     def test_direct_cli_lists_registered_source_clips(self):
         with tempfile.TemporaryDirectory() as cwd:
             result = subprocess.run(

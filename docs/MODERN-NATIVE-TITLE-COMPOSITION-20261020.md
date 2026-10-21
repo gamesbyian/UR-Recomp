@@ -477,3 +477,16 @@ and uses the corrected centred width of 13 glyphs. This remains presentational
 only: no input, menu state, profile creation or guest semantics change.
 The actual native Windows capture and 4:3 clipping checks must be rerun on
 this exact revision; historical screenshots retain their previous text.
+
+## Indefinite idle prompt cadence
+
+The title intro age deliberately saturates at 4095 frames to avoid overflow
+and keeps the original 238x81 artwork fully revealed. The same saturated
+counter previously drove the thirty-tick bright/grey button pulse, making
+it permanently bright after about a minute of idle. The painter state now
+uses an independent, exact **60-tick modulo prompt timer** (30 bright,
+30 grey), matching the previous first 4095 frames and continuing indefinitely.
+`UR_REDUCED_MOTION=1` remains fully steady. Native C++ regression renders
+actual prompt ink before/after the age cap, through a full new pulse, and
+after 4200 reduced-motion ticks; it does not fabricate any guest attract
+demo. Genuine stock idle demo remains unresolved under #2079.

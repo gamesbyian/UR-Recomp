@@ -20,6 +20,7 @@ struct Surface {
                               stride(w), height(224) {}
 };
 std::vector<std::string> words;
+std::uint32_t prompt_ink = 0;
 int fill_count = 0;
 void fill(std::uint32_t* pixels, int stride, int height,
           int x, int y, int w, int h, std::uint32_t color) {
@@ -35,7 +36,7 @@ void stroke(std::uint32_t* p, int stride, int height,
     fill(p, stride, height, x, y + h - 1, w, 1, color);
 }
 void text(std::uint32_t*, int stride, int height, int x, int y,
-          const char* value, std::uint32_t, int scale) {
+          const char* value, std::uint32_t ink, int scale) {
     assert(value != nullptr);
     assert(scale > 0);
     assert(x >= 0 && y >= 0);
@@ -45,6 +46,8 @@ void text(std::uint32_t*, int stride, int height, int x, int y,
     assert(x + static_cast<int>(std::strlen(value)) * 8 * scale <= stride);
     assert(y + 8 * scale <= height);
     words.emplace_back(value);
+    if (std::strcmp(value, "PRESS A / START / ENTER") == 0)
+        prompt_ink = ink;
 }
 bool saw(const char* text) {
     return std::find(words.begin(), words.end(), text) != words.end();
@@ -78,6 +81,42 @@ int main() {
     assert(quiet.age >= 24);
     quiet = modern_title_confirm(quiet);
     assert(!modern_title_active(quiet));
+
+    // Entrance age saturates after 4095 frames, but the controller prompt
+    // must continue its source-paced 30-on/30-off cycle even after a long idle.
+    auto long_idle = modern_title_boot(true);
+    for (int i = 0; i < 4095; ++i)
+        long_idle = modern_title_advance(long_idle);
+    assert(long_idle.age == 4095u);
+    Surface idle_surface(342);
+    words.clear();
+    assert(render_modern_title(paint, idle_surface.pixels.data(), 342,
+                               224, 342, long_idle));
+    const auto first_prompt_ink = prompt_ink;
+    for (int i = 0; i < 30; ++i)
+        long_idle = modern_title_advance(long_idle);
+    words.clear();
+    assert(render_modern_title(paint, idle_surface.pixels.data(), 342,
+                               224, 342, long_idle));
+    assert(long_idle.age == 4095u);
+    assert(prompt_ink != first_prompt_ink);
+    for (int i = 0; i < 30; ++i)
+        long_idle = modern_title_advance(long_idle);
+    words.clear();
+    assert(render_modern_title(paint, idle_surface.pixels.data(), 342,
+                               224, 342, long_idle));
+    assert(prompt_ink == first_prompt_ink);
+    auto reduced_idle = modern_title_boot(true, true);
+    words.clear();
+    assert(render_modern_title(paint, idle_surface.pixels.data(), 342,
+                               224, 342, reduced_idle));
+    const auto quiet_ink = prompt_ink;
+    for (int i = 0; i < 4200; ++i)
+        reduced_idle = modern_title_advance(reduced_idle);
+    words.clear();
+    assert(render_modern_title(paint, idle_surface.pixels.data(), 342,
+                               224, 342, reduced_idle));
+    assert(prompt_ink == quiet_ink);
 
     // Compose the real input edge coalescer with the title state. Holding
     // P1 A through the 14-frame handoff must never select Play on root.

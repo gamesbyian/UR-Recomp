@@ -24,6 +24,7 @@ struct ModernTitleState {
     unsigned age = 0;
     unsigned exit_age = 0;
     bool reduced_motion = false;
+    unsigned prompt_tick = 0; // 60-frame blink independent of bounded intro age
 };
 
 // Choose logical output from the actual drawable, not the host's window
@@ -43,7 +44,7 @@ constexpr int modern_title_logical_width(
 constexpr ModernTitleState modern_title_boot(
     bool enabled, bool reduced_motion = false) noexcept {
     return {enabled ? ModernTitlePhase::Intro : ModernTitlePhase::Root,
-            reduced_motion ? 40u : 0u, 0u, reduced_motion};
+            reduced_motion ? 40u : 0u, 0u, reduced_motion, 0u};
 }
 
 constexpr bool modern_title_active(ModernTitleState state) noexcept {
@@ -76,8 +77,10 @@ constexpr ModernTitleState modern_title_confirm(ModernTitleState state) noexcept
 }
 
 constexpr ModernTitleState modern_title_advance(ModernTitleState state) noexcept {
-    if (state.phase == ModernTitlePhase::Intro && state.age < 4095u)
-        ++state.age;
+    if (state.phase == ModernTitlePhase::Intro) {
+        if (state.age < 4095u) ++state.age;
+        state.prompt_tick = (state.prompt_tick + 1u) % 60u;
+    }
     if (state.phase == ModernTitlePhase::Leaving && ++state.exit_age >= 14u)
         state.phase = ModernTitlePhase::Root;
     return state;
@@ -227,7 +230,7 @@ inline bool render_modern_title(
     paint.fill_rect(pixels, stride, surface_height,
                     0, h - 31, w, 2, gold);
     if (state.phase == ModernTitlePhase::Intro) {
-        const bool bright = state.reduced_motion || (state.age / 30u) % 2u == 0u;
+        const bool bright = state.reduced_motion || state.prompt_tick < 30u;
         constexpr char prompt[] = "PRESS A / START / ENTER";
         paint.draw_text(pixels, stride, surface_height,
                         center - 23 * 4, h - 21, prompt,

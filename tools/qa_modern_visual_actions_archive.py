@@ -212,8 +212,11 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         "source_sha":receipt["source_sha"], "exact_rgba_bytes":w*h*4,
         "guest_frame_witness":int(evidence[0][1]),
         "native_painted_stage_at_capture":last_stage,
-        "native_source_canvas_at_capture":list(actual_source[:2]) if route != "authentic-stock" else [256,224],
-        "native_root_geometry_at_capture":list(actual_source[2:]) if route != "authentic-stock" else None,
+        # Once Play hands focus to guest stock, no current Modern root
+        # geometry is authoritative. Only active Modern destination routes
+        # advertise their native 342/256 source and panel dimensions.
+        "native_source_canvas_at_capture":list(actual_source[:2]) if route in ROUTE_STAGES else [256,224],
+        "native_root_geometry_at_capture":list(actual_source[2:]) if route in ROUTE_STAGES else None,
         "human_approved":False, "release_gate_credit":0,
     }
 

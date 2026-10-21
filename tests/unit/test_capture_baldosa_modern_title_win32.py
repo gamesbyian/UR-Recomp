@@ -56,6 +56,28 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported"):
             verify_native_title_entry(keyboard_log, confirm="other")
 
+    def test_real_start_button_is_not_a_or_keyboard_enter(self):
+        opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+        pressed = "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=60"
+        entered = "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=74 input_owned=1"
+        painted = "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"
+        log = "\n".join((opened, pressed, entered, painted))
+        verify_native_title_entry(log, confirm="start")
+        verify_native_title_entry(
+            "\n".join((opened, entered, pressed, painted)),
+            reduced_motion=True, confirm="start")
+        for route in ("gamepad", "keyboard"):
+            with self.subTest(route=route), self.assertRaisesRegex(
+                ValueError, "missing/duplicate"
+            ):
+                verify_native_title_entry(log, confirm=route)
+        with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+            verify_native_title_entry(log + "\n" + pressed, confirm="start")
+        with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            verify_native_title_entry(
+                "\n".join((opened, entered, pressed, painted)),
+                confirm="start")
+
     def test_bad_header_and_dimensions_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "capture.pam"

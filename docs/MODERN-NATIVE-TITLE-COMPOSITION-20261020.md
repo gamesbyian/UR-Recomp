@@ -605,3 +605,19 @@ This narrows the outstanding **safe gameplay after demo** issue. The first
 valid human Play with an actually named profile and resulting original 1P
 course remains a separate consumer journey, along with real SDL/physical
 controller signoff. The preview is not switched on by default.
+
+## Additional native original-attract wake owners (test-only)
+
+The first P1 A wake is already demonstrated. Expanded opt-in test fixtures
+exercise **keyboard Enter wake on actual 4:3 SDL dimensions** (native 256×224
+restored title and 256×224 root, original guest demo unmodified) and **unjoined
+P2 A wake in widescreen** (256×224 original demo, 342×224 restored title,
+342×224 root). Every first wake is consumed by the real host input handler;
+a separate Enter or genuinely P1-owned A confirms the five-way root after
+releasing the waking button. Unjoined P2 must not select the P1 root or
+join a race on its own. Route markers are distinct and fail when substituted.
+
+These are the real original guest source states, one native AOT PE, exact
+P6 present-frame receipts and independent ROM-free negative fixtures, NOT
+physical two-pad signoff nor true final SDL pixel/hardware QA. Source guest
+state and Authentic mode remain untouched; default attract is still disabled.

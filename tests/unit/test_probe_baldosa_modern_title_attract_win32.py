@@ -45,6 +45,47 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                 "separate_confirm=1 frame=1660",
                 "separate_confirm=1 frame=1640"))
 
+    def test_keyboard_and_unjoined_p2_wake_cannot_take_p1_root_input(self):
+        common = (
+            OPEN, MAIN, TITLE,
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
+            DEMO.replace("overlay_title=1", "overlay_title=0"),
+            "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
+        )
+        end = (
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
+            "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=1690 no_stock_route=1",
+        )
+        for route, first, confirm in (
+            ("keyboard",
+             "UR_MODERN_TITLE_STOCK_ATTRACT keyboard_wake_consumed=1 frame=1600",
+             "UR_MODERN_TITLE_STOCK_ATTRACT separate_keyboard_confirm=1 frame=1660"),
+            ("p2",
+             "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_consumed=1 frame=1600",
+             "UR_MODERN_TITLE_STOCK_ATTRACT p2_then_p1_confirm=1 frame=1660"),
+        ):
+            release = (
+                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
+                if route == "p2" else ())
+            good = "\n".join((*common, first, *release, confirm, *end))
+            with self.subTest(route=route):
+                self.assertEqual(len(verify_source_driven_preview(
+                    good, wake_route=route)), 3)
+                for wrong_route in {"p1", "keyboard", "p2"} - {route}:
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(good, wake_route=wrong_route)
+                with self.assertRaisesRegex(ValueError, "wake"):
+                    verify_source_driven_preview(
+                        good.replace(confirm, confirm.replace("=1", "=0")),
+                        wake_route=route)
+                if route == "p2":
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(good.replace(
+                            "p2_wake_release_consumed=1",
+                            "p2_wake_release_consumed=0"), wake_route="p2")
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            verify_source_driven_preview("\n".join(common), wake_route="unknown")
+
     def test_genuine_main_source_recovery_is_distinct_from_wake(self):
         good = "\n".join((
             OPEN, MAIN, TITLE,

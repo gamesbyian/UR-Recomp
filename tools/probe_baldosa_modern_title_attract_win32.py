@@ -60,7 +60,7 @@ def verify_original_source_attract(log: str) -> list[dict[str, int | str]]:
 
 # The source did not change; only the host briefly revealed original
 # 256px game pixels, and consumed a P1 wake before accepting a later A.
-def verify_source_driven_preview(log: str) -> list[dict[str, int | str]]:
+def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[str, int | str]]:
     if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
         raise ValueError("preview missing real native game")
     markers = [
@@ -74,15 +74,30 @@ def verify_source_driven_preview(log: str) -> list[dict[str, int | str]]:
             markers[0]["menu"] != "d7" or markers[1]["menu"] != "84" or
             markers[2]["race"] != "01"):
         raise ValueError("preview source guest lifecycle mismatch")
+    if wake_route not in ("p1", "keyboard", "p2"):
+        raise ValueError("unsupported original demo wake input route")
+    wake = {
+        "p1": "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600 race=01",
+        "keyboard": "UR_MODERN_TITLE_STOCK_ATTRACT keyboard_wake_consumed=1 frame=1600",
+        "p2": "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_consumed=1 frame=1600",
+    }[wake_route]
+    confirm = {
+        "p1": "UR_MODERN_TITLE_STOCK_ATTRACT separate_confirm=1 frame=1660",
+        "keyboard": "UR_MODERN_TITLE_STOCK_ATTRACT separate_keyboard_confirm=1 frame=1660",
+        "p2": "UR_MODERN_TITLE_STOCK_ATTRACT p2_then_p1_confirm=1 frame=1660",
+    }[wake_route]
     required = (
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440",
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
         "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
-        "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600 race=01",
-        "UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=1640 root_unselected=1",
-        "UR_MODERN_TITLE_STOCK_ATTRACT separate_confirm=1 frame=1660",
+        wake,
+        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
+           if wake_route == "p2" else ())),
+        *((("UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=1640 root_unselected=1",)
+           if wake_route == "p1" else ())),
+        confirm,
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
         "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=1690 no_stock_route=1",
     )
@@ -147,7 +162,7 @@ def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
     ]
 
 
-def verify_original_guest_presentations(presented: Path) -> list[dict]:
+def verify_original_guest_presentations(presented: Path, modern_width: int = 342) -> list[dict]:
     """Actual after-host P6, not final SDL/window, across the source handoff."""
     frame_path = presented / "presents.csv"
     if not frame_path.is_file():
@@ -170,7 +185,10 @@ def verify_original_guest_presentations(presented: Path) -> list[dict]:
                 len(raw) - m.end() != width * height * 3):
             raise ValueError("wrong stock/Modern presented image geometry")
         photos[frame] = (width, raw)
-    expected = ((1568, 256), (1584, 256), (1616, 342), (1696, 342))
+    if modern_width not in (256, 342):
+        raise ValueError("invalid native Modern title logical width")
+    expected = ((1568, 256), (1584, 256),
+                (1616, modern_width), (1696, modern_width))
     for frame, width in expected:
         if frame not in photos or photos[frame][0] != width:
             raise ValueError(f"missing actual guest/host viewport witness at {frame}")
@@ -198,6 +216,10 @@ def main() -> int:
     p.add_argument("--script", type=Path, required=True)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--timeout", type=int, default=120)
+    p.add_argument("--wake-route", choices=("p1", "keyboard", "p2"),
+                   default="p1", help="native physical wake input route")
+    p.add_argument("--aspect", choices=("wide", "4:3"), default="wide",
+                   help="actual SDL drawable shape used to choose logical 342/256")
     p.add_argument("--preview-wake", action="store_true",
                    help="opt-in source title/demo reveal with consumed real P1 wake")
     p.add_argument("--recovery", action="store_true",
@@ -205,6 +227,8 @@ def main() -> int:
     args = p.parse_args()
     if args.recovery and not args.preview_wake:
         p.error("--recovery requires --preview-wake")
+    if args.recovery and args.wake_route != "p1":
+        p.error("--recovery requires P1 wake route")
     if os.name != "nt":
         p.error("native original-guest attract requires real Windows AOT")
     if not 30 <= args.timeout <= 150:
@@ -221,11 +245,16 @@ def main() -> int:
     user = out / "player"
     user.mkdir()
     cfg = out / "config.ini"
-    cfg.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    cfg.write_text("[Sound]\nEnableAudio = 0\n" +
+                   ("[Graphics]\nWindowSize = 960x720\n"
+                    if args.aspect == "4:3" else ""), encoding="utf-8")
     env = dict(os.environ)
     env.pop("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", None)
     if args.preview_wake:
-        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "20" if args.recovery else "19"
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = (
+            "20" if args.recovery else
+            "21" if args.wake_route == "keyboard" else
+            "22" if args.wake_route == "p2" else "19")
         env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
         presented = out / "presented"
         presented.mkdir()
@@ -269,10 +298,11 @@ def main() -> int:
         raise ValueError(f"real Windows native attract process exited {run.returncode}")
     observed = (
         verify_source_driven_recovery(log) if args.recovery
-        else verify_source_driven_preview(log) if args.preview_wake
+        else verify_source_driven_preview(log, wake_route=args.wake_route) if args.preview_wake
         else verify_original_source_attract(log))
     presented_receipt = (
-        verify_original_guest_presentations(presented)
+        verify_original_guest_presentations(
+            presented, modern_width=256 if args.aspect == "4:3" else 342)
         if args.preview_wake else [])
     receipt = {
         "schema_version": 1,
@@ -284,6 +314,8 @@ def main() -> int:
         "diagnostic_guest_writes": False,
         "human_button_actions": 2 if args.preview_wake else 0,
         "scripted_host_preview_only": args.preview_wake,
+        "native_wake_route": args.wake_route if args.preview_wake else None,
+        "drawable_aspect": args.aspect,
         "native_stock_demo_and_wake_presentations": presented_receipt,
         "original_visual_demo_first_frame_reference": 1531,
         "native_post_frame_race_flag_first_observed": 1532,

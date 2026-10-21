@@ -414,6 +414,23 @@ jobs:
             --preview-wake \
             --out "$RUNNER_TEMP/modern-title-native-attract-preview-pr2043" \
             --timeout 140
+          # Two more REAL original-demo wakes: actual keyboard Enter on
+          # compact 4:3 source pixels; unjoined P2 wakes 16:9 but may not
+          # own any subsequent P1 root confirmation.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --preview-wake --wake-route keyboard --aspect 4:3 \
+            --out "$RUNNER_TEMP/modern-title-native-attract-keyboard-4by3-pr2043" \
+            --timeout 140
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --preview-wake --wake-route p2 \
+            --out "$RUNNER_TEMP/modern-title-native-attract-p2-pr2043" \
+            --timeout 140
           # Genuine original demo continues beneath the Modern root.
           # Check gameplay admission is refused during it, then rearmed
           # ONLY after actual source menu D7 returns, without fake guest.
@@ -448,6 +465,18 @@ jobs:
             ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-receipt.json
             ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract.log
             ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-root.ppm
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract.log
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-receipt.json
             ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-timeout.txt

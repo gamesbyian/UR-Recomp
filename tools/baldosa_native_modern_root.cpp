@@ -135,6 +135,7 @@ bool g_original_attract_visible = false;
 bool g_original_attract_woken = false;
 bool g_original_attract_main_recovered = false;
 std::uint16_t g_original_attract_main_stable = 0;
+int g_original_attract_p2_release_button = -1;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -1063,7 +1064,9 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "17") != 0 &&
         std::strcmp(fixture, "18") != 0 &&
         std::strcmp(fixture, "19") != 0 &&
-        std::strcmp(fixture, "20") != 0),
+        std::strcmp(fixture, "20") != 0 &&
+        std::strcmp(fixture, "21") != 0 &&
+        std::strcmp(fixture, "22") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_painted_reported = false;
@@ -1074,6 +1077,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_original_attract_woken = false;
     g_original_attract_main_recovered = false;
     g_original_attract_main_stable = 0;
+    g_original_attract_p2_release_button = -1;
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1233,8 +1237,16 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
 extern "C" int ur_baldosa_modern_root_gamepad(
     int player, int button, int pressed) {
     if (g_original_attract_visible && player == 1) {
-        // Unjoined P2 may wake the title, but never choose a P1 destination.
-        if (pressed) wake_original_stock_attract();
+        // The P2 physical wake is consumed; retain its exact button until
+        // release so the next event cannot leak into original demo guest.
+        if (pressed) {
+            g_original_attract_p2_release_button = button;
+            wake_original_stock_attract();
+        }
+        return 1;
+    }
+    if (player == 1 && button == g_original_attract_p2_release_button) {
+        if (!pressed) g_original_attract_p2_release_button = -1;
         return 1;
     }
     if (player == 1 && g_visible && g_two_seat_join.open()) {
@@ -1972,13 +1984,13 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."20"; 15-20 retain the title.
+    // Smoke modes are decimal "1".."22"; 15-22 retain the title.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if ((!g_visible && !g_original_attract_visible) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 20) return;
+            mode < 1 || mode > 22) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2209,6 +2221,74 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::abort();
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=%u\n", frame);
+        return;
+    }
+    // CI-only mode 21: actual native keyboard Enter wakes stock demo,
+    // is consumed, and only a separate Enter enters Modern root.
+    if (std::strcmp(opt, "21") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible ||
+                !ur_baldosa_modern_root_key(SDLK_RETURN, 1) ||
+                !g_visible || !ur::product::modern_title_active(g_title))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT keyboard_wake_consumed=1 frame=%u\n", frame);
+        } else if (frame == 1602) {
+            if (!ur_baldosa_modern_root_key(SDLK_RETURN, 0))
+                std::abort();
+        } else if (frame == 1640) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1)
+                std::abort();
+        } else if (frame == 1660) {
+            if (!ur_baldosa_modern_root_key(SDLK_RETURN, 1) ||
+                !ur_baldosa_modern_root_key(SDLK_RETURN, 0))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT separate_keyboard_confirm=1 frame=%u\n", frame);
+        } else if (frame == 1690) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=%u no_stock_route=1\n", frame);
+        }
+        return;
+    }
+    // CI-only mode 22: unjoined P2 can wake true original demo, but does
+    // not own P1 selection. A distinct P1 A remains required for root entry.
+    if (std::strcmp(opt, "22") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible ||
+                !ur_baldosa_modern_root_gamepad(1, kGamepadBtn_A, 1) ||
+                !g_visible || !ur::product::modern_title_active(g_title))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_consumed=1 frame=%u\n", frame);
+        } else if (frame == 1602) {
+            // Release is also host-consumed; no hidden source demo input.
+            if (!ur_baldosa_modern_root_gamepad(1, kGamepadBtn_A, 0) ||
+                g_original_attract_p2_release_button != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=%u\n", frame);
+        } else if (frame == 1640) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || g_two_seat_join.open())
+                std::abort();
+        } else if (frame == 1660) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_then_p1_confirm=1 frame=%u\n", frame);
+        } else if (frame == 1690) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || g_two_seat_join.open())
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=%u no_stock_route=1\n", frame);
+        }
         return;
     }
     // CI-only mode 20: extend identical real source attract/wake fixture

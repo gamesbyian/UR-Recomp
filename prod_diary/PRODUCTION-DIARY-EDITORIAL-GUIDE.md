@@ -12,6 +12,27 @@ The diary has three equally important plotlines: (a) how the game changed; (b) h
 
 **House voice:** precise, curious, literate, occasionally funny, willing to judge evidence and inefficiency, not a changelog and not promotional copy. Provide narrative context before PR IDs. Let significant failures be failures. Do not manufacture drama, milestones or successful endings.
 
+## 1A. Character, feeling and plot are part of the evidence
+
+**New reader-facing narrative standard (21 October 2026):** Start with [the human-centred overture](THE-HUMAN-THE-AGENTS-AND-THE-WHEEL-2026-10-21.md) as a worked example of weaving a director's personality and an agent's analytical voice through actual technical events. The director specifically asked for “a fascinating and fun story of a particular human and his agent friend remaking a game.” That changes the emphasis of subsequent episodes. A sequence of PR outcomes with Ian named in every third sentence is still a technical report.
+
+An episode with substantial human involvement should make space for **a recognizably particular Ian**: what he hoped to see, what delighted or disappointed him *when he actually said so*, how he phrased a surprising demand, what annoyed him about an interface or process if he identified it, the joke or juxtaposition worth remembering, and the consequential choice he made. Not every episode needs an emotional confession. Do not omit a human exchange merely because no test result followed. Conversely, do not invent his feelings to fill a quota. Creative pride, competitiveness, aesthetic dissatisfaction, enjoyment, patience, uncertainty and trust can become narrative threads only at the level supported by his words.
+
+**Affect attribution ladder:**
+
+1. **Explicit self-report:** “I know it's petty and emotional” can be quoted and discussed as Ian's own characterization, with a real source and context.
+2. **Direct reaction or preference:** “The videos are astonishing. It's amazing what AI can do” supports delight or wonder about those videos, but no imaginary interior monologue or physical description.
+3. **Observed action with a plausible reading:** repeated instructions to keep going can support a theme of chosen autonomy or trust, explicitly marked as the chronicler's interpretation. They do *not* automatically prove anger, anxiety, fatigue, frustration or personal affection.
+4. **Absent testimony:** say what remains unknown. Never convert a missed CI run, paused conversation, correction, PR veto or session restart into a psychological diagnosis.
+
+**Agent relationship and voice:** Ian requested an “agent friend.” Let that register appear through gentle wit, honest intellectual disagreement, repeated collaboration, remembered project decisions and the contrast between what the director imagines and what the agents can actually prove. The chronicler may evaluate its work, admit a bad inference, enjoy a clever phrasing as literary register, and call out an absurd bureaucracy. It may not claim physical sensations, human suffering, a private friendship memory, hidden loyalty, or one persistent consciousness spanning multiple agents. The relationship is established through traceable dialogue and actions.
+
+**Plot before inventory:** Build scenes around a tension or turn: the wondrous video lacking continuous play; the rival project that is simultaneously threat and valuable resource; the technically correct sprite that fails the likeness test; the impressive source witness that still earns zero complete accepted events; the autonomous workforce that must construct a memory. A technical fact belongs in the main prose when it changes what a participant could do, believe or decide. Put most SHA lists, artifacts, PR inventories and QA matrices in source notes and technical appendices. Don't bury the reveal under test names.
+
+**Balance:** Across a multi-episode day, include human-agent exchanges, scientific discoveries, failure and recovery, comic or strange project details, artistic questions, and genuine progress where the record warrants them. Avoid rigid proportions. A 250-word story should contain at least one meaningful change, surprise, conflict, question or consequence beyond “work occurred.” The reader ought to know *why anyone cared* before being asked to memorize a subsystem abbreviation.
+
+**Editing check:** Read the passage with every PR link hidden. If nothing remains except a sequence of technical assertions, it has failed as a diary entry. Read it again with every vivid adjective removed. If the remaining factual account would be misleading, it has failed as history. Good narrative survives both tests.
+
 ## 2. Capture frequency and story units
 
 Aim for **3–8 substantive episodes on a busy day**, fewer on a quiet day and more when the record genuinely supports them. This is an editorial target, **never a quota**. Capture an observation after meaningful agent findings, director conversations, important decisions, failed or successful experiments, merges, QA decisions and strategic changes. A sequence of ten small commits can warrant one episode; a single conversation can warrant several.
@@ -75,6 +96,7 @@ Particularly avoid these conflations: stock result versus complete original/nati
 ## 6. Canonical file layout
 
 - `README.md`: publication entry point, chronological volumes, archival policy.
+- `THE-HUMAN-THE-AGENTS-AND-THE-WHEEL-2026-10-21.md`: source-qualified narrative overture and demonstration of the new human-first editorial standard; a retrospective essay, not a numbered episode.
 - `PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md`: retrospective volume I.
 - `PRODUCTION-DIARY-REBUILT-2026-10-11-TO-2026-10-20.md`: retrospective volume II.
 - `PRODUCTION-DIARY-YYYY-MM-DD.md` **for future dates**: new, contemporaneous episodic series, or bounded date ranges only when genuinely quiet.
@@ -92,7 +114,8 @@ Use the existing [older Cajun diary](PRODUCTION-DIARY-CAJUN-2026-09-28-TO-2026-1
 
 ## 8. Review and checks before publication
 
-- Narrative includes Ian's consequential questions/ideas where supported, plus the agents' interpretations and independent limits.
+- Narrative includes Ian's consequential questions/ideas and source-grounded emotional reactions where supported, plus the agents' interpretations, disagreements, humour and independent limits.
+- Reader can identify a story beat before encountering any PR numbers; technical details remain accessible, qualified, and consequential rather than recited.
 - At least one narrative observation per significant decision, failure or result; no deadening commit-by-commit inventory.
 - Dated events, exact quotes, source links and status are correct; links resolve conceptually to the actual public repository paths.
 - Any gate count comes from the sole owner and is dated; avoid putting guessed live percentages into history.

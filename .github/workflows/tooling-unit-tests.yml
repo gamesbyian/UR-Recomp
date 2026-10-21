@@ -48,6 +48,11 @@ on:
       # Original-derived menu primitive and source atlas headers own
       # executable C++ invariants. They must invalidate this same suite even
       # if no Python shim or presenter was changed in the PR.
+      # Original measurements, palette tokens and native output use the same tests.
+      - "native/product/modern_stock_menu_palette.hpp"
+      - "tests/unit/test_modern_menu_visual_grammar_cpp.py"
+      - "tests/unit/test_modern_menu_original_source_tokens.py"
+      - "analysis/generated/menu-visual-language.json"
       - "native/product/modern_menu_visual_grammar.hpp"
       - "tests/native/modern_menu_visual_grammar_test.cpp"
       - "native/product/modern_menu_source_atlas.hpp"

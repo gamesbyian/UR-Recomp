@@ -22,6 +22,90 @@ Visual cross-checks outside the project's ROM capture: the [MobyGames original m
 
 **Contemporary reference, not a source of Uniracers conventions:** [Sonic Mania's photographed interface inventory](https://interfaceingame.com/games/sonic-mania/) demonstrates a practical 16:9 retro-original menu, title/entry and settings family, and [its 2017 review](https://www.seganerds.com/2017/08/14/review-sonic-mania/) discusses restrained modern rendering effects in an otherwise period-grounded 2D design. Borrow the *discipline* of a coordinated family, readable state hierarchy and intentional motion, not its Sega colours, round widgets, typefaces, icon shapes or screen layouts.
 
+## Contextual cursor palette is part of the source grammar
+
+The original dimensional cursor is also a **two-OBJ composition**, not a
+flat pointer: the palette-7 blue arrow and palette-5 dark maroon
+`RGB(72,32,48)` shadow are offset by `(+7,+7)` original pixels. Shared
+`kModernMenuSourceCursorShadow = 0xFF482030` preserves the real shadow
+palette token; the verified original **39×39** source sheet already contains
+both OBJs, so the native helper must not redraw the shadow or recolour the
+combined atlas. Synthetic compiled C++ 4× raster tests verify separate
+foreground/shadow pixels survive into the exact native buffer and preserve the
+far bottom-right pixel and the following transparent boundary.
+
+The original dimensional arrow is **not uniformly blue across stock menus**.
+The captured USA `analysis/generated/menu-visual-language.json` separates:
+
+| Original menu context | Source highlight RGB | Native ARGB token |
+| --- | --- | --- |
+| Main menu | (160, 208, 248), strongest blue OBJ palette stop | `0xFFA0D0F8` |
+| Pick Your Uni / rider select | (136, 200, 240) | `0xFF88C8F0` |
+| Pick Tour | (240, 160, 136) | `0xFFF0A088` |
+| Pick Track | (240, 160, 136) | `0xFFF0A088` |
+
+The publicly visible original *Pick Tour* screenshot corroborates the warm-coloured arrow: [MobyGames SNES screenshot 46725](https://www.mobygames.com/game/8085/uniracers/screenshots/snes/46725/). The repository capture, not that JPEG, is the authority for exact RGB values. These are source-state palettes, **not** automatic mappings from Modern destinations to original menus. A new Modern Practice view need not use the old Tour arrow colour merely because both offer courses.
+
+The same clean-boot source captures **12 exact frame-to-frame vertical deltas** for the main-menu cursor's 70→93px move: `6,4,3,3,2,1,1,1,1,0,0,1`. `modern_menu_observed_first_row_move_y(elapsed_frames)` returns their clamped cumulative displacement, including both held frames and the final one-pixel settle, without allocating a second clock or altering any host route. The previously exposed `modern_menu_cursor_ease_axis` is still the general-purpose *approximation* for arbitrary distances, rather than a claim of frame-for-frame stock movement. A receiving motion/screen owner must decide when the exact first-row witness applies and must not transplant the curve into unrelated gameplay/guest coordinates.
+
+Original big-font headings also have a context-specific **word gap**: the captured *PICK YOUR UNI* heading has 8px gaps, whereas the main/Options, *PICK TOUR* and *PICK TRACK* source examples use 16px. The pure `modern_menu_observed_heading_word_gap(context)` token supplies those measured advances for a legally cleared source glyph compositor; the provisional host ASCII fallback remains clearly identified as such. No screen is automatically reflowed.
+
+A separate shared fallback-painter guard now preflights full **8px host glyph cells**, scaled width/height and the existing one-physical-pixel offset shadow before either text callback. It refuses missing, empty, oversized or edge-clipped headings atomically. Native tests cover too-wide words, bottom-edge overflow, a shadow that alone would cross the right edge, and an exactly fitting one-cell heading. This prevents future screen owners from turning a nominally safe 4:3 or 16:9 overlay into off-panel glyph writes; it does not substitute an original 16×16 raster glyph atlas or change stock pixels.
+
+The shared C++17 header now exposes `ModernMenuSourceCursor` and `modern_menu_cursor_highlight(context)` and an optional final context argument on `modern_menu_paint_focus_band`. The existing root, destination and Options callers retain the **same default main-menu blue pixel values** without any API migration. An owning screen can select `Rider`, `Tour` or `Track` when an original-reference comparison justifies it; invalid values fail visibly to blue. The actual multi-shaded 32×32 spinning OBJ and its +7px shadow remain a separate rights-reviewed source-art asset, not a claim of completion by recolouring a three-pixel fallback marker. Tests exercise source constants and actual 256×224 framebuffer pixels in all four contexts without guest writes.
+
+This patch follows the three-project reuse preflight for `modern-product`: keep UR's measured PPU `menu-visual-language.json`, existing native `ModernRootOverlayPainter` and typed menu state; reuse Baldosa's integrated host rather than adding another graphics/input path; use Malmazuke for comparative source research only. No framework pilot is justified without a reproduced failure. The last-mile independent screenshot comparison is still **HOLD**: acquire same-build native SDL final-drawable 342×224/256×224 context states, compare visually with original captures, check 1×/4× scaling and legibility, then obtain human art review. Synthetic native pixel tests do not constitute those screenshots or approval.
+
+## Opt-in native source-asset adapters
+
+A source-linked appearance primitive is only useful if a legitimately cleared
+original raster can be passed through **the existing native painter** rather
+than creating a second drawing pipeline. Two C++17 wrappers are now exposed
+in `modern_menu_visual_grammar.hpp`:
+
+- `modern_menu_paint_source_heading_context` forwards a user-local,
+  independently verified **640×16** original heading sheet to the existing
+  atomic `modern_menu_paint_source_text`, choosing the original 8px rider
+  or 16px other-menu word gap. Unsupported characters, missing ink,
+  cropped words or alpha errors reject without partial font writes.
+- `modern_menu_paint_source_cursor_phase` forwards a source **624×39**
+  atlas of sixteen 39×39 arrow-and-shadow phases to the already vetted
+  `modern_menu_paint_source_cell` at index `(menu_frame / 2) % 16`. It first validates **all sixteen** source 39×39 poses for ink and strictly opaque/transparent pixels, so one broken late pose cannot vanish mid-spin after a seemingly successful first paint. The
+  caller owns its 60Hz menu clock, focus fallback, location and reduced-motion
+  choice. This function does not read or drive guest animation and does
+  not replace the legitimate dimensional original arrow with the
+  three-pixel host band.
+
+ROM-free native C++17 tests use generated **single-pixel synthetic atlases**
+to verify the real framebuffer receives correct rider/main word positioning,
+all 16 cursor phases, two-frame holds, 32-frame wrap, rejection of empty, partial-alpha or nonblack-transparent *future* poses on frame zero, and **atomic no-write**
+for invalid source or out-of-bounds target. No PNG, retail CHR, palette dump,
+ROM bytes, or source-derived art is committed or loaded at game startup.
+The source-bundle verifier, ownership/capture receipts, legally approved
+distribution and integrated Windows SDL comparison remain independently
+required before passing original art to these adapters. Visual acceptance
+and release gates are still **HOLD**.
+
+## Canonical USA PPU evidence-to-native token parity
+
+`tests/unit/test_modern_menu_original_source_tokens.py` now checks the
+**actual checked-in canonical USA PPU observation** against the native shared
+C++ declarations, rather than merely comparing two copies of hardcoded
+numbers. It independently verifies all five yellow glyph ramp stops, five
+grey ramp stops, main blue light/dark and maroon cursor-shadow RGB, the +7px
+shadow displacement, all 16 CHR spin tile IDs, all 39 stock scroll-frame
+offsets, all 12 first-row cursor movement deltas, exact 32/39-frame periods,
+and the original 8px/16px heading-gap and rider/tour/track highlight variants.
+In-memory negative tests deliberately mutate a palette entry or replace its
+C++ literal with a dynamic expression and require rejection. CI now triggers
+these checks on changes to `analysis/generated/menu-visual-language.json`,
+the shared grammar header and its native/pure tests.
+
+This is a **source provenance guard for numerical tokens**. It does not
+authenticate original ROM bytes anew, draw recovered art, prove correct
+source/host raster parity or grant visual approval. The optional original
+assets remain unbundled and source-manifest/rights-gated.
+
 ## Shared contract and native integration
 
 `native/product/modern_menu_visual_grammar.hpp` provides:

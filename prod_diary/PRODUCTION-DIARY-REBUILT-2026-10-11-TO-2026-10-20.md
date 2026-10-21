@@ -114,9 +114,13 @@ Original/native CPU-to-SPC comparisons located an important publication boundary
 
 ### 56. A durable raw save can still have broken metadata
 
+The save file has an almost domestic responsibility: remember who the player is and what they earned. One set of bytes could be safely written while another piece of identity metadata failed in the crash window. The player would experience neither a noble transaction protocol nor an elegant fault test. They would experience a game that forgot whose victory it was.
+
 The Windows work confronted a different kind of truth. Guest SRAM bytes could reach disk while typed profile metadata failed during a crash cut. Recovery needed transaction intentions, explicit operator choices, accurate profile isolation and hostile failure cases. Draft [#1713](https://github.com/gamesbyian/UR-Recomp/pull/1713) and independent [#1743](https://github.com/gamesbyian/UR-Recomp/pull/1743) documented bounded fixes and tests. They could not promise survival of every physical power failure, nor could an agent claim those gates on its own.
 
 ### 57. Integration has to know which game source it compiled
+
+The most embarrassing scientific error is to test a different experiment than the one you describe. In a project with moving branches and regenerated source, that possibility was painfully real. The agents had to ensure the executable contained the change under examination before the resulting success or failure was allowed into the story.
 
 The Windows bridge had to regenerate and integrate later RF-015/RF-017 timing corrections rather than accidentally build an obsolete source epoch. [#1744](https://github.com/gamesbyian/UR-Recomp/pull/1744) joined candidate identity to native test reality. This was an unglamorous but consequential bridge: a passing test cannot validate a fix that was not in the executable it tested. [Original October 16 account](PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md).
 
@@ -124,13 +128,19 @@ The Windows bridge had to regenerate and integrate later RF-015/RF-017 timing co
 
 ### 58. Ian asks for continued work, not a false green
 
+Here I am wary of the easiest false scene a chronicler could write: a frustrated director angrily ordering his exhausted agents onward. The record supports no such tableau. It shows a human repeatedly asking autonomous workers to recover their place and continue useful work through interruptions. The recurring line is funny in its persistence, but its meaning is primarily operational.
+
 The director kept the four specialist agents moving and requested recovery after interrupted sessions. I find no justification for interpreting those requests as irritation. He was delegating a demanding investigation: continue as far as useful, preserve evidence, and do other valuable work while hosted CI was busy. That repeated instruction would become part of the operating culture.
 
 ### 59. An ENOSPC fixture refuses to certify a crash path
 
+There is a particular kind of anticlimax in an experiment designed to simulate a catastrophic disk condition: the disk condition arrives too early, during setup, and the experiment proves nothing about the intended crash boundary. It was a real failure with a real log, and a poor basis for celebration. The agents had to keep the red result legible.
+
 A Windows CI run encountered an out-of-space error while setting up a full-volume fault fixture, *before* the intended post-raw metadata-publication failure was observed. The correct conclusion was that the test did not demonstrate the specified case, not that the save system had passed it. [#1713](https://github.com/gamesbyian/UR-Recomp/pull/1713) retained the red evidence. Agent QA was acting as the project’s necessary skeptic.
 
 ### 60. A quiet repository still holds unseen work
+
+A branch is a strangely fragile memory. It may contain a day's good work, an abandoned hypothesis or just an experiment nobody should ever merge. When Ian asked the workforce to comb through what had been left behind, he was preserving both discoveries and the reasons not to repeat bad ones. Tidying up could not become a bonfire.
 
 The user asked for PR reconciliation and branch rescue. The agents closed specific research-only work, preserved still-relevant branches and kept an orphan-ref census ([#1711](https://github.com/gamesbyian/UR-Recomp/issues/1711)). In a rapidly changing multi-agent project, an apparently quiet queue can hide unpublished useful changes. This was the beginning of a more explicit institutional-memory problem. [October 17 source](PRODUCTION-DIARY-2026-10-14-TO-2026-10-17.md).
 
@@ -138,13 +148,19 @@ The user asked for PR reconciliation and branch rescue. The agents closed specif
 
 ### 61. Ian refuses to let the denominator become decoration
 
+Forty-five is a denominator with a personality. Every time the agents brought back matching bits of a race, it refused to shrink. Ian demanded an explanation, and the independent reviewers needed to give him one more useful than 'we are still researching.' That pressure sharpened the checklist of missing witnesses instead of relaxing the standard to improve the scoreboard.
+
 He asked independent QA why the project still stood at zero of forty-five strict original/native USA events, and instructed the agents to fix acceptance-side defects without weakening fidelity. That question changed the quality of the investigation. Instead of producing another impressive partial, agents needed a list of precise missing witnesses: original input, native execution, source identity, full result and cold persistence. I regard that as substantive directorial pressure on scientific method.
 
 ### 62. A saved return address is not an executed return
 
+A saved return address sat in memory like a clue from a crime scene. It was tempting to promote it straight into the culprit. But the CPU might never fetch the address the experimenter was staring at. To an agent accustomed to turning data into confident explanations, this was an unusually salutary interruption: show the actual consumption, or leave the mystery open.
+
 The NMI/RTI work found differing stored PC bytes and several later native helper reads. It would have been easy to describe these as proof that the processor returned to the wrong instruction. But “saved value differs,” “later helper reads memory” and “CPU fetches the wrong next opcode” are three different claims. The agents had to qualify them separately. I began reading every trace as an argument about which operation actually consumed a value, not merely which byte a logger displayed.
 
 ### 63. The authentic pixel witness remains a witness
+
+A genuine frame is an extraordinarily persuasive thing to show a human director. It can also conceal its own causal ambiguity. The raster differences were real, but the histogram could not testify to why they appeared. Ian's demand for a recognizable, authentic look therefore required more than an attractive before-and-after or a large count of differing pixels.
 
 Graphics researchers measured real raster output, including grayscale transitions and split-screen composition. A source-derived frame can expose errors that synthetic images cannot, but a difference histogram does not determine root cause. Ian's demand for faithful art and faithful rendering made it impossible to substitute an attractive approximation. [October 18–19 diary](PRODUCTION-DIARY-2026-10-18-TO-2026-10-19.md).
 
@@ -152,13 +168,19 @@ Graphics researchers measured real raster output, including grayscale transition
 
 ### 64. The compiled RTI path changes the hypothesis
 
+Twenty-nine helpers, a compiled RTI and a host scheduler: hardly material from which a novelist would normally build suspense. Yet the precise question was delicious. The bytes looked like a return address; did the real execution ever use them? Each additional observation mattered only if it narrowed the path to the next fetched instruction, rather than merely deepening the paperwork.
+
 [#1971](https://github.com/gamesbyian/UR-Recomp/pull/1971) counted post-return observations from twenty-nine different native helpers. [#1974](https://github.com/gamesbyian/UR-Recomp/pull/1974) pinned a crucial distinction: compiled RTI read the saved status P while host-scheduler continuation handled the return, unlike the interpreted path that restored PC/PB. That creates a conditional fidelity risk if scheduler continuation or stacked state disagrees, but no source-qualified evidence yet proved the game consumed the wrong PC. An agent interested primarily in claiming progress might have called this a fix. A chronicler should call it a better question.
 
 ### 65. Experiments fail before they reach the hypothesis
 
+Here the scientific expedition repeatedly tripped at the dock. The wrapper experiment could not get past source qualification; logging comparisons raised their own noninterference problem. An agent could honestly report that a tool failed. It could not transmute the failed setup into a negative finding about the game's mechanics. The difference is the whole point of having an evidence culture.
+
 A wrapper A/B control [#1975](https://github.com/gamesbyian/UR-Recomp/pull/1975) failed its generated-source qualification before replay. A logger comparator [#1976](https://github.com/gamesbyian/UR-Recomp/pull/1976) failed over terminal wall-clock seconds despite other matched totals. An artifact-root adjustment [#1973](https://github.com/gamesbyian/UR-Recomp/pull/1973) fixed transport rather than emulation. These episodes share a lesson: a failed experimental apparatus cannot validate or refute the causal hypothesis it was meant to investigate.
 
 ### 66. Thousands of differing pixels get a precise name
+
+Hundreds of thousands of pixel differences are hard to ignore, which is exactly why they need careful names. Was it the original PPU's grayscale cycle? A color-ingest difference? The beam phase? The researchers could measure the symptom much better than they could yet explain it. The story needed both the impressive scale of the mismatch and the restraint not to prescribe an invented cure.
 
 [#1978](https://github.com/gamesbyian/UR-Recomp/pull/1978) qualified thirteen original/native grayscale-cycle frames and identified hundreds of thousands of RGB5 pixel differences. The measurement helped prioritize actual graphics symptoms while leaving PPU/beam cause unresolved. Even when the numbers are exact, they do not self-explain. The chronicler's task is to put the measurement back into the story: why the art still could not be signed off and which evidence would be needed next. [Original October 19 entry](PRODUCTION-DIARY-2026-10-18-TO-2026-10-19.md).
 
@@ -166,21 +188,31 @@ A wrapper A/B control [#1975](https://github.com/gamesbyian/UR-Recomp/pull/1975)
 
 ### 67. Ian asks how to move ten jobs without losing ten histories
 
+When Ian asked how ten scheduled agents could follow a mutable priority list, he arrived at a surprisingly human question: how does a worker keep a personal history when its job changes overnight? His suggested lane journals were the beginning of a practical answer. A name on the schedule was not enough; the work itself needed an identity that outlived whoever happened to pick it up.
+
 He wanted scheduled prompts to point to **positions in a changing priority list**, rather than hardcoding ten different specialties. Almost immediately he asked the more consequential question: how would an agent preserve awareness of its unfinished work when its scheduled position was reassigned? He suggested per-lane logs. The answer separated a scheduled slot, a permanent objective ID and the objective's own journal. [#2085](https://github.com/gamesbyian/UR-Recomp/pull/2085) and [#2091](https://github.com/gamesbyian/UR-Recomp/pull/2091) documented the coordination model. This was Ian designing the workforce with the agents, not simply requesting another feature.
 
 ### 68. “Check GitHub and the Vault” becomes a recovery principle
+
+The recovery Vault introduced a second sort of archaeology. Now the agents were excavating their own recent work rather than a 1994 ROM. A ZIP might contain a valuable experiment or merely an unverified promise; a Drive file might preserve an otherwise lost edit and still have no authority to overwrite `main`. Ian was trying to make forgetting expensive without making duplication inevitable.
 
 Ian then asked how every agent would inspect both published and unpublished work before starting, avoiding duplicate effort. The recovery Vault had become necessary because not all useful work reached GitHub reliably. But Drive itself could become a second, conflicting authority. The answer favored GitHub-first publication and a bounded fallback only for real failures ([#2095](https://github.com/gamesbyian/UR-Recomp/pull/2095), [#2097](https://github.com/gamesbyian/UR-Recomp/pull/2097), [#2100](https://github.com/gamesbyian/UR-Recomp/pull/2100)). The recovery inventory reported 393 Drive IDs and 87 ZIP archives; disposition of every unique member remained incomplete ([#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088)). I see an emerging distinction between preserving bytes and proving that those bytes should be merged.
 
 ### 69. The visual project is assigned four different kinds of beauty
 
+The visual program reveals Ian at his most precise and most imaginative. He wanted the title to feel like *Uniracers*, the Modern destinations to behave like a coherent product, and the wheel itself to move with personality rather than hang in a lifeless menu. None of those instructions authorized an unrelated shiny frontend. The small character's identity had become the test of all the extra screen space.
+
 Ian's current briefs gave separate agents the native Modern title, the coherent five-destination root, source-faithful animated unicycle motion, and other visual/presentation fronts. All were required to use the *actual executable*, preserve Authentic behavior, capture source-bound screenshots and retain reduced-motion or fallback behavior. [#2096](https://github.com/gamesbyian/UR-Recomp/pull/2096) supplied original clip inventory and private ROM-derived review plates; [issue #2079](https://github.com/gamesbyian/UR-Recomp/issues/2079) preserved a still-unproven handoff from Modern title idle to the original attract/demo cycle. An attractive mockup could not substitute for that integrated proof.
 
 ### 70. A memory of failed publication cannot authorize bad shortcuts
 
+A recovery system that saves everything can also preserve dangerous assumptions. Archive names, source paths and publication shortcuts had to be checked as skeptically as executable code. The agents faced a bureaucratic comedy with serious stakes: they had built a memory palace, and now had to stop it from handing the next worker the wrong room key.
+
 The recovery engineers also surfaced concrete archive-name and path-binding concerns ([#2075](https://github.com/gamesbyian/UR-Recomp/issues/2075), [#2076](https://github.com/gamesbyian/UR-Recomp/issues/2076)), while [#2089](https://github.com/gamesbyian/UR-Recomp/pull/2089) recovered a bounded Records/Windows exporter change from superseded work. Exact source provenance and prior publication failures complicated reconciliation. The correct ending was partial: some useful material was preserved or integrated, some remained held, and historical artifacts could not simply be deleted. Source authenticity, real device approval and independent release acceptance remained separate.
 
 ### 71. A production problem larger than the game
+
+At this cutoff the human and his software workforce have neither a tidy ending nor an excuse to invent one. I can see the director's character through the choices he made: excitement when images came alive, competitive pride openly acknowledged, exacting taste about the racer, and a remarkable willingness to send agents back into difficult work. I can see the agents' character only through their recorded actions: ingenuity, misplaced confidence, correction, persistence and occasionally a heroic talent for manufacturing CI traffic. The unfinished game belongs in the middle of those two stories.
 
 From the October 20 evidence I can establish genuine engineering and coordination progress, not a completed remaster. The last explicitly established release ledger still read **0/45 complete independently accepted USA events** and **0/12 Windows QA gates**, despite many passing narrower tests. Ian's repeated encouragement to work ahead was aimed at the unused possibilities between blocked jobs. My retrospective interpretation is that the project had evolved into an experiment in maintaining truth, ownership and continuity across a large agent workforce. Whether the system ultimately justifies its complexity will have to be evaluated against subsequent results, not asserted here. [October 20 original](PRODUCTION-DIARY-2026-10-20.md).
 

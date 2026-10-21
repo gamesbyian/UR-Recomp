@@ -85,6 +85,9 @@ int main() {
     active_w = 512;
     active_h = 448;
     painted.clear();
+    // The two small-source branches have independent status witnesses;
+    // start a fresh colour receipt for the separate paused-Options path.
+    legible_pause_status_draws = 0;
     assert(!render_native_modern_pause_overlay(
         painter,pixels,255,255,224,menu,true));
     assert(painted.empty());
@@ -106,7 +109,7 @@ int main() {
         painter, pixels, 512, 512, 448, view));
     assert(contains("GAME PAUSED") && contains("OPTIONS"));
     assert(!contains("PAUSED - GUEST FROZEN"));
-    assert(legible_pause_status_draws == 2);
+    assert(legible_pause_status_draws == 1);
     assert(contains(">VOLUME   < 90% >") && contains("SAVED"));
     assert(contains("L/R CHANGE  B BACK"));
     // Too small a raster is refused, never partially drawn.

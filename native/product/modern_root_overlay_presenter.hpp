@@ -402,7 +402,7 @@ inline bool render_modern_root_overlay(
             : view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
             : view.first_racer_shortcut_available
-                ? "X CREATE STOCK RACER"
+                ? "X CREATE RACER"
                 : view.second_racer_shortcut_available
                     ? "X ADD SECOND RACER"
                     : view.existing_profile_switch_available

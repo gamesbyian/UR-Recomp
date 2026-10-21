@@ -276,6 +276,23 @@ int main() {
     assert(contains("RUNS AND BEST TIMES"));
     assert(contains("X/F2 RACERS   F1 HELP"));
 
+    // One actual shipped P1 shortcut, no development-only "stock" jargon.
+    // Does not change what profile the existing shortcut creates.
+    // Source-bound geometry checks must count THIS compact draw alone;
+    // prior wide-root operations use incompatible (larger) coordinates.
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    view.racer_shortcuts_available = false;
+    view.first_racer_shortcut_available = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("X CREATE RACER"));
+    assert(!contains("X CREATE STOCK RACER"));
+    assert(text_draws_fit(old_view));
+    view.first_racer_shortcut_available = false;
+    view.racer_shortcuts_available = true;
+
     painted.clear();
     // Native Records uses the SAME shared root painter and a read-only
     // modal; old shipping host defaults to modal closed without new UI.

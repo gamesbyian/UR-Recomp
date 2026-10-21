@@ -82,6 +82,37 @@ class RecoveryPreservationTests(unittest.TestCase):
             rp.stage(self.root, ["tools/source.py"],
                      self.archive, "h29-source-candidate", "UR-CPU-01", "unknown")
 
+    def test_incident_register_requires_proof_for_verified_state(self):
+        record = {"schema": "ur-publication-incidents/1",
+                  "scope": "curated_not_exhaustive",
+                  "incidents": [{
+                      "incident_id": "h29-denied-case", "candidate_id": "h29-denied-case",
+                      "work_id": "UR-CPU-01", "source_main_sha": None,
+                      "operation": "GitHub create_file", "target_path": "tools/example.py",
+                      "original_error": "This tool call was blocked by OpenAI's safety checks.",
+                      "classification": "explicit_safety_denial",
+                      "vault_file_id": "an-observed-drive-id-xyz",
+                      "vault_sha256": None, "byte_readback": "pending",
+                      "disposition": "held_for_independent_review",
+                      "next_authorized_action": "Independent source review",
+                      "release_gate_credit": False
+                  }]}
+        self.assertEqual(rp.validate_incidents(record)["incidents_validated"], 1)
+        record["incidents"][0]["byte_readback"] = "verified"
+        with self.assertRaises(ValueError):
+            rp.validate_incidents(record)
+        record["incidents"][0]["vault_sha256"] = "e" * 64
+        self.assertEqual(rp.validate_incidents(record)["incidents_validated"], 1)
+        record["incidents"][0]["release_gate_credit"] = True
+        with self.assertRaises(ValueError):
+            rp.validate_incidents(record)
+
+    def test_committed_incident_register_valid(self):
+        registry = (Path(__file__).resolve().parents[2] /
+                    "docs/recovery/publication-incidents.json")
+        record = json.loads(registry.read_text(encoding="utf-8"))
+        self.assertEqual(rp.validate_incidents(record)["incidents_validated"], 2)
+
     def test_package_is_deterministic(self):
         first = self.stage()
         other = self.root / "other.zip"

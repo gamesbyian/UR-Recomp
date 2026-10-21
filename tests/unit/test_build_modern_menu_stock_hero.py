@@ -245,6 +245,78 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             self.assertFalse(folder.exists())
             self.assertEqual(list(root.glob(".original-*")), [])
 
+    def test_registered_long_source_windows_emit_exact_cpp_lengths(self):
+        self.assertEqual(hero.CLIP_WINDOWS, {
+            "root-entry-reaction": (1213, 1220),
+            "settle-and-recover": (1230, 1239),
+            "long-hold-recovery": (1244, 1252),
+        })
+        for clip_id, (start, stop) in hero.CLIP_WINDOWS.items():
+            with self.subTest(clip_id=clip_id):
+                frames = [[0xff050500 + n] * hero.WIDTH * hero.HEIGHT
+                          for n in range(stop - start + 1)]
+                rows = [
+                    {"original_guest_frame": start + n,
+                     "semantic_frame_id": "0x0541",
+                     "argb_fnv1a64": f"{hero.source_digest(frame):016x}"}
+                    for n, frame in enumerate(frames)
+                ]
+                header = hero.cpp_header(rows, frames)
+                count = len(rows)
+                self.assertIn(
+                    f"std::array<std::uint32_t, {4096 * count}> kOriginalArgb",
+                    header)
+                self.assertIn(
+                    f"std::array<ModernMenuStockHeroFrame, {count}> kFrames",
+                    header)
+                self.assertIn(f"original guest frame {stop}", header)
+                self.assertIn("kFrames.data(), kFrames.size(), true", header)
+                self.assertEqual(header.count("original guest frame"), count)
+                bad = copy.deepcopy(rows)
+                bad[-1]["original_guest_frame"] = start
+                with self.assertRaisesRegex(ValueError, "registered window"):
+                    hero.cpp_header(bad, frames)
+        with self.assertRaisesRegex(ValueError, "incomplete source"):
+            hero.cpp_header(rows, frames[:-1])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaisesRegex(ValueError, "unregistered original"):
+                hero.build(root / "unavailable.rom", root / "x.hpp",
+                           root / "x.json", clip_id="invented-id")
+
+    def test_direct_cli_lists_registered_source_clips(self):
+        with tempfile.TemporaryDirectory() as cwd:
+            result = subprocess.run(
+                [sys.executable, str(Path(hero.__file__).resolve()), "--help"],
+                cwd=cwd, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for clip_id in hero.CLIP_WINDOWS:
+                self.assertIn(clip_id, result.stdout)
+
+    def test_private_original_reaction_header_when_canonical_rom_exists(self):
+        if not hero.ROM.is_file():
+            self.skipTest("canonical private ROM unavailable")
+        for clip_id, (start, stop) in hero.CLIP_WINDOWS.items():
+            if clip_id == hero.DEFAULT_CLIP:
+                continue
+            with self.subTest(clip_id=clip_id), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                report = hero.build(
+                    hero.ROM, root / "source.generated.hpp",
+                    root / "manifest.json", root / "source-plates",
+                    clip_id=clip_id)
+                self.assertEqual(report["original_motion_window"], [start, stop])
+                self.assertEqual(len(report["frames"]), stop - start + 1)
+                self.assertEqual(
+                    len(list((root / "source-plates").glob("original-stock-*.png"))),
+                    stop - start + 1)
+                self.assertFalse(report["source_clip_loop_certified"])
+                self.assertFalse(report["source_guest_timing_independently_certified"])
+                self.assertFalse(report["human_visual_approval"])
+                self.assertIn(
+                    f"std::array<ModernMenuStockHeroFrame, {stop - start + 1}>",
+                    (root / "source.generated.hpp").read_text())
+
     def test_original_raster_and_compiled_cpp_asset(self):
         if not hero.ROM.is_file():
             self.skipTest("canonical private ROM unavailable")

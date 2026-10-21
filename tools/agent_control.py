@@ -95,6 +95,10 @@ def extract_board(markdown):
         raise ValueError("each work line must have exactly one scheduled anchor")
     if len({v["minute"] for v in agents.values()}) != 5:
         raise ValueError("scheduled start minutes must be distinct")
+    expected_minutes = {1: 0, 2: 12, 3: 24, 4: 36, 5: 48}
+    for agent_id, minute in expected_minutes.items():
+        if agents[agent_id]["minute"] != minute:
+            raise ValueError("agent start minute differs from installed schedule: Agent " + str(agent_id))
     for item in agents.values():
         item["work_ids"] = [lines[n]["work_id"] for n in item["anchors"]]
     return {"schema": "ur-agent-control/1",

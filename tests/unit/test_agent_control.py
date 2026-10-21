@@ -46,6 +46,25 @@ class AgentBoardControlTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected a/b/c shards"):
             extract_board(bad)
 
+    def test_board_start_minutes_match_the_five_installed_schedules(self):
+        expected = {1: 0, 2: 12, 3: 24, 4: 36, 5: 48}
+        self.assertEqual(
+            {row["number"]: row["minute"] for row in self.board["agents"]},
+            expected,
+        )
+        for original, altered in (
+            ("**:00**", "**:01**"),
+            ("**:12**", "**:13**"),
+            ("**:24**", "**:25**"),
+            ("**:36**", "**:37**"),
+            ("**:48**", "**:49**"),
+        ):
+            with self.subTest(original=original):
+                bad = self.text.replace(original, altered, 1)
+                self.assertNotEqual(bad, self.text)
+                with self.assertRaisesRegex(ValueError, "differs from installed schedule"):
+                    extract_board(bad)
+
     def test_board_never_scrapes_old_prose_as_dispatch(self):
         altered = self.text + "\nHistorical reference: UR-OBSOLETE-99 and Agent 9\n"
         self.assertEqual(extract_board(altered), self.board)

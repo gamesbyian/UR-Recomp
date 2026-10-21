@@ -26,12 +26,17 @@ class ActualOriginalTitleAttractSDLTest(unittest.TestCase):
               for i,(name,_,_) in enumerate(STAGES)}
         changes=verify_actual_attract_frames(good,(320,224))
         self.assertEqual(len(changes),3)
-        for name in good:
-            for candidate in (good["original-title"], b"\x00"*len(good[name]),
+        # A duplicate of a directly adjacent rendered stage must fail.
+        # A nonadjacent but different frame is not necessarily a duplicate:
+        # replacing stage 3 with stage 1 could still differ from both
+        # neighbors, so it cannot be claimed a valid static rejection.
+        names = [item[0] for item in STAGES]
+        for index,name in enumerate(names):
+            adjacent = names[index-1] if index else names[1]
+            for candidate in (good[adjacent], b"\x00"*len(good[name]),
                               good[name][:-1]):
                 bad=dict(good)
                 bad[name]=candidate
-                if candidate==good[name]:continue
                 with self.subTest(name=name),self.assertRaises(ValueError):
                     verify_actual_attract_frames(bad,(320,224))
         bad=dict(good);bad.pop("original-demo")

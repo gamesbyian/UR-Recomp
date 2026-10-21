@@ -112,6 +112,24 @@ int main() {
         assert(count("SOON") == 5); // Restart is disabled as before
         assert(contains("GAME PAUSED"));
     }
+    // A host lifecycle pause names its reason in place of the subtitle, in
+    // every panel size, inside the panel; without one nothing changes.
+    struct StatusCase { int w, h, panel_x, panel_w; };
+    constexpr StatusCase status_cases[] = {
+        {256,224,8,240}, {342,224,11,320}, {512,448,56,400}};
+    for (const auto& c : status_cases) {
+        active_w = c.w;
+        active_h = c.h;
+        painted.clear();
+        fill_rects.clear();
+        assert(render_native_modern_pause_overlay(
+            painter,pixels,c.w,c.w,c.h,menu,true,"P2 CONTROLLER DISCONNECTED"));
+        assert(contains("P2 CONTROLLER DISCONNECTED"));
+        assert(!contains("GAME PAUSED"));
+        assert(fill_rects.front().x == c.panel_x && fill_rects.front().w == c.panel_w);
+        const int inset = c.w >= 400 ? 18 : 9;
+        assert(inset + 26 * 8 <= c.panel_w - 4);
+    }
     active_w = 512;
     active_h = 448;
     painted.clear();

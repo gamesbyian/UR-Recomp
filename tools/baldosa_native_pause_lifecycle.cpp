@@ -694,7 +694,8 @@ extern "C" int ur_baldosa_product_pause_draw(
     if (!ur::product::render_native_modern_pause_overlay(
             paint, reinterpret_cast<std::uint32_t*>(pixels),
             static_cast<int>(pitch / 4), width, height, g_native_pause_menu,
-            ur_modern_session_restart_available(g_modern_session) != 0))
+            ur_modern_session_restart_available(g_modern_session) != 0,
+            ur::product::controller_hotplug_notice_text(g_lifecycle_pause.hotplug())))
         return 0;
     ++g_pause_panel_paints;
     if (!g_pause_panel_logged) {

@@ -437,14 +437,16 @@ int main() {
     assert(std::all_of(framebuffer.begin(), framebuffer.end(),
                        [](std::uint32_t px) {return px == 0;}));
     painted.clear();
-    source_pixels[0] = 0x80112233u;
+    const std::size_t used_heading_pixel =
+        static_cast<std::size_t>(modern_menu_heading_slot('U')) * 16u;
+    source_pixels[used_heading_pixel] = 0x80112233u;
     assert(render_modern_root_overlay(
         painter, framebuffer.data(), 256, 224, 1, 240,
         old_view, view, &source_atlas));
     assert(contains("UNIRALLY"));
     assert(std::all_of(framebuffer.begin(), framebuffer.end(),
                        [](std::uint32_t px) {return px == 0;}));
-    source_pixels[0] = 0xFF112233u;
+    source_pixels[used_heading_pixel] = 0xFF112233u;
     view.europe = false;
 
     painted.clear();

@@ -76,6 +76,16 @@ on:
       - "tests/native/baldosa_native_options_test.cpp"
       - "tests/unit/test_baldosa_native_options_cpp.py"
       - "tools/baldosa_native_modern_root.cpp"
+      - "tools/capture_baldosa_modern_title_win32.py"
+      - "tools/verify_baldosa_modern_title_authentic_inert.py"
+      - "tests/unit/test_verify_baldosa_modern_title_authentic_inert.py"
+      - "native/product/modern_title_presenter.hpp"
+      - "native/product/modern_title_retail_reference.hpp"
+      - "tests/native/modern_title_presenter_test.cpp"
+      - "tests/unit/test_modern_title_presenter_cpp.py"
+      - "tests/input/baldosa-modern-title-native-capture.script"
+      - "tests/input/baldosa-authentic-title-inert.script"
+      - "tests/unit/test_capture_baldosa_modern_title_win32.py"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -252,6 +262,8 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python tests/unit/test_modern_title_presenter_cpp.py
+          python tests/unit/test_verify_baldosa_modern_title_authentic_inert.py
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
@@ -333,6 +345,193 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Title branch only: compile the existing exact Windows AOT candidate
+      # above, then exercise its REAL Modern title and native renderer. Its
+      # PAMs are source pixels with guest-frame/EXE hashes, not final SDL
+      # drawable/hardware certification or an independently approved release.
+      - name: Capture genuine Modern title-to-root native source frames
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --out "$RUNNER_TEMP/modern-title-native-pr2043" \
+            --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --aspect 4:3 \
+            --out "$RUNNER_TEMP/modern-title-native-4by3-pr2043" \
+            --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --reduced-motion \
+            --out "$RUNNER_TEMP/modern-title-native-reduced-pr2043" \
+            --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --confirm keyboard \
+            --out "$RUNNER_TEMP/modern-title-native-keyboard-pr2043" \
+            --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --confirm start \
+            --out "$RUNNER_TEMP/modern-title-native-start-pr2043" \
+            --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --confirm held \
+            --out "$RUNNER_TEMP/modern-title-native-held-pr2043" \
+            --timeout 100
+          # Diagnostic-only: assert the REAL original guest idle cycle
+          # progresses under the Modern host title without synthetic input.
+          # This cannot certify that stock demo is physically displayed.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --out "$RUNNER_TEMP/modern-title-native-original-attract-pr2043" \
+            --timeout 140
+          # Opt-in, TEST-ONLY original demo P6 reveal, followed by the
+          # *real* P1 button wake and a deliberately separate confirm edge.
+          # This is NOT the default frontend or an SDL/physical signoff.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --preview-wake \
+            --out "$RUNNER_TEMP/modern-title-native-attract-preview-pr2043" \
+            --timeout 140
+          # Two more REAL original-demo wakes: actual keyboard Enter on
+          # compact 4:3 source pixels; unjoined P2 wakes 16:9 but may not
+          # own any subsequent P1 root confirmation.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --preview-wake --wake-route keyboard --aspect 4:3 \
+            --out "$RUNNER_TEMP/modern-title-native-attract-keyboard-4by3-pr2043" \
+            --timeout 140
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --preview-wake --wake-route p2 \
+            --out "$RUNNER_TEMP/modern-title-native-attract-p2-pr2043" \
+            --timeout 140
+          # Genuine original demo continues beneath the Modern root.
+          # Check gameplay admission is refused during it, then rearmed
+          # ONLY after actual source menu D7 returns, without fake guest.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-recovery.script" \
+            --preview-wake --recovery \
+            --out "$RUNNER_TEMP/modern-title-native-attract-recovery-pr2043" \
+            --timeout 140
+          # Test-only two ACTUAL game processes: create first racer via
+          # shipped P1 X/A profile UI, then cold-boot its canonical files,
+          # consume original demo wake and require real stock 1P admission
+          # only after 60 consecutive original MAIN D7 observations.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-named-play.script" \
+            --bootstrap-script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-first-profile-bootstrap.script" \
+            --preview-wake --recovery --named-play \
+            --out "$RUNNER_TEMP/modern-title-native-attract-named-play-pr2043" \
+            --timeout 140
+          python tools/verify_baldosa_modern_title_authentic_inert.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-authentic-title-inert.script" \
+            --out "$RUNNER_TEMP/modern-title-authentic-inert-pr2043" \
+            --timeout 100
+          echo "Verified original title pixels and real host presentations on 16:9, 4:3, reduced motion, keyboard Enter, P1 Start and a held-confirm guard, plus two identical Authentic source/host timelines. SDL drawable and physical device approval remain pending." >> "$GITHUB_STEP_SUMMARY"
+
+      # Title-owner only, SAME real AOT PE and existing SDL_RenderReadPixels.
+      - name: Capture genuine final SDL Modern title entry and exit
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_modern_title_entry_sdl_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "${{ github.event.pull_request.head.sha }}" \
+            --aspect wide --out "$RUNNER_TEMP/modern-title-native-sdl-motion-wide-pr2043"
+          python tools/capture_modern_title_entry_sdl_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "${{ github.event.pull_request.head.sha }}" \
+            --aspect 4:3 --out "$RUNNER_TEMP/modern-title-native-sdl-motion-4by3-pr2043"
+
+      - name: Retain native Modern title capture or failure diagnostics
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-native-source-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-native-sdl-motion-wide-pr2043
+            ${{ runner.temp }}/modern-title-native-sdl-motion-4by3-pr2043
+            ${{ runner.temp }}/modern-title-native-pr2043
+            ${{ runner.temp }}/modern-title-native-4by3-pr2043
+            ${{ runner.temp }}/modern-title-native-reduced-pr2043
+            ${{ runner.temp }}/modern-title-native-keyboard-pr2043
+            ${{ runner.temp }}/modern-title-native-start-pr2043
+            ${{ runner.temp }}/modern-title-native-held-pr2043
+            ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-keyboard-4by3-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-p2-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-profile-bootstrap.log
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-attract-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/native-profile-bootstrap-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-named-play-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-attract-recovery-pr2043/native-attract-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/native-attract-timeout.txt
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/presents.csv
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/native-original-demo.ppm
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/native-restored-title.ppm
+            ${{ runner.temp }}/modern-title-native-attract-preview-pr2043/presented/native-root.ppm
+            ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-timeout.txt
+            ${{ runner.temp }}/modern-title-authentic-inert-pr2043
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |

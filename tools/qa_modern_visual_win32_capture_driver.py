@@ -66,6 +66,26 @@ ROUTES = {
 }
 
 
+def motion_phase_environment(route: str) -> dict[str, str]:
+    # Only these four exact host-clock experiments suppress the old mode14
+    # B/A quit edges. Ordinary launcher/root routes keep their normal input.
+    modes = {
+        "root-motion-normal-zero": ("0", "0"),
+        "root-motion-normal-eight": ("8", "0"),
+        "root-motion-reduced-zero": ("0", "1"),
+        "root-motion-reduced-eight": ("8", "1"),
+    }
+    if route not in modes:
+        return {}
+    tick, reduced = modes[route]
+    return {
+        "UR_MODERN_MENU_TEST_TICK60": tick,
+        "UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT": "0",
+        "UR_REDUCED_MOTION": reduced,
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME": "59",
+    }
+
+
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as src:
@@ -109,20 +129,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH": str(expected[0]),
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(expected[1]),
     })
-    if route.startswith("root-motion-"):
-        # A real SDL output comparison, not guest frame injection or a
-        # synthetic screenshot. Pin only the already-shipping UI-only clock.
-        env["UR_MODERN_MENU_TEST_TICK60"] = (
-            "8" if route.endswith("-eight") else "0")
-        env["UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT"] = "0"
-        env["UR_REDUCED_MOTION"] = (
-            "1" if "-reduced-" in route else "0")
-        # Existing smoke mode 14 presses B/A to EXIT the root at guest
-        # frames 60/62. The SDL draw-40 snapshot may occur AFTER those
-        # guest frames, falsely comparing four identical post-quit frames.
-        # The established last-frame admission stops those inputs while
-        # retaining the real root and standard bounded wait/quit script.
-        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME"] = "59"
+    env.update(motion_phase_environment(route))
     if execution_mode == "authentic":
         # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
         # Compare source composition against SDL3 final-drawable readback on

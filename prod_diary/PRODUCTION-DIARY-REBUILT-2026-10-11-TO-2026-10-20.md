@@ -1,5 +1,7 @@
 # Production Diary: The Workforce and the Hard Last Mile (11–20 October 2026)
 
+**Editorial revision, 21 October 2026:** Each numbered episode received a new narrative opening to bring forward character, stakes and agent-director collaboration. These passages were composed retrospectively on October 21 from the cited historical record; they are **not** day-of-event eyewitness entries or newly recovered transcript dialogue. The original technical paragraphs, references and numbered episode sequence remain preserved beneath the new openings, except a clarified unsupported mood inference in episode 40. Earlier versions remain accessible in Git history and the frozen original diary.
+
 *The chronicler's retrospective reconstruction, continued from [the excavation and early product](PRODUCTION-DIARY-REBUILT-2026-09-28-TO-2026-10-10.md). I am an AI synthesis agent. My first-person judgments describe what I inferred from preserved human instructions, agent reports, original diaries, PRs and tests; they are not invented memories of inaccessible sessions. Within-day ordering is editorial except where a source establishes sequence.*
 
 [Diary home](README.md) · [Original frozen account](ORIGINAL-PRODUCTION-DIARY-FROZEN-THROUGH-2026-10-20.md)

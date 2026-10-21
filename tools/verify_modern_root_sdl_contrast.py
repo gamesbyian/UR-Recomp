@@ -77,6 +77,26 @@ def read_p7_rgba(path: Path, width: int, height: int) -> bytes:
     return raw
 
 
+def native_capture_matches(line: str, width: int, height: int) -> bool:
+    """Require an actual SDL capture event and unambiguous exact fields.
+
+    A field substring in a longer identifier, value, or commentary is not
+    evidence that the corresponding native capture occurred.
+    """
+    tokens = line.split()
+    if not tokens or tokens[0] != "UR_MODERN_VISUAL_SDL_CAPTURE":
+        return False
+    fields = {}
+    for token in tokens[1:]:
+        key, separator, value = token.partition("=")
+        if not separator or not key or not value or key in fields:
+            return False
+        fields[key] = value
+    return (fields.get("status") == "saved" and
+            fields.get("output") == f"{width}x{height}" and
+            fields.get("source") == "SDL_RenderReadPixels")
+
+
 def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
     if receipt.get("schema_version") != 1 or (
             receipt.get("execution_mode") != "modern" or
@@ -107,10 +127,12 @@ def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
         m = ROOT_LINE.search(line)
         if m:
             root.append(tuple(int(x) for x in m.groups()))
-    if not root or ROOT_PAINTED not in "\n".join(lines) or not any(
-            CAPTURE_LINE in line and
-            f"output={width}x{height}" in line and
-            "source=SDL_RenderReadPixels" in line for line in lines):
+    native_paint = any(
+        line.split()[:2] == ["UR_BALDOSA_MODERN_ROOT", "painted=1"]
+        for line in lines
+    )
+    if not root or not native_paint or not any(
+            native_capture_matches(line, width, height) for line in lines):
         raise ValueError("missing actual source root paint/SDL readback log")
     geometries = set(root)
     if len(geometries) != 1:

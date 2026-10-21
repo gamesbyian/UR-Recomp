@@ -180,6 +180,44 @@ class ActionEvidenceTests(unittest.TestCase):
         self.assertEqual(result["native_source_canvas_at_capture"],[256,224])
         self.assertEqual(result["native_root_geometry_at_capture"],[8,10,240,204])
 
+    def test_real_play_guest_handoff_happens_before_sdl_present(self):
+        self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.log=self.log.replace(
+            b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved",
+            b"UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
+            b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        report=qa.verify(self.path)["captures"][0]
+        self.assertEqual(report["native_painted_stage_at_capture"],
+                         "original-stock-1p-after-handoff")
+
+    def test_play_request_without_guest_handoff_is_not_proof(self):
+        self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"stock handoff was not witnessed"):
+            qa.verify(self.path)
+
+    def test_play_guest_handoff_after_snapshot_is_not_proof(self):
+        self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.log += b"UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"stock handoff was not witnessed"):
+            qa.verify(self.path)
+
+    def test_repainted_modern_after_stock_handoff_is_rejected(self):
+        self.receipt["native_semantic_route"]="play-stock-handoff"
+        self.log=self.log.replace(
+            b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved",
+            b"UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
+            b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view\n"
+            b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        with self.assertRaisesRegex(qa.AuditError,"painted again"):
+            qa.verify(self.path)
+
     def test_phony_approval_refused(self):
         self.receipt["visual_approved"]=True
         self.pack()

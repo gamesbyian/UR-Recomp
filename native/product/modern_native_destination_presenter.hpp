@@ -431,7 +431,12 @@ inline bool render_modern_native_pause_destination(
         width < 256 || stride < width || height < 224) return false;
     const int scale = width >= 1024 && height >= 896 ? 4 :
         width >= 512 && height >= 448 ? 2 : 1;
-    constexpr int logical_w = 240;
+    // Paused Options has the same 342-wide Modern composition as the root
+    // whenever its actual prepared native framebuffer has room for it. The
+    // original 256-wide guest / 4:3 frame stays 240-wide at every scale.
+    // This changes presentation geometry only, never the frozen guest image,
+    // option store, input owner or resume state.
+    const int logical_w = width >= 342 * scale ? 320 : 240;
     constexpr int logical_h = 204;
     const HostOverlayRect root{
         (width - logical_w * scale) / 2,

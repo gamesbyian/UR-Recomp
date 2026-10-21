@@ -44,6 +44,10 @@ Manual integrators must reconcile the inbox with GitHub at the start and before 
 
 **Operational GitHub-first runbook:** [docs/recovery/GITHUB-FIRST-PUBLICATION-RUNBOOK.md](recovery/GITHUB-FIRST-PUBLICATION-RUNBOOK.md). All agents must attempt normal GitHub publication of independently qualified changes before fallback. Do not turn a single invocation-level tool safety check into a permanent judgment about source content. Use bounded retries for transport/API failures, preserve blocked work losslessly, and reconsider it on future runs without circumventing explicit restrictions.
 
+## Preservation-first guarantee
+
+The required [preservation-first contract](recovery/PRESERVATION-FIRST-CONTRACT.md) applies to all five scheduled agents and manual integrators. Prepare an exact source/test handoff before fragile publication; for **previously refused operations**, remotely stage and independently read back the restricted Vault archive before any additional risky work. Record a real Drive ID plus downloaded-byte SHA verification, or explicitly mark the unpublished result AT RISK. A safety refusal requires an independent review/escalation, not cosmetic retry. Do not create redundant Drive mirrors after successful normal GitHub publication.
+
 ## Failure and publication rules
 
 Refresh exact HEAD immediately before a write. **Classify the actual failure, not an agent's historical shorthand.** Retriable transport timeout, rate limit, expired token, GitHub 5xx, conflict/stale blob or service instability: preserve exact response and source SHA, refetch HEAD, back off appropriately, and retry a bounded number of times in the same run if execution permits. Continue other meaningful work between attempts. On the next scheduled/manual integration, revisit every unresolved technical failure; do not let a stale historic HOLD prevent an independent comparison against already merged code. If the original error is unavailable, label it UNKNOWN and seek the original receipt before claiming it was a safety denial or safe to resubmit.

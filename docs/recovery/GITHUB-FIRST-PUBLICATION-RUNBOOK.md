@@ -2,6 +2,10 @@
 
 This document is a **workflow**, not an authorization to evade a safety restriction. Apply it to all scheduled hourly agents and manual integrators. The [coordination protocol](../AGENT-COORDINATION.md) owns assignments and the [recovery index](README.md) owns historical evidence.
 
+## Mandatory preservation gate
+
+Before new potentially publishable source changes, follow [preservation-first publication and incident recovery](PRESERVATION-FIRST-CONTRACT.md). Stage a lossless bounded local ZIP before fragile writes; when a source/operation has previously been denied, require independently read-back restricted Drive preservation **before further risky publication**. Ordinary clean GitHub publication remains preferred and does not need a redundant Drive mirror. Tool/connector refusals should be recorded in [publication incidents](publication-incidents.json) with the actual response and honest readback state. A mere reference to a source file in a report does not preserve its bytes. Do not disguise or resubmit previously rejected calls to evade safety restrictions.
+
 ## Every invocation: publish first, recover only if needed
 
 1. Resolve the five current board positions and stable work IDs, read latest `main`, relevant PR/branch ownership, and Vault candidate dispositions. Check whether intended source/tests already exist byte-for-byte or semantically in `main`. Do not duplicate existing work.

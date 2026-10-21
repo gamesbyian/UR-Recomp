@@ -1,0 +1,40 @@
+{
+  "schema": "ur-publication-incidents/1",
+  "scope": "curated_not_exhaustive",
+  "last_review_utc": "2026-10-21",
+  "purpose": "Exact blocked write receipts and preservation state; candidate disposition lives in agent-candidates.json",
+  "incidents": [
+    {
+      "incident_id": "agent5-h28-ppu-qa08-epoch-overlap",
+      "work_id": "UR-PPU-01",
+      "candidate_id": "agent5-h28-ppu-qa08-epoch-overlap",
+      "source_main_sha": null,
+      "operation": "GitHub create_file",
+      "target_path": "tools/qa08_rf017_epoch_crc_overlap.py",
+      "original_error": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "classification": "explicit_safety_denial",
+      "vault_file_id": "1eBRIAdDsdMitm6R71fecb81Zu_UNtu2t",
+      "vault_sha256": null,
+      "byte_readback": "pending",
+      "disposition": "held_for_independent_review",
+      "next_authorized_action": "Review current merged CRC/source-epoch checks; independently qualify a distinct needed regression or escalate false-positive, not a disguised retry",
+      "release_gate_credit": false
+    },
+    {
+      "incident_id": "agent5-h28-uhd-sdl-log-token",
+      "work_id": "UR-UHD-01",
+      "candidate_id": "agent5-h28-uhd-sdl-log-token",
+      "source_main_sha": null,
+      "operation": "GitHub update_file",
+      "target_path": "tools/verify_modern_root_sdl_contrast.py",
+      "original_error": "This tool call was blocked by OpenAI's safety checks. Please double check what you are sending.",
+      "classification": "explicit_safety_denial",
+      "vault_file_id": "1JR0mcmu-lwtQXPR0XhjmwDmwYOXh1U7m",
+      "vault_sha256": null,
+      "byte_readback": "pending",
+      "disposition": "held_for_independent_review",
+      "next_authorized_action": "Review current source for lexical field parsing and add independent current-head tests if still required; do not apply stale rejected patch blindly",
+      "release_gate_credit": false
+    }
+  ]
+}

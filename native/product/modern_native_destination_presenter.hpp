@@ -207,12 +207,16 @@ inline bool render_modern_native_destination(
 
     const auto& col = kModernStockMenuPalette;
     // Modal focus owns the entire body and its controls footer. Mask the
-    // underlying root's focus band, preview and "B/ESC QUIT" instructions.
-    // Keep the independent outer frame and racer identity header intact.
+    // underlying root's selection bar, two-column preview, and "B/ESC QUIT"
+    // footer before drawing the real child. Merely hiding the old child model
+    // leaves blue focus slivers and mutually contradictory shortcuts showing
+    // outside a centred dialog on the actual SDL drawable.
+    // Keep the shell's outer border and profile/identity glyphs (y+36..43) untouched;
+    // this operation is entirely host-owned Modern UI presentation.
     p.fill_rect(pixels, stride, surface_height,
-                root.x + scale, root.y + 40 * scale,
+                root.x + scale, root.y + 46 * scale,
                 root.width - 2 * scale,
-                root.height - 41 * scale, col.background);
+                root.height - 47 * scale, col.background);
     p.fill_rect(pixels, stride, surface_height,
                 c.x, c.y, c.w, c.h, col.background);
     p.fill_rect(pixels, stride, surface_height,
@@ -234,6 +238,27 @@ inline bool render_modern_native_destination(
     modern_native_destination_line(
         p, pixels, stride, surface_height, c, 6,
         title, col.title_yellow, 10, 2);
+
+    // The extra native-wide header width is a quiet, source-colour identity
+    // rail. It tells the player which *existing* product surface is active,
+    // without placing new actions in the panel or truncating full racer names
+    // and saved Records times in the content below. The 4:3 title stays exact.
+    if (c.wide) {
+        const std::string_view tag = v.options_open
+            ? (v.options_controls_help ? "HELP" : "SETTINGS")
+            : (v.practice_picker_open || v.practice_launch_pending) ? "STOCK"
+            : v.read_only_records_open ? "ARCHIVE"
+            : v.first_racer_open ? "PROFILE"
+            : v.two_seat_join_open ? "P1 + P2" : "2P STOCK";
+        const int tag_x = c.w / c.scale - 10 -
+            static_cast<int>(tag.size()) * kModernOverlayCellPixels;
+        p.fill_rect(pixels, stride, surface_height,
+                    c.x + (tag_x - 7) * c.scale, c.y + 9 * c.scale,
+                    c.scale, 11 * c.scale, col.frame_grey);
+        p.draw_text(pixels, stride, surface_height,
+                    c.x + tag_x * c.scale, c.y + 12 * c.scale,
+                    tag.data(), col.secondary_grey, c.scale);
+    }
 
     if (v.options_open) {
         if (v.options_controls_help) {
@@ -427,7 +452,12 @@ inline bool render_modern_native_pause_destination(
         width < 256 || stride < width || height < 224) return false;
     const int scale = width >= 1024 && height >= 896 ? 4 :
         width >= 512 && height >= 448 ? 2 : 1;
-    constexpr int logical_w = 240;
+    // Paused Options has the same 342-wide Modern composition as the root
+    // whenever its actual prepared native framebuffer has room for it. The
+    // original 256-wide guest / 4:3 frame stays 240-wide at every scale.
+    // This changes presentation geometry only, never the frozen guest image,
+    // option store, input owner or resume state.
+    const int logical_w = width >= 342 * scale ? 320 : 240;
     constexpr int logical_h = 204;
     const HostOverlayRect root{
         (width - logical_w * scale) / 2,

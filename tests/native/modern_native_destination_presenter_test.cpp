@@ -173,9 +173,9 @@ int main() {
         return std::any_of(painted.begin(), painted.end(),
             [root,scale](const Rectangle& box) {
                 return box.x == root.x + scale &&
-                    box.y == root.y + 40 * scale &&
+                    box.y == root.y + 46 * scale &&
                     box.w == root.width - 2 * scale &&
-                    box.h == root.height - 41 * scale &&
+                    box.h == root.height - 47 * scale &&
                     box.colour == kModernStockMenuPalette.background;
             });
     };

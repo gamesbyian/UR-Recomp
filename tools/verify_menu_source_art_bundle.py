@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import struct
 import zlib
 from pathlib import Path
@@ -27,6 +28,11 @@ EXPECTED = {
 }
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MAX_PNG_BYTES = 4 * 1024 * 1024
+SOURCE_FIXTURE = "tests/input/menu-visual-language.script"
+SOURCE_MAIN_TAG = "mvl-idle-000"
+SOURCE_PPU_FIELDS = frozenset((
+    "main_vram", "main_cgram", "detail_vram", "detail_cgram",
+))
 
 
 def read_png_rgba(path: Path, width: int, height: int,
@@ -94,6 +100,24 @@ def verify_source_art_bundle(receipt: dict, paths: dict[str, Path]) -> dict:
             receipt.get("asset_distribution_approved") is not False or
             receipt.get("native_render_and_visual_acceptance") is not False):
         raise ValueError("source-only rights and acceptance flags must remain false")
+    # The first-party exporter always supplies the source capture family,
+    # exact main-frame anchor and four original VRAM/CGRAM SHA256 digests.
+    # The old verifier accidentally admitted receipts with NONE of these.
+    # Requiring a complete, well-formed claim does not cryptographically
+    # establish that those PPU bytes came from a licensed source ROM: that
+    # remains an independent upstream capture/provenance responsibility.
+    if (receipt.get("source_fixture") != SOURCE_FIXTURE or
+            receipt.get("source_main_tag") != SOURCE_MAIN_TAG or
+            not isinstance(receipt.get("source_detail_tag"), str) or
+            re.fullmatch(r"mvl-track-[0-9]{2,3}",
+                         receipt["source_detail_tag"]) is None):
+        raise ValueError("source capture fixture or original frame tags missing")
+    ppu = receipt.get("source_ppu_sha256")
+    if not isinstance(ppu, dict) or set(ppu) != SOURCE_PPU_FIELDS or any(
+            not isinstance(v, str) or
+            re.fullmatch(r"[0-9a-f]{64}", v) is None
+            for v in ppu.values()):
+        raise ValueError("source PPU VRAM/CGRAM digest receipt incomplete")
     if set(paths) != set(EXPECTED):
         raise ValueError("supply all four named PNG source sheets")
     hashes = receipt.get("asset_png_sha256")

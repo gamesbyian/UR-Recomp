@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "kind": "independent original Win32 final-SDL P7 foreground/checker contrast across compact and widescreen root",
+  "source_run_id": 39539086749,
+  "exact_checkout_sha": "a20790e92c66b58a1630ec084db6f78596296a05",
+  "executable_sha256": "5a2d3475d598447509b6addad1b206de27e30ce59ec4a4d8c3b246a976a466a7",
+  "original_actions_artifact_id": 12319405071,
+  "analysis_cli": "python3 tools/qa_modern_visual_native_contrast.py ORIGINAL_SDL_P7 --roi <x0> <y0> <x1> <y1> --foreground '#989898' --background '#2f2f2f' --background '#505050'",
+  "checked_native_frames": [
+    {
+      "route": "root-quit",
+      "output": [
+        640,
+        480
+      ],
+      "original_p7_sha256": "4e1c138cf578e2627136fc2a1533b72eff03c32b3e48ade71c1d08ba25386296",
+      "roi": [
+        38,
+        94,
+        385,
+        135
+      ],
+      "foreground_rgb": [
+        152,
+        152,
+        152
+      ],
+      "foreground_pixels": 2038,
+      "backgrounds": [
+        {
+          "rgb": [
+            47,
+            47,
+            47
+          ],
+          "pixels": 5898,
+          "contrast_ratio": 4.6412,
+          "text_pixels_within_two_pixels": 1282
+        },
+        {
+          "rgb": [
+            80,
+            80,
+            80
+          ],
+          "pixels": 6291,
+          "contrast_ratio": 2.7952,
+          "text_pixels_within_two_pixels": 653
+        }
+      ],
+      "alpha_values": [
+        224,
+        255
+      ],
+      "passes_source_rgb_reference": false
+    },
+    {
+      "route": "root-quit",
+      "output": [
+        1920,
+        1080
+      ],
+      "original_p7_sha256": "dc14fa61c4ef32231e0dc6c450b68a2cc118ca1727d6e08ac0da00670bbdf68f",
+      "roi": [
+        90,
+        180,
+        760,
+        252
+      ],
+      "foreground_rgb": [
+        152,
+        152,
+        152
+      ],
+      "foreground_pixels": 7868,
+      "backgrounds": [
+        {
+          "rgb": [
+            47,
+            47,
+            47
+          ],
+          "pixels": 19106,
+          "contrast_ratio": 4.6412,
+          "text_pixels_within_two_pixels": 2718
+        },
+        {
+          "rgb": [
+            80,
+            80,
+            80
+          ],
+          "pixels": 21266,
+          "contrast_ratio": 2.7952,
+          "text_pixels_within_two_pixels": 1680
+        }
+      ],
+      "alpha_values": [
+        224,
+        255
+      ],
+      "passes_source_rgb_reference": false
+    }
+  ],
+  "reference_ratio": 4.5,
+  "finding": "The two distinct native output dimensions both visibly overlap RGB152 supporting identity text with source checker RGB80; the measured same-layout source contrast is 2.7952:1 in both. The source checkout predates current-main legible-grey palette fix. A new exact integrated native P7 capture is needed to verify the post-merge correction; source code presence alone cannot close this visual gate.",
+  "limitations": [
+    "uncomposited source RGB, not physical display contrast",
+    "historical compiled Windows executable, not newest integrated candidate",
+    "no original font/arrow human artistic signoff",
+    "not a controller, audio, guest CRC or device test"
+  ],
+  "human_approval": false,
+  "physical_hardware_approval": false,
+  "release_gate_credit": 0,
+  "final_25_case_approval": 0
+}

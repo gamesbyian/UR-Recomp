@@ -138,7 +138,13 @@ inline bool render_native_modern_pause_options(
     // 2x and 4x fallback rasters keep their original pixel aspect/scale.
     const int scale = width >= 1024 && height >= 896 ? 4 :
                       width >= 512 && height >= 448 ? 2 : 1;
-    const int panel_w = width >= 342 * scale ? 320 : 240;
+    // Do not infer a widened *source* from an arbitrary large SDL window.
+    // Only the exact prepared 342x224 source family opts into wide layout;
+    // 1024x768 and 1280x720 output-sized 4:3/16:9 buffers keep legacy
+    // compact framing unless the native source actually has that geometry.
+    const bool prepared_wide =
+        width == 342 * scale && height == 224 * scale;
+    const int panel_w = prepared_wide ? 320 : 240;
     constexpr int kPanelH = 204;
     const int x = (width - panel_w * scale) / 2;
     const int y = (height - kPanelH * scale) / 2;

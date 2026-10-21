@@ -125,7 +125,7 @@ inline void render_modern_options_modal(
     // logical y+180 and logical x+panel_w-12. Validate before callbacks.
     if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
         stride > 16384 || surface_height > 16384 ||
-        scale < 1 || scale > 4 || panel_w <= 40 || panel_w > 512 ||
+        scale < 1 || scale > 4 || panel_w < 176 || panel_w > 512 ||
         x < 0 || y < 0 || x > stride || y > surface_height ||
         panel_w * scale > stride - x ||
         180 * scale > surface_height - y)
@@ -218,7 +218,7 @@ inline bool render_modern_root_overlay(
     // outer bounds test and forward out-of-panel writes to painter callbacks.
     if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
         stride > 16384 || surface_height > 16384 ||
-        scale < 1 || scale > 4 || panel_w <= 40 || panel_w > 512 ||
+        scale < 1 || scale > 4 || panel_w < 176 || panel_w > 512 ||
         rect.width <= 0 || rect.height <= 0 ||
         rect.x < 0 || rect.y < 0 || rect.x > stride ||
         rect.y > surface_height || rect.width > stride - rect.x ||

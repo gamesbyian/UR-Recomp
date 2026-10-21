@@ -131,7 +131,27 @@ class LiveOperationsTests(unittest.TestCase):
         report = self.report(get=partial)
         self.assertEqual(report["handoff_drift"]["status"],
                          "UNKNOWN_INCOMPLETE_PR_CENSUS")
-        self.assertNotIn("hints", report["handoff_drift"])
+        self.assertEqual(report["handoff_drift"]["hints"], [])
+        self.assertFalse(report["handoff_drift"]["census_complete"])
+
+    def test_partial_census_preserves_positive_evidence_without_completeness(self):
+        def partial(path):
+            if "/pulls?state=closed&" in path:
+                valid = {
+                    "number": 2194, "merged_at": "2026-10-21T19:55:59Z",
+                    "merge_commit_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
+                    "body": "Drive source 1_RScoARFTHjfttOY87v9PKBepXmE8tK8",
+                }
+                return [valid] + [
+                    {"number": x, "merged_at": None} for x in range(99)
+                ]
+            return self.request(path)
+        report = self.report(get=partial)
+        result = report["handoff_drift"]
+        self.assertEqual(result["status"], "PARTIAL_CENSUS_REVIEW_HINTS")
+        self.assertFalse(result["census_complete"])
+        self.assertEqual(result["hints"][0]["linked_merged_pr"], 2194)
+        self.assertEqual(result["automatic_state_changes"], 0)
 
     def test_failed_closed_census_is_unknown(self):
         result = self.report()

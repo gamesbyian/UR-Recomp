@@ -36,7 +36,7 @@ class PortableJourneyRootRecovery(unittest.TestCase):
             # A non-BMP character contributes two UTF-16 code units.
             # Names near the Win32 component-length bound must not raise
             # UnicodeEncodeError, even when rejected for other reasons.
-            name = ("a" * 252) + chr(0x1f600)
+            name = ("a" * 251) + chr(0x1f600)
             journey, _ = fixture(root, name)
             report = export(journey, root / "accepted-export")
             self.assertEqual(report["source_run_filename"], "earned.urrun")

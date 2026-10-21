@@ -142,6 +142,55 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             self.assertEqual(manifest.read_bytes(), b"m")
             self.assertEqual((folder / plates[0][0]).read_bytes(), b"raster")
 
+    def test_plate_publication_fault_removes_created_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header, manifest, folder = (
+                root / "hero.hpp", root / "receipt.json", root / "plates")
+            plates = [("original-stock-1213.png", b"source-only-test")]
+            genuine_link = hero.os.link
+            calls = 0
+            def interrupted_plate_link(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 3:
+                    raise OSError("simulated plate-publication failure")
+                return genuine_link(source, target)
+            with patch.object(hero.os, "link", side_effect=interrupted_plate_link):
+                with self.assertRaisesRegex(OSError, "plate-publication"):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"manifest", plates, header, manifest, folder)
+            self.assertEqual(list(root.iterdir()), [])
+            hero.publish_private_source_artifacts(
+                b"header", b"manifest", plates, header, manifest, folder)
+            self.assertEqual((folder / plates[0][0]).read_bytes(), plates[0][1])
+
+    def test_concurrent_directory_claim_never_overwrites_user_art(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            header, manifest, folder = (
+                root / "hero.hpp", root / "receipt.json", root / "plates")
+            genuine_link = hero.os.link
+            calls = 0
+            def conflicting_creator(source, target):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    folder.mkdir()
+                    (folder / "keep.txt").write_text("must survive", encoding="utf-8")
+                return genuine_link(source, target)
+            with patch.object(hero.os, "link", side_effect=conflicting_creator):
+                with self.assertRaises(FileExistsError):
+                    hero.publish_private_source_artifacts(
+                        b"header", b"manifest",
+                        [("original-stock-1213.png", b"clip")],
+                        header, manifest, folder)
+            self.assertFalse(header.exists())
+            self.assertFalse(manifest.exists())
+            self.assertEqual((folder / "keep.txt").read_text(), "must survive")
+            self.assertEqual(list(folder.iterdir()), [folder / "keep.txt"])
+            self.assertEqual(list(root.glob(".original-*")), [])
+
     def test_original_raster_and_compiled_cpp_asset(self):
         if not hero.ROM.is_file():
             self.skipTest("canonical private ROM unavailable")

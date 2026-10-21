@@ -449,7 +449,7 @@ class MenuVisualLanguageTests(unittest.TestCase):
             # The complete 64-frame sequence is mandatory. A short 16-pose
             # set cannot establish the stock 2-tick hold / 32-tick period.
             (dump_dir / "mvl-idle-063.vram.bin").unlink()
-            with self.assertRaises(FileNotFoundError):
+            with self.assertRaisesRegex(ValueError, "all 64 source idle frames"):
                 mvl.export_cursor_atlas(dump_dir, png)
 
     def test_png_writer_emits_valid_stream(self) -> None:

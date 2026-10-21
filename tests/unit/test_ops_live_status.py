@@ -50,10 +50,26 @@ class LiveOperationsTests(unittest.TestCase):
             ]}
         raise ValueError("unexpected route")
 
-    def report(self, get=None, local_head=SHA):
+    def report(self, get=None, local_head=SHA, registry=None):
         return snapshot(get or self.request, board=self.board,
-                        registry=self.registry, ledger=self.ledger,
-                        local_head=local_head, now=NOW)
+                        registry=self.registry if registry is None else registry,
+                        ledger=self.ledger, local_head=local_head, now=NOW)
+
+    @staticmethod
+    def handoff_fixture(state="blocked"):
+        # Independent of the changing curated registry: #2200 legitimately
+        # resolves this historical candidate and must not break CI.
+        return {
+            "schema": "ur-recovery-registry/1",
+            "scope": "curated_not_exhaustive",
+            "candidates": [{
+                "candidate_id": "h27-knowledge-malformed-lanes",
+                "work_id": "UR-KNOWLEDGE-01",
+                "state": state,
+                "drive_id": "1_RScoARFTHjfttOY87v9PKBepXmE8tK8",
+                "github_pr": None,
+            }],
+        }
 
     def test_live_main_and_recency_are_explicit(self):
         result = self.report()
@@ -115,7 +131,7 @@ class LiveOperationsTests(unittest.TestCase):
                     "body": "Independent archive 1_RScoARFTHjfttOY87v9PKBepXmE8tK8"
                 }]
             return self.request(path)
-        result = self.report(get=request)
+        result = self.report(get=request, registry=self.handoff_fixture())
         drift = result["handoff_drift"]
         self.assertEqual(drift["status"], "REVIEW_HINTS")
         self.assertEqual(drift["hints"][0]["candidate_id"],
@@ -146,12 +162,32 @@ class LiveOperationsTests(unittest.TestCase):
                     {"number": x, "merged_at": None} for x in range(99)
                 ]
             return self.request(path)
-        report = self.report(get=partial)
+        report = self.report(get=partial, registry=self.handoff_fixture())
         result = report["handoff_drift"]
         self.assertEqual(result["status"], "PARTIAL_CENSUS_REVIEW_HINTS")
         self.assertFalse(result["census_complete"])
         self.assertEqual(result["hints"][0]["linked_merged_pr"], 2194)
         self.assertEqual(result["automatic_state_changes"], 0)
+
+    def test_actual_candidate_resolution_does_not_break_handoff_fixture(self):
+        # The same exact merged-PR receipt must no longer be a hint once
+        # the reviewed candidate is explicitly resolved.
+        def source(path):
+            if "/pulls?state=closed&" in path:
+                return [{
+                    "number": 2194,
+                    "merged_at": "2026-10-21T19:55:59Z",
+                    "merge_commit_sha": "d2ab0785cdd531f6fa26534c9597d7cdda484b23",
+                    "body": "Archive 1_RScoARFTHjfttOY87v9PKBepXmE8tK8",
+                }]
+            return self.request(path)
+        unresolved = self.report(get=source, registry=self.handoff_fixture("blocked"))
+        resolved = self.report(get=source, registry=self.handoff_fixture("merged"))
+        self.assertEqual(unresolved["handoff_drift"]["status"], "REVIEW_HINTS")
+        self.assertEqual(resolved["handoff_drift"]["status"],
+                         "NO_HINTS_IN_CURATED_SCOPE")
+        self.assertEqual(resolved["handoff_drift"]["hints"], [])
+        self.assertEqual(resolved["handoff_drift"]["automatic_state_changes"], 0)
 
     def test_failed_closed_census_is_unknown(self):
         result = self.report()

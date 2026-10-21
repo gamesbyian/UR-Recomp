@@ -293,16 +293,35 @@ inline bool render_modern_native_destination(
                 ? v.options_row_count : kModernRootOptionRows;
             for (std::size_t i = 0; i < count; ++i) {
                 const auto& row = v.options_rows[i];
-                std::string label(row.label);
-                if (label.size() < 9) label.append(9 - label.size(), ' ');
-                label += std::string(row.adjustable && i == v.options_selected
-                    ? "< " : "");
-                label += row.value;
-                if (row.adjustable && i == v.options_selected) label += " >";
-                modern_native_destination_row(
-                    p, pixels, stride, surface_height, c,
-                    36 + static_cast<int>(i) * 15,
-                    i == v.options_selected, label);
+                const bool selected = i == v.options_selected;
+                const int row_y = 36 + static_cast<int>(i) * 15;
+                if (c.wide) {
+                    // Native-wide Options has real fixed columns, not a
+                    // padded engineering string. The stock focus still
+                    // follows only the selected real product option.
+                    modern_native_destination_row(
+                        p, pixels, stride, surface_height, c,
+                        row_y, selected, row.label);
+                    std::string value(row.value);
+                    if (selected && row.adjustable)
+                        value = "< " + value + " >";
+                    modern_native_destination_line(
+                        p, pixels, stride, surface_height, c,
+                        row_y, value,
+                        selected ? col.title_yellow : 0xFFFFFFFFu, 183);
+                } else {
+                    // Compact 4:3 retains its source-safe single-line
+                    // interaction pattern and existing value clipping.
+                    std::string label(row.label);
+                    if (label.size() < 9) label.append(9 - label.size(), ' ');
+                    label += std::string(row.adjustable && selected
+                        ? "< " : "");
+                    label += row.value;
+                    if (row.adjustable && selected) label += " >";
+                    modern_native_destination_row(
+                        p, pixels, stride, surface_height, c,
+                        row_y, selected, label);
+                }
             }
             const bool status = !v.options_status.empty();
             modern_native_destination_line(

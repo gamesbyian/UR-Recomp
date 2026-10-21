@@ -5,6 +5,7 @@ on:
     paths:
       - "docs/HOURLY-AGENT-LINES.md"
       - "docs/recovery/agent-candidates.json"
+      - "docs/operations/main-history-custody.json"
       - ".github/workflows/agent-control-contract.yml"
   workflow_dispatch:
 
@@ -23,7 +24,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Reject ambiguous ownership and false recovery acceptance
         run: |
-          python3 -m unittest -v tests.unit.test_agent_control
+          python3 -m unittest -v tests.unit.test_agent_control tests.unit.test_validate_history_custody tests.unit.test_ops_live_status
+          python3 tools/validate_history_custody.py
           python3 tools/agent_control.py --check
       - name: Bounded control-plane summary
         if: success()

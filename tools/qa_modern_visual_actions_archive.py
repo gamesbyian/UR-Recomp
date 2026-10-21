@@ -310,8 +310,12 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         # Once Play hands focus to guest stock, no current Modern root
         # geometry is authoritative. Only active Modern destination routes
         # advertise their native 342/256 source and panel dimensions.
-        "native_source_canvas_at_capture":list(actual_source[:2]) if route in ROUTE_STAGES else [256,224],
-        "native_root_geometry_at_capture":list(actual_source[2:]) if route in ROUTE_STAGES else None,
+        "native_source_canvas_at_capture":(
+            title_source["title_source_raster"] if route in TITLE_ROUTES else
+            list(actual_source[:2]) if route in ROUTE_STAGES else [256,224]),
+        "native_root_geometry_at_capture":(
+            [11,10,320,204] if route.startswith("title-transition") else
+            list(actual_source[2:]) if route in ROUTE_STAGES else None),
         "human_approved":False, "release_gate_credit":0,
     }
 

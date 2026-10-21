@@ -17,9 +17,11 @@ ROOT = Path(__file__).resolve().parents[1]
 try:
     from .agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
     from .validate_history_custody import load as load_custody, validate as validate_custody
+    from .ci_cancelled_job_sample import sample_cancelled_jobs
 except ImportError:
     from agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
     from validate_history_custody import load as load_custody, validate as validate_custody
+    from ci_cancelled_job_sample import sample_cancelled_jobs
 
 REPO = "gamesbyian/UR-Recomp"
 def timestamp(value):
@@ -133,6 +135,7 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
                                 for x in latest if x.get("conclusion") == "cancelled")
         result["actions"] = {
             "scope": "latest_100_only_not_a_day_or_billing_measure",
+            "cancelled_runner_job_sample": sample_cancelled_jobs(get, base, latest),
             "cancelled_by_workflow": [
                 {"workflow": name[:120], "count": count}
                 for name, count in sorted(cancel_groups.items(), key=lambda pair: (-pair[1], pair[0]))[:5]
@@ -208,6 +211,22 @@ def markdown(s):
         rows.append("- Cancellation leads (same latest sample only): " +
                     "; ".join(f"{x['workflow']}: {x['count']}" for x in actions["cancelled_by_workflow"]) +
                     ". Counts are NOT lost runner minutes.")
+    if actions:
+        measured = actions["cancelled_runner_job_sample"]
+        rows.append(
+            "- **Cancelled-runner sample:** " +
+            f"{measured['observed_runner_seconds']/60:.1f} observed runner-minutes " +
+            f"across {measured['verified_job_censuses']}/{measured['selected']} " +
+            "selected latest cancelled runs. " +
+            f"{len(measured['unknown_censuses'])} job censuses UNKNOWN; " +
+            f"{measured['unselected_cancelled_runs']} other cancelled runs NOT measured. " +
+            "Latest attempt only; not billable minutes, a full-day census or proof of wasted work."
+        )
+        for name_row in measured["workflows"][:5]:
+            rows.append("- " + name_row["workflow"] + ": " +
+                        f"{name_row['runner_seconds']/60:.1f} observed runner-minutes; " +
+                        f"{name_row['runs']} cancelled runs sampled " +
+                        f"({name_row['zero_started_jobs']} with zero started jobs)")
     qa = s["qa"]
     rows.append("- Release ledger: " +
                 (("exact observed main" if qa["source_exact_main"] else "STALE / UNVERIFIED SOURCE") +

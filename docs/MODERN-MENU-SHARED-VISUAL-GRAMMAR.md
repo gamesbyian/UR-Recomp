@@ -2,6 +2,44 @@
 
 **Status: implemented bounded native host presentation primitive, not an approved finished title/menu skin.** This owns reusable appearance and timing vocabulary only. Title composition, root composition, individual modal information architecture, sprite art and finished UX reviews belong to their individual screen agents. Authentic/guest, route/controller, save/records, gameplay, HD racer and recruitment film are outside this lane.
 
+## Fixed BG1-grid continuity in native Modern root (2026-10-21)
+
+The original screen's checker/leaf **BG1 stays fixed** while the 39-frame menu
+**BG2 text strip travels** (canonical source: `analysis/generated/menu-visual-language.json`).
+The original shared checker fallback reset its 16px tile origin at every panel
+rectangle, which could move the checker phase with panel bounds or create a
+visible half-square discontinuity across adjacent cropped regions.
+
+`modern_menu_paint_checker_backdrop(..., fixed_bg1_grid=true)` is a small
+source-grounded presentation-only correction: it locks the checker squares to
+the *actual destination framebuffer's* top-left pixel, even when a rectangle
+starts at x/y offsets not divisible by 16 logical pixels. The existing
+default remains local and byte-identical for other consumers. The actual
+Modern root opts in; it still renders only its existing source-family
+grey checker fallback, not an invented leaf/logo raster. No font, title
+composition, menu state, routes, controller, guest pixels or Authentic mode
+are changed. Both 256×224 (4:3) and 342×224 (16:9) use the same 16px SNES
+logical grid at 1×, with integer 4× preservation.
+
+The checked-in native C++ framebuffer oracle composes one full root-area
+checker and four independently cropped quadrant panels split at *non-tile*
+x/y boundaries and demands full-surface byte identity at both widths,
+at 1× and 4×. It also checks global-origin phase, valid local default pixels
+and fail-closed invalid rectangles. The existing root presenter source
+contract asserts the fixed BG1 call is genuinely used by the shipping host.
+This is **native shared-painter** evidence, not a packaged Windows SDL P7
+capture, human art acceptance, leaf-pattern reconstruction or QA08 release
+approval. The visual QA agent must independently inspect a newly compiled
+combined native Windows SDL capture in 4:3 and 16:9 against stock BG1
+references; the title/destination owners keep their screen-specific layouts.
+
+Three-project reuse (registry `modern-product` with conditional entries):
+UR's measured original PPU `menu-visual-language.json`, shared painter,
+native product states and actual Windows capture route remain the source of
+truth; Baldosa owns the integrated native framebuffer/SDL handoff; Malmazuke
+is a PAL reference only. There is no justification for importing a second
+runtime, painting engine or copied game artwork for this seam correction.
+
 ## Source-first inventory (2026-10-20)
 
 Primary source is the ROM-observed **canonical USA clean-boot menu capture** in [`analysis/generated/menu-visual-language.json`](../analysis/generated/menu-visual-language.json), independently described in [`UI-STATE-MAP.md`](UI-STATE-MAP.md). It samples original MAIN_MENU, OPTIONS_MENU, PLAYER_SELECT_P1, TOUR_SELECT and TRACK_SELECT; it is stronger than impressionistic modern redesign sketches.

@@ -158,6 +158,20 @@ def validate_rom_config(payload: bytes, *, context: str) -> None:
         )
 
 
+def is_windows_device_component(component: str) -> bool:
+    """Windows console aliases and DOS devices, with optional extensions.
+
+    Validate each directory component too: a Linux-created mod path can
+    otherwise become an unaddressable device path after Windows extraction.
+    """
+    stem = component.split(".", 1)[0].upper().translate(
+        str.maketrans("¹²³", "123")
+    )
+    return (stem in {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"} or
+            (len(stem) == 4 and
+             stem[:3] in {"COM", "LPT"} and stem[3] in "123456789"))
+
+
 def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
     """Reject package names that cannot survive ordinary Windows extraction.
 
@@ -178,12 +192,7 @@ def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
                 raise ValueError(
                     f"{context} contains Windows-incompatible path: {relative}"
                 )
-            stem = part.split(".", 1)[0].upper()
-            if stem in {"CON", "PRN", "AUX", "NUL"} or (
-                len(stem) == 4
-                and stem[:3] in {"COM", "LPT"}
-                and stem[3] in "123456789¹²³"
-            ):
+            if is_windows_device_component(part):
                 raise ValueError(
                     f"{context} contains Windows-reserved device name: {relative}"
                 )

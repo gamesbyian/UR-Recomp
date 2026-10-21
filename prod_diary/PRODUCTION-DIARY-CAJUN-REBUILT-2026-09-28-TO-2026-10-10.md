@@ -148,7 +148,7 @@ Old course maps, racer symbols, replay scripts, interface captures: one team's a
 
 ### 31. De agents learn to leave some treasure buried
 
-Some acquisition leads turn out already covered by historical assets, so de new work become comparison only. Dessyreqt's later eighty-file import ([#109](https://github.com/gamesbyian/UR-Recomp/pull/109), [#110](https://github.com/gamesbyian/UR-Recomp/pull/110)) pull bots, course landmarks, saved games an' glitch movies together. Dat good archaeology. But once a fact proven, don't build three more shovels to prove you own a shovel.
+Some acquisition leads turn out already covered by historical assets, so de new work become comparison only. Dessyreqt's earlier eighty-file import ([#109](https://github.com/gamesbyian/UR-Recomp/pull/109), [#110](https://github.com/gamesbyian/UR-Recomp/pull/110)) had already pulled bots, course landmarks, saved games an' glitch movies together. Dat good archaeology. But once a fact proven, don't build three more shovels to prove you own a shovel.
 
 ### 32. Ian want de real moment caught on video
 

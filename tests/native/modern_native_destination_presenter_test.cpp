@@ -459,7 +459,7 @@ int main() {
     assert(has("LOCAL 2P STILL PLAYABLE"));
     assert(has("2P RESULTS NOT SAVED"));
     assert(!has("STOCK 2P STILL PLAYABLE"));
-    assert(has("NO MATCH HISTORY SAVED"));
+    assert(!has("NO MATCH HISTORY SAVED")); // replaced by clearer result policy
     assert(has("P1 A ANYWAY   B BACK"));
     clear();
     assert(!render_modern_native_destination({},scratch,256,224,

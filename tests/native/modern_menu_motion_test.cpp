@@ -392,6 +392,47 @@ void test_source_stock_hero() {
     assert(pose.hero_frame_ordinal == 7);
     pose = advance_modern_menu_motion(animator, {102, 1, true, false});
     assert(pose.hero_frame_ordinal == 0);
+    // Renderer-level one-shot guarantee: the eight-frame original event
+    // must HOLD its final supplied pose when a late caller asks for a later
+    // ordinal. Modulo previously wrapped to source pose zero, fabricating
+    // an original guest animation seam that never occurred.
+    pose.reduced_motion = false;
+    // The prior synthetic selection change carries an in-flight lean/bob.
+    // Pin these test-only offsets to zero and clear prior pixels so an old
+    // frame cannot accidentally satisfy this independent one-shot oracle.
+    pose.hero_bob_px = 0;
+    pose.hero_lean_px = 0;
+    output.assign(output.size(), 0xff101010u);
+    pose.hero_frame_ordinal = 2; // exactly count, formerly wraps to red
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xff0000ffu);
+    pose.hero_frame_ordinal = INT32_MAX;
+    output.assign(output.size(), 0xff101010u);
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xff0000ffu);
+    pose.hero_frame_ordinal = -1;
+    const auto reject_negative = output;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Unverified);
+    assert(output == reject_negative);
+    // Reduced motion intentionally selects a single static first image.
+    pose.hero_frame_ordinal = INT32_MAX;
+    pose.reduced_motion = true;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xffff0000u);
+    pose.reduced_motion = false;
+    pose.hero_frame_ordinal = 0;
+
     // A wrong digest or unproven order never touches a pixel.
     const auto before = output;
     frames[1].source_argb_digest ^= 1u;

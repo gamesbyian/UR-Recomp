@@ -176,9 +176,18 @@ inline ModernMenuStockHeroDraw paint_modern_menu_stock_hero(
         envelope_right > safe_right || envelope_bottom > safe_bottom)
         return ModernMenuStockHeroDraw::OutOfBounds;
 
+    // The verified original guest clip is a SINGLE event, not a cyclic
+    // idle. Modulo here would silently invent the unobserved final->first
+    // seam if any caller supplied a later UI tick/pose ordinal. Hold the
+    // last observed original pose instead, even for very large ordinals.
+    // A negative ordinal is malformed host input, never a source frame.
+    if (motion.hero_frame_ordinal < 0)
+        return ModernMenuStockHeroDraw::Unverified;
+    const std::size_t ordinal =
+        static_cast<std::size_t>(motion.hero_frame_ordinal);
     const std::size_t phase = motion.reduced_motion ? 0u :
-        static_cast<std::size_t>(motion.hero_frame_ordinal) %
-            sequence.frame_count;
+        (ordinal >= sequence.frame_count ? sequence.frame_count - 1u
+                                         : ordinal);
     const auto* src = sequence.frames[phase].argb_pixels;
     for (int y = 0; y < kModernMenuStockHeroCanvas; ++y) {
         for (int x = 0; x < kModernMenuStockHeroCanvas; ++x) {

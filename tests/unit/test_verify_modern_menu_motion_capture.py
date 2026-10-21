@@ -103,6 +103,7 @@ class NativeModernMotionCaptureTests(unittest.TestCase):
         for i in range(8, len(records)):
             records[i]["reduced"] = 0
             records[i]["entrance"] = 0
+            records[i]["spin"] = (records[i]["tick60"] // 2) % 16
         result = m.verify_log(log(records))
         self.assertEqual(result["sessions"][0]["reduced_motion_frames"], 4)
         bad = deepcopy(records)

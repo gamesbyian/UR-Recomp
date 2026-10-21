@@ -18,18 +18,18 @@ class ModernHeroClipInventoryTests(unittest.TestCase):
     def test_actual_source_registration_has_three_distinct_bounded_clips(self):
         report = build_report(self.registry, self.source)
         self.assertEqual(report["canonical_rom_sha256"], CANONICAL_USA_SHA256)
-        self.assertEqual([c["ticks_at_source_60hz"] for c in report["clips"]],
+        self.assertEqual([c["registered_frame_count"] for c in report["clips"]],
                          [8, 10, 9])
         self.assertEqual([c["clip_id"] for c in report["clips"]],
                          ["root-entry-reaction", "settle-and-recover",
                           "long-hold-recovery"])
         for clip in report["clips"]:
-            start, stop = clip["source_guest_frames"]
+            start, stop = clip["registered_guest_frames"]
             self.assertEqual(
-                [r["original_guest_frame"] for r in clip["source_observed_original_p1"]],
+                [r["registered_guest_frame"] for r in clip["registered_stock_p1_composition"]],
                 list(range(start, stop + 1)))
             self.assertEqual(
-                [r["presentation_tick"] for r in clip["source_observed_original_p1"]],
+                [r["presentation_tick"] for r in clip["registered_stock_p1_composition"]],
                 list(range(stop - start + 1)))
             self.assertEqual(sum(r["host_frames"] for r in
                                  clip["registered_composition_holds"]),
@@ -88,7 +88,7 @@ class ModernHeroClipInventoryTests(unittest.TestCase):
         with self.assertRaisesRegex(ClipAdmissionError, "exceeds observed"):
             inspect_clip(self.registry, self.source,
                          ("invented", "motion_review_sequence", None, 1204, 1213))
-        with self.assertRaisesRegex(ClipAdmissionError, "missing"):
+        with self.assertRaisesRegex(ClipAdmissionError, "not an accepted"):
             inspect_clip(self.registry, self.source,
                          ("future", "motion_review_sequences",
                           "not-a-real-source-clip", 1410, 1415))
@@ -97,7 +97,7 @@ class ModernHeroClipInventoryTests(unittest.TestCase):
         clip = inspect_clip(self.registry, self.source, CANDIDATES[1])
         self.assertGreater(clip["distinct_registered_compositions"], 1)
         self.assertTrue(all("representation_id" in x for x in
-                            clip["source_observed_original_p1"]))
+                            clip["registered_stock_p1_composition"]))
 
 
 if __name__ == "__main__":

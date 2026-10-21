@@ -274,6 +274,14 @@ RunRecordLoadResult decode_completed_run_record(const std::string& text) {
             saw_header = true;
             continue;
         }
+        // Once the terminal record has been consumed, every later
+        // nonempty row is invalid, including a second valid-looking END.
+        // Apply this state guard before dispatching any row type.
+        if (saw_end) {
+            result.status = RunRecordLoadStatus::Malformed;
+            result.detail = "data after END";
+            return result;
+        }
         if (key == "END") {
             std::string extra;
             if ((row >> extra)) {
@@ -283,11 +291,6 @@ RunRecordLoadResult decode_completed_run_record(const std::string& text) {
             }
             saw_end = true;
             continue;
-        }
-        if (saw_end) {
-            result.status = RunRecordLoadStatus::Malformed;
-            result.detail = "data after END";
-            return result;
         }
 
         std::string a, b, c, d, extra;

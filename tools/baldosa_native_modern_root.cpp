@@ -1001,7 +1001,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     const char* reduced = std::getenv("UR_REDUCED_MOTION");
     g_title = ur::product::modern_title_boot(
         !(fixture && *fixture && std::strcmp(fixture, "15") != 0 &&
-        std::strcmp(fixture, "16") != 0),
+        std::strcmp(fixture, "16") != 0 &&
+        std::strcmp(fixture, "17") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_painted_reported = false;
@@ -1657,12 +1658,12 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."16"; 15/16 alone retain the title.
+    // Smoke modes are decimal "1".."17"; 15/16/17 retain the title.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 16) return;
+            mode < 1 || mode > 17) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -1882,6 +1883,17 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::abort();
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=%u\n", frame);
+        return;
+    }
+    // CI-only mode 17: prove real gamepad START independently from A.
+    // Do not replace the gamepad handler or type guest SRAM/WRAM bytes.
+    if (std::strcmp(opt, "17") == 0) {
+        if (frame != 60) return;
+        if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_TITLE native_p1_start_button=1 frame=%u\n", frame);
         return;
     }
     // CI-only mode 15: drive title -> existing root via actual native P1 A.

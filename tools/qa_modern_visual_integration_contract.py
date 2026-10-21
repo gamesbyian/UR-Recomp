@@ -132,6 +132,28 @@ def inventory(root: Path) -> dict:
             re.search(r"HostOverlayRect\s*\{\s*\(width\s*-\s*240\)\s*/\s*2\s*,"
                       r"\s*10\s*,\s*240\s*,\s*204\s*\}", motion_draw.group())):
         conflicts.append("motion_uses_240px_root_under_342px_child_canvas")
+    # Later animation branches use `root_rect` in the paint call but keep
+    # its DECLARATION fixed at 240. That is not a fix on the 342-wide
+    # destination canvas: source-wide title + child + motion must share
+    # the same 320-wide root geometry, not merely a same-named variable.
+    integrated_wide = all(checked[k]["present"] for k in (
+        "native_host_chooses_wide_logical_source",
+        "native_destinations_drawn", "native_motion_painted"))
+    if integrated_wide and motion_draw is not None:
+        has_fixed_root = bool(re.search(
+            r"\b(?:const\s+)?HostOverlayRect\s+root_rect\s*\{\s*"
+            r"(?:8\s*,\s*10\s*,\s*240\s*,\s*204|"
+            r"\(width\s*-\s*240\)\s*/\s*2\s*,\s*10\s*,\s*240\s*,\s*204)"
+            r"\s*\}", text))
+        has_wide_root = bool(re.search(
+            r"\bpanel_w\s*=\s*width\s*==\s*342\s*\?\s*320\s*:\s*240"
+            r"\s*;", text)) and bool(re.search(
+            r"HostOverlayRect\s+root_rect\s*\{\s*"
+            r"\(width\s*-\s*panel_w\)\s*/\s*2\s*,\s*10\s*,"
+            r"\s*panel_w\s*,\s*204\s*\}", text))
+        if has_fixed_root and not has_wide_root:
+            conflicts.append("motion_and_destination_share_fixed_240px_root_on_wide_canvas")
+
     return {
         "schema_version": 1,
         "checked": checked,

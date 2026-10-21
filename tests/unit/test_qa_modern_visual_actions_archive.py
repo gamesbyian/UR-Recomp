@@ -74,6 +74,14 @@ class ActionEvidenceTests(unittest.TestCase):
         self.assertIn("capture_observed",report["captures"][0]["original_p7"])
         self.assertIn("capture_observed",report["captures"][0]["successful_process_log"])
 
+    def test_paused_guest_frame_is_distinct_from_sdl_present_ordinal(self):
+        self.log=self.log.replace(b"guest_frame=40", b"guest_frame=12")
+        self.receipt["native_process_log_sha256"]=sha(self.log)
+        self.pack()
+        report=qa.verify(self.path)
+        self.assertEqual(report["captures"][0]["guest_frame_witness"],12)
+        self.assertEqual(report["captures"][0]["exact_rgba_bytes"],320*224*4)
+
     def test_missing_selected_p7_cannot_be_laundered_by_png(self):
         self.stage="capture_observed"
         self.omit_p7=True

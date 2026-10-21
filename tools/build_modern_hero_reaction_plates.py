@@ -110,6 +110,10 @@ def rasterize_original_clip(
 def require_private_output_dir(out_dir: Path) -> Path:
     # Resolve existing parent symlinks too. ROM-derived plates must never be
     # deposited in the tracked source tree, even when invoked carelessly.
+    # A dangling symlink resolves to its absent target and otherwise looks
+    # safe to publish. Refuse it explicitly before canonicalizing paths.
+    if out_dir.is_symlink():
+        raise ClipAdmissionError("private review destination must not be a symlink")
     resolved = out_dir.resolve()
     root = ROOT.resolve()
     if resolved == root or root in resolved.parents:

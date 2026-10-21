@@ -140,7 +140,7 @@ class LiveOperationsTests(unittest.TestCase):
                           ledger=self.ledger, local_head=SHA, now=NOW, custody=record)
         self.assertIsNone(report["backup"])
         self.assertIn("invalid custody receipt", report["errors"]["backup"])
-        self.assertIn("Drive backup: UNKNOWN", markdown(report))
+        self.assertIn("Drive backup:** UNKNOWN", markdown(report))
 
     def test_exact_backup_commit_never_implies_future_drive_readback(self):
         record = load_custody()

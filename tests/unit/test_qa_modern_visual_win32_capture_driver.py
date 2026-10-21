@@ -141,6 +141,8 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         self.assertEqual(driver.ROUTES["root-quit"][0], "14")
         self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
+        self.assertEqual(driver.ROUTES["options-open-p1"][:2], ("12", 65))
+        self.assertIn("options_opened", driver.ROUTES["options-open-p1"][2])
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
         self.assertEqual(driver.ROUTES["practice-picker-p1"][:2], ("11", 63))
         self.assertEqual(driver.ROUTES["multiplayer-unbound"][:2], ("2", 65))

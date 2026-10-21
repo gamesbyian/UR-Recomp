@@ -516,6 +516,18 @@ int main() {
         }));
     assert(text_draws_fit({44,40,1280,816}));
     assert(rect_draws_fit({44,40,1280,816}));
+    // Product-owned action rows sometimes carry no value, so their
+    // independent right column must not dispatch an empty glyph run.
+    view.options_rows[2] = {"CONTROLS", "", false};
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,342,224,1,320,
+                                      source_wide,view));
+    assert(contains(" CONTROLS"));
+    assert(!contains(""));
+    assert(text_draws_fit(source_wide));
+    view.options_rows[2] = {"CONTROLS", "SHOW", false};
     painted.clear();
     view.options_status = {};
     view.options_notice = "SAVED OPTIONS DAMAGED";

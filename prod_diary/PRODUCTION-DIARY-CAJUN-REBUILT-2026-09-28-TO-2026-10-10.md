@@ -150,13 +150,19 @@ De excavation turn a speculative remake into a native research machine with earl
 
 ### 22. Ian give de frontend five front doors
 
+Five little labels go up above de door: Play, Practice, Multiplayer, Records, Options. Short words, long promises, cher. Ian want somebody to come back to a tour, challenge a friend or find a real record without fightin' de old 1994 bureaucracy for de privilege.
+
 Play, Practice, Multiplayer, Records, Options. Five names look short on de sign, but every one need controller routes, guest ownership, persistence an' nothin' quietly duplicatin' game rules. [#483](https://github.com/gamesbyian/UR-Recomp/pull/483) straighten de plan; [#487](https://github.com/gamesbyian/UR-Recomp/pull/487) carry Continue Tour; [#488](https://github.com/gamesbyian/UR-Recomp/pull/488) bring live splits; [#489](https://github.com/gamesbyian/UR-Recomp/pull/489) speed up replayin' de fun parts. Modern doors, original house. Mais, dat a nice piece o' architecture.
 
 ### 23. Ian hide a regional switch in de title
 
+A tiny secret what make a player grin: type `NTSC` or `PAL` an' let de title nod toward its regional cousin. That's Ian's kind o' playful idea. It also put de engineers on notice: a wink on de title ain't permission to quietly swap de rules of racin'.
+
 He ask whether typin' `NTSC` or `PAL` might turn *Uniracers* into *Unirally* presentation. Dat little wink become a serious regional policy. [#500](https://github.com/gamesbyian/UR-Recomp/pull/500) set de foundation without swapin' de guest physics. A stock-style animated flourish could come later, once somebody prove it true. Director bring de spark, agents figure which wires won't set de porch on fire.
 
 ### 24. One hundred eight jobs clog de canal
+
+One hundred eight Actions jobs! Dat sounds like a parade till somebody count how many useful answers ride along. Machines hollerin' 'check my work' at other machines while Ian still await his game. No villain in sight, just a grand procession o' build logs eatin' de road.
 
 A few agents wake **108 active or queued Actions runs**. Cher, even a patient gator can't eat dat many build logs. [#505](https://github.com/gamesbyian/UR-Recomp/pull/505) an' [#506](https://github.com/gamesbyian/UR-Recomp/pull/506) go after false triggers and stranded work. Ian's later command to quit babysittin' CI start makin' perfect sense. Dey built machines to make de game, den had to teach de machines not to eat de whole afternoon. [Original October 5](PRODUCTION-DIARY-2026-10-05.md).
 
@@ -164,13 +170,19 @@ A few agents wake **108 active or queued Actions runs**. Cher, even a patient ga
 
 ### 25. Every new feature want de same set o' keys
 
+Every good little feature need to recognize its neighbors when de new player walk through de door. Records can't forget de tour's player, an' Restart can't steal another feature's keys. Ian commissioned one game, not a fancy street full o' shops dat won't agree on who owns de cash register.
+
 Resume, Restart Tour, regional title, local 2P joins, settings: de product start actin' real. But each feature could step on de other's source of truth. Dey need exclusive file ownership, careful branches an' transaction-safe routes through stock logic. I found no magical fix here. Just a bunch o' serious seams dat agents had to sew before dey could call it cloth.
 
 ### 26. De HD racer get a counting stick
 
+De HD sprite hunt get smarter once de crew stop weighin' every missing ROM pose de same. Count what actual players see on actual race frames. Dat gets de wheel movin' more convincingly, though human eyes still gotta settle whether de drawing look like Ian's wheel.
+
 Stop picking sprites by what comes next in ROM, say de measurements. Count what de player actually sees fall back. De sample move from **118/5282 (2.23%)** HD selections to **653/5282 (12.36%)** under de documented measured-coverage run. Dat improve technical coverage, not artistic blessing. Ian's eyeballs still held de final permit. But give an agent de right ruler, cher, an' it'll quit wanderin' de swamp wonderin' where to swing de shovel.
 
 ### 27. Local speed can make de whole camp slow
+
+One agent run faster, nineteen agents sit idle. Dat ain't a miracle o' automation, dat a traffic jam with excellent documentation. Smart crews learn to ask de small question first, so everybody else can keep bringin' real discoveries back to de porch.
 
 An agent save itself a minute by startin' a huge CI run, but nineteen neighbors now wait at de ferry. De team learn to optimize de overall farm, not only de individual row. Triggers, cache, quick tests, cancellation policy all turn into engineering decisions. [Original October 6](PRODUCTION-DIARY-2026-10-06.md).
 
@@ -178,13 +190,19 @@ An agent save itself a minute by startin' a huge CI run, but nineteen neighbors 
 
 ### 28. A packaged game gotta boot somewhere else
 
+A ZIP on de builder's machine can look as proud as a prize pie. Give it to a stranger, though, an' de stranger don't know where all de ingredients live. Ian's beta gotta survive dat kitchen, not just look handsome on de chef's own counter.
+
 De portable Windows ZIP had to work outside its build directory, keep mutable data safe, reject wrong ROM identity an' diagnose a failure without a developer holdin' its hand. Agents add independent package checks rather than let de ZIP maker grade its own exam. Dat's how a box full o' binaries turn into something an ordinary owner might actually trust.
 
 ### 29. A result ain't saved till de next process can read it
 
+Records are de promises a game make to tomorrow's player. Cross de line today, reopen de game tomorrow, an' your victory better still know your name. If dat memory vanish, de cheer on de results screen was mighty hollow.
+
 Ian want records, replays, ghosts an' tours you can leave an' come back to. A nice result screen ain't sufficient, cher. De bytes gotta survive exit, restart, corruption an' somebody switchin' profiles. De agents go follow dem into disk an' back. Later QA would make de distinction even meaner.
 
 ### 30. One recovered scrap help three different crews
+
+Now de old research start earnin' interest. A source note dug up for one question save another crew from a week in de reeds. Dat the kind o' compounding Ian want from all his agents: one answer what keeps payin' rent.
 
 Old course maps, racer symbols, replay scripts, interface captures: one team's archaeology get reused by another. Dat knowledge grow interest like a good savings account, but bad facts grow interest too. Provenance keep de whole family from inheritin' one cousin's wrong memory. [October 7–8](PRODUCTION-DIARY-2026-10-08.md).
 
@@ -192,13 +210,19 @@ Old course maps, racer symbols, replay scripts, interface captures: one team's a
 
 ### 31. De agents learn to leave some treasure buried
 
+Sometimes a lovely little theory turn out to have no ground under it. Then de honest agent leave dat tunnel alone an' record why. Might not make a grand movie scene, but next week's fresh worker won't waste a shovel diggin' into the same empty hill.
+
 Some acquisition leads turn out already covered by historical assets, so de new work become comparison only. Dessyreqt's earlier eighty-file import ([#109](https://github.com/gamesbyian/UR-Recomp/pull/109), [#110](https://github.com/gamesbyian/UR-Recomp/pull/110)) had already pulled bots, course landmarks, saved games an' glitch movies together. Dat good archaeology. But once a fact proven, don't build three more shovels to prove you own a shovel.
 
 ### 32. Ian want de real moment caught on video
 
+After de race there still a whole player life to manage: history, ghosts, video, returning to yesterday's racer. Ian keep pointin' de crews toward dat life. Recreating a clean replay ain't de same as preservin' what actually appeared, glitches an' all.
+
 Replays and modern records ain't excuses to lose de ugly glitches of actual play. Post-race Save/Discard video was to capture de real presented frames first, not repaint de run later an' quietly shave off unexpected behavior. Dat requirement show what Ian mean by faithfulness: even de game's mistakes belong to its history when de player press Record.
 
 ### 33. Cheaper checks make smarter agents
+
+Faster CI ain't so much a gift to machines as a gift to de person tryin' to get a real game finished. Agent try somethin', see a failure, remember de question, fix it. Much better than spendin' all de daylight admirin' a spinning build icon.
 
 Once CI stop burnin' minutes on irrelevant changes, de agents can ask smaller, sharper questions. A cheap failed discriminator teach more than a mountain of ambiguous green jobs. I read dat shift as one o' de less flashy discoveries of de entire first stretch. [Original October 8](PRODUCTION-DIARY-2026-10-08.md).
 
@@ -206,13 +230,19 @@ Once CI stop burnin' minutes on irrelevant changes, de agents can ask smaller, s
 
 ### 34. Ian look at de bill an' ask what all dis prove
 
+Evidence rigor can grow its own endless grocery list. Ian ask which items actually feed de unfinished game. Dat ain't an order to guess more. It's an order to stop givin' every fascinating side trail de same supper as a real player-blocking defect.
+
 The acceptance list threaten to consume a mountain of agent-hours. Ian press on what truly matter: real bugs, unbuilt player routes, independent proof, no ritual testing for decoration. Dey prune an' rank de work. Dat a director's intervention with teeth, cher. Sometimes de cleverest order ain't “do more,” it “tell me which job oughtn't exist.”
 
 ### 35. Two game windows fight over one tournament
 
+Two Windows processes each believe dey own de tournament. Funny till one eat de other player's progress. De real witness is de player who come back expectin' his records to be where he left 'em, not de token what got a clever error code.
+
 Two processes can carry respectable-looking receipts an' still have one steal de other's live fixture. Wrong receipt prevented? Fine. Player's actual attempt ruined? Still bad. [#1052](https://github.com/gamesbyian/UR-Recomp/pull/1052) add de live crash-released OS lease so de second window get Busy instead o' runnin' off with de prize. Correct bytes ain't enough if ownership go swimmin' downstream.
 
 ### 36. De one-frame Zoo seam won't be bribed
+
+De Zoo result differ by one frame, an' de easy fix wave a shiny temptation: just push de clock. But one guest phase can match while de next don't. Better leave a tiny honest question than plant a giant crooked answer in de simulation.
 
 Original an' native Zoo results line up mighty close, den a menu transition sit one frame apart. Agents trace actual menu writes an' original/native memory, refuse to “fix” it by shiftin' all inputs until one screenshot smile. [#1106](https://github.com/gamesbyian/UR-Recomp/pull/1106) pin bounded equality at a neighboring guest stage. Dat useful, cher, but it don't award a whole USA race. [October 9](PRODUCTION-DIARY-2026-10-09.md).
 
@@ -220,13 +250,19 @@ Original an' native Zoo results line up mighty close, den a menu transition sit 
 
 ### 37. Another builder show up at de river
 
+Here Ian's own words do de work for de chronicler: he acknowledge de competitive feeling himself. Other folks buildin' *Uniracers* mean help and rivalry in de same package. I ain't gonna invent his secret thoughts. What he said out loud already gives dis episode its pulse.
+
 Baldosa's native work an' malmazuke's reconstruction mean other hands workin' on de same old game. Ian say, **“I know it's petty and emotional, but I don't want Baldosa's thing to be the ‘new version of Uniracers’ after the 11 days of work we've done.”** I don't have to invent how he felt; de record give me his own words. He also want every recreation faithful an' evidence-backed. So competition sharpen de work, but de technical truth remain somethin' worth sharin'.
 
 ### 38. Borrow a good boat, check which water it float in
 
+A petty tale would build a fence round every idea and call de other crews enemies. Ian's project went shoppin' for useful knowledge instead, with receipts and source tests. Borrow de map, check where de water actually runs, then build your own good boat.
+
 Baldosa give de Windows project a real native bridge; malmazuke bring MIT-licensed archaeology. De agents must still check USA versus PAL, exact source versions an' guest semantics. You can borrow a hull, cher, but first see whether it fit your channel. Dat three-project reuse preflight grow into one o' de permanent camp rules.
 
 ### 39. Ian put de whole dream in one sentence
+
+Dat October 10 video put some electricity right in de words: “The videos are astonishing. It's amazing what AI can do.” Den Ian point to de missing real motion. Cher, admiration didn't make him easy to fool. De wheel had to run, not merely pose for a pretty picture.
 
 **“4K widescreen presentation with modern menus and features but otherwise completely faithful gameplay is the real thing people want.”** Dere. Dat de north star, no need dress it with twelve committees. Make de game look finer, move through menus better, an' keep de wheel obeyin' every old law. Easy to say, hard to build, an' de next weeks tell exactly why. [Original October 10](PRODUCTION-DIARY-2026-10-10.md).
 

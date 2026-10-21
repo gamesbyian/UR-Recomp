@@ -127,8 +127,8 @@ class ModernHeroReactionPlatesTests(unittest.TestCase):
             for y in (40, 41, 42, 43):
                 self.assertEqual(pixel(x, y), bytes((17, 50, 60, 255)))
         self.assertEqual(pixel(256 + 40, 40), bytes((31, 50, 60, 255)))
-        self.assertEqual(pixel(1280 - 1, 255), b"\\x00\\x00\\x00\\x00")
-        self.assertEqual(pixel(0, 0), b"\\x00\\x00\\x00\\x00")
+        self.assertEqual(pixel(1280 - 1, 255), bytes((0, 0, 0, 0)))
+        self.assertEqual(pixel(0, 0), bytes((0, 0, 0, 0)))
 
     def test_refuse_existing_targets_symlinks_and_receipt_mismatch(self):
         frame = synthetic_rgba(17)

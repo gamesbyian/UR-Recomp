@@ -88,6 +88,29 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                                       "token", fetch=denied), "full")
         self.assertEqual(seen, [1])
 
+    def test_same_required_unit_check_has_focused_and_full_execution(self):
+        from pathlib import Path
+        workflow = Path(".github/workflows/tooling-unit-tests.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("id: unit-scope", workflow)
+        self.assertIn("if: steps.unit-scope.outputs.mode == 'ops'", workflow)
+        self.assertIn("if: steps.unit-scope.outputs.mode != 'ops'", workflow)
+        self.assertIn("python3 tools/ci_select_unit_suite.py", workflow)
+        self.assertIn("python3 tools/partition_unit_tests.py", workflow)
+        narrow, full = workflow.split(
+            "- name: Execute complete operations regression on exactly scoped PRs",
+            1,
+        )[1].split(
+            "- name: Run full dependency-free Python unit tests in timing-balanced shards",
+            1,
+        )
+        self.assertIn("unit-shard0.log", narrow)
+        self.assertIn("unit-shard$i.log", full)
+        for module in FOCUSED_TEST_MODULES:
+            with self.subTest(module=module):
+                self.assertIn(module, narrow)
+
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
         self.assertEqual(len(OPERATIONS_ONLY), 10)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))

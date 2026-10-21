@@ -41,15 +41,18 @@ def verify_original_source_attract(log: str) -> list[dict[str, int | str]]:
         raise ValueError("wrong original source state or Modern title not covering guest")
     if not (a["frame"] > 0 and a["frame"] < b["frame"] < c["frame"] <= 1800):
         raise ValueError("invalid actual original guest event chronology")
-    # The independent pinned Snes9x+Beetle reference measures 503 frames
-    # MAIN->TITLE and 588 frames TITLE->DEMO in the first untouched cycle.
+    # Independent Snes9x+Beetle source reference first displays demo
+    # at 1531. This post-frame Windows WRAM observer first sees 0313=01
+    # at 1532. Preserve BOTH exact facts; do not conflate raster entry
+    # and after-frame state observation to mask a wider divergence.
+    # MAIN->TITLE remains precisely 503 frames in both observations.
     # Fail closed if the native guest takes a different route. No timer in
     # production may be derived from this diagnostic alone.
     if b["frame"] - a["frame"] != 503:
         raise ValueError("native original main-to-title frame interval differs")
-    if c["frame"] - b["frame"] != 588:
+    if c["frame"] - b["frame"] != 589:
         raise ValueError("native original title-to-demo frame interval differs")
-    if not (a["frame"] == 440 and b["frame"] == 943 and c["frame"] == 1531):
+    if not (a["frame"] == 440 and b["frame"] == 943 and c["frame"] == 1532):
         raise ValueError("native original guest first-cycle timestamps differ")
     return markers
 
@@ -114,6 +117,8 @@ def main() -> int:
         "script_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
         "diagnostic_guest_writes": False,
         "human_button_actions": 0,
+        "original_visual_demo_first_frame_reference": 1531,
+        "native_post_frame_race_flag_first_observed": 1532,
         "modern_host_title_remained_visible": True,
         "original_attract_displayed": False,
         "wake_input_tested": False,

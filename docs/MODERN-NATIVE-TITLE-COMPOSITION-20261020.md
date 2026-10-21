@@ -519,3 +519,25 @@ handoff. Such user-visible behavior, controller consumption, native P6 and
 independent final SDL display captures remain acceptance blocks until this
 probe passes and the integration owner concurs. Any conflicting Windows
 observations are surfaced as failures, not silently normalized to a timer.
+
+### First native observer result: source checkpoint boundary
+
+Fresh original USA ROM, exact merged title/motion head
+`3deb66a75fb43a2a3f14631a81e0360c157c055b`, actual Windows AOT
+[run 39542072254](https://github.com/gamesbyian/UR-Recomp/actions/runs/39542072254)
+produced these *genuine* passive after-frame WRAM observations with no
+physical or synthetic input: **MAIN $009F=D7 at frame440**, original title
+`$009F=84` at **frame943**, and *first post-frame* `$0313=01` at
+**frame1532**. The last differs by **exactly one frame** from the separate
+original emulator reference's **visual demo-race start frame1531**. The original
+probe incorrectly required them to be identical and made the first native
+Windows run red despite all six title/held-motion screenshots passing.
+It is not evidence of a gameplay divergence: these are **different observed
+events**, displayed demo entry versus race-state flag after the guest tick.
+The corrected verifier pins all three actual Windows guest-state event
+frames, both reference facts and their 503/589 post-frame intervals; it
+continues rejecting missing/reordered/fabricated guest states. A future
+presented original demo P6 plus final SDL capture is required to assert the
+visible start frame. Do not replace this observed +1 boundary with a guessed
+timeout. Original run's diagnostic ZIP SHA256:
+`818cf7380a5b1ddb52d718d7218cb18b9ef1ebe9e572089d2d1f039225811297`.

@@ -423,7 +423,9 @@ jobs:
             ${{ runner.temp }}/modern-title-native-keyboard-pr2043
             ${{ runner.temp }}/modern-title-native-start-pr2043
             ${{ runner.temp }}/modern-title-native-held-pr2043
-            ${{ runner.temp }}/modern-title-native-original-attract-pr2043
+            ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract.log
+            ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-receipt.json
+            ${{ runner.temp }}/modern-title-native-original-attract-pr2043/native-attract-timeout.txt
             ${{ runner.temp }}/modern-title-authentic-inert-pr2043
           if-no-files-found: warn
           retention-days: 14

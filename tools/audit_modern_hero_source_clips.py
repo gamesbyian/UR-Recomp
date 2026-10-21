@@ -104,7 +104,7 @@ def inspect_clip(registry: dict, source: dict, specification: tuple) -> dict:
             raise ClipAdmissionError(f"{name}: registered P1 composition guard disagrees")
         # The P1 primary semantic alone does not identify companion sprites.
         # Record the entire registered representation, including context.
-        source_steps.append({"original_guest_frame": row["frame"],
+        source_steps.append({"registered_guest_frame": row["frame"],
                              "presentation_tick": row["frame"] - first,
                              "p1_semantic_id": f"0x{semantic:04X}",
                              "representation_id": rid})
@@ -113,14 +113,14 @@ def inspect_clip(registry: dict, source: dict, specification: tuple) -> dict:
     return {
         "clip_id": name,
         "source_key": key or section,
-        "source_guest_frames": [first, last],
-        "ticks_at_source_60hz": last - first + 1,
+        "registered_guest_frames": [first, last],
+        "registered_frame_count": last - first + 1,
         "source_registration_status": timeline["status"],
-        "source_observed_original_p1": source_steps,
+        "registered_stock_p1_composition": source_steps,
         "registered_composition_holds": _runs(representations),
         "distinct_registered_compositions": len(set(representations)),
         "may_reverse_or_loop": False,
-        "reason_no_loop": "Adjacent original race-frame registration does not prove a cyclic menu idle transition",
+        "reason_no_loop": "Contiguous source-registration frames do not prove a cyclic menu idle transition",
         "raster_bytes_verified_here": False,
         "source_sprite_cadence_certified_in_native": False,
         "native_visual_approval": "pending",
@@ -131,11 +131,11 @@ def build_report(registry: dict, source: dict) -> dict:
     clips = [inspect_clip(registry, source, s) for s in CANDIDATES]
     return {
         "schema_version": 1,
-        "purpose": "Modern native menu original-racer reaction/hold source inventory",
+        "purpose": "Modern native menu original-ROM racer reaction/hold registration inventory",
         "canonical_rom_sha256": CANONICAL_USA_SHA256,
         "registry": REGISTRY.relative_to(ROOT).as_posix(),
         "source": SOURCE.relative_to(ROOT).as_posix(),
-        "clock": "observed original guest 60Hz; not the host menu UI clock",
+        "clock": "contiguous source-registration frame labels; not an independent original-emulator timing or host UI clock",
         "admission": "registered timing candidates only; no new art, guest writes, or shipping hero",
         "next": "Rerasterize exact source P1/companion/CGAM composition under a private verified ROM, then check actual native 4:3/16:9 source-frame and final SDL captures with independent aesthetic approval.",
         "clips": clips,

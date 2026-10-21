@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "scope": "Independently recomputed exact Win32 SDL Modern title motion frames (prior completed source head)",
+  "exact_commit": "c0b4ab8eba21676c09e6922281ea30cd12c9b761",
+  "original_actions_run_id": 39572315534,
+  "original_actions_artifact_id": 12332931651,
+  "archive_sha256": "38cdf33e69d66d7f9243c2405674c2af86efa7051f425f4f815657776404e23d",
+  "actual_win32_aot_pe_sha256": "f4519a8d9cc9200da23b1711dd6adefaf61a335d8ccbb52627e6678891c4c011",
+  "assessed_drawable": [
+    {
+      "pixels": [
+        1280,
+        720
+      ],
+      "native_logical_source": [
+        342,
+        224
+      ],
+      "entry_logo_changed_rgb_pixels": 123211,
+      "leaving_logo_changed_rgb_pixels": 0,
+      "footer_changed": 11510,
+      "root_changed": 919040,
+      "reduced_motion_changed": 0
+    },
+    {
+      "pixels": [
+        1024,
+        768
+      ],
+      "native_logical_source": [
+        256,
+        224
+      ],
+      "entry_logo_changed_rgb_pixels": 133268,
+      "leaving_logo_changed_rgb_pixels": 0,
+      "footer_changed": 12212,
+      "root_changed": 786432,
+      "reduced_motion_changed": 0
+    }
+  ],
+  "independently_verified": {
+    "SDL_RGBA_to_lossless_PNG_pixels": 12,
+    "raw_P7_SHA256": 12,
+    "retained_PNG_SHA256": 12,
+    "same_process_log_SHA256": 12,
+    "actual_guest_frame_and_draw": 12,
+    "same_PE_across_aspects": true,
+    "archive_includes_only_bounded_evidence": true
+  },
+  "rechecked_source_build_independently": false,
+  "approved_visual_design": false,
+  "stock_attract_automatically_on": false,
+  "real_hardware_verified": false,
+  "release_gate_credit": 0
+}

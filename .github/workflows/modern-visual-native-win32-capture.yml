@@ -7,6 +7,8 @@ on:
       - "tools/qa_modern_visual_sdl_capture.py"
       - "tools/qa_modern_visual_win32_capture_driver.py"
       - "tools/capture_modern_title_entry_sdl_win32.py"
+      - "tools/capture_modern_title_attract_sdl_win32.py"
+      - "tests/unit/test_capture_modern_title_attract_sdl_win32.py"
       - "tests/unit/test_capture_modern_title_entry_sdl_win32.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
@@ -54,6 +56,7 @@ jobs:
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
             tests.unit.test_capture_modern_title_entry_sdl_win32 \
+            tests.unit.test_capture_modern_title_attract_sdl_win32 \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
             tests.unit.test_qa_modern_title_final_sdl_transition \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
@@ -126,6 +129,39 @@ jobs:
             ${{ runner.temp }}/modern-title-sdl-motion-*/*/sdl.pam
             ${{ runner.temp }}/modern-title-sdl-motion-*/*/sdl.png
             ${{ runner.temp }}/modern-title-sdl-motion-*/*/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      # Title-owner-only original source identity check: active guest PPU
+      # paints its *whole* original title and real 2P race; the native host
+      # consumes P1 wake then opens the same Modern root without guest writes.
+      - name: Prove actual original stock attract/demo and safe Modern wake SDL
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for aspect in wide 4:3; do
+            suffix="wide"
+            if [ "$aspect" = "4:3" ]; then suffix="4by3"; fi
+            python tools/capture_modern_title_attract_sdl_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --source-sha "$(git rev-parse HEAD)" \
+              --aspect "$aspect" \
+              --out "$RUNNER_TEMP/modern-title-original-attract-sdl-$suffix-pr2043"
+          done
+          echo "Genuine original title→original two-player demo→P1 wake→Modern title→native root SDL capture at 16:9/4:3; preview stays opt-in, no hardware, art or release approval." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain only actual original/demo title SDL evidence
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-original-attract-final-sdl-pr2043
+          path: |
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/real-stock-title-demo-wake-sdl-receipt.json
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-sdl.pam
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-sdl.png
+            ${{ runner.temp }}/modern-title-original-attract-sdl-*/*/native-process.log
           if-no-files-found: warn
           retention-days: 7
 

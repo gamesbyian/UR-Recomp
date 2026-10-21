@@ -831,3 +831,53 @@ do not imply the artifact was retroactively cleaned.
 The corrected *observer workflow* needs its own exact-head Windows result.
 No SDL motion or artistic signoff is asserted based on the earlier failed
 probe. Hardware and complete-event release gates are unaffected.
+
+## Original full-title/rainbow character source on final SDL (2026-10-21)
+
+Latest already completed source-bound title motion **real SDL** success:
+[Win32 visual QA 39572315534](https://github.com/gamesbyian/UR-Recomp/actions/runs/39572315534),
+original artifact `12332931651`, independent ZIP SHA256
+`38cdf33e69d66d7f9243c2405674c2af86efa7051f425f4f815657776404e23d`.
+Exactly **12/12** retained actual P7 images independently matched the PNG
+pixel arrays and original per-process P7/PNG/log hashes, from PE SHA256
+`f4519a8d9cc9200da23b1711dd6adefaf61a335d8ccbb52627e6678891c4c011`.
+At wide and fallback geometry, source-cropped logo entry genuinely moves
+(123211 / 133268 changed rendered output pixels), the logo stays perfectly
+still during the exit sweep (0/0), the footer changes (11510/12212),
+root takeover changes real rendered content, and both reduced-motion
+draws are **bit-identical** (0/0). Precise receipt is
+`analysis/evidence/modern-title-sdl-motion-windows-20261021.json`.
+This certifies the exact prior owner source/PE/SDL event evidence, not a
+hypothetical future integrated merge's display.
+
+The still-missing *full original-title large unicycles and rainbow course*
+are authored by the **original game itself** during its source title and
+attract demo. Reuse that genuine existing guest render path in a new
+branch-only evidence collector `tools/capture_modern_title_attract_sdl_win32.py`
+rather than exporting the original ROM graphics into the repo, fabricating
+new rider pixels or promoting the temporary Modern ring sketch. The existing
+real native stock-attract-preview test route #19 owns original guest menu
+MAIN440→TITLE943→two-player demo1532, consumes P1 wake at1600 and accepts
+a distinct confirm at1660 (root entered1674). This new test asks the existing
+*instrumented* Windows visual-QA game for original-title SDL draw1000,
+moving original two-player demo draw1584, wake-restored Modern title1616
+and selected Modern root1696, at both 1280×720 and 1024×768.
+
+The original fully painted rainbow/characters and moving demo will be
+independently visible in exact raw SDL P7 plus PNG, with the same-source
+guest/native log and one actual PE. A scripted wait uses **no turbo**,
+rejects any drift between host draw and observed guest source frame, and
+verifies source-stamped guest stages, the consumed wake and new root
+confirmation using the earlier **strict production-independent**
+`verify_source_driven_preview` contract. Invalid source ROM, EXE, stage
+order, blank/static pixels, absent real SDL readback, recycled directories
+and impossible controls fail closed. Only bounded P7, PNG, process logs and
+nonapproval receipts are archived; no executable, ROM, source asset extraction,
+SRAM or profile files.
+
+**This is a newly introduced experiment, not a completed qualification.**
+Its success would prove a real *stock* title/character demo is observable
+and a safe host handoff can show in final SDL, without automatically approving
+the current Modern artwork or enabling the original attract flow by default.
+That default, the final source-faithful Modern title, owner human likeness
+approval, physical pads/4K/PAR and all original/native/release checks remain HOLD.

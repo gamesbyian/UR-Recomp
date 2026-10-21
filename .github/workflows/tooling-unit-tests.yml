@@ -41,6 +41,10 @@ on:
       # source or test edits must run the actual ROM-free native test suite.
       - "native/product/modern_root_overlay_presenter.hpp"
       - "tests/native/modern_root_overlay_presenter_test.cpp"
+      # Both source-owned pause views must execute the compiled C++ painter
+      # regression even when no Python harness file changes.
+      - "native/product/modern_pause_overlay_presenter.hpp"
+      - "tests/native/modern_pause_overlay_presenter_test.cpp"
       # Original-derived menu primitive and source atlas headers own
       # executable C++ invariants. They must invalidate this same suite even
       # if no Python shim or presenter was changed in the PR.

@@ -40,6 +40,8 @@ int main() {
     assert(render_native_modern_pause_overlay(
         painter, pixels, 512, 512, 448, menu, true));
     assert(contains("OPTIONS") && contains("RESUME") && contains("QUIT DESKTOP"));
+    assert(contains("GAME PAUSED"));
+    assert(!contains("PAUSED - GUEST FROZEN"));
     assert(count("SOON") == 4);
 
     // Paused Options: refuses to draw unless the shared view says it is open.
@@ -57,7 +59,8 @@ int main() {
     view.options_status = "SAVED";
     assert(render_native_modern_pause_options(
         painter, pixels, 512, 512, 448, view));
-    assert(contains("PAUSED - GUEST FROZEN") && contains("OPTIONS"));
+    assert(contains("GAME PAUSED") && contains("OPTIONS"));
+    assert(!contains("PAUSED - GUEST FROZEN"));
     assert(contains(">VOLUME   < 90% >") && contains("SAVED"));
     assert(contains("L/R CHANGE  B BACK"));
     // Too small a raster is refused, never partially drawn.

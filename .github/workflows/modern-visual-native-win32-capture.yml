@@ -197,6 +197,11 @@ jobs:
             ${{ runner.temp }}/ur-modern-win32-journey-options-p1/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-journey-options-p1/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-journey-options-p1/probe_first/native-process.log
+            # DISPLAY changes the actual native drawable and requires a second
+            # process. Retain original successful P7/log, not only the refused
+            # first probe and final PNG/receipt.
+            ${{ runner.temp }}/ur-modern-win32-journey-options-p1/capture_observed/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-journey-options-p1/capture_observed/native-process.log
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/actual-sdl-drawable.pam

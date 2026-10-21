@@ -306,6 +306,7 @@ def check_one(z: zipfile.ZipFile, folder: str) -> dict:
         "source_sha":receipt["source_sha"], "exact_rgba_bytes":w*h*4,
         "guest_frame_witness":int(evidence[0][1]),
         "native_painted_stage_at_capture":last_stage,
+        "native_semantic_route":route,
         "verified_native_title_source":title_source if route in TITLE_ROUTES else None,
         # Once Play hands focus to guest stock, no current Modern root
         # geometry is authoritative. Only active Modern destination routes

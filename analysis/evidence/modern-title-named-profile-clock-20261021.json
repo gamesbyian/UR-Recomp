@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "scope": "Actual named P1 SRAM original/native title-demo recovery in first-party Win32 PE, no release credit",
+  "source_head": "b9309e36d2464d7c7bed0d9fdcd1de55fa430d85",
+  "run_id": 39559925092,
+  "original_artifact_id": 12327198452,
+  "zip_sha256": "7523b277e1f5b24d74e74b7fbdbcc33aec70b9699359b94aa9d8ea075860e313",
+  "named_native_log_sha256": "1b74584d50bc994cf7a4f102b9f44bf07f2c4cb42ab5482269109192b17a1a11",
+  "anonymous_native_log_sha256": "b0b3a048ffa6fefd1d9fbe399e4cfd6c427bacb4e080149e69f86c19ec631677",
+  "named_guest_observed": {
+    "main": 437,
+    "title": 940,
+    "demo": 1529,
+    "recovered_d7_stable_60": 3815,
+    "real_stock_play_requested": 3900,
+    "real_stock_entered_menu": "3c"
+  },
+  "anonymous_guest_observed": {
+    "main": 440,
+    "title": 943,
+    "demo": 1532,
+    "recovered_d7_stable_60": 3818
+  },
+  "real_router_log_order": [
+    "stock_requested players=1",
+    "named_play_requested frame=3900",
+    "stock_entered players=1 menu=3c"
+  ],
+  "previous_verifier_result": "false negative due anonymous source clock and reversed diagnostic/router event sequence",
+  "new_verifier_ci_at_time_of_edit": "pending",
+  "no_guest_writes": true,
+  "stock_preview_default_off": true,
+  "final_sdl_named_case": false,
+  "hardware_verification": false,
+  "human_approval": false,
+  "release_gate_credit": 0
+}

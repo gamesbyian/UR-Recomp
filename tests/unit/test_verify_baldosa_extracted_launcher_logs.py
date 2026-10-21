@@ -29,6 +29,16 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
             index = source.index(f'(output / "{name}").write_text(')
             self.assertIn("bounded_log(", source[index:index + 140], name)
 
+    def test_packaged_first_launch_expects_title_not_premature_root(self):
+        source = (ROOT / "tools/verify_baldosa_windows_extracted_launcher.py").read_text()
+        native = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
+        self.assertIn("UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern", source)
+        self.assertIn("extracted title boot unexpectedly entered root", source)
+        self.assertIn("g_title_painted_reported", native)
+        self.assertIn("modern_title_active(g_title)", native)
+        self.assertIn("modern_title_confirm(g_title)", native)
+        self.assertIn("UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared", source)
+
     def test_rooted_relative_windows_subprocess_receipts_are_bounded_and_verbatim(self):
         import hashlib
         import subprocess

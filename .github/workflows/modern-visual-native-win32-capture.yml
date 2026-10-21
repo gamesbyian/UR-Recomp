@@ -8,6 +8,9 @@ on:
       - "tools/qa_modern_visual_win32_capture_driver.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
+      - "tools/qa_modern_title_final_sdl_transition.py"
+      - "tests/unit/test_qa_modern_title_final_sdl_transition.py"
+      - "native/product/modern_title_presenter.hpp"
       # Destination PR #2040 may request actual 4:3/wide native SDL evidence
       # with the existing independent QA driver, not a parallel test runtime.
       - "native/product/modern_native_destination_presenter.hpp"
@@ -23,7 +26,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/modern-title-final-sdl-transition-20261021'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -49,6 +52,7 @@ jobs:
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
+            tests.unit.test_qa_modern_title_final_sdl_transition \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
             tests.unit.test_check_modern_visual_capture_bundle \
             tests.unit.test_qa_authentic_presdl_sdl_rgb_parity
@@ -90,6 +94,40 @@ jobs:
           python tools/check_windows_pe_timestamp.py \
             --exe baldosa/build-ur-visual/UniracersSNESRecomp.exe \
             --source-epoch "$SOURCE_DATE_EPOCH"
+      # Bounded independent companion to draft native title owner #2043.
+      # Actual final SDL readback, not source P6 or guessed guest frames.
+      - name: Verify real native title-to-root final SDL at widescreen and 4x3
+        if: github.event_name == 'pull_request' && github.head_ref == 'qa/modern-title-final-sdl-transition-20261021'
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for size in 1280x720 1024x768; do
+            ROOT="$RUNNER_TEMP/ur-modern-title-final-sdl-$size"
+            for route in title-still title-entered-root title-reduced-still title-reduced-entered-root; do
+              python tools/qa_modern_visual_win32_capture_driver.py \
+                --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+                --out "$ROOT/$route" --video windows --timeout 100 \
+                --window-size "$size" --route "$route"
+            done
+            python tools/qa_modern_title_final_sdl_transition.py \
+              --case-root "$ROOT" --source-sha "$(git rev-parse HEAD)" \
+              --output "$ROOT/verified-final-sdl-title-to-root.json"
+          done
+          echo "Genuine Windows final SDL P7 title and five-way root, normal and reduced-motion, one source/PE across both 16:9 and 4:3. No natural clock, art, physical gamepad or release acceptance." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain actual final SDL native title and root readback witnesses
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'qa/modern-title-final-sdl-transition-20261021'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-final-native-win32-p7-16x9-4x3
+          path: |
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/verified-final-sdl-title-to-root.json
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-title-final-sdl-*/*/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 10
       - name: Launch real Win32 root and capture actual SDL drawable
         run: |
           set -euo pipefail

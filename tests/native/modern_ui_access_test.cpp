@@ -2,6 +2,7 @@
 // primitives in native/product/modern_ui_access.hpp.
 #include "native/product/modern_ui_access.hpp"
 #include "native/product/modern_menu_visual_grammar.hpp"
+#include "native/product/modern_stock_menu_palette.hpp"
 
 #include <cstdio>
 #include <cstdlib>
@@ -24,6 +25,26 @@ static_assert(modern_ui_text_legible_on_all(
 // Yellow title and cursor blue clear the 3:1 indicator floor on the panel.
 static_assert(modern_ui_contrast_x100(0xFFF8F800u, 0xFF2F2F2Fu) >= kModernUiTextContrastX100);
 static_assert(modern_ui_contrast_x100(kModernMenuCursorLight, 0xFF283058u) >= kModernUiFocusContrastX100);
+
+// Shipped token audit over every backdrop a screen can put text on: panel,
+// bright checker cell, pure black, selected-row field. A new token that
+// regresses legibility breaks here without touching any screen owner.
+namespace token_audit {
+constexpr std::array<std::uint32_t, 4> kBackdrops{{
+    0xFF2F2F2Fu, 0xFF505050u, 0xFF000000u, 0xFF283058u}};
+static_assert(modern_ui_text_legible_on_all(
+    kModernStockMenuPalette.title_yellow, kBackdrops));
+static_assert(modern_ui_text_legible_on_all(
+    kModernStockMenuPalette.cursor_blue, kBackdrops));
+static_assert(modern_ui_text_legible_on_all(
+    kModernMenuCheckerLegibleGrey, kBackdrops));
+// Documented limitation, not an endorsement: stock secondary grey is only
+// legible on the dark panel and black. Over the checker it needs the
+// checker-legible grey above.
+static_assert(modern_ui_text_legible(kModernStockMenuPalette.secondary_grey, 0xFF2F2F2Fu));
+static_assert(modern_ui_text_legible(kModernStockMenuPalette.secondary_grey, 0xFF000000u));
+static_assert(!modern_ui_text_legible(kModernStockMenuPalette.secondary_grey, 0xFF505050u));
+}  // namespace token_audit
 
 static_assert(modern_ui_min_text_scale(8) == 1);
 static_assert(modern_ui_min_text_scale(17) == 3);

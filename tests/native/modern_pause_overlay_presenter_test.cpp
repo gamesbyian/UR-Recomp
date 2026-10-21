@@ -14,9 +14,21 @@ using namespace ur::product;
 namespace {
 std::vector<std::string> painted;
 int legible_pause_status_draws = 0;
-void fill(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {}
-void stroke(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {}
-void text(std::uint32_t*,int,int,int,int,const char* t,std::uint32_t colour,int) {
+int active_w = 0;
+int active_h = 0;
+void check_bounds(int x, int y, int w, int h) {
+    if (!active_w) return;
+    assert(x >= 0 && y >= 0 && w > 0 && h > 0);
+    assert(x <= active_w - w && y <= active_h - h);
+}
+void fill(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
+    check_bounds(x,y,w,h);
+}
+void stroke(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
+    check_bounds(x,y,w,h);
+}
+void text(std::uint32_t*,int,int,int x,int y,const char* t,std::uint32_t colour,int scale) {
+    check_bounds(x,y,static_cast<int>(std::string(t).size()) * 8 * scale,8 * scale);
     painted.emplace_back(t);
     if (std::string(t) == "GAME PAUSED" &&
         colour == kModernMenuCheckerLegibleGrey)
@@ -38,6 +50,8 @@ int main() {
     constexpr ModernRootOverlayPainter painter{&fill, &stroke, &text};
     UrModernPauseMenu menu{};
     ur_modern_pause_menu_reset(&menu);
+    active_w = 512;
+    active_h = 448;
 
     // Pause panel: Options connected; Controls, Run Data, Records and Exit
     // remain SOON (4 labels), Resume/Restart/Options/Quit carry none.
@@ -48,6 +62,32 @@ int main() {
     assert(!contains("PAUSED - GUEST FROZEN"));
     assert(legible_pause_status_draws == 1);
     assert(count("SOON") == 4);
+    // Compact prepared-source frames must paint directly into their real
+    // framebuffer. Keep all eight rows and disabled/selection policies;
+    // a 1280x720 SDL window alone cannot substitute for these source sizes.
+    for (int source_w : {256,342}) {
+        active_w = source_w;
+        active_h = 224;
+        painted.clear();
+        assert(render_native_modern_pause_overlay(
+            painter,pixels,source_w,source_w,224,menu,true));
+        assert(contains("GAME PAUSED"));
+        assert(contains("RESTART RACE") && contains("QUIT DESKTOP"));
+        assert(count("SOON") == 4);
+        assert(contains("B/ESC BACK  START RESUME"));
+        assert(!contains("PAUSED - GUEST FROZEN"));
+        painted.clear();
+        assert(render_native_modern_pause_overlay(
+            painter,pixels,source_w,source_w,224,menu,false));
+        assert(count("SOON") == 5); // Restart is disabled as before
+        assert(contains("GAME PAUSED"));
+    }
+    active_w = 512;
+    active_h = 448;
+    painted.clear();
+    assert(!render_native_modern_pause_overlay(
+        painter,pixels,255,255,224,menu,true));
+    assert(painted.empty());
 
     // Paused Options: refuses to draw unless the shared view says it is open.
     painted.clear();

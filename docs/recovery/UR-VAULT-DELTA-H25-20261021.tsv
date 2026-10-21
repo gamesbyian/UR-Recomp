@@ -1,0 +1,18 @@
+# Recovery Vault snapshot: 2026-10-21 ~01:50Z
+# Prior 379 Drive IDs plus 14 new IDs below = 393 top-level records.
+# Do not delete: each receipt/archive/patch requires independent content and historical-denial disposition.
+# drive_file_id	filename	mime_type	bytes	provisional_status
+1c2quzPdRbM2DlLwnU7DamlZGiiJ5ojbG	20261021T0150Z-agent5-h25-verified-drive-readback.json	application/json	1221	held-not-fully-disposed
+136WJmoZe3lN8D-pyBa0dVLf-JPI2s8jT	20261021T0150Z-agent5-h24-unpublished-qa08-exact-main.patch	text/x-diff	6138	held-not-fully-disposed
+1ngXWIRgzx-x0GK3FeLOUXw35dTndSpyQ	20261021T0150Z-agent5-h25-manifest.json	application/json	4998	held-not-fully-disposed
+1kdTXTJScqcls0hA3KFslXvw54tZQcgZ7	20261021T0150Z-agent5-h25-handoff.md	text/markdown	6425	held-not-fully-disposed
+1pR7X9McID-xWM-JDSqHOjsguSbr9hjnf	20261021T0150Z-agent5-h25-five-line-additive.patch	text/x-diff	50890	held-not-fully-disposed
+1rFARJznFkWQpOl-mNSPEi5Ix-4d2Yb76	20261021T0150Z-agent5-h25-five-line-recovery.zip	application/zip	991765	held-not-fully-disposed
+1TL5u0-A4Lv88wPmSuWveUPONp58GC4aI	20261021T0146Z-agent4-h25-verified-drive-readback.json	application/json	2111	held-not-fully-disposed
+1HquPn13CxujQ4lbG-Phsb4orITBAUcIM	20261021T0140Z-agent4-h25-resolution.json	application/json	2806	held-not-fully-disposed
+164sekiwTi1Lee6gkc8yMfekP5WFU0DjI	20261021T0140Z-agent4-h25-five-pilots.patch	text/x-diff	20823	held-not-fully-disposed
+1d1y4bot62iR1DVOM9H3dgB1q320yQr4z	20261021T0140Z-agent4-h25-five-line-recovery.zip	application/zip	662038	held-not-fully-disposed
+1AqBVgFYldp3nzvGub4VFAF_IQsLX_517	20261021T0135Z-agent3-h25-line3-pr2060-cumulative.patch	text/x-diff	8008	held-not-fully-disposed
+10VSlQ6RYDTJDs8dEU2G2Gngv58jaE9I-	20261021T0135Z-agent3-h25-resolution.json	application/json	2759	held-not-fully-disposed
+1aTUx5D4TfZcJEqYmvVEupMHOoQm7OeSu	20261021T0135Z-agent3-h25-five-line-handoff.md	text/markdown	6106	held-not-fully-disposed
+1mnlwHEvEdBl6CwA16glHyVjuhqmqBcof	20261021T0135Z-agent3-h25-five-line-recovery.zip	application/zip	242645	held-not-fully-disposed

@@ -42,6 +42,21 @@ python3 -m unittest tests.unit.test_build_modern_hero_reaction_plates
 The unit tests generate synthetic images under a **synthetic non-retail ROM identity** and patch only the isolated test process. These are rejection-path tests, never the user's actual art or native screenshots. Real source raster generation must be performed privately with a verified canonical ROM and visually compared to the independently captured original/native game before promoting a new reaction animation. Source plates do not prove visible on-screen 342×224 or 256×224 behaviour. The currently integrated eight-pose hero clip and motion module in #2042 are untouched.
 
 
+## Temporal discontinuity proof for source clips
+
+The private Original-raster plate producer additionally writes `temporal_original_raster_metrics` into its receipt using `tools/qualify_modern_original_hero_temporal.py`. This makes **source pose deltas** independently reviewable before adding one to the native animation layer. Each original-registration edge records:
+
+- visible changed RGBA pixel count and bounding box, ignoring invisible RGB underneath zero-alpha pixels;
+- alpha-footprint changed pixels, intersection/union and integer-basis-point IoU;
+- exact original wheel-contact displacement in half-pixel units;
+- static versus changing rendered poses, and maximum consecutive contact/visual displacement.
+
+The receipt also reports the **counterfactual final-pose → initial-pose edge**, explicitly `is_observed_chronological_edge=false`, to detect an obvious jump a proposed idle loop would introduce. Even if that edge reports zero changed pixels, `loop_certified=false` is immutable: original racing-frame excerpts are not proven cyclical menu acting. Similarly `source_guest_timing_independently_certified=false`, because these source-registration labels are not an independent original-emulator motion-timing observation.
+
+Unit tests use deliberately synthetic 4×3 and 64×64 RGBA, including transparent padding, changed alpha, contact shifts, static/dynamic edges, cyclic seam measurement and malformed frame identities; no source art enters git. Actual report values are produced only when a verified private ROM renders the original P1 clips. No new visual thresholds are invented from synthetic data and no QA08/physical art approval can follow from numerical motion alone.
+
+This tool also fixes the plate producer's direct-script import path so the documented `python3 tools/build_modern_hero_reaction_plates.py ...` command works even if invoked from another working directory. The regression explicitly launches `--help` from an unrelated temporary directory, without requiring a ROM or creating output.
+
 ## Three-project reuse preflight and interfaces
 
 Reused UR's registered original source raster composition and existing native Modern/Baldosa interface, as prescribed by the `modern-product` lane of `tools/select_three_project_reuse.py --lane modern-product --include-conditional`. Baldosa's native guest/host is authoritative for actual game execution; Malmazuke's independent PAL frontend and renderer remain architectural reference only and are **not** substituted for the USA stock P1 source. No new guest emulation, second animation scheduler, CI experiment, native hero artwork or sprite copies.

@@ -24,7 +24,7 @@ import verify_modern_menu_motion_capture as proof
 def simulated_original_menu_receipts(count: int = 48) -> str:
     source = json.loads(proof.SOURCE.read_text(encoding="utf-8"))
     steps = source["transition_main_to_options"]["enter_velocity_px_per_frame"]
-    lines = ["UR_BALDOSA_MODERN_ROOT opened=1 menu=d7 guest_writes=0"]
+    lines = ["UR_BALDOSA_MODERN_ROOT opened=1"]
     for i in range(count):
         stamp = dict(ordinal=i, tick60=i, selection=0,
                      spin=(i // 2) % 16, offset=0,
@@ -45,8 +45,8 @@ class WindowsModernMenuMotionNativeReceiptTests(unittest.TestCase):
         self.assertEqual(env["UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT"], "1")
         self.assertEqual(env["UR_REDUCED_MOTION"], "0")
         self.assertEqual(env["SDL_VIDEODRIVER"], "dummy")
-        self.assertLess(capture.FRAMES, 943)  # source no-input attract
-        self.assertGreater(capture.FRAMES, 500)  # 440 source menu, settle
+        self.assertLess(capture.FRAMES, 943)  # avoid a source attract cycle
+        self.assertGreater(capture.FRAMES, 500)  # ample real native draws
 
     def test_process_contract_and_source_native_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -67,6 +67,8 @@ class WindowsModernMenuMotionNativeReceiptTests(unittest.TestCase):
                     receipt = capture.run_native(exe, rom, out, timeout=60)
             self.assertEqual(receipt["native_draw_count"], 48)
             self.assertTrue(receipt["real_windows_game_process"])
+            self.assertTrue(receipt["native_root_opened_after_config"])
+            self.assertFalse(receipt["source_guest_d7_admission_proven"])
             self.assertIn("SDL P7 final drawable", receipt["not_proven"])
             self.assertTrue(receipt["test_clock_per_native_root_draw"])
             self.assertEqual(receipt["exe_sha256"], "a" * 64)

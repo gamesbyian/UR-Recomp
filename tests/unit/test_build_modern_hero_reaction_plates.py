@@ -78,6 +78,15 @@ class ModernHeroReactionPlatesTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha256(image_path.read_bytes()).hexdigest(),
                                  frame["review_png_sha256"])
 
+    def test_review_art_must_not_write_into_checkout(self):
+        with self.assertRaisesRegex(audit.ClipAdmissionError, "outside repository"):
+            builder.require_private_output_dir(audit.ROOT / "analysis" / "generated")
+        with self.assertRaisesRegex(audit.ClipAdmissionError, "outside repository"):
+            builder.require_private_output_dir(audit.ROOT)
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(builder.require_private_output_dir(Path(tmp)),
+                             Path(tmp).resolve())
+
     def test_identical_representation_must_have_identical_raster(self):
         rom, digest, registry, source, colours = self._fixture()
         counter = [0]

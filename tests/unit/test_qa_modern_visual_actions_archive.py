@@ -148,6 +148,44 @@ class ActionEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(qa.AuditError,"native semantic destination"):
             qa.verify(self.path)
 
+    def test_current_integrated_navigation_route_aliases_are_real_native_stages(self):
+        for route, stage in (
+            ("practice-picker", "practice-picker"),
+            ("multiplayer-unrecorded", "multiplayer-unrecorded-warning"),
+        ):
+            with self.subTest(route=route):
+                self.receipt["native_semantic_route"] = route
+                self.receipt["native_route_marker_observed"] = True
+                self.log = self.log.replace(
+                    b"UR_BALDOSA_MODERN_DESTINATION stage=root ",
+                    ("UR_BALDOSA_MODERN_DESTINATION stage=" + stage + " ").encode())
+                self.receipt["native_process_log_sha256"] = sha(self.log)
+                self.pack()
+                result = qa.verify(self.path)["captures"][0]
+                self.assertEqual(result["native_semantic_route"], route)
+                self.assertEqual(result["native_painted_stage_at_capture"], stage)
+                self.assertFalse(result["human_approved"])
+                self.assertEqual(result["release_gate_credit"], 0)
+                self.log = self.log.replace(
+                    ("UR_BALDOSA_MODERN_DESTINATION stage=" + stage + " ").encode(),
+                    b"UR_BALDOSA_MODERN_DESTINATION stage=root ")
+                self.receipt["native_semantic_route"] = "root-quit"
+                self.receipt["native_route_marker_observed"] = False
+                self.receipt["native_process_log_sha256"] = sha(self.log)
+
+    def test_current_navigation_alias_refuses_old_or_overwritten_stage(self):
+        for route in ("practice-picker", "multiplayer-unrecorded"):
+            with self.subTest(route=route):
+                self.receipt["native_semantic_route"] = route
+                self.receipt["native_route_marker_observed"] = True
+                # Genuine capture stage must be present before SDL. A valid
+                # root P7 with a route label is not a child-screen witness.
+                self.pack()
+                with self.assertRaisesRegex(qa.AuditError, "native semantic destination"):
+                    qa.verify(self.path)
+                self.receipt["native_semantic_route"] = "root-quit"
+                self.receipt["native_route_marker_observed"] = False
+
     def test_stale_records_stage_rejected_when_root_repainted_before_capture(self):
         self.receipt["native_semantic_route"]="records-keyboard"
         self.receipt["native_route_marker_observed"]=True

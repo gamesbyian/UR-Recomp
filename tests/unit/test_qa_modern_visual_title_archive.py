@@ -86,6 +86,9 @@ class TitleSourceArchiveTests(unittest.TestCase):
         else:
             log = first + transition + source_event + saved
         receipt = {
+            "schema_version":1,
+            "native_process_exit":0,
+            "SDL_driver":"windows",
             "native_semantic_route":route,
             "execution_mode":"modern",
             "native_route_marker_observed":True,

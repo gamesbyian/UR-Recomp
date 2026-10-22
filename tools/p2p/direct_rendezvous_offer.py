@@ -71,6 +71,10 @@ def _parse(raw):
             address=ipaddress.ip_address(endpoint['ip'])
         except ValueError as exc:
             raise ValueError('invalid IP candidate') from exc
+        # H25 recovered negative: mapped IPv6 is an IPv4 endpoint alias.
+        # Keep each signed candidate unambiguous across address families.
+        if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped is not None:
+            raise ValueError('IPv4-mapped IPv6 candidate alias')
         if str(address)!=endpoint['ip']:
             raise ValueError('noncanonical IP spelling')
         if (type(endpoint['port']) is not int or not 1 <= endpoint['port'] <= 65535 or

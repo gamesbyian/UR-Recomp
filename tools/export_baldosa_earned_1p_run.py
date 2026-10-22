@@ -134,7 +134,10 @@ def _portable_run_namespace_entries(root: Path) -> list[Path]:
                 any(unicodedata.category(ch) in ('Cc', 'Cf', 'Cs')
                     or ch in '<>:"|?*\\/' for ch in name) or
                 len(name.encode('utf-16-le')) // 2 > 255 or stem in reserved):
-            raise ValueError('Nonportable sibling in earned-run namespace')
+            raise ValueError(
+                'Nonportable source-earned run filename'
+                if name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')
+                else 'Nonportable sibling in earned-run namespace')
         folded = name.casefold()
         if folded in seen:
             raise ValueError('Win32-colliding sibling in earned-run namespace')

@@ -56,11 +56,20 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertLess(declaration, acceptance)
         self.assertLess(acceptance, definition)
 
-    def test_portable_artifact_upload_requires_success(self) -> None:
-        upload = self.text.index("- name: Upload portable Windows package")
-        snippet = self.text[upload : upload + 180]
-        self.assertIn("if: success()", snippet)
-        self.assertNotIn("if: always()", snippet)
+    def test_private_package_is_verified_but_only_evidence_is_uploaded(self) -> None:
+        # Internal Windows package and its verifier must still be exercised,
+        # but the retail-data ZIP is never a public artifact.
+        verified = self.text.index("assemble_windows_package.py verify-archive")
+        policy = self.text.index("- name: Verify archive-free Windows artifact upload policy")
+        upload = self.text.index("- name: Upload Windows evidence")
+        self.assertLess(verified, policy)
+        self.assertLess(policy, upload)
+        snippet = self.text[upload:]
+        self.assertIn("if: always()", snippet)
+        self.assertNotIn("- name: Upload portable Windows package", self.text)
+        self.assertNotIn("UR-Recomp-Windows-x64.zip\\n", snippet)
+        self.assertNotIn("Test-URRecompPortable.ps1", snippet)
+        self.assertIn("UR-Recomp-Windows-x64.zip.sha256", snippet)
 
     def test_portable_build_uses_static_msvc_runtime_and_verifies_imports(self) -> None:
         self.assertIn(

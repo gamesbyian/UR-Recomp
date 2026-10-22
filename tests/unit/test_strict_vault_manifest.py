@@ -66,6 +66,30 @@ class StrictVaultManifest(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertEqual(verify(pack({name: b"x"}))["manifested_payloads"], 1)
 
+    def test_unix_nonregular_zip_members_are_not_portable_sources(self):
+        # Valid CRC and matching manifest do not make Unix special entries
+        # ordinary files. A recovery handoff must not certify such metadata.
+        import stat
+        payload = b"print(1)"
+        manifest = {"safe/source.py": {
+            "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}}
+        modes = (stat.S_IFIFO, stat.S_IFCHR, stat.S_IFBLK,
+                 stat.S_IFSOCK, stat.S_IFLNK, stat.S_IFDIR, stat.S_IFREG)
+        for mode in modes:
+            stream = io.BytesIO()
+            with zipfile.ZipFile(stream, "w") as z:
+                info = zipfile.ZipInfo("safe/source.py")
+                info.create_system = 3
+                info.external_attr = (mode | 0o644) << 16
+                z.writestr(info, payload)
+                z.writestr("MANIFEST.json", json.dumps(manifest))
+            with self.subTest(mode=oct(mode)):
+                if mode == stat.S_IFREG:
+                    self.assertEqual(verify(stream.getvalue())["manifested_payloads"], 1)
+                else:
+                    with self.assertRaisesRegex(ValueError, "unsafe archive member"):
+                        verify(stream.getvalue())
+
     def test_unicode_alias_and_control(self):
         for name in ("e\u0301.txt","bad\u202etxt","bad. ","NUL.log"):
             with self.subTest(name=name),self.assertRaises(ValueError):

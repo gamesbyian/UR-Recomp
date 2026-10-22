@@ -57,12 +57,17 @@ def check_pe_x64(executable: Path) -> None:
     if len(header) != 26 or header[:4] != b"PE\0\0":
         raise ValueError("portable executable has no valid PE signature")
     machine = struct.unpack_from("<H", header, 4)[0]
+    characteristics = struct.unpack_from("<H", header, 22)[0]
     optional_magic = struct.unpack_from("<H", header, 24)[0]
     if machine != 0x8664 or optional_magic != 0x20B:
         raise ValueError(
             "portable executable must be AMD64 PE32+ "
             f"(machine=0x{machine:04x}, optional=0x{optional_magic:04x})"
         )
+    # A DLL can have both AMD64 and PE32+ headers and be renamed .exe, but
+    # Windows cannot launch it as the packaged game entry point.
+    if characteristics & 0x2000:  # IMAGE_FILE_DLL
+        raise ValueError("portable executable is a DLL, not a launchable game EXE")
 
 
 def imported_dlls(dumpbin_text: str) -> tuple[str, ...]:

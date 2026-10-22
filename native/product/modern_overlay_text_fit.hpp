@@ -20,10 +20,11 @@ inline constexpr int kModernOverlayCellPixels =
 inline constexpr int kModernOverlayPanelMargin = 8;
 
 constexpr std::size_t modern_overlay_text_cells(int panel_w_logical) noexcept {
+    // Check before subtracting margins: an invalid INT_MIN panel width
+    // must fail closed, not overflow signed int before the >0 check.
+    if (panel_w_logical <= 2 * kModernOverlayPanelMargin) return 0u;
     const int usable = panel_w_logical - 2 * kModernOverlayPanelMargin;
-    return usable > 0
-        ? static_cast<std::size_t>(usable / kModernOverlayCellPixels)
-        : 0u;
+    return static_cast<std::size_t>(usable / kModernOverlayCellPixels);
 }
 
 inline std::string fit_modern_overlay_text(

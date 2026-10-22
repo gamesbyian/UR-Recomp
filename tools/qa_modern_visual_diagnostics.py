@@ -216,13 +216,25 @@ def extract_logical(frame: Frame, logical_w: int, logical_h: int,
     not part of the contract.
     """
     m = mapping(logical_w, logical_h, frame.width, frame.height, mode, par)
+    W, H, buf = frame.width, frame.height, frame.rgba
+    clampx = lambda v: min(W - 1, max(0, int(v)))
+    clampy = lambda v: min(H - 1, max(0, int(v)))
+    # Byte offsets of the centre and the four interior sample columns/rows.
+    xs = [[clampx(m.vx + (lx + a) * m.sx) * 4 for a in (0.5, 0.25, 0.75)]
+          for lx in range(logical_w)]
+    ys = [[clampy(m.vy + (ly + b) * m.sy) * W * 4 for b in (0.5, 0.25, 0.75)]
+          for ly in range(logical_h)]
     pixels, bad = [], 0
     for ly in range(logical_h):
+        yc, y0, y1 = ys[ly]
         for lx in range(logical_w):
-            ref = _sample(frame, m, lx, ly, 0.5, 0.5)
-            pixels.append(ref)
-            if any(_sample(frame, m, lx, ly, a, b) != ref
-                   for a in (0.25, 0.75) for b in (0.25, 0.75)):
+            xc, x0, x1 = xs[lx]
+            o = yc + xc
+            ref = buf[o:o + 3]
+            pixels.append((ref[0], ref[1], ref[2]))
+            if (buf[y0 + x0:y0 + x0 + 3] != ref or buf[y0 + x1:y0 + x1 + 3] != ref
+                    or buf[y1 + x0:y1 + x0 + 3] != ref
+                    or buf[y1 + x1:y1 + x1 + 3] != ref):
                 bad += 1
     total = logical_w * logical_h
     return {"mode": mode, "scale": [m.sx, m.sy],

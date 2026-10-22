@@ -59,6 +59,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D12 | After D11, unplug monitor 2, then launch. | It opens on the primary monitor, fully reachable. *(Requires #2231.)* | `UR_DISPLAY placement saved_display_missing name=…` |
 | D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. *(Requires #2235.)* | `UR_DISPLAY placement restored … maximized=1` |
 | D14 | Two monitors, windowed on monitor 2: open the in-game launcher, unplug monitor 2, close the launcher. | The game window is on the primary monitor, reachable. *(Requires #2269.)* | `UR_DISPLAY reconcile reason=launcher_returned action=rescue` |
+| D15 | Over Remote Desktop (or on a PC without a GPU driver), start a race and open the in-game launcher. | Either the launcher opens normally, or it does not appear and the game simply carries on. The game never closes or crashes. *(Requires the launcher GL-guard PR.)* | `[launcher] UR_LAUNCHER_GL unusable version=…` and `in-game launcher: action=2` when refused |
 
 ## Reporting
 

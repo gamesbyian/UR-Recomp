@@ -3,7 +3,7 @@
 No archive extraction or execution. A nested archive without a member-level
 manifest is explicitly unqualified, not silently accepted as equivalent.
 """
-import hashlib, io, json, re, stat, unicodedata, zipfile
+import hashlib, io, json, re, stat, unicodedata, zipfile, zlib
 from pathlib import PurePosixPath
 from strict_vault_manifest import _portable_win32_component
 SHA=re.compile('[0-9a-f]{64}\\Z')
@@ -27,7 +27,7 @@ def admit(blob, *, depth=0, max_depth=2):
     """
     try:
         return _admit_verified_zip(blob, depth=depth, max_depth=max_depth)
-    except (zipfile.BadZipFile, zipfile.LargeZipFile, EOFError) as exc:
+    except (zipfile.BadZipFile, zipfile.LargeZipFile, EOFError, zlib.error) as exc:
         raise ValueError('invalid or corrupt recovery ZIP') from exc
 
 

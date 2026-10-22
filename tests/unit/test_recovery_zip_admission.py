@@ -115,6 +115,25 @@ class RecoveryZipAdmissionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'invalid or corrupt recovery ZIP'):
             admit(bytes(changed))
 
+    def test_invalid_compressed_payload_rejects_zlib_error(self):
+        payload = b'A' * 1800
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+            z.writestr('source.py', payload)
+            z.writestr('MANIFEST.json', json.dumps({'members': {
+                'source.py': {'bytes': len(payload),
+                              'sha256': hashlib.sha256(payload).hexdigest()}
+            }}))
+        original = stream.getvalue()
+        with zipfile.ZipFile(io.BytesIO(original)) as z:
+            info = z.getinfo('source.py')
+            offset = info.header_offset + 30 + len(info.filename.encode()) + len(info.extra)
+            self.assertGreater(info.compress_size, 0)
+        damaged = bytearray(original)
+        damaged[offset] ^= 0xFF
+        with self.assertRaisesRegex(ValueError, 'invalid or corrupt recovery ZIP'):
+            admit(bytes(damaged))
+
     def test_depth_and_invalid_input_fail_closed(self):
         inner=package({'a.txt':b'a'})
         outer=package({'nested.zip':inner})

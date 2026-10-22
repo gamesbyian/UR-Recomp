@@ -31,6 +31,47 @@ class RefusalPreflight(unittest.TestCase):
         self.assertIn("identical refused source bytes", receipt["exact_refusal_matches"][0]["reasons"])
         self.assertFalse(receipt["automatic_publication_authorized"])
 
+    def test_h26_p2p_incident_sha_alias_holds_renamed_source(self):
+        # Preserved P2P refusal records source_git_blob_sha (not the
+        # source_member_git_blob_sha spelling used by UHD). A renamed copy
+        # must still be classified as the same explicit refusal.
+        refused = "82042f0f224468deb979d409a1c059bed548c815"
+        candidate = self.candidate(source_blob_sha=refused,
+                                   target_path="tools/p2p/renamed_ledger.py",
+                                   source_archive_drive_id=None)
+        incident = {
+            "incident_id": "agent1-p2p-finish-ledger-refusal",
+            "classification": "explicit_safety_denial",
+            "source_git_blob_sha": refused,
+            "target": ("gamesbyian/UR-Recomp:"
+                       "agent1/p2p-authenticated-finish-ledger-20261022:"
+                       "tools/p2p/authenticated_finish_ledger.py"),
+        }
+        receipt = check(candidate, [incident])
+        self.assertEqual(receipt["decision"], "HOLD_KNOWN_REFUSAL")
+        self.assertIn("identical refused source bytes",
+                      receipt["exact_refusal_matches"][0]["reasons"])
+        self.assertFalse(receipt["automatic_publication_authorized"])
+
+    def test_refused_p2p_test_postimage_holds_renamed_test(self):
+        # The verified H26 domain-separation test update was explicitly
+        # denied; its proposed bytes were named proposed_test_blob_sha.
+        refused = "5be81b024b87158a5d7a5700a235decf5e97cb12"
+        candidate = self.candidate(source_blob_sha=refused,
+                                   target_path="tests/unit/renamed_receipt_test.py",
+                                   source_archive_drive_id=None)
+        incident = {
+            "incident_id": "agent1-p2p-domain-separation-test-refusal",
+            "failure_class": "explicit_safety_refusal",
+            "source_blob_sha": "055c6f00cdd091fe8d171c7b0568a6d7298f932e",
+            "proposed_test_blob_sha": refused,
+            "target_path": "tests/unit/test_p2p_signed_completion_receipt_contract.py",
+        }
+        receipt = check(candidate, [incident])
+        self.assertEqual(receipt["decision"], "HOLD_KNOWN_REFUSAL")
+        self.assertIn("identical refused source bytes",
+                      receipt["exact_refusal_matches"][0]["reasons"])
+
     def test_same_target_is_held_even_if_proposed_bytes_differ(self):
         i = self.incident(source_member_git_blob_sha="a"*40,
                           attempted_target="tools/verify_cross_resolution.py")

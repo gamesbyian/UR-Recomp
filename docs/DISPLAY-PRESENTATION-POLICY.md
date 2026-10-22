@@ -163,6 +163,8 @@ The Display setting has three meanings, and every desktop host must keep them di
 
 Presentation pacing still follows the active display's refresh through the host's existing 250 ms re-check.
 
+The framework's window-size keys (Ctrl+Up/Down when bound, and Ctrl+mouse-wheel) used to change only the live scale. `config.ini` kept the old `WindowScale`, so the chosen size was forgotten on relaunch. An explicit size step now records `WindowScale`, written by the host's existing exit-time config write. A re-clamp after a display or DPI change is not a player choice and is never persisted. Local check: a real Ctrl+wheel step then a normal quit persisted `WindowScale = 1` and relaunched at 320×240; main relaunched at 640×480.
+
 `tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
 - without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;
 - without the Alt+Enter clear, `hotkey_enters_borderless` fails.

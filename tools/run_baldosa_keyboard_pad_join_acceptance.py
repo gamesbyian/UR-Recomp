@@ -11,7 +11,10 @@ and 16 in ``tools/baldosa_native_modern_root.cpp``):
    must move it to seat 2 (``join_pad_moved``), its next A confirms P2 and
    the stock 2P route is requested;
 3. mode 16: P2's pad confirms and is then unplugged; the keyboard's P1
-   confirmation must withdraw P2 (``join_seat_left``) and request no route.
+   confirmation must withdraw P2 (``join_seat_left``) and request no route;
+4. mode 17: as 2 up to the move, then Escape closes the join; the moved pad
+   must return to seat 1 (``join_pad_returned``) and its next A must drive
+   the root again (it reopens the join), never stranding a lone pad on P2.
 
 Fails closed. Virtual devices only: real pads are physical check C14.
 """
@@ -78,8 +81,22 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         raise ValueError("owner leaves: a pad was moved although P1 confirmed by keyboard "
                          "while seat 2 was held")
 
+    log = run_game(exe, rom, user, out / "join_cancelled", "17", JOIN, video, timeout)
+    ordered(log, ("UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
+                  "UR_BALDOSA_MODERN_ROOT join_closed=1",
+                  "UR_BALDOSA_MODERN_ROOT join_pad_returned from=2 to=1"), "join cancelled")
+    if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=1 to=0")) != 1:
+        raise ValueError("join cancelled: the host did not move the pad back to seat 1 once")
+    if log.count("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2") != 2 or \
+            log.rindex("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2") < \
+            log.index("UR_BALDOSA_MODERN_ROOT join_pad_returned"):
+        raise ValueError("join cancelled: the returned pad did not drive the root")
+    if lines(log, "stock_requested"):
+        raise ValueError("join cancelled: a race was requested")
+
     receipt = {
         "keyboard_plus_pad": "pad_moved_to_p2_and_2p_requested",
+        "join_cancelled": "moved_pad_returned_to_p1_and_drives_root",
         "p2_owner_leaves": "p2_confirmation_withdrawn_no_2p",
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
         "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),

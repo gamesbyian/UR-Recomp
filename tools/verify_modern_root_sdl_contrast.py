@@ -35,10 +35,8 @@ OUTPUT_SIZES = {
     (3840, 2160): (342, 224),
 }
 MAX_CAPTURE_PNG_BYTES = 64 * 1024 * 1024
-ROOT_LINE = re.compile(
-    r"UR_BALDOSA_MODERN_DESTINATION stage=root "
-    r"raster=(\d+)x(\d+) root=(\d+),(\d+),(\d+),(\d+)\b"
-)
+ROOT_RASTER = re.compile(r"(\d+)x(\d+)")
+ROOT_RECT = re.compile(r"(\d+),(\d+),(\d+),(\d+)")
 CAPTURE_LINE = "UR_MODERN_VISUAL_SDL_CAPTURE status=saved"
 ROOT_PAINTED = "UR_BALDOSA_MODERN_ROOT painted=1"
 MIN_TEXT_PIXELS = 64
@@ -97,6 +95,26 @@ def native_capture_matches(line: str, width: int, height: int) -> bool:
             fields.get("source") == "SDL_RenderReadPixels")
 
 
+def native_root_geometry(line: str) -> tuple[int, int, int, int, int, int] | None:
+    """Admit one exact native root geometry event with unique complete fields."""
+    tokens = line.split()
+    if not tokens or tokens[0] != "UR_BALDOSA_MODERN_DESTINATION":
+        return None
+    fields = {}
+    for token in tokens[1:]:
+        key, separator, value = token.partition("=")
+        if not separator or not key or not value or key in fields:
+            return None
+        fields[key] = value
+    if fields.get("stage") != "root":
+        return None
+    raster = ROOT_RASTER.fullmatch(fields.get("raster", ""))
+    rect = ROOT_RECT.fullmatch(fields.get("root", ""))
+    if raster is None or rect is None:
+        return None
+    return tuple(int(value) for value in (*raster.groups(), *rect.groups()))
+
+
 def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
     if receipt.get("schema_version") != 1 or (
             receipt.get("execution_mode") != "modern" or
@@ -124,9 +142,9 @@ def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
     lines = log.read_text(encoding="utf-8").splitlines()
     root = []
     for line in lines:
-        m = ROOT_LINE.search(line)
-        if m:
-            root.append(tuple(int(x) for x in m.groups()))
+        geometry = native_root_geometry(line)
+        if geometry is not None:
+            root.append(geometry)
     native_paint = any(
         line.split()[:2] == ["UR_BALDOSA_MODERN_ROOT", "painted=1"]
         for line in lines

@@ -52,4 +52,34 @@ class CompareProvenanceAdmission(unittest.TestCase):
         self.assertEqual(assess(main_sha='a'*40,pr_head_sha='a'*40,
                                 compare=data)['decision'],'HOLD_NO_DIFF')
 
+
+    def test_same_sha_refuses_forged_commit_advance(self):
+        data=self.sample()
+        data.update({'base':'a'*40,'head':'a'*40,
+            'base_commit':{'sha':'a'*40},'merge_base_commit':{'sha':'a'*40},
+            'status':'ahead','ahead_by':1,'behind_by':0,
+            'total_commits':1,'files':[]})
+        with self.assertRaisesRegex(ValueError,'same SHA'):
+            assess(main_sha='a'*40,pr_head_sha='a'*40,compare=data)
+
+    def test_identical_epoch_refuses_forged_changed_files(self):
+        data=self.sample()
+        data.update({'base':'a'*40,'head':'a'*40,
+            'base_commit':{'sha':'a'*40},'merge_base_commit':{'sha':'a'*40},
+            'status':'identical','ahead_by':0,'behind_by':0,
+            'total_commits':0,
+            'files':[{'filename':'native/product/phantom.cpp'}]})
+        with self.assertRaisesRegex(ValueError,'identical'):
+            assess(main_sha='a'*40,pr_head_sha='a'*40,compare=data)
+
+    def test_identical_epoch_refuses_forged_total_commits(self):
+        data=self.sample()
+        data.update({'base':'a'*40,'head':'a'*40,
+            'base_commit':{'sha':'a'*40},'merge_base_commit':{'sha':'a'*40},
+            'status':'identical','ahead_by':0,'behind_by':0,
+            'total_commits':1,'files':[]})
+        with self.assertRaisesRegex(ValueError,'identical'):
+            assess(main_sha='a'*40,pr_head_sha='a'*40,compare=data)
+
+
 if __name__=='__main__':unittest.main()

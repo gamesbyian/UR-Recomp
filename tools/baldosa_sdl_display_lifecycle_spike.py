@@ -140,7 +140,7 @@ DEFAULT_SCALE_NEW = (
     "  /* " + MARK + ": an unset scale follows the display's DPI. */\n"
     "  if (g_config.window_scale == 0 &&\n"
     "      !(g_config.window_width != 0 && g_config.window_height != 0))\n"
-    "    g_current_window_scale = (uint8)UrDefaultWindowScale();\n"
+    "    g_current_window_scale = (uint8)UrDefaultWindowScale(SDL_GetPrimaryDisplay(), 1);\n"
     "#endif\n"
     + DEFAULT_SCALE
 )
@@ -284,6 +284,52 @@ static int UrApplyFullscreenMode(int display_setting) {
 #endif
 }
 #if SNESRECOMP_SDL3
+/* Test only: the placement smoke's dpi:F mode stands in for a display whose
+ * content scale changed at run time. */
+static float g_ur_content_scale_override;
+/* The framework's default scale (2) on a 100% display, grown with the
+ * display's content scale and kept inside its usable area; see
+ * ur_display_default_window_scale. */
+static int UrDefaultWindowScale(SDL_DisplayID display, int log) {
+  float content = display ? SDL_GetDisplayContentScale(display) : 0.0f;
+  const char *forced = HostGetenv("UR_DISPLAY_CONTENT_SCALE");  /* test only */
+  if (forced && *forced) content = (float)atof(forced);
+  if (g_ur_content_scale_override > 0) content = g_ur_content_scale_override;
+  SDL_Rect r = {0, 0, 0, 0};
+  if (!display || !SDL_GetDisplayUsableBounds(display, &r)) r.w = r.h = 0;
+  const char *usable = HostGetenv("UR_DISPLAY_USABLE_OVERRIDE");  /* test only */
+  if (usable && sscanf(usable, "%dx%d", &r.w, &r.h) != 2) r.w = r.h = 0;
+  const int scale = ur_display_default_window_scale(
+      content, WindowBaseWidth(g_snes_width), WindowBaseHeight(), r.w, r.h,
+      kMaxWindowScale);
+  if (log)
+    printf("UR_DISPLAY default_window_scale content_scale=%.2f usable=%dx%d scale=%d\n",
+           content, r.w, r.h, scale);
+  return scale;
+}
+/* SDL3 keeps a window's pixel size when it moves to a display with another
+ * scale, so a size nobody chose is re-derived for the display it is on now,
+ * centred where it was, and never written to config.ini. */
+static void UrFollowDisplayScale(const char *reason) {
+  if (g_config.window_scale != 0 ||
+      (g_config.window_width != 0 && g_config.window_height != 0))
+    return;
+  const int scale = UrDefaultWindowScale(SDL_GetDisplayForWindow(g_window), 0);
+  if (scale == g_current_window_scale) return;
+  int x = 0, y = 0, w = 0, h = 0;
+  SDL_GetWindowPosition(g_window, &x, &y);
+  SDL_GetWindowSize(g_window, &w, &h);
+  const int nw = scale * WindowBaseWidth(g_snes_width);
+  const int nh = scale * WindowBaseHeight();
+  printf("UR_DISPLAY reconcile reason=%s action=follow_dpi scale=%d->%d size=%dx%d\n",
+         reason, g_current_window_scale, scale, nw, nh);
+  g_current_window_scale = (uint8)scale;
+  SDL_SetWindowSize(g_window, nw, nh);
+  SDL_SetWindowPosition(g_window, x + (w - nw) / 2, y + (h - nh) / 2);
+  SDL_SyncWindow(g_window);
+}
+#endif
+#if SNESRECOMP_SDL3
 static void UrDisplayReconcile(const char *reason) {
   ++g_ur_display_reconciles;
   const SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
@@ -303,6 +349,7 @@ static void UrDisplayReconcile(const char *reason) {
     return;
   }
   if (flags & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_MAXIMIZED)) return;
+  UrFollowDisplayScale(reason);
   int count = 0;
   SDL_DisplayID *displays = SDL_GetDisplays(&count);
   if (!displays) return;
@@ -341,25 +388,6 @@ static void UrDisplayReconcile(const char *reason) {
       ChangeWindowScale(0);
     }
   }
-}
-#endif
-#if SNESRECOMP_SDL3
-/* The framework's default scale (2) on a 100% display, grown with the
- * primary display's content scale and kept inside its usable area; see
- * ur_display_default_window_scale. */
-static int UrDefaultWindowScale(void) {
-  const SDL_DisplayID display = SDL_GetPrimaryDisplay();
-  float content = display ? SDL_GetDisplayContentScale(display) : 0.0f;
-  const char *forced = HostGetenv("UR_DISPLAY_CONTENT_SCALE");  /* test only */
-  if (forced && *forced) content = (float)atof(forced);
-  SDL_Rect r = {0, 0, 0, 0};
-  if (!display || !SDL_GetDisplayUsableBounds(display, &r)) r.w = r.h = 0;
-  const int scale = ur_display_default_window_scale(
-      content, WindowBaseWidth(g_snes_width), WindowBaseHeight(), r.w, r.h,
-      kMaxWindowScale);
-  printf("UR_DISPLAY default_window_scale content_scale=%.2f usable=%dx%d scale=%d\n",
-         content, r.w, r.h, scale);
-  return scale;
 }
 #endif
 /* Window placement across launches: the display (by name + bounds, see
@@ -503,15 +531,18 @@ static void UrSaveWindowPlacement(void) {
   printf("UR_DISPLAY placement saved=%d display=%s\n", ok, name);
 }
 /* SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y | maximize | report | launcher
+ * | render_reset | dpi:F
  * (test-only, inert unless set): move or maximize the window then quit
  * through the ordinary exit (which saves the placement), report where
  * launch put it and quit, or open the in-game launcher and report after. */
 static void UrDisplayPlacementSmokeTick(void) {
   static int mode = -1, frames, tx, ty;
+  static float tdpi;
   if (mode < 0) {
     const char *v = HostGetenv("UR_DISPLAY_PLACEMENT_SMOKE");
     mode = !v ? 0 : strcmp(v, "report") == 0 ? 2 : strcmp(v, "maximize") == 0 ? 3
          : strcmp(v, "launcher") == 0 ? 4 : strcmp(v, "render_reset") == 0 ? 5
+         : sscanf(v, "dpi:%f", &tdpi) == 1 ? 6
          : sscanf(v, "move:%d,%d", &tx, &ty) == 2 ? 1 : 0;
   }
   if (!mode || !g_window || frames < 0) return;
@@ -530,20 +561,30 @@ static void UrDisplayPlacementSmokeTick(void) {
     SDL_PushEvent(&reset);
     return;
   }
+  /* dpi: the display's content scale changes under a running game. */
+  if (mode == 6 && frames == 30) {
+    g_ur_content_scale_override = tdpi;
+    SDL_Event scale;
+    memset(&scale, 0, sizeof(scale));
+    scale.type = SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED;
+    scale.window.windowID = SDL_GetWindowID(g_window);
+    SDL_PushEvent(&scale);
+    return;
+  }
   if ((mode == 1 || mode == 3) && frames == 40) {
     if (mode == 1) SDL_SetWindowPosition(g_window, tx, ty);
     else SDL_MaximizeWindow(g_window);
     SDL_SyncWindow(g_window);
     return;
   }
-  if (frames != (mode == 2 ? 40 : mode == 4 || mode == 5 ? 90 : 70)) return;
+  if (frames != (mode == 2 ? 40 : mode >= 4 ? 90 : 70)) return;
   int x = 0, y = 0;
   SDL_GetWindowPosition(g_window, &x, &y);
   const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
   const char *name = display ? SDL_GetDisplayName(display) : NULL;
   const SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
   printf("UR_DISPLAY_PLACEMENT_SMOKE mode=%s window=%d,%d fullscreen=%d maximized=%d "
-         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : mode == 4 ? "launcher" : mode == 5 ? "render_reset" : "report", x, y,
+         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : mode == 4 ? "launcher" : mode == 5 ? "render_reset" : mode == 6 ? "dpi" : "report", x, y,
          (flags & SDL_WINDOW_FULLSCREEN) ? 1 : 0, (flags & SDL_WINDOW_MAXIMIZED) ? 1 : 0,
          name ? name : "-");
   int renderer_vsync = -99;

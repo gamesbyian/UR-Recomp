@@ -445,7 +445,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-default-window-scale" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-default-window-scale.json"
-          echo "PASS: Win32 SDL3 default window scale: content scale 1.0 opens at 2x, a forced 2.0 opens at the policy's scale for this runner's usable area ($(python -c "import json,sys; r=json.load(open(sys.argv[1])); print(r['content_2x_scale'], 'on', r['usable_area'])" "$RUNNER_TEMP/ur-default-window-scale.json")), an explicit WindowScale is kept and the launcher leaves the default unset. A real high-DPI panel is a physical check." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 SDL3 default window scale: content scale 1.0 opens at 2x, an unchosen size follows a run-time scale change 2x->3x->2x without being saved, a forced 2.0 opens at the policy's scale for this runner's usable area ($(python -c "import json,sys; r=json.load(open(sys.argv[1])); print(r['content_2x_scale'], 'on', r['usable_area'])" "$RUNNER_TEMP/ur-default-window-scale.json")), an explicit WindowScale is kept and the launcher leaves the default unset. A real high-DPI panel is a physical check." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE, three launches sharing one config directory: a moved
       # window reopens where it was; a saved display that is gone falls back.

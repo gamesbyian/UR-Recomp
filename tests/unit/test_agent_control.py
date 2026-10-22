@@ -6,7 +6,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
-from agent_control import BOARD, REGISTRY, extract_board, load_json, summary, validate_registry
+from agent_control import (BOARD, REGISTRY, WORK_ID, HISTORICAL_WORK_IDS,
+                           extract_board, load_json, summary, validate_registry)
 
 
 def replace_table_cell(markdown, row_id, column, value):
@@ -67,6 +68,15 @@ class AgentBoardControlTests(unittest.TestCase):
                 [board["work"][number - 1]["work_id"] for number in agent["anchors"]],
             )
 
+    def test_dated_active_and_retired_id_syntax(self):
+        for work_id in ("UR-QA01-01", "UR-VAULT-EXTRACT-20261022",
+                        "UR-VAULT-GHA-20261022"):
+            self.assertIsNotNone(WORK_ID.fullmatch(work_id))
+        for work_id in ("UR--20261022", "UR-VAULT-EXTRACT-20261022-EXTRA",
+                        "UR-VAULT-EXTRACT-20261022!", "UR-UNKNOWN"):
+            self.assertIsNone(WORK_ID.fullmatch(work_id))
+        self.assertEqual(len(HISTORICAL_WORK_IDS), 10)
+
     def test_duplicate_anchor_is_rejected(self):
         first = self.board["agents"][0]["anchors"][0]
         bad = replace_table_cell(
@@ -120,6 +130,18 @@ class RecoveryRegistryControlTests(unittest.TestCase):
         cls.fixture = candidate_registry(cls.board)
         # Real registry can legitimately shrink or change disposition.
         validate_registry(cls.fixture, cls.board)
+
+    def test_retired_receipts_cannot_be_new_assignments(self):
+        fixture = copy.deepcopy(self.fixture)
+        retired = fixture["candidates"][0]
+        retired["work_id"] = "UR-CPU-01"
+        self.assertEqual(validate_registry(fixture, self.board)["candidates"], 2)
+        retired.update(state="pending_review", github_pr=None, merge_sha=None)
+        with self.assertRaisesRegex(ValueError, "retired work ID"):
+            validate_registry(fixture, self.board)
+        retired["work_id"] = "UR-FAKE-99"
+        with self.assertRaisesRegex(ValueError, "orphan work ID"):
+            validate_registry(fixture, self.board)
 
     def test_current_registry_is_structural_not_release_credit(self):
         result = validate_registry(self.registry, self.board)

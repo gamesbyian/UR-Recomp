@@ -14,7 +14,7 @@ from tools import qa_modern_visual_diagnostics as d
 from tests.unit.test_qa_modern_visual_diagnostics import p7
 
 ROOT = Path(__file__).resolve().parents[2]
-VARIANTS = ("root", "practice", "join", "options", "records", "warning",
+VARIANTS = ("root", "practice", "join", "options", "records", "records-earned", "warning",
             "first-racer", "pause", "pause-controls")
 # Native-host composition (root shell + separate destination presenter),
 # audited for contrast as well as geometry.

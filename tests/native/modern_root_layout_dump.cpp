@@ -6,7 +6,7 @@
 // clipping, focus and exact text colours of the production layout, never the
 // glyph art.
 // Usage: modern_root_layout_dump <width 256|342> <out.p7> [root|practice|
-//        join|options|records|warning|first-racer|pause|pause-controls, optionally prefixed
+//        join|options|records|records-earned|warning|first-racer|pause|pause-controls, optionally prefixed
 //        "dest-" for the native-host composition: root shell + separate
 //        destination presenter] [--audit|--texts]
 #include "native/product/modern_native_destination_presenter.hpp"
@@ -178,6 +178,14 @@ int main(int argc, char** argv) {
         view.read_only_records_open = true;
         view.records_status = "NO RUNS YET";
         view.records_recent = "COMPLETE A RACE";
+    } else if (variant == "records-earned") {
+        // Populated two-player records at realistic worst-case text length.
+        view.read_only_records_open = true;
+        view.read_only_records_two_player = true;
+        view.read_only_records_pages_available = true;
+        view.records_status = "EARNED RUNS 2P";
+        view.records_recent = "BLADE 01:23.45 / AXEL 01:24.01";
+        view.records_detail = "P1 WINS 12 / P2 WINS 9";
     } else if (variant == "warning") {
         view.unbound_two_player_warning_open = true;
     } else if (variant == "first-racer") {

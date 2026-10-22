@@ -11,9 +11,14 @@ from pathlib import Path
 import sys
 from zipfile import ZipFile
 
-from qa01_sparse_transition_bounds import (
-    PAIR, RF081_SHA256, TOTAL_SCENE_FRAMES, audit, transition_bounds,
-)
+if __package__:
+    from .qa01_sparse_transition_bounds import (
+        PAIR, RF081_SHA256, TOTAL_SCENE_FRAMES, audit, transition_bounds,
+    )
+else:
+    from qa01_sparse_transition_bounds import (
+        PAIR, RF081_SHA256, TOTAL_SCENE_FRAMES, audit, transition_bounds,
+    )
 
 
 def prioritize(samples: list[tuple[int, bool]], last_frame: int) -> dict:

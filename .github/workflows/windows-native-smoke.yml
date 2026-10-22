@@ -11,6 +11,20 @@ name: Windows native build and boot smoke
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      run_tournament_acceptance:
+        description: "Opt-in independently nominated same-run packaged tournament acceptance"
+        type: boolean
+        required: false
+        default: false
+      candidate_commit_sha:
+        type: string
+        required: false
+        default: ""
+      portable_zip_sha256:
+        type: string
+        required: false
+        default: ""
   push:
     branches: [main]
     paths:
@@ -55,7 +69,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 20
+    timeout-minutes: 45
     defaults:
       run:
         shell: bash
@@ -70,6 +84,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Validate independently nominated same-source tournament candidate
+        if: inputs.run_tournament_acceptance
+        env:
+          QA_APPROVED_SHA: ${{ inputs.candidate_commit_sha }}
+          QA_APPROVED_ZIP_SHA256: ${{ inputs.portable_zip_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || { echo "Tournament candidate must be dispatched on main" >&2; exit 1; }
+          [[ "$QA_APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid approved source SHA" >&2; exit 1; }
+          [[ "$QA_APPROVED_ZIP_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid approved inner ZIP hash" >&2; exit 1; }
+          [[ "$GITHUB_SHA" == "$QA_APPROVED_SHA" ]] || { echo "Checked-out source differs from independent nomination" >&2; exit 1; }
 
       - name: Verify canonical ROM and package contracts
         run: |
@@ -988,6 +1014,56 @@ jobs:
           test "$(grep -Fc "process_exit=" "$AUDIO_LOG")" -eq 1
 
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
+
+      - name: Same-run packaged Local Tournament acceptance (manual opt-in)
+        if: inputs.run_tournament_acceptance
+        env:
+          QA_APPROVED_SHA: ${{ inputs.candidate_commit_sha }}
+          QA_APPROVED_ZIP_SHA256: ${{ inputs.portable_zip_sha256 }}
+          QA_SMOKE_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # The independent reviewer nominates the SHA256 of a previous
+          # source-identical smoke build. This run REBUILDS the package, then
+          # compares the exact inner ZIP hash; no ROM-bearing artifact transfer.
+          ACTUAL_ZIP_SHA256="$(sha256sum "$PACKAGE_ARCHIVE" | cut -d ' ' -f 1)"
+          test "$ACTUAL_ZIP_SHA256" = "$QA_APPROVED_ZIP_SHA256"
+          test "$QA_APPROVED_SHA" = "$GITHUB_SHA"
+          test -d "$TEST_PACKAGE"
+          test ! -e "$RUNNER_TEMP/tournament-work"
+          printf 'schema=ur-windows-qa-candidate/1\nbackend=snesrecomp\nsmoke_run_id=%s\nsource_commit=%s\ninner_zip_sha256=%s\nqa_harness_commit=%s\n' \
+            "$QA_SMOKE_RUN_ID" "$QA_APPROVED_SHA" "$QA_APPROVED_ZIP_SHA256" "$GITHUB_SHA" \
+            > "$RUNNER_TEMP/windows-tournament-candidate.txt"
+          bash tests/native/run_windows_local_tournament_package_acceptance.sh \
+            "$TEST_PACKAGE" "$RUNNER_TEMP/tournament-work"
+          python tools/verify_windows_tournament_acceptance_receipt.py \
+            --work "$RUNNER_TEMP/tournament-work" \
+            --candidate "$RUNNER_TEMP/windows-tournament-candidate.txt" \
+            --expected-source "$QA_APPROVED_SHA" \
+            --expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256" \
+            --expected-harness-sha "$GITHUB_SHA" \
+            --expected-smoke-run-id "$QA_SMOKE_RUN_ID" \
+            --output-envelope "$RUNNER_TEMP/tournament-qa-envelope.json" \
+            | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
+          python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
+
+      - name: Upload same-run tournament evidence (no package or ROM)
+        if: ${{ always() && inputs.run_tournament_acceptance }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-local-tournament-same-run-evidence
+          path: |
+            ${{ runner.temp }}/windows-tournament-candidate.txt
+            ${{ runner.temp }}/tournament-receipt-verification.log
+            ${{ runner.temp }}/tournament-qa-envelope.json
+            ${{ runner.temp }}/tournament-work/tournament-artifacts.log
+            ${{ runner.temp }}/tournament-work/tournament.log
+            ${{ runner.temp }}/tournament-work/reopen.log
+            ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urrun
+            ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urmatch
+            ${{ runner.temp }}/tournament-work/user data/local-tournaments/*.urfixture
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload Windows evidence
         if: always()

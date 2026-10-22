@@ -165,6 +165,20 @@ REASSIGN_NEW = (
 
 HELPERS_ANCHOR = "static bool HandleDeviceEvent(const SDL_Event *event) {\n"
 
+# Keyboard fallback. Any launcher commit writes SourceP1 = 2 (gamepad) once a
+# config predates the Source keys -- with no pad attached at all -- and a
+# gamepad-sourced player ignores the keyboard, so one Ctrl+L round trip left a
+# keyboard-only player with no control at all.
+KEYBOARD_P1 = (
+    "  uint32 p1 = g_config.player_src[0] == 1 ? keybinds_read_player_runner(keys, 1) : 0;\n"
+)
+KEYBOARD_P1_NEW = (
+    "  uint32 p1 = UrKeyboardDrives(0) ? keybinds_read_player_runner(keys, 1) : 0;"
+    "  /* " + MARK + " */\n"
+)
+ACTIVE_P1 = "                (g_config.player_src[0] == 1 ? 1u : 0u) |\n"
+ACTIVE_P1_NEW = "                (UrKeyboardDrives(0) ? 1u : 0u) |  /* " + MARK + " */\n"
+
 # The in-game launcher runs its own event loop over the same SDL queue, so
 # pads added or removed while it is open never reach HandleDeviceEvent.
 LAUNCHER_RETURN = "  SDL_FlushEvent(SDL_QUIT);\n"
@@ -348,6 +362,18 @@ def helpers(policy: Path) -> str:
         "  SDL_free(ids);\n"
         "#endif\n"
         "}\n"
+        "/* Whether the keyboard drives a player. Keyboard-sourced players, as\n"
+        " * before; and P1 when set to Gamepad with no pad in its seat (none\n"
+        " * plugged in, or it was unplugged), unless P2 already uses the keyboard\n"
+        " * (both players default to the same keys). A seated pad keeps P1's\n"
+        " * input to itself, exactly as before. */\n"
+        "static bool UrKeyboardDrives(int player) {\n"
+        "  const int src = g_config.player_src[player];\n"
+        "  if (src == 1) return true;\n"
+        "  return player == 0 && src == 2 && g_gamepad[0].joystick_id == -1 &&\n"
+        "         g_config.player_src[1] != 1;\n"
+        "}\n"
+        "static uint32 GetActiveControllers(void);\n"
         "/* Product-facing, read-only: the SDL instance occupying a seat, or -1.\n"
         " * Modern polls this at the completed-frame boundary to notice a seat\n"
         " * owner leaving; it never chooses or changes a seat. */\n"
@@ -429,6 +455,17 @@ static Uint32 SDLCALL UrAcceptPlugB(void *userdata, SDL_TimerID id, Uint32 inter
   (void)userdata; (void)id; (void)interval;
   UrAcceptAttach(1, 0x5502, -1);
   return 0;
+}
+/* Every key down, read through the host's own keyboard poll; the real state
+ * is restored by the main loop's poll before the next guest frame. */
+static int g_ur_accept_src[2];
+static uint32 UrAcceptKeyboardWord(void) {
+  static uint8_t all_down[SDL_SCANCODE_COUNT];
+  memset(all_down, 1, sizeof(all_down));
+  PollKeyboardControls(all_down);
+  const uint32 word = g_input_state;
+  PollKeyboardControls(snesrecomp_sdl_get_keyboard_state());
+  return word;
 }
 static void UrAcceptExpect(const char *step, bool ok) {
   printf("UR_CONTROLLER_ACCEPT step=%s pass=%d seats=%u,%u pad_buttons=%08x\n", step,
@@ -625,6 +662,33 @@ static void UrControllerLifecycleAcceptanceTick(void) {
                    g_ur_accept_b_seat >= 0 && UrAcceptSeatOf(1) == g_ur_accept_b_seat);
     for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
     break;
+  case 31: {
+    /* Both players on Gamepad (what a launcher commit writes), no pads. */
+    g_ur_accept_src[0] = g_config.player_src[0];
+    g_ur_accept_src[1] = g_config.player_src[1];
+    g_config.player_src[0] = g_config.player_src[1] = 2;
+    const uint32 in = UrAcceptKeyboardWord();
+    UrAcceptExpect("keyboard_fallback_drives_p1",
+                   g_gamepad[0].joystick_id == -1 && (in & 0xfffu) != 0 &&
+                   ((in >> 12) & 0xfffu) == 0 && (GetActiveControllers() & (1u << 30)));
+    UrAcceptAttach(0, 0x5501, 0);
+    break;
+  }
+  case 32:
+    UrAcceptExpect("seated_pad_keeps_p1_exclusive",
+                   UrAcceptSeatOf(0) == 0 && (UrAcceptKeyboardWord() & 0xffffffu) == 0);
+    g_config.player_src[1] = 1;  /* P2 moves to the keyboard */
+    UrAcceptDetach(0);
+    break;
+  case 33: {
+    const uint32 in = UrAcceptKeyboardWord();
+    UrAcceptExpect("no_fallback_when_p2_on_keyboard", g_gamepad[0].joystick_id == -1 &&
+                   (in & 0xfffu) == 0 && ((in >> 12) & 0xfffu) != 0);
+    g_config.player_src[0] = g_ur_accept_src[0];
+    g_config.player_src[1] = g_ur_accept_src[1];
+    PollKeyboardControls(snesrecomp_sdl_get_keyboard_state());
+    break;
+  }
   default: {
     printf("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=%s\n", g_ur_accept_failed ? "fail" : "pass");
     fflush(stdout);
@@ -658,7 +722,8 @@ def patch_host_main(source: str, policy: Path) -> str:
         return source
     for needle in (SELECTION, RAW_SELECTION, PAD_REMOVED, PAD_BUTTON,
                    RAW_REMOVED, REASSIGN, HELPERS_ANCHOR, TICK_ANCHOR,
-                   PAD_FOUND, RAW_UNSEATED, RAW_BUTTON, LAUNCHER_RETURN):
+                   PAD_FOUND, RAW_UNSEATED, RAW_BUTTON, LAUNCHER_RETURN,
+                   KEYBOARD_P1, ACTIVE_P1):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -672,6 +737,8 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, RAW_UNSEATED, RAW_UNSEATED_NEW)
     source = once(source, RAW_BUTTON, RAW_BUTTON_NEW)
     source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
+    source = once(source, KEYBOARD_P1, KEYBOARD_P1_NEW)
+    source = once(source, ACTIVE_P1, ACTIVE_P1_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

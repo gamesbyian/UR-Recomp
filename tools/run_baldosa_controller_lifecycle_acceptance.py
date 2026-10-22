@@ -42,6 +42,9 @@ EXPECTED_STEPS = (
     "drained_removal_unseen",
     "reconcile_releases_gone_pad",
     "returning_pad_reclaims_after_reconcile",
+    "keyboard_fallback_drives_p1",
+    "seated_pad_keeps_p1_exclusive",
+    "no_fallback_when_p2_on_keyboard",
 )
 # Second launch: the real in-game launcher drains a hotplug; the seat table
 # must catch up when it returns.

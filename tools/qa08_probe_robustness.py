@@ -25,22 +25,71 @@ def predict(channels):
     return {f'{p}-{num}/{den}':tuple(expand(channels[i])*num//den for i in p)
             for p in PERMS for num,den in SCALES}
 
+def _strict_observation_fields(line, event):
+    """Parse one authenticated log line without duplicate keys or coercions."""
+    tokens=line.split()
+    if not tokens or tokens[0]!=event:
+        raise ValueError("wrong QA08 source/final stage order")
+    fields={}
+    for token in tokens[1:]:
+        if token.count("=")!=1:
+            raise ValueError("malformed QA08 observation field")
+        key,value=token.split("=",1)
+        if not key or not value or key in fields:
+            raise ValueError("duplicate or empty QA08 observation field")
+        fields[key]=value
+    return fields
+
+
 def genuine_scale_compatibility(path):
+    """Admit all 88 *consecutive* source0/source1/final triplets or fail.
+
+    The historical census counted independent sub0 and final observations,
+    silently ignoring sub1, ordering and duplicate ZIP names. This recovery
+    strengthens the already-shipping read-only tool, not the PPU renderer.
+    """
     blob=Path(path).read_bytes()
     if hashlib.sha256(blob).hexdigest()!=AUTHENTIC_SHA256:
         raise ValueError('unauthenticated source archive')
     with ZipFile(path) as z:
+        names=z.namelist()
+        if len(names)!=len(set(names)) or z.testzip() is not None:
+            raise ValueError('duplicate or corrupt QA08 archive member')
+        if 'on-source.log' not in names:
+            raise ValueError('missing QA08 source log')
         rows=z.read('on-source.log').decode('ascii').splitlines()
-    main={}; finals={}
-    for line in rows:
-        toks=line.split();fields=dict(x.split('=',1) for x in toks[1:]);key=(fields['frame'],fields['x'],fields['logical_y'])
-        if toks[0]=='UR_QA08_LATE_PPU_SOURCE' and fields['sub']=='0':
-            if key in main: raise ValueError('duplicate QA08 source stage')
-            main[key]=int(fields['selected_rgb555'],16)
-        if toks[0]=='UR_QA08_LATE_PPU_FINAL':
-            if key in finals: raise ValueError('duplicate QA08 final stage')
-            finals[key]=tuple(map(int,fields['RGB8'].split(',')))
-    if len(main)!=88 or main.keys()!=finals.keys():raise ValueError('incomplete genuine source')
+    if len(rows)!=264:
+        raise ValueError('incomplete QA08 source/final triplets')
+    main={};finals={}
+    for index in range(0,len(rows),3):
+        a=_strict_observation_fields(rows[index], 'UR_QA08_LATE_PPU_SOURCE')
+        b=_strict_observation_fields(rows[index+1], 'UR_QA08_LATE_PPU_SOURCE')
+        c=_strict_observation_fields(rows[index+2], 'UR_QA08_LATE_PPU_FINAL')
+        if a.get('sub')!='0' or b.get('sub')!='1':
+            raise ValueError('wrong QA08 sub-stage order')
+        try:
+            key=tuple(a[field] for field in ('frame','x','logical_y'))
+            if key in main or any(
+                fields.get(field)!=a.get(field)
+                for fields in (b,c) for field in ('frame','x','logical_y','ppu_line')
+            ):
+                raise ValueError('duplicate or cross-epoch QA08 stage')
+            rgb555=a['selected_rgb555']
+            if re.fullmatch(r'[0-7][0-9a-f]{3}',rgb555) is None:
+                raise ValueError('malformed QA08 source RGB555')
+            word=int(rgb555,16)
+            rgb=c['RGB8'].split(',')
+            if len(rgb)!=3 or any(re.fullmatch(r'(?:0|[1-9][0-9]*)',v) is None for v in rgb):
+                raise ValueError('malformed QA08 final RGB8')
+            colour=tuple(int(v) for v in rgb)
+            if any(not 0<=v<=255 for v in colour):
+                raise ValueError('out-of-range QA08 final RGB8')
+        except KeyError as exc:
+            raise ValueError('missing QA08 source/final identity or colour') from exc
+        main[key]=word
+        finals[key]=colour
+    if len(main)!=88:
+        raise ValueError('incomplete genuine source')
     fits={}
     for n,d in SCALES:
         fits[f'{n}/{d}']=all(tuple(expand((word>>s)&31)*n//d for s in (0,5,10))==finals[k]

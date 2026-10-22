@@ -76,6 +76,37 @@ void rescue_centres_and_shrinks_to_the_target() {
     assert(ur_display_window_reachable(r, right_only, 1, 32));
 }
 
+void placement_matches_the_same_named_display() {
+    const UrDisplayIdentity displays[] = {
+        {"Built-in Display", {0, 0, 1920, 1080}},
+        {"LG TV", {1920, 0, 3840, 2160}},
+    };
+    // Exact name and bounds.
+    assert(ur_display_placement_match("LG TV", {1920, 0, 3840, 2160}, displays, 2) == 1);
+    // The TV changed resolution: still the only display with that name.
+    assert(ur_display_placement_match("LG TV", {1920, 0, 1920, 1080}, displays, 2) == 1);
+    // Unplugged: no guess.
+    const UrDisplayIdentity laptop_only[] = {{"Built-in Display", {0, 0, 1920, 1080}}};
+    assert(ur_display_placement_match("LG TV", {1920, 0, 3840, 2160}, laptop_only, 1) == -1);
+}
+
+void identical_monitors_need_bounds_to_disambiguate() {
+    const UrDisplayIdentity twins[] = {
+        {"DELL U2720Q", {0, 0, 2560, 1440}},
+        {"DELL U2720Q", {2560, 0, 2560, 1440}},
+    };
+    assert(ur_display_placement_match("DELL U2720Q", {2560, 0, 2560, 1440}, twins, 2) == 1);
+    assert(ur_display_placement_match("DELL U2720Q", {0, 0, 2560, 1440}, twins, 2) == 0);
+    // Layout changed and both share the name: ambiguous, stay on primary.
+    assert(ur_display_placement_match("DELL U2720Q", {5120, 0, 2560, 1440}, twins, 2) == -1);
+}
+
+void unnamed_displays_never_match() {
+    const UrDisplayIdentity anonymous[] = {{"", {0, 0, 1920, 1080}}, {nullptr, {0, 0, 1, 1}}};
+    assert(ur_display_placement_match("", {0, 0, 1920, 1080}, anonymous, 2) == -1);
+    assert(ur_display_placement_match(nullptr, {0, 0, 1920, 1080}, anonymous, 2) == -1);
+}
+
 }  // namespace
 
 int main() {
@@ -86,5 +117,8 @@ int main() {
     degenerate_inputs_are_safe();
     fits_requires_the_whole_window();
     rescue_centres_and_shrinks_to_the_target();
+    placement_matches_the_same_named_display();
+    identical_monitors_need_bounds_to_disambiguate();
+    unnamed_displays_never_match();
     return 0;
 }

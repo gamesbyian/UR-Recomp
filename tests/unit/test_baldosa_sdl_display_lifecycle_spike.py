@@ -26,11 +26,15 @@ HOST_STUB = "\n".join((
     seam.OPTIONS_SDL3 + "#endif\n}",
     "int main(void) {",
     seam.CREATED,
+    "  if (!g_renderer_funcs.Initialize(window)) {}",
+    seam.RENDERER_READY,
     "  while (running) {",
     seam.TICK_ANCHOR + "  }\n}",
     seam.PRODUCT_KEY + "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n}",
     "void ChangeWindowScale(int scale_step) {",
     seam.SCALE_STEP + "}",
+    "static void Shutdown(void) {",
+    seam.EXIT_SAVE + "  if (g_volume_changed || g_fullscreen_changed) {}\n}",
     "static void HandleCommand(uint32 j, bool pressed) {",
     "    case kKeys_Fullscreen:",
     seam.HOTKEY + "}",
@@ -85,6 +89,30 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         # Written by the host's existing exit-time config write.
         self.assertIn("g_fullscreen_changed = true;", scale)
 
+    def test_window_placement_is_restored_after_renderer_and_saved_at_exit(self):
+        staged = self.staged()
+        # After the renderer: an OpenGL renderer can recreate the window.
+        self.assertLess(staged.index("UrRestoreWindowPlacement();"),
+                        staged.index(seam.RENDERER_READY))
+        self.assertLess(staged.index("g_renderer_funcs.Initialize(window)"),
+                        staged.index("UrRestoreWindowPlacement();"))
+        shutdown = staged[staged.index("static void Shutdown(void) {"):]
+        self.assertLess(shutdown.index("UrSaveWindowPlacement();"),
+                        shutdown.index("g_volume_changed || g_fullscreen_changed"))
+        restore = staged[staged.index("static void UrRestoreWindowPlacement(void) {"):]
+        restore = restore[:restore.index("\nstatic void UrSaveWindowPlacement")]
+        # Identity by name + bounds via the policy; a miss stays on primary.
+        self.assertIn("ur_display_placement_match(name, bounds, candidates, n)", restore)
+        self.assertIn("saved_display_missing", restore)
+        self.assertIn('strncmp(line, "ur-window-placement-v1", 22) != 0', restore)
+        # A saved windowed position is used only if still reachable.
+        self.assertIn("ur_display_window_reachable(want, usable, u, 32)", restore)
+        save = staged[staged.index("static void UrSaveWindowPlacement(void) {"):]
+        save = save[:save.index("\n#else")]
+        # Fullscreen/minimized/maximized never overwrite the windowed spot.
+        self.assertIn("SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MINIMIZED | SDL_WINDOW_MAXIMIZED", save)
+        self.assertIn("*c == '\\r' || *c == '\\n' ? ' ' : *c", save)
+
     def test_alt_enter_is_never_a_modern_menu_key(self):
         staged = self.staged()
         handler = staged[staged.index("static void HandleInput(int keyCode"):]
@@ -133,7 +161,8 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
             seam.patch_host_main(HOST_STUB.replace(seam.OPTIONS_MARK, "X"), POLICY)
         for needle in (seam.HELPERS_ANCHOR, seam.DEFAULT_BRANCH, seam.OPTIONS_SDL3,
                        seam.LAUNCHER, seam.HOTKEY, seam.CREATED, seam.TICK_ANCHOR,
-                       seam.PRODUCT_KEY, seam.SCALE_STEP):
+                       seam.PRODUCT_KEY, seam.SCALE_STEP, seam.EXIT_SAVE,
+                       seam.RENDERER_READY):
             with self.assertRaisesRegex(ValueError, "diverged"):
                 seam.patch_host_main(HOST_STUB.replace(needle, ""), POLICY)
         with self.assertRaisesRegex(ValueError, "diverged"):

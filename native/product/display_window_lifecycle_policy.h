@@ -93,6 +93,42 @@ static inline UrDisplayRect ur_display_window_rescue(
     return out;
 }
 
+/* Which connected display a saved window placement belongs to.
+ *
+ * SDL display IDs are per-run, so a placement is remembered by the
+ * display's name and desktop bounds. The same name at the same bounds is
+ * the same display. The same name at different bounds is still that
+ * display if exactly one display has the name (a resolution or layout
+ * change). Anything else is ambiguous or gone: -1, and the window stays
+ * on the primary display rather than guessing. */
+typedef struct UrDisplayIdentity {
+    const char *name;
+    UrDisplayRect bounds;
+} UrDisplayIdentity;
+
+static inline int ur_display_name_equal(const char *a, const char *b) {
+    if (!a || !b || !*a) return 0;
+    while (*a && *a == *b) { ++a; ++b; }
+    return *a == *b;
+}
+
+static inline int ur_display_placement_match(
+    const char *saved_name, UrDisplayRect saved_bounds,
+    const UrDisplayIdentity *displays, int count) {
+    int i, named = 0, named_index = -1;
+    for (i = 0; i < count; ++i) {
+        if (!ur_display_name_equal(saved_name, displays[i].name)) continue;
+        if (displays[i].bounds.x == saved_bounds.x &&
+            displays[i].bounds.y == saved_bounds.y &&
+            displays[i].bounds.w == saved_bounds.w &&
+            displays[i].bounds.h == saved_bounds.h)
+            return i;
+        ++named;
+        named_index = i;
+    }
+    return named == 1 ? named_index : -1;
+}
+
 #ifdef __cplusplus
 }
 #endif

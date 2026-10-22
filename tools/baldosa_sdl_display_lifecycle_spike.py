@@ -110,6 +110,23 @@ CREATED_NEW = (
     "    printf(\"UR_DISPLAY startup exclusive unavailable; staying borderless\\n\");\n"
 )
 
+# After the renderer has the window: an OpenGL renderer can recreate it, which
+# drops a position set earlier.
+RENDERER_READY = "  g_audio_mutex = SDL_CreateMutex();\n"
+RENDERER_READY_NEW = (
+    "  UrRestoreWindowPlacement();  /* " + MARK + ": back on the display it was on */\n"
+    + RENDERER_READY
+)
+
+# The host's own clean-exit config write; the window still exists here.
+EXIT_SAVE = (
+    "  /* A volume or fullscreen change made with the keys survives the session,\n"
+    "   * like the launcher's. */\n"
+)
+EXIT_SAVE_NEW = (
+    "  UrSaveWindowPlacement();  /* " + MARK + " */\n" + EXIT_SAVE
+)
+
 # Staged by baldosa_product_pause_spike.py: product keys come first and get
 # no modifiers, so a visible Modern root took Alt+Enter's Return as CONFIRM.
 PRODUCT_KEY = (
@@ -128,7 +145,9 @@ PRODUCT_KEY_NEW = (
 )
 
 TICK_ANCHOR = "    OverlaySelftestPadMainTick(frameCtr);\n"
-TICK_NEW = TICK_ANCHOR + "    UrDisplayLifecycleAcceptanceTick();  /* " + MARK + " */\n"
+TICK_NEW = TICK_ANCHOR + (
+    "    UrDisplayLifecycleAcceptanceTick();  /* " + MARK + " */\n"
+    "    UrDisplayPlacementSmokeTick();\n")
 
 
 def helpers(policy: Path) -> str:
@@ -233,6 +252,171 @@ static void UrDisplayReconcile(const char *reason) {
     }
   }
 }
+#endif
+/* Window placement across launches: the display (by name + bounds, see
+ * ur_display_placement_match) and the last windowed position, in
+ * window-placement.txt next to config.ini. Missing, ambiguous or damaged
+ * data leaves the window where SDL put it (the primary display). */
+#if SNESRECOMP_SDL3
+static int g_ur_place_has_window;
+static UrDisplayRect g_ur_place_window;
+static int UrPlacementPath(char *out, size_t cap) {
+  const char *cfg = g_active_config_file;
+  const char *slash = NULL;
+  if (!cfg || !*cfg) return 0;
+  for (const char *c = cfg; *c; ++c) if (*c == '/' || *c == '\\') slash = c;
+  const size_t dir = slash ? (size_t)(slash - cfg + 1) : 0;
+  if (dir + sizeof("window-placement.txt") > cap) return 0;
+  memcpy(out, cfg, dir);
+  memcpy(out + dir, "window-placement.txt", sizeof("window-placement.txt"));
+  return 1;
+}
+static int UrUsableDisplays(UrDisplayRect *usable, int cap) {
+  int count = 0, n = 0;
+  SDL_DisplayID *ids = SDL_GetDisplays(&count);
+  for (int i = 0; ids && i < count && n < cap; i++) {
+    SDL_Rect r;
+    if (SDL_GetDisplayUsableBounds(ids[i], &r)) {
+      usable[n].x = r.x; usable[n].y = r.y; usable[n].w = r.w; usable[n].h = r.h; n++;
+    }
+  }
+  SDL_free(ids);
+  return n;
+}
+static void UrRestoreWindowPlacement(void) {
+  char path[1100], line[600], name[256] = {0};
+  UrDisplayRect bounds = {0, 0, 0, 0};
+  int have_bounds = 0;
+  if (!g_window || !UrPlacementPath(path, sizeof(path))) return;
+  FILE *f = fopen(path, "rb");
+  if (!f) return;
+  if (!fgets(line, sizeof(line), f) || strncmp(line, "ur-window-placement-v1", 22) != 0) {
+    fclose(f);
+    return;
+  }
+  while (fgets(line, sizeof(line), f)) {
+    line[strcspn(line, "\r\n")] = 0;
+    if (strncmp(line, "display_name=", 13) == 0)
+      snprintf(name, sizeof(name), "%s", line + 13);
+    else if (sscanf(line, "display_bounds=%d,%d,%d,%d",
+                    &bounds.x, &bounds.y, &bounds.w, &bounds.h) == 4)
+      have_bounds = 1;
+    else if (sscanf(line, "window=%d,%d,%d,%d", &g_ur_place_window.x,
+                    &g_ur_place_window.y, &g_ur_place_window.w,
+                    &g_ur_place_window.h) == 4)
+      g_ur_place_has_window = g_ur_place_window.w > 0 && g_ur_place_window.h > 0;
+  }
+  fclose(f);
+  if (!have_bounds || !name[0]) return;
+  int count = 0, n = 0;
+  SDL_DisplayID *ids = SDL_GetDisplays(&count);
+  UrDisplayIdentity candidates[16];
+  SDL_DisplayID candidate_ids[16];
+  for (int i = 0; ids && i < count && n < 16; i++) {
+    SDL_Rect r;
+    if (!SDL_GetDisplayBounds(ids[i], &r)) continue;
+    candidates[n].name = SDL_GetDisplayName(ids[i]);
+    candidates[n].bounds.x = r.x; candidates[n].bounds.y = r.y;
+    candidates[n].bounds.w = r.w; candidates[n].bounds.h = r.h;
+    candidate_ids[n++] = ids[i];
+  }
+  SDL_free(ids);
+  const int match = ur_display_placement_match(name, bounds, candidates, n);
+  if (match < 0) {
+    printf("UR_DISPLAY placement saved_display_missing name=%s\n", name);
+    return;
+  }
+  const SDL_DisplayID target = candidate_ids[match];
+  if (SDL_GetWindowFlags(g_window) & SDL_WINDOW_FULLSCREEN) {
+    if (SDL_GetDisplayForWindow(g_window) != target) {
+      /* Leave fullscreen, move, then re-enter with that display's mode. */
+      SDL_SetWindowFullscreen(g_window, false);
+      SDL_SyncWindow(g_window);
+      SDL_SetWindowPosition(g_window, SDL_WINDOWPOS_CENTERED_DISPLAY(target),
+                            SDL_WINDOWPOS_CENTERED_DISPLAY(target));
+      SDL_SyncWindow(g_window);
+      if (!UrApplyFullscreenMode(g_config.fullscreen)) UrApplyFullscreenMode(1);
+      SDL_SetWindowFullscreen(g_window, true);
+      SDL_SyncWindow(g_window);
+    }
+  } else {
+    UrDisplayRect usable[16], want;
+    const int u = UrUsableDisplays(usable, 16);
+    SDL_GetWindowSize(g_window, &want.w, &want.h);
+    want.x = g_ur_place_window.x;
+    want.y = g_ur_place_window.y;
+    if (g_ur_place_has_window && ur_display_window_reachable(want, usable, u, 32))
+      SDL_SetWindowPosition(g_window, want.x, want.y);
+    else
+      SDL_SetWindowPosition(g_window, SDL_WINDOWPOS_CENTERED_DISPLAY(target),
+                            SDL_WINDOWPOS_CENTERED_DISPLAY(target));
+    SDL_SyncWindow(g_window);
+  }
+  int x = 0, y = 0;
+  SDL_GetWindowPosition(g_window, &x, &y);
+  printf("UR_DISPLAY placement restored display=%s fullscreen=%d window=%d,%d\n", name,
+         (SDL_GetWindowFlags(g_window) & SDL_WINDOW_FULLSCREEN) ? 1 : 0, x, y);
+}
+static void UrSaveWindowPlacement(void) {
+  char path[1100];
+  SDL_Rect r;
+  if (!g_window || !UrPlacementPath(path, sizeof(path))) return;
+  const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
+  const char *name = display ? SDL_GetDisplayName(display) : NULL;
+  if (!name || !*name || !SDL_GetDisplayBounds(display, &r)) return;
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
+  if (!(flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MINIMIZED | SDL_WINDOW_MAXIMIZED))) {
+    SDL_GetWindowPosition(g_window, &g_ur_place_window.x, &g_ur_place_window.y);
+    SDL_GetWindowSize(g_window, &g_ur_place_window.w, &g_ur_place_window.h);
+    g_ur_place_has_window = 1;
+  }
+  FILE *f = fopen(path, "wb");
+  if (!f) return;
+  fputs("ur-window-placement-v1\ndisplay_name=", f);
+  for (const char *c = name; *c; ++c) fputc(*c == '\r' || *c == '\n' ? ' ' : *c, f);
+  fprintf(f, "\ndisplay_bounds=%d,%d,%d,%d\n", r.x, r.y, r.w, r.h);
+  if (g_ur_place_has_window)
+    fprintf(f, "window=%d,%d,%d,%d\n", g_ur_place_window.x, g_ur_place_window.y,
+            g_ur_place_window.w, g_ur_place_window.h);
+  const int ok = fclose(f) == 0;
+  printf("UR_DISPLAY placement saved=%d display=%s\n", ok, name);
+}
+/* SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y | report (test-only,
+ * inert unless set): move the window then quit through the ordinary exit
+ * (which saves the placement), or report where launch put it and quit. */
+static void UrDisplayPlacementSmokeTick(void) {
+  static int mode = -1, frames, tx, ty;
+  if (mode < 0) {
+    const char *v = HostGetenv("UR_DISPLAY_PLACEMENT_SMOKE");
+    mode = !v ? 0 : strcmp(v, "report") == 0 ? 2
+         : sscanf(v, "move:%d,%d", &tx, &ty) == 2 ? 1 : 0;
+  }
+  if (!mode || !g_window || frames < 0) return;
+  ++frames;
+  if (mode == 1 && frames == 40) {
+    SDL_SetWindowPosition(g_window, tx, ty);
+    SDL_SyncWindow(g_window);
+    return;
+  }
+  if (frames != (mode == 1 ? 70 : 40)) return;
+  int x = 0, y = 0;
+  SDL_GetWindowPosition(g_window, &x, &y);
+  const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
+  const char *name = display ? SDL_GetDisplayName(display) : NULL;
+  printf("UR_DISPLAY_PLACEMENT_SMOKE mode=%s window=%d,%d fullscreen=%d display=%s\n",
+         mode == 1 ? "move" : "report", x, y,
+         (SDL_GetWindowFlags(g_window) & SDL_WINDOW_FULLSCREEN) ? 1 : 0, name ? name : "-");
+  fflush(stdout);
+  frames = -1;
+  SDL_Event quit;
+  memset(&quit, 0, sizeof(quit));
+  quit.type = SDL_QUIT;
+  SDL_PushEvent(&quit);
+}
+#else
+static void UrRestoreWindowPlacement(void) {}
+static void UrSaveWindowPlacement(void) {}
+static void UrDisplayPlacementSmokeTick(void) {}
 #endif
 static void UrDisplayEvent(const SDL_Event *event) {
 #if SNESRECOMP_SDL3
@@ -431,7 +615,8 @@ def patch_host_main(source: str, policy: Path) -> str:
     if OPTIONS_MARK not in source:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
-                   HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP):
+                   HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP,
+                   EXIT_SAVE, RENDERER_READY):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -442,6 +627,8 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, CREATED, CREATED_NEW)
     source = once(source, PRODUCT_KEY, PRODUCT_KEY_NEW)
     source = once(source, SCALE_STEP, SCALE_STEP_NEW)
+    source = once(source, EXIT_SAVE, EXIT_SAVE_NEW)
+    source = once(source, RENDERER_READY, RENDERER_READY_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

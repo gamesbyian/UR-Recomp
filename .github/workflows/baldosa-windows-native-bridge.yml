@@ -208,6 +208,8 @@ on:
       - "native/product/display_window_lifecycle_policy.h"
       - "tests/native/display_window_lifecycle_policy_test.cpp"
       - "tools/run_baldosa_display_lifecycle_acceptance.py"
+      - "tools/run_baldosa_window_placement_acceptance.py"
+      - "tests/unit/test_baldosa_window_placement_acceptance.py"
   workflow_dispatch:
     inputs:
       parallel_journeys:
@@ -297,6 +299,7 @@ jobs:
           python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           python tests/unit/test_baldosa_host_lifecycle_pause.py
           python tests/unit/test_baldosa_native_options_adopt_cpp.py
+          python tests/unit/test_baldosa_window_placement_acceptance.py
 
       - name: Verify immutable native source pins
         run: |
@@ -389,6 +392,18 @@ jobs:
             --out "$RUNNER_TEMP/ur-display-lifecycle" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-display-lifecycle.json"
           echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE, three launches sharing one config directory: a moved
+      # window reopens where it was; a saved display that is gone falls back.
+      - name: Exercise SDL3 window placement across Win32 relaunches
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_window_placement_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-window-placement" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-window-placement.json"
+          echo "PASS: Win32 SDL3 window placement: a moved window reopens at the same spot on the same display after relaunch; a saved display that is not connected falls back to SDL's default. One hosted display; moving between real monitors is a physical check." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |

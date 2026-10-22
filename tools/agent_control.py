@@ -16,7 +16,7 @@ BOARD = ROOT / "docs/HOURLY-AGENT-LINES.md"
 REGISTRY = ROOT / "docs/recovery/agent-candidates.json"
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
-WORK_ID = re.compile(r"UR-[A-Z0-9]+-[0-9]{2}\Z")
+WORK_ID = re.compile(r"UR-[A-Z0-9]+(?:-[A-Z0-9]+)+\Z")
 STATUSES = frozenset({
     "merged", "superseded", "rejected", "pending_review",
     "blocked", "research_only", "unknown",
@@ -116,6 +116,17 @@ def validate_registry(registry, board):
     if type(entries) is not list:
         raise ValueError("candidates must be a list")
     work_ids = {entry["work_id"] for entry in board["work"]}
+    # Archived candidate rows retain their original immutable work identity
+    # when the live ten-line board is reassigned. Only explicitly registered
+    # retired IDs qualify, and they cannot become active dispatch candidates.
+    retired = registry.get("retired_work_ids", [])
+    if (type(retired) is not list or
+            any(type(wid) is not str or WORK_ID.fullmatch(wid) is None
+                for wid in retired) or
+            len(retired) != len(set(retired)) or
+            set(retired) & work_ids):
+        raise ValueError("invalid explicit retired recovery work IDs")
+    retired_ids = set(retired)
     ids, drive_ids, active_keys = set(), set(), set()
     for item in entries:
         if type(item) is not dict:
@@ -129,8 +140,10 @@ def validate_registry(registry, board):
                 or cid in ids):
             raise ValueError("invalid or duplicate candidate_id")
         ids.add(cid)
-        if wid not in work_ids:
+        if wid not in work_ids and wid not in retired_ids:
             raise ValueError("orphan work ID for " + cid)
+        if wid in retired_ids and item["state"] in ACTIVE:
+            raise ValueError("retired work ID cannot be an active dispatch candidate")
         if type(item["discriminator"]) is not str or not item["discriminator"].strip():
             raise ValueError("missing discriminator")
         if item["state"] not in STATUSES:

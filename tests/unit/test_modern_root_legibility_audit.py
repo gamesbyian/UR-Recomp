@@ -9,7 +9,9 @@ import subprocess
 import tempfile
 import unittest
 
+from tools import qa_modern_visual_case_checks as cc
 from tools import qa_modern_visual_diagnostics as d
+from tests.unit.test_qa_modern_visual_diagnostics import p7
 
 ROOT = Path(__file__).resolve().parents[2]
 VARIANTS = ("root", "practice", "join", "options", "records", "warning",
@@ -84,6 +86,36 @@ class ModernRootLegibilityAudit(unittest.TestCase):
                 geometry = [l for l in run.stdout.splitlines()
                             if l.startswith(("CLIP", "OVERLAP"))]
                 self.assertEqual(geometry, [], (variant, width))
+
+    def test_genuine_production_root_passes_its_matrix_case_checks(self):
+        """What a real wide/compact root should score: the production root
+        painter at its native logical canvas, fitted into each matrix output
+        with the shipped 7:6 nearest mapping, then the full case checks."""
+        matrix = cc.load_cases()
+        for case_id, width in (("root-wide-720", 342), ("root-wide-1080", 342),
+                               ("root-43-768", 256), ("root-43-480", 256)):
+            out = Path(self.tmp.name) / f"{case_id}.p7"
+            run = subprocess.run([str(self.exe), str(width), str(out), "root"])
+            self.assertEqual(run.returncode, 0)
+            logical = d.load(out)
+            grid = [logical.rgb(x, y) for y in range(224) for x in range(width)]
+            ow, oh = matrix[case_id]["pixels"]
+            m = d.mapping(width, 224, ow, oh)
+            cols = [int((x + 0.5 - m.vx) / m.sx) for x in range(ow)]
+            rows = []
+            for y in range(oh):
+                ly = int((y + 0.5 - m.vy) / m.sy)
+                if not 0 <= ly < 224:
+                    rows += [(0, 0, 0)] * ow
+                    continue
+                row = grid[ly * width:(ly + 1) * width]
+                rows += [row[c] if 0 <= c < width else (0, 0, 0) for c in cols]
+            frame = d.Frame(p7(ow, oh, rows))
+            report = cc.evaluate(matrix[case_id], frame)
+            self.assertTrue(report["pass"], (case_id, report["checks"]))
+            self.assertEqual(
+                sorted(c["check"] for c in report["checks"]),
+                ["action-safe", "logical-width", "output-size", "single-focus-bar"])
 
     def test_root_layout_within_action_safe_and_single_focus_bar(self):
         for width in (256, 342):

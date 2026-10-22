@@ -70,6 +70,16 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("gi->axis_buttons = 0;", release)
         self.assertIn("ur_controller_seat_vacated(", release)
 
+    def test_an_unseated_spare_is_closed_on_removal(self):
+        staged = self.staged()
+        removed = staged[staged.index("case SDL_CONTROLLERDEVICEREMOVED:"):]
+        self.assertLess(removed.index("if (!gi) UrSpareRemoved("),
+                        removed.index("    if (gi) {\n"))
+        spare = staged[staged.index("static void UrSpareRemoved"):]
+        spare = spare[:spare.index("\n}\n")]
+        self.assertIn("SDL_GameControllerFromInstanceID(id)", spare)
+        self.assertIn("SDL_GameControllerClose(pad);", spare)
+
     def test_a_claiming_press_is_consumed(self):
         staged = self.staged()
         button = staged[staged.index("case SDL_CONTROLLERBUTTONDOWN:"):]
@@ -102,7 +112,8 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("if (!g_ur_accept_on || g_ur_accept_step < 0) return;", staged)
         self.assertIn('g_ur_accept_failed ? "fail" : "pass"', staged)
         for step in ("no_steal", "p1_reclaimed", "spare_claimed_p2",
-                     "held_released_on_remove", "returning_players_not_swapped"):
+                     "held_released_on_remove", "returning_players_not_swapped",
+                     "spare_closed_on_remove"):
             self.assertIn(f'"{step}"', staged)
         # SDL2 builds get an empty tick: virtual pads there use another API.
         self.assertIn("static void UrControllerLifecycleAcceptanceTick(void) {}", staged)

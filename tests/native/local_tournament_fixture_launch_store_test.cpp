@@ -1,5 +1,6 @@
 #include "local_tournament_fixture_launch_store.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -10,6 +11,11 @@
 #include <iterator>
 #include <string>
 #include <thread>
+
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 using namespace ur::product;
 namespace fs = std::filesystem;
@@ -234,6 +240,73 @@ int main() {
     require(bytes_of(path) ==
                 encode_local_tournament_pending_fixture(stale_attempt),
             "new checkpoint published after OS lock release");
+
+#if !defined(_WIN32)
+    // Independently scheduled processes must observe the same OS pathname
+    // lock. The child probes busy() before attempting an actual stale retire.
+    require(save_local_tournament_launch_file(filename, pending) ==
+                Status::Saved, "two-process seed publishes old launch");
+    int ready_pipe[2];
+    require(::pipe(ready_pipe) == 0, "two-process readiness pipe");
+    pid_t retiring_pid = -1;
+    {
+        TournamentLaunchPathLock publisher(filename);
+        require(publisher.acquired(), "parent holds OS launch lock");
+        retiring_pid = ::fork();
+        require(retiring_pid >= 0, "fork independent retiring process");
+        if (retiring_pid == 0) {
+            ::close(ready_pipe[0]);
+            TournamentLaunchPathLock probe(filename, true);
+            const bool blocked = !probe.acquired() && probe.busy();
+            const char ready = blocked ? 'B' : 'E';
+            (void)::write(ready_pipe[1], &ready, 1);
+            ::close(ready_pipe[1]);
+            if (!blocked) ::_exit(31);
+            const auto result = retire_local_tournament_launch_file(
+                filename, pending);
+            ::_exit(result == Status::Rejected ? 0 : 32);
+        }
+        ::close(ready_pipe[1]);
+        char ready = '\0';
+        require(::read(ready_pipe[0], &ready, 1) == 1 && ready == 'B',
+                "other process sees live publisher lock as busy");
+        ::close(ready_pipe[0]);
+        // The same atomic writer used inside save(), under the outer lock.
+        require(write_tournament_replace_staged(
+                    filename,
+                    encode_local_tournament_pending_fixture(stale_attempt),
+                    "urlaunch"), "publisher replaces checkpoint under lock");
+    }
+    int retirement_status = 0;
+    require(::waitpid(retiring_pid, &retirement_status, 0) == retiring_pid &&
+                WIFEXITED(retirement_status) &&
+                WEXITSTATUS(retirement_status) == 0,
+            "stale retirement in another process rejects newer checkpoint");
+    require(bytes_of(path) ==
+                encode_local_tournament_pending_fixture(stale_attempt),
+            "newer cross-process checkpoint survives byte-for-byte");
+    const auto after_process_race =
+        load_local_tournament_launch_file(filename, *model, instance);
+    require(after_process_race.loaded() &&
+                after_process_race.pending->attempt_id == stale_attempt.attempt_id,
+            "newer checkpoint remains restorable with expected attempt");
+
+    // OS-owned locks must release after process exit even if no destructor
+    // executed. This is the crash/relaunch lock boundary, not a durability
+    // or actual power-loss assertion.
+    const pid_t abrupt_pid = ::fork();
+    require(abrupt_pid >= 0, "fork abrupt-exit lock holder");
+    if (abrupt_pid == 0) {
+        TournamentLaunchPathLock held(filename);
+        ::_exit(held.acquired() ? 0 : 33);
+    }
+    int abrupt_status = 0;
+    require(::waitpid(abrupt_pid, &abrupt_status, 0) == abrupt_pid &&
+                WIFEXITED(abrupt_status) && WEXITSTATUS(abrupt_status) == 0,
+            "abrupt process held launch lock");
+    TournamentLaunchPathLock recovered(filename, true);
+    require(recovered.acquired(), "OS releases lock after abrupt process exit");
+#endif
 
     fs::remove_all(root);
     std::puts("local_tournament_fixture_launch_store_test: ok");

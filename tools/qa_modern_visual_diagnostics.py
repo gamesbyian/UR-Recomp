@@ -291,6 +291,40 @@ def compare_resolutions(a: Frame, b: Frame, logical_w: int, logical_h: int,
             **DISCLAIMER}
 
 
+def encode_png(width: int, height: int, rgb_rows: list[bytes]) -> bytes:
+    """Minimal 8-bit RGB PNG (filter 0) from packed rows; stdlib only."""
+    def chunk(tag: bytes, body: bytes) -> bytes:
+        return (struct.pack(">I", len(body)) + tag + body +
+                struct.pack(">I", zlib.crc32(tag + body)))
+    raw = b"".join(b"\x00" + row for row in rgb_rows)
+    return (PNG_SIGNATURE + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height,
+                                                      8, 2, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw, 6)) + chunk(b"IEND", b""))
+
+
+def diff_png(a: Frame, b: Frame, logical_w: int, logical_h: int,
+             mode: str = "fit", par: float = PAR_DEFAULT, zoom: int = 3) -> bytes:
+    """Logical-canvas difference picture for reviewers: unchanged pixels are
+    dimmed grayscale of A, differing logical pixels are solid red. The exact
+    set and its bounding box are in compare_resolutions(); this is only the
+    picture a reviewer can open from a CI artifact."""
+    la = extract_logical(a, logical_w, logical_h, mode, par)["pixels"]
+    lb = extract_logical(b, logical_w, logical_h, mode, par)["pixels"]
+    rows = []
+    for y in range(logical_h):
+        row = bytearray()
+        for x in range(logical_w):
+            pa, pb = la[y * logical_w + x], lb[y * logical_w + x]
+            if pa != pb:
+                px = bytes((255, 0, 0))
+            else:
+                g = (pa[0] * 30 + pa[1] * 59 + pa[2] * 11) // 100 // 3 + 40
+                px = bytes((g, g, g))
+            row += px * zoom
+        rows += [bytes(row)] * zoom
+    return encode_png(logical_w * zoom, logical_h * zoom, rows)
+
+
 def _rect_check(frame: Frame, roi, name):
     l, t, r, b = roi
     if not (0 <= l < r <= frame.width and 0 <= t < b <= frame.height):
@@ -441,6 +475,8 @@ def main(argv=None) -> int:
     m.add_argument("--other-expect-sha256")
     m.add_argument("--logical", nargs=2, type=int, required=True)
     m.add_argument("--max-diff", type=int, default=0)
+    m.add_argument("--diff-png", type=Path,
+                   help="write a logical-canvas difference picture (red = differs)")
     t = sub.add_parser("detect"); common(t)
     t.add_argument("--widths", nargs="+", type=int, default=[256, 342])
     a = p.parse_args(argv)
@@ -457,8 +493,12 @@ def main(argv=None) -> int:
         elif a.cmd == "detect":
             rep = detect_logical(frame, tuple(a.widths), mode=a.mode, par=a.par)
         else:
-            rep = compare_resolutions(frame, load(a.other, a.other_expect_sha256),
-                                      *a.logical, a.max_diff, a.mode, a.par)
+            other = load(a.other, a.other_expect_sha256)
+            rep = compare_resolutions(frame, other, *a.logical, a.max_diff,
+                                      a.mode, a.par)
+            if a.diff_png:
+                a.diff_png.write_bytes(diff_png(frame, other, *a.logical,
+                                                a.mode, a.par))
     except ValueError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1

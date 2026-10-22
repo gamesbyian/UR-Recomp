@@ -245,7 +245,7 @@ def extract_logical(frame: Frame, logical_w: int, logical_h: int,
 
 def detect_logical(frame: Frame, widths=(256, 342), logical_h: int = 224,
                    mode: str = "fit", par: float = PAR_DEFAULT,
-                   tolerance: float = 0.002) -> dict:
+                   tolerance: float = 0.002, margin: float = 0.0005) -> dict:
     """Which native logical width explains this frame? Distinguishes a
     genuine 342-wide (16:9) source from a 256-wide (4:3) one."""
     fractions = {}
@@ -255,7 +255,13 @@ def detect_logical(frame: Frame, widths=(256, 342), logical_h: int = 224,
                 "nonuniform_fraction"]
         except ValueError:
             fractions[w] = None
-    ok = [w for w, v in fractions.items() if v is not None and v <= tolerance]
+    scored = {w: v for w, v in fractions.items() if v is not None}
+    best = min(scored.values()) if scored else None
+    # The best-fitting width must be within tolerance; another width stays a
+    # candidate only if it is not measurably worse (flat frames, where every
+    # width fits equally, remain ambiguous and fail "exactly one").
+    ok = [w for w, v in scored.items()
+          if v <= tolerance and v <= best + margin]
     return {"schema": SCHEMA, "check": "detect", "input_sha256": frame.sha256,
             "output": [frame.width, frame.height], "mode": mode,
             "nonuniform_fraction": fractions, "consistent_widths": ok,

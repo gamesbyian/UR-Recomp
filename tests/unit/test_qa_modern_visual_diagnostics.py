@@ -139,6 +139,28 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertEqual(det["consistent_widths"], [256], det)
         self.assertTrue(det["pass"])
 
+    def test_detect_prefers_clearly_better_width_but_flat_frames_stay_ambiguous(self):
+        from unittest import mock
+        frame = d.Frame(p7(2, 1, [(0, 0, 0), (1, 1, 1)]))
+
+        def detect(scores):
+            with mock.patch.object(
+                    d, "extract_logical",
+                    side_effect=lambda f, w, h, m, p: {"nonuniform_fraction": scores[w]}):
+                return d.detect_logical(frame)
+
+        # Sparse content: the wrong width is only slightly non-uniform, but
+        # measurably worse than the exact fit.
+        det = detect({256: 0.0015, 342: 0.0})
+        self.assertEqual(det["consistent_widths"], [342])
+        self.assertTrue(det["pass"])
+        # Both fit (flat frame) -> ambiguous; neither within tolerance -> none.
+        self.assertEqual(detect({256: 0.0, 342: 0.0002})["consistent_widths"], [256, 342])
+        self.assertFalse(detect({256: 0.0, 342: 0.0002})["pass"])
+        self.assertEqual(detect({256: 0.03, 342: 0.02})["consistent_widths"], [])
+        # Real wide capture shape: 256 exact, 342 clearly off.
+        self.assertEqual(detect({256: 0.0, 342: 0.0183})["consistent_widths"], [256])
+
     def test_fit_clip_and_focus_on_fractional_output(self):
         grid, w, h = logical_canvas()
         put(grid, w, 30, 30, 40, 8, FG)

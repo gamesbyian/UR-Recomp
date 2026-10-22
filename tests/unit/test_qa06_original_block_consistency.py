@@ -29,6 +29,41 @@ class BlockConsistencyTest(unittest.TestCase):
             verify_blocks('original',w,h,bytes(src),matte=pixel,
                           require_opaque=True)
 
+    def test_whole_source_frame_shift_can_pass_block_consistency(self):
+        # Recovered H26 source-free negative control: a uniformly incorrect
+        # source-frame mapping remains internally nearest-neighbour correct.
+        # This test prevents us from treating a consistency pass as parity.
+        w, h = 512, 448
+        roi = raster_roi(256, 224, w, h)
+        normal, shifted = bytearray(w*h*4), bytearray(w*h*4)
+        matte = bytes((0, 0, 0, 255))
+        for y in range(h):
+            for x in range(w):
+                location = source_pixel_at_host_coordinate(roi, x, y)
+                if location is None:
+                    a = b = matte
+                else:
+                    sx, sy = location
+                    a = bytes((sx % 256, sy % 256, (sx ^ sy) % 256, 255))
+                    wrong_x = (sx + 1) % 256
+                    b = bytes((wrong_x, sy % 256, (wrong_x ^ sy) % 256, 255))
+                start = (y*w + x)*4
+                normal[start:start+4] = a
+                shifted[start:start+4] = b
+        self.assertNotEqual(normal, shifted)
+        correct = verify_blocks('original', w, h, bytes(normal),
+                                matte=matte, require_opaque=True)
+        incorrect = verify_blocks('original', w, h, bytes(shifted),
+                                  matte=matte, require_opaque=True)
+        self.assertEqual(correct['distinct_source_pixels'], 256*224)
+        self.assertEqual(incorrect['distinct_source_pixels'], 256*224)
+        self.assertEqual(correct['source_host_samples'],
+                         incorrect['source_host_samples'])
+        for receipt in (correct, incorrect):
+            self.assertFalse(receipt['source_frame_verified'])
+            self.assertFalse(receipt['art_approved'])
+            self.assertEqual(receipt['release_gate_credit'], 0)
+
     def test_opaque_and_matte_must_match_explicit_policy(self):
         w,h=640,448
         with self.assertRaisesRegex(ValueError,'transparent'):

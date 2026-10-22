@@ -24,6 +24,19 @@ REQUIREMENTS = {
         "native/product/modern_menu_visual_grammar.hpp",
         r"\bmodern_menu_paint_focus_band\s*\(",
     ),
+    # #2165 is merged on main: on a combined title/destination source head
+    # the global BG1 checker must remain anchored to the framebuffer, rather
+    # than silently phase-resetting when a differently sized root is drawn.
+    "fixed_bg1_grammar_available": (
+        "native/product/modern_menu_visual_grammar.hpp",
+        r"\bbool\s+fixed_bg1_grid\s*=\s*false",
+    ),
+    "native_root_fixed_bg1_opt_in": (
+        "native/product/modern_root_overlay_presenter.hpp",
+        r"\bmodern_menu_paint_checker_backdrop\s*\(\s*paint\s*,\s*pixels\s*,"
+        r"\s*stride\s*,\s*surface_height\s*,\s*x\s*,\s*y\s*,"
+        r"\s*rect\.width\s*,\s*rect\.height\s*,\s*scale\s*,\s*true\s*\)",
+    ),
     "destination_renderer_available": (
         "native/product/modern_native_destination_presenter.hpp",
         r"\brender_modern_native_destination\s*\(",
@@ -96,6 +109,7 @@ REQUIRED_NATIVE = (
     "native_motion_painted", "native_title_controller_confirm",
     "native_host_chooses_wide_logical_source", "native_p1_edges_owned",
     "native_keyboard_edges_owned", "authentic_mode_can_disable_root",
+    "fixed_bg1_grammar_available", "native_root_fixed_bg1_opt_in",
 )
 
 
@@ -206,6 +220,23 @@ def inventory(root: Path) -> dict:
         )
         if not guarded:
             conflicts.append("destination_child_refusal_can_claim_success")
+    # An independently reproduced title-owner regression (PR #2043,
+    # source 5a3b3b4) used a truncated USA SHA256 literal and refused the
+    # canonical ROM before the new final-SDL probe launched. This cheap
+    # integration guard is conditional on the optional capture producer
+    # being present; it never weakens the ROM identity preflight.
+    title_capture_tool = root / "tools/capture_modern_title_entry_sdl_win32.py"
+    if title_capture_tool.is_symlink():
+        conflicts.append("title_sdl_capture_tool_redirected")
+    elif title_capture_tool.is_file():
+        title_capture_source = title_capture_tool.read_text(encoding="utf-8")
+        literal = re.search(
+            r'^\s*USA\s*=\s*"([0-9a-f]+)"\s*$',
+            title_capture_source, re.MULTILINE)
+        if literal and literal.group(1) != (
+                "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"):
+            conflicts.append("title_sdl_capture_incomplete_canonical_rom_digest")
+
     return {
         "schema_version": 1,
         "checked": checked,

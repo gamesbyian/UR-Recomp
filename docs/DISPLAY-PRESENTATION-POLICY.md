@@ -172,6 +172,25 @@ Presentation pacing still follows the active display's refresh through the host'
 
 The framework's window-size keys (Ctrl+Up/Down when bound, and Ctrl+mouse-wheel) used to change only the live scale. `config.ini` kept the old `WindowScale`, so the chosen size was forgotten on relaunch. An explicit size step now records `WindowScale`, written by the host's existing exit-time config write. A re-clamp after a display or DPI change is not a player choice and is never persisted. Local check: a real Ctrl+wheel step then a normal quit persisted `WindowScale = 1` and relaunched at 320×240; main relaunched at 640×480.
 
+**The default window size follows the display's DPI.** Windows makes the host per-monitor DPI aware, and SDL3 window sizes are in pixels. The framework's fixed default scale, 2 (640×480), was therefore a small window on a 150% or 200% panel. When nobody chose a size (`WindowScale = 0`, with no `WindowWidth`/`WindowHeight`), the display seam asks `ur_display_default_window_scale` before the window is created:
+- the primary display's content scale times 2, rounded, and never below 2;
+- capped at the framework's maximum;
+- stepped down until the window uses at most 90% of the display's usable width and height.
+
+It logs `UR_DISPLAY default_window_scale content_scale=… usable=WxH scale=N`. An explicit `WindowScale`, an explicit size, a saved placement and later display or DPI changes keep their existing rules. Two framework paths used to turn the unset default into a fixed number:
+- the in-game launcher seeded an unset scale as a literal 2 and committed it;
+- the config writer saved an unset scale as `WindowScale = 3`, so the first config write resized the next launch.
+
+The launcher now opens on the live scale and leaves `WindowScale` unset unless the player changes it, and the writer keeps 0.
+
+`tools/run_baldosa_default_window_scale_acceptance.py` checks this in real launches:
+- a forced content scale of 1.0 opens at 2×;
+- a forced 2.0 opens at the policy's scale for the usable area the game logged;
+- an explicit `WindowScale = 1` is kept;
+- a launcher round trip keeps the default unset.
+
+Locally on a 3840×2160 X11 display, 2.0 gave scale 4 (1280×960); on 1024×768 it was clamped to 2. Without the decision, the runner fails; without the writer fix, the launcher round trip writes `WindowScale = 3` and fails. The pinned 2P route's WRAM CRCs are unchanged. A real high-DPI panel is physical check D18.
+
 **Window placement.** The pinned host always reopened centred on the primary display, so a player who keeps the game on a second monitor had to move it back every launch. At a clean exit the host now writes `window-placement.txt` next to the active `config.ini`. The file records:
 - the window's display, by name and bounds;
 - for a window that is not fullscreen, minimized or maximized, its windowed position;

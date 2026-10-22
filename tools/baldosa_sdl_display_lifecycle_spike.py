@@ -127,6 +127,38 @@ LAUNCHER_RETURN_NEW = LAUNCHER_RETURN + (
     "#endif\n"
 )
 
+# The default window size. Windows makes the host per-monitor DPI aware and
+# SDL3 window sizes are pixels, so the framework's fixed default (scale 2,
+# 640x480) was a postage stamp on a 200% or 4K panel. Only a scale nobody
+# chose (WindowScale = 0, no WindowWidth/Height) follows the display.
+DEFAULT_SCALE = (
+    "  bool custom_size = g_config.window_width != 0 && g_config.window_height != 0;\n"
+    "  int window_width = custom_size ? g_config.window_width :\n"
+)
+DEFAULT_SCALE_NEW = (
+    "#if SNESRECOMP_SDL3\n"
+    "  /* " + MARK + ": an unset scale follows the display's DPI. */\n"
+    "  if (g_config.window_scale == 0 &&\n"
+    "      !(g_config.window_width != 0 && g_config.window_height != 0))\n"
+    "    g_current_window_scale = (uint8)UrDefaultWindowScale();\n"
+    "#endif\n"
+    + DEFAULT_SCALE
+)
+
+# The in-game launcher seeded an unset scale as a literal 2 and committed it,
+# shrinking a display-sized window and turning the default into a choice.
+LAUNCHER_SEED = "  ls->window_scale  = g_config.window_scale ? g_config.window_scale : 2;\n"
+LAUNCHER_SEED_NEW = (
+    "  ls->window_scale  = g_config.window_scale ? g_config.window_scale\n"
+    "                    : g_current_window_scale;  /* " + MARK + " */\n"
+)
+LAUNCHER_COMMIT = "  g_config.window_scale        = (uint8)ls->window_scale;\n"
+LAUNCHER_COMMIT_NEW = (
+    "  /* " + MARK + ": leaving the seeded default alone keeps it a default. */\n"
+    "  if (g_config.window_scale != 0 || ls->window_scale != g_current_window_scale)\n"
+    "    g_config.window_scale      = (uint8)ls->window_scale;\n"
+)
+
 # The swap interval. Presents are one per simulated frame and the host drops
 # simulation it falls behind on, so waiting for a panel slower than the
 # guest (a 50 Hz TV) ran the game itself at the panel's rate (83% at 50 Hz).
@@ -309,6 +341,25 @@ static void UrDisplayReconcile(const char *reason) {
       ChangeWindowScale(0);
     }
   }
+}
+#endif
+#if SNESRECOMP_SDL3
+/* The framework's default scale (2) on a 100% display, grown with the
+ * primary display's content scale and kept inside its usable area; see
+ * ur_display_default_window_scale. */
+static int UrDefaultWindowScale(void) {
+  const SDL_DisplayID display = SDL_GetPrimaryDisplay();
+  float content = display ? SDL_GetDisplayContentScale(display) : 0.0f;
+  const char *forced = HostGetenv("UR_DISPLAY_CONTENT_SCALE");  /* test only */
+  if (forced && *forced) content = (float)atof(forced);
+  SDL_Rect r = {0, 0, 0, 0};
+  if (!display || !SDL_GetDisplayUsableBounds(display, &r)) r.w = r.h = 0;
+  const int scale = ur_display_default_window_scale(
+      content, WindowBaseWidth(g_snes_width), WindowBaseHeight(), r.w, r.h,
+      kMaxWindowScale);
+  printf("UR_DISPLAY default_window_scale content_scale=%.2f usable=%dx%d scale=%d\n",
+         content, r.w, r.h, scale);
+  return scale;
 }
 #endif
 /* Window placement across launches: the display (by name + bounds, see
@@ -499,6 +550,10 @@ static void UrDisplayPlacementSmokeTick(void) {
   SDL_Renderer *renderer = SDL_GetRenderer(g_window);
   if (renderer) SDL_GetRenderVSync(renderer, &renderer_vsync);
   printf("UR_DISPLAY_VSYNC_SMOKE renderer_vsync=%d\n", renderer_vsync);
+  int ww = 0, wh = 0;
+  SDL_GetWindowSize(g_window, &ww, &wh);
+  printf("UR_DISPLAY_SIZE_SMOKE window=%dx%d scale=%d config_scale=%d\n", ww, wh,
+         g_current_window_scale, g_config.window_scale);
   fflush(stdout);
   frames = -1;
   SDL_Event quit;
@@ -743,7 +798,8 @@ def patch_host_main(source: str, policy: Path) -> str:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
                    HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP,
-                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN, VSYNC, BEGIN_DRAW):
+                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN, VSYNC, BEGIN_DRAW,
+                   DEFAULT_SCALE, LAUNCHER_SEED, LAUNCHER_COMMIT):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -759,6 +815,9 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
     source = once(source, VSYNC, vsync_new(policy))
     source = once(source, BEGIN_DRAW, BEGIN_DRAW_NEW)
+    source = once(source, DEFAULT_SCALE, DEFAULT_SCALE_NEW)
+    source = once(source, LAUNCHER_SEED, LAUNCHER_SEED_NEW)
+    source = once(source, LAUNCHER_COMMIT, LAUNCHER_COMMIT_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 
@@ -803,6 +862,26 @@ LAUNCHER_GL_NEW = (
 )
 
 
+# The framework's config writer saved an unset scale as 3 while the window
+# ran at the default, so the first config write (launcher, Options, a
+# display change at exit) silently resized the next launch. 0 parses back as
+# "not chosen".
+CONFIG_SCALE = (
+    '  CfgSet(kvs, N, "Graphics", "WindowScale", "%d",\n'
+    "         g_config.window_scale ? g_config.window_scale : 3);\n"
+)
+CONFIG_SCALE_NEW = (
+    "  /* " + MARK + ": 0 stays 0, the display-following default. */\n"
+    '  CfgSet(kvs, N, "Graphics", "WindowScale", "%d", (int)g_config.window_scale);\n'
+)
+
+
+def patch_config_writer(source: str) -> str:
+    if MARK in source:
+        return source
+    return once(source, CONFIG_SCALE, CONFIG_SCALE_NEW)
+
+
 def patch_launcher_platform(source: str) -> str:
     if MARK in source:
         return source
@@ -817,8 +896,11 @@ def plan(game: Path, root: Path):
     before = path.read_text(encoding="utf-8")
     launcher = game / "recomp-ui/src/common/launcher_platform_sdl3.c"
     launcher_before = launcher.read_text(encoding="utf-8")
+    config = game / "snesrecomp/runner/src/desktop/mmx_config.c"
+    config_before = config.read_text(encoding="utf-8")
     return [(path, before, patch_host_main(before, policy)),
-            (launcher, launcher_before, patch_launcher_platform(launcher_before))]
+            (launcher, launcher_before, patch_launcher_platform(launcher_before)),
+            (config, config_before, patch_config_writer(config_before))]
 
 
 def main() -> int:

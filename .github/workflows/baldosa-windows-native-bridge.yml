@@ -212,6 +212,7 @@ on:
       - "tools/run_baldosa_launcher_gl_fallback_acceptance.py"
       - "tools/run_baldosa_slow_panel_vsync_acceptance.py"
       - "tools/run_baldosa_render_reset_acceptance.py"
+      - "tools/run_baldosa_default_window_scale_acceptance.py"
       - "tests/unit/test_baldosa_window_placement_acceptance.py"
   workflow_dispatch:
     inputs:
@@ -433,6 +434,18 @@ jobs:
             --out "$RUNNER_TEMP/ur-render-reset" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-render-reset.json"
           echo "PASS: Win32 SDL3 D3D11: after SDL_EVENT_RENDER_DEVICE_RESET the frame texture is rebuilt once, no texture lock fails, and the game keeps running. The host response to SDL's event only; a driver-level device loss is a physical check." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: a scale nobody chose follows the display's content
+      # scale and fits its usable area; WindowScale and the launcher keep theirs.
+      - name: Exercise the DPI default window scale on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_default_window_scale_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-default-window-scale" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-default-window-scale.json"
+          echo "PASS: Win32 SDL3 default window scale: content scale 1.0 opens at 2x, a forced 2.0 opens at the policy's scale for this runner's usable area ($(python -c "import json,sys; r=json.load(open(sys.argv[1])); print(r['content_2x_scale'], 'on', r['usable_area'])" "$RUNNER_TEMP/ur-default-window-scale.json")), an explicit WindowScale is kept and the launcher leaves the default unset. A real high-DPI panel is a physical check." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE, three launches sharing one config directory: a moved
       # window reopens where it was; a saved display that is gone falls back.

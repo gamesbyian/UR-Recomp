@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import baldosa_sdl_display_lifecycle_spike as seam
 import run_baldosa_display_lifecycle_acceptance as runner
+import run_baldosa_default_window_scale_acceptance as scale_runner
 
 ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / seam.POLICY
@@ -28,6 +29,7 @@ HOST_STUB = "\n".join((
     seam.OPTIONS_SDL3 + "#endif\n}",
     "int main(void) {",
     seam.CREATED,
+    seam.DEFAULT_SCALE + "      g_current_window_scale * WindowBaseWidth(g_snes_width);",
     "  if (!g_renderer_funcs.Initialize(window)) {}",
     seam.RENDERER_READY,
     "  while (running) {",
@@ -35,6 +37,10 @@ HOST_STUB = "\n".join((
     seam.PRODUCT_KEY + "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n}",
     "void ChangeWindowScale(int scale_step) {",
     seam.SCALE_STEP + "}",
+    "static void LauncherSeed(RecompLauncherCSettings *ls) {",
+    seam.LAUNCHER_SEED + "}",
+    "static void LauncherCommit(const RecompLauncherCSettings *ls) {",
+    seam.LAUNCHER_COMMIT + "}",
     "static void RunInGameLauncher(void) {",
     seam.LAUNCHER_RETURN + "}",
     "static void Shutdown(void) {",
@@ -123,6 +129,34 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         self.assertLess(restore.index("ur_display_window_reachable(want, usable, u, 32)"),
                         restore.index("SDL_MaximizeWindow(g_window);"))
         self.assertIn("*c == '\\r' || *c == '\\n' ? ' ' : *c", save)
+
+    def test_only_an_unchosen_window_scale_follows_the_display(self):
+        staged = self.staged()
+        main = staged[staged.index("int main(void) {"):]
+        decide = main.index("g_current_window_scale = (uint8)UrDefaultWindowScale();")
+        self.assertLess(decide, main.index(seam.DEFAULT_SCALE))
+        self.assertIn("  if (g_config.window_scale == 0 &&\n"
+                      "      !(g_config.window_width != 0 && g_config.window_height != 0))\n",
+                      main[:decide])
+        helper = staged[staged.index("static int UrDefaultWindowScale(void) {"):]
+        helper = helper[:helper.index("\n}")]
+        self.assertIn("SDL_GetDisplayContentScale(display)", helper)
+        self.assertIn("ur_display_default_window_scale(", helper)
+        self.assertIn("kMaxWindowScale", helper)
+        # The launcher opens on the live scale and leaving it alone keeps
+        # WindowScale unset, so the default keeps following the display.
+        seed = staged[staged.index("static void LauncherSeed"):]
+        self.assertIn(": g_current_window_scale;", seed[:seed.index("\n}")])
+        commit = staged[staged.index("static void LauncherCommit"):]
+        self.assertIn("if (g_config.window_scale != 0 || ls->window_scale != g_current_window_scale)\n"
+                      "    g_config.window_scale      = (uint8)ls->window_scale;",
+                      commit[:commit.index("\n}")])
+        writer = seam.patch_config_writer("void W(void) {\n" + seam.CONFIG_SCALE + "}\n")
+        self.assertIn('"WindowScale", "%d", (int)g_config.window_scale);', writer)
+        self.assertNotIn(": 3);", writer)
+        self.assertEqual(seam.patch_config_writer(writer), writer)
+        with self.assertRaisesRegex(ValueError, "diverged"):
+            seam.patch_config_writer("void W(void) {}\n")
 
     def test_display_changes_missed_during_the_launcher_are_reconciled(self):
         staged = self.staged()
@@ -237,9 +271,16 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
             launcher.parent.mkdir(parents=True)
             launcher_stub = "static bool open(void) {\n" + seam.LAUNCHER_GL + "}\n"
             launcher.write_text(launcher_stub, encoding="utf-8")
+            config = game / "snesrecomp/runner/src/desktop/mmx_config.c"
+            config_stub = "void W(void) {\n" + seam.CONFIG_SCALE + "}\n"
+            config.write_text(config_stub, encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "display policy"):
                 seam.plan(game, Path(d) / "no-ur-root")
-            [(path, before, after), (lpath, lbefore, lafter)] = seam.plan(game, ROOT)
+            [(path, before, after), (lpath, lbefore, lafter),
+             (cpath, cbefore, cafter)] = seam.plan(game, ROOT)
+            self.assertEqual((cpath, cbefore), (config, config_stub))
+            self.assertIn(seam.MARK, cafter)
+            self.assertEqual(config.read_text(encoding="utf-8"), config_stub)
             self.assertEqual((path, before), (host, HOST_STUB))
             self.assertIn(seam.MARK, after)
             self.assertEqual(host.read_text(encoding="utf-8"), HOST_STUB)
@@ -298,6 +339,33 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
                  str(c_file), "-o", str(Path(d) / "c99")],
                 check=True)
             subprocess.run([str(Path(d) / "c99")], check=True)
+
+    def test_default_scale_runner_mirrors_the_policy(self):
+        cases = [(c, bw, bh, uw, uh, m)
+                 for c in (0.0, -1.0, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 6.0)
+                 for bw, bh in ((320, 240), (427, 240))
+                 for uw, uh in ((0, 0), (1024, 728), (1920, 1040), (2560, 1400),
+                                (3840, 2120), (7680, 4280))
+                 for m in (10, 3, 1)]
+        with tempfile.TemporaryDirectory() as d:
+            c_file = Path(d) / "scale.c"
+            rows = ",\n".join(f"{{{c}f,{bw},{bh},{uw},{uh},{m}}}"
+                               for c, bw, bh, uw, uh, m in cases)
+            c_file.write_text(
+                '#include <stdio.h>\n#include "display_window_lifecycle_policy.h"\n'
+                "static const struct { float c; int bw, bh, uw, uh, m; } k[] = {\n"
+                + rows + "};\nint main(void) {\n"
+                "  for (unsigned i = 0; i < sizeof k / sizeof k[0]; i++)\n"
+                "    printf(\"%d\\n\", ur_display_default_window_scale(k[i].c, k[i].bw,"
+                " k[i].bh, k[i].uw, k[i].uh, k[i].m));\n  return 0;\n}\n",
+                encoding="utf-8")
+            exe = Path(d) / "scale"
+            subprocess.run(["gcc", "-std=c99", "-I", str(ROOT / "native" / "product"),
+                            str(c_file), "-o", str(exe)], check=True)
+            native = subprocess.run([str(exe)], check=True, capture_output=True,
+                                    text=True).stdout.split()
+        self.assertEqual([int(v) for v in native],
+                         [scale_runner.policy_scale(*case) for case in cases])
 
 
 if __name__ == "__main__":

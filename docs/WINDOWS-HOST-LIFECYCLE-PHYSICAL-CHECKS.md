@@ -56,7 +56,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D10 | Monitors at different scaling (e.g. 100% and 150%): move a windowed game from the small-scale to the large-scale one. | The window still fits on screen. | `UR_DISPLAY reconcile reason=display_scale_changed action=rescale` if it overflowed |
 | D11 | Two monitors, windowed: move the window to monitor 2, quit normally, relaunch. Repeat in FULLSCREEN. | It reopens on monitor 2 (windowed: at the same spot; fullscreen: at monitor 2's mode). *(Requires #2231.)* | `UR_DISPLAY placement saved=1 display=…`; next launch `UR_DISPLAY placement restored display=…` |
 | D12 | After D11, unplug monitor 2, then launch. | It opens on the primary monitor, fully reachable. *(Requires #2231.)* | `UR_DISPLAY placement saved_display_missing name=…` |
-| D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. *(Requires the maximized-placement PR.)* | `UR_DISPLAY placement restored … maximized=1` |
+| D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. *(Requires #2235.)* | `UR_DISPLAY placement restored … maximized=1` |
 
 ## Reporting
 

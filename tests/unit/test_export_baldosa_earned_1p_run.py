@@ -117,6 +117,19 @@ class ExportEarnedRunTests(unittest.TestCase):
                             original_report)
         self.assertFalse(manifest['independent_release_acceptance'])
 
+    @unittest.skipUnless(sys.platform.startswith('linux'),
+                         'POSIX surrogateescaped filename fixture')
+    def test_rejects_surrogateescaped_source_run_with_bounded_error(self):
+        # Linux permits this byte spelling, but it is not valid UTF-8 or
+        # portable Windows evidence. Reject it without UnicodeEncodeError.
+        import os
+        malformed = self.runs / os.fsdecode(b'\xff.urrun')
+        self.run.rename(malformed)
+        with self.assertRaisesRegex(ValueError,
+                                    'Nonportable source-earned run filename'):
+            export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+
     def test_rejects_boolean_release_credit(self):
         self.report['release_gate_credit'] = False
         self.write_report()

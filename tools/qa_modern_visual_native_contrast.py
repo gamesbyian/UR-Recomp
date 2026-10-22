@@ -28,7 +28,7 @@ def unpack_p7(data: bytes) -> tuple[int, int, bytes]:
 
 
 def relative_luminance(rgb: tuple[int, int, int]) -> float:
-    if len(rgb) != 3 or any(not isinstance(v, int) or not 0 <= v <= 255 for v in rgb):
+    if len(rgb) != 3 or any(type(v) is not int or not 0 <= v <= 255 for v in rgb):
         raise ValueError("invalid sampled RGB")
     linear = [v / 255 / 12.92 if v / 255 <= .04045
               else ((v / 255 + .055) / 1.055) ** 2.4 for v in rgb]
@@ -38,6 +38,24 @@ def relative_luminance(rgb: tuple[int, int, int]) -> float:
 def contrast_ratio(first: tuple[int, int, int], second: tuple[int, int, int]) -> float:
     high, low = sorted((relative_luminance(first), relative_luminance(second)), reverse=True)
     return (high + .05) / (low + .05)
+
+
+def minimum_neutral_foreground(background: int, threshold: float = 4.5) -> int | None:
+    """Smallest lighter RGB8 neutral text value meeting an sRGB ratio.
+
+    Advisory design arithmetic recovered from the H27 original-P7 contrast
+    study. This never edits artwork or constitutes visual/physical approval.
+    Returns None when no lighter neutral can meet the requested ratio.
+    """
+    if type(background) is not int or not 0 <= background <= 255:
+        raise ValueError("background must be a neutral RGB8 channel")
+    if type(threshold) not in (int, float) or not 1 <= threshold <= 21:
+        raise ValueError("invalid contrast reference")
+    return next(
+        (level for level in range(background + 1, 256)
+         if contrast_ratio((level,) * 3, (background,) * 3) >= threshold),
+        None,
+    )
 
 
 def audit_frame(data: bytes, roi: tuple[int, int, int, int],

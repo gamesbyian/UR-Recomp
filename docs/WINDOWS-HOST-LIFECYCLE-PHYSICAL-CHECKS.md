@@ -48,11 +48,13 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D3 | From FULLSCREEN press Alt+Enter, then Alt+Enter again. | First press: windowed. Second press: **borderless**, not exclusive. | |
 | D4 | On the main Modern menu press Alt+Enter. | Only the window changes; no game or race starts. | no `UR_BALDOSA_MODERN_ROOT stock_requested` |
 | D5 | Pick a display mode with Alt+Enter, quit normally, relaunch. | It opens in the mode you picked. | `UR_BALDOSA_OPTIONS adopt_live_display … result=2`; next launch `options_boot display=…` |
-| D6 | Windowed: change the size with Ctrl+mouse-wheel (or Ctrl+Up/Down if bound), quit normally, relaunch. | It opens at the size you picked. *(Requires #2224.)* | |
+| D6 | Windowed: change the size with Ctrl+mouse-wheel (or Ctrl+Up/Down if bound), quit normally, relaunch. | It opens at the size you picked. | |
 | D7 | Two monitors, windowed: put the window on monitor 2, then unplug monitor 2. | The window reappears on the primary monitor, reachable by its title bar. | `UR_DISPLAY reconcile reason=… action=rescue` |
 | D8 | Two monitors, FULLSCREEN: move the game to the other monitor (Win+Shift+Arrow). | It is fullscreen at **that** monitor's resolution and refresh. | `UR_DISPLAY reconcile … action=remode` |
 | D9 | Monitors at different refresh rates (e.g. 60 and 144 Hz): move the window between them with the FPS readout on (`f`). | Pacing follows the new display; game speed is unchanged. | |
 | D10 | Monitors at different scaling (e.g. 100% and 150%): move a windowed game from the small-scale to the large-scale one. | The window still fits on screen. | `UR_DISPLAY reconcile reason=display_scale_changed action=rescale` if it overflowed |
+| D11 | Two monitors, windowed: move the window to monitor 2, quit normally, relaunch. Repeat in FULLSCREEN. | It reopens on monitor 2 (windowed: at the same spot; fullscreen: at monitor 2's mode). *(Requires #2231.)* | `UR_DISPLAY placement saved=1 display=…`; next launch `UR_DISPLAY placement restored display=…` |
+| D12 | After D11, unplug monitor 2, then launch. | It opens on the primary monitor, fully reachable. *(Requires #2231.)* | `UR_DISPLAY placement saved_display_missing name=…` |
 
 ## Reporting
 

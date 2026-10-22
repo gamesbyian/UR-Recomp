@@ -120,6 +120,9 @@ def analyse_dirs(dirs, matrix: dict | None = None) -> dict:
         checks = [{"check": "one-logical-width", "pass": det["pass"],
                    "detail": {"nonuniform": det["nonuniform_fraction"],
                               "consistent_widths": det["consistent_widths"]}}]
+        if not det["pass"]:
+            # Nothing standard explains this frame: say what (if anything) does.
+            checks[0]["detail"]["explain"] = d.explain_mapping(frame, top=3)
         case_id = ROUTE_CASE.get((route, pixels))
         if case_id:
             checks += cases.evaluate(matrix[case_id], frame)["checks"]

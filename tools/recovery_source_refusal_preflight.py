@@ -18,7 +18,7 @@ SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 DRIVE_ID = re.compile(r"[A-Za-z0-9_-]{15,}\Z")
 SOURCE_SHA_FIELDS = (
     "source_member_git_blob_sha", "source_git_blob_sha", "proposed_blob_sha", "intended_postimage_blob_sha",
-    "postimage_blob_sha", "source_blob_sha", "proposed_git_blob_sha",
+    "postimage_blob_sha", "source_blob_sha", "proposed_git_blob_sha", "proposed_test_blob_sha",
 )
 PATH_FIELDS = ("attempted_target", "target_path", "path")
 ARCHIVE_FIELDS = (

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Window placement survives a relaunch; a missing display falls back.
 
-Three real launches of the exact built game share one config directory
+Five real launches of the exact built game share one config directory
 (see the placement code in ``tools/baldosa_sdl_display_lifecycle_spike.py``):
 
 1. ``SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y`` moves the window and
    quits through the ordinary exit, which writes ``window-placement.txt``;
 2. ``report`` must open at that position on that display;
-3. after renaming the saved display to one that is not connected, ``report``
+3. ``maximize`` maximizes it and quits, keeping the windowed spot on file;
+4. ``report`` must reopen maximized on the same display;
+5. after renaming the saved display to one that is not connected, ``report``
    must log ``saved_display_missing`` and stay where SDL put it (primary).
 
 Fails closed. One hosted display: moving between real monitors is a physical
@@ -24,10 +26,11 @@ import subprocess
 from pathlib import Path
 
 SMOKE = re.compile(
-    r"^UR_DISPLAY_PLACEMENT_SMOKE mode=(move|report) window=(-?\d+),(-?\d+) "
-    r"fullscreen=([01]) display=(.*?)\s*$", re.MULTILINE)
+    r"^UR_DISPLAY_PLACEMENT_SMOKE mode=(move|maximize|report) window=(-?\d+),(-?\d+) "
+    r"fullscreen=([01]) maximized=([01]) display=(.*?)\s*$", re.MULTILINE)
 SAVED = re.compile(r"^UR_DISPLAY placement saved=([01]) display=", re.MULTILINE)
 RESTORED = re.compile(r"^UR_DISPLAY placement restored display=", re.MULTILINE)
+RESTORED_LINE = re.compile(r"^UR_DISPLAY placement restored display=.*$", re.MULTILINE)
 MISSING = re.compile(r"^UR_DISPLAY placement saved_display_missing name=", re.MULTILINE)
 GONE = "UR placement test display that is not connected"
 
@@ -71,7 +74,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int,
     target = (37, 53)
     moved_log = launcher(exe, rom, out, f"move:{target[0]},{target[1]}", "1-move",
                        video, timeout)
-    _, mx, my, mfull, mdisplay = one(SMOKE, moved_log, "move report")
+    _, mx, my, mfull, _, mdisplay = one(SMOKE, moved_log, "move report")
     if one(SAVED, moved_log, "placement save") != "1" or not placement.is_file():
         raise ValueError("placement was not saved at exit")
     saved = placement.read_text(encoding="utf-8")
@@ -80,24 +83,39 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int,
 
     report_log = launcher(exe, rom, out, "report", "2-relaunch", video, timeout)
     one(RESTORED, report_log, "placement restore")
-    _, rx, ry, rfull, rdisplay = one(SMOKE, report_log, "relaunch report")
-    if (rx, ry, rdisplay) != (mx, my, mdisplay):
-        raise ValueError(f"relaunch at {rx},{ry} on {rdisplay!r}, saved {mx},{my} on {mdisplay!r}")
+    _, rx, ry, rfull, rmax, rdisplay = one(SMOKE, report_log, "relaunch report")
+    if (rx, ry, rdisplay, rmax) != (mx, my, mdisplay, "0"):
+        raise ValueError(f"relaunch at {rx},{ry} on {rdisplay!r} maximized={rmax}, "
+                         f"saved {mx},{my} on {mdisplay!r}")
+
+    max_log = launcher(exe, rom, out, "maximize", "3-maximize", video, timeout)
+    one(SMOKE, max_log, "maximize report")
+    saved = placement.read_text(encoding="utf-8")
+    if "maximized=1" not in saved.splitlines() or f"window={mx},{my}," not in saved:
+        raise ValueError(f"maximized exit lost the state or the windowed spot: {saved!r}")
+    max_relaunch = launcher(exe, rom, out, "report", "4-maximized-relaunch", video, timeout)
+    if "maximized=1" not in one(RESTORED_LINE, max_relaunch, "maximized restore"):
+        raise ValueError("relaunch did not restore the maximized state")
+    _, _, _, _, xmax, xdisplay = one(SMOKE, max_relaunch, "maximized relaunch report")
+    if (xmax, xdisplay) != ("1", mdisplay):
+        raise ValueError(f"maximized relaunch: maximized={xmax} on {xdisplay!r}")
 
     lines = [f"display_name={GONE}" if l.startswith("display_name=") else l
-             for l in saved.splitlines()]
+             for l in placement.read_text(encoding="utf-8").splitlines()]
     placement.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    missing_log = launcher(exe, rom, out, "report", "3-missing-display", video, timeout)
+    missing_log = launcher(exe, rom, out, "report", "5-missing-display", video, timeout)
     one(MISSING, missing_log, "missing-display fallback")
     if RESTORED.search(missing_log):
         raise ValueError("a placement for a display that is not connected was applied")
-    _, fx, fy, _, fdisplay = one(SMOKE, missing_log, "fallback report")
-    if (fx, fy) == (mx, my):
-        raise ValueError("fallback launch reused the position of a missing display")
+    _, fx, fy, _, fmax, fdisplay = one(SMOKE, missing_log, "fallback report")
+    if (fx, fy) == (mx, my) or fmax != "0":
+        raise ValueError("fallback launch reused the placement of a missing display")
 
     receipt = {
         "moved_window": [int(mx), int(my)],
         "relaunched_window": [int(rx), int(ry)],
+        "maximized_relaunch": xmax == "1",
+        "fallback_maximized": fmax == "1",
         "display": mdisplay,
         "fallback_window": [int(fx), int(fy)],
         "fallback_display": fdisplay,

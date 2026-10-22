@@ -86,6 +86,35 @@ class RecoveryZipAdmissionTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unsafe ZIP member'):
             admit(outer)
 
+    def test_bad_outer_zip_bytes_are_a_bounded_integrity_failure(self):
+        for bad in (b'not a ZIP', b'PK\\x03\\x04'):
+            with self.subTest(bad=bad), self.assertRaisesRegex(
+                    ValueError, 'invalid or corrupt recovery ZIP'):
+                admit(bad)
+
+    def test_corrupt_nested_zip_is_rejected_by_parent(self):
+        # Parent's own manifest accurately hashes the invalid nested member.
+        # The child must not escape as an unhandled BadZipFile exception.
+        outer = package({'nested.zip': b'not a ZIP'})
+        with self.assertRaisesRegex(ValueError, 'invalid or corrupt recovery ZIP'):
+            admit(outer)
+
+    def test_crc_corruption_has_a_stable_recovery_failure(self):
+        payload = b'ZIP_PAYLOAD_CRC_CANARY'
+        digest = hashlib.sha256(payload).hexdigest()
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, 'w', compression=zipfile.ZIP_STORED) as z:
+            z.writestr('source.py', payload)
+            z.writestr('MANIFEST.json', json.dumps({'members': {
+                'source.py': {'bytes': len(payload), 'sha256': digest}
+            }}))
+        changed = bytearray(stream.getvalue())
+        position = changed.find(payload)
+        self.assertGreaterEqual(position, 0)
+        changed[position] ^= 1
+        with self.assertRaisesRegex(ValueError, 'invalid or corrupt recovery ZIP'):
+            admit(bytes(changed))
+
     def test_depth_and_invalid_input_fail_closed(self):
         inner=package({'a.txt':b'a'})
         outer=package({'nested.zip':inner})

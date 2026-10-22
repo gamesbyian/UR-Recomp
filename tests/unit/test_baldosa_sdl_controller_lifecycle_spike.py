@@ -23,6 +23,11 @@ HOST_STUB = "\n".join((
     seam.RAW_REMOVED + "      memset(gi, 0, sizeof(GamepadInfo));\n    }",
     seam.RAW_BUTTON + "    return true;",
     "  }\n}",
+    "static void PollKeyboardControls(const uint8_t *keys) {",
+    seam.KEYBOARD_P1 + "}",
+    "static uint32 GetActiveControllers(void) {",
+    "  uint32 ctrl = g_script_controllers |",
+    seam.ACTIVE_P1 + "                0;\n}",
     "static void RunInGameLauncher(void) {",
     "  SDL_ShowWindow(g_window);",
     seam.LAUNCHER_RETURN + "}",
@@ -130,6 +135,20 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("const int open_arg = (int)id;", fn)
         self.assertIn("const int open_arg = i;", fn)
 
+    def test_keyboard_falls_back_to_p1_only_without_a_seated_pad(self):
+        staged = self.staged()
+        poll = staged[staged.index("static void PollKeyboardControls"):]
+        self.assertIn("uint32 p1 = UrKeyboardDrives(0) ?", poll[:poll.index("\n}\n")])
+        active = staged[staged.index("static uint32 GetActiveControllers(void) {"):]
+        self.assertIn("(UrKeyboardDrives(0) ? 1u : 0u)", active[:active.index("\n}\n")])
+        rule = staged[staged.index("static bool UrKeyboardDrives(int player) {"):]
+        rule = rule[:rule.index("\n}\n")]
+        # Keyboard-sourced players as before; P1 only on Gamepad with an empty
+        # seat, and never while P2 uses the same (default) keys.
+        self.assertIn("if (src == 1) return true;", rule)
+        self.assertIn("player == 0 && src == 2 && g_gamepad[0].joystick_id == -1", rule)
+        self.assertIn("g_config.player_src[1] != 1", rule)
+
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()
         getter = staged[staged.index("long long snesrecomp_desktop_product_seat_source(int seat) {"):]
@@ -141,10 +160,19 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
 
     def test_no_guest_binding_or_keyboard_code_is_reachable(self):
         helpers = self.staged().split(seam.HELPERS_ANCHOR)[0]
+        production, acceptance = helpers.split("enum { kUrAcceptPads", 1)
         for forbidden in ("RtlRunFrame", "g_ram", "g_sram", "keybinds_",
                           "FindCmdForGamepadButton", "g_input_state",
                           "HandleInput(", "WriteConfigFile"):
-            self.assertNotIn(forbidden, helpers, forbidden)
+            self.assertNotIn(forbidden, production, forbidden)
+        # The test-only scenario may read the keyboard word through the host's
+        # own poll, and always restores the real keyboard state afterwards.
+        for forbidden in ("RtlRunFrame", "g_ram", "g_sram", "keybinds_",
+                          "HandleInput(", "WriteConfigFile"):
+            self.assertNotIn(forbidden, acceptance, forbidden)
+        probe = acceptance[acceptance.index("static uint32 UrAcceptKeyboardWord(void) {"):]
+        probe = probe[:probe.index("\n}\n")]
+        self.assertIn("PollKeyboardControls(snesrecomp_sdl_get_keyboard_state());", probe)
 
     def test_acceptance_is_inert_unless_requested_and_fails_closed(self):
         staged = self.staged()

@@ -21,6 +21,13 @@ class IncidentContracts(unittest.TestCase):
         data["incidents"][0].update(fields)
         return data
 
+    def test_retired_incident_ids_survive_board_reassignment(self):
+        active = {item["work_id"] for item in self.board["work"]}
+        historical = {item["work_id"] for item in self.original["incidents"]}
+        self.assertTrue(historical - active)
+        self.assertEqual(check(self.original, self.board, self.registry)["incidents"],
+                         len(self.original["incidents"]))
+
     def test_current_receipts_remain_historical_holds(self):
         summary = check(self.original, self.board, self.registry)
         self.assertGreaterEqual(summary["incidents"], 2)

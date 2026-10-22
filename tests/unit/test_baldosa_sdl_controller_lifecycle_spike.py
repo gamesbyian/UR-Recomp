@@ -164,6 +164,25 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("g_ur_seats[from].absent_owner_key = 0;", move)
         self.assertIn("ur_controller_seat_taken(g_ur_seats, to, key);", move)
 
+    def test_a_pads_player_number_shows_its_seat(self):
+        staged = self.staged()
+        assign = staged[staged.index("static int UrSeatAssign("):]
+        assign = assign[:assign.index("\n}\n")]
+        # Set before an unseated return, so a spare shows -1, then every
+        # seated pad SDL may have bumped is told its seat again.
+        self.assertLess(assign.index("SDL_JoystickSetPlayerIndex(joystick, choice.seat);"),
+                        assign.index("if (choice.seat < 0) return -1;"))
+        self.assertLess(assign.index("UrSeatShowPlayerIndex();"),
+                        assign.index("if (choice.seat < 0) return -1;"))
+        show = staged[staged.index("static void UrSeatShowPlayerIndex(void) {"):]
+        show = show[:show.index("\n}\n")]
+        self.assertIn("SDL_JoystickSetPlayerIndex(j, i);", show)
+        self.assertNotIn("g_config", show)
+        move = staged[staged.index("int snesrecomp_desktop_product_seat_move(int from, int to) {"):]
+        move = move[:move.index("\n}\n")]
+        self.assertLess(move.index("ur_controller_seat_taken(g_ur_seats, to, key);"),
+                        move.index("SDL_JoystickSetPlayerIndex(moved, to);"))
+
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()
         getter = staged[staged.index("long long snesrecomp_desktop_product_seat_source(int seat) {"):]

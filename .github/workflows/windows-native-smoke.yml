@@ -69,7 +69,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: ${{ inputs.run_tournament_acceptance && 45 || 20 }}
     defaults:
       run:
         shell: bash

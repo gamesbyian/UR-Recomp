@@ -9,7 +9,15 @@ title/action-safe formulas are mirrored here and cross-checked by tests.
 Passing is an engineering check, never human art approval, physical monitor
 acceptance or original-game parity (every report states so).
 
-Subcommands: contrast, clip, focus, compare (see --help). Every report
+Output mapping: the shipped final-SDL path fits the logical canvas into the
+window with the 7:6 original pixel aspect and nearest-neighbour sampling, so
+blocks are fractional (e.g. 342x224 -> 1280x720 is ~3.74 x ~3.21 px per
+logical pixel), NOT an integer multiple. `--mode fit` (default, `--par 7/6`)
+models that; `--mode integer` models whole-number density with letterbox.
+Measured against a real committed native capture: the true logical width
+shows 0% non-uniform block interiors, a wrong width several percent.
+
+Subcommands: contrast, clip, focus, compare, detect (see --help). Every report
 carries the input SHA-256 and, with --expect-sha256, refuses a frame whose
 bytes differ from the independently qualified artifact.
 """
@@ -154,46 +162,114 @@ def action_safe(width: int, height: int):
     return dx, dy, width - 2 * dx, height - 2 * dy
 
 
-def extract_logical(frame: Frame, logical_w: int, logical_h: int) -> dict:
-    """Undo integer scaling+letterbox; report non-uniform scale blocks.
+PAR_DEFAULT = 7 / 6
 
-    A faithful nearest-neighbour presentation has zero non-uniform blocks, so
-    a non-zero count is a filtering/scaling defect (blur, wrong factor).
+
+class Mapping:
+    """Logical canvas -> output pixels (sx,sy px per logical pixel; vx,vy origin)."""
+
+    def __init__(self, sx, sy, vx, vy, lw, lh, mode):
+        self.sx, self.sy, self.vx, self.vy = sx, sy, vx, vy
+        self.lw, self.lh, self.mode = lw, lh, mode
+
+    def rect(self):
+        return (self.vx, self.vy, self.lw * self.sx, self.lh * self.sy)
+
+    def logical_x(self, x):
+        return (x + 0.5 - self.vx) / self.sx
+
+    def logical_y(self, y):
+        return (y + 0.5 - self.vy) / self.sy
+
+
+def mapping(lw: int, lh: int, out_w: int, out_h: int,
+            mode: str = "fit", par: float = PAR_DEFAULT) -> Mapping:
+    if lw <= 0 or lh <= 0 or out_w < lw or out_h < lh or out_w > 16384 or out_h > 16384:
+        raise ValueError("output cannot hold the logical canvas")
+    if mode == "integer":
+        s = integer_scale(lw, lh, out_w, out_h)
+        if s is None:
+            raise ValueError("output cannot hold the logical canvas at integer scale")
+        f, vx, vy, _, _ = s
+        return Mapping(f, f, vx, vy, lw, lh, mode)
+    if mode != "fit" or not 0.5 <= par <= 2.0:
+        raise ValueError("unknown mapping mode or pixel aspect")
+    s = min(out_w / (lw * par), out_h / lh)
+    sx, sy = s * par, s
+    return Mapping(sx, sy, (out_w - lw * sx) / 2, (out_h - lh * sy) / 2, lw, lh, mode)
+
+
+def _sample(frame, m, lx, ly, a, b):
+    x = min(frame.width - 1, max(0, int(m.vx + (lx + a) * m.sx)))
+    y = min(frame.height - 1, max(0, int(m.vy + (ly + b) * m.sy)))
+    return frame.rgb(x, y)
+
+
+def extract_logical(frame: Frame, logical_w: int, logical_h: int,
+                    mode: str = "fit", par: float = PAR_DEFAULT) -> dict:
+    """Undo the output mapping; report blocks whose interior is not uniform.
+
+    Each logical pixel is read at its centre; its block interior (25%-75%)
+    must be one colour for a faithful nearest-neighbour presentation, so a
+    non-zero fraction means filtering, a wrong logical width or a stale scale.
+    Block edges are excluded: SDL's rounding of the fractional boundary is
+    not part of the contract.
     """
-    s = integer_scale(logical_w, logical_h, frame.width, frame.height)
-    if s is None:
-        raise ValueError("output cannot hold the logical canvas at integer scale")
-    f, vx, vy, _, _ = s
+    m = mapping(logical_w, logical_h, frame.width, frame.height, mode, par)
     pixels, bad = [], 0
     for ly in range(logical_h):
         for lx in range(logical_w):
-            ref = frame.rgb(vx + lx * f, vy + ly * f)
+            ref = _sample(frame, m, lx, ly, 0.5, 0.5)
             pixels.append(ref)
-            if any(frame.rgb(vx + lx * f + dx, vy + ly * f + dy) != ref
-                   for dy in range(f) for dx in range(f)
-                   if (dx or dy) and (dx in (0, f - 1) or dy in (0, f - 1))):
+            if any(_sample(frame, m, lx, ly, a, b) != ref
+                   for a in (0.25, 0.75) for b in (0.25, 0.75)):
                 bad += 1
-    return {"factor": f, "viewport": [vx, vy, f * logical_w, f * logical_h],
-            "pixels": pixels, "nonuniform_blocks": bad}
+    total = logical_w * logical_h
+    return {"mode": mode, "scale": [m.sx, m.sy],
+            "viewport": [m.vx, m.vy, logical_w * m.sx, logical_h * m.sy],
+            "pixels": pixels, "nonuniform_blocks": bad,
+            "nonuniform_fraction": bad / total}
+
+
+def detect_logical(frame: Frame, widths=(256, 342), logical_h: int = 224,
+                   mode: str = "fit", par: float = PAR_DEFAULT,
+                   tolerance: float = 0.002) -> dict:
+    """Which native logical width explains this frame? Distinguishes a
+    genuine 342-wide (16:9) source from a 256-wide (4:3) one."""
+    fractions = {}
+    for w in widths:
+        try:
+            fractions[w] = extract_logical(frame, w, logical_h, mode, par)[
+                "nonuniform_fraction"]
+        except ValueError:
+            fractions[w] = None
+    ok = [w for w, v in fractions.items() if v is not None and v <= tolerance]
+    return {"schema": SCHEMA, "check": "detect", "input_sha256": frame.sha256,
+            "output": [frame.width, frame.height], "mode": mode,
+            "nonuniform_fraction": fractions, "consistent_widths": ok,
+            "pass": len(ok) == 1, **DISCLAIMER}
 
 
 def compare_resolutions(a: Frame, b: Frame, logical_w: int, logical_h: int,
-                        max_diff: int = 0) -> dict:
-    la, lb = (extract_logical(x, logical_w, logical_h) for x in (a, b))
+                        max_diff: int = 0, mode: str = "fit",
+                        par: float = PAR_DEFAULT,
+                        max_nonuniform: float = 0.002) -> dict:
+    la, lb = (extract_logical(x, logical_w, logical_h, mode, par) for x in (a, b))
     diff = [i for i, (p, q) in enumerate(zip(la["pixels"], lb["pixels"])) if p != q]
     box = None
     if diff:
         xs, ys = [i % logical_w for i in diff], [i // logical_w for i in diff]
         box = [min(xs), min(ys), max(xs) + 1, max(ys) + 1]
-    return {"schema": SCHEMA, "check": "compare",
+    side = lambda fr, lg: {"sha256": fr.sha256, "output": [fr.width, fr.height],
+                           "scale": lg["scale"],
+                           "nonuniform_fraction": lg["nonuniform_fraction"]}
+    return {"schema": SCHEMA, "check": "compare", "mode": mode,
             "logical": [logical_w, logical_h],
-            "a": {"sha256": a.sha256, "output": [a.width, a.height],
-                  "factor": la["factor"], "nonuniform_blocks": la["nonuniform_blocks"]},
-            "b": {"sha256": b.sha256, "output": [b.width, b.height],
-                  "factor": lb["factor"], "nonuniform_blocks": lb["nonuniform_blocks"]},
+            "a": side(a, la), "b": side(b, lb),
             "differing_logical_pixels": len(diff), "difference_bbox": box,
-            "pass": (len(diff) <= max_diff and la["nonuniform_blocks"] == 0
-                     and lb["nonuniform_blocks"] == 0),
+            "pass": (len(diff) <= max_diff and
+                     la["nonuniform_fraction"] <= max_nonuniform and
+                     lb["nonuniform_fraction"] <= max_nonuniform),
             **DISCLAIMER}
 
 
@@ -204,42 +280,50 @@ def _rect_check(frame: Frame, roi, name):
 
 
 def clip_audit(frame: Frame, logical_w: int, logical_h: int,
-               colours: list[tuple[int, int, int]], region: str = "title") -> dict:
+               colours: list[tuple[int, int, int]], region: str = "title",
+               mode: str = "fit", par: float = PAR_DEFAULT) -> dict:
     """Bounding box of the given content colours vs the safe region, plus
     content touching the physical framebuffer or viewport edge (clipping)."""
-    s = integer_scale(logical_w, logical_h, frame.width, frame.height)
-    if s is None:
-        raise ValueError("output cannot hold the logical canvas")
-    f, vx, vy, vw, vh = s
+    m = mapping(logical_w, logical_h, frame.width, frame.height, mode, par)
     safe = (title_safe if region == "title" else action_safe)(logical_w, logical_h)
     wanted = set(colours)
+    vx, vy, vw, vh = m.rect()
+    x0, x1 = max(0, int(vx + 0.999)), min(frame.width, int(vx + vw + 0.001))
+    y0, y1 = max(0, int(vy + 0.999)), min(frame.height, int(vy + vh + 0.001))
     xs, ys = [], []
     edge_touch = 0
-    for y in range(vy, vy + vh):
-        for x in range(vx, vx + vw):
+    for y in range(y0, y1):
+        for x in range(x0, x1):
             if frame.rgb(x, y) in wanted:
                 xs.append(x); ys.append(y)
-                if x in (vx, vx + vw - 1) or y in (vy, vy + vh - 1):
+                if x in (x0, x1 - 1) or y in (y0, y1 - 1):
                     edge_touch += 1
     if not xs:
         raise ValueError("no pixels of the requested content colours observed")
-    box = [(min(xs) - vx) / f, (min(ys) - vy) / f,
-           (max(xs) + 1 - vx) / f, (max(ys) + 1 - vy) / f]
+    box = [(min(xs) - m.vx) / m.sx, (min(ys) - m.vy) / m.sy,
+           (max(xs) + 1 - m.vx) / m.sx, (max(ys) + 1 - m.vy) / m.sy]
+    # Fractional block boundaries are good to about one output pixel.
+    tx, ty = 1 / m.sx, 1 / m.sy
     sx, sy, sw, sh = safe
-    inside = box[0] >= sx and box[1] >= sy and box[2] <= sx + sw and box[3] <= sy + sh
+    inside = (box[0] >= sx - tx and box[1] >= sy - ty and
+              box[2] <= sx + sw + tx and box[3] <= sy + sh + ty)
     return {"schema": SCHEMA, "check": "clip", "input_sha256": frame.sha256,
             "output": [frame.width, frame.height], "logical": [logical_w, logical_h],
-            "factor": f, "region": region, "safe_rect": list(safe),
-            "content_bbox_logical": box, "content_pixels": len(xs),
-            "viewport_edge_pixels": edge_touch,
+            "mode": mode, "scale": [m.sx, m.sy], "region": region,
+            "safe_rect": list(safe), "content_bbox_logical": box,
+            "content_pixels": len(xs), "viewport_edge_pixels": edge_touch,
             "pass": inside and edge_touch == 0, **DISCLAIMER}
 
 
-def focus_audit(frame: Frame, marker: tuple[int, int, int], scale: int,
-                min_logical_width: int = 3, min_height_logical: int = 8) -> dict:
+def focus_audit(frame: Frame, marker: tuple[int, int, int], scale: float,
+                min_logical_width: int = 3, min_height_logical: int = 8,
+                scale_y: float | None = None) -> dict:
     """Find vertical focus bars: runs of `marker` at least min_logical_width*scale
     wide and min_height_logical*scale tall. Exactly one bar must exist."""
-    need_w, need_h = min_logical_width * scale, min_height_logical * scale
+    sy_ = scale if scale_y is None else scale_y
+    # 80% of nominal: fractional block edges lose up to a pixel per side.
+    need_w = max(1, int(min_logical_width * scale * 0.8))
+    need_h = max(1, int(min_height_logical * sy_ * 0.8))
     # per-row horizontal runs
     runs = {}
     for y in range(frame.height):
@@ -316,6 +400,9 @@ def main(argv=None) -> int:
         sp.add_argument("--expect-sha256")
         sp.add_argument("--require", action="store_true",
                         help="exit 2 when the check fails")
+        sp.add_argument("--mode", choices=("fit", "integer"), default="fit")
+        sp.add_argument("--par", type=float, default=PAR_DEFAULT,
+                        help="pixel aspect for --mode fit (default 7/6)")
 
     c = sub.add_parser("contrast"); common(c)
     c.add_argument("--roi", nargs=4, type=int, required=True)
@@ -327,24 +414,32 @@ def main(argv=None) -> int:
     k.add_argument("--region", choices=("title", "action"), default="title")
     f = sub.add_parser("focus"); common(f)
     f.add_argument("--marker", type=parse_rgb, required=True)
-    f.add_argument("--scale", type=int, required=True)
+    f.add_argument("--logical", nargs=2, type=int, required=True)
+    f.add_argument("--scale", type=float,
+                   help="override px per logical pixel (default: from mapping)")
     m = sub.add_parser("compare"); common(m)
     m.add_argument("other", type=Path)
     m.add_argument("--other-expect-sha256")
     m.add_argument("--logical", nargs=2, type=int, required=True)
     m.add_argument("--max-diff", type=int, default=0)
+    t = sub.add_parser("detect"); common(t)
+    t.add_argument("--widths", nargs="+", type=int, default=[256, 342])
     a = p.parse_args(argv)
     try:
         frame = load(a.p7, a.expect_sha256)
         if a.cmd == "contrast":
             rep = local_contrast(frame, tuple(a.roi), a.foreground, a.threshold)
         elif a.cmd == "clip":
-            rep = clip_audit(frame, *a.logical, a.colour, a.region)
+            rep = clip_audit(frame, *a.logical, a.colour, a.region, a.mode, a.par)
         elif a.cmd == "focus":
-            rep = focus_audit(frame, a.marker, a.scale)
+            m = mapping(*a.logical, frame.width, frame.height, a.mode, a.par)
+            rep = focus_audit(frame, a.marker, a.scale or m.sx, scale_y=(
+                a.scale or m.sy))
+        elif a.cmd == "detect":
+            rep = detect_logical(frame, tuple(a.widths), mode=a.mode, par=a.par)
         else:
             rep = compare_resolutions(frame, load(a.other, a.other_expect_sha256),
-                                      *a.logical, a.max_diff)
+                                      *a.logical, a.max_diff, a.mode, a.par)
     except ValueError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1

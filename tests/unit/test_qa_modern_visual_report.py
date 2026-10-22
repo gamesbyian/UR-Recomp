@@ -26,8 +26,8 @@ class ReportTest(unittest.TestCase):
         write(root / "a.p7", self.frame)
         case = {"id": "root-43", "p7": "a.p7", "expect_sha256": self.frame.sha256,
                 "checks": [
-                    {"type": "clip", "logical": [256, 224], "colours": ["#c8c8c8"]},
-                    {"type": "focus", "marker": "#a0d0f8", "scale": 3}]}
+                    {"type": "clip", "logical": [256, 224], "colours": ["#c8c8c8"], "mode": "integer"},
+                    {"type": "focus", "marker": "#a0d0f8", "scale": 3, "logical": [256, 224], "mode": "integer"}]}
         case.update(over)
         return {"cases": [case]}
 

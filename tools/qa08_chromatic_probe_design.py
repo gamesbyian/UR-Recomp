@@ -4,10 +4,10 @@ Grayscale observations cannot distinguish the six RGB channel permutations
 or two competing integer brightness scalings. This predicts the smallest
 useful next genuine observation; never treats prediction as measurement.
 """
-from itertools import permutations
+from itertools import combinations, permutations
 from qa08_chromatic_discriminator import census
 
-CHANNEL5 = (5, 13, 22)
+CHANNEL5 = (22, 24, 26)
 SCALINGS = ((14, 15), (187, 200))
 
 
@@ -36,11 +36,25 @@ def design(path):
     predictions = model_predictions()
     if len(set(predictions.values())) != 12:
         raise ValueError("candidate does not distinguish all twelve hypotheses")
+    minimum_l1 = min(sum(abs(x - y) for x, y in zip(left, right))
+                     for left, right in combinations(predictions.values(), 2))
+    if minimum_l1 < 3:
+        raise ValueError("superseded source probe has inadequate separation")
+    # Equal channel permutation, alternative scalings: a physical +/-1
+    # measurement makes their per-channel RGB8 prediction intervals overlap.
+    same_perm_max = max(
+        max(abs(x - y) for x, y in zip(
+            predictions[f"perm{perm}-scale14/15"],
+            predictions[f"perm{perm}-scale187/200"]))
+        for perm in permutations((0, 1, 2)))
     r, g, b = CHANNEL5
     return {"schema": "qa08-chromatic-source-probe-request/1",
             "candidate_rgb555_hex": f"{r | (g << 5) | (b << 10):04x}",
             "channel5": list(CHANNEL5),
             "hypotheses_distinguished": 12,
+            "minimum_pairwise_L1": minimum_l1,
+            "same_permutation_scale_Linf_at_most_one": same_perm_max <= 1,
+            "plus_minus_one_measurement_cannot_uniquely_identify_scaling": same_perm_max <= 1,
             "hypothesis_predictions": predictions,
             "observed_source_triplets": evidence["triplets"],
             "chromatic_pixel_observed": False,

@@ -34,7 +34,7 @@ class H25ChromaticRecovery(unittest.TestCase):
         self.assertEqual(len(p), 12)
         self.assertEqual(len(set(p.values())), 12)
         self.assertLess(len(set(model_predictions((5, 5, 5)).values())), 12)
-        self.assertEqual(5 | (13 << 5) | (22 << 10), 0x59a5)
+        self.assertEqual(22 | (24 << 5) | (26 << 10), 0x6b16)
 
     def test_invalid_channel_shapes_rejected(self):
         for x in (-1, 32, True, False, 2.0, "5"):
@@ -57,7 +57,9 @@ class H25ChromaticRecovery(unittest.TestCase):
 
     def test_authenticated_grayscale_proposes_only_unobserved_chromatic_witness(self):
         outcome = self.classify(fixture())
-        self.assertEqual(outcome["candidate_rgb555_hex"], "59a5")
+        self.assertEqual(outcome["candidate_rgb555_hex"], "6b16")
+        self.assertEqual(outcome["minimum_pairwise_L1"], 3)
+        self.assertTrue(outcome["plus_minus_one_measurement_cannot_uniquely_identify_scaling"])
         self.assertEqual(outcome["observed_source_triplets"], 88)
         self.assertEqual(outcome["hypotheses_distinguished"], 12)
         self.assertFalse(outcome["chromatic_pixel_observed"])

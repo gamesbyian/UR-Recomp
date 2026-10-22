@@ -113,7 +113,8 @@ def analyse_dirs(dirs, matrix: dict | None = None) -> dict:
         route = receipt.get("native_semantic_route")
         det = d.detect_logical(frame, (256, 342))
         checks = [{"check": "one-logical-width", "pass": det["pass"],
-                   "detail": {"nonuniform": det["nonuniform_fraction"]}}]
+                   "detail": {"nonuniform": det["nonuniform_fraction"],
+                              "consistent_widths": det["consistent_widths"]}}]
         case_id = ROUTE_CASE.get((route, pixels))
         if case_id:
             checks += cases.evaluate(matrix[case_id], frame)["checks"]
@@ -135,8 +136,13 @@ def markdown(report: dict) -> str:
              f"source `{report['source_sha'][:12]}`", "",
              "| capture | route | case | checks |", "|---|---|---|---|"]
     for c in report["captures"]:
-        detail = ", ".join(f"{k['check']}={'ok' if k['pass'] else 'FAIL'}"
-                           for k in c["checks"])
+        def cell(k):
+            state = "ok" if k["pass"] else "FAIL"
+            widths = k["detail"].get("consistent_widths")
+            if k["check"] == "one-logical-width" and widths:
+                state += f"({widths[0]})" if len(widths) == 1 else f"({'/'.join(map(str, widths))})"
+            return f"{k['check']}={state}"
+        detail = ", ".join(cell(k) for k in c["checks"])
         lines.append(f"| {c['capture']} | {c['route']} | {c['case'] or '-'} | {detail} |")
     lines += ["", "_Geometry/colour measurement of verified native captures; no human, "
               "physical or parity approval._"]

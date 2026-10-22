@@ -403,7 +403,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-window-placement" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-window-placement.json"
-          echo "PASS: Win32 SDL3 window placement: a moved window reopens at the same spot on the same display after relaunch; a saved display that is not connected falls back to SDL's default. One hosted display; moving between real monitors is a physical check." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 SDL3 window placement: a moved window reopens at the same spot on the same display after relaunch, a maximized one reopens maximized; a saved display that is not connected falls back to SDL's default. One hosted display; moving between real monitors is a physical check." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |

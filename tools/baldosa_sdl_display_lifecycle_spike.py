@@ -286,7 +286,7 @@ static int UrUsableDisplays(UrDisplayRect *usable, int cap) {
 static void UrRestoreWindowPlacement(void) {
   char path[1100], line[600], name[256] = {0};
   UrDisplayRect bounds = {0, 0, 0, 0};
-  int have_bounds = 0;
+  int have_bounds = 0, maximized = 0;
   if (!g_window || !UrPlacementPath(path, sizeof(path))) return;
   FILE *f = fopen(path, "rb");
   if (!f) return;
@@ -298,6 +298,8 @@ static void UrRestoreWindowPlacement(void) {
     line[strcspn(line, "\r\n")] = 0;
     if (strncmp(line, "display_name=", 13) == 0)
       snprintf(name, sizeof(name), "%s", line + 13);
+    else if (strcmp(line, "maximized=1") == 0)
+      maximized = 1;
     else if (sscanf(line, "display_bounds=%d,%d,%d,%d",
                     &bounds.x, &bounds.y, &bounds.w, &bounds.h) == 4)
       have_bounds = 1;
@@ -351,11 +353,18 @@ static void UrRestoreWindowPlacement(void) {
       SDL_SetWindowPosition(g_window, SDL_WINDOWPOS_CENTERED_DISPLAY(target),
                             SDL_WINDOWPOS_CENTERED_DISPLAY(target));
     SDL_SyncWindow(g_window);
+    /* Maximize where it now is: on the saved display, over its saved spot. */
+    if (maximized) {
+      SDL_MaximizeWindow(g_window);
+      SDL_SyncWindow(g_window);
+    }
   }
   int x = 0, y = 0;
   SDL_GetWindowPosition(g_window, &x, &y);
-  printf("UR_DISPLAY placement restored display=%s fullscreen=%d window=%d,%d\n", name,
-         (SDL_GetWindowFlags(g_window) & SDL_WINDOW_FULLSCREEN) ? 1 : 0, x, y);
+  const SDL_WindowFlags restored = SDL_GetWindowFlags(g_window);
+  printf("UR_DISPLAY placement restored display=%s fullscreen=%d maximized=%d window=%d,%d\n",
+         name, (restored & SDL_WINDOW_FULLSCREEN) ? 1 : 0,
+         (restored & SDL_WINDOW_MAXIMIZED) ? 1 : 0, x, y);
 }
 static void UrSaveWindowPlacement(void) {
   char path[1100];
@@ -378,34 +387,41 @@ static void UrSaveWindowPlacement(void) {
   if (g_ur_place_has_window)
     fprintf(f, "window=%d,%d,%d,%d\n", g_ur_place_window.x, g_ur_place_window.y,
             g_ur_place_window.w, g_ur_place_window.h);
+  /* A maximized window keeps the earlier windowed spot to come back to. */
+  if ((flags & SDL_WINDOW_MAXIMIZED) && !(flags & SDL_WINDOW_FULLSCREEN))
+    fputs("maximized=1\n", f);
   const int ok = fclose(f) == 0;
   printf("UR_DISPLAY placement saved=%d display=%s\n", ok, name);
 }
-/* SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y | report (test-only,
- * inert unless set): move the window then quit through the ordinary exit
- * (which saves the placement), or report where launch put it and quit. */
+/* SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y | maximize | report
+ * (test-only, inert unless set): move or maximize the window then quit
+ * through the ordinary exit (which saves the placement), or report where
+ * launch put it and quit. */
 static void UrDisplayPlacementSmokeTick(void) {
   static int mode = -1, frames, tx, ty;
   if (mode < 0) {
     const char *v = HostGetenv("UR_DISPLAY_PLACEMENT_SMOKE");
-    mode = !v ? 0 : strcmp(v, "report") == 0 ? 2
+    mode = !v ? 0 : strcmp(v, "report") == 0 ? 2 : strcmp(v, "maximize") == 0 ? 3
          : sscanf(v, "move:%d,%d", &tx, &ty) == 2 ? 1 : 0;
   }
   if (!mode || !g_window || frames < 0) return;
   ++frames;
-  if (mode == 1 && frames == 40) {
-    SDL_SetWindowPosition(g_window, tx, ty);
+  if (mode != 2 && frames == 40) {
+    if (mode == 1) SDL_SetWindowPosition(g_window, tx, ty);
+    else SDL_MaximizeWindow(g_window);
     SDL_SyncWindow(g_window);
     return;
   }
-  if (frames != (mode == 1 ? 70 : 40)) return;
+  if (frames != (mode == 2 ? 40 : 70)) return;
   int x = 0, y = 0;
   SDL_GetWindowPosition(g_window, &x, &y);
   const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
   const char *name = display ? SDL_GetDisplayName(display) : NULL;
-  printf("UR_DISPLAY_PLACEMENT_SMOKE mode=%s window=%d,%d fullscreen=%d display=%s\n",
-         mode == 1 ? "move" : "report", x, y,
-         (SDL_GetWindowFlags(g_window) & SDL_WINDOW_FULLSCREEN) ? 1 : 0, name ? name : "-");
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
+  printf("UR_DISPLAY_PLACEMENT_SMOKE mode=%s window=%d,%d fullscreen=%d maximized=%d "
+         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : "report", x, y,
+         (flags & SDL_WINDOW_FULLSCREEN) ? 1 : 0, (flags & SDL_WINDOW_MAXIMIZED) ? 1 : 0,
+         name ? name : "-");
   fflush(stdout);
   frames = -1;
   SDL_Event quit;

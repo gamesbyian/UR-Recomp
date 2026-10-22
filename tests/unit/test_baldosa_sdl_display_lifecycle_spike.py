@@ -111,6 +111,11 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         save = save[:save.index("\n#else")]
         # Fullscreen/minimized/maximized never overwrite the windowed spot.
         self.assertIn("SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MINIMIZED | SDL_WINDOW_MAXIMIZED", save)
+        # Maximized is its own state; the windowed spot under it is kept.
+        self.assertIn('fputs("maximized=1\\n", f);', save)
+        self.assertIn('else if (strcmp(line, "maximized=1") == 0)', restore)
+        self.assertLess(restore.index("ur_display_window_reachable(want, usable, u, 32)"),
+                        restore.index("SDL_MaximizeWindow(g_window);"))
         self.assertIn("*c == '\\r' || *c == '\\n' ? ' ' : *c", save)
 
     def test_alt_enter_is_never_a_modern_menu_key(self):

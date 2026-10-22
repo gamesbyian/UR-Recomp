@@ -7,7 +7,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 class LocalTournamentLaunchStoreCppTests(unittest.TestCase):
-    def test_atomic_save_reload_and_containment(self):
+    def test_atomic_save_reload_and_interprocess_retirement(self):
+        """Compile/run native fixture, including POSIX fork/exit lock boundaries."""
         with tempfile.TemporaryDirectory() as tmp:
             executable = pathlib.Path(tmp) / "local-tournament-launch-store"
             subprocess.run(

@@ -30,7 +30,9 @@ def matching_blocks(text: str, keywords: list[str], max_blocks: int = 8, max_cha
     used = 0
     for block in matches:
         if used + len(block) > max_chars:
-            break
+            # One oversized authority paragraph must not hide later concise
+            # matches that still fit the bounded context packet.
+            continue
         out.append(block)
         used += len(block)
         if len(out) >= max_blocks:

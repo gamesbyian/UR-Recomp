@@ -29,6 +29,8 @@ HOST_STUB = "\n".join((
     "  while (running) {",
     seam.TICK_ANCHOR + "  }\n}",
     seam.PRODUCT_KEY + "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n}",
+    "void ChangeWindowScale(int scale_step) {",
+    seam.SCALE_STEP + "}",
     "static void HandleCommand(uint32 j, bool pressed) {",
     "    case kKeys_Fullscreen:",
     seam.HOTKEY + "}",
@@ -44,6 +46,7 @@ def acceptance_log(*, skip_rescue=False, fail=None, result="pass") -> str:
         lines.append("UR_DISPLAY_ACCEPT step=offscreen_rescue not_exercised=1")
     else:
         lines.append("UR_DISPLAY_ACCEPT step=offscreen_rescue pass=1 fullscreen=0")
+    lines.append("UR_DISPLAY_ACCEPT step=window_scale_step_persisted pass=1 fullscreen=0")
     lines.append(f"UR_DISPLAY_LIFECYCLE_ACCEPTANCE result={result} reconciles=1")
     return "\n".join(lines) + "\n"
 
@@ -72,6 +75,15 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
                         hotkey.index("SDL_SetWindowFullscreen(g_window, g_win_flags"))
         created = staged[staged.index(seam.CREATED):]
         self.assertIn("if (g_config.fullscreen == 2 && !UrApplyFullscreenMode(2))", created)
+
+    def test_only_an_explicit_window_size_step_is_persisted(self):
+        staged = self.staged()
+        scale = staged[staged.index("void ChangeWindowScale(int scale_step) {"):]
+        scale = scale[:scale.index("\n}")]
+        self.assertIn("if (scale_step != 0 && new_scale != g_config.window_scale) {", scale)
+        self.assertIn("g_config.window_scale = (uint8)new_scale;", scale)
+        # Written by the host's existing exit-time config write.
+        self.assertIn("g_fullscreen_changed = true;", scale)
 
     def test_alt_enter_is_never_a_modern_menu_key(self):
         staged = self.staged()
@@ -121,7 +133,7 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
             seam.patch_host_main(HOST_STUB.replace(seam.OPTIONS_MARK, "X"), POLICY)
         for needle in (seam.HELPERS_ANCHOR, seam.DEFAULT_BRANCH, seam.OPTIONS_SDL3,
                        seam.LAUNCHER, seam.HOTKEY, seam.CREATED, seam.TICK_ANCHOR,
-                       seam.PRODUCT_KEY):
+                       seam.PRODUCT_KEY, seam.SCALE_STEP):
             with self.assertRaisesRegex(ValueError, "diverged"):
                 seam.patch_host_main(HOST_STUB.replace(needle, ""), POLICY)
         with self.assertRaisesRegex(ValueError, "diverged"):

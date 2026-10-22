@@ -87,6 +87,21 @@ HOTKEY_NEW = (
     "      SDL_SetWindowFullscreen(g_window, g_win_flags & SNESRECOMP_SDL_WINDOW_FULLSCREEN_DESKTOP);\n"
 )
 
+# The framework's window-size keys (Ctrl+Up/Down, Ctrl+wheel) change only the
+# live scale; config.ini kept the old WindowScale, so the size was forgotten.
+SCALE_STEP = (
+    "  int new_scale = IntMax(IntMin(g_current_window_scale + scale_step, max_scale), 1);\n"
+    "  g_current_window_scale = new_scale;\n"
+)
+SCALE_STEP_NEW = SCALE_STEP + (
+    "  /* " + MARK + ": a player's explicit size step is remembered at exit.\n"
+    "   * A re-clamp (step 0, after a display or DPI change) is not a choice. */\n"
+    "  if (scale_step != 0 && new_scale != g_config.window_scale) {\n"
+    "    g_config.window_scale = (uint8)new_scale;\n"
+    "    g_fullscreen_changed = true;  /* the host's persist-display-at-exit flag */\n"
+    "  }\n"
+)
+
 CREATED = "  g_window = window;\n"
 CREATED_NEW = (
     "  g_window = window;\n"
@@ -365,7 +380,20 @@ static void UrDisplayLifecycleAcceptanceTick(void) {
   case 11:
     UrDisplayAcceptExpect("offscreen_rescue", UrDisplayAcceptReachable());
     break;
-  case 12:
+  case 12: {
+    /* The window-size key path: an explicit step is recorded for the exit
+     * write; the step-0 re-clamp that display events use is not. */
+    const int before = g_current_window_scale;
+    ChangeWindowScale(before > 1 ? -1 : 1);
+    const bool stepped = g_current_window_scale != before;
+    const int recorded = g_config.window_scale;
+    const bool persisted = recorded == g_current_window_scale && g_fullscreen_changed;
+    ChangeWindowScale(0);
+    UrDisplayAcceptExpect("window_scale_step_persisted",
+                          stepped && persisted && g_config.window_scale == recorded);
+    break;
+  }
+  case 13:
     if (g_ur_disp_original != 0) UrDisplayApply(g_ur_disp_original);
     break;
   default: {
@@ -403,7 +431,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     if OPTIONS_MARK not in source:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
-                   HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY):
+                   HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -413,6 +441,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, HOTKEY, HOTKEY_NEW)
     source = once(source, CREATED, CREATED_NEW)
     source = once(source, PRODUCT_KEY, PRODUCT_KEY_NEW)
+    source = once(source, SCALE_STEP, SCALE_STEP_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

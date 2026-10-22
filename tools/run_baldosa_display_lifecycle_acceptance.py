@@ -39,6 +39,7 @@ TRANSITION_STEPS = (
     "windowed_again",
 )
 RESCUE_STEP = "offscreen_rescue"
+SCALE_STEP = "window_scale_step_persisted"
 STEP = re.compile(r"^UR_DISPLAY_ACCEPT step=(\w+) pass=([01]) (.*)$", re.MULTILINE)
 NOT_EXERCISED = re.compile(
     r"^UR_DISPLAY_ACCEPT step=offscreen_rescue not_exercised=1", re.MULTILINE)
@@ -52,7 +53,8 @@ def verify_log(log: str) -> dict:
     steps = STEP.findall(log)
     names = [name for name, _, _ in steps]
     skipped = len(NOT_EXERCISED.findall(log))
-    expected = list(TRANSITION_STEPS) + ([] if skipped else [RESCUE_STEP])
+    expected = (list(TRANSITION_STEPS) + ([] if skipped else [RESCUE_STEP]) +
+                [SCALE_STEP])
     if skipped > 1 or names != expected:
         raise ValueError(f"display acceptance steps differ: {names} skipped={skipped}")
     failed = [name for name, ok, _ in steps if ok != "1"]

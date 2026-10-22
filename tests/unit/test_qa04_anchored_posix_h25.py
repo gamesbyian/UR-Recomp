@@ -64,9 +64,9 @@ class AnchoredEvidenceTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     guard.sha256_anchored(root, "fifo", 1)
 
-    def test_post_open_rename_hashes_original_open_inode(self):
-        # A pathname swap after the descriptor opens cannot substitute the
-        # bytes being hashed; this is still not an immutable identity claim.
+    def test_post_open_rename_is_fail_closed(self):
+        # A pathname swap after descriptor open changes inode metadata;
+        # this source intentionally rejects the now-unqualified read.
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / "packet"
             root.mkdir()
@@ -85,9 +85,9 @@ class AnchoredEvidenceTests(unittest.TestCase):
                 return real_read(fd, count)
 
             with patch.object(guard.os, "read", side_effect=swap_then_read):
-                result = guard.sha256_anchored(root, "x", len(b"original"))
+                with self.assertRaisesRegex(ValueError, "attachment changed"):
+                    guard.sha256_anchored(root, "x", len(b"original"))
             self.assertTrue(switched)
-            self.assertEqual(result, hashlib.sha256(b"original").hexdigest())
             self.assertEqual(original.read_bytes(), b"attacker")
 
 

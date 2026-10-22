@@ -30,3 +30,14 @@ Reduced motion resolves in `native/product/modern_reduced_motion_preference.hpp`
 ## Acceptance-matrix case checks
 
 `tools/qa_modern_visual_case_checks.py <case-id> <frame> [--expect-sha256 …] [--require]` binds a final-SDL capture to one of the 25 frozen cases in `analysis/modern-visual-acceptance-matrix.json`: output size equals the case's `pixels`; exactly one native logical width (16:9 → 342, 4:3 → 256) explains the frame (a genuine wide source, not a stretched narrow one); for stock-palette UI screens, UI text stays inside the action-safe region without touching the viewport edge and the selection marker forms exactly one focus bar. Title, transition and Authentic cases get size and logical-width only. A pass is a measurement of exact geometry/mode evidence; human art review, physical hardware and original parity stay separate (`release_gate_credit` is always 0).
+
+## Measured native geometry (2026-10-22, dated evidence, not a standing claim)
+
+Real Windows SDL3 runs of `modern-visual-native-win32-capture.yml` (workflow_dispatch, hosted `windows-2022`, which accepts 640×480 through 3840×2160), each reporting the geometry table as the last log step:
+
+| Source | Run | Result |
+|---|---|---|
+| `main` | [39709619200](https://github.com/gamesbyian/UR-Recomp/actions/runs/39709619200) | 4:3 cases (`root-43-480`, `root-43-768`) pass every check. The four 16:9 cases (`root-wide-720`, `root-wide-1080`, `root-wide-4k-virtual`, `profile-first-run`) fail **only** `logical-width`: each is a **256-wide** source fitted into the wide window (0.0% non-uniform block interiors at 256, 0.4–2.3% at 342). |
+| `main` + #2149 head (scratch merge) | [39710382432](https://github.com/gamesbyian/UR-Recomp/actions/runs/39710382432) | The same four 16:9 cases **pass every check** with a genuine **342-wide** source; options, Practice and 2P-warning journeys are 342-wide; 4:3 captures stay 256. One anomaly: the default-window baseline capture is explained by neither width (1.85% / 2.23% non-uniform). |
+
+Interpretation limits: exact geometry/mode evidence only. Passing `logical-width` shows a genuine wide source was presented; it is not art approval, hardware acceptance or original parity, and the frozen matrix and `RELEASE-QUALITY-LEDGER.json` remain the status owners. Supersede this table when `main` changes (re-dispatch the workflow; do not edit old rows to match new runs).

@@ -34,6 +34,12 @@ def assess(*, main_sha, pr_head_sha, compare):
         names.append(f['filename'])
     if len(names)!=len(set(names)):
         raise ValueError('duplicate changed file')
+    # An exact same-SHA comparison cannot carry contradictory commit/file data.
+    # A receipt may be syntactically coherent yet claim impossible progress.
+    if main_sha == pr_head_sha and derived != 'identical':
+        raise ValueError('same SHA reported non-identical comparison')
+    if derived == 'identical' and (names or compare['total_commits'] != 0):
+        raise ValueError('identical comparison contains changed commits or files')
     return {'schema':'ur-pr-compare-epoch/1','main':main_sha,'head':pr_head_sha,
             'merge_base':merge['sha'],'ahead':ahead,'behind':behind,
             'changed_files':names,'main_merge_tree_qualified':False,

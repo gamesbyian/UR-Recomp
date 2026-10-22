@@ -118,6 +118,21 @@ void vsync_waits_only_where_the_panel_can_carry_the_game() {
     assert(!ur_display_vsync_cannot_carry(50.0, 0.0));
 }
 
+void default_window_scale_follows_the_display() {
+    // 100%: the old default; 150%: 3; 200% on a 4K panel: 4.
+    assert(ur_display_default_window_scale(1.0f, 320, 240, 1920, 1040, 10) == 2);
+    assert(ur_display_default_window_scale(1.5f, 320, 240, 2560, 1400, 10) == 3);
+    assert(ur_display_default_window_scale(2.0f, 320, 240, 3840, 2100, 10) == 4);
+    // Too big for the usable area: step back, never below 2.
+    assert(ur_display_default_window_scale(2.0f, 320, 240, 1280, 680, 10) == 2);
+    assert(ur_display_default_window_scale(2.0f, 320, 240, 1920, 1040, 10) == 3);
+    assert(ur_display_default_window_scale(0.5f, 320, 240, 640, 400, 10) == 2);
+    // Unknown scale or bounds keep the old default; the cap still applies.
+    assert(ur_display_default_window_scale(0.0f, 320, 240, 3840, 2100, 10) == 2);
+    assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 10) == 6);
+    assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 4) == 4);
+}
+
 }  // namespace
 
 int main() {
@@ -132,5 +147,6 @@ int main() {
     identical_monitors_need_bounds_to_disambiguate();
     unnamed_displays_never_match();
     vsync_waits_only_where_the_panel_can_carry_the_game();
+    default_window_scale_follows_the_display();
     return 0;
 }

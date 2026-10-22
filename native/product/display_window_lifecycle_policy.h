@@ -141,6 +141,26 @@ static inline int ur_display_vsync_cannot_carry(double panel_hz, double guest_hz
     return panel_hz > 0 && guest_hz > 0 && panel_hz < guest_hz * 0.99;
 }
 
+/* The window scale to open with when the player never chose one.
+ *
+ * The host opens at scale 2 of its 320x240 base, which on a 200% display
+ * (a 4K laptop or monitor) is a quarter of the size the desktop draws
+ * everything else at. Follow the display's content scale, so a 200% display
+ * opens at 4, but never below the old default of 2, and step back toward 2
+ * while the window would not fit 90% of the usable area. */
+static inline int ur_display_default_window_scale(
+    float content_scale, int base_w, int base_h, int usable_w, int usable_h,
+    int max_scale) {
+    int scale = content_scale > 0 ? (int)(2.0f * content_scale + 0.5f) : 2;
+    if (scale < 2) scale = 2;
+    if (max_scale >= 2 && scale > max_scale) scale = max_scale;
+    while (scale > 2 && usable_w > 0 && usable_h > 0 &&
+           ((long long)scale * base_w * 10 > (long long)usable_w * 9 ||
+            (long long)scale * base_h * 10 > (long long)usable_h * 9))
+        --scale;
+    return scale;
+}
+
 #ifdef __cplusplus
 }
 #endif

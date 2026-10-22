@@ -12,11 +12,12 @@ Modern mode exposes a compact local multiplayer setup surface with two player sl
 
 - P1 and P2 each require both a usable input assignment and an explicitly confirmed Modern profile before the Modern join surface releases control to stock setup.
 - P2 joins explicitly from an unassigned connected device. Keyboard remains P1-only unless the framework later provides genuinely independent keyboard partitions.
+- Keyboard plus one pad (integrated Baldosa root, #2309): the lone pad is seated as P1, so once the keyboard has confirmed P1, that pad's next A/Start moves it to the P2 seat through the host's seat move. The press is consumed, and the pad then joins and races as P2 while the keyboard keeps P1. A pad that confirmed P1 itself is never moved.
 - Joining a device never chooses a profile. Profile cursors may be pre-positioned, but participant identity exists only after explicit confirmation.
 - The same profile cannot occupy both player slots.
 - A confirmed participant session survives stock setup, active race, result and track-choice surfaces and retires on return to the settled frontend.
 - One physical controller cannot own both slots.
-- Disconnecting an assigned controller marks that slot unavailable and blocks launch until the device returns or the slot is reassigned.
+- Disconnecting an assigned controller marks that slot unavailable and blocks launch until the device returns or the slot is reassigned. In the integrated Baldosa root, a P2 whose confirming pad leaves has that confirmation withdrawn (`join_seat_left`), and the returning pad confirms again.
 - Reconnection of the same framework device restores its prior slot when unambiguous.
 - Reassignment changes host input routing only. It must not synthesize guest progression, race state or SRAM.
 - Launch uses the existing stock two-player frontend/race path. Do not add a second multiplayer simulation or direct race-state writer.

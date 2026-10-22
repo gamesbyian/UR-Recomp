@@ -1,0 +1,104 @@
+{
+  "schema": "ur-progress-inventory/1",
+  "version": "windows-beta-v1",
+  "frozen_on": "2026-10-22",
+  "source_sha": "64034e20a5cbe84ccf579e7cd0d8a0a663b266a2",
+  "scope": "Flagship Windows native beta; excludes deferred P2P, ports, optional course editing and exhaustive technical atlas",
+  "scoring": {
+    "planned": 0,
+    "implemented": 0.5,
+    "tested": 0.75,
+    "accepted": 1
+  },
+  "score_disclaimer": "Provisional implementation maturity only; tested denotes bounded hosted/source testing, not independent full release acceptance. Acceptance score requires independent source-bound gate evidence. No gate awarded by this file.",
+  "items": [
+    {
+      "id": "WIN-01",
+      "title": "Native Windows builds and ROM-free launcher",
+      "weight": 6,
+      "status": "tested",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1648",
+      "accepted_evidence": null
+    },
+    {
+      "id": "ENG-01",
+      "title": "Native 1P source-driven race and settled result",
+      "weight": 10,
+      "status": "tested",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1416",
+      "accepted_evidence": null
+    },
+    {
+      "id": "ENG-02",
+      "title": "Native 2P race, match and result",
+      "weight": 8,
+      "status": "tested",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+      "accepted_evidence": null
+    },
+    {
+      "id": "UI-01",
+      "title": "Controller-visible Modern five-destination root and child navigation",
+      "weight": 10,
+      "status": "tested",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1648",
+      "accepted_evidence": null
+    },
+    {
+      "id": "DATA-01",
+      "title": "Distinct named profiles, SRAM and fresh-process Records",
+      "weight": 10,
+      "status": "tested",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+      "accepted_evidence": null
+    },
+    {
+      "id": "DATA-02",
+      "title": "Named-profile crash recovery and actual NTFS faults",
+      "weight": 10,
+      "status": "implemented",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1990",
+      "accepted_evidence": null
+    },
+    {
+      "id": "VIS-01",
+      "title": "Native widescreen world plus Original fallback",
+      "weight": 10,
+      "status": "tested",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1648",
+      "accepted_evidence": null
+    },
+    {
+      "id": "VIS-02",
+      "title": "Approved faithful HD racer art and complete raster fidelity",
+      "weight": 10,
+      "status": "planned",
+      "evidence": null,
+      "accepted_evidence": null
+    },
+    {
+      "id": "FID-01",
+      "title": "45 independently accepted complete USA events",
+      "weight": 10,
+      "status": "planned",
+      "evidence": null,
+      "accepted_evidence": null
+    },
+    {
+      "id": "QA-01",
+      "title": "Physical Windows controller audio UHD storage and soak acceptance",
+      "weight": 10,
+      "status": "planned",
+      "evidence": null,
+      "accepted_evidence": null
+    },
+    {
+      "id": "UX-01",
+      "title": "Complete accessible player journeys and visual polish",
+      "weight": 6,
+      "status": "implemented",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2303",
+      "accepted_evidence": null
+    }
+  ]
+}

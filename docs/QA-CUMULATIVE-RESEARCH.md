@@ -2,6 +2,16 @@
 
 **Status:** CI-only orchestration. Research observations are not gameplay-release gates and never alter `RELEASE-QUALITY-LEDGER.json`. The [single entry point](../.github/workflows/qa-cumulative-research.yml) makes every experiment leave an append-only source- and run-linked receipt; the mutable ledger lives on branch `research/qa-cumulative-ledger`, path `.github/qa-cumulative/ledger.json`, **not on `main`**. Do not delete that branch or force-push its history.
 
+## October 22 factory dispatch verification (run-level startup failures)
+
+**Verified 2026-10-22, source revision `c8c0d445308720798c437988134b2154b47ea991`:**
+
+- [Cumulative research campaigns run 39743535957](https://github.com/gamesbyian/UR-Recomp/actions/runs/39743535957): GitHub notification explicitly reported **“No jobs were run”**; the authenticated Actions run-jobs and run-artifacts endpoints independently returned empty lists. No experimental results, source-bound aggregates, consumed seed range, cumulative ledger row or gameplay/release credit can be claimed from this attempted run.
+- [Baldosa Windows shared-build reliability campaign run 39743577920](https://github.com/gamesbyian/UR-Recomp/actions/runs/39743577920): same **startup failure, zero jobs and zero artifacts**, independently checked through the authenticated Actions endpoints. This is no Windows reliability test outcome and says nothing about fault recovery or Windows product correctness.
+- The committed [cumulative ledger](https://github.com/gamesbyian/UR-Recomp/blob/research/qa-cumulative-ledger/.github/qa-cumulative/ledger.json) currently contains **17 source/run-linked records**; the highest recorded run ID remains `38519338884`, a pre-October-21 fault-recovery failure. There is no new cumulative evidence attributable to either October 22 startup attempt. **This is not an exhaustive claim about all other October 21 factory runs**: workflow-dispatch enumeration and their specific artifact IDs were unavailable from the connected GitHub interface.
+
+**Plan consequence:** Classify these as *workflow startup / execution-service incidents*, **not** scientific strict divergence, 0-trial durability samples, PPU evidence, or a new simulation/product regression. The underlying startup cause is **unverified**. First inspect each run's run-level failure details, workflow validity, permissions and external account/runner conditions using authorized Actions visibility; do not assert a specific cause from zero jobs alone. If repaired and an original research question is still open, run **one smallest targeted exact-head smoke** before any multi-shard campaign. Do not retroactively allocate seeds, modify existing ledger rows, increase budgets or launch broad retries. Continue prioritizing recovered-source publication and only its invalidated integration tests. Maintain current independent event/physical release HOLD until genuinely new accepted evidence exists.
+
 ## The seven independent campaigns
 
 | Coordinator selection | What is actually executed | What cumulative coverage means | Does not prove |

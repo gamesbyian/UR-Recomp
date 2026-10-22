@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from agent_control import (BOARD, REGISTRY, HISTORICAL_WORK_IDS, extract_board,
+from agent_control import (BOARD, REGISTRY, RETIRED_WORK_IDS, extract_board,
                            load_json, validate_registry)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,9 +25,9 @@ def check(incidents, board, registry):
     rows = incidents.get("incidents")
     if type(rows) is not list:
         raise ValueError("incidents array missing")
-    # Historical refusals retain their IDs when the live board rotates.
-    # Do not admit arbitrary orphan work IDs.
-    known = {x["work_id"] for x in board["work"]} | HISTORICAL_WORK_IDS
+    # Retired work IDs remain the identities of immutable historical denials.
+    # This explicit allowlist does not authorize fresh work for those IDs.
+    known = {x["work_id"] for x in board["work"]} | RETIRED_WORK_IDS
     candidates = {x["candidate_id"]: x for x in registry["candidates"]}
     ids = set()
     for entry in rows:

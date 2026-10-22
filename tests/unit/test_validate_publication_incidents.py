@@ -22,9 +22,9 @@ class IncidentContracts(unittest.TestCase):
         return data
 
     def test_retired_incident_ids_survive_board_reassignment(self):
-        live = {item["work_id"] for item in self.board["work"]}
+        active = {item["work_id"] for item in self.board["work"]}
         historical = {item["work_id"] for item in self.original["incidents"]}
-        self.assertTrue(historical - live)
+        self.assertTrue(historical - active)
         self.assertEqual(check(self.original, self.board, self.registry)["incidents"],
                          len(self.original["incidents"]))
 

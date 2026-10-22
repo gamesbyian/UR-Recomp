@@ -16,10 +16,12 @@ BOARD = ROOT / "docs/HOURLY-AGENT-LINES.md"
 REGISTRY = ROOT / "docs/recovery/agent-candidates.json"
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
-# Active dated objectives and their frozen historical predecessors are both
-# valid identifiers; only active board rows may receive new assignments.
-WORK_ID = re.compile(r"UR-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{2,8}\Z")
-HISTORICAL_WORK_IDS = frozenset({
+# Old immutable work IDs remain valid provenance. The current dispatch board
+# may instead assign dated, multi-part integration-campaign identifiers.
+WORK_ID = re.compile(r"UR-[A-Z0-9]+(?:-[A-Z0-9]+)*-(?:[0-9]{2}|20[0-9]{6})\Z")
+# Known retired IDs from the 2026-10-21 ten-line dispatch board. A historical
+# recovery receipt may continue to refer to one, but an active task cannot.
+RETIRED_WORK_IDS = frozenset({
     "UR-CPU-01", "UR-QA01-01", "UR-WINSTORAGE-01", "UR-WINQA-01",
     "UR-PPU-01", "UR-UHD-01", "UR-RECORDS-01", "UR-P2P-01",
     "UR-INTEGRATION-01", "UR-KNOWLEDGE-01",
@@ -136,16 +138,14 @@ def validate_registry(registry, board):
                 or cid in ids):
             raise ValueError("invalid or duplicate candidate_id")
         ids.add(cid)
-        if wid not in work_ids and wid not in HISTORICAL_WORK_IDS:
+        if wid not in work_ids and wid not in RETIRED_WORK_IDS:
             raise ValueError("orphan work ID for " + cid)
-        # Historical receipts survive board replacements, but retired IDs
-        # cannot acquire fresh actionable assignments.
-        if wid not in work_ids and item["state"] in ACTIVE:
-            raise ValueError("retired work ID cannot be a pending assignment: " + cid)
         if type(item["discriminator"]) is not str or not item["discriminator"].strip():
             raise ValueError("missing discriminator")
         if item["state"] not in STATUSES:
             raise ValueError("invalid candidate state")
+        if wid in RETIRED_WORK_IDS and item["state"] in ACTIVE:
+            raise ValueError("retired work ID cannot accept new active recovery: " + cid)
         if item["failure_class"] not in FAILURE_CLASSES:
             raise ValueError("invalid failure class")
         if item["release_gate_credit"] is not False:

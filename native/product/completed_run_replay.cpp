@@ -25,6 +25,12 @@ bool CompletedRunReplayInputStage::reserve(
     std::error_code ec;
     fs::create_directories(parent, ec);
     if (ec) return false;
+    // An existing replay namespace must be a real directory. Otherwise a
+    // symlink can redirect the selected input outside the user's data root.
+    ec.clear();
+    const auto parent_status = fs::symlink_status(parent, ec);
+    if (ec || !fs::is_directory(parent_status) ||
+        fs::is_symlink(parent_status)) return false;
 
     // Atomic directory creation is exclusive across independent processes.
     // A simultaneous name collision retries without overwriting an input.

@@ -247,7 +247,8 @@ jobs:
           dirs=()
           for d in "$RUNNER_TEMP"/ur-modern-win32-visual-baseline \
                    "$RUNNER_TEMP"/ur-modern-win32-visual-1280x720 \
-                   "$RUNNER_TEMP"/ur-modern-win32-visual-1024x768; do
+                   "$RUNNER_TEMP"/ur-modern-win32-visual-1024x768 \
+                   "$RUNNER_TEMP"/ur-modern-win32-journey-*; do
             test -s "$d/actual-sdl-drawable.png" && test -s "$d/readback-receipt.json" \
               && dirs+=(--dir "$d")
           done

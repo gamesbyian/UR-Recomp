@@ -56,7 +56,9 @@ class ArchiveCasesTest(unittest.TestCase):
             self.assertEqual([c["check"] for c in byid["records"]["checks"]],
                              ["witnessed-source-width"])
             self.assertEqual(rep["release_gate_credit"], 0)
-            self.assertIn("root-wide-720", ac.markdown(rep))
+            md = ac.markdown(rep)
+            self.assertIn("root-wide-720", md)
+            self.assertIn("witnessed-source-width=ok", md)
 
     def test_host_witnessed_width_disagreeing_with_pixels_fails(self):
         wide = frame_png(342, 1280, 720)
@@ -83,6 +85,7 @@ class ArchiveCasesTest(unittest.TestCase):
             self.assertTrue(rep["pass"], rep)
             self.assertEqual(rep["captures"][0]["case"], "root-wide-720")
             self.assertEqual(rep["release_gate_credit"], 0)
+            self.assertIn("one-logical-width=ok(342)", ac.markdown(rep))
             receipt["png_sha256"] = "0" * 64
             (good / "readback-receipt.json").write_text(json.dumps(receipt))
             with self.assertRaises(ValueError):

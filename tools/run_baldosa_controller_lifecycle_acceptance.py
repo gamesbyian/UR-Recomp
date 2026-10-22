@@ -45,6 +45,10 @@ EXPECTED_STEPS = (
     "keyboard_fallback_drives_p1",
     "seated_pad_keeps_p1_exclusive",
     "no_fallback_when_p2_on_keyboard",
+    "seat_move_refused_when_target_bad",
+    "seat_move_p1_pad_to_p2",
+    "moved_pad_drives_p2",
+    "moved_pad_reclaims_p2_after_replug",
 )
 # Second launch: the real in-game launcher drains a hotplug; the seat table
 # must catch up when it returns.

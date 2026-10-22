@@ -374,6 +374,45 @@ def helpers(policy: Path) -> str:
         "         g_config.player_src[1] != 1;\n"
         "}\n"
         "static uint32 GetActiveControllers(void);\n"
+        "/* Product-facing: move the pad seated in `from` to the empty, enabled seat\n"
+        " * `to` (keyboard + one pad joining 2P as P2). Held bits are released on the\n"
+        " * old seat first; `from` is left free for anyone, and a replug of the moved\n"
+        " * pad reclaims `to`. Returns 1 when moved, 0 when refused. */\n"
+        "int snesrecomp_desktop_product_seat_move(int from, int to) {\n"
+        "  if (from < 0 || from >= UR_CONTROLLER_SEAT_COUNT || to < 0 ||\n"
+        "      to >= UR_CONTROLLER_SEAT_COUNT || from == to) return 0;\n"
+        "  GamepadInfo *src = &g_gamepad[from], *dst = &g_gamepad[to];\n"
+        "  if (src->joystick_id == -1 || dst->joystick_id != -1 ||\n"
+        "      !g_config.enable_gamepad[to]) return 0;\n"
+        "  const SDL_JoystickID id = src->joystick_id;\n"
+        "  const bool raw = src->raw_joystick;\n"
+        "  SDL_Joystick *raw_handle = src->joystick;\n"
+        "  SDL_GameController *pad = g_ur_seat_pad[from];\n"
+        "  const uint64_t key = g_ur_seat_key[from];\n"
+        "  for (int b = 0; b < kGamepadBtn_Count; b++) {\n"
+        "    if (src->modifiers & (1u << b)) HandleGamepadInput(src, b, false);\n"
+        "  }\n"
+        "  src->axis_buttons = 0;\n"
+        "  memset(src, 0, sizeof(GamepadInfo));\n"
+        "  src->joystick_id = -1;\n"
+        "  g_ur_seat_pad[from] = NULL;\n"
+        "  g_ur_seat_key[from] = 0;\n"
+        "  g_ur_seats[from].occupied = 0;\n"
+        "  g_ur_seats[from].absent_owner_key = 0;  /* nobody is away from it */\n"
+        "  memset(dst, 0, sizeof(GamepadInfo));\n"
+        "  dst->index = (uint8)to;\n"
+        "  dst->joystick_id = id;\n"
+        "  if (raw) {\n"
+        "    dst->joystick = raw_handle;\n"
+        "    dst->raw_joystick = true;\n"
+        "  }\n"
+        "  ur_controller_seat_taken(g_ur_seats, to, key);\n"
+        "  g_ur_seat_key[to] = key;\n"
+        "  g_ur_seat_pad[to] = pad;\n"
+        "  printf(\"[Gamepad] UR_CONTROLLER_SEAT move instance=%u from=%d to=%d\\n\",\n"
+        "         (unsigned)id, from, to);\n"
+        "  return 1;\n"
+        "}\n"
         "/* Product-facing, read-only: the SDL instance occupying a seat, or -1.\n"
         " * Modern polls this at the completed-frame boundary to notice a seat\n"
         " * owner leaving; it never chooses or changes a seat. */\n"
@@ -459,6 +498,7 @@ static Uint32 SDLCALL UrAcceptPlugB(void *userdata, SDL_TimerID id, Uint32 inter
 /* Every key down, read through the host's own keyboard poll; the real state
  * is restored by the main loop's poll before the next guest frame. */
 static int g_ur_accept_src[2];
+static uint32 g_ur_accept_held;
 static uint32 UrAcceptKeyboardWord(void) {
   static uint8_t all_down[SDL_SCANCODE_COUNT];
   memset(all_down, 1, sizeof(all_down));
@@ -687,8 +727,44 @@ static void UrControllerLifecycleAcceptanceTick(void) {
     g_config.player_src[0] = g_ur_accept_src[0];
     g_config.player_src[1] = g_ur_accept_src[1];
     PollKeyboardControls(snesrecomp_sdl_get_keyboard_state());
+    /* Keyboard + one pad: A is seated P1 and holds a button. */
+    UrAcceptAttach(0, 0x5501, 0);
     break;
   }
+  case 34:
+    UrAcceptButton(0, true);
+    break;
+  case 35:
+    g_ur_accept_held = g_pad_buttons & 0xfffu;  /* A's held P1 bits */
+    UrAcceptExpect("seat_move_refused_when_target_bad",
+                   UrAcceptSeatOf(0) == 0 && !snesrecomp_desktop_product_seat_move(0, 0) &&
+                   !snesrecomp_desktop_product_seat_move(1, 0) &&
+                   !snesrecomp_desktop_product_seat_move(0, 2));
+    UrAcceptExpect("seat_move_p1_pad_to_p2",
+                   g_ur_accept_held != 0 && snesrecomp_desktop_product_seat_move(0, 1) &&
+                   UrAcceptSeatOf(0) == 1 && g_gamepad[0].joystick_id == -1 &&
+                   (g_pad_buttons & 0xfffu) == 0);
+    UrAcceptButton(0, false);
+    break;
+  case 36:
+    UrAcceptButton(0, true);  /* the moved pad now drives P2 */
+    break;
+  case 37:
+    UrAcceptExpect("moved_pad_drives_p2", (g_pad_buttons & 0xfffu) == 0 &&
+                   (g_pad_buttons & 0xfff000u) != 0);
+    UrAcceptButton(0, false);
+    break;
+  case 38:
+    UrAcceptDetach(0);
+    break;
+  case 39:
+    UrAcceptAttach(0, 0x5501, 0);  /* replug, SDL player index 0 again */
+    break;
+  case 40:
+    UrAcceptExpect("moved_pad_reclaims_p2_after_replug", UrAcceptSeatOf(0) == 1 &&
+                   g_gamepad[0].joystick_id == -1);
+    for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+    break;
   default: {
     printf("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=%s\n", g_ur_accept_failed ? "fail" : "pass");
     fflush(stdout);

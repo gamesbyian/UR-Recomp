@@ -149,6 +149,21 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("player == 0 && src == 2 && g_gamepad[0].joystick_id == -1", rule)
         self.assertIn("g_config.player_src[1] != 1", rule)
 
+    def test_seat_move_releases_first_and_frees_the_old_seat(self):
+        staged = self.staged()
+        move = staged[staged.index("int snesrecomp_desktop_product_seat_move(int from, int to) {"):]
+        move = move[:move.index("\n}\n")]
+        # Refuses bad, occupied or disabled targets.
+        self.assertIn("from == to) return 0;", move)
+        self.assertIn("dst->joystick_id != -1 ||", move)
+        self.assertIn("!g_config.enable_gamepad[to]) return 0;", move)
+        # Held bits go before the slot is cleared; nobody is "away" from the
+        # old seat; the new seat is recorded through the policy.
+        self.assertLess(move.index("HandleGamepadInput(src, b, false)"),
+                        move.index("memset(src, 0, sizeof(GamepadInfo));"))
+        self.assertIn("g_ur_seats[from].absent_owner_key = 0;", move)
+        self.assertIn("ur_controller_seat_taken(g_ur_seats, to, key);", move)
+
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()
         getter = staged[staged.index("long long snesrecomp_desktop_product_seat_source(int seat) {"):]

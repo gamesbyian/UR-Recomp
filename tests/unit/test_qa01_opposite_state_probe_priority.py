@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from tools.qa01_opposite_state_probe_priority import prioritize, audit_archive
@@ -68,6 +69,20 @@ class RF081BoundedProbePriority(unittest.TestCase):
                 z.writestr("work/zoom-zoo/replay/ref/scene-00001.wram.bin", b"x")
             with self.assertRaisesRegex(ValueError, "wrong RF081 evidence epoch"):
                 audit_archive(path)
+
+    def test_archive_replacement_after_first_validation_is_refused(self):
+        # Model a pathname swap between the initial authenticated audit and
+        # the second census. It must not parse bytes from an unpinned file.
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "swapped.zip"
+            with ZipFile(path, "w") as z:
+                z.writestr("work/zoom-zoo/replay/ref/scene-00001.wram.bin", b"x")
+            first_audit = {"sample_count": 41, "opposite_state_brackets": [],
+                           "first_nonexact_sample": None}
+            with patch("tools.qa01_opposite_state_probe_priority.audit",
+                       return_value=first_audit):
+                with self.assertRaisesRegex(ValueError, "changed after source validation"):
+                    audit_archive(path)
 
     def test_cli_requires_source_bound_archive_argument(self):
         script = Path(__file__).resolve().parents[2] / "tools" / "qa01_opposite_state_probe_priority.py"

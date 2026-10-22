@@ -19,17 +19,21 @@ class SourceFinalUniqueness(unittest.TestCase):
         lines=[]
         for frame in range(5175,5186):
             for x in range(8):
-                key=f'frame={frame} x={x} logical_y=3'
+                key=f'frame={frame} x={x} logical_y=3 ppu_line=4'
                 lines.append(f'UR_QA08_LATE_PPU_SOURCE {key} sub=0 selected_rgb555=4210')
+                lines.append(f'UR_QA08_LATE_PPU_SOURCE {key} sub=1 selected_rgb555=39ce')
                 lines.append(f'UR_QA08_LATE_PPU_FINAL {key} RGB8=123,123,123')
+        # Preserve the historical duplicate-specific regression while keeping
+        # all 88 genuine three-stage groups present. Only one stage is
+        # deliberately replaced by an earlier stage identity.
         if repeat == 'source':
-            lines.append('UR_QA08_LATE_PPU_SOURCE frame=5175 x=0 logical_y=3 sub=0 selected_rgb555=4210')
+            lines[3] = lines[0]
         if repeat == 'final':
-            lines.append('UR_QA08_LATE_PPU_FINAL frame=5175 x=0 logical_y=3 RGB8=123,123,123')
+            lines[5] = lines[2]
         with ZipFile(path,'w') as z:z.writestr('on-source.log','\n'.join(lines)+'\n')
         return hashlib.sha256(path.read_bytes()).hexdigest()
 
-    def test_88_pairs_admit_both_brightness_models(self):
+    def test_88_triplets_admit_both_brightness_models(self):
         with tempfile.TemporaryDirectory() as td:
             path=Path(td)/'source.zip';digest=self.fixture(path)
             with patch.object(audit,'AUTHENTIC_SHA256',digest):

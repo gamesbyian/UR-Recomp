@@ -52,7 +52,7 @@ def verify(raw, *, expected_sha256=None):
                         unicodedata.normalize('NFC',n)!=n or
                         any(c in ('','.','..') for c in n.split('/')) or
                         any(not _portable_win32_component(part) for part in n.split('/')) or
-                        stat.S_ISLNK(i.external_attr >> 16) or i.is_dir() or
+                        stat.S_IFMT(i.external_attr >> 16) not in (0, stat.S_IFREG) or i.is_dir() or
                         i.file_size>MAX_MEMBER):
                     raise ValueError('unsafe archive member')
                 fold=n.casefold()

@@ -209,6 +209,7 @@ on:
       - "tests/native/display_window_lifecycle_policy_test.cpp"
       - "tools/run_baldosa_display_lifecycle_acceptance.py"
       - "tools/run_baldosa_window_placement_acceptance.py"
+      - "tools/run_baldosa_launcher_gl_fallback_acceptance.py"
       - "tools/run_baldosa_slow_panel_vsync_acceptance.py"
       - "tests/unit/test_baldosa_window_placement_acceptance.py"
   workflow_dispatch:
@@ -393,6 +394,19 @@ jobs:
             --out "$RUNNER_TEMP/ur-display-lifecycle" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-display-lifecycle.json"
           echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: opening the in-game launcher must never take the game
+      # down. A hosted runner has no GPU, so its own GL is the case that
+      # crashed (#2272); a forced 1.1 version proves the refusal anywhere.
+      - name: Exercise the in-game launcher without usable OpenGL on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_launcher_gl_fallback_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-launcher-gl-fallback" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-launcher-gl-fallback.json"
+          echo "PASS: Win32 in-game launcher with an OpenGL context older than 3.x is refused as UNAVAILABLE and the game carries on; this runner's own GL: $(python -c "import json,sys; print(json.load(open(sys.argv[1]))['machine_gl'])" "$RUNNER_TEMP/ur-launcher-gl-fallback.json"). Not a GPU-driver or remote-desktop acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE: a panel slower than the game must not slow the game
       # through vsync (forced 50 Hz), a 60 Hz panel keeps the setting.

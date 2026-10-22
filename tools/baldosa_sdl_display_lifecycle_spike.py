@@ -434,33 +434,39 @@ static void UrSaveWindowPlacement(void) {
   const int ok = fclose(f) == 0;
   printf("UR_DISPLAY placement saved=%d display=%s\n", ok, name);
 }
-/* SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y | maximize | report
+/* SNESRECOMP_UR_DISPLAY_PLACEMENT_SMOKE=move:X,Y | maximize | report | launcher
  * (test-only, inert unless set): move or maximize the window then quit
- * through the ordinary exit (which saves the placement), or report where
- * launch put it and quit. */
+ * through the ordinary exit (which saves the placement), report where
+ * launch put it and quit, or open the in-game launcher and report after. */
 static void UrDisplayPlacementSmokeTick(void) {
   static int mode = -1, frames, tx, ty;
   if (mode < 0) {
     const char *v = HostGetenv("UR_DISPLAY_PLACEMENT_SMOKE");
     mode = !v ? 0 : strcmp(v, "report") == 0 ? 2 : strcmp(v, "maximize") == 0 ? 3
+         : strcmp(v, "launcher") == 0 ? 4
          : sscanf(v, "move:%d,%d", &tx, &ty) == 2 ? 1 : 0;
   }
   if (!mode || !g_window || frames < 0) return;
   ++frames;
-  if (mode != 2 && frames == 40) {
+  /* launcher: open the in-game launcher once, then report after it returns. */
+  if (mode == 4 && frames == 30) {
+    g_open_launcher_hotkey = 1;
+    return;
+  }
+  if ((mode == 1 || mode == 3) && frames == 40) {
     if (mode == 1) SDL_SetWindowPosition(g_window, tx, ty);
     else SDL_MaximizeWindow(g_window);
     SDL_SyncWindow(g_window);
     return;
   }
-  if (frames != (mode == 2 ? 40 : 70)) return;
+  if (frames != (mode == 2 ? 40 : mode == 4 ? 90 : 70)) return;
   int x = 0, y = 0;
   SDL_GetWindowPosition(g_window, &x, &y);
   const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
   const char *name = display ? SDL_GetDisplayName(display) : NULL;
   const SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
   printf("UR_DISPLAY_PLACEMENT_SMOKE mode=%s window=%d,%d fullscreen=%d maximized=%d "
-         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : "report", x, y,
+         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : mode == 4 ? "launcher" : "report", x, y,
          (flags & SDL_WINDOW_FULLSCREEN) ? 1 : 0, (flags & SDL_WINDOW_MAXIMIZED) ? 1 : 0,
          name ? name : "-");
   int renderer_vsync = -99;
@@ -719,13 +725,63 @@ def patch_host_main(source: str, policy: Path) -> str:
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 
+# The launcher asks for a 3.3 core context, but where no real GL driver
+# exists (remote desktop, VMs, GPU-less machines) Windows hands back the GDI
+# 1.1 one instead of failing. ImGui's GL3 loader then fails, its result is
+# ignored, and the first draw dereferenced a null GL function: the in-game
+# launcher hotkey crashed the whole game. Refuse such a context so the
+# launcher reports UNAVAILABLE, which the host already handles.
+LAUNCHER_GL = (
+    "    SDL_GL_MakeCurrent(p->window, p->gl);\n"
+    "    SDL_GL_SetSwapInterval(1);   // vsync \u2014 a launcher has no reason to spin\n"
+)
+LAUNCHER_GL_NEW = (
+    "    SDL_GL_MakeCurrent(p->window, p->gl);\n"
+    "    /* " + MARK + ": refuse a context too old for the GL3 renderer. */\n"
+    "    {\n"
+    "        typedef const unsigned char *(\n"
+    "#ifdef _WIN32\n"
+    "            __stdcall\n"
+    "#endif\n"
+    "            *UrGetString)(unsigned int);\n"
+    "        UrGetString get_string = (UrGetString)SDL_GL_GetProcAddress(\"glGetString\");\n"
+    "        const char *version = get_string ? (const char *)get_string(0x1F02u) : NULL;\n"
+    "        const char *forced = getenv(\"SNESRECOMP_UR_LAUNCHER_GL_VERSION\");  /* test only */\n"
+    "        if (forced && *forced) version = forced;\n"
+    "        int major = 0;\n"
+    "        for (const char *c = version; c && *c; ++c)\n"
+    "            if (*c >= '0' && *c <= '9') { major = atoi(c); break; }\n"
+    "        if (major < 3) {\n"
+    "            fprintf(stderr, \"[launcher] UR_LAUNCHER_GL unusable version=%s\\n\",\n"
+    "                    version ? version : \"(none)\");\n"
+    "            SDL_GL_DestroyContext(p->gl);\n"
+    "            p->gl = NULL;\n"
+    "            SDL_DestroyWindow(p->window);\n"
+    "            p->window = NULL;\n"
+    "            if (s_quit_sdl) SDL_Quit();\n"
+    "            return false;\n"
+    "        }\n"
+    "    }\n"
+    "    SDL_GL_SetSwapInterval(1);   // vsync \u2014 a launcher has no reason to spin\n"
+)
+
+
+def patch_launcher_platform(source: str) -> str:
+    if MARK in source:
+        return source
+    return once(source, LAUNCHER_GL, LAUNCHER_GL_NEW)
+
+
 def plan(game: Path, root: Path):
     policy = (root / POLICY).resolve()
     if not policy.is_file():
         raise ValueError(f"Missing project-owned display policy: {policy}")
     path = game / "snesrecomp/runner/src/desktop/host_main.c"
     before = path.read_text(encoding="utf-8")
-    return [(path, before, patch_host_main(before, policy))]
+    launcher = game / "recomp-ui/src/common/launcher_platform_sdl3.c"
+    launcher_before = launcher.read_text(encoding="utf-8")
+    return [(path, before, patch_host_main(before, policy)),
+            (launcher, launcher_before, patch_launcher_platform(launcher_before))]
 
 
 def main() -> int:

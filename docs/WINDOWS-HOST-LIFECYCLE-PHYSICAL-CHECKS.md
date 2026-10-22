@@ -60,6 +60,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. *(Requires #2235.)* | `UR_DISPLAY placement restored … maximized=1` |
 | D16 | On a 50 Hz display (a PAL TV, or a monitor set to 50 Hz), with VSync On, time 60 seconds of a race against a stopwatch, using the in-race clock. | The in-race clock keeps pace with the stopwatch, not about 17% slow. *(Requires #2283.)* | `UR_DISPLAY vsync panel_hz=50.000 … wait=no` |
 | D14 | Two monitors, windowed on monitor 2: open the in-game launcher, unplug monitor 2, close the launcher. | The game window is on the primary monitor, reachable. *(Requires #2269.)* | `UR_DISPLAY reconcile reason=launcher_returned action=rescue` |
+| D15 | Over Remote Desktop (or on a PC without a GPU driver), start a race and open the in-game launcher. | Either the launcher opens normally, or it does not appear and the game simply carries on. The game never closes or crashes. *(Requires #2281.)* | `[launcher] UR_LAUNCHER_GL unusable version=…` and `in-game launcher: action=2` when refused |
 
 ## Reporting
 

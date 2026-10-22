@@ -11,11 +11,13 @@ import zipfile
 try:
     import numpy as np
     from PIL import Image
-except ImportError as exc:
-    raise unittest.SkipTest('optional NumPy/Pillow cross-resolution research') from exc
+    HAS_OPTIONAL_DEPS = True
+except ImportError:
+    HAS_OPTIONAL_DEPS = False
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))
-import verify_cross_resolution as witness
+if HAS_OPTIONAL_DEPS:
+    import verify_cross_resolution as witness
 
 
 def digest(raw):
@@ -28,6 +30,7 @@ def png(arr):
     return out.getvalue()
 
 
+@unittest.skipUnless(HAS_OPTIONAL_DEPS, 'optional NumPy/Pillow cross-resolution research')
 class CrossResolutionSyntheticTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

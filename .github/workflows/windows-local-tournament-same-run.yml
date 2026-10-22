@@ -1,0 +1,29 @@
+name: Windows Local Tournament same-run package acceptance
+
+# Manual, independent source + inner-ZIP nomination. A fresh Windows smoke
+# rebuild must produce the exact same ZIP bytes before packaged 2P acceptance.
+# No cross-run artifact download and no retail ROM-bearing upload is needed.
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit_sha:
+        description: "Independently nominated main commit (40 lowercase hex); dispatch that exact main revision"
+        required: true
+      portable_zip_sha256:
+        description: "Independently nominated inner ZIP SHA256 from a successful source-identical smoke build"
+        required: true
+
+concurrency:
+  group: windows-local-tournament-package-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  same-run-tournament:
+    uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      run_tournament_acceptance: true
+      candidate_commit_sha: ${{ inputs.candidate_commit_sha }}
+      portable_zip_sha256: ${{ inputs.portable_zip_sha256 }}

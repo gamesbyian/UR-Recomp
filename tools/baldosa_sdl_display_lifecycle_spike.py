@@ -118,6 +118,15 @@ RENDERER_READY_NEW = (
     + RENDERER_READY
 )
 
+# The in-game launcher's own event loop drains display events too: a monitor
+# removed or rescaled while it was open is reconciled when it returns.
+LAUNCHER_RETURN = "  SDL_FlushEvent(SDL_QUIT);\n"
+LAUNCHER_RETURN_NEW = LAUNCHER_RETURN + (
+    "#if SNESRECOMP_SDL3\n"
+    "  UrDisplayReconcile(\"launcher_returned\");  /* " + MARK + " */\n"
+    "#endif\n"
+)
+
 # The host's own clean-exit config write; the window still exists here.
 EXIT_SAVE = (
     "  /* A volume or fullscreen change made with the keys survives the session,\n"
@@ -632,7 +641,7 @@ def patch_host_main(source: str, policy: Path) -> str:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
                    HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP,
-                   EXIT_SAVE, RENDERER_READY):
+                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -645,6 +654,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, SCALE_STEP, SCALE_STEP_NEW)
     source = once(source, EXIT_SAVE, EXIT_SAVE_NEW)
     source = once(source, RENDERER_READY, RENDERER_READY_NEW)
+    source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

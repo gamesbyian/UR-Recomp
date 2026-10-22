@@ -37,15 +37,27 @@ EXPECTED_STEPS = (
     "raw_spare_reopen_not_duplicated",
     "raw_spare_claimed_p2",
     "raw_seat_released_on_remove",
+    "drained_add_unseen",
+    "reconcile_seats_new_pad",
+    "drained_removal_unseen",
+    "reconcile_releases_gone_pad",
+    "returning_pad_reclaims_after_reconcile",
+)
+# Second launch: the real in-game launcher drains a hotplug; the seat table
+# must catch up when it returns.
+LAUNCHER_STEPS = (
+    "launcher_pad_seated",
+    "launcher_removal_reconciled",
+    "launcher_add_reconciled",
 )
 STEP = re.compile(r"^UR_CONTROLLER_ACCEPT step=(\w+) pass=([01]) ", re.MULTILINE)
 RESULT = re.compile(r"^UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=(\w+)$", re.MULTILINE)
 
 
-def verify_log(log: str) -> dict:
+def verify_log(log: str, expected=EXPECTED_STEPS) -> dict:
     steps = STEP.findall(log)
     names = [name for name, _ in steps]
-    if names != list(EXPECTED_STEPS):
+    if names != list(expected):
         raise ValueError(f"controller acceptance steps differ: {names}")
     failed = [name for name, ok in steps if ok != "1"]
     if failed:
@@ -72,19 +84,34 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     user.mkdir()
     config = out / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
-    env = {**os.environ,
-           "SNESRECOMP_USER_DATA_DIR": str(user),
-           "SNESRECOMP_UR_CONTROLLER_LIFECYCLE_ACCEPTANCE": "exit",
-           "SDL_VIDEODRIVER": video,
-           "SDL_AUDIODRIVER": "dummy"}
-    command = [str(exe), "--no-launcher", "--config", str(config), str(rom)]
-    proc = subprocess.run(command, cwd=out, env=env, timeout=timeout,
-                          text=True, capture_output=True, errors="replace")
-    log = proc.stdout + "\n" + proc.stderr
-    (out / "native-game.log").write_text(log, encoding="utf-8")
-    if proc.returncode:
-        raise ValueError(f"native game exited {proc.returncode}: {log[-1500:]}")
-    receipt = verify_log(log)
+    def launch(mode: str, label: str, extra: dict) -> str:
+        env = {**os.environ,
+               "SNESRECOMP_USER_DATA_DIR": str(user),
+               "SNESRECOMP_UR_CONTROLLER_LIFECYCLE_ACCEPTANCE": mode,
+               "SDL_VIDEODRIVER": video,
+               "SDL_AUDIODRIVER": "dummy", **extra}
+        command = [str(exe), "--no-launcher", "--config", str(config), str(rom)]
+        proc = subprocess.run(command, cwd=out, env=env, timeout=timeout,
+                              text=True, capture_output=True, errors="replace")
+        log = proc.stdout + "\n" + proc.stderr
+        (out / f"{label}.log").write_text(log, encoding="utf-8")
+        if proc.returncode:
+            raise ValueError(f"{label}: native game exited {proc.returncode}: {log[-1500:]}")
+        return log
+
+    receipt = verify_log(launch("exit", "native-game", {}))
+    # The launcher closes itself after ~1.5 s (recomp-ui smoke hook); the
+    # scenario's hotplug fires 0.4 s after it opens. Audio stays enabled
+    # (dummy driver) so committing the launcher's settings is not an
+    # audio change that restarts the process, and both players already use
+    # pads, so the commit does not re-seat from scratch (which would clear
+    # a stale seat on its own and hide a missing reconcile).
+    config.write_text("[Sound]\nEnableAudio = 1\n\n[Controller]\nSourceP1 = 2\nSourceP2 = 2\n",
+                      encoding="ascii")
+    launcher_log = launch("launcher", "native-game-launcher", {"LNG_SMOKE_FRAMES": "90"})
+    receipt["launcher_steps"] = verify_log(launcher_log, LAUNCHER_STEPS)["steps"]
+    if len(re.findall(r"UR_CONTROLLER_SEAT reconcile reason=launcher_returned ", launcher_log)) != 2:
+        raise ValueError("the in-game launcher return did not reconcile both hotplugs")
     receipt.update({
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
         "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),

@@ -160,6 +160,7 @@ The Display setting has three meanings, and every desktop host must keep them di
   - an exclusive window that lands on another display, or whose display's desktop mode changes, is re-moded for that display;
   - a windowed window whose title strip no longer shows at least 32 px on any display's usable area (for example after its monitor was removed) is centred on the primary display, shrunk to fit if necessary;
   - after a DPI change, a default-sized window that no longer fits is re-clamped through the framework's own window-scale rule.
+  - the in-game launcher's own event loop drains display events too, so the same reconcile runs when it returns (`reason=launcher_returned`), for a monitor removed or rescaled while it was open.
 
 Presentation pacing still follows the active display's refresh through the host's existing 250 ms re-check.
 

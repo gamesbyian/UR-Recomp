@@ -31,6 +31,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | C8 | Run the Authentic launcher and unplug a pad mid-race. | **No** pause; the guest just loses that input. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C9 | Unplug a pad in a menu (not racing), then start a race. | No pause appears later because of the earlier unplug. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C10 | Generic (unmapped) pad only: with A and B seated, plug a generic USB pad G that the log reports as `unmapped raw joystick`. Unplug B, then press a button on G. | G becomes P2; that press does nothing else. *(Requires #2233.)* | `UR_CONTROLLER_SEAT spare_kept … raw=1`, then `claim … seat=1` |
+| C11 | With A as P1, open the in-game launcher, unplug A, close the launcher; then open it again, plug A back in, close it. | After the first close, P1 has no pad (no ghost seat). After the second, A is P1 again. *(Requires the launcher-reconcile PR.)* | `UR_CONTROLLER_SEAT reconcile reason=launcher_returned gone …`; then `… new …` and `assign … seat=0 reason=reclaimed` |
 
 ## Focus
 
@@ -57,6 +58,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D11 | Two monitors, windowed: move the window to monitor 2, quit normally, relaunch. Repeat in FULLSCREEN. | It reopens on monitor 2 (windowed: at the same spot; fullscreen: at monitor 2's mode). *(Requires #2231.)* | `UR_DISPLAY placement saved=1 display=…`; next launch `UR_DISPLAY placement restored display=…` |
 | D12 | After D11, unplug monitor 2, then launch. | It opens on the primary monitor, fully reachable. *(Requires #2231.)* | `UR_DISPLAY placement saved_display_missing name=…` |
 | D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. *(Requires #2235.)* | `UR_DISPLAY placement restored … maximized=1` |
+| D14 | Two monitors, windowed on monitor 2: open the in-game launcher, unplug monitor 2, close the launcher. | The game window is on the primary monitor, reachable. *(Requires the launcher-reconcile PR.)* | `UR_DISPLAY reconcile reason=launcher_returned action=rescue` |
 
 ## Reporting
 

@@ -7,6 +7,8 @@ complete original/native event, monotonic divergence, or semantic phase match.
 from __future__ import annotations
 
 import json
+from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 import sys
 from zipfile import ZipFile
@@ -71,8 +73,13 @@ def prioritize(samples: list[tuple[int, bool]], last_frame: int) -> dict:
 def audit_archive(path: Path) -> dict:
     """Require the exact authentic 41-pair RF081 archive before prioritizing."""
     baseline = audit(path)  # verifies archive SHA, members, 128-KiB pairs and 41 samples
+    # Bind the second pass to immutable verified bytes rather than trusting
+    # that the caller's pathname still refers to the validated archive.
+    raw = path.read_bytes()
+    if sha256(raw).hexdigest() != RF081_SHA256:
+        raise ValueError("RF081 archive changed after source validation")
     samples = []
-    with ZipFile(path) as archive:
+    with ZipFile(BytesIO(raw)) as archive:
         for name in archive.namelist():
             match = PAIR.fullmatch(name)
             if match:

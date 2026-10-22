@@ -140,12 +140,12 @@ def validate_registry(registry, board):
         ids.add(cid)
         if wid not in work_ids and wid not in RETIRED_WORK_IDS:
             raise ValueError("orphan work ID for " + cid)
-        if wid in RETIRED_WORK_IDS and item["state"] in ACTIVE:
-            raise ValueError("retired work ID cannot accept new active recovery: " + cid)
         if type(item["discriminator"]) is not str or not item["discriminator"].strip():
             raise ValueError("missing discriminator")
         if item["state"] not in STATUSES:
             raise ValueError("invalid candidate state")
+        if wid in RETIRED_WORK_IDS and item["state"] in ACTIVE:
+            raise ValueError("retired work ID cannot accept new active recovery: " + cid)
         if item["failure_class"] not in FAILURE_CLASSES:
             raise ValueError("invalid failure class")
         if item["release_gate_credit"] is not False:

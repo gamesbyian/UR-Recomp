@@ -120,6 +120,23 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
           done
           echo "Actual final-drawable Windows Modern engineering baseline 1280x720 and 1024x768; same PE, separate clean runs; no redesign or physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture additional matrix output sizes (diagnostic, may be refused by the runner display)
+        # Acceptance-matrix root cases at 1080p, 480p and 4K. A runner display
+        # that cannot hold a size makes the host refuse that capture; that is
+        # recorded, never a failure of the QA owner's baseline.
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for size in 1920x1080 640x480 3840x2160; do
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$RUNNER_TEMP/ur-modern-win32-extra-$size" \
+              --video windows --timeout 100 --window-size "$size" \
+              && echo "captured $size" \
+              || echo "::warning title=Extra matrix size::$size capture refused or failed"
+          done
       # One bounded source/PE-bound final SDL motion proof, never a regular
       # requirement for unrelated PRs or evidence of physical/art approval.
       - name: Prove merged Modern animation in real SDL P7 and reduced control
@@ -248,6 +265,7 @@ jobs:
           for d in "$RUNNER_TEMP"/ur-modern-win32-visual-baseline \
                    "$RUNNER_TEMP"/ur-modern-win32-visual-1280x720 \
                    "$RUNNER_TEMP"/ur-modern-win32-visual-1024x768 \
+                   "$RUNNER_TEMP"/ur-modern-win32-extra-* \
                    "$RUNNER_TEMP"/ur-modern-win32-journey-*; do
             test -s "$d/actual-sdl-drawable.png" && test -s "$d/readback-receipt.json" \
               && dirs+=(--dir "$d")
@@ -256,6 +274,7 @@ jobs:
           python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" \
             --json "$RUNNER_TEMP/modern-capture-geometry.json" \
             --summary "$GITHUB_STEP_SUMMARY" \
+            | tee "$RUNNER_TEMP/modern-capture-geometry.txt" \
             || echo "::warning title=Modern capture geometry::one or more measurements failed or were refused (diagnostic, non-blocking); see this step's log"
           cp "$RUNNER_TEMP/modern-capture-geometry.json" \
             "$RUNNER_TEMP/ur-modern-win32-visual-baseline/modern-capture-geometry.json" 2>/dev/null || true
@@ -322,3 +341,10 @@ jobs:
           path: baldosa/build-ur-visual/UniracersSNESRecomp.exe
           if-no-files-found: warn
           retention-days: 7
+      - name: Echo the capture geometry table last (diagnostic, easy to find in the log)
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          cat "$RUNNER_TEMP/modern-capture-geometry.txt" 2>/dev/null \
+            || echo "No capture geometry report was produced."

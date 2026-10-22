@@ -39,6 +39,11 @@ except ModuleNotFoundError:  # direct CLI use
 # (route, output pixels) -> acceptance case, from the frozen coverage map.
 ROUTE_CASE = {(route, tuple(pixels)): case
               for case, (route, pixels, _) in coverage.CASE_MAP.items()}
+# The same plain root capture at the other root sizes the matrix names; the
+# frozen coverage map only covers the sizes of its historical cohort.
+ROUTE_CASE.update({("root-quit", (1920, 1080)): "root-wide-1080",
+                   ("root-quit", (3840, 2160)): "root-wide-4k-virtual",
+                   ("root-quit", (640, 480)): "root-43-480"})
 
 
 def _png_member(names, capture_id):

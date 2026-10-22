@@ -10,13 +10,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path, PurePosixPath
 import re
 import unicodedata
 
 from validate_release_quality_ledger import qa04_physical_coverage
-from qa04_anchored_posix import sha256_anchored
 
 SHA = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
@@ -181,14 +179,8 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
                 "aliased evidence source file")
         observed_files.add(str(original.resolve()).casefold())
         total += size
-        require(total <= MAX_TOTAL_BYTES,
-                "attached original source bytes changed or oversized")
-        # POSIX: hash through one pinned descriptor after path screening, so
-        # a concurrent rename/symlink swap cannot redirect the bytes read.
-        # Win32 still needs native opened-handle / reparse-point QA.
-        actual_digest = (sha256_anchored(path.parent, filename, size)
-                         if os.name == "posix" else sha256_file(original))
-        require(actual_digest == digest and original.stat().st_size == size,
+        require(total <= MAX_TOTAL_BYTES and original.stat().st_size == size
+                and sha256_file(original) == digest,
                 "attached original source bytes changed or oversized")
     needed = REQUIRED_PHYSICAL if hw["environment"] == "physical" else REQUIRED_VM
     require(needed <= observed_kinds, "missing independent observations: " +

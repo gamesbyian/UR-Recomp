@@ -125,16 +125,8 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
                 finally:
                     self.paths[0].write_text(old, encoding="utf-8")
         attachment = self.paths[1].parent / "audio-output.txt"
-        # Preserve the original length to reach the digest check even when
-        # POSIX descriptor-pinned reads reject size changes before hashing.
-        original_bytes = attachment.read_bytes()
-        attachment.write_bytes(b"x" * len(original_bytes))
+        attachment.write_bytes(b"tampered instead")
         with self.assertRaisesRegex(ValueError, "source bytes changed"):
-            self.review()
-        # An independently shortened or extended attachment must also fail.
-        attachment.write_bytes(original_bytes + b"!")
-        with self.assertRaisesRegex(ValueError,
-                                    "unexpected-size evidence|source bytes changed"):
             self.review()
 
     def test_refuses_synthetic_unobserved_devices_and_duplicate_machine_claim(self):

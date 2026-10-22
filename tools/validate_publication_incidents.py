@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
+from agent_control import BOARD, REGISTRY, RETIRED_WORK_IDS, extract_board, load_json, validate_registry
 
 ROOT = Path(__file__).resolve().parents[1]
 INCIDENTS = ROOT / "docs/recovery/publication-incidents.json"
@@ -24,7 +24,10 @@ def check(incidents, board, registry):
     rows = incidents.get("incidents")
     if type(rows) is not list:
         raise ValueError("incidents array missing")
-    known = {x["work_id"] for x in board["work"]}
+    # Exact historical refusal records retain their original immutable work IDs.
+    # A rotated dispatch board does not invalidate their incident provenance.
+    # Only the explicit retired-ID allowlist is accepted, not arbitrary orphans.
+    known = {x["work_id"] for x in board["work"]} | RETIRED_WORK_IDS
     candidates = {x["candidate_id"]: x for x in registry["candidates"]}
     ids = set()
     for entry in rows:

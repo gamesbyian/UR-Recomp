@@ -202,6 +202,9 @@ ur::product::BaldosaNativeTwoSeatJoin g_two_seat_join{};
 // leaves before the race, P2's confirmation is withdrawn. A semantic join
 // with no seated device (scripted journeys) records -1 and is never revoked.
 bool g_join_p1_by_keyboard = false;
+// -1 means keyboard or scripted P1; a physical P1 confirmation binds to
+// the exact SDL instance until it disconnects or the join is cancelled.
+long long g_join_p1_source = -1;
 long long g_join_p2_source = -1;
 // The pad the join moved to seat 2. The root is driven from seat 1 only, so
 // once that join is over (cancelled, or the 2P race returned to the root) the
@@ -547,16 +550,29 @@ void join_return_moved_pad() {
             "UR_BALDOSA_MODERN_ROOT join_pad_returned from=2 to=1\n");
     }
 }
+bool join_p1_owner_present() {
+    return g_join_p1_source == -1 ||
+        snesrecomp_desktop_product_seat_source(0) == g_join_p1_source;
+}
 void join_watch_seat_owners() {
-    if (!g_two_seat_join.open() || !g_two_seat_join.confirmed(1) ||
-        join_p2_owner_present()) return;
-    g_two_seat_join.clear(1);
-    g_join_p2_source = -1;
-    std::fprintf(stderr,
-        "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 confirmation_cleared=1\n");
+    if (!g_two_seat_join.open()) return;
+    if (g_two_seat_join.confirmed(0) && !join_p1_owner_present()) {
+        g_two_seat_join.clear(0);
+        g_join_p1_source = -1;
+        g_join_p1_by_keyboard = false;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT join_seat_left seat=1 confirmation_cleared=1\n");
+    }
+    if (g_two_seat_join.confirmed(1) && !join_p2_owner_present()) {
+        g_two_seat_join.clear(1);
+        g_join_p2_source = -1;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 confirmation_cleared=1\n");
+    }
 }
 bool confirmed_join_still_admissible() {
     if (!g_two_seat_join.ready()) return false;
+    if (!join_p1_owner_present()) return false;
     if (!join_p2_owner_present()) return false;
     const auto* first = g_two_seat_join.participant(0);
     const auto* second = g_two_seat_join.participant(1);
@@ -579,6 +595,10 @@ void join_confirm(unsigned seat) {
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT join_rejected seat=%u\n", seat + 1u);
         return;
+    }
+    if (seat == 0) {
+        g_join_p1_by_keyboard = false;
+        g_join_p1_source = snesrecomp_desktop_product_seat_source(0);
     }
     if (seat == 1) g_join_p2_source = snesrecomp_desktop_product_seat_source(1);
     std::fprintf(stderr,
@@ -871,6 +891,7 @@ void choose() {
             }
             g_p2_join_edges.reset();
             g_join_p1_by_keyboard = false;
+            g_join_p1_source = -1;
             g_join_p2_source = -1;
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\n");
@@ -1170,8 +1191,10 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     else if (action == 6) adjust(1);
     else navigate(action);
     if (action == 2 && !p1_was_confirmed && g_two_seat_join.open() &&
-        g_two_seat_join.confirmed(0))
+        g_two_seat_join.confirmed(0)) {
         g_join_p1_by_keyboard = true;
+        g_join_p1_source = -1;  // keyboard P1 is not owned by a seated pad
+    }
     return 1;
 }
 

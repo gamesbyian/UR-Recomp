@@ -1026,6 +1026,20 @@ jobs:
           test "$GITHUB_SHA" = "$QA_APPROVED_SHA"
           test "$ACTUAL_ZIP_SHA256" = "$QA_APPROVED_ZIP_SHA256"
           test -d "$TEST_PACKAGE"
+          # Re-run the *standalone* package verifier with both exact pins;
+          # do not treat a ZIP checksum as source-manifest authentication.
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1")"
+          ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
+          CHECKSUM_WIN="$(cygpath -w "$PACKAGE_ARCHIVE_CHECKSUM")"
+          VERIFY_WIN="$(cygpath -w "$RUNNER_TEMP/tournament pinned verifier")"
+          powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass \
+            -File "$SCRIPT_WIN" -Archive "$ARCHIVE_WIN" \
+            -Checksum "$CHECKSUM_WIN" -Destination "$VERIFY_WIN" \
+            -ExpectedSourceSha "$QA_APPROVED_SHA" \
+            -ExpectedZipSha256 "$QA_APPROVED_ZIP_SHA256" \
+            | tee "$RUNNER_TEMP/tournament-package-verify.log"
+          grep -Fq "UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED revision=$QA_APPROVED_SHA sha256=$QA_APPROVED_ZIP_SHA256" \
+            "$RUNNER_TEMP/tournament-package-verify.log"
           test ! -e "$RUNNER_TEMP/tournament-work"
           printf 'schema=ur-windows-qa-candidate/1\nbackend=snesrecomp\nsmoke_run_id=%s\nsource_commit=%s\ninner_zip_sha256=%s\nqa_harness_commit=%s\n' \
             "$GITHUB_RUN_ID" "$QA_APPROVED_SHA" "$QA_APPROVED_ZIP_SHA256" "$GITHUB_SHA" \

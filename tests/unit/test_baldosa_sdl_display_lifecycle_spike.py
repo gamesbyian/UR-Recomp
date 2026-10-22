@@ -186,12 +186,29 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
             host = game / "snesrecomp/runner/src/desktop/host_main.c"
             host.parent.mkdir(parents=True)
             host.write_text(HOST_STUB, encoding="utf-8")
+            launcher = game / "recomp-ui/src/common/launcher_platform_sdl3.c"
+            launcher.parent.mkdir(parents=True)
+            launcher_stub = "static bool open(void) {\n" + seam.LAUNCHER_GL + "}\n"
+            launcher.write_text(launcher_stub, encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "display policy"):
                 seam.plan(game, Path(d) / "no-ur-root")
-            [(path, before, after)] = seam.plan(game, ROOT)
+            [(path, before, after), (lpath, lbefore, lafter)] = seam.plan(game, ROOT)
             self.assertEqual((path, before), (host, HOST_STUB))
             self.assertIn(seam.MARK, after)
             self.assertEqual(host.read_text(encoding="utf-8"), HOST_STUB)
+            self.assertEqual((lpath, lbefore), (launcher, launcher_stub))
+            self.assertEqual(launcher.read_text(encoding="utf-8"), launcher_stub)
+            # A context older than GL 3 is torn down and the open fails, so
+            # the launcher returns UNAVAILABLE instead of drawing.
+            guard = lafter[lafter.index(seam.MARK):]
+            self.assertIn('SDL_GL_GetProcAddress("glGetString")', guard)
+            self.assertIn("if (major < 3) {", guard)
+            self.assertLess(guard.index("SDL_GL_DestroyContext(p->gl);"),
+                            guard.index("return false;"))
+            self.assertLess(lafter.index(seam.MARK), lafter.index("SDL_GL_SetSwapInterval(1);"))
+            self.assertEqual(seam.patch_launcher_platform(lafter), lafter)
+            with self.assertRaisesRegex(ValueError, "diverged"):
+                seam.patch_launcher_platform("static bool open(void) {}\n")
 
     def test_runner_is_fail_closed(self):
         self.assertEqual(runner.verify_log(acceptance_log())["offscreen_rescue"], "pass")

@@ -204,6 +204,18 @@ def helpers(policy: Path) -> str:
         "  SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);\n"
         "  return ur_controller_device_key(guid.data, SDL_JoystickGetSerial(joystick));\n"
         "}\n"
+        "/* The player number SDL keeps per device drives DualSense and Switch\n"
+        " * lights. SDL hands a new device the lowest free number and bumps any\n"
+        " * device already holding a number given to another, so after every seat\n"
+        " * decision each seated pad is told its seat again. */\n"
+        "static void UrSeatShowPlayerIndex(void) {\n"
+        "  for (int i = 0; i < UR_CONTROLLER_SEAT_COUNT; i++) {\n"
+        "    SDL_Joystick *j = g_gamepad[i].joystick_id == -1 ? NULL\n"
+        "        : g_gamepad[i].raw_joystick ? g_gamepad[i].joystick\n"
+        "        : g_ur_seat_pad[i] ? SDL_GameControllerGetJoystick(g_ur_seat_pad[i]) : NULL;\n"
+        "    if (j && SDL_JoystickGetPlayerIndex(j) != i) SDL_JoystickSetPlayerIndex(j, i);\n"
+        "  }\n"
+        "}\n"
         "/* Choose and record a seat; -1 leaves the pad unseated (but open). */\n"
         "static int UrSeatAssign(SDL_Joystick *joystick, int player_index,\n"
         "                        int forced_seat, SDL_JoystickID id,\n"
@@ -219,6 +231,10 @@ def helpers(policy: Path) -> str:
         "         \"player_index=%d key=%016llx\\n\", (unsigned)id, choice.seat,\n"
         "         ur_controller_seat_reason_name(choice.reason), player_index,\n"
         "         (unsigned long long)key);\n"
+        "  /* The pad's own player number shows its seat; an unseated spare shows\n"
+        "   * none, and any seated pad it bumped is told its seat again. */\n"
+        "  if (joystick) SDL_JoystickSetPlayerIndex(joystick, choice.seat);\n"
+        "  UrSeatShowPlayerIndex();\n"
         "  if (choice.seat < 0) return -1;\n"
         "  ur_controller_seat_taken(g_ur_seats, choice.seat, key);\n"
         "  g_ur_seat_key[choice.seat] = key;\n"
@@ -409,6 +425,8 @@ def helpers(policy: Path) -> str:
         "  ur_controller_seat_taken(g_ur_seats, to, key);\n"
         "  g_ur_seat_key[to] = key;\n"
         "  g_ur_seat_pad[to] = pad;\n"
+        "  SDL_Joystick *moved = raw ? raw_handle : pad ? SDL_GameControllerGetJoystick(pad) : NULL;\n"
+        "  if (moved) SDL_JoystickSetPlayerIndex(moved, to);  /* its lights follow */\n"
         "  printf(\"[Gamepad] UR_CONTROLLER_SEAT move instance=%u from=%d to=%d\\n\",\n"
         "         (unsigned)id, from, to);\n"
         "  return 1;\n"
@@ -445,6 +463,10 @@ static int UrAcceptSeatOf(int pad) {
   for (int i = 0; i < 2; i++)
     if (g_gamepad[i].joystick_id == g_ur_accept_id[pad]) return i;
   return -1;
+}
+/* The player number SDL (and the pad's lights) currently show, -2 if absent. */
+static int UrAcceptIndexOf(int pad) {
+  return g_ur_accept_joy[pad] ? SDL_GetJoystickPlayerIndex(g_ur_accept_joy[pad]) : -2;
 }
 static void UrAcceptAttach(int pad, Uint16 product, int player_index) {
   static const char *const kNames[kUrAcceptPads] = {
@@ -561,6 +583,8 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   case 3:
     UrAcceptExpect("no_steal", UrAcceptSeatOf(0) == 0 && UrAcceptSeatOf(1) == 1 &&
                    UrAcceptSeatOf(2) == -1);
+    UrAcceptExpect("spare_shows_no_player_index", UrAcceptIndexOf(0) == 0 &&
+                   UrAcceptIndexOf(1) == 1 && UrAcceptIndexOf(2) == -1);
     UrAcceptButton(2, true);  /* both seats full: no claim */
     break;
   case 4:
@@ -579,6 +603,9 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   case 7:
     UrAcceptExpect("p1_reclaimed", UrAcceptSeatOf(0) == 0 && UrAcceptSeatOf(1) == 1 &&
                    UrAcceptSeatOf(2) == -1);
+    /* A came back holding P2's number; it shows P1 again, B keeps P2. */
+    UrAcceptExpect("reclaimed_pad_shows_its_seat", UrAcceptIndexOf(0) == 0 &&
+                   UrAcceptIndexOf(1) == 1 && UrAcceptIndexOf(2) == -1);
     UrAcceptDetach(1);
     break;
   case 8:
@@ -752,6 +779,7 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   case 37:
     UrAcceptExpect("moved_pad_drives_p2", (g_pad_buttons & 0xfffu) == 0 &&
                    (g_pad_buttons & 0xfff000u) != 0);
+    UrAcceptExpect("moved_pad_shows_p2", UrAcceptIndexOf(0) == 1);
     UrAcceptButton(0, false);
     break;
   case 38:

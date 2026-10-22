@@ -24,9 +24,11 @@ from pathlib import Path
 EXPECTED_STEPS = (
     "two_pads_seated",
     "no_steal",
+    "spare_shows_no_player_index",
     "full_no_claim",
     "p1_vacated",
     "p1_reclaimed",
+    "reclaimed_pad_shows_its_seat",
     "spare_claimed_p2",
     "held_released_on_remove",
     "replacement_takes_absent_seat",
@@ -48,6 +50,7 @@ EXPECTED_STEPS = (
     "seat_move_refused_when_target_bad",
     "seat_move_p1_pad_to_p2",
     "moved_pad_drives_p2",
+    "moved_pad_shows_p2",
     "moved_pad_reclaims_p2_after_replug",
 )
 # Second launch: the real in-game launcher drains a hotplug; the seat table

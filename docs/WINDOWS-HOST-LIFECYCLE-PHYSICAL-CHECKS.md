@@ -33,6 +33,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | C10 | Generic (unmapped) pad only: with A and B seated, plug a generic USB pad G that the log reports as `unmapped raw joystick`. Unplug B, then press a button on G. | G becomes P2; that press does nothing else. | `UR_CONTROLLER_SEAT spare_kept … raw=1`, then `claim … seat=1` |
 | C11 | With A as P1, open the in-game launcher, unplug A, close the launcher; then open it again, plug A back in, close it. | After the first close, P1 has no pad (no ghost seat). After the second, A is P1 again. | `UR_CONTROLLER_SEAT reconcile reason=launcher_returned gone …`; then `… new …` and `assign … seat=0 reason=reclaimed` |
 | C12 | No pads plugged in, keyboard only: press Ctrl+L, close the launcher, then quit and relaunch. Race with the arrow keys. Then plug a pad in and race with it. | The keyboard still drives P1 after the launcher and after the relaunch. Once the pad is plugged in, the pad drives P1. | `config.ini` shows `SourceP1 = 2`, yet the keyboard works |
+| C13 | Two pads with player lights (DualSense, DualShock 4 or Switch Pro), A as P1 and B as P2: unplug A, plug it back in; then, with A and B both seated, plug in a third pad C. | The lights always match the seats: A shows player 1 after it returns, B player 2; C, left without a seat, does not show player 1 or 2, and A and B keep theirs. | `UR_CONTROLLER_SEAT assign … seat=…` for each pad |
 
 ## Focus
 

@@ -16,9 +16,8 @@ from tests.unit.test_qa_modern_visual_diagnostics import p7
 ROOT = Path(__file__).resolve().parents[2]
 VARIANTS = ("root", "practice", "join", "options", "records", "warning",
             "first-racer", "pause", "pause-controls")
-# Native-host composition (root shell + separate destination presenter).
-# Its supporting-copy contrast belongs to the destination owner (#2167);
-# its geometry is audited here.
+# Native-host composition (root shell + separate destination presenter),
+# audited for contrast as well as geometry.
 DEST_VARIANTS = tuple("dest-" + v for v in VARIANTS[1:]
                       if not v.startswith("pause"))
 
@@ -44,7 +43,7 @@ class ModernRootLegibilityAudit(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_every_text_draw_meets_text_contrast(self):
-        for variant in VARIANTS:
+        for variant in VARIANTS + DEST_VARIANTS:
             for width in (256, 342):
                 run = subprocess.run(
                     [str(self.exe), str(width), str(Path(self.tmp.name) / "x.p7"),

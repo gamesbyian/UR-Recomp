@@ -329,7 +329,7 @@ inline bool render_modern_native_destination(
             modern_native_destination_line(
                 p, pixels, stride, surface_height, c, 112,
                 status ? v.options_status : v.options_notice,
-                status ? col.title_yellow : col.secondary_grey);
+                status ? col.title_yellow : kModernMenuCheckerLegibleGrey);
             const bool adjustable = v.options_selected < count &&
                 v.options_rows[v.options_selected].adjustable;
             modern_native_destination_line(
@@ -380,11 +380,11 @@ inline bool render_modern_native_destination(
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 91,
             v.practice_launch_pending ? "RACE STARTING" : unlocked,
-            col.secondary_grey);
+            kModernMenuCheckerLegibleGrey);
         if (!v.practice_launch_pending && v.practice_courses_open > 1)
             modern_native_destination_line(
                 p, pixels, stride, surface_height, c, 110,
-                "UP/DN COURSE   L/R TOUR", col.secondary_grey);
+                "UP/DN COURSE   L/R TOUR", kModernMenuCheckerLegibleGrey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 125,
             v.practice_launch_pending ? "B CANCEL" : "A START   B BACK",
@@ -407,10 +407,10 @@ inline bool render_modern_native_destination(
         if (v.read_only_records_two_player && !v.records_detail.empty())
             modern_native_destination_line(
                 p, pixels, stride, surface_height, c, 101,
-                v.records_detail, col.secondary_grey, 9, 1, true);
+                v.records_detail, kModernMenuCheckerLegibleGrey, 9, 1, true);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 114,
-            "REPLAY UNAVAILABLE", col.secondary_grey);
+            "REPLAY UNAVAILABLE", kModernMenuCheckerLegibleGrey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 125,
             v.read_only_records_pages_available
@@ -439,7 +439,7 @@ inline bool render_modern_native_destination(
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 84,
             std::string("RACE AS: ") + std::string(v.join_p1_stock) +
-            " / " + std::string(v.join_p2_stock), col.secondary_grey);
+            " / " + std::string(v.join_p2_stock), kModernMenuCheckerLegibleGrey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 108,
             "P1 A READY   B BACK", 0xFFFFFFFFu);
@@ -451,7 +451,7 @@ inline bool render_modern_native_destination(
             p, pixels, stride, surface_height, c, 39,
             v.first_racer_is_switch ? "P1 CHANGES ON RESTART" :
             v.first_racer_is_second ? "SECOND RACER" :
-                                       "FIRST RACER", col.secondary_grey);
+                                       "FIRST RACER", kModernMenuCheckerLegibleGrey);
         modern_native_destination_row(
             p, pixels, stride, surface_height, c, 59, true,
             std::string(v.first_racer_is_switch ? "NEXT P1: " : "PRESET: ") +
@@ -467,7 +467,7 @@ inline bool render_modern_native_destination(
             p, pixels, stride, surface_height, c, 105,
             v.first_racer_created ? "QUIT AND RESTART GAME" :
             v.first_racer_is_switch ? "EXISTING PROFILE ONLY" :
-                                      "UP/DOWN CHOOSE PRESET", col.secondary_grey);
+                                      "UP/DOWN CHOOSE PRESET", kModernMenuCheckerLegibleGrey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
             v.first_racer_created ? "B BACK  THEN QUIT" :
@@ -482,7 +482,7 @@ inline bool render_modern_native_destination(
             "LOCAL 2P STILL PLAYABLE", 0xFFFFFFFFu);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 85,
-            "2P RESULTS NOT SAVED", col.secondary_grey);
+            "2P RESULTS NOT SAVED", kModernMenuCheckerLegibleGrey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
             "P1 A ANYWAY   B BACK", col.cursor_blue);

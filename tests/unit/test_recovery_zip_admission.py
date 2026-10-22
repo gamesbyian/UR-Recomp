@@ -60,6 +60,41 @@ class RecoveryZipAdmissionTest(unittest.TestCase):
                 z.writestr('file.txt',b'two')
         with self.assertRaises(ValueError):admit(output.getvalue())
 
+    def test_nested_members_obey_canonical_win32_portability(self):
+        # All these ZIPs have valid CRC and internally consistent hashes:
+        # digest integrity alone cannot make unsafe names portable.
+        rejected = (
+            {'CON.txt': b'x'},
+            {'safe/LPT².log': b'x'},
+            {'bad\u0085.txt': b'x'},
+            {'safe/stream:ads': b'x'},
+            {'safe/file. ': b'x'},
+            {'e\u0301.txt': b'x'},
+            {'A.txt': b'a', 'a.TXT': b'b'},
+            {'node': b'a', 'node/leaf.py': b'b'},
+        )
+        for entries in rejected:
+            with self.subTest(names=list(entries)), self.assertRaisesRegex(
+                    ValueError, 'unsafe ZIP member|portable ZIP'):
+                admit(package(entries))
+        self.assertEqual(
+            admit(package({'safe/résumé.py': b'good',
+                           'safe/name².txt': b'also good'}))['members'], 2)
+
+    def test_nonportable_child_rejected_even_with_valid_outer_manifest(self):
+        inner = package({'safe/CONIN
+        inner=package({'a.txt':b'a'})
+        outer=package({'nested.zip':inner})
+        with self.assertRaisesRegex(ValueError,'depth'):
+            admit(outer,depth=3,max_depth=2)
+        with self.assertRaises(ValueError):admit('not bytes')
+
+if __name__=='__main__':unittest.main()
+: b'invalid'})
+        outer = package({'safe/nested.zip': inner})
+        with self.assertRaisesRegex(ValueError, 'unsafe ZIP member'):
+            admit(outer)
+
     def test_depth_and_invalid_input_fail_closed(self):
         inner=package({'a.txt':b'a'})
         outer=package({'nested.zip':inner})

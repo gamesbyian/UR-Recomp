@@ -115,6 +115,284 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
         raise OSError('No audited atomic no-replace directory publish on this host')
 
 
+def _portable_run_namespace_entries(root: Path) -> list[Path]:
+    """Refuse nonportable siblings before selecting an earned Windows run.
+
+    A POSIX-produced namespace must not silently lose members when interpreted
+    by Win32 (reserved devices, invalid names, case-insensitive aliases). This
+    is a directory-entry check, not proof that NTFS alternate streams are absent.
+    """
+    entries = list(root.iterdir())
+    seen: set[str] = set()
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN    root_name = journey.name
+    # Validate unencodable code points before computing the Win32 UTF-16
+    # length. POSIX surrogateescaped filenames must get our bounded,
+    # actionable refusal, not an uncaught UnicodeEncodeError.
+    invalid_codepoints = any(
+        ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+        or ch in '<>:"|?*\\/' for ch in root_name
+    )
+    stem = root_name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
+    reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
+    if (not root_name or root_name.endswith((' ', '.')) or invalid_codepoints or
+            unicodedata.normalize('NFC', root_name) != root_name or
+            len(root_name.encode('utf-16-le')) // 2 > 255 or
+            stem in reserved):
+        raise ValueError('Nonportable source journey root name')
+    if destination == journey or journey in destination.parents:
+        raise ValueError('Evidence destination must be outside source journey')
+    if (journey.is_symlink() or not journey.is_dir() or
+            journey.resolve(strict=True) != journey.absolute()):
+        raise ValueError('Missing/redirected native Windows journey')
+    report_bytes = _regular_bytes(journey / 'report.json', MAX_REPORT_BYTES)
+    report = json.loads(report_bytes, object_pairs_hook=_unique_pairs,
+                        parse_float=_finite_float, parse_constant=_reject_constant)
+    if not isinstance(report, dict) or report.get('scope') != SOURCE_SCOPE or any(
+        report.get(key) is not True for key in (
+            'first_game_created_first_named_racer',
+            'second_game_loaded_named_sram_and_finished_real_source_race',
+            'third_game_reopened_exact_earned_run_read_only',
+            'active_selector_and_catalog_preserved',
+            'anonymous_sram_preserved',
+        )
+    ) or (type(report.get('release_gate_credit')) is not int or
+        report['release_gate_credit'] != 0) or any(
+        report.get(key) is not False for key in (
+            'physical_gamepad_verified', 'strict_original_native_event_pass',
+        )
+    ):
+        raise ValueError('Source journey did not report qualified bounded 1P path')
+    expected = report.get('one_canonical_run_sha256')
+    if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected):
+        raise ValueError('Missing canonical source-earned run digest')
+    runs_root = journey / 'Brand New Player With Spaces' / 'runs' / 'mike'
+    if (runs_root.is_symlink() or not runs_root.is_dir() or
+            runs_root.resolve(strict=True) != runs_root.absolute()):
+        raise ValueError('Missing/redirected earned-run namespace')
+    entries = _portable_run_namespace_entries(runs_root)
+    candidates = [entry for entry in entries
+                  if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
+    if len(candidates) != 1 or candidates[0].suffix != '.urrun':
+        raise ValueError('Expected exactly one source-earned .urrun')
+    source_name = candidates[0].name
+    if (unicodedata.normalize('NFC', source_name) != source_name or
+            # Reject surrogateescaped POSIX filenames before UTF-8 encoding.
+            # The source journey root already follows this bounded policy.
+            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+                for ch in source_name) or
+            len(source_name.encode('utf-8')) > 255 or
+            source_name[-1] in (' ', '.') or
+            any(ch in '<>:"|?*\\' for ch in source_name)):
+        raise ValueError('Nonportable source-earned run filename')
+    # A Linux-produced fixture may carry a filename that cannot be reopened
+    # through Win32. Refuse reserved DOS device basenames before transport.
+    device_stem = source_name.split('.', 1)[0].upper().translate(
+        str.maketrans('¹²³', '123'))
+    if (device_stem in {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'} or
+            device_stem in {f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10)}):
+        raise ValueError('Nonportable source-earned run filename')
+    data = _regular_bytes(candidates[0], MAX_RUN_BYTES)
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != expected:
+        raise ValueError('Source-earned run differs from original Windows report')
+    # Build outside the published artifact name. If verification or a write
+    # fails, upload-artifact must never mistake partial bytes for evidence.
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(f'Evidence destination already exists: {destination}')
+    if (not destination.parent.is_dir() or
+            destination.parent.resolve(strict=True) != destination.parent.absolute()):
+        raise ValueError('Evidence destination parent does not exist')
+    staging = Path(tempfile.mkdtemp(prefix='.pending-earned-1p-',
+                                    dir=destination.parent))
+    try:
+        members = {
+            'earned.urrun': data,
+            'source-report.json': report_bytes,
+        }
+        for name, payload in members.items():
+            with (staging / name).open('xb') as output:
+                output.write(payload)
+            if _regular_bytes(staging / name, MAX_RUN_BYTES) != payload:
+                raise ValueError('CI evidence copy differs from original bytes')
+        manifest = {
+            'schema_version': 1,
+            'source_run_filename': candidates[0].name,
+            'source_scope': SOURCE_SCOPE,
+            'members': {name: {'sha256': hashlib.sha256(payload).hexdigest(),
+                               'bytes': len(payload)}
+                        for name, payload in members.items()},
+            'independent_release_acceptance': False,
+        }
+        with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
+            json.dump(manifest, output, indent=2, sort_keys=True)
+            output.write('\n')
+        if destination.exists() or destination.is_symlink():
+            raise FileExistsError(f'Evidence destination already exists: {destination}')
+        # Same-parent rename publishes the complete evidence set at once.
+        # Windows refuses a directory collision; on POSIX reject it first.
+        _publish_directory_no_replace(staging, destination)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+    return manifest
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--journey', type=Path, required=True)
+    parser.add_argument('--out', type=Path, required=True)
+    args = parser.parse_args()
+    manifest = export(args.journey.absolute(), args.out.absolute())
+    print('UR_CI_EARNED_1P_RUN_EXPORTED', manifest['members']['earned.urrun']['sha256'])
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
+, 'CONOUT    root_name = journey.name
+    # Validate unencodable code points before computing the Win32 UTF-16
+    # length. POSIX surrogateescaped filenames must get our bounded,
+    # actionable refusal, not an uncaught UnicodeEncodeError.
+    invalid_codepoints = any(
+        ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+        or ch in '<>:"|?*\\/' for ch in root_name
+    )
+    stem = root_name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
+    reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
+    if (not root_name or root_name.endswith((' ', '.')) or invalid_codepoints or
+            unicodedata.normalize('NFC', root_name) != root_name or
+            len(root_name.encode('utf-16-le')) // 2 > 255 or
+            stem in reserved):
+        raise ValueError('Nonportable source journey root name')
+    if destination == journey or journey in destination.parents:
+        raise ValueError('Evidence destination must be outside source journey')
+    if (journey.is_symlink() or not journey.is_dir() or
+            journey.resolve(strict=True) != journey.absolute()):
+        raise ValueError('Missing/redirected native Windows journey')
+    report_bytes = _regular_bytes(journey / 'report.json', MAX_REPORT_BYTES)
+    report = json.loads(report_bytes, object_pairs_hook=_unique_pairs,
+                        parse_float=_finite_float, parse_constant=_reject_constant)
+    if not isinstance(report, dict) or report.get('scope') != SOURCE_SCOPE or any(
+        report.get(key) is not True for key in (
+            'first_game_created_first_named_racer',
+            'second_game_loaded_named_sram_and_finished_real_source_race',
+            'third_game_reopened_exact_earned_run_read_only',
+            'active_selector_and_catalog_preserved',
+            'anonymous_sram_preserved',
+        )
+    ) or (type(report.get('release_gate_credit')) is not int or
+        report['release_gate_credit'] != 0) or any(
+        report.get(key) is not False for key in (
+            'physical_gamepad_verified', 'strict_original_native_event_pass',
+        )
+    ):
+        raise ValueError('Source journey did not report qualified bounded 1P path')
+    expected = report.get('one_canonical_run_sha256')
+    if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected):
+        raise ValueError('Missing canonical source-earned run digest')
+    runs_root = journey / 'Brand New Player With Spaces' / 'runs' / 'mike'
+    if (runs_root.is_symlink() or not runs_root.is_dir() or
+            runs_root.resolve(strict=True) != runs_root.absolute()):
+        raise ValueError('Missing/redirected earned-run namespace')
+    candidates = [entry for entry in runs_root.iterdir()
+                  if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
+    if len(candidates) != 1 or candidates[0].suffix != '.urrun':
+        raise ValueError('Expected exactly one source-earned .urrun')
+    source_name = candidates[0].name
+    if (unicodedata.normalize('NFC', source_name) != source_name or
+            # Reject surrogateescaped POSIX filenames before UTF-8 encoding.
+            # The source journey root already follows this bounded policy.
+            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+                for ch in source_name) or
+            len(source_name.encode('utf-8')) > 255 or
+            source_name[-1] in (' ', '.') or
+            any(ch in '<>:"|?*\\' for ch in source_name)):
+        raise ValueError('Nonportable source-earned run filename')
+    # A Linux-produced fixture may carry a filename that cannot be reopened
+    # through Win32. Refuse reserved DOS device basenames before transport.
+    device_stem = source_name.split('.', 1)[0].upper().translate(
+        str.maketrans('¹²³', '123'))
+    if (device_stem in {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'} or
+            device_stem in {f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10)}):
+        raise ValueError('Nonportable source-earned run filename')
+    data = _regular_bytes(candidates[0], MAX_RUN_BYTES)
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != expected:
+        raise ValueError('Source-earned run differs from original Windows report')
+    # Build outside the published artifact name. If verification or a write
+    # fails, upload-artifact must never mistake partial bytes for evidence.
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(f'Evidence destination already exists: {destination}')
+    if (not destination.parent.is_dir() or
+            destination.parent.resolve(strict=True) != destination.parent.absolute()):
+        raise ValueError('Evidence destination parent does not exist')
+    staging = Path(tempfile.mkdtemp(prefix='.pending-earned-1p-',
+                                    dir=destination.parent))
+    try:
+        members = {
+            'earned.urrun': data,
+            'source-report.json': report_bytes,
+        }
+        for name, payload in members.items():
+            with (staging / name).open('xb') as output:
+                output.write(payload)
+            if _regular_bytes(staging / name, MAX_RUN_BYTES) != payload:
+                raise ValueError('CI evidence copy differs from original bytes')
+        manifest = {
+            'schema_version': 1,
+            'source_run_filename': candidates[0].name,
+            'source_scope': SOURCE_SCOPE,
+            'members': {name: {'sha256': hashlib.sha256(payload).hexdigest(),
+                               'bytes': len(payload)}
+                        for name, payload in members.items()},
+            'independent_release_acceptance': False,
+        }
+        with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
+            json.dump(manifest, output, indent=2, sort_keys=True)
+            output.write('\n')
+        if destination.exists() or destination.is_symlink():
+            raise FileExistsError(f'Evidence destination already exists: {destination}')
+        # Same-parent rename publishes the complete evidence set at once.
+        # Windows refuses a directory collision; on POSIX reject it first.
+        _publish_directory_no_replace(staging, destination)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+    return manifest
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--journey', type=Path, required=True)
+    parser.add_argument('--out', type=Path, required=True)
+    args = parser.parse_args()
+    manifest = export(args.journey.absolute(), args.out.absolute())
+    print('UR_CI_EARNED_1P_RUN_EXPORTED', manifest['members']['earned.urrun']['sha256'])
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
+}
+    reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
+    for entry in entries:
+        name = entry.name
+        stem = name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+        if (not name or name.endswith((' ', '.')) or
+                unicodedata.normalize('NFC', name) != name or
+                any(unicodedata.category(ch) in ('Cc', 'Cf', 'Cs')
+                    or ch in '<>:"|?*\\/' for ch in name) or
+                len(name.encode('utf-16-le')) // 2 > 255 or stem in reserved):
+            raise ValueError('Nonportable sibling in earned-run namespace')
+        folded = name.casefold()
+        if folded in seen:
+            raise ValueError('Win32-colliding sibling in earned-run namespace')
+        seen.add(folded)
+    return entries
+
+
 def export(journey: Path, destination: Path) -> dict[str, object]:
     root_name = journey.name
     # Validate unencodable code points before computing the Win32 UTF-16

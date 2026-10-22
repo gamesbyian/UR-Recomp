@@ -3,8 +3,9 @@
 No archive extraction or execution. A nested archive without a member-level
 manifest is explicitly unqualified, not silently accepted as equivalent.
 """
-import hashlib, io, json, re, stat, zipfile
+import hashlib, io, json, re, stat, unicodedata, zipfile
 from pathlib import PurePosixPath
+from strict_vault_manifest import _portable_win32_component
 SHA=re.compile('[0-9a-f]{64}\\Z')
 MAX_MEMBER=12*1024*1024
 MAX_TOTAL=32*1024*1024
@@ -26,16 +27,27 @@ def admit(blob, *, depth=0, max_depth=2):
         infos=z.infolist();names=[x.filename for x in infos]
         if len(names)!=len(set(names)) or not names:raise ValueError('duplicate/empty archive')
         total=0
+        folded=set()
         for item in infos:
             p=PurePosixPath(item.filename)
             if (item.is_dir() or p.is_absolute() or '..' in p.parts or
                 '\\' in item.filename or '\x00' in item.filename or
                 not item.filename or any(part in ('','.','..') for part in item.filename.split('/')) or
+                unicodedata.normalize('NFC',item.filename)!=item.filename or
+                any(not _portable_win32_component(part) for part in item.filename.split('/')) or
                 item.flag_bits&1 or item.file_size>MAX_MEMBER or
                 stat.S_IFMT(item.external_attr>>16) not in (0,stat.S_IFREG)):
                 raise ValueError('unsafe ZIP member')
+            fold=item.filename.casefold()
+            if fold in folded:raise ValueError('portable ZIP member alias collision')
+            folded.add(fold)
             total+=item.file_size
         if total>MAX_TOTAL:raise ValueError('recovery expanded byte budget exceeded')
+        for folded_name in folded:
+            parts=folded_name.split('/')
+            for stop in range(1,len(parts)):
+                if '/'.join(parts[:stop]) in folded:
+                    raise ValueError('portable ZIP file/directory prefix collision')
         manifest_names=[n for n in names if n in ('MANIFEST.json','MANIFEST-H25.json','ARCHIVE-MANIFEST.json')]
         if not manifest_names:raise ValueError('no manifest')
         # Do not treat a provenance-only manifest as a complete member digest census.

@@ -44,6 +44,11 @@ def _durable_db_path(path, *, must_exist):
     p=Path(path).absolute()
     if not p.name or not p.parent.is_dir():
         raise ValueError('missing SQLite parent')
+    # H26 first-party POSIX permission preflight: a group/other-writable
+    # containing directory permits filename substitution by another process.
+    # Windows ACL inspection is separately required; this is not atomic.
+    if os.name == 'posix' and p.parent.stat().st_mode & 0o022:
+        raise ValueError('SQLite parent writable by untrusted group/others')
     for ancestor in (p.parent,*p.parents):
         if ancestor.is_symlink():
             raise ValueError('symlink SQLite ancestor')
@@ -55,6 +60,8 @@ def _durable_db_path(path, *, must_exist):
         st=p.lstat()
         if not stat.S_ISREG(st.st_mode) or st.st_nlink!=1:
             raise ValueError('aliased/nonregular SQLite DB')
+        if os.name == 'posix' and st.st_mode & 0o022:
+            raise ValueError('SQLite database writable by untrusted group/others')
     return p
 
 

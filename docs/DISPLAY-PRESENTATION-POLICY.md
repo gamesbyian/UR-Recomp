@@ -191,6 +191,16 @@ The launcher now opens on the live scale and leaves `WindowScale` unset unless t
 
 Locally on a 3840×2160 X11 display, 2.0 gave scale 4 (1280×960); on 1024×768 it was clamped to 2. Without the decision, the runner fails; without the writer fix, the launcher round trip writes `WindowScale = 3` and fails. The pinned 2P route's WRAM CRCs are unchanged. A real high-DPI panel is physical check D18.
 
+**The unchosen size follows the display it is on.** SDL3 keeps a window's pixel size when it is dragged to a monitor with another scale, or when that monitor's scaling changes. So a default-sized window became tiny on a 200% monitor, or oversized when it came back to 100%. The window-placement restore can also put the window on a monitor with a different scale from the primary display the default was decided on.
+
+On a display or display-scale change, a windowed, unmaximized game whose size nobody chose is now given `ur_display_default_window_scale` for the display it is on. It keeps its centre where it was and logs `UR_DISPLAY reconcile reason=… action=follow_dpi scale=A->B`. This runs before the existing reachability and fit checks. It never writes `config.ini`. An explicit `WindowScale` or size keeps its existing rule: kept, and re-clamped only if it no longer fits.
+
+The default-scale runner adds three launches with the placement smoke's test-only `dpi:F` mode, which changes the content scale under a running game. A test-only usable area (`SNESRECOMP_UR_DISPLAY_USABLE_OVERRIDE`) lets a 1024×768 hosted desktop hold 3×. The checks:
+- 2×→3× and 3×→2× must follow once, at the expected size, and leave `WindowScale` unset;
+- an explicit `WindowScale = 1` must not follow.
+
+Locally on 1024×768 and 3840×2160 X11 both pass. Without the follow call the runner fails (`expected one follow … got []`). The pinned 2P route's WRAM CRCs are unchanged. Real monitor moves are physical check D10.
+
 **Window placement.** The pinned host always reopened centred on the primary display, so a player who keeps the game on a second monitor had to move it back every launch. At a clean exit the host now writes `window-placement.txt` next to the active `config.ini`. The file records:
 - the window's display, by name and bounds;
 - for a window that is not fullscreen, minimized or maximized, its windowed position;

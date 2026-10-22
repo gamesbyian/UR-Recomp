@@ -133,12 +133,12 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
     def test_only_an_unchosen_window_scale_follows_the_display(self):
         staged = self.staged()
         main = staged[staged.index("int main(void) {"):]
-        decide = main.index("g_current_window_scale = (uint8)UrDefaultWindowScale();")
+        decide = main.index("g_current_window_scale = (uint8)UrDefaultWindowScale(SDL_GetPrimaryDisplay(), 1);")
         self.assertLess(decide, main.index(seam.DEFAULT_SCALE))
         self.assertIn("  if (g_config.window_scale == 0 &&\n"
                       "      !(g_config.window_width != 0 && g_config.window_height != 0))\n",
                       main[:decide])
-        helper = staged[staged.index("static int UrDefaultWindowScale(void) {"):]
+        helper = staged[staged.index("static int UrDefaultWindowScale(SDL_DisplayID display, int log) {"):]
         helper = helper[:helper.index("\n}")]
         self.assertIn("SDL_GetDisplayContentScale(display)", helper)
         self.assertIn("ur_display_default_window_scale(", helper)
@@ -157,6 +157,27 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         self.assertEqual(seam.patch_config_writer(writer), writer)
         with self.assertRaisesRegex(ValueError, "diverged"):
             seam.patch_config_writer("void W(void) {}\n")
+
+    def test_an_unchosen_window_size_follows_a_display_scale_change(self):
+        staged = self.staged()
+        follow = staged[staged.index("static void UrFollowDisplayScale(const char *reason) {"):]
+        follow = follow[:follow.index("\n}")]
+        # Only a size nobody chose follows, and it is never persisted.
+        self.assertLess(follow.index("if (g_config.window_scale != 0 ||"),
+                        follow.index("SDL_SetWindowSize"))
+        self.assertIn("UrDefaultWindowScale(SDL_GetDisplayForWindow(g_window), 0)", follow)
+        self.assertIn("g_current_window_scale = (uint8)scale;", follow)
+        self.assertNotIn("g_config.window_scale =", follow)
+        self.assertNotIn("g_fullscreen_changed", follow)
+        self.assertNotIn("ChangeWindowScale", follow)
+        reconcile = staged[staged.index("static void UrDisplayReconcile(const char *reason) {"):]
+        # Windowed only, and before reachability and fit are judged.
+        self.assertLess(reconcile.index("if (flags & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_MAXIMIZED)) return;"),
+                        reconcile.index("UrFollowDisplayScale(reason);"))
+        self.assertLess(reconcile.index("UrFollowDisplayScale(reason);"),
+                        reconcile.index("ur_display_window_reachable(win, usable, n, 32)"))
+        self.assertIn('case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: UrDisplayReconcile("display_scale_changed");',
+                      staged)
 
     def test_display_changes_missed_during_the_launcher_are_reconciled(self):
         staged = self.staged()

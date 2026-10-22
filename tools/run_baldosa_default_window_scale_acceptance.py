@@ -15,7 +15,12 @@ Real launches of the exact built game report through the placement smoke:
 3. an explicit ``WindowScale = 1`` is kept and the display is not asked;
 4. the in-game launcher opened and closed over the DPI default must leave
    ``WindowScale`` unset and the window size alone (recorded as refused
-   where the machine has no usable OpenGL).
+   where the machine has no usable OpenGL);
+5. the display's content scale changing under a running game (placement
+   smoke ``dpi:F``, with a test-only usable area so a hosted 1024x768
+   desktop can hold 3x) must re-derive the unchosen size both ways, 2x->3x
+   and 3x->2x, centred and never written to ``config.ini``;
+6. the same change must leave an explicit ``WindowScale`` alone.
 
 Fails closed. Real 150%/200% panels and moving between them are physical
 checks (D18), not covered here.
@@ -34,6 +39,10 @@ DEFAULT = re.compile(r"^UR_DISPLAY default_window_scale content_scale=([\d.]+) "
                      r"usable=(\d+)x(\d+) scale=(\d+)$", re.MULTILINE)
 SIZE = re.compile(r"^UR_DISPLAY_SIZE_SMOKE window=(\d+)x(\d+) scale=(\d+) "
                   r"config_scale=(\d+)$", re.MULTILINE)
+FOLLOW = re.compile(r"^UR_DISPLAY reconcile reason=display_scale_changed action=follow_dpi "
+                    r"scale=(\d+)->(\d+) size=(\d+)x(\d+)$", re.MULTILINE)
+# Room for 3x of a 320x240 base and no more, on any desktop of at least 1024x768.
+USABLE = "1100x810"
 REPORT = re.compile(r"^UR_DISPLAY_PLACEMENT_SMOKE mode=", re.MULTILINE)
 ACTION = re.compile(r"in-game launcher: action=(\d+)")
 UNAVAILABLE = "2"
@@ -65,6 +74,7 @@ def launch(exe: Path, rom: Path, root: Path, label: str, video: str, timeout: in
            "SDL_VIDEODRIVER": video,
            "SDL_AUDIODRIVER": "dummy"}
     env.pop("SNESRECOMP_UR_DISPLAY_CONTENT_SCALE", None)
+    env.pop("SNESRECOMP_UR_DISPLAY_USABLE_OVERRIDE", None)
     env.update(extra)
     proc = subprocess.run(
         [str(exe), "--no-launcher", "--config", str(work / "config.ini"), str(rom)],
@@ -142,20 +152,48 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         raise ValueError(f"the launcher turned the DPI default into a choice: "
                          f"window={wl}x{hl} scale={scalel} config={cfgl}")
 
+    follows = {}
+    for label, start, change, before, after in (("follow-up", "1", "1.5", 2, 3),
+                                                ("follow-down", "1.5", "1", 3, 2)):
+        log = launch(exe, rom, out, label, video, timeout, plain, f"dpi:{change}",
+                     {"SNESRECOMP_UR_DISPLAY_CONTENT_SCALE": start,
+                      "SNESRECOMP_UR_DISPLAY_USABLE_OVERRIDE": USABLE})
+        if default(log, label)[3] != before:
+            raise ValueError(f"{label}: started at {default(log, label)[3]}, expected {before}")
+        found = FOLLOW.findall(log)
+        want = (str(before), str(after), str(after * base_w), str(after * base_h))
+        if found != [want]:
+            raise ValueError(f"{label}: expected one follow {want}, got {found}")
+        if sizes(log) != (after * base_w, after * base_h, after, 0):
+            raise ValueError(f"{label}: window after the scale change {sizes(log)}")
+        if re.search(r"^WindowScale\s*=\s*[1-9]",
+                     (out / label / "config.ini").read_text(encoding="utf-8"), re.MULTILINE):
+            raise ValueError(f"{label}: a followed scale was written to config.ini")
+        follows[label] = f"{before}->{after}"
+
+    log = launch(exe, rom, out, "follow-explicit", video, timeout,
+                 plain + "\n[Graphics]\nWindowScale = 1\n", "dpi:1.5",
+                 {"SNESRECOMP_UR_DISPLAY_USABLE_OVERRIDE": USABLE})
+    if FOLLOW.search(log) or sizes(log) != (base_w, base_h, 1, 1):
+        raise ValueError(f"an explicit WindowScale followed the display: {sizes(log)}")
+
     receipt = {
         "content_1x_scale": 2,
         "content_2x_scale": expected,
         "usable_area": f"{usable_w}x{usable_h}",
         "base_window": f"{base_w}x{base_h}",
         "explicit_window_scale_kept": True,
+        "follow_display_scale": follows,
+        "follow_explicit_kept": True,
         "launcher_round_trip": "refused_unavailable" if actions[0] == UNAVAILABLE
                                else "default_kept",
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
         "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),
         "video_driver": video,
         "source_commit": os.environ.get("GITHUB_SHA"),
-        "scope": "default-scale decision and window size from an overridden "
-                 "content scale; not a real high-DPI panel",
+        "scope": "default-scale decision, run-time follow and window size from "
+                 "overridden content scale and usable area; not a real "
+                 "high-DPI panel or monitor move",
     }
     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     return receipt

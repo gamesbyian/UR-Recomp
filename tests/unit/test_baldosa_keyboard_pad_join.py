@@ -29,11 +29,8 @@ class KeyboardPadJoinTests(unittest.TestCase):
                           "snesrecomp_desktop_product_seat_source(0) != -1"):
             self.assertIn(condition, move)
         # The move is the last condition: nothing moves unless all hold.
-        self.assertTrue(move.rstrip().endswith(
-            "snesrecomp_desktop_product_seat_move(0, 1)) {\n"
-            "        g_p2_join_edges.reset();\n"
-            "        std::fprintf(stderr,\n"
-            "            \"UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2\\n\");"))
+        self.assertIn("snesrecomp_desktop_product_seat_move(0, 1)) {\n"
+                      "        g_p2_join_edges.reset();\n", move)
         # Only the keyboard path marks a keyboard P1 confirmation.
         self.assertEqual(SOURCE.count("g_join_p1_by_keyboard = true;"), 1)
         key = body('extern "C" int ur_baldosa_modern_root_key(')
@@ -51,6 +48,19 @@ class KeyboardPadJoinTests(unittest.TestCase):
         self.assertIn("if (!join_p2_owner_present()) return false;", admissible)
         watch = body("void join_watch_seat_owners() {")
         self.assertIn("g_two_seat_join.clear(1);", watch)
+
+    def test_the_moved_pad_returns_only_when_its_join_is_over(self):
+        back = body("void join_return_moved_pad() {")
+        self.assertIn("g_two_seat_join.open() ||\n        g_stock_target != -1) return;", back)
+        # Only the pad the join moved, only into an empty seat 1.
+        self.assertLess(back.index("snesrecomp_desktop_product_seat_source(1) != g_join_moved_source"),
+                        back.index("snesrecomp_desktop_product_seat_move(1, 0)"))
+        self.assertLess(back.index("snesrecomp_desktop_product_seat_source(0) != -1) return;"),
+                        back.index("snesrecomp_desktop_product_seat_move(1, 0)"))
+        pad = body('extern "C" int ur_baldosa_modern_root_gamepad(')
+        self.assertIn("g_join_moved_source = snesrecomp_desktop_product_seat_source(1);", pad)
+        draw = body('extern "C" int ur_baldosa_modern_root_draw_frame(')
+        self.assertIn("join_return_moved_pad();", draw)
 
     def test_runner_order_check_fails_closed(self):
         runner.ordered("a\nb\n", ("a", "b"), "ok")

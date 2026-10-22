@@ -203,6 +203,10 @@ ur::product::BaldosaNativeTwoSeatJoin g_two_seat_join{};
 // with no seated device (scripted journeys) records -1 and is never revoked.
 bool g_join_p1_by_keyboard = false;
 long long g_join_p2_source = -1;
+// The pad the join moved to seat 2. The root is driven from seat 1 only, so
+// once that join is over (cancelled, or the 2P race returned to the root) the
+// pad goes back to seat 1 and its player can use the menu again.
+long long g_join_moved_source = -1;
 std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
@@ -528,6 +532,20 @@ void request_stock_route(int players) {
 bool join_p2_owner_present() {
     return g_join_p2_source == -1 ||
         snesrecomp_desktop_product_seat_source(1) == g_join_p2_source;
+}
+void join_return_moved_pad() {
+    if (g_join_moved_source == -1 || g_two_seat_join.open() ||
+        g_stock_target != -1) return;
+    if (snesrecomp_desktop_product_seat_source(1) != g_join_moved_source) {
+        g_join_moved_source = -1;  // it left or was replaced: nothing to undo
+        return;
+    }
+    if (snesrecomp_desktop_product_seat_source(0) != -1) return;
+    if (snesrecomp_desktop_product_seat_move(1, 0)) {
+        g_join_moved_source = -1;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT join_pad_returned from=2 to=1\n");
+    }
 }
 void join_watch_seat_owners() {
     if (!g_two_seat_join.open() || !g_two_seat_join.confirmed(1) ||
@@ -1191,6 +1209,7 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         snesrecomp_desktop_product_seat_source(0) != -1 &&
         snesrecomp_desktop_product_seat_move(0, 1)) {
         g_p2_join_edges.reset();
+        g_join_moved_source = snesrecomp_desktop_product_seat_source(1);
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2\n");
         return 1;
@@ -1229,7 +1248,10 @@ extern "C" int ur_baldosa_modern_root_gamepad(
 extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
-    if (g_visible) join_watch_seat_owners();
+    if (g_visible) {
+        join_watch_seat_owners();
+        join_return_moved_pad();
+    }
     if (!g_visible &&
         g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None) {
         g_last_native_destination_stage.clear();
@@ -1724,12 +1746,12 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are the decimal strings "1".."16" and nothing else.
+    // Smoke modes are the decimal strings "1".."17" and nothing else.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 16) return;
+            mode < 1 || mode > 17) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2011,7 +2033,10 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     //       next A confirms P2 and the stock 2P route is requested.
     //   16: P2's pad confirms, is unplugged, then the keyboard confirms P1;
     //       P2's confirmation must be withdrawn and no 2P route requested.
-    if (std::strcmp(opt, "15") == 0 || std::strcmp(opt, "16") == 0) {
+    //   17: as 15 up to the move, then Escape closes the join; the moved
+    //       pad must return to seat 1, and its next A drives the root.
+    if (std::strcmp(opt, "15") == 0 || std::strcmp(opt, "16") == 0 ||
+        std::strcmp(opt, "17") == 0) {
 #if SNESRECOMP_SDL3
         static SDL_Joystick* pads[2];
         static SDL_JoystickID ids[2];
@@ -2038,8 +2063,15 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             if (owner_leaves) attach(1);
             return;
         }
-        if (!owner_leaves && (frame == 68 || frame == 72)) { press(0, true); return; }
-        if (!owner_leaves && (frame == 69 || frame == 73)) { press(0, false); return; }
+        const bool cancel = std::strcmp(opt, "17") == 0;
+        if (!owner_leaves && (frame == 68 || frame == (cancel ? 76u : 72u))) {
+            press(0, true);
+            return;
+        }
+        if (!owner_leaves && (frame == 69 || frame == (cancel ? 77u : 73u))) {
+            press(0, false);
+            return;
+        }
         if (owner_leaves && frame == 66) { press(1, true); return; }
         if (owner_leaves && frame == 67) { press(1, false); return; }
         if (owner_leaves && frame == 68) {
@@ -2052,6 +2084,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (frame == 60 || frame == 62) pad_key = SDLK_DOWN;
         else if (frame == 64) pad_key = SDLK_RETURN;
         else if (frame == (owner_leaves ? 70u : 66u)) pad_key = SDLK_RETURN;
+        else if (cancel && frame == 70) pad_key = SDLK_ESCAPE;
         if (!pad_key) return;
         SDL_Event event{};
         event.type = SDL_KEYDOWN;

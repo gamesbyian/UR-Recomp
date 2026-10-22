@@ -171,6 +171,15 @@ def main(argv=None) -> int:
         a.json.write_text(text + "\n")
     else:
         print(text)
+    if a.json or a.summary:
+        # The step summary is not reachable from job logs or the API; always
+        # leave the human-readable table (and failing checks) in the log too.
+        print(markdown(report))
+        for cap in report["captures"]:
+            for chk in cap["checks"]:
+                if not chk["pass"]:
+                    print(f"FAILED {cap['capture']} {chk['check']} "
+                          f"{json.dumps(chk['detail'])}")
     if a.summary:
         with a.summary.open("a") as handle:
             handle.write(markdown(report))

@@ -254,7 +254,10 @@ jobs:
           test "${#dirs[@]}" -gt 0 || { echo "No Modern capture directories to measure." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
           python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" \
             --json "$RUNNER_TEMP/modern-capture-geometry.json" \
-            --summary "$GITHUB_STEP_SUMMARY"
+            --summary "$GITHUB_STEP_SUMMARY" \
+            || echo "::warning title=Modern capture geometry::one or more measurements failed or were refused (diagnostic, non-blocking); see this step's log"
+          cp "$RUNNER_TEMP/modern-capture-geometry.json" \
+            "$RUNNER_TEMP/ur-modern-win32-visual-baseline/modern-capture-geometry.json" 2>/dev/null || true
       - name: Retain independent Authentic control output only
         if: always()
         uses: actions/upload-artifact@v4
@@ -303,6 +306,7 @@ jobs:
           path: |
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/modern-capture-geometry.json
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/native-process.log
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/capture_observed/native-process.log

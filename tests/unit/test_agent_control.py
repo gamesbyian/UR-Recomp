@@ -107,6 +107,21 @@ class AgentBoardControlTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "differs from installed schedule"):
                     extract_board(bad)
 
+    def test_dated_work_ids_parse_without_changing_agent_schedule(self):
+        self.assertEqual(
+            self.board["work"][0]["work_id"], "UR-VAULT-EXTRACT-20261022")
+        self.assertEqual(
+            self.board["work"][-1]["work_id"], "UR-VAULT-REGRESS-20261022")
+        self.assertEqual(
+            [agent["minute"] for agent in self.board["agents"]],
+            [0, 12, 24, 36, 48])
+
+    def test_invalid_dated_work_id_is_not_silently_assigned(self):
+        broken = replace_table_cell(
+            self.text, "1", 2, "UR-VAULT-EXTRACT-NOT-A-DATE")
+        with self.assertRaisesRegex(ValueError, "ten unique active work lines"):
+            extract_board(broken)
+
     def test_board_never_scrapes_old_prose_as_dispatch(self):
         altered = self.text + "\nHistorical reference: UR-OBSOLETE-99 and Agent 9\n"
         self.assertEqual(extract_board(altered), self.board)
@@ -126,6 +141,25 @@ class RecoveryRegistryControlTests(unittest.TestCase):
         self.assertEqual(result["candidates"], len(self.registry["candidates"]))
         self.assertTrue(all(c["release_gate_credit"] is False
                             for c in self.registry["candidates"]))
+
+    def test_known_retired_work_id_remains_valid_historical_provenance(self):
+        archived = copy.deepcopy(self.fixture)
+        archived["candidates"][0]["work_id"] = "UR-QA01-01"
+        self.assertEqual(validate_registry(archived, self.board)["candidates"], 2)
+
+    def test_unknown_retired_work_id_does_not_pass_as_provenance(self):
+        invalid = copy.deepcopy(self.fixture)
+        invalid["candidates"][0]["work_id"] = "UR-INVENTED-01"
+        with self.assertRaisesRegex(ValueError, "orphan work ID"):
+            validate_registry(invalid, self.board)
+
+    def test_retired_work_ids_cannot_admit_new_active_tasks(self):
+        invalid = copy.deepcopy(self.fixture)
+        first = invalid["candidates"][0]
+        first.update(work_id="UR-QA01-01", state="pending_review",
+                     merge_sha=None)
+        with self.assertRaisesRegex(ValueError, "retired work ID"):
+            validate_registry(invalid, self.board)
 
     def test_duplicate_canonical_candidate_is_rejected(self):
         bad = copy.deepcopy(self.fixture)

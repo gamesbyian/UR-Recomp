@@ -73,7 +73,8 @@ def verify_log(log: str, expected=EXPECTED_STEPS) -> dict:
     }
 
 
-def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
+def run(exe: Path, rom: Path, out: Path, video: str, timeout: int,
+        real_launcher: bool = False) -> dict:
     exe = exe.resolve(strict=True)
     rom = rom.resolve(strict=True)
     out = out.resolve()
@@ -99,7 +100,23 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             raise ValueError(f"{label}: native game exited {proc.returncode}: {log[-1500:]}")
         return log
 
+    def finish(receipt: dict) -> dict:
+        receipt.update({
+            "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
+            "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),
+            "video_driver": video,
+            "source_commit": os.environ.get("GITHUB_SHA"),
+            "scope": "SDL virtual gamepads through the native host event loop; "
+                     "not physical controller acceptance",
+        })
+        (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n",
+                                          encoding="utf-8")
+        return receipt
+
     receipt = verify_log(launch("exit", "native-game", {}))
+    receipt["real_launcher"] = "not_run"
+    if not real_launcher:
+        return finish(receipt)
     # The launcher closes itself after ~1.5 s (recomp-ui smoke hook); the
     # scenario's hotplug fires 0.4 s after it opens. Audio stays enabled
     # (dummy driver) so committing the launcher's settings is not an
@@ -112,17 +129,8 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     receipt["launcher_steps"] = verify_log(launcher_log, LAUNCHER_STEPS)["steps"]
     if len(re.findall(r"UR_CONTROLLER_SEAT reconcile reason=launcher_returned ", launcher_log)) != 2:
         raise ValueError("the in-game launcher return did not reconcile both hotplugs")
-    receipt.update({
-        "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
-        "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),
-        "video_driver": video,
-        "source_commit": os.environ.get("GITHUB_SHA"),
-        "scope": "SDL virtual gamepads through the native host event loop; "
-                 "not physical controller acceptance",
-    })
-    (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n",
-                                      encoding="utf-8")
-    return receipt
+    receipt["real_launcher"] = "pass"
+    return finish(receipt)
 
 
 def main() -> int:
@@ -132,8 +140,13 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--video", default="windows")
     parser.add_argument("--timeout", type=int, default=120)
+    # The real in-game launcher needs OpenGL; hosted Windows runners have
+    # none (it fails to load GL and crashes), so this second launch is
+    # opt-in where a GL context exists.
+    parser.add_argument("--real-launcher", action="store_true")
     args = parser.parse_args()
-    receipt = run(args.exe, args.rom, args.out, args.video, args.timeout)
+    receipt = run(args.exe, args.rom, args.out, args.video, args.timeout,
+                  args.real_launcher)
     print(json.dumps(receipt, indent=2))
     return 0
 

@@ -274,6 +274,7 @@ jobs:
           python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" \
             --json "$RUNNER_TEMP/modern-capture-geometry.json" \
             --summary "$GITHUB_STEP_SUMMARY" \
+            | tee "$RUNNER_TEMP/modern-capture-geometry.txt" \
             || echo "::warning title=Modern capture geometry::one or more measurements failed or were refused (diagnostic, non-blocking); see this step's log"
           cp "$RUNNER_TEMP/modern-capture-geometry.json" \
             "$RUNNER_TEMP/ur-modern-win32-visual-baseline/modern-capture-geometry.json" 2>/dev/null || true
@@ -340,3 +341,10 @@ jobs:
           path: baldosa/build-ur-visual/UniracersSNESRecomp.exe
           if-no-files-found: warn
           retention-days: 7
+      - name: Echo the capture geometry table last (diagnostic, easy to find in the log)
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          cat "$RUNNER_TEMP/modern-capture-geometry.txt" 2>/dev/null \
+            || echo "No capture geometry report was produced."

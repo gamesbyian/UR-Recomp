@@ -321,9 +321,10 @@ def focus_audit(frame: Frame, marker: tuple[int, int, int], scale: float,
     """Find vertical focus bars: runs of `marker` at least min_logical_width*scale
     wide and min_height_logical*scale tall. Exactly one bar must exist."""
     sy_ = scale if scale_y is None else scale_y
-    # 80% of nominal: fractional block edges lose up to a pixel per side.
-    need_w = max(1, int(min_logical_width * scale * 0.8))
-    need_h = max(1, int(min_height_logical * sy_ * 0.8))
+    # Fractional block edges lose up to one output pixel; at 1:1 no slack.
+    slack = lambda sc: 1 if sc > 1.5 else 0
+    need_w = max(1, int(min_logical_width * scale) - slack(scale))
+    need_h = max(1, int(min_height_logical * sy_) - slack(sy_))
     # per-row horizontal runs
     runs = {}
     for y in range(frame.height):

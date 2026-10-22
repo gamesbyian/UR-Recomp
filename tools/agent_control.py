@@ -18,7 +18,7 @@ HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 # Old immutable work IDs remain valid provenance. The current dispatch board
 # may instead assign dated, multi-part integration-campaign identifiers.
-WORK_ID = re.compile(r"UR-[A-Z0-9]+(?:-[A-Z0-9]+)*-(?:[0-9]{2}|20[0-9]{6})\\Z")
+WORK_ID = re.compile(r"UR-[A-Z0-9]+(?:-[A-Z0-9]+)*-(?:[0-9]{2}|20[0-9]{6})\Z")
 # Known retired IDs from the 2026-10-21 ten-line dispatch board. A historical
 # recovery receipt may continue to refer to one, but an active task cannot.
 RETIRED_WORK_IDS = frozenset({

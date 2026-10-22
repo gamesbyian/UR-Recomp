@@ -97,6 +97,16 @@ class ArchiveCasesTest(unittest.TestCase):
                 ac.analyse_dirs([good])
             self.assertEqual(ac.main(["--dir", str(good), "--artifact", "x.zip"]), 1)
 
+    def test_other_matrix_root_sizes_map_to_their_cases(self):
+        for pixels, case in (((1920, 1080), "root-wide-1080"),
+                             ((3840, 2160), "root-wide-4k-virtual"),
+                             ((640, 480), "root-43-480"),
+                             ((1280, 720), "root-wide-720")):
+            self.assertEqual(ac.ROUTE_CASE[("root-quit", pixels)], case)
+        matrix = ac.cases.load_cases()
+        for case in ("root-wide-1080", "root-wide-4k-virtual", "root-43-480"):
+            self.assertIn(case, matrix)
+
     def test_hash_mismatch_and_missing_png_are_refused(self):
         wide = frame_png(342, 1280, 720)
         with tempfile.TemporaryDirectory() as tmp:

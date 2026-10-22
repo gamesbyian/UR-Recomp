@@ -120,6 +120,23 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
           done
           echo "Actual final-drawable Windows Modern engineering baseline 1280x720 and 1024x768; same PE, separate clean runs; no redesign or physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture additional matrix output sizes (diagnostic, may be refused by the runner display)
+        # Acceptance-matrix root cases at 1080p, 480p and 4K. A runner display
+        # that cannot hold a size makes the host refuse that capture; that is
+        # recorded, never a failure of the QA owner's baseline.
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for size in 1920x1080 640x480 3840x2160; do
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$RUNNER_TEMP/ur-modern-win32-extra-$size" \
+              --video windows --timeout 100 --window-size "$size" \
+              && echo "captured $size" \
+              || echo "::warning title=Extra matrix size::$size capture refused or failed"
+          done
       # One bounded source/PE-bound final SDL motion proof, never a regular
       # requirement for unrelated PRs or evidence of physical/art approval.
       - name: Prove merged Modern animation in real SDL P7 and reduced control
@@ -248,6 +265,7 @@ jobs:
           for d in "$RUNNER_TEMP"/ur-modern-win32-visual-baseline \
                    "$RUNNER_TEMP"/ur-modern-win32-visual-1280x720 \
                    "$RUNNER_TEMP"/ur-modern-win32-visual-1024x768 \
+                   "$RUNNER_TEMP"/ur-modern-win32-extra-* \
                    "$RUNNER_TEMP"/ur-modern-win32-journey-*; do
             test -s "$d/actual-sdl-drawable.png" && test -s "$d/readback-receipt.json" \
               && dirs+=(--dir "$d")

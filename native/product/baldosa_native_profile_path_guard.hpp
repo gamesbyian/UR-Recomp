@@ -36,7 +36,8 @@ inline bool baldosa_native_selected_profile_paths_are_real(
         selected_save_root.filename().string().rfind("profile-", 0) != 0)
         return false;
     const auto profile = user_root / selected_save_root;
-    return baldosa_native_real_directory(user_root / "saves") &&
+    return baldosa_native_real_directory(user_root) &&
+           baldosa_native_real_directory(user_root / "saves") &&
         baldosa_native_real_directory(profile) &&
         baldosa_native_real_file(profile / "host-profile.txt") &&
         baldosa_native_real_file(profile / "save.srm");

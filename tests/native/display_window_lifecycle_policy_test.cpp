@@ -107,6 +107,17 @@ void unnamed_displays_never_match() {
     assert(ur_display_placement_match(nullptr, {0, 0, 1920, 1080}, anonymous, 2) == -1);
 }
 
+void vsync_waits_only_where_the_panel_can_carry_the_game() {
+    const double snes = 60.0988;
+    assert(!ur_display_vsync_cannot_carry(60.0, snes));    // sync-to-video
+    assert(!ur_display_vsync_cannot_carry(59.94, snes));
+    assert(!ur_display_vsync_cannot_carry(144.0, snes));
+    assert(ur_display_vsync_cannot_carry(50.0, snes));     // PAL TV: 83% speed
+    assert(ur_display_vsync_cannot_carry(30.0, snes));
+    assert(!ur_display_vsync_cannot_carry(0.0, snes));     // unknown: keep setting
+    assert(!ur_display_vsync_cannot_carry(50.0, 0.0));
+}
+
 }  // namespace
 
 int main() {
@@ -120,5 +131,6 @@ int main() {
     placement_matches_the_same_named_display();
     identical_monitors_need_bounds_to_disambiguate();
     unnamed_displays_never_match();
+    vsync_waits_only_where_the_panel_can_carry_the_game();
     return 0;
 }

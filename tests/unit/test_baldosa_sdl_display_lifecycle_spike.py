@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / seam.POLICY
 
 HOST_STUB = "\n".join((
+    "static double DisplayRefresh(void) { return 60; }",
+    seam.VSYNC + "  return 1;\n}",
     "/* " + seam.OPTIONS_MARK + " */",
     "static void ApplyLiveSettings(const Config *before) {",
     seam.LAUNCHER + "}",
@@ -125,6 +127,25 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         back = staged[staged.index("static void RunInGameLauncher(void) {"):]
         self.assertIn('SDL_FlushEvent(SDL_QUIT);\n#if SNESRECOMP_SDL3\n  UrDisplayReconcile("launcher_returned");', back)
 
+    def test_vsync_never_waits_on_a_panel_slower_than_the_game(self):
+        staged = self.staged()
+        vsync = staged[staged.index("static int VSyncInterval(void) {"):]
+        vsync = vsync[:vsync.index("\n}\n")]
+        # The project policy decides; a slow panel presents without waiting.
+        self.assertIn("ur_display_vsync_cannot_carry(panel, g_simulation_hz)", vsync)
+        self.assertIn("if (slow) return 0;", vsync)
+        # Decoupled presentation and disabled frame delay come first, unchanged.
+        self.assertLess(vsync.index("PresentationDecoupled() || g_config.disable_frame_delay"),
+                        vsync.index("UrPanelRefresh()"))
+        self.assertLess(staged.index(f'#include "{POLICY.as_posix()}"'),
+                        staged.index("static int VSyncInterval(void) {"))
+        event = staged[staged.index("static void UrDisplayEvent(const SDL_Event *event) {"):]
+        event = event[:event.index("\n}\n")]
+        for kind in ("SDL_EVENT_WINDOW_DISPLAY_CHANGED", "SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED",
+                     "SDL_EVENT_WINDOW_ENTER_FULLSCREEN"):
+            self.assertIn(kind, event)
+        self.assertIn("UrReapplyVsync();", event)
+
     def test_alt_enter_is_never_a_modern_menu_key(self):
         staged = self.staged()
         handler = staged[staged.index("static void HandleInput(int keyCode"):]
@@ -162,11 +183,20 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("ChangeWindowScale(0);", reconcile)
 
     def test_no_guest_input_or_timing_code_is_reachable(self):
-        helpers = self.staged().split(seam.HELPERS_ANCHOR)[0]
+        staged = self.staged()
+        start = staged.index(f'#include "{POLICY.as_posix()}"')
+        end = staged.index("\n}\n", staged.index("static int VSyncInterval(void) {")) + 3
+        vsync = staged[start:end]
+        helpers = staged.replace(vsync, "").split(seam.HELPERS_ANCHOR)[0]
         for forbidden in ("RtlRunFrame", "g_ram", "g_sram", "g_pad_buttons",
                           "g_input_state", "snes_host_clock", "WriteConfigFile",
                           "g_simulation_hz"):
             self.assertNotIn(forbidden, helpers, forbidden)
+        # The swap-interval decision only reads the guest rate; it never
+        # changes simulation timing.
+        self.assertIn("g_simulation_hz", vsync)
+        self.assertNotIn("g_simulation_hz =", vsync)
+        self.assertNotIn("snes_host_clock", vsync)
 
     def test_requires_the_options_seam_and_rejects_a_moved_host(self):
         with self.assertRaisesRegex(ValueError, "options_spike"):

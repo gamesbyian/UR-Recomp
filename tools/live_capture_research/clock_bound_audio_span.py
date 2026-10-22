@@ -14,6 +14,7 @@ class ClockBoundWitness(ByteSpanWitness):
         super().__post_init__()
         self._pending_audio = None
         self._pending_pts = None
+        self._first_pts = None
         # Current main's ByteSpanWitness is unsealed; use a local one-shot guard.
         self._clock_sealed = False
 
@@ -31,10 +32,18 @@ class ClockBoundWitness(ByteSpanWitness):
             if abs(self._pending_audio - expected) > 1:
                 self.incomplete_reason = 'audio span does not match presentation interval'
                 raise ValueError(self.incomplete_reason)
+            # Per-frame +/-1 tolerances can accumulate without limit.
+            # Anchor the *whole prior audio cursor* to the first frame PTS.
+            global_expected = self._samples(pts_ns - self._first_pts)
+            if abs(self.audio_sample_count - global_expected) > 1:
+                self.incomplete_reason = 'cumulative audio clock drift'
+                raise ValueError(self.incomplete_reason)
         # The existing ByteSpanWitness rejects wrong attempt, frame, raw bytes,
         # PCM alignment, PTS ordering and discontinuous sample offsets.
         super().add(attempt=attempt, frame_number=frame_number, pts_ns=pts_ns,
                     bgra=bgra, audio_first_sample=audio_first_sample, pcm_s16le=pcm_s16le)
+        if self._first_pts is None:
+            self._first_pts = pts_ns
         self._pending_audio = len(pcm_s16le) // 4
         self._pending_pts = pts_ns
 
@@ -47,10 +56,18 @@ class ClockBoundWitness(ByteSpanWitness):
         if abs(self._pending_audio - expected) > 1:
             self.incomplete_reason = 'terminal audio span does not match presentation interval'
             raise ValueError(self.incomplete_reason)
+        global_expected = self._samples(terminal_pts_ns - self._first_pts)
+        global_error = self.audio_sample_count - global_expected
+        if abs(global_error) > 1:
+            self.incomplete_reason = 'cumulative terminal audio clock drift'
+            raise ValueError(self.incomplete_reason)
         receipt = super().finish(attempt=attempt, profile=profile,
                                  terminal_frame=terminal_frame)
         self._clock_sealed = True
         receipt['terminal_pts_ns'] = terminal_pts_ns
+        receipt['first_pts_ns'] = self._first_pts
+        receipt['audio_clock_error_samples'] = global_error
+        receipt['audio_clock_global_tolerance_samples'] = 1
         receipt['clock_checked_against_48k_samples'] = True
         receipt['encoded_video_verified'] = False
         receipt['independent_device_clock_observed'] = False

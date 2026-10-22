@@ -19,7 +19,14 @@ BAR = (160, 208, 248)
 def p7(width, height, pixels):
     head = (f"P7\nWIDTH {width}\nHEIGHT {height}\nDEPTH 4\nMAXVAL 255\n"
             "TUPLTYPE RGB_ALPHA\nENDHDR\n").encode()
-    return head + b"".join(bytes((*pixels[i], 255)) for i in range(width * height))
+    cache = {}
+    body = bytearray()
+    for px in pixels:
+        enc = cache.get(px)
+        if enc is None:
+            enc = cache[px] = bytes((*px[:3], 255))
+        body += enc
+    return head + bytes(body)
 
 
 def logical_canvas(w=342, h=224):
@@ -29,12 +36,16 @@ def logical_canvas(w=342, h=224):
 
 def render(grid, lw, lh, out_w, out_h):
     f, vx, vy, _, _ = d.integer_scale(lw, lh, out_w, out_h)
-    out = [(0, 0, 0)] * (out_w * out_h)
+    black = (0, 0, 0)
+    cols = [(x - vx) // f if vx <= x < vx + lw * f else None for x in range(out_w)]
+    out = []
     for y in range(out_h):
-        for x in range(out_w):
-            lx, ly = (x - vx) // f, (y - vy) // f
-            if 0 <= lx < lw and 0 <= ly < lh and x >= vx and y >= vy:
-                out[y * out_w + x] = grid[ly * lw + lx]
+        ly = (y - vy) // f if vy <= y < vy + lh * f else None
+        if ly is None:
+            out += [black] * out_w
+            continue
+        row = grid[ly * lw:(ly + 1) * lw]
+        out += [black if c is None else row[c] for c in cols]
     return d.Frame(p7(out_w, out_h, out))
 
 
@@ -48,17 +59,22 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def render_fit(grid, lw, lh, out_w, out_h):
-    # Nearest-neighbour fractional fit with 7:6 pixel aspect (what ships).
+    # Nearest-neighbour fractional fit with 7:6 pixel aspect (what ships);
+    # nearest maps pixel centres.
     m = d.mapping(lw, lh, out_w, out_h)
-    out = [(0, 0, 0)] * (out_w * out_h)
+    black = (0, 0, 0)
+    cols = []
+    for x in range(out_w):
+        lx = int((x + 0.5 - m.vx) / m.sx)
+        cols.append(lx if 0 <= lx < lw else None)
+    out = []
     for y in range(out_h):
-        ly = int((y - m.vy) / m.sy)
+        ly = int((y + 0.5 - m.vy) / m.sy)
         if not 0 <= ly < lh:
+            out += [black] * out_w
             continue
-        for x in range(out_w):
-            lx = int((x - m.vx) / m.sx)
-            if 0 <= lx < lw:
-                out[y * out_w + x] = grid[ly * lw + lx]
+        row = grid[ly * lw:(ly + 1) * lw]
+        out += [black if c is None else row[c] for c in cols]
     return d.Frame(p7(out_w, out_h, out))
 
 

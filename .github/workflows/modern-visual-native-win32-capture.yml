@@ -6,6 +6,9 @@ on:
       - ".github/workflows/modern-visual-native-win32-capture.yml"
       - "tools/qa_modern_visual_sdl_capture.py"
       - "tools/qa_modern_visual_win32_capture_driver.py"
+      - "tools/qa_modern_visual_archive_cases.py"
+      - "tools/qa_modern_visual_case_checks.py"
+      - "tools/qa_modern_visual_diagnostics.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
       # Destination PR #2040 may request actual 4:3/wide native SDL evidence
@@ -232,6 +235,29 @@ jobs:
               --receipt "$RUNNER_TEMP/ur-authentic-win32-control-$size/probe_first/authentic-exact-rgb-parity.json"
           done
           echo "Genuine Authentic stock RGB exact P6-to-SDL readback parity at 16:9/4:3; alpha, guest CRC, physical screen and human signoff remain unapproved." >> "$GITHUB_STEP_SUMMARY"
+      - name: Geometry, safe-area and focus measurements of Modern captures
+        # Diagnostic only (measurement of the producing run's own output, no
+        # independent provenance, no art/hardware/parity approval). Never
+        # blocks the QA owner's baseline while the first real runs calibrate.
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          dirs=()
+          for d in "$RUNNER_TEMP"/ur-modern-win32-visual-baseline \
+                   "$RUNNER_TEMP"/ur-modern-win32-visual-1280x720 \
+                   "$RUNNER_TEMP"/ur-modern-win32-visual-1024x768; do
+            test -s "$d/actual-sdl-drawable.png" && test -s "$d/readback-receipt.json" \
+              && dirs+=(--dir "$d")
+          done
+          test "${#dirs[@]}" -gt 0 || { echo "No Modern capture directories to measure." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" \
+            --json "$RUNNER_TEMP/modern-capture-geometry.json" \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            || echo "::warning title=Modern capture geometry::one or more measurements failed or were refused (diagnostic, non-blocking); see this step's log"
+          cp "$RUNNER_TEMP/modern-capture-geometry.json" \
+            "$RUNNER_TEMP/ur-modern-win32-visual-baseline/modern-capture-geometry.json" 2>/dev/null || true
       - name: Retain independent Authentic control output only
         if: always()
         uses: actions/upload-artifact@v4
@@ -280,6 +306,7 @@ jobs:
           path: |
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/modern-capture-geometry.json
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/native-process.log
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/capture_observed/native-process.log

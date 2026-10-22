@@ -1,6 +1,7 @@
 {
   "schema": "ur-recovery-registry/1",
   "scope": "curated_not_exhaustive",
+  "retired_work_ids": ["UR-KNOWLEDGE-01", "UR-PPU-01", "UR-QA01-01", "UR-RECORDS-01"],
   "note": "Seeded from source-bound GitHub recovery index, 2026-10-21. Folder placement/Drive item presence, live PR state, and full archive membership must be independently rechecked at pickup. Unlisted artifacts remain unreviewed, not absent. This index confers no release gate or art approval.",
   "candidates": [
     {

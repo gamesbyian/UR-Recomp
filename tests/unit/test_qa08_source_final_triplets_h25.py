@@ -69,7 +69,7 @@ class QA08SourceFinalTripletAdmission(unittest.TestCase):
     def test_duplicate_source_identity_rejected_even_with_full_count(self):
         src=lines()
         src[3:6]=src[0:3]
-        self.verify(src,error="duplicate or cross-epoch")
+        self.verify(src,error="duplicate QA08 source stage")
 
     def test_missing_substage_rejected_even_with_original_main_final_counts(self):
         src=lines()

@@ -23,6 +23,9 @@ HOST_STUB = "\n".join((
     seam.RAW_REMOVED + "      memset(gi, 0, sizeof(GamepadInfo));\n    }",
     seam.RAW_BUTTON + "    return true;",
     "  }\n}",
+    "static void RunInGameLauncher(void) {",
+    "  SDL_ShowWindow(g_window);",
+    seam.LAUNCHER_RETURN + "}",
     "static void ReassignGamepads(void) {",
     seam.REASSIGN,
     "  while (running) {",
@@ -109,6 +112,23 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         # A mapped pad's raw joystick events can never claim (and leak the press).
         self.assertIn("(raw ? !g_ur_spare[i].raw : !g_ur_spare[i].pad)", claim_fn)
         self.assertIn("SelftestPadExcludes(id)", claim_fn)
+
+    def test_hotplug_missed_during_the_launcher_is_reconciled(self):
+        staged = self.staged()
+        back = staged[staged.index("static void RunInGameLauncher(void) {"):]
+        self.assertIn('SDL_FlushEvent(SDL_QUIT);\n  UrSeatReconcile("launcher_returned");', back)
+        fn = staged[staged.index("static void UrSeatReconcile(const char *why) {"):]
+        fn = fn[:fn.index("\n}\n")]
+        # Gone seats go through the ordinary release, so held bits are let go
+        # and seat memory is kept for the owner's return.
+        self.assertLess(fn.index("if (attached) continue;"), fn.index("UrSeatRelease(gi);"))
+        self.assertIn("UrSpareRemoved(g_ur_spare[i].id)", fn)
+        # Devices already seated, held as spares or excluded are never reopened.
+        self.assertIn("if (GetGamepadInfo(id) || UrSpareFind(id) >= 0 || SelftestPadExcludes(id)) continue;", fn)
+        self.assertIn("OpenOneGamepad(open_arg);", fn)
+        # SDL2 opens by device index, SDL3 by instance id.
+        self.assertIn("const int open_arg = (int)id;", fn)
+        self.assertIn("const int open_arg = i;", fn)
 
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()

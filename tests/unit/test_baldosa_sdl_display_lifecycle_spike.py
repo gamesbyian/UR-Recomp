@@ -33,6 +33,8 @@ HOST_STUB = "\n".join((
     seam.PRODUCT_KEY + "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n}",
     "void ChangeWindowScale(int scale_step) {",
     seam.SCALE_STEP + "}",
+    "static void RunInGameLauncher(void) {",
+    seam.LAUNCHER_RETURN + "}",
     "static void Shutdown(void) {",
     seam.EXIT_SAVE + "  if (g_volume_changed || g_fullscreen_changed) {}\n}",
     "static void HandleCommand(uint32 j, bool pressed) {",
@@ -118,6 +120,11 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
                         restore.index("SDL_MaximizeWindow(g_window);"))
         self.assertIn("*c == '\\r' || *c == '\\n' ? ' ' : *c", save)
 
+    def test_display_changes_missed_during_the_launcher_are_reconciled(self):
+        staged = self.staged()
+        back = staged[staged.index("static void RunInGameLauncher(void) {"):]
+        self.assertIn('SDL_FlushEvent(SDL_QUIT);\n#if SNESRECOMP_SDL3\n  UrDisplayReconcile("launcher_returned");', back)
+
     def test_alt_enter_is_never_a_modern_menu_key(self):
         staged = self.staged()
         handler = staged[staged.index("static void HandleInput(int keyCode"):]
@@ -167,7 +174,7 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         for needle in (seam.HELPERS_ANCHOR, seam.DEFAULT_BRANCH, seam.OPTIONS_SDL3,
                        seam.LAUNCHER, seam.HOTKEY, seam.CREATED, seam.TICK_ANCHOR,
                        seam.PRODUCT_KEY, seam.SCALE_STEP, seam.EXIT_SAVE,
-                       seam.RENDERER_READY):
+                       seam.RENDERER_READY, seam.LAUNCHER_RETURN):
             with self.assertRaisesRegex(ValueError, "diverged"):
                 seam.patch_host_main(HOST_STUB.replace(needle, ""), POLICY)
         with self.assertRaisesRegex(ValueError, "diverged"):

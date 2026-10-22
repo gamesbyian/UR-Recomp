@@ -165,6 +165,13 @@ REASSIGN_NEW = (
 
 HELPERS_ANCHOR = "static bool HandleDeviceEvent(const SDL_Event *event) {\n"
 
+# The in-game launcher runs its own event loop over the same SDL queue, so
+# pads added or removed while it is open never reach HandleDeviceEvent.
+LAUNCHER_RETURN = "  SDL_FlushEvent(SDL_QUIT);\n"
+LAUNCHER_RETURN_NEW = LAUNCHER_RETURN + (
+    "  UrSeatReconcile(\"launcher_returned\");  /* " + MARK + " */\n"
+)
+
 TICK_ANCHOR = "    OverlaySelftestPadMainTick(frameCtr);\n"
 TICK_NEW = TICK_ANCHOR + "    UrControllerLifecycleAcceptanceTick();  /* " + MARK + " */\n"
 
@@ -291,6 +298,56 @@ def helpers(policy: Path) -> str:
         "  /* OpenAllGamepads reopens every device, spares included. */\n"
         "  for (int i = 0; i < kUrSpareMax; i++) UrSpareClose(i);\n"
         "}\n"
+        "/* Catch up on hotplug another event loop consumed: release seats and\n"
+        " * spares whose device is gone, then open devices the host never saw.\n"
+        " * Seat memory is kept, so a pad that returned still reclaims its seat. */\n"
+        "static unsigned g_ur_reconcile_gone, g_ur_reconcile_new;\n"
+        "static void UrSeatReconcile(const char *why) {\n"
+        "  for (int i = 0; i < UR_CONTROLLER_SEAT_COUNT; i++) {\n"
+        "    GamepadInfo *gi = &g_gamepad[i];\n"
+        "    if (gi->joystick_id == -1) continue;\n"
+        "    const bool attached = gi->raw_joystick\n"
+        "        ? gi->joystick && SDL_JoystickGetAttached(gi->joystick)\n"
+        "        : g_ur_seat_pad[i] && SDL_GameControllerGetAttached(g_ur_seat_pad[i]);\n"
+        "    if (attached) continue;\n"
+        "    printf(\"[Gamepad] UR_CONTROLLER_SEAT reconcile reason=%s gone instance=%u seat=%d\\n\",\n"
+        "           why, (unsigned)gi->joystick_id, i);\n"
+        "    ++g_ur_reconcile_gone;\n"
+        "    const bool raw = gi->raw_joystick;\n"
+        "    SDL_Joystick *raw_handle = gi->joystick;\n"
+        "    UrSeatRelease(gi);\n"
+        "    if (raw && raw_handle) SDL_JoystickClose(raw_handle);\n"
+        "    memset(gi, 0, sizeof(GamepadInfo));\n"
+        "    gi->joystick_id = -1;\n"
+        "  }\n"
+        "  for (int i = 0; i < kUrSpareMax; i++) {\n"
+        "    const bool attached = g_ur_spare[i].pad\n"
+        "        ? SDL_GameControllerGetAttached(g_ur_spare[i].pad)\n"
+        "        : g_ur_spare[i].raw && SDL_JoystickGetAttached(g_ur_spare[i].raw);\n"
+        "    if ((g_ur_spare[i].pad || g_ur_spare[i].raw) && !attached) UrSpareRemoved(g_ur_spare[i].id);\n"
+        "  }\n"
+        "#if SNESRECOMP_SDL3\n"
+        "  int count = 0;\n"
+        "  SDL_JoystickID *ids = SDL_GetJoysticks(&count);\n"
+        "  for (int i = 0; ids && i < count; i++) {\n"
+        "    const SDL_JoystickID id = ids[i];\n"
+        "    const int open_arg = (int)id;\n"
+        "#else\n"
+        "  const int count = SDL_NumJoysticks();\n"
+        "  for (int i = 0; i < count; i++) {\n"
+        "    const SDL_JoystickID id = SDL_JoystickGetDeviceInstanceID(i);\n"
+        "    const int open_arg = i;\n"
+        "#endif\n"
+        "    if (GetGamepadInfo(id) || UrSpareFind(id) >= 0 || SelftestPadExcludes(id)) continue;\n"
+        "    printf(\"[Gamepad] UR_CONTROLLER_SEAT reconcile reason=%s new instance=%u\\n\",\n"
+        "           why, (unsigned)id);\n"
+        "    ++g_ur_reconcile_new;\n"
+        "    OpenOneGamepad(open_arg);\n"
+        "  }\n"
+        "#if SNESRECOMP_SDL3\n"
+        "  SDL_free(ids);\n"
+        "#endif\n"
+        "}\n"
         "/* Product-facing, read-only: the SDL instance occupying a seat, or -1.\n"
         " * Modern polls this at the completed-frame boundary to notice a seat\n"
         " * owner leaving; it never chooses or changes a seat. */\n"
@@ -314,6 +371,7 @@ def helpers(policy: Path) -> str:
 ACCEPTANCE = r'''#if SNESRECOMP_SDL3
 enum { kUrAcceptPads = 6, kUrAcceptRaw = 5, kUrAcceptSettle = 6 };
 static SDL_JoystickID g_ur_accept_spare_id;
+static int g_ur_accept_b_seat = -1;
 static SDL_JoystickID g_ur_accept_id[kUrAcceptPads];
 static SDL_Joystick *g_ur_accept_joy[kUrAcceptPads];
 static int g_ur_accept_step, g_ur_accept_wait, g_ur_accept_failed, g_ur_accept_on = -1;
@@ -354,6 +412,24 @@ static void UrAcceptButton(int pad, bool down) {
   if (g_ur_accept_joy[pad])
     SDL_SetJoystickVirtualButton(g_ur_accept_joy[pad], SDL_GAMEPAD_BUTTON_SOUTH, down);
 }
+/* Stand in for another event loop (the in-game launcher) draining the
+ * queue: the host never sees these device events. */
+static void UrAcceptDrainDeviceEvents(void) {
+  SDL_PumpEvents();
+  SDL_FlushEvents(SDL_EVENT_JOYSTICK_AXIS_MOTION, SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED);
+}
+/* Fired from SDL's timer thread while the in-game launcher's own loop owns
+ * the queue (the joystick API is locked internally). */
+static Uint32 SDLCALL UrAcceptUnplugA(void *userdata, SDL_TimerID id, Uint32 interval) {
+  (void)userdata; (void)id; (void)interval;
+  UrAcceptDetach(0);
+  return 0;
+}
+static Uint32 SDLCALL UrAcceptPlugB(void *userdata, SDL_TimerID id, Uint32 interval) {
+  (void)userdata; (void)id; (void)interval;
+  UrAcceptAttach(1, 0x5502, -1);
+  return 0;
+}
 static void UrAcceptExpect(const char *step, bool ok) {
   printf("UR_CONTROLLER_ACCEPT step=%s pass=%d seats=%u,%u pad_buttons=%08x\n", step,
          ok ? 1 : 0, (unsigned)g_gamepad[0].joystick_id, (unsigned)g_gamepad[1].joystick_id,
@@ -363,13 +439,41 @@ static void UrAcceptExpect(const char *step, bool ok) {
 static void UrControllerLifecycleAcceptanceTick(void) {
   if (g_ur_accept_on < 0) {
     const char *v = HostGetenv("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE");
-    /* "1" runs the scenario; "exit" also quits when it is done. */
-    g_ur_accept_on = v && (atoi(v) || strcmp(v, "exit") == 0) ? 1 : 0;
+    /* "1" runs the scenario; "exit" also quits when it is done; "launcher"
+     * runs the real in-game launcher over hotplug instead, then quits. */
+    g_ur_accept_on = !v ? 0 : strcmp(v, "launcher") == 0 ? 2
+                   : (atoi(v) || strcmp(v, "exit") == 0) ? 1 : 0;
   }
   if (!g_ur_accept_on || g_ur_accept_step < 0) return;
   if (g_ur_accept_wait > 0) { g_ur_accept_wait--; return; }
   g_ur_accept_wait = kUrAcceptSettle;
-  switch (g_ur_accept_step++) {
+  if (g_ur_accept_on == 2) {
+    /* Each unplug/plug fires on a timer while the launcher is open, so the
+     * launcher's own loop drains the device event. */
+    switch (g_ur_accept_step++) {
+    case 0: UrAcceptAttach(0, 0x5501, -1); return;
+    case 1:
+      UrAcceptExpect("launcher_pad_seated", UrAcceptSeatOf(0) == 0);
+      g_ur_accept_spare_id = g_ur_accept_id[0];
+      SDL_AddTimer(400, UrAcceptUnplugA, NULL);
+      g_open_launcher_hotkey = 1;
+      return;
+    case 2:
+      UrAcceptExpect("launcher_removal_reconciled", g_gamepad[0].joystick_id == -1 &&
+                     g_ur_reconcile_gone == 1 && g_pad_buttons == 0);
+      SDL_AddTimer(400, UrAcceptPlugB, NULL);
+      g_open_launcher_hotkey = 1;
+      return;
+    case 3:
+      UrAcceptExpect("launcher_add_reconciled", UrAcceptSeatOf(1) >= 0 &&
+                     g_ur_reconcile_new == 1);
+      for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+      return;
+    default: break;
+    }
+    g_ur_accept_step = 1000;  /* fall into the shared result/quit below */
+  }
+  switch (g_ur_accept_on == 2 ? 1000 : g_ur_accept_step++) {
   case 0: UrAcceptAttach(0, 0x5501, -1); break;
   case 1: UrAcceptAttach(1, 0x5502, -1); break;
   case 2:
@@ -489,12 +593,44 @@ static void UrControllerLifecycleAcceptanceTick(void) {
                    UrAcceptSeatOf(0) == 0 && (g_pad_buttons & 0xfff000u) == 0);
     for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
     break;
+  case 25:
+    /* B is plugged in while another loop owns the queue. */
+    UrAcceptAttach(1, 0x5502, -1);
+    UrAcceptDrainDeviceEvents();
+    break;
+  case 26:
+    UrAcceptExpect("drained_add_unseen", UrAcceptSeatOf(1) == -1 &&
+                   g_gamepad[0].joystick_id == -1 && g_gamepad[1].joystick_id == -1);
+    UrSeatReconcile("acceptance");
+    break;
+  case 27:
+    g_ur_accept_b_seat = UrAcceptSeatOf(1);
+    UrAcceptExpect("reconcile_seats_new_pad", g_ur_accept_b_seat >= 0);
+    g_ur_accept_spare_id = g_ur_accept_id[1];  /* remember B's instance */
+    UrAcceptDetach(1);  /* and unplugged unseen */
+    UrAcceptDrainDeviceEvents();
+    break;
+  case 28:
+    UrAcceptExpect("drained_removal_unseen", g_ur_accept_b_seat >= 0 &&
+                   g_gamepad[g_ur_accept_b_seat].joystick_id == g_ur_accept_spare_id);
+    UrSeatReconcile("acceptance");
+    break;
+  case 29:
+    UrAcceptExpect("reconcile_releases_gone_pad", g_ur_accept_b_seat >= 0 &&
+                   g_gamepad[g_ur_accept_b_seat].joystick_id == -1 && g_pad_buttons == 0);
+    UrAcceptAttach(1, 0x5502, 1 - g_ur_accept_b_seat);  /* B returns with the other index */
+    break;
+  case 30:
+    UrAcceptExpect("returning_pad_reclaims_after_reconcile",
+                   g_ur_accept_b_seat >= 0 && UrAcceptSeatOf(1) == g_ur_accept_b_seat);
+    for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+    break;
   default: {
     printf("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=%s\n", g_ur_accept_failed ? "fail" : "pass");
     fflush(stdout);
     g_ur_accept_step = -1;
     const char *v = HostGetenv("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE");
-    if (v && strcmp(v, "exit") == 0) {
+    if (v && (strcmp(v, "exit") == 0 || strcmp(v, "launcher") == 0)) {
       SDL_Event quit;
       memset(&quit, 0, sizeof(quit));
       quit.type = SDL_QUIT;
@@ -522,7 +658,7 @@ def patch_host_main(source: str, policy: Path) -> str:
         return source
     for needle in (SELECTION, RAW_SELECTION, PAD_REMOVED, PAD_BUTTON,
                    RAW_REMOVED, REASSIGN, HELPERS_ANCHOR, TICK_ANCHOR,
-                   PAD_FOUND, RAW_UNSEATED, RAW_BUTTON):
+                   PAD_FOUND, RAW_UNSEATED, RAW_BUTTON, LAUNCHER_RETURN):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -535,6 +671,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, PAD_FOUND, PAD_FOUND_NEW)
     source = once(source, RAW_UNSEATED, RAW_UNSEATED_NEW)
     source = once(source, RAW_BUTTON, RAW_BUTTON_NEW)
+    source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

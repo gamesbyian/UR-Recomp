@@ -127,6 +127,41 @@ class DiagnosticsTest(unittest.TestCase):
         # The integer model must not be mistaken for the real mapping.
         self.assertFalse(d.compare_resolutions(a, b, w, h, mode="integer")["pass"])
 
+    def test_diff_png_marks_exactly_the_differing_logical_pixels(self):
+        grid, w, h = logical_canvas()
+        put(grid, w, 30, 30, 40, 8, FG)
+        a = render_fit(grid, w, h, 1280, 720)
+        put(grid, w, 100, 100, 3, 2, BAR)
+        b = render_fit(grid, w, h, 1920, 1080)
+        data = d.diff_png(a, b, w, h, zoom=2)
+        width, height, rgba = d.unpack_png(data)
+        self.assertEqual((width, height), (w * 2, h * 2))
+        red = {(x // 2, y // 2) for y in range(height) for x in range(width)
+               if tuple(rgba[(y * width + x) * 4:(y * width + x) * 4 + 3]) == (255, 0, 0)}
+        self.assertEqual(red, {(x, y) for x in range(100, 103) for y in range(100, 102)})
+        # identical inputs -> no red at all
+        none = d.unpack_png(d.diff_png(a, a, w, h, zoom=1))[2]
+        self.assertNotIn((255, 0, 0), {tuple(none[i:i + 3]) for i in range(0, len(none), 4)})
+
+    def test_cli_compare_writes_diff_png(self):
+        grid, w, h = logical_canvas()
+        put(grid, w, 30, 30, 4, 4, FG)
+        a = render_fit(grid, w, h, 1280, 720)
+        put(grid, w, 60, 60, 2, 2, BAR)
+        b = render_fit(grid, w, h, 1280, 720)
+        with tempfile.TemporaryDirectory() as tmp:
+            pa, pb, out = (Path(tmp) / n for n in ("a.p7", "b.p7", "d.png"))
+            for path, fr in ((pa, a), (pb, b)):
+                path.write_bytes(p7(fr.width, fr.height,
+                                    [fr.rgb(x, y) for y in range(fr.height)
+                                     for x in range(fr.width)]))
+            with contextlib.redirect_stdout(io.StringIO()) as buf:
+                code = d.main(["compare", str(pa), str(pb), "--logical", "342", "224",
+                               "--diff-png", str(out)])
+            self.assertEqual(code, 0)
+            self.assertEqual(json.loads(buf.getvalue())["differing_logical_pixels"], 4)
+            self.assertEqual(d.unpack_png(out.read_bytes())[:2], (342 * 3, 224 * 3))
+
     def test_detect_distinguishes_native_logical_widths(self):
         wide, ww, hh = logical_canvas(342, 224)
         narrow, nw, nh = logical_canvas(256, 224)

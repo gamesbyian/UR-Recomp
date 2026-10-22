@@ -61,8 +61,7 @@ class RecoveryZipAdmissionTest(unittest.TestCase):
         with self.assertRaises(ValueError):admit(output.getvalue())
 
     def test_nested_members_obey_canonical_win32_portability(self):
-        # All these ZIPs have valid CRC and internally consistent hashes:
-        # digest integrity alone cannot make unsafe names portable.
+        # Valid CRC and internally consistent digests are insufficient.
         rejected = (
             {'CON.txt': b'x'},
             {'safe/LPT².log': b'x'},
@@ -82,15 +81,7 @@ class RecoveryZipAdmissionTest(unittest.TestCase):
                            'safe/name².txt': b'also good'}))['members'], 2)
 
     def test_nonportable_child_rejected_even_with_valid_outer_manifest(self):
-        inner = package({'safe/CONIN
-        inner=package({'a.txt':b'a'})
-        outer=package({'nested.zip':inner})
-        with self.assertRaisesRegex(ValueError,'depth'):
-            admit(outer,depth=3,max_depth=2)
-        with self.assertRaises(ValueError):admit('not bytes')
-
-if __name__=='__main__':unittest.main()
-: b'invalid'})
+        inner = package({'safe/CON.txt': b'invalid'})
         outer = package({'safe/nested.zip': inner})
         with self.assertRaisesRegex(ValueError, 'unsafe ZIP member'):
             admit(outer)

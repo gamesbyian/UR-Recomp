@@ -36,9 +36,9 @@ def patch_main(source: str) -> str:
         raise ValueError("Pinned native Modern pause seam must already be staged")
     if source.count(MAIN_HOST) != 1 or source.count(MAIN_PAUSE) != 1:
         raise ValueError("Pinned host descriptor changed; no profile wiring")
-    # This route owns only the stock-density Modern root presenter. A native
-    # HD compositor has its own draw callback and must be composed separately,
-    # not overwritten in this baseline Windows product build.
+    # Modern title/root render at 342x224 in this existing host. World/race
+    # output remains untouched 256x224; a distinct HD/world compositor still
+    # owns its own callback and cannot be stacked into this descriptor.
     if ".draw_frame" in source:
         raise ValueError("Pinned descriptor already owns a native compositor")
     source = source.replace(
@@ -48,6 +48,20 @@ def patch_main(source: str) -> str:
         "extern int ur_baldosa_modern_run_recovery_command(void);\n"
         "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
         "extern void ur_baldosa_modern_root_after_config(void);\n"
+        "extern int ur_baldosa_modern_root_window_base_width(int);\n"
+        "extern void ur_baldosa_modern_root_prepare_frame(\n"
+        "    int, int, int*, int*);\n"
+        "static void ur_baldosa_modern_root_viewport(\n"
+        "    int iw, int ih, int dw, int dh, SnesDisplayViewport* out) {\n"
+        "    if (!out || iw != 342 || ih != 224 || dw < 1 || dh < 1) return;\n"
+        "    /* 342 source pixels at stock 7:6 PAR = 16:9, not 342:224 stretch. */\n"
+        "    int vw = (int)((long long)dh * 342 * 7 / (224 * 6));\n"
+        "    if (vw > dw) vw = dw;\n"
+        "    int vh = (int)((long long)vw * 224 * 6 / (342 * 7));\n"
+        "    if (vh > dh) vh = dh;\n"
+        "    out->x = (dw - vw) / 2; out->y = (dh - vh) / 2;\n"
+        "    out->width = vw; out->height = vh;\n"
+        "}\n"
         "extern int ur_baldosa_modern_root_draw_frame(\n"
         "    uint8_t*, size_t, const uint8_t*, int, int, double);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
@@ -70,6 +84,10 @@ def patch_main(source: str) -> str:
         "    .after_config        = &ur_baldosa_modern_profile_after_config,\n"
         "    .before_run_frame    = &ur_baldosa_modern_profile_before_run_frame,\n"
         "    .draw_frame          = &ur_baldosa_modern_root_draw_frame,\n"
+        "    .native_widescreen   = 1,\n"
+        "    .window_base_width  = &ur_baldosa_modern_root_window_base_width,\n"
+        "    .prepare_frame       = &ur_baldosa_modern_root_prepare_frame,\n"
+        "    .compute_viewport    = &ur_baldosa_modern_root_viewport,\n"
         + MAIN_PAUSE, 1)
 
 

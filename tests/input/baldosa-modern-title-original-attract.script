@@ -1,0 +1,6 @@
+# Actual original-cartridge idle sequence, not generated input.
+# Pinned first-cycle source states: main=440, title=943, demo-race=1531.
+# The Modern host title intentionally remains covering the original pixels.
+turbo on
+wait 1800
+quit

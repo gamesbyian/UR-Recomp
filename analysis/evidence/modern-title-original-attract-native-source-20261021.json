@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "scope": "Native-original-game idle attract source observation, not default Modern demo display/wake approval",
+  "original_actions_run_id": 39542072254,
+  "source_commit_sha": "3deb66a75fb43a2a3f14631a81e0360c157c055b",
+  "source_artifact_id": 12320495471,
+  "downloaded_original_zip_sha256": "818cf7380a5b1ddb52d718d7218cb18b9ef1ebe9e572089d2d1f039225811297",
+  "real_windows_executable_sha256": "f579d2e19bc5c1f1d76a4b20611e655e710094ff73403988bf79e96ccf3a23d9",
+  "original_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "input_script": "tests/input/baldosa-modern-title-original-attract.script",
+  "guest_post_frame_markers": [
+    {
+      "phase": "main_menu",
+      "frame": 440,
+      "menu_hex": "d7",
+      "race_hex": "00",
+      "modern_title_overlay": 1
+    },
+    {
+      "phase": "attract_title",
+      "frame": 943,
+      "menu_hex": "84",
+      "race_hex": "00",
+      "modern_title_overlay": 1
+    },
+    {
+      "phase": "race_flag",
+      "frame": 1532,
+      "menu_hex": "00",
+      "race_hex": "01",
+      "modern_title_overlay": 1
+    }
+  ],
+  "independent_visual_reference_demo_first_frame": 1531,
+  "observation_boundary": "P6 original source visual demo entry is indexed at guest 1531 by independent emulator; native Windows observes post-frame 0313 flag on 1532, exactly one frame later. These are different observations; do not infer guest simulation divergence from that fact.",
+  "title_routes_passed_in_original_run": 6,
+  "recomputed_p6_p7_capture_hashes": 34,
+  "hash_mismatches": 0,
+  "original_guest_input_events_sent": 0,
+  "guest_ram_modified_by_probe": false,
+  "default_original_demo_display_tested": false,
+  "wake_edge_tested": false,
+  "physical_display_tested": false,
+  "final_sdl_tested": false,
+  "release_gate_credit": 0,
+  "validation_note": "Initial run failed only because diagnostic verifier conflated independent visual demo entry frame 1531 with first native post-frame race flag 1532. First failing step inspected; verifier corrected to pin actual source flag in commit 4be7792."
+}

@@ -15,7 +15,7 @@
     {
       "id": "WIN-01",
       "title": "Native Windows builds and ROM-free launcher",
-      "weight": 10,
+      "weight": 6,
       "status": "tested",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1648",
       "accepted_evidence": null
@@ -23,7 +23,7 @@
     {
       "id": "ENG-01",
       "title": "Native 1P source-driven race and settled result",
-      "weight": 12,
+      "weight": 10,
       "status": "tested",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1416",
       "accepted_evidence": null
@@ -31,7 +31,7 @@
     {
       "id": "ENG-02",
       "title": "Native 2P race, match and result",
-      "weight": 10,
+      "weight": 8,
       "status": "tested",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
       "accepted_evidence": null
@@ -47,7 +47,7 @@
     {
       "id": "DATA-01",
       "title": "Distinct named profiles, SRAM and fresh-process Records",
-      "weight": 12,
+      "weight": 10,
       "status": "tested",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
       "accepted_evidence": null

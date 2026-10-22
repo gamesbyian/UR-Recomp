@@ -108,13 +108,14 @@ class AgentBoardControlTests(unittest.TestCase):
                     extract_board(bad)
 
     def test_dated_work_ids_parse_without_changing_agent_schedule(self):
+        # Synthetic replacement: future board owners may rename all lines.
+        dated = "UR-VAULT-CONTRACT-20991231"
+        amended = replace_table_cell(self.text, "1", 2, dated)
+        new_board = extract_board(amended)
+        self.assertEqual(new_board["work"][0]["work_id"], dated)
         self.assertEqual(
-            self.board["work"][0]["work_id"], "UR-VAULT-EXTRACT-20261022")
-        self.assertEqual(
-            self.board["work"][-1]["work_id"], "UR-VAULT-REGRESS-20261022")
-        self.assertEqual(
-            [agent["minute"] for agent in self.board["agents"]],
-            [0, 12, 24, 36, 48])
+            [agent["minute"] for agent in new_board["agents"]],
+            [agent["minute"] for agent in self.board["agents"]])
 
     def test_invalid_dated_work_id_is_not_silently_assigned(self):
         broken = replace_table_cell(

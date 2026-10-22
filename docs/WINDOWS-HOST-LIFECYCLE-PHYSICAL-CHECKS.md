@@ -30,6 +30,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | C7 | Same-model pads only: unplug both, then replug them in the opposite order. | Each pad returns to its own player, or the two swap. Identical pads are indistinguishable; note which happened. | two `reason=reclaimed` lines |
 | C8 | Run the Authentic launcher and unplug a pad mid-race. | **No** pause; the guest just loses that input. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C9 | Unplug a pad in a menu (not racing), then start a race. | No pause appears later because of the earlier unplug. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
+| C10 | Generic (unmapped) pad only: with A and B seated, plug a generic USB pad G that the log reports as `unmapped raw joystick`. Unplug B, then press a button on G. | G becomes P2; that press does nothing else. *(Requires #2233.)* | `UR_CONTROLLER_SEAT spare_kept … raw=1`, then `claim … seat=1` |
 
 ## Focus
 

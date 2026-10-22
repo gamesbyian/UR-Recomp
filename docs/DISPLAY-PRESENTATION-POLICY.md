@@ -165,6 +165,27 @@ Presentation pacing still follows the active display's refresh through the host'
 
 The framework's window-size keys (Ctrl+Up/Down when bound, and Ctrl+mouse-wheel) used to change only the live scale. `config.ini` kept the old `WindowScale`, so the chosen size was forgotten on relaunch. An explicit size step now records `WindowScale`, written by the host's existing exit-time config write. A re-clamp after a display or DPI change is not a player choice and is never persisted. Local check: a real Ctrl+wheel step then a normal quit persisted `WindowScale = 1` and relaunched at 320×240; main relaunched at 640×480.
 
+**Window placement.** The pinned host always reopened centred on the primary display, so a player who keeps the game on a second monitor had to move it back every launch. At a clean exit the host now writes `window-placement.txt` next to the active `config.ini`. The file records:
+- the window's display, by name and bounds;
+- for a window that is not fullscreen, minimized or maximized, its windowed position.
+
+At the next launch, after the renderer has the window (an OpenGL renderer can recreate it), the saved display is found by `ur_display_placement_match`:
+- an exact name and bounds match wins;
+- otherwise a uniquely named display wins, for a monitor that was rearranged;
+- otherwise the saved display is treated as missing.
+
+What happens next:
+- a missing display logs `saved_display_missing`, and the window stays where SDL put it;
+- a fullscreen window on another display is moved there and re-moded;
+- a windowed window returns to its saved spot only when the 32 px reachability rule still holds, and is otherwise centred on that display.
+
+`tools/run_baldosa_window_placement_acceptance.py` runs three real launches:
+1. move the window, then quit;
+2. relaunch, which must reopen at the same spot on the same display;
+3. relaunch with the saved display renamed to one that is not connected, which must log the fallback and must not reuse the old spot.
+
+Local X11 run: positive pass, and without the restore call the runner fails. Before the restore was moved after renderer creation, it landed at the right spot and was then displaced by window recreation; the runner caught that. Moving between real monitors needs more than one display and is a physical check.
+
 `tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
 - without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;
 - without the Alt+Enter clear, `hotkey_enters_borderless` fails.

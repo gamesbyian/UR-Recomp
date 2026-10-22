@@ -188,6 +188,7 @@ on:
       - "native/product/controller_seat_assignment_policy.h"
       - "tests/native/controller_seat_assignment_policy_test.cpp"
       - "tools/run_baldosa_controller_lifecycle_acceptance.py"
+      - "tools/run_baldosa_keyboard_pad_join_acceptance.py"
       # Focus-loss / seat-owner-disconnect pause in the native pause lifecycle.
       - "native/product/baldosa_host_lifecycle_pause.hpp"
       - "native/product/controller_hotplug_policy.hpp"
@@ -499,6 +500,19 @@ jobs:
             --out "$RUNNER_TEMP/ur-controller-lifecycle" \
             --video windows --timeout 120
           echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap. Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE, Modern root with a two-racer roster: keyboard P1 plus
+      # one pad must form a 2P join (the pad moves to seat 2), and a P2 whose
+      # pad leaves before P1 confirms must be withdrawn (#2225).
+      - name: Exercise the keyboard plus one pad 2P join on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_keyboard_pad_join_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-keyboard-pad-join" \
+            --video windows --timeout 180
+          echo "PASS: Win32 Modern 2P join: keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE on the pinned 2P race route in Modern: unplugging the
       # seated pad, then minimizing the real window, must each pause through

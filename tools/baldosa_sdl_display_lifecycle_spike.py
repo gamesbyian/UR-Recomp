@@ -127,6 +127,38 @@ LAUNCHER_RETURN_NEW = LAUNCHER_RETURN + (
     "#endif\n"
 )
 
+# The swap interval. Presents are one per simulated frame and the host drops
+# simulation it falls behind on, so waiting for a panel slower than the
+# guest (a 50 Hz TV) ran the game itself at the panel's rate (83% at 50 Hz).
+VSYNC = (
+    "static int VSyncInterval(void) {\n"
+    "  if (PresentationDecoupled() || g_config.disable_frame_delay) return 0;\n"
+)
+
+
+def vsync_new(policy: Path) -> str:
+    return (
+        f'#include "{policy.as_posix()}"  /* {MARK} */\n'
+        "/* " + MARK + ": the panel's refresh, or a test-only override. */\n"
+        "static int g_ur_vsync_panel_slow = -1;\n"
+        "static double UrPanelRefresh(void) {\n"
+        "  const char *forced = HostGetenv(\"UR_DISPLAY_REFRESH_OVERRIDE\");\n"
+        "  return forced && *forced ? atof(forced) : DisplayRefresh();\n"
+        "}\n"
+        + VSYNC +
+        "  /* " + MARK + ": never let the panel's vblank slow the game itself. */\n"
+        "  {\n"
+        "    const double panel = UrPanelRefresh();\n"
+        "    const int slow = ur_display_vsync_cannot_carry(panel, g_simulation_hz);\n"
+        "    if (slow != g_ur_vsync_panel_slow) {\n"
+        "      g_ur_vsync_panel_slow = slow;\n"
+        "      printf(\"UR_DISPLAY vsync panel_hz=%.3f guest_hz=%.4f wait=%s\\n\", panel,\n"
+        "             g_simulation_hz, slow ? \"no\" : \"setting\");\n"
+        "    }\n"
+        "    if (slow) return 0;\n"
+        "  }\n"
+    )
+
 # The host's own clean-exit config write; the window still exists here.
 EXIT_SAVE = (
     "  /* A volume or fullscreen change made with the keys survives the session,\n"
@@ -431,6 +463,10 @@ static void UrDisplayPlacementSmokeTick(void) {
          "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : "report", x, y,
          (flags & SDL_WINDOW_FULLSCREEN) ? 1 : 0, (flags & SDL_WINDOW_MAXIMIZED) ? 1 : 0,
          name ? name : "-");
+  int renderer_vsync = -99;
+  SDL_Renderer *renderer = SDL_GetRenderer(g_window);
+  if (renderer) SDL_GetRenderVSync(renderer, &renderer_vsync);
+  printf("UR_DISPLAY_VSYNC_SMOKE renderer_vsync=%d\n", renderer_vsync);
   fflush(stdout);
   frames = -1;
   SDL_Event quit;
@@ -443,9 +479,33 @@ static void UrRestoreWindowPlacement(void) {}
 static void UrSaveWindowPlacement(void) {}
 static void UrDisplayPlacementSmokeTick(void) {}
 #endif
+#if SNESRECOMP_SDL3
+/* A display or mode change can move the window onto a panel with another
+ * refresh: re-apply the swap interval when its decision changes. */
+static void UrReapplyVsync(void) {
+  const int before = g_ur_vsync_panel_slow;
+  const int interval = VSyncInterval();
+  if (g_ur_vsync_panel_slow == before) return;
+  if (g_renderer_funcs.Reconfigure) g_renderer_funcs.Reconfigure();
+#ifndef SNESRECOMP_NO_DESKTOP_GL
+  snesrecomp_opengl_set_vsync(interval);
+#else
+  (void)interval;
+#endif
+}
+#endif
 static void UrDisplayEvent(const SDL_Event *event) {
 #if SNESRECOMP_SDL3
   if (!g_window) return;
+  switch (event->type) {
+  case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+  case SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED:
+  case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+  case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+    UrReapplyVsync();
+    break;
+  default: break;
+  }
   switch (event->type) {
   case SDL_EVENT_WINDOW_DISPLAY_CHANGED: UrDisplayReconcile("window_display_changed"); break;
   case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: UrDisplayReconcile("display_scale_changed"); break;
@@ -641,7 +701,7 @@ def patch_host_main(source: str, policy: Path) -> str:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
                    HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP,
-                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN):
+                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN, VSYNC):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -655,6 +715,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, EXIT_SAVE, EXIT_SAVE_NEW)
     source = once(source, RENDERER_READY, RENDERER_READY_NEW)
     source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
+    source = once(source, VSYNC, vsync_new(policy))
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

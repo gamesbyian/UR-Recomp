@@ -129,6 +129,18 @@ static inline int ur_display_placement_match(
     return named == 1 ? named_index : -1;
 }
 
+/* Whether waiting for the panel's vblank would slow the game itself.
+ *
+ * The desktop host presents once per simulated frame and drops simulation
+ * it falls behind on, so a swap interval locks the game to the panel. At
+ * or near the guest rate (59.94/60 Hz panels against the SNES's ~60.1 Hz)
+ * that is the usual sync-to-video. A panel more than 1% slower (a 50 Hz
+ * TV, a 30 Hz mode) would run the game itself slower, so presents must
+ * not wait there. An unknown refresh (0) keeps the setting. */
+static inline int ur_display_vsync_cannot_carry(double panel_hz, double guest_hz) {
+    return panel_hz > 0 && guest_hz > 0 && panel_hz < guest_hz * 0.99;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -18,6 +18,7 @@ DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
 }
 
 EXPENSIVE_PR_WORKFLOWS = {
+    "baldosa-windows-native-bridge.yml",
     "modern-native-heavy-router.yml",
     "modern-race-restart-acceptance.yml",
     "native-build-smoke.yml",
@@ -220,6 +221,36 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "expensive PR gates must stay cheap while a PR is draft and run once "
             f"it becomes review-ready: {offenders}",
         )
+
+    def test_baldosa_windows_draft_gate_keeps_opt_in_and_full_review_execution(self):
+        workflow = (WORKFLOWS / "baldosa-windows-native-bridge.yml").read_text()
+        pr = _block(workflow, "pull_request")
+        self.assertIn("ready_for_review", pr)
+        self.assertIn("converted_to_draft", pr)
+        self.assertIn("synchronize", pr)
+        self.assertIn("  workflow_dispatch:", workflow)
+        self.assertIn("  workflow_call:", workflow)
+        self.assertIn("      run_on_draft:", workflow)
+        self.assertIn("        default: true", workflow.split("      run_on_draft:", 1)[1].split("\n\n", 1)[0])
+        main_job = workflow.split("\njobs:\n", 1)[1]
+        header = main_job.split("    steps:\n", 1)[0]
+        self.assertIn(
+            "if: github.event_name != 'pull_request' || "
+            "github.event.pull_request.draft == false",
+            header,
+        )
+        self.assertIn("|| inputs.run_on_draft == true", header)
+        self.assertIn("runs-on: windows-2022", header)
+        self.assertIn("timeout-minutes: 35", header)
+        # Cancelling superseded PR jobs stays enabled and manual calls do
+        # not cancel one another. The expensive Windows journey is still
+        # present and reachable for non-draft PRs and dispatched branches.
+        self.assertIn("cancel-in-progress: " + "$" +
+                      "{{ github.event_name == 'pull_request' }}", workflow)
+        self.assertIn("Build real native AOT Windows x64 title plus UR host bridges",
+                      main_job)
+        self.assertIn("Pilot parallel authentic Windows journeys", main_job)
+        self.assertIn("Prove extracted CMD launcher", main_job)
 
     def test_native_build_gates_do_not_redownload_runner_tooling(self):
         forbidden = {"cmake", "ninja-build", "libsdl2-dev"}

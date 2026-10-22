@@ -18,10 +18,12 @@ try:
     from .agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
     from .validate_history_custody import load as load_custody, validate as validate_custody
     from .ci_cancelled_job_sample import sample_cancelled_jobs
+    from .audit_recovery_handoff_drift import scan as scan_handoff_drift
 except ImportError:
     from agent_control import BOARD, REGISTRY, extract_board, load_json, validate_registry
     from validate_history_custody import load as load_custody, validate as validate_custody
     from ci_cancelled_job_sample import sample_cancelled_jobs
+    from audit_recovery_handoff_drift import scan as scan_handoff_drift
 
 REPO = "gamesbyian/UR-Recomp"
 def timestamp(value):
@@ -80,7 +82,7 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         "scheduled_agent_health": "UNKNOWN_NOT_CONNECTED",
         "dispatch": [{"agent": x["number"], "minute": x["minute"], "work_ids": x["work_ids"]}
                      for x in board["agents"]],
-        "recovery": [],
+        "recovery": [], "handoff_drift": {"status": "UNKNOWN_NOT_CHECKED"},
     }
     try:
         b = get(base + "/branches/main")
@@ -126,6 +128,32 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
                                     "updated_at": x.get("updated_at")} for x in prs[:25]]}
     except (ValueError, TypeError, KeyError, AttributeError) as err:
         result["errors"]["prs"] = str(err)
+    # Merge-to-vault handoff continuity is a hint, never an automatic
+    # integration claim. Partial/failed closed-PR censuses are UNKNOWN.
+    try:
+        # Old PRs can merge today: sample by latest update rather than
+        # GitHub's default creation order. A bounded scan stays incomplete.
+        closed, complete = paged(get, base + "/pulls?state=closed&sort=updated&direction=desc")
+        # A partial census can still prove a positive match. It cannot
+        # prove absence of a match in unobserved older closed PRs.
+        drift = scan_handoff_drift(registry, closed)
+        if complete:
+            status = "REVIEW_HINTS" if drift["hints"] else "NO_HINTS_IN_CURATED_SCOPE"
+        else:
+            status = ("PARTIAL_CENSUS_REVIEW_HINTS" if drift["hints"]
+                      else "UNKNOWN_INCOMPLETE_PR_CENSUS")
+        result["handoff_drift"] = {
+            "status": status,
+            "census_complete": complete,
+            "observed_closed_prs": len(closed),
+            "merged_prs_checked": drift["merged_prs_checked"],
+            "candidates_checked": drift["candidate_count"],
+            "hints": drift["hints"],
+            "automatic_state_changes": 0,
+        }
+    except (ValueError, TypeError, KeyError, AttributeError) as err:
+        result["handoff_drift"] = {"status": "UNKNOWN_API_OR_DATA_FAILURE"}
+        result["errors"]["handoff_drift"] = str(err)
     try:
         runs = get(base + "/actions/runs?per_page=100&page=1")
         latest = runs["workflow_runs"]
@@ -248,6 +276,14 @@ def markdown(s):
     for a in s["dispatch"]:
         rows.append(f"| {a['agent']} | :{a['minute']:02d} | " +
                     " then ".join(a["work_ids"]) + " |")
+    drift = s["handoff_drift"]
+    rows.append("- Recovery handoff cross-check: " + drift["status"] +
+                " (closed PR descriptions vs curated registry; no Drive readback).")
+    for hint in drift.get("hints", []):
+        rows.append("- REVIEW: " + hint["candidate_id"] + " recorded " +
+                    hint["recorded_state"] + " but merged PR #" +
+                    str(hint["linked_merged_pr"]) + " references its Drive ID; " +
+                    "inspect every member before revising the existing registry.")
     rows.extend(["", "## Recovery registry, curated only; Drive presence UNKNOWN", ""])
     for x in s["recovery"]:
         rows.append("- " + x["candidate_id"] + ": " + x["recorded_state"] +

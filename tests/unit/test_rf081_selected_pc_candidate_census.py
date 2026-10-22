@@ -25,6 +25,7 @@ def observations():
                 "original_host_frame": frame,
                 "source_guest_PC_context": "82D4F0",
                 "raw_fetched_opcode_if_fetch": "10",
+                "stage": "fetch",
                 "decoded_original_guest_fetch_executed": True,
             },
         })
@@ -49,6 +50,17 @@ class SelectedPCCandidateTests(unittest.TestCase):
         self.assertFalse(result["first_causal_divergence_proven"])
         self.assertFalse(result["complete_event_equivalence_proven"])
         self.assertTrue(all(not row["semantic_phase_aligned"] for row in result["frames"]))
+
+    def test_selected_original_fetch_stage_is_explicit(self):
+        # Reject a same-frame selected PC from an opcode-adjacent
+        # interrupt observation masquerading as the actual source fetch.
+        for stage in (None, "nmi_pending", "nmi_before", "opcode", 1):
+            original, native = observations()
+            original["source_NMI_brackets"][0][
+                "first_selected_original_opcode_fetch_after_NMI"]["stage"] = stage
+            with self.subTest(stage=stage), self.assertRaisesRegex(
+                    ValueError, "not comparable"):
+                classify_records(original, native)
 
     def test_native_frame_swap_refused(self):
         original, native = observations()

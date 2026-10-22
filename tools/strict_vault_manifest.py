@@ -15,6 +15,24 @@ MAX_TOTAL=128*1024*1024
 WINDOWS_DEVICES={'CON','PRN','AUX','NUL'} | {'COM'+str(n) for n in range(1,10)} | {'LPT'+str(n) for n in range(1,10)}
 
 
+def _portable_win32_component(part):
+    """Refuse names that lose identity or cannot be represented as Win32 files.
+
+    This is a conservative cross-platform recovery-envelope policy, not a
+    Windows path open or an extraction permission.
+    """
+    if (part.endswith((' ', '.')) or ':' in part or
+            any(unicodedata.category(ch) in ('Cc', 'Cf') for ch in part) or
+            len(part.encode('utf-16-le')) // 2 > 255):
+        return False
+    # Win32 DOS aliases treat superscript digits ¹²³ as COM/LPT 1,2,3.
+    # Space immediately before a dot can disguise a device stem.
+    stem = part.split('.', 1)[0].rstrip(' ').upper()
+    for digit, ascii_digit in (('¹', '1'), ('²', '2'), ('³', '3')):
+        stem = stem.replace(digit, ascii_digit)
+    return stem not in WINDOWS_DEVICES
+
+
 def verify(raw, *, expected_sha256=None):
     if type(raw) is not bytes or len(raw)>MAX_ZIP:
         raise ValueError('invalid archive bytes/size')
@@ -33,9 +51,7 @@ def verify(raw, *, expected_sha256=None):
                 if (not n or n.startswith('/') or '\\' in n or
                         unicodedata.normalize('NFC',n)!=n or
                         any(c in ('','.','..') for c in n.split('/')) or
-                        any(ord(ch)<32 or unicodedata.category(ch)=='Cf' for ch in n) or
-                        any(part.endswith((' ','.')) or ':' in part or
-                            part.split('.',1)[0].upper() in WINDOWS_DEVICES for part in n.split('/')) or
+                        any(not _portable_win32_component(part) for part in n.split('/')) or
                         stat.S_ISLNK(i.external_attr >> 16) or i.is_dir() or
                         i.file_size>MAX_MEMBER):
                     raise ValueError('unsafe archive member')

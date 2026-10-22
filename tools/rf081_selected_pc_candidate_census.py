@@ -53,6 +53,7 @@ def classify_records(original, native):
                 type(old_fetch.get('raw_fetched_opcode_if_fetch')) is not str or
                 not HEX2.fullmatch(old_fetch['raw_fetched_opcode_if_fetch']) or
                 old_fetch.get('decoded_original_guest_fetch_executed') is not True or
+                old_fetch.get('stage') != 'fetch' or
                 new_fetch.get('actual_guest_emitter_tier') != 'aot' or
                 old.get('all_intervening_unselected_opcode_fetches_observed') is not False or
                 new.get('original_native_interrupt_instruction_phase_qualified') is not False):

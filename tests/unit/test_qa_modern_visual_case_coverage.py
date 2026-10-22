@@ -132,6 +132,65 @@ class ModernVisualCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"25 canonical"):
             coverage.reconcile(m,self.evidence)
 
+    def test_uncredited_matrix_input_state_and_pixels_stay_frozen(self):
+        # The older five geometry candidates were already protected. These
+        # uncovered cases must not quietly change their QA requirements
+        # merely because no screenshot currently satisfies them.
+        for cid, key, incorrect in (
+            ("title-wide-keyboard", "input", "pad-p1"),
+            ("root-wide-4k-virtual", "pixels", [1920, 1080]),
+            ("root-keyboard", "input", "pad-p1"),
+            ("root-disabled", "state", "normal"),
+            ("profile-switch-existing", "aspect", "16:9"),
+            ("multiplayer-p2-owner", "input", "pad-p1"),
+            ("practice-locked", "state", "unlocked"),
+            ("options-refused", "input", "pad-p1"),
+            ("records-earned-1p", "state", "no-records"),
+            ("records-earned-2p", "input", "pad-p2"),
+            ("transition-back-release", "state", "released"),
+            ("authentic-title-stock", "mode", "modern"),
+            ("authentic-stock-wide", "mode", "modern"),
+            ("focus-loss-modal", "state", "normal"),
+        ):
+            with self.subTest(cid=cid, key=key):
+                m = copy.deepcopy(self.matrix)
+                case = next(x for x in m["cases"] if x["id"] == cid)
+                case[key] = incorrect
+                with self.assertRaisesRegex(ValueError, "protected visual matrix"):
+                    coverage.reconcile(m, self.evidence)
+
+    def test_uncredited_matrix_missing_fields_rejected(self):
+        for cid, field in (("multiplayer-p2-owner", "input"),
+                           ("root-wide-4k-virtual", "pixels"),
+                           ("authentic-stock-wide", "mode")):
+            with self.subTest(cid=cid, field=field):
+                m = copy.deepcopy(self.matrix)
+                case = next(x for x in m["cases"] if x["id"] == cid)
+                del case[field]
+                with self.assertRaisesRegex(ValueError, "protected visual matrix"):
+                    coverage.reconcile(m, self.evidence)
+
+    def test_visual_review_obligations_cannot_disappear(self):
+        for cid in ("title-wide-1080", "root-disabled",
+                    "multiplayer-p2-owner", "practice-locked",
+                    "records-earned-2p", "authentic-stock-wide"):
+            with self.subTest(cid=cid):
+                m = copy.deepcopy(self.matrix)
+                next(x for x in m["cases"] if x["id"] == cid)["review_target"] = (
+                    "ordinary screen only")
+                with self.assertRaisesRegex(ValueError, "visual review target"):
+                    coverage.reconcile(m, self.evidence)
+        for field in ("human_checks", "required_fields", "authority"):
+            with self.subTest(field=field):
+                m = copy.deepcopy(self.matrix)
+                del m[field]
+                with self.assertRaisesRegex(ValueError, "visual review policy"):
+                    coverage.reconcile(m, self.evidence)
+        m = copy.deepcopy(self.matrix)
+        m["human_checks"].remove("physical controller ownership")
+        with self.assertRaisesRegex(ValueError, "visual review policy"):
+            coverage.reconcile(m, self.evidence)
+
     def test_candidate_ownership_and_state_cannot_be_rewritten(self):
         for key,value in (("input","keyboard"),("state","p1-p2-named"),
                           ("mode","authentic"),("aspect","4:3")):

@@ -146,6 +146,59 @@ With Remastered Racer HD enabled, Internal Render Scale is resolved from the per
 
 Widened world composition now preserves the configured 1x–4x presentation density without changing the accepted 342×224 logical view, +48 backing/materializer coverage, +43 visible world extent, 7:6 Original PAR or final viewport policy. SNESRecomp allocates the presentation buffer from logical width/height multiplied by density; if the Racer-HD replacement presenter declines the widened frame, the generic nearest-density compositor expands the entire completed widened field, including host-owned margins, exactly. Regional-title replacement likewise preserves its logical retail crop at 1x–4x by nearest-composing the canonical guest title at the selected density, painting the proven Europe crop in logical coordinates expanded by that same integer scale, verifying the density-aware crop digest, and restoring the canonical composed frame on any failure. Current Modern presentation therefore has no global 1x density holdout.
 
+## Desktop display modes and monitor changes
+
+The Display setting has three meanings, and every desktop host must keep them distinct: **Windowed**; **Borderless** (fullscreen at the desktop mode, no mode switch); **Fullscreen** (exclusive, with a concrete display mode). SDL3 has no separate "fullscreen desktop" flag. A fullscreen SDL3 window is borderless unless the host first gives it a mode with `SDL_SetWindowFullscreenMode`. The pinned Baldosa host and Modern Options seam never did, so on the SDL3 Windows product Fullscreen was silently Borderless and switching between the two did nothing.
+
+`tools/baldosa_sdl_display_lifecycle_spike.py` closes this with decisions from `native/product/display_window_lifecycle_policy.h`:
+
+- **Fullscreen mode before every transition.** Before each fullscreen transition (Options, the in-game launcher, Alt+Enter, and window creation), Fullscreen gets SDL's closest exclusive mode to the window's display desktop mode, and Windowed/Borderless clear it. Output Resolution is not a Baldosa Options row yet, so "Native" is the only resolution.
+- **No exclusive mode means a refusal.** A display offering no such mode makes Options report a refusal, which the Options seam already rolls back.
+- **Alt+Enter stays borderless.** Alt+Enter moves between windowed and borderless only, so it clears any mode left from an earlier Fullscreen.
+- **Alt+Enter is never a menu key.** The product key hook runs before the framework's command lookup and sees no modifiers, so a visible Modern root took Alt+Enter's Return as CONFIRM and started a 1P game while the window stayed windowed. A key that maps to the framework's fullscreen command now always reaches the framework.
+- **Display events are reconciled, never consumed.** They are handled in all host event pumps:
+  - an exclusive window that lands on another display, or whose display's desktop mode changes, is re-moded for that display;
+  - a windowed window whose title strip no longer shows at least 32 px on any display's usable area (for example after its monitor was removed) is centred on the primary display, shrunk to fit if necessary;
+  - after a DPI change, a default-sized window that no longer fits is re-clamped through the framework's own window-scale rule.
+
+Presentation pacing still follows the active display's refresh through the host's existing 250 ms re-check.
+
+The framework's window-size keys (Ctrl+Up/Down when bound, and Ctrl+mouse-wheel) used to change only the live scale. `config.ini` kept the old `WindowScale`, so the chosen size was forgotten on relaunch. An explicit size step now records `WindowScale`, written by the host's existing exit-time config write. A re-clamp after a display or DPI change is not a player choice and is never persisted. Local check: a real Ctrl+wheel step then a normal quit persisted `WindowScale = 1` and relaunched at 320×240; main relaunched at 640×480.
+
+**Window placement.** The pinned host always reopened centred on the primary display, so a player who keeps the game on a second monitor had to move it back every launch. At a clean exit the host now writes `window-placement.txt` next to the active `config.ini`. The file records:
+- the window's display, by name and bounds;
+- for a window that is not fullscreen, minimized or maximized, its windowed position;
+- whether a windowed game was maximized (`maximized=1`). The windowed position from before keeps its place in the file, so un-maximizing later returns there.
+
+At the next launch, after the renderer has the window (an OpenGL renderer can recreate it), the saved display is found by `ur_display_placement_match`:
+- an exact name and bounds match wins;
+- otherwise a uniquely named display wins, for a monitor that was rearranged;
+- otherwise the saved display is treated as missing.
+
+What happens next:
+- a missing display logs `saved_display_missing`, and the window stays where SDL put it;
+- a fullscreen window on another display is moved there and re-moded;
+- a windowed window returns to its saved spot only when the 32 px reachability rule still holds, and is otherwise centred on that display;
+- a window saved maximized is then maximized there, on the saved display.
+
+`tools/run_baldosa_window_placement_acceptance.py` runs five real launches:
+1. move the window, then quit;
+2. relaunch, which must reopen at the same spot on the same display, not maximized;
+3. maximize, then quit; the file must keep the moved spot and record `maximized=1`;
+4. relaunch, which must reopen maximized on the same display;
+5. relaunch with the saved display renamed to one that is not connected, which must log the fallback and must not reuse the old spot or the maximized state.
+
+Local X11 run: positive pass. Without the restore call the runner fails, and without the maximize step it fails `relaunch did not restore the maximized state`. Before the restore was moved after renderer creation, it landed at the right spot and was then displaced by window recreation; the runner caught that. Moving between real monitors needs more than one display and is a physical check.
+
+`tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
+- without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;
+- without the Alt+Enter clear, `hotkey_enters_borderless` fails.
+- without the key routing, a visible Modern root takes Alt+Enter as CONFIRM (`stock_requested players=1`), and both hotkey steps fail. The acceptance runs with the Modern root visible and the runner rejects any `stock_requested`.
+
+The pinned 2P route's per-frame WRAM CRCs are unchanged. A hosted runner has one display, so multi-monitor hot-plug, physical DPI changes and real mode-switch hardware remain unaccepted.
+
+**Window-key persistence:** Modern restores the persisted `HostSettings` display mode at boot. An Alt+Enter or launcher change is now adopted into that existing store when the live display changes (`baldosa_options_adopt_live_display`, see [MODERN-PRODUCT-LAYER](MODERN-PRODUCT-LAYER.md)), so it survives the next launch. A missing store keeps `config.ini` authoritative.
+
 ## Presentation cadence
 
 The authoritative simulation remains fixed to original game cadence.

@@ -163,6 +163,26 @@ def png_pixels(data: bytes) -> tuple[int, int]:
     raise CaptureError("PNG missing IEND")
 
 
+def native_capture_matches(line: str, width: int, height: int) -> bool:
+    """Require one exact SDL capture event, not a substring or duplicate field.
+
+    Source-only structural admission; this cannot authenticate native origin.
+    The token contract follows the independently merged root guard (#2188).
+    """
+    tokens = line.split()
+    if not tokens or tokens[0] != "UR_MODERN_VISUAL_SDL_CAPTURE":
+        return False
+    fields = {}
+    for token in tokens[1:]:
+        key, separator, value = token.partition("=")
+        if not separator or not key or not value or key in fields:
+            return False
+        fields[key] = value
+    return (fields.get("status") == "saved" and
+            fields.get("output") == f"{width}x{height}" and
+            fields.get("source") == "SDL_RenderReadPixels")
+
+
 def check_lossless_sdl_conversion(
     root: Path, shot: dict, pixels: tuple[int, int],
     png_path: Path, route_log: str,
@@ -186,11 +206,8 @@ def check_lossless_sdl_conversion(
         raise CaptureError("SDL readback P7 geometry, format or length invalid")
     # The diagnostic writes exactly once; require its actual observed
     # dimensions and SDL readback method on the SAME retained route log.
-    native_lines = [
-        line for line in route_log.splitlines()
-        if "UR_MODERN_VISUAL_SDL_CAPTURE status=saved " in line
-        and f" output={w}x{h} source=SDL_RenderReadPixels" in line
-    ]
+    native_lines = [line for line in route_log.splitlines()
+                    if native_capture_matches(line, w, h)]
     if len(native_lines) != 1:
         raise CaptureError("missing/ambiguous actual SDL readback route log")
 

@@ -152,6 +152,29 @@ int main() {
 
     const auto decoded = decode_completed_run_record(encoded);
     assert(decoded.loaded());
+    // Recompute the checksum so a duplicate terminator is otherwise a
+    // perfectly self-consistent artifact. Corrupt-checksum tests cannot
+    // exercise this parser-state bug.
+    {
+        const auto trailer_pos = encoded.rfind("checksum ");
+        assert(trailer_pos != std::string::npos);
+        const auto valid_body = encoded.substr(0, trailer_pos);
+        for (const auto& extra_line : {std::string("END\n"),
+                                      std::string("END\nEND\n"),
+                                      std::string("END\ninput 0 1 100 0\n")}) {
+            const auto modified_body = valid_body + extra_line;
+            std::ostringstream checksum;
+            checksum << std::hex << std::setw(16) << std::setfill('0')
+                     << fnv1a64(modified_body);
+            const auto recomputed = modified_body + "checksum " +
+                                    checksum.str() + "\n";
+            const auto denied = decode_completed_run_record(recomputed);
+            assert(denied.status == RunRecordLoadStatus::Malformed);
+            assert(!denied.record.has_value());
+        }
+        // The original single-END encoder and decoder still round-trip.
+        assert(decode_completed_run_record(encoded).loaded());
+    }
     assert(decoded.record->elapsed_ticks60 == original.elapsed_ticks60);
     assert(decoded.record->splits.size() == 3);
     assert(decoded.record->inputs.size() == original.inputs.size());

@@ -300,6 +300,31 @@ int main() {
         }));
     bounds(342,224);
     clear();
+    // The host glyph callback does not clip. A long future or localized
+    // setting name must stop before the real value column instead of
+    // drawing yellow text over the setting's authoritative ON/OFF value.
+    v.options_rows[1].label =
+        "PRESENTATION_MODE_WITH_MORE_CHARACTERS_THAN_THE_COLUMN";
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    const auto option_label = std::find_if(
+        painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 22 && t.y == 111 &&
+                   t.colour == kModernStockMenuPalette.title_yellow;
+        });
+    assert(option_label != painted_text.end());
+    assert(option_label->cells == 20);
+    assert(option_label->x + static_cast<int>(option_label->cells) *
+               8 * option_label->size <= 188);
+    assert(has("< ON >"));
+    assert(std::any_of(painted_text.begin(), painted_text.end(),
+        [](const PaintedText& t) {
+            return t.x == 196 && t.y == 111 && t.cells == 6;
+        }));
+    bounds(342,224);
+    clear();
+    v.options_rows[1].label = "VSYNC";
     v.options_controls_help = true;
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));
@@ -339,6 +364,16 @@ int main() {
     assert(has("> VSYNC    < ON >"));
     bounds(256,224);
     clear();
+    // The pause header follows the same explicit regional flag as the root
+    // presentation. Modern must never relabel European Unirally as USA art.
+    v.europe = true;
+    assert(render_modern_native_pause_destination(
+        painter,scratch,256,256,224,v));
+    assert(has("UNIRALLY") && !has("UNIRACERS"));
+    assert(has("GAME PAUSED") && has("OPTIONS"));
+    bounds(256,224);
+    clear();
+    v.europe = false;
     assert(render_modern_native_pause_destination(
         painter,scratch,512,512,448,v));
     assert(has("GAME PAUSED"));
@@ -384,6 +419,24 @@ int main() {
     assert(painted.front().x == 32 && painted.front().y == 40);
     assert(painted.front().w == 960 && painted.front().h == 816);
     bounds(1024,896);
+    clear();
+    // SDL/output window dimensions alone never certify native 342x224
+    // source preparation. These sizes previously selected a false 320px
+    // root because width >= 342*scale; keep the 240px fallback instead.
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1280,1280,720,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 400 && painted.front().y == 156);
+    assert(painted.front().w == 480 && painted.front().h == 408);
+    assert(has("> VSYNC    < ON >") && !has("SETTINGS"));
+    bounds(1280,720);
+    clear();
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1024,1024,768,v));
+    assert(!painted.empty());
+    assert(painted.front().x == 272 && painted.front().y == 180);
+    assert(painted.front().w == 480 && painted.front().h == 408);
+    bounds(1024,768);
     clear();
     assert(!render_modern_native_pause_destination(
         painter,scratch,240,240,224,v));
@@ -461,6 +514,10 @@ int main() {
     assert(!has("NO LIVE RACER CHANGE"));
     assert(has("SAVED FOR NEXT LAUNCH"));
     assert(has("QUIT AND RESTART GAME"));
+    // Native B dismisses this child panel; quitting is a separate root B
+    // action. Do not advertise a shortcut that does not exist.
+    assert(has("B BACK  THEN QUIT"));
+    assert(!has("B BACK / QUIT"));
     assert(has("PROFILE")); // native-wide stage identity, never a new route
     clear();
 

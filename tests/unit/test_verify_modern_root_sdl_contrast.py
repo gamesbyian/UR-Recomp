@@ -176,6 +176,36 @@ class NativeRootSdlContrastTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "truncated or trailing"):
                 audit.verify_capture(receipt, png, p7, log)
 
+    def test_native_log_capture_tokens_reject_prefix_and_duplicate_spoofs(self):
+        # Historical H28 negative: substring search accepted a modified
+        # status, output or source and falsely treated it as a real capture.
+        # Regress the already-integrated strict parser, not its denied patch.
+        real = ("UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 "
+                "guest_frame=40 output=1280x720 "
+                "source=SDL_RenderReadPixels backend=sdl3")
+        self.assertTrue(audit.native_capture_matches(real, 1280, 720))
+        for altered in (
+            real.replace("status=saved", "status=savedFake"),
+            real.replace("output=1280x720", "output=1280x7200"),
+            real.replace("source=SDL_RenderReadPixels",
+                         "source=SDL_RenderReadPixelsFake"),
+            real.replace("status=saved", "xstatus=saved"),
+            real + " status=saved",
+            real + " output=1280x720",
+            real + " source=SDL_RenderReadPixels",
+            "prefix_" + real,
+            "debug: " + real,
+            real + " trailing-comment-without-equals",
+        ):
+            with self.subTest(altered=altered):
+                self.assertFalse(audit.native_capture_matches(altered, 1280, 720))
+        # Whitespace separation is deliberately allowed: field order is
+        # irrelevant but the name and full value must remain exact.
+        self.assertTrue(audit.native_capture_matches(
+            "UR_MODERN_VISUAL_SDL_CAPTURE output=1280x720 "
+            "source=SDL_RenderReadPixels status=saved", 1280, 720))
+        self.assertFalse(audit.native_capture_matches(real, 1024, 768))
+
     def test_actual_capture_requires_unapproved_scope(self):
         with tempfile.TemporaryDirectory() as td:
             receipt, png, p7, log = source_files(Path(td), False)

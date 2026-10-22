@@ -16,6 +16,7 @@
 #include "baldosa_native_options.hpp"
 #include "modern_pause_overlay_presenter.hpp"
 #include "modern_menu_motion.hpp"
+#include "modern_reduced_motion_preference.hpp"
 #include "modern_menu_stock_hero.hpp"
 // Original art is generated only from a verified USA ROM by
 // tools/build_modern_menu_stock_hero.py before the native build. It is absent
@@ -1315,9 +1316,9 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             std::getenv("UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT");
         const bool stepped_capture = capture_advance &&
             std::strcmp(capture_advance, "1") == 0;
-        const char* reduced = std::getenv("UR_REDUCED_MOTION");
         const bool reduced_motion =
-            reduced && std::strcmp(reduced, "1") == 0;
+            ur::product::modern_reduced_motion_preference(
+                std::getenv("UR_REDUCED_MOTION"));
         const char* seed = std::getenv("UR_MODERN_MENU_TEST_TICK60");
         std::uint64_t parsed_seed = 0;
         const bool provenance_log = stepped_capture &&

@@ -97,6 +97,25 @@ class ThreeProjectReuseTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     candidates(self.register, matrix)
 
+    def test_invalid_lane_members_never_crash_or_leak_to_selection(self):
+        # Source-confirmed H27 negative: dictionaries are unhashable, and
+        # non-string elements must be refused even for all-lane queries.
+        for membership in (
+            [{"nested": "lane"}], ["release-qa", {"bad": 1}],
+            [["release-qa"]], [None], [0], [""], ["   "],
+            ["release-qa", "release-qa"], "", "release-qa", [],
+        ):
+            with self.subTest(membership=membership):
+                register = json.loads(json.dumps(self.register))
+                register["entries"][0]["lanes"] = membership
+                errors = validate(register, self.matrix, self.lanes)
+                self.assertTrue(
+                    any("invalid or duplicate lanes" in x for x in errors),
+                    errors,
+                )
+                with self.assertRaisesRegex(ValueError, "invalid or duplicate lanes"):
+                    candidates(register, self.matrix, lane="all")
+
     def test_bad_rows_fail_closed(self):
         base = json.loads(json.dumps(self.register))
         base["entries"].append(dict(base["entries"][0]))

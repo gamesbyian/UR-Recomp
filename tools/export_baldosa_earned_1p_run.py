@@ -117,14 +117,19 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
 
 def export(journey: Path, destination: Path) -> dict[str, object]:
     root_name = journey.name
+    # Validate unencodable code points before computing the Win32 UTF-16
+    # length. POSIX surrogateescaped filenames must get our bounded,
+    # actionable refusal, not an uncaught UnicodeEncodeError.
+    invalid_codepoints = any(
+        ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+        or ch in '<>:"|?*\\/' for ch in root_name
+    )
     stem = root_name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
-    reserved = {'CON', 'PRN', 'AUX', 'NUL'}
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
     reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
-    if (not root_name or root_name.endswith((' ', '.')) or
+    if (not root_name or root_name.endswith((' ', '.')) or invalid_codepoints or
             unicodedata.normalize('NFC', root_name) != root_name or
             len(root_name.encode('utf-16-le')) // 2 > 255 or
-            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
-                or ch in '<>:"|?*\\/' for ch in root_name) or
             stem in reserved):
         raise ValueError('Nonportable source journey root name')
     if destination == journey or journey in destination.parents:
@@ -163,9 +168,11 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
         raise ValueError('Expected exactly one source-earned .urrun')
     source_name = candidates[0].name
     if (unicodedata.normalize('NFC', source_name) != source_name or
-            len(source_name.encode('utf-8')) > 255 or
-            any(ord(ch) < 32 or unicodedata.category(ch) == 'Cf'
+            # Reject surrogateescaped POSIX filenames before UTF-8 encoding.
+            # The source journey root already follows this bounded policy.
+            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
                 for ch in source_name) or
+            len(source_name.encode('utf-8')) > 255 or
             source_name[-1] in (' ', '.') or
             any(ch in '<>:"|?*\\' for ch in source_name)):
         raise ValueError('Nonportable source-earned run filename')

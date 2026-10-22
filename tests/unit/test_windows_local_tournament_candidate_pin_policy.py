@@ -1,7 +1,7 @@
 """Source-only contract for the manual same-run Windows tournament package.
 
-The external nomination is checked against a fresh main revision and portable
-ZIP digest. This cannot substitute for an executed packaged QA run.
+The independent source SHA is checked before build; the ZIP is validated
+and hashed within that same run. This does not establish Windows QA.
 """
 from pathlib import Path
 import unittest
@@ -26,9 +26,9 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         self.assertIn("run_tournament_acceptance: true", s)
         self.assertNotIn("actions/download-artifact", s)
         self.assertNotIn("smoke_run_id:", s)
-        for name in ("candidate_commit_sha", "portable_zip_sha256"):
-            self.assertIn("      " + name + ":", s)
-            self.assertIn(name + ": ${{ inputs." + name + " }}", s)
+        self.assertIn("      candidate_commit_sha:", s)
+        self.assertIn("candidate_commit_sha: ${{ inputs.candidate_commit_sha }}", s)
+        self.assertNotIn("portable_zip_sha256:", s)
 
     def test_source_pins_admitted_before_build_and_main_only(self):
         s = self.smoke
@@ -38,7 +38,6 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         for guard in (
             '[[ "$GITHUB_REF" == "refs/heads/main" ]]',
             '[[ "$QA_APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]]',
-            '[[ "$QA_APPROVED_ZIP_SHA256" =~ ^[0-9a-f]{64}$ ]]',
             '[[ "$GITHUB_SHA" == "$QA_APPROVED_SHA" ]]',
             'if: inputs.run_tournament_acceptance',
         ):
@@ -49,12 +48,14 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         independent = s.index("- name: Independently verify portable ZIP with stock Windows PowerShell")
         optional = s.index("- name: Same-run packaged Local Tournament acceptance")
         captured = s.index("run_windows_local_tournament_package_acceptance.sh", optional)
-        compare = s.index('test "$ACTUAL_ZIP_SHA256" = "$QA_APPROVED_ZIP_SHA256"', optional)
+        compare = s.index('QA_APPROVED_ZIP_SHA256="$ACTUAL_ZIP_SHA256"', optional)
         self.assertLess(independent, optional)
         self.assertLess(compare, captured)
         self.assertIn("Test-URRecompPortable.ps1", s)
         self.assertIn("verify-archive-checksum", s)
         self.assertIn('ACTUAL_ZIP_SHA256="$(sha256sum "$PACKAGE_ARCHIVE"', s)
+        self.assertIn('--archive "$PACKAGE_ARCHIVE" --checksum "$PACKAGE_ARCHIVE_CHECKSUM"', s)
+        self.assertNotIn('inputs.portable_zip_sha256', s)
         self.assertIn('test "$QA_APPROVED_SHA" = "$GITHUB_SHA"', s)
         self.assertIn('test -d "$TEST_PACKAGE"', s)
 

@@ -159,6 +159,23 @@ def vsync_new(policy: Path) -> str:
         "  }\n"
     )
 
+# SDL3's D3D11 renderer frees every texture's GPU data when the device is
+# lost (driver update, GPU timeout, hybrid-GPU monitor switch) and then
+# sends SDL_EVENT_RENDER_DEVICE_RESET. The host kept locking its frame
+# texture, which then always fails: a black window for the rest of the run.
+BEGIN_DRAW = (
+    "  if (texture_width != width || texture_height != height) {\n"
+    "    SDL_DestroyTexture(g_texture);\n"
+)
+BEGIN_DRAW_NEW = (
+    "  /* " + MARK + ": a reset render device left this texture without GPU data. */\n"
+    "  if (g_ur_render_reset || texture_width != width || texture_height != height) {\n"
+    "    if (g_ur_render_reset)\n"
+    "      printf(\"UR_DISPLAY render_device_reset texture_recreated=%dx%d\\n\", width, height);\n"
+    "    g_ur_render_reset = false;\n"
+    "    SDL_DestroyTexture(g_texture);\n"
+)
+
 # The host's own clean-exit config write; the window still exists here.
 EXIT_SAVE = (
     "  /* A volume or fullscreen change made with the keys survives the session,\n"
@@ -443,7 +460,7 @@ static void UrDisplayPlacementSmokeTick(void) {
   if (mode < 0) {
     const char *v = HostGetenv("UR_DISPLAY_PLACEMENT_SMOKE");
     mode = !v ? 0 : strcmp(v, "report") == 0 ? 2 : strcmp(v, "maximize") == 0 ? 3
-         : strcmp(v, "launcher") == 0 ? 4
+         : strcmp(v, "launcher") == 0 ? 4 : strcmp(v, "render_reset") == 0 ? 5
          : sscanf(v, "move:%d,%d", &tx, &ty) == 2 ? 1 : 0;
   }
   if (!mode || !g_window || frames < 0) return;
@@ -453,20 +470,29 @@ static void UrDisplayPlacementSmokeTick(void) {
     g_open_launcher_hotkey = 1;
     return;
   }
+  /* render_reset: deliver the event SDL sends after recovering a lost device. */
+  if (mode == 5 && frames == 30) {
+    SDL_Event reset;
+    memset(&reset, 0, sizeof(reset));
+    reset.type = SDL_EVENT_RENDER_DEVICE_RESET;
+    reset.render.windowID = SDL_GetWindowID(g_window);
+    SDL_PushEvent(&reset);
+    return;
+  }
   if ((mode == 1 || mode == 3) && frames == 40) {
     if (mode == 1) SDL_SetWindowPosition(g_window, tx, ty);
     else SDL_MaximizeWindow(g_window);
     SDL_SyncWindow(g_window);
     return;
   }
-  if (frames != (mode == 2 ? 40 : mode == 4 ? 90 : 70)) return;
+  if (frames != (mode == 2 ? 40 : mode == 4 || mode == 5 ? 90 : 70)) return;
   int x = 0, y = 0;
   SDL_GetWindowPosition(g_window, &x, &y);
   const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
   const char *name = display ? SDL_GetDisplayName(display) : NULL;
   const SDL_WindowFlags flags = SDL_GetWindowFlags(g_window);
   printf("UR_DISPLAY_PLACEMENT_SMOKE mode=%s window=%d,%d fullscreen=%d maximized=%d "
-         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : mode == 4 ? "launcher" : "report", x, y,
+         "display=%s\n", mode == 1 ? "move" : mode == 3 ? "maximize" : mode == 4 ? "launcher" : mode == 5 ? "render_reset" : "report", x, y,
          (flags & SDL_WINDOW_FULLSCREEN) ? 1 : 0, (flags & SDL_WINDOW_MAXIMIZED) ? 1 : 0,
          name ? name : "-");
   int renderer_vsync = -99;
@@ -485,6 +511,9 @@ static void UrRestoreWindowPlacement(void) {}
 static void UrSaveWindowPlacement(void) {}
 static void UrDisplayPlacementSmokeTick(void) {}
 #endif
+/* Set by SDL_EVENT_RENDER_DEVICE_RESET; the frame texture is rebuilt at the
+ * next draw. */
+static bool g_ur_render_reset;
 #if SNESRECOMP_SDL3
 /* A display or mode change can move the window onto a panel with another
  * refresh: re-apply the swap interval when its decision changes. */
@@ -509,6 +538,13 @@ static void UrDisplayEvent(const SDL_Event *event) {
   case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
   case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
     UrReapplyVsync();
+    break;
+  case SDL_EVENT_RENDER_DEVICE_RESET:
+    printf("UR_DISPLAY render_device_reset\n");
+    g_ur_render_reset = true;
+    break;
+  case SDL_EVENT_RENDER_DEVICE_LOST:
+    printf("UR_DISPLAY render_device_lost\n");
     break;
   default: break;
   }
@@ -707,7 +743,7 @@ def patch_host_main(source: str, policy: Path) -> str:
         raise ValueError("Stage baldosa_modern_options_spike.py before the display seam")
     for needle in (HELPERS_ANCHOR, DEFAULT_BRANCH, OPTIONS_SDL3, LAUNCHER,
                    HOTKEY, CREATED, TICK_ANCHOR, PRODUCT_KEY, SCALE_STEP,
-                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN, VSYNC):
+                   EXIT_SAVE, RENDERER_READY, LAUNCHER_RETURN, VSYNC, BEGIN_DRAW):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -722,6 +758,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, RENDERER_READY, RENDERER_READY_NEW)
     source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
     source = once(source, VSYNC, vsync_new(policy))
+    source = once(source, BEGIN_DRAW, BEGIN_DRAW_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

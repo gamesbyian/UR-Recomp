@@ -211,6 +211,7 @@ on:
       - "tools/run_baldosa_window_placement_acceptance.py"
       - "tools/run_baldosa_launcher_gl_fallback_acceptance.py"
       - "tools/run_baldosa_slow_panel_vsync_acceptance.py"
+      - "tools/run_baldosa_render_reset_acceptance.py"
       - "tests/unit/test_baldosa_window_placement_acceptance.py"
   workflow_dispatch:
     inputs:
@@ -419,6 +420,19 @@ jobs:
             --out "$RUNNER_TEMP/ur-slow-panel-vsync" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-slow-panel-vsync.json"
           echo "PASS: Win32 SDL3 swap interval: a 50 Hz panel (forced) presents without waiting for vblank, a 60 Hz panel keeps VSync On, the runner's own panel matches its logged decision. Game speed on a real 50 Hz panel is a physical check." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: after SDL recovers a lost D3D11 device it sends
+      # RENDER_DEVICE_RESET; the frame texture must be rebuilt so the game
+      # keeps drawing instead of a black window.
+      - name: Exercise the render device reset path on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_render_reset_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-render-reset" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-render-reset.json"
+          echo "PASS: Win32 SDL3 D3D11: after SDL_EVENT_RENDER_DEVICE_RESET the frame texture is rebuilt once, no texture lock fails, and the game keeps running. The host response to SDL's event only; a driver-level device loss is a physical check." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE, three launches sharing one config directory: a moved
       # window reopens where it was; a saved display that is gone falls back.

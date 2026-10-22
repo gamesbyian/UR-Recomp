@@ -42,6 +42,8 @@ HOST_STUB = "\n".join((
     "static void HandleCommand(uint32 j, bool pressed) {",
     "    case kKeys_Fullscreen:",
     seam.HOTKEY + "}",
+    "static void SdlRenderer_BeginDraw(int width, int height, uint8 **pixels, int *pitch) {",
+    seam.BEGIN_DRAW + "  }\n}",
 ))
 
 
@@ -145,6 +147,21 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
                      "SDL_EVENT_WINDOW_ENTER_FULLSCREEN"):
             self.assertIn(kind, event)
         self.assertIn("UrReapplyVsync();", event)
+
+    def test_a_reset_render_device_rebuilds_the_frame_texture(self):
+        staged = self.staged()
+        event = staged[staged.index("static void UrDisplayEvent(const SDL_Event *event) {"):]
+        event = event[:event.index("\n}\n")]
+        self.assertIn("case SDL_EVENT_RENDER_DEVICE_RESET:", event)
+        self.assertIn("g_ur_render_reset = true;", event)
+        draw = staged[staged.index("static void SdlRenderer_BeginDraw"):]
+        draw = draw.split("\n}\n")[0]
+        # The existing recreate path runs, then the flag is cleared.
+        self.assertIn("if (g_ur_render_reset || texture_width != width", draw)
+        self.assertLess(draw.index("g_ur_render_reset = false;"),
+                        draw.index("SDL_DestroyTexture(g_texture);"))
+        self.assertLess(staged.index("static bool g_ur_render_reset;"),
+                        staged.index("static void SdlRenderer_BeginDraw"))
 
     def test_alt_enter_is_never_a_modern_menu_key(self):
         staged = self.staged()

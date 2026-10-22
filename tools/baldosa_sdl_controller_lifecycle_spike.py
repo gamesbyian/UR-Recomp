@@ -15,8 +15,10 @@ project-owned ``native/product/controller_seat_assignment_policy.h`` and adds:
 
 * reconnect ownership: a returning device (same SDL GUID + serial) reclaims
   the seat it vacated, and a new pad prefers a seat nobody is away from;
-* an unseated, already-open spare pad may take a vacant seat by pressing a
-  button; that claiming press is consumed, never delivered to the guest;
+* an unseated, already-open spare pad (mapped or raw) may take a vacant
+  seat by pressing a button; that claiming press is consumed, never
+  delivered to the guest. The host holds exactly one handle per spare and
+  closes it on removal or re-seat;
 * on removal, defensive release of any bits the pad still holds (SDL3
   already recentres before ``REMOVED``; this keeps both backends safe) and
   closing the gamepad handle the host opened;
@@ -104,10 +106,41 @@ PAD_BUTTON_NEW = (
     "    /* " + MARK + ": an open spare pad's press may take a vacant seat;\n"
     "     * the claiming press itself never reaches the guest. */\n"
     "    if (!gi && event->type == SDL_CONTROLLERBUTTONDOWN) {\n"
-    "      UrSeatClaim(SNESRECOMP_SDL_EVENT_BUTTON_DEVICE(*event));\n"
+    "      UrSeatClaim(SNESRECOMP_SDL_EVENT_BUTTON_DEVICE(*event), false);\n"
     "      return true;\n"
     "    }\n"
     "    if (gi) {\n"
+)
+
+# OpenOneGamepad leaves an unseated pad open; the host now owns that handle.
+PAD_FOUND = (
+    "  printf(\"Found controller '%s' assigning to player %d\\n\", "
+    "SDL_GameControllerName(controller), found_idx + 1);\n"
+)
+PAD_FOUND_NEW = (
+    "  if (found_idx < 0) UrSpareKeep(joystick_id, controller, NULL);  /* " + MARK + " */\n"
+    + PAD_FOUND
+)
+
+# A raw stick with no free seat used to be closed, so unlike a mapped pad it
+# could never take a seat that frees up later.
+RAW_UNSEATED = "  if (slot < 0) { SDL_JoystickClose(joystick); return; }\n"
+RAW_UNSEATED_NEW = (
+    "  /* " + MARK + ": kept open as a spare, like an unseated mapped pad. */\n"
+    "  if (slot < 0) { UrSpareKeep(id, NULL, joystick); return; }\n"
+)
+
+RAW_BUTTON = (
+    "  case SDL_JOYBUTTONDOWN:\n"
+    "  case SDL_JOYBUTTONUP:\n"
+    "    gi = GetGamepadInfo(event->jbutton.which);\n"
+)
+RAW_BUTTON_NEW = RAW_BUTTON + (
+    "    /* " + MARK + ": a raw spare's press may take a vacant seat; the\n"
+    "     * claiming press never reaches the guest. */\n"
+    "    if (!gi && event->type == SDL_JOYBUTTONDOWN &&\n"
+    "        UrSeatClaim(event->jbutton.which, true))\n"
+    "      return true;\n"
 )
 
 RAW_REMOVED = (
@@ -115,7 +148,13 @@ RAW_REMOVED = (
     "    gi = GetGamepadInfo(event->jdevice.which);\n"
     "    if (gi && gi->raw_joystick) {\n"
 )
-RAW_REMOVED_NEW = RAW_REMOVED + "      UrSeatRelease(gi);  /* " + MARK + " */\n"
+RAW_REMOVED_NEW = (
+    "  case SDL_JOYDEVICEREMOVED:\n"
+    "    gi = GetGamepadInfo(event->jdevice.which);\n"
+    "    if (!gi) UrSpareRemoved(event->jdevice.which);  /* " + MARK + " */\n"
+    "    if (gi && gi->raw_joystick) {\n"
+    "      UrSeatRelease(gi);  /* " + MARK + " */\n"
+)
 
 REASSIGN = "  g_pad_buttons = 0;\n  OpenAllGamepads();\n}\n"
 REASSIGN_NEW = (
@@ -181,26 +220,66 @@ def helpers(policy: Path) -> str:
         "  g_ur_seat_pad[seat] = NULL;\n"
         "  g_ur_seat_key[seat] = 0;\n"
         "}\n"
-        "static void UrSeatClaim(SDL_JoystickID id) {\n"
-        "  if (SelftestPadExcludes(id)) return;\n"
-        "  SDL_GameController *pad = SDL_GameControllerFromInstanceID(id);\n"
-        "  if (!pad) return;\n"
-        "  const int seat = UrSeatAssign(SDL_GameControllerGetJoystick(pad),\n"
-        "                                SDL_GameControllerGetPlayerIndex(pad), -1, id, pad);\n"
-        "  if (seat < 0) return;\n"
+        "/* Spares: open but unseated pads, so a press can take a seat that\n"
+        " * frees up. The host owns exactly one handle per spare. */\n"
+        "enum { kUrSpareMax = 8 };\n"
+        "static struct { SDL_JoystickID id; SDL_GameController *pad; SDL_Joystick *raw; }\n"
+        "    g_ur_spare[kUrSpareMax];\n"
+        "static int UrSpareFind(SDL_JoystickID id) {\n"
+        "  for (int i = 0; i < kUrSpareMax; i++)\n"
+        "    if ((g_ur_spare[i].pad || g_ur_spare[i].raw) && g_ur_spare[i].id == id) return i;\n"
+        "  return -1;\n"
+        "}\n"
+        "static void UrSpareClose(int i) {\n"
+        "  if (g_ur_spare[i].pad) SDL_GameControllerClose(g_ur_spare[i].pad);\n"
+        "  if (g_ur_spare[i].raw) SDL_JoystickClose(g_ur_spare[i].raw);\n"
+        "  memset(&g_ur_spare[i], 0, sizeof(g_ur_spare[i]));\n"
+        "}\n"
+        "static void UrSpareKeep(SDL_JoystickID id, SDL_GameController *pad, SDL_Joystick *raw) {\n"
+        "  int free_slot = -1;\n"
+        "  for (int i = 0; i < kUrSpareMax; i++) {\n"
+        "    if ((g_ur_spare[i].pad || g_ur_spare[i].raw) && g_ur_spare[i].id == id) free_slot = -2;\n"
+        "    else if (free_slot == -1 && !g_ur_spare[i].pad && !g_ur_spare[i].raw) free_slot = i;\n"
+        "  }\n"
+        "  if (free_slot < 0) {  /* already held, or no room: drop this extra handle */\n"
+        "    if (pad) SDL_GameControllerClose(pad);\n"
+        "    if (raw) SDL_JoystickClose(raw);\n"
+        "    return;\n"
+        "  }\n"
+        "  g_ur_spare[free_slot].id = id;\n"
+        "  g_ur_spare[free_slot].pad = pad;\n"
+        "  g_ur_spare[free_slot].raw = raw;\n"
+        "  printf(\"[Gamepad] UR_CONTROLLER_SEAT spare_kept instance=%u raw=%d\\n\",\n"
+        "         (unsigned)id, raw ? 1 : 0);\n"
+        "}\n"
+        "/* A spare is going away: close the handle the host holds for it. */\n"
+        "static void UrSpareRemoved(SDL_JoystickID id) {\n"
+        "  const int i = UrSpareFind(id);\n"
+        "  if (i < 0) return;\n"
+        "  printf(\"[Gamepad] UR_CONTROLLER_SEAT spare_closed instance=%u\\n\", (unsigned)id);\n"
+        "  UrSpareClose(i);\n"
+        "}\n"
+        "/* A spare's press: take a vacant seat. Returns 1 when the press was a\n"
+        " * claim (taken or not), so the caller consumes it. */\n"
+        "static int UrSeatClaim(SDL_JoystickID id, bool raw) {\n"
+        "  const int i = UrSpareFind(id);\n"
+        "  if (i < 0 || SelftestPadExcludes(id) || (raw ? !g_ur_spare[i].raw : !g_ur_spare[i].pad))\n"
+        "    return 0;\n"
+        "  SDL_GameController *pad = g_ur_spare[i].pad;\n"
+        "  SDL_Joystick *joystick = pad ? SDL_GameControllerGetJoystick(pad) : g_ur_spare[i].raw;\n"
+        "  const int seat = UrSeatAssign(joystick, SDL_JoystickGetPlayerIndex(joystick), -1, id, pad);\n"
+        "  if (seat < 0) return 1;\n"
         "  GamepadInfo *gi = &g_gamepad[seat];\n"
         "  memset(gi, 0, sizeof(GamepadInfo));\n"
         "  gi->index = (uint8)seat;\n"
         "  gi->joystick_id = id;\n"
+        "  if (!pad) {\n"
+        "    gi->joystick = joystick;\n"
+        "    gi->raw_joystick = true;\n"
+        "  }\n"
+        "  memset(&g_ur_spare[i], 0, sizeof(g_ur_spare[i]));  /* the seat owns it now */\n"
         "  printf(\"[Gamepad] UR_CONTROLLER_SEAT claim instance=%u seat=%d\\n\", (unsigned)id, seat);\n"
-        "}\n"
-        "/* A pad the host opened but never seated is going away: close the\n"
-        " * handle OpenOneGamepad left open so it can still claim a seat. */\n"
-        "static void UrSpareRemoved(SDL_JoystickID id) {\n"
-        "  SDL_GameController *pad = SDL_GameControllerFromInstanceID(id);\n"
-        "  if (!pad) return;\n"
-        "  printf(\"[Gamepad] UR_CONTROLLER_SEAT spare_closed instance=%u\\n\", (unsigned)id);\n"
-        "  SDL_GameControllerClose(pad);\n"
+        "  return 1;\n"
         "}\n"
         "static void UrSeatReset(void) {\n"
         "  for (int i = 0; i < UR_CONTROLLER_SEAT_COUNT; i++) {\n"
@@ -209,6 +288,8 @@ def helpers(policy: Path) -> str:
         "    g_ur_seat_key[i] = 0;\n"
         "  }\n"
         "  memset(g_ur_seats, 0, sizeof(g_ur_seats));\n"
+        "  /* OpenAllGamepads reopens every device, spares included. */\n"
+        "  for (int i = 0; i < kUrSpareMax; i++) UrSpareClose(i);\n"
         "}\n"
         "/* Product-facing, read-only: the SDL instance occupying a seat, or -1.\n"
         " * Modern polls this at the completed-frame boundary to notice a seat\n"
@@ -231,7 +312,7 @@ def helpers(policy: Path) -> str:
 # the ordinary main-loop SDL_PollEvent/HandleDeviceEvent path delivers the
 # device events; nothing here calls the seat helpers directly.
 ACCEPTANCE = r'''#if SNESRECOMP_SDL3
-enum { kUrAcceptPads = 5, kUrAcceptSettle = 6 };
+enum { kUrAcceptPads = 6, kUrAcceptRaw = 5, kUrAcceptSettle = 6 };
 static SDL_JoystickID g_ur_accept_spare_id;
 static SDL_JoystickID g_ur_accept_id[kUrAcceptPads];
 static SDL_Joystick *g_ur_accept_joy[kUrAcceptPads];
@@ -245,12 +326,13 @@ static int UrAcceptSeatOf(int pad) {
 static void UrAcceptAttach(int pad, Uint16 product, int player_index) {
   static const char *const kNames[kUrAcceptPads] = {
     "UR lifecycle pad A", "UR lifecycle pad B", "UR lifecycle pad C", "UR lifecycle pad D",
-    "UR lifecycle pad E"};
+    "UR lifecycle pad E", "UR lifecycle raw stick F"};
   SDL_VirtualJoystickDesc desc;
   SDL_INIT_INTERFACE(&desc);
-  desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
-  desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
-  desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+  /* F is a generic stick SDL has no gamepad mapping for. */
+  desc.type = pad == kUrAcceptRaw ? SDL_JOYSTICK_TYPE_UNKNOWN : SDL_JOYSTICK_TYPE_GAMEPAD;
+  desc.naxes = pad == kUrAcceptRaw ? 2 : SDL_GAMEPAD_AXIS_COUNT;
+  desc.nbuttons = pad == kUrAcceptRaw ? 8 : SDL_GAMEPAD_BUTTON_COUNT;
   desc.vendor_id = 0x1209;
   desc.product_id = product;
   desc.name = kNames[pad];
@@ -368,6 +450,43 @@ static void UrControllerLifecycleAcceptanceTick(void) {
     /* The host's own handle for the spare must be gone, not leaked. */
     UrAcceptExpect("spare_closed_on_remove",
                    SDL_GetGamepadFromID(g_ur_accept_spare_id) == NULL);
+    /* Seats still full: unmapped stick F arrives. */
+    UrAcceptAttach(kUrAcceptRaw, 0x5506, -1);
+    break;
+  case 19: {
+    const SDL_JoystickID f = g_ur_accept_id[kUrAcceptRaw];
+    const int kept = f ? UrSpareFind(f) : -1;
+    UrAcceptExpect("raw_spare_kept", f && !SDL_IsGamepad(f) &&
+                   UrAcceptSeatOf(kUrAcceptRaw) == -1 && kept >= 0 && g_ur_spare[kept].raw);
+    OpenOneJoystick(f);  /* the host enumerating F again must not stack a handle */
+    break;
+  }
+  case 20: {
+    int held = 0;
+    for (int i = 0; i < kUrSpareMax; i++)
+      held += (g_ur_spare[i].pad || g_ur_spare[i].raw) &&
+              g_ur_spare[i].id == g_ur_accept_id[kUrAcceptRaw];
+    UrAcceptExpect("raw_spare_reopen_not_duplicated",
+                   held == 1 && UrAcceptSeatOf(kUrAcceptRaw) == -1);
+    UrAcceptDetach(3);  /* P2 leaves */
+    break;
+  }
+  case 21:
+    UrAcceptButton(kUrAcceptRaw, true);  /* F takes the vacant P2 seat */
+    break;
+  case 22:
+    UrAcceptButton(kUrAcceptRaw, false);
+    break;
+  case 23:
+    UrAcceptExpect("raw_spare_claimed_p2", UrAcceptSeatOf(kUrAcceptRaw) == 1 &&
+                   g_gamepad[1].raw_joystick && UrAcceptSeatOf(0) == 0 &&
+                   UrSpareFind(g_ur_accept_id[kUrAcceptRaw]) < 0 &&
+                   (g_pad_buttons & 0xfff000u) == 0);
+    UrAcceptDetach(kUrAcceptRaw);
+    break;
+  case 24:
+    UrAcceptExpect("raw_seat_released_on_remove", g_gamepad[1].joystick_id == -1 &&
+                   UrAcceptSeatOf(0) == 0 && (g_pad_buttons & 0xfff000u) == 0);
     for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
     break;
   default: {
@@ -402,7 +521,8 @@ def patch_host_main(source: str, policy: Path) -> str:
     if MARK in source:
         return source
     for needle in (SELECTION, RAW_SELECTION, PAD_REMOVED, PAD_BUTTON,
-                   RAW_REMOVED, REASSIGN, HELPERS_ANCHOR, TICK_ANCHOR):
+                   RAW_REMOVED, REASSIGN, HELPERS_ANCHOR, TICK_ANCHOR,
+                   PAD_FOUND, RAW_UNSEATED, RAW_BUTTON):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -412,6 +532,9 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, PAD_BUTTON, PAD_BUTTON_NEW)
     source = once(source, RAW_REMOVED, RAW_REMOVED_NEW)
     source = once(source, REASSIGN, REASSIGN_NEW)
+    source = once(source, PAD_FOUND, PAD_FOUND_NEW)
+    source = once(source, RAW_UNSEATED, RAW_UNSEATED_NEW)
+    source = once(source, RAW_BUTTON, RAW_BUTTON_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

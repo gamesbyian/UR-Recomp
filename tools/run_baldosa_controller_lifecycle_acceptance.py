@@ -33,6 +33,10 @@ EXPECTED_STEPS = (
     "returning_players_not_swapped",
     "spare_unseated",
     "spare_closed_on_remove",
+    "raw_spare_kept",
+    "raw_spare_reopen_not_duplicated",
+    "raw_spare_claimed_p2",
+    "raw_seat_released_on_remove",
 )
 STEP = re.compile(r"^UR_CONTROLLER_ACCEPT step=(\w+) pass=([01]) ", re.MULTILINE)
 RESULT = re.compile(r"^UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=(\w+)$", re.MULTILINE)

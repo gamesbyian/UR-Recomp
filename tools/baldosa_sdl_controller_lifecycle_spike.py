@@ -84,6 +84,8 @@ PAD_REMOVED = (
 PAD_REMOVED_NEW = (
     "  case SDL_CONTROLLERDEVICEREMOVED:\n"
     "    gi = GetGamepadInfo(SNESRECOMP_SDL_EVENT_DEVICE(*event));\n"
+    "    /* " + MARK + ": an unseated spare pad was opened but never closed. */\n"
+    "    if (!gi) UrSpareRemoved(SNESRECOMP_SDL_EVENT_DEVICE(*event));\n"
     "    if (gi) {\n"
     "      UrSeatRelease(gi);  /* " + MARK + " */\n"
     "      memset(gi, 0, sizeof(GamepadInfo));\n"
@@ -192,6 +194,14 @@ def helpers(policy: Path) -> str:
         "  gi->joystick_id = id;\n"
         "  printf(\"[Gamepad] UR_CONTROLLER_SEAT claim instance=%u seat=%d\\n\", (unsigned)id, seat);\n"
         "}\n"
+        "/* A pad the host opened but never seated is going away: close the\n"
+        " * handle OpenOneGamepad left open so it can still claim a seat. */\n"
+        "static void UrSpareRemoved(SDL_JoystickID id) {\n"
+        "  SDL_GameController *pad = SDL_GameControllerFromInstanceID(id);\n"
+        "  if (!pad) return;\n"
+        "  printf(\"[Gamepad] UR_CONTROLLER_SEAT spare_closed instance=%u\\n\", (unsigned)id);\n"
+        "  SDL_GameControllerClose(pad);\n"
+        "}\n"
         "static void UrSeatReset(void) {\n"
         "  for (int i = 0; i < UR_CONTROLLER_SEAT_COUNT; i++) {\n"
         "    if (g_ur_seat_pad[i]) SDL_GameControllerClose(g_ur_seat_pad[i]);\n"
@@ -221,7 +231,8 @@ def helpers(policy: Path) -> str:
 # the ordinary main-loop SDL_PollEvent/HandleDeviceEvent path delivers the
 # device events; nothing here calls the seat helpers directly.
 ACCEPTANCE = r'''#if SNESRECOMP_SDL3
-enum { kUrAcceptPads = 4, kUrAcceptSettle = 6 };
+enum { kUrAcceptPads = 5, kUrAcceptSettle = 6 };
+static SDL_JoystickID g_ur_accept_spare_id;
 static SDL_JoystickID g_ur_accept_id[kUrAcceptPads];
 static SDL_Joystick *g_ur_accept_joy[kUrAcceptPads];
 static int g_ur_accept_step, g_ur_accept_wait, g_ur_accept_failed, g_ur_accept_on = -1;
@@ -233,7 +244,8 @@ static int UrAcceptSeatOf(int pad) {
 }
 static void UrAcceptAttach(int pad, Uint16 product, int player_index) {
   static const char *const kNames[kUrAcceptPads] = {
-    "UR lifecycle pad A", "UR lifecycle pad B", "UR lifecycle pad C", "UR lifecycle pad D"};
+    "UR lifecycle pad A", "UR lifecycle pad B", "UR lifecycle pad C", "UR lifecycle pad D",
+    "UR lifecycle pad E"};
   SDL_VirtualJoystickDesc desc;
   SDL_INIT_INTERFACE(&desc);
   desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
@@ -343,6 +355,19 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   case 16:
     UrAcceptExpect("returning_players_not_swapped", UrAcceptSeatOf(3) == 1 &&
                    UrAcceptSeatOf(0) == 0);
+    /* Both seats stay full: E arrives as an unseated spare. */
+    UrAcceptAttach(4, 0x5505, -1);
+    break;
+  case 17:
+    g_ur_accept_spare_id = g_ur_accept_id[4];
+    UrAcceptExpect("spare_unseated", UrAcceptSeatOf(4) == -1 &&
+                   SDL_GetGamepadFromID(g_ur_accept_spare_id) != NULL);
+    UrAcceptDetach(4);
+    break;
+  case 18:
+    /* The host's own handle for the spare must be gone, not leaked. */
+    UrAcceptExpect("spare_closed_on_remove",
+                   SDL_GetGamepadFromID(g_ur_accept_spare_id) == NULL);
     for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
     break;
   default: {

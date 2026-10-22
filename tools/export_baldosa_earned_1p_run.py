@@ -168,9 +168,11 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
         raise ValueError('Expected exactly one source-earned .urrun')
     source_name = candidates[0].name
     if (unicodedata.normalize('NFC', source_name) != source_name or
-            len(source_name.encode('utf-8')) > 255 or
-            any(ord(ch) < 32 or unicodedata.category(ch) == 'Cf'
+            # Reject surrogateescaped POSIX filenames before UTF-8 encoding.
+            # The source journey root already follows this bounded policy.
+            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
                 for ch in source_name) or
+            len(source_name.encode('utf-8')) > 255 or
             source_name[-1] in (' ', '.') or
             any(ch in '<>:"|?*\\' for ch in source_name)):
         raise ValueError('Nonportable source-earned run filename')

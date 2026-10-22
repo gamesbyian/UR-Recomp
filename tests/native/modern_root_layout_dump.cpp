@@ -186,6 +186,38 @@ int main(int argc, char** argv) {
         view.records_status = "EARNED RUNS 2P";
         view.records_recent = "BLADE 01:23.45 / AXEL 01:24.01";
         view.records_detail = "P1 WINS 12 / P2 WINS 9";
+    } else if (variant == "root-notice") {
+        view.root_notice = "THAT ROUTE IS NOT AVAILABLE YET";
+    } else if (variant == "quit-confirm") {
+        view.quit_confirm = true;
+    } else if (variant == "practice-pending") {
+        view.practice_picker_open = true;
+        view.practice_launch_pending = true;
+        view.practice_course_name = "SUPERMARKET MADNESS";
+        view.practice_tour_name = "TOUR 3";
+        view.practice_kind_label = "TIME TRIAL";
+        view.practice_courses_open = 1;
+    } else if (variant == "options-full") {
+        view.options_open = true;
+        view.options_row_count = 5;
+        view.options_rows[0] = {"WINDOW", "1920X1080", true};
+        view.options_rows[1] = {"SCALE", "INTEGER", true};
+        view.options_rows[2] = {"REDUCED MOTION", "ON", true};
+        view.options_rows[3] = {"VOLUME", "100", true};
+        view.options_rows[4] = {"CONTROLS", "", false};
+        view.options_selected = 4;
+    } else if (variant == "join-confirmed") {
+        view.two_seat_join_open = true;
+        view.join_p1_name = "MAXIMILIAN";
+        view.join_p2_name = "GUEST-TWO";
+        view.join_p1_stock = "BLADE";
+        view.join_p2_stock = "AXEL";
+        view.join_p1_confirmed = true;
+        view.join_p2_confirmed = true;
+    } else if (variant == "first-racer-failed") {
+        view.first_racer_open = true;
+        view.first_racer_failed = true;
+        view.first_racer_preset_name = "BLADE";
     } else if (variant == "warning") {
         view.unbound_two_player_warning_open = true;
     } else if (variant == "first-racer") {

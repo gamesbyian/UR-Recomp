@@ -15,11 +15,14 @@ from tests.unit.test_qa_modern_visual_diagnostics import p7
 
 ROOT = Path(__file__).resolve().parents[2]
 VARIANTS = ("root", "practice", "join", "options", "records", "records-earned", "warning",
+            "root-notice", "quit-confirm", "practice-pending", "options-full",
+            "join-confirmed", "first-racer-failed",
             "first-racer", "pause", "pause-controls")
 # Native-host composition (root shell + separate destination presenter),
 # audited for contrast as well as geometry.
 DEST_VARIANTS = tuple("dest-" + v for v in VARIANTS[1:]
-                      if not v.startswith("pause"))
+                      if not v.startswith("pause")
+                      and v not in ("root-notice", "quit-confirm"))
 
 
 class ModernRootLegibilityAudit(unittest.TestCase):

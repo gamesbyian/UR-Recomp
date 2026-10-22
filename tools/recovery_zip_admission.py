@@ -3,7 +3,7 @@
 No archive extraction or execution. A nested archive without a member-level
 manifest is explicitly unqualified, not silently accepted as equivalent.
 """
-import hashlib, io, json, re, stat, unicodedata, zipfile
+import hashlib, io, json, re, stat, unicodedata, zipfile, zlib
 from pathlib import PurePosixPath
 from strict_vault_manifest import _portable_win32_component
 SHA=re.compile('[0-9a-f]{64}\\Z')
@@ -20,6 +20,18 @@ def _strict_json(blob):
     return json.loads(blob.decode('utf-8'),object_pairs_hook=unique)
 
 def admit(blob, *, depth=0, max_depth=2):
+    """Turn invalid ZIP bytes and CRC faults into a stable fail-closed refusal.
+
+    In particular, a malformed nested archive must never escape as an
+    unexpected BadZipFile past its parent recovery admission boundary.
+    """
+    try:
+        return _admit_verified_zip(blob, depth=depth, max_depth=max_depth)
+    except (zipfile.BadZipFile, zipfile.LargeZipFile, EOFError, zlib.error) as exc:
+        raise ValueError('invalid or corrupt recovery ZIP') from exc
+
+
+def _admit_verified_zip(blob, *, depth=0, max_depth=2):
     if type(blob) is not bytes or len(blob)>MAX_TOTAL or type(depth) is not int or depth<0:
         raise ValueError('invalid recovery bytes')
     if depth>max_depth:raise ValueError('nested recovery depth exceeded')

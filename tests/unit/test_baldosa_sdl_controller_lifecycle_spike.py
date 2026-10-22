@@ -21,15 +21,16 @@ HOST_STUB = "\n".join((
     seam.PAD_REMOVED + "      gi->joystick_id = -1;\n    }\n    return true;",
     seam.PAD_BUTTON + "    }\n    return true;",
     seam.RAW_REMOVED + "      memset(gi, 0, sizeof(GamepadInfo));\n    }",
+    seam.RAW_BUTTON + "    return true;",
     "  }\n}",
     "static void ReassignGamepads(void) {",
     seam.REASSIGN,
     "  while (running) {",
     seam.TICK_ANCHOR + "  }",
     "static void OpenOneGamepad(int i) {",
-    seam.SELECTION + "}",
+    seam.SELECTION + seam.PAD_FOUND + "}",
     "static void OpenOneJoystick(int i) {",
-    seam.RAW_SELECTION + "}",
+    seam.RAW_SELECTION + seam.RAW_UNSEATED + "}",
 ))
 
 
@@ -70,15 +71,26 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("gi->axis_buttons = 0;", release)
         self.assertIn("ur_controller_seat_vacated(", release)
 
-    def test_an_unseated_spare_is_closed_on_removal(self):
+    def test_spares_are_owned_once_and_closed_on_removal(self):
         staged = self.staged()
-        removed = staged[staged.index("case SDL_CONTROLLERDEVICEREMOVED:"):]
-        self.assertLess(removed.index("if (!gi) UrSpareRemoved("),
-                        removed.index("    if (gi) {\n"))
-        spare = staged[staged.index("static void UrSpareRemoved"):]
-        spare = spare[:spare.index("\n}\n")]
-        self.assertIn("SDL_GameControllerFromInstanceID(id)", spare)
-        self.assertIn("SDL_GameControllerClose(pad);", spare)
+        for removed_case in ("case SDL_CONTROLLERDEVICEREMOVED:", "case SDL_JOYDEVICEREMOVED:"):
+            removed = staged[staged.index(removed_case):]
+            self.assertLess(removed.index("if (!gi) UrSpareRemoved("),
+                            removed.index("    if (gi"))
+        # An unseated mapped pad and an unseated raw stick are both kept.
+        self.assertIn("if (found_idx < 0) UrSpareKeep(joystick_id, controller, NULL);", staged)
+        self.assertIn("if (slot < 0) { UrSpareKeep(id, NULL, joystick); return; }", staged)
+        self.assertNotIn("if (slot < 0) { SDL_JoystickClose(joystick); return; }", staged)
+        keep = staged[staged.index("static void UrSpareKeep"):]
+        keep = keep[:keep.index("\n}\n")]
+        # A second open of a held spare drops the extra handle.
+        self.assertIn("free_slot = -2;", keep)
+        self.assertIn("if (pad) SDL_GameControllerClose(pad);", keep)
+        self.assertIn("if (raw) SDL_JoystickClose(raw);", keep)
+        # Re-seating closes every spare before OpenAllGamepads reopens them.
+        reset = staged[staged.index("static void UrSeatReset(void) {"):]
+        self.assertIn("for (int i = 0; i < kUrSpareMax; i++) UrSpareClose(i);",
+                      reset[:reset.index("\n}\n")])
 
     def test_a_claiming_press_is_consumed(self):
         staged = self.staged()
@@ -88,7 +100,15 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn("return true;", button[claim:button.index("    if (gi) {\n", claim)])
         # Only presses claim; only open, non-excluded pads can be seated.
         self.assertIn("if (!gi && event->type == SDL_CONTROLLERBUTTONDOWN)", button)
-        self.assertIn("if (SelftestPadExcludes(id)) return;", staged)
+        self.assertIn("UrSeatClaim(SNESRECOMP_SDL_EVENT_BUTTON_DEVICE(*event), false)", button)
+        raw = staged[staged.index("case SDL_JOYBUTTONDOWN:"):]
+        self.assertIn("if (!gi && event->type == SDL_JOYBUTTONDOWN &&\n"
+                      "        UrSeatClaim(event->jbutton.which, true))\n      return true;", raw)
+        claim_fn = staged[staged.index("static int UrSeatClaim"):]
+        claim_fn = claim_fn[:claim_fn.index("\n}\n")]
+        # A mapped pad's raw joystick events can never claim (and leak the press).
+        self.assertIn("(raw ? !g_ur_spare[i].raw : !g_ur_spare[i].pad)", claim_fn)
+        self.assertIn("SelftestPadExcludes(id)", claim_fn)
 
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()

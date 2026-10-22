@@ -127,6 +127,35 @@ class RecoveryRegistryControlTests(unittest.TestCase):
         self.assertTrue(all(c["release_gate_credit"] is False
                             for c in self.registry["candidates"]))
 
+    def test_retired_ids_are_explicit_and_cannot_mask_orphans(self):
+        first = self.registry["candidates"][0]["work_id"]
+        self.assertIn(first, self.registry["retired_work_ids"])
+        bad = copy.deepcopy(self.registry)
+        bad["retired_work_ids"] = [w for w in bad["retired_work_ids"] if w != first]
+        with self.assertRaisesRegex(ValueError, "orphan work ID"):
+            validate_registry(bad, self.board)
+
+    def test_retired_work_cannot_reenter_active_dispatch(self):
+        bad = copy.deepcopy(self.registry)
+        item = next(x for x in bad["candidates"]
+                    if x["work_id"] in bad["retired_work_ids"])
+        item["state"] = "pending_review"
+        item["merge_sha"] = None
+        with self.assertRaisesRegex(ValueError, "retired work ID cannot be an active"):
+            validate_registry(bad, self.board)
+
+    def test_rejects_duplicate_or_live_id_as_retired(self):
+        for invalid in (
+            self.registry["retired_work_ids"] + [self.registry["retired_work_ids"][0]],
+            self.registry["retired_work_ids"] + [self.board["work"][0]["work_id"]],
+            self.registry["retired_work_ids"] + ["invalid"],
+        ):
+            with self.subTest(invalid=invalid):
+                bad = copy.deepcopy(self.registry)
+                bad["retired_work_ids"] = invalid
+                with self.assertRaisesRegex(ValueError, "invalid explicit retired"):
+                    validate_registry(bad, self.board)
+
     def test_duplicate_canonical_candidate_is_rejected(self):
         bad = copy.deepcopy(self.fixture)
         bad["candidates"].append(copy.deepcopy(bad["candidates"][0]))

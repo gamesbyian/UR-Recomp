@@ -187,4 +187,37 @@ class ExportEarnedRunTests(unittest.TestCase):
         with self.assertRaises(ValueError): export(self.journey, self.out)
         self.assertFalse(self.out.exists())
 
+    @unittest.skipIf(sys.platform.startswith('win'),
+                     'POSIX-only fixture: Windows cannot create these leaf names')
+    def test_nonportable_unrelated_namespace_siblings_fail_closed(self):
+        # The source.urrun remains the only counted candidate in the old code.
+        # All these other entries would be lost, renamed, or aliased by Win32.
+        for name in ('shadow:stream.urrun', 'AUX.txt', 'trailing.',
+                     'bad|sidecar', 'decomposed-e\u0301.txt',
+                     'control-\u0085.txt', 'COM¹.txt'):
+            with self.subTest(name=repr(name)):
+                extra = self.runs / name
+                extra.write_bytes(b'synthetic unrelated sibling')
+                with self.assertRaisesRegex(ValueError,
+                                            'Nonportable sibling in earned-run namespace'):
+                    export(self.journey, self.out)
+                self.assertFalse(self.out.exists())
+                extra.unlink()
+
+    @unittest.skipIf(sys.platform.startswith('win'),
+                     'POSIX-only fixture: Win32 filenames normally alias by case')
+    def test_casefold_colliding_unrelated_namespace_siblings_fail_closed(self):
+        (self.runs / 'notes.txt').write_bytes(b'one')
+        (self.runs / 'NOTES.TXT').write_bytes(b'two')
+        with self.assertRaisesRegex(ValueError,
+                                    'Win32-colliding sibling in earned-run namespace'):
+            export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+
+    def test_portable_unrelated_namespace_sibling_remains_allowed(self):
+        (self.runs / 'notes.txt').write_bytes(b'harmless synthetic note')
+        manifest = export(self.journey, self.out)
+        self.assertEqual(manifest['source_run_filename'], 'source.urrun')
+        self.assertEqual((self.out / 'earned.urrun').read_bytes(), self.run.read_bytes())
+
 if __name__ == '__main__': unittest.main()

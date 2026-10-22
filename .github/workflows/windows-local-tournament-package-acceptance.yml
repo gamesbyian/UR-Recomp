@@ -1,19 +1,16 @@
 name: Windows Local Tournament package acceptance
 
-# Manual-only reuse of an existing exact Windows smoke build; no compilation.
-# A QA reviewer supplies an independently nominated commit + *inner* ZIP hash.
-# Hosted controller and persistence proof remains L4 only, never physical L5.
+# Manual, independent source + inner-ZIP nomination. A fresh Windows smoke
+# rebuild must produce the exact same ZIP bytes before packaged 2P acceptance.
+# No cross-run artifact download and no retail ROM-bearing upload is needed.
 on:
   workflow_dispatch:
     inputs:
-      smoke_run_id:
-        description: "Successful main Windows native smoke run ID providing the portable ZIP"
-        required: true
       candidate_commit_sha:
-        description: "Independently nominated complete 40-hex source commit"
+        description: "Independently nominated main commit (40 lowercase hex); dispatch that exact main revision"
         required: true
       portable_zip_sha256:
-        description: "Independently nominated 64-hex SHA-256 of the portable release ZIP (not the Actions artifact wrapper)"
+        description: "Independently nominated inner ZIP SHA256 from a successful source-identical smoke build"
         required: true
 
 concurrency:
@@ -22,115 +19,11 @@ concurrency:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
-  package-tournament:
-    runs-on: windows-2022
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Keep checkout bytes exact
-        run: git config --global core.autocrlf false
-
-      - name: Check out project
-        uses: actions/checkout@v4
-
-      - name: Refuse unapproved smoke-run candidate
-        env:
-          GH_TOKEN: ${{ github.token }}
-          SMOKE_RUN_ID: ${{ inputs.smoke_run_id }}
-          APPROVED_SHA: ${{ inputs.candidate_commit_sha }}
-          APPROVED_ZIP_SHA256: ${{ inputs.portable_zip_sha256 }}
-        run: |
-          set -euo pipefail
-          [[ "$SMOKE_RUN_ID" =~ ^[0-9]+$ ]] || { echo "Invalid smoke run ID" >&2; exit 1; }
-          [[ "$APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid approved source SHA" >&2; exit 1; }
-          [[ "$APPROVED_ZIP_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "Invalid approved inner ZIP hash" >&2; exit 1; }
-          metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SMOKE_RUN_ID" \
-            --jq '[.head_sha,.conclusion,.path,.head_branch] | @tsv')"
-          IFS=$'\t' read -r built_sha conclusion workflow_path built_branch <<< "$metadata"
-          if [[ "$conclusion" != "success" ||
-                "$workflow_path" != ".github/workflows/windows-native-smoke.yml" ||
-                "$built_branch" != "main" || "$built_sha" != "$APPROVED_SHA" ]]; then
-            echo "Selected run is not a successful main Windows smoke for approved commit" >&2
-            exit 1
-          fi
-          echo "QA_SMOKE_RUN_ID=$SMOKE_RUN_ID" >> "$GITHUB_ENV"
-          echo "QA_APPROVED_SHA=$APPROVED_SHA" >> "$GITHUB_ENV"
-          echo "QA_APPROVED_ZIP_SHA256=$APPROVED_ZIP_SHA256" >> "$GITHUB_ENV"
-          printf 'schema=ur-windows-qa-candidate/1\nbackend=snesrecomp\nsmoke_run_id=%s\nsource_commit=%s\ninner_zip_sha256=%s\nqa_harness_commit=%s\n' \
-            "$SMOKE_RUN_ID" "$APPROVED_SHA" "$APPROVED_ZIP_SHA256" "$GITHUB_SHA" \
-            > "$RUNNER_TEMP/windows-tournament-candidate.txt"
-
-      - name: Download the smoke-built portable package
-        uses: actions/download-artifact@v4
-        with:
-          name: ur-recomp-windows-x64-portable
-          run-id: ${{ inputs.smoke_run_id }}
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/portable
-
-      - name: Verify and extract the exact approved portable ZIP
-        run: |
-          set -euo pipefail
-          ARCHIVE="$RUNNER_TEMP/portable/UR-Recomp-Windows-x64.zip"
-          python tools/assemble_windows_package.py verify-archive-checksum \
-            --archive "$ARCHIVE" --checksum "$ARCHIVE.sha256"
-          python tools/assemble_windows_package.py verify-archive --archive "$ARCHIVE"
-          EXTRACT="$RUNNER_TEMP/tournament package"
-          VERIFIER_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1")"
-          ARCHIVE_WIN="$(cygpath -w "$ARCHIVE")"
-          CHECKSUM_WIN="$(cygpath -w "$ARCHIVE.sha256")"
-          EXTRACT_WIN="$(cygpath -w "$EXTRACT")"
-          powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass \
-            -File "$VERIFIER_WIN" -Archive "$ARCHIVE_WIN" \
-            -Checksum "$CHECKSUM_WIN" -Destination "$EXTRACT_WIN" \
-            -ExpectedSourceSha "$QA_APPROVED_SHA" \
-            -ExpectedZipSha256 "$QA_APPROVED_ZIP_SHA256" \
-            | tee "$RUNNER_TEMP/tournament-package-verify.log"
-          grep -Fq "UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED revision=$QA_APPROVED_SHA sha256=$QA_APPROVED_ZIP_SHA256" \
-            "$RUNNER_TEMP/tournament-package-verify.log"
-          echo "TEST_PACKAGE=$EXTRACT/UR-Recomp-Windows-x64" >> "$GITHUB_ENV"
-          python tools/verify_rom.py "$EXTRACT/UR-Recomp-Windows-x64/Uniracers_USA.sfc"
-
-      - name: Packaged Local Tournament route and relaunch
-        run: |
-          set -euo pipefail
-          bash tests/native/run_windows_local_tournament_package_acceptance.sh \
-            "$TEST_PACKAGE" \
-            "$RUNNER_TEMP/tournament-work"
-
-      - name: Independently verify source-pinned immutable tournament receipts
-        run: |
-          set -euo pipefail
-          python tools/verify_windows_tournament_acceptance_receipt.py \
-            --work "$RUNNER_TEMP/tournament-work" \
-            --candidate "$RUNNER_TEMP/windows-tournament-candidate.txt" \
-            --expected-source "$QA_APPROVED_SHA" \
-            --expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256" \
-            --expected-harness-sha "$GITHUB_SHA" \
-            --expected-smoke-run-id "$QA_SMOKE_RUN_ID" \
-            --output-envelope "$RUNNER_TEMP/tournament-qa-envelope.json" \
-            | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
-          python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
-
-      - name: Upload tournament evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-local-tournament-package
-          path: |
-            ${{ runner.temp }}/windows-tournament-candidate.txt
-            ${{ runner.temp }}/tournament-package-verify.log
-            ${{ runner.temp }}/tournament-receipt-verification.log
-            ${{ runner.temp }}/tournament-qa-envelope.json
-            ${{ runner.temp }}/tournament-work/tournament-artifacts.log
-            ${{ runner.temp }}/tournament-work/*.log
-            ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urrun
-            ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urmatch
-            ${{ runner.temp }}/tournament-work/user data/local-tournaments/
-          if-no-files-found: warn
-          retention-days: 7
+  same-run-tournament:
+    uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      run_tournament_acceptance: true
+      candidate_commit_sha: ${{ inputs.candidate_commit_sha }}
+      portable_zip_sha256: ${{ inputs.portable_zip_sha256 }}

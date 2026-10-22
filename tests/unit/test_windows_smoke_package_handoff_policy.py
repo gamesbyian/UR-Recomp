@@ -85,10 +85,30 @@ class SmokePackageConsumerContract(unittest.TestCase):
         return provider, consumer
 
     def test_live_cross_workflow_contract(self):
-        # Exact current-main positive; source-only, never downloads a package.
+        # No former cross-run ZIP consumer survives. The opt-in same-run
+        # replacement has its own positive source contract below.
         self.assertEqual(validate_handoff(
             SMOKE.read_text(encoding="utf-8"),
-            TOURNAMENT.read_text(encoding="utf-8")), 1)
+            TOURNAMENT.read_text(encoding="utf-8")), 0)
+
+    def test_same_run_manual_acceptance_source_and_zip_binding(self):
+        smoke = SMOKE.read_text(encoding="utf-8")
+        manual = TOURNAMENT.read_text(encoding="utf-8")
+        self.assertIn("uses: ./.github/workflows/windows-native-smoke.yml", manual)
+        self.assertIn("run_tournament_acceptance: true", manual)
+        self.assertIn("candidate_commit_sha: ${{ inputs.candidate_commit_sha }}", manual)
+        self.assertIn("portable_zip_sha256: ${{ inputs.portable_zip_sha256 }}", manual)
+        self.assertNotIn("actions/download-artifact", manual)
+        self.assertNotIn("smoke_run_id:", manual)
+        self.assertIn('[[ "$GITHUB_REF" == "refs/heads/main" ]]', smoke)
+        self.assertIn('[[ "$GITHUB_SHA" == "$QA_APPROVED_SHA" ]]', smoke)
+        self.assertIn('ACTUAL_ZIP_SHA256="$(sha256sum "$PACKAGE_ARCHIVE"', smoke)
+        self.assertIn('test "$ACTUAL_ZIP_SHA256" = "$QA_APPROVED_ZIP_SHA256"', smoke)
+        self.assertIn('run_windows_local_tournament_package_acceptance.sh', smoke)
+        self.assertIn('verify_windows_tournament_acceptance_receipt.py', smoke)
+        self.assertIn('windows-local-tournament-same-run-evidence', smoke)
+        self.assertIn('if: inputs.run_tournament_acceptance', smoke)
+
 
     def test_negative_missing_upload_and_different_artifact_name(self):
         provider, consumer = self.fixtures()

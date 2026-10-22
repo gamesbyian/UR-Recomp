@@ -2,7 +2,7 @@
 
 This document is a **workflow**, not an authorization to evade a safety restriction. Apply it to all scheduled hourly agents and manual integrators. The [coordination protocol](../AGENT-COORDINATION.md) owns assignments and the [recovery index](README.md) owns historical evidence.
 
-## Mandatory preservation gate
+**First-party publication rule:** [FIRST-PARTY-PUBLICATION-CONTRACT.md](FIRST-PARTY-PUBLICATION-CONTRACT.md) is the current owner direction. Publish recovered agent-authored source early to GitHub branch/draft PR after minimal integrity, rights and main/dedup checks. Reuse historical tests as historical evidence; defer full source-exact validation to the normal merge process. No blanket requalification just because source was vaulted.\n\n## Mandatory preservation gate
 
 Before new potentially publishable source changes, follow [preservation-first publication and incident recovery](PRESERVATION-FIRST-CONTRACT.md). Stage a lossless bounded local ZIP before fragile writes; when a source/operation has previously been denied, require independently read-back restricted Drive preservation **before further risky publication**. Ordinary clean GitHub publication remains preferred and does not need a redundant Drive mirror. Tool/connector refusals should be recorded in [publication incidents](publication-incidents.json) with the actual response and honest readback state. A mere reference to a source file in a report does not preserve its bytes. Do not disguise or resubmit previously rejected calls to evade safety restrictions.
 

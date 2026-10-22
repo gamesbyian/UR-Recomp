@@ -10,7 +10,7 @@ Manually launched agents work **GitHub-first**. Commit code, tests and evidence 
 
 For all publication and recovery decisions follow [GitHub-first publication and Vault fallback](docs/recovery/GITHUB-FIRST-PUBLICATION-RUNBOOK.md). Scheduled and manual agents both prefer normal GitHub code/PR publication; a safety-check failure on one tool invocation does not establish a permanent source-code ban, but it must not be bypassed by repeating or disguising that blocked operation. Preserve the rejected attempt and revisit its disposition with current source evidence. Technical failures get bounded retries and source revalidation.
 
-## Route by task
+**First-party recovery publication:** follow [the Vault-to-GitHub publication contract](docs/recovery/FIRST-PARTY-PUBLICATION-CONTRACT.md). Presume surviving commissioned-agent source is worth recovering; perform bounded integrity, rights and current-main dedup checks, then publish reviewable branch/draft-PR work promptly. Historical tests need not be rerun merely because bytes passed through Drive; normal CI, independent QA and branch protection still govern merges.\n\n## Route by task
 
 | Task | Read first |
 |---|---|

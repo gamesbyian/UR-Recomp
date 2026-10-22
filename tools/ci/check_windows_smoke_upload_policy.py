@@ -20,6 +20,8 @@ EXPECTED_PATHS = (
     "${{ runner.temp }}/package-race-result-dumps/race-results.*",
     "${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json",
     "${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256",
+    "${{ runner.temp }}/windows-tournament-candidate.txt",
+    "${{ runner.temp }}/tournament-qa-envelope.json",
 )
 
 

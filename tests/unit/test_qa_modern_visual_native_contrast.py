@@ -47,5 +47,37 @@ class SourceContrastTests(unittest.TestCase):
             c.audit_frame(image,(0,0,3,1),(152,)*3,((80,)*3,),0)
 
 
+    def test_h27_minimum_neutral_foreground_for_observed_checker(self):
+        # H27 archived P7 sampling: 152 on 80 is 2.795:1, and neutral
+        # RGB194 is the first candidate meeting 4.5:1 over RGB80.
+        self.assertAlmostEqual(c.contrast_ratio((152,)*3, (80,)*3), 2.7951867, places=5)
+        self.assertEqual(c.minimum_neutral_foreground(80), 194)
+        self.assertLess(c.contrast_ratio((193,)*3, (80,)*3), 4.5)
+        self.assertGreaterEqual(c.contrast_ratio((194,)*3, (80,)*3), 4.5)
+        self.assertGreaterEqual(c.contrast_ratio((194,)*3, (47,)*3), 4.5)
+        self.assertIsNone(c.minimum_neutral_foreground(255))
+        self.assertIsNone(c.minimum_neutral_foreground(128))
+
+    def test_contrast_helper_rejects_non_rgb8_and_bad_reference(self):
+        for background in (-1, 256, True, 80.0, '80'):
+            with self.subTest(background=background), self.assertRaises(ValueError):
+                c.minimum_neutral_foreground(background)
+        for reference in (0, True, 22, float('nan'), float('inf'), '4.5'):
+            with self.subTest(reference=reference), self.assertRaises(ValueError):
+                c.minimum_neutral_foreground(80, reference)
+        for rgb in ((True,80,80), (80.0,80,80), (80,80,False)):
+            with self.subTest(rgb=rgb), self.assertRaises(ValueError):
+                c.relative_luminance(rgb)
+
+    def test_neutral_foreground_option_does_not_award_art_approval(self):
+        image = p7(3,1,[(152,152,152,255),(80,80,80,224),(47,47,47,224)])
+        result = c.audit_frame(image,(0,0,3,1),(152,)*3,((80,)*3,(47,)*3))
+        self.assertEqual(c.minimum_neutral_foreground(80), 194)
+        self.assertFalse(result['passes_source_rgb_reference'])
+        self.assertFalse(result['human_visual_approved'])
+        self.assertFalse(result['physical_monitor_approved'])
+        self.assertEqual(result['release_gate_credit'],0)
+
+
 if __name__=='__main__':
     unittest.main()

@@ -35,8 +35,10 @@ def genuine_scale_compatibility(path):
     for line in rows:
         toks=line.split();fields=dict(x.split('=',1) for x in toks[1:]);key=(fields['frame'],fields['x'],fields['logical_y'])
         if toks[0]=='UR_QA08_LATE_PPU_SOURCE' and fields['sub']=='0':
+            if key in main: raise ValueError('duplicate QA08 source stage')
             main[key]=int(fields['selected_rgb555'],16)
         if toks[0]=='UR_QA08_LATE_PPU_FINAL':
+            if key in finals: raise ValueError('duplicate QA08 final stage')
             finals[key]=tuple(map(int,fields['RGB8'].split(',')))
     if len(main)!=88 or main.keys()!=finals.keys():raise ValueError('incomplete genuine source')
     fits={}

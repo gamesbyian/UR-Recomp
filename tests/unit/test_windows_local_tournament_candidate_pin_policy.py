@@ -78,7 +78,7 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         self.assertIn("if: ${{ always() && inputs.run_tournament_acceptance }}", upload)
         for marker in (
             "tournament-qa-envelope.json", "tournament-artifacts.log",
-            "tournament-work/multiplayer-runs/*.urrun",
+            "tournament-work/*.log", "tournament-work/multiplayer-runs/*.urrun",
             "tournament-work/multiplayer-runs/*.urmatch",
             "tournament-work/user data/local-tournaments/",
         ):

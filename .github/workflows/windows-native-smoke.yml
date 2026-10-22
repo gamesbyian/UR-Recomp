@@ -1057,11 +1057,10 @@ jobs:
             ${{ runner.temp }}/tournament-receipt-verification.log
             ${{ runner.temp }}/tournament-qa-envelope.json
             ${{ runner.temp }}/tournament-work/tournament-artifacts.log
-            ${{ runner.temp }}/tournament-work/tournament.log
-            ${{ runner.temp }}/tournament-work/reopen.log
+            ${{ runner.temp }}/tournament-work/*.log
             ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urrun
             ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urmatch
-            ${{ runner.temp }}/tournament-work/user data/local-tournaments/*.urfixture
+            ${{ runner.temp }}/tournament-work/user data/local-tournaments/
           if-no-files-found: warn
           retention-days: 7
 

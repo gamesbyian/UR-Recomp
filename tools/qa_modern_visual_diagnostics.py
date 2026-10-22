@@ -268,6 +268,39 @@ def detect_logical(frame: Frame, widths=(256, 342), logical_h: int = 224,
             "pass": len(ok) == 1, **DISCLAIMER}
 
 
+EXPLAIN_WIDTHS = (256, 292, 298, 304, 320, 342, 352, 384)
+EXPLAIN_PARS = (7 / 6, 1.0, 8 / 7, 4 / 3 * 224 / 256)
+
+
+def explain_mapping(frame: Frame, widths=EXPLAIN_WIDTHS, pars=EXPLAIN_PARS,
+                    logical_h: int = 224, top: int = 5) -> list[dict]:
+    """Diagnostic for a frame no standard canvas explains: score a wider grid
+    of logical widths and pixel aspects (fractional fit) plus integer-density
+    mappings, best first. A near-zero score means the frame IS a nearest-scaled
+    canvas of that shape, so the standard check used the wrong assumption; if
+    nothing scores well the frame is not a clean nearest-scaled logical canvas
+    at all (filtered art, a mid-transition frame, or a different pipeline)."""
+    results = []
+    for w in widths:
+        for par in pars:
+            try:
+                frac = extract_logical(frame, w, logical_h, "fit", par)[
+                    "nonuniform_fraction"]
+            except ValueError:
+                continue
+            results.append({"logical_width": w, "mode": "fit",
+                            "par": round(par, 4), "nonuniform_fraction": frac})
+        try:
+            frac = extract_logical(frame, w, logical_h, "integer")[
+                "nonuniform_fraction"]
+            results.append({"logical_width": w, "mode": "integer", "par": 1.0,
+                            "nonuniform_fraction": frac})
+        except ValueError:
+            pass
+    results.sort(key=lambda r: r["nonuniform_fraction"])
+    return results[:top]
+
+
 def compare_resolutions(a: Frame, b: Frame, logical_w: int, logical_h: int,
                         max_diff: int = 0, mode: str = "fit",
                         par: float = PAR_DEFAULT,
@@ -477,6 +510,8 @@ def main(argv=None) -> int:
     m.add_argument("--max-diff", type=int, default=0)
     m.add_argument("--diff-png", type=Path,
                    help="write a logical-canvas difference picture (red = differs)")
+    x = sub.add_parser("explain"); common(x)
+    x.add_argument("--top", type=int, default=5)
     t = sub.add_parser("detect"); common(t)
     t.add_argument("--widths", nargs="+", type=int, default=[256, 342])
     a = p.parse_args(argv)
@@ -490,6 +525,11 @@ def main(argv=None) -> int:
             m = mapping(*a.logical, frame.width, frame.height, a.mode, a.par)
             rep = focus_audit(frame, a.marker, a.scale or m.sx, scale_y=(
                 a.scale or m.sy))
+        elif a.cmd == "explain":
+            rep = {"schema": SCHEMA, "check": "explain", "input_sha256": frame.sha256,
+                   "output": [frame.width, frame.height],
+                   "ranked_mappings": explain_mapping(frame, top=a.top),
+                   "pass": True, **DISCLAIMER}
         elif a.cmd == "detect":
             rep = detect_logical(frame, tuple(a.widths), mode=a.mode, par=a.par)
         else:

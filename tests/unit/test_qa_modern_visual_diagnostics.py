@@ -196,6 +196,32 @@ class DiagnosticsTest(unittest.TestCase):
         # Real wide capture shape: 256 exact, 342 clearly off.
         self.assertEqual(detect({256: 0.0, 342: 0.0183})["consistent_widths"], [256])
 
+    def test_explain_finds_the_mapping_a_standard_check_missed(self):
+        # A 256-wide canvas presented with SQUARE pixels (par 1.0), not 7:6.
+        grid, w, h = logical_canvas(256, 224)
+        seed = 7
+        for y in range(10, 210):
+            for x in range(10, 246):
+                seed = (seed * 1103515245 + 12345) & 0x7FFFFFFF
+                if (seed >> 16) % 3 == 0:
+                    grid[y * w + x] = FG if (seed >> 8) % 2 else BAR
+        m = d.mapping(256, 224, 1280, 720, "fit", 1.0)
+        cols = [int((x + 0.5 - m.vx) / m.sx) for x in range(1280)]
+        rows = []
+        for y in range(720):
+            ly = int((y + 0.5 - m.vy) / m.sy)
+            if not 0 <= ly < 224:
+                rows += [(0, 0, 0)] * 1280
+                continue
+            row = grid[ly * 256:(ly + 1) * 256]
+            rows += [row[c] if 0 <= c < 256 else (0, 0, 0) for c in cols]
+        frame = d.Frame(p7(1280, 720, rows))
+        self.assertFalse(d.detect_logical(frame)["pass"])
+        best = d.explain_mapping(frame, widths=(256, 342), pars=(7 / 6, 1.0), top=2)[0]
+        self.assertEqual((best["logical_width"], best["par"], best["mode"]),
+                         (256, 1.0, "fit"))
+        self.assertEqual(best["nonuniform_fraction"], 0.0)
+
     def test_fit_clip_and_focus_on_fractional_output(self):
         grid, w, h = logical_canvas()
         put(grid, w, 30, 30, 40, 8, FG)

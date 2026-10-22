@@ -78,7 +78,10 @@ class H25ChromaticRecovery(unittest.TestCase):
                 design(p)
 
     def test_incomplete_triplets_refused(self):
-        self.classify(b"invalid", error="expected 264")
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("on-source.log", "UR_QA08_LATE_PPU_SOURCE frame=1 x=1 logical_y=1 sub=0 selected_rgb555=4a52\r\n")
+        self.classify(buf.getvalue(), error="expected 264")
 
 
 if __name__ == "__main__":

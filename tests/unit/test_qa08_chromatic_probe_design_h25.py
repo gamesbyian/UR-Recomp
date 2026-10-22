@@ -36,6 +36,15 @@ class H25ChromaticRecovery(unittest.TestCase):
         self.assertLess(len(set(model_predictions((5, 5, 5)).values())), 12)
         self.assertEqual(22 | (24 << 5) | (26 << 10), 0x6b16)
 
+    def test_archived_global_maxmin_selection_supersedes_first_candidate(self):
+        from qa08_chromatic_probe_design import choose_probe
+        optimum = choose_probe()
+        self.assertEqual(optimum["channel5"], [22, 24, 26])
+        self.assertEqual(optimum["candidate_rgb555_hex"], "6b16")
+        self.assertEqual(optimum["minimum_pairwise_L1"], 3)
+        self.assertFalse(optimum["same_epoch_native_effective_ppu_proven"])
+        self.assertEqual(optimum["release_gate_credit"], 0)
+
     def test_invalid_channel_shapes_rejected(self):
         for x in (-1, 32, True, False, 2.0, "5"):
             with self.subTest(x=x), self.assertRaises(ValueError):

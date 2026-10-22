@@ -29,6 +29,38 @@ def model_predictions(channels=CHANNEL5):
     return predictions
 
 
+
+def choose_probe():
+    """Exhaustively maximize the minimum exact RGB8 L1 separation.
+
+    This recovers Agent5 H25's stronger source-only optimization, superseding
+    Agent3 H25's first valid twelve-hypothesis 59a5 probe. Never treats a
+    computed candidate as a recorded original or native PPU observation.
+    """
+    best = None
+    for channels in combinations(range(32), 3):
+        predictions = model_predictions(channels)
+        values = list(predictions.values())
+        if len(set(values)) != 12:
+            continue
+        minimum_l1 = min(sum(abs(a - b) for a, b in zip(first, second))
+                         for first, second in combinations(values, 2))
+        score = (minimum_l1, min(channels), -sum(channels))
+        if best is None or score > best[0]:
+            best = (score, channels)
+    if best is None:
+        raise ValueError("no fully discriminating RGB5 probe")
+    score, channels = best
+    return {"schema": "qa08-future-probe-maxmin/1",
+            "channel5": list(channels),
+            "candidate_rgb555_hex": f"{channels[0] | (channels[1] << 5) | (channels[2] << 10):04x}",
+            "hypotheses_distinguished": 12,
+            "minimum_pairwise_L1": score[0],
+            "chromatic_pixel_observed": False,
+            "same_epoch_native_effective_ppu_proven": False,
+            "release_gate_credit": 0}
+
+
 def design(path):
     evidence = census(path)
     if not evidence["all_observed_source_and_final_are_grayscale"]:

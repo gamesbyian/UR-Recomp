@@ -24,6 +24,9 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
+from audit_modern_hero_source_clips import CANDIDATES
+from build_modern_hero_reaction_plates import rasterize_original_clip
+from qualify_modern_original_hero_temporal import analyze_original_hero_temporal_clip
 from prototype_racer_hd_replacement import (
     alpha_contact_anchor_x2_y2,
     build_stock_rgba,
@@ -39,6 +42,10 @@ START, STOP = 1213, 1220
 FRAME_COUNT = STOP - START + 1
 MAX_BYTES = 3 * 1024 * 1024
 SOURCE_PROVENANCE = "original-synchronized-p1-guest-1213-through-1220"
+# This inventory is independently registered, not a manufactured idle cycle.
+# The private source reconstruction and native compositor validate the data.
+CLIP_WINDOWS = {entry[0]: (entry[3], entry[4]) for entry in CANDIDATES}
+DEFAULT_CLIP = "root-entry-reaction"
 FNV_OFFSET = 1469598103934665603
 FNV_PRIME = 1099511628211
 
@@ -141,30 +148,50 @@ def verified_clip(rom: bytes, registry: dict, source: dict) -> tuple[list[dict],
     return report, buffer
 
 
+def original_temporal_evidence(rows: list[dict], frames: list[list[int]]) -> dict:
+    """Preserve source-pixel discontinuities in the private build receipt.
+
+    Never turn a counterfactual terminal->first seam into a loop permit, and
+    never translate registered guest-frame labels into independently certified
+    original menu/title 60Hz timing.
+    """
+    if len(rows) != len(frames) or len(rows) < 2:
+        raise ValueError("source temporal evidence requires corresponding frames")
+    labels = [row["original_guest_frame"] for row in rows]
+    return analyze_original_hero_temporal_clip(
+        [argb_to_rgba(frame) for frame in frames], labels,
+        width=WIDTH, height=HEIGHT)
+
+
 def cpp_header(rows: list[dict], frames: list[list[int]]) -> str:
     """Produce a single self-contained generated read-only C++17 header."""
-    if len(rows) != FRAME_COUNT or len(frames) != FRAME_COUNT:
+    if len(rows) != len(frames):
         raise ValueError("incomplete source frame family")
+    actual = [row.get("original_guest_frame") for row in rows]
+    if not any(actual == list(range(start, stop + 1))
+               for start, stop in CLIP_WINDOWS.values()):
+        raise ValueError("source frame family must be one exact registered window")
+    count = len(rows)
     lines = [
         "#pragma once",
         "// GENERATED from ORIGINAL USA ROM, not authored/remastered artwork.",
-        "// Experimental fixed source sequence: guest frames 1213..1220.",
+        f"// Experimental fixed source sequence: guest frames {actual[0]}..{actual[-1]}.",
         "// DO NOT hand-edit. Source manifest binds actual ROM, pose and palette.",
         '#include "modern_menu_stock_hero.hpp"',
         "#include <array>",
         "#include <cstdint>",
         "namespace ur::product::modern_menu_source_hero {",
-        "inline constexpr std::array<std::uint32_t, 32768> kOriginalArgb{{",
+        f"inline constexpr std::array<std::uint32_t, {count * WIDTH * HEIGHT}> kOriginalArgb{{{{",
     ]
     for index, frame in enumerate(frames):
         if len(frame) != WIDTH * HEIGHT:
             raise ValueError("incomplete source raster frame")
-        lines.append(f"  // original guest frame {START + index}")
+        lines.append(f"  // original guest frame {rows[index]['original_guest_frame']}")
         for i in range(0, len(frame), 8):
             lines.append("  " + ", ".join(f"0x{n:08x}u" for n in frame[i:i+8]) + ",")
     lines.extend([
         "}};",
-        "inline constexpr std::array<ModernMenuStockHeroFrame, 8> kFrames{{",
+        f"inline constexpr std::array<ModernMenuStockHeroFrame, {count}> kFrames{{{{",
     ])
     for i, row in enumerate(rows):
         semantic = row["semantic_frame_id"]
@@ -286,21 +313,91 @@ def publish_private_source_artifacts(
             shutil.rmtree(staged_dir, ignore_errors=True)
 
 
+def require_private_artifact_paths(
+    output_header: Path, output_manifest: Path, frames_dir: Path | None
+) -> None:
+    """Keep private original raster evidence out of versioned source paths.
+
+    The one exception is the EXACT deliberately git-ignored native include
+    filename, which is still opt-in/experimental and must not be committed.
+    An external worktree/output directory is also legitimate. Resolve parent
+    symlinks before checking so an apparent external directory cannot
+    silently point back into the source tree.
+    """
+    root = ROOT.resolve()
+    allowed_header = (ROOT / "native/product/"
+                      "modern_menu_stock_hero_original.generated.hpp").resolve()
+    for kind, path in (
+        ("source header", output_header),
+        ("source manifest", output_manifest),
+        ("source review frames", frames_dir),
+    ):
+        if path is None:
+            continue
+        resolved = path.resolve()
+        if resolved == root or root in resolved.parents:
+            if kind != "source header" or resolved != allowed_header:
+                raise ValueError(
+                    f"{kind} must be outside the tracked source tree")
+    # Filesystem link collisions and no-clobber publication are independently
+    # enforced by publish_private_source_artifacts after source verification.
+
+
 def build(rom_path: Path, output_header: Path, output_manifest: Path,
-          frames_dir: Path | None = None) -> dict:
+          frames_dir: Path | None = None,
+          clip_id: str = DEFAULT_CLIP) -> dict:
+    if clip_id not in CLIP_WINDOWS:
+        raise ValueError("unregistered original source clip")
+    require_private_artifact_paths(output_header, output_manifest, frames_dir)
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     registry = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if not rom_path.is_file() or rom_path.stat().st_size > MAX_BYTES:
         raise ValueError("missing or oversized source ROM")
     rom = rom_path.read_bytes()
-    rows, frames = verified_clip(rom, registry, source)
+    reaction_metrics = None
+    if clip_id == DEFAULT_CLIP:
+        rows, frames = verified_clip(rom, registry, source)
+    else:
+        # Reuse the separate original-register/temporal/raster qualification
+        # producer. No second raster decoder or user-authored poses.
+        reaction, rgba_frames = rasterize_original_clip(
+            rom, registry, source, clip_id)
+        reaction_metrics = reaction["temporal_original_raster_metrics"]
+        rows, frames = [], []
+        for candidate, rgba in zip(reaction["frames"], rgba_frames):
+            argb = rgba_to_argb(rgba)
+            rows.append({
+                "original_guest_frame": candidate["registered_guest_frame"],
+                "representation_id": candidate["representation_id"],
+                "semantic_frame_id": candidate["p1_semantic_id"],
+                "palette_asset_id": "0x06",
+                "source_rgba_sha256": candidate["original_rgba_sha256"],
+                "argb_fnv1a64": f"{source_digest(argb):016x}",
+                "opaque_pixels": candidate["opaque_pixels"],
+                "stock_contact_x2_y2": candidate["wheel_contact_x2_y2"],
+                "stock_flip_pivot_x2_y2": candidate["flip_pivot_x2_y2"],
+            })
+            frames.append(argb)
+        if len(rows) != CLIP_WINDOWS[clip_id][1] - CLIP_WINDOWS[clip_id][0] + 1:
+            raise ValueError("registered source reaction length mismatch")
     header = cpp_header(rows, frames)
+    temporal = original_temporal_evidence(rows, frames)
+    # The separate original-raster reaction producer and this generated
+    # native-header path must agree on every source pose transition, including
+    # the deliberately unobserved last->first counterfactual edge.
+    if reaction_metrics is not None and temporal != reaction_metrics:
+        raise ValueError("source-raster temporal receipt mismatch")
     manifest = {
         "schema_version": 1,
         "asset_kind": "experimental_original_native_menu_showroom_clip",
         "status": "technical Original sprite reconstruction only; user visual acceptance pending",
         "original_rom_sha256": source["rom_sha256"],
-        "original_motion_window": [START, STOP],
+        "original_motion_window": list(CLIP_WINDOWS[clip_id]),
+        "clip_id": clip_id,
+        "source_guest_timing_independently_certified": False,
+        "source_clip_loop_certified": False,
+        "human_visual_approval": False,
+        "temporal_original_raster_metrics": temporal,
         "source": SOURCE.relative_to(ROOT).as_posix(),
         "composition_register": MANIFEST.relative_to(ROOT).as_posix(),
         "sequence_contract": "one-shot original guest 60Hz P1 frames; never loop as if original idle",
@@ -330,10 +427,13 @@ def main() -> int:
     parser.add_argument("--header", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--frames-dir", type=Path, help="Optional original-raster review PNGs; not native screenshot evidence")
+    parser.add_argument("--clip", choices=sorted(CLIP_WINDOWS), default=DEFAULT_CLIP,
+                        help="One exact registered source event; never loop or reverse")
     args = parser.parse_args()
-    result = build(args.rom, args.header, args.manifest, args.frames_dir)
+    result = build(args.rom, args.header, args.manifest, args.frames_dir,
+                   clip_id=args.clip)
     print("ORIGINAL_MENU_HERO_EXPERIMENTAL_OK frames=" +
-          str(len(result["frames"])) + " source=" + SOURCE_PROVENANCE)
+          str(len(result["frames"])) + " source=" + result["clip_id"])
     return 0
 
 

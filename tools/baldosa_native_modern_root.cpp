@@ -1328,13 +1328,24 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             ur::product::modern_menu_tick60(
                 static_cast<std::uint64_t>(SDL_GetTicks())),
             seed, stepped_capture, ordinal);
+        // Normal distributable builds retain the existing eight-source-pose
+        // event. An explicit, generated, opt-in ORIGINAL-raster header owns
+        // its own registered length; do not silently truncate a later
+        // qualified nine- or ten-frame event in the native game.
+#if defined(UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE)
+        const auto hero_source_frames = static_cast<std::uint8_t>(
+            ur::product::modern_menu_source_hero::kClip.frame_count);
+#else
+        constexpr std::uint8_t hero_source_frames =
+            ur::product::kModernMenuStockHeroMaxCycle;
+#endif
         const auto phase = ur::product::advance_modern_menu_motion(
             g_native_menu_motion,
             {capture_tick,
              static_cast<std::uint8_t>(
                  ur::product::modern_root_destination_index(
                      ur::product::modern_root_menu_selected(g_menu))),
-             root_focus_visible, reduced_motion});
+             root_focus_visible, reduced_motion, hero_source_frames});
         if (root_focus_visible) {
             const bool motion_painted =
                 ur::product::paint_modern_menu_selection_motion(

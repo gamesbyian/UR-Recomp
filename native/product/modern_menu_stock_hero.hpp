@@ -18,7 +18,9 @@ namespace ur::product {
 
 inline constexpr int kModernMenuStockHeroCanvas = 64;
 inline constexpr std::size_t kModernMenuStockHeroPixels = 64u * 64u;
-inline constexpr std::size_t kModernMenuStockHeroMaxFrames = 8u;
+// The source registry identifies 8-, 9- and 10-frame events. The
+// renderer supports their entire bounded sequence without implying a loop.
+inline constexpr std::size_t kModernMenuStockHeroMaxFrames = 10u;
 
 struct ModernMenuStockHeroFrame {
     const std::uint32_t* argb_pixels = nullptr;

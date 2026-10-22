@@ -245,6 +245,189 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             self.assertFalse(folder.exists())
             self.assertEqual(list(root.glob(".original-*")), [])
 
+    def test_registered_long_source_windows_emit_exact_cpp_lengths(self):
+        self.assertEqual(hero.CLIP_WINDOWS, {
+            "root-entry-reaction": (1213, 1220),
+            "settle-and-recover": (1230, 1239),
+            "long-hold-recovery": (1244, 1252),
+        })
+        for clip_id, (start, stop) in hero.CLIP_WINDOWS.items():
+            with self.subTest(clip_id=clip_id):
+                frames = [[0xff050500 + n] * hero.WIDTH * hero.HEIGHT
+                          for n in range(stop - start + 1)]
+                rows = [
+                    {"original_guest_frame": start + n,
+                     "semantic_frame_id": "0x0541",
+                     "argb_fnv1a64": f"{hero.source_digest(frame):016x}"}
+                    for n, frame in enumerate(frames)
+                ]
+                header = hero.cpp_header(rows, frames)
+                count = len(rows)
+                self.assertIn(
+                    f"std::array<std::uint32_t, {4096 * count}> kOriginalArgb",
+                    header)
+                self.assertIn(
+                    f"std::array<ModernMenuStockHeroFrame, {count}> kFrames",
+                    header)
+                self.assertIn(f"original guest frame {stop}", header)
+                self.assertIn("kFrames.data(), kFrames.size(), true", header)
+                self.assertEqual(header.count("original guest frame"), count)
+                metrics = hero.original_temporal_evidence(rows, frames)
+                self.assertEqual(metrics["frame_count"], count)
+                self.assertEqual(metrics["first_registered_guest_frame"], start)
+                self.assertEqual(metrics["last_registered_guest_frame"], stop)
+                self.assertEqual(len(metrics["consecutive_registered_edges"]),
+                                 count - 1)
+                seam = metrics["counterfactual_last_to_first_edge"]
+                self.assertEqual(seam["from_registered_guest_frame"], stop)
+                self.assertEqual(seam["to_registered_guest_frame"], start)
+                self.assertFalse(seam["is_observed_chronological_edge"])
+                self.assertFalse(metrics["loop_certified"])
+                self.assertFalse(
+                    metrics["source_guest_timing_independently_certified"])
+                bad = copy.deepcopy(rows)
+                bad[-1]["original_guest_frame"] = start
+                with self.assertRaisesRegex(ValueError, "registered window"):
+                    hero.cpp_header(bad, frames)
+        with self.assertRaisesRegex(ValueError, "incomplete source"):
+            hero.cpp_header(rows, frames[:-1])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaisesRegex(ValueError, "unregistered original"):
+                hero.build(root / "unavailable.rom", root / "x.hpp",
+                           root / "x.json", clip_id="invented-id")
+
+    def test_generated_registered_long_clip_compiles_into_real_native_compositor(self):
+        """No private ROM required: synthetic pixels, real generated header ABI."""
+        compiler = shutil.which("g++") or shutil.which("clang++")
+        if not compiler:
+            self.skipTest("C++17 compiler unavailable")
+        for clip_id in ("long-hold-recovery", "settle-and-recover"):
+            with self.subTest(clip_id=clip_id), tempfile.TemporaryDirectory() as tmp:
+                start, stop = hero.CLIP_WINDOWS[clip_id]
+                count = stop - start + 1
+                rows, frames = [], []
+                for i in range(count):
+                    pixels = [0xff050500 + i] * hero.WIDTH * hero.HEIGHT
+                    frames.append(pixels)
+                    rows.append({
+                        "original_guest_frame": start + i,
+                        "semantic_frame_id": "0x0541",
+                        "argb_fnv1a64": f"{hero.source_digest(pixels):016x}",
+                    })
+                out = Path(tmp)
+                (out / "original.generated.hpp").write_text(
+                    hero.cpp_header(rows, frames), encoding="utf-8")
+                (out / "main.cpp").write_text(
+                    '#include "original.generated.hpp"\n'
+                    '#include <algorithm>\n'
+                    '#include <cassert>\n'
+                    '#include <cstdint>\n'
+                    '#include <vector>\n'
+                    'int main() {\n'
+                    ' using namespace ur::product;\n'
+                    ' using namespace ur::product::modern_menu_source_hero;\n'
+                    f' assert(kClip.frame_count == {count});\n'
+                    ' assert(modern_menu_stock_hero_sequence_eligible(kClip));\n'
+                    ' for (int width : {256, 342}) {\n'
+                    '  std::vector<std::uint32_t> dst(width * 224, 0xff101010u);\n'
+                    '  ModernMenuMotionState state{};\n'
+                    f'  for (int tick = 0; tick < {count + 3}; ++tick) {{\n'
+                    '   auto pose = advance_modern_menu_motion(state,\n'
+                    f'      {{static_cast<std::uint64_t>(tick), 0, true, false, {count}}});\n'
+                    f'   const int expected = tick < {count} ? tick : {count - 1};\n'
+                    '   assert(pose.hero_frame_ordinal == expected);\n'
+                    '   pose.hero_bob_px = 0; pose.hero_lean_px = 0;\n'
+                    '   std::fill(dst.begin(), dst.end(), 0xff101010u);\n'
+                    '   assert(paint_modern_menu_stock_hero(\n'
+                    '      dst.data(), width, 224, {0, 0, width, 224},\n'
+                    '      {60, 20, 2}, kClip, pose) == ModernMenuStockHeroDraw::Drawn);\n'
+                    '   assert(dst[84 * width + 124] ==\n'
+                    '      (0xff050500u + static_cast<std::uint32_t>(expected)));\n'
+                    '   assert(dst[0] == 0xff101010u);\n'
+                    '  }\n'
+                    ' }\n'
+                    ' return 0;\n'
+                    '}\n',
+                    encoding="utf-8")
+                exe = out / "native-long-clip"
+                build = subprocess.run(
+                    [compiler, "-std=c++17", "-O0", "-Wall", "-Wextra",
+                     "-Werror", "-pedantic", "-I", str(out),
+                     "-I", str(ROOT / "native/product"),
+                     str(out / "main.cpp"), "-o", str(exe)],
+                    text=True, capture_output=True, check=False)
+                self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+                run = subprocess.run(
+                    [str(exe)], text=True, capture_output=True, check=False)
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+    def test_private_original_asset_paths_never_escape_into_tracked_tree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            external = Path(tmp)
+            fake_rom = external / "missing-rom.sfc"
+            allowed = ROOT / "native/product/modern_menu_stock_hero_original.generated.hpp"
+            # Exact ignored native header is allowed; the canonical ROM
+            # validation remains a separate fail-closed producer gate.
+            hero.require_private_artifact_paths(
+                allowed, external / "receipt.json", external / "plates")
+            for header, manifest, plates in (
+                (ROOT / "native/product/private-new-art.hpp",
+                 external / "receipt.json", None),
+                (external / "hero.hpp",
+                 ROOT / "analysis/private-hero-manifest.json", None),
+                (external / "hero.hpp", external / "receipt.json",
+                 ROOT / "analysis/private-hero-plates"),
+                (ROOT, external / "receipt.json", None),
+            ):
+                with self.subTest(header=header, manifest=manifest, plates=plates):
+                    with self.assertRaisesRegex(ValueError, "tracked source"):
+                        hero.require_private_artifact_paths(
+                            header, manifest, plates)
+            with self.assertRaisesRegex(ValueError, "tracked source"):
+                hero.build(fake_rom, external / "hero.hpp",
+                           ROOT / "analysis/accident.json")
+            self.assertFalse((ROOT / "analysis/accident.json").exists())
+            self.assertFalse((external / "hero.hpp").exists())
+
+    def test_direct_cli_lists_registered_source_clips(self):
+        with tempfile.TemporaryDirectory() as cwd:
+            result = subprocess.run(
+                [sys.executable, str(Path(hero.__file__).resolve()), "--help"],
+                cwd=cwd, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            for clip_id in hero.CLIP_WINDOWS:
+                self.assertIn(clip_id, result.stdout)
+
+    def test_private_original_reaction_header_when_canonical_rom_exists(self):
+        if not hero.ROM.is_file():
+            self.skipTest("canonical private ROM unavailable")
+        for clip_id, (start, stop) in hero.CLIP_WINDOWS.items():
+            if clip_id == hero.DEFAULT_CLIP:
+                continue
+            with self.subTest(clip_id=clip_id), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                report = hero.build(
+                    hero.ROM, root / "source.generated.hpp",
+                    root / "manifest.json", root / "source-plates",
+                    clip_id=clip_id)
+                self.assertEqual(report["original_motion_window"], [start, stop])
+                self.assertEqual(len(report["frames"]), stop - start + 1)
+                self.assertEqual(
+                    len(list((root / "source-plates").glob("original-stock-*.png"))),
+                    stop - start + 1)
+                self.assertFalse(report["source_clip_loop_certified"])
+                self.assertFalse(report["source_guest_timing_independently_certified"])
+                self.assertFalse(report["human_visual_approval"])
+                metrics = report["temporal_original_raster_metrics"]
+                self.assertEqual(metrics["frame_count"], stop - start + 1)
+                self.assertFalse(metrics["counterfactual_last_to_first_edge"][
+                    "is_observed_chronological_edge"])
+                self.assertFalse(metrics["loop_certified"])
+                self.assertIn(
+                    f"std::array<ModernMenuStockHeroFrame, {stop - start + 1}>",
+                    (root / "source.generated.hpp").read_text())
+
     def test_original_raster_and_compiled_cpp_asset(self):
         if not hero.ROM.is_file():
             self.skipTest("canonical private ROM unavailable")
@@ -264,6 +447,10 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
                 self.assertTrue(len(row["review_png_sha256"]) == 64)
             self.assertEqual(result["original_rom_sha256"],
                              self.source["rom_sha256"])
+            self.assertEqual(
+                result["temporal_original_raster_metrics"]["frame_count"], 8)
+            self.assertFalse(
+                result["temporal_original_raster_metrics"]["loop_certified"])
             self.assertEqual(len(result["frames"]), 8)
             self.assertEqual([x["original_guest_frame"] for x in result["frames"]],
                              list(range(1213, 1221)))

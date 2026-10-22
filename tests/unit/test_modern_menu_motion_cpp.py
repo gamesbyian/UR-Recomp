@@ -35,6 +35,8 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("paint_modern_menu_selection_motion(", host)
         baldosa = BALDOSA.read_text(encoding="utf-8")
         self.assertIn('#include "modern_menu_motion.hpp"', baldosa)
+        self.assertIn("hero_source_frames", baldosa)
+        self.assertIn("modern_menu_source_hero::kClip.frame_count", baldosa)
         self.assertIn("modern_menu_tick60(", baldosa)
         self.assertIn("SDL_GetTicks()", baldosa)
         self.assertIn("UR_REDUCED_MOTION", baldosa)

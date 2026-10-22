@@ -2,7 +2,7 @@
 """Run a manifest of Modern visual diagnostics and emit CI evidence.
 
 Manifest (JSON): {"cases": [{"id": str, "p7": path, "expect_sha256": hex,
-  "checks": [{"type": "clip"|"focus"|"contrast"|"compare", ...}]}]}
+  "checks": [{"type": "clip"|"focus"|"contrast"|"compare"|"detect", ...}]}]}
 Paths resolve relative to the manifest. Output: aggregate JSON (stdout or
 --json) and a Markdown table (--summary, e.g. $GITHUB_STEP_SUMMARY). A case
 whose frame is missing, mis-hashed or malformed is `incomplete`, never a
@@ -28,19 +28,26 @@ def _rgb(value: str):
 
 def run_check(frame, base: Path, check: dict) -> dict:
     kind = check.get("type")
+    mode, par = check.get("mode", "fit"), check.get("par", d.PAR_DEFAULT)
     if kind == "clip":
         return d.clip_audit(frame, *check["logical"],
                             [_rgb(c) for c in check["colours"]],
-                            check.get("region", "title"))
+                            check.get("region", "title"), mode, par)
     if kind == "focus":
-        return d.focus_audit(frame, _rgb(check["marker"]), check["scale"])
+        m = d.mapping(*check["logical"], frame.width, frame.height, mode, par)
+        scale = check.get("scale", m.sx)
+        return d.focus_audit(frame, _rgb(check["marker"]), scale,
+                             scale_y=check.get("scale", m.sy))
+    if kind == "detect":
+        return d.detect_logical(frame, tuple(check.get("widths", (256, 342))),
+                                mode=mode, par=par)
     if kind == "contrast":
         return d.local_contrast(frame, tuple(check["roi"]), _rgb(check["foreground"]),
                                 check.get("threshold", 4.5))
     if kind == "compare":
         other = d.load(base / check["other"], check.get("other_expect_sha256"))
         return d.compare_resolutions(frame, other, *check["logical"],
-                                     check.get("max_diff", 0))
+                                     check.get("max_diff", 0), mode, par)
     raise ValueError(f"unknown check type {kind!r}")
 
 

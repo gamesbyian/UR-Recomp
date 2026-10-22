@@ -93,7 +93,7 @@ class ModernRootLegibilityAudit(unittest.TestCase):
             frame = d.load(out)
             clip = d.clip_audit(frame, width, 224, [
                 (255, 255, 255), (200, 200, 200), (248, 248, 0), (160, 208, 248)],
-                "action")
+                "action", "integer")  # harness dumps the 1:1 logical canvas
             self.assertTrue(clip["pass"], clip)
             focus = d.focus_audit(frame, (160, 208, 248), 1)
             self.assertTrue(focus["pass"], focus)

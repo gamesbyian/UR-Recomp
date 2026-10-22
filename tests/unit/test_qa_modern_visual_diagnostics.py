@@ -44,6 +44,24 @@ def put(grid, lw, x, y, w, h, c):
             grid[yy * lw + xx] = c
 
 
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def render_fit(grid, lw, lh, out_w, out_h):
+    # Nearest-neighbour fractional fit with 7:6 pixel aspect (what ships).
+    m = d.mapping(lw, lh, out_w, out_h)
+    out = [(0, 0, 0)] * (out_w * out_h)
+    for y in range(out_h):
+        ly = int((y - m.vy) / m.sy)
+        if not 0 <= ly < lh:
+            continue
+        for x in range(out_w):
+            lx = int((x - m.vx) / m.sx)
+            if 0 <= lx < lw:
+                out[y * out_w + x] = grid[ly * lw + lx]
+    return d.Frame(p7(out_w, out_h, out))
+
+
 def png(width, height, pixels, ctype=6, filt=0):
     bpp = 4 if ctype == 6 else 3
     rows, prev = b"", bytes(width * bpp)
@@ -74,6 +92,58 @@ def png(width, height, pixels, ctype=6, filt=0):
 
 
 class DiagnosticsTest(unittest.TestCase):
+    def test_fit_model_matches_real_fractional_output(self):
+        # Production output fits the canvas with 7:6 pixel aspect and
+        # nearest sampling, so blocks are fractional, never integer.
+        grid, w, h = logical_canvas()
+        put(grid, w, 30, 30, 40, 8, FG)
+        put(grid, w, 100, 100, 5, 5, BAR)
+        a = render_fit(grid, w, h, 1280, 720)
+        b = render_fit(grid, w, h, 1920, 1080)
+        rep = d.compare_resolutions(a, b, w, h)
+        self.assertTrue(rep["pass"], rep)
+        self.assertAlmostEqual(rep["a"]["scale"][0] / rep["a"]["scale"][1], 7 / 6, 3)
+        put(grid, w, 200, 150, 3, 1, FG)
+        c = render_fit(grid, w, h, 1920, 1080)
+        rep = d.compare_resolutions(a, c, w, h)
+        self.assertFalse(rep["pass"])
+        self.assertEqual(rep["differing_logical_pixels"], 3)
+        # The integer model must not be mistaken for the real mapping.
+        self.assertFalse(d.compare_resolutions(a, b, w, h, mode="integer")["pass"])
+
+    def test_detect_distinguishes_native_logical_widths(self):
+        wide, ww, hh = logical_canvas(342, 224)
+        narrow, nw, nh = logical_canvas(256, 224)
+        for grid, lw in ((wide, ww), (narrow, nw)):
+            for i in range(0, lw - 4, 7):
+                put(grid, lw, i, (i * 5) % 200, 3, 4, FG if i % 14 else BAR)
+        det = d.detect_logical(render_fit(wide, ww, hh, 1280, 720))
+        self.assertEqual(det["consistent_widths"], [342], det)
+        det = d.detect_logical(render_fit(narrow, nw, nh, 1024, 768))
+        self.assertEqual(det["consistent_widths"], [256], det)
+        self.assertTrue(det["pass"])
+
+    def test_fit_clip_and_focus_on_fractional_output(self):
+        grid, w, h = logical_canvas()
+        put(grid, w, 30, 30, 40, 8, FG)
+        put(grid, w, 20, 60, 3, 16, BAR)
+        frame = render_fit(grid, w, h, 1280, 720)
+        self.assertTrue(d.clip_audit(frame, w, h, [FG, BAR], "action")["pass"])
+        m = d.mapping(w, h, 1280, 720)
+        self.assertTrue(d.focus_audit(frame, BAR, m.sx, scale_y=m.sy)["pass"])
+        put(grid, w, 0, 100, 4, 8, FG)
+        edge = d.clip_audit(render_fit(grid, w, h, 1280, 720), w, h, [FG], "action")
+        self.assertFalse(edge["pass"])
+
+    def test_real_committed_capture_is_a_fractional_256_wide_canvas(self):
+        path = ROOT / "media/showcase/2026-10-10/recruitment/modern-root/frame-300.png"
+        frame = d.load(path)
+        self.assertEqual((frame.width, frame.height), (960, 540))
+        det = d.detect_logical(frame, (256, 342))
+        self.assertIn(256, det["consistent_widths"], det)
+        self.assertNotIn(342, det["consistent_widths"], det)
+        self.assertGreater(det["nonuniform_fraction"][342], 0.01)
+
     def test_png_input_matches_p7_and_rejects_bad_files(self):
         px = [(i * 7 % 256, i * 13 % 256, i * 29 % 256) for i in range(12 * 9)]
         ref = d.Frame(p7(12, 9, px)).rgba
@@ -105,12 +175,12 @@ class DiagnosticsTest(unittest.TestCase):
         put(grid, w, 30, 30, 40, 8, FG)
         a = render(grid, w, h, 1280, 720)
         b = render(grid, w, h, 1920, 1080)
-        rep = d.compare_resolutions(a, b, w, h)
+        rep = d.compare_resolutions(a, b, w, h, mode="integer")
         self.assertTrue(rep["pass"], rep)
-        self.assertEqual((rep["a"]["factor"], rep["b"]["factor"]), (3, 4))
+        self.assertEqual((rep["a"]["scale"][0], rep["b"]["scale"][0]), (3, 4))
         put(grid, w, 100, 100, 2, 1, FG)
         c = render(grid, w, h, 1920, 1080)
-        rep = d.compare_resolutions(a, c, w, h)
+        rep = d.compare_resolutions(a, c, w, h, mode="integer")
         self.assertFalse(rep["pass"])
         self.assertEqual(rep["differing_logical_pixels"], 2)
         self.assertEqual(rep["difference_bbox"], [100, 100, 102, 101])
@@ -122,24 +192,24 @@ class DiagnosticsTest(unittest.TestCase):
         pixels = [a.rgb(x, y) for y in range(a.height) for x in range(a.width)]
         pixels[(24 + 30 * 3) * a.width + 127 + 30 * 3] = (1, 2, 3)
         blurred = d.Frame(p7(a.width, a.height, pixels))
-        self.assertGreater(d.extract_logical(blurred, w, h)["nonuniform_blocks"], 0)
+        self.assertGreater(d.extract_logical(blurred, w, h, "integer")["nonuniform_blocks"], 0)
 
     def test_clip_inside_and_outside_safe_area(self):
         grid, w, h = logical_canvas()
         put(grid, w, 30, 30, 40, 8, FG)
-        ok = d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG])
+        ok = d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG], mode="integer")
         self.assertTrue(ok["pass"], ok)
         put(grid, w, 12, 100, 20, 8, FG)  # intrudes into title-unsafe margin
-        bad = d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG])
+        bad = d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG], mode="integer")
         self.assertFalse(bad["pass"])
         self.assertTrue(d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG],
-                                     "action")["pass"])
+                                     "action", "integer")["pass"])
         put(grid, w, 0, 100, 4, 8, FG)  # touches viewport edge: clipped
-        edge = d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG], "action")
+        edge = d.clip_audit(render(grid, w, h, 1280, 720), w, h, [FG], "action", "integer")
         self.assertFalse(edge["pass"])
         self.assertGreater(edge["viewport_edge_pixels"], 0)
         with self.assertRaises(ValueError):
-            d.clip_audit(render(grid, w, h, 1280, 720), w, h, [(9, 9, 9)])
+            d.clip_audit(render(grid, w, h, 1280, 720), w, h, [(9, 9, 9)], mode="integer")
 
     def test_focus_requires_exactly_one_bar(self):
         grid, w, h = logical_canvas(256, 224)
@@ -176,7 +246,7 @@ class DiagnosticsTest(unittest.TestCase):
                                 [frame.rgb(x, y) for y in range(frame.height)
                                  for x in range(frame.width)]))
             argv = ["clip", str(path), "--logical", "342", "224",
-                    "--colour", "#c8c8c8", "--require"]
+                    "--colour", "#c8c8c8", "--require", "--mode", "integer"]
             with contextlib.redirect_stdout(io.StringIO()) as out:
                 self.assertEqual(d.main(argv + ["--expect-sha256", frame.sha256]), 0)
             self.assertEqual(json.loads(out.getvalue())["input_sha256"], frame.sha256)

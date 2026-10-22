@@ -138,9 +138,12 @@ struct ModernUiScale {
     ModernUiRect viewport;  // centred letterboxed physical rectangle
 };
 
-// Integer-only resolution independence: the largest whole scale of the
-// logical canvas that fits the output, centred. 720p 342x224 -> 3x,
-// 1080p -> 4x, 2160p -> 9x; 1024x768 256x224 -> 3x.
+// Integer presentation DENSITY for host-painted overlays: the largest whole
+// scale of the logical canvas that fits a surface, centred. 720p 342x224 ->
+// 3x, 1080p -> 4x, 2160p -> 9x; 1024x768 256x224 -> 3x. This is NOT the final
+// window mapping: the shipped SDL path fits the canvas to the window with
+// the 7:6 pixel aspect and nearest sampling (fractional blocks); see
+// tools/qa_modern_visual_diagnostics.py `mapping(..., mode="fit")`.
 constexpr ModernUiScale modern_ui_integer_scale(int logical_w, int logical_h,
                                                 int out_w, int out_h) noexcept {
     if (logical_w <= 0 || logical_h <= 0 || out_w < logical_w ||

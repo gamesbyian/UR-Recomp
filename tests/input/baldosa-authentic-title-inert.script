@@ -1,0 +1,5 @@
+# Authentic-mode isolation needs a source-rendered settled guest picture,
+# not an empty early opening frame. Same pinned ROM, no game input writes.
+turbo on
+wait 320
+quit

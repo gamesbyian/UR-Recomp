@@ -67,7 +67,8 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         snippet = self.text[upload:]
         self.assertIn("if: always()", snippet)
         self.assertNotIn("- name: Upload portable Windows package", self.text)
-        self.assertNotIn("UR-Recomp-Windows-x64.zip\\n", snippet)
+        self.assertFalse(any(line.strip().endswith("/UR-Recomp-Windows-x64.zip")
+                             for line in snippet.splitlines()))
         self.assertNotIn("Test-URRecompPortable.ps1", snippet)
         self.assertIn("UR-Recomp-Windows-x64.zip.sha256", snippet)
 

@@ -68,6 +68,19 @@ def genuine_scale_compatibility(path):
         if a.get('sub')!='0' or b.get('sub')!='1':
             raise ValueError('wrong QA08 sub-stage order')
         try:
+            # Every source sub-stage and the final observation must identify
+            # a concrete PPU sample. Missing fields must not compare equal
+            # merely because dict.get() returned None for all three rows.
+            for stage in (a, b, c):
+                for field in ('frame', 'x', 'logical_y', 'ppu_line'):
+                    if re.fullmatch(r'[0-9]+', stage[field]) is None:
+                        raise ValueError('malformed QA08 stage identity')
+            # Both original source sub-stages carry the selected RGB555 word.
+            # A well-formed sub=0 cannot authenticate a missing/corrupt sub=1.
+            for stage in (a, b):
+                if re.fullmatch(r'[0-7][0-9a-f]{3}',
+                                stage['selected_rgb555']) is None:
+                    raise ValueError('malformed QA08 source RGB555')
             key=tuple(a[field] for field in ('frame','x','logical_y'))
             final_key=tuple(c[field] for field in ('frame','x','logical_y'))
             if key in main:

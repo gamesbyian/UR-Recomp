@@ -1090,6 +1090,30 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT opened=1\n");
 }
 
+// A framework seat owner leaving during Modern 2P setup invalidates that
+// seat's explicit profile confirmation. This event comes from the real SDL
+// seat-source lifecycle observer, not from an inferred empty seat at boot.
+// Semantic controller-only tests without a physical SDL seat remain valid.
+extern "C" void ur_baldosa_modern_root_join_seat_disconnected(int seat) {
+    if (!configured() || !g_visible || !g_two_seat_join.open() ||
+        seat < 0 || seat >= 2) return;
+    // Once both profiles are confirmed, the source-owned stock route may
+    // already be advancing. Revoke the entire pending handoff on removal.
+    if (g_stock_target != -1) {
+        stock_route_abort("join_controller_disconnected");
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT join_device_lost seat=%d "
+            "stock_route_cancelled=1\n", seat + 1);
+        return;
+    }
+    if (!g_two_seat_join.confirmed(static_cast<unsigned>(seat))) return;
+    g_two_seat_join.clear(static_cast<unsigned>(seat));
+    g_root_notice = "CONTROLLER DISCONNECTED - CONFIRM AGAIN";
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT join_device_lost seat=%d "
+        "confirmation_revoked=1\n", seat + 1);
+}
+
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     int action = 0;
     std::size_t physical = 0;

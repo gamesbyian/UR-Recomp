@@ -24,7 +24,9 @@ def check(incidents, board, registry):
     rows = incidents.get("incidents")
     if type(rows) is not list:
         raise ValueError("incidents array missing")
-    known = {x["work_id"] for x in board["work"]}
+    # Incident receipts keep original work IDs even after board reassignment.
+    # The caller validates the registry's explicit retired-ID allowlist first.
+    known = {x["work_id"] for x in board["work"]} | set(registry.get("retired_work_ids", []))
     candidates = {x["candidate_id"]: x for x in registry["candidates"]}
     ids = set()
     for entry in rows:

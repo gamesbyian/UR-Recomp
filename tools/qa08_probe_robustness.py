@@ -69,11 +69,15 @@ def genuine_scale_compatibility(path):
             raise ValueError('wrong QA08 sub-stage order')
         try:
             key=tuple(a[field] for field in ('frame','x','logical_y'))
-            if key in main or any(
-                fields.get(field)!=a.get(field)
-                for fields in (b,c) for field in ('frame','x','logical_y','ppu_line')
-            ):
-                raise ValueError('duplicate or cross-epoch QA08 stage')
+            final_key=tuple(c[field] for field in ('frame','x','logical_y'))
+            if key in main:
+                raise ValueError('duplicate QA08 source stage')
+            if final_key in finals:
+                raise ValueError('duplicate QA08 final stage')
+            if any(fields.get(field)!=a.get(field)
+                   for fields in (b,c)
+                   for field in ('frame','x','logical_y','ppu_line')):
+                raise ValueError('cross-epoch QA08 stage')
             rgb555=a['selected_rgb555']
             if re.fullmatch(r'[0-7][0-9a-f]{3}',rgb555) is None:
                 raise ValueError('malformed QA08 source RGB555')

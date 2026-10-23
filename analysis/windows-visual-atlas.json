@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "Uniracers / UR-Recomp Windows x64",
-  "description": "Planned visual inspection surface inventory. Capturable means a driver route exists, not that pixels have been captured or verified. Remaining cases stay explicitly conceptual.",
+  "description": "Planned visual inspection surface inventory. Capturable means a driver route exists, not that pixels have been captured or verified. Remaining cases stay explicitly conceptual. Original UI and visual acceptance authorities are inventoried separately as explicitly uncaptured source-bound slots.",
   "art_base": "media/showcase/2026-10-20/graphpaper-final/cards",
   "entries": [
     {
@@ -608,6 +608,2396 @@
       "display": "16:9",
       "art": "cta",
       "kind": "planned"
+    },
+    {
+      "id": "URV-OG-001",
+      "title": "Original UI: Main Menu Ready",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "main-menu-ready",
+        "source_fixture": "reach-first-race",
+        "original_state": "MAIN_MENU",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-002",
+      "title": "Original UI: Rider Select Ready",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_SELECT_P1",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "rider-select-ready",
+        "source_fixture": "reach-first-race",
+        "original_state": "PLAYER_SELECT_P1",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-003",
+      "title": "Original UI: Tours Ready",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TOUR_SELECT",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "tours-ready",
+        "source_fixture": "reach-first-race",
+        "original_state": "TOUR_SELECT",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-004",
+      "title": "Original UI: Tracks Ready",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TRACK_SELECT",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "tracks-ready",
+        "source_fixture": "reach-first-race",
+        "original_state": "TRACK_SELECT",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-005",
+      "title": "Original UI: Now Playing Ready",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PRE_RACE_CARD",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "now-playing-ready",
+        "source_fixture": "reach-first-race",
+        "original_state": "PRE_RACE_CARD",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-006",
+      "title": "Original UI: Race Entered",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "race-entered",
+        "source_fixture": "reach-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-007",
+      "title": "Original UI: UI Main Menu 1P",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / selection-1P",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-main-menu-1p",
+        "source_fixture": "ui-options-route",
+        "original_state": "MAIN_MENU",
+        "variant": "selection-1P"
+      }
+    },
+    {
+      "id": "URV-OG-008",
+      "title": "Original UI: UI Main Menu 2P",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / selection-2P",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-main-menu-2p",
+        "source_fixture": "ui-options-route",
+        "original_state": "MAIN_MENU",
+        "variant": "selection-2P"
+      }
+    },
+    {
+      "id": "URV-OG-009",
+      "title": "Original UI: UI Main Menu VS",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / selection-VS",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-main-menu-vs",
+        "source_fixture": "ui-options-route",
+        "original_state": "MAIN_MENU",
+        "variant": "selection-VS"
+      }
+    },
+    {
+      "id": "URV-OG-010",
+      "title": "Original UI: UI Main Menu League",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / selection-LEAGUE",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-main-menu-league",
+        "source_fixture": "ui-options-route",
+        "original_state": "MAIN_MENU",
+        "variant": "selection-LEAGUE"
+      }
+    },
+    {
+      "id": "URV-OG-011",
+      "title": "Original UI: UI Main Menu Options",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / selection-OPTIONS",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-main-menu-options",
+        "source_fixture": "ui-options-route",
+        "original_state": "MAIN_MENU",
+        "variant": "selection-OPTIONS"
+      }
+    },
+    {
+      "id": "URV-OG-012",
+      "title": "Original UI: UI Options Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-options-entry",
+        "source_fixture": "ui-options-route",
+        "original_state": "OPTIONS_MENU",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-013",
+      "title": "Original UI: UI Options Back Main",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / returned-from-options",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-options-back-main",
+        "source_fixture": "ui-options-route",
+        "original_state": "MAIN_MENU",
+        "variant": "returned-from-options"
+      }
+    },
+    {
+      "id": "URV-OG-014",
+      "title": "Original UI: UI Two Player Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TWO_PLAYER_SELECT / 2P-entry",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-two-player-entry",
+        "source_fixture": "ui-main-branches",
+        "original_state": "TWO_PLAYER_SELECT",
+        "variant": "2P-entry"
+      }
+    },
+    {
+      "id": "URV-OG-015",
+      "title": "Original UI: UI Two Player Back Main",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / returned-from-2P",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-two-player-back-main",
+        "source_fixture": "ui-main-branches",
+        "original_state": "MAIN_MENU",
+        "variant": "returned-from-2P"
+      }
+    },
+    {
+      "id": "URV-OG-016",
+      "title": "Original UI: UI VS Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "VS_SELECT / player-one",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-vs-entry",
+        "source_fixture": "ui-vs-handoff",
+        "original_state": "VS_SELECT",
+        "variant": "player-one"
+      }
+    },
+    {
+      "id": "URV-OG-017",
+      "title": "Original UI: UI VS After P1 X",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "VS_SELECT / player-two-after-p1-x",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-vs-after-p1-x",
+        "source_fixture": "ui-vs-handoff",
+        "original_state": "VS_SELECT",
+        "variant": "player-two-after-p1-x"
+      }
+    },
+    {
+      "id": "URV-OG-018",
+      "title": "Original UI: UI VS Player Two",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "VS_SELECT / player-two",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-vs-player-two",
+        "source_fixture": "ui-vs-handoff",
+        "original_state": "VS_SELECT",
+        "variant": "player-two"
+      }
+    },
+    {
+      "id": "URV-OG-019",
+      "title": "Original UI: UI VS Back Main",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / returned-from-VS",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-vs-back-main",
+        "source_fixture": "ui-main-branches",
+        "original_state": "MAIN_MENU",
+        "variant": "returned-from-VS"
+      }
+    },
+    {
+      "id": "URV-OG-020",
+      "title": "Original UI: UI League Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "LEAGUE_SELECT",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-league-entry",
+        "source_fixture": "ui-main-branches",
+        "original_state": "LEAGUE_SELECT",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-021",
+      "title": "Original UI: UI League Back Main",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / returned-from-league",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-league-back-main",
+        "source_fixture": "ui-main-branches",
+        "original_state": "MAIN_MENU",
+        "variant": "returned-from-league"
+      }
+    },
+    {
+      "id": "URV-OG-022",
+      "title": "Original UI: UI Splash Observed",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "SPLASH",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-splash-observed",
+        "source_fixture": "ui-ending-shortcut",
+        "original_state": "SPLASH",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-023",
+      "title": "Original UI: UI Ending Shortcut",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "ENDING",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-ending-shortcut",
+        "source_fixture": "ui-ending-shortcut",
+        "original_state": "ENDING",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-024",
+      "title": "Original UI: Tour Gold Scene",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TOUR_REWARD_SCENE / gold-per-tour",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "tour-gold-scene",
+        "source_fixture": "tour-award-ending",
+        "original_state": "TOUR_REWARD_SCENE",
+        "variant": "gold-per-tour"
+      }
+    },
+    {
+      "id": "URV-OG-025",
+      "title": "Original UI: Ending Whodunnit",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "ENDING / credits",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ending-whodunnit",
+        "source_fixture": "tour-award-ending",
+        "original_state": "ENDING",
+        "variant": "credits"
+      }
+    },
+    {
+      "id": "URV-OG-026",
+      "title": "Original UI: Splash Cheat Main",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / splash-cheat-active",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "splash-cheat-main",
+        "source_fixture": "tour-award-ending",
+        "original_state": "MAIN_MENU",
+        "variant": "splash-cheat-active"
+      }
+    },
+    {
+      "id": "URV-OG-027",
+      "title": "Original UI: UI Attract Main Start",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / attract-idle-start",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-attract-main-start",
+        "source_fixture": "ui-attract-route",
+        "original_state": "MAIN_MENU",
+        "variant": "attract-idle-start"
+      }
+    },
+    {
+      "id": "URV-OG-028",
+      "title": "Original UI: UI Attract Departure",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "DEMO",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-attract-departure",
+        "source_fixture": "ui-attract-route",
+        "original_state": "DEMO",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-029",
+      "title": "Original UI: Attract Demo Race",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "DEMO / split-screen demo race",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "attract-demo-race",
+        "source_fixture": "attract-cycle",
+        "original_state": "DEMO",
+        "variant": "split-screen demo race"
+      }
+    },
+    {
+      "id": "URV-OG-030",
+      "title": "Original UI: UI Pause Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / before-pause",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-pause-before",
+        "source_fixture": "ui-pause-route",
+        "original_state": "GAMEPLAY",
+        "variant": "before-pause"
+      }
+    },
+    {
+      "id": "URV-OG-031",
+      "title": "Original UI: UI Pause After Start",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PAUSE",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-pause-after-start",
+        "source_fixture": "ui-pause-route",
+        "original_state": "PAUSE",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-032",
+      "title": "Original UI: UI Pause After Resume",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / after-resume",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-pause-after-resume",
+        "source_fixture": "ui-pause-route",
+        "original_state": "GAMEPLAY",
+        "variant": "after-resume"
+      }
+    },
+    {
+      "id": "URV-OG-033",
+      "title": "Original UI: Race Results",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RESULT_RACE",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "race-results",
+        "source_fixture": "ui-race-result-route",
+        "original_state": "RESULT_RACE",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-034",
+      "title": "Original UI: UI Options Menu Records Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / records-selected",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-options-menu-records-selected",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "records-selected"
+      }
+    },
+    {
+      "id": "URV-OG-035",
+      "title": "Original UI: UI Records Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-entry",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "RECORDS",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-036",
+      "title": "Original UI: UI Records Back Options",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / returned-from-records",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-back-options",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "returned-from-records"
+      }
+    },
+    {
+      "id": "URV-OG-037",
+      "title": "Original UI: UI Options Menu Define Player Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / define-player-selected",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-options-menu-define-player-selected",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "define-player-selected"
+      }
+    },
+    {
+      "id": "URV-OG-038",
+      "title": "Original UI: UI Define Player Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "DEFINE_PLAYER",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-define-player-entry",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "DEFINE_PLAYER",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-039",
+      "title": "Original UI: UI Define Player Back Options",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / returned-from-define-player",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-define-player-back-options",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "returned-from-define-player"
+      }
+    },
+    {
+      "id": "URV-OG-040",
+      "title": "Original UI: UI Options Menu Rename Player Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / rename-player-selected",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-options-menu-rename-player-selected",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "rename-player-selected"
+      }
+    },
+    {
+      "id": "URV-OG-041",
+      "title": "Original UI: UI Rename Player Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RENAME_PLAYER",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-player-entry",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "RENAME_PLAYER",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-042",
+      "title": "Original UI: UI Rename Player Back Options",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / returned-from-rename-player",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-player-back-options",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "returned-from-rename-player"
+      }
+    },
+    {
+      "id": "URV-OG-043",
+      "title": "Original UI: UI Options Menu Define League Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / define-league-selected",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-options-menu-define-league-selected",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "define-league-selected"
+      }
+    },
+    {
+      "id": "URV-OG-044",
+      "title": "Original UI: UI Define League Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "DEFINE_LEAGUE",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-define-league-entry",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "DEFINE_LEAGUE",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-045",
+      "title": "Original UI: UI Define League Back Options",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / returned-from-define-league",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-define-league-back-options",
+        "source_fixture": "ui-options-submenus",
+        "original_state": "OPTIONS_MENU",
+        "variant": "returned-from-define-league"
+      }
+    },
+    {
+      "id": "URV-OG-046",
+      "title": "Original UI: UI Erase Main Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / before-erase-confirm",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-erase-main-before",
+        "source_fixture": "ui-erase-confirm",
+        "original_state": "MAIN_MENU",
+        "variant": "before-erase-confirm"
+      }
+    },
+    {
+      "id": "URV-OG-047",
+      "title": "Original UI: UI Erase Confirm Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "ERASE_ALL_CONFIRM",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-erase-confirm-entry",
+        "source_fixture": "ui-erase-confirm",
+        "original_state": "ERASE_ALL_CONFIRM",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-048",
+      "title": "Original UI: UI Erase Confirm Cancel",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / after-erase-cancel",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-erase-confirm-cancel",
+        "source_fixture": "ui-erase-confirm",
+        "original_state": "MAIN_MENU",
+        "variant": "after-erase-cancel"
+      }
+    },
+    {
+      "id": "URV-OG-049",
+      "title": "Original UI: UI League Select Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "LEAGUE_SELECT",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-league-select-entry",
+        "source_fixture": "ui-league-table",
+        "original_state": "LEAGUE_SELECT",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-050",
+      "title": "Original UI: UI League Table Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "LEAGUE_TABLE",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-league-table-entry",
+        "source_fixture": "ui-league-table",
+        "original_state": "LEAGUE_TABLE",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-051",
+      "title": "Original UI: UI League Table Back",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "LEAGUE_SELECT / returned-from-table",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-league-table-back",
+        "source_fixture": "ui-league-table",
+        "original_state": "LEAGUE_SELECT",
+        "variant": "returned-from-table"
+      }
+    },
+    {
+      "id": "URV-OG-052",
+      "title": "Original UI: UI Race Result After Advance",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TRACK_SELECT / returned-after-race-result",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-race-result-after-advance",
+        "source_fixture": "ui-race-result-route",
+        "original_state": "TRACK_SELECT",
+        "variant": "returned-after-race-result"
+      }
+    },
+    {
+      "id": "URV-OG-053",
+      "title": "Original UI: UI Race Result After Back",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TOUR_SELECT / returned-after-race-result-track-back",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-race-result-after-back",
+        "source_fixture": "ui-race-result-route",
+        "original_state": "TOUR_SELECT",
+        "variant": "returned-after-race-result-track-back"
+      }
+    },
+    {
+      "id": "URV-OG-054",
+      "title": "Original UI: UI Stunt Track Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TRACK_SELECT / crawler-stunt-selected",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-stunt-track-selected",
+        "source_fixture": "ui-stunt-result-route",
+        "original_state": "TRACK_SELECT",
+        "variant": "crawler-stunt-selected"
+      }
+    },
+    {
+      "id": "URV-OG-055",
+      "title": "Original UI: UI Stunt Now Playing",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PRE_RACE_CARD / stunt",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-stunt-now-playing",
+        "source_fixture": "ui-stunt-result-route",
+        "original_state": "PRE_RACE_CARD",
+        "variant": "stunt"
+      }
+    },
+    {
+      "id": "URV-OG-056",
+      "title": "Original UI: UI Stunt Entered",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / stunt",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-stunt-entered",
+        "source_fixture": "ui-stunt-result-route",
+        "original_state": "GAMEPLAY",
+        "variant": "stunt"
+      }
+    },
+    {
+      "id": "URV-OG-057",
+      "title": "Original UI: UI Stunt Results",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RESULT_STUNT",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-stunt-results",
+        "source_fixture": "ui-stunt-result-route",
+        "original_state": "RESULT_STUNT",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-058",
+      "title": "Original UI: UI Stunt Result After Advance",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "POST_RESULT_DECISION / after-stunt-result",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-stunt-result-after-advance",
+        "source_fixture": "ui-stunt-result-route",
+        "original_state": "POST_RESULT_DECISION",
+        "variant": "after-stunt-result"
+      }
+    },
+    {
+      "id": "URV-OG-059",
+      "title": "Original UI: UI Records Probe Down Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-down-before",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-down-before",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-down-before"
+      }
+    },
+    {
+      "id": "URV-OG-060",
+      "title": "Original UI: UI Records Probe Down After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-down-after",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-down-after",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-down-after"
+      }
+    },
+    {
+      "id": "URV-OG-061",
+      "title": "Original UI: UI Records Probe Up Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-up-before",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-up-before",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-up-before"
+      }
+    },
+    {
+      "id": "URV-OG-062",
+      "title": "Original UI: UI Records Probe Up After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-up-after",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-up-after",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-up-after"
+      }
+    },
+    {
+      "id": "URV-OG-063",
+      "title": "Original UI: UI Records Probe Left Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-left-before",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-left-before",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-left-before"
+      }
+    },
+    {
+      "id": "URV-OG-064",
+      "title": "Original UI: UI Records Probe Left After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-left-after",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-left-after",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-left-after"
+      }
+    },
+    {
+      "id": "URV-OG-065",
+      "title": "Original UI: UI Records Probe Right Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-right-before",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-right-before",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-right-before"
+      }
+    },
+    {
+      "id": "URV-OG-066",
+      "title": "Original UI: UI Records Probe Right After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-right-after",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-right-after",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-right-after"
+      }
+    },
+    {
+      "id": "URV-OG-067",
+      "title": "Original UI: UI Records Probe A Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-a-before",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-a-before",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-a-before"
+      }
+    },
+    {
+      "id": "URV-OG-068",
+      "title": "Original UI: UI Records Probe A After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-a-after",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-a-after",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-a-after"
+      }
+    },
+    {
+      "id": "URV-OG-069",
+      "title": "Original UI: UI Records Probe B Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-b-before",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-b-before",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-b-before"
+      }
+    },
+    {
+      "id": "URV-OG-070",
+      "title": "Original UI: UI Records Probe B After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / explore-b-after",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-probe-b-after",
+        "source_fixture": "ui-records-explore",
+        "original_state": "RECORDS",
+        "variant": "explore-b-after"
+      }
+    },
+    {
+      "id": "URV-OG-071",
+      "title": "Original UI: UI Rename Which One Left",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RENAME_PLAYER / which-one",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-which-one-left",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "RENAME_PLAYER",
+        "variant": "which-one"
+      }
+    },
+    {
+      "id": "URV-OG-072",
+      "title": "Original UI: UI Rename Editor Left Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-left-before",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-left-before",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-left-before"
+      }
+    },
+    {
+      "id": "URV-OG-073",
+      "title": "Original UI: UI Rename Editor Left After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-left-after",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-left-after",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-left-after"
+      }
+    },
+    {
+      "id": "URV-OG-074",
+      "title": "Original UI: UI Rename Editor Right Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-right-before",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-right-before",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-right-before"
+      }
+    },
+    {
+      "id": "URV-OG-075",
+      "title": "Original UI: UI Rename Editor Right After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-right-after",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-right-after",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-right-after"
+      }
+    },
+    {
+      "id": "URV-OG-076",
+      "title": "Original UI: UI Rename Editor Up Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-up-before",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-up-before",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-up-before"
+      }
+    },
+    {
+      "id": "URV-OG-077",
+      "title": "Original UI: UI Rename Editor Up After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-up-after",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-up-after",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-up-after"
+      }
+    },
+    {
+      "id": "URV-OG-078",
+      "title": "Original UI: UI Rename Editor Down Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-down-before",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-down-before",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-down-before"
+      }
+    },
+    {
+      "id": "URV-OG-079",
+      "title": "Original UI: UI Rename Editor Down After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-down-after",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-down-after",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-down-after"
+      }
+    },
+    {
+      "id": "URV-OG-080",
+      "title": "Original UI: UI Rename Editor B Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-b-before",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-b-before",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-b-before"
+      }
+    },
+    {
+      "id": "URV-OG-081",
+      "title": "Original UI: UI Rename Editor B After",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PLAYER_NAME_EDITOR / editor-b-after",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-rename-editor-b-after",
+        "source_fixture": "ui-rename-editor-explore",
+        "original_state": "PLAYER_NAME_EDITOR",
+        "variant": "editor-b-after"
+      }
+    },
+    {
+      "id": "URV-OG-082",
+      "title": "Original UI: UI Circuit Track Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "TRACK_SELECT / crawler-circuit-selected",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-circuit-track-selected",
+        "source_fixture": "ui-circuit-result-route",
+        "original_state": "TRACK_SELECT",
+        "variant": "crawler-circuit-selected"
+      }
+    },
+    {
+      "id": "URV-OG-083",
+      "title": "Original UI: UI Circuit Now Playing",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PRE_RACE_CARD / circuit",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-circuit-now-playing",
+        "source_fixture": "ui-circuit-result-route",
+        "original_state": "PRE_RACE_CARD",
+        "variant": "circuit"
+      }
+    },
+    {
+      "id": "URV-OG-084",
+      "title": "Original UI: UI Circuit Entered",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / circuit",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-circuit-entered",
+        "source_fixture": "ui-circuit-result-route",
+        "original_state": "GAMEPLAY",
+        "variant": "circuit"
+      }
+    },
+    {
+      "id": "URV-OG-085",
+      "title": "Original UI: UI Circuit Results",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RESULT_CIRCUIT",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-circuit-results",
+        "source_fixture": "ui-circuit-result-route",
+        "original_state": "RESULT_CIRCUIT",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-086",
+      "title": "Original UI: UI Circuit Result After Advance",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "POST_RESULT_DECISION / after-circuit-result",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-circuit-result-after-advance",
+        "source_fixture": "ui-circuit-result-route",
+        "original_state": "POST_RESULT_DECISION",
+        "variant": "after-circuit-result"
+      }
+    },
+    {
+      "id": "URV-OG-087",
+      "title": "Original UI: UI Records Track Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / track-selected",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-track-selected",
+        "source_fixture": "ui-records-submenus",
+        "original_state": "RECORDS",
+        "variant": "track-selected"
+      }
+    },
+    {
+      "id": "URV-OG-088",
+      "title": "Original UI: UI Record Track Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORD_TRACK",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-record-track-entry",
+        "source_fixture": "ui-records-submenus",
+        "original_state": "RECORD_TRACK",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-089",
+      "title": "Original UI: UI Records High Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / high-selected",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-high-selected",
+        "source_fixture": "ui-record-high",
+        "original_state": "RECORDS",
+        "variant": "high-selected"
+      }
+    },
+    {
+      "id": "URV-OG-090",
+      "title": "Original UI: UI Record High Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORD_HIGH_SCORES",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-record-high-entry",
+        "source_fixture": "ui-record-high",
+        "original_state": "RECORD_HIGH_SCORES",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-091",
+      "title": "Original UI: UI Records Player Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / player-selected",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-player-selected",
+        "source_fixture": "ui-record-player",
+        "original_state": "RECORDS",
+        "variant": "player-selected"
+      }
+    },
+    {
+      "id": "URV-OG-092",
+      "title": "Original UI: UI Record Player Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORD_PLAYER_SCORES",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-record-player-entry",
+        "source_fixture": "ui-record-player",
+        "original_state": "RECORD_PLAYER_SCORES",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-093",
+      "title": "Original UI: UI Records Group Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / group-selected",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-records-group-selected",
+        "source_fixture": "ui-record-group",
+        "original_state": "RECORDS",
+        "variant": "group-selected"
+      }
+    },
+    {
+      "id": "URV-OG-094",
+      "title": "Original UI: UI Record Group Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORD_GROUP_TABLES",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-record-group-entry",
+        "source_fixture": "ui-record-group",
+        "original_state": "RECORD_GROUP_TABLES",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-095",
+      "title": "Original UI: UI Define League Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / define-league-selected-name-route",
+      "display": "4:3 / original source",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-define-league-selected",
+        "source_fixture": "ui-name-league-route",
+        "original_state": "OPTIONS_MENU",
+        "variant": "define-league-selected-name-route"
+      }
+    },
+    {
+      "id": "URV-OG-096",
+      "title": "Original UI: UI Name League Entry",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "NAME_LEAGUE",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-name-league-entry",
+        "source_fixture": "ui-name-league-route",
+        "original_state": "NAME_LEAGUE",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-097",
+      "title": "Original UI: UI Startup T030",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+30",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t030",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+30"
+      }
+    },
+    {
+      "id": "URV-OG-098",
+      "title": "Original UI: UI Startup T060",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+60",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t060",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+60"
+      }
+    },
+    {
+      "id": "URV-OG-099",
+      "title": "Original UI: UI Startup T090",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+90",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t090",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+90"
+      }
+    },
+    {
+      "id": "URV-OG-100",
+      "title": "Original UI: UI Startup T120",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+120",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t120",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+120"
+      }
+    },
+    {
+      "id": "URV-OG-101",
+      "title": "Original UI: UI Startup T150",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+150",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t150",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+150"
+      }
+    },
+    {
+      "id": "URV-OG-102",
+      "title": "Original UI: UI Startup T180",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+180",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t180",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+180"
+      }
+    },
+    {
+      "id": "URV-OG-103",
+      "title": "Original UI: UI Startup T210",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+210",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t210",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+210"
+      }
+    },
+    {
+      "id": "URV-OG-104",
+      "title": "Original UI: UI Startup T240",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+240",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t240",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+240"
+      }
+    },
+    {
+      "id": "URV-OG-105",
+      "title": "Original UI: UI Startup T270",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+270",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t270",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+270"
+      }
+    },
+    {
+      "id": "URV-OG-106",
+      "title": "Original UI: UI Startup T300",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "BOOT_STARTUP / t+300",
+      "display": "4:3 / original source",
+      "art": "code-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-t300",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "BOOT_STARTUP",
+        "variant": "t+300"
+      }
+    },
+    {
+      "id": "URV-OG-107",
+      "title": "Original UI: UI Startup Main Menu",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "MAIN_MENU / startup-anchor",
+      "display": "4:3 / original source",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-startup-main-menu",
+        "source_fixture": "ui-startup-timeline",
+        "original_state": "MAIN_MENU",
+        "variant": "startup-anchor"
+      }
+    },
+    {
+      "id": "URV-OG-108",
+      "title": "Original UI: UI Define Player Selected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "OPTIONS_MENU / define-player-selected-explore",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-define-player-selected",
+        "source_fixture": "ui-define-player-explore",
+        "original_state": "OPTIONS_MENU",
+        "variant": "define-player-selected-explore"
+      }
+    },
+    {
+      "id": "URV-OG-109",
+      "title": "Original UI: UI Pre Race Passive T000",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PRE_RACE_CARD / passive-t0",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-pre-race-passive-t000",
+        "source_fixture": "ui-pre-race-timing",
+        "original_state": "PRE_RACE_CARD",
+        "variant": "passive-t0"
+      }
+    },
+    {
+      "id": "URV-OG-110",
+      "title": "Original UI: UI Pre Race Skip Before",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "PRE_RACE_CARD / skip-before",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-pre-race-skip-before",
+        "source_fixture": "ui-pre-race-timing",
+        "original_state": "PRE_RACE_CARD",
+        "variant": "skip-before"
+      }
+    },
+    {
+      "id": "URV-OG-111",
+      "title": "Original UI: Two Player Race 1220",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / split-screen-baseline-early",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "two-player-race-1220",
+        "source_fixture": "two-player-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": "split-screen-baseline-early"
+      }
+    },
+    {
+      "id": "URV-OG-112",
+      "title": "Original UI: Two Player Race 1420",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / split-screen-baseline-settled",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "two-player-race-1420",
+        "source_fixture": "two-player-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": "split-screen-baseline-settled"
+      }
+    },
+    {
+      "id": "URV-OG-113",
+      "title": "Original UI: Two Player P1 Pre 1470",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / pre-causal-movement",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "two-player-p1-pre-1470",
+        "source_fixture": "two-player-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": "pre-causal-movement"
+      }
+    },
+    {
+      "id": "URV-OG-114",
+      "title": "Original UI: Two Player P1 Post 1520",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / p1-only-movement",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "two-player-p1-post-1520",
+        "source_fixture": "two-player-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": "p1-only-movement"
+      }
+    },
+    {
+      "id": "URV-OG-115",
+      "title": "Original UI: Two Player P2 Post 1570",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / p2-only-movement",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "two-player-p2-post-1570",
+        "source_fixture": "two-player-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": "p2-only-movement"
+      }
+    },
+    {
+      "id": "URV-OG-116",
+      "title": "Original UI: Two Player Both Post 1620",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "GAMEPLAY / simultaneous-opposed-movement",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "two-player-both-post-1620",
+        "source_fixture": "two-player-first-race",
+        "original_state": "GAMEPLAY",
+        "variant": "simultaneous-opposed-movement"
+      }
+    },
+    {
+      "id": "URV-OG-117",
+      "title": "Original UI: Vsc Pick Challenger",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "VS_CHALLENGER",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "vsc-pick-challenger",
+        "source_fixture": "vs-challenger-route",
+        "original_state": "VS_CHALLENGER",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-118",
+      "title": "Original UI: Vsc Track Choice",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "VS_CHALLENGE_TRACK",
+      "display": "4:3 / original source",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "vsc-track-choice",
+        "source_fixture": "vs-challenger-route",
+        "original_state": "VS_CHALLENGE_TRACK",
+        "variant": null
+      }
+    },
+    {
+      "id": "URV-OG-119",
+      "title": "Original UI: UI Record Track Exit",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "RECORDS / after-track-records-exit",
+      "display": "4:3 / original source",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "ui-record-track-exit",
+        "source_fixture": "ui-record-track-exit",
+        "original_state": "RECORDS",
+        "variant": "after-track-records-exit"
+      }
+    },
+    {
+      "id": "URV-OG-120",
+      "title": "Original UI: Name Forbidden Rejected",
+      "mode": "authentic",
+      "family": "Original UI anchors",
+      "state": "FORBIDDEN_NAME_REJECTION / NOT COOL ENOUGH inline message",
+      "display": "4:3 / original source",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/ui-capture-manifest.json",
+        "tag": "name-forbidden-rejected",
+        "source_fixture": "name-entry-probe",
+        "original_state": "FORBIDDEN_NAME_REJECTION",
+        "variant": "NOT COOL ENOUGH inline message"
+      }
+    },
+    {
+      "id": "URV-QA-001",
+      "title": "QA: Title Wide 1080",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "title / default",
+      "display": "1920 × 1080",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "title-wide-1080"
+      }
+    },
+    {
+      "id": "URV-QA-002",
+      "title": "QA: Title Wide Keyboard",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "title / default",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "title-wide-keyboard"
+      }
+    },
+    {
+      "id": "URV-QA-003",
+      "title": "QA: Title Compact 43",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "title / default",
+      "display": "640 × 480",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "title-compact-43"
+      }
+    },
+    {
+      "id": "URV-QA-004",
+      "title": "QA: Title Reduced Motion",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "title / reduced-motion",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "title-reduced-motion"
+      }
+    },
+    {
+      "id": "URV-QA-005",
+      "title": "QA: Root Wide 720",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / normal",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-wide-720"
+      }
+    },
+    {
+      "id": "URV-QA-006",
+      "title": "QA: Root Wide 1080",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / normal",
+      "display": "1920 × 1080",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-wide-1080"
+      }
+    },
+    {
+      "id": "URV-QA-007",
+      "title": "QA: Root Wide 4k Virtual",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / virtual-output",
+      "display": "3840 × 2160",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-wide-4k-virtual"
+      }
+    },
+    {
+      "id": "URV-QA-008",
+      "title": "QA: Root 43 768",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / normal",
+      "display": "1024 × 768",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-43-768"
+      }
+    },
+    {
+      "id": "URV-QA-009",
+      "title": "QA: Root 43 480",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / normal",
+      "display": "640 × 480",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-43-480"
+      }
+    },
+    {
+      "id": "URV-QA-010",
+      "title": "QA: Root Moved Selection",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / selection-moved",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-moved-selection"
+      }
+    },
+    {
+      "id": "URV-QA-011",
+      "title": "QA: Root Keyboard",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / normal",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-keyboard"
+      }
+    },
+    {
+      "id": "URV-QA-012",
+      "title": "QA: Root Disabled",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "root / stale-profile",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "root-disabled"
+      }
+    },
+    {
+      "id": "URV-QA-013",
+      "title": "QA: Profile First Run",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "profiles / no-profile",
+      "display": "1280 × 720",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "profile-first-run"
+      }
+    },
+    {
+      "id": "URV-QA-014",
+      "title": "QA: Profile Switch Existing",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "profiles / existing-profiles",
+      "display": "1024 × 768",
+      "art": "art-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "profile-switch-existing"
+      }
+    },
+    {
+      "id": "URV-QA-015",
+      "title": "QA: Multiplayer P2 Owner",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "multiplayer / p1-p2-named",
+      "display": "1280 × 720",
+      "art": "race-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "multiplayer-p2-owner"
+      }
+    },
+    {
+      "id": "URV-QA-016",
+      "title": "QA: Practice Locked",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "practice / locked-course",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "practice-locked"
+      }
+    },
+    {
+      "id": "URV-QA-017",
+      "title": "QA: Options Available",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "options / normal",
+      "display": "1024 × 768",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "options-available"
+      }
+    },
+    {
+      "id": "URV-QA-018",
+      "title": "QA: Options Refused",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "options / display-apply-refused",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "options-refused"
+      }
+    },
+    {
+      "id": "URV-QA-019",
+      "title": "QA: Records Empty",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "records / no-records",
+      "display": "1280 × 720",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "records-empty"
+      }
+    },
+    {
+      "id": "URV-QA-020",
+      "title": "QA: Records Earned 1P",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "records / earned-1p",
+      "display": "1920 × 1080",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "records-earned-1p"
+      }
+    },
+    {
+      "id": "URV-QA-021",
+      "title": "QA: Records Earned 2P",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "records / earned-2p",
+      "display": "1024 × 768",
+      "art": "windows",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "records-earned-2p"
+      }
+    },
+    {
+      "id": "URV-QA-022",
+      "title": "QA: Transition Back Release",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "transition / held-confirm-back",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "transition-back-release"
+      }
+    },
+    {
+      "id": "URV-QA-023",
+      "title": "QA: Authentic Title Stock",
+      "mode": "authentic",
+      "family": "Visual acceptance matrix",
+      "state": "title / original",
+      "display": "640 × 480",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "authentic-title-stock"
+      }
+    },
+    {
+      "id": "URV-QA-024",
+      "title": "QA: Authentic Stock Wide",
+      "mode": "authentic",
+      "family": "Visual acceptance matrix",
+      "state": "root / original",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "authentic-stock-wide"
+      }
+    },
+    {
+      "id": "URV-QA-025",
+      "title": "QA: Focus Loss Modal",
+      "mode": "modern",
+      "family": "Visual acceptance matrix",
+      "state": "options / focus-lost",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "planned",
+      "source_inventory": {
+        "path": "analysis/modern-visual-acceptance-matrix.json",
+        "acceptance_case_id": "focus-loss-modal"
+      }
     }
   ]
 }

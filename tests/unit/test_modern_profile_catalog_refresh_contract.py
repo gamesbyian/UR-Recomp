@@ -87,5 +87,45 @@ class ModernProfileCatalogRefreshContract(unittest.TestCase):
         self.assertLess(create.index("if (!latest_catalog) {"),
                         create.index("save_host_profile_state_file_if_current("))
 
+
+    def test_rename_revalidates_catalog_before_metadata_write(self):
+        rename = between(self.host, "bool rename_profile_from_editor() {",
+                         "\n}\n\nvoid open_profile_menu()")
+        self.assertIn("const auto latest_catalog = ur::product::load_host_profile_catalog_file(", rename)
+        self.assertLess(rename.index("load_host_profile_catalog_file("),
+                        rename.index("load_host_profile_state_file("))
+        self.assertLess(rename.index("if (*latest_catalog != g_profile_catalog) {"),
+                        rename.index("save_host_profile_state_file_if_current("))
+
+    def test_rename_unreadable_catalog_fails_closed(self):
+        rename = between(self.host, "bool rename_profile_from_editor() {",
+                         "\n}\n\nvoid open_profile_menu()")
+        unavailable = between(rename, "if (!latest_catalog) {", "\n    }")
+        self.assertIn("g_profile_catalog_refresh_failed = true;", unavailable)
+        self.assertIn('UR_PROFILE_RENAME CATALOG_UNAVAILABLE', unavailable)
+        self.assertIn("return false;", unavailable)
+        self.assertLess(rename.index("if (!latest_catalog) {"),
+                        rename.index("save_host_profile_state_file_if_current("))
+
+    def test_rename_changed_roster_reselects_identity_and_requires_retry(self):
+        rename = between(self.host, "bool rename_profile_from_editor() {",
+                         "\n}\n\nvoid open_profile_menu()")
+        changed = between(rename, "if (*latest_catalog != g_profile_catalog) {", "\n    }")
+        self.assertIn("g_profile_catalog = *latest_catalog;", changed)
+        self.assertIn("g_profile_menu_index = 0;", changed)
+        self.assertIn("reconcile_profile_menu_index();", changed)
+        self.assertIn('UR_PROFILE_RENAME CATALOG_CHANGED_RETRY', changed)
+        self.assertIn("return false;", changed)
+        self.assertLess(rename.index("if (*latest_catalog != g_profile_catalog) {"),
+                        rename.index("const auto target = std::find_if("))
+
+    def test_rename_preserves_final_catalog_cas_and_rollback(self):
+        rename = between(self.host, "bool rename_profile_from_editor() {",
+                         "\n}\n\nvoid open_profile_menu()")
+        self.assertIn("if (!persist_profile_catalog(original_catalog)) {", rename)
+        self.assertIn('UR_PROFILE_RENAME ROLLBACK_FAILED', rename)
+        self.assertLess(rename.index("save_host_profile_state_file_if_current("),
+                        rename.index("if (!persist_profile_catalog(original_catalog)) {"))
+
 if __name__ == "__main__":
     unittest.main()

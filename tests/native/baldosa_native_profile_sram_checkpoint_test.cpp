@@ -1,7 +1,7 @@
 // Actual shipping Modern typed stores, with a small deterministic simulated
 // guest SRAM *after* a native RtlWriteSram checkpoint. No synthetic file
 // formats or fake CAS; only the native host/guest execution is replaced here.
-#include "baldosa_native_sram_recovery.hpp"
+#include "baldosa_native_manual_sram_recovery.hpp"
 
 #include <array>
 #include <cassert>
@@ -209,6 +209,37 @@ int main() {
             }
         }
         assert(archive_count == 1);
+    }
+    // Explicit manual-recovery evidence archives also stay inside the
+    // non-ANSI profile root and remain immutable across repeated attempts.
+    {
+        Fixture f(root / fs::u8path(u8"unicode-manual-路径-🌈"));
+        const fs::path profile_dir = f.native_path.parent_path();
+        const auto typed = encode_host_profile_state(f.profile);
+        const std::string raw(
+            reinterpret_cast<const char*>(f.initial.data()), f.initial.size());
+        assert(archive_baldosa_manual_sram_choice(
+            profile_dir, f.profile, typed, true, raw));
+        assert(archive_baldosa_manual_sram_choice(
+            profile_dir, f.profile, typed, true, raw));
+        const std::string opaque("malformed\\0intent", 16);
+        assert(archive_baldosa_untrusted_sram_intent(
+            profile_dir, f.profile, opaque));
+        assert(archive_baldosa_untrusted_sram_intent(
+            profile_dir, f.profile, opaque));
+        unsigned manual_count = 0, untrusted_count = 0;
+        for (const auto& item : fs::directory_iterator(profile_dir)) {
+            const auto name = item.path().filename().u8string();
+            if (name.rfind("native-sram-manual-archive-", 0) == 0) {
+                assert(item.is_regular_file());
+                ++manual_count;
+            }
+            if (name.rfind("native-sram-untrusted-intent-", 0) == 0) {
+                assert(item.is_regular_file());
+                ++untrusted_count;
+            }
+        }
+        assert(manual_count == 1 && untrusted_count == 1);
     }
     fs::remove_all(root);
     std::puts("PASS: exact native SRAM post-write typed Modern profile CAS; unchanged, selector change, races and invalid saves fail closed");

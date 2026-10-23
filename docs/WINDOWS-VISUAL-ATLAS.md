@@ -43,7 +43,7 @@ analysis/windows-visual-atlas.json   (durable expected surfaces / stable IDs)
                    |
          validate + cheap PR tests
                    |
-     one-shot first-merge or manual windows-visual-atlas.yml
+     manual windows-visual-atlas.yml
                    |
   windows-2022: pinned Baldosa generated / native AOT, one tested PE
                    |
@@ -97,17 +97,17 @@ python3 tools/windows_visual_atlas.py build --out /tmp/ur-atlas-preview
 python3 -m http.server 8000 --directory /tmp/ur-atlas-preview
 ```
 
-Actual Windows capture: the initial PR carries an explicitly authorized one-shot sentinel in `analysis/windows-visual-atlas-first-capture.request`; merging it to `main` launches **one** bounded, source-exact hosted campaign. For subsequent captures, use [Actions / Windows Visual Atlas](../.github/workflows/windows-visual-atlas.yml) → **Run workflow** on the exact intended ref. Leave Pages flag false until the repository Pages source is configured to GitHub Actions and you intend to publish. Choose one or two workers per Windows capture job; in the first run, inspect any exact-drawable refusals and log SHA provenance. The four named capture artifacts retain short-lived raw evidence; the `ur-windows-visual-atlas-website` artifact contains the browser-ready offline-distributable site. No user needs to babysit every cohort; failures are reported by ID in `shard-summary.json`.
+Actual Windows capture: the atlas has **no automatic first-merge capture**. After the PR merges and the workflow appears on `main`, use [Actions / Windows Visual Atlas](../.github/workflows/windows-visual-atlas.yml) → **Run workflow** on the exact intended ref. Leave Pages flag false until the repository Pages source is configured to GitHub Actions and you intend to publish. Choose one or two workers per Windows capture job; in the first run, inspect any exact-drawable refusals and log SHA provenance. The four named capture artifacts retain short-lived raw evidence; the `ur-windows-visual-atlas-website` artifact contains the browser-ready offline-distributable site. No user needs to babysit every cohort; failures are reported by ID in `shard-summary.json`.
 
 ## Subsequent milestones / outstanding items
 
 - **M0, in this PR:** baseline catalog (199 = 54 curated + 120 source UI + 25 acceptance cases), 13 route mappings, GHA captured-binary sharing and nested bounded sharding, ROM-free evidence guard, original promotional backgrounds, responsive static browser and copy/deep-link controls. Must pass unit, JS syntax and exact hosted workflow validation. No live Windows screenshot claimed.
-- **M1, immediately after merge:** execute one deliberate manual hosted run, preserve run/artifact URLs, classify the 13 receipts into actual captured, failed and pending, inspect actual PNGs on a phone; correct capture driver differences on *their owning test route*, not by weakening acceptance. Publish a source-bound assembled atlas artifact, optionally configure Pages.
+- **M1, when owner deliberately dispatches:** execute one manual hosted run, preserve run/artifact URLs, classify the 13 receipts into actual captured, failed and pending, inspect actual PNGs on a phone; correct capture driver differences on *their owning test route*, not by weakening acceptance. Publish a source-bound assembled atlas artifact, optionally configure Pages.
 - **M2, inventory completeness:** reconcile `analysis/ui-capture-manifest.json`, `analysis/modern-visual-acceptance-matrix.json`, the Modern root/destination code and current issues to add missing state/mode geometry entries. Capture authentic original menus, actual race/finish/HUD, real 1P/2P split, title and profiles from specifically reproducible true Windows processes; include state fixtures/trace identities. Record why blocked states cannot yet be captured.
 - **M3, richer inspection:** two-source comparison, blink/overlay/difference map at equivalent pixel geometry, configurable crops and ROI annotations, screenshot revision timelines, issue permalink creation, image contact sheets and filtering by open visual defects. Reuse existing QA diff helpers. Do not compare differently scaled source pixels as parity evidence.
 - **M4, maintainability/acceptance:** one targeted snapshot smoke per affected frontend/display module, opt-in big campaigns, manifest/schema policy tests, retention/publishing decisions, real Pixel 6 Pro portrait Chrome/PWA inspection, keyboard/screen-reader review, and human art signoff. Keep release ledger independent. Separate visual acceptance from hardware/controller/audio QA.
 
-**Known limits as written:** No Windows process was executed from this editing environment; the first genuine hosted capture is set to launch once after merging to main. Pages configuration was not readable from the available repository API; deployment stays manual/off by default. Historic marketing plates carry separate redistribution/owner-approval considerations. Route names and state coverage will evolve on active `main`, and the named capture routes have not yet been re-proven on the exact PR head.
+**Known limits as written:** No Windows process was executed from this editing environment; the first genuine hosted capture must be manually dispatched after merging to main. Pages configuration was not readable from the available repository API; deployment stays manual/off by default. Historic marketing plates carry separate redistribution/owner-approval considerations. Route names and state coverage will evolve on active `main`, and the named capture routes have not yet been re-proven on the exact PR head.
 
 
 ## Continuous intake from other workflows (2026-10-23)

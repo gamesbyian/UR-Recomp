@@ -280,9 +280,22 @@ def stage(review: Path, destination: Path) -> dict:
         if not witness(receipt, case):
             raise ValueError("Staged candidate lacks original native P7/log witness")
         current = destination / "approved" / case.name
+        if current.is_symlink():
+            raise ValueError("Redirected existing approved capture")
         if current.exists():
             other = current / "actual-sdl-drawable.png"
-            if other.is_file() and atlas.sha256(other) == approval["png_sha256"]:
+            if (other.is_file() and not other.is_symlink()
+                    and atlas.sha256(other) == approval["png_sha256"]):
+                # Idempotence is safe only if the previously selected copy
+                # still carries independently verifiable native evidence.
+                existing_approval = json.loads(
+                    (current / "intake-approval.json").read_text(encoding="utf-8"))
+                existing_receipt, _ = atlas.valid_receipt(
+                    next(e for e in atlas.validate(atlas.load_catalog())
+                         if e["id"] == case.name),
+                    current, existing_approval["source_sha"], existing_approval["exe_sha256"])
+                if not witness(existing_receipt, current):
+                    raise ValueError("Existing approved capture lacks native P7/log witness")
                 results["existing"] += 1
                 continue
             selected = (destination / "alternatives" / case.name /

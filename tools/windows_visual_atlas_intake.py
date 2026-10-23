@@ -216,17 +216,67 @@ def discover(roots: Path, output: Path, *, repo: Path, main: str,
     return report
 
 
+def stage(review: Path, destination: Path) -> dict:
+    """Queue qualifying screenshots as reviewable GitHub changes.
+
+    An existing representative is never overwritten automatically, even if a
+    newer capture is authentic. Keep alternatives content-addressed for an
+    intentional replacement review.
+    """
+    candidates = review / "approved" / "captures"
+    if not candidates.is_dir() or candidates.is_symlink():
+        raise ValueError("No admitted screenshots in intake packet")
+    results = {"new": 0, "existing": 0, "alternative": 0}
+    for case in sorted(candidates.iterdir()):
+        if not case.is_dir() or case.is_symlink() or not atlas.ID.fullmatch(case.name):
+            raise ValueError("Unsafe staged capture name")
+        approval = json.loads((case / "intake-approval.json").read_text(encoding="utf-8"))
+        if approval.get("atlas_id") != case.name:
+            raise ValueError("Staged capture ID mismatch")
+        receipt, _ = atlas.valid_receipt(
+            next(e for e in atlas.validate(atlas.load_catalog()) if e["id"] == case.name),
+            case, approval["source_sha"], approval["exe_sha256"])
+        if receipt["png_sha256"] != approval.get("png_sha256"):
+            raise ValueError("Staged image bytes differ from approval")
+        current = destination / "approved" / case.name
+        if current.exists():
+            other = current / "actual-sdl-drawable.png"
+            if other.is_file() and atlas.sha256(other) == approval["png_sha256"]:
+                results["existing"] += 1
+                continue
+            selected = (destination / "alternatives" / case.name /
+                        approval["png_sha256"])
+            results["alternative"] += 1
+        else:
+            selected = current
+            results["new"] += 1
+        if selected.exists() or selected.is_symlink():
+            continue
+        selected.mkdir(parents=True)
+        for name in ("actual-sdl-drawable.png", "readback-receipt.json", "intake-approval.json"):
+            shutil.copyfile(case / name, selected / name)
+    return results
+
+
 def main_cli() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--artifacts", required=True, type=Path)
-    parser.add_argument("--out", required=True, type=Path)
-    parser.add_argument("--repo", type=Path, default=atlas.ROOT)
-    parser.add_argument("--main-sha", required=True)
-    parser.add_argument("--workflow", required=True)
-    parser.add_argument("--run-id", required=True, type=int)
-    parser.add_argument("--run-head-sha", required=True)
+    sub = parser.add_subparsers(dest="action", required=True)
+    p = sub.add_parser("discover")
+    p.add_argument("--artifacts", required=True, type=Path)
+    p.add_argument("--out", required=True, type=Path)
+    p.add_argument("--repo", type=Path, default=atlas.ROOT)
+    p.add_argument("--main-sha", required=True)
+    p.add_argument("--workflow", required=True)
+    p.add_argument("--run-id", required=True, type=int)
+    p.add_argument("--run-head-sha", required=True)
+    s = sub.add_parser("stage")
+    s.add_argument("--intake", required=True, type=Path)
+    s.add_argument("--destination", required=True, type=Path)
     args = parser.parse_args()
     try:
+        if args.action == "stage":
+            print(json.dumps(stage(args.intake, args.destination), indent=2))
+            return 0
         report = discover(args.artifacts, args.out, repo=args.repo,
                           main=args.main_sha, workflow=args.workflow,
                           run_id=args.run_id, run_head=args.run_head_sha)

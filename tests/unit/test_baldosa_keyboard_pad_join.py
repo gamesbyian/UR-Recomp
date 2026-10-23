@@ -87,6 +87,22 @@ class KeyboardPadJoinTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     runner.verify_keyboard_plus_pad(invalid)
 
+    def test_positive_capture_window_and_failure_milestones(self):
+        # The source-bound Windows 2P route uses 1800 turbo frames. The
+        # shortened negative captures must remain independent of that wait.
+        self.assertEqual(runner.POSITIVE_JOIN, "turbo on\nwait 1800\nquit\n")
+        self.assertEqual(runner.JOIN, "wait 400\nquit\n")
+        log = ("unrelated output\n"
+               "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\n"
+               "UR_BALDOSA_MODERN_ROOT stock_requested players=2\n"
+               "UR_BALDOSA_MODERN_ROOT stock_rejected=timeout\n"
+               "UR_BALDOSA_MODERN_ROOT records_closed=1\n")
+        self.assertEqual(runner.route_milestones(log), [
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+            "UR_BALDOSA_MODERN_ROOT stock_rejected=timeout",
+        ])
+
     def test_cancelled_or_withdrawn_join_forbids_any_stock_entry(self):
         runner.reject_unexpected_stock_route("join_closed=1\n", "cancelled")
         for invalid in (

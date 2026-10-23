@@ -33,7 +33,10 @@ from pathlib import Path
 from baldosa_native_first_racer_probe import run_game
 
 QUIET = "turbo on\nwait 900\nquit\n"
-JOIN = "wait 400\nquit\n"
+JOIN = "wait 400\nquit\n"  # Negative controls retain their short bounded window.
+# The established native Windows Modern 2P journey uses 1800 turbo frames
+# for the actual guest stock-menu transition; 400 can stop before admission.
+POSITIVE_JOIN = "turbo on\nwait 1800\nquit\n"
 
 
 def lines(log: str, pattern: str) -> list[str]:
@@ -75,6 +78,15 @@ def reject_unexpected_stock_route(log: str, label: str) -> None:
             raise ValueError(f"{label}: unexpected {marker}")
 
 
+def route_milestones(log: str) -> list[str]:
+    """Retain a bounded native route trace in CI errors without dumping the log."""
+    return [
+        line for line in log.splitlines()
+        if line.startswith("UR_BALDOSA_MODERN_ROOT ") and
+        (" join_" in line or " stock_" in line)
+    ][-20:]
+
+
 def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     exe, rom, out = exe.resolve(strict=True), rom.resolve(strict=True), out.resolve()
     # The product ignores pads while the window is unfocused (#2334); a hosted
@@ -90,8 +102,16 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     if not (user / "profiles-v1.txt").is_file():
         raise ValueError("the two-racer roster was not created")
 
-    log = run_game(exe, rom, user, out / "keyboard_plus_pad", "15", JOIN, video, timeout)
-    verify_keyboard_plus_pad(log)
+    log = run_game(exe, rom, user, out / "keyboard_plus_pad", "15", POSITIVE_JOIN, video, timeout)
+    try:
+        verify_keyboard_plus_pad(log)
+    except ValueError as exc:
+        # The runner's work/log.txt survives locally but CI does not upload
+        # it on failure. Surface only source-owned route markers so the next
+        # native failure distinguishes timeout/rejection from late admission.
+        raise ValueError(
+            f"{exc}; native route milestones: {route_milestones(log)!r}"
+        ) from exc
 
     log = run_game(exe, rom, user, out / "p2_owner_leaves", "16", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",

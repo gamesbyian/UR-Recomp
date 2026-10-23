@@ -211,7 +211,7 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
         return HostProfileSaveStatus::Rejected;
     }
     // The same persistent lock used by all existing profile CAS writers.
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProfileSaveStatus::IoError;
     return save_host_profile_state_file_if_current_under_lock(
         mode, path, expected_current, next);
@@ -225,7 +225,7 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
         encode_host_profile_state(expected_current).empty()) {
         return HostProfileSaveStatus::Rejected;
     }
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProfileSaveStatus::IoError;
     const auto current = load_host_profile_state_file(
         mode, path, expected_current.profile_id);

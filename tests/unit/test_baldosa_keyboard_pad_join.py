@@ -87,6 +87,30 @@ class KeyboardPadJoinTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     runner.verify_keyboard_plus_pad(invalid)
 
+    def test_native_join_milestones_must_be_complete_lines(self):
+        # Negative control: old substring matching would accept a menu
+        # identifier with a longer suffix as genuine guest 0x3d admission.
+        stages = (
+            "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
+            "[Gamepad] UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+        )
+        valid = "\n".join(stages) + "\n"
+        runner.verify_keyboard_plus_pad(valid)
+        for old, new in (
+            (stages[-1], stages[-1] + "0"),
+            (stages[-1], "prefix " + stages[-1]),
+            (stages[4], stages[4] + "0"),
+            (stages[5], stages[5] + "0"),
+        ):
+            with self.subTest(new=new):
+                with self.assertRaisesRegex(ValueError, "complete line"):
+                    runner.verify_keyboard_plus_pad(valid.replace(old, new))
+
     def test_positive_capture_window_and_failure_milestones(self):
         # The source-bound Windows 2P route uses 1800 turbo frames. The
         # shortened negative captures must remain independent of that wait.

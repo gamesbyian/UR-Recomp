@@ -44,11 +44,16 @@ def lines(log: str, pattern: str) -> list[str]:
 
 
 def ordered(log: str, stages: tuple[str, ...], label: str) -> None:
+    # The native root emits these milestones as complete, standalone lines.
+    # Substring counts could accept e.g. menu=3d0 as menu=3d, awarding a
+    # successful 2P guest admission that never actually occurred.
+    observed = log.splitlines()
     at = []
     for stage in stages:
-        if log.count(stage) != 1:
-            raise ValueError(f"{label}: expected exactly one {stage!r}")
-        at.append(log.index(stage))
+        matches = [(i, line) for i, line in enumerate(observed) if stage in line]
+        if len(matches) != 1 or matches[0][1] != stage:
+            raise ValueError(f"{label}: expected exactly one complete line {stage!r}")
+        at.append(matches[0][0])
     if at != sorted(at):
         raise ValueError(f"{label}: stages out of order")
 

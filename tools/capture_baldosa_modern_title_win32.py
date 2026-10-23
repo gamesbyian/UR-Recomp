@@ -366,9 +366,9 @@ def main() -> int:
         "UR_BALDOSA_MODERN_ROOT": "1",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
         "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": (
-            "16" if args.confirm == "keyboard" else
-            "17" if args.confirm == "start" else
-            "18" if args.confirm == "held" else "15"),
+            "25" if args.confirm == "keyboard" else
+            "26" if args.confirm == "start" else
+            "27" if args.confirm == "held" else "24"),
         "UR_REDUCED_MOTION": "1" if args.reduced_motion else "0",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),

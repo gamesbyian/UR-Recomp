@@ -1054,16 +1054,16 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     if (!configured()) return;
     if (!restore_practice_session()) std::abort();
     g_menu = ur::product::modern_root_menu_reset();
-    // Existing scripted journeys start directly at root. Mode 15 is the
+    // Existing scripted journeys start directly at root. Mode 24 is the
     // explicit title journey; ordinary Modern launches display the title.
     const char* fixture = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
     const char* reduced = std::getenv("UR_REDUCED_MOTION");
     g_title = ur::product::modern_title_boot(
-        !(fixture && *fixture && std::strcmp(fixture, "15") != 0 &&
-        std::strcmp(fixture, "16") != 0 &&
-        std::strcmp(fixture, "17") != 0 &&
-        std::strcmp(fixture, "18") != 0 &&
-        std::strcmp(fixture, "19") != 0 &&
+        !(fixture && *fixture && std::strcmp(fixture, "24") != 0 &&
+        std::strcmp(fixture, "25") != 0 &&
+        std::strcmp(fixture, "26") != 0 &&
+        std::strcmp(fixture, "27") != 0 &&
+        std::strcmp(fixture, "28") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&
@@ -1985,13 +1985,13 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."23"; 15-23 retain the title.
+    // Smoke modes are decimal "1".."28"; 15-19 remain controller-only, 20-28 title-only.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if ((!g_visible && !g_original_attract_visible) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 23) return;
+            mode < 1 || mode > 28) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2201,10 +2201,10 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             frame, button);
         return;
     }
-    // CI-only mode 16: drive title -> existing root via the REAL desktop
+    // CI-only mode 25: drive title -> existing root via the REAL desktop
     // keyboard Enter handler, including edge release. No SDL key event
     // shortcut, guest input injection or bypass of Modern title ownership.
-    if (std::strcmp(opt, "16") == 0) {
+    if (std::strcmp(opt, "25") == 0) {
         if (frame != 60) return;
         if (!ur_baldosa_modern_root_key(SDLK_RETURN, 1) ||
             !ur_baldosa_modern_root_key(SDLK_RETURN, 0))
@@ -2213,9 +2213,9 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=%u\n", frame);
         return;
     }
-    // CI-only mode 17: prove real gamepad START independently from A.
+    // CI-only mode 26: prove real gamepad START independently from A.
     // Do not replace the gamepad handler or type guest SRAM/WRAM bytes.
-    if (std::strcmp(opt, "17") == 0) {
+    if (std::strcmp(opt, "26") == 0) {
         if (frame != 60) return;
         if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 1) ||
             !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 0))
@@ -2388,10 +2388,10 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
         return;
     }
-    // CI-only mode 19: source-driven opt-in ORIGINAL demo to Modern title
+    // CI-only mode 28: source-driven opt-in ORIGINAL demo to Modern title
     // wake, through the REAL existing P1 semantic handler. One wake edge
     // cannot select the root; only a separate later physical A may confirm.
-    if (std::strcmp(opt, "19") == 0) {
+    if (std::strcmp(opt, "28") == 0) {
         if (frame == 1600) {
             if (!g_original_attract_visible || g_visible ||
                 g_ram[0x0313u] != 1u ||
@@ -2425,11 +2425,11 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
         return;
     }
-    // CI-only mode 18: keep the ACTUAL P1 A physical edge held across
+    // CI-only mode 27: keep the ACTUAL P1 A physical edge held across
     // the title->root handoff. A repeated down is deliberately delivered to
     // the real root handler at frame80. It must be consumed without opening
     // Play, changing a menu or injecting guest input; release only at frame150.
-    if (std::strcmp(opt, "18") == 0) {
+    if (std::strcmp(opt, "27") == 0) {
         if (frame == 60) {
             if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1))
                 std::abort();
@@ -2456,8 +2456,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
         return;
     }
-    // CI-only mode 15: drive title -> existing root via actual native P1 A.
-    if (std::strcmp(opt, "15") == 0) {
+    // CI-only mode 24: drive title -> existing root via actual native P1 A.
+    if (std::strcmp(opt, "24") == 0) {
         if (frame != 60) return;
         if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
             !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))

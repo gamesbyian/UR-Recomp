@@ -55,6 +55,8 @@ reconcile it against **fresh** main and current PRs, run relevant tests, and
 open a reviewable narrow branch/PR. Source publication and integration are
 separate actions. Never blindly apply an entire ZIP onto main.
 
+**Log relay for connector-only agents:** the workflow also prints a triage summary (`UR-TRIAGE*` lines: per-file ID, size, SHA-256, and per-member size, SHA-256 prefix, source-like and exact-on-main flags) to the job log. When `stage_sources` and `confirm_source_review` are both true it additionally prints the staged UTF-8 source between `UR-STAGED-BEGIN`/`UR-STAGED-END` markers, each content line prefixed with `| ` (strip the prefix to reconstruct; the SHA-256 in the header verifies it), within a 1.5 MB budget. Read the job log through the GitHub connector. This has the same visibility as the review-gated artifact and the same rights/publication-hold review requirement.
+
 ## Local invocation
 
 Install gdown 6.4.2. From the repo root:

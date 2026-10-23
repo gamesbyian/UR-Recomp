@@ -73,6 +73,18 @@ jobs:
             args+=(--stage-sources)
           fi
           python3 tools/vault_gdown_intake.py "${args[@]}"
+      - name: Print triage summary (and review-gated staged text) to the job log
+        if: always()
+        shell: bash
+        env:
+          INTAKE_DIR: ${{ runner.temp }}/vault-direct-intake
+          RELAY_STAGED: ${{ github.event_name == 'workflow_dispatch' && inputs.stage_sources == true && inputs.confirm_source_review == true }}
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$INTAKE_DIR/report.json" ]]; then echo 'no report produced'; exit 0; fi
+          args=(--report "$INTAKE_DIR/report.json")
+          if [[ "$RELAY_STAGED" == true ]]; then args+=(--staged "$INTAKE_DIR/staged"); fi
+          python3 tools/vault_intake_relay.py "${args[@]}"
       - name: Upload metadata-only intake report
         if: always()
         uses: actions/upload-artifact@v4

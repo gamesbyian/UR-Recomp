@@ -5,13 +5,6 @@ on:
     branches: [main]
     paths:
       - "analysis/windows-visual-atlas-first-capture.request"
-  pull_request:
-    paths:
-      - ".github/workflows/windows-visual-atlas.yml"
-      - "analysis/windows-visual-atlas.json"
-      - "tools/windows_visual_atlas.py"
-      - "tools/visual_atlas_web/**"
-      - "tests/unit/test_windows_visual_atlas.py"
   workflow_dispatch:
     inputs:
       workers_per_job:
@@ -195,6 +188,7 @@ jobs:
     needs: assemble
     if: github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       pages: write
       id-token: write

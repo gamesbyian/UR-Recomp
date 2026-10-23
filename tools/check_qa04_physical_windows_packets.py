@@ -10,6 +10,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import stat
 from pathlib import Path, PurePosixPath
 import re
 import unicodedata
@@ -58,6 +60,55 @@ def sha256_file(path: Path) -> str:
     with path.open("rb") as stream:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
+    return digest.hexdigest()
+
+
+def bound_sha256(path: Path, root: Path, expected_size: int) -> str:
+    """Hash an attachment through ONE opened handle and refuse if it moved.
+
+    Closes the check-then-read gap in ``safe_member``: the file is opened
+    without following a leaf symlink, validated with ``fstat`` (regular file,
+    single link, expected size), hashed from that same handle, and the path
+    plus every ancestor up to ``root`` must still name the same filesystem
+    objects afterwards. This detects a swap during the read on every host; it
+    is not a Windows directory-handle walk and gives no proof against a writer
+    that restores the original objects before the final check.
+    """
+    chain = [path]
+    while chain[-1] != root:
+        require(chain[-1].parent != chain[-1], "evidence path escaped packet root")
+        chain.append(chain[-1].parent)
+
+    def identity(item: Path) -> tuple[int, int]:
+        info = os.lstat(item)
+        return info.st_dev, info.st_ino
+
+    try:
+        before = [identity(item) for item in chain]
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+                     | getattr(os, "O_BINARY", 0))
+    except OSError:
+        require(False, "evidence file missing or redirected")
+    with os.fdopen(fd, "rb") as stream:
+        info = os.fstat(stream.fileno())
+        require(stat.S_ISREG(info.st_mode) and info.st_nlink == 1
+                and info.st_size == expected_size
+                and (info.st_dev, info.st_ino) == before[0],
+                "attached original source bytes changed or oversized")
+        digest = hashlib.sha256()
+        remaining = expected_size
+        while remaining:
+            chunk = stream.read(min(remaining, 1024 * 1024))
+            require(bool(chunk), "attached original source bytes changed or oversized")
+            digest.update(chunk)
+            remaining -= len(chunk)
+        require(stream.read(1) == b"",
+                "attached original source bytes changed or oversized")
+    try:
+        after = [identity(item) for item in chain]
+    except OSError:
+        require(False, "evidence path changed while being read")
+    require(after == before, "evidence path changed while being read")
     return digest.hexdigest()
 
 
@@ -179,8 +230,8 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
                 "aliased evidence source file")
         observed_files.add(str(original.resolve()).casefold())
         total += size
-        require(total <= MAX_TOTAL_BYTES and original.stat().st_size == size
-                and sha256_file(original) == digest,
+        require(total <= MAX_TOTAL_BYTES, "attached original source bytes changed or oversized")
+        require(bound_sha256(original, path.parent, size) == digest,
                 "attached original source bytes changed or oversized")
     needed = REQUIRED_PHYSICAL if hw["environment"] == "physical" else REQUIRED_VM
     require(needed <= observed_kinds, "missing independent observations: " +

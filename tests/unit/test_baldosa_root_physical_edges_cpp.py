@@ -26,6 +26,30 @@ class BaldosaRootPhysicalEdgesTests(unittest.TestCase):
         self.assertNotIn("RtlRunFrame(", source)
         self.assertNotRegex(source, r"g_ram\\[0x009f\\]\\s*=(?!=)")
 
+    def test_orphan_p2_stock_reentry_is_guarded_and_edge_triggered(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        # This is the actual source handler, not a mock policy function.
+        # The P2 exception must precede the ordinary P1-only navigation gate.
+        orphan = source.index(
+            "if (player == 1 && !g_visible && button == kGamepadBtn_B)")
+        p1_only = source.index("if (player != 0) return 0;", orphan)
+        branch = source[orphan:p1_only]
+        self.assertIn("g_p2_join_edges.p1_gamepad(4, pressed != 0)", branch)
+        self.assertIn("!fresh_press", branch)
+        self.assertIn("snesrecomp_desktop_product_seat_source(0) != -1", branch)
+        self.assertIn("snesrecomp_desktop_product_seat_source(1) == -1", branch)
+        self.assertIn("reopen_on_observed_stock_main()", branch)
+        # The shared authority still rejects active races, unobserved
+        # handoffs, pending stock transitions and an unsettled stock menu.
+        authority = source[source.index("bool reopen_on_observed_stock_main()"):]
+        authority = authority[:authority.index("void select_records_page(")]
+        for guard in (
+            "!configured()", "g_visible", "!g_stock_handed_off",
+            "g_stock_target != -1", "g_ram[0x009f] != 0xd7u",
+            "g_ram[0x0313] == 0x01u",
+        ):
+            self.assertIn(guard, authority)
+
     def test_native_cpp_edge_contract(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if not compiler:

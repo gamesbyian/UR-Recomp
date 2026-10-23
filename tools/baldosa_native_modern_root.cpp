@@ -1222,6 +1222,21 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         else g_two_seat_join.move(1, action);
         return 1;
     }
+    // During stock gameplay P2 remains P2. If P1 has disconnected and the
+    // guest has genuinely returned to the stock main menu, however, P2 must
+    // be able to reopen Modern without a keyboard or a replacement P1 pad.
+    // Track the physical B edge even while the stock guest owns the display:
+    // holding B through the race/menu transition must not reopen on repeat.
+    // The shared reentry authority still checks the observed stock surface,
+    // source handoff and practice restoration before any focus transition.
+    if (player == 1 && !g_visible && button == kGamepadBtn_B) {
+        const bool fresh_press =
+            g_p2_join_edges.p1_gamepad(4, pressed != 0);
+        if (!fresh_press ||
+            snesrecomp_desktop_product_seat_source(0) != -1 ||
+            snesrecomp_desktop_product_seat_source(1) == -1) return 0;
+        return reopen_on_observed_stock_main() ? 1 : 0;
+    }
     if (player != 0) return 0;
     // Keyboard + one pad: the keyboard has confirmed P1 and seat 2 has no
     // pad, so the seat-0 pad's Confirm is a P2 join. The pad moves seats

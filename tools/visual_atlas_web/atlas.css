@@ -47,7 +47,7 @@ button.primary,.primary{background:var(--yellow);font-weight:850;box-shadow:2px 
  text-shadow:1.4px 2px 0 #b8b8af}
 .strapline{margin:7px 0 0;font-size:.7rem;letter-spacing:.015em}
 .strapline em{font-style:normal;color:var(--blue-ink);font-weight:800}
-.tube-hero{position:absolute;right:-120px;bottom:4px;width:230px;height:auto;opacity:.97}
+.tube-hero{position:absolute;right:2px;top:9px;bottom:auto;width:168px;height:auto;opacity:.97}
 .header-note{display:none}
 .workbench{padding:12px 11px 26px;min-width:0}
 .toolbar{display:flex;flex-direction:column;gap:10px;border-bottom:1.5px dashed #777c83;
@@ -186,7 +186,7 @@ dialog::backdrop{background:#101922ce}
 @media(min-width:620px){
  .masthead{min-height:166px;padding:20px 28px}
  .identity{max-width:75%}.reg-mark{display:inline;margin-left:8px}
- .tube-hero{right:2vw;bottom:0;width:290px}
+ .tube-hero{right:2vw;top:auto;bottom:0;width:290px}
  .workbench{padding:20px 24px 40px}
  .toolbar{gap:13px}
  .filter-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -222,6 +222,8 @@ dialog::backdrop{background:#101922ce}
  .hand-note{display:block;font-size:.77rem;font-style:italic;font-weight:800;color:var(--blue-ink);
  transform:rotate(-6deg);margin:17px 0}
 }
+/* Preserve the full wheel-on-tube drawing, or show no drawing at all. */
+@media(max-width:379px){.tube-hero{display:none}}
 @media(max-width:350px){
  .workbench{padding-inline:7px}
  .tile-description{padding:7px}

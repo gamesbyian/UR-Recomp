@@ -41,7 +41,7 @@ class WindowsAtlasTests(unittest.TestCase):
             out = Path(directory) / "site"
             data = atlas.build(atlas.load_catalog(), out, None, None)
             self.assertEqual(data["counts"]["captured"], 0)
-            self.assertEqual(len(data["entries"]), 54)
+            self.assertEqual(len(data["entries"]), len(atlas.validate(atlas.load_catalog())))
             self.assertTrue((out / "atlas.js").is_file())
             self.assertTrue((out / "assets/modern-frame.png").is_file())
             self.assertTrue(all(entry["status"] in ("planned", "capture_pending")

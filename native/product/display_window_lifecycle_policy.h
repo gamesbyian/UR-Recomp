@@ -1,5 +1,7 @@
 #pragma once
 
+#include <float.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -186,9 +188,16 @@ static inline int ur_display_exclusive_refresh_pick(
 static inline int ur_display_default_window_scale(
     float content_scale, int base_w, int base_h, int usable_w, int usable_h,
     int max_scale) {
-    int scale = content_scale > 0 ? (int)(2.0f * content_scale + 0.5f) : 2;
-    if (scale < 2) scale = 2;
-    if (max_scale >= 2 && scale > max_scale) scale = max_scale;
+    /* A corrupt or extreme display-content scale must never overflow the
+     * float-to-int conversion. Cap in double before converting; invalid
+     * NaN/infinite values fall back to the historical 2x window. */
+    const int cap = max_scale >= 2 ? max_scale : 2;
+    int scale = 2;
+    if (content_scale > 0.0f && content_scale <= FLT_MAX) {
+        const double requested = 2.0 * (double)content_scale + 0.5;
+        scale = requested >= (double)cap ? cap
+              : requested >= 2.0 ? (int)requested : 2;
+    }
     while (scale > 2 && usable_w > 0 && usable_h > 0 &&
            ((long long)scale * base_w * 10 > (long long)usable_w * 9 ||
             (long long)scale * base_h * 10 > (long long)usable_h * 9))

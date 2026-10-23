@@ -129,6 +129,31 @@ int main() {
     assert(!modern_native_destination_canvas(256,224,2147483647,240,original).scale);
     assert(!modern_native_destination_canvas(342,224,1,100000,wide).scale);
     assert(!modern_native_destination_canvas(256,224,1,240,{40,10,240,204}).scale);
+    // Public text primitive must refuse malformed canvases/scales before
+    // dividing by c.scale or forwarding out-of-bounds glyphs to the host.
+    clear();
+    modern_native_destination_line(
+        painter, scratch, 256, 224, {}, 20, "INVALID", 0xFFFFFFFFu);
+    modern_native_destination_line(
+        painter, scratch, 256, 224, narrow, 20, "INVALID",
+        0xFFFFFFFFu, 9, 0);
+    modern_native_destination_line(
+        painter, scratch, 256, 224, narrow, 20, "INVALID",
+        0xFFFFFFFFu, -1);
+    modern_native_destination_line(
+        painter, scratch, 256, 224, narrow, -1, "INVALID",
+        0xFFFFFFFFu);
+    auto outside = narrow;
+    outside.x = 255;
+    modern_native_destination_line(
+        painter, scratch, 256, 224, outside, 20, "INVALID",
+        0xFFFFFFFFu);
+    assert(painted_text.empty() && painted.empty());
+    modern_native_destination_line(
+        painter, scratch, 256, 224, narrow, 20, "SAFE", 0xFFFFFFFFu);
+    assert(has("SAFE"));
+    bounds(256, 224);
+    clear();
     // Source-backed last times are useful only if the suffix remains exact.
     assert(modern_native_destination_fit(
         "LAST: VERY LONG COURSE NAME 00:15.50", 25, true).substr(17)

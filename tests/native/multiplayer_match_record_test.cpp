@@ -313,14 +313,14 @@ int main(int argc, char** argv) {
         // uses wide native paths. Exercise the actual two-file publication,
         // returned path, fresh load and checksum-bound sidecar together.
         const auto unicode_root = std::filesystem::temp_directory_path() /
-            std::filesystem::u8path(u8"ur-multiplayer-\\u8DEF\\u5F84-\\U0001F308");
+            std::filesystem::u8path(u8"ur-multiplayer-\u8DEF\u5F84-\U0001F308");
         std::filesystem::remove_all(unicode_root);
         std::string utf8_run_path;
         detail.clear();
         assert(append_multiplayer_match_pair(
             unicode_root.u8string(), run, original, &utf8_run_path, &detail));
         assert(!utf8_run_path.empty());
-        assert(utf8_run_path.find(std::string(u8"\\u8DEF\\u5F84")) !=
+        assert(utf8_run_path.find(std::string(u8"\u8DEF\u5F84")) !=
                std::string::npos);
         const auto native_run_path = std::filesystem::u8path(utf8_run_path);
         assert(native_run_path.parent_path() == unicode_root);

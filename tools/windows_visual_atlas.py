@@ -434,6 +434,17 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
                 try:
                     results.append(future.result())
                 except Exception as exc:
+                    # Unexpected per-case failures must remain visible to the
+                    # assembler. Without a failure marker, an interrupted
+                    # driver can leave no receipt and appear merely pending.
+                    location = target / "captures" / name
+                    location.mkdir(parents=True, exist_ok=True)
+                    (location / "capture-failure.json").write_text(json.dumps({
+                        "id": name, "status": "failed",
+                        "reason": (
+                            f"internal capture error: {type(exc).__name__}: {exc}"
+                        )[:1800],
+                    }, indent=2) + "\n", encoding="utf-8")
                     announce("end", name, result="internal-error")
                     results.append({"id": name, "result": "failed",
                                     "internal_error": str(exc)[:250]})

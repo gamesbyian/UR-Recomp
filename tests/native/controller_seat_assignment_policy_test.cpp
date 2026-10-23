@@ -76,6 +76,54 @@ void p2_leaving_does_not_swap_players_when_p2_returns() {
     assert(t.connect(kPadA, 0) == 0);
 }
 
+void identical_guid_only_pads_do_not_silently_swap_players() {
+    std::uint8_t guid[16] = {0x03, 0x00, 0x00, 0x00, 0x5e, 0x04, 0x00, 0x00,
+                             0x8e, 0x02, 0x00, 0x00, 0x14, 0x01, 0x00, 0x00};
+    const std::uint64_t key = ur_controller_device_key(guid, nullptr);
+    // Two real-looking indistinguishable pads (no serial) can initially play
+    // in separate seats, but both missing owners have the same stable key.
+    Table t;
+    assert(t.connect(key, 0) == 0);
+    assert(t.connect(key, 1) == 1);
+    ur_controller_seat_vacated(t.seats, 0, key);
+    ur_controller_seat_vacated(t.seats, 1, key);
+    // A returning pad's SDL player index does not establish original identity.
+    for (int index : {0, 1, -1}) {
+        const UrControllerSeatChoice returned =
+            ur_controller_seat_choose(t.seats, key, index, -1);
+        assert(returned.seat == -1);
+        assert(returned.reason == UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER);
+        assert(t.seats[0].absent_owner_key == key);
+        assert(t.seats[1].absent_owner_key == key);
+    }
+    // Disabled reservations also count toward ambiguity. Ignoring them would
+    // let a pad claim an unproven identity just because P2 was disabled.
+    t.seats[1].enabled = 0;
+    const UrControllerSeatChoice disabled =
+        ur_controller_seat_choose(t.seats, key, 0, -1);
+    assert(disabled.seat == -1);
+    assert(disabled.reason == UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER);
+    // Explicit host-owned reset clears all prior ownership claims, then the
+    // pads are seated as new devices by a deliberate configuration action.
+    t.seats[1].enabled = 1;
+    t.seats[0].absent_owner_key = t.seats[1].absent_owner_key = 0;
+    assert(t.connect(key, 0) == 0);
+    assert(t.connect(key, 1) == 1);
+}
+
+void identical_guid_only_pad_can_reclaim_one_unique_absent_reservation() {
+    Table t;
+    const std::uint64_t key = kPadA;
+    assert(t.connect(key, 0) == 0);
+    assert(t.connect(key, 1) == 1);
+    // One pad is still present; only P2 is an absent owner of this key.
+    ur_controller_seat_vacated(t.seats, 1, key);
+    const UrControllerSeatChoice returned =
+        ur_controller_seat_choose(t.seats, key, 0, -1);
+    assert(returned.seat == 1);
+    assert(returned.reason == UR_CONTROLLER_SEAT_RECLAIMED);
+}
+
 void a_new_pad_prefers_a_seat_nobody_is_waiting_for() {
     Table t;
     assert(t.connect(kPadA, 0) == 0);
@@ -164,6 +212,8 @@ void reason_names_are_stable_log_tokens() {
     assert(std::strcmp(ur_controller_seat_reason_name(
         UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT), "absent_owner_seat") == 0);
     assert(std::strcmp(ur_controller_seat_reason_name(
+        UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER), "ambiguous_owner") == 0);
+    assert(std::strcmp(ur_controller_seat_reason_name(
         static_cast<UrControllerSeatReason>(99)), "none") == 0);
 }
 
@@ -174,6 +224,8 @@ int main() {
     an_occupied_seat_is_never_stolen();
     a_reconnecting_pad_reclaims_its_own_seat();
     p2_leaving_does_not_swap_players_when_p2_returns();
+    identical_guid_only_pads_do_not_silently_swap_players();
+    identical_guid_only_pad_can_reclaim_one_unique_absent_reservation();
     a_new_pad_prefers_a_seat_nobody_is_waiting_for();
     a_replacement_pad_can_take_an_absent_players_seat();
     a_device_seated_elsewhere_is_no_longer_absent();

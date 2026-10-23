@@ -337,16 +337,22 @@ def helpers(policy: Path) -> str:
         "  for (int i = 0; i < kUrSpareMax; i++) UrSpareClose(i);\n"
         "}\n"
         "#if SNESRECOMP_SDL3\n"
-        "/* Seat devices found together (start-up, a reconcile) in SDL player index\n"
+        "/* Seat devices found together (start-up, a reconcile) gamepads first, so\n"
+        " * an unmapped stick (a wheel, a flight stick, a peripheral's joystick\n"
+        " * interface) never takes P1 from a real pad, then in SDL player index\n"
         " * order, so the pad whose XInput slot (ring light) says 1 is P1 and the\n"
-        " * one saying 2 is P2. A device without an index goes last; SDL's own\n"
-        " * order breaks ties. */\n"
+        " * one saying 2 is P2. A device without an index goes after those with\n"
+        " * one; SDL's own order breaks ties. */\n"
+        "static uint64_t UrSeatingRank(SDL_JoystickID id) {\n"
+        "  return ((uint64_t)(SDL_IsGamepad(id) ? 0u : 1u) << 32) |\n"
+        "         (uint32_t)SDL_GetJoystickPlayerIndexForID(id);\n"
+        "}\n"
         "static void UrSortByPlayerIndex(SDL_JoystickID *ids, int count) {\n"
         "  for (int i = 1; ids && i < count; i++) {\n"
         "    const SDL_JoystickID id = ids[i];\n"
-        "    const unsigned rank = (unsigned)SDL_GetJoystickPlayerIndexForID(id);\n"
+        "    const uint64_t rank = UrSeatingRank(id);\n"
         "    int j = i;\n"
-        "    while (j > 0 && (unsigned)SDL_GetJoystickPlayerIndexForID(ids[j - 1]) > rank) {\n"
+        "    while (j > 0 && UrSeatingRank(ids[j - 1]) > rank) {\n"
         "      ids[j] = ids[j - 1];\n"
         "      j--;\n"
         "    }\n"
@@ -846,6 +852,22 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   case 45:
     UrAcceptExpect("enumeration_follows_player_index", UrAcceptSeatOf(1) == 0 &&
                    UrAcceptSeatOf(0) == 1);
+    for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+    break;
+  case 46:
+    /* An unmapped stick holding index 0 and a gamepad holding index 1 are
+     * found together: the gamepad is P1, the stick only gets what is left. */
+    UrSeatReset();
+    UrAcceptAttach(kUrAcceptRaw, 0x5506, 0);
+    UrAcceptAttach(0, 0x5501, 1);
+    UrAcceptDrainDeviceEvents();
+    break;
+  case 47:
+    UrSeatReconcile("acceptance");
+    break;
+  case 48:
+    UrAcceptExpect("gamepad_seated_before_raw_stick", UrAcceptSeatOf(0) == 0 &&
+                   UrAcceptSeatOf(kUrAcceptRaw) == 1);
     for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
     break;
   default: {

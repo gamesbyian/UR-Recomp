@@ -1,5 +1,4 @@
 #pragma once
-#include "local_tournament_utf8_path.hpp"
 
 // Generic host-owned mutable-file writer, first introduced for tournament
 // sessions/checkpoints and now used by profiles, profile catalogs and options.
@@ -194,7 +193,7 @@ inline bool write_host_create_staged(
     void (*after_staging_for_test)() = nullptr) {
     namespace fs = std::filesystem;
     if (final_name.empty() || data.empty()) return false;
-    const fs::path target = host_native_path_from_utf8(final_name);
+    const fs::path target(final_name);
     const auto stage = detail::reserve_tournament_staging(
         target.parent_path(), staging_family);
     if (!stage) return false;
@@ -245,7 +244,7 @@ inline bool write_tournament_replace_staged(
     const std::string& final_name,
     std::string_view data,
     std::string_view staging_family) {
-    return write_host_replace_staged(host_native_path_from_utf8(final_name), data, staging_family);
+    return write_host_replace_staged(final_name, data, staging_family);
 }
 
 } // namespace ur::product

@@ -107,6 +107,26 @@ def plate(img,source_width,x):
     return img[np.ix_(ys,xs)]
 
 
+
+def prompt_only_motion(mask, output_height):
+    """Admit only changed title pixels in the captured lower prompt band.
+
+    The native title presenter places the prompt at source rows 200..211.
+    Map *actual* output pixel centers back to the 224-row source; avoid
+    hand-tuned 720p/768p output bboxes or a blanket bottom-screen crop.
+    This checks the archived still/reduced-still pair, not every possible
+    animation or a physical display's reduced-motion behavior.
+    """
+    if mask.ndim != 2 or mask.shape[0] != output_height:
+        raise ValueError('invalid title motion mask geometry')
+    changed_rows = np.flatnonzero(np.any(mask, axis=1))
+    if changed_rows.size == 0:
+        raise ValueError('normal/reduced title prompt did not change')
+    source_rows = np.floor((changed_rows + .5) * 224 / output_height).astype(int)
+    if np.any((source_rows < 200) | (source_rows >= 212)):
+        raise ValueError('reduced-motion difference escaped title prompt band')
+
+
 def verify(path):
     data=path.read_bytes()
     if digest(data)!=ARTIFACT_SHA256:
@@ -137,9 +157,8 @@ def verify(path):
         still=frames[res,'title-still'][0]
         reduced=frames[res,'title-reduced-still'][0]
         mask=np.any(still!=reduced,axis=2)
+        prompt_only_motion(mask, still.shape[0])
         ys,xs=np.where(mask)
-        if not len(xs):
-            raise ValueError('normal/reduced title prompt did not change')
         if not np.array_equal(frames[res,'title-entered-root'][0],
                               frames[res,'title-reduced-entered-root'][0]):
             raise ValueError('normal/reduced root differs')

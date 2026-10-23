@@ -1985,6 +1985,21 @@ bool create_profile_from_editor() {
         return false;
     }
     ensure_profile_catalog();
+    // The chooser may have remained open while another process changed the
+    // roster. Re-read before allocating a new profile directory or writing
+    // an initial snapshot; a stale roster must not manufacture an orphan.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_CREATE CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        product_diagnostic("UR_PROFILE_CREATE CATALOG_CHANGED_RETRY");
+        return false;
+    }
     const auto& preset =
         ur::product::legacy_racer_presets()[g_profile_preset_index];
 

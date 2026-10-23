@@ -1,4 +1,4 @@
-# Direct Google Drive Vault intake (manual GitHub Actions)
+# Direct Google Drive Vault intake (GitHub Actions and local Python)
 
 This is a **transport and triage helper**, not another recovery status authority,
 source publication permission, release gate, or alternative to the normal PR
@@ -13,9 +13,9 @@ It uses pinned upstream gdown v6 and the repository's existing ZIP safety and
 current Git blob crosswalk. It does not write to GitHub, move Drive files,
 delete archives, open PRs, or update the release ledger.
 
-**Owner setup:** after reviewing the contents for material that should not
-be publicly accessible, share only the necessary Drive folder as
-"Anyone with the link" / Viewer. The default folder is **02 Incoming**,
+**Live status (2026-10-23):** The owner has enabled public link access for 02 Incoming. GitHub Actions inventory run [40020834318](https://github.com/gamesbyian/UR-Recomp/actions/runs/40020834318) successfully listed **45 direct files, zero errors** and uploaded artifact `vault-direct-intake-report` (ID `12529619027`). This validates listing only, **not** archive download or source staging. [PR #2435](https://github.com/gamesbyian/UR-Recomp/pull/2435) merged the workflow-change PR trigger and `gdown==6.4.2` correction. No permissions changes are requested.
+
+**Owner setup (already completed for 02 Incoming):** share the intended folder as an anonymous-link-accessible folder. The default folder is **02 Incoming**,
 ID `1cdovDqle9IRYKX2lCt513mtWge75HywX`. You need not
 make the other five Vault folders public. The service must actually permit
 anonymous access to files within the shared folder; verify with an
@@ -57,9 +57,9 @@ separate actions. Never blindly apply an entire ZIP onto main.
 
 ## Local invocation
 
-Install gdown 6.0.0. From the repo root:
+Install gdown 6.4.2. From the repo root:
 
-    python -m pip install 'gdown==6.0.0'
+    python -m pip install 'gdown==6.4.2'
     python tools/vault_gdown_intake.py --out /tmp/ur-vault-index
     python tools/vault_gdown_intake.py --out /tmp/ur-vault-one \
         --file-id EXACT_DRIVE_FILE_ID
@@ -69,9 +69,8 @@ Install gdown 6.0.0. From the repo root:
 Each output path must be new; downloaded archives remain local in
 `downloads/` and are **not** part of the upload-artifact paths. The read-only
 report is `report.json`; reviewed source copies, if requested, are staged
-in `staged/<Drive ID>/`. The workflow is intentionally manual and has
-`contents: read` permissions. It does not run on cron or spend resources
-unless dispatched. Whole-folder download is an explicit optional audit,
+in `staged/<Drive ID>/`. The workflow supports manual dispatch and a narrowly scoped pull-request inventory smoke trigger (only PRs modifying the workflow YAML). It has
+`contents: read` permissions. It does not run on cron. A PR changing the workflow YAML also invokes the inventory-only check; PRs cannot use the reviewed source-staging action. Whole-folder download is an explicit optional audit,
 bounded to 64 MiB per file and 128 MiB per run.
 
 ## Intended next integration enhancements
@@ -82,3 +81,13 @@ and narrowly authorized draft-PR creation. Keep raw restricted materials out
 of the public tree, preserve original Drive IDs, and continue disposition
 tracking through [issue #2088](https://github.com/gamesbyian/UR-Recomp/issues/2088).
 Do not introduce automatic public publishing or Drive deletion.
+
+## Fresh recovery agent launch checklist
+
+1. Read [Recovery Agent Handoff](RECOVERY-AGENT-DIRECT-INTAKE-HANDOFF.md), [issue #2088](https://github.com/gamesbyian/UR-Recomp/issues/2088), current main and active PRs. Treat dated count snapshots as history.
+2. Prefer **direct Python download** in an execution environment with shell access, using the commands above, when a particular Drive ID is known. No agent-mediated base64 transfer is needed. Use a new output path per invocation. Alternatively use the GitHub Actions manual workflow for inventory and single-ID download/report; artifacts only include a report unless explicit review-gated staging is requested.
+3. Verify the archive bytes, member identities and repo preimages. Inspect nested ZIPs, encrypted/unsupported files and absent manifests as potential review items rather than claiming success from a top-level listing.
+4. Compare against fresh main and open PRs, then create the smallest functional source/test PR. **Do not auto-apply all unmatched source bytes.** An unmatched blob is only a review lead. Move on to the next independent candidate while CI runs.
+5. Record per-ID/member dispositions with commit and test evidence in #2088. Preserve Drive source copies; never delete/move items solely because a report was generated.
+
+**Caveat:** the first proven successful run enumerated 45 files but downloaded none. Before treating transfer as production-validated, perform an actual single-ID audit from a runner or local Python using a deliberately selected reviewed package, and verify its outer SHA and ZIP members. Direct folder listing can be incomplete for nested folders; cross-check authenticated Drive inventory.

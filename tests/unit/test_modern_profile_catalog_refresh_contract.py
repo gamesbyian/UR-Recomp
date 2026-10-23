@@ -78,6 +78,8 @@ class ModernProfileCatalogRefreshContract(unittest.TestCase):
                          "\n}\n\nbool rename_profile_from_editor()")
         stale = between(create, "if (*latest_catalog != g_profile_catalog) {", "\n    }")
         self.assertIn("g_profile_catalog = *latest_catalog;", stale)
+        self.assertIn("g_profile_menu_index = 0;", stale)
+        self.assertIn("*g_product_state.active_profile_id", stale)
         self.assertIn("return false;", stale)
         unavailable = between(create, "if (!latest_catalog) {", "\n    }")
         self.assertIn("g_profile_catalog_refresh_failed = true;", unavailable)

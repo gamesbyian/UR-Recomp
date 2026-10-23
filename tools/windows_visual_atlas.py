@@ -393,9 +393,11 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
     (target / "shard-summary.json").write_text(report, encoding="utf-8")
     # Publish a uniquely named summary inside the allowlisted artifact tree.
     (target / "captures" / f"atlas-shard-{shard}.json").write_text(report, encoding="utf-8")
-    # A failed case is reviewable missingness, not a successful visual capture.
-    # Never claim QA acceptance; preserve all available evidence.
-    return 0
+    # A partial capture remains useful and is uploaded by the workflow's
+    # always() step, but its producer job must not report green.
+    # The aggregate site may still publish successful cases with explicit
+    # missingness; nothing earns acceptance by exiting without an error.
+    return 1 if any(r["result"] != "captured" for r in results) else 0
 
 
 def main() -> int:

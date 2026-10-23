@@ -87,10 +87,14 @@ jobs:
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp
+      - name: Fetch pinned Windows clang toolchain
+        run: |
+          set -euo pipefail
+          # The fetcher exports TOOLCHAIN_DIR via GITHUB_ENV for the next step.
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
       - name: Build exactly one native Windows executable
         run: |
           set -euo pipefail
-          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
           source "$TOOLCHAIN_DIR/env.sh"
           clang --version | head -n1 | grep -F "22.1.8"
           export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"

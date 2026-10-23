@@ -4,6 +4,7 @@ on:
     paths:
       - ".github/workflows/windows-visual-atlas.yml"
       - ".github/workflows/windows-visual-atlas-intake.yml"
+      - ".github/workflows/windows-visual-atlas-site.yml"
       - ".github/workflows/windows-visual-atlas-pr-validate.yml"
       - "analysis/windows-visual-atlas.json"
       - "analysis/ui-capture-manifest.json"

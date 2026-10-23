@@ -126,6 +126,43 @@ class WindowsAtlasTests(unittest.TestCase):
             case_data = next(e for e in data["entries"] if e["id"] == "URV-MD-001")
             self.assertEqual(case_data["status"], "capture_failed")
 
+    def test_failed_current_capture_cannot_be_masked_by_approved_incidental(self):
+        # An older, reviewed capture can fill a pending atlas slot, but it
+        # must not overwrite this campaign's explicit native driver failure.
+        # No ROM, native process or real screenshot is needed for this guard.
+        source = "a" * 40
+        entry = next(e for e in atlas.load_catalog()["entries"]
+                     if e["id"] == "URV-MD-001")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            failed = root / "captures" / entry["id"]
+            failed.mkdir(parents=True)
+            (failed / "capture-failure.json").write_text(json.dumps({
+                "id": entry["id"], "status": "failed",
+                "reason": "native capture driver exited",
+            }), encoding="utf-8")
+            approved = root / "media/windows-visual-atlas/approved" / entry["id"]
+            approved.mkdir(parents=True)
+            (approved / "intake-approval.json").write_text(json.dumps({
+                "schema_version": 1, "atlas_id": entry["id"],
+                "source_sha": source, "code_integrated_at_scan": True,
+                "independent_visual_approval": False, "release_gate_credit": 0,
+            }), encoding="utf-8")
+            with (mock.patch.object(atlas, "ROOT", root),
+                  mock.patch.object(atlas, "validate", return_value=[entry]),
+                  mock.patch("tools.windows_visual_atlas_intake.code_state",
+                             return_value="integrated-current-visual") as code,
+                  mock.patch.object(atlas, "valid_receipt",
+                                    side_effect=AssertionError(
+                                        "failed capture fell through to incidental"))):
+                data = atlas.build({"entries": [entry]}, root / "site",
+                                   root, source)
+            self.assertEqual(data["counts"]["capture_failed"], 1)
+            self.assertEqual(data["counts"]["captured"], 0)
+            self.assertEqual(data["entries"][0]["status"], "capture_failed")
+            self.assertNotIn("image", data["entries"][0])
+            code.assert_not_called()
+
     def test_capture_driver_without_native_witness_is_a_failed_case(self):
         entry = {"id": "URV-MD-001", "capture": {
             "shard": "frontend", "route": "root-quit", "size": "1280x720"}}

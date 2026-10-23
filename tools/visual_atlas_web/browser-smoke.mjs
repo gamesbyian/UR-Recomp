@@ -24,12 +24,19 @@ const server=createServer((req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const address='http://127.0.0.1:'+server.address().port+'/';
 const chromeProfile=mkdtempSync(join(tmpdir(),'ur-atlas-optical-'));
+// Reserve an ephemeral port: runner Chrome variants do not always write DevToolsActivePort.
+const probe=createServer();
+await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));
+const debugPort=probe.address().port;
+await new Promise(resolve=>probe.close(resolve));
+let chromeErrors='';
 const chrome=spawn(process.env.CHROME_BIN||'/usr/bin/google-chrome',[
   '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
   '--no-first-run','--no-default-browser-check','--disable-extensions',
-  '--no-proxy-server','--remote-debugging-port=0',
+  '--no-proxy-server','--remote-debugging-port='+debugPort,
   '--user-data-dir='+chromeProfile,'about:blank'
-],{stdio:'ignore'});
+],{stdio:['ignore','ignore','pipe']});
+chrome.stderr?.on('data',chunk=>{chromeErrors=(chromeErrors+String(chunk)).slice(-4000)});
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const awaiting=new Map();
 let ws,session,sequence=0;
@@ -51,15 +58,19 @@ async function runScript(expression){
 }
 const summary=[];
 try{
-  let port='';
+  let endpoint='';
   for(let tick=0;tick<100;tick++){
-    if(chrome.exitCode!==null)throw Error('Chromium exited before debugger was available');
-    const path=join(chromeProfile,'DevToolsActivePort');
-    if(existsSync(path)){port=readFileSync(path,'utf8').split('\n')[0];break}
+    if(chrome.exitCode!==null)break;
+    try{
+      const response=await fetch('http://127.0.0.1:'+debugPort+'/json/version');
+      if(response.ok){
+        endpoint=(await response.json()).webSocketDebuggerUrl;
+        if(endpoint)break;
+      }
+    }catch(_){ /* Chrome has not started listening yet. */ }
     await pause(100);
   }
-  if(!port)throw Error('Cannot discover local Chromium debugging port');
-  const endpoint=(await (await fetch('http://127.0.0.1:'+port+'/json/version')).json()).webSocketDebuggerUrl;
+  if(!endpoint)throw Error('Chromium debugger did not start; exit='+chrome.exitCode+' stderr='+chromeErrors.slice(-1600));
   ws=new WebSocket(endpoint);
   await new Promise((resolve,reject)=>{
     ws.addEventListener('open',resolve,{once:true});

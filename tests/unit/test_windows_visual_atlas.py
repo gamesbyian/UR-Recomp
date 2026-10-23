@@ -107,6 +107,51 @@ class WindowsAtlasTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "source_sha"):
                 atlas.valid_receipt(entry, root, "f"*40, None)
 
+    def test_failed_capture_partial_receipt_does_not_break_partial_site(self):
+        source = "a" * 40
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            case = root / "captures" / "URV-MD-001"
+            case.mkdir(parents=True)
+            (case / "readback-receipt.json").write_text(
+                '{"incomplete":true}', encoding="utf-8")
+            (case / "capture-failure.json").write_text(json.dumps({
+                "id": "URV-MD-001", "status": "failed", "reason": "driver exited"
+            }), encoding="utf-8")
+            with mock.patch.object(atlas, "valid_receipt",
+                                   side_effect=AssertionError("partial receipt admitted")):
+                data = atlas.build(atlas.load_catalog(), root / "site", root, source)
+            self.assertEqual(data["counts"]["capture_failed"], 1)
+            self.assertEqual(data["counts"]["captured"], 0)
+            case_data = next(e for e in data["entries"] if e["id"] == "URV-MD-001")
+            self.assertEqual(case_data["status"], "capture_failed")
+
+    def test_capture_driver_without_native_witness_is_a_failed_case(self):
+        entry = {"id": "URV-MD-001", "capture": {
+            "shard": "frontend", "route": "root-quit", "size": "1280x720"}}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            exe = root / "game.exe"
+            exe.write_bytes(b"synthetic executable")
+            def driver(command, **_kwargs):
+                output = Path(command[command.index("--out") + 1])
+                output.mkdir(parents=True)
+                (output / "readback-receipt.json").write_text(
+                    '{"incomplete":true}', encoding="utf-8")
+                return mock.Mock(returncode=0, stdout="", stderr="")
+            with (mock.patch.object(atlas, "validate", return_value=[entry]),
+                  mock.patch.object(atlas.subprocess, "run", side_effect=driver),
+                  mock.patch.object(atlas, "valid_receipt", return_value=({}, "b" * 64)),
+                  mock.patch("tools.windows_visual_atlas_intake.witness", return_value=False)):
+                status = atlas.capture_shard(
+                    {"entries": [entry]}, shard="frontend", exe=exe,
+                    rom=root / "retail.sfc", target=root / "output",
+                    source="a" * 40, timeout=5, workers=1)
+            self.assertEqual(status, 1)
+            failed = root / "output" / "captures" / "URV-MD-001" / "capture-failure.json"
+            self.assertTrue(failed.is_file())
+            self.assertIn("native P7/log witness", failed.read_text(encoding="utf-8"))
+
     def test_assembled_capture_requires_independent_native_witness(self):
         # A PNG with a matching JSON receipt must not earn captured status
         # without the original P7 pixels and native-process log. The witness

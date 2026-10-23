@@ -19,7 +19,7 @@ This is the **small orientation and enduring contract**, not a progress diary. T
 | C guest/ABI, platform portability | `docs/RECOMP-C-PRACTICES.md`, `docs/VALIDATION.md`, `docs/PLATFORM-TARGETS.md` |
 | Tool choice, third-party research or source adoption | `docs/TOOLCHAIN.md`, `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, `docs/EXTERNAL-EVIDENCE-INTAKE.md` |
 | CI/workflow efficiency, heavyweight analysis | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, `docs/VALIDATION.md` |
-| Vault recovery / stranded source / publication | `docs/recovery/RECOVERY-AGENT-DIRECT-INTAKE-HANDOFF.md`, `docs/recovery/DIRECT-VAULT-INTAKE.md`, publication and preservation contracts |
+| Vault recovery / stranded source / publication | `docs/recovery/RECOVERY-AGENT-DIRECT-INTAKE-HANDOFF.md`, `docs/recovery/RECURRING-VAULT-INTAKE.md`, `docs/recovery/DIRECT-VAULT-INTAKE.md`, publication and preservation contracts |
 | Research method or orientation to a subsystem | `docs/knowledge/README.md`, `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`, then source/evidence |
 | Periodic repo hygiene, historical diary | `docs/PERIODIC-REPOSITORY-HYGIENE.md`; for diary specifically `prod_diary/README.md` and editorial guide |
 

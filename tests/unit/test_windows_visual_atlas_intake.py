@@ -118,7 +118,7 @@ class WindowsAtlasIntakeTests(unittest.TestCase):
             with patch.object(intake, "code_state", return_value="integrated-current-visual"):
                 result = self.scan(root)
             self.assertEqual(result["counts"]["eligible"], 0)
-            self.assertIn("mapping", result["candidates"][0]["reason"])
+            self.assertIn("execution mode", result["candidates"][0]["reason"])
 
     def test_code_state_fail_closed_without_git_objects(self):
         with tempfile.TemporaryDirectory() as temp:

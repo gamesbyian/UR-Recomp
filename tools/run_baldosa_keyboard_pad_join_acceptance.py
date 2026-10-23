@@ -33,7 +33,10 @@ from pathlib import Path
 from baldosa_native_first_racer_probe import run_game
 
 QUIET = "turbo on\nwait 900\nquit\n"
-JOIN = "wait 400\nquit\n"
+JOIN = "wait 400\nquit\n"  # Negative controls retain their short bounded window.
+# The established native Windows Modern 2P journey uses 1800 turbo frames
+# for the actual guest stock-menu transition; 400 can stop before admission.
+POSITIVE_JOIN = "turbo on\nwait 1800\nquit\n"
 
 
 def lines(log: str, pattern: str) -> list[str]:
@@ -48,6 +51,40 @@ def ordered(log: str, stages: tuple[str, ...], label: str) -> None:
         at.append(log.index(stage))
     if at != sorted(at):
         raise ValueError(f"{label}: stages out of order")
+
+
+def verify_keyboard_plus_pad(log: str) -> None:
+    """Require the real guest's 2P stock admission, not merely a join request."""
+    ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+                  "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
+                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+                  "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+                  "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"),
+            "keyboard+pad")
+    if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1")) != 1:
+        raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")
+    for forbidden in ("join_rejected", "join_seat_left", "stock_rejected=",
+                      "stock_requested players=1", "stock_entered players=1"):
+        if forbidden in log:
+            raise ValueError(f"keyboard+pad: unexpected {forbidden}")
+
+
+def reject_unexpected_stock_route(log: str, label: str) -> None:
+    """A withdrawn/cancelled join must not request OR enter a stock route."""
+    for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
+                   "UR_BALDOSA_MODERN_ROOT stock_entered"):
+        if marker in log:
+            raise ValueError(f"{label}: unexpected {marker}")
+
+
+def route_milestones(log: str) -> list[str]:
+    """Retain a bounded native route trace in CI errors without dumping the log."""
+    return [
+        line for line in log.splitlines()
+        if line.startswith("UR_BALDOSA_MODERN_ROOT ") and
+        (" join_" in line or " stock_" in line)
+    ][-20:]
 
 
 def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
@@ -65,24 +102,23 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     if not (user / "profiles-v1.txt").is_file():
         raise ValueError("the two-racer roster was not created")
 
-    log = run_game(exe, rom, user, out / "keyboard_plus_pad", "15", JOIN, video, timeout)
-    ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
-                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
-                  "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
-                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
-                  "UR_BALDOSA_MODERN_ROOT stock_requested players=2"), "keyboard+pad")
-    if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1")) != 1:
-        raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")
-    if lines(log, "join_rejected") or lines(log, "join_seat_left"):
-        raise ValueError("keyboard+pad: a confirmation was rejected or withdrawn")
+    log = run_game(exe, rom, user, out / "keyboard_plus_pad", "15", POSITIVE_JOIN, video, timeout)
+    try:
+        verify_keyboard_plus_pad(log)
+    except ValueError as exc:
+        # The runner's work/log.txt survives locally but CI does not upload
+        # it on failure. Surface only source-owned route markers so the next
+        # native failure distinguishes timeout/rejection from late admission.
+        raise ValueError(
+            f"{exc}; native route milestones: {route_milestones(log)!r}"
+        ) from exc
 
     log = run_game(exe, rom, user, out / "p2_owner_leaves", "16", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
                   "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
                   "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 confirmation_cleared=1",
                   "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1"), "owner leaves")
-    if lines(log, "stock_requested players=2"):
-        raise ValueError("owner leaves: a 2P race was requested without P2's pad")
+    reject_unexpected_stock_route(log, "owner leaves")
     if lines(log, "join_pad_moved"):
         raise ValueError("owner leaves: a pad was moved although P1 confirmed by keyboard "
                          "while seat 2 was held")
@@ -97,20 +133,18 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             log.rindex("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2") < \
             log.index("UR_BALDOSA_MODERN_ROOT join_pad_returned"):
         raise ValueError("join cancelled: the returned pad did not drive the root")
-    if lines(log, "stock_requested"):
-        raise ValueError("join cancelled: a race was requested")
+    reject_unexpected_stock_route(log, "join cancelled")
 
     log = run_game(exe, rom, user, out / "lone_p2_pad", "18", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT lone_pad_promoted from=2 to=1",
                   "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2"), "lone P2 pad")
     if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=1 to=0")) != 1:
         raise ValueError("lone P2 pad: the host did not move the pad to seat 1 once")
-    if lines(log, "stock_requested"):
-        raise ValueError("lone P2 pad: a race was requested")
+    reject_unexpected_stock_route(log, "lone P2 pad")
 
     receipt = {
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
-        "keyboard_plus_pad": "pad_moved_to_p2_and_2p_requested",
+        "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
         "join_cancelled": "moved_pad_returned_to_p1_and_drives_root",
         "p2_owner_leaves": "p2_confirmation_withdrawn_no_2p",
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),

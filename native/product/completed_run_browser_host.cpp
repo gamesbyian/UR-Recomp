@@ -102,23 +102,14 @@ void diagnostic(const char* message) {
 std::string product_user_data_root() {
     const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
     if (override_root && *override_root) {
-        std::string root(override_root);
-        while (!root.empty() &&
-               (root.back() == '/' || root.back() == '\\')) {
-            root.pop_back();
-        }
-        return root;
+        return ur::product::host_trim_user_data_root(override_root);
     }
 
     char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
     if (!pref_path) return {};
     std::string root(pref_path);
     SDL_free(pref_path);
-    while (!root.empty() &&
-           (root.back() == '/' || root.back() == '\\')) {
-        root.pop_back();
-    }
-    return root;
+    return ur::product::host_trim_user_data_root(root);
 }
 
 std::string active_profile_id() {

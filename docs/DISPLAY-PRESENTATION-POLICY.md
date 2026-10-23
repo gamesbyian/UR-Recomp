@@ -245,7 +245,7 @@ Log tokens: `UR_SESSION_END console_event=…`, `end_session ending=1` and `pers
 - it posts `WM_CLOSE` to the game's own console window from a helper attached to it;
 - it performs a simulated close (test-only `close_thread`): the handler runs on a new thread and the process is terminated as soon as it returns, which is what the system does after a close.
 
-The hosted runner's console host did not raise `CTRL_CLOSE_EVENT` for a posted `WM_CLOSE`. The real close is therefore recorded `not_exercised` with the window class when no `console_event` follows within 15 s, and the simulated close carries the check.
+On one hosted run the console host did not raise `CTRL_CLOSE_EVENT` for a posted `WM_CLOSE`, while on the next it did: the game logged `console_event=console_close`, was terminated with `STATUS_CONTROL_C_EXIT`, and its saves were on disk. An undelivered real close is therefore recorded `not_exercised` with the window class when no `console_event` follows within 15 s, and the simulated close always carries the check.
 
 What is saved, and when the ordinary exit saves it, is unchanged. A real sign-out or shutdown is physical check S1.
 

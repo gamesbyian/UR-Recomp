@@ -17,6 +17,17 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class BaldosaNativeTypedSramCheckpointTest(unittest.TestCase):
+    def test_cold_recovery_preserves_native_unicode_paths(self):
+        source = (ROOT / "native/product/baldosa_native_sram_recovery.hpp").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn(".string()", source)
+        self.assertIn("write_host_create_staged_native(path, intent", source)
+        self.assertIn("write_host_create_staged_native(\n        path, intent.exact_bytes", source)
+        for name in ("selector", "catalog", "typed"):
+            self.assertIn(f"{name}.u8string()", source)
+        self.assertIn("TournamentLaunchPathLock selector_lock(selector, true)", source)
+
     def test_real_modern_codec_and_cas_checkpoint_semantics(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if compiler is None:

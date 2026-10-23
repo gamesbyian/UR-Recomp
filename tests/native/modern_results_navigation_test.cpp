@@ -107,5 +107,32 @@ int main() {
         assert(make_modern_results_navigation_menu(authentic).row_count == 0);
     }
 
+    {
+        // A stale selected index must never confirm row zero implicitly.
+        // Row zero may be NEXT EVENT and would change guest progression.
+        auto stale = make_modern_results_navigation_menu(ordinary());
+        stale.selected = stale.row_count;
+        assert(selected_modern_results_action(stale) == ModernResultsAction::None);
+        assert(activate_modern_results_navigation_menu(
+                   stale, ordinary(), UR_MODERN_HOST_NAV_CONFIRM) ==
+               ModernResultsAction::None);
+        assert(navigate_modern_results_navigation_menu(
+                   stale, UR_MODERN_HOST_NAV_CONFIRM).selected == stale.selected);
+        stale = navigate_modern_results_navigation_menu(
+            stale, UR_MODERN_HOST_NAV_DOWN);
+        assert(stale.selected == 0);
+        assert(selected_modern_results_action(stale) ==
+               ModernResultsAction::NextEvent);
+
+        // An impossible row count is rejected before indexing the fixed array.
+        stale.row_count = stale.rows.size() + 1;
+        assert(selected_modern_results_action(stale) == ModernResultsAction::None);
+        assert(activate_modern_results_navigation_menu(
+                   stale, ordinary(), UR_MODERN_HOST_NAV_CONFIRM) ==
+               ModernResultsAction::None);
+        assert(navigate_modern_results_navigation_menu(
+                   stale, UR_MODERN_HOST_NAV_UP).row_count == stale.row_count);
+    }
+
     return 0;
 }

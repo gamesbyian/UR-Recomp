@@ -1,6 +1,7 @@
 #include "host_product_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -19,7 +20,12 @@ HostProductLoadResult load_host_product_state_file(const std::string& path) {
     }
 
     errno = 0;
+#if defined(_WIN32)
+    const auto native_path = host_native_path_from_utf8(path);
+    std::FILE* file = _wfopen(native_path.c_str(), L"rb");
+#else
     std::FILE* file = std::fopen(path.c_str(), "rb");
+#endif
     if (!file) {
         if (errno == ENOENT) {
             return {HostProductLoadStatus::Missing, std::nullopt, {}};
@@ -72,7 +78,7 @@ HostProductSaveStatus save_host_product_state_file(
         return HostProductSaveStatus::Rejected;
     }
 
-    if (!write_host_replace_staged(path, encoded, "urhost")) {
+    if (!write_host_replace_staged(host_native_path_from_utf8(path), encoded, "urhost")) {
         return HostProductSaveStatus::IoError;
     }
     return HostProductSaveStatus::Saved;
@@ -86,7 +92,7 @@ HostProductSaveStatus save_host_product_state_file_if_current(
     if (path.empty() || encode_host_product_state(next).empty()) {
         return HostProductSaveStatus::Rejected;
     }
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProductSaveStatus::IoError;
 
     const auto current = load_host_product_state_file(path);

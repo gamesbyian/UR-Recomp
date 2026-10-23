@@ -99,7 +99,7 @@ class KeyboardPadJoinTests(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
             "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
         )
-        valid = "\\n".join(stages) + "\\n"
+        valid = "\n".join(stages) + "\n"
         runner.verify_keyboard_plus_pad(valid)
         for old, new in (
             (stages[-1], stages[-1] + "0"),

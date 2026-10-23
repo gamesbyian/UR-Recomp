@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 try:
     from tools import windows_visual_atlas as atlas
@@ -70,6 +71,11 @@ def witness(receipt: dict, folder: Path) -> bool:
     A directory may contain two probe folders. Select by content hashes,
     never by a guessed stage name or first matching filename.
     """
+    if (receipt.get("schema_version") != 1 or
+            type(receipt.get("native_process_exit")) is not int or
+            receipt["native_process_exit"] != 0 or
+            receipt.get("authentic_isolation_approved") is not False):
+        return False
     expected_p7 = receipt.get("p7_sha256")
     expected_log = receipt.get("native_process_log_sha256")
     if not isinstance(expected_p7, str) or not DIGEST_RE.fullmatch(expected_p7):
@@ -92,6 +98,20 @@ def witness(receipt: dict, folder: Path) -> bool:
         marker = f"output={dims[0]}x{dims[1]} source=SDL_RenderReadPixels"
         text = log.read_text(encoding="utf-8", errors="replace")
         if ("UR_MODERN_VISUAL_SDL_CAPTURE status=saved" not in text or marker not in text):
+            continue
+        # Re-run the existing no-resampling conversion, independently tying
+        # the observed native P7 pixel bytes to the candidate PNG bytes.
+        try:
+            from tools.qa_modern_visual_pam_png import convert
+        except ModuleNotFoundError:
+            from qa_modern_visual_pam_png import convert
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                regenerated = Path(tmp) / "from-observed-p7.png"
+                convert(raw, regenerated, (dims[0], dims[1]))
+                if atlas.sha256(regenerated) != receipt.get("png_sha256"):
+                    continue
+        except (OSError, ValueError):
             continue
         matches += 1
     return matches == 1

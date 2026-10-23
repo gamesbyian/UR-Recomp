@@ -118,15 +118,14 @@ inline void sync_published_directory_best_effort(
 } // namespace detail
 
 inline bool write_host_replace_staged(
-    const std::string& final_name,
+    const std::filesystem::path& final_path,
     std::string_view data,
     std::string_view staging_family,
     void (*after_staging_for_test)() = nullptr,
     bool (*sync_override_for_test)(std::FILE*) = nullptr,
     void (*after_publication_for_test)() = nullptr) {
     namespace fs = std::filesystem;
-    if (final_name.empty() || data.empty()) return false;
-    const fs::path final_path(final_name);
+    if (final_path.empty() || data.empty()) return false;
     const auto staging = detail::reserve_tournament_staging(
         final_path.parent_path(), staging_family);
     if (!staging) return false;
@@ -135,7 +134,13 @@ inline bool write_host_replace_staged(
         std::error_code ec;
         fs::remove_all(*staging, ec);
     };
-    std::FILE* file = std::fopen(tmp.string().c_str(), "wb");
+#if defined(_WIN32)
+    // Preserve the native UTF-16 path across Windows staging; ANSI conversion
+    // cannot round-trip some player profile names.
+    std::FILE* file = _wfopen(tmp.c_str(), L"wb");
+#else
+    std::FILE* file = std::fopen(tmp.c_str(), "wb");
+#endif
     if (!file) {
         cleanup();
         return false;

@@ -37,12 +37,15 @@ PRODUCERS = {
 # Changes to these files can alter a screen without changing the capture
 # route. Other code changes cannot establish visual stability on their own.
 VISUAL_PATHS = (
-    "native/product", "native/presentation", "native/title",
-    "tools/baldosa_native_modern_root.cpp",
-    "tools/baldosa_modern_profile_activation_spike.py",
-    "tools/qa_modern_visual_sdl_capture.py",
-    "tools/qa_modern_visual_win32_capture_driver.py",
-    "third_party",
+    # Be conservative: guest/host, display and presenter adapters can all
+    # change the same pixels without touching the obvious menu source files.
+    "native", "platform", "snesrecomp", "third_party",
+    "analysis/modern-product-settings.json",
+    "analysis/frontend-modernization-policy.json",
+    ":(glob)tools/baldosa_*",
+    ":(glob)tools/qa_modern_visual_*",
+    "tools/qa_modern_visual_pam_png.py",
+    "tools/windows_visual_atlas.py",
 )
 
 

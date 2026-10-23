@@ -51,7 +51,7 @@ jobs:
         shell: bash
         env:
           FOLDER_URL: ${{ inputs.folder_url || 'https://drive.google.com/drive/folders/1cdovDqle9IRYKX2lCt513mtWge75HywX' }}
-          DRIVE_FILE_ID: ${{ inputs.drive_file_id }}
+          DRIVE_FILE_ID: ${{ github.event_name == 'pull_request' && '1C57qeOCaNH7EHxVDNZaM6qcy3W7SeCji' || inputs.drive_file_id }}
           DOWNLOAD_ALL: ${{ inputs.download_all }}
           STAGE_SOURCES: ${{ inputs.stage_sources }}
           CONFIRM_SOURCE_REVIEW: ${{ inputs.confirm_source_review }}

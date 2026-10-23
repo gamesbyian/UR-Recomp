@@ -19,6 +19,7 @@ import subprocess
 import sys
 import os
 import time
+import tempfile
 from threading import Lock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -163,6 +164,52 @@ def valid_receipt(entry: dict, root: Path, source: str, exe_digest: str | None) 
     return receipt, digest
 
 
+
+def restore_verified_capture(entry: dict, previous: Path, location: Path,
+                             source: str, exe_digest: str) -> bool:
+    """Rehydrate one same-source/PE capture with its original native witnesses.
+
+    Stage atomically so a failed copy cannot leave a partial directory that
+    prevents the real capture driver from retrying this case.
+    """
+    if not previous.is_dir() or previous.is_symlink():
+        return False
+    receipt, prior_digest = valid_receipt(entry, previous, source, exe_digest)
+    if prior_digest != exe_digest:
+        return False
+    try:
+        from tools.windows_visual_atlas_intake import witness
+    except ModuleNotFoundError:
+        from windows_visual_atlas_intake import witness
+    if not witness(receipt, previous):
+        return False
+    with tempfile.TemporaryDirectory(prefix="atlas-resume-", dir=location.parent) as tmp:
+        staged = Path(tmp) / "case"
+        staged.mkdir()
+        for name in ("readback-receipt.json", "actual-sdl-drawable.png"):
+            shutil.copyfile(previous / name, staged / name)
+        matched = 0
+        for name in ("probe_first", "capture_observed"):
+            original = previous / name
+            if original.is_symlink():
+                raise ValueError("Redirected prior native witness directory")
+            raw = original / "actual-sdl-drawable.pam"
+            log = original / "native-process.log"
+            if (original.is_dir() and raw.is_file() and log.is_file()
+                    and not raw.is_symlink() and not log.is_symlink()
+                    and sha256(raw) == receipt.get("p7_sha256")
+                    and sha256(log) == receipt.get("native_process_log_sha256")):
+                destination = staged / name
+                destination.mkdir()
+                shutil.copyfile(raw, destination / raw.name)
+                shutil.copyfile(log, destination / log.name)
+                matched += 1
+        if matched != 1 or not witness(receipt, staged):
+            return False
+        staged.rename(location)
+    return True
+
+
 def build(catalog: dict, target: Path, captures: Path | None, source: str | None) -> dict:
     entries = validate(catalog)
     if target.exists():
@@ -305,7 +352,7 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
                      "completed": done, "total": len(matched), "active": sorted(running),
                      "source_sha": source, "exe_sha256": exe_digest}
             with journal.open("a", encoding="utf-8") as stream:
-                stream.write(json.dumps(event, sort_keys=True) + "\\n")
+                stream.write(json.dumps(event, sort_keys=True) + "\n")
                 stream.flush()
                 os.fsync(stream.fileno())
             print(f"::notice title=Atlas {shard} progress::{done}/{len(matched)} "
@@ -316,27 +363,14 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
         location.parent.mkdir(parents=True, exist_ok=True)
         announce("start", entry["id"])
         if resume_from is not None:
-            previous = resume_from / entry["id"]
-            if previous.is_dir() and not previous.is_symlink():
-                try:
-                    receipt, prior_digest = valid_receipt(entry, previous, source, exe_digest)
-                    # The exact prior source and PE are a hard requirement.
-                    # A failure marker or incomplete prior result is never reused.
-                    try:
-                        from tools.windows_visual_atlas_intake import witness
-                    except ModuleNotFoundError:
-                        from windows_visual_atlas_intake import witness
-                    # A hash-consistent receipt alone is insufficient. Require
-                    # the previous raw final-SDL capture and original log too.
-                    if prior_digest == exe_digest and witness(receipt, previous):
-                        location.mkdir()
-                        for name in ("readback-receipt.json", "actual-sdl-drawable.png"):
-                            shutil.copyfile(previous / name, location / name)
-                        announce("end", entry["id"], result="resumed")
-                        return {"id": entry["id"], "result": "captured",
-                                "reused": True}
-                except (OSError, ValueError, KeyError, json.JSONDecodeError):
-                    pass  # Reattempt a genuinely incomplete or stale case.
+            # The producer and its uploaded artifact both nest cases in captures/.
+            previous = resume_from / "captures" / entry["id"]
+            try:
+                if restore_verified_capture(entry, previous, location, source, exe_digest):
+                    announce("end", entry["id"], result="resumed")
+                    return {"id": entry["id"], "result": "captured", "reused": True}
+            except (OSError, ValueError, KeyError, json.JSONDecodeError):
+                pass  # Reattempt a genuinely incomplete or stale case.
         cmd = [
             sys.executable, str(ROOT / "tools/qa_modern_visual_win32_capture_driver.py"),
             "--exe", str(exe.resolve()), "--rom", str(rom.resolve()),

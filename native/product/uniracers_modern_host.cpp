@@ -297,6 +297,9 @@ std::string g_profile_edit_target_id;
 bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
 bool g_profile_select_failed = false;
+// An unreadable canonical roster must not expose stale cached entries to
+// profile selection or mutation. Closing and reopening retries the read.
+bool g_profile_catalog_refresh_failed = false;
 bool g_profile_edit_save_failed = false;
 enum class ProfileResetNotice { None, Unavailable, Failed };
 ProfileResetNotice g_profile_reset_notice = ProfileResetNotice::None;
@@ -2173,7 +2176,18 @@ bool rename_profile_from_editor() {
 }
 
 void open_profile_menu() {
-    ensure_profile_catalog();
+    // Always read the canonical roster on opening: another process may have
+    // added, renamed or removed racers since this host cached the catalog.
+    // A failed read is distinct from a valid empty catalog; keep old bytes
+    // for diagnostics but disable the chooser until an explicit reopen.
+    const auto current_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    g_profile_catalog_refresh_failed = !current_catalog.has_value();
+    if (current_catalog) {
+        g_profile_catalog = *current_catalog;
+    } else {
+        product_diagnostic("UR_PROFILE_UI CATALOG_REFRESH_FAILED");
+    }
     g_profile_edit_target_id.clear();
     g_profile_menu_visible = true;
     g_profile_select_failed = false;
@@ -2347,6 +2361,15 @@ bool append_profile_editor_key(int key) {
 bool handle_profile_menu_key(int key) {
     ensure_profile_catalog();
     reconcile_profile_menu_index();
+    // Never activate, rename, create or reset against an old in-memory roster
+    // when the authoritative disk catalog could not be read. Escape remains
+    // available, and opening the chooser again retries the canonical read.
+    if (g_profile_catalog_refresh_failed) {
+        if (key == SDLK_ESCAPE || key == SDLK_F2) {
+            g_profile_menu_visible = false;
+        }
+        return true;
+    }
 
     if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
         if (key == SDLK_ESCAPE || key == SDLK_b) {
@@ -10023,6 +10046,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height,
             x + 8 * scale, y + 7 * scale,
             "RACERS / PROFILES", 0xFFFFFFFFu, scale);
+        if (g_profile_catalog_refresh_failed) {
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale,
+                y + 52 * scale, "CATALOG UNAVAILABLE", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale,
+                y + 97 * scale, "ESC / F2 CLOSE - RETRY", 0xFFFFFFFFu, scale);
+            return;
+        }
 
         if (ur::product::modern_profile_reset_confirming(
                 g_profile_reset)) {

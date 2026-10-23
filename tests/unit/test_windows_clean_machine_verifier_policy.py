@@ -485,19 +485,24 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.script.index('Get-FileHash -LiteralPath $member'),
         )
 
-    def test_success_artifact_contains_standalone_verifier(self):
+    def test_standalone_verifier_is_exercised_without_publishing_private_zip(self):
         workflow = (ROOT / ".github/workflows/windows-native-smoke.yml").read_text()
+        verification = workflow.index(
+            "- name: Independently verify portable ZIP with stock Windows PowerShell")
         copy = workflow.index('cp "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1"')
-        upload = workflow.index("- name: Upload portable Windows package")
-        self.assertLess(copy, upload)
+        upload_policy = workflow.index("- name: Verify archive-free Windows artifact upload policy")
+        upload = workflow.index("- name: Upload Windows evidence")
+        # Keep real Windows validation before the redaction-only upload.
+        self.assertLess(verification, copy)
+        self.assertLess(copy, upload_policy)
+        self.assertLess(upload_policy, upload)
         consumer_upload = workflow[upload:]
-        for item in (
-            "UR-Recomp-Windows-x64.zip",
-            "UR-Recomp-Windows-x64.zip.sha256",
-            "Test-URRecompPortable.ps1",
-            "if: success()",
-        ):
-            self.assertIn(item, consumer_upload)
+        self.assertIn("if: always()", consumer_upload)
+        self.assertIn("UR-Recomp-Windows-x64.zip.sha256", consumer_upload)
+        self.assertNotIn("- name: Upload portable Windows package", workflow)
+        self.assertFalse(any(line.strip().endswith("/UR-Recomp-Windows-x64.zip")
+                             for line in consumer_upload.splitlines()))
+        self.assertNotIn("Test-URRecompPortable.ps1", consumer_upload)
         self.assertIn("includes", self.instructions)
         self.assertIn("Test-URRecompPortable.ps1", self.instructions)
 

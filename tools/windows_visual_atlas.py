@@ -177,6 +177,16 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         shutil.copyfile(WEB / name, target / name)
     published = []
     exe_digest = None
+    # Reviewed, content-addressed incidental snapshots from the repository.
+    # A current output build uses these only when its own source/code history
+    # still proves they represent the integrated visual implementation.
+    retained = ROOT / "media/windows-visual-atlas/approved"
+    try:
+        from tools.windows_visual_atlas_intake import code_state
+    except ModuleNotFoundError:
+        from windows_visual_atlas_intake import code_state
+    main_sha = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+                              text=True, capture_output=True).stdout.strip()
     counts = {"captured": 0, "capture_failed": 0, "capture_pending": 0, "planned": 0}
     for entry in entries:
         case = dict(entry)
@@ -209,6 +219,44 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
                 if failure_data.get("id") != entry["id"]:
                     raise ValueError(f"{entry['id']}: unrelated failure marker")
                 case["status"] = "capture_failed"
+        # Prefer exact capture from this run. Fall back to a reviewed,
+        # committed incidental source only if it is still code-current.
+        if case["status"] != "captured":
+            stock = retained / entry["id"]
+            approval_file = stock / "intake-approval.json"
+            if stock.is_dir() and not stock.is_symlink() and approval_file.is_file():
+                approval = json.loads(approval_file.read_text(encoding="utf-8"))
+                src = approval.get("source_sha", "")
+                if (approval.get("atlas_id") == entry["id"]
+                        and approval.get("schema_version") == 1
+                        and approval.get("code_integrated_at_scan") is True
+                        and approval.get("independent_visual_approval") is False
+                        and approval.get("release_gate_credit") == 0
+                        and code_state(src, ROOT, main_sha) == "integrated-current-visual"):
+                    receipt, _ = valid_receipt(entry, stock, src, None)
+                    if (receipt["png_sha256"] != approval.get("png_sha256")
+                            or receipt["exe_sha256"] != approval.get("exe_sha256")):
+                        raise ValueError(f"{entry['id']}: approved incidental digest drift")
+                    image_name = entry["id"] + ".png"
+                    shutil.copyfile(stock / "actual-sdl-drawable.png",
+                                    target / "images" / image_name)
+                    case["status"] = "captured"
+                    case["image"] = "images/" + image_name
+                    case["evidence"] = {
+                        "source_sha": src, "exe_sha256": receipt["exe_sha256"],
+                        "png_sha256": receipt["png_sha256"],
+                        "capture_route": receipt["native_semantic_route"],
+                        "SDL_driver": "windows",
+                        "output_pixels": receipt["actual_sdl_renderer_output"],
+                        "producer_workflow": approval.get("producer_workflow"),
+                        "producer_run": approval.get("producer_run"),
+                        "capture_origin": "approved-integrated-incidental",
+                        "actual_sdl_final_drawable": True,
+                        "physical_screen_verified": False,
+                        "release_accepted": False,
+                    }
+                else:
+                    case["incidental_stale"] = True
         counts[case["status"]] += 1
         published.append(case)
     data = {

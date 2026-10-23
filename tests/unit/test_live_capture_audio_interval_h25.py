@@ -59,6 +59,33 @@ class H25AudioIntervalTests(unittest.TestCase):
             w.finish(attempt='race', profile='p', terminal_frame=1,
                      terminal_pts_ns=33_333_334)
 
+    def test_invalid_next_frame_timestamp_poisoned_before_clock_arithmetic(self):
+        # Previous H25 subclass performed pts_ns - prior_pts before the
+        # underlying byte witness could validate and poison malformed input.
+        for invalid in (None, True, False, 16_666_667.0, '16666667', 0, -1):
+            with self.subTest(invalid=repr(invalid)):
+                w = self.witness()
+                self.add(w, 0, 0, 0, 800)
+                with self.assertRaisesRegex(ValueError, 'nonmonotonic presentation timestamp'):
+                    self.add(w, 1, invalid, 800, 800)
+                self.assertEqual(w.incomplete_reason,
+                                 'nonmonotonic presentation timestamp')
+                self.assertEqual(w.frame_count, 1)
+                # Replacing the bad frame with a valid one cannot make the
+                # originally incomplete stream qualify for a receipt.
+                with self.assertRaisesRegex(ValueError, 'capture already incomplete'):
+                    self.add(w, 1, 16_666_667, 800, 800)
+                self.assertEqual(w.frame_count, 1)
+
+    def test_clock_prevalidation_cannot_override_existing_incomplete_reason(self):
+        w = self.witness()
+        self.add(w, 0, 0, 0, 800)
+        with self.assertRaisesRegex(ValueError, 'audio gap/overlap'):
+            self.add(w, 1, 16_666_667, 799, 800)
+        with self.assertRaisesRegex(ValueError, 'capture already incomplete'):
+            self.add(w, 1, None, 800, 800)
+        self.assertEqual(w.incomplete_reason, 'audio gap/overlap')
+
     def test_invalid_or_backwards_terminal_time_refuses(self):
         for invalid in (None, True, 16_666_667, 0, '33333334'):
             with self.subTest(value=invalid):

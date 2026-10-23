@@ -117,6 +117,39 @@ class ExportEarnedRunTests(unittest.TestCase):
                             original_report)
         self.assertFalse(manifest['independent_release_acceptance'])
 
+    def _export_with_mutation_during_staging(self, mutate):
+        # json.dump writes the manifest after both members are staged and
+        # verified, i.e. inside the staging phase and before the recheck.
+        real_dump = json.dump
+
+        def mutate_then_dump(*args, **kwargs):
+            mutate()
+            return real_dump(*args, **kwargs)
+
+        with patch('export_baldosa_earned_1p_run.json.dump',
+                   side_effect=mutate_then_dump):
+            with self.assertRaises(ValueError) as caught:
+                export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+        self.assertFalse(list(self.base.glob('.pending-earned-1p-*')))
+        return str(caught.exception)
+
+    def test_source_run_changed_during_staging_is_refused(self):
+        message = self._export_with_mutation_during_staging(
+            lambda: self.run.write_bytes(b'changed during staging'))
+        self.assertIn('changed during staging', message)
+
+    def test_source_report_changed_during_staging_is_refused(self):
+        message = self._export_with_mutation_during_staging(
+            lambda: (self.journey / 'report.json').write_text(
+                json.dumps(dict(self.report, release_gate_credit=0, note='x'))))
+        self.assertIn('changed during staging', message)
+
+    def test_second_run_appearing_during_staging_is_refused(self):
+        message = self._export_with_mutation_during_staging(
+            lambda: (self.runs / 'other.urrun').write_bytes(b'late sibling'))
+        self.assertIn('namespace changed during staging', message)
+
     @unittest.skipUnless(sys.platform.startswith('linux'),
                          'POSIX surrogateescaped filename fixture')
     def test_rejects_surrogateescaped_source_run_with_bounded_error(self):

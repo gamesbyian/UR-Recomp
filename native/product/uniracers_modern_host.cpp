@@ -2141,6 +2141,26 @@ bool rename_profile_from_editor() {
     ensure_profile_catalog();
     if (g_profile_edit_target_id.empty() ||
         !ur::product::valid_racer_name(g_profile_edit_name)) return false;
+    // The editor can outlive another process's catalog update. Validate the
+    // roster before writing profile metadata, not only at the catalog CAS:
+    // that CAS remains the final authority against races after this read.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_RENAME CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        // A stale row index must never retarget a still-open rename editor.
+        // Reconcile by its immutable target ID; if removed, fall back to the
+        // first available row and let a subsequent Save reject the missing ID.
+        g_profile_menu_index = 0;
+        reconcile_profile_menu_index();
+        product_diagnostic("UR_PROFILE_RENAME CATALOG_CHANGED_RETRY");
+        return false;
+    }
     const auto target = std::find_if(
         g_profile_catalog.begin(), g_profile_catalog.end(),
         [](const auto& entry) {

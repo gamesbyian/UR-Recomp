@@ -1,5 +1,7 @@
 # UR-Recomp recovery entrypoint
 
+**Continuous intake:** [Recurring Vault Intake](RECURRING-VAULT-INTAKE.md) describes the six-hour GitHub Actions metadata-and-checkpoint route. A successful direct binary download was verified by [run 40022473433](https://github.com/gamesbyian/UR-Recomp/actions/runs/40022473433). These do not certify public source publication or engineering integration.
+
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.
 
 **New transport route (2026-10-23):** [Direct Vault Intake](DIRECT-VAULT-INTAKE.md) and [Recovery Agent Handoff](RECOVERY-AGENT-DIRECT-INTAKE-HANDOFF.md) replace conversational base64 relay for accessible archives. Successful [inventory run 40020834318](https://github.com/gamesbyian/UR-Recomp/actions/runs/40020834318) listed **45 Incoming direct files / 0 errors**, without downloading archive bytes; first real ZIP transfer is pending validation. [PR #2435](https://github.com/gamesbyian/UR-Recomp/pull/2435) merged the working gdown 6.4.2 and PR inventory trigger. No release or integration credit from enumeration. Historical checkpoints below are unchanged.

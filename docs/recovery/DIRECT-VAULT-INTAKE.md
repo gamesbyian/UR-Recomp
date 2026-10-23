@@ -75,11 +75,13 @@ in `staged/<Drive ID>/`. The workflow supports manual dispatch and a narrowly sc
 `contents: read` permissions. It does not run on cron. A PR changing the workflow YAML also invokes the inventory-only check; PRs cannot use the reviewed source-staging action. Whole-folder download is an explicit optional audit,
 bounded to 64 MiB per file and 128 MiB per run.
 
+**Scheduled follow-up:** [Recurring Vault Intake](RECURRING-VAULT-INTAKE.md) creates resumable bounded metadata audits and review-lead queue artifacts every six hours. That process does not automatically stage source or commit it to the repository; use this manual workflow's reviewed staging action where warranted. The ZIP download itself was verified by [run 40022473433](https://github.com/gamesbyian/UR-Recomp/actions/runs/40022473433): one ZIP downloaded, zero errors, report artifact created.
+
 ## Intended next integration enhancements
 
-After a successful owner-driven intake smoke run, agents can add ID-level
-checkpoint/resume, incoming-versus-existing-GitHub semantic classification,
-and narrowly authorized draft-PR creation. Keep raw restricted materials out
+The recurring route now provides ID-level checkpoint/resume and exact Git-blob
+review leads. True semantic classification and narrowly authorized draft-PR
+creation remain agent-owned, not automated publication. Keep raw restricted materials out
 of the public tree, preserve original Drive IDs, and continue disposition
 tracking through [issue #2088](https://github.com/gamesbyian/UR-Recomp/issues/2088).
 Do not introduce automatic public publishing or Drive deletion.
@@ -92,4 +94,4 @@ Do not introduce automatic public publishing or Drive deletion.
 4. Compare against fresh main and open PRs, then create the smallest functional source/test PR. **Do not auto-apply all unmatched source bytes.** An unmatched blob is only a review lead. Move on to the next independent candidate while CI runs.
 5. Record per-ID/member dispositions with commit and test evidence in #2088. Preserve Drive source copies; never delete/move items solely because a report was generated.
 
-**Caveat:** the first proven successful run enumerated 45 files but downloaded none. Before treating transfer as production-validated, perform an actual single-ID audit from a runner or local Python using a deliberately selected reviewed package, and verify its outer SHA and ZIP members. Direct folder listing can be incomplete for nested folders; cross-check authenticated Drive inventory.
+**Proven transfer:** [run 40022473433](https://github.com/gamesbyian/UR-Recomp/actions/runs/40022473433) downloaded and audited one 2,688-byte ZIP with no reported errors. The recurring workflow additionally includes a multi-megabyte PR smoke test. Public folder listing can be incomplete for nested folders; cross-check authenticated Drive inventory.

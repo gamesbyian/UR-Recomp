@@ -229,9 +229,9 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     # still proves they represent the integrated visual implementation.
     retained = ROOT / "media/windows-visual-atlas/approved"
     try:
-        from tools.windows_visual_atlas_intake import code_state
+        from tools.windows_visual_atlas_intake import code_state, witness
     except ModuleNotFoundError:
-        from windows_visual_atlas_intake import code_state
+        from windows_visual_atlas_intake import code_state, witness
     main_sha = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
                               text=True, capture_output=True).stdout.strip()
     counts = {"captured": 0, "capture_failed": 0, "capture_pending": 0, "planned": 0}
@@ -246,6 +246,11 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
                 if not source or not re.fullmatch(r"[0-9a-f]{40}", source):
                     raise ValueError("Exact 40-hex source SHA required when publishing captures")
                 evidence, exe_digest = valid_receipt(entry, case_root, source, exe_digest)
+                # A matching PNG/receipt alone is insufficient to assert a
+                # genuine native SDL capture. Preserve the independent P7 and
+                # process-log witness contract used by intake and resume.
+                if not witness(evidence, case_root):
+                    raise ValueError(f"{entry['id']}: missing or invalid native P7/log witness")
                 image_name = entry["id"] + ".png"
                 shutil.copyfile(case_root / "actual-sdl-drawable.png", target / "images" / image_name)
                 case["status"] = "captured"

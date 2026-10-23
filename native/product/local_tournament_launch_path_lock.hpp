@@ -1,5 +1,4 @@
 #pragma once
-#include "local_tournament_utf8_path.hpp"
 
 // Scoped interprocess exclusion for one mutable tournament launch pathname.
 // Both publication and exact-attempt retirement MUST acquire the SAME lock
@@ -31,10 +30,16 @@ namespace ur::product {
 class TournamentLaunchPathLock {
 public:
     explicit TournamentLaunchPathLock(const std::string& target,
+                                      bool nonblocking = false)
+        : TournamentLaunchPathLock(std::filesystem::path(target), nonblocking) {}
+
+    // Native path overload for callers that have explicitly decoded UTF-8.
+    // Legacy narrow-string callers retain their existing path semantics.
+    explicit TournamentLaunchPathLock(const std::filesystem::path& target,
                                       bool nonblocking = false) {
         if (target.empty()) return;
         const std::filesystem::path lock_path =
-            host_native_path_from_utf8(target).concat(".urmutex");
+            std::filesystem::path(target).concat(".urmutex");
 #if defined(_WIN32)
         file_ = CreateFileW(
             lock_path.c_str(), GENERIC_READ | GENERIC_WRITE,

@@ -106,6 +106,7 @@ extern "C" {
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <cstring>
 #include <cstdio>

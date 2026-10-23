@@ -162,13 +162,20 @@ bool append_completed_run_record(
 }
 
 std::vector<InspectedRunRecordArtifact>
-inspect_completed_run_record_artifacts(const std::string& directory) {
+inspect_completed_run_record_artifacts(const std::string& directory,
+                                       bool* scan_succeeded) {
+    if (scan_succeeded) *scan_succeeded = false;
     std::vector<InspectedRunRecordArtifact> out;
     std::error_code ec;
     // The generic run reader is also used outside the Baldosa Records UI:
     // do not bypass that UI's direct-directory guard through Local Runs,
     // replay-target selection or another native product consumer.
     const auto directory_status = fs::symlink_status(directory, ec);
+    if (directory_status.type() == fs::file_type::not_found &&
+        (!ec || ec == std::errc::no_such_file_or_directory)) {
+        if (scan_succeeded) *scan_succeeded = true;
+        return out;
+    }
     if (ec || !fs::is_directory(directory_status) ||
         fs::is_symlink(directory_status)) return out;
 
@@ -206,6 +213,7 @@ inspect_completed_run_record_artifacts(const std::string& directory) {
         }
         out.push_back(std::move(artifact));
     }
+    if (scan_succeeded) *scan_succeeded = true;
     return out;
 }
 

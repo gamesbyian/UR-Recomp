@@ -46,7 +46,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install pinned public Drive downloader
-        run: python -m pip install 'gdown==6.0.0'
+        run: python -m pip install 'gdown==6.4.2'
       - name: Index and optionally stage a specifically reviewed package
         shell: bash
         env:

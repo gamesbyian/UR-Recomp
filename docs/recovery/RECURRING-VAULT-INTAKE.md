@@ -26,7 +26,7 @@ the existing public-Drive download helper and current-revision Git blob crosswal
    - \`queue.json\`: unaudited file IDs, failed downloads, and existing
      unmatched/source-like **review leads** for recovery agents.
 
-The checkpoint is not a semantic integration ledger. ZIP member names and
+Failed file IDs are retained separately and attempted **after** fresh candidates, so a repeatedly malformed package cannot stall all scheduled progress. The checkpoint is not a semantic integration ledger. ZIP member names and
 blob hashes may provide leads, **not rights or publication permission**.
 Archives can be changed under the same Drive ID: every verified file becomes
 eligible for re-download after 14 days, or at any time with a manual
@@ -80,6 +80,8 @@ its workflow, Python code or tests. It runs local tests and attempts the known
 mode. This intentionally bypasses the historical checkpoint and never stages
 source. If the package is malformed or inaccessible, the run reports an error
 rather than claiming it is integrated.
+
+The [live 4.65 MB H26 smoke run 40025072762](https://github.com/gamesbyian/UR-Recomp/actions/runs/40025072762) succeeded: 45 listed, one 4,649,946-byte ZIP downloaded and member-inspected, zero errors, one review lead and [checkpoint/queue artifact 12532925142](https://github.com/gamesbyian/UR-Recomp/actions/runs/40025072762/artifacts/12532925142). Six isolated unit tests also passed. This confirms multi-megabyte transfer on a PR runner but not checkpoint restoration between scheduled runs.
 
 The initial [direct-transfer proof run](https://github.com/gamesbyian/UR-Recomp/actions/runs/40022473433)
 downloaded a separate 2,688-byte ZIP with zero reported errors. Neither proof

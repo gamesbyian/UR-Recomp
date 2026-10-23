@@ -50,6 +50,16 @@ def validate(catalog: dict, *, art_directory: Path = ART) -> list[dict]:
         from tools.qa_modern_visual_win32_capture_driver import ROUTES
     except ModuleNotFoundError:  # python tools/windows_visual_atlas.py
         from qa_modern_visual_win32_capture_driver import ROUTES
+    # The two pre-existing inventories are authoritative for their own
+    # original-game fixtures and independent visual acceptance cases.
+    # Reject missing/stale crosswalk entries rather than silently claiming
+    # coverage when a new source fixture is introduced.
+    original = json.loads((ROOT / "analysis/ui-capture-manifest.json").read_text(encoding="utf-8"))
+    modern_qa = json.loads((ROOT / "analysis/modern-visual-acceptance-matrix.json").read_text(encoding="utf-8"))
+    canonical_original = {item["tag"]: item for item in original["captures"]}
+    canonical_qa = {item["id"]: item for item in modern_qa["cases"]}
+    seen_original: set[str] = set()
+    seen_qa: set[str] = set()
     seen: set[str] = set()
     entries = catalog["entries"]
     if not entries:
@@ -59,6 +69,28 @@ def validate(catalog: dict, *, art_directory: Path = ART) -> list[dict]:
         if not isinstance(key, str) or not ID.fullmatch(key) or key in seen:
             raise ValueError(f"Invalid or repeated atlas ID: {key!r}")
         seen.add(key)
+        inventory = entry.get("source_inventory")
+        if inventory is not None:
+            path = inventory.get("path")
+            if path == "analysis/ui-capture-manifest.json":
+                tag = inventory.get("tag")
+                source = canonical_original.get(tag)
+                if not tag or tag in seen_original or source is None:
+                    raise ValueError(f"{key}: missing, stale or repeated original UI crosswalk")
+                if source["state_id"] != inventory.get("original_state") or (
+                    source.get("source_fixture") != inventory.get("source_fixture")
+                ) or source.get("variant") != inventory.get("variant"):
+                    raise ValueError(f"{key}: original UI fixture identity drift")
+                seen_original.add(tag)
+            elif path == "analysis/modern-visual-acceptance-matrix.json":
+                candidate = inventory.get("acceptance_case_id")
+                if not candidate or candidate in seen_qa or candidate not in canonical_qa:
+                    raise ValueError(f"{key}: missing, stale or repeated visual QA case")
+                if entry["mode"] != canonical_qa[candidate]["mode"]:
+                    raise ValueError(f"{key}: visual QA presentation drift")
+                seen_qa.add(candidate)
+            else:
+                raise ValueError(f"{key}: unrecognized source inventory reference")
         for field in ("title", "mode", "family", "state", "display", "art"):
             if not isinstance(entry.get(field), str) or not entry[field].strip():
                 raise ValueError(f"{key}: missing {field}")
@@ -85,6 +117,10 @@ def validate(catalog: dict, *, art_directory: Path = ART) -> list[dict]:
                 raise ValueError(f"{key}: capture size out of safe driver bounds")
             if (capture["route"] == "authentic-stock") != (entry["mode"] == "authentic"):
                 raise ValueError(f"{key}: execution mode mismatches real route")
+    if seen_original != set(canonical_original):
+        raise ValueError("Atlas original UI coverage drift: " + repr(sorted(set(canonical_original) - seen_original)[:10]))
+    if seen_qa != set(canonical_qa):
+        raise ValueError("Atlas independent visual QA coverage drift: " + repr(sorted(set(canonical_qa) - seen_qa)[:10]))
     return entries
 
 

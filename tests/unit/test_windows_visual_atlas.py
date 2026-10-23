@@ -19,6 +19,24 @@ class WindowsAtlasTests(unittest.TestCase):
         self.assertGreaterEqual(len([e for e in entries if e.get("capture")]), 10)
         self.assertEqual(len({e["id"] for e in entries}), len(entries))
 
+    def test_original_ui_and_visual_qa_coverage_cannot_go_stale(self):
+        catalog = atlas.load_catalog()
+        self.assertEqual(
+            sum(e.get("source_inventory", {}).get("path") == "analysis/ui-capture-manifest.json"
+                for e in catalog["entries"]), 120)
+        self.assertEqual(
+            sum(e.get("source_inventory", {}).get("path") == "analysis/modern-visual-acceptance-matrix.json"
+                for e in catalog["entries"]), 25)
+        missing = copy.deepcopy(catalog)
+        missing["entries"] = [e for e in missing["entries"] if e["id"] != "URV-OG-001"]
+        with self.assertRaisesRegex(ValueError, "original UI coverage drift"):
+            atlas.validate(missing)
+        changed = copy.deepcopy(catalog)
+        qa = next(e for e in changed["entries"] if e["id"] == "URV-QA-001")
+        qa["source_inventory"]["acceptance_case_id"] = "imaginary"
+        with self.assertRaisesRegex(ValueError, "visual QA case"):
+            atlas.validate(changed)
+
     def test_duplicate_and_forged_route_fail_closed(self):
         catalog = atlas.load_catalog()
         duplicate = copy.deepcopy(catalog)

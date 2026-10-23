@@ -15,10 +15,11 @@ const server=createServer((req,res)=>{
   const pathname=decodeURIComponent((req.url||'/').split('?')[0]);
   const file=resolve(site,'.'+(pathname==='/'?'/index.html':pathname));
   if(!file.startsWith(site+sep)){res.writeHead(403);res.end();return}
-  try{
-    res.writeHead(200,{'Content-Type':mime[file.split('.').at(-1)]||'application/octet-stream','Cache-Control':'no-store'});
-    res.end(readFileSync(file));
-  }catch(_){res.writeHead(404);res.end('missing')}
+  let payload;
+  try{payload=readFileSync(file)}
+  catch(_){res.writeHead(404);res.end('missing');return}
+  res.writeHead(200,{'Content-Type':mime[file.split('.').at(-1)]||'application/octet-stream','Cache-Control':'no-store'});
+  res.end(payload);
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const address='http://127.0.0.1:'+server.address().port+'/';

@@ -87,10 +87,13 @@ inline ModernResultsNavigationMenu navigate_modern_results_navigation_menu(
     UrModernHostNavigationAction action) noexcept {
     if (menu.row_count == 0 || menu.row_count > menu.rows.size())
         return menu;
-    // Recover focus on a real directional action, never on Confirm.
+    // Recover stale focus by direction, never on Confirm or Back. Up must
+    // land on the last row (Records), not silently choose row zero, which
+    // may be Next Event. Down starts at the first visible row.
     const int delta = ur_modern_host_navigation_vertical_delta(action);
     if (menu.selected >= menu.row_count) {
-        if (delta != 0) menu.selected = 0;
+        if (delta < 0) menu.selected = menu.row_count - 1;
+        else if (delta > 0) menu.selected = 0;
         return menu;
     }
     if (delta < 0) {

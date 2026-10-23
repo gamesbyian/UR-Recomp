@@ -1,4 +1,5 @@
 #include "completed_run_record.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -378,7 +379,7 @@ bool save_completed_run_record_file(
         fail_detail(detail, "record validation failed");
         return false;
     }
-    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    std::ofstream out(host_native_path_from_utf8(path), std::ios::binary | std::ios::trunc);
     if (!out) {
         fail_detail(detail, "cannot open run record");
         return false;
@@ -399,7 +400,7 @@ bool save_completed_run_record_file(
 RunRecordLoadResult load_completed_run_record_file(
     const std::string& path,
     const RunPlaybackTarget* target) {
-    std::ifstream in(path, std::ios::binary);
+    std::ifstream in(host_native_path_from_utf8(path), std::ios::binary);
     if (!in) {
         return {RunRecordLoadStatus::IoError, std::nullopt, "cannot open run record"};
     }

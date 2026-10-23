@@ -208,5 +208,24 @@ int main(int argc, char** argv) {
     assert(!append_completed_run_record(
         dangling_alias.string(), run(3001)));
     assert(!std::filesystem::exists(missing_target));
+    // Public run-record paths are UTF-8. This exercises both the archive
+    // scanner and the codec through a non-ANSI directory on Windows.
+    const auto unicode_dir = dir / std::filesystem::u8path(u8"records-資料-🚲");
+    const std::string unicode_dir_utf8 = unicode_dir.u8string();
+    std::string unicode_path, unicode_detail;
+    assert(append_completed_run_record(
+        unicode_dir_utf8, run(4242), &unicode_path, &unicode_detail));
+    assert(std::filesystem::exists(std::filesystem::u8path(unicode_path)));
+    scan_succeeded = false;
+    const auto unicode_scan = inspect_completed_run_record_artifacts(
+        unicode_dir_utf8, &scan_succeeded);
+    assert(scan_succeeded);
+    assert(unicode_scan.size() == 1 && unicode_scan[0].loaded());
+    assert(unicode_scan[0].path == unicode_path);
+    const auto unicode_read = load_completed_run_record_file(unicode_path);
+    assert(unicode_read.loaded());
+    assert(unicode_read.record->elapsed_ticks60 == 4242);
+    assert(load_valid_run_records(unicode_dir_utf8).size() == 1);
+
     return 0;
 }

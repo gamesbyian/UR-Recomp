@@ -58,6 +58,10 @@ class ClockBoundWitness(ByteSpanWitness):
     def finish(self, *, attempt, profile, terminal_frame, terminal_pts_ns):
         if self._clock_sealed:
             raise ValueError('finalized witness cannot issue another receipt')
+        # Preserve the earliest incomplete-capture cause. Later terminal clock
+        # checks must never replace the original loss/gap explanation.
+        if self.incomplete_reason:
+            raise ValueError('capture already incomplete')
         if self.frame_count < 2 or type(terminal_pts_ns) is not int:
             raise ValueError('insufficient timestamped frames to validate audio clock')
         expected = self._samples(terminal_pts_ns - self._pending_pts)

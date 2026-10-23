@@ -106,6 +106,7 @@ int main() {
     // store operation for its *first* immutable archive publication.
     const auto archive_path =
         (tour / instance / "session.urtournament").u8string();
+    const auto native_archive_path = fs::u8path(archive_path);
     const auto incumbent_archive =
         load_historical_local_tournament_session_definition(archive_path);
     check(incumbent_archive.loaded(), "new tournament has a full archive");
@@ -127,7 +128,7 @@ int main() {
     // Old builds could have a valid active pointer without an instance
     // archive. Migration must create-only claim that absent archive, and
     // must fail closed on a foreign/malformed archive rather than replace it.
-    check(fs::remove(archive_path), "simulate pre-archive old build");
+    check(fs::remove(native_archive_path), "simulate pre-archive old build");
     const auto migrated = restore_local_tournament_coordinator(paths, catalog);
     check(migrated.usable(), "valid historical active session migrates archive");
     const auto migrated_archive =
@@ -140,7 +141,7 @@ int main() {
     // A later normal restore must accept that identical complete archive.
     check(restore_local_tournament_coordinator(paths, catalog).usable(),
           "subsequent restorer accepts identical archive");
-    check(fs::remove(archive_path), "prepare foreign archive migration denial");
+    check(fs::remove(native_archive_path), "prepare foreign archive migration denial");
     check(save_local_tournament_session_definition(
               archive_path, *conflicting_plan) ==
               LocalTournamentSessionFileStatus::Saved,
@@ -154,19 +155,19 @@ int main() {
           encode_local_tournament_session_definition(*still_foreign.session) ==
               encode_local_tournament_session_definition(*conflicting_plan),
           "migration refuses to clobber the foreign archive");
-    check(fs::remove(archive_path), "prepare corrupt archive migration denial");
+    check(fs::remove(native_archive_path), "prepare corrupt archive migration denial");
     {
         std::ofstream damaged(fs::u8path(archive_path), std::ios::binary);
         damaged << "corrupt-future-archive\n";
         check(bool(damaged), "write unsupported archive bytes");
     }
-    const auto prior_corrupt_bytes = fs::file_size(archive_path);
+    const auto prior_corrupt_bytes = fs::file_size(native_archive_path);
     check(restore_local_tournament_coordinator(paths, catalog).status ==
               Status::EvidenceRejected,
           "corrupt archive is not silently overwritten by migration");
-    check(fs::file_size(archive_path) == prior_corrupt_bytes,
+    check(fs::file_size(native_archive_path) == prior_corrupt_bytes,
           "corrupt existing archive preserved for salvage");
-    check(fs::remove(archive_path), "remove corrupt fixture before continuation");
+    check(fs::remove(native_archive_path), "remove corrupt fixture before continuation");
     check(save_local_tournament_session_definition_if_current(
               archive_path, std::nullopt, *incumbent_archive.session) ==
               LocalTournamentSessionFileStatus::Saved,

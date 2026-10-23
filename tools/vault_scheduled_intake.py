@@ -13,6 +13,11 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
+
+TOOLS = Path(__file__).resolve().parent
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
 
 from vault_gdown_intake import (
     DEFAULT_FOLDER, ID_PATTERN, MAX_SESSION_BYTES, list_public_folder, pull,

@@ -141,6 +141,9 @@ class WindowsAtlasIntakeTests(unittest.TestCase):
             self.assertEqual(intake.stage(root / "scan", destination),
                              {"new": 0, "existing": 1, "alternative": 0})
             self.assertEqual(atlas.sha256(chosen), digest)
+            (chosen_root / "probe_first/native-process.log").unlink()
+            with self.assertRaisesRegex(ValueError, "Existing approved capture lacks native P7/log witness"):
+                intake.stage(root / "scan", destination)
 
     def test_staging_rejects_candidate_that_lost_original_witness(self):
         with tempfile.TemporaryDirectory() as temp:

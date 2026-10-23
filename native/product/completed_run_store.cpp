@@ -1,5 +1,6 @@
 #include "completed_run_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -96,13 +97,14 @@ bool append_completed_run_record(
     }
 
     std::error_code ec;
-    fs::create_directories(directory, ec);
+    // The product boundary receives UTF-8 even on Windows.
+    const fs::path directory_path = host_native_path_from_utf8(directory);
+    fs::create_directories(directory_path, ec);
     if (ec) {
         set_detail(detail, "cannot create run-record directory");
         return false;
     }
 
-    const fs::path directory_path(directory);
     // An explicitly selected archive directory must be a REAL local
     // directory, not a symlink to another named profile or user root.
     // create_directories() can report success through an existing link;
@@ -124,7 +126,7 @@ bool append_completed_run_record(
     // Abandoned staging directories after a crash are ignored by catalog
     // discovery. Cleanup is best effort and never removes a published run.
     const fs::path staged_file = staging / "record.tmp";
-    if (!save_completed_run_record_file(staged_file.string(), record, detail)) {
+    if (!save_completed_run_record_file(staged_file.u8string(), record, detail)) {
         fs::remove_all(staging, ec);
         return false;
     }
@@ -152,7 +154,7 @@ bool append_completed_run_record(
         }
         ur::product::detail::sync_published_directory_best_effort(directory_path);
         fs::remove_all(staging, ec);
-        if (stored_path) *stored_path = path.string();
+        if (stored_path) *stored_path = path.u8string();
         return true;
     }
 
@@ -170,7 +172,8 @@ inspect_completed_run_record_artifacts(const std::string& directory,
     // The generic run reader is also used outside the Baldosa Records UI:
     // do not bypass that UI's direct-directory guard through Local Runs,
     // replay-target selection or another native product consumer.
-    const auto directory_status = fs::symlink_status(directory, ec);
+    const fs::path directory_path = host_native_path_from_utf8(directory);
+    const auto directory_status = fs::symlink_status(directory_path, ec);
     if (directory_status.type() == fs::file_type::not_found &&
         (!ec || ec == std::errc::no_such_file_or_directory)) {
         if (scan_succeeded) *scan_succeeded = true;
@@ -180,7 +183,7 @@ inspect_completed_run_record_artifacts(const std::string& directory,
         fs::is_symlink(directory_status)) return out;
 
     std::vector<fs::path> paths;
-    for (fs::directory_iterator it(directory, ec), end;
+    for (fs::directory_iterator it(directory_path, ec), end;
          !ec && it != end; it.increment(ec)) {
         if (it->path().extension() != ".urrun") continue;
         // directory_entry::is_regular_file() follows symlinks, silently
@@ -198,7 +201,7 @@ inspect_completed_run_record_artifacts(const std::string& directory,
     out.reserve(paths.size());
     for (const auto& path : paths) {
         InspectedRunRecordArtifact artifact;
-        artifact.path = path.string();
+        artifact.path = path.u8string();
         std::error_code status_error;
         const auto status = fs::symlink_status(path, status_error);
         if (status_error || !fs::is_regular_file(status) ||
@@ -206,7 +209,7 @@ inspect_completed_run_record_artifacts(const std::string& directory,
             artifact.status = RunRecordLoadStatus::IoError;
             artifact.detail = "run artifact is not a direct regular file";
         } else {
-            auto loaded = load_completed_run_record_file(path.string());
+            auto loaded = load_completed_run_record_file(path.u8string());
             artifact.status = loaded.status;
             artifact.detail = std::move(loaded.detail);
             artifact.record = std::move(loaded.record);

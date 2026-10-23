@@ -249,6 +249,17 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
         with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
             json.dump(manifest, output, indent=2, sort_keys=True)
             output.write('\n')
+        # Re-open the source AFTER staging. A source run, report, or namespace
+        # changed during the relatively long copy/manifest phase must not be
+        # presented as the immutable original. This narrows the check/publish
+        # window; it cannot eliminate hostile-writer races after this check.
+        if (_regular_bytes(journey / 'report.json', MAX_REPORT_BYTES) != report_bytes or
+                _regular_bytes(candidates[0], MAX_RUN_BYTES) != data):
+            raise ValueError('Source evidence changed during staging')
+        final_candidates = [entry for entry in runs_root.iterdir()
+                            if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
+        if len(final_candidates) != 1 or final_candidates[0].name != source_name:
+            raise ValueError('Source run namespace changed during staging')
         if destination.exists() or destination.is_symlink():
             raise FileExistsError(f'Evidence destination already exists: {destination}')
         # Same-parent rename publishes the complete evidence set at once.

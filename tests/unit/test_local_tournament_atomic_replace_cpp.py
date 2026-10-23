@@ -20,7 +20,7 @@ class TournamentMutableStagingTests(unittest.TestCase):
     def test_live_tournament_writers_use_reserved_staging(self):
         for filename, family, writer in [
             ("local_tournament_session_store.cpp", "urtournament",
-             "write_tournament_replace_staged"),
+             "write_host_replace_staged"),
             ("local_tournament_fixture_launch_store.cpp", "urlaunch",
              "write_host_replace_staged"),
         ]:
@@ -29,9 +29,17 @@ class TournamentMutableStagingTests(unittest.TestCase):
             self.assertIn('"' + family + '"', code)
             self.assertNotIn('path + ".tmp"', code)
 
-        # The launch store must give its lock and the atomic writer the same
-        # native path. A narrow-path compatibility overload would regress
-        # Unicode profile roots on Windows even with reserved staging.
+        # Both session and launch stores must give their lock and atomic
+        # writer the same native UTF-8-converted path. A narrow-path overload
+        # would regress Unicode profile roots on Windows even with staging.
+        session = (ROOT / "native/product" /
+                   "local_tournament_session_store.cpp").read_text()
+        self.assertIn("TournamentLaunchPathLock lock(host_native_path_from_utf8(path));",
+                      session)
+        self.assertIn('write_host_replace_staged(host_native_path_from_utf8(path), encoded, "urtournament")',
+                      session)
+        self.assertIn('_wfopen(native_path.c_str(), L"rb")', session)
+
         launch = (ROOT / "native/product" /
                   "local_tournament_fixture_launch_store.cpp").read_text()
         self.assertIn("const auto native_path = host_native_path_from_utf8(path);",

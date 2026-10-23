@@ -1,5 +1,8 @@
 name: Vault Direct Intake (Public Drive)
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/vault-direct-intake.yml'
   workflow_dispatch:
     inputs:
       folder_url:
@@ -47,7 +50,7 @@ jobs:
       - name: Index and optionally stage a specifically reviewed package
         shell: bash
         env:
-          FOLDER_URL: ${{ inputs.folder_url }}
+          FOLDER_URL: ${{ inputs.folder_url || 'https://drive.google.com/drive/folders/1cdovDqle9IRYKX2lCt513mtWge75HywX' }}
           DRIVE_FILE_ID: ${{ inputs.drive_file_id }}
           DOWNLOAD_ALL: ${{ inputs.download_all }}
           STAGE_SOURCES: ${{ inputs.stage_sources }}
@@ -59,6 +62,10 @@ jobs:
           if [[ -n "$DRIVE_FILE_ID" ]]; then args+=(--file-id "$DRIVE_FILE_ID"); fi
           if [[ "$DOWNLOAD_ALL" == true ]]; then args+=(--download-all); fi
           if [[ "$STAGE_SOURCES" == true ]]; then
+            if [[ "${{ github.event_name }}" != workflow_dispatch ]]; then
+              echo 'PR-triggered intake is inventory-only.' >&2
+              exit 2
+            fi
             if [[ "$CONFIRM_SOURCE_REVIEW" != true || -z "$DRIVE_FILE_ID" || "$DOWNLOAD_ALL" == true ]]; then
               echo 'Source staging requires one file ID and explicit rights/publication-hold review.' >&2
               exit 2
@@ -75,7 +82,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Upload explicitly reviewed, unmatched source candidates
-        if: ${{ inputs.stage_sources == true && inputs.confirm_source_review == true }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.stage_sources == true && inputs.confirm_source_review == true }}
         uses: actions/upload-artifact@v4
         with:
           name: vault-direct-intake-source-review

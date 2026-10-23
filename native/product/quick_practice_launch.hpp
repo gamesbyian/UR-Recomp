@@ -95,6 +95,13 @@ constexpr QuickPracticeLaunchState begin_quick_practice_launch(
 ) noexcept {
     QuickPracticeLaunchState state;
     if (!target.valid) return state;
+    // A retained valid flag cannot authorize a mismatched stock catalog
+    // identity. Reject before sending any guest menu input.
+    const auto canonical = quick_practice_target_for_track(target.track_id);
+    if (!canonical.valid || canonical.tour_option != target.tour_option ||
+        canonical.track_slot != target.track_slot) {
+        return state;
+    }
     state.stage = QuickPracticeLaunchStage::AwaitMain;
     state.target = target;
     state.observations_remaining = kQuickPracticeLaunchMaxObservations;

@@ -14,6 +14,8 @@ on:
       - "tools/baldosa_modern_options_spike.py"
       - "tools/baldosa_sdl_display_lifecycle_spike.py"
       - "tests/unit/test_baldosa_sdl_display_lifecycle_spike.py"
+      - "tools/baldosa_session_end_spike.py"
+      - "tests/unit/test_baldosa_session_end_spike.py"
       - "native/product/display_window_lifecycle_policy.h"
       - "tests/native/display_window_lifecycle_policy_test.cpp"
       - "tests/unit/test_baldosa_modern_options_spike.py"
@@ -75,6 +77,7 @@ jobs:
           python3 tests/unit/test_baldosa_product_pause_spike.py
           python3 tests/unit/test_baldosa_modern_profile_activation_spike.py
           python3 tests/unit/test_baldosa_sdl_display_lifecycle_spike.py
+          python3 tests/unit/test_baldosa_session_end_spike.py
           python3 tests/unit/test_baldosa_modern_options_spike.py
           python3 tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           python3 tests/unit/test_baldosa_host_lifecycle_pause.py
@@ -259,6 +262,8 @@ jobs:
           python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           # SDL2 compile coverage for the display seam (SDL3 runs on Win32).
           python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # SDL2 compile coverage for the moved exit-time saves (Win32 runs the rest).
+          python tools/baldosa_session_end_spike.py --game baldosa
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
             -DRECOMP_UI_SDL3=OFF

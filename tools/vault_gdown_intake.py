@@ -33,7 +33,7 @@ SOURCE_EXTENSIONS = frozenset({
 })
 DENIED_COMPONENTS = frozenset({
     ".git", ".ssh", ".aws", ".github", "secrets", "credentials",
-    "rom", "roms", "media", "captures", "original", "reference",
+    "rom", "roms", "media", "capture", "captures", "original", "reference",
     "__pycache__", "node_modules",
 })
 MAX_FILES = 500

@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
@@ -52,10 +53,13 @@ MAX_SCALE = 10  # the framework's kMaxWindowScale
 def policy_scale(content: float, base_w: int, base_h: int, usable_w: int,
                  usable_h: int, max_scale: int = MAX_SCALE) -> int:
     """Mirror of ur_display_default_window_scale."""
-    scale = int(2.0 * content + 0.5) if content > 0 else 2
-    scale = max(scale, 2)
-    if max_scale >= 2:
-        scale = min(scale, max_scale)
+    # Match the C helper: reject nonfinite DPI, cap before integer conversion,
+    # and treat an invalid maximum as the historical 2x fallback.
+    cap = max_scale if max_scale >= 2 else 2
+    scale = 2
+    if math.isfinite(content) and content > 0:
+        requested = 2.0 * content + 0.5
+        scale = cap if requested >= cap else max(2, int(requested))
     while (scale > 2 and usable_w > 0 and usable_h > 0 and
            (scale * base_w * 10 > usable_w * 9 or scale * base_h * 10 > usable_h * 9)):
         scale -= 1

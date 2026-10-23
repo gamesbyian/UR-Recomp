@@ -30,6 +30,17 @@ class ModernHostUtf8IoTests(unittest.TestCase):
         ):
             self.assertNotIn(raw, source)
 
+    def test_product_hosts_preserve_absolute_user_data_roots(self):
+        for name in ("uniracers_modern_host.cpp", "completed_run_browser_host.cpp"):
+            source = (ROOT / "native" / "product" / name).read_text(
+                encoding="utf-8")
+            begin = source.index("std::string product_user_data_root() {")
+            end = source.index("\n}", begin)
+            function = source[begin:end]
+            self.assertEqual(function.count("host_trim_user_data_root("), 2,
+                             name)
+            self.assertNotIn("root.pop_back()", function, name)
+
     def test_compiled_unicode_directory_file_roundtrip(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if not compiler:

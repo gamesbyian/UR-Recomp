@@ -120,6 +120,38 @@ class WindowsAtlasIntakeTests(unittest.TestCase):
             self.assertEqual(result["counts"]["eligible"], 0)
             self.assertIn("execution mode", result["candidates"][0]["reason"])
 
+    def test_staging_is_idempotent_and_cannot_replace_selected_images(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.sample(root / "artifact-root")
+            with patch.object(intake, "code_state", return_value="integrated-current-visual"):
+                self.scan(root)
+            destination = root / "reviewed-assets"
+            self.assertEqual(intake.stage(root / "scan", destination),
+                             {"new": 1, "existing": 0, "alternative": 0})
+            chosen = destination / "approved/URV-MD-001/actual-sdl-drawable.png"
+            digest = atlas.sha256(chosen)
+            self.assertEqual(intake.stage(root / "scan", destination),
+                             {"new": 0, "existing": 1, "alternative": 0})
+            self.assertEqual(atlas.sha256(chosen), digest)
+
+    def test_intake_rejects_same_receipt_but_changed_raw_pixels(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            case = self.sample(root / "artifact-root")
+            raw = case / "probe_first/actual-sdl-drawable.pam"
+            data = bytearray(raw.read_bytes())
+            data[-4:] = b"\xff\x01\x02\xff"
+            raw.write_bytes(data)
+            receipt_file = case / "readback-receipt.json"
+            receipt = json.loads(receipt_file.read_text())
+            receipt["p7_sha256"] = atlas.sha256(raw)
+            receipt_file.write_text(json.dumps(receipt))
+            with patch.object(intake, "code_state", return_value="integrated-current-visual"):
+                result = self.scan(root)
+            self.assertEqual(result["counts"]["eligible"], 0)
+            self.assertIn("P7", result["candidates"][0]["reason"])
+
     def test_code_state_fail_closed_without_git_objects(self):
         with tempfile.TemporaryDirectory() as temp:
             self.assertEqual(intake.code_state(self.SOURCE, Path(temp), "f"*40), "unknown")

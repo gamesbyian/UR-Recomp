@@ -579,6 +579,7 @@ jobs:
               run_case recent-persistence run_modern_recent_course_persistence_acceptance.sh recent-persistence
               run_case practice-picker run_modern_practice_picker_acceptance.sh practice-picker
               run_case tour-overview run_modern_tour_overview_acceptance.sh tour-overview
+              run_case practice-two-repeat run_practice_repeat_two_cycles_acceptance.sh practice-two-repeat
               ;;
             tour-b)
               run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry
@@ -615,6 +616,7 @@ jobs:
             ${{ runner.temp }}/recent-persistence/*.log
             ${{ runner.temp }}/practice-picker/*.log
             ${{ runner.temp }}/tour-overview/*.log
+            ${{ runner.temp }}/practice-two-repeat/*.log
             ${{ runner.temp }}/frontend-options/*.log
             ${{ runner.temp }}/frontend-controls/*.log
             ${{ runner.temp }}/vibration/*.log

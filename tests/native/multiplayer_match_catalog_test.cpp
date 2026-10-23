@@ -154,6 +154,25 @@ int main() {
     assert(rejected_health.wrong_mode_runs == 1);
     assert(load_valid_multiplayer_matches(root.string()).size() == 1);
 
+    {
+        const auto unicode_root = std::filesystem::temp_directory_path() /
+            std::filesystem::u8path(u8"ur-multiplayer-catalog-\u8DEF\u5F84-\U0001F308");
+        std::filesystem::remove_all(unicode_root);
+        std::string stored_path;
+        assert(append_multiplayer_match_pair(
+            unicode_root.u8string(), valid, match, &stored_path));
+        const auto found = inspect_multiplayer_match_artifacts(
+            unicode_root.u8string());
+        assert(found.size() == 1 && found[0].loaded());
+        assert(found[0].run_path == stored_path);
+        assert(found[0].stored->run_path == stored_path);
+        const auto loaded_unicode = load_valid_multiplayer_matches(
+            unicode_root.u8string());
+        assert(loaded_unicode.size() == 1);
+        assert(loaded_unicode[0].run_path == stored_path);
+        std::filesystem::remove_all(unicode_root);
+    }
+
     std::filesystem::remove_all(root);
     return 0;
 }

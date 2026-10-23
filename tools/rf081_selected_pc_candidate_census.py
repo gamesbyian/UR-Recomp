@@ -58,8 +58,23 @@ def classify_records(original, native):
                 old.get('all_intervening_unselected_opcode_fetches_observed') is not False or
                 new.get('original_native_interrupt_instruction_phase_qualified') is not False):
             raise ValueError('selected fetch evidence not comparable')
+        # Sequence numbers are local to each logger. Verify ordering within
+        # each provenance stream, never compare their numeric values as
+        # equivalent original/native instruction phases.
+        original_before = old.get('original_NMI_before_push_event')
+        first_seq = original_before.get('source_local_seq') if type(original_before) is dict else None
+        selected_seq = old_fetch.get('source_local_seq')
+        return_seq = new.get('native_compiled_handler_return_seq')
+        native_selected_seq = new_fetch.get('seq')
+        if (any(type(v) is not int for v in
+                (first_seq, selected_seq, return_seq, native_selected_seq)) or
+                first_seq < 0 or return_seq < 0 or
+                selected_seq <= first_seq or native_selected_seq <= return_seq):
+            raise ValueError('source-local selected marker order invalid')
         rows.append({'host_frame_label':frame,'original_selected_pc':original_pc,
                      'native_observed_pc':native_pc,'selected_pc_equal':original_pc == native_pc,
+                     'original_source_local_gap':selected_seq-first_seq,
+                     'native_source_local_gap':native_selected_seq-return_seq,
                      'semantic_phase_aligned':False,'actual_rts_operand_pair_observed':False})
     if sorted(seen) != list(range(1017,1026)):
         raise ValueError('unexpected RF081 NMI frame population')

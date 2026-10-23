@@ -153,7 +153,7 @@ inline BaldosaSramIntentStatus prepare_baldosa_sram_intent_under_lock(
         encode_baldosa_sram_intent(request.expected_profile, next);
     if (!decode_baldosa_sram_intent(
             intent, request.expected_profile.profile_id) ||
-        !write_host_create_staged(path.string(), intent, "sram-intent"))
+        !write_host_create_staged_native(path, intent, "sram-intent"))
         return BaldosaSramIntentStatus::IoError;
     return BaldosaSramIntentStatus::Prepared;
 }
@@ -222,8 +222,8 @@ inline bool archive_baldosa_recovered_intent(
                                  std::istreambuf_iterator<char>()) ==
                          intent.exact_bytes && !in.bad();
     }
-    return write_host_create_staged(
-        path.string(), intent.exact_bytes, "sram-recovered");
+    return write_host_create_staged_native(
+        path, intent.exact_bytes, "sram-recovered");
 }
 
 // Called BEFORE first guest frame, on selected named profile, with exactly
@@ -249,17 +249,17 @@ inline BaldosaSramIntentStatus recover_baldosa_sram_intent_on_cold_boot(
     const fs::path selector = user_root / "host-state-v1.txt";
     const fs::path catalog = user_root / "profiles-v1.txt";
     const fs::path typed = root / "host-profile.txt";
-    TournamentLaunchPathLock selector_lock(selector.string(), true);
+    TournamentLaunchPathLock selector_lock(selector, true);
     if (!selector_lock.acquired()) return BaldosaSramIntentStatus::IoError;
-    TournamentLaunchPathLock catalog_lock(catalog.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog, true);
     if (!catalog_lock.acquired()) return BaldosaSramIntentStatus::IoError;
-    TournamentLaunchPathLock profile_lock(typed.string(), true);
+    TournamentLaunchPathLock profile_lock(typed, true);
     if (!profile_lock.acquired()) return BaldosaSramIntentStatus::IoError;
 
-    const auto current_global = load_host_product_state_file(selector.string());
-    const auto roster = load_host_profile_catalog_file(catalog.string());
+    const auto current_global = load_host_product_state_file(selector.u8string());
+    const auto roster = load_host_profile_catalog_file(catalog.u8string());
     const auto current = load_host_profile_state_file(
-        ExecutionMode::Modern, typed.string(), profile_id);
+        ExecutionMode::Modern, typed.u8string(), profile_id);
     const auto intent = read_baldosa_sram_intent(pending, profile_id);
     if (!baldosa_native_selected_profile_paths_are_real(
             user_root, location.save_root) ||
@@ -304,7 +304,7 @@ inline BaldosaSramIntentStatus recover_baldosa_sram_intent_on_cold_boot(
         return BaldosaSramIntentStatus::IoError;
     if (typed_old &&
         save_host_profile_state_file_if_current_under_lock(
-            ExecutionMode::Modern, typed.string(),
+            ExecutionMode::Modern, typed.u8string(),
             intent->previous, intent->next) != HostProfileSaveStatus::Saved)
         return BaldosaSramIntentStatus::IoError;
     std::error_code ec;

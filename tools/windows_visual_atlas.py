@@ -265,10 +265,15 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
         results = list(pool.map(run_case, matched))
     for result in results:
         print(result["id"], result["result"], flush=True)
-    (target / "shard-summary.json").write_text(json.dumps({
+    report = json.dumps({
         "shard": shard, "source_sha": source, "results": results,
+        "captured": sum(r["result"] == "captured" for r in results),
+        "failed": sum(r["result"] == "failed" for r in results),
         "release_gate_credit": 0,
-    }, indent=2) + "\n", encoding="utf-8")
+    }, indent=2) + "\n"
+    (target / "shard-summary.json").write_text(report, encoding="utf-8")
+    # Publish a uniquely named summary inside the allowlisted artifact tree.
+    (target / "captures" / f"atlas-shard-{shard}.json").write_text(report, encoding="utf-8")
     # A failed case is reviewable missingness, not a successful visual capture.
     # Never claim QA acceptance; preserve all available evidence.
     return 0

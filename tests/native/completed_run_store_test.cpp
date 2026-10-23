@@ -86,7 +86,20 @@ int main(int argc, char** argv) {
     std::filesystem::resize_file(
         oversized_path, kCompletedRunRecordMaxBytes + 1u);
 
-    const auto artifacts = inspect_completed_run_record_artifacts(dir.string());
+    bool scan_succeeded = false;
+    const auto artifacts = inspect_completed_run_record_artifacts(
+        dir.string(), &scan_succeeded);
+    assert(scan_succeeded);
+    scan_succeeded = false;
+    assert(inspect_completed_run_record_artifacts(
+        (dir / "never-created").string(), &scan_succeeded).empty());
+    assert(scan_succeeded);
+    const auto ordinary_file = dir / "not-an-archive-directory";
+    { std::ofstream file(ordinary_file); file << "file"; }
+    scan_succeeded = true;
+    assert(inspect_completed_run_record_artifacts(
+        ordinary_file.string(), &scan_succeeded).empty());
+    assert(!scan_succeeded);
     assert(artifacts.size() == 6);
     assert(artifacts[0].loaded());
     assert(artifacts[1].loaded());
@@ -174,7 +187,10 @@ int main(int argc, char** argv) {
     // otherwise reserve its staging directory in that foreign namespace.
     const auto root_alias = dir / "linked-parallel-archive";
     std::filesystem::create_directory_symlink(parallel_dir, root_alias);
-    assert(inspect_completed_run_record_artifacts(root_alias.string()).empty());
+    scan_succeeded = true;
+    assert(inspect_completed_run_record_artifacts(
+        root_alias.string(), &scan_succeeded).empty());
+    assert(!scan_succeeded);
     assert(load_valid_run_records(root_alias.string()).empty());
     std::string refused_detail;
     assert(!append_completed_run_record(

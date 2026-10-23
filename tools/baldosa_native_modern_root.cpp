@@ -547,6 +547,29 @@ void join_return_moved_pad() {
             "UR_BALDOSA_MODERN_ROOT join_pad_returned from=2 to=1\n");
     }
 }
+// The root is driven from seat 1 only. A pad left alone in seat 2 (P1's
+// pad went away: battery, unplug, Bluetooth drop) could not use the menus,
+// so a controller-only player was stuck. Once seat 1 has been empty for a
+// while (a brief drop does not swap anyone), the root moves that pad to
+// seat 1. Never while a join is open or a stock route is pending; the root
+// is not drawn during a race, its pause or results, so P2 stays P2 there.
+// If P1's pad comes back it takes the free seat 2; the next 2P join
+// confirms players again.
+constexpr unsigned kLonePadPromoteFrames = 90;
+void promote_lone_seat2_pad() {
+    static unsigned vacant_frames = 0;
+    if (g_two_seat_join.open() || g_stock_target != -1 ||
+        snesrecomp_desktop_product_seat_source(0) != -1 ||
+        snesrecomp_desktop_product_seat_source(1) == -1) {
+        vacant_frames = 0;
+        return;
+    }
+    if (++vacant_frames < kLonePadPromoteFrames) return;
+    vacant_frames = 0;
+    if (snesrecomp_desktop_product_seat_move(1, 0))
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT lone_pad_promoted from=2 to=1\n");
+}
 void join_watch_seat_owners() {
     if (!g_two_seat_join.open() || !g_two_seat_join.confirmed(1) ||
         join_p2_owner_present()) return;
@@ -1251,6 +1274,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     if (g_visible) {
         join_watch_seat_owners();
         join_return_moved_pad();
+        promote_lone_seat2_pad();
     }
     if (!g_visible &&
         g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None) {
@@ -1746,12 +1770,12 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are the decimal strings "1".."17" and nothing else.
+    // Smoke modes are the decimal strings "1".."18" and nothing else.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 17) return;
+            mode < 1 || mode > 18) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2035,6 +2059,51 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     //       P2's confirmation must be withdrawn and no 2P route requested.
     //   17: as 15 up to the move, then Escape closes the join; the moved
     //       pad must return to seat 1, and its next A drives the root.
+    //   18: pads A (seat 1) and B (seat 2); A is unplugged at the root. B
+    //       must be moved to seat 1 and its A must drive the root (the
+    //       keyboard put the cursor on 2P, so it opens the join).
+    if (std::strcmp(opt, "18") == 0) {
+#if SNESRECOMP_SDL3
+        static SDL_Joystick* pads[2];
+        static SDL_JoystickID ids[2];
+        const auto attach = [](int i) {
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.vendor_id = 0x1209;
+            desc.product_id = static_cast<Uint16>(0x5531 + i);
+            desc.name = i ? "UR lone pad B" : "UR lone pad A";
+            ids[i] = SDL_AttachVirtualJoystick(&desc);
+            pads[i] = ids[i] ? SDL_OpenJoystick(ids[i]) : nullptr;
+            if (!pads[i]) std::abort();
+        };
+        if (frame == 50) { attach(0); return; }
+        if (frame == 52) { attach(1); return; }
+        if (frame == 56) {
+            SDL_CloseJoystick(pads[0]);
+            SDL_DetachVirtualJoystick(ids[0]);
+            pads[0] = nullptr;
+            return;
+        }
+        if (frame == 170 || frame == 171) {
+            if (!pads[1] || !SDL_SetJoystickVirtualButton(
+                    pads[1], SDL_GAMEPAD_BUTTON_SOUTH, frame == 170)) std::abort();
+            return;
+        }
+        if (frame != 60 && frame != 62) return;
+        SDL_Event event{};
+        event.type = SDL_KEYDOWN;
+        event.key.key = SDLK_DOWN;
+        if (SDL_PushEvent(&event) != 1) std::abort();
+        event.type = SDL_KEYUP;
+        if (SDL_PushEvent(&event) != 1) std::abort();
+#else
+        std::abort();  // SDL virtual pads need SDL3
+#endif
+        return;
+    }
     if (std::strcmp(opt, "15") == 0 || std::strcmp(opt, "16") == 0 ||
         std::strcmp(opt, "17") == 0) {
 #if SNESRECOMP_SDL3

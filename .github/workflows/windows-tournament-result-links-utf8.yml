@@ -51,8 +51,8 @@ jobs:
             'local_multiplayer_match_binding.cpp',
             'multiplayer_match_record.cpp',
             'local_tournament_result_link_store.cpp'
-          ) | ForEach-Object { '\"' + (Join-Path $product $_) + '\"' }
-          $compile = 'cl /nologo /std:c++17 /utf-8 /EHsc /W3 /I\"' + $product + '\" /I\"' + $title + '\" ' + ($sources -join ' ') + ' \"' + $test + '\" /Fe:\"' + $exe + '\"'
+          ) | ForEach-Object { '"' + (Join-Path $product $_) + '"' }
+          $compile = 'cl /nologo /std:c++17 /utf-8 /EHsc /W3 /I"' + $product + '" /I"' + $title + '" ' + ($sources -join ' ') + ' "' + $test + '" /Fe:"' + $exe + '"'
           $commands = @(
             '@echo off',
             "call `"$vcvars`"",

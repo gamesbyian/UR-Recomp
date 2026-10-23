@@ -4,7 +4,7 @@
 
 ## Windows screenshot atlas and visual reference IDs
 
-[Windows Visual Atlas](WINDOWS-VISUAL-ATLAS.md) specifies stable visual IDs, the declared capture/COMING SOON inventory, genuine Windows final-SDL capture reuse, process/job-sharded opt-in GitHub Actions, source-checked website assembly and mobile one-tap agent references. The executable inventory lives in [`analysis/windows-visual-atlas.json`](../analysis/windows-visual-atlas.json); it does not replace the Modern visual-acceptance matrix or the release quality ledger.
+[Windows Visual Atlas](WINDOWS-VISUAL-ATLAS.md) and its [mobile-first visual implementation contract](atlas/MOBILE-FIRST-VISUAL-IMPLEMENTATION.md) specifies stable visual IDs, the declared capture/COMING SOON inventory, genuine Windows final-SDL capture reuse, process/job-sharded opt-in GitHub Actions, source-checked website assembly and mobile one-tap agent references. The executable inventory lives in [`analysis/windows-visual-atlas.json`](../analysis/windows-visual-atlas.json); it does not replace the Modern visual-acceptance matrix or the release quality ledger.
 
 ## QA01 experimental fidelity evidence tools
 

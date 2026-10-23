@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <climits>
+#include <limits>
 
 namespace {
 
@@ -131,6 +132,16 @@ void default_window_scale_follows_the_display() {
     assert(ur_display_default_window_scale(0.0f, 320, 240, 3840, 2100, 10) == 2);
     assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 10) == 6);
     assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 4) == 4);
+    // An invalid/huge monitor DPI report must never overflow float -> int.
+    // Keep valid large scales bounded by the host's maximum; reject NaN/inf.
+    assert(ur_display_default_window_scale(
+        std::numeric_limits<float>::max(), 320, 240, 0, 0, 10) == 10);
+    assert(ur_display_default_window_scale(3.0e9f, 320, 240, 0, 0, 10) == 10);
+    assert(ur_display_default_window_scale(
+        std::numeric_limits<float>::infinity(), 320, 240, 0, 0, 10) == 2);
+    assert(ur_display_default_window_scale(
+        std::numeric_limits<float>::quiet_NaN(), 320, 240, 0, 0, 10) == 2);
+    assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 1) == 2);
 }
 
 void exclusive_refresh_avoids_judder_only_when_the_desktop_judders() {

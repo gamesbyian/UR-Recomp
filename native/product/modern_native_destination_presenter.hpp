@@ -139,6 +139,16 @@ inline void modern_native_destination_line(
     int y, std::string_view value, std::uint32_t colour,
     int x = 9, int text_scale = 1, bool keep_last_token = false,
     int right_edge = -1) {
+    // This helper is also public to native screen composers. A malformed
+    // canvas or text scale must never reach division or an unclipped painter.
+    // Validate the complete destination rectangle before drawing any glyph.
+    if (!p.draw_text || !pixels || stride <= 0 || surface_height <= 0 ||
+        c.scale < 1 || c.scale > 4 ||
+        text_scale < 1 || text_scale > 2 ||
+        c.x < 0 || c.y < 0 || c.w <= 0 || c.h <= 0 ||
+        c.x > stride || c.w > stride - c.x ||
+        c.y > surface_height || c.h > surface_height - c.y ||
+        x < 0 || y < 0) return;
     // All text is contained within the panel. Never silently crop the right
     // edge of a stock name, saved time, controls legend or options value.
     // A second column may start before the canvas edge. Bound this text

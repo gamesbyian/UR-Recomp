@@ -25,6 +25,7 @@
 #include "completed_run_store.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
+#include "local_tournament_utf8_path.hpp"
 extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
 extern "C" int ur_baldosa_modern_root_practice_active(void);
 extern "C" int ur_baldosa_modern_root_restore_practice_on_shutdown(void);
@@ -103,7 +104,8 @@ extern "C" int ur_baldosa_modern_run_recovery_command(void) {
     if (!activated()) return 88;
     const char* root = std::getenv("SNESRECOMP_USER_DATA_DIR");
     if (!root || !*root) return 88;
-    const std::filesystem::path user_root(root);
+    const std::filesystem::path user_root =
+        ur::product::host_native_path_from_utf8(std::string(root));
     if (!user_root.is_absolute() ||
         !ur::product::baldosa_native_real_directory(user_root))
         return 88;
@@ -112,7 +114,7 @@ extern "C" int ur_baldosa_modern_run_recovery_command(void) {
         std::strcmp(override_selector, "host-state-v1.txt") != 0)
         return 88;
     const auto global = ur::product::load_host_product_state_file(
-        (user_root / "host-state-v1.txt").string());
+        (user_root / "host-state-v1.txt").u8string());
     if (!global.loaded() || !global.state->active_profile_id ||
         !ur::product::is_safe_profile_storage_id(
             *global.state->active_profile_id))
@@ -171,7 +173,8 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     if (!user_root || !*user_root)
         return reject("modern_user_root_absent");
 
-    const std::filesystem::path native_root(user_root);
+    const std::filesystem::path native_root =
+        ur::product::host_native_path_from_utf8(std::string(user_root));
     if (!native_root.is_absolute())
         return reject("modern_user_root_not_absolute");
 
@@ -418,7 +421,7 @@ extern "C" int ur_baldosa_modern_profile_can_join_opponent(
     if (!baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, location.save_root)) return 0;
     const auto profile = load_host_profile_state_file(
-        ExecutionMode::Modern, (root / "host-profile.txt").string(),
+        ExecutionMode::Modern, (root / "host-profile.txt").u8string(),
         entry->profile_id);
     if (!profile.loaded() ||
         !catalog_entry_matches_profile_state(*entry, *profile.state) ||
@@ -449,12 +452,12 @@ extern "C" int ur_baldosa_modern_profile_can_begin_race(void) {
     const auto typed_path = g_native_user_root / location.save_root /
                             "host-profile.txt";
     TournamentLaunchPathLock selector(
-        (g_native_user_root / "host-state-v1.txt").string(), true);
+        (g_native_user_root / "host-state-v1.txt").u8string(), true);
     if (!selector.acquired()) return 0;
     TournamentLaunchPathLock roster(
-        (g_native_user_root / "profiles-v1.txt").string(), true);
+        (g_native_user_root / "profiles-v1.txt").u8string(), true);
     if (!roster.acquired()) return 0;
-    TournamentLaunchPathLock profile(typed_path.string(), true);
+    TournamentLaunchPathLock profile(typed_path.u8string(), true);
     if (!profile.acquired() ||
         !baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, location.save_root)) return 0;
@@ -504,12 +507,12 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, selected_root.save_root)) return 0;
     ur::product::TournamentLaunchPathLock selector(
-        (g_native_user_root / "host-state-v1.txt").string(), true);
+        (g_native_user_root / "host-state-v1.txt").u8string(), true);
     if (!selector.acquired()) return 0;
     ur::product::TournamentLaunchPathLock roster(
-        (g_native_user_root / "profiles-v1.txt").string(), true);
+        (g_native_user_root / "profiles-v1.txt").u8string(), true);
     if (!roster.acquired()) return 0;
-    ur::product::TournamentLaunchPathLock profile(profile_path.string(), true);
+    ur::product::TournamentLaunchPathLock profile(profile_path.u8string(), true);
     if (!profile.acquired()) return 0;
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, selected_root.save_root)) return 0;
@@ -547,7 +550,7 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
 
     std::string path, detail;
     if (!ur::product::append_completed_run_record(
-            directory.string(), *run, &path, &detail)) {
+            directory.u8string(), *run, &path, &detail)) {
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_RUN PUBLISH_REJECTED reason=%s\n",
             detail.c_str());
@@ -619,14 +622,14 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
             g_native_user_root, second.save_root))
         return 0;
     TournamentLaunchPathLock selector(
-        (g_native_user_root / "host-state-v1.txt").string(), true);
+        (g_native_user_root / "host-state-v1.txt").u8string(), true);
     if (!selector.acquired()) return 0;
     TournamentLaunchPathLock catalog(
-        (g_native_user_root / "profiles-v1.txt").string(), true);
+        (g_native_user_root / "profiles-v1.txt").u8string(), true);
     if (!catalog.acquired()) return 0;
-    TournamentLaunchPathLock profile1(first_state.string(), true);
+    TournamentLaunchPathLock profile1(first_state.u8string(), true);
     if (!profile1.acquired()) return 0;
-    TournamentLaunchPathLock profile2(second_state.string(), true);
+    TournamentLaunchPathLock profile2(second_state.u8string(), true);
     if (!profile2.acquired()) return 0;
     if (!baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, first.save_root) ||
@@ -646,9 +649,9 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
             g_launch_profile->stock_sram->data(), kStockSramBytes))
         return 0;
     const auto roster = load_host_profile_catalog_file(
-        (g_native_user_root / "profiles-v1.txt").string());
+        (g_native_user_root / "profiles-v1.txt").u8string());
     const auto opponent = load_host_profile_state_file(
-        ExecutionMode::Modern, second_state.string(), p2->profile_id);
+        ExecutionMode::Modern, second_state.u8string(), p2->profile_id);
     if (!roster || !opponent.loaded() ||
         !catalog_entry_matches_profile_state(*p1, *g_launch_profile) ||
         !catalog_entry_matches_profile_state(*p2, *opponent.state) ||
@@ -670,7 +673,7 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
         (fs::is_symlink(status) || !fs::is_directory(status))) return 0;
     std::string path, detail;
     if (!append_multiplayer_match_pair(
-            archive.string(), *run, *match, &path, &detail)) {
+            archive.u8string(), *run, *match, &path, &detail)) {
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_MATCH PUBLISH_REJECTED reason=%s\n",
             detail.c_str());
@@ -695,7 +698,7 @@ ur_baldosa_modern_profile_multiplayer_records_directory(void) {
     static std::string path;
     if (!activated() || g_verified_native_profile_id.empty() ||
         g_native_user_root.empty()) return nullptr;
-    path = (g_native_user_root / "multiplayer-runs").string();
+    path = (g_native_user_root / "multiplayer-runs").u8string();
     return path.c_str();
 }
 
@@ -705,7 +708,7 @@ extern "C" const char* ur_baldosa_modern_profile_catalog_path(void) {
     static std::string path;
     if (!activated() || g_verified_native_profile_id.empty() ||
         g_native_user_root.empty()) return nullptr;
-    path = (g_native_user_root / "profiles-v1.txt").string();
+    path = (g_native_user_root / "profiles-v1.txt").u8string();
     return path.c_str();
 }
 
@@ -719,7 +722,7 @@ extern "C" const char* ur_baldosa_modern_profile_records_directory(void) {
     if (!activated() || g_verified_native_profile_id.empty() ||
         g_native_user_root.empty()) return nullptr;
     path = (g_native_user_root / "runs" /
-            g_verified_native_profile_id).string();
+            g_verified_native_profile_id).u8string();
     return path.c_str();
 }
 
@@ -785,7 +788,7 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
             g_native_user_root, profile_root.save_root))
         return reject("save_profile_path_redirected_or_incomplete");
     auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
-        (g_native_user_root / "host-state-v1.txt").string(), true);
+        (g_native_user_root / "host-state-v1.txt").u8string(), true);
     if (!candidate->acquired())
         return reject("save_selector_lock_unavailable");
     // The existing selector, catalog and profile CAS writers own distinct
@@ -793,14 +796,14 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
     // all three until the raw SRAM write and typed publication have finished.
     auto catalog_candidate =
         std::make_unique<ur::product::TournamentLaunchPathLock>(
-            (g_native_user_root / "profiles-v1.txt").string(), true);
+            (g_native_user_root / "profiles-v1.txt").u8string(), true);
     if (!catalog_candidate->acquired())
         return reject("save_catalog_lock_unavailable");
     const auto profile_path = g_native_user_root /
         profile_root.save_root / "host-profile.txt";
     auto profile_candidate =
         std::make_unique<ur::product::TournamentLaunchPathLock>(
-            profile_path.string(), true);
+            profile_path.u8string(), true);
     if (!profile_candidate->acquired())
         return reject("save_profile_lock_unavailable");
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
@@ -897,7 +900,8 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
     const char* post_raw_gate =
         std::getenv("UR_BALDOSA_QA_POSTRAW_TYPED_DENIAL_GATE");
     if (post_raw_gate && *post_raw_gate) {
-        const std::filesystem::path gate(post_raw_gate);
+        const std::filesystem::path gate =
+            ur::product::host_native_path_from_utf8(std::string(post_raw_gate));
         if (!gate.is_absolute() || std::filesystem::exists(gate))
             return reject("qa_postraw_gate_invalid");
         std::fprintf(stderr,
@@ -1010,7 +1014,8 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
         const char* before_switch_gate =
             std::getenv("UR_BALDOSA_QA_POSTSAVE_NEXT_BOOT_GATE");
         if (before_switch_gate && *before_switch_gate) {
-            const std::filesystem::path gate(before_switch_gate);
+            const std::filesystem::path gate =
+                ur::product::host_native_path_from_utf8(std::string(before_switch_gate));
             if (!gate.is_absolute() || std::filesystem::exists(gate))
                 return 2; // old save remains committed; selector not ours
             std::fprintf(stderr,

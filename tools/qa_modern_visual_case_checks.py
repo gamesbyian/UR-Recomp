@@ -60,7 +60,7 @@ def plan(case: dict) -> dict:
                            and case["screen"] != "records"}
 
 
-def evaluate(case: dict, frame: d.Frame) -> dict:
+def evaluate(case: dict, frame: d.Frame, require_ring: bool = False) -> dict:
     p = plan(case)
     checks = []
 
@@ -89,7 +89,11 @@ def evaluate(case: dict, frame: d.Frame) -> dict:
         if total == 1:
             bar = next(b[0] for b in bars if b)
             ring = d.focus_ring_audit(frame, bar, m)
-            add("focus-ring", ring["pass"], {"samples": ring["samples"]})
+            # Advisory unless required: captures made before the shared
+            # two-tone ring existed (archived runs) must not turn red.
+            add("focus-ring", ring["pass"] or not require_ring,
+                {"present": ring["pass"], "required": require_ring,
+                 "samples": ring["samples"]})
     return {"schema": "ur-modern-visual-case-v1", "case": case["id"],
             "input_sha256": frame.sha256, "checks": checks,
             "pass": all(c["pass"] for c in checks),
@@ -105,12 +109,15 @@ def main(argv=None) -> int:
     ap.add_argument("--expect-sha256")
     ap.add_argument("--matrix", type=Path, default=MATRIX)
     ap.add_argument("--require", action="store_true")
+    ap.add_argument("--require-ring", action="store_true",
+                    help="fail frames lacking the shared two-tone focus ring")
     a = ap.parse_args(argv)
     try:
         cases = load_cases(a.matrix)
         if a.case not in cases:
             raise ValueError(f"unknown case {a.case!r}")
-        rep = evaluate(cases[a.case], d.load(a.frame, a.expect_sha256))
+        rep = evaluate(cases[a.case], d.load(a.frame, a.expect_sha256),
+                       a.require_ring)
     except (OSError, ValueError, KeyError) as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 1

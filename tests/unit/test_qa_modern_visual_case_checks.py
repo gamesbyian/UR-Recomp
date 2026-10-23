@@ -82,6 +82,17 @@ class CaseChecksTest(unittest.TestCase):
         self.assertFalse(next(c for c in two["checks"]
                               if c["check"] == "single-focus-bar")["pass"])
 
+    def test_missing_ring_is_advisory_unless_required(self):
+        case = cc.load_cases()["root-wide-720"]
+        grid, h = busy(342)
+        put(grid, 342, 12, 60, 3, 16, BAR)  # legacy bar, no ring
+        frame = render_fit(grid, 342, h, 1280, 720)
+        self.assertTrue(cc.evaluate(case, frame)["pass"])
+        strict = cc.evaluate(case, frame, require_ring=True)
+        self.assertFalse(strict["pass"])
+        self.assertEqual([c["check"] for c in strict["checks"] if not c["pass"]],
+                         ["focus-ring"])
+
     def test_compact_43_and_title_cases(self):
         cases = cc.load_cases()
         grid, h = busy(256)

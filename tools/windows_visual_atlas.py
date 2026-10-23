@@ -173,7 +173,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     required_art = sorted({entry["art"] for entry in entries})
     for art in required_art:
         shutil.copyfile(ART / (art + ".png"), target / "assets" / (art + ".png"))
-    for name in ("index.html", "atlas.css", "atlas.js"):
+    for name in ("index.html", "atlas.css", "atlas.js", "tube-header.svg"):
         shutil.copyfile(WEB / name, target / name)
     published = []
     exe_digest = None

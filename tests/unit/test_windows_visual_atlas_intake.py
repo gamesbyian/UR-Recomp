@@ -72,6 +72,8 @@ class WindowsAtlasIntakeTests(unittest.TestCase):
             approval = json.loads((record / "intake-approval.json").read_text())
             self.assertFalse(approval["independent_visual_approval"])
             self.assertEqual(approval["png_sha256"], atlas.sha256(record / "actual-sdl-drawable.png"))
+            self.assertTrue(intake.witness(json.loads(
+                (record / "readback-receipt.json").read_text()), record))
 
     def test_no_p7_log_cannot_be_automatically_admitted(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -131,9 +133,41 @@ class WindowsAtlasIntakeTests(unittest.TestCase):
                              {"new": 1, "existing": 0, "alternative": 0})
             chosen = destination / "approved/URV-MD-001/actual-sdl-drawable.png"
             digest = atlas.sha256(chosen)
+            chosen_root = chosen.parent
+            self.assertTrue((chosen_root / "probe_first/actual-sdl-drawable.pam").is_file())
+            self.assertTrue((chosen_root / "probe_first/native-process.log").is_file())
+            self.assertTrue(intake.witness(json.loads(
+                (chosen_root / "readback-receipt.json").read_text()), chosen_root))
             self.assertEqual(intake.stage(root / "scan", destination),
                              {"new": 0, "existing": 1, "alternative": 0})
             self.assertEqual(atlas.sha256(chosen), digest)
+
+    def test_staging_rejects_candidate_that_lost_original_witness(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.sample(root / "artifact-root")
+            with patch.object(intake, "code_state", return_value="integrated-current-visual"):
+                self.scan(root)
+            staged = root / "scan/approved/captures/URV-MD-001"
+            (staged / "probe_first/native-process.log").unlink()
+            with self.assertRaisesRegex(ValueError, "native P7/log witness"):
+                intake.stage(root / "scan", root / "reviewed-assets")
+
+    def test_assembled_incidental_rechecks_retained_native_witness(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.sample(root / "artifact-root")
+            with patch.object(intake, "code_state", return_value="integrated-current-visual"):
+                self.scan(root)
+            intake.stage(root / "scan", root / "media/windows-visual-atlas")
+            retained = root / "media/windows-visual-atlas/approved/URV-MD-001"
+            with (patch.object(atlas, "ROOT", root),
+                  patch.object(intake, "code_state", return_value="integrated-current-visual")):
+                site = atlas.build(atlas.load_catalog(), root / "site-ok", None, None)
+                self.assertEqual(site["counts"]["captured"], 1)
+                (retained / "probe_first/native-process.log").unlink()
+                with self.assertRaisesRegex(ValueError, "incidental missing native P7/log witness"):
+                    atlas.build(atlas.load_catalog(), root / "site-refused", None, None)
 
     def test_intake_rejects_same_receipt_but_changed_raw_pixels(self):
         with tempfile.TemporaryDirectory() as temp:

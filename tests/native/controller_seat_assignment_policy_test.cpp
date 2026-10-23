@@ -34,6 +34,34 @@ void first_two_pads_follow_player_index_or_first_free() {
     assert(u.connect(kPadB, 7) == 1);
 }
 
+void a_lone_pad_takes_p1_whatever_its_player_index() {
+    // An Xbox pad Windows left in XInput slot 2 (ring light 2) reports
+    // player index 1. Alone, it must still be P1, who drives the menus.
+    Table t;
+    const UrControllerSeatChoice lone =
+        ur_controller_seat_choose(t.seats, kPadA, 1, -1);
+    assert(lone.seat == 0);
+    assert(lone.reason == UR_CONTROLLER_SEAT_FIRST_FREE);
+    ur_controller_seat_taken(t.seats, lone.seat, kPadA);
+    // The pad holding slot 1 then arrives as P2.
+    assert(t.connect(kPadB, 0) == 1);
+    // With P1 disabled, the player index still names the only usable seat.
+    Table u;
+    u.seats[0].enabled = 0;
+    const UrControllerSeatChoice p2 =
+        ur_controller_seat_choose(u.seats, kPadA, 1, -1);
+    assert(p2.seat == 1);
+    assert(p2.reason == UR_CONTROLLER_SEAT_PLAYER_INDEX);
+    // A seat held for an absent P1 is not free for a newcomer: index 1 wins.
+    Table v;
+    assert(v.connect(kPadA, 0) == 0);
+    ur_controller_seat_vacated(v.seats, 0, kPadA);
+    const UrControllerSeatChoice c =
+        ur_controller_seat_choose(v.seats, kPadC, 1, -1);
+    assert(c.seat == 1);
+    assert(c.reason == UR_CONTROLLER_SEAT_PLAYER_INDEX);
+}
+
 void an_occupied_seat_is_never_stolen() {
     // The pinned host's defect: SDL hands a reconnecting XInput pad player
     // index 0 while another pad already owns seat 0.
@@ -171,6 +199,7 @@ void reason_names_are_stable_log_tokens() {
 
 int main() {
     first_two_pads_follow_player_index_or_first_free();
+    a_lone_pad_takes_p1_whatever_its_player_index();
     an_occupied_seat_is_never_stolen();
     a_reconnecting_pad_reclaims_its_own_seat();
     p2_leaving_does_not_swap_players_when_p2_returns();

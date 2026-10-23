@@ -42,7 +42,8 @@ typedef enum UrControllerSeatReason {
     UR_CONTROLLER_SEAT_FORCED = 1,
     /* The device came back to the seat it last owned. */
     UR_CONTROLLER_SEAT_RECLAIMED = 2,
-    /* The SDL player index named a vacant, unreserved seat. */
+    /* The SDL player index named a vacant, unreserved seat with no free
+     * seat below it. */
     UR_CONTROLLER_SEAT_PLAYER_INDEX = 3,
     /* First vacant seat nobody absent is waiting for. */
     UR_CONTROLLER_SEAT_FIRST_FREE = 4,
@@ -61,8 +62,23 @@ static inline int ur_controller_seat_vacant(
            seats[seat].enabled && !seats[seat].occupied;
 }
 
+/* A vacant seat below `seat` that nobody absent is waiting for. */
+static inline int ur_controller_seat_free_below(
+    const UrControllerSeatSlot *seats, int seat) {
+    int i;
+    for (i = 0; i < seat && i < UR_CONTROLLER_SEAT_COUNT; ++i) {
+        if (ur_controller_seat_vacant(seats, i) && seats[i].absent_owner_key == 0)
+            return 1;
+    }
+    return 0;
+}
+
 /* device_key: stable identity (see ur_controller_device_key), 0 if unknown.
- * player_index: SDL's player index, any value outside 0..1 is ignored.
+ * player_index: SDL's player index, any value outside 0..1 is ignored. It
+ * only breaks a tie: a pad never skips a lower seat that is free for it.
+ * Windows keeps an XInput pad's slot (its ring light) across sessions, so a
+ * lone pad can report player index 1; following it would seat that pad as
+ * P2 and leave P1, who drives the menus, to the keyboard.
  * forced_seat: -1, or a seat the host requires (only taken while vacant). */
 static inline UrControllerSeatChoice ur_controller_seat_choose(
     const UrControllerSeatSlot seats[UR_CONTROLLER_SEAT_COUNT],
@@ -89,7 +105,8 @@ static inline UrControllerSeatChoice ur_controller_seat_choose(
         }
     }
     if (ur_controller_seat_vacant(seats, player_index) &&
-        seats[player_index].absent_owner_key == 0) {
+        seats[player_index].absent_owner_key == 0 &&
+        !ur_controller_seat_free_below(seats, player_index)) {
         choice.seat = player_index;
         choice.reason = UR_CONTROLLER_SEAT_PLAYER_INDEX;
         return choice;

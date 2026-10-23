@@ -46,5 +46,16 @@ confirmation and admission logic belong to line 3.
   hosted windows may never get focus. The controller runner's `focus` launch
   checks the product default.
 
+## Which build has these fixes
+
+All of the above is staged into the **integrated Baldosa product** built by
+`baldosa-windows-native-bridge.yml`. The legacy rollback executable built by
+`windows-native-smoke.yml` (`ur-recomp-windows-x64-portable`, pinned
+framework `cd5875cb`, `uniracers_modern_host.cpp`) has none of them. It still
+has the original seat-steal rule, background pad input, Fullscreen that equals
+Borderless, and saves written only at a normal exit, so a console close or a
+sign-out loses progress. Keep that in mind when a playtester uses the legacy
+ZIP. Physical checks against it are not evidence for these fixes.
+
 Every acceptance run above uses hosted Windows with SDL virtual devices. Real
 pads, monitors, sign-out and GPU events are the physical checks.

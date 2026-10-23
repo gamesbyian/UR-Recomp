@@ -112,7 +112,7 @@ class SignedResponderCompletionTests(unittest.TestCase):
         valid_message = completion_message(payload)
         self.assertTrue(valid_message.endswith(canonical_json))
         for other_message in (canonical_json,
-                              b"UR-P2P-INVITE/1\\x00".replace(b"\\x00", b"\x00") + canonical_json):
+                              b"UR-P2P-INVITE/1\x00" + canonical_json):
             forged = copy.deepcopy(self.receipt)
             forged["signature"] = self.responder.sign(other_message).hex()
             with self.subTest(other_message=other_message[:28]), self.assertRaisesRegex(

@@ -22,5 +22,28 @@ class BrightnessDiscriminator(unittest.TestCase):
         for word in ("4210","4631","4a52","56b5"):
             self.assertEqual(len(model.expected_rgb(word,14)), 3)
 
+    def test_rgb555_high_bit_is_not_an_observed_colour(self):
+        # SNES RGB555 uses fifteen colour bits; bit 15 is noncanonical.
+        for word in ("8000", "ffff", "c210"):
+            with self.subTest(word=word), self.assertRaisesRegex(
+                    ValueError, "RGB555 high bit"):
+                model.expected_rgb(word, 14)
+        self.assertEqual(len(model.expected_rgb("7fff", 14)), 3)
+
+    def test_source_fields_reject_retagged_high_bit_palette_words(self):
+        fields = {"frame": "5176", "x": "53", "logical_y": "41",
+                  "ppu_line": "52", "index": "00", "inidisp": "0e",
+                  "cgadsub": "00", "cgwsel": "00"}
+        colour_fields = ("selected_rgb555", "cgram_index_word",
+                         "cgram6c", "cgram6d", "cgram6e", "cgram6f")
+        for key in colour_fields:
+            fields[key] = "4210"
+        model._canonical_observation(fields, "UR_QA08_LATE_PPU_SOURCE")
+        for key in colour_fields:
+            with self.subTest(key=key):
+                bad = dict(fields, **{key: "c210"})
+                with self.assertRaisesRegex(ValueError, "noncanonical RGB555"):
+                    model._canonical_observation(bad, "UR_QA08_LATE_PPU_SOURCE")
+
 if __name__ == "__main__":
     unittest.main()

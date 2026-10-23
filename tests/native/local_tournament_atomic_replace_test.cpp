@@ -54,6 +54,15 @@ int main() {
           "Unicode native profile path published");
     check(bytes(unicode_target) == "unicode-state",
           "Unicode native profile bytes round-trip");
+    const fs::path native_intent = unicode_dir / "native-intent.pending";
+    check(ur::product::write_host_create_staged_native(
+              native_intent, "original-intent", "sram-intent"),
+          "native Unicode recovery intent published");
+    check(!ur::product::write_host_create_staged_native(
+              native_intent, "must-not-overwrite", "sram-intent"),
+          "native Unicode recovery intent refuses occupied target");
+    check(bytes(native_intent) == "original-intent",
+          "native Unicode recovery intent retains incumbent bytes");
     check(write_tournament_replace_staged(
               destination.string(), "original", "urlaunch"),
           "establish a valid incumbent before syncing failure");

@@ -404,9 +404,19 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
                 check=True)
             subprocess.run([str(Path(d) / "c99")], check=True)
 
+    def test_default_scale_runner_handles_invalid_and_extreme_dpi(self):
+        # The Python acceptance oracle must agree with the C helper's
+        # nonfinite rejection and pre-conversion clamping, including bad caps.
+        policy = scale_runner.policy_scale
+        assert policy(float("inf"), 320, 240, 0, 0, 10) == 2
+        assert policy(float("nan"), 320, 240, 0, 0, 10) == 2
+        assert policy(3.0e9, 320, 240, 0, 0, 10) == 10
+        assert policy(3.0e9, 320, 240, 0, 0, 1) == 2
+        assert policy(3.0, 320, 240, 0, 0, 1) == 2
+
     def test_default_scale_runner_mirrors_the_policy(self):
         cases = [(c, bw, bh, uw, uh, m)
-                 for c in (0.0, -1.0, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 6.0)
+                 for c in (0.0, -1.0, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 6.0, 3.0e9)
                  for bw, bh in ((320, 240), (427, 240))
                  for uw, uh in ((0, 0), (1024, 728), (1920, 1040), (2560, 1400),
                                 (3840, 2120), (7680, 4280))

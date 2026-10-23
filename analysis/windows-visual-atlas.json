@@ -1,0 +1,613 @@
+{
+  "schema_version": 1,
+  "product": "Uniracers / UR-Recomp Windows x64",
+  "description": "Planned visual inspection surface inventory. Capturable means a driver route exists, not that pixels have been captured or verified. Remaining cases stay explicitly conceptual.",
+  "art_base": "media/showcase/2026-10-20/graphpaper-final/cards",
+  "entries": [
+    {
+      "id": "URV-MD-001",
+      "title": "Modern root, widescreen",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Main menu",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "root-quit",
+        "shard": "frontend",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-002",
+      "title": "Modern root, compact",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Main menu",
+      "display": "1024 × 768",
+      "art": "modern-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "root-quit",
+        "shard": "frontend",
+        "size": "1024x768"
+      }
+    },
+    {
+      "id": "URV-MD-003",
+      "title": "Records, keyboard entry",
+      "mode": "modern",
+      "family": "Profiles & records",
+      "state": "Records",
+      "display": "1280 × 720",
+      "art": "windows",
+      "kind": "capturable",
+      "capture": {
+        "route": "records-keyboard",
+        "shard": "interaction",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-004",
+      "title": "Practice track picker",
+      "mode": "modern",
+      "family": "Play & events",
+      "state": "Practice",
+      "display": "1280 × 720",
+      "art": "race-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "practice-picker",
+        "shard": "interaction",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-005",
+      "title": "Unrecorded multiplayer warning",
+      "mode": "modern",
+      "family": "Multiplayer",
+      "state": "2P warning",
+      "display": "1280 × 720",
+      "art": "race-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "multiplayer-unrecorded",
+        "shard": "interaction",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-006",
+      "title": "Options, P1",
+      "mode": "modern",
+      "family": "Options & accessibility",
+      "state": "Options",
+      "display": "1280 × 720",
+      "art": "modern-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "options-p1",
+        "shard": "interaction",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-007",
+      "title": "First-player identity selection",
+      "mode": "modern",
+      "family": "Profiles & records",
+      "state": "Racer selection",
+      "display": "1280 × 720",
+      "art": "windows",
+      "kind": "capturable",
+      "capture": {
+        "route": "profile-first-p1",
+        "shard": "interaction",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-008",
+      "title": "Root motion, initial frame",
+      "mode": "modern",
+      "family": "Transitions",
+      "state": "Root animation",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "root-motion-normal-zero",
+        "shard": "motion",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-009",
+      "title": "Root motion, progressed",
+      "mode": "modern",
+      "family": "Transitions",
+      "state": "Root animation",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "root-motion-normal-eight",
+        "shard": "motion",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-010",
+      "title": "Root reduced motion, initial",
+      "mode": "modern",
+      "family": "Options & accessibility",
+      "state": "Reduced motion",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "root-motion-reduced-zero",
+        "shard": "motion",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-MD-011",
+      "title": "Root reduced motion, progressed",
+      "mode": "modern",
+      "family": "Options & accessibility",
+      "state": "Reduced motion",
+      "display": "1280 × 720",
+      "art": "animation-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "root-motion-reduced-eight",
+        "shard": "motion",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-AU-001",
+      "title": "Authentic stock presentation, wide",
+      "mode": "authentic",
+      "family": "Original game",
+      "state": "Original startup",
+      "display": "1280 × 720",
+      "art": "raster-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "authentic-stock",
+        "shard": "authentic",
+        "size": "1280x720"
+      }
+    },
+    {
+      "id": "URV-AU-002",
+      "title": "Authentic stock presentation, compact",
+      "mode": "authentic",
+      "family": "Original game",
+      "state": "Original startup",
+      "display": "1024 × 768",
+      "art": "raster-frame",
+      "kind": "capturable",
+      "capture": {
+        "route": "authentic-stock",
+        "shard": "authentic",
+        "size": "1024x768"
+      }
+    },
+    {
+      "id": "URV-MD-012",
+      "title": "Native Modern title, wide",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Title",
+      "display": "16:9",
+      "art": "reveal-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-013",
+      "title": "Native Modern title, compact",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Title",
+      "display": "4:3",
+      "art": "reveal-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-014",
+      "title": "Boot, launcher and loading",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Startup",
+      "display": "16:9",
+      "art": "code-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-015",
+      "title": "Root Play selected",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Selected control",
+      "display": "16:9",
+      "art": "modern-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-016",
+      "title": "Root focus and disabled affordances",
+      "mode": "modern",
+      "family": "Front end",
+      "state": "Focus / disabled",
+      "display": "4:3",
+      "art": "modern-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-017",
+      "title": "Create named profile",
+      "mode": "modern",
+      "family": "Profiles & records",
+      "state": "Profile creation",
+      "display": "16:9",
+      "art": "windows",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-018",
+      "title": "Two seated racers joining",
+      "mode": "modern",
+      "family": "Multiplayer",
+      "state": "Two controller join",
+      "display": "16:9",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-019",
+      "title": "Local versus setup",
+      "mode": "modern",
+      "family": "Multiplayer",
+      "state": "Local 2P selection",
+      "display": "16:9",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-020",
+      "title": "Racer Studio hero preview",
+      "mode": "modern",
+      "family": "Profiles & records",
+      "state": "Racer preview",
+      "display": "16:9",
+      "art": "art-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-021",
+      "title": "Career, tour and event selection",
+      "mode": "modern",
+      "family": "Play & events",
+      "state": "Tour selection",
+      "display": "16:9",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-022",
+      "title": "Run Results and earned records",
+      "mode": "modern",
+      "family": "Profiles & records",
+      "state": "Results",
+      "display": "16:9",
+      "art": "windows",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-023",
+      "title": "Empty records and no-profile messages",
+      "mode": "modern",
+      "family": "Profiles & records",
+      "state": "Empty state",
+      "display": "4:3",
+      "art": "modern-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-024",
+      "title": "Options, display scaling",
+      "mode": "modern",
+      "family": "Options & accessibility",
+      "state": "Display options",
+      "display": "16:9",
+      "art": "4k",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-025",
+      "title": "Options, accessibility and motion",
+      "mode": "modern",
+      "family": "Options & accessibility",
+      "state": "Accessibility",
+      "display": "16:9",
+      "art": "animation-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-026",
+      "title": "Pause and resume overlay",
+      "mode": "modern",
+      "family": "Play & events",
+      "state": "Pause",
+      "display": "16:9",
+      "art": "modern-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-027",
+      "title": "Restart and abandon confirmations",
+      "mode": "modern",
+      "family": "Play & events",
+      "state": "Confirmation",
+      "display": "16:9",
+      "art": "modern-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-028",
+      "title": "Live race recorded-video prompt",
+      "mode": "modern",
+      "family": "Play & events",
+      "state": "Post-race recording",
+      "display": "16:9",
+      "art": "windows",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-029",
+      "title": "Tournament standings / bracket",
+      "mode": "modern",
+      "family": "Multiplayer",
+      "state": "Tournament",
+      "display": "16:9",
+      "art": "windows",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-030",
+      "title": "Recovery and crash protection",
+      "mode": "modern",
+      "family": "System & recovery",
+      "state": "Recovery",
+      "display": "16:9",
+      "art": "code-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-031",
+      "title": "Controller disconnection/return",
+      "mode": "modern",
+      "family": "System & recovery",
+      "state": "Controller events",
+      "display": "16:9",
+      "art": "code-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-032",
+      "title": "Missing resources / missing ROM",
+      "mode": "modern",
+      "family": "System & recovery",
+      "state": "Error",
+      "display": "16:9",
+      "art": "code-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-MD-033",
+      "title": "Resize / fullscreen change",
+      "mode": "modern",
+      "family": "System & recovery",
+      "state": "Window lifecycle",
+      "display": "16:9",
+      "art": "4k",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-003",
+      "title": "Original menu with cursor",
+      "mode": "authentic",
+      "family": "Original game",
+      "state": "Main menu",
+      "display": "4:3",
+      "art": "parity-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-004",
+      "title": "Original racer selector",
+      "mode": "authentic",
+      "family": "Original game",
+      "state": "Racer selection",
+      "display": "4:3",
+      "art": "parity-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-005",
+      "title": "Original 1P race HUD",
+      "mode": "authentic",
+      "family": "Gameplay",
+      "state": "1P race",
+      "display": "4:3",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-006",
+      "title": "Original 2P split and HUD",
+      "mode": "authentic",
+      "family": "Gameplay",
+      "state": "2P race",
+      "display": "4:3",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-007",
+      "title": "Original countdown and GO",
+      "mode": "authentic",
+      "family": "Gameplay",
+      "state": "Countdown",
+      "display": "4:3",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-008",
+      "title": "Original jump / loop / midair pose",
+      "mode": "authentic",
+      "family": "Gameplay",
+      "state": "Stunt motion",
+      "display": "4:3",
+      "art": "animation-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-AU-009",
+      "title": "Original race finish / results",
+      "mode": "authentic",
+      "family": "Gameplay",
+      "state": "Results",
+      "display": "4:3",
+      "art": "parity-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-OR-001",
+      "title": "Original 4× integer scaling",
+      "mode": "original-4x",
+      "family": "Display & graphics",
+      "state": "Integer scale",
+      "display": "16:9",
+      "art": "4k",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-OR-002",
+      "title": "4:3 aspect and 7:6 pixel geometry",
+      "mode": "original-4x",
+      "family": "Display & graphics",
+      "state": "Geometry",
+      "display": "4:3",
+      "art": "raster-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-HD-001",
+      "title": "Remastered 1P racer compositing",
+      "mode": "remastered",
+      "family": "Display & graphics",
+      "state": "HD racer",
+      "display": "16:9",
+      "art": "art-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-HD-002",
+      "title": "Remastered 2P split and occlusion",
+      "mode": "remastered",
+      "family": "Display & graphics",
+      "state": "HD multiplayer",
+      "display": "16:9",
+      "art": "art_p2-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-HD-003",
+      "title": "HD fallback / unsupported pose",
+      "mode": "remastered",
+      "family": "Display & graphics",
+      "state": "Fallback",
+      "display": "16:9",
+      "art": "art-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-WS-001",
+      "title": "Native 342-column widescreen race",
+      "mode": "widescreen",
+      "family": "Gameplay",
+      "state": "1P race",
+      "display": "16:9",
+      "art": "reveal-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-WS-002",
+      "title": "Widescreen 2P track/viewport edge",
+      "mode": "widescreen",
+      "family": "Gameplay",
+      "state": "2P race",
+      "display": "16:9",
+      "art": "race-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-WS-003",
+      "title": "Windowed 1080p, exact drawable",
+      "mode": "widescreen",
+      "family": "Display & graphics",
+      "state": "Window scaling",
+      "display": "1920 × 1080",
+      "art": "4k",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-WS-004",
+      "title": "4K native host drawable",
+      "mode": "widescreen",
+      "family": "Display & graphics",
+      "state": "4K",
+      "display": "3840 × 2160",
+      "art": "4k",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-NET-001",
+      "title": "Direct peer invite / rendezvous",
+      "mode": "future",
+      "family": "Multiplayer",
+      "state": "Online P2P invite",
+      "display": "16:9",
+      "art": "code-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-NET-002",
+      "title": "Peer connecting / timeout",
+      "mode": "future",
+      "family": "Multiplayer",
+      "state": "P2P diagnostics",
+      "display": "16:9",
+      "art": "code-frame",
+      "kind": "planned"
+    },
+    {
+      "id": "URV-SYS-001",
+      "title": "Credits and About",
+      "mode": "future",
+      "family": "Front end",
+      "state": "Credits",
+      "display": "16:9",
+      "art": "cta",
+      "kind": "planned"
+    }
+  ]
+}

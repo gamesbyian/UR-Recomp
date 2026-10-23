@@ -8,7 +8,7 @@ This tool never modifies host/gameplay/ROM bytes and never grants release QA.
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 import hashlib
 import json
 from pathlib import Path
@@ -17,6 +17,9 @@ import shutil
 import struct
 import subprocess
 import sys
+import os
+import time
+from threading import Lock
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "analysis/windows-visual-atlas.json"
@@ -222,7 +225,8 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
 
 
 def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
-                  target: Path, source: str, timeout: int, workers: int = 2) -> int:
+                  target: Path, source: str, timeout: int, workers: int = 2,
+                  resume_from: Path | None = None) -> int:
     entries = validate(catalog)
     if shard not in SHARDS or not re.fullmatch(r"[0-9a-f]{40}", source):
         raise ValueError("Invalid shard or source SHA")
@@ -233,10 +237,52 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
     if not matched:
         raise ValueError("No capture entries assigned to shard")
     if workers not in (1, 2):
-        raise ValueError('Native process worker count must be 1 or 2')
+        raise ValueError("Native process worker count must be 1 or 2")
+    if resume_from is not None and (not resume_from.is_dir() or resume_from.is_symlink()):
+        raise ValueError("Missing or redirected prior snapshot")
+    exe_digest = sha256(exe)
+    lock = Lock()
+    journal = target / "progress.jsonl"
+    running: set[str] = set()
+    done = 0
+    def announce(status: str, name: str, *, result: str = "") -> None:
+        nonlocal done
+        with lock:
+            if status == "start":
+                running.add(name)
+            if status == "end":
+                running.discard(name)
+                done += 1
+            event = {"status": status, "id": name, "result": result,
+                     "completed": done, "total": len(matched), "active": sorted(running),
+                     "source_sha": source, "exe_sha256": exe_digest}
+            with journal.open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps(event, sort_keys=True) + "\\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            print(f"::notice title=Atlas {shard} progress::{done}/{len(matched)} "
+                  f"complete; {name} {status} {result}; active={','.join(sorted(running))}",
+                  flush=True)
     def run_case(entry: dict) -> dict:
         location = target / "captures" / entry["id"]
         location.parent.mkdir(parents=True, exist_ok=True)
+        announce("start", entry["id"])
+        if resume_from is not None:
+            previous = resume_from / entry["id"]
+            if previous.is_dir() and not previous.is_symlink():
+                try:
+                    receipt, prior_digest = valid_receipt(entry, previous, source, exe_digest)
+                    # The exact prior source and PE are a hard requirement.
+                    # A failure marker or incomplete prior result is never reused.
+                    if prior_digest == exe_digest:
+                        location.mkdir()
+                        for name in ("readback-receipt.json", "actual-sdl-drawable.png"):
+                            shutil.copyfile(previous / name, location / name)
+                        announce("end", entry["id"], result="resumed")
+                        return {"id": entry["id"], "result": "captured",
+                                "reused": True}
+                except (OSError, ValueError, KeyError, json.JSONDecodeError):
+                    pass  # Reattempt a genuinely incomplete or stale case.
         cmd = [
             sys.executable, str(ROOT / "tools/qa_modern_visual_win32_capture_driver.py"),
             "--exe", str(exe.resolve()), "--rom", str(rom.resolve()),
@@ -258,17 +304,36 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
                 "id": entry["id"], "status": "failed", "reason": str(exc)[:1800]
             }, indent=2) + "\n", encoding="utf-8")
             status = "failed"
+        announce("end", entry["id"], result=status)
         return {"id": entry["id"], "result": status}
-    # Bound resident native processes to at most two per Windows runner.
-    # Each process owns independent screenshot, config and user-data paths.
+    # Process-level bounded parallelism, responsive completion-order progress.
+    # Every case writes its own receipt before the next case can touch it.
+    results = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        results = list(pool.map(run_case, matched))
+        pending = {pool.submit(run_case, entry): entry["id"] for entry in matched}
+        while pending:
+            ready, _ = wait(pending, timeout=30, return_when=FIRST_COMPLETED)
+            if not ready:
+                print(f"::notice title=Atlas {shard} heartbeat::{done}/{len(matched)} "
+                      f"complete; {len(pending)} pending/running", flush=True)
+                continue
+            for future in ready:
+                name = pending.pop(future)
+                try:
+                    results.append(future.result())
+                except Exception as exc:
+                    announce("end", name, result="internal-error")
+                    results.append({"id": name, "result": "failed",
+                                    "internal_error": str(exc)[:250]})
+    results.sort(key=lambda r: r["id"])
     for result in results:
-        print(result["id"], result["result"], flush=True)
+        print(result["id"], result["result"], "reused" if result.get("reused") else "",
+              flush=True)
     report = json.dumps({
         "shard": shard, "source_sha": source, "results": results,
         "captured": sum(r["result"] == "captured" for r in results),
         "failed": sum(r["result"] == "failed" for r in results),
+        "reused": sum(r.get("reused", False) for r in results),
         "release_gate_credit": 0,
     }, indent=2) + "\n"
     (target / "shard-summary.json").write_text(report, encoding="utf-8")
@@ -295,6 +360,8 @@ def main() -> int:
     capture.add_argument("--source-sha", required=True)
     capture.add_argument("--timeout", type=int, default=100)
     capture.add_argument("--workers", type=int, choices=(1, 2), default=2)
+    capture.add_argument("--resume-from", type=Path,
+                         help="Prior same-source, same-PE capture artifact directory")
     args = parser.parse_args()
     try:
         catalog = load_catalog()
@@ -307,7 +374,7 @@ def main() -> int:
                 raise ValueError("Capture timeout must be 5..180 seconds")
             return capture_shard(catalog, shard=args.shard, exe=args.exe, rom=args.rom,
                                  target=args.out, source=args.source_sha, timeout=args.timeout,
-                                 workers=args.workers)
+                                 workers=args.workers, resume_from=args.resume_from)
         return 0
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print("WINDOWS_VISUAL_ATLAS_REJECTED:", exc, file=sys.stderr)

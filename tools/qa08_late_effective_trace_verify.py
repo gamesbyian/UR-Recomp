@@ -54,11 +54,13 @@ def sha(data: bytes) -> str:
 
 
 def parse_row(line: str) -> tuple[str, dict] | None:
-    if PREFIX_SPAN_OBJECT_OVERRIDE in line:
+    if line.startswith(PREFIX_SPAN_OBJECT_OVERRIDE):
         raise ValueError("host OBJ palette override is not a CGRAM witness")
     markers = [p for p in (PREFIX_SOURCE, PREFIX_FINAL,
-                           PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL) if p in line]
+                           PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL) if line.startswith(p)]
     if not markers:
+        if line.startswith("UR_QA08_LATE_"):
+            raise ValueError("unknown effective-PPU logger marker")
         return None
     if len(markers) != 1:
         raise ValueError("ambiguous effective-PPU logger marker")

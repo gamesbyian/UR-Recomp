@@ -15,7 +15,7 @@ class TournamentLiveAttemptFenceContract(unittest.TestCase):
         )[1].split(
             "\nLocalTournamentCoordinatorStatus cancel_local_tournament_capture(", 1
         )[0]
-        lock = action.index("TournamentLaunchPathLock lock(checkpoint)")
+        lock = action.index("TournamentLaunchPathLock lock(host_native_path_from_utf8(checkpoint))")
         read = action.index("load_local_tournament_launch_file(")
         compare = action.index(
             "encode_local_tournament_pending_fixture(*on_disk.pending)"

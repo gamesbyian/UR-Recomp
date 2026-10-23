@@ -1,0 +1,73 @@
+name: Vault Evidence anonymous access probe
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/vault-evidence-access-probe.yml'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned downloader
+        run: python -m pip install 'gdown==6.4.2'
+      - name: Test anonymous Evidence folder and private-reference 28MB ZIP access
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import io
+          import json
+          import os
+          import pathlib
+          import subprocess
+          import tempfile
+          import zipfile
+
+          folder = 'https://drive.google.com/drive/folders/1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2'
+          desired = '142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ'
+          listed = subprocess.run(
+              ['gdown', folder, '--json', '--quiet', '--no-cookies'],
+              capture_output=True, text=True, check=True, timeout=180)
+          entries = json.loads(listed.stdout)
+          if not isinstance(entries, list):
+              raise ValueError('Evidence folder listing is not an array')
+          matched = [e for e in entries if desired in e.get('url', '')]
+          if len(matched) != 1:
+              raise ValueError('Selected H26 archive missing from anonymous Evidence enumeration')
+          with tempfile.TemporaryDirectory() as tmp:
+              destination = pathlib.Path(tmp) / 'evidence.zip'
+              subprocess.run(
+                  ['gdown', matched[0]['url'], '-O', str(destination), '--quiet',
+                   '--no-cookies', '--timeout', '120'],
+                  capture_output=True, text=True, check=True, timeout=900)
+              length = destination.stat().st_size
+              if not (20 * 1024 * 1024 <= length <= 64 * 1024 * 1024):
+                  raise ValueError('unexpected large Evidence ZIP size')
+              digest = hashlib.sha256(destination.read_bytes()).hexdigest()
+              with zipfile.ZipFile(destination) as zf:
+                  info = zf.infolist()
+                  if not info or len(info) > 10000 or sum(i.file_size for i in info) > 128 * 1024 * 1024:
+                      raise ValueError('archive outside bounded verification limits')
+                  for member in info:
+                      if member.is_dir() or member.flag_bits & 1:
+                          raise ValueError('unexpected directory or encrypted archive member')
+                      with zf.open(member) as stream:
+                          while stream.read(1024 * 1024):
+                              pass
+              summary = (f'## Evidence anonymous-access test\n'
+                         f'- Folder entries enumerated: {len(entries)}\n'
+                         f'- H26 archive downloaded bytes: {length}\n'
+                         f'- H26 archive SHA-256: \`{digest}\`\n'
+                         f'- ZIP members CRC-verified: {len(info)}\n'
+                         f'- Original bytes uploaded or committed: **0**\n')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+                  output.write(summary)
+              print(f'PUBLIC_EVIDENCE_ACCESS_OK listed={len(entries)} '
+                    f'bytes={length} checked_members={len(info)} sha256={digest}')
+          PY

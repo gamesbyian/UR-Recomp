@@ -78,6 +78,8 @@ int main() {
     const auto link_root = root / "fixtures";
     fs::create_directories(run_root);
     fs::create_directories(link_root);
+    std::fprintf(stderr, "result-link-checkpoint: directories\n");
+    std::fflush(stderr);
     const auto run0 = make_run(initial->fixtures[0].course_id, 0x080);
     const auto match0 = make_match(run0, *initial, 0);
     std::string path0;
@@ -86,6 +88,8 @@ int main() {
         run_root.string(), run0, match0, &path0, &detail),
         "authoritative pair published to actual disk");
 
+    std::fprintf(stderr, "result-link-checkpoint: first pair\n");
+    std::fflush(stderr);
     // A validated general-Records pair alone cannot confer tournament points.
     auto no_links = restore_saved_local_tournament_fixtures(
         link_root.string(), run_root.string(), instance, *initial);
@@ -117,6 +121,8 @@ int main() {
     check(fs::exists(link0) && !fs::exists(link0.string() + ".tmp"),
           "durable fixture link committed and no temporary residue");
 
+    std::fprintf(stderr, "result-link-checkpoint: first receipt\n");
+    std::fflush(stderr);
     // A Unicode Windows profile root must survive fixture publication,
     // Records pair lookup and cold restoration without an ANSI round trip.
     const fs::path unicode_links = root / fs::u8path(u8"fixtures-测试-🎮");
@@ -152,6 +158,8 @@ int main() {
         *initial).status == Status::MatchRejected,
         "Unicode fixture cannot resolve a pair from the wrong Records root");
 
+    std::fprintf(stderr, "result-link-checkpoint: unicode restore\n");
+    std::fflush(stderr);
     // A second, separately valid process attempt for the same scheduled
     // fixture must NEVER overwrite the already published receipt. A prior
     // exists() check is not a concurrency transaction, so publication itself
@@ -251,6 +259,8 @@ int main() {
             "all completed concurrent staging directories removed");
     }
 
+    std::fprintf(stderr, "result-link-checkpoint: concurrency\n");
+    std::fflush(stderr);
     // A process killed before the atomic final-name claim can leave staging
     // debris. It must never become evidence or poison a valid fixture restore.
     const auto abandoned = link_root / ".pending-urfixture-abandoned";
@@ -322,6 +332,8 @@ int main() {
             Status::MatchRejected,
         "missing bound match sidecar invalidates receipt");
 
+    std::fprintf(stderr, "result-link-checkpoint: final\n");
+    std::fflush(stderr);
     fs::remove_all(root);
     std::puts("local_tournament_result_link_store_test: ok");
     return 0;

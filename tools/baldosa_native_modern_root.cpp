@@ -1298,7 +1298,8 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_native_menu_motion_root_presents = 0;
         return ur::product::render_baldosa_native_run_save_feedback(
             painter, reinterpret_cast<std::uint32_t*>(dst),
-            static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
+            static_cast<int>(pitch / 4), height, g_run_save_feedback,
+            width) ? 1 : 0;
     }
     ModernRootOverlayView view{
         g_menu, false, g_racer_name,

@@ -70,6 +70,35 @@ class MemberCrosswalk(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'duplicate'):
             crosswalk(bad, tree([]))
 
+    def test_win32_nonportable_names_refused_even_with_matching_git_blob(self):
+        rejected = (
+            'CON.txt', 'safe/COM¹.log', 'safe/LPT².txt',
+            'safe/stream:ads.py', 'safe/file. ', 'e\u0301.py',
+            'control\u0085.py',
+        )
+        for name in rejected:
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'unsafe'):
+                crosswalk(archive([(name, b'x')]), tree([(name, b'x')]))
+        self.assertEqual(
+            crosswalk(archive([('safe/résumé.py', b'good'),
+                               ('safe/name².txt', b'valid')]),
+                      tree([]))['source_like_members'], 2)
+
+    def test_portable_file_directory_prefix_collision_refused(self):
+        for entries in (
+            [('node', b'a'), ('node/leaf.py', b'b')],
+            [('NODE', b'a'), ('node/leaf.py', b'b')],
+            [('node/leaf.py', b'b'), ('node', b'a')],
+        ):
+            with self.subTest(names=[x[0] for x in entries]), self.assertRaisesRegex(
+                    ValueError, 'prefix collision'):
+                crosswalk(archive(entries), tree([]))
+
+    def test_nested_archive_path_must_be_portable_itself(self):
+        nested = archive([('safe/CON.txt', b'bad')])
+        with self.assertRaisesRegex(ValueError, 'unsafe'):
+            crosswalk(archive([('inner.zip', nested)]), tree([]))
+
     def test_corrupt_zip_is_integrity_failure(self):
         with self.assertRaisesRegex(ValueError, 'invalid or corrupt'):
             crosswalk(b'bad', tree([]))

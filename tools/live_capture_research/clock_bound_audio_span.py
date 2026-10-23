@@ -27,7 +27,15 @@ class ClockBoundWitness(ByteSpanWitness):
     def add(self, *, attempt, frame_number, pts_ns, bgra, audio_first_sample, pcm_s16le):
         if self._clock_sealed:
             raise ValueError('finalized witness cannot admit another frame')
+        if self.incomplete_reason:
+            raise ValueError('capture already incomplete')
         if self._pending_pts is not None:
+            # The subclass checks the clock before ByteSpanWitness.add().
+            # Keep the base class fail-closed contract for malformed/reversed
+            # timestamps rather than throwing TypeError or allowing a retry.
+            if type(pts_ns) is not int or pts_ns <= self._pending_pts:
+                self.incomplete_reason = 'nonmonotonic presentation timestamp'
+                raise ValueError(self.incomplete_reason)
             expected = self._samples(pts_ns - self._pending_pts)
             if abs(self._pending_audio - expected) > 1:
                 self.incomplete_reason = 'audio span does not match presentation interval'

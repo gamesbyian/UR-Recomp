@@ -50,6 +50,31 @@ def ordered(log: str, stages: tuple[str, ...], label: str) -> None:
         raise ValueError(f"{label}: stages out of order")
 
 
+def verify_keyboard_plus_pad(log: str) -> None:
+    """Require the real guest's 2P stock admission, not merely a join request."""
+    ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+                  "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
+                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+                  "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+                  "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"),
+            "keyboard+pad")
+    if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1")) != 1:
+        raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")
+    for forbidden in ("join_rejected", "join_seat_left", "stock_rejected=",
+                      "stock_requested players=1", "stock_entered players=1"):
+        if forbidden in log:
+            raise ValueError(f"keyboard+pad: unexpected {forbidden}")
+
+
+def reject_unexpected_stock_route(log: str, label: str) -> None:
+    """A withdrawn/cancelled join must not request OR enter a stock route."""
+    for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
+                   "UR_BALDOSA_MODERN_ROOT stock_entered"):
+        if marker in log:
+            raise ValueError(f"{label}: unexpected {marker}")
+
+
 def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     exe, rom, out = exe.resolve(strict=True), rom.resolve(strict=True), out.resolve()
     # The product ignores pads while the window is unfocused (#2334); a hosted
@@ -66,23 +91,14 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         raise ValueError("the two-racer roster was not created")
 
     log = run_game(exe, rom, user, out / "keyboard_plus_pad", "15", JOIN, video, timeout)
-    ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
-                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
-                  "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
-                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
-                  "UR_BALDOSA_MODERN_ROOT stock_requested players=2"), "keyboard+pad")
-    if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1")) != 1:
-        raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")
-    if lines(log, "join_rejected") or lines(log, "join_seat_left"):
-        raise ValueError("keyboard+pad: a confirmation was rejected or withdrawn")
+    verify_keyboard_plus_pad(log)
 
     log = run_game(exe, rom, user, out / "p2_owner_leaves", "16", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
                   "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
                   "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 confirmation_cleared=1",
                   "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1"), "owner leaves")
-    if lines(log, "stock_requested players=2"):
-        raise ValueError("owner leaves: a 2P race was requested without P2's pad")
+    reject_unexpected_stock_route(log, "owner leaves")
     if lines(log, "join_pad_moved"):
         raise ValueError("owner leaves: a pad was moved although P1 confirmed by keyboard "
                          "while seat 2 was held")
@@ -97,20 +113,18 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             log.rindex("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2") < \
             log.index("UR_BALDOSA_MODERN_ROOT join_pad_returned"):
         raise ValueError("join cancelled: the returned pad did not drive the root")
-    if lines(log, "stock_requested"):
-        raise ValueError("join cancelled: a race was requested")
+    reject_unexpected_stock_route(log, "join cancelled")
 
     log = run_game(exe, rom, user, out / "lone_p2_pad", "18", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT lone_pad_promoted from=2 to=1",
                   "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2"), "lone P2 pad")
     if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=1 to=0")) != 1:
         raise ValueError("lone P2 pad: the host did not move the pad to seat 1 once")
-    if lines(log, "stock_requested"):
-        raise ValueError("lone P2 pad: a race was requested")
+    reject_unexpected_stock_route(log, "lone P2 pad")
 
     receipt = {
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
-        "keyboard_plus_pad": "pad_moved_to_p2_and_2p_requested",
+        "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
         "join_cancelled": "moved_pad_returned_to_p1_and_drives_root",
         "p2_owner_leaves": "p2_confirmation_withdrawn_no_2p",
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),

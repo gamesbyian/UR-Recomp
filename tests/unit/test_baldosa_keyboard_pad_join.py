@@ -62,6 +62,42 @@ class KeyboardPadJoinTests(unittest.TestCase):
         draw = body('extern "C" int ur_baldosa_modern_root_draw_frame(')
         self.assertIn("join_return_moved_pad();", draw)
 
+    def test_positive_join_requires_actual_guest_2p_entry(self):
+        stages = (
+            "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
+            "UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+        )
+        valid = "\n".join(stages) + "\n"
+        runner.verify_keyboard_plus_pad(valid)
+        # Previously the runner accepted a request that never entered the
+        # real 2P guest screen, and did not reject subsequent route failure.
+        for invalid in (
+            valid.replace(stages[-1] + "\n", ""),
+            valid.replace(stages[-1], stages[-1] + "\n" + stages[-1]),
+            valid + "UR_BALDOSA_MODERN_ROOT stock_rejected=timeout\n",
+            valid + "UR_BALDOSA_MODERN_ROOT stock_requested players=1\n",
+            valid + "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2\n",
+        ):
+            with self.subTest(invalid=invalid[-100:]):
+                with self.assertRaises(ValueError):
+                    runner.verify_keyboard_plus_pad(invalid)
+
+    def test_cancelled_or_withdrawn_join_forbids_any_stock_entry(self):
+        runner.reject_unexpected_stock_route("join_closed=1\n", "cancelled")
+        for invalid in (
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1\n",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2\n",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n",
+        ):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(ValueError, "unexpected"):
+                    runner.reject_unexpected_stock_route(invalid, "cancelled")
+
     def test_runner_order_check_fails_closed(self):
         runner.ordered("a\nb\n", ("a", "b"), "ok")
         with self.assertRaisesRegex(ValueError, "out of order"):

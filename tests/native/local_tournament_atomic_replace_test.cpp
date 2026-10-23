@@ -11,6 +11,16 @@
 #include <string>
 #include <thread>
 #include <vector>
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 namespace fs = std::filesystem;
 using ur::product::write_tournament_replace_staged;
@@ -44,7 +54,96 @@ void publish_competing_immutable_target() {
 struct SimulatedProcessDeath {};
 void die_at_publication_cut() { throw SimulatedProcessDeath{}; }
 
-int main() {
+
+// A genuine separate executable invocation, terminated with _Exit(86), is
+// distinct from the exception-only crash-cut fixtures below. The child must
+// not run C++ destructors or the writer's staging cleanup after the cut.
+void terminate_at_real_process_cut() { std::_Exit(86); }
+
+fs::path process_cut_root() {
+#if defined(_WIN32)
+    const DWORD needed = GetEnvironmentVariableW(
+        L"UR_ATOMIC_TEST_CUT_ROOT", nullptr, 0);
+    if (needed < 2) return {};
+    std::wstring value(needed, L'\0');
+    const DWORD length = GetEnvironmentVariableW(
+        L"UR_ATOMIC_TEST_CUT_ROOT", value.data(), needed);
+    if (!length || length >= needed) return {};
+    value.resize(length);
+    return fs::path(value);
+#else
+    const char* value = std::getenv("UR_ATOMIC_TEST_CUT_ROOT");
+    return value ? fs::path(value) : fs::path{};
+#endif
+}
+
+int run_real_process_cut_child(const std::string& mode) {
+    const fs::path root = process_cut_root();
+    if (root.empty() || !fs::is_directory(root)) return 87;
+    if (mode == "--real-preclaim") {
+        (void)ur::product::write_host_replace_staged(
+            root / "real-preclaim.txt", "uncommitted-child", "urprofile",
+            &terminate_at_real_process_cut);
+    } else if (mode == "--real-postclaim") {
+        (void)ur::product::write_host_replace_staged(
+            root / "real-postclaim.txt", "committed-child", "urprofile",
+            nullptr, nullptr, &terminate_at_real_process_cut);
+    } else {
+        return 88;
+    }
+    // The only successful child outcome is an abrupt exit at the requested
+    // production-writer callback. A returned writer is a failed witness.
+    return 89;
+}
+
+void run_real_process_cut(const fs::path& root, const char* self,
+                          const char* mode) {
+#if defined(_WIN32)
+    check(SetEnvironmentVariableW(L"UR_ATOMIC_TEST_CUT_ROOT", root.c_str()) != 0,
+          "Windows child test root configured");
+    std::wstring executable(32768, L'\0');
+    const DWORD length = GetModuleFileNameW(
+        nullptr, executable.data(), static_cast<DWORD>(executable.size()));
+    check(length > 0 && length < executable.size(),
+          "Windows test executable path obtained");
+    executable.resize(length);
+    const std::wstring option =
+        std::string(mode) == "--real-preclaim"
+            ? L"--real-preclaim" : L"--real-postclaim";
+    std::wstring command = L"\"" + executable + L"\" " + option;
+    STARTUPINFOW startup{};
+    startup.cb = sizeof(startup);
+    PROCESS_INFORMATION child{};
+    check(CreateProcessW(executable.c_str(), command.data(), nullptr, nullptr,
+                         FALSE, CREATE_NO_WINDOW, nullptr, nullptr,
+                         &startup, &child) != 0,
+          "real Windows child process started");
+    const DWORD waited = WaitForSingleObject(child.hProcess, 30000);
+    DWORD exit_code = 0;
+    const bool exited = waited == WAIT_OBJECT_0 &&
+        GetExitCodeProcess(child.hProcess, &exit_code) != 0;
+    CloseHandle(child.hThread);
+    CloseHandle(child.hProcess);
+    check(exited && exit_code == 86, "real Windows child died at crash cut");
+#else
+    check(setenv("UR_ATOMIC_TEST_CUT_ROOT", root.c_str(), 1) == 0,
+          "POSIX child test root configured");
+    const pid_t pid = fork();
+    check(pid >= 0, "real POSIX child forked");
+    if (pid == 0) {
+        execl(self, self, mode, static_cast<char*>(nullptr));
+        std::_Exit(127);
+    }
+    int status = 0;
+    check(waitpid(pid, &status, 0) == pid &&
+              WIFEXITED(status) && WEXITSTATUS(status) == 86,
+          "real POSIX child died at crash cut");
+#endif
+}
+
+int main(int argc, char** argv) {
+    if (argc == 2) return run_real_process_cut_child(argv[1]);
+    check(argc == 1, "unexpected test executable arguments");
     const auto stamp = std::chrono::steady_clock::now()
                            .time_since_epoch().count();
     const fs::path root = fs::temp_directory_path() /
@@ -124,6 +223,37 @@ int main() {
     }
     check(postclaim_died && bytes(postclaim) == "committed-before-crash",
           "postclaim crash retains visible committed profile bytes");
+    // Fresh executable process, actual _Exit, then parent-side cold read.
+    // This proves the callback cuts survive real OS process teardown rather
+    // than only C++ exception unwinding in a single address space.
+    const fs::path real_preclaim = unicode_dir / "real-preclaim.txt";
+    check(ur::product::write_host_replace_staged(
+              real_preclaim, "last-committed-child", "urprofile"),
+          "real preclaim fixture committed before child");
+    run_real_process_cut(unicode_dir, argv[0], "--real-preclaim");
+    check(bytes(real_preclaim) == "last-committed-child",
+          "real process death before claim retains committed bytes");
+    fs::path real_orphan;
+    for (const auto& item : fs::directory_iterator(unicode_dir)) {
+        if (item.path().filename().u8string().rfind(
+                ".pending-urprofile-", 0) == 0 &&
+            fs::exists(item.path() / "record.tmp") &&
+            bytes(item.path() / "record.tmp") == "uncommitted-child")
+            real_orphan = item.path();
+    }
+    check(!real_orphan.empty(),
+          "real process death preserves non-authoritative private stage");
+    check(ur::product::write_host_replace_staged(
+              real_preclaim, "committed-after-child", "urprofile"),
+          "fresh parent writer publishes after real child death");
+    check(bytes(real_preclaim) == "committed-after-child" &&
+              fs::exists(real_orphan),
+          "cold writer neither promotes nor deletes dead child's stage");
+
+    const fs::path real_postclaim = unicode_dir / "real-postclaim.txt";
+    run_real_process_cut(unicode_dir, argv[0], "--real-postclaim");
+    check(bytes(real_postclaim) == "committed-child",
+          "real process death after claim retains committed bytes");
     const fs::path raced_intent = unicode_dir / "raced-intent.pending";
     competing_immutable_target = raced_intent;
     check(!ur::product::write_host_create_staged_native(

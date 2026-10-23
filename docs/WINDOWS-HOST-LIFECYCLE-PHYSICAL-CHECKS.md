@@ -44,6 +44,13 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | F2 | While another window still has focus, resume with the pad. | It resumes and does **not** immediately pause again. | no second `focus_loss` until focus returns and is lost again |
 | F3 | Do F1 in exclusive FULLSCREEN. | The game minimizes and pauses. Clicking it restores the same mode. | `focus_loss` |
 
+## Session
+
+| # | Do | Expect | Log |
+|---|---|---|---|
+| S1 | Earn something that saves (finish a race that changes Records or tour progress), then, with the game still open, sign out of Windows (or restart). Sign in and start the game. | The progress is there. Windows may briefly show "Saving Uniracers progress". | `UR_SESSION_END end_session ending=1`; `UR_SESSION_END persisted reason=session_end` |
+| S2 | Earn progress again, then close the black console window (not the game window) with its X. Start the game again. | The game closes and the progress is there. | `UR_SESSION_END console_event=console_close`; `persisted reason=console_close` |
+
 ## Display
 
 | # | Do | Expect | Log |

@@ -64,7 +64,7 @@ class RealWin32TitleP7Test(unittest.TestCase):
     def test_expected_native_routes_without_synthetic_guest_writes(self):
         for name in proof.CASES:
             self.assertIn(name, driver.ROUTES)
-            self.assertEqual(driver.ROUTES[name][0], "15")
+            self.assertEqual(driver.ROUTES[name][0], "24")
             self.assertEqual(driver.ROUTES[name][1],
                              100 if name.endswith("-entered-root") else 40)
         self.assertNotIn("UR_MODERN_MENU_TEST_TICK60",

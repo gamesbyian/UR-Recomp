@@ -314,7 +314,7 @@ def main() -> int:
             "23" if args.named_play else
             "20" if args.recovery else
             "21" if args.wake_route == "keyboard" else
-            "22" if args.wake_route == "p2" else "19")
+            "22" if args.wake_route == "p2" else "28")
         env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
         presented = out / "presented"
         presented.mkdir()

@@ -51,10 +51,10 @@ ROUTES = {
     "root-quit": ("14", 40, ""),
     # Genuine native title owner branch #2043. The still route stops smoke
     # input before frame60; the entered-root route uses real P1 A at frame60.
-    "title-still": ("15", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
-    "title-entered-root": ("15", 100, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
-    "title-reduced-still": ("15", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
-    "title-reduced-entered-root": ("15", 100, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
+    "title-still": ("24", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
+    "title-entered-root": ("24", 100, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
+    "title-reduced-still": ("24", 40, "UR_BALDOSA_MODERN_TITLE painted=1"),
+    "title-reduced-entered-root": ("24", 100, "UR_BALDOSA_MODERN_TITLE entered_root=1"),
     # Compare actual P7 frames at two pinned UI-clock phases, plus a
     # reduced-motion negative control. Same guest route and SDL draw.
     "root-motion-normal-zero": ("14", 40, ""),
@@ -141,7 +141,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     })
     env.update(motion_phase_environment(route))
     if route.startswith("title-"):
-        # These routes do not synthesize guest input; mode15 uses the
+        # These routes do not synthesize guest input; mode24 uses the
         # title owner's existing REAL semantic P1 A callback at frame60.
         env["UR_REDUCED_MOTION"] = "1" if "-reduced-" in route else "0"
         if route.endswith("-still"):

@@ -7,6 +7,7 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
+from unittest import mock
 
 from tools import windows_visual_atlas as atlas
 
@@ -105,6 +106,56 @@ class WindowsAtlasTests(unittest.TestCase):
             (root / "actual-sdl-drawable.png").write_bytes(b"imposter")
             with self.assertRaisesRegex(ValueError, "source_sha"):
                 atlas.valid_receipt(entry, root, "f"*40, None)
+
+
+    def test_resume_keeps_native_witnesses_and_emits_parseable_jsonl(self):
+        # ROM-free orchestration regression: a complete previous capture must
+        # skip the driver, retain its P7/log provenance and journal two events.
+        entry = {
+            "id": "URV-MD-001",
+            "capture": {"shard": "frontend", "route": "root-quit", "size": "1280x720"},
+        }
+        digest = "b" * 64
+        receipt = {"p7_sha256": digest, "native_process_log_sha256": digest}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            prior = root / "prior" / "captures" / entry["id"]
+            stage = prior / "capture_observed"
+            stage.mkdir(parents=True)
+            (prior / "readback-receipt.json").write_text("{}", encoding="utf-8")
+            (prior / "actual-sdl-drawable.png").write_bytes(b"test-png")
+            (stage / "actual-sdl-drawable.pam").write_bytes(b"test-p7")
+            (stage / "native-process.log").write_text("test-native-log", encoding="utf-8")
+            output = root / "new"
+            def mock_witness(_receipt, folder):
+                witness_root = folder / "capture_observed"
+                return ((witness_root / "actual-sdl-drawable.pam").is_file()
+                        and (witness_root / "native-process.log").is_file())
+            with (mock.patch.object(atlas, "validate", return_value=[entry]),
+                  mock.patch.object(atlas, "sha256", return_value=digest),
+                  mock.patch.object(atlas, "valid_receipt", return_value=(receipt, digest)),
+                  mock.patch("tools.windows_visual_atlas_intake.witness",
+                             side_effect=mock_witness),
+                  mock.patch.object(atlas.subprocess, "run",
+                                    side_effect=AssertionError("unexpected native recapture")) as driver):
+                status = atlas.capture_shard(
+                    {"entries": [entry]}, shard="frontend", exe=root / "game.exe",
+                    rom=root / "retail.sfc", target=output, source="a" * 40,
+                    timeout=5, workers=1, resume_from=root / "prior")
+            self.assertEqual(status, 0)
+            driver.assert_not_called()
+            reused = output / "captures" / entry["id"]
+            self.assertEqual((reused / "capture_observed" / "actual-sdl-drawable.pam").read_bytes(),
+                             b"test-p7")
+            self.assertEqual((reused / "capture_observed" / "native-process.log").read_text(),
+                             "test-native-log")
+            events = [json.loads(line) for line in
+                      (output / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+            self.assertEqual([event["status"] for event in events], ["start", "end"])
+            self.assertEqual(events[-1]["result"], "resumed")
+            summary = json.loads((output / "shard-summary.json").read_text(encoding="utf-8"))
+            self.assertEqual(summary["reused"], 1)
+
 
 
 if __name__ == "__main__":

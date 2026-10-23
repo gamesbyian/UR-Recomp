@@ -142,6 +142,20 @@ void default_window_scale_follows_the_display() {
     assert(ur_display_default_window_scale(
         std::numeric_limits<float>::quiet_NaN(), 320, 240, 0, 0, 10) == 2);
     assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 1) == 2);
+    // Extreme cap and DPI used to decrement from INT_MAX, effectively
+    // hanging the launch. The direct fit must complete immediately.
+    assert(ur_display_default_window_scale(
+        std::numeric_limits<float>::max(), 320, 240,
+        3840, 2160, INT_MAX) == 8);
+    assert(ur_display_default_window_scale(
+        std::numeric_limits<float>::max(), 320, 240,
+        0, 0, INT_MAX) == INT_MAX);
+    // Previously scale*base*10 overflowed signed 64-bit arithmetic.
+    assert(ur_display_default_window_scale(
+        std::numeric_limits<float>::max(), INT_MAX, INT_MAX,
+        3840, 2160, INT_MAX) == 2);
+    assert(ur_display_default_window_scale(
+        3.0f, 0, 240, 3840, 2160, 10) == 2);
 }
 
 void exclusive_refresh_avoids_judder_only_when_the_desktop_judders() {

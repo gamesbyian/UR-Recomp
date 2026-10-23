@@ -52,17 +52,24 @@ public:
     BaldosaLifecyclePauseReason step(const BaldosaLifecycleObservation& in,
                                      LoadFocusSetting&& load_focus_setting) {
         disconnected_seat_ = -1;
+        disconnected_seats_mask_ = 0;
         for (std::size_t seat = 0; seat < kControllerSeatCount; ++seat) {
             const long long now = in.seat_sources[seat] < 0 ? -1 : in.seat_sources[seat];
             const long long before = seats_[seat];
             if (now == before) continue;
             if (before >= 0) {
-                const bool was_pending = hotplug_.disconnect_pause_pending;
+                const bool was_connected = hotplug_.seats[seat].connected &&
+                    hotplug_.seats[seat].source_id ==
+                        static_cast<std::uint64_t>(before);
                 hotplug_ = controller_hotplug_observe(
                     hotplug_, static_cast<int>(seat),
                     static_cast<std::uint64_t>(before), false);
-                if (!was_pending && hotplug_.disconnect_pause_pending)
-                    disconnected_seat_ = static_cast<int>(seat);
+                if (was_connected) {
+                    disconnected_seats_mask_ |=
+                        static_cast<std::uint8_t>(1u << seat);
+                    if (disconnected_seat_ == -1)
+                        disconnected_seat_ = static_cast<int>(seat);
+                }
             }
             if (now >= 0) {
                 hotplug_ = controller_hotplug_observe(
@@ -99,14 +106,20 @@ public:
         return reason;
     }
 
-    // The seat whose owner left on the last step(), or -1.
+    // First seat whose owner left on the last step(), or -1. Retained for
+    // existing single-seat diagnostics. Consumers that must revoke *every*
+    // affected participant use the per-step bitmask instead.
     int disconnected_seat() const noexcept { return disconnected_seat_; }
+    std::uint8_t disconnected_seats_mask() const noexcept {
+        return disconnected_seats_mask_;
+    }
     const ControllerHotplugState& hotplug() const noexcept { return hotplug_; }
 
 private:
     std::array<long long, kControllerSeatCount> seats_{{-1, -1}};
     bool focused_ = true;
     int disconnected_seat_ = -1;
+    std::uint8_t disconnected_seats_mask_ = 0;
     ControllerHotplugState hotplug_{};
 };
 

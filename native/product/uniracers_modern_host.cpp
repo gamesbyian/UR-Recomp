@@ -1890,6 +1890,40 @@ bool activate_profile_id(const std::string& profile_id) {
         return false;
     }
     ensure_profile_catalog();
+    // The chooser can outlive another process's roster change. Revalidate
+    // authorization before touching the previous profile or target SRAM.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_SELECT CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        // Reconcile the attempted immutable identity, never an old row index.
+        // A removed racer falls back to the active identity if it survives.
+        g_profile_menu_index = 0;
+        bool selected_found = false;
+        for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
+            if (g_profile_catalog[i].profile_id == profile_id) {
+                g_profile_menu_index = i;
+                selected_found = true;
+                break;
+            }
+        }
+        if (!selected_found && g_product_state.active_profile_id) {
+            for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
+                if (g_profile_catalog[i].profile_id ==
+                    *g_product_state.active_profile_id) {
+                    g_profile_menu_index = i;
+                    break;
+                }
+            }
+        }
+        product_diagnostic("UR_PROFILE_SELECT CATALOG_CHANGED_RETRY");
+        return false;
+    }
     const std::string target_path = profile_state_path_for(profile_id);
     const auto target = ur::product::load_host_profile_state_file(
         ur::product::ExecutionMode::Modern, target_path, profile_id);

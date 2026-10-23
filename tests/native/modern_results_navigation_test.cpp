@@ -107,5 +107,76 @@ int main() {
         assert(make_modern_results_navigation_menu(authentic).row_count == 0);
     }
 
+    {
+        // A stale selected index must never confirm row zero implicitly.
+        // Row zero may be NEXT EVENT and would change guest progression.
+        auto stale = make_modern_results_navigation_menu(ordinary());
+        stale.selected = stale.row_count;
+        assert(selected_modern_results_action(stale) == ModernResultsAction::None);
+        assert(activate_modern_results_navigation_menu(
+                   stale, ordinary(), UR_MODERN_HOST_NAV_CONFIRM) ==
+               ModernResultsAction::None);
+        assert(navigate_modern_results_navigation_menu(
+                   stale, UR_MODERN_HOST_NAV_CONFIRM).selected == stale.selected);
+        stale = navigate_modern_results_navigation_menu(
+            stale, UR_MODERN_HOST_NAV_DOWN);
+        assert(stale.selected == 0);
+        assert(selected_modern_results_action(stale) ==
+               ModernResultsAction::NextEvent);
+
+        // An impossible row count is rejected before indexing the fixed array.
+        stale.row_count = stale.rows.size() + 1;
+        assert(selected_modern_results_action(stale) == ModernResultsAction::None);
+        assert(activate_modern_results_navigation_menu(
+                   stale, ordinary(), UR_MODERN_HOST_NAV_CONFIRM) ==
+               ModernResultsAction::None);
+        assert(navigate_modern_results_navigation_menu(
+                   stale, UR_MODERN_HOST_NAV_UP).row_count == stale.row_count);
+    }
+
+
+    // Exhaustive 512-context matrix: no displayed row may be unactionable.
+    for (unsigned mode = 0; mode < 2u; ++mode) {
+        for (unsigned mask = 0; mask < 256u; ++mask) {
+            auto ctx = ordinary();
+            ctx.mode = mode ? ExecutionMode::Modern : ExecutionMode::Authentic;
+            ctx.results_surface = (mask & 1u) != 0;
+            ctx.practice_active = (mask & 2u) != 0;
+            ctx.ordinary_tour_result = (mask & 4u) != 0;
+            ctx.authoritative_profile = (mask & 8u) != 0;
+            ctx.result_profile_matches = (mask & 16u) != 0;
+            ctx.router_available = (mask & 32u) != 0;
+            ctx.restart_available = (mask & 64u) != 0;
+            ctx.next_event_unique = (mask & 128u) != 0;
+            auto menu = make_modern_results_navigation_menu(ctx);
+            assert(menu.row_count <= menu.rows.size());
+            for (std::size_t row = 0; row < menu.row_count; ++row) {
+                auto chosen = menu;
+                chosen.selected = row;
+                assert(selected_modern_results_action(chosen) == menu.rows[row]);
+                assert(modern_results_action_available(menu.rows[row], ctx));
+                assert(activate_modern_results_navigation_menu(
+                    chosen, ctx, UR_MODERN_HOST_NAV_CONFIRM) == menu.rows[row]);
+                assert(activate_modern_results_navigation_menu(
+                    chosen, ctx, UR_MODERN_HOST_NAV_BACK) == ModernResultsAction::None);
+            }
+            for (std::size_t invalid : {menu.row_count,
+                                        static_cast<std::size_t>(-1)}) {
+                auto stale = menu;
+                stale.selected = invalid;
+                assert(selected_modern_results_action(stale) == ModernResultsAction::None);
+                assert(activate_modern_results_navigation_menu(
+                    stale, ctx, UR_MODERN_HOST_NAV_CONFIRM) ==
+                    ModernResultsAction::None);
+            }
+            auto corrupt = menu;
+            corrupt.row_count = corrupt.rows.size() + 1;
+            assert(selected_modern_results_action(corrupt) == ModernResultsAction::None);
+            assert(activate_modern_results_navigation_menu(
+                corrupt, ctx, UR_MODERN_HOST_NAV_CONFIRM) ==
+                ModernResultsAction::None);
+        }
+    }
+
     return 0;
 }

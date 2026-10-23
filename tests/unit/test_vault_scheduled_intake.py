@@ -132,7 +132,18 @@ class RecurringVaultTests(unittest.TestCase):
             self.assertEqual(report["errors"][0]["id"], A)
             self.assertEqual(report["remaining_due"], 2)
             self.assertIn(A, [item["id"] for item in queue["download_errors"]])
-            self.assertNotIn(A, recurring.read_checkpoint(out / "checkpoint.json")["items"])
+            checkpoint = recurring.read_checkpoint(out / "checkpoint.json")
+            self.assertNotIn(A, checkpoint["items"])
+            self.assertIn(A, checkpoint["failures"])
+            visited = []
+            recurring.run_cycle(
+                out=Path(tmp) / "next", previous=out / "checkpoint.json",
+                enumerator=self.listing, max_files=1, git_tree=b"",
+                downloader=lambda entry, out, tree, stage=False:
+                    (visited.append(entry["id"]) or archive_result(entry)),
+                now=NOW + timedelta(hours=6),
+            )
+            self.assertEqual(visited, [C], "failed ZIP must not starve fresh work")
 
     def test_budget_deferred_not_marked_as_validated(self):
         with tempfile.TemporaryDirectory() as tmp:

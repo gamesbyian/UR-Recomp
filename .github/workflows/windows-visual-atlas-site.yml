@@ -1,0 +1,73 @@
+name: Windows Visual Atlas (publish static site)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "analysis/windows-visual-atlas.json"
+      - "tools/windows_visual_atlas.py"
+      - "tools/windows_visual_atlas_intake.py"
+      - "tools/visual_atlas_web/**"
+      - "media/windows-visual-atlas/approved/**"
+      - "media/showcase/2026-10-20/graphpaper-final/cards/**"
+  workflow_dispatch:
+    inputs:
+      deploy_pages:
+        description: "Deploy to GitHub Pages (only if Pages Actions source is configured)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: ur-atlas-static-publish-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  assemble-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate inventory and reuse source-approved incidental captures
+        run: |
+          set -euo pipefail
+          python3 tools/windows_visual_atlas.py validate
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
+          python3 - <<'PY'
+          import json,os,pathlib
+          report=json.loads((pathlib.Path(os.environ["RUNNER_TEMP"])/"atlas-site/atlas.json").read_text())
+          counts=report["counts"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("## Windows Visual Atlas (static snapshot)\n")
+              f.write("Source `"+os.environ["GITHUB_SHA"]+"`\n\n")
+              for name,amount in counts.items():
+                  f.write(f"- {name}: {amount}\n")
+              f.write("\nThis site contains current-source engineering captures or distinct COMING SOON plates; no hardware/visual/release approval.\n")
+          PY
+      - name: Retain independent browser-ready site (without copyrighted ROM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-windows-visual-atlas-latest-site
+          path: ${{ runner.temp }}/atlas-site/
+          retention-days: 30
+          if-no-files-found: error
+      - name: Stage Pages only on explicit dispatch
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/atlas-site/
+  publish-pages:
+    needs: assemble-site
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

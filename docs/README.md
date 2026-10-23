@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Windows screenshot atlas and visual reference IDs
+
+[Windows Visual Atlas](WINDOWS-VISUAL-ATLAS.md) specifies stable visual IDs, the declared capture/COMING SOON inventory, genuine Windows final-SDL capture reuse, process/job-sharded opt-in GitHub Actions, source-checked website assembly and mobile one-tap agent references. The executable inventory lives in [`analysis/windows-visual-atlas.json`](../analysis/windows-visual-atlas.json); it does not replace the Modern visual-acceptance matrix or the release quality ledger.
+
 ## QA01 experimental fidelity evidence tools
 
 [QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md](QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md) owns the bounded, ROM-free causal bus consumer and continuous full-memory capture auditor contracts. These are diagnostic candidates only. The current QA01 acceptance boundary, event census and release ledger retain exclusive course/release verdict authority; no live event or original/native producer is qualified by the synthetic tool tests.

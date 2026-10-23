@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbfaf4">
+  <meta name="description" content="Source-bound visual inspection atlas for the Uniracers Windows remaster">
+  <title>Uniracers / Windows Visual Atlas</title>
+  <link rel="stylesheet" href="./atlas.css">
+  <script src="./atlas.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#gallery">Skip to atlas</a>
+  <header class="masthead">
+    <div class="brand"><span class="eyebrow">UR-RECOMP / ENGINEERING PLATES</span><h1>Windows visual atlas</h1><p>Real frames, planned surfaces, one reference for every detail.</p></div>
+    <div class="count" aria-live="polite" id="summary">Loading inventory…</div>
+  </header>
+  <section class="toolbar" aria-label="Browse controls">
+    <label class="search"><span>Find a reference</span><input id="search" type="search" placeholder="Screen, state, ID…" autocomplete="off"></label>
+    <label><span>Presentation</span><select id="mode"><option value="">All presentations</option></select></label>
+    <label><span>Surface family</span><select id="family"><option value="">All surfaces</option></select></label>
+    <label><span>Evidence</span><select id="status">
+      <option value="">All states</option><option value="captured">Real capture</option>
+      <option value="capture_pending">Capture pending</option>
+      <option value="capture_failed">Failed capture</option>
+      <option value="planned">Coming soon</option>
+    </select></label>
+  </section>
+  <main id="gallery" aria-label="Visual atlas cards"><p class="loading">Loading indexed references…</p></main>
+  <footer>Engineering reference. Captures do not imply physical hardware, original-game parity, aesthetic approval or release acceptance.</footer>
+  <dialog id="detail" aria-label="Screenshot and inspection reference">
+    <div class="dialog-top">
+      <span id="detail-id" class="eyebrow"></span>
+      <button type="button" id="close" aria-label="Close detail">✕</button>
+    </div>
+    <div class="dialog-body">
+      <div class="image-stage" id="image-stage"></div>
+      <div class="detail-content">
+        <h2 id="detail-title"></h2>
+        <p id="detail-meta"></p>
+        <p id="detail-provenance" class="provenance"></p>
+        <div class="actions">
+          <button type="button" id="copy-ref" class="primary">Copy agent reference</button>
+          <button type="button" id="copy-link">Copy direct link</button>
+          <button type="button" id="zoom">1:1 pixels</button>
+          <button type="button" id="prev">← Previous</button>
+          <button type="button" id="next">Next →</button>
+        </div>
+        <div id="copy-status" aria-live="polite" class="feedback"></div>
+        <details><summary>Capture provenance</summary><pre id="detail-evidence"></pre></details>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>

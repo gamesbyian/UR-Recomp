@@ -1,0 +1,160 @@
+name: Windows Visual Atlas (incidental intake)
+on:
+  # Existing genuine Windows SDL evidence is inspected after its producer
+  # finishes, without launching another copy of the game.
+  workflow_run:
+    workflows:
+      - "Modern visual QA native SDL baseline"
+      - "Windows Visual Atlas (sharded opt-in capture)"
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Completed first-party Windows screenshot Actions run ID to backfill"
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+  pull-requests: write
+# One durable queue branch; serialize independent producers and never cancel
+# a writer after it has started preparing a reviewed proposal.
+concurrency:
+  group: ur-windows-atlas-incidental-intake-queue
+  cancel-in-progress: false
+jobs:
+  discover:
+    # Never execute or promote PR branch artifact contents in a privileged
+    # workflow_run context, even when the producer's check shows green.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event != 'pull_request' &&
+       (github.event.workflow_run.conclusion == 'success' ||
+        github.event.workflow_run.conclusion == 'failure' ||
+        github.event.workflow_run.conclusion == 'cancelled' ||
+        github.event.workflow_run.conclusion == 'timed_out'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate the upstream run and download only allowlisted screenshot artifacts
+        id: intake
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN" =~ ^[0-9]{1,15}$ ]]
+          data=$(gh api "repos/$REPO/actions/runs/$SOURCE_RUN")
+          name=$(jq -r '.name' <<< "$data")
+          conclusion=$(jq -r '.conclusion' <<< "$data")
+          branch=$(jq -r '.head_branch' <<< "$data")
+          source_sha=$(jq -r '.head_sha' <<< "$data")
+          case "$name" in
+            "Modern visual QA native SDL baseline"|"Windows Visual Atlas (sharded opt-in capture)") ;;
+            *) echo "::error::Producer is not allowlisted"; exit 2;;
+          esac
+          case "$conclusion" in success|failure|cancelled|timed_out) ;; *) exit 2;; esac
+          test "$branch" = main
+          test "${#source_sha}" -eq 40
+          mkdir -p "$RUNNER_TEMP/atlas-upstream"
+          gh api "repos/$REPO/actions/runs/$SOURCE_RUN/artifacts?per_page=100" > "$RUNNER_TEMP/atlas-artifacts.json"
+          count=0
+          total=0
+          while IFS=$'\t' read -r artifact_name artifact_size; do
+            case "$artifact_name" in
+              modern-visual-win32-navigation-journeys|modern-visual-win32-root-drawable|modern-visual-win32-size-comparison|modern-visual-win32-authentic-isolation-control|modern-motion-native-win32-p7-phase-reduced|visual-atlas-frontend|visual-atlas-interaction|visual-atlas-motion|visual-atlas-authentic) ;;
+              *) continue;;
+            esac
+            # A legacy artifact may be large; do not download arbitrary ZIPs.
+            ((count+=1))
+            ((total+=artifact_size))
+            if (( count > 9 || artifact_size > 75000000 || total > 175000000 )); then
+              echo "::warning::Capture download budget reached"
+              break
+            fi
+            gh run download "$SOURCE_RUN" --repo "$REPO" \
+              -n "$artifact_name" --dir "$RUNNER_TEMP/atlas-upstream/$artifact_name"
+          done < <(jq -r '.artifacts[] | select(.expired == false) | [.name, .size_in_bytes] | @tsv' "$RUNNER_TEMP/atlas-artifacts.json")
+          echo "source_run=$SOURCE_RUN" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "producer_name=$name" >> "$GITHUB_OUTPUT"
+          printf '### Opportunistic capture intake\nProducer: %s / run %s\n' "$name" "$SOURCE_RUN" >> "$GITHUB_STEP_SUMMARY"
+      - name: Authenticate candidate images against merged source and actual P7/logs
+        id: qualify
+        env:
+          SOURCE_SHA: ${{ steps.intake.outputs.source_sha }}
+          SOURCE_RUN: ${{ steps.intake.outputs.source_run }}
+          PRODUCER_NAME: ${{ steps.intake.outputs.producer_name }}
+        run: |
+          set -euo pipefail
+          python3 tools/windows_visual_atlas_intake.py discover \
+            --artifacts "$RUNNER_TEMP/atlas-upstream" \
+            --out "$RUNNER_TEMP/atlas-intake" \
+            --repo "$GITHUB_WORKSPACE" --main-sha "$(git rev-parse HEAD)" \
+            --workflow "$PRODUCER_NAME" --run-id "$SOURCE_RUN" \
+            --run-head-sha "$SOURCE_SHA"
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"atlas-intake/intake-report.json"
+          report=json.loads(p.read_text())
+          count=report["counts"]["eligible"]
+          with open(os.environ["GITHUB_OUTPUT"],"a") as file:
+              file.write(f"eligible={count}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as file:
+              file.write(f"Eligible: {count}; needs review: {report['counts']['review']}\n")
+          PY
+      - name: Retain intake findings and qualified originals separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-visual-atlas-intake-${{ steps.intake.outputs.source_run }}
+          path: |
+            ${{ runner.temp }}/atlas-intake/intake-report.json
+            ${{ runner.temp }}/atlas-intake/approved/captures/*/readback-receipt.json
+            ${{ runner.temp }}/atlas-intake/approved/captures/*/actual-sdl-drawable.png
+            ${{ runner.temp }}/atlas-intake/approved/captures/*/intake-approval.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Stage only eligible source-checked images on durable review branch
+        if: steps.qualify.outputs.eligible != '0' && steps.qualify.outputs.eligible != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SOURCE_RUN: ${{ steps.intake.outputs.source_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="atlas/incidental-capture-queue"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin "$name" >/dev/null; then
+            git fetch origin "refs/heads/$name:refs/remotes/origin/$name"
+            git switch -C "$name" "refs/remotes/origin/$name"
+          else
+            git switch -c "$name"
+          fi
+          python3 tools/windows_visual_atlas_intake.py stage \
+            --intake "$RUNNER_TEMP/atlas-intake" \
+            --destination media/windows-visual-atlas
+          git add -- media/windows-visual-atlas
+          if git diff --cached --quiet; then
+            echo "No new representative captures; no PR churn." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git commit -m "atlas: retain reviewed candidate captures from Actions run $SOURCE_RUN"
+          git push origin "HEAD:refs/heads/$name"
+          existing=$(gh pr list --repo "$REPO" --head "$name" --state open --json number --jq '.[0].number // empty')
+          if test -z "$existing"; then
+            if ! gh pr create --repo "$REPO" --head "$name" --base main \
+              --title "Atlas: admit source-bound incidental Windows visual captures" \
+              --body "Automated candidate preservation from allowlisted first-party native SDL producer runs. Genuine image/receipt/P7 provenance, source integration and UI-code stability are checked by the intake tool. Review screenshots, duplicates, alternate versions and art rights before merging. Engineering-reference status only; no release or visual approval implied. See docs/WINDOWS-VISUAL-ATLAS.md and #2387."; then
+              echo "::warning title=Capture intake PR blocked::Candidate bytes are preserved on branch $name; repository Actions pull-request creation settings may need review."
+            fi
+          fi
+          echo "New capture evidence is in the existing review PR for $name." >> "$GITHUB_STEP_SUMMARY"

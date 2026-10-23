@@ -81,7 +81,7 @@ class MemberCrosswalk(unittest.TestCase):
                 crosswalk(archive([(name, b'x')]), tree([(name, b'x')]))
         self.assertEqual(
             crosswalk(archive([('safe/résumé.py', b'good'),
-                               ('safe/name².txt', b'valid')]),
+                               ('safe/name².py', b'valid')]),
                       tree([]))['source_like_members'], 2)
 
     def test_portable_file_directory_prefix_collision_refused(self):

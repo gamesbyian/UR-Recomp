@@ -1,0 +1,118 @@
+name: Vault Recurring Intake (Public Drive)
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      max_files:
+        description: Maximum archives to audit on this run (1 to 12)
+        required: true
+        type: choice
+        options: ['1', '2', '3', '6']
+        default: '3'
+      file_id:
+        description: Optional exact public Incoming file ID to audit even if already checked
+        required: false
+        type: string
+  pull_request:
+    paths:
+      - '.github/workflows/vault-recurring-intake.yml'
+      - 'tools/vault_scheduled_intake.py'
+      - 'tests/unit/test_vault_scheduled_intake.py'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: vault-recurring-intake
+  cancel-in-progress: false
+
+jobs:
+  verified-intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run offline checkpoint and budget tests
+        run: python -m unittest tests.unit.test_vault_scheduled_intake -v
+      - name: Install pinned public Drive downloader
+        run: python -m pip install 'gdown==6.4.2'
+      - name: Restore most recent preserved checkpoint from main runs
+        if: ${{ github.event_name != 'pull_request' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          root="${RUNNER_TEMP}/vault-previous"
+          mkdir -p "$root"
+          # Artifacts are immutable. Each run publishes a complete successor
+          # checkpoint; the next run reads the newest completed main run.
+          gh run list -R "$GITHUB_REPOSITORY" \
+            --workflow vault-recurring-intake.yml --branch main --limit 30 \
+            --json databaseId,status --jq '.[] | select(.status == "completed") | .databaseId' \
+            > "$root/run-ids.txt" || true
+          while IFS= read -r prior; do
+            [[ -n "$prior" && "$prior" != "$GITHUB_RUN_ID" ]] || continue
+            if gh run download "$prior" -R "$GITHUB_REPOSITORY" \
+                --name vault-recurring-state --dir "$root" >/dev/null 2>&1 \
+                && [[ -s "$root/checkpoint.json" ]]; then
+              echo "Restored Vault checkpoint from run $prior"
+              break
+            fi
+            rm -f "$root/checkpoint.json" "$root/report.json" "$root/queue.json"
+          done < "$root/run-ids.txt"
+          if [[ ! -s "$root/checkpoint.json" ]]; then
+            echo "No usable prior checkpoint found; audit begins with current inventory"
+          fi
+      - name: Download bounded batch, validate members, create review queue
+        shell: bash
+        env:
+          INTAKE_DIR: ${{ runner.temp }}/vault-recurring-intake
+          PREVIOUS: ${{ runner.temp }}/vault-previous/checkpoint.json
+          PROBE_ID: ${{ github.event_name == 'pull_request' && '1kULfQIJSV-YJ1lwWBPJAnH6iLtzt5W9d' || inputs.file_id }}
+          MAX_FILES: ${{ github.event_name == 'pull_request' && '1' || inputs.max_files || '3' }}
+          MAX_MIB: ${{ github.event_name == 'pull_request' && '32' || '64' }}
+        run: |
+          set -euo pipefail
+          args=(--out "$INTAKE_DIR" --max-files "$MAX_FILES" --max-total-mib "$MAX_MIB")
+          if [[ -s "$PREVIOUS" ]]; then args+=(--previous "$PREVIOUS"); fi
+          if [[ -n "$PROBE_ID" ]]; then args+=(--file-id "$PROBE_ID"); fi
+          python3 tools/vault_scheduled_intake.py "${args[@]}"
+      - name: Publish concise intake summary
+        if: always()
+        shell: bash
+        env:
+          INTAKE_DIR: ${{ runner.temp }}/vault-recurring-intake
+        run: |
+          if [[ -f "$INTAKE_DIR/report.json" ]]; then
+            python3 - "$INTAKE_DIR/report.json" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json
+          import sys
+          data = json.load(open(sys.argv[1], encoding="utf-8"))
+          print("## Vault recurring intake")
+          for key in ("listed_files", "previously_verified_skipped", "queued_before_batch",
+                      "downloaded_bytes", "remaining_due", "verified_total"):
+              print(f"- {key}: {data[key]}")
+          print(f"- successfully audited on this run: {len(data['processed'])}")
+          print(f"- download/inspection errors: {len(data['errors'])}")
+          print("- Original ZIPs and extracted source were NOT published.")
+          PY
+          fi
+      - name: Preserve checkpoint, provenance reports and candidate queue
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-recurring-state
+          path: |
+            ${{ runner.temp }}/vault-recurring-intake/checkpoint.json
+            ${{ runner.temp }}/vault-recurring-intake/report.json
+            ${{ runner.temp }}/vault-recurring-intake/queue.json
+          if-no-files-found: warn
+          retention-days: 90

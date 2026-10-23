@@ -88,7 +88,8 @@ void identical_guid_only_pads_do_not_silently_swap_players() {
     ur_controller_seat_vacated(t.seats, 0, key);
     ur_controller_seat_vacated(t.seats, 1, key);
     // A returning pad's SDL player index does not establish original identity.
-    for (int index : {0, 1, -1}) {
+    const int observed_indexes[] = {0, 1, -1};
+    for (int index : observed_indexes) {
         const UrControllerSeatChoice returned =
             ur_controller_seat_choose(t.seats, key, index, -1);
         assert(returned.seat == -1);

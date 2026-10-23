@@ -277,7 +277,10 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
                 }
         # Prefer exact capture from this run. Fall back to a reviewed,
         # committed incidental source only if it is still code-current.
-        if case["status"] != "captured":
+        # An explicit failed capture from this campaign is evidence, not an
+        # empty slot to be filled by an older approved incidental image. Keep
+        # its failure visible; only genuinely pending cases may use fallback.
+        if case["status"] == "capture_pending":
             stock = retained / entry["id"]
             approval_file = stock / "intake-approval.json"
             if stock.is_dir() and not stock.is_symlink() and approval_file.is_file():

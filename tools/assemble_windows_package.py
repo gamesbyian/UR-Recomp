@@ -459,6 +459,10 @@ def assemble(
     output: Path,
     source_revision: str,
 ) -> dict[str, object]:
+    # Refuse the leaf symlink before resolve/rmtree can follow it to
+    # unrelated files, including dangling symlinks invisible to exists().
+    if output.is_symlink():
+        raise ValueError("package output must not be a symbolic link")
     build_dir = build_dir.resolve()
     rom = rom.resolve()
     output = output.resolve()

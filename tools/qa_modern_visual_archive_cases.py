@@ -55,7 +55,8 @@ def _png_member(names, capture_id):
     return wanted[0]
 
 
-def analyse(zip_path: Path, verified: dict, matrix: dict | None = None) -> dict:
+def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
+            require_ring: bool = False) -> dict:
     matrix = matrix if matrix is not None else cases.load_cases()
     out = []
     with zipfile.ZipFile(zip_path) as z:
@@ -77,7 +78,7 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None) -> dict:
                                       tuple(cap["pixels"])))
             case_report = None
             if case_id:
-                case_report = cases.evaluate(matrix[case_id], frame)
+                case_report = cases.evaluate(matrix[case_id], frame, require_ring)
                 checks += case_report["checks"]
             out.append({"capture": cap["id"], "route": cap["native_semantic_route"],
                         "pixels": cap["pixels"], "png_sha256": frame.sha256,
@@ -93,7 +94,8 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None) -> dict:
             "release_gate_credit": 0}
 
 
-def analyse_dirs(dirs, matrix: dict | None = None) -> dict:
+def analyse_dirs(dirs, matrix: dict | None = None,
+                 require_ring: bool = False) -> dict:
     """Same checks on capture directories (`actual-sdl-drawable.png` +
     `readback-receipt.json`) as the capture driver leaves them on the runner.
 
@@ -125,7 +127,7 @@ def analyse_dirs(dirs, matrix: dict | None = None) -> dict:
             checks[0]["detail"]["explain"] = d.explain_mapping(frame, top=3)
         case_id = ROUTE_CASE.get((route, pixels))
         if case_id:
-            checks += cases.evaluate(matrix[case_id], frame)["checks"]
+            checks += cases.evaluate(matrix[case_id], frame, require_ring)["checks"]
         out.append({"capture": directory.name, "route": route,
                     "pixels": list(pixels), "png_sha256": frame.sha256,
                     "case": case_id, "checks": checks,
@@ -164,6 +166,8 @@ def main(argv=None) -> int:
                     help="capture directory (repeatable); instead of --artifact")
     ap.add_argument("--expected-source-sha")
     ap.add_argument("--expected-exe-sha")
+    ap.add_argument("--require-ring", action="store_true",
+                    help="fail focus-bar captures lacking the shared two-tone ring")
     ap.add_argument("--json", type=Path)
     ap.add_argument("--summary", type=Path)
     a = ap.parse_args(argv)
@@ -173,9 +177,9 @@ def main(argv=None) -> int:
         if a.artifact:
             verified = archive.verify(a.artifact, a.expected_source_sha,
                                       a.expected_exe_sha)
-            report = analyse(a.artifact, verified)
+            report = analyse(a.artifact, verified, require_ring=a.require_ring)
         else:
-            report = analyse_dirs(a.dir)
+            report = analyse_dirs(a.dir, require_ring=a.require_ring)
     except (archive.AuditError, ValueError, OSError, KeyError,
             zipfile.BadZipFile) as exc:
         print(f"refused: {exc}", file=sys.stderr)

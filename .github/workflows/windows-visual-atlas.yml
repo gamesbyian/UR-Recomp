@@ -225,7 +225,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: visual-atlas-*
-          path: ${{ runner.temp }}/atlas-captures/captures
+          path: ${{ runner.temp }}/atlas-captures
           merge-multiple: true
       - name: Assemble guarded static site and coverage inventory
         run: |

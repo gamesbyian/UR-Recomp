@@ -547,7 +547,7 @@ bool append_multiplayer_match_pair(
                 ? staged_run_path.filename().string()
                 : stem + "-pair-" + std::to_string(suffix) + ".urrun";
         const fs::path final_run_path = directory_path / filename;
-        const fs::path final_sidecar_path(
+        const fs::path final_sidecar_path = host_native_path_from_utf8(
             multiplayer_match_record_path_for_run(final_run_path.u8string()));
 
         const auto sidecar_claim =

@@ -2,6 +2,16 @@
 
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.
 
+## Vault reconciliation checkpoint (2026-10-23, supersedes the counts below)
+
+Direct-child counts: **20 Inbox, 38 Incoming, 66 Evidence Library, 51 Integrated, 0 Superseded**. A full pass over the Inbox pointers, small Incoming items and the first-candidate list found almost every previously "held" source already on `main`; check `main` and the cited PR before re-deriving any of these.
+
+- Newly merged: #2397 (`prompt_only_motion` in `tools/verify_title_plate_artifact.py`, Drive `1sk4W9TBmANhiAZk06HypoDiz7T0EbQOk`) and #2425 (QA04 attachment hashing through one opened handle, mitigating #2076).
+- Already integrated (byte-identical blobs or the same code): QA01 evidence-ref guard #2340; dual-disconnect mask #2342; quit-confirm footer; Records save-strip #2341; Unicode runner and profile-ancestor reparse guard #2345; stale-Up results focus #2384; Practice identity/restore/two-repeat #2357/#2356/#2362; package symlink and mods-root guards #2347/#2350; authenticated finish ledger #2354; P2P uint64 anchor #2349 and revocation barrier #2367 (closes #2022); Windows smoke upload/same-run tournament #2352/#2361/#2366 (closed #2185 and #2307 are superseded); source-epoch checker #2381; QA08 patches #2376/#2378/#2379/#2382; SDL log tokens #2250.
+- Superseded: #2198 same-key seat swap repro by #2330; 856px cross-resolution witness by `tools/verify_cross_resolution.py` (#2285).
+- Still unintegrated: P2P 8b handshake bundle (`1fXw7f5CkgsmkO_YBeXqR1aVZ2ngfAFxt`, research, loopback only) and the H26 `h26_five_line_decisions.py` harness (needs missing evidence ZIPs); the 2 MB to 28 MB H25/H26/H27 bundles were not re-opened. The Drive connector returns base64 only, which makes archives above roughly 8 KB unreliable to transcribe by hand.
+- Open for native Windows proof: #2076 and #2103. No release gate or physical acceptance changed.
+
 ## Live integration intake crosswalk (2026-10-21, independently checked)
 
 The latest six-folder direct listing found **3 Integration Inbox pointers, 33 Incoming files, 35 Evidence Library files, 29 Work Journals, 3 Integrated receipts and 0 Superseded**. These are point-in-time direct-child counts, not an archive-member inventory or release proof; retain all source archives and the historical checkpoints above.

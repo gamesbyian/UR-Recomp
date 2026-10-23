@@ -53,8 +53,13 @@ HOST_STUB = "\n".join((
 ))
 
 
-def acceptance_log(*, skip_rescue=False, fail=None, result="pass") -> str:
-    lines = ["UR_DISPLAY fullscreen_mode=exclusive display=1 mode=1920x1080@60.000"] * 2
+REFRESH_DESKTOP = ("UR_DISPLAY exclusive_refresh choice=desktop desktop_hz=60.000 "
+                   "guest_hz=60.0988 chosen_hz=60.000 candidates=3")
+
+
+def acceptance_log(*, skip_rescue=False, fail=None, result="pass",
+                   refresh=REFRESH_DESKTOP) -> str:
+    lines = [refresh, "UR_DISPLAY fullscreen_mode=exclusive display=1 mode=1920x1080@60.000"] * 2
     for step in runner.TRANSITION_STEPS:
         ok = 0 if step == fail else 1
         lines.append(f"UR_DISPLAY_ACCEPT step={step} pass={ok} fullscreen=0")
@@ -260,10 +265,16 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
         end = staged.index("\n}\n", staged.index("static int VSyncInterval(void) {")) + 3
         vsync = staged[start:end]
         helpers = staged.replace(vsync, "").split(seam.HELPERS_ANCHOR)[0]
+        mode = helpers[helpers.index("static int UrApplyFullscreenMode(int display_setting) {"):]
+        mode = mode[:mode.index("\n}\n") + 3]
         for forbidden in ("RtlRunFrame", "g_ram", "g_sram", "g_pad_buttons",
-                          "g_input_state", "snes_host_clock", "WriteConfigFile",
-                          "g_simulation_hz"):
+                          "g_input_state", "snes_host_clock", "WriteConfigFile"):
             self.assertNotIn(forbidden, helpers, forbidden)
+        # Only the exclusive refresh choice reads the guest rate, never writes it.
+        self.assertNotIn("g_simulation_hz", helpers.replace(mode, ""))
+        self.assertIn("ur_display_exclusive_refresh_pick(rates, n, desktop_hz, g_simulation_hz)",
+                      mode)
+        self.assertNotIn("g_simulation_hz =", mode)
         # The swap-interval decision only reads the guest rate; it never
         # changes simulation timing.
         self.assertIn("g_simulation_hz", vsync)
@@ -336,6 +347,38 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
             runner.verify_log("\n".join(
                 l for l in acceptance_log().splitlines()
                 if "fullscreen_mode=exclusive" not in l))
+
+    def test_exclusive_refresh_choice_is_checked(self):
+        even = REFRESH_DESKTOP.replace("choice=desktop desktop_hz=60.000",
+                                       "choice=even desktop_hz=144.000")
+        self.assertEqual(runner.verify_refresh(acceptance_log(refresh=even), forced=True), "even")
+        none_offered = REFRESH_DESKTOP.replace("desktop_hz=60.000", "desktop_hz=144.000")
+        self.assertEqual(runner.verify_refresh(acceptance_log(refresh=none_offered), forced=True),
+                         "not_exercised")
+        with self.assertRaisesRegex(ValueError, "forced desktop refresh"):
+            runner.verify_refresh(acceptance_log(), forced=True)
+        with self.assertRaisesRegex(ValueError, "not even"):
+            runner.verify_refresh(acceptance_log(refresh=even.replace(
+                "chosen_hz=60.000", "chosen_hz=144.000")), forced=True)
+        with self.assertRaisesRegex(ValueError, "even desktop refresh was replaced"):
+            runner.verify_refresh(acceptance_log(refresh=REFRESH_DESKTOP.replace(
+                "choice=desktop", "choice=even")), forced=False)
+        with self.assertRaisesRegex(ValueError, "without a refresh choice"):
+            runner.verify_log(acceptance_log(refresh="UR_DISPLAY other"))
+
+    def test_exclusive_mode_prefers_an_even_refresh(self):
+        staged = self.staged()
+        mode = staged[staged.index("static int UrApplyFullscreenMode(int display_setting) {"):]
+        mode = mode[:mode.index("\n}\n")]
+        # Only modes at the desktop's own size and density are candidates.
+        self.assertIn("modes[i]->w == desktop->w && modes[i]->h == desktop->h &&", mode)
+        self.assertIn("modes[i]->pixel_density == desktop->pixel_density", mode)
+        # An even pick skips the closest-to-desktop lookup; otherwise unchanged.
+        self.assertIn("(!even && !SDL_GetClosestFullscreenDisplayMode(", mode)
+        self.assertLess(mode.index("UR_DISPLAY exclusive_refresh choice=%s"),
+                        mode.index("UR_DISPLAY fullscreen_mode=exclusive display=%u mode=%dx%d@%.3f"))
+        self.assertIn('HostGetenv("UR_DISPLAY_DESKTOP_HZ_OVERRIDE")', mode)
+        self.assertIn("SDL_free(modes);", mode)
 
     def test_policy_contract_compiles_as_c_and_cpp(self):
         with tempfile.TemporaryDirectory() as d:

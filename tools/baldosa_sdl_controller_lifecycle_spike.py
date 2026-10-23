@@ -186,6 +186,29 @@ LAUNCHER_RETURN_NEW = LAUNCHER_RETURN + (
     "  UrSeatReconcile(\"launcher_returned\");  /* " + MARK + " */\n"
 )
 
+# OpenAllGamepads seats every pad present at start-up in SDL's enumeration
+# order; sort it so the XInput slot order (ring lights) decides P1/P2.
+ENUMERATE = "  SDL_JoystickID *joysticks = SDL_GetJoysticks(&njs);\n#else\n"
+ENUMERATE_NEW = (
+    "  SDL_JoystickID *joysticks = SDL_GetJoysticks(&njs);\n"
+    "  UrSortByPlayerIndex(joysticks, njs);  /* " + MARK + " */\n#else\n"
+)
+
+# The pinned host let pads drive the game while another window had focus.
+# Overlays navigated with the same pad (the Xbox Game Bar the Guide button
+# opens, Steam's, Discord's) then also moved the game's menus behind them
+# and resumed a focus-paused race (#2334). SDL still delivers releases and
+# re-centring while unfocused, so nothing stays held.
+BACKGROUND = '  SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");\n'
+BACKGROUND_NEW = (
+    "  /* " + MARK + ": pads drive the game only while its window has focus.\n"
+    "   * Hosted test runs may not get focus; they opt back in. */\n"
+    "  {\n"
+    '    const char *bg = HostGetenv("UR_BACKGROUND_PAD_INPUT");  /* test only */\n'
+    '    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, bg && atoi(bg) ? "1" : "0");\n'
+    "  }\n"
+)
+
 TICK_ANCHOR = "    OverlaySelftestPadMainTick(frameCtr);\n"
 TICK_NEW = TICK_ANCHOR + "    UrControllerLifecycleAcceptanceTick();  /* " + MARK + " */\n"
 
@@ -328,6 +351,30 @@ def helpers(policy: Path) -> str:
         "  /* OpenAllGamepads reopens every device, spares included. */\n"
         "  for (int i = 0; i < kUrSpareMax; i++) UrSpareClose(i);\n"
         "}\n"
+        "#if SNESRECOMP_SDL3\n"
+        "/* Seat devices found together (start-up, a reconcile) gamepads first, so\n"
+        " * an unmapped stick (a wheel, a flight stick, a peripheral's joystick\n"
+        " * interface) never takes P1 from a real pad, then in SDL player index\n"
+        " * order, so the pad whose XInput slot (ring light) says 1 is P1 and the\n"
+        " * one saying 2 is P2. A device without an index goes after those with\n"
+        " * one; SDL's own order breaks ties. */\n"
+        "static uint64_t UrSeatingRank(SDL_JoystickID id) {\n"
+        "  return ((uint64_t)(SDL_IsGamepad(id) ? 0u : 1u) << 32) |\n"
+        "         (uint32_t)SDL_GetJoystickPlayerIndexForID(id);\n"
+        "}\n"
+        "static void UrSortByPlayerIndex(SDL_JoystickID *ids, int count) {\n"
+        "  for (int i = 1; ids && i < count; i++) {\n"
+        "    const SDL_JoystickID id = ids[i];\n"
+        "    const uint64_t rank = UrSeatingRank(id);\n"
+        "    int j = i;\n"
+        "    while (j > 0 && UrSeatingRank(ids[j - 1]) > rank) {\n"
+        "      ids[j] = ids[j - 1];\n"
+        "      j--;\n"
+        "    }\n"
+        "    ids[j] = id;\n"
+        "  }\n"
+        "}\n"
+        "#endif\n"
         "/* Catch up on hotplug another event loop consumed: release seats and\n"
         " * spares whose device is gone, then open devices the host never saw.\n"
         " * Seat memory is kept, so a pad that returned still reclaims its seat. */\n"
@@ -359,6 +406,7 @@ def helpers(policy: Path) -> str:
         "#if SNESRECOMP_SDL3\n"
         "  int count = 0;\n"
         "  SDL_JoystickID *ids = SDL_GetJoysticks(&count);\n"
+        "  UrSortByPlayerIndex(ids, count);\n"
         "  for (int i = 0; ids && i < count; i++) {\n"
         "    const SDL_JoystickID id = ids[i];\n"
         "    const int open_arg = (int)id;\n"
@@ -539,8 +587,10 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   if (g_ur_accept_on < 0) {
     const char *v = HostGetenv("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE");
     /* "1" runs the scenario; "exit" also quits when it is done; "launcher"
-     * runs the real in-game launcher over hotplug instead, then quits. */
+     * runs the real in-game launcher over hotplug instead, then quits;
+     * "focus" checks that a pad is ignored while the window is unfocused. */
     g_ur_accept_on = !v ? 0 : strcmp(v, "launcher") == 0 ? 2
+                   : strcmp(v, "focus") == 0 ? 3
                    : (atoi(v) || strcmp(v, "exit") == 0) ? 1 : 0;
   }
   if (!g_ur_accept_on || g_ur_accept_step < 0) return;
@@ -572,7 +622,52 @@ static void UrControllerLifecycleAcceptanceTick(void) {
     }
     g_ur_accept_step = 1000;  /* fall into the shared result/quit below */
   }
-  switch (g_ur_accept_on == 2 ? 1000 : g_ur_accept_step++) {
+  if (g_ur_accept_on == 3) {
+    /* The product default: no background pad input. A desktop that never
+     * takes focus away (or never gives it back) records not_exercised. */
+    switch (g_ur_accept_step++) {
+    case 0: UrAcceptAttach(0, 0x5501, -1); return;
+    case 1:
+      UrAcceptExpect("focus_pad_seated", UrAcceptSeatOf(0) == 0);
+      SDL_MinimizeWindow(g_window);
+      return;
+    case 2:
+      if (SDL_GetKeyboardFocus() != NULL) {
+        printf("UR_CONTROLLER_ACCEPT step=unfocused_press_ignored not_exercised=1\n");
+        g_ur_accept_step = 4;
+        return;
+      }
+      UrAcceptButton(0, true);
+      return;
+    case 3:
+      UrAcceptExpect("unfocused_press_ignored", (g_pad_buttons & 0xffffffu) == 0);
+      UrAcceptButton(0, false);
+      return;
+    case 4:
+      SDL_RestoreWindow(g_window);
+      SDL_RaiseWindow(g_window);
+      g_ur_accept_wait = 30;
+      return;
+    case 5:
+      if (SDL_GetKeyboardFocus() != g_window) {
+        printf("UR_CONTROLLER_ACCEPT step=focused_press_drives not_exercised=1\n");
+        g_ur_accept_step = 7;
+        return;
+      }
+      UrAcceptButton(0, true);
+      return;
+    case 6:
+      UrAcceptExpect("focused_press_drives", (g_pad_buttons & 0xfffu) != 0);
+      UrAcceptButton(0, false);
+      return;
+    case 7:
+      for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+      return;
+    default: break;
+    }
+    g_ur_accept_step = 1000;
+  }
+  switch (g_ur_accept_on >= 2 ? 1000 : g_ur_accept_step++) {
   case 0: UrAcceptAttach(0, 0x5501, -1); break;
   case 1: UrAcceptAttach(1, 0x5502, -1); break;
   case 2:
@@ -793,12 +888,57 @@ static void UrControllerLifecycleAcceptanceTick(void) {
                    g_gamepad[0].joystick_id == -1);
     for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
     break;
+  case 41:
+    /* A fresh session: nobody is away from a seat. A lone pad arrives
+     * holding player index 1 (an XInput pad Windows left in slot 2). */
+    UrSeatReset();
+    UrAcceptAttach(4, 0x5505, 1);
+    break;
+  case 42:
+    UrAcceptExpect("lone_pad_with_p2_index_takes_p1", UrAcceptSeatOf(4) == 0 &&
+                   g_gamepad[1].joystick_id == -1 && UrAcceptIndexOf(4) == 0);
+    for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+    break;
+  case 43:
+    /* Two pads present together, found in the opposite order to their
+     * player indices: A (index 1) then B (index 0), unseen until a reconcile
+     * enumerates both, as at start-up. */
+    UrSeatReset();
+    UrAcceptAttach(0, 0x5501, 1);
+    UrAcceptAttach(1, 0x5502, 0);
+    UrAcceptDrainDeviceEvents();
+    break;
+  case 44:
+    UrSeatReconcile("acceptance");
+    break;
+  case 45:
+    UrAcceptExpect("enumeration_follows_player_index", UrAcceptSeatOf(1) == 0 &&
+                   UrAcceptSeatOf(0) == 1);
+    for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+    break;
+  case 46:
+    /* An unmapped stick holding index 0 and a gamepad holding index 1 are
+     * found together: the gamepad is P1, the stick only gets what is left. */
+    UrSeatReset();
+    UrAcceptAttach(kUrAcceptRaw, 0x5506, 0);
+    UrAcceptAttach(0, 0x5501, 1);
+    UrAcceptDrainDeviceEvents();
+    break;
+  case 47:
+    UrSeatReconcile("acceptance");
+    break;
+  case 48:
+    UrAcceptExpect("gamepad_seated_before_raw_stick", UrAcceptSeatOf(0) == 0 &&
+                   UrAcceptSeatOf(kUrAcceptRaw) == 1);
+    for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+    break;
   default: {
     printf("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=%s\n", g_ur_accept_failed ? "fail" : "pass");
     fflush(stdout);
     g_ur_accept_step = -1;
     const char *v = HostGetenv("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE");
-    if (v && (strcmp(v, "exit") == 0 || strcmp(v, "launcher") == 0)) {
+    if (v && (strcmp(v, "exit") == 0 || strcmp(v, "launcher") == 0 ||
+              strcmp(v, "focus") == 0)) {
       SDL_Event quit;
       memset(&quit, 0, sizeof(quit));
       quit.type = SDL_QUIT;
@@ -827,7 +967,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     for needle in (SELECTION, RAW_SELECTION, PAD_REMOVED, PAD_BUTTON,
                    RAW_REMOVED, REASSIGN, HELPERS_ANCHOR, TICK_ANCHOR,
                    PAD_FOUND, RAW_UNSEATED, RAW_BUTTON, LAUNCHER_RETURN,
-                   KEYBOARD_P1, ACTIVE_P1):
+                   KEYBOARD_P1, ACTIVE_P1, ENUMERATE, BACKGROUND):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -843,6 +983,8 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, LAUNCHER_RETURN, LAUNCHER_RETURN_NEW)
     source = once(source, KEYBOARD_P1, KEYBOARD_P1_NEW)
     source = once(source, ACTIVE_P1, ACTIVE_P1_NEW)
+    source = once(source, ENUMERATE, ENUMERATE_NEW)
+    source = once(source, BACKGROUND, BACKGROUND_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

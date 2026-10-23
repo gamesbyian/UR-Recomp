@@ -77,6 +77,17 @@ int main() {
         assert(selected.record->elapsed_ticks60 == 1100);
     }
 
+    // Corrupt/unknown persisted enum may never dereference an optional.
+    const auto invalid_target = static_cast<CompletedRunGhostTarget>(255);
+    const auto invalid_selection = select_completed_run_ghost_target(
+        state, invalid_target);
+    assert(!invalid_selection.active());
+    assert(invalid_selection.target == CompletedRunGhostTarget::Off);
+    assert(!invalid_selection.kind);
+    assert(invalid_selection.record == nullptr);
+    assert(completed_run_ghost_target_status_label(state, invalid_target) ==
+           "OFF");
+
     CompletedRunGhostState empty;
     const auto missing_previous = select_completed_run_ghost_target(
         empty, CompletedRunGhostTarget::Previous);

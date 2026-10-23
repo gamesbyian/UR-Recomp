@@ -14,9 +14,10 @@ from tools import qa_modern_visual_diagnostics as d
 from tests.unit.test_qa_modern_visual_diagnostics import p7
 
 ROOT = Path(__file__).resolve().parents[2]
-VARIANTS = ("root", "practice", "join", "options", "records", "records-earned", "warning",
-            "root-notice", "quit-confirm", "practice-pending", "options-full",
-            "join-confirmed", "first-racer-failed",
+VARIANTS = ("root", "practice", "join", "options", "records", "records-earned",
+            "records-earned-1p", "warning", "root-notice", "quit-confirm",
+            "practice-pending", "options-full", "join-confirmed",
+            "first-racer-failed", "profile-switch-refused", "profile-switch-saved",
             "first-racer", "pause", "pause-controls")
 # Native-host composition (root shell + separate destination presenter),
 # audited for contrast as well as geometry.
@@ -79,6 +80,23 @@ class ModernRootLegibilityAudit(unittest.TestCase):
         root = self.visible_text(342, "root")
         self.assertTrue(any("B/ESC QUIT" in t for t in root))
 
+    def test_profile_failure_is_not_mistaken_for_a_saved_switch(self):
+        for width in (256, 342):
+            for prefix in ("", "dest-"):
+                refused = self.visible_text(width, prefix + "profile-switch-refused")
+                saved = self.visible_text(width, prefix + "profile-switch-saved")
+                self.assertTrue(any("NOT SAVED - CHECK DATA" in t for t in refused))
+                self.assertFalse(any("SAVED FOR NEXT LAUNCH" in t for t in refused))
+                self.assertTrue(any("SAVED FOR NEXT LAUNCH" in t for t in saved))
+                self.assertFalse(any("NOT SAVED - CHECK DATA" in t for t in saved))
+
+    def test_native_earned_1p_record_keeps_finish_hundredths(self):
+        # Native destination preserves the suffix; legacy root has separate fit.
+        for width in (256, 342):
+            visible = self.visible_text(width, "dest-records-earned-1p")
+            self.assertTrue(any(t.endswith("00:15.50") for t in visible),
+                            (width, visible))
+
     def test_native_host_destinations_have_no_clip_or_overlap(self):
         for variant in DEST_VARIANTS:
             for width in (256, 342):
@@ -113,11 +131,12 @@ class ModernRootLegibilityAudit(unittest.TestCase):
                 row = grid[ly * width:(ly + 1) * width]
                 rows += [row[c] if 0 <= c < width else (0, 0, 0) for c in cols]
             frame = d.Frame(p7(ow, oh, rows))
-            report = cc.evaluate(matrix[case_id], frame)
+            report = cc.evaluate(matrix[case_id], frame, require_ring=True)
             self.assertTrue(report["pass"], (case_id, report["checks"]))
             self.assertEqual(
                 sorted(c["check"] for c in report["checks"]),
-                ["action-safe", "logical-width", "output-size", "single-focus-bar"])
+                ["action-safe", "focus-ring", "logical-width", "output-size",
+                 "single-focus-bar"])
 
     def test_root_layout_within_action_safe_and_single_focus_bar(self):
         for width in (256, 342):

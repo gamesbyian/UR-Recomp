@@ -48,6 +48,15 @@ def canonical_hex_digest(value: object, length: int) -> bool:
     ) is not None
 
 
+def canonical_evidence_ref(value: object) -> bool:
+    """Require a safe repo-local JSON pointer, not proof of source authenticity."""
+    return isinstance(value, str) and re.fullmatch(
+        r"analysis/(?:data|generated)/(?:[A-Za-z0-9_-]+/)*"
+        r"[A-Za-z0-9][A-Za-z0-9_.-]*[.]json",
+        value, flags=re.ASCII,
+    ) is not None
+
+
 def validate_catalog(catalog: dict) -> list[dict]:
     courses = catalog.get("courses")
     if not isinstance(courses, list) or len(courses) != 45:
@@ -150,8 +159,8 @@ def build_census(catalog: dict, source: dict) -> dict:
             raise ValueError(f"duplicate course/ROM observation: {key}")
         if observation.get("status") not in ("partial", "passed", "failed", "blocked"):
             raise ValueError(f"unsupported observation status: {key}")
-        if not observation.get("evidence_ref"):
-            raise ValueError(f"observation missing evidence path: {key}")
+        if not canonical_evidence_ref(observation.get("evidence_ref")):
+            raise ValueError(f"observation missing or invalid evidence path: {key}")
         if observation["status"] == "passed" and not validated_witness(
             observation, known[cid]["track_kind"], rom=region
         ):

@@ -427,7 +427,7 @@ inline bool render_modern_root_overlay(
     const bool inline_modal_open =
         view.practice_picker_open || view.practice_launch_pending ||
         view.options_open || view.read_only_records_open ||
-        view.two_seat_join_open || view.first_racer_open ||
+        view.two_seat_join_open || view.first_racer_open || view.quit_confirm ||
         view.unbound_two_player_warning_open;
     if (!inline_modal_open)
         paint.draw_text(pixels, stride, surface_height,

@@ -12,7 +12,8 @@ def adjudicate(checkpoint_revision, trusted_revision, *, checkpoint_present=True
     if not checkpoint_present or not trusted_anchor_present:
         return {'admit':False,'reason':'missing checkpoint or trusted anchor'}
     if type(checkpoint_revision) is not int or type(trusted_revision) is not int or (
-        checkpoint_revision < 1 or trusted_revision < 1):
+        not 1 <= checkpoint_revision < 2**64 or
+        not 1 <= trusted_revision < 2**64):
         return {'admit':False,'reason':'invalid revision type or range'}
     if checkpoint_revision < trusted_revision:
         return {'admit':False,'reason':'checkpoint rollback'}

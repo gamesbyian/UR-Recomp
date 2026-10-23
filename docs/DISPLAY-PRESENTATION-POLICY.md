@@ -153,6 +153,7 @@ The Display setting has three meanings, and every desktop host must keep them di
 `tools/baldosa_sdl_display_lifecycle_spike.py` closes this with decisions from `native/product/display_window_lifecycle_policy.h`:
 
 - **Fullscreen mode before every transition.** Before each fullscreen transition (Options, the in-game launcher, Alt+Enter, and window creation), Fullscreen gets SDL's closest exclusive mode to the window's display desktop mode, and Windowed/Borderless clear it. Output Resolution is not a Baldosa Options row yet, so "Native" is the only resolution.
+- **An exclusive refresh that does not judder.** The host presents once per simulated frame. On a desktop between two multiples of the guest rate (75, 144 or 165 Hz), frames alternate between two and three vblanks (one and two at 75 Hz), a steady judder. Borderless cannot avoid that; an exclusive mode switch can. When the desktop refresh is not within 1% of a whole multiple of the guest rate, `ur_display_exclusive_refresh_pick` takes the highest refresh the display offers at the desktop resolution that is (120 Hz on a 144 Hz panel; 60 Hz if nothing higher is). A desktop already at 60, 59.94, 120 or 240 Hz keeps its own refresh, so most panels see no change. Each exclusive mode logs `UR_DISPLAY exclusive_refresh choice=even|desktop desktop_hz=… chosen_hz=…`. The display runner repeats its scenario with a test-only 144 Hz desktop (`SNESRECOMP_UR_DISPLAY_DESKTOP_HZ_OVERRIDE`). It requires an even choice when the hosted display offers one, and records `not_exercised` otherwise. A real high-refresh panel is physical check D19.
 - **No exclusive mode means a refusal.** A display offering no such mode makes Options report a refusal, which the Options seam already rolls back.
 - **Alt+Enter stays borderless.** Alt+Enter moves between windowed and borderless only, so it clears any mode left from an earlier Fullscreen.
 - **Alt+Enter is never a menu key.** The product key hook runs before the framework's command lookup and sees no modifiers, so a visible Modern root took Alt+Enter's Return as CONFIRM and started a 1P game while the window stayed windowed. A key that maps to the framework's fullscreen command now always reaches the framework.
@@ -225,6 +226,29 @@ What happens next:
 5. relaunch with the saved display renamed to one that is not connected, which must log the fallback and must not reuse the old spot or the maximized state.
 
 Local X11 run: positive pass. Without the restore call the runner fails, and without the maximize step it fails `relaunch did not restore the maximized state`. Before the restore was moved after renderer creation, it landed at the right spot and was then displaced by window recreation; the runner caught that. Moving between real monitors needs more than one display and is a physical check.
+
+**Session end and console close keep the saves.** The host writes everything it keeps only at its ordinary exit: the cartridge SRAM (with the Modern profile checkpoint around it), the autosave slot, `config.ini` key changes and `window-placement.txt`. On Windows, two ordinary ways of ending the game never reached that exit, so all progress since launch was lost:
+
+- closing the console window that `run-uniracers.cmd` runs the game in. The console sends `CTRL_CLOSE_EVENT`, and the default handler ends the process at once. Ctrl+C and Ctrl+Break did the same;
+- signing out, restarting or shutting down with the game open, including a Windows Update restart. SDL3 does not handle `WM_QUERYENDSESSION`/`WM_ENDSESSION`, and the process can be terminated as soon as `WM_ENDSESSION` returns.
+
+`tools/baldosa_session_end_spike.py` moves the exit-time block, unchanged, into `UrPersistAtExit`. That function runs at most once and is still called from the ordinary exit. It adds two Windows-only entry points:
+
+- **Console events.** A console control handler turns these events into the host's ordinary `SDL_QUIT`. For close, sign-out and shutdown it then waits, inside the system's five seconds, for the main loop to finish `UrPersistAtExit`.
+- **Session messages.** A hidden top-level window receives the session messages during SDL's own event pump, between frames. `WM_QUERYENDSESSION` registers a shutdown-block reason and allows the session to end. `WM_ENDSESSION` saves synchronously before returning, then asks the loop to quit.
+
+Log tokens: `UR_SESSION_END console_event=…`, `end_session ending=1` and `persisted reason=exit|session_end|console_close|console_break`.
+
+`tools/run_baldosa_session_end_acceptance.py` runs the exact PE four times:
+
+- it sends the real session messages to the running game and kills the process the moment `WM_ENDSESSION` returns; the SRAM file and placement must already be on disk;
+- it sends Ctrl+Break, which must quit with exit code 0 through the ordinary exit;
+- it posts `WM_CLOSE` to the game's own console window from a helper attached to it;
+- it performs a simulated close (test-only `close_thread`): the handler runs on a new thread and the process is terminated as soon as it returns, which is what the system does after a close.
+
+On one hosted run the console host did not raise `CTRL_CLOSE_EVENT` for a posted `WM_CLOSE`, while on the next it did: the game logged `console_event=console_close`, was terminated with `STATUS_CONTROL_C_EXIT`, and its saves were on disk. An undelivered real close is therefore recorded `not_exercised` with the window class when no `console_event` follows within 15 s, and the simulated close always carries the check.
+
+What is saved, and when the ordinary exit saves it, is unchanged. A real sign-out or shutdown is physical check S1.
 
 `tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
 - without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;

@@ -74,6 +74,22 @@ def source_files(base: Path, wide: bool, ink: int = 200,
 
 
 class NativeRootSdlContrastTests(unittest.TestCase):
+    def test_numeric_receipt_fields_require_real_integers(self):
+        # In Python bool == int and 0.0 == 0: neither is a native receipt.
+        with tempfile.TemporaryDirectory() as td:
+            receipt, png, p7, log = source_files(Path(td), False)
+            for field, bad in (
+                ("schema_version", True), ("schema_version", 1.0),
+                ("native_process_exit", False), ("native_process_exit", 0.0),
+                ("release_gate_credit", False), ("release_gate_credit", 0.0),
+            ):
+                with self.subTest(field=field, bad=repr(bad)):
+                    forged = dict(receipt, **{field: bad})
+                    with self.assertRaisesRegex(ValueError, "pre-approved"):
+                        audit.verify_capture(forged, png, p7, log)
+            self.assertTrue(audit.verify_capture(receipt, png, p7, log)[
+                "source_root_contrast_verified"])
+
     def test_source_bound_4_3_and_16_9_ada_text(self):
         for wide in (False, True):
             with self.subTest(wide=wide), tempfile.TemporaryDirectory() as td:

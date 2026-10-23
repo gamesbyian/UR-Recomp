@@ -107,8 +107,8 @@
         "result"
       ],
       "status": "partial",
-      "evidence_ref": "analysis/data/dragster-finish-contact-transition.json",
-      "coverage_note": "Native postframe P1/P2 contact and checkpoint/lap transition at 2903; no independent instruction-time 82:8C32/81:805D event capture, full end result, or course-wide launch witness."
+      "evidence_ref": "analysis/data/qa01-dragster-zoo-independent-raw-archive-verification-20261018.json",
+      "coverage_note": "Authentic USA 2014 Dragster Race A source movie active at frame794 and result 2874, then next Zoo Circuit A eight continuous active source frames from frame3190 (source result+316). Frozen original/native run39174631932, source542205bd596306ef14a753dd005e391f60a8d413, genuine 69-member artifact12154480620 independent whole-archive SHA256 f036f80d72000b05a5c2edb42152eb433b89fa44c5fc36238ccc73bd143e2947. Fresh original Snes9x Dragster result-relative +2081 versus Baldosa +2079 (not strict equal); next Zoo active at fresh original result+315 versus native+318 (historical original movie+316). Actual 14/14 original/native whole 128KiB WRAM pairs differ, total 3616 unmasked differing byte occurrences. Actual 14/14 complete 8KiB SRAM pairs differ at the same 13 original/native offsets (182 occurrences). Both retain source-earned ranked MIKE 0:25.08 / 2508 centiseconds and correct complete record-table checksum; 14 unique per-guest real log dump acknowledgments and source trace digest independently rehashed. Authentic Zoo course payload loaded in both guests is a producer assertion, not a separately rehashed RNC in this archive. No same-age original/native consumed controller input, all-frame event parity, original 2014 source raw movie memory, complete next Zoo lifecycle, cold Windows disk or exact shipping candidate evidence. This green bounded diagnostic is a genuine strict-negative PARTIAL source event, NOT an accepted complete course; 0/45 accepted. Prior input/lap/result note: analysis/data/qa01-dragster-2014-original-baldosa-first-pair-20261014.json."
     },
     {
       "rom": "usa-retail",
@@ -127,8 +127,8 @@
         "result"
       ],
       "status": "partial",
-      "evidence_ref": "analysis/data/zoo-original-2014-live-progression.json",
-      "coverage_note": "Independent original 2014 Snes9x trace proves Zoom Zoo entry at frame 3190, checkpoint/lap transitions at 3408/3794/4031/4722/4911 (P1 4->3->2), and archived original Circuit result menu BC at 8353 with MIKE total 1:16.46/best lap 0:25.10. Original-only source; no independently synchronized fresh native circuit and terminal comparison."
+      "evidence_ref": "analysis/data/qa01-rf054-independently-rehashed-four-artifact-bundle-20261018.json",
+      "coverage_note": "Exact USA 2014 Zoom Zoo source original/native genuine run 39161563837, source 7334a568f52ea390ae5866d3ee132e392635a186, independently downloaded and rehashed FOUR original Actions ZIPs (plan, binaries, case, aggregate). Actual native ELF/core/snesref file hashes, classified producer receipt, and 78 per-guest replay dump clocks verify; fresh reference and native reach settled result +5163, then next Bowl +267. Producer reports 51/78 unmasked 128KiB sampled WRAM pairs equal, 92 differing-byte occurrences (90 NMI stack 01ED..01F1; 2 live sound pointer 0063), 11/11 whole earned SRAM pairs equal and cold ranked guest reload. Historical RF054 artifact OMITTED underlying 78+11 raw guest memory bytes, so those comparisons have NOT been independently recomputed from them. Future true guest raw files are preserved/audited by merged #1865, with NO retroactive replay credit. RF055 establishes live native sound ROM read and CPU port writes but NOT actual decoded 65816 guest-PC stamps/absolute SPC phase; all-frame semantics, consumed controller timing, shipping Windows PE/source match and OS disk durability remain open. Historical first divergence and NMI RTI source: analysis/data/rf047-corrected-executed-native-nmi-rtis-20261018.json. Status PARTIAL only; strict research candidate is NOT independently accepted; 0/45 USA events."
     },
     {
       "rom": "usa-retail",
@@ -146,8 +146,8 @@
         "result"
       ],
       "status": "partial",
-      "evidence_ref": "analysis/generated/result-screens-probe.json",
-      "coverage_note": "Source-pinned archived 2014 original Snes9x Bowl 45-second Stunt reaches tally menu 2F at frame 11915 and settled 18 at 11985 with MIKE score 764; independently proven original-only full source event, without fresh reference/native event-relative parity or accepted USA release-complete witness."
+      "evidence_ref": "analysis/data/qa01-independently-rehashed-bowl-movie-three-guest-memory-20261018.json",
+      "coverage_note": "Authentic 2014 USA Bowl scored Stunt source movie frame 8620 entry, 11985 result (MIKE 764), followed by source next Switcher at Bowl result+342. Genuine fresh original/native 45s scene returns matching MIKE 764 but 3365/3364 relative result onset (one-frame strict mismatch), and next Switcher +341 fresh Snes9x / +344 Baldosa, another STRICT failure. Independent original raw capture SHA-confirmed from three-guest 2014 movie/fresh Snes9x/native run 39169304323, 78-member ZIP, source d8fc9099ea2827c6a919ec01bd2c49472701803c. All 48 full 128KiB WRAM/8KiB SRAM three-guest source snapshots were reopened without masks: historical source movie differs from fresh Snes9x already before transition (+334: 44 WRAM and 71 SRAM bytes); fresh original versus native differs by 2 WRAM and 3 SRAM before transition, at +341 666 WRAM differences, and all 12 same-host original/native handoff raw pairs differ. Guest-level cold reload preserves ranked 764 record and checksum but not Windows disk durability. RF056 independent exact raw transition review establishes 31/31 then 642/642 identical fresh guest WRAM mutation triples THREE CAPTURED FRAMES apart, not a causal explanation or permission to rephase. Historical initial candidate: analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json. Real CPU/state trigger, full original/native timing, consumed controls, Windows package and disk proof remain unresolved. PARTIAL only, 0/45 accepted."
     },
     {
       "rom": "usa-retail",
@@ -2767,8 +2767,8 @@
   "limits": [
     "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
     "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
-    "Original-only Zoo demonstrates checkpoint/lap order and archived settled Circuit result, but no fresh original/native result parity.",
-    "Original-only archived Bowl proves settled scored Stunt result; no paired original/native timed Stunt is certified.",
+    "Independently paired original/native Zoom Zoo Circuit matches course/laps/contact and settled PPU result, but retains an unresolved one-scene-frame native result/restore phase lead; no accepted complete-course witness.",
+    "Independently paired original/native Bowl scored 45s Stunt has 28 matched active semantic samples and identical PPU MIKE 764 result, but relative terminal onset differs by one frame; no accepted complete Stunt event.",
     "Input-only Jumpover CIRCUIT-B rewards are partial; no paired Circuit result or scored 45-second Stunt outcome was certified.",
     "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
     "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",

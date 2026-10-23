@@ -116,12 +116,15 @@ def native_root_geometry(line: str) -> tuple[int, int, int, int, int, int] | Non
 
 
 def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
-    if receipt.get("schema_version") != 1 or (
+    if (type(receipt.get("schema_version")) is not int or
+            receipt["schema_version"] != 1 or
             receipt.get("execution_mode") != "modern" or
             receipt.get("SDL_driver") != "windows" or
-            receipt.get("native_process_exit") != 0 or
+            type(receipt.get("native_process_exit")) is not int or
+            receipt["native_process_exit"] != 0 or
             receipt.get("visual_approved") is not False or
-            receipt.get("release_gate_credit") != 0):
+            type(receipt.get("release_gate_credit")) is not int or
+            receipt["release_gate_credit"] != 0):
         raise ValueError("unsupported or pre-approved native receipt")
     dims = receipt.get("actual_sdl_renderer_output")
     if not isinstance(dims, list) or len(dims) != 2 or any(

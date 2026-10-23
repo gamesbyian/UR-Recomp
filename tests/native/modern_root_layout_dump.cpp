@@ -186,6 +186,12 @@ int main(int argc, char** argv) {
         view.records_status = "EARNED RUNS 2P";
         view.records_recent = "BLADE 01:23.45 / AXEL 01:24.01";
         view.records_detail = "P1 WINS 12 / P2 WINS 9";
+    } else if (variant == "records-earned-1p") {
+        // Preserve genuine source-bound 1P hundredths in the rendered label.
+        view.read_only_records_open = true;
+        view.read_only_records_pages_available = true;
+        view.records_status = "EARNED RUNS 1P";
+        view.records_recent = "LAST: SUPERMARKET MADNESS 00:15.50";
     } else if (variant == "root-notice") {
         view.root_notice = "THAT ROUTE IS NOT AVAILABLE YET";
     } else if (variant == "quit-confirm") {
@@ -218,6 +224,16 @@ int main(int argc, char** argv) {
         view.first_racer_open = true;
         view.first_racer_failed = true;
         view.first_racer_preset_name = "BLADE";
+    } else if (variant == "profile-switch-refused") {
+        view.first_racer_open = true;
+        view.first_racer_is_switch = true;
+        view.first_racer_failed = true;
+        view.first_racer_preset_name = "ANDREW";
+    } else if (variant == "profile-switch-saved") {
+        view.first_racer_open = true;
+        view.first_racer_is_switch = true;
+        view.first_racer_created = true;
+        view.first_racer_preset_name = "ANDREW";
     } else if (variant == "warning") {
         view.unbound_two_player_warning_open = true;
     } else if (variant == "first-racer") {

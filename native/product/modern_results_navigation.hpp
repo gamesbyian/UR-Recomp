@@ -73,16 +73,26 @@ constexpr ModernResultsNavigationMenu make_modern_results_navigation_menu(
 
 constexpr ModernResultsAction selected_modern_results_action(
     const ModernResultsNavigationMenu& menu) noexcept {
-    return menu.row_count == 0
-        ? ModernResultsAction::None
-        : menu.rows[menu.selected < menu.row_count ? menu.selected : 0u];
+    // A stale selection can outlive a dynamic results-row refresh. Do not
+    // silently confirm row zero (possibly Next Event) for an invalid index.
+    // The menu is also public to native hosts, so reject malformed counts.
+    if (menu.row_count == 0 || menu.row_count > menu.rows.size() ||
+        menu.selected >= menu.row_count)
+        return ModernResultsAction::None;
+    return menu.rows[menu.selected];
 }
 
 inline ModernResultsNavigationMenu navigate_modern_results_navigation_menu(
     ModernResultsNavigationMenu menu,
     UrModernHostNavigationAction action) noexcept {
-    if (menu.row_count == 0) return menu;
+    if (menu.row_count == 0 || menu.row_count > menu.rows.size())
+        return menu;
+    // Recover focus on a real directional action, never on Confirm.
     const int delta = ur_modern_host_navigation_vertical_delta(action);
+    if (menu.selected >= menu.row_count) {
+        if (delta != 0) menu.selected = 0;
+        return menu;
+    }
     if (delta < 0) {
         menu.selected =
             menu.selected == 0 ? menu.row_count - 1 : menu.selected - 1;

@@ -2,6 +2,7 @@
 // No ROM/SDL or separate mock frontend: these same functions are consumed by
 // native/product/modern_root_overlay_presenter.hpp.
 #include "native/product/modern_menu_visual_grammar.hpp"
+#include "native/product/modern_ui_access.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -242,8 +243,31 @@ int main() {
         painter, framebuffer, 256, 224, 13, 50, 168, 17, 1);
     assert(framebuffer[50 * 256 + 13] == kModernMenuCursorLight);
     assert(framebuffer[50 * 256 + 15] == kModernMenuCursorLight);
-    assert(framebuffer[50 * 256 + 16] == 0xE0283058u);
+    assert(framebuffer[54 * 256 + 16] == 0xE0283058u); // band interior
     assert(framebuffer[67 * 256 + 13] != kModernMenuCursorLight);
+    // Two-tone ring: dark outer line on the band edge, light line inside it,
+    // inset so the row above/below is untouched.
+    assert(framebuffer[50 * 256 + 40] == kModernMenuFocusRingDark);
+    assert(framebuffer[66 * 256 + 40] == kModernMenuFocusRingDark);
+    assert(framebuffer[51 * 256 + 40] == kModernMenuFocusRingLight);
+    assert(framebuffer[65 * 256 + 40] == kModernMenuFocusRingLight);
+    assert(framebuffer[58 * 256 + 180] == kModernMenuFocusRingDark); // right edge
+    assert(framebuffer[58 * 256 + 179] == kModernMenuFocusRingLight);
+    assert(framebuffer[49 * 256 + 40] != kModernMenuFocusRingDark);
+    assert(framebuffer[67 * 256 + 40] != kModernMenuFocusRingDark);
+
+    // WCAG 1.4.11 reading of the ring: its two tones contrast with each other
+    // and, for every stock backdrop grey, at least one tone is >=3:1 against
+    // the backdrop, so the focused row is distinguishable without hue.
+    static_assert(modern_ui_contrast_x100(kModernMenuFocusRingLight,
+                                          kModernMenuFocusRingDark) >= 1200,
+                  "ring tones separate from each other");
+    // Test all 256 neutrals instead of just 16 evenly-spaced samples.
+    for (std::uint32_t grey = 0; grey <= 0xFFu; ++grey) {
+        const std::uint32_t bg = 0xFF000000u | grey << 16 | grey << 8 | grey;
+        assert(modern_ui_contrast_x100(kModernMenuFocusRingDark, bg) >= 300 ||
+               modern_ui_contrast_x100(kModernMenuFocusRingLight, bg) >= 300);
+    }
 
     // The existing root/default remains ice blue; explicit stock-source
     // contexts change only the focus marker, never the dark selection field.
@@ -251,12 +275,12 @@ int main() {
         painter, framebuffer, 256, 224, 13, 75, 168, 17, 1,
         ModernMenuSourceCursor::Rider);
     assert(framebuffer[75 * 256 + 13] == 0xFF88C8F0u);
-    assert(framebuffer[75 * 256 + 16] == 0xE0283058u);
+    assert(framebuffer[79 * 256 + 16] == 0xE0283058u);
     modern_menu_paint_focus_band(
         painter, framebuffer, 256, 224, 13, 100, 168, 17, 1,
         ModernMenuSourceCursor::Tour);
     assert(framebuffer[100 * 256 + 13] == 0xFFF0A088u);
-    assert(framebuffer[100 * 256 + 16] == 0xE0283058u);
+    assert(framebuffer[104 * 256 + 16] == 0xE0283058u);
     modern_menu_paint_focus_band(
         painter, framebuffer, 256, 224, 13, 125, 168, 17, 1,
         ModernMenuSourceCursor::Track);
@@ -276,7 +300,7 @@ int main() {
         184, 80, 150, 24, 1, ModernMenuSourceCursor::Tour);
     assert(wide[80 * wide_w + 184] == 0xFFF0A088u);
     assert(wide[80 * wide_w + 186] == 0xFFF0A088u);
-    assert(wide[80 * wide_w + 187] == 0xE0283058u);
+    assert(wide[90 * wide_w + 187] == 0xE0283058u);
     assert(wide[80 * wide_w + 334] == 0u); // right safe inset
 
     constexpr int dense_w = wide_w * 4;
@@ -288,7 +312,7 @@ int main() {
         ModernMenuSourceCursor::Tour);
     assert(dense[(80 * 4) * dense_w + 184 * 4] == 0xFFF0A088u);
     assert(dense[(80 * 4) * dense_w + 184 * 4 + 11] == 0xFFF0A088u);
-    assert(dense[(80 * 4) * dense_w + 184 * 4 + 12] == 0xE0283058u);
+    assert(dense[(80 * 4 + 8) * dense_w + 184 * 4 + 12] == 0xE0283058u);
     assert(dense[(80 * 4) * dense_w + 334 * 4] == 0u);
 
     // The optional original-font wrapper hands measured 8px/16px word

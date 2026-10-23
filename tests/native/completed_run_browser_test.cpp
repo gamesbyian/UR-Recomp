@@ -303,5 +303,44 @@ int main(int argc, char** argv) {
     assert(std::string(completed_run_browser_status_name(
                CompletedRunBrowserEntryStatus::Incompatible)) == "INCOMPATIBLE");
 
+    // Local Runs and Records must consult the same direct-file authority.
+    const auto parity_root = root / "inspector-parity";
+    const auto foreign_root = root / "inspector-foreign";
+    std::filesystem::create_directories(parity_root);
+    std::filesystem::create_directories(foreign_root);
+    write_record(parity_root / "local.urrun", run(1800));
+    write_record(foreign_root / "foreign.urrun", run(900));
+    std::error_code ec_link;
+    const auto linked_path = parity_root / "linked.urrun";
+    std::filesystem::create_symlink(foreign_root / "foreign.urrun",
+                                    linked_path, ec_link);
+    if (!ec_link) {
+        bool scan_ok = false;
+        auto observed = inspect_completed_run_record_artifacts(
+            parity_root.string(), &scan_ok);
+        assert(scan_ok);
+        assert(observed.size() == 2);
+        assert(summarize_run_record_artifact_health(observed).io_errors == 1);
+        CompletedRunBrowser parity_browser;
+        assert(parity_browser.refresh(parity_root.string(), target()));
+        assert(parity_browser.size() == observed.size());
+        assert(parity_browser.playable_count() == 1);
+        bool linked_unavailable = false;
+        for (const auto& entry : parity_browser.entries()) {
+            if (entry.path != linked_path.string()) continue;
+            assert(entry.status == CompletedRunBrowserEntryStatus::IoError);
+            assert(!entry.record && !entry.playable());
+            linked_unavailable = true;
+        }
+        assert(linked_unavailable);
+        const auto alias = root / "inspector-root-alias";
+        ec_link.clear();
+        std::filesystem::create_directory_symlink(parity_root, alias, ec_link);
+        if (!ec_link) {
+            assert(!parity_browser.refresh(alias.string(), target()));
+            assert(parity_browser.size() == 0);
+        }
+    }
+
     return 0;
 }

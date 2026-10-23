@@ -83,6 +83,9 @@ class ArchiveCasesTest(unittest.TestCase):
             (good / "readback-receipt.json").write_text(json.dumps(receipt))
             rep = ac.analyse_dirs([good])
             self.assertTrue(rep["pass"], rep)
+            # A legacy bar without the shared ring is advisory by default and
+            # a failure when the ring is required.
+            self.assertFalse(ac.analyse_dirs([good], require_ring=True)["pass"])
             self.assertEqual(rep["captures"][0]["case"], "root-wide-720")
             self.assertEqual(rep["release_gate_credit"], 0)
             self.assertIn("one-logical-width=ok(342)", ac.markdown(rep))

@@ -13,6 +13,9 @@ MAX_ZIP=64*1024*1024
 MAX_MEMBER=64*1024*1024
 MAX_TOTAL=128*1024*1024
 WINDOWS_DEVICES={'CON','PRN','AUX','NUL'} | {'COM'+str(n) for n in range(1,10)} | {'LPT'+str(n) for n in range(1,10)}
+# Win32 reserves these characters in every ordinary filename component,
+# regardless of whether a ZIP member's CRC and manifest hashes are valid.
+WINDOWS_FORBIDDEN_CHARS = frozenset('<>:"/|?*') | {chr(92)}
 
 
 def _portable_win32_component(part):
@@ -21,7 +24,8 @@ def _portable_win32_component(part):
     This is a conservative cross-platform recovery-envelope policy, not a
     Windows path open or an extraction permission.
     """
-    if (part.endswith((' ', '.')) or ':' in part or
+    if (part.endswith((' ', '.')) or
+            any(ch in WINDOWS_FORBIDDEN_CHARS for ch in part) or
             any(unicodedata.category(ch) in ('Cc', 'Cf') for ch in part) or
             len(part.encode('utf-16-le')) // 2 > 255):
         return False

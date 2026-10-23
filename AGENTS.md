@@ -1,174 +1,58 @@
-# UR-Recomp agent guide
+# UR-Recomp: agent guide
 
-Compact router for coding and research agents. **Current priority: independently close original/native complete USA events and the named-profile Windows crash-recovery P0 on the integrated Baldosa/Modern product, while qualifying graphics and player-visible release QA on exact source-bound artifacts.** Start with `docs/WORK-QUEUE.md` (live) and `docs/PROJECT-PLAN.md` (durable intent), then only your owning specialist authority. Use `docs/README.md` to find it. Historical project plan, queue and resource notes now live under `docs/archive/` and are not assignments. Repository state and latest merged evidence supersede conversation recaps.
+**Goal:** deliver a fully playable, faithful Uniracers remaster, with usable modern menus, complete controller journeys and reliable records/profiles. The immediate critical path is the **private Windows x64 release**, independently qualified against original/native behavior, exact packaged builds and release QA. The repository itself is public; avoid assuming that a private distribution target makes source, ROMs or third-party assets publishable.
 
-## Progress and handoff location
+This is the **small orientation and enduring contract**, not a progress diary. The [live work queue](docs/WORK-QUEUE.md) owns priority, the [durable project plan](docs/PROJECT-PLAN.md) owns product intent, the [document map](docs/README.md) owns reference routing and [release quality ledger](docs/RELEASE-QUALITY-LEDGER.json) alone owns acceptance. Read current source, PRs and recent merged evidence before trusting a dated description. An unclosed test, ongoing research or tool prototype does not grant a release gate.
 
-Manually launched agents work **GitHub-first**. Commit code, tests and evidence to dedicated branches; keep ongoing progress, review context, blockers and next actions in their PRs/issues and repository documentation. Read the Drive recovery vault for existing unpublished proposals when relevant, but **do not upload routine progress reports, status summaries, journal copies or PR mirrors to Drive**. Drive writes are exceptional: preserve otherwise-unpublishable substantive work after an actual GitHub publication failure, or fulfill an explicit owner request. Scheduled hourly recovery agents have a separate Drive fallback in `docs/AGENT-COORDINATION.md`; do not apply their Drive reporting requirements to manually dispatched agents. A normal GitHub handoff is sufficient.
+## Dispatch and task routes
 
-**Durability before fragile publication:** follow [preservation-first and refusal incident handling](docs/recovery/PRESERVATION-FIRST-CONTRACT.md). Stage lossless source/tests before risky GitHub writes; for previously denied operations, obtain an actual verified restricted-Drive rescue first. A rejected tool invocation is not a permanent project ban, but never evade a safety control by cosmetically retrying its rejected operation.
-
-For all publication and recovery decisions follow [GitHub-first publication and Vault fallback](docs/recovery/GITHUB-FIRST-PUBLICATION-RUNBOOK.md). Scheduled and manual agents both prefer normal GitHub code/PR publication; a safety-check failure on one tool invocation does not establish a permanent source-code ban, but it must not be bypassed by repeating or disguising that blocked operation. Preserve the rejected attempt and revisit its disposition with current source evidence. Technical failures get bounded retries and source revalidation.
-
-**First-party recovery publication:** follow [the Vault-to-GitHub publication contract](docs/recovery/FIRST-PARTY-PUBLICATION-CONTRACT.md). Presume surviving commissioned-agent source is worth recovering; perform bounded integrity, rights and current-main dedup checks, then publish reviewable branch/draft-PR work promptly. Historical tests need not be rerun merely because bytes passed through Drive; normal CI, independent QA and branch protection still govern merges.\n\n## Route by task
-
-| Task | Read first |
+| Task | Start here |
 |---|---|
-| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc and live PR owner. For established lanes `python3 tools/build_agent_context.py <lane>` yields a bounded orientation packet with cross-project reuse hints |
-| Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
-| Overall project architecture / product plan | `docs/PROJECT-PLAN.md` for current, `docs/archive/PROJECT-PLAN-THROUGH-20261009.md` only for old detail |
-| Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
-| Racer HD art, appearance, proportions, shipping-art review or promotional character claims | **Read [docs/HD-RACER-CHARACTER-RECONSTRUCTION.md](docs/HD-RACER-CHARACTER-RECONSTRUCTION.md) first**, then \`docs/HD-ART-DIRECTION.md\`. Owner veto (2026-10-10): current procedural 4× racer forms lack current artistic approval despite old hash/pose shipping-art manifests. Preserve their technical evidence; demand original title/packaging likeness, multi-pose reference comparison and explicit new visual sign-off. Coordinate with media agents; do not show WIP as finished HD. |
-| Display scaler / AI upscaling / generative HD art proposals | `docs/HD-UPSCALING-EXPERIMENT-PLAN.md`, then `docs/HD-ART-DIRECTION.md`, `docs/DISPLAY-PRESENTATION-POLICY.md` and `docs/TOOLCHAIN.md`; candidate trial manifests never approve shipping art |
-| Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
-| Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
-| Baldosa native / Modern integration | `docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md`, `docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md`, relevant active PR, then exact source adapters |
-| Shared original/native and release QA | `docs/QA-BOUNDED-RELEASE-CAMPAIGN.md`, `docs/QA-PLAYER-JOURNEYS.md`, `docs/RELEASE-QUALITY-LEDGER.json` (sole gate status owner) |
-| Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
-| First-party C / C ABI / guest-memory code | `docs/RECOMP-C-PRACTICES.md`, then `docs/VALIDATION.md` and the owning subsystem authority |
-| GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, [latest bounded CI audit](docs/CI-RESEARCH-APPARATUS-AUDIT-20261010.md), then the affected workflow files |
-| ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
-| RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
-| Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json`; for 2P/VS input coverage also read `docs/TWO-PLAYER-FIXTURE-PLAN.md` |
-| Desktop post-race video Save / Discard | `docs/DESKTOP-POST-RACE-VIDEO.md`, then `docs/COMPLETED-RUN-BROWSER.md`, `docs/COMPLETED-RUN-RECORDS.md`, `docs/MODERN-RESULTS-NAVIGATION.md` and `docs/PLATFORM-TARGETS.md`; **LIVE capture of real presented frames and audio first to preserve glitches/nondeterminism; do not implement replay-first or silently fall back to recreated video**; planned, not shipped |
-| Established reverse-engineering claim | `docs/RESEARCH-LEDGER.md`; for cross-project confirmation or avoiding repeat research, read `docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md` |
-| Recovered code/data symbol | `docs/SYMBOLS.md` |
-| Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
-| External source, acquisition lead, or imported research artifact | `docs/EXTERNAL-EVIDENCE-INTAKE.md`, `reference/evidence-worklist.json`, `reference/catalog.yml`, then `docs/THIRD-PARTY-CODE-AUDIT.md` as applicable |
-| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json`; for producer/consumer chains and adapters, `docs/TOOL-INTEROPERABILITY.md` |
-| AI/LLM-assisted reverse-engineering method | `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`; apply it as technique guidance, not as a second work queue |
-| Adopting or adapting imported scripts/source | `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
-| Three-project reuse / tool adoption decision | `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional`, then the relevant pinned source and `docs/TRUSTED-UPSTREAM-ADOPTION.md` |
-| Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
-| Production diary / historical chronicler updates | Read `prod_diary/README.md` and `prod_diary/PRODUCTION-DIARY-EDITORIAL-GUIDE.md`; continue the **rebuilt** first-person diary with director interactions and parallel Cajun episode parity. Frozen old diaries are archival evidence, never the active continuation. The diary is historical, not a work queue. |
+| New agent / current release blocker | `docs/WORK-QUEUE.md`, current PRs, then the owning specialist and direct code. For assigned lanes: `python3 tools/build_agent_context.py <lane>` |
+| Five scheduled agents, slot assignments, manual/vault coordination | `docs/HOURLY-AGENT-LINES.md` (only live slot owner), `docs/AGENT-COORDINATION.md`, relevant active PR. Position numbers are not durable work IDs |
+| Windows boot/build, exact package, native host | `docs/BRINGUP.md`, `docs/VALIDATION.md`, `docs/PLATFORM-TARGETS.md`, current workflow/host source |
+| Modern menus, controller, screen state and 2P | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, `analysis/ui-capture-manifest.json`, `docs/TWO-PLAYER-FIXTURE-PLAN.md` |
+| Original/native gameplay, fidelity, timing, QA | `docs/QA-BOUNDED-RELEASE-CAMPAIGN.md`, `docs/QA-PLAYER-JOURNEYS.md`, `docs/VALIDATION.md`, `docs/RELEASE-QUALITY-LEDGER.json` |
+| Baldosa/Modern adapter, records, profiles or migration | `docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md`, `docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md`, current adapters and tests |
+| Widescreen/presentation or racer art | `docs/WIDESCREEN.md`, `docs/HD-RACER-CHARACTER-RECONSTRUCTION.md`, `docs/HD-ART-DIRECTION.md`, `docs/DISPLAY-PRESENTATION-POLICY.md` |
+| Course formats, original/code archaeology, recovered symbols | `docs/COURSE-FORMAT.md`, `docs/RESEARCH-LEDGER.md`, `docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md`, `docs/SYMBOLS.md` as appropriate |
+| C guest/ABI, platform portability | `docs/RECOMP-C-PRACTICES.md`, `docs/VALIDATION.md`, `docs/PLATFORM-TARGETS.md` |
+| Tool choice, third-party research or source adoption | `docs/TOOLCHAIN.md`, `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, `docs/EXTERNAL-EVIDENCE-INTAKE.md` |
+| CI/workflow efficiency, heavyweight analysis | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, `docs/VALIDATION.md` |
+| Vault recovery / stranded source / publication | `docs/recovery/FIRST-PARTY-PUBLICATION-CONTRACT.md`, `docs/recovery/GITHUB-FIRST-PUBLICATION-RUNBOOK.md`, `docs/recovery/PRESERVATION-FIRST-CONTRACT.md` |
+| Research method or orientation to a subsystem | `docs/knowledge/README.md`, `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`, then source/evidence |
+| Periodic repo hygiene, historical diary | `docs/PERIODIC-REPOSITORY-HYGIENE.md`; for diary specifically `prod_diary/README.md` and editorial guide |
 
-`docs/README.md` inventories document ownership. It is not a second agent guide.
+For **three-project reuse**, `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` identifies existing Baldosa/Malmazuke/UR approaches. Use it before substantial new implementation, not as a reason to create a new R&D programme. The selected option must solve a *current* work-queue problem.
 
-## Fresh-agent priority rule
+## Owner-aligned execution contract
 
-If you have no project history, do **not** reconstruct priority from chronology, old PR references, completed phase headings, or the amount of documentation devoted to a topic. Use this order:
+1. **Work ahead with real deliverables.** Start at fresh `main`, identify the earliest unresolved shipping dependency and work a bounded useful portion autonomously. Treat the prompt as a goal rather than an artificial file boundary; adjacent work is welcome when it materially closes the task. Do not create busywork or resurrect completed archaeology.
+2. **Coordinate by actual writes.** Inspect the scheduled five-agent board, Claude's live lanes, current branches/PRs and current file owners. Prefer disjoint work and short, focused PRs. An open PR is not proof of active ownership; a concurrent change to the same source path is a real conflict. Reconcile after merges before claiming completion.
+3. **Keep the project executable.** Use existing build, QA, menu and guest abstraction seams; do not fork a competing modern frontend, records store, emulator or replay harness. Reuse one compiled candidate for equivalent tests; keep different evidence classes and platforms separately qualified.
+4. **Record truth with one owner.** The queue describes current work, the release ledger controls gate status, knowledge pages synthesize current understanding and dated evidence/report/diary captures history. Correct stale authorities instead of appending another competing status paragraph.
+5. **Publish GitHub-first.** Manually launched agents publish code/tests/evidence/progress to branch, PR, issue and owning docs; successful GitHub publication is a complete handoff, with **no routine Drive mirror**. Scheduled agents follow their separate recovery fallback contract. Keep coherent source/tests durable before risky publication, preserve failed operations, and do not disguise or repeatedly evade a safety refusal. The vault is a source of recoverable work, not a second project board.
+6. **Finish with verifiable facts.** Tests run and their actual outputs, commit/build identity, remaining failures, evidence provenance, release gates unchanged/changed and one executable next step belong in the PR/issue. A blocked lane gets an exact blocker and conditions for reopening. Merge through existing checks and branch protections when safe.
 
-1. read the top of `docs/WORK-QUEUE.md`;
-2. identify the first unresolved gate on the shipping critical path;
-3. use current generated evidence and specialist docs to attack that gate;
-4. prefer work that removes uncertainty for multiple downstream features over locally interesting archaeology.
-5. **Before substantial implementation**, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` (or `--lane all` if unassigned). Check how UR, Baldosa and Malmazuke already approach the same problem; choose reuse, a bounded pilot or a fresh implementation based on the actual live blocker. `docs/WORK-QUEUE.md` still determines which problem to solve. Do not make a conditional tool pilot into an independent P0 assignment.
+## Faithfulness and evidence rules
 
-**At present integrated Baldosa/Modern Windows acceptance and adversarial QA are coupled priorities.** The proven 1P/2P input, pause, moving HD, 4x Original fallback, +24 world and Windows build bridges must be consolidated into the existing Modern frontend/records/profiles; real original/native complete events, source-visible P1/P2 graphics, storage and controller-only Windows acceptance independently decide readiness. This is a single integration and QA pipeline, not two competing general framework programmes. Refresh the live work queue and PRs before touching shared code. Defer new platforms, generic source archaeology and post-baseline cosmetics unless a reproduced blocker changes that choice.
+- Preserve genuine original **simulation semantics**, gameplay and player-visible behavior while modernizing presentation, controls and menus. 1P does not stand in for 2P. Widescreen is one feature; do not use 'widescreen/HD' as shorthand for the entire project.
+- Independent original ROM/hardware/emulator observation, recomp/native parity and a completed Windows package/controller/storage journey are **different proof classes**. A green build, smoke boot, stage exit, visual screenshot, WRAM similarity or previous-agent declaration never automatically accepts an authentic USA event or a release gate.
+- When fidelity differs, seek the **first causally meaningful divergence**. Inspect writers/state transitions and use the existing `snesref` differential route, traces, fixtures and controlled source builds. Stale WRAM bytes, free-running presentation counters, missing producer artifacts, harness timeouts and cancelled/obsolete CI runs should not be mislabeled as gameplay regressions.
+- Treat mechanical or reproducible evidence as the oracle when available. A decompiler, model explanation, external patch, generated illustration, imported script or agreement among agents is a hypothesis until qualified. The [research ledger](docs/RESEARCH-LEDGER.md) and [cross-project corroboration](docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md) identify negative results and when claims may be reopened.
+- For visual art, respect the owner's rejection of procedurally enlarged character artwork lacking original title/packaging likeness. Old render hashes alone are **not artistic approval**. Inspect multiple original poses and seek new explicit visual acceptance before describing shipping art as approved.
+- Preserve exact provenance, build hashes and rights of imported evidence. `reference/` houses preserved source material; bulky ROMs, traces, generated C, extracted assets, Ghidra workspaces and captured media are **not automatically suitable for public commits**. The canonical original ROM input and rights constraints belong to the owning inventory; never duplicate or redistribute assets incidentally.
 
+## Evidence economy and CI
 
-## Working rules
+Before an experiment, define the decision, prior evidence/control, exact candidate/source/build, cheapest discriminator, expected outcomes, stopping rule and where the result will be recorded. Escalate from existing artifacts → bounded observation → targeted capture → first-divergence trace → independent-core/hardware only as consequence demands. Stop when more observation cannot change a gate, implementation decision or confidence class. After repeated uninformative attempts, consult other emulators, recompilation projects, tooling/source issues and retro-development literature, then report what new premise justifies another trial.
 
-1. Read the current authority and relevant implementation before editing. Historical notes, imported references, generated reports, and old workflow logs do not override current project state.
-2. Treat the prompt as the goal, not an artificial file boundary. Do adjacent work when it materially completes the task; avoid unrelated cleanup.
-3. Keep current truth separate from chronology. Replace stale state in current authorities; put dated attempts and failures in `BRINGUP.md`, the research ledger, reports, or preserved evidence.
-4. A mutable fact should have one owner. Other documents should link rather than maintain competing copies.
-5. Close the loop. If code, tooling, or evidence changes a current conclusion, rerun the invalidated check and update the owning authority.
-6. Prefer cheap discovery before broad reading. For conceptual orientation, read the relevant `docs/knowledge/` page before opening large histories or imported corpora. Query filenames, symbols, generated manifests, and the source catalog for exact evidence.
-7. Generated bulk output is disposable unless a compact artifact has durable evidence value. Commit reproducible tooling and compact manifests/reports, not giant generated C, traces, dumps, extracted assets, or Ghidra workspaces.
-8. External claims remain advisory until locally reproduced for canonical game truth. Bulk-consume pinned imported research at U1, and qualify trusted tool/runtime dependencies at U2/U3 through their tests and narrow contracts under `docs/TRUSTED-UPSTREAM-ADOPTION.md`; do not require independent rediscovery before every provisional engineering use.
-9. Preserve exact provenance for imported artifacts: source, retrieval date, original filename, hashes/revision, container relationship, and rights/licensing status where known.
-10. Do not weaken a deterministic validation guard to make a failure disappear. Fix the underlying assumption, dependency, or harness.
-11. Use the cheapest check that answers the current iteration question. GitHub Actions is execution infrastructure, not automatically research evidence.
-12. Do not add a recurring workflow merely because a one-off experiment used CI. New workflows are manual by default; automatic execution must protect a current durable invariant and use the smallest true invalidation paths. When the question closes, make the workflow manual-only or delete it unless it has become a shipping gate.
-   For creation, promotion, retirement, trigger/concurrency/timeout/build/artifact rules, follow `docs/CI-WORKFLOW-BEST-PRACTICES.md`.
-13. Keep provider-specific instruction files thin. Shared rules live here.
-14. Keep mandatory reading small. Repository growth is acceptable; mandatory-context growth is expensive.
-15. Terminology: `Widescreen` and `HD Presentation` name specific features only. Never use `widescreen`, `HD`, or combinations such as `widescreen/HD` as shorthand for the project, its architecture, or its overall goal.
-16. `docs/knowledge/` is a synthesis layer, not an evidence ledger. Rewrite it when the current model changes; keep chronology, provenance, raw observations and rejected alternatives in their owning evidence documents.
-17. For native/trace CI, never infer runtime failure from a permissive executable fallback, an external wall-clock timeout, or a disconnected debug client. Require the exact generated game target, distinguish harness/tooling failure from guest/runtime failure, and inspect the preserved host log before changing game/runtime code.
-18. SNESRecomp's trace TCP server is command/response, not greeting-based. Reuse the established trace client/workflow rather than inventing a new handshake. Trace builds are much slower than ordinary runs, so batch early stepping within the server's synchronous step deadline and give the outer host timeout generous headroom.
-19. A full-WRAM differential is a discovery surface, not automatically a fidelity verdict. Classify differences by writer/history and semantics first; stale stack bytes and free-running timing/presentation counters are not simulation mismatches unless they affect a proven invariant.
+Prefer the cheapest targeted local test, then the owning [validation strategy](docs/VALIDATION.md). `python3 tools/check_repo_hygiene.py` checks repository structure. Native guest/ABI work follows [portable C rules](docs/RECOMP-C-PRACTICES.md). For CI failures inspect the current head and **first failed step**, not cascading skips; producer failures are not scientific negatives.
 
-20. For CI triage, inspect the newest relevant run on the current head and the **first failed step** before changing code. Superseded `cancelled` runs are not regressions. Do not infer several bugs from downstream skipped checks or from a secondary validator that failed only because its producer never ran.
-21. Reserve workflow `if: always()` for diagnostics, artifact upload, cleanup and summaries. Assertions that consume an upstream artifact should normally run only after the producer succeeds, so the root cause stays singular and visible.
-22. Keep end-to-end UI navigation coupled to semantic menu models, not copied cursor-count folklore. If a menu row is inserted/reordered, update every dependent E2E route in the same change; prefer semantic controller/view-model tests for ordering and keep literal keyboard navigation to one outer acceptance route.
-23. Policy/schema validator tests must synthesize the invalid state they are testing. Do not rely on a current production feature remaining in a temporary status such as `redesign_candidate`.
-24. On a CI-heavy branch, avoid pushing a rapid chain of tiny commits through the same high-fan-out paths when one coherent completed edit can be published once. Cancellation is useful for superseded work, but repeated cancellation before any useful result is an agent-throughput failure. Before accepting high fan-out as normal, audit whether each triggered workflow still deserves to be automatic.
-   **Git-writing workflow safety:** A workflow that commits/pushes generated evidence is a writer, not a cancellable smoke test. Grant `contents: write`, serialize by destination branch with `cancel-in-progress: false`, and never force-push stale products over advancing agent commits. A non-fast-forward rejection after another agent advances the branch is expected protection, not permission to relax the gate. Prefer bounded artifact retention or a fresh-head rerun when the output matters; coordinate with active media/research lane owners.
+**Automatic workflows consume a budget.** Classify new workflows as durable PR validation, release regression, manual research, bounded diagnostics or obsolete experiments. Reuse shared builds and proven runner/toolchain paths. Avoid creating recurring CI for one-off research; retire temporary triggers after the question closes. Long evidence runs and Git-writing workflows must not be cancelled by frequent branch pushes; writers serialize with `cancel-in-progress: false` and do not force-push stale output. After workflow changes check trigger-policy tests, YAML and actual fan-out. See [CI workflow practices](docs/CI-WORKFLOW-BEST-PRACTICES.md).
 
-25. Imported executable code starts as raw material. Cohesive, licensed, pinned upstream modules may become qualified engineering dependencies after upstream tests, dependency review, targeted local regression and rollback; preserving their tested implementation can beat rewriting it. High-risk simulation, original PPU, save/results and release claims still require independent exact-candidate evidence.
-26. Two-player fixture work is a required fidelity dependency. If touching shared input grammar or engine adapters, preserve or advance `docs/TWO-PLAYER-FIXTURE-PLAN.md`; do not let one-player coverage silently stand in for multiplayer coverage.
-27. A UI-atlas gap is not automatically project debt. Apply the completion tiers in `docs/UI-STATE-MAP.md`: close critical-fidelity gaps, harvest cheap evidence, and leave archaeology-only gaps open unless they become implementation-, validation-, compatibility-, or product-relevant.
-28. Apply **value-of-information discipline** before expensive evidence work. State the decision/uncertainty being resolved, the cheapest discriminator likely to change that decision, and the stopping condition. Do not collect every available surface merely because it can be collected.
-29. Match rigor to consequence. Core simulation, first-divergence, save-state, multiplayer and SNES hardware claims may justify independent corroboration and fine traces. Cosmetic observations, obvious UI behavior, provenance leads and low-impact archaeology usually do not.
-30. Escalate evidence progressively: existing artifact/documentation → one bounded observation → targeted state/frame/write capture → first-divergence trace → independent-core/hardware corroboration. Skip levels only when the cheaper level cannot answer the actual question.
-31. For video/frame work, search coarsely first and inspect narrowly. Use hashes/deltas/timestamps/state anchors to localize the interesting interval; do not manually inspect or enhance long frame ranges when a binary search or machine comparison can reduce the search space.
-32. Stop when the next measurement is unlikely to change implementation, priority, confidence category, or a validation gate. “More evidence” is not itself a deliverable.
-33. For opaque RE questions, give the agent a compact semantic neighborhood before broad dumps: callers/callees, xrefs, relevant state/PPU accesses, dynamic participation, competing hypotheses, and the smallest useful trace window.
-34. Prefer the narrow debugger primitive that answers the question: writer watch → execution breakpoint → code/data coverage → bounded trace → full trace only if needed.
-35. The mechanical oracle decides. Model confidence, documentation completeness, decompiler output, or agreement between agents never substitutes for deterministic bytes/state/execution evidence when a falsifiable check exists.
-   **Corroboration stop rule:** Before reopening course/physics/checkpoint/result archaeology, consult the scoped claims and reopening conditions in `docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md` and the owning `docs/RESEARCH-LEDGER.md` entry. Reuse established original-code/semantic facts without fresh rediscovery; distinguish original-ROM observation from PAL inference and same-source copies. If a scoped behavior is settled and there is no contradictory source observation or blocking product failure, stop the investigation and work the active Windows/product/QA task. Never convert corroboration into 45-course, PPU/OBJ, persistence or release acceptance.
-36. When a bounded approach repeatedly fails to reduce uncertainty, record why and what new evidence would justify retrying before another agent repeats it. Use an existing owning ledger/doc unless repetition becomes common enough to justify a dedicated dead-end artifact.
-37. When successive experiments differ only by a parameter, extend a shared harness and structured evidence contract instead of cloning a sibling workflow. Probe the product-relevant endpoint when monotonicity makes that informative, then localize failures with the same harness.
-38. Treat exact semantic identity and production identity separately. If deterministic evidence proves multiple semantic states have byte-identical presentation, preserve their semantic guards but reuse the visual asset/work product.
-39. Keep `WORK-QUEUE.md` current-state oriented. Move long run histories and repeated measurements to the owning evidence/subsystem surface; `tools/check_work_queue_density.py` is an advisory entropy detector.
-40. Prefer a lane context packet from `tools/build_agent_context.py` over repeatedly pasting large authority lists into agent prompts. The generated packet is derived orientation, never a competing authority.
+## Boundaries and specialized instructions
 
-41. Before creating or editing a workflow, classify it: durable PR validation, final-main regression, reproducible analysis, manual research, retained diagnostic instrument, or obsolete experiment. Do not merge an unclassified workflow.
-42. Automatic CI is an explicit budget, not a default. Deferred-platform work, branch-specific probes, historical replay, archaeology, capacity sweeps, comparison studies and closed research stay manual unless a current shipping invariant specifically promotes them.
-43. Avoid duplicate builds. If several acceptance slices use the same native candidate, prefer one build feeding multiple checks over a matrix or sibling workflows that each rebuild it. Keep separate builds only when their toolchain/configuration identity is itself the invariant.
-44. Workflow retirement is part of finishing research. When a conclusion is promoted, remove branch-only triggers, manualize or delete the probe, and update `tests/unit/test_ci_trigger_policy.py` when the boundary should remain enforced.
-45. For a new or revived research experiment, state the **decision, original/control baseline, exact input/build population, cheapest discriminator, expected outcome categories and stop rule before running**. Reuse prior artifacts and common original/native routes first. On completion, publish the conclusion or explicit not-adjudicated/missingness to `GITHUB_STEP_SUMMARY` and a compact SHA-bound primary result + receipt (see `tools/publish_experiment_result.py` and the 2026-10-10 CI audit). Preserve failing raw evidence when necessary, and promote only durable, decision-bearing data into existing `analysis/data`, Research Ledger or tests through a reviewed commit. Do not count missing/shard-truncated evidence as success, invent CI coverage from a green router, or auto-commit every experimental output.
-46. After broad workflow edits, validate YAML structure and inspect the merged-head Actions fan-out. A workflow filename appearing as a failed run name is a strong signal that GitHub could not parse the workflow definition.
-47. For first-party handwritten C or C ABI seams that touch guest state, guest memory, or machine-shaped values, follow `docs/RECOMP-C-PRACTICES.md`. Treat generated C as disposable; make widths, wrapping, byte order, narrowing and address bounds explicit; avoid undefined or implementation-defined host behavior; and preserve strict GCC/Clang plus sanitizer coverage for portable C seams. Do not apply warning-cleanup churn to vendored/imported C.
+Keep generated files and large imported research separate from hand-edited core code. The bonus emulator-assisted ROM hack, future decentralized P2P, extra platforms and promotional experiments do not silently become Windows release blockers. New platforms use host adapters rather than changes to authoritative game simulation. No proprietary SDKs, keys or confidential materials in source.
 
-**Actions-backed computational workspaces:** An agent may need an open PR to obtain Windows builds, emulator runs or long GHA experiments. Keep one stable branch/PR for successive related hypotheses and implementation iterations, with a completed acceptance story as the eventual merge boundary; do not create a new merged PR simply because one computational run ended. Prefer manual `workflow_dispatch` on an exact pinned branch revision when the already-main-registered workflow permits it. A new workflow definition may still require PR-triggered computation; the Modern heavy router currently skips draft PRs. Do not turn off necessary PR execution in pursuit of a numerical reduction in PR counts.
-
-**Parallel-compute rule:** Build an immutable candidate once for genuinely identical source/toolchain/ROM inputs and fan out independent cases, with distinct roots/seeds and strict per-shard evidence. Keep dependent life-cycle steps within one shard; retain writer-only serialization for unique reservations and append-only ledgers. Prioritize consequential engineering outcomes over keeping runners busy. Use [CI acceleration execution plan](docs/CI-ACCELERATION-EXECUTION-20261014.md) for current measured work and rollback limits, while [WORK-QUEUE](docs/WORK-QUEUE.md) and the release ledger remain the priority/acceptance authorities.
-
-**CI changes must close their test-policy loop.** Before publishing a workflow change, inspect *both* targeted workflow tests and `tests/unit/test_ci_trigger_policy.py` for old invariants, especially compile sharing, trigger domains, job summaries and dependency failure paths. Treat a current-head failed assertion as a specific root cause, not an excuse to suppress broad checks. Experiment failure reporting should state `incomplete` when no valid producer output exists; diagnostics may run on failure, but must not present a positive or negative scientific result.
-
-## Research before reinvention
-
-When a task exposes unfamiliar behavior, a stubborn failure, or a technique the repository does not already own, search the broader retro-development ecosystem before building a bespoke answer.
-
-This is a standing problem-solving rule, not a separate archival workstream:
-
-- search externally for analogous failures, techniques, tools, patches, issue threads, postmortems, test ROMs and implementation patterns;
-- do not require an exact Uniracers precedent. Relevant ideas may come from other SNES games or from NES, Genesis/Mega Drive, N64, PS1 and other decompilation, recompilation, source-port, emulator, ROM-hacking, randomizer, TAS/debugging, restoration and enhancement projects;
-- search the upstream histories and issue trackers of the actual tools involved, especially SNESRecomp/N64Recomp-family projects, emulator cores, debuggers, disassemblers and asset tools;
-- favor technical terms that describe the observed failure over generic game-name searches;
-- after two or three materially different local attempts fail to reduce uncertainty, broaden the search before adding another custom probe, workaround or instrumentation layer;
-- treat discovered solutions as leads, not authority. Reproduce the relevant behavior locally and preserve the smallest useful citation/provenance trail;
-- adopt concepts rather than blindly copying historical quirks. Anything promoted into project infrastructure should become a project-owned reproducible tool, fixture, assertion or documented invariant;
-- if the search finds nothing useful, record that briefly only when the negative result materially informs the next approach. Do not create ceremonial search logs.
-
-Useful hunting grounds include emulator source/history and issue trackers, consoledev documentation, decomp/recomp repositories, ROM-hacking archives, TAS and randomizer tooling, debugger/test-ROM projects, restoration/enhancement hacks, and technical writeups from native-port projects.
-
-The goal is to make outside knowledge an automatic escape hatch from local tunnel vision without weakening the project's evidence standard.
-
-## Repository boundaries
-
-- `reference/` is the unified research/reference root: preserved ROM builds and historical tool packages live alongside provenance-managed external evidence under `reference/imported/`, project summaries under `reference/notes/`, and the source registry in `reference/catalog.yml`.
-- `analysis/generated/` contains compact reproducible analysis products suitable for version control.
-- `.tools/` is ignored local installation/build space populated by `tools/bootstrap_toolchain.py`.
-- Scratch captures, savestates, traces, extracted assets, generated recompilation output, emulator workspaces, and bulky intermediate products stay ignored unless deliberately promoted with provenance and a documented reason.
-
-The private repository intentionally tracks preserved ROMs under `reference/roms/`. Do not move, duplicate, publish, or silently substitute them. `reference/roms/retail/Uniracers_USA.sfc` is the canonical recompilation input unless the task explicitly concerns another preserved build.
-
-Bonus-project material must not silently become a main-line dependency. In particular, emulator-assisted widescreen ROM-hack work belongs under `docs/bonus/` and a future `bonus/widescreen-romhack/` implementation tree; promote independently useful findings into main authorities only after validating them outside the bonus architecture.
-
-## Validation
-
-For repository structure/hygiene:
-
-```bash
-python3 tools/check_repo_hygiene.py
-```
-
-For ROM identity or analysis work, use the existing deterministic tools in `tools/` and regenerate the owning compact report. For native execution, follow `docs/VALIDATION.md`; SNESRecomp's `snesref` is the preferred differential harness once deterministic input/state comparison is needed.
-
-Do not use GUI-only observations as the sole basis for a fidelity claim when a deterministic trace, frame dump, memory comparison, or reproducible script can decide it.
-
-
-## Long evidence workflows
-
-Do not set `cancel-in-progress: true` on long-running evidence workflows whose trigger paths are likely to be edited during the same active research session. That can starve the evidence run indefinitely while an agent makes legitimate incremental commits. Use non-cancelling concurrency for long historical replay, trace, and static-classification jobs; reserve cancellation for cheap superseded checks where losing an earlier run does not erase the only pending discriminator.
-
-
-## Platform-port tasks
-
-For Windows/macOS/Web/console-host portability work, read `docs/PLATFORM-TARGETS.md` first. For Nintendo Switch homebrew work, also read `docs/SWITCH-HOMEBREW-PORT.md`, `third_party/platform/switch/pins.json`, and the pinned examples under `reference/imported/platforms/switch/`.
-
-Platform agents must preserve the authoritative recompiled simulation and keep OS/console APIs below host interfaces. Do not introduce proprietary SDK files, confidential platform material, keys or device-specific secrets. Compile-only feasibility is not hardware acceptance.
+The historical [pre-audit AGENTS snapshot](docs/archive/AGENTS-PRE-ROUTER-2026-10-22.md) preserves detailed old operational incidents and one-off rules for reference. It is **not another current work queue or override**. When a rare subsystem requires more detail, route to its named current owner above, confirm current source and avoid compulsory full-history reading.

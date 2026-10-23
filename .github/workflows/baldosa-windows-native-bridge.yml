@@ -210,6 +210,9 @@ on:
       - "tests/native/display_window_lifecycle_policy_test.cpp"
       - "tools/run_baldosa_display_lifecycle_acceptance.py"
       - "tools/run_baldosa_window_placement_acceptance.py"
+      - "tools/baldosa_session_end_spike.py"
+      - "tools/run_baldosa_session_end_acceptance.py"
+      - "tests/unit/test_baldosa_session_end_spike.py"
       - "tools/run_baldosa_launcher_gl_fallback_acceptance.py"
       - "tools/run_baldosa_slow_panel_vsync_acceptance.py"
       - "tools/run_baldosa_render_reset_acceptance.py"
@@ -305,6 +308,7 @@ jobs:
           python tests/unit/test_baldosa_host_lifecycle_pause.py
           python tests/unit/test_baldosa_native_options_adopt_cpp.py
           python tests/unit/test_baldosa_window_placement_acceptance.py
+          python tests/unit/test_baldosa_session_end_spike.py
 
       - name: Verify immutable native source pins
         run: |
@@ -344,6 +348,9 @@ jobs:
           # After the Options seam: SDL3 exclusive/borderless and display events.
           python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # After the display seam: exit-time saves also on session end / console close.
+          python tools/baldosa_session_end_spike.py --game baldosa
+          python tools/baldosa_session_end_spike.py --game baldosa
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -396,7 +403,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-display-lifecycle" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-display-lifecycle.json"
-          echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. Forced 144 Hz desktop exclusive refresh: $(python -c "import json,sys; print(json.load(open(sys.argv[1]))['juddering_desktop_refresh'])" "$RUNNER_TEMP/ur-display-lifecycle.json"). One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE: opening the in-game launcher must never take the game
       # down. A hosted runner has no GPU, so its own GL is the case that
@@ -460,6 +467,19 @@ jobs:
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-window-placement.json"
           echo "PASS: Win32 SDL3 window placement: a moved window reopens at the same spot on the same display after relaunch, a maximized one reopens maximized; a saved display that is not connected falls back to SDL's default. One hosted display; moving between real monitors is a physical check." >> "$GITHUB_STEP_SUMMARY"
 
+      # Same exact PE: Windows ending the session (WM_ENDSESSION, then the
+      # process killed at once) and the console window closing must still
+      # leave the SRAM and window placement on disk.
+      - name: Exercise session end and console close saves on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_session_end_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-session-end" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-session-end.json"
+          echo "PASS: Win32 session end: real WM_QUERYENDSESSION/WM_ENDSESSION to the running game, killed the moment WM_ENDSESSION returned, left SRAM and window placement on disk; Ctrl+Break quits through the ordinary exit; real console close: $(python -c "import json,sys; r=json.load(open(sys.argv[1]))['console_close']; print(r.get('not_exercised') or 'saved, ' + r['persisted'])" "$RUNNER_TEMP/ur-session-end.json"); simulated close (handler thread, then terminated) saved. Not a real sign-out or shutdown." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |
           set -euo pipefail
@@ -499,7 +519,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-controller-lifecycle" \
             --video windows --timeout 120
-          echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap. Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap; with the product default a pad press is ignored while the window is unfocused (see receipt for not_exercised). Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE, Modern root with a two-racer roster: keyboard P1 plus
       # one pad must form a 2P join (the pad moves to seat 2), and a P2 whose
@@ -512,7 +532,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-keyboard-pad-join" \
             --video windows --timeout 180
-          echo "PASS: Win32 Modern 2P join: keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 Modern 2P join: keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts; a lone P2 pad left at the root after P1's pad goes is moved to P1 and drives the menus. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE on the pinned 2P race route in Modern: unplugging the
       # seated pad, then minimizing the real window, must each pause through

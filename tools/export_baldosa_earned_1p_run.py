@@ -115,6 +115,36 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
         raise OSError('No audited atomic no-replace directory publish on this host')
 
 
+def _portable_run_namespace_entries(root: Path) -> list[Path]:
+    """Refuse nonportable siblings before selecting an earned Windows run.
+
+    A POSIX-produced namespace must not silently lose members when interpreted
+    by Win32 (reserved devices, invalid names, case-insensitive aliases). This
+    is a directory-entry check, not proof that NTFS alternate streams are absent.
+    """
+    entries = list(root.iterdir())
+    seen: set[str] = set()
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
+    reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
+    for entry in entries:
+        name = entry.name
+        stem = name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+        if (not name or name.endswith((' ', '.')) or
+                unicodedata.normalize('NFC', name) != name or
+                any(unicodedata.category(ch) in ('Cc', 'Cf', 'Cs')
+                    or ch in '<>:"|?*\\/' for ch in name) or
+                len(name.encode('utf-16-le')) // 2 > 255 or stem in reserved):
+            raise ValueError(
+                'Nonportable source-earned run filename'
+                if name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')
+                else 'Nonportable sibling in earned-run namespace')
+        folded = name.casefold()
+        if folded in seen:
+            raise ValueError('Win32-colliding sibling in earned-run namespace')
+        seen.add(folded)
+    return entries
+
+
 def export(journey: Path, destination: Path) -> dict[str, object]:
     root_name = journey.name
     # Validate unencodable code points before computing the Win32 UTF-16
@@ -162,7 +192,8 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     if (runs_root.is_symlink() or not runs_root.is_dir() or
             runs_root.resolve(strict=True) != runs_root.absolute()):
         raise ValueError('Missing/redirected earned-run namespace')
-    candidates = [entry for entry in runs_root.iterdir()
+    entries = _portable_run_namespace_entries(runs_root)
+    candidates = [entry for entry in entries
                   if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
     if len(candidates) != 1 or candidates[0].suffix != '.urrun':
         raise ValueError('Expected exactly one source-earned .urrun')

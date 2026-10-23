@@ -52,6 +52,9 @@ EXPECTED_STEPS = (
     "moved_pad_drives_p2",
     "moved_pad_shows_p2",
     "moved_pad_reclaims_p2_after_replug",
+    "lone_pad_with_p2_index_takes_p1",
+    "enumeration_follows_player_index",
+    "gamepad_seated_before_raw_stick",
 )
 # Second launch: the real in-game launcher drains a hotplug; the seat table
 # must catch up when it returns.
@@ -60,8 +63,30 @@ LAUNCHER_STEPS = (
     "launcher_removal_reconciled",
     "launcher_add_reconciled",
 )
-STEP = re.compile(r"^UR_CONTROLLER_ACCEPT step=(\w+) pass=([01]) ", re.MULTILINE)
+# Third launch, product default (no background pad input): a press while the
+# window is unfocused must not reach the game; one after focus returns must.
 RESULT = re.compile(r"^UR_CONTROLLER_LIFECYCLE_ACCEPTANCE result=(\w+)$", re.MULTILINE)
+FOCUS_STEPS = ("focus_pad_seated", "unfocused_press_ignored", "focused_press_drives")
+STEP = re.compile(r"^UR_CONTROLLER_ACCEPT step=(\w+) pass=([01]) ", re.MULTILINE)
+NOT_EXERCISED = re.compile(r"^UR_CONTROLLER_ACCEPT step=(\w+) not_exercised=1", re.MULTILINE)
+# Hosted windows may never get keyboard focus; the scenarios that press
+# virtual pads opt back in to background input (test only).
+BACKGROUND_OPT_IN = {"SNESRECOMP_UR_BACKGROUND_PAD_INPUT": "1"}
+
+
+def verify_focus_log(log: str) -> dict:
+    """Each focus step passes or is explicitly not exercised, never both."""
+    passed = STEP.findall(log)
+    skipped = NOT_EXERCISED.findall(log)
+    names = [name for name, _ in passed]
+    if sorted(names + skipped) != sorted(FOCUS_STEPS) or names[:1] != ["focus_pad_seated"]:
+        raise ValueError(f"focus steps differ: passed={names} skipped={skipped}")
+    failed = [name for name, ok in passed if ok != "1"]
+    if failed:
+        raise ValueError(f"focus steps failed: {failed}")
+    if RESULT.findall(log) != ["pass"]:
+        raise ValueError("focus scenario result is not a single pass")
+    return {step: ("not_exercised" if step in skipped else "pass") for step in FOCUS_STEPS}
 
 
 def verify_log(log: str, expected=EXPECTED_STEPS) -> dict:
@@ -123,7 +148,8 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int,
                                           encoding="utf-8")
         return receipt
 
-    receipt = verify_log(launch("exit", "native-game", {}))
+    receipt = verify_log(launch("exit", "native-game", BACKGROUND_OPT_IN))
+    receipt["focus"] = verify_focus_log(launch("focus", "native-game-focus", {}))
     receipt["real_launcher"] = "not_run"
     if not real_launcher:
         return finish(receipt)
@@ -135,7 +161,8 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int,
     # a stale seat on its own and hide a missing reconcile).
     config.write_text("[Sound]\nEnableAudio = 1\n\n[Controller]\nSourceP1 = 2\nSourceP2 = 2\n",
                       encoding="ascii")
-    launcher_log = launch("launcher", "native-game-launcher", {"LNG_SMOKE_FRAMES": "90"})
+    launcher_log = launch("launcher", "native-game-launcher",
+                          {"LNG_SMOKE_FRAMES": "90", **BACKGROUND_OPT_IN})
     receipt["launcher_steps"] = verify_log(launcher_log, LAUNCHER_STEPS)["steps"]
     if len(re.findall(r"UR_CONTROLLER_SEAT reconcile reason=launcher_returned ", launcher_log)) != 2:
         raise ValueError("the in-game launcher return did not reconcile both hotplugs")

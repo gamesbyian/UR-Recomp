@@ -237,6 +237,24 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "VM must be a clean installation"):
                 self.review(paths)
 
+
+    def test_refuses_hardlinked_receipt_before_parsing(self):
+        """Reject receipt inode aliases even when contents appear valid."""
+        receipt = self.paths[0]
+        alias = receipt.with_name("witness-hardlink-alias.json")
+        try:
+            os.link(receipt, alias)
+        except (OSError, NotImplementedError):
+            self.skipTest("hardlink creation unavailable")
+        try:
+            with self.assertRaisesRegex(ValueError, "hardlinked receipt JSON"):
+                qa.inspect_packet(receipt, commit=SOURCE, zip_sha=ZIP, pe_sha=PE)
+            receipt.write_text("not-json", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "hardlinked receipt JSON"):
+                qa.inspect_packet(receipt, commit=SOURCE, zip_sha=ZIP, pe_sha=PE)
+        finally:
+            alias.unlink()
+
     def test_refuses_manufactured_release_claim_and_self_review(self):
         for key, val in (("release_gate_credit", 1),
                          ("physical_hardware_verified", True),

@@ -42,12 +42,17 @@ typedef enum UrControllerSeatReason {
     UR_CONTROLLER_SEAT_FORCED = 1,
     /* The device came back to the seat it last owned. */
     UR_CONTROLLER_SEAT_RECLAIMED = 2,
-    /* The SDL player index named a vacant, unreserved seat. */
+    /* The SDL player index named a vacant, unreserved seat with no free
+     * seat below it. */
     UR_CONTROLLER_SEAT_PLAYER_INDEX = 3,
     /* First vacant seat nobody absent is waiting for. */
     UR_CONTROLLER_SEAT_FIRST_FREE = 4,
     /* Every vacant seat is held for an absent owner; take the first. */
     UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT = 5,
+    /* More than one vacant seat was left by a device with this identity
+     * (identical pads without serials): took the first. The other pad then
+     * takes the other seat, so the players may have swapped. */
+    UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER = 6,
 } UrControllerSeatReason;
 
 typedef struct UrControllerSeatChoice {
@@ -61,8 +66,23 @@ static inline int ur_controller_seat_vacant(
            seats[seat].enabled && !seats[seat].occupied;
 }
 
+/* A vacant seat below `seat` that nobody absent is waiting for. */
+static inline int ur_controller_seat_free_below(
+    const UrControllerSeatSlot *seats, int seat) {
+    int i;
+    for (i = 0; i < seat && i < UR_CONTROLLER_SEAT_COUNT; ++i) {
+        if (ur_controller_seat_vacant(seats, i) && seats[i].absent_owner_key == 0)
+            return 1;
+    }
+    return 0;
+}
+
 /* device_key: stable identity (see ur_controller_device_key), 0 if unknown.
- * player_index: SDL's player index, any value outside 0..1 is ignored.
+ * player_index: SDL's player index, any value outside 0..1 is ignored. It
+ * only breaks a tie: a pad never skips a lower seat that is free for it.
+ * Windows keeps an XInput pad's slot (its ring light) across sessions, so a
+ * lone pad can report player index 1; following it would seat that pad as
+ * P2 and leave P1, who drives the menus, to the keyboard.
  * forced_seat: -1, or a seat the host requires (only taken while vacant). */
 static inline UrControllerSeatChoice ur_controller_seat_choose(
     const UrControllerSeatSlot seats[UR_CONTROLLER_SEAT_COUNT],
@@ -80,16 +100,22 @@ static inline UrControllerSeatChoice ur_controller_seat_choose(
     }
     if (device_key != 0) {
         for (i = 0; i < UR_CONTROLLER_SEAT_COUNT; ++i) {
-            if (ur_controller_seat_vacant(seats, i) &&
-                seats[i].absent_owner_key == device_key) {
-                choice.seat = i;
-                choice.reason = UR_CONTROLLER_SEAT_RECLAIMED;
+            if (!ur_controller_seat_vacant(seats, i) ||
+                seats[i].absent_owner_key != device_key)
+                continue;
+            if (choice.seat >= 0) {
+                /* Seated anyway: refusing would leave both pads dead. */
+                choice.reason = UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER;
                 return choice;
             }
+            choice.seat = i;
+            choice.reason = UR_CONTROLLER_SEAT_RECLAIMED;
         }
+        if (choice.seat >= 0) return choice;
     }
     if (ur_controller_seat_vacant(seats, player_index) &&
-        seats[player_index].absent_owner_key == 0) {
+        seats[player_index].absent_owner_key == 0 &&
+        !ur_controller_seat_free_below(seats, player_index)) {
         choice.seat = player_index;
         choice.reason = UR_CONTROLLER_SEAT_PLAYER_INDEX;
         return choice;
@@ -140,7 +166,9 @@ static inline void ur_controller_seat_vacated(
 
 /* FNV-1a over the SDL GUID bytes and, when the driver reports one, the
  * serial. Two identical pads without serials share a key; they are then
- * indistinguishable and either may reclaim the seat, which is harmless.
+ * indistinguishable. If both are away, the first back takes the first of
+ * their seats (reason ambiguous_owner) and the other the remaining one:
+ * both keep playing, possibly swapped (physical check C7).
  * Never returns 0, so 0 can mean "unknown". */
 static inline uint64_t ur_controller_device_key(
     const uint8_t guid[16], const char *serial) {
@@ -169,6 +197,7 @@ static inline const char *ur_controller_seat_reason_name(
     case UR_CONTROLLER_SEAT_PLAYER_INDEX: return "player_index";
     case UR_CONTROLLER_SEAT_FIRST_FREE: return "first_free";
     case UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT: return "absent_owner_seat";
+    case UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER: return "ambiguous_owner";
     case UR_CONTROLLER_SEAT_NONE: break;
     }
     return "none";

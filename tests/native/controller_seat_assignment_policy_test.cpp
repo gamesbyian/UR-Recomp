@@ -34,6 +34,34 @@ void first_two_pads_follow_player_index_or_first_free() {
     assert(u.connect(kPadB, 7) == 1);
 }
 
+void a_lone_pad_takes_p1_whatever_its_player_index() {
+    // An Xbox pad Windows left in XInput slot 2 (ring light 2) reports
+    // player index 1. Alone, it must still be P1, who drives the menus.
+    Table t;
+    const UrControllerSeatChoice lone =
+        ur_controller_seat_choose(t.seats, kPadA, 1, -1);
+    assert(lone.seat == 0);
+    assert(lone.reason == UR_CONTROLLER_SEAT_FIRST_FREE);
+    ur_controller_seat_taken(t.seats, lone.seat, kPadA);
+    // The pad holding slot 1 then arrives as P2.
+    assert(t.connect(kPadB, 0) == 1);
+    // With P1 disabled, the player index still names the only usable seat.
+    Table u;
+    u.seats[0].enabled = 0;
+    const UrControllerSeatChoice p2 =
+        ur_controller_seat_choose(u.seats, kPadA, 1, -1);
+    assert(p2.seat == 1);
+    assert(p2.reason == UR_CONTROLLER_SEAT_PLAYER_INDEX);
+    // A seat held for an absent P1 is not free for a newcomer: index 1 wins.
+    Table v;
+    assert(v.connect(kPadA, 0) == 0);
+    ur_controller_seat_vacated(v.seats, 0, kPadA);
+    const UrControllerSeatChoice c =
+        ur_controller_seat_choose(v.seats, kPadC, 1, -1);
+    assert(c.seat == 1);
+    assert(c.reason == UR_CONTROLLER_SEAT_PLAYER_INDEX);
+}
+
 void an_occupied_seat_is_never_stolen() {
     // The pinned host's defect: SDL hands a reconnecting XInput pad player
     // index 0 while another pad already owns seat 0.
@@ -74,6 +102,34 @@ void p2_leaving_does_not_swap_players_when_p2_returns() {
     // go back to P2, not take P1 from the absent A.
     assert(t.connect(kPadB, 0) == 1);
     assert(t.connect(kPadA, 0) == 0);
+}
+
+void identical_pads_both_away_both_get_a_seat_back() {
+    // Two identical pads without serials share one key. Both drop (a dongle
+    // replug, sleep/resume): each must be seated again. Which is which
+    // cannot be known, so the players may swap; a pad must never be left
+    // without a seat while one is free for it.
+    Table t;
+    assert(t.connect(kPadA, 0) == 0);
+    assert(t.connect(kPadA, 1) == 1);
+    ur_controller_seat_vacated(t.seats, 0, kPadA);
+    ur_controller_seat_vacated(t.seats, 1, kPadA);
+    const UrControllerSeatChoice first =
+        ur_controller_seat_choose(t.seats, kPadA, 1, -1);
+    assert(first.seat == 0);
+    assert(first.reason == UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER);
+    ur_controller_seat_taken(t.seats, first.seat, kPadA);
+    const UrControllerSeatChoice second =
+        ur_controller_seat_choose(t.seats, kPadA, 0, -1);
+    assert(second.seat == 1);
+    ur_controller_seat_taken(t.seats, second.seat, kPadA);
+    assert(t.seats[0].occupied && t.seats[1].occupied);
+    // One of the two away: an ordinary, unambiguous reclaim.
+    ur_controller_seat_vacated(t.seats, 1, kPadA);
+    const UrControllerSeatChoice back =
+        ur_controller_seat_choose(t.seats, kPadA, 0, -1);
+    assert(back.seat == 1);
+    assert(back.reason == UR_CONTROLLER_SEAT_RECLAIMED);
 }
 
 void a_new_pad_prefers_a_seat_nobody_is_waiting_for() {
@@ -164,6 +220,8 @@ void reason_names_are_stable_log_tokens() {
     assert(std::strcmp(ur_controller_seat_reason_name(
         UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT), "absent_owner_seat") == 0);
     assert(std::strcmp(ur_controller_seat_reason_name(
+        UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER), "ambiguous_owner") == 0);
+    assert(std::strcmp(ur_controller_seat_reason_name(
         static_cast<UrControllerSeatReason>(99)), "none") == 0);
 }
 
@@ -171,9 +229,11 @@ void reason_names_are_stable_log_tokens() {
 
 int main() {
     first_two_pads_follow_player_index_or_first_free();
+    a_lone_pad_takes_p1_whatever_its_player_index();
     an_occupied_seat_is_never_stolen();
     a_reconnecting_pad_reclaims_its_own_seat();
     p2_leaving_does_not_swap_players_when_p2_returns();
+    identical_pads_both_away_both_get_a_seat_back();
     a_new_pad_prefers_a_seat_nobody_is_waiting_for();
     a_replacement_pad_can_take_an_absent_players_seat();
     a_device_seated_elsewhere_is_no_longer_absent();

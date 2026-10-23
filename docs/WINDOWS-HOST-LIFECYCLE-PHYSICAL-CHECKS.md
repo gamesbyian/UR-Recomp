@@ -27,7 +27,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | C4 | Hold accelerate/direction on A, unplug A mid-race, resume. | The racer does not keep moving on its own (no stuck input). | `UR_CONTROLLER_SEAT vacate … seat=0` |
 | C5 | With A and B seated, plug a third pad C and press A on it. | Nothing happens. C does not steal a seat. | `UR_CONTROLLER_SEAT assign … seat=-1` |
 | C6 | Unplug B, then press A on C. | C becomes P2. That claiming press does nothing else. | `UR_CONTROLLER_SEAT claim … seat=1` |
-| C7 | Same-model pads only: unplug both, then replug them in the opposite order. | Each pad returns to its own player, or the two swap. Identical pads are indistinguishable; note which happened. | two `reason=reclaimed` lines |
+| C7 | Same-model pads only: unplug both, then replug them in the opposite order. | Each pad returns to its own player, or the two swap. Identical pads are indistinguishable; note which happened. | `UR_CONTROLLER_SEAT assign … reason=ambiguous_owner`, then `… reason=first_free` for the other pad; both pads keep working |
 | C8 | Run the Authentic launcher and unplug a pad mid-race. | **No** pause; the guest just loses that input. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C9 | Unplug a pad in a menu (not racing), then start a race. | No pause appears later because of the earlier unplug. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C10 | Generic (unmapped) pad only: with A and B seated, plug a generic USB pad G that the log reports as `unmapped raw joystick`. Unplug B, then press a button on G. | G becomes P2; that press does nothing else. | `UR_CONTROLLER_SEAT spare_kept … raw=1`, then `claim … seat=1` |
@@ -35,6 +35,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | C12 | No pads plugged in, keyboard only: press Ctrl+L, close the launcher, then quit and relaunch. Race with the arrow keys. Then plug a pad in and race with it. | The keyboard still drives P1 after the launcher and after the relaunch. Once the pad is plugged in, the pad drives P1. | `config.ini` shows `SourceP1 = 2`, yet the keyboard works |
 | C13 | Two pads with player lights (DualSense, DualShock 4 or Switch Pro), A as P1 and B as P2: unplug A, plug it back in; then, with A and B both seated, plug in a third pad C. | The lights always match the seats: A shows player 1 after it returns, B player 2; C, left without a seat, does not show player 1 or 2, and A and B keep theirs. | `UR_CONTROLLER_SEAT assign … seat=…` for each pad |
 | C14 | Two racer profiles, one pad and the keyboard. Open the 2P join, confirm P1 with Enter, then press A on the pad; pick a racer and press A again. Race. Then open the join again with two pads, confirm P2 on pad B, unplug B, and confirm P1. | The pad joins as P2 and drives P2 in the race while the keyboard drives P1. With B unplugged, P2 shows as not confirmed and no 2P race starts. | `UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2`; `… join_seat_left seat=2 confirmation_cleared=1` |
+| C15 | One Xbox pad whose ring light shows player 2 (or 3, 4): with no other pad connected, start the game. Then connect a second Xbox pad and restart with both connected. | The lone pad drives P1 menus. With both connected at start-up, the pad whose ring light shows the lower number is P1. | `UR_CONTROLLER_SEAT assign … seat=0 reason=first_free player_index=1` |
 
 ## Focus
 
@@ -48,7 +49,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 
 | # | Do | Expect | Log |
 |---|---|---|---|
-| D1 | Options → DISPLAY → **FULLSCREEN**. | A real exclusive mode switch; the monitor may blank briefly. | `UR_DISPLAY fullscreen_mode=exclusive display=… mode=WxH@Hz` (the desktop's own resolution and refresh) |
+| D1 | Options → DISPLAY → **FULLSCREEN**. | A real exclusive mode switch; the monitor may blank briefly. | `UR_DISPLAY fullscreen_mode=exclusive display=… mode=WxH@Hz` (the desktop's own resolution; its refresh too on a 60/120/240 Hz desktop, see D19) |
 | D2 | Options → DISPLAY → **BORDERLESS**. | Fullscreen without a mode switch; alt-tab is instant. | no new `fullscreen_mode=exclusive` |
 | D3 | From FULLSCREEN press Alt+Enter, then Alt+Enter again. | First press: windowed. Second press: **borderless**, not exclusive. | |
 | D4 | On the main Modern menu press Alt+Enter. | Only the window changes; no game or race starts. | no `UR_BALDOSA_MODERN_ROOT stock_requested` |
@@ -63,6 +64,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. | `UR_DISPLAY placement restored … maximized=1` |
 | D16 | On a 50 Hz display (a PAL TV, or a monitor set to 50 Hz), with VSync On, time 60 seconds of a race against a stopwatch, using the in-race clock. | The in-race clock keeps pace with the stopwatch, not about 17% slow. | `UR_DISPLAY vsync panel_hz=50.000 … wait=no` |
 | D17 | During a race, reset the graphics driver with Win+Ctrl+Shift+B (or, on a hybrid-GPU laptop, dock or undock it). | The picture comes back within a second and the race continues; no lasting black window. | `UR_DISPLAY render_device_reset` then `… texture_recreated=…` |
+| D19 | On a 144 Hz (or 165 Hz) monitor that also offers 120 Hz or 60 Hz at the same resolution, with the FPS readout on (`f`): race in BORDERLESS, then switch to **FULLSCREEN**. | Fullscreen switches the monitor to 120 Hz (or 60 Hz); scrolling looks steadier than in borderless. Game speed is unchanged. | `UR_DISPLAY exclusive_refresh choice=even desktop_hz=144.000 … chosen_hz=120.000` |
 | D18 | On a 4K or 150%/200% scaled display, with no `WindowScale` in `config.ini` and no `window-placement.txt`, launch the game; then open and close the in-game launcher without changing anything, quit and relaunch. | The window opens at a comfortable size for that display, not a small 640×480 box, and fits on screen. It reopens at the same size, and `config.ini` still says `WindowScale = 0`. | `UR_DISPLAY default_window_scale content_scale=… scale=…` |
 | D14 | Two monitors, windowed on monitor 2: open the in-game launcher, unplug monitor 2, close the launcher. | The game window is on the primary monitor, reachable. | `UR_DISPLAY reconcile reason=launcher_returned action=rescue` |
 | D15 | Over Remote Desktop (or on a PC without a GPU driver), start a race and open the in-game launcher. | Either the launcher opens normally, or it does not appear and the game simply carries on. The game never closes or crashes. | `[launcher] UR_LAUNCHER_GL unusable version=…` and `in-game launcher: action=2` when refused |

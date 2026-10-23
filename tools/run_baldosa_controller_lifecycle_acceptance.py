@@ -52,6 +52,9 @@ EXPECTED_STEPS = (
     "moved_pad_drives_p2",
     "moved_pad_shows_p2",
     "moved_pad_reclaims_p2_after_replug",
+    "lone_pad_with_p2_index_takes_p1",
+    "enumeration_follows_player_index",
+    "gamepad_seated_before_raw_stick",
 )
 # Second launch: the real in-game launcher drains a hotplug; the seat table
 # must catch up when it returns.

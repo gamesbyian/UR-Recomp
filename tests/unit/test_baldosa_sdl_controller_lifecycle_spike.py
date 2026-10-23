@@ -33,6 +33,8 @@ HOST_STUB = "\n".join((
     seam.LAUNCHER_RETURN + "}",
     "static void ReassignGamepads(void) {",
     seam.REASSIGN,
+    "static void OpenAllGamepads(void) {\n#if SNESRECOMP_SDL3\n  int njs = 0;",
+    seam.ENUMERATE + "  int njs = SDL_NumJoysticks();\n#endif\n}",
     "  while (running) {",
     seam.TICK_ANCHOR + "  }",
     "static void OpenOneGamepad(int i) {",
@@ -183,6 +185,28 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertLess(move.index("ur_controller_seat_taken(g_ur_seats, to, key);"),
                         move.index("SDL_JoystickSetPlayerIndex(moved, to);"))
 
+    def test_pads_found_together_are_seated_in_player_index_order(self):
+        staged = self.staged()
+        start = staged[staged.index("static void OpenAllGamepads(void) {"):]
+        self.assertIn("SDL_GetJoysticks(&njs);\n  UrSortByPlayerIndex(joysticks, njs);",
+                      start[:start.index("\n}")])
+        fn = staged[staged.index("static void UrSeatReconcile(const char *why) {"):]
+        fn = fn[:fn.index("\n}\n")]
+        self.assertIn("SDL_GetJoysticks(&count);\n  UrSortByPlayerIndex(ids, count);", fn)
+        sort = staged[staged.index("static void UrSortByPlayerIndex("):]
+        sort = sort[:sort.index("\n}\n")]
+        rank = staged[staged.index("static uint64_t UrSeatingRank(SDL_JoystickID id) {"):]
+        rank = rank[:rank.index("\n}\n")]
+        # Gamepads before unmapped sticks; then the index, unsigned so an
+        # unknown index (-1) sorts after every real one.
+        self.assertIn("(SDL_IsGamepad(id) ? 0u : 1u) << 32", rank)
+        self.assertIn("(uint32_t)SDL_GetJoystickPlayerIndexForID(id)", rank)
+        self.assertIn("UrSeatingRank(ids[j - 1]) > rank", sort)
+        # SDL3 only: SDL2 enumerates by device index.
+        before = staged[:staged.index("static void UrSortByPlayerIndex(")]
+        self.assertTrue(before.rstrip().endswith("#if SNESRECOMP_SDL3") or
+                        before[before.rindex("#if SNESRECOMP_SDL3"):].count("#endif") == 0)
+
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()
         getter = staged[staged.index("long long snesrecomp_desktop_product_seat_source(int seat) {"):]
@@ -215,7 +239,9 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertIn('g_ur_accept_failed ? "fail" : "pass"', staged)
         for step in ("no_steal", "p1_reclaimed", "spare_claimed_p2",
                      "held_released_on_remove", "returning_players_not_swapped",
-                     "spare_closed_on_remove"):
+                     "spare_closed_on_remove", "lone_pad_with_p2_index_takes_p1",
+                     "enumeration_follows_player_index",
+                     "gamepad_seated_before_raw_stick"):
             self.assertIn(f'"{step}"', staged)
         # SDL2 builds get an empty tick: virtual pads there use another API.
         self.assertIn("static void UrControllerLifecycleAcceptanceTick(void) {}", staged)
@@ -223,7 +249,7 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
     def test_a_moved_pinned_host_is_rejected(self):
         for needle in (seam.SELECTION, seam.RAW_SELECTION, seam.PAD_REMOVED,
                        seam.PAD_BUTTON, seam.RAW_REMOVED, seam.REASSIGN,
-                       seam.HELPERS_ANCHOR, seam.TICK_ANCHOR):
+                       seam.HELPERS_ANCHOR, seam.TICK_ANCHOR, seam.ENUMERATE):
             with self.assertRaisesRegex(ValueError, "diverged"):
                 seam.patch_host_main(HOST_STUB.replace(needle, ""), POLICY)
         with self.assertRaisesRegex(ValueError, "diverged"):

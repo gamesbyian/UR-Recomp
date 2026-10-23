@@ -265,10 +265,37 @@ static int UrApplyFullscreenMode(int display_setting) {
   const SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
   const SDL_DisplayMode *desktop = display ? SDL_GetDesktopDisplayMode(display) : NULL;
   SDL_DisplayMode mode;
+  /* Between multiples of the guest rate (144 Hz, say) the once-per-frame
+   * present judders; an even refresh at the desktop resolution does not. */
+  int even = 0;
+  if (desktop) {
+    const char *forced = HostGetenv("UR_DISPLAY_DESKTOP_HZ_OVERRIDE");  /* test only */
+    const double desktop_hz = forced && *forced ? atof(forced) : desktop->refresh_rate;
+    int count = 0, n = 0;
+    SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &count);
+    float rates[64];
+    int which[64];
+    for (int i = 0; modes && i < count && n < 64; i++) {
+      if (modes[i]->w == desktop->w && modes[i]->h == desktop->h &&
+          modes[i]->pixel_density == desktop->pixel_density) {
+        rates[n] = modes[i]->refresh_rate;
+        which[n++] = i;
+      }
+    }
+    const int pick = ur_display_exclusive_refresh_pick(rates, n, desktop_hz, g_simulation_hz);
+    if (pick >= 0) {
+      mode = *modes[which[pick]];
+      even = 1;
+    }
+    printf("UR_DISPLAY exclusive_refresh choice=%s desktop_hz=%.3f guest_hz=%.4f "
+           "chosen_hz=%.3f candidates=%d\n", even ? "even" : "desktop", desktop_hz,
+           g_simulation_hz, even ? mode.refresh_rate : desktop->refresh_rate, n);
+    SDL_free(modes);
+  }
   if (!desktop ||
-      !SDL_GetClosestFullscreenDisplayMode(display, desktop->w, desktop->h,
-                                           desktop->refresh_rate,
-                                           desktop->pixel_density > 1.0f, &mode) ||
+      (!even && !SDL_GetClosestFullscreenDisplayMode(display, desktop->w, desktop->h,
+                                                     desktop->refresh_rate,
+                                                     desktop->pixel_density > 1.0f, &mode)) ||
       !SDL_SetWindowFullscreenMode(g_window, &mode)) {
     printf("UR_DISPLAY fullscreen_mode=exclusive_unavailable display=%u error=%s\n",
            (unsigned)display, SDL_GetError());

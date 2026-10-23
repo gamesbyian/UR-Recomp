@@ -133,6 +133,37 @@ void default_window_scale_follows_the_display() {
     assert(ur_display_default_window_scale(3.0f, 320, 240, 0, 0, 4) == 4);
 }
 
+void exclusive_refresh_avoids_judder_only_when_the_desktop_judders() {
+    constexpr double kGuest = 60.0988;
+    assert(ur_display_refresh_even(60.0, kGuest));
+    assert(ur_display_refresh_even(59.94, kGuest));
+    assert(ur_display_refresh_even(119.88, kGuest));
+    assert(ur_display_refresh_even(240.0, kGuest));
+    assert(!ur_display_refresh_even(75.0, kGuest));
+    assert(!ur_display_refresh_even(144.0, kGuest));
+    assert(!ur_display_refresh_even(165.0, kGuest));
+    assert(!ur_display_refresh_even(50.0, kGuest));
+    assert(!ur_display_refresh_even(0.0, kGuest));
+    // A 144 Hz desktop that also offers 60 and 120 Hz: the highest even one.
+    const float gaming[] = {60.0f, 119.88f, 120.0f, 144.0f};
+    assert(ur_display_exclusive_refresh_pick(gaming, 4, 144.0, kGuest) == 2);
+    // 165 Hz with 144 and 60: 60, never the juddering 144.
+    const float fast[] = {165.0f, 144.0f, 60.0f};
+    assert(ur_display_exclusive_refresh_pick(fast, 3, 165.0, kGuest) == 2);
+    // An even desktop (the usual 60 Hz) keeps its own refresh.
+    assert(ur_display_exclusive_refresh_pick(gaming, 4, 60.0, kGuest) == -1);
+    assert(ur_display_exclusive_refresh_pick(gaming, 4, 59.94, kGuest) == -1);
+    // Nothing even offered, or nothing known: the desktop's.
+    const float odd[] = {75.0f, 144.0f};
+    assert(ur_display_exclusive_refresh_pick(odd, 2, 144.0, kGuest) == -1);
+    assert(ur_display_exclusive_refresh_pick(gaming, 0, 144.0, kGuest) == -1);
+    assert(ur_display_exclusive_refresh_pick(gaming, 4, 0.0, kGuest) == -1);
+    assert(ur_display_exclusive_refresh_pick(gaming, 4, 144.0, 0.0) == -1);
+    // A PAL guest (50 Hz) is even at 50 and 100 Hz, not at 60.
+    const float pal[] = {60.0f, 100.0f, 144.0f};
+    assert(ur_display_exclusive_refresh_pick(pal, 3, 144.0, 50.007) == 1);
+}
+
 }  // namespace
 
 int main() {
@@ -148,5 +179,6 @@ int main() {
     unnamed_displays_never_match();
     vsync_waits_only_where_the_panel_can_carry_the_game();
     default_window_scale_follows_the_display();
+    exclusive_refresh_avoids_judder_only_when_the_desktop_judders();
     return 0;
 }

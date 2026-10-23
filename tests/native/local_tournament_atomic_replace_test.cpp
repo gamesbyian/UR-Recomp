@@ -45,6 +45,15 @@ int main() {
           "nonexistent parent never created implicitly");
 
     const fs::path destination = root / "pending.urlaunch";
+    // Preserve a Unicode profile directory through the staged native write.
+    const fs::path unicode_dir = root / fs::u8path("profile-\xC3\xA9");
+    check(fs::create_directory(unicode_dir), "Unicode profile directory created");
+    const fs::path unicode_target = unicode_dir / "host-profile.txt";
+    check(ur::product::write_host_replace_staged(
+              unicode_target, "unicode-state", "urprofile"),
+          "Unicode native profile path published");
+    check(bytes(unicode_target) == "unicode-state",
+          "Unicode native profile bytes round-trip");
     check(write_tournament_replace_staged(
               destination.string(), "original", "urlaunch"),
           "establish a valid incumbent before syncing failure");

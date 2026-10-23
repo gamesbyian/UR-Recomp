@@ -149,6 +149,7 @@ jobs:
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/actual-sdl-drawable.png
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/readback-receipt.json
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/capture-failure.json
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/atlas-shard-*.json
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/native-process.log
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/authentic-source-vs-sdl.json

@@ -86,6 +86,20 @@ class H25AudioIntervalTests(unittest.TestCase):
             self.add(w, 1, None, 800, 800)
         self.assertEqual(w.incomplete_reason, 'audio gap/overlap')
 
+    def test_terminal_validation_preserves_first_capture_failure(self):
+        w = self.witness()
+        self.add(w, 0, 0, 0, 800)
+        self.add(w, 1, 16_666_667, 800, 800)
+        with self.assertRaisesRegex(ValueError, 'audio gap/overlap'):
+            self.add(w, 2, 33_333_334, 1599, 800)
+        self.assertEqual(w.incomplete_reason, 'audio gap/overlap')
+        for terminal_pts in (34_000_000, 33_333_334):
+            with self.subTest(terminal_pts=terminal_pts):
+                with self.assertRaisesRegex(ValueError, 'capture already incomplete'):
+                    w.finish(attempt='race', profile='p', terminal_frame=1,
+                             terminal_pts_ns=terminal_pts)
+                self.assertEqual(w.incomplete_reason, 'audio gap/overlap')
+
     def test_invalid_or_backwards_terminal_time_refuses(self):
         for invalid in (None, True, 16_666_667, 0, '33333334'):
             with self.subTest(value=invalid):

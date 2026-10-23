@@ -65,6 +65,22 @@ class WindowsPackageOutputSymlinkTests(unittest.TestCase):
             self.assertTrue(alias.is_symlink())
             self.assertFalse(target.exists())
 
+    def test_output_under_symlinked_parent_rejected_without_data_loss(self):
+        with tempfile.TemporaryDirectory(prefix="ur-package-ancestor-") as tmp:
+            root = Path(tmp)
+            build, rom = self.make_inputs(root)
+            unrelated = root / "unrelated-data"
+            unrelated.mkdir()
+            (unrelated / "sentinel.txt").write_text("KEEP", encoding="ascii")
+            alias = root / "alias-dir"
+            self.make_alias(alias, unrelated)
+            output = alias / "package"
+            with self.assertRaisesRegex(ValueError, "symbolic link or junction"):
+                package_tool.assemble(build, rom, output, "alias-test")
+            self.assertTrue(alias.is_symlink())
+            self.assertEqual((unrelated / "sentinel.txt").read_text(), "KEEP")
+            self.assertFalse((unrelated / "package").exists())
+
     def test_ordinary_output_directory_can_still_be_replaced(self):
         with tempfile.TemporaryDirectory(prefix="ur-package-output-") as tmp:
             root = Path(tmp)

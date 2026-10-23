@@ -10,6 +10,23 @@
 
 int main() {
     namespace fs = std::filesystem;
+
+    using ur::product::host_trim_user_data_root;
+    // Absolute roots must stay absolute, including Windows drive roots.
+    assert(host_trim_user_data_root("") == "");
+    assert(host_trim_user_data_root("/") == "/");
+    assert(host_trim_user_data_root("///") == "//");
+    assert(host_trim_user_data_root("\\") == "\\");
+    assert(host_trim_user_data_root("\\\\") == "\\\\");
+    assert(host_trim_user_data_root("C:\\") == "C:\\");
+    assert(host_trim_user_data_root("c:\\\\\\") == "c:\\");
+    assert(host_trim_user_data_root("D://") == "D:/");
+    assert(host_trim_user_data_root("\\\\?\\C:\\\\\\") == "\\\\?\\C:\\");
+    assert(host_trim_user_data_root("\\\\server\\share\\") == "\\\\server\\share");
+    assert(host_trim_user_data_root("C:\\Profiles\\Racer\\") == "C:\\Profiles\\Racer");
+    assert(host_trim_user_data_root("/home/racer///") == "/home/racer");
+    assert(host_trim_user_data_root(std::string(u8"/home/路径/🌈///")) ==
+           std::string(u8"/home/路径/🌈"));
     const auto nonce = std::to_string(
         std::chrono::steady_clock::now().time_since_epoch().count());
     const fs::path root = fs::temp_directory_path() /

@@ -222,6 +222,26 @@ class NativeRootSdlContrastTests(unittest.TestCase):
             "source=SDL_RenderReadPixels status=saved", 1280, 720))
         self.assertFalse(audit.native_capture_matches(real, 1024, 768))
 
+    def test_numeric_receipt_fields_require_real_integers(self):
+        # A bool or a float can compare equal to an integer in Python.
+        # Such a forged receipt must not inherit a verified process exit.
+        with tempfile.TemporaryDirectory() as td:
+            receipt, png, p7, log = source_files(Path(td), False)
+            for field, bad in (
+                ("schema_version", True),
+                ("schema_version", 1.0),
+                ("native_process_exit", False),
+                ("native_process_exit", 0.0),
+                ("release_gate_credit", False),
+                ("release_gate_credit", 0.0),
+            ):
+                with self.subTest(field=field, bad=repr(bad)):
+                    forged = dict(receipt, **{field: bad})
+                    with self.assertRaisesRegex(ValueError, "pre-approved"):
+                        audit.verify_capture(forged, png, p7, log)
+            self.assertTrue(audit.verify_capture(receipt, png, p7, log)[
+                "source_root_contrast_verified"])
+
     def test_actual_capture_requires_unapproved_scope(self):
         with tempfile.TemporaryDirectory() as td:
             receipt, png, p7, log = source_files(Path(td), False)

@@ -1,0 +1,30 @@
+name: Windows Visual Atlas (PR validation)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-visual-atlas.yml"
+      - ".github/workflows/windows-visual-atlas-pr-validate.yml"
+      - "analysis/windows-visual-atlas.json"
+      - "tools/windows_visual_atlas.py"
+      - "tools/visual_atlas_web/**"
+      - "tests/unit/test_windows_visual_atlas.py"
+permissions:
+  contents: read
+concurrency:
+  group: ur-windows-atlas-pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  atlas-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate real fixture routes, assets and inventory
+        run: |
+          python3 -m unittest tests.unit.test_windows_visual_atlas
+          python3 tools/windows_visual_atlas.py validate
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-preview"
+          test -s "$RUNNER_TEMP/atlas-preview/index.html"
+          test -s "$RUNNER_TEMP/atlas-preview/atlas.json"
+      - name: Check mobile browser JS syntax
+        run: node --check tools/visual_atlas_web/atlas.js

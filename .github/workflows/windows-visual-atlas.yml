@@ -9,6 +9,11 @@ on:
       - "tests/unit/test_windows_visual_atlas.py"
   workflow_dispatch:
     inputs:
+      workers_per_job:
+        description: "Independent native capture processes per Windows job (1 is serial)"
+        type: choice
+        options: ["1", "2"]
+        default: "2"
       deploy_pages:
         description: "Also publish assembled atlas to GitHub Pages (requires Pages configured for Actions)"
         type: boolean
@@ -89,7 +94,7 @@ jobs:
           python tools/check_windows_pe_timestamp.py --exe baldosa/build-ur-visual/UniracersSNESRecomp.exe --source-epoch "$SOURCE_DATE_EPOCH"
           mkdir -p "$RUNNER_TEMP/atlas-pe"
           cp baldosa/build-ur-visual/UniracersSNESRecomp.exe "$RUNNER_TEMP/atlas-pe/UniracersSNESRecomp.exe"
-          python -c "import hashlib,json,pathlib; p=pathlib.Path('$RUNNER_TEMP/atlas-pe/UniracersSNESRecomp.exe'); pathlib.Path('$RUNNER_TEMP/atlas-pe/build-receipt.json').write_text(json.dumps(dict(source_sha='$GITHUB_SHA', exe_sha256=hashlib.sha256(p.read_bytes()).hexdigest(), producer='native Windows SDL diagnostic; no release gate'),indent=2))"
+          python -c "import hashlib,json,os,pathlib; d=pathlib.Path(os.environ['RUNNER_TEMP'])/'atlas-pe'; p=d/'UniracersSNESRecomp.exe'; (d/'build-receipt.json').write_text(json.dumps(dict(source_sha=os.environ['GITHUB_SHA'], exe_sha256=hashlib.sha256(p.read_bytes()).hexdigest(), producer='native Windows SDL diagnostic; no release gate'),indent=2))"
       - name: Upload shared immutable Windows binary, never retail ROM
         uses: actions/upload-artifact@v4
         with:
@@ -120,7 +125,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
-          python -c "import hashlib,json,pathlib; r=json.loads(pathlib.Path('$RUNNER_TEMP/atlas-pe/build-receipt.json').read_text()); p=pathlib.Path('$RUNNER_TEMP/atlas-pe/UniracersSNESRecomp.exe'); assert r['source_sha']=='$GITHUB_SHA'; assert hashlib.sha256(p.read_bytes()).hexdigest()==r['exe_sha256']"
+          python -c "import hashlib,json,os,pathlib; d=pathlib.Path(os.environ['RUNNER_TEMP'])/'atlas-pe'; r=json.loads((d/'build-receipt.json').read_text()); p=d/'UniracersSNESRecomp.exe'; assert r['source_sha']==os.environ['GITHUB_SHA']; assert hashlib.sha256(p.read_bytes()).hexdigest()==r['exe_sha256']"
       - name: Run independently isolated screenshot processes for assigned cohort
         run: |
           python tools/windows_visual_atlas.py capture-shard \
@@ -129,6 +134,7 @@ jobs:
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --source-sha "$GITHUB_SHA" \
             --timeout 100 \
+            --workers "${{ inputs.workers_per_job }}" \
             --out "$RUNNER_TEMP/atlas-${{ matrix.shard }}"
       - name: Record coverage, including failed captures
         if: always()

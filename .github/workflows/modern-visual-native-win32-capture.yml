@@ -271,7 +271,7 @@ jobs:
               && dirs+=(--dir "$d")
           done
           test "${#dirs[@]}" -gt 0 || { echo "No Modern capture directories to measure." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
-          python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" \
+          python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" --require-ring \
             --json "$RUNNER_TEMP/modern-capture-geometry.json" \
             --summary "$GITHUB_STEP_SUMMARY" \
             | tee "$RUNNER_TEMP/modern-capture-geometry.txt" \

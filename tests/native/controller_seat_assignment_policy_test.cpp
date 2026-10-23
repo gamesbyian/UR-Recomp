@@ -104,6 +104,34 @@ void p2_leaving_does_not_swap_players_when_p2_returns() {
     assert(t.connect(kPadA, 0) == 0);
 }
 
+void identical_pads_both_away_both_get_a_seat_back() {
+    // Two identical pads without serials share one key. Both drop (a dongle
+    // replug, sleep/resume): each must be seated again. Which is which
+    // cannot be known, so the players may swap; a pad must never be left
+    // without a seat while one is free for it.
+    Table t;
+    assert(t.connect(kPadA, 0) == 0);
+    assert(t.connect(kPadA, 1) == 1);
+    ur_controller_seat_vacated(t.seats, 0, kPadA);
+    ur_controller_seat_vacated(t.seats, 1, kPadA);
+    const UrControllerSeatChoice first =
+        ur_controller_seat_choose(t.seats, kPadA, 1, -1);
+    assert(first.seat == 0);
+    assert(first.reason == UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER);
+    ur_controller_seat_taken(t.seats, first.seat, kPadA);
+    const UrControllerSeatChoice second =
+        ur_controller_seat_choose(t.seats, kPadA, 0, -1);
+    assert(second.seat == 1);
+    ur_controller_seat_taken(t.seats, second.seat, kPadA);
+    assert(t.seats[0].occupied && t.seats[1].occupied);
+    // One of the two away: an ordinary, unambiguous reclaim.
+    ur_controller_seat_vacated(t.seats, 1, kPadA);
+    const UrControllerSeatChoice back =
+        ur_controller_seat_choose(t.seats, kPadA, 0, -1);
+    assert(back.seat == 1);
+    assert(back.reason == UR_CONTROLLER_SEAT_RECLAIMED);
+}
+
 void a_new_pad_prefers_a_seat_nobody_is_waiting_for() {
     Table t;
     assert(t.connect(kPadA, 0) == 0);
@@ -192,6 +220,8 @@ void reason_names_are_stable_log_tokens() {
     assert(std::strcmp(ur_controller_seat_reason_name(
         UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT), "absent_owner_seat") == 0);
     assert(std::strcmp(ur_controller_seat_reason_name(
+        UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER), "ambiguous_owner") == 0);
+    assert(std::strcmp(ur_controller_seat_reason_name(
         static_cast<UrControllerSeatReason>(99)), "none") == 0);
 }
 
@@ -203,6 +233,7 @@ int main() {
     an_occupied_seat_is_never_stolen();
     a_reconnecting_pad_reclaims_its_own_seat();
     p2_leaving_does_not_swap_players_when_p2_returns();
+    identical_pads_both_away_both_get_a_seat_back();
     a_new_pad_prefers_a_seat_nobody_is_waiting_for();
     a_replacement_pad_can_take_an_absent_players_seat();
     a_device_seated_elsewhere_is_no_longer_absent();

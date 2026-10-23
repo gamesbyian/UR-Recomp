@@ -1,0 +1,57 @@
+name: Windows tournament session UTF-8 storage regression
+
+# ROM-free hosted Windows proof for SDL-style UTF-8 paths through the
+# production session store, native lock and atomic writer. Not physical NTFS QA.
+on:
+  pull_request:
+    paths:
+      - "native/product/local_tournament_session_store.*"
+      - "native/product/local_tournament_utf8_path.hpp"
+      - "native/product/local_tournament_launch_path_lock.hpp"
+      - "native/product/local_tournament_atomic_replace.hpp"
+      - "tests/native/local_tournament_session_store_test.cpp"
+      - ".github/workflows/windows-tournament-session-utf8.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-tournament-session-utf8-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  session-store:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run production session store Unicode/CAS regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path -LiteralPath $vswhere)) { throw 'vswhere.exe missing' }
+          $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'Visual C++ x64 tools missing' }
+          $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
+          if (-not (Test-Path -LiteralPath $vcvars)) { throw 'vcvars64.bat missing' }
+          $product = Join-Path $env:GITHUB_WORKSPACE 'native\product'
+          $title = Join-Path $env:GITHUB_WORKSPACE 'native\title'
+          $test = Join-Path $env:GITHUB_WORKSPACE 'tests\native\local_tournament_session_store_test.cpp'
+          $store = Join-Path $env:GITHUB_WORKSPACE 'native\product\local_tournament_session_store.cpp'
+          $exe = Join-Path $env:RUNNER_TEMP 'local_tournament_session_store_test.exe'
+          $runner = Join-Path $env:RUNNER_TEMP 'run-tournament-session.cmd'
+          $commands = @(
+            '@echo off',
+            "call `"$vcvars`"",
+            'if errorlevel 1 exit /b 1',
+            "cl /nologo /std:c++17 /utf-8 /EHsc /W3 /I`"$product`" /I`"$title`" `"$test`" `"$store`" /Fe:`"$exe`"",
+            'if errorlevel 1 exit /b 1',
+            "`"$exe`"",
+            'exit /b %ERRORLEVEL%'
+          )
+          [System.IO.File]::WriteAllLines($runner, $commands, [System.Text.Encoding]::ASCII)
+          & cmd.exe /d /c "`"$runner`""
+          if ($LASTEXITCODE -ne 0) { throw "Windows tournament session UTF-8 regression failed: $LASTEXITCODE" }
+          Write-Host 'Windows tournament session UTF-8 storage regression passed'

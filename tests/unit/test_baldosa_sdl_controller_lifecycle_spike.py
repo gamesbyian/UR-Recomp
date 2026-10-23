@@ -35,6 +35,8 @@ HOST_STUB = "\n".join((
     seam.REASSIGN,
     "static void OpenAllGamepads(void) {\n#if SNESRECOMP_SDL3\n  int njs = 0;",
     seam.ENUMERATE + "  int njs = SDL_NumJoysticks();\n#endif\n}",
+    "int snesrecomp_desktop_main(void) {",
+    seam.BACKGROUND + "}",
     "  while (running) {",
     seam.TICK_ANCHOR + "  }",
     "static void OpenOneGamepad(int i) {",
@@ -207,6 +209,21 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
         self.assertTrue(before.rstrip().endswith("#if SNESRECOMP_SDL3") or
                         before[before.rindex("#if SNESRECOMP_SDL3"):].count("#endif") == 0)
 
+    def test_pads_are_ignored_while_the_window_is_unfocused(self):
+        staged = self.staged()
+        self.assertNotIn(seam.BACKGROUND, staged)
+        self.assertIn('HostGetenv("UR_BACKGROUND_PAD_INPUT")', staged)
+        # Off unless a test opts in with a non-zero value.
+        self.assertIn('SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, '
+                      'bg && atoi(bg) ? "1" : "0");', staged)
+        focus = staged[staged.index("if (g_ur_accept_on == 3) {"):]
+        focus = focus[:focus.index("g_ur_accept_step = 1000;")]
+        # Not exercised unless focus really left, never a silent pass.
+        self.assertLess(focus.index("SDL_GetKeyboardFocus() != NULL"),
+                        focus.index('"unfocused_press_ignored"'))
+        self.assertIn("unfocused_press_ignored not_exercised=1", focus)
+        self.assertIn("focused_press_drives not_exercised=1", focus)
+
     def test_product_seat_view_is_read_only_and_bounded(self):
         staged = self.staged()
         getter = staged[staged.index("long long snesrecomp_desktop_product_seat_source(int seat) {"):]
@@ -249,7 +266,8 @@ class BaldosaSdlControllerLifecycleSpikeTests(unittest.TestCase):
     def test_a_moved_pinned_host_is_rejected(self):
         for needle in (seam.SELECTION, seam.RAW_SELECTION, seam.PAD_REMOVED,
                        seam.PAD_BUTTON, seam.RAW_REMOVED, seam.REASSIGN,
-                       seam.HELPERS_ANCHOR, seam.TICK_ANCHOR, seam.ENUMERATE):
+                       seam.HELPERS_ANCHOR, seam.TICK_ANCHOR, seam.ENUMERATE,
+                       seam.BACKGROUND):
             with self.assertRaisesRegex(ValueError, "diverged"):
                 seam.patch_host_main(HOST_STUB.replace(needle, ""), POLICY)
         with self.assertRaisesRegex(ValueError, "diverged"):

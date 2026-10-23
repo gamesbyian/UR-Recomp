@@ -194,6 +194,21 @@ ENUMERATE_NEW = (
     "  UrSortByPlayerIndex(joysticks, njs);  /* " + MARK + " */\n#else\n"
 )
 
+# The pinned host let pads drive the game while another window had focus.
+# Overlays navigated with the same pad (the Xbox Game Bar the Guide button
+# opens, Steam's, Discord's) then also moved the game's menus behind them
+# and resumed a focus-paused race (#2334). SDL still delivers releases and
+# re-centring while unfocused, so nothing stays held.
+BACKGROUND = '  SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");\n'
+BACKGROUND_NEW = (
+    "  /* " + MARK + ": pads drive the game only while its window has focus.\n"
+    "   * Hosted test runs may not get focus; they opt back in. */\n"
+    "  {\n"
+    '    const char *bg = HostGetenv("UR_BACKGROUND_PAD_INPUT");  /* test only */\n'
+    '    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, bg && atoi(bg) ? "1" : "0");\n'
+    "  }\n"
+)
+
 TICK_ANCHOR = "    OverlaySelftestPadMainTick(frameCtr);\n"
 TICK_NEW = TICK_ANCHOR + "    UrControllerLifecycleAcceptanceTick();  /* " + MARK + " */\n"
 
@@ -572,8 +587,10 @@ static void UrControllerLifecycleAcceptanceTick(void) {
   if (g_ur_accept_on < 0) {
     const char *v = HostGetenv("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE");
     /* "1" runs the scenario; "exit" also quits when it is done; "launcher"
-     * runs the real in-game launcher over hotplug instead, then quits. */
+     * runs the real in-game launcher over hotplug instead, then quits;
+     * "focus" checks that a pad is ignored while the window is unfocused. */
     g_ur_accept_on = !v ? 0 : strcmp(v, "launcher") == 0 ? 2
+                   : strcmp(v, "focus") == 0 ? 3
                    : (atoi(v) || strcmp(v, "exit") == 0) ? 1 : 0;
   }
   if (!g_ur_accept_on || g_ur_accept_step < 0) return;
@@ -605,7 +622,52 @@ static void UrControllerLifecycleAcceptanceTick(void) {
     }
     g_ur_accept_step = 1000;  /* fall into the shared result/quit below */
   }
-  switch (g_ur_accept_on == 2 ? 1000 : g_ur_accept_step++) {
+  if (g_ur_accept_on == 3) {
+    /* The product default: no background pad input. A desktop that never
+     * takes focus away (or never gives it back) records not_exercised. */
+    switch (g_ur_accept_step++) {
+    case 0: UrAcceptAttach(0, 0x5501, -1); return;
+    case 1:
+      UrAcceptExpect("focus_pad_seated", UrAcceptSeatOf(0) == 0);
+      SDL_MinimizeWindow(g_window);
+      return;
+    case 2:
+      if (SDL_GetKeyboardFocus() != NULL) {
+        printf("UR_CONTROLLER_ACCEPT step=unfocused_press_ignored not_exercised=1\n");
+        g_ur_accept_step = 4;
+        return;
+      }
+      UrAcceptButton(0, true);
+      return;
+    case 3:
+      UrAcceptExpect("unfocused_press_ignored", (g_pad_buttons & 0xffffffu) == 0);
+      UrAcceptButton(0, false);
+      return;
+    case 4:
+      SDL_RestoreWindow(g_window);
+      SDL_RaiseWindow(g_window);
+      g_ur_accept_wait = 30;
+      return;
+    case 5:
+      if (SDL_GetKeyboardFocus() != g_window) {
+        printf("UR_CONTROLLER_ACCEPT step=focused_press_drives not_exercised=1\n");
+        g_ur_accept_step = 7;
+        return;
+      }
+      UrAcceptButton(0, true);
+      return;
+    case 6:
+      UrAcceptExpect("focused_press_drives", (g_pad_buttons & 0xfffu) != 0);
+      UrAcceptButton(0, false);
+      return;
+    case 7:
+      for (int i = 0; i < kUrAcceptPads; i++) UrAcceptDetach(i);
+      return;
+    default: break;
+    }
+    g_ur_accept_step = 1000;
+  }
+  switch (g_ur_accept_on >= 2 ? 1000 : g_ur_accept_step++) {
   case 0: UrAcceptAttach(0, 0x5501, -1); break;
   case 1: UrAcceptAttach(1, 0x5502, -1); break;
   case 2:
@@ -875,7 +937,8 @@ static void UrControllerLifecycleAcceptanceTick(void) {
     fflush(stdout);
     g_ur_accept_step = -1;
     const char *v = HostGetenv("UR_CONTROLLER_LIFECYCLE_ACCEPTANCE");
-    if (v && (strcmp(v, "exit") == 0 || strcmp(v, "launcher") == 0)) {
+    if (v && (strcmp(v, "exit") == 0 || strcmp(v, "launcher") == 0 ||
+              strcmp(v, "focus") == 0)) {
       SDL_Event quit;
       memset(&quit, 0, sizeof(quit));
       quit.type = SDL_QUIT;
@@ -904,7 +967,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     for needle in (SELECTION, RAW_SELECTION, PAD_REMOVED, PAD_BUTTON,
                    RAW_REMOVED, REASSIGN, HELPERS_ANCHOR, TICK_ANCHOR,
                    PAD_FOUND, RAW_UNSEATED, RAW_BUTTON, LAUNCHER_RETURN,
-                   KEYBOARD_P1, ACTIVE_P1, ENUMERATE):
+                   KEYBOARD_P1, ACTIVE_P1, ENUMERATE, BACKGROUND):
         if source.count(needle) != 1:
             raise ValueError(f"Pinned native Baldosa host diverged: {needle[:100]!r}")
     source = once(source, HELPERS_ANCHOR, helpers(policy) + HELPERS_ANCHOR)
@@ -921,6 +984,7 @@ def patch_host_main(source: str, policy: Path) -> str:
     source = once(source, KEYBOARD_P1, KEYBOARD_P1_NEW)
     source = once(source, ACTIVE_P1, ACTIVE_P1_NEW)
     source = once(source, ENUMERATE, ENUMERATE_NEW)
+    source = once(source, BACKGROUND, BACKGROUND_NEW)
     return once(source, TICK_ANCHOR, TICK_NEW)
 
 

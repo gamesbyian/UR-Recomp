@@ -37,11 +37,14 @@ confirmation and admission logic belong to line 3.
   - `UR_SESSION_END …`
   - `UR_BALDOSA_MODERN_ROOT join_pad_* / lone_pad_promoted`
 
-## Open decisions
+## Decisions taken
 
-- [#2334](https://github.com/gamesbyian/UR-Recomp/issues/2334): pad input
-  while the window is unfocused. Overlays such as the Xbox Game Bar currently
-  leak presses into the game.
+- [#2334](https://github.com/gamesbyian/UR-Recomp/issues/2334): pads are
+  ignored while the window is unfocused, so overlays such as the Xbox Game
+  Bar no longer leak presses into the game. Runners that press SDL virtual
+  pads set the test-only `SNESRECOMP_UR_BACKGROUND_PAD_INPUT=1`, because
+  hosted windows may never get focus. The controller runner's `focus` launch
+  checks the product default.
 
 Every acceptance run above uses hosted Windows with SDL virtual devices. Real
 pads, monitors, sign-out and GPU events are the physical checks.

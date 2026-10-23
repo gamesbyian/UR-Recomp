@@ -1,10 +1,6 @@
 name: Windows Visual Atlas (sharded opt-in capture)
 on:
-  # This sentinel changes once in the initial atlas PR; future heavy captures remain manual.
-  push:
-    branches: [main]
-    paths:
-      - "analysis/windows-visual-atlas-first-capture.request"
+  # Extended Windows captures are started deliberately by the owner.
   workflow_dispatch:
     inputs:
       reuse_build_run_id:
@@ -50,7 +46,7 @@ jobs:
         run: node --check tools/visual_atlas_web/atlas.js
   build-windows:
     needs: validate-atlas
-    if: github.event_name == 'push' || inputs.reuse_build_run_id == ''
+    if: inputs.reuse_build_run_id == ''
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:

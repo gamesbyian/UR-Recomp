@@ -80,7 +80,7 @@ class WindowsAtlasFrontendTests(unittest.TestCase):
             self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"), name)
             self.assertGreater(len(data), 2_000_000, name)
             self.assertEqual(struct.unpack(">II", data[16:24]), dimensions)
-        self.assertIn("not native Windows captures", (folder / "README.md").read_text().lower())
+        self.assertIn("not native windows captures", (folder / "README.md").read_text().lower())
 
     def test_header_svg_is_small_and_has_cylindrical_track_and_contacting_wheel(self):
         svg_path = atlas.WEB / "tube-header.svg"

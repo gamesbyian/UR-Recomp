@@ -25,7 +25,17 @@ def validate_restart_guest_input(log: str) -> int:
     `release_waiting` is diagnostic only: an early-disarmed latch must not
     suppress the negative check. The host emits one countdown per guest sample.
     """
+    # A malformed probe must not disappear from the evidence merely because
+    # the strict regex cannot parse it. Otherwise twelve valid lines plus a
+    # truncated or corrupt guest=1000 line would falsely pass this oracle.
+    emitted = [line for line in log.splitlines()
+               if line.startswith("UR_RESTART_INPUT")]
     probes = list(PROBE.finditer(log))
+    if len(emitted) != len(probes):
+        raise ValueError(
+            f"malformed UR_RESTART_INPUT diagnostic: "
+            f"{len(emitted)} emitted, {len(probes)} parsed"
+        )
     if len(probes) != EXPECTED_SAMPLES:
         raise ValueError(
             f"expected {EXPECTED_SAMPLES} post-Restart guest-word samples, "

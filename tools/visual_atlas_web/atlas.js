@@ -13,8 +13,9 @@
   const isHosted = () => /^https?:$/.test(location.protocol);
   const referenceUrl = (entry) => isHosted() ? location.href.split("#")[0] + "#" + entry.id : "";
   const agentReference = (entry) => {
+    const inventory = entry.source_inventory ? " Source inventory: " + entry.source_inventory.path + " / " + (entry.source_inventory.tag || entry.source_inventory.acceptance_case_id) + "." : "";
     const detail = entry.evidence ? "Real Windows SDL capture; source " + entry.evidence.source_sha + "; EXE SHA256 " + entry.evidence.exe_sha256 + "; PNG SHA256 " + entry.evidence.png_sha256 + "." : "No Windows screenshot admitted; " + statusLabel(entry).toLowerCase() + ", conceptual graph-paper plate only.";
-    return "Inspect " + entry.id + ": " + entry.title + ". " + title(entry) + " / " + entry.family + " / " + entry.state + " / " + entry.display + ". " + detail + (referenceUrl(entry) ? " Atlas: " + referenceUrl(entry) : " Atlas ID: " + entry.id);
+    return "Inspect " + entry.id + ": " + entry.title + ". " + title(entry) + " / " + entry.family + " / " + entry.state + " / " + entry.display + ". " + detail + inventory + (referenceUrl(entry) ? " Atlas: " + referenceUrl(entry) : " Atlas ID: " + entry.id);
   };
   async function copy(value, element) {
     let done = false;
@@ -82,7 +83,7 @@
       "Observed final SDL drawable from native Windows. Semantic scripted input, not a physical-display or final-art acceptance." :
       "COMING SOON / capture unavailable. Background is an authentic editorial plate from the existing graph-paper promotional set; it is not a simulated Windows screen.";
     $("detail-evidence").textContent = entry.evidence ? JSON.stringify(entry.evidence, null, 2) :
-      "No authentic Windows capture and receipt associated with this entry.";
+      entry.source_inventory ? JSON.stringify({status: "not captured", source_inventory: entry.source_inventory}, null, 2) : "No authentic Windows capture and receipt associated with this entry.";
     $("zoom").disabled = entry.status !== "captured";
     $("zoom").textContent = "1:1 pixels";
     $("image-stage").classList.remove("native");

@@ -164,7 +164,11 @@ class WindowsAtlasIntakeTests(unittest.TestCase):
                 self.scan(root)
             intake.stage(root / "scan", root / "media/windows-visual-atlas")
             retained = root / "media/windows-visual-atlas/approved/URV-MD-001"
+            # Keep the actual repository's fixture inventories while routing
+            # only the approved-incidental directory to this temporary root.
+            entries = atlas.validate(atlas.load_catalog())
             with (patch.object(atlas, "ROOT", root),
+                  patch.object(atlas, "validate", return_value=entries),
                   patch.object(intake, "code_state", return_value="integrated-current-visual")):
                 site = atlas.build(atlas.load_catalog(), root / "site-ok", None, None)
                 self.assertEqual(site["counts"]["captured"], 1)

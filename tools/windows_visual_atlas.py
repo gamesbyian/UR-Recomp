@@ -398,7 +398,9 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
             process = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout * 3)
             if process.returncode != 0:
                 raise RuntimeError(f"capture driver exit {process.returncode}: " + (process.stdout + process.stderr)[-1500:])
-            evidence, _ = valid_receipt(entry, location, source, None)
+            # Bind the receipt to the actual executable launched for this shard.
+            # Otherwise a successful driver exit can bless pixels from a different PE.
+            evidence, _ = valid_receipt(entry, location, source, exe_digest)
             # Do not report capture success when a driver left a plausible
             # PNG/receipt but no authentic P7/process-log corroboration.
             try:

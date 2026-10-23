@@ -189,6 +189,42 @@ class WindowsAtlasTests(unittest.TestCase):
             self.assertTrue(failed.is_file())
             self.assertIn("native P7/log witness", failed.read_text(encoding="utf-8"))
 
+    def test_capture_rejects_receipt_from_different_executable(self):
+        # A driver returning zero is insufficient: the receipt must name the
+        # executable whose bytes this shard actually launched.
+        entry = {"id": "URV-MD-001", "capture": {
+            "shard": "frontend", "route": "root-quit", "size": "1280x720"}}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            exe = root / "game.exe"
+            exe.write_bytes(b"expected-executable")
+            expected = atlas.sha256(exe)
+            wrong = "f" * 64 if expected != "f" * 64 else "e" * 64
+            seen = []
+            def validate_receipt(_entry, _root, _source, exe_digest):
+                seen.append(exe_digest)
+                if exe_digest != wrong:
+                    raise ValueError("Atlas captures used different Windows executables")
+                return {"exe_sha256": wrong}, wrong
+            with (mock.patch.object(atlas, "validate", return_value=[entry]),
+                  mock.patch.object(atlas.subprocess, "run",
+                                    return_value=mock.Mock(returncode=0, stdout="", stderr="")),
+                  mock.patch.object(atlas, "valid_receipt",
+                                    side_effect=validate_receipt)):
+                status = atlas.capture_shard(
+                    {"entries": [entry]}, shard="frontend", exe=exe,
+                    rom=root / "retail.sfc", target=root / "output",
+                    source="a" * 40, timeout=5, workers=1)
+            self.assertEqual(status, 1)
+            self.assertEqual(seen, [expected])
+            failure = json.loads((root / "output" / "captures" / entry["id"] /
+                                  "capture-failure.json").read_text(encoding="utf-8"))
+            self.assertIn("different Windows executables", failure["reason"])
+            summary = json.loads((root / "output" / "shard-summary.json").read_text(
+                encoding="utf-8"))
+            self.assertEqual(summary["failed"], 1)
+            self.assertEqual(summary["captured"], 0)
+
     def test_assembled_capture_requires_independent_native_witness(self):
         # A PNG with a matching JSON receipt must not earn captured status
         # without the original P7 pixels and native-process log. The witness

@@ -1,4 +1,5 @@
 #include "multiplayer_match_catalog.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -26,7 +27,7 @@ inspect_multiplayer_match_artifacts(const std::string& directory) {
     if (directory.empty()) return inspected;
 
     std::error_code ec;
-    std::filesystem::directory_iterator it(directory, ec);
+    std::filesystem::directory_iterator it(host_native_path_from_utf8(directory), ec);
     if (ec) return inspected;
 
     std::vector<std::filesystem::path> paths;
@@ -38,7 +39,7 @@ inspect_multiplayer_match_artifacts(const std::string& directory) {
     inspected.reserve(paths.size());
     for (const auto& path : paths) {
         InspectedMultiplayerMatchArtifact artifact;
-        artifact.run_path = path.string();
+        artifact.run_path = path.u8string();
 
         // An archive entry is only authoritative when it is a real file in
         // this directory, not a live/dangling alias outside the user root.
@@ -74,7 +75,7 @@ inspect_multiplayer_match_artifacts(const std::string& directory) {
         const auto sidecar_path =
             multiplayer_match_record_path_for_run(artifact.run_path);
         const auto sidecar_status = std::filesystem::symlink_status(
-            sidecar_path, file_error);
+            host_native_path_from_utf8(sidecar_path), file_error);
         if (file_error ||
             !std::filesystem::is_regular_file(sidecar_status) ||
             std::filesystem::is_symlink(sidecar_status)) {

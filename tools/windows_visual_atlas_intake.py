@@ -122,6 +122,34 @@ def witness(receipt: dict, folder: Path) -> bool:
     return matches == 1
 
 
+def copy_verified_witness(receipt: dict, source: Path, destination: Path) -> None:
+    """Retain the exact P7/process-log pair independently proving the PNG.
+
+    Intake and staging must not discard the witness after a one-time check:
+    the later static-site assembler needs to revalidate the same bytes.
+    """
+    matching = []
+    for name in ("probe_first", "capture_observed"):
+        raw = source / name / "actual-sdl-drawable.pam"
+        log = source / name / "native-process.log"
+        if (raw.is_file() and log.is_file()
+                and not raw.is_symlink() and not log.is_symlink()
+                and raw.stat().st_size <= MAX_SCREEN
+                and log.stat().st_size <= 2_000_000
+                and atlas.sha256(raw) == receipt.get("p7_sha256")
+                and atlas.sha256(log) == receipt.get("native_process_log_sha256")):
+            matching.append((name, raw, log))
+    if len(matching) != 1:
+        raise ValueError("missing or ambiguous native P7/log witness pair")
+    name, raw, log = matching[0]
+    output = destination / name
+    output.mkdir()
+    shutil.copyfile(raw, output / raw.name)
+    shutil.copyfile(log, output / log.name)
+    if not witness(receipt, destination):
+        raise ValueError("staged native P7/log witness failed independent verification")
+
+
 def discover(roots: Path, output: Path, *, repo: Path, main: str,
              workflow: str, run_id: int, run_head: str) -> dict:
     """Read-only discovery; never create a trusted capture from a loose PNG."""
@@ -201,6 +229,7 @@ def discover(roots: Path, output: Path, *, repo: Path, main: str,
             dest.mkdir()
             for name in ("actual-sdl-drawable.png", "readback-receipt.json"):
                 shutil.copyfile(folder / name, dest / name)
+            copy_verified_witness(receipt, folder, dest)
             approval = {
                 "schema_version": 1, "atlas_id": entry["id"],
                 "source_sha": src, "approved_main_sha": main,
@@ -248,10 +277,25 @@ def stage(review: Path, destination: Path) -> dict:
             case, approval["source_sha"], approval["exe_sha256"])
         if receipt["png_sha256"] != approval.get("png_sha256"):
             raise ValueError("Staged image bytes differ from approval")
+        if not witness(receipt, case):
+            raise ValueError("Staged candidate lacks original native P7/log witness")
         current = destination / "approved" / case.name
+        if current.is_symlink():
+            raise ValueError("Redirected existing approved capture")
         if current.exists():
             other = current / "actual-sdl-drawable.png"
-            if other.is_file() and atlas.sha256(other) == approval["png_sha256"]:
+            if (other.is_file() and not other.is_symlink()
+                    and atlas.sha256(other) == approval["png_sha256"]):
+                # Idempotence is safe only if the previously selected copy
+                # still carries independently verifiable native evidence.
+                existing_approval = json.loads(
+                    (current / "intake-approval.json").read_text(encoding="utf-8"))
+                existing_receipt, _ = atlas.valid_receipt(
+                    next(e for e in atlas.validate(atlas.load_catalog())
+                         if e["id"] == case.name),
+                    current, existing_approval["source_sha"], existing_approval["exe_sha256"])
+                if not witness(existing_receipt, current):
+                    raise ValueError("Existing approved capture lacks native P7/log witness")
                 results["existing"] += 1
                 continue
             selected = (destination / "alternatives" / case.name /
@@ -265,6 +309,7 @@ def stage(review: Path, destination: Path) -> dict:
         selected.mkdir(parents=True)
         for name in ("actual-sdl-drawable.png", "readback-receipt.json", "intake-approval.json"):
             shutil.copyfile(case / name, selected / name)
+        copy_verified_witness(receipt, case, selected)
     return results
 
 

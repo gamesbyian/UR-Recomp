@@ -20,8 +20,10 @@ import tempfile
 
 try:
     from tools import windows_visual_atlas as atlas
+    from tools.qa_modern_visual_win32_capture_driver import ROUTES
 except ModuleNotFoundError:
     import windows_visual_atlas as atlas
+    from qa_modern_visual_win32_capture_driver import ROUTES
 
 SOURCE_RE = re.compile(r"^[0-9a-f]{40}$")
 DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -159,6 +161,11 @@ def discover(roots: Path, output: Path, *, repo: Path, main: str,
                 raise ValueError("No unique explicit visual atlas mapping")
             entry = ids[0]
             row["id"] = entry["id"]
+            expected_mode = "authentic" if route == "authentic-stock" else "modern"
+            if receipt.get("execution_mode") != expected_mode:
+                raise ValueError("Real native execution mode does not match route")
+            if receipt.get("native_route_marker_observed") is not bool(ROUTES[route][2]):
+                raise ValueError("Native semantic stage marker mismatch")
             if row["id"] in seen_ids:
                 raise ValueError("Multiple candidates for one ID: independent selection needed")
             seen_ids.add(row["id"])

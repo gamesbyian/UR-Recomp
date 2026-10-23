@@ -1,18 +1,18 @@
 # Recurring Vault Intake: resumable artifact queue
 
 The [Vault Recurring Intake workflow](../../.github/workflows/vault-recurring-intake.yml)
-runs at **23 minutes past every sixth UTC hour** and is also manually dispatchable.
+runs at **23 minutes past every sixth UTC hour** and is also manually dispatchable. Each run audits **both 02 Incoming and 03 Evidence Library**, using separate matrix jobs and independently persisted checkpoints and queue artifacts. Manual dispatch can select `incoming`, `evidence`, or `both`; selecting one folder is required when probing an exact Drive file ID.
 It uses \`tools/vault_scheduled_intake.py\`, \`gdown==6.4.2\`,
 the existing public-Drive download helper and current-revision Git blob crosswalk.
 
 ## What the automation does
 
-1. Index publicly linked **02 Incoming** (currently 45 direct files).
+1. Index publicly linked **02 Incoming** (45 direct files at its initial snapshot) and **03 Evidence Library** (66 direct children from the authenticated Drive listing). The gdown Evidence enumeration returned 71 items in its independent live check; that count may include nested entries and must not be mistaken for authenticated direct-child count.
 2. Restore the newest checkpoint from the \`vault-recurring-state\` artifact of a
    completed \`main\` workflow run, or start fresh if absent/expired.
 3. Prioritize unexamined ZIPs, then other files, then old rechecks.
-   Download at most **3 files per scheduled run** (12 hard maximum) and enforce
-   a **64 MiB accepted-byte budget** (128 MiB hard upper bound). Original
+   Download at most **3 files per folder per scheduled run** (12 hard maximum per folder job) and enforce
+   a **64 MiB accepted-byte budget per folder job** (128 MiB hard upper bound per job). Original
    downloads are confined to the ephemeral runner. A file whose downloaded
    size breaches the remaining batch budget is deferred, not credited.
 4. Audit downloaded ZIP/member paths, size/CRC, nested archives to the bounded
@@ -26,7 +26,7 @@ the existing public-Drive download helper and current-revision Git blob crosswal
    - \`queue.json\`: unaudited file IDs, failed downloads, and existing
      unmatched/source-like **review leads** for recovery agents.
 
-Failed file IDs are retained separately and attempted **after** fresh candidates, so a repeatedly malformed package cannot stall all scheduled progress. The checkpoint is not a semantic integration ledger. ZIP member names and
+Failed file IDs are retained separately and attempted **after** fresh candidates, so a repeatedly malformed package cannot stall all scheduled progress. The artifacts are named **`vault-recurring-state-incoming`** and **`vault-recurring-state-evidence`**. Incoming restores old `vault-recurring-state` checkpoints where available; Evidence starts its own history. The checkpoint is not a semantic integration ledger. ZIP member names and
 blob hashes may provide leads, **not rights or publication permission**.
 Archives can be changed under the same Drive ID: every verified file becomes
 eligible for re-download after 14 days, or at any time with a manual
@@ -37,9 +37,7 @@ clock delivery.
 
 ## Explicit boundaries
 
-- Only the public Incoming folder is indexed. Other Vault folders (including
-  the Evidence Library holding the 28 MB H26 QA04 pilot) require their own
-  authorized access method; this workflow does not bypass folder permissions.
+- Incoming and Evidence Library are both anonymously accessible from GitHub Actions **as of the live test**. This is existing sharing, not an authentication bypass or a change to permissions. Other Vault folders are *not* on the recurring schedule but can be probed separately through the manual Direct Intake workflow's `folder_url` input after verifying access.
 - No original ZIPs, unpacked source, ROMs, proprietary assets or secret-bearing
   files are included in automatic artifacts or Git commits.
 - The workflow has \`contents: read\` and \`actions: read\` only. It cannot
@@ -80,6 +78,8 @@ its workflow, Python code or tests. It runs local tests and attempts the known
 mode. This intentionally bypasses the historical checkpoint and never stages
 source. If the package is malformed or inaccessible, the run reports an error
 rather than claiming it is integrated.
+
+The [anonymous Evidence access probe](https://github.com/gamesbyian/UR-Recomp/actions/runs/40027157602) downloaded **28,106,236 bytes**, verified **33 ZIP members** by CRC, and found **71 gdown-listed entries**, all without modifying Drive access or publishing ZIP contents. The observed archive SHA-256 was `601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00`. This proves the large-archive transfer path, not source publication or QA acceptance.
 
 The [live 4.65 MB H26 smoke run 40025072762](https://github.com/gamesbyian/UR-Recomp/actions/runs/40025072762) succeeded: 45 listed, one 4,649,946-byte ZIP downloaded and member-inspected, zero errors, one review lead and [checkpoint/queue artifact 12532925142](https://github.com/gamesbyian/UR-Recomp/actions/runs/40025072762/artifacts/12532925142). Six isolated unit tests also passed. This confirms multi-megabyte transfer on a PR runner but not checkpoint restoration between scheduled runs.
 

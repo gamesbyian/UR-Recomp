@@ -293,6 +293,7 @@ std::size_t g_profile_preset_index;
 std::string g_profile_edit_name;
 bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
+bool g_profile_select_failed = false;
 ur::product::ModernProfileResetState g_profile_reset;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
@@ -2122,6 +2123,7 @@ bool rename_profile_from_editor() {
 void open_profile_menu() {
     ensure_profile_catalog();
     g_profile_menu_visible = true;
+    g_profile_select_failed = false;
     product_diagnostic("UR_PROFILE_UI OPENED");
     g_profile_edit_mode = ProfileEditMode::None;
     g_profile_cool_name_notice = false;
@@ -2139,6 +2141,7 @@ void open_profile_menu() {
 }
 
 void begin_profile_create() {
+    g_profile_select_failed = false;
     g_profile_edit_mode = ProfileEditMode::Create;
     g_profile_preset_index = 0;
     g_profile_edit_name =
@@ -2150,6 +2153,7 @@ void begin_profile_create() {
 void begin_profile_rename() {
     ensure_profile_catalog();
     if (g_profile_menu_index >= g_profile_catalog.size()) return;
+    g_profile_select_failed = false;
     g_profile_edit_mode = ProfileEditMode::Rename;
     g_profile_edit_name = g_profile_catalog[g_profile_menu_index].identity.name;
     g_profile_edit_pristine = true;
@@ -2347,17 +2351,28 @@ bool handle_profile_menu_key(int key) {
         g_profile_menu_index =
             (g_profile_menu_index + g_profile_catalog.size() - 1) %
             g_profile_catalog.size();
+        g_profile_select_failed = false;
         return true;
     }
     if (key == SDLK_DOWN && !g_profile_catalog.empty()) {
         g_profile_menu_index =
             (g_profile_menu_index + 1) % g_profile_catalog.size();
+        g_profile_select_failed = false;
         return true;
     }
-    if ((key == SDLK_RETURN || key == SDLK_KP_ENTER) &&
-        g_profile_menu_index < g_profile_catalog.size()) {
-        return activate_profile_id(
-            g_profile_catalog[g_profile_menu_index].profile_id);
+    if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+        if (g_profile_menu_index < g_profile_catalog.size()) {
+            const bool selected = activate_profile_id(
+                g_profile_catalog[g_profile_menu_index].profile_id);
+            g_profile_select_failed = !selected;
+            if (!selected) {
+                g_profile_cool_name_notice = false;
+                product_diagnostic("UR_PROFILE_UI SELECT_REJECTED");
+            }
+        }
+        // The chooser is modal even if the profile has disappeared or its
+        // storage/selector CAS fails. Never forward Enter to the stock game.
+        return true;
     }
     return true;
 }
@@ -9987,7 +10002,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 117 * scale,
                 "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
-                "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
+                g_profile_select_failed
+                    ? "SELECT FAILED - ESC TO CLOSE"
+                    : "ESC / F2  CLOSE",
+                0xFFFFFFFFu, scale);
         }
         if (g_profile_cool_name_notice) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,

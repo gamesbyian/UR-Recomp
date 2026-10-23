@@ -50,7 +50,7 @@ def validate_zip_members(archive: ZipFile) -> dict:
             "member_contents_all_verified": False}
 
 
-def inspect(raw: bytes, selected: list[str]) -> dict:
+def inspect(raw: bytes, selected: list[str], leaf: str | None = None) -> dict:
     if len(raw) > MAX_ARCHIVE_BYTES or not raw:
         raise ValueError("outer ZIP exceeds input budget")
     if len(selected) > MAX_DEPTH:
@@ -72,6 +72,22 @@ def inspect(raw: bytes, selected: list[str]) -> dict:
                 layer["archive_sha256"] = hashlib.sha256(archive_bytes).hexdigest()
                 report["layers"].append(layer)
                 if depth == len(selected):
+                    if leaf is not None:
+                        if leaf not in archive.namelist():
+                            raise ValueError("selected leaf member missing")
+                        info = archive.getinfo(leaf)
+                        if info.file_size > MAX_SELECTED_MEMBER_BYTES or (
+                                bytes_read + info.file_size > MAX_READ_BYTES):
+                            raise ValueError("selected leaf member exceeds read budget")
+                        payload = archive.read(info)
+                        bytes_read += len(payload)
+                        git_hash = hashlib.sha1(
+                            b"blob " + str(len(payload)).encode() + b"\0" + payload
+                        ).hexdigest()
+                        report["leaf_member"] = {
+                            "name": leaf, "bytes": len(payload),
+                            "sha256": hashlib.sha256(payload).hexdigest(),
+                            "git_blob_sha": git_hash, "crc_verified": True}
                     break
                 name = selected[depth]
                 if name not in archive.namelist() or not name.lower().endswith(".zip"):
@@ -98,6 +114,7 @@ def main() -> int:
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--member", action="append", default=[],
                         help="Exact nested ZIP member name for each successive level")
+    parser.add_argument("--leaf", help="Exact member to hash/CRC-check without extracting")
     parser.add_argument("--expected-sha256", help="Optional exact outer SHA-256 pin")
     args = parser.parse_args()
     if args.archive.stat().st_size > MAX_ARCHIVE_BYTES:
@@ -106,7 +123,7 @@ def main() -> int:
     if args.expected_sha256 and hashlib.sha256(blob).hexdigest() != args.expected_sha256:
         parser.error("outer SHA-256 differs from expected pin")
     try:
-        result = inspect(blob, args.member)
+        result = inspect(blob, args.member, args.leaf)
     except ValueError as exc:
         parser.error(str(exc))
     print(json.dumps(result, indent=2, sort_keys=True))

@@ -1,4 +1,5 @@
 #pragma once
+#include "local_tournament_utf8_path.hpp"
 
 // Scoped interprocess exclusion for one mutable tournament launch pathname.
 // Both publication and exact-attempt retirement MUST acquire the SAME lock
@@ -33,7 +34,7 @@ public:
                                       bool nonblocking = false) {
         if (target.empty()) return;
         const std::filesystem::path lock_path =
-            std::filesystem::path(target).concat(".urmutex");
+            host_native_path_from_utf8(target).concat(".urmutex");
 #if defined(_WIN32)
         file_ = CreateFileW(
             lock_path.c_str(), GENERIC_READ | GENERIC_WRITE,

@@ -78,10 +78,22 @@ def genuine_scale_compatibility(path):
                    for fields in (b,c)
                    for field in ('frame','x','logical_y','ppu_line')):
                 raise ValueError('cross-epoch QA08 stage')
-            rgb555=a['selected_rgb555']
-            if re.fullmatch(r'[0-7][0-9a-f]{3}',rgb555) is None:
-                raise ValueError('malformed QA08 source RGB555')
-            word=int(rgb555,16)
+            # Require real numeric source coordinates at every stage. Absent
+            # fields previously compared equal as None and admitted a source
+            # archive without any usable frame or beam provenance.
+            for stage in (a, b, c):
+                for field, limit in (('frame', 2**31 - 1), ('x', 511),
+                                     ('logical_y', 511), ('ppu_line', 511)):
+                    value = stage[field]
+                    if (re.fullmatch(r'(?:0|[1-9][0-9]*)', value) is None or
+                            int(value) > limit):
+                        raise ValueError('invalid QA08 source stage coordinate')
+            # Both PPU source substages must carry a valid RGB555 word;
+            # the second-stage colour was previously ignored entirely.
+            for stage in (a, b):
+                if re.fullmatch(r'[0-7][0-9a-f]{3}', stage['selected_rgb555']) is None:
+                    raise ValueError('malformed QA08 source RGB555')
+            word=int(a['selected_rgb555'],16)
             rgb=c['RGB8'].split(',')
             if len(rgb)!=3 or any(re.fullmatch(r'(?:0|[1-9][0-9]*)',v) is None for v in rgb):
                 raise ValueError('malformed QA08 final RGB8')

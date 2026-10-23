@@ -84,6 +84,10 @@ class PeerIslandDirectory:
             raise ValueError("invalid cache capacity")
         self._capacity = capacity
         self._entries: dict[str, Contact] = {}
+        # Keep process-local high-water even after expiration or bounded
+        # active-cache eviction. Never silently forget signed revocations.
+        # A durable independent anchor is still required across restarts.
+        self._high_water: dict[str, int] = {}
 
     def prune(self, now: int) -> None:
         if type(now) is not int or now < 0:
@@ -105,16 +109,20 @@ class PeerIslandDirectory:
             raise ValueError("invalid contact")
         entry.validate(now)
         self.prune(now)
-        previous = self._entries.get(entry.owner)
-        if previous is not None and previous.sequence >= entry.sequence:
-            # Neither replay nor same-epoch equivocation replaces a record.
+        highest = self._high_water.get(entry.owner)
+        if highest is not None and highest >= entry.sequence:
             return False
+        if highest is None and len(self._high_water) >= MAX_PEERS:
+            # Refuse new identities when retained replay barriers fill up.
+            return False
+        previous = self._entries.get(entry.owner)
         if previous is None and len(self._entries) >= self._capacity:
             # Deterministic bounded eviction, no privileged bootstraps.
             victim = min(self._entries.values(), key=lambda item:
                          (item.expires, item.issued, item.owner))
             del self._entries[victim.owner]
         self._entries[entry.owner] = entry
+        self._high_water[entry.owner] = entry.sequence
         return True
 
     def known(self, *, now: int) -> tuple[str, ...]:

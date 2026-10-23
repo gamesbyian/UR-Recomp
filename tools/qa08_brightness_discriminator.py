@@ -90,6 +90,7 @@ def parse(rows):
     if len(pairs)!=88 or stages!=Counter({'0':88,'1':88,'final':88}):
         raise ValueError('incomplete bounded sample')
     words=Counter()
+    frame_word_census={}
     frame_palette_snapshots={}
     for key, rec in pairs.items():
         main,sub,final=(rec[stage] for stage in ('0','1','final'))
@@ -133,6 +134,14 @@ def parse(rows):
         actual=tuple(int(c) for c in final['RGB8'].split(','))
         if actual!=expected:raise ValueError(f'brightness fit mismatch at {key}: {actual} != {expected}')
         words[word]+=1
+        frame_word_census.setdefault(frame,Counter())[word]+=1
+    # Each authenticated frame samples two pixels from each of the four
+    # grayscale source classes. A synthetically repinned archive must not
+    # preserve the global histogram by moving observations between frames.
+    if any(set(hist)!=set(('4210','4631','4a52','56b5')) or
+           any(count != 2 for count in hist.values())
+           for hist in frame_word_census.values()):
+        raise ValueError('QA08 per-frame four-class raster census contradiction')
     if len(words)!=4:raise ValueError('incomplete four-word palette census')
     return {'schema':'qa08-current-source-integer-brightness-fit/1',
             'source_triplets':88,'source_frames':11,
@@ -159,6 +168,30 @@ def _canonical_source_rows(blob):
             for line in lines)):
         raise ValueError('QA08 source log contains noncanonical row bytes')
     return [line.decode('ascii') for line in lines]
+
+
+def _chronological_source_rows(blob):
+    """Reject a re-pinned transcript whose chronological observer order changed.
+
+    The bounded original observer emits 0,1,final for each anchor, in the
+    observed frame and scanline order. Permuting valid lines must not create
+    a second representation of the same source-epoch transcript.
+    """
+    rows = _canonical_source_rows(blob)
+    anchors = sorted(ANCHORS, key=lambda xy: (xy[1], xy[0]))
+    expected = [(frame, xy[0], xy[1], stage)
+                for frame in sorted(FRAMES) for xy in anchors
+                for stage in ('0', '1', 'final')]
+    observed = []
+    for row in rows:
+        fields = dict(token.split('=', 1) for token in row.split()[1:])
+        stage = ('final' if row.startswith('UR_QA08_LATE_PPU_FINAL ')
+                 else fields.get('sub'))
+        observed.append((int(fields['frame']), int(fields['x']),
+                         int(fields['logical_y']), stage))
+    if observed != expected:
+        raise ValueError('QA08 source log chronological stage order contradiction')
+    return rows
 
 
 def _crc_witness(blob):
@@ -263,16 +296,32 @@ def _strict_zip_envelope(blob, archive):
     members = sorted(archive.infolist(), key=lambda member: member.header_offset)
     next_offset = 0
     for member in members:
+        if member.comment != b'':
+            raise ValueError('QA08 central-directory member comment is not canonical')
+        if (member.create_system != 3 or member.create_version != 45 or
+                member.internal_attr != 0):
+            raise ValueError('QA08 central-directory creator/version/attribute contradiction')
         local = member.header_offset
         if local != next_offset or blob[local:local+4] != b'PK\x03\x04':
             raise ValueError('QA08 unindexed local ZIP gap or header')
         if local + 30 > eocd:
             raise ValueError('QA08 local header out of bounds')
         fields = struct.unpack_from('<IHHHHHIIIHH', blob, local)
-        _, version, flags, method, _, _, _, _, _, name_len, extra_len = fields
+        (_, version, flags, method, dos_time, dos_date,
+         local_crc, local_csize, local_usize, name_len, extra_len) = fields
         name_start = local + 30
         data_start = name_start + name_len + extra_len
-        if (flags != member.flag_bits or method != member.compress_type or
+        year, month, day, hour, minute, second = member.date_time
+        expected_dos_date = ((year - 1980) << 9) | (month << 5) | day
+        expected_dos_time = (hour << 11) | (minute << 5) | (second // 2)
+        if (version != member.extract_version or flags != member.flag_bits or
+                method != member.compress_type or
+                (dos_time, dos_date) != (expected_dos_time, expected_dos_date) or
+                extra_len != 0 or member.extra != b'' or
+                (flags & 0x08 and (local_crc, local_csize, local_usize) != (0, 0, 0)) or
+                (not flags & 0x08 and
+                 (local_crc, local_csize, local_usize) !=
+                 (member.CRC, member.compress_size, member.file_size)) or
                 blob[name_start:name_start+name_len] != member.filename.encode('utf-8') or
                 data_start > eocd):
             raise ValueError('QA08 local member header contradiction')
@@ -311,7 +360,7 @@ def audit(path):
             raise ValueError('QA08 archive member type/size contradiction')
         if z.testzip() is not None:raise ValueError('ZIP CRC')
         _noninterference_witness(z)
-        return parse(_canonical_source_rows(z.read('on-source.log')))
+        return parse(_chronological_source_rows(z.read('on-source.log')))
 if __name__=='__main__':
     import sys
     print(json.dumps(audit(sys.argv[1]),indent=2,sort_keys=True))

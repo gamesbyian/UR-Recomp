@@ -113,11 +113,12 @@ class ModernRootLegibilityAudit(unittest.TestCase):
                 row = grid[ly * width:(ly + 1) * width]
                 rows += [row[c] if 0 <= c < width else (0, 0, 0) for c in cols]
             frame = d.Frame(p7(ow, oh, rows))
-            report = cc.evaluate(matrix[case_id], frame)
+            report = cc.evaluate(matrix[case_id], frame, require_ring=True)
             self.assertTrue(report["pass"], (case_id, report["checks"]))
             self.assertEqual(
                 sorted(c["check"] for c in report["checks"]),
-                ["action-safe", "logical-width", "output-size", "single-focus-bar"])
+                ["action-safe", "focus-ring", "logical-width", "output-size",
+                 "single-focus-bar"])
 
     def test_root_layout_within_action_safe_and_single_focus_bar(self):
         for width in (256, 342):

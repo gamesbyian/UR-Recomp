@@ -441,6 +441,30 @@ def focus_audit(frame: Frame, marker: tuple[int, int, int], scale: float,
             "pass": len(bars) == 1, **DISCLAIMER}
 
 
+FOCUS_RING_DARK = (0x0C, 0x0C, 0x18)
+FOCUS_RING_LIGHT = (0xF8, 0xF8, 0xF8)
+
+
+def focus_ring_audit(frame: Frame, bar, m: "Mapping") -> dict:
+    """The shared focus band's two-tone ring (kModernMenuFocusRing*): given a
+    located leading bar [x, y, w, h] in output pixels, sample the logical
+    pixels beside it and require dark outer / light inner lines at the top
+    and bottom edges (inset, so the row above and below stay untouched)."""
+    x0, y0, w, h = bar
+    top = int(m.logical_y(y0 + m.sy / 2))
+    bottom = int(m.logical_y(y0 + h - m.sy / 2))
+    lx = int(m.logical_x(x0 + w + m.sx * 3.5))  # clear of the 3px marker
+    px = lambda ly: frame.rgb(min(frame.width - 1, int(m.vx + (lx + 0.5) * m.sx)),
+                              min(frame.height - 1, int(m.vy + (ly + 0.5) * m.sy)))
+    samples = {"top_outer": px(top), "top_inner": px(top + 1),
+               "bottom_inner": px(bottom - 1), "bottom_outer": px(bottom)}
+    ok = (samples["top_outer"] == FOCUS_RING_DARK == samples["bottom_outer"]
+          and samples["top_inner"] == FOCUS_RING_LIGHT == samples["bottom_inner"])
+    return {"schema": SCHEMA, "check": "focus-ring", "input_sha256": frame.sha256,
+            "samples": {k: list(v) for k, v in samples.items()}, "pass": ok,
+            **DISCLAIMER}
+
+
 def local_contrast(frame: Frame, roi, foreground, threshold: float = 4.5,
                    radius: int = 2) -> dict:
     """Per text pixel: contrast against every distinct non-text colour within

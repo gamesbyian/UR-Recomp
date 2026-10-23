@@ -198,10 +198,20 @@ static inline int ur_display_default_window_scale(
         scale = requested >= (double)cap ? cap
               : requested >= 2.0 ? (int)requested : 2;
     }
-    while (scale > 2 && usable_w > 0 && usable_h > 0 &&
-           ((long long)scale * base_w * 10 > (long long)usable_w * 9 ||
-            (long long)scale * base_h * 10 > (long long)usable_h * 9))
-        --scale;
+    /* Compute the 90%-usable-area limit directly. The former decrement
+     * loop could run billions of iterations for an extreme cap and its
+     * scale*base*10 expression could overflow signed 64-bit arithmetic.
+     * Division keeps this constant-time and bounded for all int inputs. */
+    if (base_w <= 0 || base_h <= 0) return 2;
+    if (scale > 2 && usable_w > 0 && usable_h > 0) {
+        const long long fit_w =
+            (long long)usable_w * 9 / ((long long)base_w * 10);
+        const long long fit_h =
+            (long long)usable_h * 9 / ((long long)base_h * 10);
+        long long fit = fit_w < fit_h ? fit_w : fit_h;
+        if (fit < 2) fit = 2;
+        if ((long long)scale > fit) scale = (int)fit;
+    }
     return scale;
 }
 

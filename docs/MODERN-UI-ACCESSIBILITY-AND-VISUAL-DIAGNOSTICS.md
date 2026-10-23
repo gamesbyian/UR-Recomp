@@ -27,6 +27,8 @@ Policy encoded: body text and focused rows 4.5:1; intentionally dimmed unavailab
 
 Shared focus band (`modern_menu_paint_focus_band`) now also draws an inset two-tone ring (dark outer line, light inner line, one logical pixel each) beside the leading marker. Measured before the change: the dark band was 1.33:1 against the dark backdrop and its marker only 2.42:1 against the #808080 grey, so focus leaned on hue. For every stock backdrop grey at least one ring tone is now ≥3:1, pinned in `tests/native/modern_menu_visual_grammar_test.cpp`. Rows under six logical pixels tall keep the plain band.
 
+`qa_modern_visual_case_checks` adds a `focus-ring` check beside `single-focus-bar`: it samples the dark/light ring lines beside the located bar (`qa_modern_visual_diagnostics.focus_ring_audit`). Captures made before the ring existed fail it by design.
+
 Reduced motion resolves in `native/product/modern_reduced_motion_preference.hpp`: explicit `UR_REDUCED_MOTION=1|0` wins, otherwise the Windows "show animations" setting decides.
 
 ## Acceptance-matrix case checks

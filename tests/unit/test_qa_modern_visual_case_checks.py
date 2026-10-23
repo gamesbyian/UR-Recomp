@@ -26,6 +26,15 @@ def busy(w):
     return grid, h
 
 
+def put_band(grid, w, x, y, h=16):
+    """Focus bar plus the shared band's two-tone ring beside it."""
+    put(grid, w, x, y, 40, 1, d.FOCUS_RING_DARK)
+    put(grid, w, x, y + h - 1, 40, 1, d.FOCUS_RING_DARK)
+    put(grid, w, x, y + 1, 40, 1, d.FOCUS_RING_LIGHT)
+    put(grid, w, x, y + h - 2, 40, 1, d.FOCUS_RING_LIGHT)
+    put(grid, w, x, y, 3, h, BAR)
+
+
 class CaseChecksTest(unittest.TestCase):
     def test_every_matrix_case_has_a_plan(self):
         cases = cc.load_cases()
@@ -44,13 +53,14 @@ class CaseChecksTest(unittest.TestCase):
     def test_genuine_wide_root_passes_and_wrong_size_or_width_fails(self):
         case = cc.load_cases()["root-wide-720"]
         grid, h = busy(342)
-        put(grid, 342, 12, 60, 3, 16, BAR)
+        put_band(grid, 342, 12, 60)
         ok = cc.evaluate(case, render_fit(grid, 342, h, 1280, 720))
         self.assertTrue(ok["pass"], ok)
         self.assertEqual(ok["release_gate_credit"], 0)
         self.assertEqual(
             sorted(c["check"] for c in ok["checks"]),
-            ["action-safe", "logical-width", "output-size", "single-focus-bar"])
+            ["action-safe", "focus-ring", "logical-width", "output-size",
+             "single-focus-bar"])
         # right canvas, wrong output size
         bad = cc.evaluate(case, render_fit(grid, 342, h, 1920, 1080))
         self.assertFalse(bad["pass"])
@@ -58,7 +68,7 @@ class CaseChecksTest(unittest.TestCase):
                               if c["check"] == "output-size")["pass"])
         # a 256-wide source stretched into the 16:9 slot is not a wide source
         narrow, nh = busy(256)
-        put(narrow, 256, 12, 60, 3, 16, BAR)
+        put_band(narrow, 256, 12, 60)
         stretched = cc.evaluate(case, render_fit(narrow, 256, nh, 1280, 720))
         self.assertFalse(next(c for c in stretched["checks"]
                               if c["check"] == "logical-width")["pass"])
@@ -67,7 +77,7 @@ class CaseChecksTest(unittest.TestCase):
         none = cc.evaluate(case, render_fit(grid2, 342, h, 1280, 720))
         self.assertFalse(next(c for c in none["checks"]
                               if c["check"] == "single-focus-bar")["pass"])
-        put(grid, 342, 12, 120, 3, 16, BAR)
+        put_band(grid, 342, 12, 120)
         two = cc.evaluate(case, render_fit(grid, 342, h, 1280, 720))
         self.assertFalse(next(c for c in two["checks"]
                               if c["check"] == "single-focus-bar")["pass"])
@@ -75,7 +85,7 @@ class CaseChecksTest(unittest.TestCase):
     def test_compact_43_and_title_cases(self):
         cases = cc.load_cases()
         grid, h = busy(256)
-        put(grid, 256, 12, 60, 3, 16, BAR)
+        put_band(grid, 256, 12, 60)
         self.assertTrue(cc.evaluate(cases["root-43-768"],
                                     render_fit(grid, 256, h, 1024, 768))["pass"])
         # title: size + width only (different palette, no focus bar expected)
@@ -87,7 +97,7 @@ class CaseChecksTest(unittest.TestCase):
 
     def test_cli_pins_hash_and_rejects_unknown_case(self):
         grid, h = busy(342)
-        put(grid, 342, 12, 60, 3, 16, BAR)
+        put_band(grid, 342, 12, 60)
         frame = render_fit(grid, 342, h, 1280, 720)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "f.p7"

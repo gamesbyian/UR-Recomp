@@ -117,7 +117,8 @@ class ModernRootLegibilityAudit(unittest.TestCase):
             self.assertTrue(report["pass"], (case_id, report["checks"]))
             self.assertEqual(
                 sorted(c["check"] for c in report["checks"]),
-                ["action-safe", "logical-width", "output-size", "single-focus-bar"])
+                ["action-safe", "focus-ring", "logical-width", "output-size",
+                 "single-focus-bar"])
 
     def test_root_layout_within_action_safe_and_single_focus_bar(self):
         for width in (256, 342):

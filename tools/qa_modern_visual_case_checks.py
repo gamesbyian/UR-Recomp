@@ -86,6 +86,10 @@ def evaluate(case: dict, frame: d.Frame) -> dict:
                 for mk in FOCUS_MARKERS]
         total = sum(len(b) for b in bars)
         add("single-focus-bar", total == 1, {"bars_by_marker": bars})
+        if total == 1:
+            bar = next(b[0] for b in bars if b)
+            ring = d.focus_ring_audit(frame, bar, m)
+            add("focus-ring", ring["pass"], {"samples": ring["samples"]})
     return {"schema": "ur-modern-visual-case-v1", "case": case["id"],
             "input_sha256": frame.sha256, "checks": checks,
             "pass": all(c["pass"] for c in checks),

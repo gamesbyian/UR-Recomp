@@ -1,5 +1,10 @@
 name: Windows Visual Atlas (sharded opt-in capture)
 on:
+  # This sentinel changes once in the initial atlas PR; future heavy captures remain manual.
+  push:
+    branches: [main]
+    paths:
+      - "analysis/windows-visual-atlas-first-capture.request"
   pull_request:
     paths:
       - ".github/workflows/windows-visual-atlas.yml"
@@ -41,7 +46,7 @@ jobs:
         run: node --check tools/visual_atlas_web/atlas.js
   build-windows:
     needs: validate-atlas
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -104,7 +109,7 @@ jobs:
           retention-days: 7
   capture:
     needs: build-windows
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -134,7 +139,7 @@ jobs:
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --source-sha "$GITHUB_SHA" \
             --timeout 100 \
-            --workers "${{ inputs.workers_per_job }}" \
+            --workers "${{ inputs.workers_per_job || '2' }}" \
             --out "$RUNNER_TEMP/atlas-${{ matrix.shard }}"
       - name: Record coverage, including failed captures
         if: always()
@@ -158,7 +163,7 @@ jobs:
           retention-days: 14
   assemble:
     needs: capture
-    if: github.event_name == 'workflow_dispatch' && always() && needs.capture.result == 'success'
+    if: github.event_name != 'pull_request' && always() && needs.capture.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

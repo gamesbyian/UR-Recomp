@@ -30,6 +30,22 @@ class ScopedZipAuditTests(unittest.TestCase):
         self.assertFalse(report["source_publication_authorized"])
         self.assertEqual(report["release_gate_credit"], 0)
 
+    def test_explicit_leaf_git_blob_is_verified_without_extraction(self):
+        source = b"print('preserved')\n"
+        child = archive({"tools/source.py": source})
+        outer = archive({"evidence/child.zip": child})
+        report = audit.inspect(outer, ["evidence/child.zip"], leaf="tools/source.py")
+        leaf = report["leaf_member"]
+        self.assertEqual(leaf["bytes"], len(source))
+        self.assertTrue(leaf["crc_verified"])
+        self.assertEqual(leaf["sha256"], hashlib.sha256(source).hexdigest())
+        expected_git_sha = hashlib.sha1(
+            b"blob " + str(len(source)).encode() + b"\\0" + source
+        ).hexdigest()
+        self.assertEqual(leaf["git_blob_sha"], expected_git_sha)
+        with self.assertRaisesRegex(ValueError, "missing"):
+            audit.inspect(outer, ["evidence/child.zip"], leaf="absent.py")
+
     def test_paths_and_aliasing_are_rejected(self):
         for files in (
             {"../escape.py": b"x"},

@@ -39,6 +39,11 @@ void publish_competing_immutable_target() {
     check(out.good(), "competing immutable target created");
 }
 
+// An injected exception models process termination without running the
+// writer's normal private-stage cleanup. It is never used in production.
+struct SimulatedProcessDeath {};
+void die_at_publication_cut() { throw SimulatedProcessDeath{}; }
+
 int main() {
     const auto stamp = std::chrono::steady_clock::now()
                            .time_since_epoch().count();
@@ -73,6 +78,52 @@ int main() {
           "native Unicode recovery intent refuses occupied target");
     check(bytes(native_intent) == "original-intent",
           "native Unicode recovery intent retains incumbent bytes");
+    // A crash after stage flush but before canonical replacement must leave
+    // the old profile authoritative. A later cold writer ignores orphan stage.
+    const fs::path preclaim = unicode_dir / "preclaim-profile.txt";
+    check(ur::product::write_host_replace_staged(
+              preclaim, "last-committed", "urprofile"),
+          "preclaim crash fixture establishes committed profile");
+    bool preclaim_died = false;
+    try {
+        (void)ur::product::write_host_replace_staged(
+            preclaim, "staged-but-not-committed", "urprofile",
+            &die_at_publication_cut);
+    } catch (const SimulatedProcessDeath&) {
+        preclaim_died = true;
+    }
+    check(preclaim_died, "preclaim crash cut executed");
+    check(bytes(preclaim) == "last-committed",
+          "preclaim crash preserves last committed profile");
+    fs::path orphaned_stage;
+    for (const auto& item : fs::directory_iterator(unicode_dir)) {
+        if (item.path().filename().u8string().rfind(
+                ".pending-urprofile-", 0) == 0)
+            orphaned_stage = item.path();
+    }
+    check(!orphaned_stage.empty() &&
+              bytes(orphaned_stage / "record.tmp") == "staged-but-not-committed",
+          "preclaim crash leaves private, non-authoritative staged bytes");
+    check(ur::product::write_host_replace_staged(
+              preclaim, "cold-restart-commit", "urprofile"),
+          "cold writer can publish despite orphaned private stage");
+    check(bytes(preclaim) == "cold-restart-commit" &&
+              fs::exists(orphaned_stage),
+          "cold writer never promotes or deletes unrelated crash debris");
+
+    // A crash after the atomic claim is a committed write even if the
+    // writer never reaches private-stage cleanup or returns success.
+    const fs::path postclaim = unicode_dir / "postclaim-profile.txt";
+    bool postclaim_died = false;
+    try {
+        (void)ur::product::write_host_replace_staged(
+            postclaim, "committed-before-crash", "urprofile",
+            nullptr, nullptr, &die_at_publication_cut);
+    } catch (const SimulatedProcessDeath&) {
+        postclaim_died = true;
+    }
+    check(postclaim_died && bytes(postclaim) == "committed-before-crash",
+          "postclaim crash retains visible committed profile bytes");
     const fs::path raced_intent = unicode_dir / "raced-intent.pending";
     competing_immutable_target = raced_intent;
     check(!ur::product::write_host_create_staged_native(

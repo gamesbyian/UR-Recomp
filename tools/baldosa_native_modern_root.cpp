@@ -1789,12 +1789,12 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are the decimal strings "1".."18" and nothing else.
+    // Smoke modes are the decimal strings "1".."19" and nothing else.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 18) return;
+            mode < 1 || mode > 19) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2069,6 +2069,51 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // All stock menu transitions still occur inside the original guest.
     // The real direct gamepad entrypoints and physical-edge latches are
     // exercised; exact real-device routing needs independent QA later.
+
+    // CI-only mode 19: two independently seated SDL3 virtual pads confirm
+    // both players. Keyboard opens the join but confirms neither racer.
+    // The real guest must reach 0x3d; this is not physical-controller QA.
+    if (std::strcmp(opt, "19") == 0) {
+#if SNESRECOMP_SDL3
+        static SDL_Joystick* pads[2] = {};
+        if (frame == 50u || frame == 52u) {
+            const int i = frame == 50u ? 0 : 1;
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.vendor_id = 0x1209;
+            desc.product_id = static_cast<Uint16>(0x5541 + i);
+            desc.name = i ? "UR two-pad P2" : "UR two-pad P1";
+            const SDL_JoystickID id = SDL_AttachVirtualJoystick(&desc);
+            pads[i] = id ? SDL_OpenJoystick(id) : nullptr;
+            if (!pads[i]) std::abort();
+            return;
+        }
+        if (frame == 60u || frame == 62u || frame == 64u) {
+            SDL_Event event{};
+            event.type = SDL_KEYDOWN;
+            event.key.key = frame == 64u ? SDLK_RETURN : SDLK_DOWN;
+            if (SDL_PushEvent(&event) != 1) std::abort();
+            event.type = SDL_KEYUP;
+            if (SDL_PushEvent(&event) != 1) std::abort();
+            return;
+        }
+        if (frame == 68u || frame == 69u ||
+            frame == 72u || frame == 73u) {
+            const int i = frame >= 72u ? 1 : 0;
+            const bool down = frame == 68u || frame == 72u;
+            if (!pads[i] || !SDL_SetJoystickVirtualButton(
+                    pads[i], SDL_GAMEPAD_BUTTON_SOUTH, down))
+                std::abort();
+            return;
+        }
+#else
+        std::abort();  // SDL virtual pads require SDL3.
+#endif
+        return;
+    }
     // TEST ONLY modes 15/16 (#2225): SDL virtual pads seated by the host's
     // own hotplug path, pressed through the real event loop, while the
     // keyboard opens the 2P join exactly as in mode 3.

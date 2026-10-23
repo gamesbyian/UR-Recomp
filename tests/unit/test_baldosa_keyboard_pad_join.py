@@ -138,6 +138,47 @@ class KeyboardPadJoinTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "unexpected"):
                     runner.reject_unexpected_stock_route(invalid, "cancelled")
 
+
+    def test_two_virtual_pads_require_distinct_host_seats_and_guest_entry(self):
+        seat0 = ("[Gamepad] UR_CONTROLLER_SEAT assign instance=41 seat=0 "
+                 "reason=vacant player_index=0 key=0000000000000041")
+        seat1 = ("[Gamepad] UR_CONTROLLER_SEAT assign instance=42 seat=1 "
+                 "reason=vacant player_index=1 key=0000000000000042")
+        stages = (
+            "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+        )
+        valid = "\n".join((seat0, seat1, *stages)) + "\n"
+        runner.verify_two_virtual_pads(valid)
+        for invalid in (
+            valid.replace(seat1 + "\n", ""),
+            valid.replace("instance=42", "instance=41"),
+            valid.replace("seat=1 reason=", "seat=0 reason="),
+            valid.replace(stages[-1] + "\n", ""),
+            valid.replace(stages[-1], stages[-1] + "0"),
+            valid.replace(seat0 + "\n", "").replace(
+                stages[0], stages[0] + "\n" + seat0),
+            valid + "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2\n",
+            valid + "UR_BALDOSA_MODERN_ROOT stock_rejected=timeout\n",
+        ):
+            with self.subTest(invalid=invalid[-120:]):
+                with self.assertRaises(ValueError):
+                    runner.verify_two_virtual_pads(invalid)
+
+    def test_two_virtual_pad_mode_uses_host_event_pump(self):
+        source = body('extern "C" void ur_baldosa_modern_root_after_run_frame(')
+        mode = source[source.index('if (std::strcmp(opt, "19") == 0)'):]
+        mode = mode[:mode.index('    // TEST ONLY modes 15/16')]
+        for token in ("SDL_AttachVirtualJoystick", "SDL_OpenJoystick",
+                      "SDL_SetJoystickVirtualButton", "SDL_GAMEPAD_BUTTON_SOUTH",
+                      "frame == 68u", "frame == 72u", "SDL_PushEvent"):
+            self.assertIn(token, mode)
+        for forbidden in ("g_ram[", "join_confirm(", "ur_baldosa_modern_root_gamepad("):
+            self.assertNotIn(forbidden, mode)
+
     def test_runner_order_check_fails_closed(self):
         runner.ordered("a\nb\n", ("a", "b"), "ok")
         with self.assertRaisesRegex(ValueError, "out of order"):

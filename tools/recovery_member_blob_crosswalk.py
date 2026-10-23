@@ -14,8 +14,11 @@ from pathlib import Path, PurePosixPath
 import re
 import stat
 import subprocess
+import unicodedata
 import zipfile
 import zlib
+
+from strict_vault_manifest import _portable_win32_component
 
 SHA40 = re.compile(r'[0-9a-f]{40}\Z')
 SOURCE_SUFFIXES = ('.py', '.c', '.cc', '.cpp', '.cxx', '.h', '.hpp', '.hh', '.rs', '.js', '.ts', '.tsx', '.sh', '.ps1', '.yml', '.yaml', '.cmake')
@@ -81,6 +84,9 @@ def crosswalk(archive, tree_output, *, max_depth=2):
                     if (not name or info.is_dir() or path.is_absolute() or
                             '..' in path.parts or '\\' in name or '\x00' in name or
                             any(part in ('', '.', '..') for part in name.split('/')) or
+                            unicodedata.normalize('NFC', name) != name or
+                            any(unicodedata.category(ch) == 'Cs' for ch in name) or
+                            any(not _portable_win32_component(part) for part in name.split('/')) or
                             info.flag_bits & 1 or
                             stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG)):
                         raise ValueError('unsafe ZIP member')
@@ -111,6 +117,15 @@ def crosswalk(archive, tree_output, *, max_depth=2):
                                          'status': 'exact_git_blob_observed' if paths else 'unmatched_needs_review',
                                          'git_paths': paths,
                                          'same_path': name in paths})
+                # A ZIP file member cannot simultaneously be a directory
+                # prefix for another member in a portable source checkout.
+                # Validate each nested archive independently, before emitting
+                # even an advisory current-Git equivalence result.
+                for folded_name in seen:
+                    parts = folded_name.split('/')
+                    for stop in range(1, len(parts)):
+                        if '/'.join(parts[:stop]) in seen:
+                            raise ValueError('portable ZIP file/directory prefix collision')
         except (zipfile.BadZipFile, zipfile.LargeZipFile, EOFError, NotImplementedError, zlib.error) as exc:
             raise ValueError('invalid or corrupt source ZIP') from exc
 

@@ -222,7 +222,7 @@ int main() {
             profile_dir, f.profile, typed, true, raw));
         assert(archive_baldosa_manual_sram_choice(
             profile_dir, f.profile, typed, true, raw));
-        const std::string opaque("malformed\\0intent", 16);
+        const std::string opaque("malformed\0intent", 16);
         assert(archive_baldosa_untrusted_sram_intent(
             profile_dir, f.profile, opaque));
         assert(archive_baldosa_untrusted_sram_intent(

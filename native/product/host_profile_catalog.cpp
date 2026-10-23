@@ -272,7 +272,7 @@ HostProfileCatalogSaveStatus save_host_profile_catalog_file_if_current(
     // and publication must happen under ONE persistent OS-handle lock.
     // Ordinary last-writer-wins saves exist for isolated fixtures/migration,
     // but production roster mutation must use this conflict-aware entrypoint.
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProfileCatalogSaveStatus::IoError;
     const auto current = load_host_profile_catalog_file(path);
     if (!current) return HostProfileCatalogSaveStatus::IoError;

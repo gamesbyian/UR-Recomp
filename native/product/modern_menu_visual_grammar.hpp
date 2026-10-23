@@ -42,6 +42,12 @@ inline constexpr std::uint32_t kModernMenuCheckerLegibleGrey = 0xFFC8C8C8u;
 
 inline constexpr std::uint32_t kModernMenuCursorLight = 0xFFA0D0F8u;
 inline constexpr std::uint32_t kModernMenuCursorDark = 0xFF283058u;
+// Two-tone focus ring (outer dark, inner light) so the focused row stays
+// distinguishable from ANY neighbouring backdrop at >=3:1 without relying
+// on hue or the spinning cursor: the dark line separates the light line
+// from a light backdrop, the light line carries over a dark one.
+inline constexpr std::uint32_t kModernMenuFocusRingDark = 0xFF0C0C18u;
+inline constexpr std::uint32_t kModernMenuFocusRingLight = 0xFFF8F8F8u;
 // Captured stock cursor is two distinct 32x32 OBJs: blue arrow palette 7,
 // maroon drop-shadow palette 5 at +7,+7. This exact 72/32/48 shade belongs
 // inside the 39x39 composited original sheet; do NOT paint a second shadow
@@ -293,6 +299,21 @@ inline void modern_menu_paint_focus_band(
         scale < 1 || scale > 4) return;
     paint.fill_rect(pixels, stride, surface_height, x, y, width, height,
                     0xE0283058u);
+    // Two-tone ring, inset inside the band so no neighbouring row changes.
+    // Rows too small to hold it keep the plain band and leading marker.
+    if (height >= 6 * scale && width >= 8 * scale) {
+        const auto ring = [&](std::uint32_t colour, int inset) {
+            const int t = scale;
+            const int rx = x + inset, ry = y + inset;
+            const int rw = width - 2 * inset, rh = height - 2 * inset;
+            paint.fill_rect(pixels, stride, surface_height, rx, ry, rw, t, colour);
+            paint.fill_rect(pixels, stride, surface_height, rx, ry + rh - t, rw, t, colour);
+            paint.fill_rect(pixels, stride, surface_height, rx, ry, t, rh, colour);
+            paint.fill_rect(pixels, stride, surface_height, rx + rw - t, ry, t, rh, colour);
+        };
+        ring(kModernMenuFocusRingDark, 0);
+        ring(kModernMenuFocusRingLight, scale);
+    }
     const int marker_width = 3 * scale > width ? width : 3 * scale;
     paint.fill_rect(pixels, stride, surface_height,
                     x, y, marker_width, height,

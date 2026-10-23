@@ -322,7 +322,13 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
                     receipt, prior_digest = valid_receipt(entry, previous, source, exe_digest)
                     # The exact prior source and PE are a hard requirement.
                     # A failure marker or incomplete prior result is never reused.
-                    if prior_digest == exe_digest:
+                    try:
+                        from tools.windows_visual_atlas_intake import witness
+                    except ModuleNotFoundError:
+                        from windows_visual_atlas_intake import witness
+                    # A hash-consistent receipt alone is insufficient. Require
+                    # the previous raw final-SDL capture and original log too.
+                    if prior_digest == exe_digest and witness(receipt, previous):
                         location.mkdir()
                         for name in ("readback-receipt.json", "actual-sdl-drawable.png"):
                             shutil.copyfile(previous / name, location / name)

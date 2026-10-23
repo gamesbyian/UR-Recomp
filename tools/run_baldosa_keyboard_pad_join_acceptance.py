@@ -99,6 +99,22 @@ def verify_two_virtual_pads(log: str) -> None:
         raise ValueError("two virtual pads: two distinct host seats not observed")
     if any(pos >= log.index(stages[0]) for _, _, pos in assignments):
         raise ValueError("two virtual pads: host seating followed join opening")
+    # Two initial assignments do not establish continuing ownership. A
+    # vacated/moved/reclaimed seat before real guest admission invalidates
+    # the two-independent-pad journey even if later root milestones appear.
+    # Teardown after the guest transition is outside this admission window.
+    stock_entry = log.index(stages[-1])
+    first_assignment = min(pos for _, _, pos in assignments)
+    churn = re.search(
+        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT "
+        r"(?:vacate|move|claim)\b[^\r\n]*$",
+        log[first_assignment:stock_entry],
+    )
+    if churn:
+        raise ValueError(
+            "two virtual pads: host seat ownership changed before admission: "
+            + churn.group(0)
+        )
     for forbidden in ("join_pad_moved", "join_seat_left", "join_rejected",
                       "stock_rejected=", "stock_requested players=1",
                       "stock_entered players=1", "lone_pad_promoted"):

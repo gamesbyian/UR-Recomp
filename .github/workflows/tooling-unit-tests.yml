@@ -25,6 +25,10 @@ on:
       # Multiplayer pair publication shares the UTF-8 run store and codec.
       - "native/product/multiplayer_match_record.*"
       - "tests/native/multiplayer_match_record_test.cpp"
+      - "native/product/multiplayer_match_catalog.*"
+      - "tests/native/multiplayer_match_catalog_test.cpp"
+      - "native/product/baldosa_native_multiplayer_records_summary.*"
+      - "tests/native/baldosa_native_multiplayer_records_summary_test.cpp"
       - "native/product/local_tournament_utf8_path.hpp"
       - "native/product/completed_run_ghost_target.hpp"
       - "native/product/display_treatment_policy.hpp"

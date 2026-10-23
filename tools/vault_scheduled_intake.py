@@ -52,6 +52,12 @@ def read_checkpoint(path: Path | None) -> dict:
             datetime.fromisoformat(item["audited_at"].replace("Z", "+00:00"))
         except ValueError as exc:
             raise ValueError("invalid checkpoint timestamp") from exc
+    failures = doc.get("failures", {})
+    if not isinstance(failures, dict) or len(failures) > MAX_RETAINED_IDS:
+        raise ValueError("invalid checkpoint failures")
+    for file_id, record in failures.items():
+        if not ID_PATTERN.fullmatch(file_id) or not isinstance(record, dict):
+            raise ValueError("invalid failed-file checkpoint entry")
     return doc
 
 
@@ -70,7 +76,8 @@ def should_refresh(entry: dict, cached: dict | None, now: datetime,
 
 
 def make_queue(entries: list[dict], prior: dict, now: datetime,
-               refresh_days: int, forced_id: str | None = None):
+               refresh_days: int, forced_id: str | None = None,
+               recent_failures: set[str] | None = None):
     if forced_id and forced_id not in {entry["id"] for entry in entries}:
         raise ValueError("requested file ID missing from public folder")
     due = []
@@ -86,7 +93,9 @@ def make_queue(entries: list[dict], prior: dict, now: datetime,
     if forced_id:
         due = [item for item in due if item["id"] == forced_id]
     # ZIPs precede text pointers; first-time candidates precede stale refreshes.
+    recent_failures = recent_failures or set()
     due.sort(key=lambda item: (
+        item["id"] in recent_failures,
         item["reason"] == "refresh_due",
         not item["path"].lower().endswith(".zip"),
         item["path"].casefold(), item["id"],
@@ -118,7 +127,9 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
     if not entries:
         raise ValueError("empty public folder listing; refusing to publish empty state")
     previous_items = dict(checkpoint["items"])
-    due, skipped = make_queue(entries, previous_items, now, refresh_days, forced_id)
+    previous_failures = dict(checkpoint.get("failures", {}))
+    due, skipped = make_queue(entries, previous_items, now, refresh_days,
+                              forced_id, set(previous_failures))
     if git_tree is None:
         git_tree = subprocess.run(
             ["git", "ls-tree", "-r", "-z", "HEAD"],
@@ -156,6 +167,7 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
                                            "bytes": result["bytes"]})
                 continue
             report["processed"].append(result)
+            previous_failures.pop(item["id"], None)
             report["downloaded_bytes"] += result["bytes"]
             zip_info = result.get("zip") or {}
             crosswalk = zip_info.get("crosswalk") or {}
@@ -171,8 +183,12 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             report["errors"].append({"id": item["id"], "path": item["path"],
                                      "error": str(exc)[:320]})
+            previous_failures[item["id"]] = {"path": item["path"],
+                                             "last_attempt": now.isoformat(),
+                                             "error": str(exc)[:320]}
     new_checkpoint = {
         "schema": SCHEMA, "saved_at": now.isoformat(), "items": previous_items,
+        "failures": previous_failures,
     }
     report["remaining_due"] = len(report["deferred"]) + len(report["errors"])
     report["verified_total"] = len(previous_items)

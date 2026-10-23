@@ -8,6 +8,7 @@ This tool never modifies host/gameplay/ROM bytes and never grants release QA.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 from pathlib import Path
@@ -45,7 +46,10 @@ def load_catalog(path: Path = CATALOG) -> dict:
 def validate(catalog: dict, *, art_directory: Path = ART) -> list[dict]:
     # Import the actual driver route vocabulary so the atlas cannot silently
     # refer to renamed/imaginary fixture routes.
-    from tools.qa_modern_visual_win32_capture_driver import ROUTES
+    try:
+        from tools.qa_modern_visual_win32_capture_driver import ROUTES
+    except ModuleNotFoundError:  # python tools/windows_visual_atlas.py
+        from qa_modern_visual_win32_capture_driver import ROUTES
     seen: set[str] = set()
     entries = catalog["entries"]
     if not entries:
@@ -182,7 +186,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
 
 
 def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
-                  target: Path, source: str, timeout: int) -> int:
+                  target: Path, source: str, timeout: int, workers: int = 2) -> int:
     entries = validate(catalog)
     if shard not in SHARDS or not re.fullmatch(r"[0-9a-f]{40}", source):
         raise ValueError("Invalid shard or source SHA")
@@ -192,8 +196,9 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
     matched = [x for x in entries if x.get("capture", {}).get("shard") == shard]
     if not matched:
         raise ValueError("No capture entries assigned to shard")
-    results = []
-    for entry in matched:
+    if workers not in (1, 2):
+        raise ValueError('Native process worker count must be 1 or 2')
+    def run_case(entry: dict) -> dict:
         location = target / "captures" / entry["id"]
         location.parent.mkdir(parents=True, exist_ok=True)
         cmd = [
@@ -217,8 +222,13 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
                 "id": entry["id"], "status": "failed", "reason": str(exc)[:1800]
             }, indent=2) + "\n", encoding="utf-8")
             status = "failed"
-        results.append({"id": entry["id"], "result": status})
-        print(entry["id"], status, flush=True)
+        return {"id": entry["id"], "result": status}
+    # Bound resident native processes to at most two per Windows runner.
+    # Each process owns independent screenshot, config and user-data paths.
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(run_case, matched))
+    for result in results:
+        print(result["id"], result["result"], flush=True)
     (target / "shard-summary.json").write_text(json.dumps({
         "shard": shard, "source_sha": source, "results": results,
         "release_gate_credit": 0,
@@ -243,6 +253,7 @@ def main() -> int:
     capture.add_argument("--out", required=True, type=Path)
     capture.add_argument("--source-sha", required=True)
     capture.add_argument("--timeout", type=int, default=100)
+    capture.add_argument("--workers", type=int, choices=(1, 2), default=2)
     args = parser.parse_args()
     try:
         catalog = load_catalog()
@@ -254,7 +265,8 @@ def main() -> int:
             if not (5 <= args.timeout <= 180):
                 raise ValueError("Capture timeout must be 5..180 seconds")
             return capture_shard(catalog, shard=args.shard, exe=args.exe, rom=args.rom,
-                                 target=args.out, source=args.source_sha, timeout=args.timeout)
+                                 target=args.out, source=args.source_sha, timeout=args.timeout,
+                                 workers=args.workers)
         return 0
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print("WINDOWS_VISUAL_ATLAS_REJECTED:", exc, file=sys.stderr)

@@ -52,6 +52,9 @@ def ordered(log: str, stages: tuple[str, ...], label: str) -> None:
 
 def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     exe, rom, out = exe.resolve(strict=True), rom.resolve(strict=True), out.resolve()
+    # The product ignores pads while the window is unfocused (#2334); a hosted
+    # window may never get focus, so these virtual-pad runs opt back in.
+    os.environ["SNESRECOMP_UR_BACKGROUND_PAD_INPUT"] = "1"
     if out.exists():
         raise ValueError("output directory must not pre-exist")
     out.mkdir(parents=True)

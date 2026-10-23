@@ -519,7 +519,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-controller-lifecycle" \
             --video windows --timeout 120
-          echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap. Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap; with the product default a pad press is ignored while the window is unfocused (see receipt for not_exercised). Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE, Modern root with a two-racer roster: keyboard P1 plus
       # one pad must form a 2P join (the pad moves to seat 2), and a P2 whose

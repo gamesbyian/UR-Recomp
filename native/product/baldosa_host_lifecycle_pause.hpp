@@ -15,9 +15,10 @@ namespace ur::product {
 // (controller_hotplug_policy.hpp, focus_pause_policy.hpp); this only turns
 // per-frame observations into at most one pause request.
 //
-// Focus loss is edge-triggered: one pause per loss of focus. The pinned
-// host accepts background controller events, so a level-triggered pause
-// would make resuming with a pad impossible while another window has focus.
+// Focus loss is edge-triggered: one pause per loss of focus. Pads are
+// ignored while the window is unfocused (#2334), but test runs may opt back
+// in to background pad input; a level-triggered pause would then make
+// resuming with a pad impossible while another window has focus.
 // A disconnect latches once and is consumed at the next completed frame,
 // pausing only on a live race surface (never carried into a later race).
 // Authentic execution never pauses. No SDL types, no guest access.

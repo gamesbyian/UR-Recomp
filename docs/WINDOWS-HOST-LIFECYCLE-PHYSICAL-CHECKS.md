@@ -43,7 +43,8 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | # | Do | Expect | Log |
 |---|---|---|---|
 | F1 | Alt-tab away mid-race (Pause on Focus Loss is on by default). | The race pauses once. | `UR_BALDOSA_LIFECYCLE_PAUSE reason=focus_loss` |
-| F2 | While another window still has focus, resume with the pad. | It resumes and does **not** immediately pause again. | no second `focus_loss` until focus returns and is lost again |
+| F2 | While another window still has focus, press buttons on the pad. Then click the game (or alt-tab back) and resume with the pad. | Nothing happens while the other window has focus. After focus returns, it resumes and does **not** immediately pause again. | no second `focus_loss` until focus returns and is lost again |
+| F4 | At the main Modern menu, press the pad's Xbox/Guide button to open the Xbox Game Bar (or open the Steam or Discord overlay) and move around in it with the pad. Close it. Repeat mid-race. | The game's menu cursor does not move behind the overlay. Mid-race, the game pauses and stays paused while you use the overlay. | `focus_loss` once, no resume while the overlay is open |
 | F3 | Do F1 in exclusive FULLSCREEN. | The game minimizes and pauses. Clicking it restores the same mode. | `focus_loss` |
 
 ## Session

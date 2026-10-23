@@ -50,7 +50,7 @@ jobs:
         run: node --check tools/visual_atlas_web/atlas.js
   build-windows:
     needs: validate-atlas
-    if: inputs.reuse_build_run_id == ''
+    if: github.event_name == 'push' || inputs.reuse_build_run_id == ''
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -113,7 +113,7 @@ jobs:
           retention-days: 7
   reuse-windows:
     needs: validate-atlas
-    if: inputs.reuse_build_run_id != ''
+    if: github.event_name == 'workflow_dispatch' && inputs.reuse_build_run_id != ''
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

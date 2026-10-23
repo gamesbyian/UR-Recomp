@@ -49,6 +49,8 @@ class ScopedZipAuditTests(unittest.TestCase):
     def test_paths_and_aliasing_are_rejected(self):
         for files in (
             {"../escape.py": b"x"},
+            {"CON.py": b"x"},
+            {"weird:ads.py": b"x"},
             {"foo.py": b"x", "FOO.py": b"x"},
             {"package.py": b"x", "package.py/child.zip": b"y"},
         ):

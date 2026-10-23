@@ -293,6 +293,8 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
                     if (receipt["png_sha256"] != approval.get("png_sha256")
                             or receipt["exe_sha256"] != approval.get("exe_sha256")):
                         raise ValueError(f"{entry['id']}: approved incidental digest drift")
+                    if not witness(receipt, stock):
+                        raise ValueError(f"{entry['id']}: approved incidental missing native P7/log witness")
                     image_name = entry["id"] + ".png"
                     shutil.copyfile(stock / "actual-sdl-drawable.png",
                                     target / "images" / image_name)

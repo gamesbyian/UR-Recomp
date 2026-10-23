@@ -215,7 +215,9 @@ jobs:
           retention-days: 14
   assemble:
     needs: capture
-    if: github.event_name != 'pull_request' && always() && needs.capture.result == 'success'
+    if: >-
+      always() && (needs.capture.result == 'success' ||
+                   needs.capture.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

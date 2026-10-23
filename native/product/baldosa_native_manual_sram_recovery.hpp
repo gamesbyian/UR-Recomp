@@ -88,7 +88,7 @@ inline bool archive_baldosa_manual_sram_choice(
                         std::istreambuf_iterator<char>()) == bytes &&
             !in.bad();
     }
-    return write_host_create_staged(archive.string(), bytes, "manual-archive");
+    return write_host_create_staged_native(archive, bytes, "manual-archive");
 }
 
 // A malformed pending transaction has NO replay authority. An explicit
@@ -126,8 +126,8 @@ inline bool archive_baldosa_untrusted_sram_intent(
                         std::istreambuf_iterator<char>()) == framed &&
             !in.bad();
     }
-    return write_host_create_staged(
-        archive.string(), framed, "untrusted-sram-intent");
+    return write_host_create_staged_native(
+        archive, framed, "untrusted-sram-intent");
 }
 
 inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
@@ -156,18 +156,18 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
         !baldosa_native_real_file(catalog) ||
         !baldosa_native_real_file(typed))
         return Status::Rejected;
-    TournamentLaunchPathLock selector_lock(selector.string(), true);
+    TournamentLaunchPathLock selector_lock(selector, true);
     if (!selector_lock.acquired()) return Status::BusyOrIoError;
-    TournamentLaunchPathLock catalog_lock(catalog.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog, true);
     if (!catalog_lock.acquired()) return Status::BusyOrIoError;
-    TournamentLaunchPathLock typed_lock(typed.string(), true);
+    TournamentLaunchPathLock typed_lock(typed, true);
     if (!typed_lock.acquired()) return Status::BusyOrIoError;
 
     const bool has_pending = !baldosa_sram_entry_missing(pending);
-    const auto global = load_host_product_state_file(selector.string());
-    const auto roster = load_host_profile_catalog_file(catalog.string());
+    const auto global = load_host_product_state_file(selector.u8string());
+    const auto roster = load_host_profile_catalog_file(catalog.u8string());
     const auto profile = load_host_profile_state_file(
-        ExecutionMode::Modern, typed.string(), expected_active);
+        ExecutionMode::Modern, typed.u8string(), expected_active);
     if (!global.loaded() || !global.state->active_profile_id ||
         *global.state->active_profile_id != expected_active ||
         !roster || !profile.loaded() ||
@@ -280,7 +280,7 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
         const auto& known = *profile.state->stock_sram;
         const std::string bytes(
             reinterpret_cast<const char*>(known.data()), known.size());
-        if (!write_host_replace_staged(raw.string(), bytes, "restore-sram") ||
+        if (!write_host_replace_staged(raw, bytes, "restore-sram") ||
             !baldosa_sram_file_matches_exact(raw, known.data(), known.size()))
             return Status::BusyOrIoError;
         if (has_pending) {
@@ -301,7 +301,7 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
             raw_bytes.size()) != HostProfileTransferStatus::Applied)
         return Status::Rejected;
     if (save_host_profile_state_file_if_current_under_lock(
-            ExecutionMode::Modern, typed.string(), *profile.state, next) !=
+            ExecutionMode::Modern, typed.u8string(), *profile.state, next) !=
         HostProfileSaveStatus::Saved)
         return Status::BusyOrIoError;
     return Status::RestoredRaw;

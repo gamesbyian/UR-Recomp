@@ -29,6 +29,16 @@ std::string bytes(const fs::path& path) {
             std::istreambuf_iterator<char>()};
 }
 
+fs::path competing_immutable_target;
+void publish_competing_immutable_target() {
+    // Deterministic hostile-writer interleaving after our private stage has
+    // been flushed, but before its no-replace claim of the canonical name.
+    std::ofstream out(competing_immutable_target, std::ios::binary);
+    out << "rival-writer";
+    out.flush();
+    check(out.good(), "competing immutable target created");
+}
+
 int main() {
     const auto stamp = std::chrono::steady_clock::now()
                            .time_since_epoch().count();
@@ -63,6 +73,19 @@ int main() {
           "native Unicode recovery intent refuses occupied target");
     check(bytes(native_intent) == "original-intent",
           "native Unicode recovery intent retains incumbent bytes");
+    const fs::path raced_intent = unicode_dir / "raced-intent.pending";
+    competing_immutable_target = raced_intent;
+    check(!ur::product::write_host_create_staged_native(
+              raced_intent, "must-not-replace-rival", "sram-intent",
+              &publish_competing_immutable_target),
+          "immutable intent refuses target created after staging");
+    check(bytes(raced_intent) == "rival-writer",
+          "competing immutable claim retains exact rival bytes");
+    for (const auto& item : fs::directory_iterator(unicode_dir)) {
+        check(item.path().filename().u8string().rfind(
+                  ".pending-sram-intent-", 0) != 0,
+              "failed immutable claim cleans private staging");
+    }
     check(write_tournament_replace_staged(
               destination.string(), "original", "urlaunch"),
           "establish a valid incumbent before syncing failure");

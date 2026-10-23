@@ -60,9 +60,15 @@ def policy_scale(content: float, base_w: int, base_h: int, usable_w: int,
     if math.isfinite(content) and content > 0:
         requested = 2.0 * content + 0.5
         scale = cap if requested >= cap else max(2, int(requested))
-    while (scale > 2 and usable_w > 0 and usable_h > 0 and
-           (scale * base_w * 10 > usable_w * 9 or scale * base_h * 10 > usable_h * 9)):
-        scale -= 1
+    # The native helper computes the fit in constant time, including for a
+    # corrupted/extreme maximum. Avoid a decrement loop over billions of
+    # scale steps; invalid base dimensions fall back to the old 2x default.
+    if base_w <= 0 or base_h <= 0:
+        return 2
+    if scale > 2 and usable_w > 0 and usable_h > 0:
+        fit_w = usable_w * 9 // (base_w * 10)
+        fit_h = usable_h * 9 // (base_h * 10)
+        scale = min(scale, max(2, min(fit_w, fit_h)))
     return scale
 
 

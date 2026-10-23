@@ -1,6 +1,7 @@
 #include "host_profile_catalog.hpp"
 #include "local_tournament_atomic_replace.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 #include "host_product_state.hpp"
 #include "host_profile_runtime.hpp"
 
@@ -159,19 +160,21 @@ bool save_host_profile_catalog_file(
     if (path.empty() || encoded.empty() ||
         encoded.size() > kMaxCatalogBytes) return false;
 
+    const auto native_path = host_native_path_from_utf8(path);
+
     // Malformed persisted metadata is read-only. Never "recover" by
     // overwriting it with an apparently empty in-memory catalog.
     std::error_code exists_ec;
-    if (std::filesystem::exists(path, exists_ec)) {
+    if (std::filesystem::exists(native_path, exists_ec)) {
         if (exists_ec) return false;
         // A corrupted or interrupted upgrade can leave an oversized
         // catalog. Validate the byte ceiling BEFORE reading it; the save
         // path must not allocate unbounded memory while checking whether
         // it is safe to overwrite legacy metadata.
         std::error_code size_ec;
-        const auto size = std::filesystem::file_size(path, size_ec);
+        const auto size = std::filesystem::file_size(native_path, size_ec);
         if (size_ec || size > kMaxCatalogBytes) return false;
-        std::ifstream existing(path, std::ios::binary);
+        std::ifstream existing(native_path, std::ios::binary);
         if (!existing) return false;
         const auto prior = read_bounded_catalog(existing);
         if (!prior || !decode_host_profile_catalog(*prior)) return false;
@@ -179,21 +182,22 @@ bool save_host_profile_catalog_file(
         return false;
     }
 
-    return write_host_replace_staged(path, encoded, "urcatalog");
+    return write_host_replace_staged(native_path, encoded, "urcatalog");
 }
 
 std::optional<std::vector<HostProfileCatalogEntry>> load_host_profile_catalog_file(
     const std::string& path) {
     if (path.empty()) return std::nullopt;
+    const auto native_path = host_native_path_from_utf8(path);
     std::error_code exists_ec;
-    const bool exists = std::filesystem::exists(path, exists_ec);
+    const bool exists = std::filesystem::exists(native_path, exists_ec);
     if (exists_ec) return std::nullopt;
     if (!exists) return std::vector<HostProfileCatalogEntry>{};
 
-    std::ifstream in(path, std::ios::binary);
+    std::ifstream in(native_path, std::ios::binary);
     if (!in) return std::nullopt;
     std::error_code size_ec;
-    const auto size = std::filesystem::file_size(path, size_ec);
+    const auto size = std::filesystem::file_size(native_path, size_ec);
     if (size_ec || size > kMaxCatalogBytes) return std::nullopt;
     const auto data = read_bounded_catalog(in);
     if (!data) return std::nullopt;

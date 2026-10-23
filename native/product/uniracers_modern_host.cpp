@@ -1997,6 +1997,18 @@ bool create_profile_from_editor() {
     }
     if (*latest_catalog != g_profile_catalog) {
         g_profile_catalog = *latest_catalog;
+        // A reordered roster invalidates the old numeric chooser selection.
+        // Restore the active racer by immutable ID before returning to UI.
+        g_profile_menu_index = 0;
+        if (g_product_state.active_profile_id) {
+            for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
+                if (g_profile_catalog[i].profile_id ==
+                    *g_product_state.active_profile_id) {
+                    g_profile_menu_index = i;
+                    break;
+                }
+            }
+        }
         product_diagnostic("UR_PROFILE_CREATE CATALOG_CHANGED_RETRY");
         return false;
     }

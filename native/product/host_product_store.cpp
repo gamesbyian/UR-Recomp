@@ -92,7 +92,7 @@ HostProductSaveStatus save_host_product_state_file_if_current(
     if (path.empty() || encode_host_product_state(next).empty()) {
         return HostProductSaveStatus::Rejected;
     }
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProductSaveStatus::IoError;
 
     const auto current = load_host_product_state_file(path);

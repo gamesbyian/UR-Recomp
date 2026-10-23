@@ -21,6 +21,8 @@ def expected_rgb(word, brightness):
     if len(word)!=4 or any(c not in '0123456789abcdef' for c in word):
         raise ValueError('invalid RGB555 source word')
     value=int(word,16)
+    if value & 0x8000:
+        raise ValueError('noncanonical RGB555 high bit set')
     return tuple(scale_channel((value>>shift)&31,brightness) for shift in (0,5,10))
 
 
@@ -38,7 +40,7 @@ def _canonical_observation(fields, typ):
             if not _HEX2.fullmatch(fields[key]):
                 raise ValueError('noncanonical source hex: '+key)
         for key in ('selected_rgb555','cgram_index_word','cgram6c','cgram6d','cgram6e','cgram6f'):
-            if not _HEX4.fullmatch(fields[key]):
+            if not _HEX4.fullmatch(fields[key]) or int(fields[key], 16) & 0x8000:
                 raise ValueError('noncanonical RGB555: '+key)
     else:
         for key in ('inidisp','tm','ts'):

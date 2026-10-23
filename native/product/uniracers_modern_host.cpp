@@ -2341,6 +2341,40 @@ bool execute_active_profile_progress_reset() {
         return false;
     }
 
+    // A confirmation may remain open while another process changes the racer
+    // roster. Do not erase earned progression against cached authorization.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_RESET CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        g_profile_menu_index = 0;
+        if (g_product_state.active_profile_id) {
+            const auto active = std::find_if(
+                g_profile_catalog.begin(), g_profile_catalog.end(),
+                [&](const auto& entry) {
+                    return entry.profile_id == *g_product_state.active_profile_id;
+                });
+            if (active != g_profile_catalog.end()) {
+                g_profile_menu_index = static_cast<std::size_t>(
+                    std::distance(g_profile_catalog.begin(), active));
+            }
+        }
+        product_diagnostic("UR_PROFILE_RESET CATALOG_CHANGED_RETRY");
+        return false;
+    }
+    if (!g_product_state.active_profile_id ||
+        g_profile_state->profile_id != *g_product_state.active_profile_id ||
+        !ur::product::profile_catalog_authorizes_state(
+            *latest_catalog, *g_profile_state)) {
+        product_diagnostic("UR_PROFILE_RESET REJECTED_CATALOG_AUTH");
+        return false;
+    }
+
     auto reset_sram = ur::product::clean_stock_sram();
     reset_sram[0x0748] = g_profile_state->racer_identity->rider_index;
 

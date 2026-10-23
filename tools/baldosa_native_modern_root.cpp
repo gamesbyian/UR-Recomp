@@ -276,14 +276,17 @@ bool restore_practice_session() {
         g_practice_sram_snapshot.size() !=
             ur::product::kStockSramBytes)
         return false;
-    std::memcpy(g_sram, g_practice_sram_snapshot.data(),
-                ur::product::kStockSramBytes);
+    // Switch ownership away from scratch storage *before* committing the
+    // career snapshot to live SRAM. On refusal, keep scratch and snapshot
+    // unchanged so the restoration can be retried safely.
     RtlSetSaveRoot(g_practice_previous_save_root.empty()
                        ? nullptr : g_practice_previous_save_root.c_str());
     const char* restored = RtlSaveRoot();
     if ((restored ? std::string_view(restored) : std::string_view{}) !=
         g_practice_previous_save_root)
         return false;
+    std::memcpy(g_sram, g_practice_sram_snapshot.data(),
+                ur::product::kStockSramBytes);
     g_practice_session_active = false;
     g_practice_sram_snapshot.clear();
     g_practice_previous_save_root.clear();

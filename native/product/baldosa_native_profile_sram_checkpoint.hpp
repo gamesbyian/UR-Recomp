@@ -103,15 +103,15 @@ baldosa_sram_checkpoint_preflight_under_lock(
     const fs::path catalog_path = request.user_root / "profiles-v1.txt";
     const fs::path profile_path =
         request.user_root / decision.save_root / "host-profile.txt";
-    const auto global = load_host_product_state_file(global_path.string());
+    const auto global = load_host_product_state_file(global_path.u8string());
     if (!global.loaded() || !(*global.state == request.expected_global))
         return BaldosaSramCheckpointStatus::SelectionConflict;
-    const auto catalog = load_host_profile_catalog_file(catalog_path.string());
+    const auto catalog = load_host_profile_catalog_file(catalog_path.u8string());
     if (!catalog ||
         !profile_catalog_authorizes_state(*catalog, request.expected_profile))
         return BaldosaSramCheckpointStatus::UnauthorizedProfile;
     const auto state = load_host_profile_state_file(
-        ExecutionMode::Modern, profile_path.string(), id);
+        ExecutionMode::Modern, profile_path.u8string(), id);
     if (!state.loaded() || !(*state.state == request.expected_profile))
         return BaldosaSramCheckpointStatus::ProfileConflict;
     return std::nullopt;
@@ -153,7 +153,7 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram_under_
         return BaldosaSramCheckpointStatus::InvalidContext;
 
     const auto outcome = save_host_profile_state_file_if_current_under_lock(
-        ExecutionMode::Modern, profile_path.string(),
+        ExecutionMode::Modern, profile_path.u8string(),
         request.expected_profile, updated);
     if (outcome == HostProfileSaveStatus::Saved)
         return BaldosaSramCheckpointStatus::Committed;
@@ -170,7 +170,7 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
         return BaldosaSramCheckpointStatus::InvalidContext;
     const std::filesystem::path global_path =
         request.user_root / "host-state-v1.txt";
-    TournamentLaunchPathLock global_lock(global_path.string(), true);
+    TournamentLaunchPathLock global_lock(global_path.u8string(), true);
     if (!global_lock.acquired())
         return BaldosaSramCheckpointStatus::IoError;
     const auto decision = resolve_host_profile_save_root(
@@ -182,10 +182,10 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
         request.user_root / decision.save_root / "host-profile.txt";
     const std::filesystem::path catalog_path =
         request.user_root / "profiles-v1.txt";
-    TournamentLaunchPathLock catalog_lock(catalog_path.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog_path.u8string(), true);
     if (!catalog_lock.acquired())
         return BaldosaSramCheckpointStatus::IoError;
-    TournamentLaunchPathLock profile_lock(profile_path.string(), true);
+    TournamentLaunchPathLock profile_lock(profile_path.u8string(), true);
     if (!profile_lock.acquired())
         return BaldosaSramCheckpointStatus::IoError;
     return checkpoint_baldosa_native_profile_sram_under_lock(request);

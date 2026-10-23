@@ -148,7 +148,7 @@ int main() {
           !unicode_restore.state->results[1],
           "Unicode fixture cold restoration credits exact saved result");
     check(restore_saved_local_tournament_fixtures(
-        unicode_links.u8string(), run_root.u8string(), instance,
+        unicode_links.u8string(), (root / "unrelated-runs").u8string(), instance,
         *initial).status == Status::MatchRejected,
         "Unicode fixture cannot resolve a pair from the wrong Records root");
 

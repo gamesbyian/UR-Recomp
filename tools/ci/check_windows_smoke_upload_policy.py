@@ -27,6 +27,10 @@ EXPECTED_PATHS = (
 
 def check_workflow(source: str) -> None:
     """Validate the single, explicitly allowlisted GitHub Actions upload step."""
+    # An Actions step may omit 'name'. The named-step extractor below must
+    # never silently miss an unnamed upload of a ROM-bearing ZIP.
+    if re.search(r"(?m)^      -\\s*uses: *actions/upload-artifact@", source):
+        raise ValueError("Unnamed artifact upload step is forbidden")
     steps = re.findall(r"(?ms)^      - name: ([^\n]+)\n(.*?)(?=^      - name: |\Z)", source)
     uploads = [(name, body) for name, body in steps
                if re.search(r"(?m)^        uses: actions/upload-artifact@", body)]
@@ -84,6 +88,17 @@ class PolicyNegatives(unittest.TestCase):
             "${{ runner.temp }}/UR-Recomp-Windows-x64/")
         with self.assertRaises(ValueError):
             check_workflow(fixture)
+
+    def test_disallows_unnamed_upload_before_or_after_approved_step(self):
+        upload = ("      - uses: actions/upload-artifact@v4\\n"
+                  "        with:\\n"
+                  "          name: unapproved-zip\\n"
+                  "          path: ${{ runner.temp }}/UR-Recomp-Windows-x64.zip\\n")
+        for candidate in (upload + self.valid_source(),
+                          self.valid_source() + upload):
+            with self.subTest(candidate=candidate[:80]), self.assertRaisesRegex(
+                    ValueError, "Unnamed artifact upload"):
+                check_workflow(candidate)
 
     def test_disallows_second_artifact(self):
         fixture = self.valid_source() + self.valid_source().replace(

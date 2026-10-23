@@ -7,6 +7,16 @@ on:
       - "analysis/windows-visual-atlas-first-capture.request"
   workflow_dispatch:
     inputs:
+      reuse_build_run_id:
+        description: "Optional prior exact-SHA atlas run ID; skip Windows rebuild if PE receipt matches"
+        required: false
+        type: string
+        default: ""
+      resume_run_id:
+        description: "Optional prior atlas run ID to reuse complete same-source and same-PE capture cases"
+        required: false
+        type: string
+        default: ""
       workers_per_job:
         description: "Independent native capture processes per Windows job (1 is serial)"
         type: choice
@@ -18,6 +28,7 @@ on:
         default: false
 permissions:
   contents: read
+  actions: read
 # Never cancel an active extended capture when another push arrives.
 concurrency:
   group: ur-windows-visual-atlas-${{ github.event.pull_request.number || github.ref }}
@@ -39,7 +50,7 @@ jobs:
         run: node --check tools/visual_atlas_web/atlas.js
   build-windows:
     needs: validate-atlas
-    if: github.event_name != 'pull_request'
+    if: inputs.reuse_build_run_id == ''
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -100,9 +111,43 @@ jobs:
           path: ${{ runner.temp }}/atlas-pe/
           if-no-files-found: error
           retention-days: 7
+  reuse-windows:
+    needs: validate-atlas
+    if: inputs.reuse_build_run_id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.reuse_build_run_id }}
+          github-token: ${{ github.token }}
+          name: ur-atlas-win32-pe
+          path: ${{ runner.temp }}/atlas-pe
+      - name: Require exact source, PE identity and no unsafe reuse
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          d=pathlib.Path(os.environ["RUNNER_TEMP"])/"atlas-pe"
+          r=json.loads((d/"build-receipt.json").read_text())
+          binary=d/"UniracersSNESRecomp.exe"
+          assert r["source_sha"]==os.environ["GITHUB_SHA"], "Prior PE belongs to different source"
+          assert binary.is_file() and binary.stat().st_size > 1_000_000
+          assert hashlib.sha256(binary.read_bytes()).hexdigest()==r["exe_sha256"]
+          print("Exact previous Windows executable accepted for reuse:", r["exe_sha256"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ur-atlas-win32-pe
+          path: ${{ runner.temp }}/atlas-pe/
+          retention-days: 7
+          if-no-files-found: error
   capture:
-    needs: build-windows
-    if: github.event_name != 'pull_request'
+    needs: [validate-atlas, build-windows, reuse-windows]
+    if: >-
+      always() && needs.validate-atlas.result != 'failure' &&
+      (needs.build-windows.result == 'success' ||
+       needs.reuse-windows.result == 'success')
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -124,8 +169,20 @@ jobs:
           set -euo pipefail
           python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
           python -c "import hashlib,json,os,pathlib; d=pathlib.Path(os.environ['RUNNER_TEMP'])/'atlas-pe'; r=json.loads((d/'build-receipt.json').read_text()); p=d/'UniracersSNESRecomp.exe'; assert r['source_sha']==os.environ['GITHUB_SHA']; assert hashlib.sha256(p.read_bytes()).hexdigest()==r['exe_sha256']"
+      - name: Recover complete prior capture cases if expressly requested
+        if: inputs.resume_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.resume_run_id }}
+          github-token: ${{ github.token }}
+          name: visual-atlas-${{ matrix.shard }}
+          path: ${{ runner.temp }}/atlas-previous
       - name: Run independently isolated screenshot processes for assigned cohort
         run: |
+          args=()
+          if [[ -n "${{ inputs.resume_run_id }}" ]]; then
+            args+=(--resume-from "$RUNNER_TEMP/atlas-previous")
+          fi
           python tools/windows_visual_atlas.py capture-shard \
             --shard "${{ matrix.shard }}" \
             --exe "$RUNNER_TEMP/atlas-pe/UniracersSNESRecomp.exe" \
@@ -133,7 +190,7 @@ jobs:
             --source-sha "$GITHUB_SHA" \
             --timeout 100 \
             --workers "${{ inputs.workers_per_job || '2' }}" \
-            --out "$RUNNER_TEMP/atlas-${{ matrix.shard }}"
+            --out "$RUNNER_TEMP/atlas-${{ matrix.shard }}" "${args[@]}"
       - name: Record coverage, including failed captures
         if: always()
         run: |
@@ -150,6 +207,7 @@ jobs:
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/readback-receipt.json
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/capture-failure.json
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/atlas-shard-*.json
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/progress.jsonl
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/native-process.log
             ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/authentic-source-vs-sdl.json

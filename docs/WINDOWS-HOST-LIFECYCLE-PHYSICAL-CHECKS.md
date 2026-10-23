@@ -27,7 +27,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | C4 | Hold accelerate/direction on A, unplug A mid-race, resume. | The racer does not keep moving on its own (no stuck input). | `UR_CONTROLLER_SEAT vacate … seat=0` |
 | C5 | With A and B seated, plug a third pad C and press A on it. | Nothing happens. C does not steal a seat. | `UR_CONTROLLER_SEAT assign … seat=-1` |
 | C6 | Unplug B, then press A on C. | C becomes P2. That claiming press does nothing else. | `UR_CONTROLLER_SEAT claim … seat=1` |
-| C7 | Same-model pads only: unplug both, then replug them in the opposite order. | Each pad returns to its own player, or the two swap. Identical pads are indistinguishable; note which happened. | two `reason=reclaimed` lines |
+| C7 | Same-model pads only: unplug both, then replug them in the opposite order. | Each pad returns to its own player, or the two swap. Identical pads are indistinguishable; note which happened. | `UR_CONTROLLER_SEAT assign … reason=ambiguous_owner`, then `… reason=first_free` for the other pad; both pads keep working |
 | C8 | Run the Authentic launcher and unplug a pad mid-race. | **No** pause; the guest just loses that input. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C9 | Unplug a pad in a menu (not racing), then start a race. | No pause appears later because of the earlier unplug. | no `UR_BALDOSA_LIFECYCLE_PAUSE` |
 | C10 | Generic (unmapped) pad only: with A and B seated, plug a generic USB pad G that the log reports as `unmapped raw joystick`. Unplug B, then press a button on G. | G becomes P2; that press does nothing else. | `UR_CONTROLLER_SEAT spare_kept … raw=1`, then `claim … seat=1` |

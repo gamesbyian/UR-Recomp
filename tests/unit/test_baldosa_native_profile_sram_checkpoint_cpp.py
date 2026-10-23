@@ -28,6 +28,18 @@ class BaldosaNativeTypedSramCheckpointTest(unittest.TestCase):
             self.assertIn(f"{name}.u8string()", source)
         self.assertIn("TournamentLaunchPathLock selector_lock(selector, true)", source)
 
+    def test_explicit_manual_recovery_uses_native_unicode_paths(self):
+        source = (ROOT / "native/product/baldosa_native_manual_sram_recovery.hpp").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn(".string()", source)
+        self.assertIn("write_host_create_staged_native(archive, bytes", source)
+        self.assertIn("write_host_create_staged_native(\n        archive, framed", source)
+        self.assertIn('write_host_replace_staged(raw, bytes, "restore-sram")', source)
+        for name in ("selector", "catalog", "typed"):
+            self.assertIn(f"{name}.u8string()", source)
+        self.assertIn("TournamentLaunchPathLock selector_lock(selector, true)", source)
+
     def test_real_modern_codec_and_cas_checkpoint_semantics(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if compiler is None:

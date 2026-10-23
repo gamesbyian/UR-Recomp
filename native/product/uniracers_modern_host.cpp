@@ -295,7 +295,18 @@ bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
 bool g_profile_select_failed = false;
 bool g_profile_edit_save_failed = false;
+enum class ProfileResetNotice { None, Unavailable, Failed };
+ProfileResetNotice g_profile_reset_notice = ProfileResetNotice::None;
 ur::product::ModernProfileResetState g_profile_reset;
+
+const char* profile_reset_notice_text() {
+    switch (g_profile_reset_notice) {
+    case ProfileResetNotice::Unavailable: return "RESET UNAVAILABLE";
+    case ProfileResetNotice::Failed: return "RESET FAILED - DISK/STATE";
+    case ProfileResetNotice::None: return nullptr;
+    }
+    return nullptr;
+}
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
@@ -2126,6 +2137,7 @@ void open_profile_menu() {
     g_profile_menu_visible = true;
     g_profile_select_failed = false;
     g_profile_edit_save_failed = false;
+    g_profile_reset_notice = ProfileResetNotice::None;
     product_diagnostic("UR_PROFILE_UI OPENED");
     g_profile_edit_mode = ProfileEditMode::None;
     g_profile_cool_name_notice = false;
@@ -2144,6 +2156,7 @@ void open_profile_menu() {
 
 void begin_profile_create() {
     g_profile_select_failed = false;
+    g_profile_reset_notice = ProfileResetNotice::None;
     g_profile_edit_save_failed = false;
     g_profile_edit_mode = ProfileEditMode::Create;
     g_profile_preset_index = 0;
@@ -2157,6 +2170,7 @@ void begin_profile_rename() {
     ensure_profile_catalog();
     if (g_profile_menu_index >= g_profile_catalog.size()) return;
     g_profile_select_failed = false;
+    g_profile_reset_notice = ProfileResetNotice::None;
     g_profile_edit_save_failed = false;
     g_profile_edit_mode = ProfileEditMode::Rename;
     g_profile_edit_name = g_profile_catalog[g_profile_menu_index].identity.name;
@@ -2246,6 +2260,9 @@ bool execute_active_profile_progress_reset() {
 }
 
 void open_profile_reset_confirmation() {
+    g_profile_reset_notice = ProfileResetNotice::None;
+    g_profile_select_failed = false;
+    g_profile_cool_name_notice = false;
     g_profile_reset = ur::product::modern_profile_reset_open(
         modern_mode()
             ? ur::product::ExecutionMode::Modern
@@ -2255,6 +2272,7 @@ void open_profile_reset_confirmation() {
     if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
         product_diagnostic("UR_PROFILE_RESET CONFIRM_OPENED");
     } else {
+        g_profile_reset_notice = ProfileResetNotice::Unavailable;
         product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
     }
 }
@@ -2288,6 +2306,7 @@ bool handle_profile_menu_key(int key) {
         if (key == SDLK_ESCAPE || key == SDLK_b) {
             g_profile_reset = ur::product::modern_profile_reset_cancel(
                 g_profile_reset);
+            g_profile_reset_notice = ProfileResetNotice::None;
             product_diagnostic("UR_PROFILE_RESET CANCELLED");
             return true;
         }
@@ -2302,7 +2321,12 @@ bool handle_profile_menu_key(int key) {
             g_profile_reset = decision.state;
             if (decision.action ==
                 ur::product::ModernProfileResetAction::Execute) {
-                (void)execute_active_profile_progress_reset();
+                g_profile_reset_notice =
+                    execute_active_profile_progress_reset()
+                        ? ProfileResetNotice::None
+                        : ProfileResetNotice::Failed;
+            } else {
+                g_profile_reset_notice = ProfileResetNotice::Unavailable;
             }
             return true;
         }
@@ -2369,6 +2393,7 @@ bool handle_profile_menu_key(int key) {
     if (key == SDLK_r) { begin_profile_rename(); return true; }
     if (key == SDLK_d) { open_profile_reset_confirmation(); return true; }
     if (key == SDLK_UP && !g_profile_catalog.empty()) {
+        g_profile_reset_notice = ProfileResetNotice::None;
         g_profile_menu_index =
             (g_profile_menu_index + g_profile_catalog.size() - 1) %
             g_profile_catalog.size();
@@ -2376,12 +2401,14 @@ bool handle_profile_menu_key(int key) {
         return true;
     }
     if (key == SDLK_DOWN && !g_profile_catalog.empty()) {
+        g_profile_reset_notice = ProfileResetNotice::None;
         g_profile_menu_index =
             (g_profile_menu_index + 1) % g_profile_catalog.size();
         g_profile_select_failed = false;
         return true;
     }
     if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+        g_profile_reset_notice = ProfileResetNotice::None;
         if (g_profile_menu_index < g_profile_catalog.size()) {
             const bool selected = activate_profile_id(
                 g_profile_catalog[g_profile_menu_index].profile_id);
@@ -10005,6 +10032,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "N / PAD X  CREATE RACER", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 87 * scale,
                 "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
+            if (const char* notice = profile_reset_notice_text()) {
+                snes_ovl_draw_text(pixels, stride, height, x + 8 * scale,
+                    y + 112 * scale, notice, 0xFFFFFFFFu, scale);
+            }
         } else {
             const auto& entry = g_profile_catalog[g_profile_menu_index];
             char name_row[64];
@@ -10028,9 +10059,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 117 * scale,
                 "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
-                g_profile_select_failed
-                    ? "SELECT FAILED - ESC TO CLOSE"
-                    : "ESC / F2  CLOSE",
+                profile_reset_notice_text()
+                    ? profile_reset_notice_text()
+                    : (g_profile_select_failed
+                        ? "SELECT FAILED - ESC TO CLOSE"
+                        : "ESC / F2  CLOSE"),
                 0xFFFFFFFFu, scale);
         }
         if (g_profile_cool_name_notice) {

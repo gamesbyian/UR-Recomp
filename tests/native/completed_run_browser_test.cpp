@@ -1,4 +1,5 @@
 #include "completed_run_browser.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cassert>
 #include <filesystem>
@@ -341,6 +342,30 @@ int main(int argc, char** argv) {
             assert(parity_browser.size() == 0);
         }
     }
+
+    // UTF-8 directory names must survive native Windows archive admission,
+    // browser selection and replay-source parent checks without ACP loss.
+    const auto unicode_root =
+        root / std::filesystem::u8path(u8"记录-🎮");
+    std::string unicode_path;
+    std::string unicode_detail;
+    assert(append_completed_run_record(
+        unicode_root.u8string(), run(1800), &unicode_path,
+        &unicode_detail));
+    assert(std::filesystem::is_regular_file(
+        host_native_path_from_utf8(unicode_path)));
+    assert(host_native_path_from_utf8(unicode_path).parent_path() ==
+           host_native_path_from_utf8(unicode_root.u8string()));
+
+    CompletedRunBrowser unicode_browser;
+    assert(unicode_browser.refresh(unicode_root.u8string(), target()));
+    assert(unicode_browser.playable_count() == 1);
+    assert(unicode_browser.selected());
+    assert(unicode_browser.selected()->path == unicode_path);
+
+    CompletedRunRecordsBrowser unicode_records;
+    assert(unicode_records.refresh(unicode_root.u8string(), records_scope));
+    assert(unicode_records.index().total_completed_runs == 1);
 
     return 0;
 }

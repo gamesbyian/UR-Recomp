@@ -60,5 +60,30 @@ class ModernProfileCatalogRefreshContract(unittest.TestCase):
         self.assertIn("return decode_host_profile_catalog(*data);", load)
 
 
+    def test_create_revalidates_catalog_before_profile_directory_write(self):
+        create = between(self.host, "bool create_profile_from_editor() {",
+                         "\n}\n\nbool rename_profile_from_editor()")
+        self.assertIn("const auto latest_catalog = ur::product::load_host_profile_catalog_file(", create)
+        self.assertIn("if (!latest_catalog) {", create)
+        self.assertIn("g_profile_catalog_refresh_failed = true;", create)
+        self.assertIn("if (*latest_catalog != g_profile_catalog) {", create)
+        self.assertIn("g_profile_catalog = *latest_catalog;", create)
+        self.assertLess(create.index("if (*latest_catalog != g_profile_catalog) {"),
+                        create.index("make_profile_id("))
+        self.assertLess(create.index("if (*latest_catalog != g_profile_catalog) {"),
+                        create.index("std::filesystem::create_directories("))
+
+    def test_stale_create_returns_without_publishing_profile_state(self):
+        create = between(self.host, "bool create_profile_from_editor() {",
+                         "\n}\n\nbool rename_profile_from_editor()")
+        stale = between(create, "if (*latest_catalog != g_profile_catalog) {", "\n    }")
+        self.assertIn("g_profile_catalog = *latest_catalog;", stale)
+        self.assertIn("return false;", stale)
+        unavailable = between(create, "if (!latest_catalog) {", "\n    }")
+        self.assertIn("g_profile_catalog_refresh_failed = true;", unavailable)
+        self.assertIn("return false;", unavailable)
+        self.assertLess(create.index("if (!latest_catalog) {"),
+                        create.index("save_host_profile_state_file_if_current("))
+
 if __name__ == "__main__":
     unittest.main()

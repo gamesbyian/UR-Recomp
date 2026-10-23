@@ -173,6 +173,8 @@ int main() {
     assert(!contains("RUNS AND BEST"));
     assert(contains("QUIT TO DESKTOP?"));
     assert(contains("A/ENTER YES   B/ESC NO"));
+    // Quit confirmation owns B/ESC; do not advertise QUIT behind it.
+    assert(!contains("A/ENTER SELECT   B/ESC QUIT"));
     assert(!contains("CONTINUE READY")); // only on selected Play
 
     painted.clear();

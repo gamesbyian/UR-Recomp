@@ -189,6 +189,44 @@ class WindowsAtlasTests(unittest.TestCase):
             self.assertTrue(failed.is_file())
             self.assertIn("native P7/log witness", failed.read_text(encoding="utf-8"))
 
+    def test_unexpected_case_error_survives_as_explicit_failed_capture(self):
+        # A malformed driver receipt may raise an unexpected exception.
+        # Preserve the failed case in the assembled atlas rather than showing
+        # a pending slot, while allowing other shard cases to complete.
+        entry = next(e for e in atlas.load_catalog()["entries"]
+                     if e["id"] == "URV-MD-001")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            exe = root / "game.exe"
+            exe.write_bytes(b"synthetic executable")
+            capture = root / "capture"
+            with (mock.patch.object(atlas, "validate", return_value=[entry]),
+                  mock.patch.object(atlas.subprocess, "run", return_value=mock.Mock(
+                      returncode=0, stdout="", stderr="")),
+                  mock.patch.object(atlas, "valid_receipt",
+                                    side_effect=TypeError("malformed receipt object"))):
+                status = atlas.capture_shard(
+                    {"entries": [entry]}, shard="frontend", exe=exe,
+                    rom=root / "retail.sfc", target=capture,
+                    source="a" * 40, timeout=5, workers=1)
+            self.assertEqual(status, 1)
+            failure = json.loads((capture / "captures" / entry["id"] /
+                                  "capture-failure.json").read_text(encoding="utf-8"))
+            self.assertEqual(failure["id"], entry["id"])
+            self.assertEqual(failure["status"], "failed")
+            self.assertIn("TypeError", failure["reason"])
+            summary = json.loads((capture / "shard-summary.json").read_text(
+                encoding="utf-8"))
+            self.assertEqual(summary["failed"], 1)
+            journal = [json.loads(line) for line in (capture / "progress.jsonl")
+                       .read_text(encoding="utf-8").splitlines()]
+            self.assertEqual([event["status"] for event in journal], ["start", "end"])
+            with mock.patch.object(atlas, "validate", return_value=[entry]):
+                site = atlas.build({"entries": [entry]}, root / "site", capture,
+                                   "a" * 40)
+            self.assertEqual(site["counts"]["capture_failed"], 1)
+            self.assertEqual(site["entries"][0]["status"], "capture_failed")
+
     def test_capture_rejects_receipt_from_different_executable(self):
         # A driver returning zero is insufficient: the receipt must name the
         # executable whose bytes this shard actually launched.

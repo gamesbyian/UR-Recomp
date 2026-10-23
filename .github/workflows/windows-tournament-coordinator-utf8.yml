@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: windows-tournament-session-utf8-${{ github.ref }}
+  group: windows-tournament-coordinator-utf8-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -72,5 +72,5 @@ jobs:
           )
           [System.IO.File]::WriteAllLines($runner, $commands, [System.Text.Encoding]::ASCII)
           & cmd.exe /d /c "`"$runner`""
-          if ($LASTEXITCODE -ne 0) { throw "Windows tournament session UTF-8 regression failed: $LASTEXITCODE" }
+          if ($LASTEXITCODE -ne 0) { throw "Windows tournament coordinator UTF-8 regression failed: $LASTEXITCODE" }
           Write-Host 'Windows tournament coordinator UTF-8 lifecycle regression passed'

@@ -1,0 +1,76 @@
+name: Windows tournament coordinator UTF-8 lifecycle regression
+
+# ROM-free hosted Windows proof of full tournament create/arm/commit/restore,
+# including UTF-8 roots, native leases and historical result scans.
+# Does not establish physical NTFS, power-loss or release acceptance.
+on:
+  pull_request:
+    paths:
+      - "native/product/local_tournament_session_coordinator.*"
+      - "native/product/local_tournament_utf8_path.hpp"
+      - "native/product/local_tournament_launch_path_lock.hpp"
+      - "native/product/local_tournament_session_store.*"
+      - "native/product/local_tournament_fixture_launch_store.*"
+      - "native/product/local_tournament_result_link_store.*"
+      - "tests/native/local_tournament_session_coordinator_test.cpp"
+      - ".github/workflows/windows-tournament-coordinator-utf8.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-tournament-coordinator-utf8-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coordinator:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run full production coordinator Unicode lifecycle
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path -LiteralPath $vswhere)) { throw 'vswhere.exe missing' }
+          $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'Visual C++ x64 tools missing' }
+          $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
+          if (-not (Test-Path -LiteralPath $vcvars)) { throw 'vcvars64.bat missing' }
+          $product = Join-Path $env:GITHUB_WORKSPACE 'native\product'
+          $title = Join-Path $env:GITHUB_WORKSPACE 'native\title'
+          $test = Join-Path $env:GITHUB_WORKSPACE 'tests\native\local_tournament_session_coordinator_test.cpp'
+          $sourceNames = @(
+            'modern_racer_identity.cpp',
+            'host_profile_runtime.cpp',
+            'host_product_state.cpp',
+            'output_resolution_policy.cpp',
+            'completed_run_record.cpp',
+            'completed_run_store.cpp',
+            'local_multiplayer_match_binding.cpp',
+            'multiplayer_match_record.cpp',
+            'local_tournament_session_store.cpp',
+            'local_tournament_fixture_launch_store.cpp',
+            'local_tournament_result_link_store.cpp',
+            'local_tournament_session_coordinator.cpp'
+          )
+          $sourceArgs = ($sourceNames | ForEach-Object {
+            '"' + (Join-Path $product $_) + '"'
+          }) -join ' '
+          $exe = Join-Path $env:RUNNER_TEMP 'local_tournament_session_coordinator_test.exe'
+          $runner = Join-Path $env:RUNNER_TEMP 'run-tournament-coordinator.cmd'
+          $commands = @(
+            '@echo off',
+            "call `"$vcvars`"",
+            'if errorlevel 1 exit /b 1',
+            "cl /nologo /std:c++17 /utf-8 /EHsc /W3 /I`"$product`" /I`"$title`" `"$test`" $sourceArgs /Fe:`"$exe`"",
+            'if errorlevel 1 exit /b 1',
+            "`"$exe`"",
+            'exit /b %ERRORLEVEL%'
+          )
+          [System.IO.File]::WriteAllLines($runner, $commands, [System.Text.Encoding]::ASCII)
+          & cmd.exe /d /c "`"$runner`""
+          if ($LASTEXITCODE -ne 0) { throw "Windows tournament coordinator UTF-8 regression failed: $LASTEXITCODE" }
+          Write-Host 'Windows tournament coordinator UTF-8 lifecycle regression passed'

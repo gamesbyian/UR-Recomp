@@ -74,12 +74,13 @@ int main() {
     const auto unique =
         std::chrono::steady_clock::now().time_since_epoch().count();
     const auto root = fs::temp_directory_path() /
-        ("ur-tournament-coordinator-" + std::to_string(unique));
+        ("ur-tournament-coordinator-" + std::to_string(unique)) /
+        fs::u8path(u8"coordinator-测试-🎮");
     const auto tour = root / "local-tournaments";
     const auto records = root / "multiplayer-runs";
     check(fs::create_directories(records), "multiplayer Records root");
     const LocalTournamentCoordinatorPaths paths{
-        tour.string(), records.string()};
+        tour.u8string(), records.u8string()};
     const std::string instance = "0123456789abcdef0123456789abcdef";
     const std::string other_instance = "abcdef0123456789abcdef0123456789";
     const std::vector<HostProfileCatalogEntry> catalog{
@@ -95,13 +96,17 @@ int main() {
         {"course:01", "course:04"});
     check(created.usable() && created.status == Status::Created,
           "catalog-authorized tournament created explicitly");
+    check(fs::exists(tour / "active.urtournament") &&
+          fs::exists(tour / instance / "session.urtournament"),
+          "UTF-8 tournament root preserves native active and archive paths");
     auto state = *created.session;
     // Once a tournament's instance ID owns an archived plan, an unrelated
     // creator must not overwrite that durable schedule through a stale
     // exists() preflight. The coordinator now uses this exact create-only
     // store operation for its *first* immutable archive publication.
     const auto archive_path =
-        (tour / instance / "session.urtournament").string();
+        (tour / instance / "session.urtournament").u8string();
+    const auto native_archive_path = fs::u8path(archive_path);
     const auto incumbent_archive =
         load_historical_local_tournament_session_definition(archive_path);
     check(incumbent_archive.loaded(), "new tournament has a full archive");
@@ -123,7 +128,7 @@ int main() {
     // Old builds could have a valid active pointer without an instance
     // archive. Migration must create-only claim that absent archive, and
     // must fail closed on a foreign/malformed archive rather than replace it.
-    check(fs::remove(archive_path), "simulate pre-archive old build");
+    check(fs::remove(native_archive_path), "simulate pre-archive old build");
     const auto migrated = restore_local_tournament_coordinator(paths, catalog);
     check(migrated.usable(), "valid historical active session migrates archive");
     const auto migrated_archive =
@@ -136,7 +141,7 @@ int main() {
     // A later normal restore must accept that identical complete archive.
     check(restore_local_tournament_coordinator(paths, catalog).usable(),
           "subsequent restorer accepts identical archive");
-    check(fs::remove(archive_path), "prepare foreign archive migration denial");
+    check(fs::remove(native_archive_path), "prepare foreign archive migration denial");
     check(save_local_tournament_session_definition(
               archive_path, *conflicting_plan) ==
               LocalTournamentSessionFileStatus::Saved,
@@ -150,19 +155,19 @@ int main() {
           encode_local_tournament_session_definition(*still_foreign.session) ==
               encode_local_tournament_session_definition(*conflicting_plan),
           "migration refuses to clobber the foreign archive");
-    check(fs::remove(archive_path), "prepare corrupt archive migration denial");
+    check(fs::remove(native_archive_path), "prepare corrupt archive migration denial");
     {
-        std::ofstream damaged(archive_path, std::ios::binary);
+        std::ofstream damaged(fs::u8path(archive_path), std::ios::binary);
         damaged << "corrupt-future-archive\n";
         check(bool(damaged), "write unsupported archive bytes");
     }
-    const auto prior_corrupt_bytes = fs::file_size(archive_path);
+    const auto prior_corrupt_bytes = fs::file_size(native_archive_path);
     check(restore_local_tournament_coordinator(paths, catalog).status ==
               Status::EvidenceRejected,
           "corrupt archive is not silently overwritten by migration");
-    check(fs::file_size(archive_path) == prior_corrupt_bytes,
+    check(fs::file_size(native_archive_path) == prior_corrupt_bytes,
           "corrupt existing archive preserved for salvage");
-    check(fs::remove(archive_path), "remove corrupt fixture before continuation");
+    check(fs::remove(native_archive_path), "remove corrupt fixture before continuation");
     check(save_local_tournament_session_definition_if_current(
               archive_path, std::nullopt, *incumbent_archive.session) ==
               LocalTournamentSessionFileStatus::Saved,
@@ -195,6 +200,8 @@ int main() {
     check(arm_local_tournament_fixture(state, 0, token0, p1, p2) ==
             Status::Armed && state.launch.pending,
           "explicit selected fixture persisted BEFORE guest route");
+    check(fs::exists(tour / instance / "pending.urlaunch.live.urmutex"),
+          "live fixture lease uses native Unicode directory");
     check(!local_tournament_capture_attempt_for(
         state, p1, p2, "course:04") &&
           !local_tournament_capture_attempt_for(
@@ -217,7 +224,7 @@ int main() {
           state.launch.pending && !state.results.results[0],
           "mismatched live capture token cannot award tournament points");
     const auto prior_checkpoint = *state.launch.pending;
-    const auto checkpoint_file = (tour / instance / "pending.urlaunch").string();
+    const auto checkpoint_file = (tour / instance / "pending.urlaunch").u8string();
     auto newer_checkpoint = prior_checkpoint;
     newer_checkpoint.attempt_id = token1;
     check(save_local_tournament_launch_file(checkpoint_file, newer_checkpoint) ==
@@ -246,6 +253,8 @@ int main() {
           "exact saved 2P pair credits only the attempted fixture");
     check(!fs::exists(tour / instance / "pending.urlaunch"),
           "completed fixture retires exact launch checkpoint");
+    check(fs::exists(tour / instance / "pending.urlaunch.urmutex"),
+          "commit lock shares native Unicode checkpoint path");
 
     const auto fresh = restore_local_tournament_coordinator(paths, catalog);
     check(fresh.usable() && fresh.session->results.results[0] &&
@@ -287,7 +296,7 @@ int main() {
     // calling coordinator's exact checkpoint retirement. This is the same
     // production receipt-publish operation at the boundary before cleanup.
     check(commit_saved_local_tournament_fixture(
-              (tour / instance / "fixtures").string(), records.string(),
+              (tour / instance / "fixtures").u8string(), records.u8string(),
               stored1, instance, token1, state.launch, state.results) ==
               LocalTournamentResultLinkStatus::Committed &&
           state.results.results[1] &&

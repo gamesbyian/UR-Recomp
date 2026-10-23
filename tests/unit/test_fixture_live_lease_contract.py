@@ -37,7 +37,7 @@ class FixtureLiveLeaseContract(unittest.TestCase):
         self.assertIn("Busy, // another still-running game", header)
         arm = cpp.split("LocalTournamentCoordinatorStatus arm_local_tournament_fixture(", 1)[1].split(
             "\nstd::optional<std::string> local_tournament_capture_attempt_for(", 1)[0]
-        arm_lock = arm.index("pending_path(session) + \".live\", true")
+        arm_lock = arm.index('host_native_path_from_utf8(pending_path(session) + ".live"), true')
         current = arm.index("load_historical_local_tournament_session_definition(")
         receipts = arm.index("restore_saved_local_tournament_fixtures(")
         save = arm.index("save_local_tournament_launch_file(")

@@ -169,6 +169,38 @@ int main() {
                 filename, *model, instance).status == Status::Missing,
             "retired launch cannot reappear as a result");
 
+    // The host path contract is UTF-8. Windows narrow CRT and filesystem
+    // paths cannot safely represent this non-ACP directory. Exercise the
+    // same native lock, atomic save, restore, stale retire and exact retire.
+    const fs::path unicode_root = root / fs::u8path(
+        "profile-\xE6\xB5\x8B\xE8\xAF\x95-\xF0\x9F\x8C\x88");
+    require(fs::create_directory(unicode_root),
+            "non-ACP launch directory created");
+    const fs::path unicode_path = unicode_root / "pending.urlaunch";
+    const std::string unicode_filename = unicode_path.u8string();
+    require(save_local_tournament_launch_file(unicode_filename, pending) ==
+                Status::Saved,
+            "UTF-8 launch checkpoint saved at native Unicode path");
+    require(fs::exists(fs::path(unicode_path).concat(".urmutex")) &&
+                bytes_of(unicode_path) == original_bytes,
+            "Unicode launch and lock use the intended native directory");
+    const auto unicode_loaded = load_local_tournament_launch_file(
+        unicode_filename, *model, instance);
+    require(unicode_loaded.loaded() &&
+                unicode_loaded.pending->attempt_id == attempt,
+            "Unicode launch checkpoint restores exact active attempt");
+    require(retire_local_tournament_launch_file(
+                unicode_filename, stale_attempt) == Status::Rejected &&
+                bytes_of(unicode_path) == original_bytes,
+            "Unicode stale retirement preserves the newer checkpoint");
+    require(retire_local_tournament_launch_file(
+                unicode_filename, pending) == Status::Saved &&
+                !fs::exists(unicode_path),
+            "Unicode exact retirement removes the intended checkpoint");
+    require(retire_local_tournament_launch_file(
+                unicode_filename, pending) == Status::Missing,
+            "Unicode missing retirement is idempotent");
+
     // Independent processes/threads sharing this file must not allow an
     // obsolete retire to remove another writer's newer checkpoint. Exercise
     // both operation orders, with an actual interleaved start gate and

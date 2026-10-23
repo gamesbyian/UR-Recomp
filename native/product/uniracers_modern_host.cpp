@@ -294,6 +294,7 @@ std::string g_profile_edit_name;
 bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
 bool g_profile_select_failed = false;
+bool g_profile_edit_save_failed = false;
 ur::product::ModernProfileResetState g_profile_reset;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
@@ -2124,6 +2125,7 @@ void open_profile_menu() {
     ensure_profile_catalog();
     g_profile_menu_visible = true;
     g_profile_select_failed = false;
+    g_profile_edit_save_failed = false;
     product_diagnostic("UR_PROFILE_UI OPENED");
     g_profile_edit_mode = ProfileEditMode::None;
     g_profile_cool_name_notice = false;
@@ -2142,6 +2144,7 @@ void open_profile_menu() {
 
 void begin_profile_create() {
     g_profile_select_failed = false;
+    g_profile_edit_save_failed = false;
     g_profile_edit_mode = ProfileEditMode::Create;
     g_profile_preset_index = 0;
     g_profile_edit_name =
@@ -2154,6 +2157,7 @@ void begin_profile_rename() {
     ensure_profile_catalog();
     if (g_profile_menu_index >= g_profile_catalog.size()) return;
     g_profile_select_failed = false;
+    g_profile_edit_save_failed = false;
     g_profile_edit_mode = ProfileEditMode::Rename;
     g_profile_edit_name = g_profile_catalog[g_profile_menu_index].identity.name;
     g_profile_edit_pristine = true;
@@ -2258,6 +2262,7 @@ void open_profile_reset_confirmation() {
 bool append_profile_editor_key(int key) {
     if (g_profile_edit_mode == ProfileEditMode::None) return false;
     if (key == SDLK_BACKSPACE) {
+        g_profile_edit_save_failed = false;
         if (!g_profile_edit_name.empty()) g_profile_edit_name.pop_back();
         g_profile_edit_pristine = false;
         return true;
@@ -2267,6 +2272,7 @@ bool append_profile_editor_key(int key) {
     else if (key >= SDLK_0 && key <= SDLK_9) ch = static_cast<char>('0' + key - SDLK_0);
     else if (key == SDLK_SPACE) ch = ' ';
     if (!ch) return false;
+    g_profile_edit_save_failed = false;
     if (g_profile_edit_pristine) {
         g_profile_edit_name.clear();
         g_profile_edit_pristine = false;
@@ -2306,6 +2312,7 @@ bool handle_profile_menu_key(int key) {
     if (g_profile_edit_mode != ProfileEditMode::None) {
         if (key == SDLK_ESCAPE) {
             g_profile_edit_mode = ProfileEditMode::None;
+            g_profile_edit_save_failed = false;
             return true;
         }
         if (g_profile_edit_mode == ProfileEditMode::Create &&
@@ -2316,6 +2323,7 @@ bool handle_profile_menu_key(int key) {
             g_profile_edit_name = std::string(
                 ur::product::legacy_racer_presets()[g_profile_preset_index].name);
             g_profile_edit_pristine = true;
+            g_profile_edit_save_failed = false;
             return true;
         }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
@@ -2324,7 +2332,20 @@ bool handle_profile_menu_key(int key) {
                     ? create_profile_from_editor()
                     : rename_profile_from_editor();
             if (!saved) {
+                // A failed validation/CAS/save leaves the editor open, so
+                // make the failure visible without releasing Enter to stock.
+                // Create can commit a catalog entry before activation fails;
+                // in that case the editor has closed and selection feedback
+                // belongs on the chooser instead.
+                g_profile_edit_save_failed =
+                    g_profile_edit_mode != ProfileEditMode::None;
+                if (!g_profile_edit_save_failed) {
+                    g_profile_select_failed = true;
+                    g_profile_cool_name_notice = false;
+                }
                 product_diagnostic("UR_PROFILE_UI SAVE_REJECTED");
+            } else {
+                g_profile_edit_save_failed = false;
             }
             // The profile editor is modal. A rejected save must not leak the
             // same Enter press into the stock rider-select screen underneath.
@@ -9972,6 +9993,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
             }
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
                 "ENTER SAVE   ESC CANCEL", 0xFFFFFFFFu, scale);
+            if (g_profile_edit_save_failed) {
+                snes_ovl_draw_text(pixels, stride, height,
+                    x + 8 * scale, y + 137 * scale,
+                    "SAVE FAILED - NAME OR DISK", 0xFFFFFFFFu, scale);
+            }
         } else if (g_profile_catalog.empty()) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 37 * scale,
                 "NO RACERS YET", 0xFFFFFFFFu, scale);

@@ -34,6 +34,9 @@ extern "C" int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry*);
 extern "C" int ur_baldosa_modern_profile_can_begin_race(void);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
+extern "C" const char* ur_baldosa_modern_profile_records_directory(void);
+extern "C" const char* ur_baldosa_modern_profile_multiplayer_records_directory(void);
+extern "C" const char* ur_baldosa_modern_profile_catalog_path(void);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
  * shim link-complete after adding the read-only first-frame SRAM witness. */
@@ -76,7 +79,7 @@ int main(int argc, char** argv) {
     // Decode the two independently persisted Records types through the
     // existing real store/catalog codecs; never synthesize a guest result.
     if (argc == 3 && std::string(argv[1]) == "--verify-fresh-records") {
-        const fs::path root = argv[2];
+        const fs::path root = fs::u8path(argv[2]);
         const auto runs = load_valid_run_records(
             (root / "runs/rider-1").string());
         const auto matches = load_valid_multiplayer_matches(
@@ -103,7 +106,8 @@ int main(int argc, char** argv) {
     assert(argc == 1);
 
     const auto dir = fs::temp_directory_path() /
-        ("ur-baldosa-real-modern-profile-" + std::to_string(getpid()));
+        ("ur-baldosa-real-modern-profile-" + std::to_string(getpid()) +
+         u8"-路径-🌈");
     fs::create_directories(dir);
     assert(chdir(dir.c_str()) == 0);
     assert(setenv("SNESRECOMP_USER_DATA_DIR", dir.c_str(), 1) == 0);
@@ -204,6 +208,14 @@ int main(int argc, char** argv) {
     assert(ur_baldosa_modern_try_activate_profile() == 1);
     assert(root == "saves/profile-rider-1");
     assert(selected_racer == identity->name);
+    // Native public Records/catalog boundaries must return UTF-8 even when
+    // the real user root contains characters outside the Windows code page.
+    assert(std::string(ur_baldosa_modern_profile_records_directory()) ==
+           (dir / "runs/rider-1").u8string());
+    assert(std::string(ur_baldosa_modern_profile_multiplayer_records_directory()) ==
+           (dir / "multiplayer-runs").u8string());
+    assert(std::string(ur_baldosa_modern_profile_catalog_path()) ==
+           (dir / "profiles-v1.txt").u8string());
     assert(fs::file_size("saves/profile-rider-1/save.srm") == kStockSramBytes);
     assert(!fs::exists("saves/save.srm"));
 

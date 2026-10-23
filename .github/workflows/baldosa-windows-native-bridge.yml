@@ -478,7 +478,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-session-end" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-session-end.json"
-          echo "PASS: Win32 session end: real WM_QUERYENDSESSION/WM_ENDSESSION to the running game, killed the moment WM_ENDSESSION returned, left SRAM and window placement on disk; Ctrl+Break quits through the ordinary exit; console close: $(python -c "import json,sys; r=json.load(open(sys.argv[1]))['console_close']; print(r.get('not_exercised') or 'saved, ' + r['persisted'])" "$RUNNER_TEMP/ur-session-end.json"). Not a real sign-out or shutdown." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 session end: real WM_QUERYENDSESSION/WM_ENDSESSION to the running game, killed the moment WM_ENDSESSION returned, left SRAM and window placement on disk; Ctrl+Break quits through the ordinary exit; real console close: $(python -c "import json,sys; r=json.load(open(sys.argv[1]))['console_close']; print(r.get('not_exercised') or 'saved, ' + r['persisted'])" "$RUNNER_TEMP/ur-session-end.json"); simulated close (handler thread, then terminated) saved. Not a real sign-out or shutdown." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |

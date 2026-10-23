@@ -11,13 +11,19 @@ live and which hidden window receives the session messages:
    shutdown or an update restart) and **terminates the process the moment
    ``WM_ENDSESSION`` returns**, as Windows may. The SRAM file and
    ``window-placement.txt`` must already be on disk;
-2. ``console_close``: the game runs in its own console, as under
-   ``run-uniracers.cmd``; a helper attached to that console closes its window
-   (``CTRL_CLOSE_EVENT``, after which the system ends the process). The saves
-   must be on disk. Recorded as ``not_exercised`` only when the runner's
-   session gives the console no window to close;
-3. ``console_break``: Ctrl+Break delivered to the game's console group must
-   quit through the ordinary exit, saves included, with exit code 0.
+2. ``console_break``: Ctrl+Break delivered to the game's console group must
+   quit through the ordinary exit, saves included, with exit code 0;
+3. ``console_close``: the game runs in its own console, as under
+   ``run-uniracers.cmd``; a helper attached to that console posts ``WM_CLOSE``
+   to its window (``CTRL_CLOSE_EVENT``, after which the system ends the
+   process). The saves must be on disk. A console host that never delivers
+   the event (the game logs no ``console_event`` within 15 s) is recorded as
+   ``not_exercised`` with the window's class; a delivered close that does
+   not save fails;
+4. ``console_close_simulated``: the system's part of a close done in the
+   game (test-only ``close_thread``): the handler runs on a new thread and
+   the process is terminated the moment it returns. The saves must be on
+   disk and the exit status must be that termination's.
 
 Fails closed. Hosted Windows cannot sign out or shut down the runner; a real
 shutdown with the game open is physical check S1
@@ -45,6 +51,8 @@ WM_CLOSE, WM_QUERYENDSESSION, WM_ENDSESSION = 0x0010, 0x0011, 0x0016
 ENDSESSION_LOGOFF = 0x80000000
 SMTO_BLOCK, SMTO_ABORTIFHUNG = 0x0001, 0x0002
 CREATE_NEW_CONSOLE, CREATE_NEW_PROCESS_GROUP = 0x00000010, 0x00000200
+STATUS_CONTROL_C_EXIT = 0xC000013A
+CLOSE_DELIVERY_SECONDS = 15
 
 # Runs in its own process: attaching to the game's console makes this helper
 # a target of the same close event, so it reports before acting.
@@ -64,7 +72,9 @@ k.GetConsoleWindow.restype = ctypes.c_void_p
 hwnd = k.GetConsoleWindow()
 if not hwnd:
     open(report, "w").write("no_console_window\n"); sys.exit(4)
-open(report, "w").write(f"close posted hwnd={hwnd}\n")
+name = ctypes.create_unicode_buffer(256)
+u.GetClassNameW(ctypes.c_void_p(hwnd), name, 256)
+open(report, "w").write(f"close posted hwnd={hwnd} class={name.value}\n")
 u.PostMessageW(ctypes.c_void_p(hwnd), 0x0010, 0, 0)
 '''
 
@@ -84,7 +94,16 @@ def saves_on_disk(root: Path) -> dict:
 
 
 def verify(scenario: str, log: str, saves: dict, returncode: int | None) -> dict:
-    """Pure check of one scenario's log, files and exit status."""
+    """Pure check of one scenario's log, files and exit status.
+    ``console_close_simulated`` is checked as ``console_close`` plus the
+    exit status of the termination that follows the handler."""
+    if scenario == "console_close_simulated":
+        # Terminated once the handler returned, or the main thread finished its
+        # own exit first; without the handler's wait the saves would be absent.
+        if returncode is None or returncode & 0xFFFFFFFF not in (STATUS_CONTROL_C_EXIT, 0):
+            raise ValueError(f"console_close_simulated: exit {returncode}, not the "
+                             "termination after the handler returned")
+        return verify("console_close", log, saves, returncode)
     if not INSTALLED.search(log):
         raise ValueError(f"{scenario}: session-end handling was not installed")
     persisted = PERSISTED.findall(log)
@@ -121,13 +140,13 @@ def wait_ready(proc: subprocess.Popen, log_path: Path, timeout: int) -> tuple[in
     raise ValueError("game never reported ready")
 
 
-def launch(exe: Path, rom: Path, root: Path, video: str, flags: int):
+def launch(exe: Path, rom: Path, root: Path, video: str, flags: int, smoke: str = "1"):
     root.mkdir(parents=True)
     (root / "user").mkdir()
     (root / "config.ini").write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     env = {**os.environ,
            "SNESRECOMP_USER_DATA_DIR": str(root / "user"),
-           "SNESRECOMP_UR_SESSION_END_SMOKE": "1",
+           "SNESRECOMP_UR_SESSION_END_SMOKE": smoke,
            "SDL_VIDEODRIVER": video,
            "SDL_AUDIODRIVER": "dummy"}
     log_path = root / "game.log"
@@ -187,7 +206,16 @@ def scenario_console(exe, rom, root, video, timeout, action: str) -> dict:
             return {"not_exercised": note}
         if not note.startswith("close posted" if action == "close" else "break sent=1"):
             raise ValueError(f"console {action} not delivered: {note}")
-        returncode = proc.wait(timeout=30)
+        if action == "close" and not wait_for(log_path, CONSOLE_EVENT, CLOSE_DELIVERY_SECONDS):
+            # The console host never raised CTRL_CLOSE_EVENT in this session.
+            proc.kill()
+            proc.wait(timeout=30)
+            return {"not_exercised": f"console host did not deliver the close ({note})"}
+        try:
+            returncode = proc.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            tail = log_path.read_text(encoding="utf-8", errors="replace")[-1500:]
+            raise ValueError(f"console {action}: game still running ({note}): {tail}")
     finally:
         if proc.poll() is None:
             proc.kill()
@@ -195,6 +223,32 @@ def scenario_console(exe, rom, root, video, timeout, action: str) -> dict:
     text = log_path.read_text(encoding="utf-8", errors="replace")
     name = "console_close" if action == "close" else "console_break"
     return verify(name, text, saves_on_disk(root), returncode)
+
+
+def wait_for(log_path: Path, pattern: re.Pattern, seconds: float) -> bool:
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if pattern.search(log_path.read_text(encoding="utf-8", errors="replace")):
+            return True
+        time.sleep(0.2)
+    return False
+
+
+def scenario_close_simulated(exe, rom, root, video, timeout) -> dict:
+    proc, log, log_path = launch(exe, rom, root, video, 0, smoke="close_thread")
+    try:
+        wait_ready(proc, log_path, timeout)
+        try:
+            returncode = proc.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            tail = log_path.read_text(encoding="utf-8", errors="replace")[-1500:]
+            raise ValueError(f"console_close_simulated: game still running: {tail}")
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+        log.close()
+    text = log_path.read_text(encoding="utf-8", errors="replace")
+    return verify("console_close_simulated", text, saves_on_disk(root), returncode)
 
 
 def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
@@ -207,6 +261,8 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
                                           "break"),
         "console_close": scenario_console(exe, rom, out / "console-close", video, timeout,
                                           "close"),
+        "console_close_simulated": scenario_close_simulated(
+            exe, rom, out / "console-close-simulated", video, timeout),
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
         "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),
         "video_driver": video,

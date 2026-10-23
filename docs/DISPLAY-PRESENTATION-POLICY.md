@@ -238,11 +238,14 @@ Local X11 run: positive pass. Without the restore call the runner fails, and wit
 
 Log tokens: `UR_SESSION_END console_event=…`, `end_session ending=1` and `persisted reason=exit|session_end|console_close|console_break`.
 
-`tools/run_baldosa_session_end_acceptance.py` runs the exact PE three times:
+`tools/run_baldosa_session_end_acceptance.py` runs the exact PE four times:
 
 - it sends the real session messages to the running game and kills the process the moment `WM_ENDSESSION` returns; the SRAM file and placement must already be on disk;
-- it closes the game's own console window from a helper attached to it;
-- it sends Ctrl+Break, which must quit with exit code 0 through the ordinary exit.
+- it sends Ctrl+Break, which must quit with exit code 0 through the ordinary exit;
+- it posts `WM_CLOSE` to the game's own console window from a helper attached to it;
+- it performs a simulated close (test-only `close_thread`): the handler runs on a new thread and the process is terminated as soon as it returns, which is what the system does after a close.
+
+The hosted runner's console host did not raise `CTRL_CLOSE_EVENT` for a posted `WM_CLOSE`. The real close is therefore recorded `not_exercised` with the window class when no `console_event` follows within 15 s, and the simulated close carries the check.
 
 What is saved, and when the ordinary exit saves it, is unchanged. A real sign-out or shutdown is physical check S1.
 

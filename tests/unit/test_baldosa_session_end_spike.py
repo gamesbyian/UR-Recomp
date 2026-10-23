@@ -185,6 +185,31 @@ class SessionEndRunnerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "persisted"):
             runner.verify("console_close", twice, SAVED, 0)
 
+    def test_simulated_close_needs_the_termination_status(self):
+        close = log("UR_SESSION_END console_event=console_close",
+                    "UR_SESSION_END persisted reason=console_close")
+        ok = runner.verify("console_close_simulated", close, SAVED, 0xC000013A)
+        self.assertEqual(ok["persisted"], "console_close")
+        # Python on Windows may report the NTSTATUS as a negative int.
+        runner.verify("console_close_simulated", close, SAVED, 0xC000013A - (1 << 32))
+        runner.verify("console_close_simulated", close, SAVED, 0)
+        for code in (1, 3, None):
+            with self.assertRaisesRegex(ValueError, "termination"):
+                runner.verify("console_close_simulated", close, SAVED, code)
+        with self.assertRaisesRegex(ValueError, "SRAM"):
+            runner.verify("console_close_simulated", close,
+                          {"srm": [], "placement": True}, 0xC000013A)
+
+    def test_close_thread_smoke_terminates_only_after_the_handler(self):
+        staged = BaldosaSessionEndSpikeTests().staged()
+        smoke = staged[staged.index("static DWORD WINAPI UrSessionEndSmokeClose("):]
+        smoke = smoke[:smoke.index("\n}\n")]
+        self.assertLess(smoke.index("UrConsoleControl(CTRL_CLOSE_EVENT);"),
+                        smoke.index("TerminateProcess(GetCurrentProcess(), 0xC000013Au);"))
+        tick = staged[staged.index("static void UrSessionEndTick(void) {"):]
+        tick = tick[:tick.index("\n}\n")]
+        self.assertIn('strcmp(v, "close_thread") == 0', tick)
+
     def test_ready_line_names_pid_and_window(self):
         m = runner.READY.search(log())
         self.assertEqual((m.group(1), m.group(2)), ("7", "1234"))

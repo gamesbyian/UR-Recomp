@@ -32,7 +32,10 @@ checkout patch:
   before returning, then asks the loop to quit;
 * ``SNESRECOMP_UR_SESSION_END_SMOKE=1`` prints one
   ``UR_SESSION_END ready`` line naming that window once the game is running,
-  for ``tools/run_baldosa_session_end_acceptance.py``. Inert unless set.
+  for ``tools/run_baldosa_session_end_acceptance.py``. ``=close_thread``
+  also does what the system does for a console close where a hosted session
+  cannot deliver one: call the handler with ``CTRL_CLOSE_EVENT`` on a new
+  thread and terminate the process the moment it returns. Inert unless set.
 
 Guest code, input, timing and the content of what is persisted are
 untouched. Windows only; every other build is unchanged. Must run after
@@ -158,6 +161,15 @@ static void UrSessionEndPersisted(void) {
   if (g_ur_persisted_event) SetEvent(g_ur_persisted_event);
 }
 static const char *UrSessionEndCause(void) { return g_ur_quit_cause; }
+/* Test only: the system's part of a console close, for a session whose
+ * console host cannot deliver one. The handler runs on a new thread and the
+ * process ends the moment it returns (STATUS_CONTROL_C_EXIT). */
+static DWORD WINAPI UrSessionEndSmokeClose(LPVOID unused) {
+  (void)unused;
+  UrConsoleControl(CTRL_CLOSE_EVENT);
+  TerminateProcess(GetCurrentProcess(), 0xC000013Au);
+  return 0;
+}
 /* Installed on the first main-loop pass. The smoke line tells the runner the
  * game is live and which window to send the session messages to. */
 static void UrSessionEndTick(void) {
@@ -169,10 +181,15 @@ static void UrSessionEndTick(void) {
   if (ticks >= 0 && ++ticks == 90) {
     ticks = -1;
     const char *v = HostGetenv("UR_SESSION_END_SMOKE");
-    if (v && atoi(v)) {
+    const int close_thread = v && strcmp(v, "close_thread") == 0;
+    if (v && (atoi(v) || close_thread)) {
       printf("UR_SESSION_END ready pid=%lu window=%llu\n", (unsigned long)GetCurrentProcessId(),
              (unsigned long long)(uintptr_t)g_ur_session_window);
       fflush(stdout);
+    }
+    if (close_thread) {
+      HANDLE t = CreateThread(NULL, 0, UrSessionEndSmokeClose, NULL, 0, NULL);
+      if (t) CloseHandle(t);
     }
   }
 }

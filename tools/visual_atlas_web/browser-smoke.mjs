@@ -58,8 +58,8 @@ async function runScript(expression){
 }
 const summary=[];
 try{
-  let endpoint='';
-  for(let tick=0;tick<100;tick++){
+  let endpoint='', connectionProblem='';
+  for(let tick=0;tick<300;tick++){
     if(chrome.exitCode!==null)break;
     try{
       const response=await fetch('http://127.0.0.1:'+debugPort+'/json/version');
@@ -67,10 +67,10 @@ try{
         endpoint=(await response.json()).webSocketDebuggerUrl;
         if(endpoint)break;
       }
-    }catch(_){ /* Chrome has not started listening yet. */ }
+    }catch(error){ connectionProblem=String(error); /* Chrome has not started listening yet. */ }
     await pause(100);
   }
-  if(!endpoint)throw Error('Chromium debugger did not start; exit='+chrome.exitCode+' stderr='+chromeErrors.slice(-1600));
+  if(!endpoint)throw Error('Chromium debugger did not start; port='+debugPort+' exit='+chrome.exitCode+' lastHTTP='+connectionProblem+' stderr='+chromeErrors.slice(-1600));
   ws=new WebSocket(endpoint);
   await new Promise((resolve,reject)=>{
     ws.addEventListener('open',resolve,{once:true});

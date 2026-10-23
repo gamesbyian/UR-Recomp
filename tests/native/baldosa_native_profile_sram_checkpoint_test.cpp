@@ -1,7 +1,7 @@
 // Actual shipping Modern typed stores, with a small deterministic simulated
 // guest SRAM *after* a native RtlWriteSram checkpoint. No synthetic file
 // formats or fake CAS; only the native host/guest execution is replaced here.
-#include "baldosa_native_profile_sram_checkpoint.hpp"
+#include "baldosa_native_manual_sram_recovery.hpp"
 
 #include <array>
 #include <cassert>
@@ -44,12 +44,12 @@ struct Fixture {
                 == HostProfileTransferStatus::Applied);
         global.active_profile_id = id;
         assert(save_host_product_state_file(
-            (root / "host-state-v1.txt").string(), global) ==
+            (root / "host-state-v1.txt").u8string(), global) ==
             HostProductSaveStatus::Saved);
         assert(save_host_profile_catalog_file(
-            (root / "profiles-v1.txt").string(), {{id, *profile.racer_identity}}));
+            (root / "profiles-v1.txt").u8string(), {{id, *profile.racer_identity}}));
         assert(save_host_profile_state_file(
-            ExecutionMode::Modern, profile_path.string(), profile) ==
+            ExecutionMode::Modern, profile_path.u8string(), profile) ==
             HostProfileSaveStatus::Saved);
         write_raw(native_path, initial);
     }
@@ -60,7 +60,7 @@ struct Fixture {
 
     HostProfileState read() const {
         const auto current = load_host_profile_state_file(
-            ExecutionMode::Modern, profile_path.string(), profile.profile_id);
+            ExecutionMode::Modern, profile_path.u8string(), profile.profile_id);
         assert(current.loaded());
         return *current.state;
     }
@@ -119,7 +119,7 @@ int main() {
         HostProductState newer = f.global;
         newer.active_profile_id.reset();
         assert(save_host_product_state_file(
-            (f.root / "host-state-v1.txt").string(), newer) ==
+            (f.root / "host-state-v1.txt").u8string(), newer) ==
             HostProductSaveStatus::Saved);
         assert(checkpoint_baldosa_native_profile_sram(f.request()) ==
                BaldosaSramCheckpointStatus::SelectionConflict);
@@ -132,7 +132,7 @@ int main() {
         auto newer = f.profile;
         newer.recent_track = 7;
         assert(save_host_profile_state_file(
-            ExecutionMode::Modern, f.profile_path.string(), newer) ==
+            ExecutionMode::Modern, f.profile_path.u8string(), newer) ==
             HostProfileSaveStatus::Saved);
         assert(checkpoint_baldosa_native_profile_sram(f.request()) ==
                BaldosaSramCheckpointStatus::ProfileConflict);
@@ -143,7 +143,7 @@ int main() {
         f.live[22] = 9;
         write_raw(f.native_path, f.live);
         assert(save_host_profile_catalog_file(
-            (f.root / "profiles-v1.txt").string(), {}) );
+            (f.root / "profiles-v1.txt").u8string(), {}) );
         assert(checkpoint_baldosa_native_profile_sram(f.request()) ==
                BaldosaSramCheckpointStatus::UnauthorizedProfile);
         assert(f.read() == f.profile);
@@ -171,6 +171,75 @@ int main() {
         assert(checkpoint_baldosa_native_profile_sram(bad) ==
                BaldosaSramCheckpointStatus::InvalidContext);
         assert(f.read() == f.profile);
+    }
+    // The native crash journal must survive a non-ANSI profile directory on
+    // both genuine cold-restart cuts. No synthetic save format is introduced.
+    for (int raw_written = 0; raw_written != 2; ++raw_written) {
+        Fixture f(root / fs::u8path(raw_written
+            ? u8"unicode-new-路径-🌈" : u8"unicode-old-路径-🌈"));
+        f.live[22] = 0x73;
+        const fs::path profile_dir = f.native_path.parent_path();
+        const fs::path pending = baldosa_sram_intent_path(profile_dir);
+        {
+            TournamentLaunchPathLock selector(f.root / "host-state-v1.txt", true);
+            TournamentLaunchPathLock catalog(f.root / "profiles-v1.txt", true);
+            TournamentLaunchPathLock profile(f.profile_path, true);
+            assert(selector.acquired() && catalog.acquired() && profile.acquired());
+            assert(prepare_baldosa_sram_intent_under_lock(f.request()) ==
+                   BaldosaSramIntentStatus::Prepared);
+        }
+        assert(fs::is_regular_file(pending));
+        if (raw_written) write_raw(f.native_path, f.live);
+        const auto result = recover_baldosa_sram_intent_on_cold_boot(
+            f.root, f.profile.profile_id);
+        assert(result == (raw_written ? BaldosaSramIntentStatus::Reconciled
+                                      : BaldosaSramIntentStatus::Cleared));
+        assert(!fs::exists(pending));
+        const auto current = f.read();
+        assert(current.stock_sram &&
+               *current.stock_sram == (raw_written ? f.live : f.initial));
+        unsigned archive_count = 0;
+        for (const auto& item : fs::directory_iterator(profile_dir)) {
+            const auto name = item.path().filename().u8string();
+            const auto prefix = raw_written ? "native-sram-recovered-"
+                                            : "native-sram-uncommitted-";
+            if (name.rfind(prefix, 0) == 0) {
+                assert(item.is_regular_file());
+                ++archive_count;
+            }
+        }
+        assert(archive_count == 1);
+    }
+    // Explicit manual-recovery evidence archives also stay inside the
+    // non-ANSI profile root and remain immutable across repeated attempts.
+    {
+        Fixture f(root / fs::u8path(u8"unicode-manual-路径-🌈"));
+        const fs::path profile_dir = f.native_path.parent_path();
+        const auto typed = encode_host_profile_state(f.profile);
+        const std::string raw(
+            reinterpret_cast<const char*>(f.initial.data()), f.initial.size());
+        assert(archive_baldosa_manual_sram_choice(
+            profile_dir, f.profile, typed, true, raw));
+        assert(archive_baldosa_manual_sram_choice(
+            profile_dir, f.profile, typed, true, raw));
+        const std::string opaque("malformed\0intent", 16);
+        assert(archive_baldosa_untrusted_sram_intent(
+            profile_dir, f.profile, opaque));
+        assert(archive_baldosa_untrusted_sram_intent(
+            profile_dir, f.profile, opaque));
+        unsigned manual_count = 0, untrusted_count = 0;
+        for (const auto& item : fs::directory_iterator(profile_dir)) {
+            const auto name = item.path().filename().u8string();
+            if (name.rfind("native-sram-manual-archive-", 0) == 0) {
+                assert(item.is_regular_file());
+                ++manual_count;
+            }
+            if (name.rfind("native-sram-untrusted-intent-", 0) == 0) {
+                assert(item.is_regular_file());
+                ++untrusted_count;
+            }
+        }
+        assert(manual_count == 1 && untrusted_count == 1);
     }
     fs::remove_all(root);
     std::puts("PASS: exact native SRAM post-write typed Modern profile CAS; unchanged, selector change, races and invalid saves fail closed");

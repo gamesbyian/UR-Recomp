@@ -107,6 +107,36 @@ class WindowsAtlasTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "source_sha"):
                 atlas.valid_receipt(entry, root, "f"*40, None)
 
+    def test_assembled_capture_requires_independent_native_witness(self):
+        # A PNG with a matching JSON receipt must not earn captured status
+        # without the original P7 pixels and native-process log. The witness
+        # validator itself is exercised separately by the intake tests.
+        source = "a" * 40
+        receipt = {
+            "source_sha": source, "exe_sha256": "b" * 64,
+            "png_sha256": "c" * 64, "SDL_driver": "windows",
+            "native_semantic_route": "root-quit",
+            "actual_sdl_renderer_output": [1280, 720],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            case = root / "captures" / "URV-MD-001"
+            case.mkdir(parents=True)
+            (case / "readback-receipt.json").write_text("{}", encoding="utf-8")
+            (case / "actual-sdl-drawable.png").write_bytes(b"fixture")
+            with (mock.patch.object(atlas, "valid_receipt", return_value=(receipt, "b" * 64)),
+                  mock.patch("tools.windows_visual_atlas_intake.witness", return_value=False) as check):
+                with self.assertRaisesRegex(ValueError, "native P7/log witness"):
+                    atlas.build(atlas.load_catalog(), root / "unverified", root, source)
+                check.assert_called_once_with(receipt, case)
+            with (mock.patch.object(atlas, "valid_receipt", return_value=(receipt, "b" * 64)),
+                  mock.patch("tools.windows_visual_atlas_intake.witness", return_value=True) as check):
+                data = atlas.build(atlas.load_catalog(), root / "verified", root, source)
+                check.assert_called_once_with(receipt, case)
+            self.assertEqual(data["counts"]["captured"], 1)
+            self.assertEqual((root / "verified" / "images" / "URV-MD-001.png").read_bytes(),
+                             b"fixture")
+
 
     def test_resume_keeps_native_witnesses_and_emits_parseable_jsonl(self):
         # ROM-free orchestration regression: a complete previous capture must

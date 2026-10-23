@@ -11,6 +11,16 @@ name: Windows native build and boot smoke
 on:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      run_tournament_acceptance:
+        description: "Opt-in independently nominated same-run packaged tournament acceptance"
+        type: boolean
+        required: false
+        default: false
+      candidate_commit_sha:
+        type: string
+        required: false
+        default: ""
   push:
     branches: [main]
     paths:
@@ -55,7 +65,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 20
+    timeout-minutes: ${{ inputs.run_tournament_acceptance && 45 || 20 }}
     defaults:
       run:
         shell: bash
@@ -70,6 +80,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Validate independently nominated same-source tournament candidate
+        if: inputs.run_tournament_acceptance
+        env:
+          QA_APPROVED_SHA: ${{ inputs.candidate_commit_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || { echo "Tournament candidate must be dispatched on main" >&2; exit 1; }
+          [[ "$QA_APPROVED_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid approved source SHA" >&2; exit 1; }
+          [[ "$GITHUB_SHA" == "$QA_APPROVED_SHA" ]] || { echo "Checked-out source differs from independent nomination" >&2; exit 1; }
 
       - name: Verify canonical ROM and package contracts
         run: |
@@ -989,6 +1009,50 @@ jobs:
 
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 
+      - name: Same-run packaged Local Tournament acceptance (manual opt-in)
+        if: inputs.run_tournament_acceptance
+        env:
+          QA_APPROVED_SHA: ${{ inputs.candidate_commit_sha }}
+          QA_SMOKE_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # Independently nominate main source; fingerprint only the exact
+          # current-run ZIP after validating it, without assuming linker
+          # reproducibility across separate Windows runners.
+          python tools/assemble_windows_package.py verify-archive-checksum \
+            --archive "$PACKAGE_ARCHIVE" --checksum "$PACKAGE_ARCHIVE_CHECKSUM"
+          python tools/assemble_windows_package.py verify-archive \
+            --archive "$PACKAGE_ARCHIVE"
+          ACTUAL_ZIP_SHA256="$(sha256sum "$PACKAGE_ARCHIVE" | cut -d ' ' -f 1)"
+          [[ "$ACTUAL_ZIP_SHA256" =~ ^[0-9a-f]{64}$ ]] || exit 1
+          QA_APPROVED_ZIP_SHA256="$ACTUAL_ZIP_SHA256"
+          test "$QA_APPROVED_SHA" = "$GITHUB_SHA"
+          test -d "$TEST_PACKAGE"
+          test ! -e "$RUNNER_TEMP/tournament-work"
+          printf 'schema=ur-windows-qa-candidate/1\nbackend=snesrecomp\nsmoke_run_id=%s\nsource_commit=%s\ninner_zip_sha256=%s\nqa_harness_commit=%s\n' \
+            "$QA_SMOKE_RUN_ID" "$QA_APPROVED_SHA" "$QA_APPROVED_ZIP_SHA256" "$GITHUB_SHA" \
+            > "$RUNNER_TEMP/windows-tournament-candidate.txt"
+          bash tests/native/run_windows_local_tournament_package_acceptance.sh \
+            "$TEST_PACKAGE" "$RUNNER_TEMP/tournament-work"
+          python tools/verify_windows_tournament_acceptance_receipt.py \
+            --work "$RUNNER_TEMP/tournament-work" \
+            --candidate "$RUNNER_TEMP/windows-tournament-candidate.txt" \
+            --expected-source "$QA_APPROVED_SHA" \
+            --expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256" \
+            --expected-harness-sha "$GITHUB_SHA" \
+            --expected-smoke-run-id "$QA_SMOKE_RUN_ID" \
+            --output-envelope "$RUNNER_TEMP/tournament-qa-envelope.json" \
+            | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
+          python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
+
+      # ROM-bearing packages are verified internally, never uploaded.
+      - name: Verify archive-free Windows artifact upload policy
+        if: always()
+        shell: bash
+        run: |
+          python tools/ci/check_windows_smoke_upload_policy.py
+          python tools/ci/check_windows_smoke_upload_policy.py --self-test
+
       - name: Upload Windows evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -1001,19 +1065,9 @@ jobs:
             ${{ runner.temp }}/package-boot-dumps/
             ${{ runner.temp }}/package-race-result-dumps/race-results.*
             ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
-            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
+            ${{ runner.temp }}/windows-tournament-candidate.txt
+            ${{ runner.temp }}/tournament-qa-envelope.json
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Upload portable Windows package
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ur-recomp-windows-x64-portable
-          path: |
-            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
-            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
-            ${{ runner.temp }}/Test-URRecompPortable.ps1
-          if-no-files-found: error
-          retention-days: 7

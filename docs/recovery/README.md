@@ -1,5 +1,7 @@
 # UR-Recomp recovery entrypoint
 
+**Evidence transport breakthrough (2026-10-23):** The purported inaccessible Evidence Library was anonymously readable from GitHub Actions. [Evidence ZIP access proof run 40027157602](https://github.com/gamesbyian/UR-Recomp/actions/runs/40027157602) fetched the original **28,106,236-byte H26 QA04 archive**, SHA-256 `601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00`, CRC-verified 33 ZIP members, and uploaded no raw ZIP or source. See [no-settings sandbox recovery runbook](SANDBOX-EVIDENCE-RECOVERY.md) and [recurring intake scopes](RECURRING-VAULT-INTAKE.md). This is transfer evidence, not publication/integration or QA acceptance.
+
 **Continuous intake:** [Recurring Vault Intake](RECURRING-VAULT-INTAKE.md) describes the six-hour GitHub Actions metadata-and-checkpoint route. A successful direct binary download was verified by [run 40022473433](https://github.com/gamesbyian/UR-Recomp/actions/runs/40022473433). These do not certify public source publication or engineering integration.
 
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.

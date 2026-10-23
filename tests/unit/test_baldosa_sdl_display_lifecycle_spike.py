@@ -421,6 +421,13 @@ class BaldosaSdlDisplayLifecycleSpikeTests(unittest.TestCase):
                  for uw, uh in ((0, 0), (1024, 728), (1920, 1040), (2560, 1400),
                                 (3840, 2120), (7680, 4280))
                  for m in (10, 3, 1)]
+        # Bound the former O(max_scale) decrement path and 64-bit product
+        # overflow at the native boundary, without real monitor hardware.
+        cases.extend([
+            (3.0e9, 320, 240, 3840, 2160, 2147483647),
+            (3.0e9, 2147483647, 2147483647, 3840, 2160, 2147483647),
+            (3.0, 0, 240, 3840, 2160, 10),
+        ])
         with tempfile.TemporaryDirectory() as d:
             c_file = Path(d) / "scale.c"
             rows = ",\n".join(f"{{{c}f,{bw},{bh},{uw},{uh},{m}}}"

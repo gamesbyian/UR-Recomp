@@ -158,5 +158,21 @@ class WindowsAtlasTests(unittest.TestCase):
 
 
 
+    def test_assembled_artifact_root_matches_download_layout(self):
+        # Each capture artifact retains its captures/<atlas-id>/... tree.
+        # The assembler itself appends captures/<atlas-id> to --captures.
+        # Downloading into an additional captures/ layer silently makes
+        # every successfully captured case appear pending in the website.
+        workflow = (atlas.ROOT / ".github/workflows/windows-visual-atlas.yml").read_text(
+            encoding="utf-8")
+        assemble = workflow.split("\n  assemble:\n", 1)[1].split(
+            "\n  publish-pages:\n", 1)[0]
+        self.assertIn("pattern: visual-atlas-*", assemble)
+        self.assertIn("merge-multiple: true", assemble)
+        self.assertIn("path: ${{ runner.temp }}/atlas-captures\n", assemble)
+        self.assertIn('--captures "$RUNNER_TEMP/atlas-captures"', assemble)
+        self.assertNotIn("path: ${{ runner.temp }}/atlas-captures/captures", assemble)
+
+
 if __name__ == "__main__":
     unittest.main()

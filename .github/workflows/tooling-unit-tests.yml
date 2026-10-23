@@ -30,6 +30,9 @@ on:
       - "native/product/baldosa_native_multiplayer_records_summary.*"
       - "tests/native/baldosa_native_multiplayer_records_summary_test.cpp"
       - "native/product/local_tournament_utf8_path.hpp"
+      - "native/product/local_tournament_fixture_launch_store.cpp"
+      - "native/product/local_tournament_fixture_launch_store.hpp"
+      - "tests/native/local_tournament_fixture_launch_store_test.cpp"
       # The native atomic writer's no-replace race is a compiled C++ unit.
       - "native/product/local_tournament_atomic_replace.hpp"
       - "tests/native/local_tournament_atomic_replace_test.cpp"

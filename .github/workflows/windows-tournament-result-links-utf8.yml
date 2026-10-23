@@ -1,0 +1,68 @@
+name: Windows tournament result-link UTF-8 regression
+
+# ROM-free hosted Windows proof for native fixture receipt publication and
+# exact Unicode-root saved multiplayer pair restoration. Not physical NTFS QA.
+on:
+  pull_request:
+    paths:
+      - "native/product/local_tournament_result_link_store.*"
+      - "native/product/local_tournament_utf8_path.hpp"
+      - "native/product/completed_run_store.*"
+      - "native/product/multiplayer_match_record.*"
+      - "tests/native/local_tournament_result_link_store_test.cpp"
+      - ".github/workflows/windows-tournament-result-links-utf8.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-tournament-result-links-utf8-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  result-links:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run production fixture receipt and Unicode pair regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          if (-not (Test-Path -LiteralPath $vswhere)) { throw 'vswhere.exe missing' }
+          $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'Visual C++ x64 tools missing' }
+          $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
+          if (-not (Test-Path -LiteralPath $vcvars)) { throw 'vcvars64.bat missing' }
+          $product = Join-Path $env:GITHUB_WORKSPACE 'native\product'
+          $title = Join-Path $env:GITHUB_WORKSPACE 'native\title'
+          $test = Join-Path $env:GITHUB_WORKSPACE 'tests\native\local_tournament_result_link_store_test.cpp'
+          $exe = Join-Path $env:RUNNER_TEMP 'local_tournament_result_link_store_test.exe'
+          $runner = Join-Path $env:RUNNER_TEMP 'run-tournament-result-links.cmd'
+          $sources = @(
+            'modern_racer_identity.cpp',
+            'host_profile_runtime.cpp',
+            'host_product_state.cpp',
+            'output_resolution_policy.cpp',
+            'completed_run_record.cpp',
+            'completed_run_store.cpp',
+            'local_multiplayer_match_binding.cpp',
+            'multiplayer_match_record.cpp',
+            'local_tournament_result_link_store.cpp'
+          ) | ForEach-Object { '"' + (Join-Path $product $_) + '"' }
+          $compile = 'cl /nologo /std:c++17 /utf-8 /EHsc /W3 /I"' + $product + '" /I"' + $title + '" ' + ($sources -join ' ') + ' "' + $test + '" /Fe:"' + $exe + '"'
+          $commands = @(
+            '@echo off',
+            "call `"$vcvars`"",
+            'if errorlevel 1 exit /b 1',
+            $compile,
+            'if errorlevel 1 exit /b 1',
+            "`"$exe`"",
+            'exit /b %ERRORLEVEL%'
+          )
+          [System.IO.File]::WriteAllLines($runner, $commands, [System.Text.Encoding]::ASCII)
+          & cmd.exe /d /c "`"$runner`""
+          if ($LASTEXITCODE -ne 0) { throw "Windows tournament result-link regression failed: $LASTEXITCODE" }
+          Write-Host 'Windows tournament result-link UTF-8 regression passed'

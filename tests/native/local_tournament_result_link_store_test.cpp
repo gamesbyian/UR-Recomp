@@ -117,6 +117,41 @@ int main() {
     check(fs::exists(link0) && !fs::exists(link0.string() + ".tmp"),
           "durable fixture link committed and no temporary residue");
 
+    // A Unicode Windows profile root must survive fixture publication,
+    // Records pair lookup and cold restoration without an ANSI round trip.
+    const fs::path unicode_links = root / fs::u8path(u8"fixtures-测试-🎮");
+    const fs::path unicode_runs = root / fs::u8path(u8"runs-测试-🎮");
+    fs::create_directories(unicode_links);
+    fs::create_directories(unicode_runs);
+    std::string unicode_run_path;
+    check(append_multiplayer_match_pair(
+        unicode_runs.u8string(), run0, match0, &unicode_run_path, &detail),
+        "Unicode Records pair published through native filesystem path");
+    auto unicode_state = *initial;
+    LocalTournamentLaunchState unicode_launch;
+    check(local_tournament_arm_fixture(
+        unicode_launch, unicode_state, instance, first_attempt, 0) ==
+        LocalTournamentLaunchStatus::Armed, "Unicode fixture armed");
+    check(commit_saved_local_tournament_fixture(
+        unicode_links.u8string(), unicode_runs.u8string(),
+        unicode_run_path, instance, first_attempt, unicode_launch,
+        unicode_state) == Status::Committed &&
+        unicode_state.results[0] && !unicode_launch.pending,
+        "Unicode fixture link commits exact Unicode-root saved pair");
+    const fs::path unicode_link = unicode_links / "fixture-0.urfixture";
+    check(fs::is_regular_file(unicode_link),
+          "Unicode fixture link exists at native path");
+    const auto unicode_restore = restore_saved_local_tournament_fixtures(
+        unicode_links.u8string(), unicode_runs.u8string(), instance, *initial);
+    check(unicode_restore.restored() &&
+          unicode_restore.state->results[0] &&
+          !unicode_restore.state->results[1],
+          "Unicode fixture cold restoration credits exact saved result");
+    check(restore_saved_local_tournament_fixtures(
+        unicode_links.u8string(), (root / "unrelated-runs").u8string(), instance,
+        *initial).status == Status::MatchRejected,
+        "Unicode fixture cannot resolve a pair from the wrong Records root");
+
     // A second, separately valid process attempt for the same scheduled
     // fixture must NEVER overwrite the already published receipt. A prior
     // exists() check is not a concurrency transaction, so publication itself
@@ -131,6 +166,7 @@ int main() {
     const std::string incumbent_bytes{
         std::istreambuf_iterator<char>(before_link),
         std::istreambuf_iterator<char>()};
+    before_link.close();
     check(!incumbent_bytes.empty(), "incumbent receipt byte witness");
     auto competing = *initial;
     LocalTournamentLaunchState competitor_launch;
@@ -150,6 +186,7 @@ int main() {
     const std::string preserved_bytes{
         std::istreambuf_iterator<char>(after_link),
         std::istreambuf_iterator<char>()};
+    after_link.close();
     check(preserved_bytes == incumbent_bytes,
           "immutable published receipt remains byte exact after conflict");
 

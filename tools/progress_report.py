@@ -4,9 +4,11 @@ import argparse
 import json
 from collections import Counter
 from pathlib import Path
-from tools.progress_calculator import calculate
-
+import sys
 ROOT=Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from tools.progress_calculator import calculate
 
 def build_report(inventory, ledger, changelog, reviewed_sha):
     if not isinstance(reviewed_sha,str) or len(reviewed_sha)!=40 or any(c not in '0123456789abcdef' for c in reviewed_sha):

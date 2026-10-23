@@ -242,7 +242,16 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
             case_root = captures / "captures" / entry["id"]
             failure = case_root / "capture-failure.json"
             receipt = case_root / "readback-receipt.json"
-            if receipt.exists():
+            # A failed driver may leave a partial receipt before its final
+            # validation/exit fails. The explicit failure marker wins: never
+            # admit those incomplete bytes as a successful SDL capture.
+            if failure.exists():
+                failure_data = json.loads(failure.read_text(encoding="utf-8"))
+                if (failure_data.get("id") != entry["id"] or
+                        failure_data.get("status") != "failed"):
+                    raise ValueError(f"{entry['id']}: unrelated failure marker")
+                case["status"] = "capture_failed"
+            elif receipt.exists():
                 if not source or not re.fullmatch(r"[0-9a-f]{40}", source):
                     raise ValueError("Exact 40-hex source SHA required when publishing captures")
                 evidence, exe_digest = valid_receipt(entry, case_root, source, exe_digest)
@@ -266,11 +275,6 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
                     "physical_screen_verified": False,
                     "release_accepted": False,
                 }
-            elif failure.exists():
-                failure_data = json.loads(failure.read_text(encoding="utf-8"))
-                if failure_data.get("id") != entry["id"]:
-                    raise ValueError(f"{entry['id']}: unrelated failure marker")
-                case["status"] = "capture_failed"
         # Prefer exact capture from this run. Fall back to a reviewed,
         # committed incidental source only if it is still code-current.
         if case["status"] != "captured":
@@ -389,7 +393,15 @@ def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
             process = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout * 3)
             if process.returncode != 0:
                 raise RuntimeError(f"capture driver exit {process.returncode}: " + (process.stdout + process.stderr)[-1500:])
-            valid_receipt(entry, location, source, None)
+            evidence, _ = valid_receipt(entry, location, source, None)
+            # Do not report capture success when a driver left a plausible
+            # PNG/receipt but no authentic P7/process-log corroboration.
+            try:
+                from tools.windows_visual_atlas_intake import witness
+            except ModuleNotFoundError:
+                from windows_visual_atlas_intake import witness
+            if not witness(evidence, location):
+                raise ValueError("missing or invalid native P7/log witness")
             status = "captured"
         except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
             location.mkdir(parents=True, exist_ok=True)

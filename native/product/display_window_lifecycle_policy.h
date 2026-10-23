@@ -98,11 +98,11 @@ static inline UrDisplayRect ur_display_window_rescue(
 /* Which connected display a saved window placement belongs to.
  *
  * SDL display IDs are per-run, so a placement is remembered by the
- * display's name and desktop bounds. The same name at the same bounds is
- * the same display. The same name at different bounds is still that
- * display if exactly one display has the name (a resolution or layout
- * change). Anything else is ambiguous or gone: -1, and the window stays
- * on the primary display rather than guessing. */
+ * display's name and desktop bounds. An exact name/bounds match is accepted
+ * only when unique: mirrored/virtual displays can expose identical names
+ * and bounds, in which case picking the first is arbitrary. A changed
+ * resolution/layout may still match when exactly one display has the name.
+ * Anything else is ambiguous or gone: -1, and the window stays on primary. */
 typedef struct UrDisplayIdentity {
     const char *name;
     UrDisplayRect bounds;
@@ -118,16 +118,21 @@ static inline int ur_display_placement_match(
     const char *saved_name, UrDisplayRect saved_bounds,
     const UrDisplayIdentity *displays, int count) {
     int i, named = 0, named_index = -1;
+    int exact = 0, exact_index = -1;
     for (i = 0; i < count; ++i) {
         if (!ur_display_name_equal(saved_name, displays[i].name)) continue;
+        ++named;
+        named_index = i;
         if (displays[i].bounds.x == saved_bounds.x &&
             displays[i].bounds.y == saved_bounds.y &&
             displays[i].bounds.w == saved_bounds.w &&
-            displays[i].bounds.h == saved_bounds.h)
-            return i;
-        ++named;
-        named_index = i;
+            displays[i].bounds.h == saved_bounds.h) {
+            ++exact;
+            exact_index = i;
+        }
     }
+    // Mirrored or duplicate SDL identities are not safe restoration targets.
+    if (exact) return exact == 1 ? exact_index : -1;
     return named == 1 ? named_index : -1;
 }
 

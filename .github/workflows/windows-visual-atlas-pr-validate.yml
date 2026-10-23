@@ -17,6 +17,10 @@ on:
       - "tools/visual_atlas_web/**"
       - "tests/unit/test_windows_visual_atlas.py"
       - "tests/unit/test_windows_visual_atlas_intake.py"
+      - "tests/unit/test_windows_visual_atlas_frontend.py"
+      - "docs/atlas/**"
+      - "design/visual-atlas/mockups/**"
+      - "tools/visual_atlas_web/tube-header.svg"
 permissions:
   contents: read
 concurrency:
@@ -30,10 +34,39 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate real fixture routes, assets and inventory
         run: |
-          python3 -m unittest tests.unit.test_windows_visual_atlas tests.unit.test_windows_visual_atlas_intake
+          python3 -m unittest tests.unit.test_windows_visual_atlas tests.unit.test_windows_visual_atlas_intake tests.unit.test_windows_visual_atlas_frontend
           python3 tools/windows_visual_atlas.py validate
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-preview"
           test -s "$RUNNER_TEMP/atlas-preview/index.html"
           test -s "$RUNNER_TEMP/atlas-preview/atlas.json"
       - name: Check mobile browser JS syntax
         run: node --check tools/visual_atlas_web/atlas.js
+
+  mobile-chromium-smoke:
+    # Fast, targeted atlas-only real-browser test; no Windows build or ROM.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build ROM-free site and validate CDP smoke source
+        run: |
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
+          node --check tools/visual_atlas_web/browser-smoke.mjs
+      - name: Exercise 320–1440px layouts, real DOM interactions and screenshot both surfaces
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME_BIN"
+          export CHROME_BIN
+          node tools/visual_atlas_web/browser-smoke.mjs "$RUNNER_TEMP/atlas-site" "$RUNNER_TEMP/browser-evidence"
+      - name: Preserve optical evidence and failures for human review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-atlas-mobile-browser-smoke
+          path: ${{ runner.temp }}/browser-evidence/
+          if-no-files-found: warn
+          retention-days: 7

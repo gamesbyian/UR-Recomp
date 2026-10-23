@@ -75,6 +75,37 @@ def verify_keyboard_plus_pad(log: str) -> None:
             raise ValueError(f"keyboard+pad: unexpected {forbidden}")
 
 
+
+def verify_two_virtual_pads(log: str) -> None:
+    """Require distinct host-seated SDL pads and actual guest 2P admission."""
+    stages = (
+        "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+    )
+    ordered(log, stages, "two virtual pads")
+    assignments = [
+        (int(m.group(1)), int(m.group(2)), m.start())
+        for m in re.finditer(
+            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
+            r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
+        )
+    ]
+    if (len(assignments) != 2 or
+            {seat for _, seat, _ in assignments} != {0, 1} or
+            len({instance for instance, _, _ in assignments}) != 2):
+        raise ValueError("two virtual pads: two distinct host seats not observed")
+    if any(pos >= log.index(stages[0]) for _, _, pos in assignments):
+        raise ValueError("two virtual pads: host seating followed join opening")
+    for forbidden in ("join_pad_moved", "join_seat_left", "join_rejected",
+                      "stock_rejected=", "stock_requested players=1",
+                      "stock_entered players=1", "lone_pad_promoted"):
+        if forbidden in log:
+            raise ValueError(f"two virtual pads: unexpected {forbidden}")
+
+
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""
     for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
@@ -118,6 +149,16 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             f"{exc}; native route milestones: {route_milestones(log)!r}"
         ) from exc
 
+    # Two actual host seats and two distinct virtual-device A edges.
+    log = run_game(exe, rom, user, out / "two_virtual_pads", "19",
+                   POSITIVE_JOIN, video, timeout)
+    try:
+        verify_two_virtual_pads(log)
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; native route milestones: {route_milestones(log)!r}"
+        ) from exc
+
     log = run_game(exe, rom, user, out / "p2_owner_leaves", "16", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
                   "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
@@ -150,6 +191,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     receipt = {
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
+        "two_virtual_pads": "distinct_host_seats_and_guest_2p_entry",
         "join_cancelled": "moved_pad_returned_to_p1_and_drives_root",
         "p2_owner_leaves": "p2_confirmation_withdrawn_no_2p",
         "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),

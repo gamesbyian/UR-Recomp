@@ -533,7 +533,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-keyboard-pad-join" \
             --video windows --timeout 180
-          echo "PASS: Win32 Modern 2P join: keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts; a lone P2 pad left at the root after P1's pad goes is moved to P1 and drives the menus. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 Modern 2P join: two SDL virtual pads independently confirm both racers and enter original guest 0x3d; keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts; a lone P2 pad left at the root after P1's pad goes is moved to P1 and drives the menus. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE on the pinned 2P race route in Modern: unplugging the
       # seated pad, then minimizing the real window, must each pause through

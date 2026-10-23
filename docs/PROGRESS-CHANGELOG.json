@@ -53,6 +53,70 @@
       "formal_qa_gate_delta": 0,
       "quantified_completion_delta": null,
       "reason": "No fixed itemized acceptance inventory exists to translate this evidence into objective percentage points. Do not invent gains."
+    },
+    {
+      "date": "2026-10-23",
+      "compare_to": "2026-10-22 frozen windows-beta-v1 inventory at 64034e20a",
+      "source_commit": "1bc0f100228c0601357397ca1a6cd4c829934120",
+      "classification": "fresh_merged_engineering_evidence_no_verified_stage_promotion",
+      "changes": [
+        {
+          "category": "windows_storage",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2386",
+          "summary": "Preserve UTF-8 profile and catalog paths in native Windows storage; strengthens DATA-01 evidence without changing its tested stage"
+        },
+        {
+          "category": "records",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2389",
+          "summary": "UTF-8 paths across completed-run archives and codec; coverage gain within existing tested DATA-01"
+        },
+        {
+          "category": "records",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2391",
+          "summary": "UTF-8 paths in Local Runs replay staging; does not certify ghost/replay parity"
+        },
+        {
+          "category": "modern_navigation",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2384",
+          "summary": "Results focus restored to Next Event; strengthens tested UI-01"
+        },
+        {
+          "category": "practice",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2362",
+          "summary": "Two-cycle native Practice repeat acceptance; bounded regression, not full event acceptance"
+        },
+        {
+          "category": "visual_atlas",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2385",
+          "summary": "Mobile Windows Visual Atlas browser, coverage registry and sharded native captures; tooling improvement rather than approval of VIS-02"
+        },
+        {
+          "category": "visual_atlas",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2392",
+          "summary": "Capture build and resume reliability corrected; screenshot coverage not yet a complete visual sign-off"
+        },
+        {
+          "category": "input_qa",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2390",
+          "summary": "Reject guest Start in 12 post-Restart input samples; narrow QA05 negative guard"
+        },
+        {
+          "category": "session_lifecycle",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2328",
+          "summary": "Preserve progress when Windows terminates session or console closes; enhances persistence protections"
+        },
+        {
+          "category": "controller",
+          "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2332",
+          "summary": "Move lone remaining seated pad into P1; functional usability improvement"
+        }
+      ],
+      "formal_event_delta": 0,
+      "formal_qa_gate_delta": 0,
+      "quantified_completion_delta": 0,
+      "engineering_maturity_before": 48.5,
+      "engineering_maturity_after": 48.5,
+      "reason": "All changes improve requirements already marked tested/implemented. No complete frozen criterion crossed its next stage's precise acceptance threshold. Incremental work is preserved as evidenced changes; a zero score delta is not zero productive work."
     }
   ]
 }

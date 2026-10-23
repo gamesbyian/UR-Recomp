@@ -2,6 +2,8 @@
 
 **Owner request:** complete Windows product visual inventory; genuine images wherever a Windows capture exists, and unmistakable **COMING SOON** architectural/graph-paper illustrated references for missing surfaces. Browser must be comfortable on a phone and copy durable IDs/link+context for agents.
 
+**Visual implementation (2026-10-23):** Four revised full-resolution owner-selected mockups are committed under [`design/visual-atlas/mockups/`](../design/visual-atlas/mockups/README.md). Their production translation is specified in [`docs/atlas/MOBILE-FIRST-VISUAL-IMPLEMENTATION.md`](atlas/MOBILE-FIRST-VISUAL-IMPLEMENTATION.md). The current lightweight frontend uses mobile-first drafted-paper CSS, a native SVG tube/rider vignette, truthful status/evidence filters, original source links, sorting, list/grid, batch agent-reference clipboard and a full-resolution inspection modal. Concept art is never an SDL capture or release evidence. Real handheld viewport checks are pending.
+
 **Status (2026-10-23 initial implementation):** First reference inventory, ROM-free contract validator, capture sharder, GHA workflow and static mobile viewer are implemented on a feature PR, subject to CI, actual hosted capture and review. The inventory has **199 stable entries**: 54 curated Windows-surface IDs, 120 original UI source-anchors, 25 independent visual acceptance cases; **13 mapped to existing native semantic capture routes** in four shards. A mapped route is a *candidate*, never an observed screenshot. Nothing in this document approves a screenshot, model, art, hardware journey or release gate.
 
 ## Actual repository reuse and boundaries

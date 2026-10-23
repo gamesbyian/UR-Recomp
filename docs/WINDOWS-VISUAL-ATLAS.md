@@ -108,3 +108,52 @@ Actual Windows capture: the initial PR carries an explicitly authorized one-shot
 - **M4, maintainability/acceptance:** one targeted snapshot smoke per affected frontend/display module, opt-in big campaigns, manifest/schema policy tests, retention/publishing decisions, real Pixel 6 Pro portrait Chrome/PWA inspection, keyboard/screen-reader review, and human art signoff. Keep release ledger independent. Separate visual acceptance from hardware/controller/audio QA.
 
 **Known limits as written:** No Windows process was executed from this editing environment; the first genuine hosted capture is set to launch once after merging to main. Pages configuration was not readable from the available repository API; deployment stays manual/off by default. Historic marketing plates carry separate redistribution/owner-approval considerations. Route names and state coverage will evolve on active `main`, and the named capture routes have not yet been re-proven on the exact PR head.
+
+
+## Continuous intake from other workflows (2026-10-23)
+
+**Goal:** every useful original/native/Modern screenshot discovered in another test can be considered by the Windows atlas without launching an extra render. Approval has two orthogonal meanings: **source integration** (the producer commit has reached `main` without later relevant visual-code changes) and **visual/art acceptance** (the independent review matrix and owner), which is never inferred.
+
+The implemented narrow first-party path is:
+
+1. `.github/workflows/windows-visual-atlas-intake.yml` listens for **completed** `Modern visual QA native SDL baseline` and the first dedicated `Windows Visual Atlas (sharded opt-in capture)` run. It also supports manually backfilling a known completed run ID. It examines **only successful main-branch producer runs**, using an explicit producer-workflow and artifact-name allowlist; no privileged run ever checks out upstream PR code or executes downloaded content. This follows GitHub's `workflow_run` elevated-token threat boundary.
+2. Only bounded allowlisted PNG, genuine SDL P7, exact `readback-receipt.json`, and real native process-log evidence are read. `tools/windows_visual_atlas_intake.py discover` maps the source route and resolution to **one known atlas ID**. It recomputes SHA-256 of each input and *independently regenerates the exact PNG from the P7* using existing `qa_modern_visual_pam_png.convert`; it checks matching real SDL capture log, dimensions, exit/driver/approval fields, producer's actual run-head commit and PE SHA.
+3. The commit must be an actual ancestor of current `main` (not merely a PR with green tests). `git diff` across the relevant host/frontend/presentation source directories must show unchanged visual code. Unknown, unmatched, unmerged, changed or incomplete captures remain **review** candidates. This is deliberately conservative: historic images can be informative but cannot silently supersede current-code references.
+4. Eligible evidence gets a machine-readable `intake-approval.json` recording atlas ID, producer run, source SHA, PE/PNG hashes, exact `main` evaluated, and **independent_visual_approval=false**. The intake job retains a compact `intake-report.json` with eligible/review totals. It opens or updates the single serialized `atlas/incidental-capture-queue` review PR, with committed actual PNG/receipt/approval files under `media/windows-visual-atlas/approved/<ID>/` (no private ROM, P7, user saves or executable copied to the repo). If an ID already has a different image, the new bytes go under `media/windows-visual-atlas/alternatives/<ID>/<PNG-SHA>/` for explicit version selection, **never silent replacement**.
+5. After review and merge, the static builder prefers a newer exact-run capture if one is present; otherwise it can adopt the committed incidental PNG. **At build time** it rechecks source ancestry and visual-code drift and revalidates receipt and hashes. Stale accepted images remain on disk for comparisons but are not mislabeled current; the Atlas viewer exposes a pending/stale indication until refreshed. This keeps artifacts from expiring before someone needs a snapshot. Publisher/reviewer may link the intake PR to the existing visual QA case but cannot grant its independent acceptance.
+
+**No expensive rescanning of arbitrary CI logs.** This first implementation hooks only workflows already producing genuine Windows SDL source-checked receipts. Native-UI emulator/state-dump archives, source-raster evidence, video frames, research images, captured 4K screen measurements and storyboards are *separate evidence classes*. Expand the producer allowlist only after writing a corresponding adapter and tests for its actual format, provenance and intended atlas surfaces. A screenshot from PR-only/unmerged code may be kept as a historical design candidate, not auto-current Windows evidence.
+
+**Retention:** GitHub Actions artifacts may expire. The *reviewed PR* is the durable location for selected reference PNG bytes and source receipts; the source run URL, code SHA and image digest preserve traceability. Until the PR merges, an otherwise valid discovered capture remains candidate evidence rather than a shipping atlas entry. An accepted capture has **no effect on the release ledger**.
+
+## Interruption, reuse, sharding and live status
+
+The source-bound capture workflow now supports two optional manual inputs in addition to workers/page publication:
+
+- `reuse_build_run_id`: download the earlier workflow's exact Windows PE/build receipt, recompute the executable SHA-256 and require **the identical source commit**. An unchanged candidate avoids regenerating/compiling Baldosa. A different SHA **hard fails** instead of reusing the wrong executable.
+- `resume_run_id`: download each earlier `visual-atlas-<shard>` artifact. Each case is skipped only if its previously successful PNG and receipt still match the **same source SHA, PE SHA, semantic route, physical output dimensions and driver**. Missing, failed, partial or mismatched cases execute anew. Prior case images remain immutable within their artifact. Reusing failed cases just to claim visual completeness is prohibited.
+
+The four independent job-level cohorts remain `frontend / interaction / motion / authentic`, with at most **three Windows capture jobs** simultaneously. Within a cohort, an explicit `--workers 1|2` bounds native process concurrency; default two, each with a unique config/save/output directory. A missing route produces a named failure record and does not cancel other jobs (`strategy.fail-fast: false`). Maximum Windows job runtime remains 35 minutes. The shared PE builds once and fans out, and CI never spawns one compiler per screenshot. Small PR validation remains independent from manual/one-shot extended capture.
+
+Every launched case immediately appends a journal line to `progress.jsonl` (with `fsync`); **completion-order** reports let fast cases become inspectable while slow ones continue. GHA live job logs print `::notice` lines for case starts/completions and an approximately 30-second heartbeat showing completed/total cases. Logs can be checked while a job is running. Each completed job retains its own per-shard JSON report, permitted screenshot receipts and journal via an `if: always()` upload; the assembled job's Summary reports total images admitted, pending and failed. **GitHub Actions job summaries themselves appear only once their producing step finishes**, so monitor the live log for within-step progress.
+
+Recovery limits are explicit: a hard-killed runner may never execute `if: always()` uploads, and its local journal is then lost. A regular failed job normally retains successfully written per-case files. Resuming from that completed job artifact avoids recapture; otherwise the affected cohort must execute again. There is no promise of remote per-frame persistence. If repeated hard runner termination becomes a measured problem, split the affected cohort into smaller independent jobs before adding a complex live upload protocol. Preserve the owner's 20-runner ceiling, branch-protection rules and CI budget.
+
+**Useful invocations:**
+
+```sh
+# Cheap, ROM-free tests (no native game build)
+python3 -m unittest tests.unit.test_windows_visual_atlas tests.unit.test_windows_visual_atlas_intake
+
+# One completely new source-bound Windows atlas capture uses manual Actions Run workflow.
+# For a failed or partial earlier capture campaign, use matching previous IDs:
+# reuse_build_run_id = <previous exact-source run>
+# resume_run_id      = <previous exact-source run>
+# workers_per_job    = 1 or 2
+
+# Intake from another successful allowlisted main-branch Actions run
+# -> Actions / Windows Visual Atlas (incidental intake) / Run workflow
+# -> source_run_id = <completed producer run ID>
+```
+
+**Monitoring and admission diagnostics:** in Actions, expand `capture (frontend|interaction|motion|authentic)`, inspect stream `Atlas <shard> progress: X/N` and heartbeat notices, then check each shard's artifact and the `assemble` job. For opportunistic intake, review `intake-report.json`, the queue PR and original producer artifact. Each queue entry includes the exact reason an image needed further review; no unexplained broad failure suppresses new references.

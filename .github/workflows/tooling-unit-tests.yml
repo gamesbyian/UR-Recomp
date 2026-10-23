@@ -17,6 +17,12 @@ on:
       - "native/product/modern_pause_menu.h"
       - "native/product/modern_pause_input.cpp"
       - "native/product/modern_pause_input.h"
+      # Completed-run codec/archive paths are compiled by the native
+      # unit runner; changes must invalidate the same ROM-free regression.
+      - "native/product/completed_run_record.*"
+      - "native/product/completed_run_store.*"
+      - "tests/native/completed_run_store_test.cpp"
+      - "native/product/local_tournament_utf8_path.hpp"
       - "native/product/completed_run_ghost_target.hpp"
       - "native/product/display_treatment_policy.hpp"
       - "native/product/modern_controller_prompt.hpp"

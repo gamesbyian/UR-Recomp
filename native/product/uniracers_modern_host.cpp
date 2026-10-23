@@ -63,6 +63,7 @@ extern "C" {
 #include "regional_title_presenter.hpp"
 #include "host_profile_store.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
 #include "local_multiplayer_participants.hpp"
@@ -927,7 +928,7 @@ void ensure_onboarding_state() {
     g_onboarding_seen_path = resolve_onboarding_seen_path();
     bool seen = false;
     if (!g_onboarding_seen_path.empty()) {
-        std::ifstream in(g_onboarding_seen_path, std::ios::binary);
+        std::ifstream in(ur::product::host_native_path_from_utf8(g_onboarding_seen_path), std::ios::binary);
         seen = in.good();
     }
 
@@ -940,7 +941,7 @@ void ensure_onboarding_state() {
     const char* onboarding_override = std::getenv("UR_ONBOARDING_STATE_PATH");
     if (!seen && !(onboarding_override && *onboarding_override) &&
         !g_product_state_path.empty()) {
-        std::ifstream product_state(g_product_state_path, std::ios::binary);
+        std::ifstream product_state(ur::product::host_native_path_from_utf8(g_product_state_path), std::ios::binary);
         seen = product_state.good();
     }
 
@@ -964,7 +965,7 @@ bool dismiss_onboarding() {
     }
     if (!g_onboarding_seen_path.empty()) {
         std::ofstream out(
-            g_onboarding_seen_path,
+            ur::product::host_native_path_from_utf8(g_onboarding_seen_path),
             std::ios::binary | std::ios::trunc);
         if (!out) {
             product_diagnostic("UR_ONBOARDING DISMISS_SAVE_FAILED");
@@ -1038,7 +1039,7 @@ bool queue_relative_menu_input(
 
     {
         std::ofstream out(
-            input_path,
+            ur::product::host_native_path_from_utf8(input_path),
             std::ios::binary | std::ios::trunc);
         if (!out) return false;
         char encoded[32];
@@ -1998,7 +1999,7 @@ bool create_profile_from_editor() {
         std::optional<std::string>{id});
     if (!root.isolated()) return false;
     std::error_code ec;
-    const bool root_exists = std::filesystem::exists(root.save_root, ec);
+    const bool root_exists = std::filesystem::exists(ur::product::host_native_path_from_utf8(root.save_root), ec);
     if (ec) return false;
     const bool reusable_empty_root = root_exists &&
         ur::product::reusable_aborted_profile_creation_root(root.save_root);
@@ -2009,7 +2010,7 @@ bool create_profile_from_editor() {
         return false;
     }
     if (!root_exists) {
-        std::filesystem::create_directories(root.save_root, ec);
+        std::filesystem::create_directories(ur::product::host_native_path_from_utf8(root.save_root), ec);
         if (ec) return false;
     }
     const std::string path = root.save_root + "/host-profile.txt";
@@ -5379,7 +5380,8 @@ void complete_run_record_capture() {
         }
 
         std::ofstream replay(
-            stored_path + ".input", std::ios::binary | std::ios::trunc);
+            ur::product::host_native_path_from_utf8(stored_path + ".input"),
+            std::ios::binary | std::ios::trunc);
         const std::string replay_text =
             ur::product::encode_completed_run_input_file(*record);
         replay.write(

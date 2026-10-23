@@ -148,8 +148,10 @@ jobs:
           git push origin "HEAD:refs/heads/$name"
           existing=$(gh pr list --repo "$REPO" --head "$name" --state open --json number --jq '.[0].number // empty')
           if test -z "$existing"; then
-            gh pr create --repo "$REPO" --head "$name" --base main \
+            if ! gh pr create --repo "$REPO" --head "$name" --base main \
               --title "Atlas: admit source-bound incidental Windows visual captures" \
-              --body "Automated candidate preservation from allowlisted first-party native SDL producer runs. Genuine image/receipt/P7 provenance, source integration and UI-code stability are checked by the intake tool. Review screenshots, duplicates, alternate versions and art rights before merging. Engineering-reference status only; no release or visual approval implied. See docs/WINDOWS-VISUAL-ATLAS.md and #2387."
+              --body "Automated candidate preservation from allowlisted first-party native SDL producer runs. Genuine image/receipt/P7 provenance, source integration and UI-code stability are checked by the intake tool. Review screenshots, duplicates, alternate versions and art rights before merging. Engineering-reference status only; no release or visual approval implied. See docs/WINDOWS-VISUAL-ATLAS.md and #2387."; then
+              echo "::warning title=Capture intake PR blocked::Candidate bytes are preserved on branch $name; repository Actions pull-request creation settings may need review."
+            fi
           fi
           echo "New capture evidence is in the existing review PR for $name." >> "$GITHUB_STEP_SUMMARY"

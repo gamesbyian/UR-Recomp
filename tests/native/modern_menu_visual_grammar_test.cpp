@@ -262,7 +262,8 @@ int main() {
     static_assert(modern_ui_contrast_x100(kModernMenuFocusRingLight,
                                           kModernMenuFocusRingDark) >= 1200,
                   "ring tones separate from each other");
-    for (std::uint32_t grey = 0; grey <= 0xFFu; grey += 0x11u) {
+    // Test all 256 neutrals instead of just 16 evenly-spaced samples.
+    for (std::uint32_t grey = 0; grey <= 0xFFu; ++grey) {
         const std::uint32_t bg = 0xFF000000u | grey << 16 | grey << 8 | grey;
         assert(modern_ui_contrast_x100(kModernMenuFocusRingDark, bg) >= 300 ||
                modern_ui_contrast_x100(kModernMenuFocusRingLight, bg) >= 300);

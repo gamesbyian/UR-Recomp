@@ -40,7 +40,7 @@ class ScopedZipAuditTests(unittest.TestCase):
         self.assertTrue(leaf["crc_verified"])
         self.assertEqual(leaf["sha256"], hashlib.sha256(source).hexdigest())
         expected_git_sha = hashlib.sha1(
-            b"blob " + str(len(source)).encode() + b"\\0" + source
+            b"blob " + str(len(source)).encode() + b"\0" + source
         ).hexdigest()
         self.assertEqual(leaf["git_blob_sha"], expected_git_sha)
         with self.assertRaisesRegex(ValueError, "missing"):

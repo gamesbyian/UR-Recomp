@@ -1,0 +1,84 @@
+name: Vault Direct Intake (Public Drive)
+on:
+  workflow_dispatch:
+    inputs:
+      folder_url:
+        description: Public Google Drive folder to index (defaults to Incoming)
+        required: true
+        type: string
+        default: https://drive.google.com/drive/folders/1cdovDqle9IRYKX2lCt513mtWge75HywX
+      drive_file_id:
+        description: Optional exact Drive file ID to download (leave blank for listing)
+        required: false
+        type: string
+      download_all:
+        description: Download and audit all files in selected folder (no source artifact)
+        required: true
+        type: boolean
+        default: false
+      stage_sources:
+        description: Stage unmatched source from the one selected file as an artifact
+        required: true
+        type: boolean
+        default: false
+      confirm_source_review:
+        description: I checked the selected package for ROMs, rights, secrets and existing publication holds
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: vault-direct-intake
+  cancel-in-progress: false
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned public Drive downloader
+        run: python -m pip install 'gdown==6.0.0'
+      - name: Index and optionally stage a specifically reviewed package
+        shell: bash
+        env:
+          FOLDER_URL: ${{ inputs.folder_url }}
+          DRIVE_FILE_ID: ${{ inputs.drive_file_id }}
+          DOWNLOAD_ALL: ${{ inputs.download_all }}
+          STAGE_SOURCES: ${{ inputs.stage_sources }}
+          CONFIRM_SOURCE_REVIEW: ${{ inputs.confirm_source_review }}
+          INTAKE_DIR: ${{ runner.temp }}/vault-direct-intake
+        run: |
+          set -euo pipefail
+          args=(--folder-url "$FOLDER_URL" --out "$INTAKE_DIR")
+          if [[ -n "$DRIVE_FILE_ID" ]]; then args+=(--file-id "$DRIVE_FILE_ID"); fi
+          if [[ "$DOWNLOAD_ALL" == true ]]; then args+=(--download-all); fi
+          if [[ "$STAGE_SOURCES" == true ]]; then
+            if [[ "$CONFIRM_SOURCE_REVIEW" != true || -z "$DRIVE_FILE_ID" || "$DOWNLOAD_ALL" == true ]]; then
+              echo 'Source staging requires one file ID and explicit rights/publication-hold review.' >&2
+              exit 2
+            fi
+            args+=(--stage-sources)
+          fi
+          python3 tools/vault_gdown_intake.py "${args[@]}"
+      - name: Upload metadata-only intake report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-direct-intake-report
+          path: ${{ runner.temp }}/vault-direct-intake/report.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Upload explicitly reviewed, unmatched source candidates
+        if: ${{ inputs.stage_sources == true && inputs.confirm_source_review == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-direct-intake-source-review
+          path: ${{ runner.temp }}/vault-direct-intake/staged/
+          if-no-files-found: warn
+          retention-days: 3

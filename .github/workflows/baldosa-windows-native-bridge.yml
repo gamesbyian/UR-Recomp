@@ -152,6 +152,7 @@ on:
       # Shared source-loaded atomic file, lock and run-record policies.
       - "native/product/local_tournament_atomic_replace.hpp"
       - "native/product/local_tournament_launch_path_lock.hpp"
+      - "native/product/local_tournament_utf8_path.hpp"
       - "native/product/run_record_capture_policy.hpp"
       # Genuine first-party transitive includes in native Windows UI, SRAM,
       # Practice and Records. A header-only change invalidates native tests.

@@ -27,6 +27,12 @@ EXPECTED_PATHS = (
 
 def check_workflow(source: str) -> None:
     """Validate the single, explicitly allowlisted GitHub Actions upload step."""
+    # GitHub Actions allows unnamed and inline action steps. A source-only
+    # check must fail closed on any extra artifact-action reference, even when
+    # the step lacks a name. False positives from comments require review.
+    if source.casefold().count("actions/upload-artifact@") != 1:
+        raise ValueError("Expected exactly one artifact-upload action reference")
+
     steps = re.findall(r"(?ms)^      - name: ([^\n]+)\n(.*?)(?=^      - name: |\Z)", source)
     uploads = [(name, body) for name, body in steps
                if re.search(r"(?m)^        uses: actions/upload-artifact@", body)]
@@ -89,6 +95,30 @@ class PolicyNegatives(unittest.TestCase):
         fixture = self.valid_source() + self.valid_source().replace(
             "Upload Windows evidence", "Upload another artifact")
         with self.assertRaises(ValueError):
+            check_workflow(fixture)
+
+    def test_disallows_unnamed_artifact_after_allowlisted_step(self):
+        fixture = self.valid_source() + (
+            "      - uses: actions/upload-artifact@v4\n"
+            "        with:\n"
+            "          name: unsafe-extra\n"
+            "          path: ${{ runner.temp }}/UR-Recomp-Windows-x64.zip\n")
+        with self.assertRaisesRegex(ValueError, "artifact-upload"):
+            check_workflow(fixture)
+
+    def test_disallows_unnamed_artifact_before_allowlisted_step(self):
+        fixture = (
+            "      - uses: actions/upload-artifact@v4\n"
+            "        with:\n"
+            "          path: ${{ runner.temp }}/UR-Recomp-Windows-x64.zip\n"
+        ) + self.valid_source()
+        with self.assertRaisesRegex(ValueError, "artifact-upload"):
+            check_workflow(fixture)
+
+    def test_disallows_inline_extra_artifact_step(self):
+        fixture = self.valid_source() + (
+            "      - {uses: actions/upload-artifact@v4, with: {path: private}}\n")
+        with self.assertRaisesRegex(ValueError, "artifact-upload"):
             check_workflow(fixture)
 
     def test_disallows_variable_path(self):

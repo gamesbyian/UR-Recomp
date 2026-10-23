@@ -533,18 +533,14 @@ jobs:
               python -m tools.capture_modern_restart_audio \
                 "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
                 --json-out "$JSON_WIN"
-            python - "$LOG" "$JSON" <<'PY'
-          import json, pathlib, re, sys
-          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
-          evidence = json.loads(pathlib.Path(sys.argv[2]).read_text())
+            python - "$JSON" <<'PY'
+          import json, pathlib, sys
+          evidence = json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert evidence.get("recovery_confirmed") is True
-          probes = re.findall(r"(?m)^UR_RESTART_INPUT raw=([0-9A-F]+) guest=([0-9A-F]+) return_held=([01]) release_waiting=([01])", log)
-          assert probes, "default-Return Restart did not report a guest-word witness"
-          for raw, guest, held, waiting in probes:
-              if waiting == "1":
-                  assert not (int(guest, 16) & 0x1000), "host confirmation leaked guest Start"
-          print("UR_QA05_RESTART_GUEST_WORD=passed")
           PY
+            # Inspect all twelve post-Restart guest samples, even if the
+            # release latch incorrectly disarms before the final sample.
+            python -m tools.qa05_restart_input_guard "$LOG"
             rm -f "$PCM"
             echo "UR_QA05_RESTART_AUDIBLE_ATTEMPT=$attempt/5 passed"
           done

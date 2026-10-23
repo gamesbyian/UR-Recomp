@@ -49,7 +49,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 
 | # | Do | Expect | Log |
 |---|---|---|---|
-| D1 | Options → DISPLAY → **FULLSCREEN**. | A real exclusive mode switch; the monitor may blank briefly. | `UR_DISPLAY fullscreen_mode=exclusive display=… mode=WxH@Hz` (the desktop's own resolution and refresh) |
+| D1 | Options → DISPLAY → **FULLSCREEN**. | A real exclusive mode switch; the monitor may blank briefly. | `UR_DISPLAY fullscreen_mode=exclusive display=… mode=WxH@Hz` (the desktop's own resolution; its refresh too on a 60/120/240 Hz desktop, see D19) |
 | D2 | Options → DISPLAY → **BORDERLESS**. | Fullscreen without a mode switch; alt-tab is instant. | no new `fullscreen_mode=exclusive` |
 | D3 | From FULLSCREEN press Alt+Enter, then Alt+Enter again. | First press: windowed. Second press: **borderless**, not exclusive. | |
 | D4 | On the main Modern menu press Alt+Enter. | Only the window changes; no game or race starts. | no `UR_BALDOSA_MODERN_ROOT stock_requested` |
@@ -64,6 +64,7 @@ For each check, note **pass / fail / not possible on this hardware** and what yo
 | D13 | Windowed: maximize the window (title-bar button or Win+Up), quit normally, relaunch. Then un-maximize. | It reopens maximized on the same monitor; un-maximizing returns it to its earlier windowed spot. | `UR_DISPLAY placement restored … maximized=1` |
 | D16 | On a 50 Hz display (a PAL TV, or a monitor set to 50 Hz), with VSync On, time 60 seconds of a race against a stopwatch, using the in-race clock. | The in-race clock keeps pace with the stopwatch, not about 17% slow. | `UR_DISPLAY vsync panel_hz=50.000 … wait=no` |
 | D17 | During a race, reset the graphics driver with Win+Ctrl+Shift+B (or, on a hybrid-GPU laptop, dock or undock it). | The picture comes back within a second and the race continues; no lasting black window. | `UR_DISPLAY render_device_reset` then `… texture_recreated=…` |
+| D19 | On a 144 Hz (or 165 Hz) monitor that also offers 120 Hz or 60 Hz at the same resolution, with the FPS readout on (`f`): race in BORDERLESS, then switch to **FULLSCREEN**. | Fullscreen switches the monitor to 120 Hz (or 60 Hz); scrolling looks steadier than in borderless. Game speed is unchanged. | `UR_DISPLAY exclusive_refresh choice=even desktop_hz=144.000 … chosen_hz=120.000` |
 | D18 | On a 4K or 150%/200% scaled display, with no `WindowScale` in `config.ini` and no `window-placement.txt`, launch the game; then open and close the in-game launcher without changing anything, quit and relaunch. | The window opens at a comfortable size for that display, not a small 640×480 box, and fits on screen. It reopens at the same size, and `config.ini` still says `WindowScale = 0`. | `UR_DISPLAY default_window_scale content_scale=… scale=…` |
 | D14 | Two monitors, windowed on monitor 2: open the in-game launcher, unplug monitor 2, close the launcher. | The game window is on the primary monitor, reachable. | `UR_DISPLAY reconcile reason=launcher_returned action=rescue` |
 | D15 | Over Remote Desktop (or on a PC without a GPU driver), start a race and open the in-game launcher. | Either the launcher opens normally, or it does not appear and the game simply carries on. The game never closes or crashes. | `[launcher] UR_LAUNCHER_GL unusable version=…` and `in-game launcher: action=2` when refused |

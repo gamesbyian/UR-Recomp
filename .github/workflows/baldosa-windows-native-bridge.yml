@@ -396,7 +396,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-display-lifecycle" \
             --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-display-lifecycle.json"
-          echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. Forced 144 Hz desktop exclusive refresh: $(python -c "import json,sys; print(json.load(open(sys.argv[1]))['juddering_desktop_refresh'])" "$RUNNER_TEMP/ur-display-lifecycle.json"). One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       # Same exact PE: opening the in-game launcher must never take the game
       # down. A hosted runner has no GPU, so its own GL is the case that

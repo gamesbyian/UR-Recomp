@@ -141,6 +141,41 @@ static inline int ur_display_vsync_cannot_carry(double panel_hz, double guest_hz
     return panel_hz > 0 && guest_hz > 0 && panel_hz < guest_hz * 0.99;
 }
 
+/* Whether a refresh shows every guest frame for the same whole number of
+ * vblanks: within 1% of 1x..8x the guest rate (60, 119.88, 120 or 240 Hz
+ * against the SNES's ~60.1 Hz), the same 1% the swap-interval rule allows. */
+static inline int ur_display_refresh_even(double hz, double guest_hz) {
+    int k;
+    if (hz <= 0 || guest_hz <= 0) return 0;
+    for (k = 1; k <= 8; ++k) {
+        const double multiple = guest_hz * k;
+        if (hz >= multiple * 0.99 && hz <= multiple * 1.01) return 1;
+    }
+    return 0;
+}
+
+/* Which refresh an exclusive FULLSCREEN mode asks for.
+ *
+ * The host presents once per simulated frame. Between two multiples of the
+ * guest rate (75, 144 or 165 Hz) frames alternate between one and two, or
+ * two and three, vblanks: a steady judder borderless fullscreen cannot
+ * avoid, but an exclusive mode switch can. Keep the desktop's refresh when
+ * it is already even or unknown; otherwise take the highest even refresh
+ * the display offers at the desktop resolution (`refresh`, `count`).
+ * Returns that index, or -1 for the desktop's own refresh. */
+static inline int ur_display_exclusive_refresh_pick(
+    const float *refresh, int count, double desktop_hz, double guest_hz) {
+    int i, best = -1;
+    if (guest_hz <= 0 || desktop_hz <= 0 ||
+        ur_display_refresh_even(desktop_hz, guest_hz))
+        return -1;
+    for (i = 0; i < count; ++i) {
+        if (!ur_display_refresh_even(refresh[i], guest_hz)) continue;
+        if (best < 0 || refresh[i] > refresh[best]) best = i;
+    }
+    return best;
+}
+
 /* The window scale to open with when the player never chose one.
  *
  * The host opens at scale 2 of its 320x240 base, which on a 200% display

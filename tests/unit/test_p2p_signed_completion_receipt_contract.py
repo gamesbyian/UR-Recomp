@@ -1,6 +1,7 @@
 """ROM-free signed-completion negatives, not a production P2P test."""
 import copy
 import hashlib
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -101,6 +102,39 @@ class SignedResponderCompletionTests(unittest.TestCase):
         for item in cases:
             with self.subTest(item=item), self.assertRaises(ValueError):
                 self.check(item)
+
+    def test_domain_separation_refuses_valid_signature_on_wrong_message(self):
+        # A real signature over JSON without the completion domain, or a
+        # different domain, must not authenticate this completion receipt.
+        payload = self.receipt["payload"]
+        canonical_json = json.dumps(payload, sort_keys=True,
+                                    separators=(",", ":")).encode("ascii")
+        valid_message = completion_message(payload)
+        self.assertTrue(valid_message.endswith(canonical_json))
+        for other_message in (canonical_json,
+                              b"UR-P2P-INVITE/1\x00" + canonical_json):
+            forged = copy.deepcopy(self.receipt)
+            forged["signature"] = self.responder.sign(other_message).hex()
+            with self.subTest(other_message=other_message[:28]), self.assertRaisesRegex(
+                    ValueError, "signature invalid"):
+                self.check(forged)
+        self.check()
+
+    def test_canonical_payload_independent_of_dict_insertion_order(self):
+        payload = self.receipt["payload"]
+        reordered = dict(reversed(tuple(payload.items())))
+        self.assertEqual(completion_message(payload), completion_message(reordered))
+        receipt = copy.deepcopy(self.receipt)
+        receipt["payload"] = reordered
+        self.check(receipt)
+
+    def test_signature_callback_failure_never_looks_like_success(self):
+        def failed_verifier(*args):
+            raise RuntimeError("backend unavailable")
+        with self.assertRaisesRegex(ValueError, "signature invalid"):
+            verify_responder_completion(self.receipt,
+                                        verify_signature=failed_verifier,
+                                        **self.expected)
 
     def test_untrusted_verifier_refused(self):
         for verifier in (None, lambda *args: 1, lambda *args: False):

@@ -90,6 +90,17 @@ class StrictVaultManifest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "unsafe archive member"):
                         verify(stream.getvalue())
 
+    def test_win32_forbidden_punctuation_components(self):
+        # Valid CRC and manifest hashes cannot make these Win32 path names safe.
+        for name in (
+            "bad<name.txt", "bad>name.txt", 'bad"name.txt',
+            "bad|name.txt", "bad?name.txt", "bad*name.txt",
+            "safe/bad|nested.txt", "safe/x?y/code.py",
+        ):
+            with self.subTest(name=name), self.assertRaisesRegex(
+                    ValueError, "unsafe archive member"):
+                verify(pack({name: b"first party test bytes"}))
+
     def test_unicode_alias_and_control(self):
         for name in ("e\u0301.txt","bad\u202etxt","bad. ","NUL.log"):
             with self.subTest(name=name),self.assertRaises(ValueError):

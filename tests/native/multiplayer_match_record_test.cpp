@@ -309,6 +309,35 @@ int main(int argc, char** argv) {
     }
 
     {
+        // Public storage APIs take UTF-8 even when the Windows filesystem
+        // uses wide native paths. Exercise the actual two-file publication,
+        // returned path, fresh load and checksum-bound sidecar together.
+        const auto unicode_root = std::filesystem::temp_directory_path() /
+            std::filesystem::u8path(u8"ur-multiplayer-\\u8DEF\\u5F84-\\U0001F308");
+        std::filesystem::remove_all(unicode_root);
+        std::string utf8_run_path;
+        detail.clear();
+        assert(append_multiplayer_match_pair(
+            unicode_root.u8string(), run, original, &utf8_run_path, &detail));
+        assert(!utf8_run_path.empty());
+        assert(utf8_run_path.find(std::string(u8"\\u8DEF\\u5F84")) !=
+               std::string::npos);
+        const auto native_run_path = std::filesystem::u8path(utf8_run_path);
+        assert(native_run_path.parent_path() == unicode_root);
+        assert(std::filesystem::exists(native_run_path));
+        assert(std::filesystem::exists(std::filesystem::u8path(
+            multiplayer_match_record_path_for_run(utf8_run_path))));
+        const auto fresh_run = load_completed_run_record_file(utf8_run_path);
+        assert(fresh_run.loaded());
+        const auto fresh_match = load_multiplayer_match_record_for_run(
+            utf8_run_path, *fresh_run.record);
+        assert(fresh_match);
+        assert(multiplayer_match_record_matches_run(
+            *fresh_match.record, *fresh_run.record));
+        std::filesystem::remove_all(unicode_root);
+    }
+
+    {
         std::ofstream oversized(path, std::ios::binary | std::ios::trunc);
         oversized << std::string(4097, 'x');
     }

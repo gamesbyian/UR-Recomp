@@ -263,5 +263,23 @@ int main() {
         state, {0xD7, 0, false, -1});
     assert(step.input == QuickPracticeLaunchInput::None);
 
+    // Valid flag alone is not authority for mismatched tour/slot identities.
+    const auto canonical = quick_practice_target_for_track(12);
+    assert(canonical.valid);
+    auto bad = canonical;
+    bad.track_id = 45;
+    assert(begin_quick_practice_launch(bad).stage ==
+           QuickPracticeLaunchStage::Idle);
+    bad = canonical;
+    bad.tour_option = 9;
+    assert(begin_quick_practice_launch(bad).stage ==
+           QuickPracticeLaunchStage::Idle);
+    bad = canonical;
+    bad.track_slot = 4;
+    assert(begin_quick_practice_launch(bad).stage ==
+           QuickPracticeLaunchStage::Idle);
+    assert(begin_quick_practice_launch(canonical).stage ==
+           QuickPracticeLaunchStage::AwaitMain);
+
     return 0;
 }

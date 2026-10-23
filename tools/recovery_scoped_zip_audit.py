@@ -14,6 +14,13 @@ from io import BytesIO
 import json
 from pathlib import Path
 import stat
+import unicodedata
+
+try:
+    from .strict_vault_manifest import _portable_win32_component
+except ImportError:  # direct script invocation
+    from strict_vault_manifest import _portable_win32_component
+
 from zipfile import BadZipFile, ZipFile
 
 MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
@@ -32,7 +39,9 @@ def validate_zip_members(archive: ZipFile) -> dict:
     for info in infos:
         name = info.filename
         if (not name or name.startswith("/") or "\\" in name or "\x00" in name
-                or any(part in ("", ".", "..") for part in name.split("/"))
+                or any(part in ("", ".", "..") or not _portable_win32_component(part)
+                       for part in name.split("/"))
+                or unicodedata.normalize("NFC", name) != name
                 or info.is_dir() or info.flag_bits & 1
                 or stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG)):
             raise ValueError("unsafe ZIP member")

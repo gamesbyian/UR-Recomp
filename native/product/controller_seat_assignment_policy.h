@@ -48,6 +48,8 @@ typedef enum UrControllerSeatReason {
     UR_CONTROLLER_SEAT_FIRST_FREE = 4,
     /* Every vacant seat is held for an absent owner; take the first. */
     UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT = 5,
+    /* More than one absent seat has this same unprovable device identity. */
+    UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER = 6,
 } UrControllerSeatReason;
 
 typedef struct UrControllerSeatChoice {
@@ -79,13 +81,25 @@ static inline UrControllerSeatChoice ur_controller_seat_choose(
         return choice;
     }
     if (device_key != 0) {
+        int matching_owner = -1;
         for (i = 0; i < UR_CONTROLLER_SEAT_COUNT; ++i) {
-            if (ur_controller_seat_vacant(seats, i) &&
-                seats[i].absent_owner_key == device_key) {
-                choice.seat = i;
-                choice.reason = UR_CONTROLLER_SEAT_RECLAIMED;
+            /* Include disabled seats: a reservation there still makes the
+             * returning hardware identity ambiguous. */
+            if (seats[i].absent_owner_key != device_key) continue;
+            if (matching_owner != -1) {
+                /* Identical GUID-only pads are not independently identifiable.
+                 * Never silently call the first return P1, clear both absent
+                 * reservations, and swap the original players. A deliberate
+                 * host seat reset or explicit forced assignment is required. */
+                choice.reason = UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER;
                 return choice;
             }
+            matching_owner = i;
+        }
+        if (ur_controller_seat_vacant(seats, matching_owner)) {
+            choice.seat = matching_owner;
+            choice.reason = UR_CONTROLLER_SEAT_RECLAIMED;
+            return choice;
         }
     }
     if (ur_controller_seat_vacant(seats, player_index) &&
@@ -139,8 +153,8 @@ static inline void ur_controller_seat_vacated(
 }
 
 /* FNV-1a over the SDL GUID bytes and, when the driver reports one, the
- * serial. Two identical pads without serials share a key; they are then
- * indistinguishable and either may reclaim the seat, which is harmless.
+ * serial. Two identical pads without serials share a key; if both are
+ * absent, automatic seat reclamation is ambiguous and must be refused.
  * Never returns 0, so 0 can mean "unknown". */
 static inline uint64_t ur_controller_device_key(
     const uint8_t guid[16], const char *serial) {
@@ -169,6 +183,7 @@ static inline const char *ur_controller_seat_reason_name(
     case UR_CONTROLLER_SEAT_PLAYER_INDEX: return "player_index";
     case UR_CONTROLLER_SEAT_FIRST_FREE: return "first_free";
     case UR_CONTROLLER_SEAT_ABSENT_OWNER_SEAT: return "absent_owner_seat";
+    case UR_CONTROLLER_SEAT_AMBIGUOUS_OWNER: return "ambiguous_owner";
     case UR_CONTROLLER_SEAT_NONE: break;
     }
     return "none";

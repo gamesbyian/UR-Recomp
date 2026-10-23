@@ -70,6 +70,32 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn('"F8 / Y      RECORDS"', source)
 
 
+    def test_windows_records_host_paths_preserve_utf8(self):
+        source = (
+            ROOT / "native" / "product" / "completed_run_browser_host.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn('#include "local_tournament_utf8_path.hpp"', source)
+        # All four default directory/path builders must consume SDL's UTF-8
+        # root as UTF-8 and return UTF-8, including host-state profile lookup.
+        self.assertEqual(
+            source.count("ur::product::host_native_path_from_utf8(root)"), 4
+        )
+        self.assertIn('"host-state-v1.txt").u8string()', source)
+        self.assertIn('"multiplayer-runs").u8string()', source)
+        self.assertIn('"runs" / active_profile_id()).u8string()', source)
+        self.assertIn('"runs" / profile_id).u8string()', source)
+        self.assertIn(
+            "ur::product::host_native_path_from_utf8(selected->path).parent_path()",
+            source,
+        )
+        self.assertIn(
+            "ur::product::host_native_path_from_utf8(source_directory)",
+            source,
+        )
+        self.assertNotIn("fs::path(root)", source)
+        self.assertNotIn("fs::path(selected->path)", source)
+        self.assertNotIn(".string()", source)
+
     def test_restart_rearms_capture_after_unrecorded_replay(self):
         source = (
             ROOT / "native" / "product" / "uniracers_modern_host.cpp"

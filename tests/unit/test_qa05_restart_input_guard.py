@@ -49,14 +49,14 @@ class RestartInputGuardTest(unittest.TestCase):
             validate_restart_guest_input(corrupted)
 
     def test_extra_truncated_probe_cannot_hide_start(self):
-        corrupted = trace() + "UR_RESTART_INPUT raw=1000 guest=1000\\n"
+        corrupted = trace() + "UR_RESTART_INPUT raw=1000 guest=1000\n"
         with self.assertRaisesRegex(ValueError, "malformed UR_RESTART_INPUT"):
             validate_restart_guest_input(corrupted)
 
     def test_extra_malformed_countdown_cannot_hide_start(self):
         corrupted = trace() + (
             "UR_RESTART_INPUT raw=1000 guest=1000 return_held=0 "
-            "release_waiting=0 host_owned=0 remaining=?\\n"
+            "release_waiting=0 host_owned=0 remaining=?\n"
         )
         with self.assertRaisesRegex(ValueError, "malformed UR_RESTART_INPUT"):
             validate_restart_guest_input(corrupted)
@@ -64,7 +64,7 @@ class RestartInputGuardTest(unittest.TestCase):
     def test_unrelated_diagnostics_remain_allowed(self):
         self.assertEqual(
             validate_restart_guest_input(
-                "UR_OTHER_EVENT ready=1\\n" + trace() + "UR_OTHER_EVENT done=1\\n"
+                "UR_OTHER_EVENT ready=1\n" + trace() + "UR_OTHER_EVENT done=1\n"
             ), 12
         )
 

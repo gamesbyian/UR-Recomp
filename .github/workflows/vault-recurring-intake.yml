@@ -102,7 +102,7 @@ jobs:
           FOLDER_URL: ${{ matrix.scope == 'evidence' && 'https://drive.google.com/drive/folders/1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2' || 'https://drive.google.com/drive/folders/1cdovDqle9IRYKX2lCt513mtWge75HywX' }}
           PREVIOUS: ${{ runner.temp }}/vault-previous/checkpoint.json
           PROBE_ID: ${{ github.event_name == 'pull_request' && (matrix.scope == 'evidence' && '1OuEyzPUFGpBjMaFEFWJQVbTrd-cF_Mnb' || '1kULfQIJSV-YJ1lwWBPJAnH6iLtzt5W9d') || inputs.file_id }}
-          MAX_FILES: ${{ github.event_name == 'pull_request' && '1' || inputs.max_files || '3' }}
+          MAX_FILES: ${{ github.event_name == 'pull_request' && '1' || github.event_name == 'schedule' && '6' || inputs.max_files || '3' }}
           MAX_MIB: ${{ github.event_name == 'pull_request' && '32' || '64' }}
         run: |
           set -euo pipefail
@@ -131,6 +131,7 @@ jobs:
               print(f"- {key}: {data[key]}")
           print(f"- successfully audited on this run: {len(data['processed'])}")
           print(f"- download/inspection errors: {len(data['errors'])}")
+          print(f"- queued review leads: {sum(1 for x in data['processed'] if (x.get('zip') or {}).get('crosswalk', {}).get('unmatched_or_unexamined', 0) > 0)}")
           print("- Original ZIPs and extracted source were NOT published.")
           PY
           fi

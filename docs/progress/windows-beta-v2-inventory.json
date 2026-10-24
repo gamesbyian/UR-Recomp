@@ -1691,5 +1691,6 @@
   },
   "review_policy": "Initial marked bounded_verified criteria inherit linked merged PR evidence but require independent source review before treating as audited; no claim of release gate acceptance. Provisional bounded_coverage must be distinguished from independently_audited_coverage (zero pending explicit audit_state=independent_reviewed).",
   "fidelity_authority": "docs/RELEASE-QUALITY-LEDGER.json QA-01 coverage complete_event_passes; all 45 USA slots stay unverified until unique named event maps and independent admission receipts exist",
-  "fixed_denominator_units": 4500
+  "fixed_denominator_units": 4500,
+  "frozen_contract_fnv1a32": "ec1572b0"
 }

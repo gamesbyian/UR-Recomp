@@ -46,6 +46,9 @@ IMPORT_HEADER = re.compile(
 def check_pe_x64(executable: Path) -> None:
     """Read only the DOS/PE headers, without loading the executable."""
     with executable.open("rb") as stream:
+        stream.seek(0, 2)
+        file_size = stream.tell()
+        stream.seek(0)
         dos = stream.read(64)
         if len(dos) != 64 or dos[:2] != b"MZ":
             raise ValueError("portable executable is not a Windows PE file")
@@ -56,6 +59,11 @@ def check_pe_x64(executable: Path) -> None:
         header = stream.read(26)
     if len(header) != 26 or header[:4] != b"PE\0\0":
         raise ValueError("portable executable has no valid PE signature")
+    # The optional-header magic is only meaningful when the COFF header
+    # declares enough optional-header bytes within this file.
+    optional_size = struct.unpack_from("<H", header, 20)[0]
+    if optional_size < 2 or pe_offset + 24 + optional_size > file_size:
+        raise ValueError("portable executable has an invalid optional header size")
     machine = struct.unpack_from("<H", header, 4)[0]
     optional_magic = struct.unpack_from("<H", header, 24)[0]
     if machine != 0x8664 or optional_magic != 0x20B:

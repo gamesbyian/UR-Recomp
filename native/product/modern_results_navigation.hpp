@@ -125,9 +125,14 @@ inline ModernResultsAction activate_modern_results_navigation_menu(
         return ModernResultsAction::None;
     }
     const auto selected = selected_modern_results_action(menu);
-    return modern_results_action_available(selected, context)
-        ? selected
-        : ModernResultsAction::None;
+    // An in-range selection can also be stale after rows are inserted or
+    // removed. Confirm only the action currently displayed at this index,
+    // never a different still-available action from an older row layout.
+    if (selected == ModernResultsAction::None) return selected;
+    const auto current = make_modern_results_navigation_menu(context);
+    return menu.selected < current.row_count &&
+           current.rows[menu.selected] == selected
+        ? selected : ModernResultsAction::None;
 }
 
 }  // namespace ur::product

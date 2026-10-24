@@ -160,6 +160,14 @@ class RecurringVaultTests(unittest.TestCase):
                                 for d in report["deferred"]))
             self.assertEqual(len(recurring.read_checkpoint(out / "checkpoint.json")["items"]), 1)
 
+    def test_scheduled_workflow_restores_checkpoints_and_uses_bounded_six_archive_batch(self):
+        workflow = (Path(__file__).resolve().parents[2]
+                    / '.github/workflows/vault-recurring-intake.yml').read_text()
+        self.assertIn("github.event_name == 'schedule' || inputs.scope == 'both'", workflow)
+        self.assertIn("github.event_name == 'schedule' && '6'", workflow)
+        self.assertIn("MAX_MIB: ${{ github.event_name == 'pull_request' && '32' || '64' }}", workflow)
+        self.assertIn('vault-recurring-state-${{ matrix.scope }}', workflow)
+
     def test_invalid_prior_and_empty_inventory_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "prior.json"

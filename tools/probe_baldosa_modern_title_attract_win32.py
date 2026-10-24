@@ -182,10 +182,14 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     """
     required = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=",
-        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440",
-        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
+        # Named-profile cold boot has a source-observed -3-frame startup
+        # offset (Windows exact-head run 40092886488): 437/940/1529.
+        # Preserve the exact source chronology, D7/84/01 state and title
+        # overlay; anonymous 440/943/1532 checks remain independent.
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=437 menu=d7 race=00 overlay_title=1",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=940 menu=84 race=00 overlay_title=1",
         "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943",
-        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1529 menu=00 race=01 overlay_title=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600",
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0",

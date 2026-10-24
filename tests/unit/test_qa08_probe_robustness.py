@@ -1,8 +1,15 @@
 """ROM-free future chromatic-probe model diagnostics, not raster parity."""
+import hashlib
+from io import BytesIO
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from zipfile import ZipFile
+
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'tools'))
+import qa08_probe_robustness as qa08
 from qa08_probe_robustness import expand,predict,choose_probe,genuine_scale_compatibility
 
 class ChromaticProbeModelTest(unittest.TestCase):
@@ -33,5 +40,64 @@ class ChromaticProbeModelTest(unittest.TestCase):
     def test_unpinned_archive_never_enters_genuine_evidence(self):
         with self.assertRaisesRegex(ValueError,'unauthenticated'):
             genuine_scale_compatibility(Path(__file__))
+
+class SourceTripletAdmissionRegression(unittest.TestCase):
+    """Fresh synthetic controls for archived H27 QA08 parser review evidence.
+
+    These source-stage admission checks are not renderer, hardware, chromatic
+    pixel, or release-acceptance evidence.
+    """
+
+    @staticmethod
+    def _rows():
+        rows = []
+        for x in range(88):
+            ident = f"frame=5176 x={x} logical_y=41 ppu_line=42"
+            rows.extend((
+                f"UR_QA08_LATE_PPU_SOURCE {ident} sub=0 selected_rgb555=4a52",
+                f"UR_QA08_LATE_PPU_SOURCE {ident} sub=1 selected_rgb555=39ce",
+                f"UR_QA08_LATE_PPU_FINAL {ident} RGB8=138,138,138",
+            ))
+        return rows
+
+    @staticmethod
+    def _admit(rows):
+        target = BytesIO()
+        with ZipFile(target, "w") as archive:
+            archive.writestr("on-source.log", "\n".join(rows) + "\n")
+        original_bytes = target.getvalue()
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "synthetic-qa08-source.zip"
+            path.write_bytes(original_bytes)
+            with patch.object(qa08, "AUTHENTIC_SHA256",
+                              hashlib.sha256(original_bytes).hexdigest()):
+                return qa08.genuine_scale_compatibility(path)
+
+    def test_complete_88_consecutive_triplets_admit_without_gate_credit(self):
+        result = self._admit(self._rows())
+        self.assertEqual(result["source_triplets"], 88)
+        self.assertFalse(result["chromatic_source_observed"])
+
+    def test_second_source_colour_is_required_and_range_checked(self):
+        for replacement in ("", " selected_rgb555=ffff"):
+            with self.subTest(replacement=replacement):
+                rows = self._rows()
+                rows[1] = rows[1].replace(" selected_rgb555=39ce",
+                                          replacement)
+                with self.assertRaisesRegex(
+                        ValueError, "missing QA08|malformed QA08 source RGB555"):
+                    self._admit(rows)
+
+    def test_missing_ppu_line_on_every_stage_is_not_valid_provenance(self):
+        rows = [row.replace(" ppu_line=42", "") for row in self._rows()]
+        with self.assertRaisesRegex(ValueError, "missing QA08"):
+            self._admit(rows)
+
+    def test_nonnumeric_frames_are_rejected_before_correspondence(self):
+        rows = [row.replace("frame=5176", "frame=bogus")
+                for row in self._rows()]
+        with self.assertRaisesRegex(ValueError, "invalid QA08 source stage coordinate"):
+            self._admit(rows)
+
 
 if __name__=='__main__':unittest.main()

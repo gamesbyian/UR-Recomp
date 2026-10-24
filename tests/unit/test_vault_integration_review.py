@@ -138,7 +138,9 @@ class ReviewQueueTests(unittest.TestCase):
         key = self.seed()
         entry = {"candidate_id": key, "state": "merged", "pr": 2459,
                  "merge_commit": "f" * 40, "tests": ["unit"],
-                 "source_path": "tools/new.py"}
+                 "source_path": "tools/new.py",
+                 "archive_sha256": A, "member_sha256": B,
+                 "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088"}
         save(self.ledger, {"schema": q.LEDGER, "items": [entry]})
         self.assertEqual(self.run_review()["records"][0]["state"], "merge_unverified")
         save(self.github, {"prs": [{"number": 2459, "state": "MERGED",
@@ -181,6 +183,50 @@ class ReviewQueueTests(unittest.TestCase):
         save(root / "queue.json", queue)
         with self.assertRaises(ValueError):
             self.run_review()
+
+    def test_ledger_identity_conflict_cannot_credit_merged_or_superseded(self):
+        key = self.seed()
+        base = {"candidate_id": key, "state": "superseded",
+                "source_path": "tools/covered.py", "tests": "tests/unit/test_covered.py",
+                "evidence": "#2088", "reason": "Already present",
+                "drive_id": "1SomeOtherDriveArchiveID"}
+        save(self.ledger, {"schema": q.LEDGER, "items": [base]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "identity_conflict")
+        base["drive_id"] = DRIVE
+        base["scope"] = "evidence"
+        save(self.ledger, {"schema": q.LEDGER, "items": [base]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "identity_conflict")
+        base["scope"] = "incoming"
+        base["archive_sha256"] = B
+        save(self.ledger, {"schema": q.LEDGER, "items": [base]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "identity_conflict")
+        base["archive_sha256"] = A
+        base["member_sha256"] = A
+        save(self.ledger, {"schema": q.LEDGER, "items": [base]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "identity_conflict")
+        base["member_sha256"] = B
+        self.assertEqual(q.classify(
+            {"candidate_id": key, "scope": "incoming", "drive_id": DRIVE,
+             "archive_sha256": A, "member_sha256": B, "member": "src/recovered.py"},
+            base, [], {})[0], "superseded")
+
+    def test_merged_provenance_requires_exact_original_hashes_and_evidence(self):
+        key = self.seed()
+        record = {"candidate_id": key, "state": "merged", "pr": 2459,
+                  "merge_commit": "f" * 40, "tests": ["unit"],
+                  "source_path": "tools/new.py"}
+        save(self.github, {"prs": [{"number": 2459, "state": "MERGED",
+                                   "merged_at": "2026-10-24",
+                                   "merge_commit_sha": "f" * 40}]})
+        save(self.ledger, {"schema": q.LEDGER, "items": [record]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "merge_unverified")
+        record["archive_sha256"] = A
+        record["member_sha256"] = B
+        save(self.ledger, {"schema": q.LEDGER, "items": [record]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "merge_unverified")
+        record["evidence"] = "#2088 source receipt"
+        save(self.ledger, {"schema": q.LEDGER, "items": [record]})
+        self.assertEqual(self.run_review()["records"][0]["state"], "merged")
 
     def test_supersession_requires_concrete_evidence(self):
         key = self.seed()

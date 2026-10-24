@@ -11,8 +11,8 @@ the existing public-Drive download helper and current-revision Git blob crosswal
 
 1. Index publicly linked **02 Incoming** (45 direct files at its initial snapshot) and **03 Evidence Library** (66 direct children from the authenticated Drive listing). The gdown Evidence enumeration returned 71 items in its independent live check; that count may include nested entries and must not be mistaken for authenticated direct-child count.
 2. Restore the newest per-scope checkpoint from `vault-recurring-state-incoming` and `vault-recurring-state-evidence` artifacts of completed `main` workflow runs. The latest usable artifact may come from **different** runs after a partially failed matrix; only Incoming may fall back to the old `vault-recurring-state` name. Start fresh only if absent or expired.
-3. Prioritize unexamined ZIPs, then other files, then old rechecks. Scheduled runs use a six-archive file-count allowance per folder; manual dispatch keeps its chosen allowance (default three), and PR smoke audits only one known archive per folder.
-   Download at most **6 files per folder per scheduled run** (12 hard maximum per folder job) and enforce
+3. Prioritize unexamined ZIPs, then other files, then old rechecks. Scheduled runs now use the tool's existing twelve-archive attempt allowance per folder; manual dispatch keeps its chosen allowance (default three, with opt-in twelve), and PR smoke still audits only one known archive per folder.
+   Attempt at most **12 files per folder per scheduled run** (the existing hard tool maximum) and enforce
    a **64 MiB accepted-byte budget per folder job** (128 MiB hard upper bound per job). Original
    downloads are confined to the ephemeral runner. A file whose downloaded
    size breaches the remaining batch budget is deferred, not credited.
@@ -102,10 +102,14 @@ constitutes large-Evidence-folder coverage.
 
 This patch records a first-encountered **deterministic budget violation** immediately as a pending cooldown instead. The scheduled matrix stays green if no other errors occur; all attempted oversized IDs remain unresolved and cannot contribute source integration or release credit. Unexpected or explicitly forced-probe failures remain errors. The independently successful [downstream actionable-review run #40110030302](https://github.com/gamesbyian/UR-Recomp/actions/runs/40110030302) already proved it can consume partial scope checkpoints and report new member leads without publishing source.
 
+## Bounded audit throughput increase (October 24, 2026)
+
+The latest independently inspected scheduled production checkpoint had **18 Incoming and 50 Evidence** runner-enumerated entries still due, including known oversized historical backup parts. Six audit attempts per scope every six hours would require at least nine more Evidence cycles if count alone controls throughput. The tool already enforces `MAX_BATCH=12`, the existing scheduled **64 MiB accepted-byte limit per scope**, a 45-minute job timeout and two matrix jobs in one serialized workflow. Increasing only the scheduled attempt cap to 12 can reduce that count-limited minimum to five cycles. Byte budgets, cooling archives and retries may require more; this is not a guarantee of completion or successful archive inspection. PR smoke still probes just one known file and cannot publish any recovered source. No release gate changes.
+
 ## Manual operation
 
 GitHub Actions → Vault Recurring Intake → Run workflow. Choose a bounded
-\`max_files\` (1, 2, 3, or 6) and optionally a known \`file_id\`.
+\`max_files\` (1, 2, 3, 6, or 12) and optionally a known \`file_id\`.
 The checkpoint is automatically restored on \`main\`; a supplied \`file_id\`
 forces reinspection even if recently verified. The manual workflow still
 cannot publish source.

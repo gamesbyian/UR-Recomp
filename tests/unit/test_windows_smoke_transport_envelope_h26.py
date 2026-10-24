@@ -14,6 +14,7 @@ material, a Windows executable, gameplay, or an actual GitHub run artifact.
 from __future__ import annotations
 
 import io
+import struct
 from pathlib import Path
 import tempfile
 import unittest
@@ -62,6 +63,22 @@ class WindowsSmokeTransportEnvelopeTests(unittest.TestCase):
         # A whole preceding ZIP is not included by namelist() for the
         # trailing ZIP's central directory, despite the PK local-file magic.
         self.check(unrelated() + wrapper(), accepted=False)
+
+    def test_unindexed_local_record_inserted_before_central_directory(self):
+        canonical = wrapper()
+        hidden = unrelated()
+        with zipfile.ZipFile(io.BytesIO(canonical)) as z:
+            offset = z.start_dir
+        with zipfile.ZipFile(io.BytesIO(hidden)) as z:
+            extra_local = hidden[:z.start_dir]
+        altered = bytearray(canonical[:offset] + extra_local + canonical[offset:])
+        # EOCD central-directory offset must be adjusted so zipfile sees
+        # exactly the same three official entries, not the unindexed one.
+        struct.pack_into("<I", altered, len(altered) - 22 + 16,
+                         offset + len(extra_local))
+        with zipfile.ZipFile(io.BytesIO(altered)) as z:
+            self.assertEqual(set(z.namelist()), audit.PORTABLE_MEMBERS)
+        self.check(bytes(altered), accepted=False)
 
     def test_trailing_opaque_bytes_rejected(self):
         self.check(wrapper() + b"hidden trailer", accepted=False)

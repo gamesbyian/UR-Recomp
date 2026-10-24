@@ -250,6 +250,7 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None,
 
 def pull(entry: dict, output: Path, tree: bytes, *, stage=False,
          stage_member: str | None = None, stage_sha256: str | None = None,
+         expected_archive_sha256: str | None = None,
          runner=subprocess.run) -> dict:
     file_id = entry["id"]
     name = safe_path(entry["path"]).name
@@ -262,9 +263,14 @@ def pull(entry: dict, output: Path, tree: bytes, *, stage=False,
         dest.unlink()
         raise ValueError("download exceeds single-file byte budget")
     raw = dest.read_bytes()
+    observed_archive_sha256 = hashlib.sha256(raw).hexdigest()
+    if expected_archive_sha256 is not None:
+        if (not re.fullmatch(r"[0-9a-f]{64}", expected_archive_sha256)
+                or observed_archive_sha256 != expected_archive_sha256):
+            raise ValueError("Drive archive SHA-256 differs from approved checkpoint")
     result = {
         "id": file_id, "path": entry["path"], "bytes": size,
-        "sha256": hashlib.sha256(raw).hexdigest(), "zip": None,
+        "sha256": observed_archive_sha256, "zip": None,
         "published": False, "integrated": False,
     }
     if (stage_member is not None or stage_sha256 is not None) and (
@@ -287,6 +293,7 @@ def main() -> int:
     parser.add_argument("--stage-sources", action="store_true")
     parser.add_argument("--stage-member", help="Exact outer or !/ nested member path")
     parser.add_argument("--stage-member-sha256", help="Expected SHA-256 of one selected member")
+    parser.add_argument("--expected-archive-sha256", help="Approved SHA-256 of original Drive package")
     args = parser.parse_args()
     if args.download_all and args.file_id:
         parser.error("choose --download-all or particular --file-id values")
@@ -298,6 +305,10 @@ def main() -> int:
         parser.error("exact member selection requires --stage-sources")
     if args.stage_member_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.stage_member_sha256):
         parser.error("invalid selected member SHA-256")
+    if args.expected_archive_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.expected_archive_sha256):
+        parser.error("invalid selected archive SHA-256")
+    if args.stage_member and not args.expected_archive_sha256:
+        parser.error("single-member staging requires original archive SHA-256 pin")
     if any(not ID_PATTERN.fullmatch(item) for item in args.file_id):
         parser.error("invalid Drive file ID")
     if args.out.exists():
@@ -324,7 +335,8 @@ def main() -> int:
         try:
             result = pull(entry, args.out, tree, stage=args.stage_sources,
                           stage_member=args.stage_member,
-                          stage_sha256=args.stage_member_sha256)
+                          stage_sha256=args.stage_member_sha256,
+                          expected_archive_sha256=args.expected_archive_sha256)
             total += result["bytes"]
             if total > MAX_SESSION_BYTES:
                 raise ValueError("session byte budget exceeded")

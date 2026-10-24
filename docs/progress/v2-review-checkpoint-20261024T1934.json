@@ -1,0 +1,689 @@
+{
+  "schema": "ur-v2-review-checkpoint/1",
+  "reviewed_at_utc": "2026-10-24T19:34:09Z",
+  "at_main_sha": "68f870cecfae61bc897db0ec22a44eddbc2b0dbe",
+  "source_evidence_sha": "ea0f421df3f9a0c0007b1dfb17cede979518cb33",
+  "inventory_version": "windows-beta-v2-candidate",
+  "criterion_contract_hash": "32c62b80",
+  "fixed_denominator_units": 4500,
+  "formal_events": 0,
+  "passed_release_gates": 0,
+  "criteria": [
+    {
+      "id": "WIN-01",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-03",
+      "status": "bounded_verified",
+      "audit_state": "independent_reviewed"
+    },
+    {
+      "id": "WIN-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-05",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-06",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-01",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-03",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ONE-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-05",
+      "status": "bounded_verified",
+      "audit_state": "independent_reviewed"
+    },
+    {
+      "id": "ONE-06",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-07",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-08",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ONE-09",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ONE-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "TWO-01",
+      "status": "bounded_verified",
+      "audit_state": "independent_reviewed"
+    },
+    {
+      "id": "TWO-02",
+      "status": "bounded_verified",
+      "audit_state": "independent_reviewed"
+    },
+    {
+      "id": "TWO-03",
+      "status": "bounded_verified",
+      "audit_state": "independent_reviewed"
+    },
+    {
+      "id": "TWO-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "TWO-05",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "TWO-06",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "TWO-07",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "TWO-08",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "MENU-01",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "MENU-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-03",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-05",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-06",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-07",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-08",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-09",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "DATA-01",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-03",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-05",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "DATA-06",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-07",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-08",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-09",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "RECOVERY-01",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-03",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-05",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-06",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-07",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-08",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-09",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "RECOVERY-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "WIDE-01",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-03",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "WIDE-04",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-05",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-06",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "WIDE-07",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "WIDE-08",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "WIDE-09",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "WIDE-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-01",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-02",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-03",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-04",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-05",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-06",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-07",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-08",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-09",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "ART-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-01",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-02",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-03",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-04",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-05",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-06",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-07",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-08",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-09",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "QA-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "UX-01",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-02",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-03",
+      "status": "bounded_verified",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-04",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "UX-05",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "UX-06",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-01",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-02",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-03",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-04",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-05",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-06",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-07",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-08",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-09",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-10",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-11",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-12",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-13",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-14",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-15",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-16",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-17",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-18",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-19",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-20",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-21",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-22",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-23",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-24",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-25",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-26",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-27",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-28",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-29",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-30",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-31",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-32",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-33",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-34",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-35",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-36",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-37",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-38",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-39",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-40",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-41",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-42",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-43",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-44",
+      "status": "unverified",
+      "audit_state": "pending"
+    },
+    {
+      "id": "FID-45",
+      "status": "unverified",
+      "audit_state": "pending"
+    }
+  ],
+  "note": "Previous fully merged 47% screened/5% independently reviewed bounded checkpoint; source execution provenance and physical-release qualifications remain distinct."
+}

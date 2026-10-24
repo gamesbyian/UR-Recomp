@@ -59,9 +59,10 @@
       "criterion": "Hosted Windows x64 package boots the native Modern game",
       "status": "bounded_verified",
       "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/39822833034",
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "evidence_class": "hosted_Windows_build_boot_specific_source_3250a376_no_physical_QA",
       "release_gate_credit": false,
       "weight_units": 45,
       "audit_state": "inherited_pr_screening"
@@ -72,9 +73,10 @@
       "criterion": "ROM-free host launcher exposes functioning Modern destinations",
       "status": "bounded_verified",
       "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/39822833034",
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "evidence_class": "ROM_free_portable_build_plus_Native_Modern_host_bounded",
       "release_gate_credit": false,
       "weight_units": 45,
       "audit_state": "inherited_pr_screening"
@@ -353,14 +355,13 @@
       "id": "MENU-01",
       "area": "MENU",
       "criterion": "Physical-controller root exposes five Modern destinations",
-      "status": "bounded_verified",
-      "evidence": [
-        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
-      ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "status": "unverified",
+      "evidence": [],
+      "evidence_class": "previous_source_does_not_satisfy_physical_or_human_requirement",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "pending",
+      "withdrawn_reason": "PR #1648 explicitly disclaims physical-pad testing; scripted controller-semantic root cannot establish physical-controller requirement."
     },
     {
       "id": "MENU-02",
@@ -737,9 +738,11 @@
       "criterion": "Widescreen extends real in-game course/world visibility",
       "status": "bounded_verified",
       "evidence": [
-        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1082",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1092",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38004162535"
       ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "evidence_class": "native_342_source_backed_world_and_moving_2P_capture_bounded",
       "release_gate_credit": false,
       "weight_units": 45,
       "audit_state": "inherited_pr_screening"
@@ -750,9 +753,10 @@
       "criterion": "Original mode restores native 256 by 224 view without crop",
       "status": "bounded_verified",
       "evidence": [
-        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1210",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38083079741"
       ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "evidence_class": "independently_executed_center_pixel_parity_in_342_native_PPU_not_release_gate",
       "release_gate_credit": false,
       "weight_units": 45,
       "audit_state": "inherited_pr_screening"
@@ -1112,14 +1116,13 @@
       "id": "UX-04",
       "area": "UX",
       "criterion": "Two real players can create and identify separate profiles",
-      "status": "bounded_verified",
-      "evidence": [
-        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
-      ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "status": "unverified",
+      "evidence": [],
+      "evidence_class": "previous_source_does_not_satisfy_physical_or_human_requirement",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "pending",
+      "withdrawn_reason": "PR #1510 exercises scripted native profile journeys, not two real human players."
     },
     {
       "id": "UX-05",

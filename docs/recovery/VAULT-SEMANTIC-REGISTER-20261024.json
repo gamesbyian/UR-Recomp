@@ -42,7 +42,8 @@
     "2026-10-24 Agent 1 direct Integrated archive audit: reopened all 25 previously pathless ZIPs, checked ZIP member CRCs, and mapped 25 archive IDs to existing source/test/workflow work-scope paths on main tree ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1. Five Git blob equalities proven across four archive IDs; other routes are navigation/semantic pointers only.",
     "Authenticated recursive child inventory includes six files under the one Evidence nested backup folder; separate from the 224 direct-child entries. H29 reconstructed historical 408610900-byte Git bundle/strict-fsck receipt proves backup integrity, not current-main or release acceptance.",
     "Agent 1 read all 22 direct Incoming publication-refusal or preservation-resolution JSON files and recorded exact file SHA256 plus historical_incident_only disposition. These were previously preserved_pending_review; their underlying source status and unresolved art/QA08 holds remain independently governed.",
-    "Agent 1 scoped Incoming archive follow-up: 4 exact ZIPs CRC and SHA-256 read; three previously pending archived Windows test/security packages now semantically superseded, and CPU source-member witness refined. Distinct archived bits retained; original explicit safety refusals not reexecuted."
+    "Agent 1 scoped Incoming archive follow-up: 4 exact ZIPs CRC and SHA-256 read; three previously pending archived Windows test/security packages now semantically superseded, and CPU source-member witness refined. Distinct archived bits retained; original explicit safety refusals not reexecuted.",
+    "Independent Agent 1 direct Incoming follow-up: five exact source/proposal files reconciled against current main; H26 standalone patch exact duplicate of H26 Evidence ZIP member, QA08 and QA01 source guards/statements present, WinQA same-key guard merged, RF081 candidate research-only. No new integration/release credit."
   ],
   "items": [
     {
@@ -2316,17 +2317,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 6138,
       "mime_type": "text/x-diff",
-      "archive_sha256": null,
+      "archive_sha256": "b4a56f809a6f85c6d7b2a5875727b8572e2ef75a989dc5b0eb4322cfd913dd39",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/qa08_brightness_discriminator.py"
+      ],
+      "current_main_comparison": "Archived H24 proposed patch adds canonical RGB555 high-bit rejection, per-frame four-class census, chronological substage ordering and strict canonical ZIP local/central fields. Each named code guard exists in current main tools/qa08_brightness_discriminator.py Git blob 26354934712d60b0994dc33591995f51e9125b77. Historical patch itself was not replayed; full PPU raster source/physical gate #1996 stays held.",
+      "github_prs": [
+        "#1996"
+      ],
+      "owner": "Agent 1 source semantic closure, QA08 owner retains release hold",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Only independent source/member or full current-main test as stated in source evidence; no release gate credit",
+      "next_action": "Preserve staged original and historic refusal; no separate current implementation task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "source_member_path": "source patch (stored as standalone text/x-diff)",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "13zRmt7klhYeQw6m6Jb6woYYn6f_kCu1i",
@@ -2335,17 +2343,26 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 15843,
       "mime_type": "text/x-diff",
-      "archive_sha256": null,
+      "archive_sha256": "92e362e59e4f315719dd216a982f2c12b24bbf54ab2a076fed65410d95b88c7e",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/h26_five_line_decisions.py",
+        "tests/test_h26.py"
+      ],
+      "current_main_comparison": "Standalone Incoming patch bytes match exactly the H26 outer Evidence archive's patches/H26-RESEARCH-NEW-SOURCE.patch, SHA256 92e362e59e4f315719dd216a982f2c12b24bbf54ab2a076fed65410d95b88c7e. Five historical research candidate decisions belong to one H26 work item: 3 semantic supersessions, 1 provenance-only and 1 conditional Records exporter post-final-check publication race requiring Agent 2 qualification. Do not credit whole patch as merged source or create duplicate tasks.",
+      "github_prs": [
+        "#2538",
+        "#2088"
+      ],
+      "owner": "Agent 1 duplicate content disposition, Agent 2 conditional Records race",
+      "priority": "P3 evidence",
+      "required_test": "Only independent source/member or full current-main test as stated in source evidence; no release gate credit",
+      "next_action": "Preserve historical archive/candidate and existing conditional engineering owner; no duplicate source-publication request.",
+      "blocker": "Underlying Records source immutability/NTFS race qualification remains open, not absence of duplicate patch bytes",
+      "classification": "historical_research_only",
+      "source_member_path": "patches/H26-RESEARCH-NEW-SOURCE.patch (identical bytes in Evidence Drive 142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ)",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "14fQVwuf6G4TQsPr2Vh9xqsZLjG77pHT9",
@@ -2502,16 +2519,25 @@
       "mime_type": "application/zip",
       "archive_sha256": "ceff33cf9da1c7cdccd6bbd779fd61403d89ee13d9ecc991ae5d742eb59a17b3",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "native/product/controller_seat_assignment_policy.h",
+        "tests/native/controller_seat_assignment_policy_test.cpp"
+      ],
+      "current_main_comparison": "Authenticated three-member ZIP CRC passed; reproduces historical same-key seat-swap/identity concerns. Current controller seat assignment policy and negative tests were merged #2330; existing corresponding Inbox pointer 1AVJyY8AhZxIR_v_G6BzuFHQqQTLCnfyv records semantic supersession. This does not award real Windows/controller hardware acceptance.",
+      "github_prs": [
+        "#2330",
+        "#2198"
+      ],
+      "owner": "Agent 1 closure",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Only independent source/member or full current-main test as stated in source evidence; no release gate credit",
+      "next_action": "Preserve staged original and historic refusal; no separate current implementation task.",
       "blocker": null,
-      "classification": "preserved_pending_review",
-      "checkpoint_transport_verified": true
+      "classification": "semantically_superseded",
+      "checkpoint_transport_verified": true,
+      "source_member_path": "repro.c and REVIEW.md",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1cW_qjnxY8mfclORRfSCIHkQbenhZ4XcO",
@@ -2594,17 +2620,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2264,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "598760ae90384ac427757e71c9dfafe1866f96af8a106640ca988acb08e070f9",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tools/rf081_selected_pc_candidate_census.py"
+      ],
+      "current_main_comparison": "H26 Agent5 RF081 selected post-NMI original fetch/native post-handler label one source-local event apart, five PC label equals and four mismatches. Source-local clocks and semantic phases unaligned; same-phase original consumed RTS operands unobserved. Current main census source and unit tests already preserve that limit. Candidate JSON lists null bundle_drive_id and patch_drive_id; do not infer unpreserved source implementation merely from proposal text.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 research disposition; CPU event producer independent measurement",
+      "priority": "P3 evidence",
+      "required_test": "Only independent source/member or full current-main test as stated in source evidence; no release gate credit",
+      "next_action": "Preserve historical archive/candidate and existing conditional engineering owner; no duplicate source-publication request.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "source_member_path": "Candidate JSON itself, no embedded source code",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1evWKFeIrtZ0oOL1Sj1asLNuv7455zckG",
@@ -2712,16 +2745,23 @@
       "mime_type": "application/zip",
       "archive_sha256": "08849ab0188e213e7372055c3fa099d969f9bf81d3a053c378ac69ef7f352768",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "analysis/generated/course-event-qa-census.json"
+      ],
+      "current_main_comparison": "Ten-member ZIP CRC passed, source archive SHA pinned. Its exact two narrow revised Original/native Zoo Circuit and Bowl scored-Stunt limitation statements already occur verbatim on current main analysis/generated/course-event-qa-census.json (blob 891c773ab3be37d692b44f00f5f92773a90bcef8). Preserved original denial is not counted as a successful old write, and accepted real USA event total does not change.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 closure; independent QA01 event owner retains proof requirement",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Only independent source/member or full current-main test as stated in source evidence; no release gate credit",
+      "next_action": "Preserve staged original and historic refusal; no separate current implementation task.",
       "blocker": null,
-      "classification": "preserved_pending_review",
-      "checkpoint_transport_verified": true
+      "classification": "semantically_superseded",
+      "checkpoint_transport_verified": true,
+      "source_member_path": "evidence/two-limit-text-review.diff; analysis/generated/course-event-qa-census.json",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1HL8Lx9iklV_3btZyYC-EZS6b3hQ3zTP-",

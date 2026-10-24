@@ -48,7 +48,13 @@ bool CompletedRunRecordsBrowser::refresh(
     const std::string& directory,
     const RunRecordsScope& scope) {
     clear();
-    auto artifacts = inspect_completed_run_record_artifacts(directory);
+    // A missing archive is a legitimate empty history, but an inaccessible,
+    // redirected or invalid directory is not. Never display scan failure as
+    // "NO RUNS RECORDED YET" or grant a stale Records selection authority.
+    bool scan_succeeded = false;
+    auto artifacts = inspect_completed_run_record_artifacts(
+        directory, &scan_succeeded);
+    if (!scan_succeeded) return false;
     artifact_health_ = summarize_run_record_artifact_health(artifacts);
 
     std::vector<StoredRunRecord> records;

@@ -120,6 +120,22 @@ def make_queue(entries: list[dict], prior: dict, now: datetime,
     return due, skipped
 
 
+def classify_intake_error(error: str) -> str:
+    """Stable summary category without echoing untrusted error or filenames."""
+    value = str(error)
+    if "download exceeds single-file byte budget" in value:
+        return "archive-size-budget"
+    if "expanded ZIP budget exceeded" in value:
+        return "expanded-zip-budget"
+    if "nested ZIP exceeds byte budget" in value:
+        return "nested-zip-budget"
+    if "unsafe ZIP member" in value:
+        return "unsafe-archive-member"
+    if "invalid or corrupt source ZIP" in value:
+        return "invalid-archive"
+    return "download-or-inspection-error"
+
+
 def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
                           refresh_days: int) -> str | None:
     """Avoid repeat downloads of unchanged archives hitting hard size limits.

@@ -60,9 +60,7 @@ clock delivery.
 ## How recovery agents consume results
 
 Open [Actions: Vault Recurring Intake](https://github.com/gamesbyian/UR-Recomp/actions/workflows/vault-recurring-intake.yml).
-For each scope, inspect the newest complete `main` artifact named `vault-recurring-state-incoming` or `vault-recurring-state-evidence` (possibly from different completed runs). Use `checkpoint.json`, `queue.json` and `report.json`; [Vault Actionable Review](VAULT-ACTIONABLE-REVIEW.md) joins these per-scope artifacts to the semantic ledger. The queue is advisory; inspect original source through a separate authorized staging route.
-environment, or the *separate, explicitly reviewed* staging option in the
-[manual Direct Intake workflow](DIRECT-VAULT-INTAKE.md).
+For each scope, inspect the newest complete `main` artifact named `vault-recurring-state-incoming` or `vault-recurring-state-evidence` (possibly from different completed runs). Use `checkpoint.json`, `queue.json` and `report.json`; [Vault Actionable Review](VAULT-ACTIONABLE-REVIEW.md) joins these per-scope artifacts to the semantic ledger. The queue is advisory; inspect original source through [the separate, explicitly reviewed Direct Intake workflow](DIRECT-VAULT-INTAKE.md) or locally in an authorized environment.
 
 Compare each reviewed member against **fresh main, active PRs and rights /
 publication holds**, then create focused implementation/test PRs as permitted.

@@ -77,6 +77,7 @@ def require_shared_native_acceptance(workflow: str) -> None:
         "'named_play_after_attract':",
         "receipt.get('real_guest_main_recovery_verified') is not True",
         "receipt.get('named_source_play_verified') is not True",
+        "'original_main_stable' if name == 'named_play_after_attract'",
         "'wake_keyboard_4by3':",
         "'wake_p2':",
         "receipt.get('native_wake_route') != wake_route",
@@ -107,6 +108,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "'named_play_after_attract':",
             "receipt.get('real_guest_main_recovery_verified') is not True",
             "receipt.get('named_source_play_verified') is not True",
+            "'original_main_stable' if name == 'named_play_after_attract'",
             "receipt.get('native_wake_route') != wake_route",
             "if receipt.get(key) != expected:",
         ):

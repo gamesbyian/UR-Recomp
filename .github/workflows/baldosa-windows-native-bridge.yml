@@ -472,7 +472,9 @@ jobs:
                           receipt.get('original_attract_displayed_on_native_P6') is not True):
                       raise SystemExit(f'{name}: no genuine guest MAIN recovery witness')
                   phases = {stage.get('phase') for stage in receipt.get('actual_guest_source_markers', [])}
-                  if 'native_main_recovered' not in phases:
+                  main_phase = ('original_main_stable' if name == 'named_play_after_attract'
+                                else 'native_main_recovered')
+                  if main_phase not in phases:
                       raise SystemExit(f'{name}: missing original source MAIN recovery phase')
                   if name == 'named_play_after_attract' and (
                           receipt.get('named_source_play_verified') is not True or

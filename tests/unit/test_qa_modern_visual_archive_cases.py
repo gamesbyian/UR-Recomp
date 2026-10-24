@@ -37,14 +37,14 @@ class ArchiveCasesTest(unittest.TestCase):
         return zp
 
     def test_mapped_and_unmapped_captures(self):
-        wide = frame_png(342, 1280, 720)
+        wide = frame_png(256, 1280, 720)
         compact = frame_png(256, 1024, 768)
         other = frame_png(342, 1280, 720, focus=False)
         with tempfile.TemporaryDirectory() as tmp:
             zp = self.make(tmp, {"visual-1280x720": wide, "visual-1024x768": compact,
                                  "records": other})
             verified = {"captures": [
-                capture("visual-1280x720", "root-quit", [1280, 720], wide, 342),
+                capture("visual-1280x720", "root-quit", [1280, 720], wide, 256),
                 capture("visual-1024x768", "root-quit", [1024, 768], compact, 256),
                 capture("records", "records-keyboard", [1280, 720], other, 342)]}
             rep = ac.analyse(zp, verified)
@@ -72,7 +72,7 @@ class ArchiveCasesTest(unittest.TestCase):
 
     def test_directory_mode_uses_receipt_and_detects_width(self):
         import json
-        wide = frame_png(342, 1280, 720)
+        wide = frame_png(256, 1280, 720)
         with tempfile.TemporaryDirectory() as tmp:
             good = Path(tmp) / "ur-modern-win32-visual-1280x720"
             good.mkdir()
@@ -88,7 +88,7 @@ class ArchiveCasesTest(unittest.TestCase):
             self.assertFalse(ac.analyse_dirs([good], require_ring=True)["pass"])
             self.assertEqual(rep["captures"][0]["case"], "root-wide-720")
             self.assertEqual(rep["release_gate_credit"], 0)
-            self.assertIn("one-logical-width=ok(342)", ac.markdown(rep))
+            self.assertIn("one-logical-width=ok(256)", ac.markdown(rep))
             receipt["png_sha256"] = "0" * 64
             (good / "readback-receipt.json").write_text(json.dumps(receipt))
             with self.assertRaises(ValueError):
@@ -111,16 +111,16 @@ class ArchiveCasesTest(unittest.TestCase):
             self.assertIn(case, matrix)
 
     def test_hash_mismatch_and_missing_png_are_refused(self):
-        wide = frame_png(342, 1280, 720)
+        wide = frame_png(256, 1280, 720)
         with tempfile.TemporaryDirectory() as tmp:
             zp = self.make(tmp, {"v": wide})
-            bad = capture("v", "root-quit", [1280, 720], wide, 342)
+            bad = capture("v", "root-quit", [1280, 720], wide, 256)
             bad["png_sha256"] = "0" * 64
             with self.assertRaises(ValueError):
                 ac.analyse(zp, {"captures": [bad]})
             with self.assertRaises(ValueError):
                 ac.analyse(zp, {"captures": [capture("missing", "root-quit",
-                                                     [1280, 720], wide, 342)]})
+                                                     [1280, 720], wide, 256)]})
 
 
 if __name__ == "__main__":

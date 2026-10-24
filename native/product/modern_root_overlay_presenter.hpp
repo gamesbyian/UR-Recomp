@@ -330,6 +330,13 @@ inline bool render_modern_root_overlay(
             identity = fit_modern_overlay_text(identity, identity_cells);
         }
     }
+    // The stock BG1 checker is too bright behind secondary-grey racer text.
+    // Give the identity a fully opaque stock-grey inset, including at 4x,
+    // without changing the checker elsewhere or touching guest/Authentic art.
+    // 31..49 stays clear of the first focus band (54..71).
+    paint.fill_rect(pixels, stride, surface_height,
+        x + 5 * scale, y + 31 * scale,
+        (panel_w - 10) * scale, 18 * scale, kModernMenuGreyRamp[4]);
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 36 * scale,
         identity.c_str(), kModernMenuCheckerLegibleGrey, scale);

@@ -2183,6 +2183,8 @@ bool create_profile_from_editor() {
     // Catalog registration is durable even if switching away from the
     // previous racer fails. Keep the new row selected and say so explicitly.
     g_profile_create_activation_failed = !activated;
+    // A failed switch must not leave a stale celebratory overlay behind.
+    if (!activated) g_profile_cool_name_notice = false;
     if (activated) product_diagnostic("UR_PROFILE_UI CREATED");
     return activated;
 }
@@ -10284,7 +10286,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
                             : "ESC / F2  CLOSE")),
                 0xFFFFFFFFu, scale);
         }
-        if (g_profile_cool_name_notice) {
+        if (g_profile_cool_name_notice && !g_profile_create_activation_failed) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
                 "COOL NAME!", 0xFFFFFFFFu, scale);
         }

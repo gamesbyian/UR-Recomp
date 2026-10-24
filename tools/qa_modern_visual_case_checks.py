@@ -2,7 +2,8 @@
 """Derive and run the machine-checkable part of a Modern visual acceptance case.
 
 For each case in analysis/modern-visual-acceptance-matrix.json this fixes the
-expected native logical canvas (16:9 -> 342x224, 4:3 -> 256x224) and the
+scene-qualified native logical canvas (fixed Modern menu scenes -> 256x224,
+wide live-world scenes -> 342x224) and the
 checks a final-SDL capture of that case can be held to without a human:
 
 * output size equals the case's `pixels` (exact mode/geometry evidence);
@@ -51,7 +52,11 @@ def load_cases(path: Path = MATRIX) -> dict:
 
 
 def plan(case: dict) -> dict:
-    lw = LOGICAL[case["aspect"]]
+    # Fixed Modern menu scenes keep their 256px source even in 16:9 SDL
+    # windows. The aspect field describes the output requirement, not an
+    # instruction to widen the menu raster (see #2534 Windows P7 evidence).
+    lw = (256 if case["mode"] == "modern" and case["screen"] in UI_SCREENS
+          else LOGICAL[case["aspect"]])
     ui = case["mode"] == "modern" and case["screen"] in UI_SCREENS
     return {"case": case["id"], "output": list(case["pixels"]),
             "logical": [lw, 224],

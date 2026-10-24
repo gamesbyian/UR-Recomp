@@ -45,6 +45,16 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         self.assertLess(target_write, selector_commit)
         self.assertLess(selector_commit, applied)
 
+        # A live competing process's selector CAS winner is never rolled
+        # back using a stale expectation from our failed local attempt.
+        rollback = activation.split("const auto restore_previous = [&]() {", 1)[1].split(
+            "\n    };", 1
+        )[0]
+        self.assertIn("g_product_state = previous_product;", rollback)
+        self.assertIn("std::memcpy(g_sram, previous_sram", rollback)
+        self.assertIn("RtlTryWriteSram()", rollback)
+        self.assertNotIn("persist_product_state(", rollback)
+
     def test_reloaded_target_format_is_checked_before_guest_sram_write(self):
         host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
             encoding="utf-8"
@@ -63,20 +73,16 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         restored = switched.index("restore_stock_sram_from_profile(")
         self.assertLess(reloaded, guarded)
         self.assertLess(guarded, restored)
-        check = switched[reloaded:restored]
-        self.assertIn("stock_sram_format_signature_present(", check)
-        self.assertIn("g_profile_state->stock_sram->data()", check)
-        self.assertIn("g_profile_state->stock_sram->size()", check)
-        self.assertIn("return restore_previous();", check)
-        # A live competing process's selector CAS winner is never rolled
-        # back using a stale expectation from our failed local attempt.
-        rollback = activation.split("const auto restore_previous = [&]() {", 1)[1].split(
-            "\n    };", 1
-        )[0]
-        self.assertIn("g_product_state = previous_product;", rollback)
-        self.assertIn("std::memcpy(g_sram, previous_sram", rollback)
-        self.assertIn("RtlTryWriteSram()", rollback)
-        self.assertNotIn("persist_product_state(", rollback)
+        guard_start = switched.index(
+            "if (!ur::product::stock_sram_format_signature_present("
+        )
+        guard_body = switched[guard_start:restored]
+        self.assertIn("g_profile_state->stock_sram->data()", guard_body)
+        self.assertIn("g_profile_state->stock_sram->size()", guard_body)
+        self.assertIn(
+            "UR_PROFILE_SELECT TARGET_RELOADED_UNFORMATTED_SNAPSHOT", guard_body
+        )
+        self.assertIn("return restore_previous();", guard_body)
 
 
 if __name__ == "__main__":

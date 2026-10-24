@@ -64,6 +64,10 @@ CompletedRunGhostSelection select_completed_run_ghost_target(
     case CompletedRunGhostTarget::PersonalBest:
         out.kind = CompletedRunGhostKind::PersonalBest;
         break;
+    default:
+        // Reject corrupt profile preference before optional dereference.
+        out.target = CompletedRunGhostTarget::Off;
+        return out;
     }
 
     out.record = state.record(*out.kind);
@@ -75,7 +79,8 @@ std::string completed_run_ghost_target_status_label(
     const CompletedRunGhostState& state,
     CompletedRunGhostTarget target) {
     const char* label = completed_run_ghost_target_label(target);
-    if (target == CompletedRunGhostTarget::Off) {
+    if (target != CompletedRunGhostTarget::Previous &&
+        target != CompletedRunGhostTarget::PersonalBest) {
         return label;
     }
     const auto selected = select_completed_run_ghost_target(state, target);

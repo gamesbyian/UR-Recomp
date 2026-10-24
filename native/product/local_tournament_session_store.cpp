@@ -3,6 +3,7 @@
 #include "local_tournament_fixture_receipt.hpp"
 #include "local_tournament_atomic_replace.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cerrno>
 #include <charconv>
@@ -244,7 +245,7 @@ LocalTournamentSessionFileStatus save_local_tournament_session_definition(
     if (path.empty() || encoded.empty()) {
         return LocalTournamentSessionFileStatus::Rejected;
     }
-    if (!write_tournament_replace_staged(path, encoded, "urtournament")) {
+    if (!write_host_replace_staged(host_native_path_from_utf8(path), encoded, "urtournament")) {
         return LocalTournamentSessionFileStatus::IoError;
     }
     return LocalTournamentSessionFileStatus::Saved;
@@ -259,7 +260,12 @@ LocalTournamentSessionFileResult load_session_impl(
                     "empty tournament session path");
     }
     errno = 0;
+    #if defined(_WIN32)
+    const auto native_path = host_native_path_from_utf8(path);
+    std::FILE* file = _wfopen(native_path.c_str(), L"rb");
+#else
     std::FILE* file = std::fopen(path.c_str(), "rb");
+#endif
     if (!file) {
         return errno == ENOENT
             ? fail(LocalTournamentSessionFileStatus::Missing,
@@ -320,7 +326,7 @@ LocalTournamentSessionFileStatus save_local_tournament_session_definition_if_cur
     if (path.empty() || encoded.empty()) {
         return LocalTournamentSessionFileStatus::Rejected;
     }
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return LocalTournamentSessionFileStatus::IoError;
 
     // Compare against historical canonical bytes: an existing session's

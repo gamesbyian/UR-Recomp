@@ -49,6 +49,58 @@ class StrictVaultManifest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"hash/size"):
             verify(stream.getvalue())
 
+    def test_extended_win32_aliases_controls_and_utf16_component_lengths(self):
+        # These have valid ZIP CRCs and internally consistent manifests but
+        # are unsafe/nonportable as Windows extraction member names.
+        rejected = (
+            "bad\\u0085.txt", "bad\\u007f.txt", "COM¹.txt",
+            "COM².log", "LPT³", "CON .txt", "aux .txt",
+            "é" * 256 + ".txt", "😀" * 128 + ".txt",
+        )
+        for name in rejected:
+            with self.subTest(name=name), self.assertRaisesRegex(
+                    ValueError, "unsafe archive member"):
+                verify(pack({name: b"x"}))
+        for name in ("normal.txt", "résumé/notes.txt",
+                     "name².txt", "COM0.txt", "é" * 251 + ".txt"):
+            with self.subTest(name=name):
+                self.assertEqual(verify(pack({name: b"x"}))["manifested_payloads"], 1)
+
+    def test_unix_nonregular_zip_members_are_not_portable_sources(self):
+        # Valid CRC and matching manifest do not make Unix special entries
+        # ordinary files. A recovery handoff must not certify such metadata.
+        import stat
+        payload = b"print(1)"
+        manifest = {"safe/source.py": {
+            "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}}
+        modes = (stat.S_IFIFO, stat.S_IFCHR, stat.S_IFBLK,
+                 stat.S_IFSOCK, stat.S_IFLNK, stat.S_IFDIR, stat.S_IFREG)
+        for mode in modes:
+            stream = io.BytesIO()
+            with zipfile.ZipFile(stream, "w") as z:
+                info = zipfile.ZipInfo("safe/source.py")
+                info.create_system = 3
+                info.external_attr = (mode | 0o644) << 16
+                z.writestr(info, payload)
+                z.writestr("MANIFEST.json", json.dumps(manifest))
+            with self.subTest(mode=oct(mode)):
+                if mode == stat.S_IFREG:
+                    self.assertEqual(verify(stream.getvalue())["manifested_payloads"], 1)
+                else:
+                    with self.assertRaisesRegex(ValueError, "unsafe archive member"):
+                        verify(stream.getvalue())
+
+    def test_win32_forbidden_punctuation_components(self):
+        # Valid CRC and manifest hashes cannot make these Win32 path names safe.
+        for name in (
+            "bad<name.txt", "bad>name.txt", 'bad"name.txt',
+            "bad|name.txt", "bad?name.txt", "bad*name.txt",
+            "safe/bad|nested.txt", "safe/x?y/code.py",
+        ):
+            with self.subTest(name=name), self.assertRaisesRegex(
+                    ValueError, "unsafe archive member"):
+                verify(pack({name: b"first party test bytes"}))
+
     def test_unicode_alias_and_control(self):
         for name in ("e\u0301.txt","bad\u202etxt","bad. ","NUL.log"):
             with self.subTest(name=name),self.assertRaises(ValueError):

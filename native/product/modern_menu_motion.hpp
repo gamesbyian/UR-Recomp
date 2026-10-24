@@ -20,7 +20,14 @@ inline constexpr int kModernMenuMotionRows = 5;
 inline constexpr int kModernMenuMotionSourcePeriod = 32;
 inline constexpr int kModernMenuMotionSelectionFrames = 12;
 inline constexpr int kModernMenuMotionEntranceFrames = 39;
-inline constexpr int kModernMenuStockHeroMaxCycle = 8;
+inline constexpr int kModernMenuStockHeroMaxCycle = 8; // existing source event
+inline constexpr int kModernMenuStockHeroLongestRegisteredClip = 10;
+
+// Only these three lengths are currently registered as contiguous original
+// P1 compositions. Timing/raster/art admission is a separate requirement.
+constexpr bool modern_menu_hero_clip_length_registered(int frames) noexcept {
+    return frames == 8 || frames == 9 || frames == 10;
+}
 
 // Measured source values, not a physics easing simulation.
 inline constexpr std::array<int, kModernMenuMotionSelectionFrames>
@@ -93,6 +100,9 @@ struct ModernMenuMotionInput {
     std::uint8_t selection = 0;
     bool visible = false;
     bool reduced_motion = false;
+    // A qualified caller may provide the exact length of its observed source
+    // event. Existing eight-frame native and older callers are unchanged.
+    std::uint8_t hero_clip_frames = kModernMenuStockHeroMaxCycle;
 };
 
 struct ModernMenuMotionState {
@@ -108,6 +118,8 @@ struct ModernMenuMotionState {
     // Re-enabling animation must not resurrect an old transition.
     bool intro_suppressed = false;
     bool hero_hold_pose = false;
+    std::uint8_t hero_clip_frames = kModernMenuStockHeroMaxCycle;
+    std::uint64_t hero_clip_tick = 0;
     std::uint64_t first_tick = 0;
     std::uint64_t selection_tick = 0;
     std::uint64_t last_tick = 0;
@@ -177,6 +189,13 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     }
     const auto selection = static_cast<std::uint8_t>(
         input.selection % kModernMenuMotionRows);
+    // Do not accept an arbitrary invented frame count from a host flag.
+    // Unregistered lengths preserve the previously verified eight-frame
+    // source behaviour; the source sprite compositor independently validates
+    // every supplied original raster and the complete sequence.
+    const auto hero_clip_frames = modern_menu_hero_clip_length_registered(
+        input.hero_clip_frames) ? input.hero_clip_frames :
+        static_cast<std::uint8_t>(kModernMenuStockHeroMaxCycle);
     // Native row metrics are compact logical pixels, not untrusted
     // framebuffer extents. Reject pathological widths before multiplying
     // semantic row indices into stored 32-bit coordinates.
@@ -190,6 +209,8 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
         state.cursor_row_pitch = row_pitch;
         state.intro_suppressed = false;
         state.hero_hold_pose = false;
+        state.hero_clip_frames = hero_clip_frames;
+        state.hero_clip_tick = input.tick60;
         state.first_tick = input.tick60;
         state.selection_tick = input.tick60;
     } else if (selection != state.selection) {
@@ -220,6 +241,15 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
                                  target == previous - 1)
             ? old_display_y : target * row_pitch;
         state.selection_tick = input.tick60;
+        state.hero_clip_tick = input.tick60;
+    }
+    // An explicitly replaced source event cannot inherit the previous
+    // event's frame ordinal. Its first observed pose appears immediately;
+    // no interpolation, reverse playback or fabricated loop is permitted.
+    if (state.hero_clip_frames != hero_clip_frames) {
+        state.hero_clip_frames = hero_clip_frames;
+        state.hero_clip_tick = input.tick60;
+        state.hero_hold_pose = input.reduced_motion;
     }
     state.last_tick = input.tick60;
     ModernMenuMotionPose pose{};
@@ -272,10 +302,11 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     // then HOLD the last pose. There is no evidence 1213..1220 loops:
     // cycling it would invent a jump from source frame 1220 to 1213.
     // Source sprite admission is separately required by the hero compositor.
+    const int hero_age = modern_menu_clamp_age(
+        input.tick60, state.hero_clip_tick, hero_clip_frames);
     pose.hero_frame_ordinal = state.hero_hold_pose ?
-        kModernMenuStockHeroMaxCycle - 1 :
-        (age >= kModernMenuStockHeroMaxCycle
-            ? kModernMenuStockHeroMaxCycle - 1 : age);
+        hero_clip_frames - 1 :
+        (hero_age >= hero_clip_frames ? hero_clip_frames - 1 : hero_age);
     pose.hero_lean_px = (age < 4 && previous != current)
         ? (previous < current ? 1 : -1) : 0;
     return pose;

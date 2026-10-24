@@ -1,6 +1,7 @@
 #include "baldosa_native_multiplayer_records_summary.hpp"
 
 #include "multiplayer_match_catalog.hpp"
+#include "local_tournament_utf8_path.hpp"
 #include "multiplayer_match_summary.hpp"
 
 #include <cctype>
@@ -19,7 +20,7 @@ inspect_baldosa_native_two_player_records_archive(
     if (directory.empty() || selected_profile_id.empty()) return out;
     namespace fs = std::filesystem;
     std::error_code ec;
-    const auto status = fs::symlink_status(directory, ec);
+    const auto status = fs::symlink_status(host_native_path_from_utf8(directory), ec);
     if (status.type() == fs::file_type::not_found) {
         if (!ec || ec == std::errc::no_such_file_or_directory)
             out.directory_available = true;

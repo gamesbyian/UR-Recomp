@@ -54,8 +54,10 @@ bool append_completed_run_record(
  * invalid or symlinked artifacts record authority. Live/dangling .urrun
  * aliases are reported as unavailable instead of followed or hidden.
  * Callers may surface health/status while replay uses loaded records only. */
+/* When requested, distinguish a missing archive (successful empty scan) from
+ * a redirected, inaccessible or otherwise failed directory enumeration. */
 std::vector<InspectedRunRecordArtifact> inspect_completed_run_record_artifacts(
-    const std::string& directory);
+    const std::string& directory, bool* scan_succeeded = nullptr);
 
 RunRecordArtifactHealth summarize_run_record_artifact_health(
     const std::vector<InspectedRunRecordArtifact>& artifacts);

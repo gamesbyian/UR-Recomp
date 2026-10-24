@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import stat
 import zipfile
 from pathlib import Path
 
@@ -158,6 +159,20 @@ def validate_rom_config(payload: bytes, *, context: str) -> None:
         )
 
 
+def is_windows_device_component(component: str) -> bool:
+    """Windows console aliases and DOS devices, with optional extensions.
+
+    Validate each directory component too: a Linux-created mod path can
+    otherwise become an unaddressable device path after Windows extraction.
+    """
+    stem = component.split(".", 1)[0].upper().translate(
+        str.maketrans("¹²³", "123")
+    )
+    return (stem in {"CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"} or
+            (len(stem) == 4 and
+             stem[:3] in {"COM", "LPT"} and stem[3] in "123456789"))
+
+
 def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
     """Reject package names that cannot survive ordinary Windows extraction.
 
@@ -178,12 +193,7 @@ def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
                 raise ValueError(
                     f"{context} contains Windows-incompatible path: {relative}"
                 )
-            stem = part.split(".", 1)[0].upper()
-            if stem in {"CON", "PRN", "AUX", "NUL"} or (
-                len(stem) == 4
-                and stem[:3] in {"COM", "LPT"}
-                and stem[3] in "123456789¹²³"
-            ):
+            if is_windows_device_component(part):
                 raise ValueError(
                     f"{context} contains Windows-reserved device name: {relative}"
                 )
@@ -236,6 +246,13 @@ def preflight_package_source_budget(
     It also rejects mod symlinks that could pull files from outside the
     staged immutable mod catalog.
     """
+    # rglob does not enumerate a symlinked mods root; copytree will follow
+    # it. Reject root reparse points before even considering entries.
+    mods_stat = mods.lstat()
+    if (mods.is_symlink() or
+        getattr(mods_stat, "st_file_attributes", 0) &
+            getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)):
+        raise ValueError(f"package source mods contain a symlink or reparse point: {mods}")
     sources = [build_dir / EXE_NAME, rom]
     for path in mods.rglob("*"):
         if path.is_symlink():
@@ -450,6 +467,13 @@ def assemble(
     output: Path,
     source_revision: str,
 ) -> dict[str, object]:
+    # Check the destination and ancestors before resolve/rmtree follows
+    # redirects. Junctions on Windows are redirected directories too.
+    # This is preflight; a concurrent swap remains outside this contract.
+    for component in (output, *output.parents):
+        if (component.is_symlink() or
+            getattr(component, "is_junction", lambda: False)()):
+            raise ValueError("package output path contains a symbolic link or junction")
     build_dir = build_dir.resolve()
     rom = rom.resolve()
     output = output.resolve()

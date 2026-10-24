@@ -88,6 +88,81 @@ class ExportEarnedRunTests(unittest.TestCase):
         self.assertFalse(self.out.exists())
         self.assertFalse(list(self.journey.glob('.pending-earned-1p-*')))
 
+    def test_published_evidence_keeps_preexisting_hashed_snapshot_after_source_mutation(self):
+        # Distinguish the saved, hash-bound bytes from the later mutable
+        # journey directory. This is a snapshot guarantee only, never
+        # proof the source remained unchanged across the publication race.
+        import export_baldosa_earned_1p_run as module
+        original_run = self.run.read_bytes()
+        original_report = (self.journey / 'report.json').read_bytes()
+        real_publish = module._publish_directory_no_replace
+
+        def mutate_just_before_publish(staging, destination):
+            self.run.write_bytes(b'changed synthetic source after staging')
+            (self.journey / 'report.json').write_text('{"source_changed":true}')
+            return real_publish(staging, destination)
+
+        with patch.object(module, '_publish_directory_no_replace',
+                          side_effect=mutate_just_before_publish):
+            manifest = export(self.journey, self.out)
+
+        self.assertEqual((self.out / 'earned.urrun').read_bytes(), original_run)
+        self.assertEqual((self.out / 'source-report.json').read_bytes(), original_report)
+        self.assertEqual(manifest['members']['earned.urrun']['sha256'],
+                         hashlib.sha256(original_run).hexdigest())
+        self.assertEqual(manifest['members']['source-report.json']['sha256'],
+                         hashlib.sha256(original_report).hexdigest())
+        self.assertNotEqual(self.run.read_bytes(), original_run)
+        self.assertNotEqual((self.journey / 'report.json').read_bytes(),
+                            original_report)
+        self.assertFalse(manifest['independent_release_acceptance'])
+
+    def _export_with_mutation_during_staging(self, mutate):
+        # json.dump writes the manifest after both members are staged and
+        # verified, i.e. inside the staging phase and before the recheck.
+        real_dump = json.dump
+
+        def mutate_then_dump(*args, **kwargs):
+            mutate()
+            return real_dump(*args, **kwargs)
+
+        with patch('export_baldosa_earned_1p_run.json.dump',
+                   side_effect=mutate_then_dump):
+            with self.assertRaises(ValueError) as caught:
+                export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+        self.assertFalse(list(self.base.glob('.pending-earned-1p-*')))
+        return str(caught.exception)
+
+    def test_source_run_changed_during_staging_is_refused(self):
+        message = self._export_with_mutation_during_staging(
+            lambda: self.run.write_bytes(b'changed during staging'))
+        self.assertIn('changed during staging', message)
+
+    def test_source_report_changed_during_staging_is_refused(self):
+        message = self._export_with_mutation_during_staging(
+            lambda: (self.journey / 'report.json').write_text(
+                json.dumps(dict(self.report, release_gate_credit=0, note='x'))))
+        self.assertIn('changed during staging', message)
+
+    def test_second_run_appearing_during_staging_is_refused(self):
+        message = self._export_with_mutation_during_staging(
+            lambda: (self.runs / 'other.urrun').write_bytes(b'late sibling'))
+        self.assertIn('namespace changed during staging', message)
+
+    @unittest.skipUnless(sys.platform.startswith('linux'),
+                         'POSIX surrogateescaped filename fixture')
+    def test_rejects_surrogateescaped_source_run_with_bounded_error(self):
+        # Linux permits this byte spelling, but it is not valid UTF-8 or
+        # portable Windows evidence. Reject it without UnicodeEncodeError.
+        import os
+        malformed = self.runs / os.fsdecode(b'\xff.urrun')
+        self.run.rename(malformed)
+        with self.assertRaisesRegex(ValueError,
+                                    'Nonportable source-earned run filename'):
+            export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+
     def test_rejects_boolean_release_credit(self):
         self.report['release_gate_credit'] = False
         self.write_report()
@@ -144,5 +219,38 @@ class ExportEarnedRunTests(unittest.TestCase):
         self.run.symlink_to(self.journey / 'report.json')
         with self.assertRaises(ValueError): export(self.journey, self.out)
         self.assertFalse(self.out.exists())
+
+    @unittest.skipIf(sys.platform.startswith('win'),
+                     'POSIX-only fixture: Windows cannot create these leaf names')
+    def test_nonportable_unrelated_namespace_siblings_fail_closed(self):
+        # The source.urrun remains the only counted candidate in the old code.
+        # All these other entries would be lost, renamed, or aliased by Win32.
+        for name in ('shadow:stream.urrun', 'AUX.txt', 'trailing.',
+                     'bad|sidecar', 'decomposed-e\u0301.txt',
+                     'control-\u0085.txt', 'COM¹.txt'):
+            with self.subTest(name=repr(name)):
+                extra = self.runs / name
+                extra.write_bytes(b'synthetic unrelated sibling')
+                with self.assertRaisesRegex(ValueError,
+                                            'Nonportable sibling in earned-run namespace'):
+                    export(self.journey, self.out)
+                self.assertFalse(self.out.exists())
+                extra.unlink()
+
+    @unittest.skipIf(sys.platform.startswith('win'),
+                     'POSIX-only fixture: Win32 filenames normally alias by case')
+    def test_casefold_colliding_unrelated_namespace_siblings_fail_closed(self):
+        (self.runs / 'notes.txt').write_bytes(b'one')
+        (self.runs / 'NOTES.TXT').write_bytes(b'two')
+        with self.assertRaisesRegex(ValueError,
+                                    'Win32-colliding sibling in earned-run namespace'):
+            export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+
+    def test_portable_unrelated_namespace_sibling_remains_allowed(self):
+        (self.runs / 'notes.txt').write_bytes(b'harmless synthetic note')
+        manifest = export(self.journey, self.out)
+        self.assertEqual(manifest['source_run_filename'], 'source.urrun')
+        self.assertEqual((self.out / 'earned.urrun').read_bytes(), self.run.read_bytes())
 
 if __name__ == '__main__': unittest.main()

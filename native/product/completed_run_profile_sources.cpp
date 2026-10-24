@@ -2,6 +2,7 @@
 
 #include "completed_run_store.hpp"
 #include "host_profile_catalog.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <filesystem>
 #include <utility>
@@ -17,16 +18,16 @@ std::optional<std::vector<RunRecordsProfileSource>>
 load_run_records_profile_sources(const std::string& user_data_root) {
     if (user_data_root.empty()) return std::nullopt;
 
-    const fs::path root(user_data_root);
+    const fs::path root = host_native_path_from_utf8(user_data_root);
     const auto catalog =
-        load_host_profile_catalog_file((root / "profiles-v1.txt").string());
+        load_host_profile_catalog_file((root / "profiles-v1.txt").u8string());
     if (!catalog) return std::nullopt;
 
     std::vector<RunRecordsProfileSource> out;
     out.reserve(catalog->size());
     for (const auto& entry : *catalog) {
         auto artifacts = inspect_completed_run_record_artifacts(
-            (root / "runs" / entry.profile_id).string());
+            (root / "runs" / entry.profile_id).u8string());
         std::vector<StoredRunRecord> records;
         records.reserve(artifacts.size());
         for (auto& artifact : artifacts) {

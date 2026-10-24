@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Windows screenshot atlas and visual reference IDs
+
+[Windows Visual Atlas](WINDOWS-VISUAL-ATLAS.md) specifies stable visual IDs, the declared capture/COMING SOON inventory, genuine Windows final-SDL capture reuse, process/job-sharded opt-in GitHub Actions, source-checked website assembly and mobile one-tap agent references. The executable inventory lives in [`analysis/windows-visual-atlas.json`](../analysis/windows-visual-atlas.json); it does not replace the Modern visual-acceptance matrix or the release quality ledger.
+
 ## QA01 experimental fidelity evidence tools
 
 [QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md](QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md) owns the bounded, ROM-free causal bus consumer and continuous full-memory capture auditor contracts. These are diagnostic candidates only. The current QA01 acceptance boundary, event census and release ledger retain exclusive course/release verdict authority; no live event or original/native producer is qualified by the synthetic tool tests.
@@ -66,7 +70,7 @@ See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTH
 | Logic/model sufficiency vs release acceptance | [SEMANTIC-SUFFICIENCY.md](SEMANTIC-SUFFICIENCY.md), [knowledge/README.md](knowledge/README.md), [RESEARCH-LEDGER.md](RESEARCH-LEDGER.md) |
 | True Widescreen, correct pixel aspect and final 4K | [WIDESCREEN.md](WIDESCREEN.md), [DISPLAY-PRESENTATION-POLICY.md](DISPLAY-PRESENTATION-POLICY.md), [PRESENTATION-DENSITY-CONTRACT.md](PRESENTATION-DENSITY-CONTRACT.md) |
 | Authored 4× racer assets, pose/OBJ guards and artwork approvals | [HD-ART-DIRECTION.md](HD-ART-DIRECTION.md), [RACER-HD-LIVE-MOTION-CENSUS.md](RACER-HD-LIVE-MOTION-CENSUS.md), `analysis/data/racer-hd-art-approval*.json` and actual `native/presentation/` sources |
-| Native host/toolchain, Windows lifecycle | [TOOLCHAIN.md](TOOLCHAIN.md), [SNESRECOMP-ISLAND-SCOPE.md](SNESRECOMP-ISLAND-SCOPE.md), [RECOMP-C-PRACTICES.md](RECOMP-C-PRACTICES.md), [WINDOWS-X64-PACKAGING.md](WINDOWS-X64-PACKAGING.md) |
+| Native host/toolchain, Windows lifecycle | [TOOLCHAIN.md](TOOLCHAIN.md), [SNESRECOMP-ISLAND-SCOPE.md](SNESRECOMP-ISLAND-SCOPE.md), [RECOMP-C-PRACTICES.md](RECOMP-C-PRACTICES.md), [WINDOWS-X64-PACKAGING.md](WINDOWS-X64-PACKAGING.md), [WINDOWS-HOST-LIFECYCLE-PHYSICAL-CHECKS.md](WINDOWS-HOST-LIFECYCLE-PHYSICAL-CHECKS.md) (operator script for real pads/monitors; observations only), [WINDOWS-HOST-LANES.md](WINDOWS-HOST-LANES.md) (Claude host lanes' file ownership and interfaces) |
 | CI performance and PR workflow policy | [CI-WORKFLOW-BEST-PRACTICES.md](CI-WORKFLOW-BEST-PRACTICES.md), [OPERATIONS-ACCELERATION.md](OPERATIONS-ACCELERATION.md); dated [2026-10-10 run/experiment audit](CI-RESEARCH-APPARATUS-AUDIT-20261010.md) |
 | Research campaigns, findings triage and next experiments | [QA-CUMULATIVE-RESEARCH.md](QA-CUMULATIVE-RESEARCH.md) (campaign mechanics), [RESEARCH-FINDINGS-QUEUE.md](RESEARCH-FINDINGS-QUEUE.md) (consequence-ranked findings, `analysis/data/research-findings-register.json`) |
 | External research and code intake (only on demand) | [RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md](RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md), [EXTERNAL-EVIDENCE-INTAKE.md](EXTERNAL-EVIDENCE-INTAKE.md), [THIRD-PARTY-CODE-AUDIT.md](THIRD-PARTY-CODE-AUDIT.md) |

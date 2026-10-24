@@ -1,5 +1,6 @@
 #include "local_tournament_result_link_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <atomic>
 #include <cerrno>
@@ -25,10 +26,10 @@ namespace {
 namespace fs = std::filesystem;
 constexpr std::size_t kMaxLinkBytes = 6144;
 
-std::string fixture_link_path(const std::string& directory,
-                              std::size_t fixture_index) {
-    return (fs::path(directory) /
-        ("fixture-" + std::to_string(fixture_index) + ".urfixture")).string();
+fs::path fixture_link_path(const std::string& directory,
+                           std::size_t fixture_index) {
+    return host_native_path_from_utf8(directory) /
+        ("fixture-" + std::to_string(fixture_index) + ".urfixture");
 }
 
 bool valid_run_filename(std::string_view name) {
@@ -113,8 +114,10 @@ std::optional<StoredMultiplayerMatch> load_exact_saved_pair(
     const std::string& filename) {
     if (!valid_run_filename(filename) ||
         multiplayer_runs_directory.empty()) return std::nullopt;
+    // Records APIs accept UTF-8, while Windows filesystem paths are native.
     const std::string path =
-        (fs::path(multiplayer_runs_directory) / filename).string();
+        (host_native_path_from_utf8(multiplayer_runs_directory) / filename)
+            .u8string();
     const auto run = load_completed_run_record_file(path);
     if (!run.loaded() || run.record->provenance.mode != "race-2p") {
         return std::nullopt;
@@ -147,9 +150,8 @@ std::optional<fs::path> reserve_link_staging(const fs::path& parent) {
     return std::nullopt;
 }
 
-LinkPublishStatus publish_link(const std::string& path,
+LinkPublishStatus publish_link(const fs::path& final_path,
                                std::string_view bytes) {
-    const fs::path final_path(path);
     const auto staging = reserve_link_staging(final_path.parent_path());
     if (!staging) return LinkPublishStatus::IoError;
     const fs::path staged_file = *staging / "fixture.tmp";
@@ -158,7 +160,11 @@ LinkPublishStatus publish_link(const std::string& path,
         std::error_code ignored;
         fs::remove_all(*staging, ignored);
     };
-    std::FILE* file = std::fopen(staged_file.string().c_str(), "wb");
+#if defined(_WIN32)
+    std::FILE* file = _wfopen(staged_file.c_str(), L"wb");
+#else
+    std::FILE* file = std::fopen(staged_file.c_str(), "wb");
+#endif
     if (!file) {
         cleanup();
         return LinkPublishStatus::IoError;
@@ -210,8 +216,12 @@ LinkPublishStatus publish_link(const std::string& path,
     return LinkPublishStatus::IoError;
 }
 
-std::optional<std::string> read_link(const std::string& path) {
+std::optional<std::string> read_link(const fs::path& path) {
+#if defined(_WIN32)
+    std::FILE* file = _wfopen(path.c_str(), L"rb");
+#else
     std::FILE* file = std::fopen(path.c_str(), "rb");
+#endif
     if (!file) return std::nullopt;
     if (std::fseek(file, 0, SEEK_END) != 0) {
         std::fclose(file);
@@ -249,11 +259,12 @@ LocalTournamentResultLinkStatus commit_saved_local_tournament_fixture(
         !local_tournament_valid_instance_token(live_capture_attempt_id)) {
         return Status::InvalidInput;
     }
-    const fs::path given(saved_run_path);
+    const fs::path given = host_native_path_from_utf8(saved_run_path);
     const std::string filename = given.filename().string();
     if (!valid_run_filename(filename) ||
         given.lexically_normal() !=
-            (fs::path(multiplayer_runs_directory) / filename).lexically_normal()) {
+            (host_native_path_from_utf8(multiplayer_runs_directory) / filename)
+                .lexically_normal()) {
         return Status::InvalidInput;
     }
     const auto saved_pair =
@@ -277,7 +288,7 @@ LocalTournamentResultLinkStatus commit_saved_local_tournament_fixture(
         {filename, encode_local_tournament_receipt(*receipt)});
     if (encoded.empty()) return Status::MatchRejected;
 
-    const std::string path =
+    const fs::path path =
         fixture_link_path(fixture_links_directory, pending.fixture_index);
     std::error_code ec;
     const bool exists = fs::exists(path, ec);
@@ -305,7 +316,7 @@ LocalTournamentResultLinkRestore restore_saved_local_tournament_fixtures(
     }
     std::vector<LocalTournamentReceiptEvidence> evidence;
     for (std::size_t i = 0; i < canonical_empty_schedule.fixtures.size(); ++i) {
-        const std::string path = fixture_link_path(fixture_links_directory, i);
+        const fs::path path = fixture_link_path(fixture_links_directory, i);
         std::error_code ec;
         const bool exists = fs::exists(path, ec);
         if (ec) return {Status::IoError, std::nullopt, "cannot inspect fixture"};

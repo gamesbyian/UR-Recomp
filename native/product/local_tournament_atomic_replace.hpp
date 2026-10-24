@@ -118,15 +118,14 @@ inline void sync_published_directory_best_effort(
 } // namespace detail
 
 inline bool write_host_replace_staged(
-    const std::string& final_name,
+    const std::filesystem::path& final_path,
     std::string_view data,
     std::string_view staging_family,
     void (*after_staging_for_test)() = nullptr,
     bool (*sync_override_for_test)(std::FILE*) = nullptr,
     void (*after_publication_for_test)() = nullptr) {
     namespace fs = std::filesystem;
-    if (final_name.empty() || data.empty()) return false;
-    const fs::path final_path(final_name);
+    if (final_path.empty() || data.empty()) return false;
     const auto staging = detail::reserve_tournament_staging(
         final_path.parent_path(), staging_family);
     if (!staging) return false;
@@ -135,7 +134,13 @@ inline bool write_host_replace_staged(
         std::error_code ec;
         fs::remove_all(*staging, ec);
     };
-    std::FILE* file = std::fopen(tmp.string().c_str(), "wb");
+#if defined(_WIN32)
+    // Preserve the native UTF-16 path across Windows staging; ANSI conversion
+    // cannot round-trip some player profile names.
+    std::FILE* file = _wfopen(tmp.c_str(), L"wb");
+#else
+    std::FILE* file = std::fopen(tmp.c_str(), "wb");
+#endif
     if (!file) {
         cleanup();
         return false;
@@ -181,14 +186,13 @@ inline bool write_host_replace_staged(
 // concurrent writer may create the final name after an earlier absence test.
 // Do not use the normal last-writer-wins settings/profile replacement here.
 // Stage and request an OS flush BEFORE claiming an immutable destination.
-inline bool write_host_create_staged(
-    const std::string& final_name,
+inline bool write_host_create_staged_native(
+    const std::filesystem::path& target,
     std::string_view data,
     std::string_view staging_family,
     void (*after_staging_for_test)() = nullptr) {
     namespace fs = std::filesystem;
-    if (final_name.empty() || data.empty()) return false;
-    const fs::path target(final_name);
+    if (target.empty() || data.empty()) return false;
     const auto stage = detail::reserve_tournament_staging(
         target.parent_path(), staging_family);
     if (!stage) return false;
@@ -232,6 +236,18 @@ inline bool write_host_create_staged(
         detail::sync_published_directory_best_effort(target.parent_path());
     cleanup();
     return published;
+}
+
+// Preserve the existing narrow-path contract for legacy callers; native
+// Windows paths must use write_host_create_staged_native instead.
+inline bool write_host_create_staged(
+    const std::string& final_name,
+    std::string_view data,
+    std::string_view staging_family,
+    void (*after_staging_for_test)() = nullptr) {
+    return write_host_create_staged_native(
+        std::filesystem::path(final_name), data, staging_family,
+        after_staging_for_test);
 }
 
 // Compatibility entrypoint for the tournament stores and existing tests.

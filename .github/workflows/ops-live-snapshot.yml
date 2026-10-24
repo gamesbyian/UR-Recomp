@@ -1,0 +1,48 @@
+name: Live operations snapshot
+
+# UTC 14:30 means 07:30 MST / 08:30 MDT in Edmonton.
+# One inexpensive daily report, no sixth ChatGPT agent or auto-merge action.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 14 * * *'
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: live-ops-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read live GitHub, validate main-pinned release ledger and archived candidate claims
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m unittest -q tests.unit.test_ops_live_status
+          python3 tools/agent_control.py --check
+          python3 tools/ops_live_status.py --output "$RUNNER_TEMP/ops-status.md" --json-output "$RUNNER_TEMP/ops-status.json"
+      - name: Publish bounded mobile-readable observations
+        if: always()
+        run: |
+          if [ -s "$RUNNER_TEMP/ops-status.md" ]; then
+            cat "$RUNNER_TEMP/ops-status.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Live status UNAVAILABLE: snapshot failed; do not infer zeros.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-ops-snapshot
+          path: |
+            ${{ runner.temp }}/ops-status.md
+            ${{ runner.temp }}/ops-status.json
+          if-no-files-found: warn
+          retention-days: 7

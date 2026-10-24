@@ -30,6 +30,12 @@ namespace ur::product {
 class TournamentLaunchPathLock {
 public:
     explicit TournamentLaunchPathLock(const std::string& target,
+                                      bool nonblocking = false)
+        : TournamentLaunchPathLock(std::filesystem::path(target), nonblocking) {}
+
+    // Native path overload for callers that have explicitly decoded UTF-8.
+    // Legacy narrow-string callers retain their existing path semantics.
+    explicit TournamentLaunchPathLock(const std::filesystem::path& target,
                                       bool nonblocking = false) {
         if (target.empty()) return;
         const std::filesystem::path lock_path =

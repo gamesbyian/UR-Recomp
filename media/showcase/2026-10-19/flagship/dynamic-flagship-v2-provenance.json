@@ -1,0 +1,74 @@
+{
+  "complete_closed_loop_certified": false,
+  "edited_audio_source_sha256": "6b5015fb83cb6e6deaebb08b8adf55f86004918f4169da7a71e73e46bc23cd9c",
+  "film": "ur-recomp-flagship-85s-dynamic-courses-1080p.mp4",
+  "fps": "60/1",
+  "frames": 5100,
+  "hill_climb_capture_certified": false,
+  "independent_native_session_cuts_disclosed": true,
+  "no_guest_or_track_changes": true,
+  "no_temporal_interpolation": true,
+  "output_review_frame_sha256": {
+    "native-course-v2-review-0675.png": "7a250446185c63016a697e09d50044194bc5d7d2d0212a398c4259a522d3f661",
+    "native-course-v2-review-0945.png": "1beb6658fc8efb4426717638fabe651c4a4c675819798ca7f41cb941ff3126f8",
+    "native-course-v2-review-4250.png": "742f3cc4f4ec2bd06dab8314fea0d393c26a76e3cfd4d8947066f120ab20ef33",
+    "native-course-v2-review-4430.png": "f70820c542063285b42e847b3b1f30745d183ad6dffc3d84e059c1c096bd32dd"
+  },
+  "schema": "UR-RECRUITMENT-GENUINE-TOPOLOGY-REVISION/1",
+  "sha256": "d617bef0cd28b5fff041ac0ccf1f087f1ad09780030302299a63f1ca5fe3a486",
+  "shots": [
+    {
+      "count": 600,
+      "description": "Original title and authentic reveal from approved 85s source",
+      "first": 0,
+      "kind": "original",
+      "video": 0
+    },
+    {
+      "count": 240,
+      "course": "MegaJump",
+      "description": "True source frames: steep slopes / separate racers",
+      "first": 300,
+      "kind": "actual_native",
+      "video": 1
+    },
+    {
+      "count": 3360,
+      "description": "Unchanged approved Modern and technical showcase",
+      "first": 840,
+      "kind": "original",
+      "video": 0
+    },
+    {
+      "count": 180,
+      "course": "Looper",
+      "description": "Source observed curved graded terrain; complete loop not certified",
+      "first": 180,
+      "kind": "actual_native",
+      "video": 3
+    },
+    {
+      "count": 180,
+      "course": "Jumps",
+      "description": "Source-observed airborne 2P trick frame on authentic slopes",
+      "first": 360,
+      "kind": "actual_native",
+      "video": 2
+    },
+    {
+      "count": 540,
+      "description": "Original contribution invitation and entire authored ending",
+      "first": 4560,
+      "kind": "original",
+      "video": 0
+    }
+  ],
+  "source_racing_real_native_342_columns": true,
+  "sources_sha256": {
+    "flagship": "6b5015fb83cb6e6deaebb08b8adf55f86004918f4169da7a71e73e46bc23cd9c",
+    "jumps": "46283d6fb1f698868a736df0cee857aa8928cc587f39d88c77a41c41813c9b03",
+    "looper": "3de690c458b70d802af692418a155b31bb0381d595e61c897a62be492aeecbe3",
+    "mega": "cee7dbdf271068896c9636206c6613bda302ba938a1c473ac4483ab6369617a4"
+  },
+  "unchanged_original_music": true
+}

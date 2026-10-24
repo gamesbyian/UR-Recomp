@@ -12,6 +12,7 @@ extern "C" {
 #include "completed_run_profile_sources.hpp"
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
+#include "local_tournament_utf8_path.hpp"
 #include "modern_host_navigation.h"
 #include "modern_overlay_text_fit.hpp"
 #include "multiplayer_match_browser.hpp"
@@ -101,23 +102,14 @@ void diagnostic(const char* message) {
 std::string product_user_data_root() {
     const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
     if (override_root && *override_root) {
-        std::string root(override_root);
-        while (!root.empty() &&
-               (root.back() == '/' || root.back() == '\\')) {
-            root.pop_back();
-        }
-        return root;
+        return ur::product::host_trim_user_data_root(override_root);
     }
 
     char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
     if (!pref_path) return {};
     std::string root(pref_path);
     SDL_free(pref_path);
-    while (!root.empty() &&
-           (root.back() == '/' || root.back() == '\\')) {
-        root.pop_back();
-    }
-    return root;
+    return ur::product::host_trim_user_data_root(root);
 }
 
 std::string active_profile_id() {
@@ -128,7 +120,8 @@ std::string active_profile_id() {
     const std::string state_path =
         override_path && *override_path
             ? std::string(override_path)
-            : (fs::path(root) / "host-state-v1.txt").string();
+            : (ur::product::host_native_path_from_utf8(root) /
+               "host-state-v1.txt").u8string();
     const auto loaded = ur::product::load_host_product_state_file(
         state_path);
     if (!loaded.loaded() || !loaded.state ||
@@ -151,7 +144,8 @@ std::string active_run_directory() {
 
     const std::string root = product_user_data_root();
     if (root.empty()) return {};
-    return (fs::path(root) / "runs" / active_profile_id()).string();
+    return (ur::product::host_native_path_from_utf8(root) /
+            "runs" / active_profile_id()).u8string();
 }
 
 std::string multiplayer_run_directory() {
@@ -162,7 +156,8 @@ std::string multiplayer_run_directory() {
 
     const std::string root = product_user_data_root();
     if (root.empty()) return {};
-    return (fs::path(root) / "multiplayer-runs").string();
+    return (ur::product::host_native_path_from_utf8(root) /
+            "multiplayer-runs").u8string();
 }
 
 bool refresh_multiplayer_match_browser() {
@@ -235,7 +230,8 @@ std::string run_directory_for_profile(const std::string& profile_id) {
 
     const std::string root = product_user_data_root();
     if (root.empty()) return {};
-    return (fs::path(root) / "runs" / profile_id).string();
+    return (ur::product::host_native_path_from_utf8(root) /
+            "runs" / profile_id).u8string();
 }
 
 const ur::product::RunRecordsProfileSummary* selected_records_profile() {
@@ -549,7 +545,8 @@ bool launch_selected_replay() {
     const auto target = current_target();
     const std::string source_directory = active_run_directory();
     if (!target || source_directory.empty() ||
-        fs::path(selected->path).parent_path() != fs::path(source_directory)) {
+        ur::product::host_native_path_from_utf8(selected->path).parent_path() !=
+            ur::product::host_native_path_from_utf8(source_directory)) {
         diagnostic("UR_RUN_BROWSER REPLAY_SOURCE_REJECTED");
         return false;
     }

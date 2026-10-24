@@ -11,10 +11,18 @@ from qa07_live_capture_eligibility import LiveCapture, State
 
 
 def _safe_identity(value):
-    return (type(value) is str and bool(value.strip()) and
-            unicodedata.normalize('NFC',value)==value and
-            len(value.encode('utf-8'))<=128 and
-            not any(unicodedata.category(ch) in ('Cc','Cf') for ch in value))
+    # Verify the byte identity before handing it to the capture state.
+    # Surrogates and other unencodable text must fail as invalid input,
+    # rather than leaking UnicodeEncodeError out of the public API.
+    if (type(value) is not str or not value.strip() or
+            unicodedata.normalize('NFC', value) != value):
+        return False
+    try:
+        encoded = value.encode('utf-8', 'strict')
+    except UnicodeEncodeError:
+        return False
+    return (len(encoded) <= 128 and
+            not any(unicodedata.category(ch) in ('Cc', 'Cf') for ch in value))
 
 
 class LiveMediaWitness:

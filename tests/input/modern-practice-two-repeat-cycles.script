@@ -1,0 +1,160 @@
+# Two consecutive completed Quick Practice repeat cycles through the real host.
+# First repeat uses the existing acceptance hook; second uses an actual SDL
+# keyboard R sent by run_practice_repeat_two_cycles_acceptance.sh.
+# No guest-state writes or synthetic completion.
+until 009F == D7 3600
+dump practice-repeat-main
+until 0313 == 01 3600
+wait 60
+dump practice-repeat-first-race
+
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+
+dump practice-repeat-first-terminal
+until 009F == 99 12000
+wait 30
+dump practice-repeat-first-results
+until 0313 == 01 1800
+wait 60
+dump practice-repeat-second-race
+
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+
+dump practice-repeat-second-terminal
+until 009F == 99 12000
+wait 30
+dump practice-repeat-second-results
+# The host's one-shot acceptance hook has already fired. The outer harness
+# sends the second R through the shipping keyboard path after this dump.
+until 0313 == 01 1800
+wait 60
+dump practice-repeat-third-race
+quit

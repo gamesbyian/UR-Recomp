@@ -31,5 +31,12 @@ class MonotonicAnchorContract(unittest.TestCase):
         self.assertFalse(report["production_network_tested"])
         self.assertEqual(report["release_gate_credit"],0)
 
+    def test_uint64_overflow_refused_even_if_both_anchors_match(self):
+        for checkpoint, trusted in ((2**64,2**64), (2**64,1),
+                                    (1,2**64), (2**128,2**128)):
+            with self.subTest(checkpoint=checkpoint,trusted=trusted):
+                self.assertFalse(c.adjudicate(checkpoint,trusted)["admit"])
+        self.assertTrue(c.adjudicate(2**64-1,2**64-1)["admit"])
+
 if __name__=="__main__":
     unittest.main()

@@ -45,7 +45,7 @@ class BaldosaNativePublishRetryTests(unittest.TestCase):
             self.assertEqual(built.returncode, 0, built.stderr + built.stdout)
             run = subprocess.run([str(binary)], capture_output=True, text=True)
             self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
-            self.assertIn("PASS: real native 1P result save feedback", run.stdout)
+            self.assertIn("PASS: native 1P/2P result save feedback", run.stdout)
 
     def test_live_native_result_hook_uses_existing_canonical_publisher(self):
         source = (ROOT / "tools/baldosa_native_pause_lifecycle.cpp").read_text(

@@ -1,6 +1,7 @@
 #include "local_tournament_fixture_launch_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -33,9 +34,12 @@ LocalTournamentLaunchFileStatus save_local_tournament_launch_file(
     // Publish and exact-attempt retirement serialize on this same OS lock.
     // Unique staging avoids partial writes; this additionally prevents a
     // stale read/compare/remove from deleting a newer launched attempt.
-    TournamentLaunchPathLock lock(path);
+    // The public host path is UTF-8; use the same native pathname for the
+    // interprocess lock and atomic publication, including on Windows.
+    const auto native_path = host_native_path_from_utf8(path);
+    TournamentLaunchPathLock lock(native_path);
     if (!lock.acquired()) return LocalTournamentLaunchFileStatus::IoError;
-    if (!write_tournament_replace_staged(path, encoded, "urlaunch")) {
+    if (!write_host_replace_staged(native_path, encoded, "urlaunch")) {
         return LocalTournamentLaunchFileStatus::IoError;
     }
     return LocalTournamentLaunchFileStatus::Saved;
@@ -52,8 +56,13 @@ LocalTournamentLaunchFileResult read_local_tournament_launch_file(
         return error_result(LocalTournamentLaunchFileStatus::Rejected,
                             "empty launch checkpoint path");
     }
+    const auto native_path = host_native_path_from_utf8(path);
     errno = 0;
-    std::FILE* file = std::fopen(path.c_str(), "rb");
+#if defined(_WIN32)
+    std::FILE* file = _wfopen(native_path.c_str(), L"rb");
+#else
+    std::FILE* file = std::fopen(native_path.c_str(), "rb");
+#endif
     if (!file) {
         return errno == ENOENT
             ? error_result(LocalTournamentLaunchFileStatus::Missing,
@@ -118,7 +127,8 @@ LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
     const std::string expected_bytes =
         encode_local_tournament_pending_fixture(expected_pending);
     if (expected_bytes.empty()) return LocalTournamentLaunchFileStatus::Rejected;
-    TournamentLaunchPathLock lock(path);
+    const auto native_path = host_native_path_from_utf8(path);
+    TournamentLaunchPathLock lock(native_path);
     if (!lock.acquired()) return LocalTournamentLaunchFileStatus::IoError;
     // The lock remains held through the entire read-validate-unlink sequence.
     // A competing publication cannot replace this path after validation.
@@ -131,7 +141,12 @@ LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
     // No-op if the expected checkpoint was superseded, with the lock held
     // until the actual removal has completed. Never delete a newer attempt.
     errno = 0;
-    if (std::remove(path.c_str()) == 0) {
+#if defined(_WIN32)
+    const int removed = _wremove(native_path.c_str());
+#else
+    const int removed = std::remove(native_path.c_str());
+#endif
+    if (removed == 0) {
         return LocalTournamentLaunchFileStatus::Saved;
     }
     return errno == ENOENT

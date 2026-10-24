@@ -174,6 +174,78 @@ class MenuVisualLanguageTests(unittest.TestCase):
             self.assertEqual(receipt["source_cgram_sha256"],
                              hashlib.sha256(d.cgram).hexdigest())
 
+    def test_native_ppu_register_adapter_unblocks_source_bg1_and_obj(self) -> None:
+        # The real native host records these fields in .regs.json. Earlier
+        # native_regs_as_snesref silently omitted BGMODE and OBJSEL, so the
+        # existing original BG1 and 32x32 OBJ extractors rejected a genuine
+        # native capture despite its complete PPU state being available.
+        regs = {
+            "bgmode": 3, "obsel": 0x63,
+            "bgsc": [2, 19, 0, 0],
+            "bg_tile_adr": 0x23,
+            "hscroll": [0, 0, 0, 0],
+            "vscroll": [0, 0, 0, 0],
+        }
+        adapted = mvl.native_regs_as_snesref(regs)
+        self.assertEqual(adapted["fillram"]["2101"], "63")
+        self.assertEqual(adapted["fillram"]["2105"], "03")
+        self.assertEqual(adapted["fillram"]["2107"], "02")
+        self.assertEqual(adapted["fillram"]["2108"], "13")
+        self.assertEqual(adapted["fillram"]["210B"], "23")
+        self.assertEqual(adapted["fillram"]["210C"], "00")
+        self.assertEqual(adapted["ppu"]["bg"][0], {"hofs": 0, "vofs": 0})
+
+        class Sample:
+            pass
+
+        sample = Sample()
+        sample.vram = bytearray(65536)
+        sample.cgram = bytearray(512)
+        sample.fillram = adapted["fillram"]
+        sample.ppu = adapted["ppu"]
+        # BG1 map at byte zero, character base 0x3000 words: tile one
+        # contains exactly one red 8bpp source pixel.
+        sample.vram[:2] = (1).to_bytes(2, "little")
+        sample.vram[0x6000 + 64] = 0x80
+        sample.cgram[2:4] = (0x001F).to_bytes(2, "little")
+        rgba = mvl.original_menu_bg1_rgba(sample, 8, 8)
+        self.assertEqual(rgba[:8], bytes([248, 0, 0, 255, 0, 0, 0, 0]))
+        # Native OBJSEL=0x63 selects base3 and 16/32 size, so an original
+        # 32x32 OAM arrow with tile zero is decoded from that same PPU state.
+        sample.vram[0xC000] = 0x80
+        palette = 128 + 7 * 16 + 1
+        sample.cgram[2 * palette:2 * palette + 2] = (0x7FFF).to_bytes(
+            2, "little")
+        cursor = mvl.obj_sprite_rgba(
+            sample, {"tile": 0, "palette": 7, "large": 1})
+        self.assertEqual(cursor[:8], bytes([248, 248, 248, 255, 0, 0, 0, 0]))
+
+        # Truncated old/native snapshots are NOT permission to assume Mode3
+        # or a convenient OBJSEL page; each extractor refuses the missing
+        # source-critical register at its own authoritative boundary.
+        for missing, operation, pattern in (
+                ("bgmode", lambda: mvl.original_menu_bg1_rgba(
+                    sample, 8, 8), "BGMODE"),
+                ("obsel", lambda: mvl.obj_sprite_rgba(
+                    sample, {"tile": 0, "palette": 7, "large": 1}), "OBJSEL")):
+            with self.subTest(missing=missing):
+                old_regs = dict(regs)
+                old_regs.pop(missing)
+                sample.fillram = mvl.native_regs_as_snesref(
+                    old_regs)["fillram"]
+                with self.assertRaisesRegex(ValueError, pattern):
+                    operation()
+        for invalid in (-1, 256, True, "03"):
+            with self.subTest(invalid=invalid):
+                bad_regs = dict(regs)
+                bad_regs["bgmode"] = invalid
+                with self.assertRaisesRegex(ValueError, "bgmode"):
+                    mvl.native_regs_as_snesref(bad_regs)
+                bad_regs = dict(regs)
+                bad_regs["obsel"] = invalid
+                with self.assertRaisesRegex(ValueError, "obsel"):
+                    mvl.native_regs_as_snesref(bad_regs)
+
     def test_original_bg1_mode3_8bpp_source_flips_scroll_and_16px(self) -> None:
         class Sample:
             pass

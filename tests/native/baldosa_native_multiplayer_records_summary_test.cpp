@@ -125,6 +125,27 @@ int main() {
     assert(still_selected.latest_match_line == "LAST 01 WIN 00:28.76");
     assert(still_selected.selected_profile_matches == 1);
 
+    {
+        // The player-visible two-player summary must admit the same UTF-8
+        // archive root that the pair writer and catalog successfully use.
+        const auto unicode_root = fs::temp_directory_path() /
+            fs::u8path(u8"ur-two-player-summary-\u8DEF\u5F84-\U0001F308");
+        fs::remove_all(unicode_root);
+        std::string stored_path;
+        assert(append_multiplayer_match_pair(
+            unicode_root.u8string(), run, *pair, &stored_path));
+        const auto unicode_view =
+            inspect_baldosa_native_two_player_records_archive(
+                unicode_root.u8string(), "alpha");
+        assert(unicode_view.directory_available);
+        assert(unicode_view.validated_pairs == 1);
+        assert(unicode_view.unavailable_pairs == 0);
+        assert(unicode_view.selected_profile_matches == 1);
+        assert(unicode_view.wins == 1);
+        assert(unicode_view.latest_match_line == "LAST 01 WIN 00:28.76");
+        fs::remove_all(unicode_root);
+    }
+
     // Never enumerate a substituted foreign archive directory, including
     // broken symlinks that exists() would wrongly classify as missing.
     const auto redirected = root / "redirected";

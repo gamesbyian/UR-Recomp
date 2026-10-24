@@ -14,6 +14,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 
 namespace ur::product {
 
@@ -41,6 +42,17 @@ inline constexpr std::uint32_t kModernMenuCheckerLegibleGrey = 0xFFC8C8C8u;
 
 inline constexpr std::uint32_t kModernMenuCursorLight = 0xFFA0D0F8u;
 inline constexpr std::uint32_t kModernMenuCursorDark = 0xFF283058u;
+// Two-tone focus ring (outer dark, inner light) so the focused row stays
+// distinguishable from ANY neighbouring backdrop at >=3:1 without relying
+// on hue or the spinning cursor: the dark line separates the light line
+// from a light backdrop, the light line carries over a dark one.
+inline constexpr std::uint32_t kModernMenuFocusRingDark = 0xFF0C0C18u;
+inline constexpr std::uint32_t kModernMenuFocusRingLight = 0xFFF8F8F8u;
+// Captured stock cursor is two distinct 32x32 OBJs: blue arrow palette 7,
+// maroon drop-shadow palette 5 at +7,+7. This exact 72/32/48 shade belongs
+// inside the 39x39 composited original sheet; do NOT paint a second shadow
+// over an already composite source atlas.
+inline constexpr std::uint32_t kModernMenuSourceCursorShadow = 0xFF482030u;
 inline constexpr int kModernMenuCursorWidth = 32;
 inline constexpr int kModernMenuCursorHeight = 32;
 inline constexpr int kModernMenuCursorShadowOffset = 7;
@@ -52,6 +64,37 @@ inline constexpr int kModernMenuCheckerCell = 16;
 inline constexpr int kModernMenuStockSlideDistance = 256;
 inline constexpr int kModernMenuSlideFrameCount = 39;
 inline constexpr int kModernMenuSpinPeriod = 32;
+
+// Context-specific highlights recovered from the original PPU menu states.
+// The main menu blue is NOT the colour of every original menu cursor:
+// PICK YOUR UNI uses RGB(136,200,240), while PICK TOUR and PICK TRACK use
+// RGB(240,160,136). These are source palette observations, not an automatic
+// Modern destination mapping. A screen owner selects context deliberately.
+enum class ModernMenuSourceCursor : std::uint8_t {
+    Main, Rider, Tour, Track,
+};
+
+constexpr std::uint32_t modern_menu_cursor_highlight(
+    ModernMenuSourceCursor context) noexcept {
+    switch (context) {
+        case ModernMenuSourceCursor::Rider: return 0xFF88C8F0u;
+        case ModernMenuSourceCursor::Tour:
+        case ModernMenuSourceCursor::Track: return 0xFFF0A088u;
+        case ModernMenuSourceCursor::Main: return kModernMenuCursorLight;
+    }
+    // Invalid future enum values stay visibly focused rather than
+    // introducing an invented colour or an invisible selection marker.
+    return kModernMenuCursorLight;
+}
+
+// The stock big-font source uses 16px word gaps in the main, tour and
+// track headings, but PICK YOUR UNI is composed with measured 8px gaps.
+// Source font painters must lay out words with these advances; the host
+// ASCII fallback does not become original lettering by applying this rule.
+constexpr int modern_menu_observed_heading_word_gap(
+    ModernMenuSourceCursor context) noexcept {
+    return context == ModernMenuSourceCursor::Rider ? 8 : 16;
+}
 
 // Genuine stock cursor CHR tile addresses, chronological orientation order.
 // Two guest video frames per tile; 16 frames of animation, 32-frame loop.
@@ -81,6 +124,27 @@ constexpr int modern_menu_slide_pixels(unsigned elapsed_frames,
         elapsed_frames >= kModernMenuSlideFrameCount ? kModernMenuStockSlideDistance :
         kModernMenuSlidePixels[elapsed_frames - 1u];
     return backwards ? kModernMenuStockSlideDistance - offset : offset;
+}
+
+// One specifically observed 1994 cursor route: main-menu row 1 to row 2,
+// y=70 -> y=93. These are the 12 measured *per-video-frame* displacement
+// increments in analysis/generated/menu-visual-language.json, not a general
+// easing formula. In particular, the original briefly holds at frames 10/11
+// before the final 1px settle; our proportional approximation cannot encode
+// that without explicit source data. Animation ownership/clock stays with
+// the consuming host.
+inline constexpr std::array<int, 12> kModernMenuObservedRowMoveY{{
+    6, 4, 3, 3, 2, 1, 1, 1, 1, 0, 0, 1
+}};
+
+constexpr int modern_menu_observed_first_row_move_y(
+    unsigned elapsed_frames) noexcept {
+    int delta = 0;
+    const auto frames = elapsed_frames < kModernMenuObservedRowMoveY.size()
+        ? elapsed_frames : static_cast<unsigned>(kModernMenuObservedRowMoveY.size());
+    for (unsigned i = 0; i < frames; ++i)
+        delta += kModernMenuObservedRowMoveY[i];
+    return delta;
 }
 
 // Integer-only stock approximation: input-frame start, roughly 1/4 of the
@@ -179,24 +243,42 @@ template <typename Painter>
 inline void modern_menu_paint_checker_backdrop(
     const Painter& paint, std::uint32_t* pixels,
     int stride, int surface_height,
-    int x, int y, int width, int height, int logical_scale) {
+    int x, int y, int width, int height, int logical_scale,
+    bool fixed_bg1_grid = false) {
     if (!paint.fill_rect || !pixels || stride <= 0 || surface_height <= 0 ||
         x < 0 || y < 0 || width <= 0 || height <= 0 ||
         x > stride || y > surface_height ||
         width > stride - x || height > surface_height - y ||
+        // Bound loop arithmetic to native source/presentation dimensions.
+        stride > 16384 || surface_height > 16384 ||
         logical_scale < 1 || logical_scale > 4) return;
 
     const int cell = kModernMenuCheckerCell * logical_scale;
     paint.fill_rect(pixels, stride, surface_height, x, y, width, height,
                     kModernStockMenuPalette.background);
-    // Sparse every-other-square underlay. Grey palette ramp RGB8 48/80;
-    // alpha retains the caller's existing host overlay convention.
-    for (int yy = 0, row = 0; yy < height; yy += cell, ++row) {
-        for (int xx = (row & 1) ? 0 : cell; xx < width; xx += 2 * cell) {
-            const int w = xx + cell > width ? width - xx : cell;
-            const int h = yy + cell > height ? height - yy : cell;
+    // Retail BG1 remains stationary while BG2/menu entries slide. By
+    // default the old local panel grid remains pixel-identical; a shared
+    // screen surface can opt in to one viewport-anchored grid so its split
+    // rectangles, animated masks and adjacent panels never reset the motif.
+    // This is still a checker-only fallback, not the missing retail leaf art.
+    const int phase_x = fixed_bg1_grid ? x % cell : 0;
+    const int phase_y = fixed_bg1_grid ? y % cell : 0;
+    const int row_start = fixed_bg1_grid ? y / cell : 0;
+    const int col_start = fixed_bg1_grid ? x / cell : 0;
+    for (int yy = -phase_y, row = row_start;
+         yy < height; yy += cell, ++row) {
+        const int clipped_y = yy < 0 ? 0 : yy;
+        const int bottom = yy + cell < height ? yy + cell : height;
+        for (int xx = -phase_x, col = col_start;
+             xx < width; xx += cell, ++col) {
+            if (((row + col) & 1) == 0) continue;
+            const int clipped_x = xx < 0 ? 0 : xx;
+            const int right = xx + cell < width ? xx + cell : width;
+            // Partial tiles at the viewport/child bounds remain continuous.
             paint.fill_rect(pixels, stride, surface_height,
-                            x + xx, y + yy, w, h, 0xE0505050u);
+                            x + clipped_x, y + clipped_y,
+                            right - clipped_x, bottom - clipped_y,
+                            0xE0505050u);
         }
     }
 }
@@ -209,16 +291,97 @@ template <typename Painter>
 inline void modern_menu_paint_focus_band(
     const Painter& paint, std::uint32_t* pixels,
     int stride, int surface_height,
-    int x, int y, int width, int height, int scale) {
+    int x, int y, int width, int height, int scale,
+    ModernMenuSourceCursor cursor_context = ModernMenuSourceCursor::Main) {
     if (!paint.fill_rect || !pixels || stride <= 0 || surface_height <= 0 ||
         x < 0 || y < 0 || width <= 0 || height <= 0 ||
         width > stride - x || height > surface_height - y ||
         scale < 1 || scale > 4) return;
     paint.fill_rect(pixels, stride, surface_height, x, y, width, height,
                     0xE0283058u);
+    // Two-tone ring, inset inside the band so no neighbouring row changes.
+    // Rows too small to hold it keep the plain band and leading marker.
+    if (height >= 6 * scale && width >= 8 * scale) {
+        const auto ring = [&](std::uint32_t colour, int inset) {
+            const int t = scale;
+            const int rx = x + inset, ry = y + inset;
+            const int rw = width - 2 * inset, rh = height - 2 * inset;
+            paint.fill_rect(pixels, stride, surface_height, rx, ry, rw, t, colour);
+            paint.fill_rect(pixels, stride, surface_height, rx, ry + rh - t, rw, t, colour);
+            paint.fill_rect(pixels, stride, surface_height, rx, ry, t, rh, colour);
+            paint.fill_rect(pixels, stride, surface_height, rx + rw - t, ry, t, rh, colour);
+        };
+        ring(kModernMenuFocusRingDark, 0);
+        ring(kModernMenuFocusRingLight, scale);
+    }
     const int marker_width = 3 * scale > width ? width : 3 * scale;
     paint.fill_rect(pixels, stride, surface_height,
-                    x, y, marker_width, height, kModernMenuCursorLight);
+                    x, y, marker_width, height,
+                    modern_menu_cursor_highlight(cursor_context));
+}
+
+// Optional exact source-raster consumer: only screen owners with a
+// separately admitted original heading atlas may call this. The shared
+// source image painter performs whole-string preflight and pixel-atomic
+// refusal; this adapter supplies just the measured screen word gap.
+inline bool modern_menu_paint_source_heading_context(
+    const ModernMenuSourcePixels& source_heading,
+    std::uint32_t* pixels, std::size_t count,
+    int stride, int surface_height, int x, int y,
+    std::string_view label, int scale,
+    ModernMenuSourceCursor context) noexcept {
+    return modern_menu_paint_source_text(
+        source_heading, ModernMenuSourceSheet::Heading,
+        pixels, count, stride, surface_height, x, y, label, scale,
+        modern_menu_observed_heading_word_gap(context));
+}
+
+// The first-party exported 624x39 cursor sheet stores sixteen original
+// MAIN-menu arrow+shadow 39x39 poses in frame 0,2,...,30 order. Its pixels
+// retain the main screen's blue CGRAM: do NOT call this a Tour/Track warm
+// cursor or assume the separate focus-band highlight can recolour it.
+// A non-main source sprite demands separate same-state PPU/rights proof.
+// Each pose holds for
+// exactly two *host menu* frames, repeating at 32. Source palette and shadow
+// pixels come from the admitted atlas: never flatten them to one accent.
+// This does not drive or read the guest's animation clock and paints nothing
+// if the supplied image/target is invalid. Caller owns coordinates, focus
+// fallback, clipping and reduced-motion frame selection.
+// A sprite sheet with fifteen good poses and one corrupted late pose
+// must not be partially admitted and visibly vanish half-way through the
+// original 32-frame spin. Verify all sixteen 39x39 source poses before
+// drawing any phase. This is a raster completeness check, NOT source ROM,
+// CGRAM palette, art ownership or licence attestation.
+inline bool modern_menu_source_cursor_sheet_complete(
+    const ModernMenuSourcePixels& sheet) noexcept {
+    if (!modern_menu_source_buffer(sheet, 624, 39)) return false;
+    for (int pose = 0; pose < 16; ++pose) {
+        bool has_ink = false;
+        for (int yy = 0; yy < 39; ++yy)
+            for (int xx = 0; xx < 39; ++xx) {
+                const auto pixel =
+                    sheet.pixels[static_cast<std::size_t>(yy) * sheet.stride +
+                                 static_cast<std::size_t>(pose * 39 + xx)];
+                const auto alpha = pixel >> 24;
+                if (alpha == 255) has_ink = true;
+                else if (alpha != 0 || pixel != 0u) return false;
+            }
+        if (!has_ink) return false;
+    }
+    return true;
+}
+
+inline bool modern_menu_paint_source_cursor_phase(
+    const ModernMenuSourcePixels& source_cursor,
+    std::uint32_t* pixels, std::size_t count,
+    int stride, int surface_height, int x, int y,
+    std::uint32_t menu_frame, int scale) noexcept {
+    if (!modern_menu_source_cursor_sheet_complete(source_cursor))
+        return false;
+    const int pose = static_cast<int>((menu_frame / 2u) % kModernMenuSpinTile.size());
+    return modern_menu_paint_source_cell(
+        source_cursor, ModernMenuSourceSheet::Cursor,
+        pixels, count, stride, surface_height, x, y, pose, scale);
 }
 
 } // namespace ur::product

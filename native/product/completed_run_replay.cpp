@@ -1,4 +1,5 @@
 #include "completed_run_replay.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -21,10 +22,16 @@ bool CompletedRunReplayInputStage::reserve(
     clear();
     if (user_data_root.empty()) return false;
     namespace fs = std::filesystem;
-    const fs::path parent = fs::path(user_data_root) / "replay";
+    const fs::path parent = host_native_path_from_utf8(user_data_root) / "replay";
     std::error_code ec;
     fs::create_directories(parent, ec);
     if (ec) return false;
+    // An existing replay namespace must be a real directory. Otherwise a
+    // symlink can redirect the selected input outside the user's data root.
+    ec.clear();
+    const auto parent_status = fs::symlink_status(parent, ec);
+    if (ec || !fs::is_directory(parent_status) ||
+        fs::is_symlink(parent_status)) return false;
 
     // Atomic directory creation is exclusive across independent processes.
     // A simultaneous name collision retries without overwriting an input.
@@ -37,8 +44,8 @@ bool CompletedRunReplayInputStage::reserve(
              std::to_string(serial.fetch_add(1, std::memory_order_relaxed)));
         ec.clear();
         if (fs::create_directory(staging, ec)) {
-            directory_ = staging.string();
-            input_path_ = (staging / "selected-run.input").string();
+            directory_ = staging.u8string();
+            input_path_ = (staging / "selected-run.input").u8string();
             return true;
         }
         if (ec) return false;
@@ -49,7 +56,7 @@ bool CompletedRunReplayInputStage::reserve(
 void CompletedRunReplayInputStage::clear() noexcept {
     if (directory_.empty()) return;
     std::error_code ec;
-    std::filesystem::remove_all(directory_, ec);
+    std::filesystem::remove_all(host_native_path_from_utf8(directory_), ec);
     directory_.clear();
     input_path_.clear();
 }
@@ -77,7 +84,7 @@ bool stage_completed_run_replay_input_file(
         return false;
     }
 
-    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    std::ofstream out(host_native_path_from_utf8(path), std::ios::binary | std::ios::trunc);
     if (!out) {
         set_detail(detail, "cannot open replay input path");
         return false;

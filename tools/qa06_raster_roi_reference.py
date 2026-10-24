@@ -255,13 +255,8 @@ def report():
 if __name__ == "__main__":
     print(json.dumps(report(), indent=2, sort_keys=True))
 
-
 def audit_named_policy_sampling_coverage(roi, *, mode):
-    """Analytic source-centre coverage under an exact named native policy.
-
-    Preserving the full logical source interval does not imply every source
-    pixel centre is sampled when the output viewport is smaller.
-    """
+    """Analytic source-centre coverage under an exact named native policy."""
     modes={'original':(256,224,F(1)), 'world342':(342,224,F(512,513))}
     if type(mode) is not str or mode not in modes:
         raise ValueError('unknown presentation mode')

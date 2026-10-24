@@ -2,6 +2,7 @@
 
 #include "completed_run_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <array>
 #include <charconv>
@@ -390,7 +391,7 @@ bool save_multiplayer_match_record_file(
     std::string* detail) {
     const std::string encoded = encode_multiplayer_match_record(record);
     if (encoded.empty()) return fail(detail, "match validation failed");
-    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    std::ofstream out(host_native_path_from_utf8(path), std::ios::binary | std::ios::trunc);
     if (!out) return fail(detail, "cannot open match record");
     out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
     if (!out) return fail(detail, "cannot write match record");
@@ -404,7 +405,7 @@ bool save_multiplayer_match_record_file(
 
 MultiplayerMatchDecodeResult load_multiplayer_match_record_file(
     const std::string& path) {
-    std::ifstream in(path, std::ios::binary);
+    std::ifstream in(host_native_path_from_utf8(path), std::ios::binary);
     if (!in) return {std::nullopt, "cannot open match record"};
 
     std::string encoded(kMaxRecordBytes + 1u, '\0');
@@ -470,7 +471,10 @@ bool append_multiplayer_match_pair(
 
     namespace fs = std::filesystem;
     std::error_code ec;
-    fs::create_directories(directory, ec);
+    // Public product paths are UTF-8. Keep the native path on Windows until
+    // crossing back into a UTF-8 storage API or returning a stored path.
+    const fs::path directory_path = host_native_path_from_utf8(directory);
+    fs::create_directories(directory_path, ec);
     if (ec) return fail(detail, "cannot create multiplayer-run directory");
 
     // Build both bound artifacts in a private same-filesystem directory.
@@ -478,7 +482,7 @@ bool append_multiplayer_match_pair(
     fs::path staging_dir;
     for (unsigned suffix = 0; suffix < 10000; ++suffix) {
         const fs::path candidate =
-            fs::path(directory) / (".urpair-stage-" + std::to_string(suffix));
+            directory_path / (".urpair-stage-" + std::to_string(suffix));
         ec.clear();
         if (fs::create_directory(candidate, ec)) {
             staging_dir = candidate;
@@ -504,7 +508,7 @@ bool append_multiplayer_match_pair(
 
     std::string staged_run;
     if (!append_completed_run_record(
-            staging_dir.string(), run, &staged_run, detail)) {
+            staging_dir.u8string(), run, &staged_run, detail)) {
         cleanup_staging();
         return false;
     }
@@ -521,15 +525,15 @@ bool append_multiplayer_match_pair(
     // by append_completed_run_record. Do not publicly claim either half of
     // the checksum-bound pair before the separately closed .urmatch is also
     // flushed to storage.
-    const fs::path staged_sidecar(
+    const fs::path staged_sidecar = host_native_path_from_utf8(
         multiplayer_match_record_path_for_run(staged_run));
     if (!ur::product::detail::sync_closed_staged_file(staged_sidecar)) {
         cleanup_staging();
         return fail(detail, "cannot durably flush staged match record");
     }
 
-    const fs::path staged_run_path(staged_run);
-    const fs::path staged_sidecar_path(
+    const fs::path staged_run_path = host_native_path_from_utf8(staged_run);
+    const fs::path staged_sidecar_path = host_native_path_from_utf8(
         multiplayer_match_record_path_for_run(staged_run));
 
     // Sidecar is the first atomic claim. Only a writer that owns that exact
@@ -542,9 +546,9 @@ bool append_multiplayer_match_pair(
             suffix == 0
                 ? staged_run_path.filename().string()
                 : stem + "-pair-" + std::to_string(suffix) + ".urrun";
-        const fs::path final_run_path = fs::path(directory) / filename;
-        const fs::path final_sidecar_path(
-            multiplayer_match_record_path_for_run(final_run_path.string()));
+        const fs::path final_run_path = directory_path / filename;
+        const fs::path final_sidecar_path = host_native_path_from_utf8(
+            multiplayer_match_record_path_for_run(final_run_path.u8string()));
 
         const auto sidecar_claim =
             claim_pair_artifact(staged_sidecar_path, final_sidecar_path);
@@ -565,9 +569,9 @@ bool append_multiplayer_match_pair(
             // requested without treating a committed-but-uncertain metadata
             // sync as failure and accidentally publishing a duplicate pair.
             ur::product::detail::sync_published_directory_best_effort(
-                fs::path(directory));
+                directory_path);
             cleanup_staging();
-            if (stored_run_path) *stored_run_path = final_run_path.string();
+            if (stored_run_path) *stored_run_path = final_run_path.u8string();
             return true;
         }
 

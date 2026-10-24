@@ -1,0 +1,72 @@
+name: Windows Visual Atlas (PR validation)
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-visual-atlas.yml"
+      - ".github/workflows/windows-visual-atlas-intake.yml"
+      - ".github/workflows/windows-visual-atlas-site.yml"
+      - ".github/workflows/windows-visual-atlas-pr-validate.yml"
+      - "analysis/windows-visual-atlas.json"
+      - "analysis/ui-capture-manifest.json"
+      - "analysis/modern-visual-acceptance-matrix.json"
+      - "tools/qa_modern_visual_win32_capture_driver.py"
+      - "media/showcase/2026-10-20/graphpaper-final/cards/**"
+      - "tools/windows_visual_atlas.py"
+      - "tools/windows_visual_atlas_intake.py"
+      - "media/windows-visual-atlas/**"
+      - "tools/visual_atlas_web/**"
+      - "tests/unit/test_windows_visual_atlas.py"
+      - "tests/unit/test_windows_visual_atlas_intake.py"
+      - "tests/unit/test_windows_visual_atlas_frontend.py"
+      - "docs/atlas/**"
+      - "design/visual-atlas/mockups/**"
+      - "tools/visual_atlas_web/tube-header.svg"
+permissions:
+  contents: read
+concurrency:
+  group: ur-windows-atlas-pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  atlas-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate real fixture routes, assets and inventory
+        run: |
+          python3 -m unittest tests.unit.test_windows_visual_atlas tests.unit.test_windows_visual_atlas_intake tests.unit.test_windows_visual_atlas_frontend
+          python3 tools/windows_visual_atlas.py validate
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-preview"
+          test -s "$RUNNER_TEMP/atlas-preview/index.html"
+          test -s "$RUNNER_TEMP/atlas-preview/atlas.json"
+      - name: Check mobile browser JS syntax
+        run: node --check tools/visual_atlas_web/atlas.js
+
+  mobile-chromium-smoke:
+    # Fast, targeted atlas-only real-browser test; no Windows build or ROM.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build ROM-free site and validate CDP smoke source
+        run: |
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
+          node --check tools/visual_atlas_web/browser-smoke.mjs
+      - name: Exercise 320–1440px layouts, real DOM interactions and screenshot both surfaces
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME_BIN"
+          export CHROME_BIN
+          node tools/visual_atlas_web/browser-smoke.mjs "$RUNNER_TEMP/atlas-site" "$RUNNER_TEMP/browser-evidence"
+      - name: Preserve optical evidence and failures for human review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-atlas-mobile-browser-smoke
+          path: ${{ runner.temp }}/browser-evidence/
+          if-no-files-found: warn
+          retention-days: 7

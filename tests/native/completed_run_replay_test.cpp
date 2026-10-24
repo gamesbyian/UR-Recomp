@@ -1,4 +1,5 @@
 #include "completed_run_replay.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cassert>
 #include <filesystem>
@@ -81,6 +82,47 @@ int main(int argc, char** argv) {
     assert(!std::filesystem::exists(second_path));
     assert(first_stage.input_path().empty());
     assert(second_stage.input_path().empty());
+
+    // Reject an existing replay namespace that redirects staged input to a
+    // different directory. Symlink creation may need privilege on Windows.
+    const auto redirected_root = path.parent_path() / "replay-redirected-root";
+    const auto foreign_replay = path.parent_path() / "foreign-replay";
+    std::filesystem::create_directories(redirected_root);
+    std::filesystem::create_directories(foreign_replay);
+    std::error_code link_error;
+    std::filesystem::create_directory_symlink(
+        foreign_replay, redirected_root / "replay", link_error);
+#if !defined(_WIN32)
+    assert(!link_error);
+#endif
+    if (!link_error) {
+        CompletedRunReplayInputStage redirected;
+        assert(!redirected.reserve(redirected_root.string()));
+        assert(redirected.input_path().empty());
+        assert(std::filesystem::is_empty(foreign_replay));
+    }
+
+    // The product and SDL paths are UTF-8, even when Windows' active code
+    // page cannot represent the directory. Keep both reserved paths and the
+    // staged input file round-trippable through the native filesystem.
+    const auto unicode_root = path.parent_path() /
+        std::filesystem::u8path(u8"replay-資料-🚲");
+    CompletedRunReplayInputStage unicode_stage;
+    assert(unicode_stage.reserve(unicode_root.u8string()));
+    const std::string unicode_input = unicode_stage.input_path();
+    assert(!unicode_input.empty());
+    assert(std::filesystem::is_directory(
+        host_native_path_from_utf8(unicode_input).parent_path()));
+    assert(stage_completed_run_replay_input_file(unicode_input, run, &detail));
+    {
+        std::ifstream staged(host_native_path_from_utf8(unicode_input),
+                             std::ios::binary);
+        std::ostringstream staged_bytes;
+        staged_bytes << staged.rdbuf();
+        assert(staged_bytes.str() == encode_completed_run_input_file(run));
+    }
+    unicode_stage.clear();
+    assert(!std::filesystem::exists(host_native_path_from_utf8(unicode_input)));
 
 #if defined(__linux__)
     // A buffered stream may accept write() but fail on flush/close. Never

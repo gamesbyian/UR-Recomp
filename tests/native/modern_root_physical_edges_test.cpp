@@ -76,5 +76,21 @@ int main() {
     nav.reset();
     assert(nav.keyboard(3, true));
     assert(nav.p1_gamepad(4, true));
+    // P2's orphan-reentry B edge uses its existing join-seat latch,
+    // independent of P1 navigation. A held B cannot reopen on repeat, and
+    // an intervening release is required for a new attempt at stock main.
+    ur::product::ModernRootPhysicalEdges p2_join{};
+    assert(p2_join.p1_gamepad(4, true));
+    assert(!p2_join.p1_gamepad(4, true));
+    assert(!p2_join.p1_gamepad(4, true));
+    assert(!p2_join.p1_gamepad(4, false));
+    assert(p2_join.p1_gamepad(4, true));
+    assert(!p2_join.p1_gamepad(4, false));
+    // A disconnected/rejoined source can start a fresh edge after the
+    // existing root/seat reset; it never mutates P1's separate latch.
+    p2_join.reset();
+    assert(p2_join.p1_gamepad(4, true));
+    assert(!nav.p1_gamepad(4, true));
+
     std::puts("PASS: native Modern root keyboard/P1 physical release edge authority");
 }

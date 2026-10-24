@@ -247,11 +247,23 @@ class Dump:
 
 
 def native_regs_as_snesref(regs: dict) -> dict:
-    """Map the native recomp host's regs.json (bgsc/bg_tile_adr/hscroll/vscroll)
-    onto the snesref fields this module reads (fillram 2107-210C, ppu.bg[].hofs/vofs)."""
+    """Adapt native PPU registers for the existing snesref-derived decoders.
+
+    BG1 Mode 3 reconstruction needs BGMODE ($2105), and source OBJ cursor
+    decoding needs OBJSEL ($2101). Native capture receipts already record
+    both fields as bgmode/obsel. Never fabricate either register when an
+    older or incomplete capture does not supply it: the owning decoder then
+    rejects that missing source witness before any artwork is exported.
+    """
     fill = {f"{0x2107 + i:04X}": f"{v:02X}" for i, v in enumerate(regs["bgsc"])}
     fill["210B"] = f"{regs['bg_tile_adr'] & 0xFF:02X}"
     fill["210C"] = f"{(regs['bg_tile_adr'] >> 8) & 0xFF:02X}"
+    for native_name, ppu_address in (("bgmode", "2105"), ("obsel", "2101")):
+        if native_name in regs:
+            value = regs[native_name]
+            if type(value) is not int or not 0 <= value <= 255:
+                raise ValueError(f"invalid native PPU {native_name} register")
+            fill[ppu_address] = f"{value:02X}"
     bgs = [{"hofs": h, "vofs": v} for h, v in zip(regs["hscroll"], regs["vscroll"])]
     return {"fillram": fill, "ppu": {"bg": bgs}}
 

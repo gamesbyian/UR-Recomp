@@ -1,0 +1,510 @@
+#!/usr/bin/env python3
+"""Windows Visual Atlas: ROM-free manifest validation, real-capture sharding and static assembly.
+
+One atlas ID is one expected surface. A capture is admitted only from the
+existing genuine Windows SDL readback driver and an exact matching receipt.
+This tool never modifies host/gameplay/ROM bytes and never grants release QA.
+"""
+from __future__ import annotations
+
+import argparse
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+import hashlib
+import json
+from pathlib import Path
+import re
+import shutil
+import struct
+import subprocess
+import sys
+import os
+import time
+import tempfile
+from threading import Lock
+
+ROOT = Path(__file__).resolve().parents[1]
+CATALOG = ROOT / "analysis/windows-visual-atlas.json"
+WEB = ROOT / "tools/visual_atlas_web"
+ART = ROOT / "media/showcase/2026-10-20/graphpaper-final/cards"
+ID = re.compile(r"^URV-[A-Z]{2,3}-[0-9]{3}$")
+WINDOW = re.compile(r"^([1-9][0-9]*)x([1-9][0-9]*)$")
+SHARDS = ("frontend", "interaction", "motion", "authentic")
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def load_catalog(path: Path = CATALOG) -> dict:
+    catalog = json.loads(path.read_text(encoding="utf-8"))
+    if catalog.get("schema_version") != 1 or not isinstance(catalog.get("entries"), list):
+        raise ValueError("Unknown atlas catalog schema")
+    return catalog
+
+
+def validate(catalog: dict, *, art_directory: Path = ART) -> list[dict]:
+    # Import the actual driver route vocabulary so the atlas cannot silently
+    # refer to renamed/imaginary fixture routes.
+    try:
+        from tools.qa_modern_visual_win32_capture_driver import ROUTES
+    except ModuleNotFoundError:  # python tools/windows_visual_atlas.py
+        from qa_modern_visual_win32_capture_driver import ROUTES
+    # The two pre-existing inventories are authoritative for their own
+    # original-game fixtures and independent visual acceptance cases.
+    # Reject missing/stale crosswalk entries rather than silently claiming
+    # coverage when a new source fixture is introduced.
+    original = json.loads((ROOT / "analysis/ui-capture-manifest.json").read_text(encoding="utf-8"))
+    modern_qa = json.loads((ROOT / "analysis/modern-visual-acceptance-matrix.json").read_text(encoding="utf-8"))
+    canonical_original = {item["tag"]: item for item in original["captures"]}
+    canonical_qa = {item["id"]: item for item in modern_qa["cases"]}
+    seen_original: set[str] = set()
+    seen_qa: set[str] = set()
+    seen: set[str] = set()
+    entries = catalog["entries"]
+    if not entries:
+        raise ValueError("Atlas cannot be empty")
+    for entry in entries:
+        key = entry.get("id", "")
+        if not isinstance(key, str) or not ID.fullmatch(key) or key in seen:
+            raise ValueError(f"Invalid or repeated atlas ID: {key!r}")
+        seen.add(key)
+        inventory = entry.get("source_inventory")
+        if inventory is not None:
+            path = inventory.get("path")
+            if path == "analysis/ui-capture-manifest.json":
+                tag = inventory.get("tag")
+                source = canonical_original.get(tag)
+                if not tag or tag in seen_original or source is None:
+                    raise ValueError(f"{key}: missing, stale or repeated original UI crosswalk")
+                if source["state_id"] != inventory.get("original_state") or (
+                    source.get("source_fixture") != inventory.get("source_fixture")
+                ) or source.get("variant") != inventory.get("variant"):
+                    raise ValueError(f"{key}: original UI fixture identity drift")
+                seen_original.add(tag)
+            elif path == "analysis/modern-visual-acceptance-matrix.json":
+                candidate = inventory.get("acceptance_case_id")
+                if not candidate or candidate in seen_qa or candidate not in canonical_qa:
+                    raise ValueError(f"{key}: missing, stale or repeated visual QA case")
+                if entry["mode"] != canonical_qa[candidate]["mode"]:
+                    raise ValueError(f"{key}: visual QA presentation drift")
+                seen_qa.add(candidate)
+            else:
+                raise ValueError(f"{key}: unrecognized source inventory reference")
+        for field in ("title", "mode", "family", "state", "display", "art"):
+            if not isinstance(entry.get(field), str) or not entry[field].strip():
+                raise ValueError(f"{key}: missing {field}")
+        art = entry["art"]
+        if not re.fullmatch(r"[a-z0-9_-]+", art):
+            raise ValueError(f"{key}: invalid art identifier")
+        if not (art_directory / (art + ".png")).is_file():
+            raise ValueError(f"{key}: expected authentic promo plate missing: {art}")
+        capture = entry.get("capture")
+        if entry.get("kind") not in ("capturable", "planned"):
+            raise ValueError(f"{key}: unknown kind")
+        if bool(capture) != (entry["kind"] == "capturable"):
+            raise ValueError(f"{key}: kind/capture mismatch")
+        if capture:
+            if capture.get("route") not in ROUTES:
+                raise ValueError(f"{key}: capture route not supported by native driver")
+            if capture.get("shard") not in SHARDS:
+                raise ValueError(f"{key}: unknown job shard")
+            match = WINDOW.fullmatch(str(capture.get("size", "")))
+            if not match:
+                raise ValueError(f"{key}: invalid capture size")
+            w, h = map(int, match.groups())
+            if not (320 <= w <= 3840 and 224 <= h <= 2160):
+                raise ValueError(f"{key}: capture size out of safe driver bounds")
+            if (capture["route"] == "authentic-stock") != (entry["mode"] == "authentic"):
+                raise ValueError(f"{key}: execution mode mismatches real route")
+    if seen_original != set(canonical_original):
+        raise ValueError("Atlas original UI coverage drift: " + repr(sorted(set(canonical_original) - seen_original)[:10]))
+    if seen_qa != set(canonical_qa):
+        raise ValueError("Atlas independent visual QA coverage drift: " + repr(sorted(set(canonical_qa) - seen_qa)[:10]))
+    return entries
+
+
+def valid_receipt(entry: dict, root: Path, source: str, exe_digest: str | None) -> tuple[dict, str]:
+    receipt_file = root / "readback-receipt.json"
+    png = root / "actual-sdl-drawable.png"
+    if not receipt_file.is_file() or not png.is_file() or receipt_file.is_symlink() or png.is_symlink():
+        raise ValueError(f"{entry['id']}: incomplete native capture evidence")
+    receipt = json.loads(receipt_file.read_text(encoding="utf-8"))
+    cap = entry["capture"]
+    dimensions = [int(x) for x in cap["size"].split("x")]
+    expected = {
+        "source_sha": source,
+        "native_semantic_route": cap["route"],
+        "requested_window_size": dimensions,
+        "actual_sdl_renderer_output": dimensions,
+        "SDL_driver": "windows",
+        "release_gate_credit": 0,
+        "visual_approved": False,
+        "hardware_approved": False,
+    }
+    for name, value in expected.items():
+        if type(receipt.get(name)) is not type(value) or receipt.get(name) != value:
+            raise ValueError(f"{entry['id']}: invalid native receipt {name}")
+    digest = receipt.get("exe_sha256")
+    if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+        raise ValueError(f"{entry['id']}: executable provenance absent")
+    if exe_digest and exe_digest != digest:
+        raise ValueError("Atlas captures used different Windows executables")
+    if sha256(png) != receipt.get("png_sha256") or not png.read_bytes().startswith(PNG_SIGNATURE):
+        raise ValueError(f"{entry['id']}: captured PNG hash or signature mismatch")
+    with png.open("rb") as file:
+        file.seek(16)
+        width, height = struct.unpack(">II", file.read(8))
+    if [width, height] != dimensions:
+        raise ValueError(f"{entry['id']}: PNG geometry differs from SDL readback")
+    return receipt, digest
+
+
+
+def restore_verified_capture(entry: dict, previous: Path, location: Path,
+                             source: str, exe_digest: str) -> bool:
+    """Rehydrate one same-source/PE capture with its original native witnesses.
+
+    Stage atomically so a failed copy cannot leave a partial directory that
+    prevents the real capture driver from retrying this case.
+    """
+    if not previous.is_dir() or previous.is_symlink():
+        return False
+    receipt, prior_digest = valid_receipt(entry, previous, source, exe_digest)
+    if prior_digest != exe_digest:
+        return False
+    try:
+        from tools.windows_visual_atlas_intake import witness
+    except ModuleNotFoundError:
+        from windows_visual_atlas_intake import witness
+    if not witness(receipt, previous):
+        return False
+    with tempfile.TemporaryDirectory(prefix="atlas-resume-", dir=location.parent) as tmp:
+        staged = Path(tmp) / "case"
+        staged.mkdir()
+        for name in ("readback-receipt.json", "actual-sdl-drawable.png"):
+            shutil.copyfile(previous / name, staged / name)
+        matched = 0
+        for name in ("probe_first", "capture_observed"):
+            original = previous / name
+            if original.is_symlink():
+                raise ValueError("Redirected prior native witness directory")
+            raw = original / "actual-sdl-drawable.pam"
+            log = original / "native-process.log"
+            if (original.is_dir() and raw.is_file() and log.is_file()
+                    and not raw.is_symlink() and not log.is_symlink()
+                    and sha256(raw) == receipt.get("p7_sha256")
+                    and sha256(log) == receipt.get("native_process_log_sha256")):
+                destination = staged / name
+                destination.mkdir()
+                shutil.copyfile(raw, destination / raw.name)
+                shutil.copyfile(log, destination / log.name)
+                matched += 1
+        if matched != 1 or not witness(receipt, staged):
+            return False
+        staged.rename(location)
+    return True
+
+
+def build(catalog: dict, target: Path, captures: Path | None, source: str | None) -> dict:
+    entries = validate(catalog)
+    if target.exists():
+        raise ValueError(f"Refusing to overwrite existing atlas site: {target}")
+    target.mkdir(parents=True)
+    (target / "assets").mkdir()
+    (target / "images").mkdir()
+    required_art = sorted({entry["art"] for entry in entries})
+    for art in required_art:
+        shutil.copyfile(ART / (art + ".png"), target / "assets" / (art + ".png"))
+    for name in ("index.html", "atlas.css", "atlas.js", "tube-header.svg"):
+        shutil.copyfile(WEB / name, target / name)
+    published = []
+    exe_digest = None
+    # Reviewed, content-addressed incidental snapshots from the repository.
+    # A current output build uses these only when its own source/code history
+    # still proves they represent the integrated visual implementation.
+    retained = ROOT / "media/windows-visual-atlas/approved"
+    try:
+        from tools.windows_visual_atlas_intake import code_state, witness
+    except ModuleNotFoundError:
+        from windows_visual_atlas_intake import code_state, witness
+    main_sha = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+                              text=True, capture_output=True).stdout.strip()
+    counts = {"captured": 0, "capture_failed": 0, "capture_pending": 0, "planned": 0}
+    for entry in entries:
+        case = dict(entry)
+        case["status"] = "planned" if entry["kind"] == "planned" else "capture_pending"
+        if captures and entry.get("capture"):
+            case_root = captures / "captures" / entry["id"]
+            failure = case_root / "capture-failure.json"
+            receipt = case_root / "readback-receipt.json"
+            # A failed driver may leave a partial receipt before its final
+            # validation/exit fails. The explicit failure marker wins: never
+            # admit those incomplete bytes as a successful SDL capture.
+            if failure.exists():
+                failure_data = json.loads(failure.read_text(encoding="utf-8"))
+                if (failure_data.get("id") != entry["id"] or
+                        failure_data.get("status") != "failed"):
+                    raise ValueError(f"{entry['id']}: unrelated failure marker")
+                case["status"] = "capture_failed"
+            elif receipt.exists():
+                if not source or not re.fullmatch(r"[0-9a-f]{40}", source):
+                    raise ValueError("Exact 40-hex source SHA required when publishing captures")
+                evidence, exe_digest = valid_receipt(entry, case_root, source, exe_digest)
+                # A matching PNG/receipt alone is insufficient to assert a
+                # genuine native SDL capture. Preserve the independent P7 and
+                # process-log witness contract used by intake and resume.
+                if not witness(evidence, case_root):
+                    raise ValueError(f"{entry['id']}: missing or invalid native P7/log witness")
+                image_name = entry["id"] + ".png"
+                shutil.copyfile(case_root / "actual-sdl-drawable.png", target / "images" / image_name)
+                case["status"] = "captured"
+                case["image"] = "images/" + image_name
+                case["evidence"] = {
+                    "source_sha": evidence["source_sha"],
+                    "exe_sha256": evidence["exe_sha256"],
+                    "png_sha256": evidence["png_sha256"],
+                    "SDL_driver": evidence["SDL_driver"],
+                    "capture_route": evidence["native_semantic_route"],
+                    "output_pixels": evidence["actual_sdl_renderer_output"],
+                    "actual_sdl_final_drawable": True,
+                    "physical_screen_verified": False,
+                    "release_accepted": False,
+                }
+        # Prefer exact capture from this run. Fall back to a reviewed,
+        # committed incidental source only if it is still code-current.
+        # An explicit failed capture from this campaign is evidence, not an
+        # empty slot to be filled by an older approved incidental image. Keep
+        # its failure visible; only genuinely pending cases may use fallback.
+        if case["status"] == "capture_pending":
+            stock = retained / entry["id"]
+            approval_file = stock / "intake-approval.json"
+            if stock.is_dir() and not stock.is_symlink() and approval_file.is_file():
+                approval = json.loads(approval_file.read_text(encoding="utf-8"))
+                src = approval.get("source_sha", "")
+                if (approval.get("atlas_id") == entry["id"]
+                        and approval.get("schema_version") == 1
+                        and approval.get("code_integrated_at_scan") is True
+                        and approval.get("independent_visual_approval") is False
+                        and approval.get("release_gate_credit") == 0
+                        and code_state(src, ROOT, main_sha) == "integrated-current-visual"):
+                    receipt, _ = valid_receipt(entry, stock, src, None)
+                    if (receipt["png_sha256"] != approval.get("png_sha256")
+                            or receipt["exe_sha256"] != approval.get("exe_sha256")):
+                        raise ValueError(f"{entry['id']}: approved incidental digest drift")
+                    if not witness(receipt, stock):
+                        raise ValueError(f"{entry['id']}: approved incidental missing native P7/log witness")
+                    image_name = entry["id"] + ".png"
+                    shutil.copyfile(stock / "actual-sdl-drawable.png",
+                                    target / "images" / image_name)
+                    case["status"] = "captured"
+                    case["image"] = "images/" + image_name
+                    case["evidence"] = {
+                        "source_sha": src, "exe_sha256": receipt["exe_sha256"],
+                        "png_sha256": receipt["png_sha256"],
+                        "capture_route": receipt["native_semantic_route"],
+                        "SDL_driver": "windows",
+                        "output_pixels": receipt["actual_sdl_renderer_output"],
+                        "producer_workflow": approval.get("producer_workflow"),
+                        "producer_run": approval.get("producer_run"),
+                        "capture_origin": "approved-integrated-incidental",
+                        "actual_sdl_final_drawable": True,
+                        "physical_screen_verified": False,
+                        "release_accepted": False,
+                    }
+                else:
+                    case["incidental_stale"] = True
+        counts[case["status"]] += 1
+        published.append(case)
+    data = {
+        "schema_version": 1,
+        "title": "Uniracers Windows Visual Atlas",
+        "source_sha": source if exe_digest else None,
+        "exe_sha256": exe_digest,
+        "counts": counts,
+        "entries": published,
+        "provenance": "Only verified final SDL Windows captures are labelled captured. Other imagery is original graph-paper promotional art.",
+    }
+    (target / "atlas.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return data
+
+
+def capture_shard(catalog: dict, *, shard: str, exe: Path, rom: Path,
+                  target: Path, source: str, timeout: int, workers: int = 2,
+                  resume_from: Path | None = None) -> int:
+    entries = validate(catalog)
+    if shard not in SHARDS or not re.fullmatch(r"[0-9a-f]{40}", source):
+        raise ValueError("Invalid shard or source SHA")
+    if target.exists():
+        raise ValueError("Capture output exists; refusing to overwrite evidence")
+    target.mkdir(parents=True)
+    matched = [x for x in entries if x.get("capture", {}).get("shard") == shard]
+    if not matched:
+        raise ValueError("No capture entries assigned to shard")
+    if workers not in (1, 2):
+        raise ValueError("Native process worker count must be 1 or 2")
+    if resume_from is not None and (not resume_from.is_dir() or resume_from.is_symlink()):
+        raise ValueError("Missing or redirected prior snapshot")
+    exe_digest = sha256(exe)
+    lock = Lock()
+    journal = target / "progress.jsonl"
+    running: set[str] = set()
+    done = 0
+    def announce(status: str, name: str, *, result: str = "") -> None:
+        nonlocal done
+        with lock:
+            if status == "start":
+                running.add(name)
+            if status == "end":
+                running.discard(name)
+                done += 1
+            event = {"status": status, "id": name, "result": result,
+                     "completed": done, "total": len(matched), "active": sorted(running),
+                     "source_sha": source, "exe_sha256": exe_digest}
+            with journal.open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps(event, sort_keys=True) + "\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            print(f"::notice title=Atlas {shard} progress::{done}/{len(matched)} "
+                  f"complete; {name} {status} {result}; active={','.join(sorted(running))}",
+                  flush=True)
+    def run_case(entry: dict) -> dict:
+        location = target / "captures" / entry["id"]
+        location.parent.mkdir(parents=True, exist_ok=True)
+        announce("start", entry["id"])
+        if resume_from is not None:
+            # The producer and its uploaded artifact both nest cases in captures/.
+            previous = resume_from / "captures" / entry["id"]
+            try:
+                if restore_verified_capture(entry, previous, location, source, exe_digest):
+                    announce("end", entry["id"], result="resumed")
+                    return {"id": entry["id"], "result": "captured", "reused": True}
+            except (OSError, ValueError, KeyError, json.JSONDecodeError):
+                pass  # Reattempt a genuinely incomplete or stale case.
+        cmd = [
+            sys.executable, str(ROOT / "tools/qa_modern_visual_win32_capture_driver.py"),
+            "--exe", str(exe.resolve()), "--rom", str(rom.resolve()),
+            "--source-sha", source, "--route", entry["capture"]["route"],
+            "--window-size", entry["capture"]["size"], "--video", "windows",
+            "--timeout", str(timeout), "--out", str(location)
+        ]
+        # Each driver execution launches native Win32 in its own fresh user root.
+        # A failing route does not invent pixels or stop unrelated routes.
+        try:
+            process = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout * 3)
+            if process.returncode != 0:
+                raise RuntimeError(f"capture driver exit {process.returncode}: " + (process.stdout + process.stderr)[-1500:])
+            # Bind the receipt to the actual executable launched for this shard.
+            # Otherwise a successful driver exit can bless pixels from a different PE.
+            evidence, _ = valid_receipt(entry, location, source, exe_digest)
+            # Do not report capture success when a driver left a plausible
+            # PNG/receipt but no authentic P7/process-log corroboration.
+            try:
+                from tools.windows_visual_atlas_intake import witness
+            except ModuleNotFoundError:
+                from windows_visual_atlas_intake import witness
+            if not witness(evidence, location):
+                raise ValueError("missing or invalid native P7/log witness")
+            status = "captured"
+        except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+            location.mkdir(parents=True, exist_ok=True)
+            (location / "capture-failure.json").write_text(json.dumps({
+                "id": entry["id"], "status": "failed", "reason": str(exc)[:1800]
+            }, indent=2) + "\n", encoding="utf-8")
+            status = "failed"
+        announce("end", entry["id"], result=status)
+        return {"id": entry["id"], "result": status}
+    # Process-level bounded parallelism, responsive completion-order progress.
+    # Every case writes its own receipt before the next case can touch it.
+    results = []
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        pending = {pool.submit(run_case, entry): entry["id"] for entry in matched}
+        while pending:
+            ready, _ = wait(pending, timeout=30, return_when=FIRST_COMPLETED)
+            if not ready:
+                print(f"::notice title=Atlas {shard} heartbeat::{done}/{len(matched)} "
+                      f"complete; {len(pending)} pending/running", flush=True)
+                continue
+            for future in ready:
+                name = pending.pop(future)
+                try:
+                    results.append(future.result())
+                except Exception as exc:
+                    # Unexpected per-case failures must remain visible to the
+                    # assembler. Without a failure marker, an interrupted
+                    # driver can leave no receipt and appear merely pending.
+                    location = target / "captures" / name
+                    location.mkdir(parents=True, exist_ok=True)
+                    (location / "capture-failure.json").write_text(json.dumps({
+                        "id": name, "status": "failed",
+                        "reason": (
+                            f"internal capture error: {type(exc).__name__}: {exc}"
+                        )[:1800],
+                    }, indent=2) + "\n", encoding="utf-8")
+                    announce("end", name, result="internal-error")
+                    results.append({"id": name, "result": "failed",
+                                    "internal_error": str(exc)[:250]})
+    results.sort(key=lambda r: r["id"])
+    for result in results:
+        print(result["id"], result["result"], "reused" if result.get("reused") else "",
+              flush=True)
+    report = json.dumps({
+        "shard": shard, "source_sha": source, "results": results,
+        "captured": sum(r["result"] == "captured" for r in results),
+        "failed": sum(r["result"] == "failed" for r in results),
+        "reused": sum(r.get("reused", False) for r in results),
+        "release_gate_credit": 0,
+    }, indent=2) + "\n"
+    (target / "shard-summary.json").write_text(report, encoding="utf-8")
+    # Publish a uniquely named summary inside the allowlisted artifact tree.
+    (target / "captures" / f"atlas-shard-{shard}.json").write_text(report, encoding="utf-8")
+    # A partial capture remains useful and is uploaded by the workflow's
+    # always() step, but its producer job must not report green.
+    # The aggregate site may still publish successful cases with explicit
+    # missingness; nothing earns acceptance by exiting without an error.
+    return 1 if any(r["result"] != "captured" for r in results) else 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="action", required=True)
+    sub.add_parser("validate")
+    assemble = sub.add_parser("build")
+    assemble.add_argument("--out", required=True, type=Path)
+    assemble.add_argument("--captures", type=Path)
+    assemble.add_argument("--source-sha")
+    capture = sub.add_parser("capture-shard")
+    capture.add_argument("--shard", choices=SHARDS, required=True)
+    capture.add_argument("--exe", type=Path, required=True)
+    capture.add_argument("--rom", type=Path, required=True)
+    capture.add_argument("--out", required=True, type=Path)
+    capture.add_argument("--source-sha", required=True)
+    capture.add_argument("--timeout", type=int, default=100)
+    capture.add_argument("--workers", type=int, choices=(1, 2), default=2)
+    capture.add_argument("--resume-from", type=Path,
+                         help="Prior same-source, same-PE capture artifact directory")
+    args = parser.parse_args()
+    try:
+        catalog = load_catalog()
+        if args.action == "validate":
+            print(f"Validated {len(validate(catalog))} unique Windows visual surfaces")
+        elif args.action == "build":
+            print(json.dumps(build(catalog, args.out, args.captures, args.source_sha)["counts"], indent=2))
+        else:
+            if not (5 <= args.timeout <= 180):
+                raise ValueError("Capture timeout must be 5..180 seconds")
+            return capture_shard(catalog, shard=args.shard, exe=args.exe, rom=args.rom,
+                                 target=args.out, source=args.source_sha, timeout=args.timeout,
+                                 workers=args.workers, resume_from=args.resume_from)
+        return 0
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
+        print("WINDOWS_VISUAL_ATLAS_REJECTED:", exc, file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -15,11 +15,14 @@ import verify_modern_root_sdl_contrast as audit
 
 
 def source_files(base: Path, wide: bool, ink: int = 200,
-                 uhd: bool = False):
-    if uhd and not wide:
-        raise ValueError("4K source preview is 342-wide")
+                 uhd: bool = False, native_480p: bool = False):
+    if uhd and (not wide or native_480p):
+        raise ValueError("4K source preview is 342-wide and not 480p")
+    if native_480p and not wide:
+        raise ValueError("native 856x480 source is 342-wide")
     source_w, w, h, root_x, root_width = (
         (342, 3840, 2160, 11, 320) if uhd else
+        (342, 856, 480, 11, 320) if native_480p else
         (342, 1280, 720, 11, 320) if wide
         else (256, 1024, 768, 8, 240))
     surface = bytearray(w * h * 4)
@@ -71,6 +74,22 @@ def source_files(base: Path, wide: bool, ink: int = 200,
 
 
 class NativeRootSdlContrastTests(unittest.TestCase):
+    def test_numeric_receipt_fields_require_real_integers(self):
+        # In Python bool == int and 0.0 == 0: neither is a native receipt.
+        with tempfile.TemporaryDirectory() as td:
+            receipt, png, p7, log = source_files(Path(td), False)
+            for field, bad in (
+                ("schema_version", True), ("schema_version", 1.0),
+                ("native_process_exit", False), ("native_process_exit", 0.0),
+                ("release_gate_credit", False), ("release_gate_credit", 0.0),
+            ):
+                with self.subTest(field=field, bad=repr(bad)):
+                    forged = dict(receipt, **{field: bad})
+                    with self.assertRaisesRegex(ValueError, "pre-approved"):
+                        audit.verify_capture(forged, png, p7, log)
+            self.assertTrue(audit.verify_capture(receipt, png, p7, log)[
+                "source_root_contrast_verified"])
+
     def test_source_bound_4_3_and_16_9_ada_text(self):
         for wide in (False, True):
             with self.subTest(wide=wide), tempfile.TemporaryDirectory() as td:
@@ -83,6 +102,32 @@ class NativeRootSdlContrastTests(unittest.TestCase):
                 self.assertFalse(observed["visual_approved"])
                 self.assertFalse(observed["hardware_approved"])
                 self.assertEqual(observed["release_gate_credit"], 0)
+
+    def test_actual_856x480_widescreen_source_geometry_and_contrast(self):
+        # Newly observed in the exact successful source/PE-bound Windows
+        # root snapshot from native Actions run 39555629743, artifact
+        # 12325402655. Only its size and source palette are reconstructed
+        # here; this synthetic fixture is not that original image.
+        with tempfile.TemporaryDirectory() as td:
+            receipt, png, p7, log = source_files(
+                Path(td), True, native_480p=True)
+            result = audit.verify_capture(receipt, png, p7, log)
+            self.assertEqual(result["native_output"], [856, 480])
+            self.assertEqual(result["native_source"], [342, 224])
+            self.assertEqual(result["identity_rgb"], [[200, 200, 200]])
+            self.assertGreaterEqual(result["minimum_contrast_ratio"], 4.5)
+            self.assertFalse(result["visual_approved"])
+            self.assertFalse(result["hardware_approved"])
+            self.assertEqual(result["release_gate_credit"], 0)
+            # A 256x224 root cannot masquerade as this actual wide host
+            # merely by changing the successful native process marker.
+            log.write_text(log.read_text().replace(
+                "raster=342x224 root=11,10,320,204",
+                "raster=256x224 root=8,10,240,204"))
+            receipt["native_process_log_sha256"] = hashlib.sha256(
+                log.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(ValueError,"not recognized"):
+                audit.verify_capture(receipt, png, p7, log)
 
     def test_4k_is_prospective_real_native_geometry_not_auto_approved(self):
         # 4K source-side pixel admission is distinct from physical display
@@ -146,6 +191,36 @@ class NativeRootSdlContrastTests(unittest.TestCase):
             receipt["p7_sha256"] = hashlib.sha256(p7.read_bytes()).hexdigest()
             with self.assertRaisesRegex(ValueError, "truncated or trailing"):
                 audit.verify_capture(receipt, png, p7, log)
+
+    def test_native_log_capture_tokens_reject_prefix_and_duplicate_spoofs(self):
+        # Historical H28 negative: substring search accepted a modified
+        # status, output or source and falsely treated it as a real capture.
+        # Regress the already-integrated strict parser, not its denied patch.
+        real = ("UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 "
+                "guest_frame=40 output=1280x720 "
+                "source=SDL_RenderReadPixels backend=sdl3")
+        self.assertTrue(audit.native_capture_matches(real, 1280, 720))
+        for altered in (
+            real.replace("status=saved", "status=savedFake"),
+            real.replace("output=1280x720", "output=1280x7200"),
+            real.replace("source=SDL_RenderReadPixels",
+                         "source=SDL_RenderReadPixelsFake"),
+            real.replace("status=saved", "xstatus=saved"),
+            real + " status=saved",
+            real + " output=1280x720",
+            real + " source=SDL_RenderReadPixels",
+            "prefix_" + real,
+            "debug: " + real,
+            real + " trailing-comment-without-equals",
+        ):
+            with self.subTest(altered=altered):
+                self.assertFalse(audit.native_capture_matches(altered, 1280, 720))
+        # Whitespace separation is deliberately allowed: field order is
+        # irrelevant but the name and full value must remain exact.
+        self.assertTrue(audit.native_capture_matches(
+            "UR_MODERN_VISUAL_SDL_CAPTURE output=1280x720 "
+            "source=SDL_RenderReadPixels status=saved", 1280, 720))
+        self.assertFalse(audit.native_capture_matches(real, 1024, 768))
 
     def test_actual_capture_requires_unapproved_scope(self):
         with tempfile.TemporaryDirectory() as td:

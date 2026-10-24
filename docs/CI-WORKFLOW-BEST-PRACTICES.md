@@ -16,6 +16,43 @@ For cheap CI unit tests, `tools/summarize_unittest_ci.py` now emits `ci-tooling-
 
 **Change coupling rule:** whenever a workflow changes its trigger, routing predicate, build-sharing threshold, or summary contract, update *all* existing policy tests that assert the previous behavior in the same change. Search both focused classifier tests and `tests/unit/test_ci_trigger_policy.py`, then verify the actual first failing assertion on the current head. The 2026-10-10 pairwise-build rollout exposed a stale three-suite assertion; the follow-up audit records the correction. A newly green classifier unit test does not imply the broader CI policy suite is green.
 
+### Windows bridge: defer draft churn, retain exact-source opt-in (2026-10-21)
+
+The automatic **Baldosa native Windows x64 bridge feasibility** PR job is
+expensive and source-bound. A verified successful draft-title run
+[39576975738](https://github.com/gamesbyian/UR-Recomp/actions/runs/39576975738)
+held one Windows 2022 runner for **891 seconds**, including a 131-second native
+build and 420-second authentic parallel-journey pilot. Four superseded
+cancelled runs on the same draft title PR (#2043; runs 39575694264,
+39573993574, 39573777556, 39572315467) used **2,209 seconds (36m49s)**
+of observed Windows runner occupancy. These are exact started/completed job
+intervals, not GitHub billed minutes or proof every interval was avoidable.
+
+The bridge retains its exact source-path invalidation, native build, Windows
+journeys, artifacts, 35-minute cap and PR concurrency. When a PR is draft,
+the **entire expensive Windows job is skipped**. The existing
+ready_for_review event executes the complete exact-head job before review;
+converted_to_draft cancels earlier in-flight PR work under existing
+PR-scoped concurrency. Non-draft PR synchronize/reopen continues full testing.
+
+The existing manual workflow_dispatch is the deliberate draft computational
+opt-in. Select the actual draft branch and use **Run workflow** on
+[Baldosa Windows bridge](https://github.com/gamesbyian/UR-Recomp/actions/workflows/baldosa-windows-native-bridge.yml);
+verify the checkout SHA matches the intended source commit. workflow_call
+campaign access is preserved with an explicit default-true
+workflow_call `run_on_draft` input. GitHub passes the original caller's event
+context into reusable workflows; without that input, a caller on a draft PR
+could unintentionally skip an explicitly invoked Windows campaign.
+See [GitHub's reusable-workflow context reference](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows).
+No ROM, guest or release/physical gate is
+substituted by a skipped draft check. A manually requested native Windows
+result is computational evidence, not physical/human acceptance.
+
+The existing expensive-PR test policy now covers this workflow and a
+source-level regression requires full ready-review, manual and called routes.
+If evidence shows a specific draft iteration needs Windows execution, request
+it explicitly rather than restoring costly automatic churn to every push.
+
 ## Computational PRs and branch execution
 
 Not every PR-triggered run is a merge-validation gate: agents often need real Windows runners, original emulators or native code generation before the implementation can be completed. Keep a stable PR head for a coherent experimental/computational task; perform cheap local/static iteration, make deliberate pushes for decisions needing hosted execution, and consolidate its tested result in the eventual integration review. Do not apply a PR-count quota or replace necessary hosted computation with unverified local approximations. Conversely, don't create and merge separate PRs for each observation within one hypothesis or feature boundary.

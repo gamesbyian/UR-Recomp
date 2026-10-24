@@ -24,6 +24,8 @@
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_run_publish_retry.hpp"
 #include "baldosa_native_match_publish_retry.hpp"
+#include "baldosa_host_lifecycle_pause.hpp"
+#include "baldosa_native_options.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -45,6 +47,10 @@ int ur_baldosa_modern_root_pause_options_input(int action);
 int ur_baldosa_modern_root_pause_options_draw(
     std::uint8_t* pixels, std::size_t pitch, int width, int height);
 int snesrecomp_desktop_product_get_volume(void);
+int snesrecomp_desktop_product_get_display(int* fullscreen, int* vsync);
+// Staged by baldosa_sdl_controller_lifecycle_spike.py: read-only seat view.
+long long snesrecomp_desktop_product_seat_source(int seat);
+int snesrecomp_desktop_product_input_scripted(void);
 int ur_baldosa_product_system_gamepad(int player, int button, int pressed);
 int snesrecomp_desktop_product_is_paused(void);
 unsigned snesrecomp_desktop_product_pause_presentations(void);
@@ -296,6 +302,225 @@ void options_smoke_edge(int key, int pad_button) {
 }
 void queue_restart_edge() { queue_key_edge(SDLK_r); }
 
+// Focus-loss and seat-owner-disconnect pauses for a live Modern race. The
+// decision is baldosa_host_lifecycle_pause.hpp (reusing the legacy host's
+// focus and hotplug policies); this only feeds it and uses the ordinary
+// session pause, exactly like a player's own pause.
+ur::product::BaldosaHostLifecyclePause g_lifecycle_pause;
+unsigned g_lifecycle_pauses_applied;
+ur::product::BaldosaLifecyclePauseReason g_lifecycle_last_reason;
+
+bool load_focus_pause_setting() {
+    const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!user_root || !*user_root) return ur::product::HostSettings{}.pause_on_focus_loss;
+    const auto loaded = ur::product::load_host_product_state_file(
+        ur::product::baldosa_options_path(user_root).string());
+    return loaded.loaded()
+        ? loaded.state->settings.pause_on_focus_loss
+        : ur::product::HostSettings{}.pause_on_focus_loss;
+}
+
+int lifecycle_smoke_mode();
+
+void apply_host_lifecycle_pause() {
+    ur::product::BaldosaLifecycleObservation in;
+    for (int seat = 0; seat < static_cast<int>(ur::product::kControllerSeatCount); ++seat)
+        in.seat_sources[static_cast<std::size_t>(seat)] =
+            snesrecomp_desktop_product_seat_source(seat);
+    in.focused = SDL_GetKeyboardFocus() != nullptr;
+    in.mode = physical_modern_enabled() ? ur::product::ExecutionMode::Modern
+                                        : ur::product::ExecutionMode::Authentic;
+    in.pause_surface = g_modern_session && g_native_live_race;
+    in.already_paused = g_modern_session && ur_modern_session_is_paused(g_modern_session);
+    // The focus smoke stands in for the player a script otherwise lacks.
+    in.focus_pause_eligible =
+        !snesrecomp_desktop_product_input_scripted() || lifecycle_smoke_mode() == 2;
+    const auto reason = g_lifecycle_pause.step(in, &load_focus_pause_setting);
+    if (reason == ur::product::BaldosaLifecyclePauseReason::None) return;
+    g_lifecycle_last_reason = reason;
+    const auto result = ur_modern_session_pause(g_modern_session);
+    if (result == UR_MODERN_SESSION_APPLIED) {
+        ++g_lifecycle_pauses_applied;
+        reset_native_pause_menu_on_open();
+    }
+    const char* notice =
+        ur::product::controller_hotplug_notice_text(g_lifecycle_pause.hotplug());
+    std::fprintf(stderr,
+        "UR_BALDOSA_LIFECYCLE_PAUSE reason=%s seat=%d applied=%d notice=%s\n",
+        ur::product::baldosa_lifecycle_pause_reason_name(reason),
+        g_lifecycle_pause.disconnected_seat() + 1,
+        result == UR_MODERN_SESSION_APPLIED ? 1 : 0, notice ? notice : "-");
+    std::fflush(stderr);
+}
+
+// Alt+Enter / launcher display changes reach only config.ini, but Modern
+// boot restores the typed store over it. When the live display changes,
+// record it into the EXISTING store (the same one boot restores from, and
+// under the same Modern-root gate) so the next launch keeps it. Options'
+// own changes already match the store and are a no-op here.
+int g_adopt_live_display = -1;
+void adopt_live_display_change() {
+    int fullscreen = 0;
+    int vsync = 1;
+    if (!snesrecomp_desktop_product_get_display(&fullscreen, &vsync)) return;
+    const int live = fullscreen * 3 + vsync;
+    if (g_adopt_live_display < 0 || live == g_adopt_live_display) {
+        g_adopt_live_display = live;  // first frame: boot already restored
+        return;
+    }
+    g_adopt_live_display = live;
+    const char* root = std::getenv("UR_BALDOSA_MODERN_ROOT");
+    const char* mode = std::getenv("UR_EXECUTION_MODE");
+    const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!root || std::strcmp(root, "1") != 0 ||
+        (mode && std::strcmp(mode, "authentic") == 0) || !user_root || !*user_root)
+        return;
+    const auto result = ur::product::baldosa_options_adopt_live_display(
+        ur::product::baldosa_options_path(user_root).string(), fullscreen, vsync);
+    std::fprintf(stderr, "UR_BALDOSA_OPTIONS adopt_live_display fullscreen=%d vsync=%d result=%d\n",
+                 fullscreen, vsync, static_cast<int>(result));
+    std::fflush(stderr);
+}
+
+// UR_BALDOSA_LIFECYCLE_PAUSE_SMOKE=disconnect|focus (SDL3, test-only, inert
+// otherwise). "disconnect" hot-plugs an SDL virtual gamepad during a live
+// race and unplugs it once the host has seated it; "focus" minimizes the
+// real window. Either must pause through the ordinary session within the
+// next completed frame, keep guest WRAM frozen while paused, then resume and
+// advance. Virtual devices and a scripted minimize are not hardware QA.
+int g_lps_mode = -1;  // 0 off, 1 disconnect, 2 focus
+int g_lps_stage;      // 0 wait, 1 armed, 2 triggered, 3 paused, 4 resumed, 5 done
+unsigned g_lps_race_frames, g_lps_trigger_frame, g_lps_ticks, g_lps_after_resume;
+unsigned g_lps_pauses_before;
+std::uint8_t g_lps_frozen[0x20000];
+#if SNESRECOMP_SDL3
+SDL_JoystickID g_lps_pad_id;
+SDL_Joystick* g_lps_pad;
+SDL_Window* g_lps_window;
+#endif
+
+int lifecycle_smoke_mode() {
+    if (g_lps_mode < 0) {
+        const char* v = std::getenv("UR_BALDOSA_LIFECYCLE_PAUSE_SMOKE");
+        g_lps_mode = !v ? 0 : std::strcmp(v, "disconnect") == 0 ? 1
+                   : std::strcmp(v, "focus") == 0 ? 2 : 0;
+    }
+    return g_lps_mode;
+}
+
+void lifecycle_smoke_finish(const char* result, const char* detail) {
+    std::fprintf(stderr,
+        "UR_BALDOSA_LIFECYCLE_PAUSE_SMOKE mode=%s result=%s detail=%s "
+        "race_frames=%u paused_ticks=%u frames_after_resume=%u\n",
+        g_lps_mode == 1 ? "disconnect" : "focus", result, detail,
+        g_lps_race_frames, g_lps_ticks, g_lps_after_resume);
+    std::fflush(stderr);
+    g_lps_stage = 5;
+#if SNESRECOMP_SDL3
+    if (g_lps_pad) SDL_CloseJoystick(g_lps_pad);
+    if (g_lps_pad_id) SDL_DetachVirtualJoystick(g_lps_pad_id);
+    g_lps_pad = nullptr;
+    g_lps_pad_id = 0;
+#endif
+    SDL_Event quit{};
+    quit.type = SDL_QUIT;
+    (void)SDL_PushEvent(&quit);
+}
+
+// After every completed guest frame, after apply_host_lifecycle_pause().
+void lifecycle_pause_smoke_frame() {
+#if SNESRECOMP_SDL3
+    if (!lifecycle_smoke_mode() || g_lps_stage == 5) return;
+    if (g_lps_stage == 4) {
+        if (++g_lps_after_resume >= 10)
+            lifecycle_smoke_finish("pass", "paused_frozen_resumed");
+        return;
+    }
+    if (!g_native_live_race || !g_modern_session) return;
+    ++g_lps_race_frames;
+    if (g_lps_stage == 0 && g_lps_race_frames == 5) {
+        if (g_lps_mode == 1) {
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.name = "UR lifecycle pause pad";
+            g_lps_pad_id = SDL_AttachVirtualJoystick(&desc);
+            g_lps_pad = g_lps_pad_id ? SDL_OpenJoystick(g_lps_pad_id) : nullptr;
+            if (!g_lps_pad) return lifecycle_smoke_finish("fail", "virtual_pad_unavailable");
+        } else {
+            g_lps_window = SDL_GetKeyboardFocus();
+            if (!g_lps_window) {
+                int count = 0;
+                SDL_Window** windows = SDL_GetWindows(&count);
+                if (windows && count > 0) {
+                    g_lps_window = windows[0];
+                    SDL_RaiseWindow(g_lps_window);
+                }
+                SDL_free(windows);
+            }
+            if (!g_lps_window) return lifecycle_smoke_finish("fail", "no_window");
+        }
+        g_lps_stage = 1;
+        return;
+    }
+    if (g_lps_stage == 1 && g_lps_race_frames == 30) {
+        g_lps_pauses_before = g_lifecycle_pauses_applied;
+        g_lps_trigger_frame = g_lps_race_frames;
+        if (g_lps_mode == 1) {
+            const long long id = static_cast<long long>(g_lps_pad_id);
+            if (snesrecomp_desktop_product_seat_source(0) != id &&
+                snesrecomp_desktop_product_seat_source(1) != id)
+                return lifecycle_smoke_finish("fail", "pad_not_seated");
+            SDL_CloseJoystick(g_lps_pad);
+            g_lps_pad = nullptr;
+            SDL_DetachVirtualJoystick(g_lps_pad_id);
+            g_lps_pad_id = 0;
+        } else {
+            if (SDL_GetKeyboardFocus() != g_lps_window)
+                return lifecycle_smoke_finish("not_exercised", "window_never_focused");
+            SDL_MinimizeWindow(g_lps_window);
+        }
+        g_lps_stage = 2;
+        return;
+    }
+    if (g_lps_stage == 2) {
+        const auto want = g_lps_mode == 1
+            ? ur::product::BaldosaLifecyclePauseReason::ControllerDisconnect
+            : ur::product::BaldosaLifecyclePauseReason::FocusLoss;
+        if (g_lifecycle_pauses_applied > g_lps_pauses_before) {
+            if (g_lifecycle_last_reason != want ||
+                !ur_modern_session_is_paused(g_modern_session))
+                return lifecycle_smoke_finish("fail", "wrong_pause");
+            std::memcpy(g_lps_frozen, g_ram, sizeof(g_lps_frozen));
+            g_lps_stage = 3;
+        } else if (g_lps_race_frames > g_lps_trigger_frame + 60) {
+            lifecycle_smoke_finish("fail", "no_pause_within_60_frames");
+        }
+    }
+#endif
+}
+
+// Every host loop iteration, including while paused.
+void lifecycle_pause_smoke_tick() {
+#if SNESRECOMP_SDL3
+    if (!lifecycle_smoke_mode() || g_lps_stage != 3) return;
+    if (std::memcmp(g_ram, g_lps_frozen, sizeof(g_lps_frozen)) != 0)
+        return lifecycle_smoke_finish("fail", "guest_advanced_while_paused");
+    ++g_lps_ticks;
+    if (g_lps_mode == 2 && g_lps_ticks == 20) {
+        SDL_RestoreWindow(g_lps_window);
+        SDL_RaiseWindow(g_lps_window);
+    }
+    if (g_lps_ticks == 40) {
+        if (ur_modern_session_resume(g_modern_session) != UR_MODERN_SESSION_APPLIED)
+            return lifecycle_smoke_finish("fail", "resume_refused");
+        g_lps_stage = 4;
+    }
+#endif
+}
+
 bool smoke_enabled() {
     if (!g_smoke_initialized) {
         const char* env = std::getenv("UR_BALDOSA_PAUSE_SMOKE");
@@ -505,7 +730,8 @@ extern "C" int ur_baldosa_product_pause_draw(
     if (!ur::product::render_native_modern_pause_overlay(
             paint, reinterpret_cast<std::uint32_t*>(pixels),
             static_cast<int>(pitch / 4), width, height, g_native_pause_menu,
-            ur_modern_session_restart_available(g_modern_session) != 0))
+            ur_modern_session_restart_available(g_modern_session) != 0,
+            ur::product::controller_hotplug_notice_text(g_lifecycle_pause.hotplug())))
         return 0;
     ++g_pause_panel_paints;
     if (!g_pause_panel_logged) {
@@ -731,6 +957,9 @@ extern "C" void ur_baldosa_product_after_run_frame(
         if (g_modern_session)
             ur_modern_session_observe_race_active(
                 g_modern_session, g_native_live_race ? 1 : 0);
+        apply_host_lifecycle_pause();
+        adopt_live_display_change();
+        lifecycle_pause_smoke_frame();
 
         if (smoke_enabled() && g_delayed_restart_enabled &&
             g_native_live_race && !g_native_anchor_captured) {
@@ -834,6 +1063,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
 }
 
 extern "C" void ur_baldosa_product_host_tick(void) {
+    lifecycle_pause_smoke_tick();
     if (!smoke_enabled() || !g_armed || g_resumed ||
         (g_frozen_ticks >= 24 && !g_pause_quit_smoke)) return;
     require(snesrecomp_desktop_product_is_paused() != 0,

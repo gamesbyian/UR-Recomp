@@ -1,0 +1,54 @@
+{
+  "schema": "ur-progress-baseline/1",
+  "baseline_id": "2026-10-21-first-frozen",
+  "date": "2026-10-21",
+  "repository": "gamesbyian/UR-Recomp",
+  "source_main_sha": "550307d5f6adf5de72d2074168b6420b7a217a35",
+  "status": "initial_estimate_not_audit",
+  "scope": "Flagship Windows native faithful remaster, not indefinite technical atlas or deferred ports/netplay",
+  "estimated_completion_percent": 60,
+  "estimated_uncertainty_points": 10,
+  "estimate_nature": "historic subjective anchor; do not recalculate or silently treat as audited",
+  "weights": {
+    "native_engine_integration": 20,
+    "modern_frontend": 15,
+    "widescreen_hd": 15,
+    "persistence_records": 12,
+    "gameplay_fidelity_audio": 15,
+    "replay_extras": 8,
+    "windows_qa": 10,
+    "technical_reference": 5
+  },
+  "historical_subjective_workstream_percentages": {
+    "native_engine_integration": 85,
+    "modern_frontend": 70,
+    "widescreen_hd": 55,
+    "persistence_records": 75,
+    "gameplay_fidelity_audio": 50,
+    "replay_extras": 45,
+    "windows_qa": 30,
+    "technical_reference": 80
+  },
+  "formal_acceptance": {
+    "independent_complete_usa_events": {
+      "accepted": 0,
+      "total": 45
+    },
+    "windows_release_gates": {
+      "accepted": 0,
+      "total": 12
+    }
+  },
+  "rules": [
+    "This file freezes a previously communicated subjective estimate, not verification of completed tasks.",
+    "Never interpolate from PR count, commits, agent-hours, or tests to completion percentages.",
+    "Each new measurable advancement needs stable criterion ID, evidence URL, commit SHA, previous and new status, independent acceptance authority, and date.",
+    "Track implementation, tested, independently accepted, and physical/human approval distinctly.",
+    "Retractions are recorded as negative deltas rather than erasing prior entries.",
+    "Added scope is tracked separately and cannot retroactively lower the frozen baseline.",
+    "Future rigorous percentage requires a fixed enumerated acceptance inventory with explicit weights and auditable status for each item; until then report estimated 60% unchanged and actual measured deltas separately.",
+    "Release ledger remains sole authority for QA status; this baseline must not award gates."
+  ],
+  "change_log_path": "docs/PROGRESS-CHANGELOG.json",
+  "methodology_path": "docs/PROGRESS-MEASUREMENT.md"
+}

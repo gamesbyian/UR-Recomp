@@ -6,6 +6,9 @@ on:
       - ".github/workflows/modern-visual-native-win32-capture.yml"
       - "tools/qa_modern_visual_sdl_capture.py"
       - "tools/qa_modern_visual_win32_capture_driver.py"
+      - "tools/qa_modern_visual_archive_cases.py"
+      - "tools/qa_modern_visual_case_checks.py"
+      - "tools/qa_modern_visual_diagnostics.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
       # Destination PR #2040 may request actual 4:3/wide native SDL evidence
@@ -70,6 +73,8 @@ jobs:
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp
           grep -Fq UR_MODERN_UI_SDL_DRAWABLE_CAPTURE \
             baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -115,6 +120,23 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
           done
           echo "Actual final-drawable Windows Modern engineering baseline 1280x720 and 1024x768; same PE, separate clean runs; no redesign or physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture additional matrix output sizes (diagnostic, may be refused by the runner display)
+        # Acceptance-matrix root cases at 1080p, 480p and 4K. A runner display
+        # that cannot hold a size makes the host refuse that capture; that is
+        # recorded, never a failure of the QA owner's baseline.
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for size in 1920x1080 640x480 3840x2160; do
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$RUNNER_TEMP/ur-modern-win32-extra-$size" \
+              --video windows --timeout 100 --window-size "$size" \
+              && echo "captured $size" \
+              || echo "::warning title=Extra matrix size::$size capture refused or failed"
+          done
       # One bounded source/PE-bound final SDL motion proof, never a regular
       # requirement for unrelated PRs or evidence of physical/art approval.
       - name: Prove merged Modern animation in real SDL P7 and reduced control
@@ -230,6 +252,32 @@ jobs:
               --receipt "$RUNNER_TEMP/ur-authentic-win32-control-$size/probe_first/authentic-exact-rgb-parity.json"
           done
           echo "Genuine Authentic stock RGB exact P6-to-SDL readback parity at 16:9/4:3; alpha, guest CRC, physical screen and human signoff remain unapproved." >> "$GITHUB_STEP_SUMMARY"
+      - name: Geometry, safe-area and focus measurements of Modern captures
+        # Diagnostic only (measurement of the producing run's own output, no
+        # independent provenance, no art/hardware/parity approval). Never
+        # blocks the QA owner's baseline while the first real runs calibrate.
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -uo pipefail
+          dirs=()
+          for d in "$RUNNER_TEMP"/ur-modern-win32-visual-baseline \
+                   "$RUNNER_TEMP"/ur-modern-win32-visual-1280x720 \
+                   "$RUNNER_TEMP"/ur-modern-win32-visual-1024x768 \
+                   "$RUNNER_TEMP"/ur-modern-win32-extra-* \
+                   "$RUNNER_TEMP"/ur-modern-win32-journey-*; do
+            test -s "$d/actual-sdl-drawable.png" && test -s "$d/readback-receipt.json" \
+              && dirs+=(--dir "$d")
+          done
+          test "${#dirs[@]}" -gt 0 || { echo "No Modern capture directories to measure." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" --require-ring \
+            --json "$RUNNER_TEMP/modern-capture-geometry.json" \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            | tee "$RUNNER_TEMP/modern-capture-geometry.txt" \
+            || echo "::warning title=Modern capture geometry::one or more measurements failed or were refused (diagnostic, non-blocking); see this step's log"
+          cp "$RUNNER_TEMP/modern-capture-geometry.json" \
+            "$RUNNER_TEMP/ur-modern-win32-visual-baseline/modern-capture-geometry.json" 2>/dev/null || true
       - name: Retain independent Authentic control output only
         if: always()
         uses: actions/upload-artifact@v4
@@ -278,6 +326,7 @@ jobs:
           path: |
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/modern-capture-geometry.json
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/native-process.log
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-visual-baseline/capture_observed/native-process.log
@@ -292,3 +341,10 @@ jobs:
           path: baldosa/build-ur-visual/UniracersSNESRecomp.exe
           if-no-files-found: warn
           retention-days: 7
+      - name: Echo the capture geometry table last (diagnostic, easy to find in the log)
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          cat "$RUNNER_TEMP/modern-capture-geometry.txt" 2>/dev/null \
+            || echo "No capture geometry report was produced."

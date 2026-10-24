@@ -32,13 +32,6 @@ CompletedRunBrowserEntryStatus browser_status(RunRecordLoadStatus status) {
     }
 }
 
-struct InspectedArtifact {
-    std::string path;
-    RunRecordLoadStatus status = RunRecordLoadStatus::Malformed;
-    std::string detail;
-    std::optional<CompletedRunRecord> record;
-};
-
 }  // namespace
 
 void CompletedRunRecordsBrowser::clear() noexcept {
@@ -322,50 +315,26 @@ bool CompletedRunBrowser::refresh(
         selected() ? selected()->path : std::string{};
     clear();
 
-    std::error_code ec;
-    if (!fs::exists(directory, ec) || ec) {
-        return !ec;
-    }
+    // Reuse Records' single source-of-truth inspector for both Local Runs
+    // and Records. It reports links as unavailable without opening targets,
+    // and an actual failed/redirected scan never masquerades as empty.
+    bool scan_succeeded = false;
+    auto inspected = inspect_completed_run_record_artifacts(
+        directory, &scan_succeeded);
+    if (!scan_succeeded) return false;
 
-    std::vector<fs::path> paths;
-    for (fs::directory_iterator it(directory, ec), end;
-         !ec && it != end;
-         it.increment(ec)) {
-        if (!it->is_regular_file()) continue;
-        if (it->path().extension() == ".urrun") {
-            paths.push_back(it->path());
-        }
-    }
-    if (ec) {
-        clear();
-        return false;
-    }
-    std::sort(paths.begin(), paths.end());
-
-    std::vector<InspectedArtifact> inspected;
-    inspected.reserve(paths.size());
     std::vector<StoredRunRecord> compatible;
-    compatible.reserve(paths.size());
-
-    for (const auto& path : paths) {
-        InspectedArtifact item;
-        item.path = path.string();
-
-        auto loaded = load_completed_run_record_file(item.path);
-        item.status = loaded.status;
-        item.detail = loaded.detail;
-        if (loaded.loaded()) {
-            item.record = *loaded.record;
-            std::string compatibility_detail;
-            if (!compatible_for_playback(
-                    *item.record, target, &compatibility_detail)) {
-                item.status = RunRecordLoadStatus::Incompatible;
-                item.detail = compatibility_detail;
-            } else {
-                compatible.push_back({item.path, *item.record});
-            }
+    compatible.reserve(inspected.size());
+    for (auto& item : inspected) {
+        if (!item.loaded()) continue;
+        std::string compatibility_detail;
+        if (!compatible_for_playback(
+                *item.record, target, &compatibility_detail)) {
+            item.status = RunRecordLoadStatus::Incompatible;
+            item.detail = compatibility_detail;
+        } else {
+            compatible.push_back({item.path, *item.record});
         }
-        inspected.push_back(std::move(item));
     }
 
     const auto catalog = build_run_data_catalog(compatible, target);

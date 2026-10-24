@@ -1,6 +1,7 @@
 #include "host_profile_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -33,7 +34,12 @@ HostProfileLoadResult load_host_profile_state_file(
     }
 
     errno = 0;
+#if defined(_WIN32)
+    const auto native_path = host_native_path_from_utf8(path);
+    std::FILE* file = _wfopen(native_path.c_str(), L"rb");
+#else
     std::FILE* file = std::fopen(path.c_str(), "rb");
+#endif
     if (!file) {
         if (errno == ENOENT) {
             return {HostProfileLoadStatus::Missing, std::nullopt, {}};
@@ -156,7 +162,7 @@ HostProfileSaveStatus save_host_profile_state_file(
         return HostProfileSaveStatus::Rejected;
     }
 
-    if (!write_host_replace_staged(path, encoded, "urprofile")) {
+    if (!write_host_replace_staged(host_native_path_from_utf8(path), encoded, "urprofile")) {
         return HostProfileSaveStatus::IoError;
     }
     return HostProfileSaveStatus::Saved;
@@ -205,7 +211,7 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
         return HostProfileSaveStatus::Rejected;
     }
     // The same persistent lock used by all existing profile CAS writers.
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProfileSaveStatus::IoError;
     return save_host_profile_state_file_if_current_under_lock(
         mode, path, expected_current, next);
@@ -219,7 +225,7 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
         encode_host_profile_state(expected_current).empty()) {
         return HostProfileSaveStatus::Rejected;
     }
-    TournamentLaunchPathLock lock(path);
+    TournamentLaunchPathLock lock(host_native_path_from_utf8(path));
     if (!lock.acquired()) return HostProfileSaveStatus::IoError;
     const auto current = load_host_profile_state_file(
         mode, path, expected_current.profile_id);
@@ -228,7 +234,7 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
     if (!current.loaded() || !(*current.state == expected_current))
         return HostProfileSaveStatus::Conflict;
     std::error_code ec;
-    const bool removed = std::filesystem::remove(path, ec);
+    const bool removed = std::filesystem::remove(host_native_path_from_utf8(path), ec);
     if (!removed || ec) return HostProfileSaveStatus::IoError;
     return HostProfileSaveStatus::Saved;
 }
@@ -237,7 +243,7 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
 bool reusable_aborted_profile_creation_root(const std::string& root_path) {
     namespace fs = std::filesystem;
     if (root_path.empty()) return false;
-    const fs::path root(root_path);
+    const fs::path root = host_native_path_from_utf8(root_path);
     std::error_code ec;
     const auto status = fs::symlink_status(root, ec);
     // Do not follow a renamed/symlinked profile root or adopt an existing
@@ -262,7 +268,7 @@ bool reusable_aborted_profile_creation_root(const std::string& root_path) {
 bool pristine_unregistered_profile_creation_root(const std::string& root_path) {
     namespace fs = std::filesystem;
     if (root_path.empty()) return false;
-    const fs::path root(root_path);
+    const fs::path root = host_native_path_from_utf8(root_path);
     std::error_code ec;
     if (fs::symlink_status(root, ec).type() != fs::file_type::directory ||
         ec) return false;

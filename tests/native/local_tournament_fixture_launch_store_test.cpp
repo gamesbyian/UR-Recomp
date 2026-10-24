@@ -1,5 +1,6 @@
 #include "local_tournament_fixture_launch_store.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -10,6 +11,11 @@
 #include <iterator>
 #include <string>
 #include <thread>
+
+#if !defined(_WIN32)
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 using namespace ur::product;
 namespace fs = std::filesystem;
@@ -163,6 +169,38 @@ int main() {
                 filename, *model, instance).status == Status::Missing,
             "retired launch cannot reappear as a result");
 
+    // The host path contract is UTF-8. Windows narrow CRT and filesystem
+    // paths cannot safely represent this non-ACP directory. Exercise the
+    // same native lock, atomic save, restore, stale retire and exact retire.
+    const fs::path unicode_root = root / fs::u8path(
+        "profile-\xE6\xB5\x8B\xE8\xAF\x95-\xF0\x9F\x8C\x88");
+    require(fs::create_directory(unicode_root),
+            "non-ACP launch directory created");
+    const fs::path unicode_path = unicode_root / "pending.urlaunch";
+    const std::string unicode_filename = unicode_path.u8string();
+    require(save_local_tournament_launch_file(unicode_filename, pending) ==
+                Status::Saved,
+            "UTF-8 launch checkpoint saved at native Unicode path");
+    require(fs::exists(fs::path(unicode_path).concat(".urmutex")) &&
+                bytes_of(unicode_path) == original_bytes,
+            "Unicode launch and lock use the intended native directory");
+    const auto unicode_loaded = load_local_tournament_launch_file(
+        unicode_filename, *model, instance);
+    require(unicode_loaded.loaded() &&
+                unicode_loaded.pending->attempt_id == attempt,
+            "Unicode launch checkpoint restores exact active attempt");
+    require(retire_local_tournament_launch_file(
+                unicode_filename, stale_attempt) == Status::Rejected &&
+                bytes_of(unicode_path) == original_bytes,
+            "Unicode stale retirement preserves the newer checkpoint");
+    require(retire_local_tournament_launch_file(
+                unicode_filename, pending) == Status::Saved &&
+                !fs::exists(unicode_path),
+            "Unicode exact retirement removes the intended checkpoint");
+    require(retire_local_tournament_launch_file(
+                unicode_filename, pending) == Status::Missing,
+            "Unicode missing retirement is idempotent");
+
     // Independent processes/threads sharing this file must not allow an
     // obsolete retire to remove another writer's newer checkpoint. Exercise
     // both operation orders, with an actual interleaved start gate and
@@ -234,6 +272,73 @@ int main() {
     require(bytes_of(path) ==
                 encode_local_tournament_pending_fixture(stale_attempt),
             "new checkpoint published after OS lock release");
+
+#if !defined(_WIN32)
+    // Independently scheduled processes must observe the same OS pathname
+    // lock. The child probes busy() before attempting an actual stale retire.
+    require(save_local_tournament_launch_file(filename, pending) ==
+                Status::Saved, "two-process seed publishes old launch");
+    int ready_pipe[2];
+    require(::pipe(ready_pipe) == 0, "two-process readiness pipe");
+    pid_t retiring_pid = -1;
+    {
+        TournamentLaunchPathLock publisher(filename);
+        require(publisher.acquired(), "parent holds OS launch lock");
+        retiring_pid = ::fork();
+        require(retiring_pid >= 0, "fork independent retiring process");
+        if (retiring_pid == 0) {
+            ::close(ready_pipe[0]);
+            TournamentLaunchPathLock probe(filename, true);
+            const bool blocked = !probe.acquired() && probe.busy();
+            const char ready = blocked ? 'B' : 'E';
+            (void)::write(ready_pipe[1], &ready, 1);
+            ::close(ready_pipe[1]);
+            if (!blocked) ::_exit(31);
+            const auto result = retire_local_tournament_launch_file(
+                filename, pending);
+            ::_exit(result == Status::Rejected ? 0 : 32);
+        }
+        ::close(ready_pipe[1]);
+        char ready = '\0';
+        require(::read(ready_pipe[0], &ready, 1) == 1 && ready == 'B',
+                "other process sees live publisher lock as busy");
+        ::close(ready_pipe[0]);
+        // The same atomic writer used inside save(), under the outer lock.
+        require(write_tournament_replace_staged(
+                    filename,
+                    encode_local_tournament_pending_fixture(stale_attempt),
+                    "urlaunch"), "publisher replaces checkpoint under lock");
+    }
+    int retirement_status = 0;
+    require(::waitpid(retiring_pid, &retirement_status, 0) == retiring_pid &&
+                WIFEXITED(retirement_status) &&
+                WEXITSTATUS(retirement_status) == 0,
+            "stale retirement in another process rejects newer checkpoint");
+    require(bytes_of(path) ==
+                encode_local_tournament_pending_fixture(stale_attempt),
+            "newer cross-process checkpoint survives byte-for-byte");
+    const auto after_process_race =
+        load_local_tournament_launch_file(filename, *model, instance);
+    require(after_process_race.loaded() &&
+                after_process_race.pending->attempt_id == stale_attempt.attempt_id,
+            "newer checkpoint remains restorable with expected attempt");
+
+    // OS-owned locks must release after process exit even if no destructor
+    // executed. This is the crash/relaunch lock boundary, not a durability
+    // or actual power-loss assertion.
+    const pid_t abrupt_pid = ::fork();
+    require(abrupt_pid >= 0, "fork abrupt-exit lock holder");
+    if (abrupt_pid == 0) {
+        TournamentLaunchPathLock held(filename);
+        ::_exit(held.acquired() ? 0 : 33);
+    }
+    int abrupt_status = 0;
+    require(::waitpid(abrupt_pid, &abrupt_status, 0) == abrupt_pid &&
+                WIFEXITED(abrupt_status) && WEXITSTATUS(abrupt_status) == 0,
+            "abrupt process held launch lock");
+    TournamentLaunchPathLock recovered(filename, true);
+    require(recovered.acquired(), "OS releases lock after abrupt process exit");
+#endif
 
     fs::remove_all(root);
     std::puts("local_tournament_fixture_launch_store_test: ok");

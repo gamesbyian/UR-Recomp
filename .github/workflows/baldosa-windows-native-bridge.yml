@@ -5,7 +5,7 @@ name: Baldosa native Windows x64 bridge feasibility
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
@@ -152,6 +152,7 @@ on:
       # Shared source-loaded atomic file, lock and run-record policies.
       - "native/product/local_tournament_atomic_replace.hpp"
       - "native/product/local_tournament_launch_path_lock.hpp"
+      - "native/product/local_tournament_utf8_path.hpp"
       - "native/product/run_record_capture_policy.hpp"
       # Genuine first-party transitive includes in native Windows UI, SRAM,
       # Practice and Records. A header-only change invalidates native tests.
@@ -161,6 +162,7 @@ on:
       - "native/product/modern_stock_menu_palette.hpp"
       # Compiled by the shared native Modern root/title visual presenter.
       - "native/product/modern_menu_visual_grammar.hpp"
+      - "native/product/modern_reduced_motion_preference.hpp"
       - "native/product/modern_menu_source_atlas.hpp"
       - "native/product/modern_text_catalog.hpp"
       - "native/product/modern_text_layout.hpp"
@@ -181,11 +183,42 @@ on:
       - "native/title/uniracers_run_data.*"
       - "native/title/uniracers_two_player_result.*"
       - "tools/baldosa_guest_adapter_spike.py"
+      # SDL3 controller seat ownership staged into the pinned host.
+      - "tools/baldosa_sdl_controller_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py"
+      - "native/product/controller_seat_assignment_policy.h"
+      - "tests/native/controller_seat_assignment_policy_test.cpp"
+      - "tools/run_baldosa_controller_lifecycle_acceptance.py"
+      - "tools/run_baldosa_keyboard_pad_join_acceptance.py"
+      # Focus-loss / seat-owner-disconnect pause in the native pause lifecycle.
+      - "native/product/baldosa_host_lifecycle_pause.hpp"
+      - "native/product/controller_hotplug_policy.hpp"
+      - "native/product/focus_pause_policy.hpp"
+      - "tests/native/baldosa_host_lifecycle_pause_test.cpp"
+      - "tests/unit/test_baldosa_host_lifecycle_pause.py"
+      - "tools/run_baldosa_lifecycle_pause_acceptance.py"
+      - "tests/native/baldosa_native_options_adopt_test.cpp"
+      - "tests/unit/test_baldosa_native_options_adopt_cpp.py"
       - "tools/baldosa_guest_snapshot_probe.*"
       - "tools/baldosa_native_modern_root.*"
       - "tools/baldosa_native_product_execution.*"
       - "tools/baldosa_native_product_pause_authority.*"
       - "tools/baldosa_product_execution_spike.py"
+      # SDL3 display/window lifecycle staged into the pinned host.
+      - "tools/baldosa_sdl_display_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_display_lifecycle_spike.py"
+      - "native/product/display_window_lifecycle_policy.h"
+      - "tests/native/display_window_lifecycle_policy_test.cpp"
+      - "tools/run_baldosa_display_lifecycle_acceptance.py"
+      - "tools/run_baldosa_window_placement_acceptance.py"
+      - "tools/baldosa_session_end_spike.py"
+      - "tools/run_baldosa_session_end_acceptance.py"
+      - "tests/unit/test_baldosa_session_end_spike.py"
+      - "tools/run_baldosa_launcher_gl_fallback_acceptance.py"
+      - "tools/run_baldosa_slow_panel_vsync_acceptance.py"
+      - "tools/run_baldosa_render_reset_acceptance.py"
+      - "tools/run_baldosa_default_window_scale_acceptance.py"
+      - "tests/unit/test_baldosa_window_placement_acceptance.py"
   workflow_dispatch:
     inputs:
       parallel_journeys:
@@ -205,6 +238,11 @@ on:
         required: false
         type: boolean
         default: false
+      run_on_draft:
+        description: "Preserve explicitly called Windows computation even when caller event is a draft pull_request"
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -216,6 +254,14 @@ concurrency:
 
 jobs:
   native-windows-x64:
+    # Draft computational PRs may opt into this exact-source Windows route via
+    # workflow_dispatch. The automatic 35-minute job is deferred until review,
+    # then ready_for_review invokes the full unmodified source+Windows journeys.
+    # A reusable workflow inherits its caller event. Its default-true
+    # workflow_call run_on_draft input explicitly preserves called campaigns.
+    # Direct PR events have no such input and remain deferred while draft.
+    # Converting a running PR back to draft cancels its superseded run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false || inputs.run_on_draft == true
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -256,8 +302,14 @@ jobs:
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
           python tests/unit/test_baldosa_native_practice_courses_probe.py
+          python tests/unit/test_baldosa_sdl_display_lifecycle_spike.py
           python tests/unit/test_modern_pause_overlay_presenter.py
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
+          python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
+          python tests/unit/test_baldosa_host_lifecycle_pause.py
+          python tests/unit/test_baldosa_native_options_adopt_cpp.py
+          python tests/unit/test_baldosa_window_placement_acceptance.py
+          python tests/unit/test_baldosa_session_end_spike.py
 
       - name: Verify immutable native source pins
         run: |
@@ -292,6 +344,14 @@ jobs:
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # After the Options seam: SDL3 exclusive/borderless and display events.
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # After the display seam: exit-time saves also on session end / console close.
+          python tools/baldosa_session_end_spike.py --game baldosa
+          python tools/baldosa_session_end_spike.py --game baldosa
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -334,6 +394,93 @@ jobs:
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Same exact PE, real Win32 window: Options seam and Alt+Enter through
+      # windowed / borderless / exclusive, then an unreachable-window rescue.
+      - name: Exercise SDL3 display mode transitions on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_display_lifecycle_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-display-lifecycle" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-display-lifecycle.json"
+          echo "PASS: Win32 SDL3 Display setting: exclusive FULLSCREEN gets a real display mode, BORDERLESS none, Alt+Enter stays borderless; see receipt for off-screen rescue. Forced 144 Hz desktop exclusive refresh: $(python -c "import json,sys; print(json.load(open(sys.argv[1]))['juddering_desktop_refresh'])" "$RUNNER_TEMP/ur-display-lifecycle.json"). One hosted display; no multi-monitor, DPI or hardware acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: opening the in-game launcher must never take the game
+      # down. A hosted runner has no GPU, so its own GL is the case that
+      # crashed (#2272); a forced 1.1 version proves the refusal anywhere.
+      - name: Exercise the in-game launcher without usable OpenGL on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_launcher_gl_fallback_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-launcher-gl-fallback" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-launcher-gl-fallback.json"
+          echo "PASS: Win32 in-game launcher with an OpenGL context older than 3.x is refused as UNAVAILABLE and the game carries on; this runner's own GL: $(python -c "import json,sys; print(json.load(open(sys.argv[1]))['machine_gl'])" "$RUNNER_TEMP/ur-launcher-gl-fallback.json"). Not a GPU-driver or remote-desktop acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: a panel slower than the game must not slow the game
+      # through vsync (forced 50 Hz), a 60 Hz panel keeps the setting.
+      - name: Exercise SDL3 swap interval against slow panels on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_slow_panel_vsync_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-slow-panel-vsync" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-slow-panel-vsync.json"
+          echo "PASS: Win32 SDL3 swap interval: a 50 Hz panel (forced) presents without waiting for vblank, a 60 Hz panel keeps VSync On, the runner's own panel matches its logged decision. Game speed on a real 50 Hz panel is a physical check." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: after SDL recovers a lost D3D11 device it sends
+      # RENDER_DEVICE_RESET; the frame texture must be rebuilt so the game
+      # keeps drawing instead of a black window.
+      - name: Exercise the render device reset path on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_render_reset_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-render-reset" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-render-reset.json"
+          echo "PASS: Win32 SDL3 D3D11: after SDL_EVENT_RENDER_DEVICE_RESET the frame texture is rebuilt once, no texture lock fails, and the game keeps running. The host response to SDL's event only; a driver-level device loss is a physical check." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: a scale nobody chose follows the display's content
+      # scale and fits its usable area; WindowScale and the launcher keep theirs.
+      - name: Exercise the DPI default window scale on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_default_window_scale_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-default-window-scale" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-default-window-scale.json"
+          echo "PASS: Win32 SDL3 default window scale: content scale 1.0 opens at 2x, an unchosen size follows a run-time scale change 2x->3x->2x without being saved, a forced 2.0 opens at the policy's scale for this runner's usable area ($(python -c "import json,sys; r=json.load(open(sys.argv[1])); print(r['content_2x_scale'], 'on', r['usable_area'])" "$RUNNER_TEMP/ur-default-window-scale.json")), an explicit WindowScale is kept and the launcher leaves the default unset. A real high-DPI panel is a physical check." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE, three launches sharing one config directory: a moved
+      # window reopens where it was; a saved display that is gone falls back.
+      - name: Exercise SDL3 window placement across Win32 relaunches
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_window_placement_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-window-placement" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-window-placement.json"
+          echo "PASS: Win32 SDL3 window placement: a moved window reopens at the same spot on the same display after relaunch, a maximized one reopens maximized; a saved display that is not connected falls back to SDL's default. One hosted display; moving between real monitors is a physical check." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE: Windows ending the session (WM_ENDSESSION, then the
+      # process killed at once) and the console window closing must still
+      # leave the SRAM and window placement on disk.
+      - name: Exercise session end and console close saves on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_session_end_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-session-end" \
+            --video windows --timeout 120 | tee "$RUNNER_TEMP/ur-session-end.json"
+          echo "PASS: Win32 session end: real WM_QUERYENDSESSION/WM_ENDSESSION to the running game, killed the moment WM_ENDSESSION returned, left SRAM and window placement on disk; Ctrl+Break quits through the ordinary exit; real console close: $(python -c "import json,sys; r=json.load(open(sys.argv[1]))['console_close']; print(r.get('not_exercised') or 'saved, ' + r['persisted'])" "$RUNNER_TEMP/ur-session-end.json"); simulated close (handler thread, then terminated) saved. Not a real sign-out or shutdown." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |
           set -euo pipefail
@@ -362,6 +509,51 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE. SDL virtual gamepads are hot-plugged through the
+      # host's ordinary event loop; each step checks the live seat table.
+      - name: Exercise SDL3 controller seat ownership through hotplug on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_controller_lifecycle_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-controller-lifecycle" \
+            --video windows --timeout 120
+          echo "PASS: Win32 SDL3 seat ownership: no seat steal on player-index collision, reconnect reclaim, spare-pad claim, release on removal, no player swap; with the product default a pad press is ignored while the window is unfocused (see receipt for not_exercised). Virtual SDL devices only; no physical controller acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE, Modern root with a two-racer roster: keyboard P1 plus
+      # one pad must form a 2P join (the pad moves to seat 2), and a P2 whose
+      # pad leaves before P1 confirms must be withdrawn (#2225).
+      - name: Exercise the keyboard plus one pad 2P join on Win32
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_keyboard_pad_join_acceptance.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/ur-keyboard-pad-join" \
+            --video windows --timeout 180
+          echo "PASS: Win32 Modern 2P join: two SDL virtual pads independently confirm both racers and enter original guest 0x3d; keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts; a lone P2 pad left at the root after P1's pad goes is moved to P1 and drives the menus. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE on the pinned 2P race route in Modern: unplugging the
+      # seated pad, then minimizing the real window, must each pause through
+      # the ordinary session, hold the guest frozen, and resume.
+      - name: Exercise Win32 Modern disconnect and focus-loss pause on a live race
+        run: |
+          set -euo pipefail
+          for mode in disconnect focus; do
+            extra=()
+            [ "$mode" = focus ] && extra=(--allow-not-exercised)
+            python tools/run_baldosa_lifecycle_pause_acceptance.py \
+              --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+              --rom "reference/roms/retail/Uniracers_USA.sfc" \
+              --script "baldosa/tests/routes/race_2p_split.txt" \
+              --out "$RUNNER_TEMP/ur-lifecycle-pause-$mode" \
+              --mode "$mode" --video windows --timeout 200 "${extra[@]}" \
+              | tee "$RUNNER_TEMP/ur-lifecycle-pause-$mode.json"
+            result=$(python -c "import json,sys; print(json.load(open(sys.argv[1]))['result'])" "$RUNNER_TEMP/ur-lifecycle-pause-$mode.json")
+            echo "Win32 Modern $mode lifecycle pause: $result (virtual pad / scripted minimize; not physical acceptance)." >> "$GITHUB_STEP_SUMMARY"
+          done
 
       # Owned visual-motion lane. Run ONCE against the same exact-native PE
       # produced above, not a separate renderer or a branch-mutating fixture.

@@ -2,6 +2,124 @@
 
 **Status: implemented bounded native host presentation primitive, not an approved finished title/menu skin.** This owns reusable appearance and timing vocabulary only. Title composition, root composition, individual modal information architecture, sprite art and finished UX reviews belong to their individual screen agents. Authentic/guest, route/controller, save/records, gameplay, HD racer and recruitment film are outside this lane.
 
+## Fixed BG1-grid continuity in native Modern root (2026-10-21)
+
+The original screen's checker/leaf **BG1 scroll/geometry stays fixed** while
+the 39-frame menu **BG2 text strip travels** (canonical source:
+`analysis/generated/menu-visual-language.json`). This is a spatial claim,
+**not** a claim that BG1's palette never changes: seven independently sampled
+native PPU captures establish several different grey colour assignments on
+unchanged BG1 tile geometry, as detailed below.
+The original shared checker fallback reset its 16px tile origin at every panel
+rectangle, which could move the checker phase with panel bounds or create a
+visible half-square discontinuity across adjacent cropped regions.
+
+`modern_menu_paint_checker_backdrop(..., fixed_bg1_grid=true)` is a small
+source-grounded presentation-only correction: it locks the checker squares to
+the *actual destination framebuffer's* top-left pixel, even when a rectangle
+starts at x/y offsets not divisible by 16 logical pixels. The existing
+default remains local and byte-identical for other consumers. The actual
+Modern root opts in; it still renders only its existing source-family
+grey checker fallback, not an invented leaf/logo raster. No font, title
+composition, menu state, routes, controller, guest pixels or Authentic mode
+are changed. Both 256×224 (4:3) and 342×224 (16:9) use the same 16px SNES
+logical grid at 1×, with integer 4× preservation.
+
+The checked-in native C++ framebuffer oracle composes one full root-area
+checker and four independently cropped quadrant panels split at *non-tile*
+x/y boundaries and demands full-surface byte identity at both widths,
+at 1× and 4×. It also checks global-origin phase, valid local default pixels
+and fail-closed invalid rectangles. The existing root presenter source
+contract asserts the fixed BG1 call is genuinely used by the shipping host.
+This is **native shared-painter** evidence, not a packaged Windows SDL P7
+capture, human art acceptance, leaf-pattern reconstruction or QA08 release
+approval. The visual QA agent must independently inspect a newly compiled
+combined native Windows SDL capture in 4:3 and 16:9 against stock BG1
+references; the title/destination owners keep their screen-specific layouts.
+
+Three-project reuse (registry `modern-product` with conditional entries):
+UR's measured original PPU `menu-visual-language.json`, shared painter,
+native product states and actual Windows capture route remain the source of
+truth; Baldosa owns the integrated native framebuffer/SDL handoff; Malmazuke
+is a PAL reference only. There is no justification for importing a second
+runtime, painting engine or copied game artwork for this seam correction.
+
+## Original BG1 palette phases on a stationary layout (2026-10-21)
+
+The actual native original-game PPU capture has enough VRAM, CGRAM and
+register state to reconstruct the original **256×224** Mode 3 BG1 artwork
+without guessing, via `tools/extract_menu_visual_language.py`. The source
+witness is the seven-state, SHA256-indexed
+[`modern-native-menu-bg1-ppu-palette-20261021.json`](../analysis/evidence/modern-native-menu-bg1-ppu-palette-20261021.json),
+from Windows-independent native Linux original-guest run
+[39568993910, artifact 12331730511](https://github.com/gamesbyian/UR-Recomp/actions/runs/39568993910/artifacts/12331730511),
+at immutable checkout `1981f199`. The original PPU/VRAM/CGRAM raw bytes
+and decoded art remain in the private capture; the repository stores
+**measurements, digests and palette-class counts only**.
+
+Across seven original menu/P1/2P/Options samples, BG1 scroll is `(0,0)`
+and all **57,344** decoded BG1 pixels are opaque with **110 distinct
+RGBA colours**. The first five samples use *identical complete VRAM*
+SHA256, but exhibit **four distinct BG1 RGBA digests**, because CGRAM
+changes. Against the frame506 reference, exactly **22,906** pixels change
+in each other sampled colour state. These differences comprise four
+disjoint, independently counted grey-tone classes:
+
+| Grey in frame506 | Exact pixel count | P1 frame503 | 2P frame525 | League frame569 |
+| --- | ---: | --- | --- | --- |
+| `#909090` | 7,719 | `#A8A8A8` | `#808080` | `#888888` |
+| `#808080` | 7,103 | `#888888` | `#909090` | `#A8A8A8` |
+| `#A8A8A8` | 4,075 | `#808080` | `#888888` | `#909090` |
+| `#888888` | 4,009 | `#909090` | `#A8A8A8` | `#808080` |
+
+Frame591 reproduces the BG1 decoded RGBA digest of frame506;
+Options-entry frame654 matches frame569; Options-return frame717 matches
+frame525, despite independently different complete VRAM/CGRAM snapshots
+elsewhere. This is strong evidence that the original has **spatially
+stationary BG1 patterns with changing grey shade assignments**.
+It is **not proof** of a repeating four-phase animation or any precise
+interval/input cause: these are sparse, noncontiguous state captures.
+A Modern animator must obtain contiguous source-timed PPU witnesses
+before offering an automatically timed backdrop shimmer. Do not
+fabricate cycles, paste proprietary extracted pixels into the repo,
+or infer human art approval from these hexadecimal colour matches.
+
+The merged `fixed_bg1_grid` checker is intentionally a clean, static
+host fallback: it solves geometry alignment only. The first-party native
+register adapter now preserves source `BGMODE ($2105)` and
+`OBJSEL ($2101)` for real local BG1/cursor export, but no original-art
+bundle has been legally admitted or visually approved for redistribution.
+Independent packaged Modern SDL screenshots at 4:3/16:9, Authentic
+isolation, controller/monitor tests and 25-case human visual acceptance
+remain separate **HOLD** items.
+
+## Canonical transparent source pixels, direct-raster admission (2026-10-21)
+
+The optional original-art adapter accepts two ingress paths: RGBA bytes
+through `modern_menu_pack_source_rgba`, which already converts all alpha-zero
+pixels to **literal ARGB zero**, and a direct caller-supplied AARRGGBB sheet
+through `modern_menu_paint_source_cell/text`. The latter previously treated
+an alpha-zero pixel with nonzero hidden RGB as valid heading, small-font or
+BG1 art, even though the sixteen-pose cursor adapter rejected the identical
+malformation. This is an internal provenance/canonicalization inconsistency,
+not a visual difference in already-clean source buffers.
+
+Both direct single-cell and whole-string preflights now refuse alpha-zero /
+RGB-nonzero pixels, just as they already refuse fractional alpha, without
+touching the destination. The whole-string path checks **all referenced
+glyphs before the first write** so a malformed later P cannot leave the
+earlier O painted. Source BG1 uses the same no-partial-paint rule. The
+previously accepted real PNG-packer output and the separate all-pose cursor
+contract remain unchanged. ROM-free C++ tests use deliberately malformed
+synthetic 16px heading, 8px small font and 256×224 BG1 buffers, checking
+literal buffer identity after rejection.
+
+This protects the boundary for future *legally admitted* original font and
+BG1 art. It does **not** supply those assets, certify any ROM/image rights,
+prove source palette identity, or count as a new Windows SDL/human visual
+acceptance. No layout, transition, hero, route, controller or Authentic
+rendering changed.
+
 ## Source-first inventory (2026-10-20)
 
 Primary source is the ROM-observed **canonical USA clean-boot menu capture** in [`analysis/generated/menu-visual-language.json`](../analysis/generated/menu-visual-language.json), independently described in [`UI-STATE-MAP.md`](UI-STATE-MAP.md). It samples original MAIN_MENU, OPTIONS_MENU, PLAYER_SELECT_P1, TOUR_SELECT and TRACK_SELECT; it is stronger than impressionistic modern redesign sketches.
@@ -21,6 +139,90 @@ The stock menu's regional **UNIRACERS/UNIRALLY** wordmark differs from arbitrary
 Visual cross-checks outside the project's ROM capture: the [MobyGames original main menu](https://www.mobygames.com/game/8085/uniracers/screenshots/snes/46723/) and [tour selection](https://www.mobygames.com/game/8085/uniracers/screenshots/snes/46725/) show the large yellow/black type, dimensional pointer, grey checkerboard, whimsical pictorial context and contrast between heading and item data. These external images remain research references only; they are neither vendored nor legal permission to distribute assets.
 
 **Contemporary reference, not a source of Uniracers conventions:** [Sonic Mania's photographed interface inventory](https://interfaceingame.com/games/sonic-mania/) demonstrates a practical 16:9 retro-original menu, title/entry and settings family, and [its 2017 review](https://www.seganerds.com/2017/08/14/review-sonic-mania/) discusses restrained modern rendering effects in an otherwise period-grounded 2D design. Borrow the *discipline* of a coordinated family, readable state hierarchy and intentional motion, not its Sega colours, round widgets, typefaces, icon shapes or screen layouts.
+
+## Contextual cursor palette is part of the source grammar
+
+The original dimensional cursor is also a **two-OBJ composition**, not a
+flat pointer: the palette-7 blue arrow and palette-5 dark maroon
+`RGB(72,32,48)` shadow are offset by `(+7,+7)` original pixels. Shared
+`kModernMenuSourceCursorShadow = 0xFF482030` preserves the real shadow
+palette token; the verified original **39×39** source sheet already contains
+both OBJs, so the native helper must not redraw the shadow or recolour the
+combined atlas. Synthetic compiled C++ 4× raster tests verify separate
+foreground/shadow pixels survive into the exact native buffer and preserve the
+far bottom-right pixel and the following transparent boundary.
+
+The original dimensional arrow is **not uniformly blue across stock menus**.
+The captured USA `analysis/generated/menu-visual-language.json` separates:
+
+| Original menu context | Source highlight RGB | Native ARGB token |
+| --- | --- | --- |
+| Main menu | (160, 208, 248), strongest blue OBJ palette stop | `0xFFA0D0F8` |
+| Pick Your Uni / rider select | (136, 200, 240) | `0xFF88C8F0` |
+| Pick Tour | (240, 160, 136) | `0xFFF0A088` |
+| Pick Track | (240, 160, 136) | `0xFFF0A088` |
+
+The publicly visible original *Pick Tour* screenshot corroborates the warm-coloured arrow: [MobyGames SNES screenshot 46725](https://www.mobygames.com/game/8085/uniracers/screenshots/snes/46725/). The repository capture, not that JPEG, is the authority for exact RGB values. These are source-state palettes, **not** automatic mappings from Modern destinations to original menus. A new Modern Practice view need not use the old Tour arrow colour merely because both offer courses.
+
+The same clean-boot source captures **12 exact frame-to-frame vertical deltas** for the main-menu cursor's 70→93px move: `6,4,3,3,2,1,1,1,1,0,0,1`. `modern_menu_observed_first_row_move_y(elapsed_frames)` returns their clamped cumulative displacement, including both held frames and the final one-pixel settle, without allocating a second clock or altering any host route. The previously exposed `modern_menu_cursor_ease_axis` is still the general-purpose *approximation* for arbitrary distances, rather than a claim of frame-for-frame stock movement. A receiving motion/screen owner must decide when the exact first-row witness applies and must not transplant the curve into unrelated gameplay/guest coordinates.
+
+Original big-font headings also have a context-specific **word gap**: the captured *PICK YOUR UNI* heading has 8px gaps, whereas the main/Options, *PICK TOUR* and *PICK TRACK* source examples use 16px. The pure `modern_menu_observed_heading_word_gap(context)` token supplies those measured advances for a legally cleared source glyph compositor; the provisional host ASCII fallback remains clearly identified as such. No screen is automatically reflowed.
+
+A separate shared fallback-painter guard now preflights full **8px host glyph cells**, scaled width/height and the existing one-physical-pixel offset shadow before either text callback. It refuses missing, empty, oversized or edge-clipped headings atomically. Native tests cover too-wide words, bottom-edge overflow, a shadow that alone would cross the right edge, and an exactly fitting one-cell heading. This prevents future screen owners from turning a nominally safe 4:3 or 16:9 overlay into off-panel glyph writes; it does not substitute an original 16×16 raster glyph atlas or change stock pixels.
+
+The shared C++17 header now exposes `ModernMenuSourceCursor` and `modern_menu_cursor_highlight(context)` and an optional final context argument on `modern_menu_paint_focus_band`. The existing root, destination and Options callers retain the **same default main-menu blue pixel values** without any API migration. An owning screen can select `Rider`, `Tour` or `Track` when an original-reference comparison justifies it; invalid values fail visibly to blue. The actual multi-shaded 32×32 spinning OBJ and its +7px shadow remain a separate rights-reviewed source-art asset, not a claim of completion by recolouring a three-pixel fallback marker. Tests exercise source constants and actual 256×224 framebuffer pixels in all four contexts without guest writes.
+
+This patch follows the three-project reuse preflight for `modern-product`: keep UR's measured PPU `menu-visual-language.json`, existing native `ModernRootOverlayPainter` and typed menu state; reuse Baldosa's integrated host rather than adding another graphics/input path; use Malmazuke for comparative source research only. No framework pilot is justified without a reproduced failure. The last-mile independent screenshot comparison is still **HOLD**: acquire same-build native SDL final-drawable 342×224/256×224 context states, compare visually with original captures, check 1×/4× scaling and legibility, then obtain human art review. Synthetic native pixel tests do not constitute those screenshots or approval.
+
+## Opt-in native source-asset adapters
+
+A source-linked appearance primitive is only useful if a legitimately cleared
+original raster can be passed through **the existing native painter** rather
+than creating a second drawing pipeline. Two C++17 wrappers are now exposed
+in `modern_menu_visual_grammar.hpp`:
+
+- `modern_menu_paint_source_heading_context` forwards a user-local,
+  independently verified **640×16** original heading sheet to the existing
+  atomic `modern_menu_paint_source_text`, choosing the original 8px rider
+  or 16px other-menu word gap. Unsupported characters, missing ink,
+  cropped words or alpha errors reject without partial font writes.
+- `modern_menu_paint_source_cursor_phase` forwards a source **624×39**
+  atlas of sixteen 39×39 arrow-and-shadow phases to the already vetted
+  `modern_menu_paint_source_cell` at index `(menu_frame / 2) % 16`. It first validates **all sixteen** source 39×39 poses for ink and strictly opaque/transparent pixels, so one broken late pose cannot vanish mid-spin after a seemingly successful first paint. The
+  caller owns its 60Hz menu clock, focus fallback, location and reduced-motion
+  choice. This function does not read or drive guest animation and does
+  not replace the legitimate dimensional original arrow with the
+  three-pixel host band.
+
+ROM-free native C++17 tests use generated **single-pixel synthetic atlases**
+to verify the real framebuffer receives correct rider/main word positioning,
+all 16 cursor phases, two-frame holds, 32-frame wrap, rejection of empty, partial-alpha or nonblack-transparent *future* poses on frame zero, and **atomic no-write**
+for invalid source or out-of-bounds target. No PNG, retail CHR, palette dump,
+ROM bytes, or source-derived art is committed or loaded at game startup.
+The source-bundle verifier, ownership/capture receipts, legally approved
+distribution and integrated Windows SDL comparison remain independently
+required before passing original art to these adapters. Visual acceptance
+and release gates are still **HOLD**.
+
+## Canonical USA PPU evidence-to-native token parity
+
+`tests/unit/test_modern_menu_original_source_tokens.py` now checks the
+**actual checked-in canonical USA PPU observation** against the native shared
+C++ declarations, rather than merely comparing two copies of hardcoded
+numbers. It independently verifies all five yellow glyph ramp stops, five
+grey ramp stops, main blue light/dark and maroon cursor-shadow RGB, the +7px
+shadow displacement, all 16 CHR spin tile IDs, all 39 stock scroll-frame
+offsets, all 12 first-row cursor movement deltas, exact 32/39-frame periods,
+and the original 8px/16px heading-gap and rider/tour/track highlight variants.
+In-memory negative tests deliberately mutate a palette entry or replace its
+C++ literal with a dynamic expression and require rejection. CI now triggers
+these checks on changes to `analysis/generated/menu-visual-language.json`,
+the shared grammar header and its native/pure tests.
+
+This is a **source provenance guard for numerical tokens**. It does not
+authenticate original ROM bytes anew, draw recovered art, prove correct
+source/host raster parity or grant visual approval. The optional original
+assets remain unbundled and source-manifest/rights-gated.
 
 ## Shared contract and native integration
 

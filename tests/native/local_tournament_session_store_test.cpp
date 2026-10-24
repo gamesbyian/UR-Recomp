@@ -195,6 +195,39 @@ int main() {
         "canonical session can replace a damaged disk payload");
     require(read_bytes(path) == canonical, "repaired session byte exact");
 
+
+    // SDL-style UTF-8 directory names must survive the same Windows native
+    // filesystem boundary for the writer, CAS mutex and both file readers.
+    const fs::path unicode_dir = root / fs::u8path(u8"session-测试-🎮");
+    require(fs::create_directory(unicode_dir), "Unicode session fixture");
+    const fs::path unicode_file = unicode_dir / "active.urtournament";
+    const std::string utf8_file = unicode_file.u8string();
+    require(save_local_tournament_session_definition_if_current(
+                utf8_file, std::nullopt, *session) == S::Saved,
+            "UTF-8 session create-only CAS");
+    require(fs::is_regular_file(unicode_file) &&
+            fs::is_regular_file(fs::path(unicode_file).concat(".urmutex")) &&
+            read_bytes(unicode_file) == canonical,
+            "UTF-8 session and mutex occupy native Unicode directory");
+    const auto unicode_loaded =
+        load_local_tournament_session_definition(utf8_file, catalog);
+    const auto unicode_historical =
+        load_historical_local_tournament_session_definition(utf8_file);
+    require(unicode_loaded.loaded() && unicode_historical.loaded() &&
+            encode_local_tournament_session_definition(
+                *unicode_loaded.session) == canonical &&
+            encode_local_tournament_session_definition(
+                *unicode_historical.session) == canonical,
+            "UTF-8 session active and historical readers agree");
+    require(save_local_tournament_session_definition_if_current(
+                utf8_file, std::nullopt, *session) == S::Conflict &&
+            read_bytes(unicode_file) == canonical,
+            "UTF-8 create-only CAS cannot overwrite incumbent session");
+    require(save_local_tournament_session_definition_if_current(
+                utf8_file, *session, *session) == S::Saved &&
+            read_bytes(unicode_file) == canonical,
+            "UTF-8 matching CAS preserves canonical session bytes");
+
     fs::remove_all(root);
     std::puts("local_tournament_session_store_test: ok");
     return 0;

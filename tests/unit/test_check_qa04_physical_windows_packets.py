@@ -4,10 +4,12 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_qa04_physical_windows_packets as qa
@@ -235,6 +237,24 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "VM must be a clean installation"):
                 self.review(paths)
 
+
+    def test_refuses_hardlinked_receipt_before_parsing(self):
+        """Reject receipt inode aliases even when contents appear valid."""
+        receipt = self.paths[0]
+        alias = receipt.with_name("witness-hardlink-alias.json")
+        try:
+            os.link(receipt, alias)
+        except (OSError, NotImplementedError):
+            self.skipTest("hardlink creation unavailable")
+        try:
+            with self.assertRaisesRegex(ValueError, "hardlinked receipt JSON"):
+                qa.inspect_packet(receipt, commit=SOURCE, zip_sha=ZIP, pe_sha=PE)
+            receipt.write_text("not-json", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "hardlinked receipt JSON"):
+                qa.inspect_packet(receipt, commit=SOURCE, zip_sha=ZIP, pe_sha=PE)
+        finally:
+            alias.unlink()
+
     def test_refuses_manufactured_release_claim_and_self_review(self):
         for key, val in (("release_gate_credit", 1),
                          ("physical_hardware_verified", True),
@@ -247,6 +267,82 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
                         self.review()
                 finally:
                     self.paths[0].write_text(old, encoding="utf-8")
+
+
+class AttachmentReadBindingTests(unittest.TestCase):
+    """The hashed attachment must be the object the path still names afterwards."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.packets = [make_packet(self.root, "pc1", clean=True),
+                        make_packet(self.root, "pc2"),
+                        make_packet(self.root, "pc3")]
+
+    def review(self) -> dict:
+        return qa.audit(self.packets, source_sha=SOURCE, portable_zip_sha=ZIP,
+                        executable_sha=PE)
+
+    def swap_after_open(self, swap) -> None:
+        real_open = qa.os.open
+        state = {"done": False}
+
+        def hook(path, *args, **kwargs):
+            fd = real_open(path, *args, **kwargs)
+            if not state["done"] and Path(path).name == "startup-log.txt":
+                state["done"] = True
+                swap(Path(path))
+            return fd
+
+        with mock.patch.object(qa.os, "open", hook):
+            self.review()
+
+    def test_unmodified_packets_still_pass(self):
+        self.assertTrue(self.review()["structural_three_setup_coverage"])
+
+    def test_leaf_replaced_after_open_is_refused(self):
+        def swap(path: Path) -> None:
+            other = path.with_name("replacement.txt")
+            other.write_bytes(path.read_bytes())
+            os.replace(other, path)
+
+        # The opened inode is unlinked (nlink 0) or the path identity differs.
+        with self.assertRaisesRegex(ValueError, "changed"):
+            self.swap_after_open(swap)
+
+    def test_packet_directory_swapped_after_open_is_refused(self):
+        def swap(path: Path) -> None:
+            place = path.parent
+            os.rename(place, place.with_name(place.name + "-moved"))
+            place.mkdir()
+
+        with self.assertRaisesRegex(ValueError, "changed while being read"):
+            self.swap_after_open(swap)
+
+    def test_growth_beyond_declared_size_is_refused(self):
+        real_open = qa.os.open
+
+        def hook(path, *args, **kwargs):
+            if Path(path).name == "startup-log.txt":
+                with open(path, "ab") as stream:
+                    stream.write(b"x")
+            return real_open(path, *args, **kwargs)
+
+        with mock.patch.object(qa.os, "open", hook):
+            with self.assertRaisesRegex(ValueError, "changed or oversized"):
+                self.review()
+
+    def test_leaf_symlink_is_not_followed(self):
+        target = self.packets[1].parent / "startup-log.txt"
+        leaf = self.packets[0].parent / "startup-log.txt"
+        leaf.unlink()
+        try:
+            leaf.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink creation unavailable")
+        with self.assertRaises(ValueError):
+            self.review()
 
 
 if __name__ == "__main__":

@@ -27,13 +27,16 @@ STOCK_VIEWS = {
 OUTPUT_SIZES = {
     (1024, 768): (256, 224),
     (1280, 720): (342, 224),
+    # Exact genuine 856x480 Windows SDL3 root in original Actions
+    # run 39555629743 / artifact 12325402655, logical 342x224 and
+    # native 320-wide root. The output is near-16:9 due host pixel rounding;
+    # never infer 4K/monitor acceptance from this bounded source-RGB check.
+    (856, 480): (342, 224),
     (3840, 2160): (342, 224),
 }
 MAX_CAPTURE_PNG_BYTES = 64 * 1024 * 1024
-ROOT_LINE = re.compile(
-    r"UR_BALDOSA_MODERN_DESTINATION stage=root "
-    r"raster=(\d+)x(\d+) root=(\d+),(\d+),(\d+),(\d+)\b"
-)
+ROOT_RASTER = re.compile(r"(\d+)x(\d+)")
+ROOT_RECT = re.compile(r"(\d+),(\d+),(\d+),(\d+)")
 CAPTURE_LINE = "UR_MODERN_VISUAL_SDL_CAPTURE status=saved"
 ROOT_PAINTED = "UR_BALDOSA_MODERN_ROOT painted=1"
 MIN_TEXT_PIXELS = 64
@@ -72,13 +75,56 @@ def read_p7_rgba(path: Path, width: int, height: int) -> bytes:
     return raw
 
 
+def native_capture_matches(line: str, width: int, height: int) -> bool:
+    """Require an actual SDL capture event and unambiguous exact fields.
+
+    A field substring in a longer identifier, value, or commentary is not
+    evidence that the corresponding native capture occurred.
+    """
+    tokens = line.split()
+    if not tokens or tokens[0] != "UR_MODERN_VISUAL_SDL_CAPTURE":
+        return False
+    fields = {}
+    for token in tokens[1:]:
+        key, separator, value = token.partition("=")
+        if not separator or not key or not value or key in fields:
+            return False
+        fields[key] = value
+    return (fields.get("status") == "saved" and
+            fields.get("output") == f"{width}x{height}" and
+            fields.get("source") == "SDL_RenderReadPixels")
+
+
+def native_root_geometry(line: str) -> tuple[int, int, int, int, int, int] | None:
+    """Admit one exact native root geometry event with unique complete fields."""
+    tokens = line.split()
+    if not tokens or tokens[0] != "UR_BALDOSA_MODERN_DESTINATION":
+        return None
+    fields = {}
+    for token in tokens[1:]:
+        key, separator, value = token.partition("=")
+        if not separator or not key or not value or key in fields:
+            return None
+        fields[key] = value
+    if fields.get("stage") != "root":
+        return None
+    raster = ROOT_RASTER.fullmatch(fields.get("raster", ""))
+    rect = ROOT_RECT.fullmatch(fields.get("root", ""))
+    if raster is None or rect is None:
+        return None
+    return tuple(int(value) for value in (*raster.groups(), *rect.groups()))
+
+
 def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
-    if receipt.get("schema_version") != 1 or (
+    if (type(receipt.get("schema_version")) is not int or
+            receipt["schema_version"] != 1 or
             receipt.get("execution_mode") != "modern" or
             receipt.get("SDL_driver") != "windows" or
-            receipt.get("native_process_exit") != 0 or
+            type(receipt.get("native_process_exit")) is not int or
+            receipt["native_process_exit"] != 0 or
             receipt.get("visual_approved") is not False or
-            receipt.get("release_gate_credit") != 0):
+            type(receipt.get("release_gate_credit")) is not int or
+            receipt["release_gate_credit"] != 0):
         raise ValueError("unsupported or pre-approved native receipt")
     dims = receipt.get("actual_sdl_renderer_output")
     if not isinstance(dims, list) or len(dims) != 2 or any(
@@ -99,13 +145,15 @@ def verify_capture(receipt: dict, png: Path, p7: Path, log: Path) -> dict:
     lines = log.read_text(encoding="utf-8").splitlines()
     root = []
     for line in lines:
-        m = ROOT_LINE.search(line)
-        if m:
-            root.append(tuple(int(x) for x in m.groups()))
-    if not root or ROOT_PAINTED not in "\n".join(lines) or not any(
-            CAPTURE_LINE in line and
-            f"output={width}x{height}" in line and
-            "source=SDL_RenderReadPixels" in line for line in lines):
+        geometry = native_root_geometry(line)
+        if geometry is not None:
+            root.append(geometry)
+    native_paint = any(
+        line.split()[:2] == ["UR_BALDOSA_MODERN_ROOT", "painted=1"]
+        for line in lines
+    )
+    if not root or not native_paint or not any(
+            native_capture_matches(line, width, height) for line in lines):
         raise ValueError("missing actual source root paint/SDL readback log")
     geometries = set(root)
     if len(geometries) != 1:

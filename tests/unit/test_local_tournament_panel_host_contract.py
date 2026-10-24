@@ -62,9 +62,13 @@ class LocalTournamentPanelHostContract(unittest.TestCase):
         windows = (ROOT / ".github/workflows/windows-local-tournament-package-acceptance.yml").read_text()
         self.assertIn("workflow_dispatch", windows)
         self.assertNotIn("push:", windows)
-        self.assertIn("name: ur-recomp-windows-x64-portable", windows)
-        self.assertIn("verify-archive-checksum", windows)
-        self.assertIn("run_windows_local_tournament_package_acceptance.sh", windows)
+        self.assertIn("uses: ./.github/workflows/windows-native-smoke.yml", windows)
+        self.assertIn("run_tournament_acceptance: true", windows)
+        self.assertNotIn("actions/download-artifact", windows)
+        smoke = (ROOT / ".github/workflows/windows-native-smoke.yml").read_text()
+        self.assertIn("verify-archive-checksum", smoke)
+        self.assertIn("run_windows_local_tournament_package_acceptance.sh", smoke)
+        self.assertIn("if: inputs.run_tournament_acceptance", smoke)
 
     def test_results_screen_admits_the_seated_pair_after_capture(self):
         context = function_body("local_tournament_panel_context_valid")

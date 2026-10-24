@@ -86,7 +86,20 @@ int main(int argc, char** argv) {
     std::filesystem::resize_file(
         oversized_path, kCompletedRunRecordMaxBytes + 1u);
 
-    const auto artifacts = inspect_completed_run_record_artifacts(dir.string());
+    bool scan_succeeded = false;
+    const auto artifacts = inspect_completed_run_record_artifacts(
+        dir.string(), &scan_succeeded);
+    assert(scan_succeeded);
+    scan_succeeded = false;
+    assert(inspect_completed_run_record_artifacts(
+        (dir / "never-created").string(), &scan_succeeded).empty());
+    assert(scan_succeeded);
+    const auto ordinary_file = dir / "not-an-archive-directory";
+    { std::ofstream file(ordinary_file); file << "file"; }
+    scan_succeeded = true;
+    assert(inspect_completed_run_record_artifacts(
+        ordinary_file.string(), &scan_succeeded).empty());
+    assert(!scan_succeeded);
     assert(artifacts.size() == 6);
     assert(artifacts[0].loaded());
     assert(artifacts[1].loaded());
@@ -174,7 +187,10 @@ int main(int argc, char** argv) {
     // otherwise reserve its staging directory in that foreign namespace.
     const auto root_alias = dir / "linked-parallel-archive";
     std::filesystem::create_directory_symlink(parallel_dir, root_alias);
-    assert(inspect_completed_run_record_artifacts(root_alias.string()).empty());
+    scan_succeeded = true;
+    assert(inspect_completed_run_record_artifacts(
+        root_alias.string(), &scan_succeeded).empty());
+    assert(!scan_succeeded);
     assert(load_valid_run_records(root_alias.string()).empty());
     std::string refused_detail;
     assert(!append_completed_run_record(
@@ -192,5 +208,24 @@ int main(int argc, char** argv) {
     assert(!append_completed_run_record(
         dangling_alias.string(), run(3001)));
     assert(!std::filesystem::exists(missing_target));
+    // Public run-record paths are UTF-8. This exercises both the archive
+    // scanner and the codec through a non-ANSI directory on Windows.
+    const auto unicode_dir = dir / std::filesystem::u8path(u8"records-資料-🚲");
+    const std::string unicode_dir_utf8 = unicode_dir.u8string();
+    std::string unicode_path, unicode_detail;
+    assert(append_completed_run_record(
+        unicode_dir_utf8, run(4242), &unicode_path, &unicode_detail));
+    assert(std::filesystem::exists(std::filesystem::u8path(unicode_path)));
+    scan_succeeded = false;
+    const auto unicode_scan = inspect_completed_run_record_artifacts(
+        unicode_dir_utf8, &scan_succeeded);
+    assert(scan_succeeded);
+    assert(unicode_scan.size() == 1 && unicode_scan[0].loaded());
+    assert(unicode_scan[0].path == unicode_path);
+    const auto unicode_read = load_completed_run_record_file(unicode_path);
+    assert(unicode_read.loaded());
+    assert(unicode_read.record->elapsed_ticks60 == 4242);
+    assert(load_valid_run_records(unicode_dir_utf8).size() == 1);
+
     return 0;
 }

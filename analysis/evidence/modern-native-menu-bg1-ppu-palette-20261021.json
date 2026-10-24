@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "subject": "source-observed original Uniracers BG1 native capture palette states",
+  "original_source_art_committed": false,
+  "source": {
+    "repo": "gamesbyian/UR-Recomp",
+    "revision": "1981f1993c0fc03c2fe2a0f8bb5d373e8d847d08",
+    "workflow_run": 39568993910,
+    "artifact_id": 12331730511,
+    "artifact_zip_sha256": "d84c930a30879ef577eb15ad9ac02672f0db583ae729e1b18528927ef44eeca2",
+    "source_type": "native original-guest PPU dumps, not final SDL Modern screen",
+    "privacy": "source original VRAM/CGRAM and reconstructed raster retained only in private CI artifact, not committed"
+  },
+  "decoder": "tools/extract_menu_visual_language.py original_menu_bg1_rgba; Mode3 8bpp BG1 VRAM tilemap, H/V flip, hscroll/vscroll, CGRAM RGB555 to 8-bit, zero-index transparency",
+  "baseline_member": "race-dumps/main-menu-ready",
+  "canvas_px": [
+    256,
+    224
+  ],
+  "observed_samples": [
+    {
+      "member_prefix": "race-dumps/main-menu-ready",
+      "guest_frame": 506,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "dcf7c955659d98c427db3d9ae36f459ec0477560d8078fde7a2ec856b62ba52b",
+      "cgram_sha256": "b3a536388d02a67eb25e0e1e7ad15754fd514a53a6ebed58ecaa53c200f29d30",
+      "bg1_rgba_sha256": "b9906497ccf0be440362ea5ed71a878d7c1d33f6a5a73545ce3011707ae3244a",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 0
+    },
+    {
+      "member_prefix": "ui-dumps/ui-main-menu-1p",
+      "guest_frame": 503,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "dcf7c955659d98c427db3d9ae36f459ec0477560d8078fde7a2ec856b62ba52b",
+      "cgram_sha256": "30d36d956cbf7b4ef60b30da65804b12a03bcadb31c96f282eb3a13b19254f84",
+      "bg1_rgba_sha256": "60cdc4c671538268d482053ece1e4cc4d6d6a5f2fb5d5cec3f1efd1172dc3f91",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 22906
+    },
+    {
+      "member_prefix": "ui-dumps/ui-main-menu-2p",
+      "guest_frame": 525,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "dcf7c955659d98c427db3d9ae36f459ec0477560d8078fde7a2ec856b62ba52b",
+      "cgram_sha256": "e7cb5971002475acf43c1a6a6b6c9f3609ce6b5c48df33e89c26933a2b309d5d",
+      "bg1_rgba_sha256": "93516ea787b2f2e905a66c3fdc8aaed4114da62d3c03150452de64f5a3518d3a",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 22906
+    },
+    {
+      "member_prefix": "ui-dumps/ui-main-menu-league",
+      "guest_frame": 569,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "dcf7c955659d98c427db3d9ae36f459ec0477560d8078fde7a2ec856b62ba52b",
+      "cgram_sha256": "e85092b9aa124b77140b00d8e20dc96969574cfe444956cfdf22affe2e395156",
+      "bg1_rgba_sha256": "a2bc28dca70224ec2ff4bca942b9997565c6ab0b2f04b014e108899c5c2e3d1e",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 22906
+    },
+    {
+      "member_prefix": "ui-dumps/ui-main-menu-options",
+      "guest_frame": 591,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "dcf7c955659d98c427db3d9ae36f459ec0477560d8078fde7a2ec856b62ba52b",
+      "cgram_sha256": "704112f26792c31bab163979dc3823ab4dbf8d0d1731a7a674524f3d687ec773",
+      "bg1_rgba_sha256": "b9906497ccf0be440362ea5ed71a878d7c1d33f6a5a73545ce3011707ae3244a",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 0
+    },
+    {
+      "member_prefix": "ui-dumps/ui-options-entry",
+      "guest_frame": 654,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "3d222d8d5b332c96b19c8d654a9e679c21f6e72dceed34296ea505b0d9ee09c1",
+      "cgram_sha256": "e85092b9aa124b77140b00d8e20dc96969574cfe444956cfdf22affe2e395156",
+      "bg1_rgba_sha256": "a2bc28dca70224ec2ff4bca942b9997565c6ab0b2f04b014e108899c5c2e3d1e",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 22906
+    },
+    {
+      "member_prefix": "ui-dumps/ui-options-back-main",
+      "guest_frame": 717,
+      "bgmode": 3,
+      "bg1_scroll": [
+        0,
+        0
+      ],
+      "vram_sha256": "3d222d8d5b332c96b19c8d654a9e679c21f6e72dceed34296ea505b0d9ee09c1",
+      "cgram_sha256": "e7cb5971002475acf43c1a6a6b6c9f3609ce6b5c48df33e89c26933a2b309d5d",
+      "bg1_rgba_sha256": "93516ea787b2f2e905a66c3fdc8aaed4114da62d3c03150452de64f5a3518d3a",
+      "opaque_pixels": 57344,
+      "unique_rgba_colors": 110,
+      "different_pixels_from_baseline": 22906
+    }
+  ],
+  "derived_facts": {
+    "same_vram_for_first_five_samples": true,
+    "unique_bg1_decoded_rgba_hashes": 4,
+    "scroll_changes_observed": false,
+    "sampled_nonzero_bg1_difference_from_cgram_with_equal_vram": 22906,
+    "pixels_per_layer": 57344,
+    "conclusion": "spatially fixed sampled BG1 with CGRAM-dependent decoded colour phases; timing/cycle of actual colour transitions NOT established",
+    "four_grey_palette_class_permutations": {
+      "baseline_member": "race-dumps/main-menu-ready",
+      "baseline_frame": 506,
+      "phase_members": [
+        "ui-dumps/ui-main-menu-1p",
+        "ui-dumps/ui-main-menu-2p",
+        "ui-dumps/ui-main-menu-league"
+      ],
+      "phase_frames": [
+        503,
+        525,
+        569
+      ],
+      "changed_pixels_each": 22906,
+      "baseline_class_to_phase_rgb": [
+        {
+          "baseline_rgb": "#909090",
+          "count": 7719,
+          "phase_rgb": [
+            "#A8A8A8",
+            "#808080",
+            "#888888"
+          ]
+        },
+        {
+          "baseline_rgb": "#808080",
+          "count": 7103,
+          "phase_rgb": [
+            "#888888",
+            "#909090",
+            "#A8A8A8"
+          ]
+        },
+        {
+          "baseline_rgb": "#A8A8A8",
+          "count": 4075,
+          "phase_rgb": [
+            "#808080",
+            "#888888",
+            "#909090"
+          ]
+        },
+        {
+          "baseline_rgb": "#888888",
+          "count": 4009,
+          "phase_rgb": [
+            "#909090",
+            "#A8A8A8",
+            "#808080"
+          ]
+        }
+      ],
+      "no_contiguous_timing_witness": true
+    }
+  },
+  "approval": {
+    "source_colour_animation_cycle_proven": false,
+    "actual_modern_sdl_capture": false,
+    "source_art_distribution_approved": false,
+    "human_visual_approved": false,
+    "release_gate_credit": 0
+  }
+}

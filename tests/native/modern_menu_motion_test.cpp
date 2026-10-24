@@ -1,6 +1,7 @@
 #include "native/product/modern_menu_motion.hpp"
 #include "native/product/modern_menu_stock_hero.hpp"
 
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -222,6 +223,108 @@ void test_motion_adversarial_event_stream() {
             assert(physical >= 0 && physical <= 4 * 21);
         }
     }
+}
+
+void test_original_source_clip_lengths() {
+    // Only the three inventoried original P1 event lengths are valid host
+    // proposals. The original 8-frame default remains byte-compatible.
+    static_assert(modern_menu_hero_clip_length_registered(8));
+    static_assert(modern_menu_hero_clip_length_registered(9));
+    static_assert(modern_menu_hero_clip_length_registered(10));
+    static_assert(!modern_menu_hero_clip_length_registered(0));
+    static_assert(!modern_menu_hero_clip_length_registered(7));
+    static_assert(!modern_menu_hero_clip_length_registered(11));
+    ModernMenuMotionState state{};
+    for (int age = 0; age < 18; ++age) {
+        auto pose = advance_modern_menu_motion(
+            state, {static_cast<std::uint64_t>(100 + age),
+                    0, true, false, 9});
+        assert(pose.hero_frame_ordinal == (age < 9 ? age : 8));
+    }
+    // Explicit source-event substitution restarts the observed sequence,
+    // including when focus stays unchanged. No cursor routing is modified.
+    auto pose = advance_modern_menu_motion(state, {118, 0, true, false, 10});
+    assert(pose.hero_frame_ordinal == 0 && pose.selection == 0);
+    for (int age = 1; age < 20; ++age) {
+        pose = advance_modern_menu_motion(
+            state, {static_cast<std::uint64_t>(118 + age),
+                    0, true, false, 10});
+        assert(pose.hero_frame_ordinal == (age < 10 ? age : 9));
+    }
+    // Interruption by real semantic selection starts the same source event
+    // over, and later host clock resets start a fresh root-entry event.
+    pose = advance_modern_menu_motion(state, {138, 1, true, false, 10});
+    assert(pose.hero_frame_ordinal == 0 && pose.selection == 1);
+    pose = advance_modern_menu_motion(state, {142, 1, true, false, 10});
+    assert(pose.hero_frame_ordinal == 4);
+    pose = advance_modern_menu_motion(state, {143, 1, true, true, 10});
+    assert(pose.hero_frame_ordinal == 0 && pose.reduced_motion);
+    pose = advance_modern_menu_motion(state, {144, 1, true, false, 10});
+    assert(pose.hero_frame_ordinal == 9); // no stale animation restart
+    pose = advance_modern_menu_motion(state, {145, 2, true, false, 10});
+    assert(pose.hero_frame_ordinal == 0);
+    pose = advance_modern_menu_motion(state, {100, 2, true, false, 10});
+    assert(pose.hero_frame_ordinal == 0);
+    pose = advance_modern_menu_motion(state, {102, 2, false, false, 10});
+    assert(!pose.visible);
+    pose = advance_modern_menu_motion(state, {103, 2, true, false, 10});
+    assert(pose.hero_frame_ordinal == 0);
+
+    // Malformed host requests cannot invent source events of arbitrary
+    // length or bypass the verified eight-pose fallback.
+    ModernMenuMotionState invalid{};
+    pose = advance_modern_menu_motion(invalid, {0, 0, true, false, 250});
+    assert(pose.hero_frame_ordinal == 0);
+    pose = advance_modern_menu_motion(invalid, {40, 0, true, false, 250});
+    assert(pose.hero_frame_ordinal == 7);
+
+    // A complete ten-frame source raster is eligible as a bounded one-shot
+    // sequence; no procedural 4x art or ROM pixels are used in this test.
+    std::array<std::vector<std::uint32_t>, 10> rasters;
+    std::array<ModernMenuStockHeroFrame, 10> frames{};
+    for (std::size_t i = 0; i < frames.size(); ++i) {
+        rasters[i].assign(kModernMenuStockHeroPixels, 0u);
+        rasters[i][32 * 64 + 32] = 0xff000000u |
+            static_cast<std::uint32_t>(i + 1);
+        frames[i] = {rasters[i].data(), rasters[i].size(),
+            static_cast<std::uint16_t>(0x540u + i),
+            modern_menu_stock_hero_digest(
+                rasters[i].data(), rasters[i].size()), true};
+    }
+    ModernMenuStockHeroSequence clip{frames.data(), frames.size(), true};
+    assert(modern_menu_stock_hero_sequence_eligible(clip));
+    std::vector<std::uint32_t> framebuffer(342u * 224u, 0xff161616u);
+    const HostOverlayRect safe{0, 0, 342, 224};
+    ModernMenuMotionState clip_motion{};
+    for (int age = 0; age <= 18; ++age) {
+        auto frame_pose = advance_modern_menu_motion(
+            clip_motion, {static_cast<std::uint64_t>(200 + age),
+                          0, true, false, 10});
+        frame_pose.hero_bob_px = 0;
+        frame_pose.hero_lean_px = 0;
+        framebuffer.assign(framebuffer.size(), 0xff161616u);
+        assert(paint_modern_menu_stock_hero(
+            framebuffer.data(), 342, 224, safe, {60, 40, 2},
+            clip, frame_pose) == ModernMenuStockHeroDraw::Drawn);
+        const int expected = age < 10 ? age + 1 : 10;
+        assert(framebuffer[(40u + 64u) * 342u + 60u + 64u] ==
+               (0xff000000u | static_cast<std::uint32_t>(expected)));
+    }
+    // The terminal pose holds forever. Any corrupt tenth frame vetoes
+    // the complete draw with no partial output, even at ordinal zero.
+    auto still = advance_modern_menu_motion(
+        clip_motion, {220, 0, true, false, 10});
+    still.hero_bob_px = 0;
+    still.hero_lean_px = 0;
+    frames[9].source_argb_digest ^= 1u;
+    const auto before = framebuffer;
+    assert(paint_modern_menu_stock_hero(
+        framebuffer.data(), 342, 224, safe, {60, 40, 2},
+        clip, still) == ModernMenuStockHeroDraw::Unverified);
+    assert(framebuffer == before);
+    frames[9].source_argb_digest ^= 1u;
+    clip.frame_count = 11; // unsupported length, reject before indexing
+    assert(!modern_menu_stock_hero_sequence_eligible(clip));
 }
 
 void test_raster() {
@@ -514,6 +617,7 @@ int main() {
     test_motion();
     test_motion_adversarial_event_stream();
     test_raster();
+    test_original_source_clip_lengths();
     test_source_stock_hero();
     std::puts("PASS: Modern native menu motion 60Hz, 4:3/16:9, reduced motion");
     return 0;

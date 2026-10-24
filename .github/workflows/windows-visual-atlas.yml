@@ -1,0 +1,261 @@
+name: Windows Visual Atlas (sharded opt-in capture)
+on:
+  # Extended Windows captures are started deliberately by the owner.
+  workflow_dispatch:
+    inputs:
+      reuse_build_run_id:
+        description: "Optional prior exact-SHA atlas run ID; skip Windows rebuild if PE receipt matches"
+        required: false
+        type: string
+        default: ""
+      resume_run_id:
+        description: "Optional prior atlas run ID to reuse complete same-source and same-PE capture cases"
+        required: false
+        type: string
+        default: ""
+      workers_per_job:
+        description: "Independent native capture processes per Windows job (1 is serial)"
+        type: choice
+        options: ["1", "2"]
+        default: "2"
+      deploy_pages:
+        description: "Also publish assembled atlas to GitHub Pages (requires Pages configured for Actions)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+# Never cancel an active extended capture when another push arrives.
+concurrency:
+  group: ur-windows-visual-atlas-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate-atlas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate inventory and ROM-free tests
+        run: |
+          python3 -m unittest tests.unit.test_windows_visual_atlas
+          python3 tools/windows_visual_atlas.py validate
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-preview"
+          test -s "$RUNNER_TEMP/atlas-preview/index.html"
+          test -s "$RUNNER_TEMP/atlas-preview/atlas.json"
+      - name: Check browser source parses
+        run: node --check tools/visual_atlas_web/atlas.js
+  build-windows:
+    needs: validate-atlas
+    if: inputs.reuse_build_run_id == ''
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out pinned native Baldosa/SDL framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify inputs
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+      - name: Reuse native product adapter and opt-in final SDL readback
+        run: |
+          set -euo pipefail
+          python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
+          python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp
+      - name: Fetch pinned Windows clang toolchain
+        run: |
+          set -euo pipefail
+          # The fetcher exports TOOLCHAIN_DIR via GITHUB_ENV for the next step.
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
+      - name: Build exactly one native Windows executable
+        run: |
+          set -euo pipefail
+          source "$TOOLCHAIN_DIR/env.sh"
+          clang --version | head -n1 | grep -F "22.1.8"
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          cmake -S baldosa -B baldosa/build-ur-visual -G Ninja -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build baldosa/build-ur-visual --target UniracersSNESRecomp -j 3
+          python tools/check_windows_pe_timestamp.py --exe baldosa/build-ur-visual/UniracersSNESRecomp.exe --source-epoch "$SOURCE_DATE_EPOCH"
+          mkdir -p "$RUNNER_TEMP/atlas-pe"
+          cp baldosa/build-ur-visual/UniracersSNESRecomp.exe "$RUNNER_TEMP/atlas-pe/UniracersSNESRecomp.exe"
+          python -c "import hashlib,json,os,pathlib; d=pathlib.Path(os.environ['RUNNER_TEMP'])/'atlas-pe'; p=d/'UniracersSNESRecomp.exe'; (d/'build-receipt.json').write_text(json.dumps(dict(source_sha=os.environ['GITHUB_SHA'], exe_sha256=hashlib.sha256(p.read_bytes()).hexdigest(), producer='native Windows SDL diagnostic; no release gate'),indent=2))"
+      - name: Upload shared immutable Windows binary, never retail ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-atlas-win32-pe
+          path: ${{ runner.temp }}/atlas-pe/
+          if-no-files-found: error
+          retention-days: 7
+  reuse-windows:
+    needs: validate-atlas
+    if: github.event_name == 'workflow_dispatch' && inputs.reuse_build_run_id != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.reuse_build_run_id }}
+          github-token: ${{ github.token }}
+          name: ur-atlas-win32-pe
+          path: ${{ runner.temp }}/atlas-pe
+      - name: Require exact source, PE identity and no unsafe reuse
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          d=pathlib.Path(os.environ["RUNNER_TEMP"])/"atlas-pe"
+          r=json.loads((d/"build-receipt.json").read_text())
+          binary=d/"UniracersSNESRecomp.exe"
+          assert r["source_sha"]==os.environ["GITHUB_SHA"], "Prior PE belongs to different source"
+          assert binary.is_file() and binary.stat().st_size > 1_000_000
+          assert hashlib.sha256(binary.read_bytes()).hexdigest()==r["exe_sha256"]
+          print("Exact previous Windows executable accepted for reuse:", r["exe_sha256"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ur-atlas-win32-pe
+          path: ${{ runner.temp }}/atlas-pe/
+          retention-days: 7
+          if-no-files-found: error
+  capture:
+    needs: [validate-atlas, build-windows, reuse-windows]
+    if: >-
+      always() && needs.validate-atlas.result != 'failure' &&
+      (needs.build-windows.result == 'success' ||
+       needs.reuse-windows.result == 'success')
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        shard: [frontend, interaction, motion, authentic]
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ur-atlas-win32-pe
+          path: ${{ runner.temp }}/atlas-pe
+      - name: Verify identical exact Windows executable and source
+        run: |
+          set -euo pipefail
+          python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          python -c "import hashlib,json,os,pathlib; d=pathlib.Path(os.environ['RUNNER_TEMP'])/'atlas-pe'; r=json.loads((d/'build-receipt.json').read_text()); p=d/'UniracersSNESRecomp.exe'; assert r['source_sha']==os.environ['GITHUB_SHA']; assert hashlib.sha256(p.read_bytes()).hexdigest()==r['exe_sha256']"
+      - name: Recover complete prior capture cases if expressly requested
+        if: inputs.resume_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ inputs.resume_run_id }}
+          github-token: ${{ github.token }}
+          name: visual-atlas-${{ matrix.shard }}
+          path: ${{ runner.temp }}/atlas-previous
+      - name: Run independently isolated screenshot processes for assigned cohort
+        run: |
+          args=()
+          if [[ -n "${{ inputs.resume_run_id }}" ]]; then
+            args+=(--resume-from "$RUNNER_TEMP/atlas-previous")
+          fi
+          python tools/windows_visual_atlas.py capture-shard \
+            --shard "${{ matrix.shard }}" \
+            --exe "$RUNNER_TEMP/atlas-pe/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "$GITHUB_SHA" \
+            --timeout 100 \
+            --workers "${{ inputs.workers_per_job || '2' }}" \
+            --out "$RUNNER_TEMP/atlas-${{ matrix.shard }}" "${args[@]}"
+      - name: Record coverage, including failed captures
+        if: always()
+        run: |
+          cat "$RUNNER_TEMP/atlas-${{ matrix.shard }}/shard-summary.json" >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Retain readback images, exact receipts and failure markers (no ROM/saves)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-atlas-${{ matrix.shard }}
+          # Strict allowlist: never upload the per-case Fresh Modern Screenshot State
+          # directory, ROM, generated configs, or mutable Windows save files.
+          path: |
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/actual-sdl-drawable.png
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/readback-receipt.json
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/capture-failure.json
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/atlas-shard-*.json
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/progress.jsonl
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/native-process.log
+            ${{ runner.temp }}/atlas-${{ matrix.shard }}/captures/*/probe_first/authentic-source-vs-sdl.json
+          if-no-files-found: warn
+          retention-days: 14
+  assemble:
+    needs: capture
+    if: >-
+      always() && (needs.capture.result == 'success' ||
+                   needs.capture.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: visual-atlas-*
+          path: ${{ runner.temp }}/atlas-captures
+          merge-multiple: true
+      - name: Assemble guarded static site and coverage inventory
+        run: |
+          python3 tools/windows_visual_atlas.py build \
+            --captures "$RUNNER_TEMP/atlas-captures" \
+            --source-sha "$GITHUB_SHA" --out "$RUNNER_TEMP/ur-atlas-site"
+          python3 -c "import json,os,pathlib; d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'ur-atlas-site/atlas.json').read_text()); print('## Visual Atlas\\n', d['counts']); pathlib.Path(os.environ['GITHUB_STEP_SUMMARY']).open('a').write('### Windows Visual Atlas\\n'+str(d['counts'])+'\\n')"
+      - name: Retain complete mobile-browser-ready atlas
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-windows-visual-atlas-website
+          path: ${{ runner.temp }}/ur-atlas-site/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Stage optional GitHub Pages deployment
+        if: inputs.deploy_pages == true
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/ur-atlas-site/
+  publish-pages:
+    needs: assemble
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

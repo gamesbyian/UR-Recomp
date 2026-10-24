@@ -44,6 +44,7 @@ extern "C" {
 #include "modern_root_menu.hpp"
 #include "modern_root_overlay_presenter.hpp"
 #include "modern_menu_motion.hpp"
+#include "modern_reduced_motion_preference.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
@@ -62,6 +63,7 @@ extern "C" {
 #include "regional_title_presenter.hpp"
 #include "host_profile_store.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
 #include "local_multiplayer_participants.hpp"
@@ -104,6 +106,7 @@ extern "C" {
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <cstring>
 #include <cstdio>
@@ -289,9 +292,27 @@ ProfileEditMode g_profile_edit_mode = ProfileEditMode::None;
 std::size_t g_profile_menu_index;
 std::size_t g_profile_preset_index;
 std::string g_profile_edit_name;
+// Rename targets an immutable profile ID, never a mutable catalog row.
+std::string g_profile_edit_target_id;
 bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
+bool g_profile_select_failed = false;
+// An unreadable canonical roster must not expose stale cached entries to
+// profile selection or mutation. Closing and reopening retries the read.
+bool g_profile_catalog_refresh_failed = false;
+bool g_profile_edit_save_failed = false;
+enum class ProfileResetNotice { None, Unavailable, Failed };
+ProfileResetNotice g_profile_reset_notice = ProfileResetNotice::None;
 ur::product::ModernProfileResetState g_profile_reset;
+
+const char* profile_reset_notice_text() {
+    switch (g_profile_reset_notice) {
+    case ProfileResetNotice::Unavailable: return "RESET UNAVAILABLE";
+    case ProfileResetNotice::Failed: return "RESET FAILED - DISK/STATE";
+    case ProfileResetNotice::None: return nullptr;
+    }
+    return nullptr;
+}
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
@@ -886,21 +907,14 @@ void product_diagnostic(const char* message) {
 std::string product_user_data_root() {
     const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
     if (override_root && *override_root) {
-        std::string root(override_root);
-        while (!root.empty() && (root.back() == '/' || root.back() == '\\')) {
-            root.pop_back();
-        }
-        return root;
+        return ur::product::host_trim_user_data_root(override_root);
     }
 
     char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
     if (!pref_path) return {};
     std::string root(pref_path);
     SDL_free(pref_path);
-    while (!root.empty() && (root.back() == '/' || root.back() == '\\')) {
-        root.pop_back();
-    }
-    return root;
+    return ur::product::host_trim_user_data_root(root);
 }
 
 std::string product_user_data_path(const char* leaf) {
@@ -926,7 +940,7 @@ void ensure_onboarding_state() {
     g_onboarding_seen_path = resolve_onboarding_seen_path();
     bool seen = false;
     if (!g_onboarding_seen_path.empty()) {
-        std::ifstream in(g_onboarding_seen_path, std::ios::binary);
+        std::ifstream in(ur::product::host_native_path_from_utf8(g_onboarding_seen_path), std::ios::binary);
         seen = in.good();
     }
 
@@ -939,7 +953,7 @@ void ensure_onboarding_state() {
     const char* onboarding_override = std::getenv("UR_ONBOARDING_STATE_PATH");
     if (!seen && !(onboarding_override && *onboarding_override) &&
         !g_product_state_path.empty()) {
-        std::ifstream product_state(g_product_state_path, std::ios::binary);
+        std::ifstream product_state(ur::product::host_native_path_from_utf8(g_product_state_path), std::ios::binary);
         seen = product_state.good();
     }
 
@@ -963,7 +977,7 @@ bool dismiss_onboarding() {
     }
     if (!g_onboarding_seen_path.empty()) {
         std::ofstream out(
-            g_onboarding_seen_path,
+            ur::product::host_native_path_from_utf8(g_onboarding_seen_path),
             std::ios::binary | std::ios::trunc);
         if (!out) {
             product_diagnostic("UR_ONBOARDING DISMISS_SAVE_FAILED");
@@ -1037,7 +1051,7 @@ bool queue_relative_menu_input(
 
     {
         std::ofstream out(
-            input_path,
+            ur::product::host_native_path_from_utf8(input_path),
             std::ios::binary | std::ios::trunc);
         if (!out) return false;
         char encoded[32];
@@ -1785,6 +1799,31 @@ void ensure_profile_catalog() {
     if (loaded) g_profile_catalog = *loaded;
 }
 
+void reconcile_profile_menu_index() {
+    if (g_profile_catalog.empty()) {
+        g_profile_menu_index = 0;
+        return;
+    }
+    // A failed rename may reload a reordered catalog. Keep the same racer
+    // selected rather than silently retargeting the still-open editor.
+    if (g_profile_edit_mode == ProfileEditMode::Rename &&
+        !g_profile_edit_target_id.empty()) {
+        const auto target = std::find_if(
+            g_profile_catalog.begin(), g_profile_catalog.end(),
+            [](const auto& entry) {
+                return entry.profile_id == g_profile_edit_target_id;
+            });
+        if (target != g_profile_catalog.end()) {
+            g_profile_menu_index = static_cast<std::size_t>(
+                std::distance(g_profile_catalog.begin(), target));
+            return;
+        }
+    }
+    if (g_profile_menu_index >= g_profile_catalog.size()) {
+        g_profile_menu_index = g_profile_catalog.size() - 1;
+    }
+}
+
 bool persist_profile_catalog(
     const std::vector<ur::product::HostProfileCatalogEntry>& expected_current) {
     const std::string path = profile_catalog_path();
@@ -1851,6 +1890,40 @@ bool activate_profile_id(const std::string& profile_id) {
         return false;
     }
     ensure_profile_catalog();
+    // The chooser can outlive another process's roster change. Revalidate
+    // authorization before touching the previous profile or target SRAM.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_SELECT CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        // Reconcile the attempted immutable identity, never an old row index.
+        // A removed racer falls back to the active identity if it survives.
+        g_profile_menu_index = 0;
+        bool selected_found = false;
+        for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
+            if (g_profile_catalog[i].profile_id == profile_id) {
+                g_profile_menu_index = i;
+                selected_found = true;
+                break;
+            }
+        }
+        if (!selected_found && g_product_state.active_profile_id) {
+            for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
+                if (g_profile_catalog[i].profile_id ==
+                    *g_product_state.active_profile_id) {
+                    g_profile_menu_index = i;
+                    break;
+                }
+            }
+        }
+        product_diagnostic("UR_PROFILE_SELECT CATALOG_CHANGED_RETRY");
+        return false;
+    }
     const std::string target_path = profile_state_path_for(profile_id);
     const auto target = ur::product::load_host_profile_state_file(
         ur::product::ExecutionMode::Modern, target_path, profile_id);
@@ -1946,6 +2019,33 @@ bool create_profile_from_editor() {
         return false;
     }
     ensure_profile_catalog();
+    // The chooser may have remained open while another process changed the
+    // roster. Re-read before allocating a new profile directory or writing
+    // an initial snapshot; a stale roster must not manufacture an orphan.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_CREATE CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        // A reordered roster invalidates the old numeric chooser selection.
+        // Restore the active racer by immutable ID before returning to UI.
+        g_profile_menu_index = 0;
+        if (g_product_state.active_profile_id) {
+            for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
+                if (g_profile_catalog[i].profile_id ==
+                    *g_product_state.active_profile_id) {
+                    g_profile_menu_index = i;
+                    break;
+                }
+            }
+        }
+        product_diagnostic("UR_PROFILE_CREATE CATALOG_CHANGED_RETRY");
+        return false;
+    }
     const auto& preset =
         ur::product::legacy_racer_presets()[g_profile_preset_index];
 
@@ -1997,7 +2097,7 @@ bool create_profile_from_editor() {
         std::optional<std::string>{id});
     if (!root.isolated()) return false;
     std::error_code ec;
-    const bool root_exists = std::filesystem::exists(root.save_root, ec);
+    const bool root_exists = std::filesystem::exists(ur::product::host_native_path_from_utf8(root.save_root), ec);
     if (ec) return false;
     const bool reusable_empty_root = root_exists &&
         ur::product::reusable_aborted_profile_creation_root(root.save_root);
@@ -2008,7 +2108,7 @@ bool create_profile_from_editor() {
         return false;
     }
     if (!root_exists) {
-        std::filesystem::create_directories(root.save_root, ec);
+        std::filesystem::create_directories(ur::product::host_native_path_from_utf8(root.save_root), ec);
         if (ec) return false;
     }
     const std::string path = root.save_root + "/host-profile.txt";
@@ -2073,9 +2173,40 @@ bool create_profile_from_editor() {
 
 bool rename_profile_from_editor() {
     ensure_profile_catalog();
-    if (g_profile_menu_index >= g_profile_catalog.size() ||
+    if (g_profile_edit_target_id.empty() ||
         !ur::product::valid_racer_name(g_profile_edit_name)) return false;
-    auto& entry = g_profile_catalog[g_profile_menu_index];
+    // The editor can outlive another process's catalog update. Validate the
+    // roster before writing profile metadata, not only at the catalog CAS:
+    // that CAS remains the final authority against races after this read.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_RENAME CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        // A stale row index must never retarget a still-open rename editor.
+        // Reconcile by its immutable target ID; if removed, fall back to the
+        // first available row and let a subsequent Save reject the missing ID.
+        g_profile_menu_index = 0;
+        reconcile_profile_menu_index();
+        product_diagnostic("UR_PROFILE_RENAME CATALOG_CHANGED_RETRY");
+        return false;
+    }
+    const auto target = std::find_if(
+        g_profile_catalog.begin(), g_profile_catalog.end(),
+        [](const auto& entry) {
+            return entry.profile_id == g_profile_edit_target_id;
+        });
+    if (target == g_profile_catalog.end()) {
+        product_diagnostic("UR_PROFILE_RENAME TARGET_MISSING");
+        return false;
+    }
+    g_profile_menu_index = static_cast<std::size_t>(
+        std::distance(g_profile_catalog.begin(), target));
+    auto& entry = *target;
     const std::string path = profile_state_path_for(entry.profile_id);
     const auto loaded = ur::product::load_host_profile_state_file(
         ur::product::ExecutionMode::Modern, path, entry.profile_id);
@@ -2120,13 +2251,29 @@ bool rename_profile_from_editor() {
         product_diagnostic("UR_PROFILE_UI COOL_NAME");
     }
     g_profile_edit_mode = ProfileEditMode::None;
+    g_profile_edit_target_id.clear();
     product_diagnostic("UR_PROFILE_UI RENAMED");
     return true;
 }
 
 void open_profile_menu() {
-    ensure_profile_catalog();
+    // Always read the canonical roster on opening: another process may have
+    // added, renamed or removed racers since this host cached the catalog.
+    // A failed read is distinct from a valid empty catalog; keep old bytes
+    // for diagnostics but disable the chooser until an explicit reopen.
+    const auto current_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    g_profile_catalog_refresh_failed = !current_catalog.has_value();
+    if (current_catalog) {
+        g_profile_catalog = *current_catalog;
+    } else {
+        product_diagnostic("UR_PROFILE_UI CATALOG_REFRESH_FAILED");
+    }
+    g_profile_edit_target_id.clear();
     g_profile_menu_visible = true;
+    g_profile_select_failed = false;
+    g_profile_edit_save_failed = false;
+    g_profile_reset_notice = ProfileResetNotice::None;
     product_diagnostic("UR_PROFILE_UI OPENED");
     g_profile_edit_mode = ProfileEditMode::None;
     g_profile_cool_name_notice = false;
@@ -2144,6 +2291,10 @@ void open_profile_menu() {
 }
 
 void begin_profile_create() {
+    g_profile_edit_target_id.clear();
+    g_profile_select_failed = false;
+    g_profile_reset_notice = ProfileResetNotice::None;
+    g_profile_edit_save_failed = false;
     g_profile_edit_mode = ProfileEditMode::Create;
     g_profile_preset_index = 0;
     g_profile_edit_name =
@@ -2154,7 +2305,13 @@ void begin_profile_create() {
 
 void begin_profile_rename() {
     ensure_profile_catalog();
+    reconcile_profile_menu_index();
     if (g_profile_menu_index >= g_profile_catalog.size()) return;
+    g_profile_edit_target_id =
+        g_profile_catalog[g_profile_menu_index].profile_id;
+    g_profile_select_failed = false;
+    g_profile_reset_notice = ProfileResetNotice::None;
+    g_profile_edit_save_failed = false;
     g_profile_edit_mode = ProfileEditMode::Rename;
     g_profile_edit_name = g_profile_catalog[g_profile_menu_index].identity.name;
     g_profile_edit_pristine = true;
@@ -2181,6 +2338,40 @@ bool execute_active_profile_progress_reset() {
     if (!active_profile_reset_authoritative() ||
         !selected_profile_is_active()) {
         product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
+        return false;
+    }
+
+    // A confirmation may remain open while another process changes the racer
+    // roster. Do not erase earned progression against cached authorization.
+    const auto latest_catalog = ur::product::load_host_profile_catalog_file(
+        profile_catalog_path());
+    if (!latest_catalog) {
+        g_profile_catalog_refresh_failed = true;
+        product_diagnostic("UR_PROFILE_RESET CATALOG_UNAVAILABLE");
+        return false;
+    }
+    if (*latest_catalog != g_profile_catalog) {
+        g_profile_catalog = *latest_catalog;
+        g_profile_menu_index = 0;
+        if (g_product_state.active_profile_id) {
+            const auto active = std::find_if(
+                g_profile_catalog.begin(), g_profile_catalog.end(),
+                [&](const auto& entry) {
+                    return entry.profile_id == *g_product_state.active_profile_id;
+                });
+            if (active != g_profile_catalog.end()) {
+                g_profile_menu_index = static_cast<std::size_t>(
+                    std::distance(g_profile_catalog.begin(), active));
+            }
+        }
+        product_diagnostic("UR_PROFILE_RESET CATALOG_CHANGED_RETRY");
+        return false;
+    }
+    if (!g_product_state.active_profile_id ||
+        g_profile_state->profile_id != *g_product_state.active_profile_id ||
+        !ur::product::profile_catalog_authorizes_state(
+            *latest_catalog, *g_profile_state)) {
+        product_diagnostic("UR_PROFILE_RESET REJECTED_CATALOG_AUTH");
         return false;
     }
 
@@ -2243,6 +2434,9 @@ bool execute_active_profile_progress_reset() {
 }
 
 void open_profile_reset_confirmation() {
+    g_profile_reset_notice = ProfileResetNotice::None;
+    g_profile_select_failed = false;
+    g_profile_cool_name_notice = false;
     g_profile_reset = ur::product::modern_profile_reset_open(
         modern_mode()
             ? ur::product::ExecutionMode::Modern
@@ -2252,6 +2446,7 @@ void open_profile_reset_confirmation() {
     if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
         product_diagnostic("UR_PROFILE_RESET CONFIRM_OPENED");
     } else {
+        g_profile_reset_notice = ProfileResetNotice::Unavailable;
         product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
     }
 }
@@ -2259,6 +2454,7 @@ void open_profile_reset_confirmation() {
 bool append_profile_editor_key(int key) {
     if (g_profile_edit_mode == ProfileEditMode::None) return false;
     if (key == SDLK_BACKSPACE) {
+        g_profile_edit_save_failed = false;
         if (!g_profile_edit_name.empty()) g_profile_edit_name.pop_back();
         g_profile_edit_pristine = false;
         return true;
@@ -2268,6 +2464,7 @@ bool append_profile_editor_key(int key) {
     else if (key >= SDLK_0 && key <= SDLK_9) ch = static_cast<char>('0' + key - SDLK_0);
     else if (key == SDLK_SPACE) ch = ' ';
     if (!ch) return false;
+    g_profile_edit_save_failed = false;
     if (g_profile_edit_pristine) {
         g_profile_edit_name.clear();
         g_profile_edit_pristine = false;
@@ -2278,11 +2475,22 @@ bool append_profile_editor_key(int key) {
 
 bool handle_profile_menu_key(int key) {
     ensure_profile_catalog();
+    reconcile_profile_menu_index();
+    // Never activate, rename, create or reset against an old in-memory roster
+    // when the authoritative disk catalog could not be read. Escape remains
+    // available, and opening the chooser again retries the canonical read.
+    if (g_profile_catalog_refresh_failed) {
+        if (key == SDLK_ESCAPE || key == SDLK_F2) {
+            g_profile_menu_visible = false;
+        }
+        return true;
+    }
 
     if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
         if (key == SDLK_ESCAPE || key == SDLK_b) {
             g_profile_reset = ur::product::modern_profile_reset_cancel(
                 g_profile_reset);
+            g_profile_reset_notice = ProfileResetNotice::None;
             product_diagnostic("UR_PROFILE_RESET CANCELLED");
             return true;
         }
@@ -2297,7 +2505,12 @@ bool handle_profile_menu_key(int key) {
             g_profile_reset = decision.state;
             if (decision.action ==
                 ur::product::ModernProfileResetAction::Execute) {
-                (void)execute_active_profile_progress_reset();
+                g_profile_reset_notice =
+                    execute_active_profile_progress_reset()
+                        ? ProfileResetNotice::None
+                        : ProfileResetNotice::Failed;
+            } else {
+                g_profile_reset_notice = ProfileResetNotice::Unavailable;
             }
             return true;
         }
@@ -2307,6 +2520,8 @@ bool handle_profile_menu_key(int key) {
     if (g_profile_edit_mode != ProfileEditMode::None) {
         if (key == SDLK_ESCAPE) {
             g_profile_edit_mode = ProfileEditMode::None;
+            g_profile_edit_target_id.clear();
+            g_profile_edit_save_failed = false;
             return true;
         }
         if (g_profile_edit_mode == ProfileEditMode::Create &&
@@ -2317,6 +2532,7 @@ bool handle_profile_menu_key(int key) {
             g_profile_edit_name = std::string(
                 ur::product::legacy_racer_presets()[g_profile_preset_index].name);
             g_profile_edit_pristine = true;
+            g_profile_edit_save_failed = false;
             return true;
         }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
@@ -2325,7 +2541,20 @@ bool handle_profile_menu_key(int key) {
                     ? create_profile_from_editor()
                     : rename_profile_from_editor();
             if (!saved) {
+                // A failed validation/CAS/save leaves the editor open, so
+                // make the failure visible without releasing Enter to stock.
+                // Create can commit a catalog entry before activation fails;
+                // in that case the editor has closed and selection feedback
+                // belongs on the chooser instead.
+                g_profile_edit_save_failed =
+                    g_profile_edit_mode != ProfileEditMode::None;
+                if (!g_profile_edit_save_failed) {
+                    g_profile_select_failed = true;
+                    g_profile_cool_name_notice = false;
+                }
                 product_diagnostic("UR_PROFILE_UI SAVE_REJECTED");
+            } else {
+                g_profile_edit_save_failed = false;
             }
             // The profile editor is modal. A rejected save must not leak the
             // same Enter press into the stock rider-select screen underneath.
@@ -2349,20 +2578,34 @@ bool handle_profile_menu_key(int key) {
     if (key == SDLK_r) { begin_profile_rename(); return true; }
     if (key == SDLK_d) { open_profile_reset_confirmation(); return true; }
     if (key == SDLK_UP && !g_profile_catalog.empty()) {
+        g_profile_reset_notice = ProfileResetNotice::None;
         g_profile_menu_index =
             (g_profile_menu_index + g_profile_catalog.size() - 1) %
             g_profile_catalog.size();
+        g_profile_select_failed = false;
         return true;
     }
     if (key == SDLK_DOWN && !g_profile_catalog.empty()) {
+        g_profile_reset_notice = ProfileResetNotice::None;
         g_profile_menu_index =
             (g_profile_menu_index + 1) % g_profile_catalog.size();
+        g_profile_select_failed = false;
         return true;
     }
-    if ((key == SDLK_RETURN || key == SDLK_KP_ENTER) &&
-        g_profile_menu_index < g_profile_catalog.size()) {
-        return activate_profile_id(
-            g_profile_catalog[g_profile_menu_index].profile_id);
+    if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+        g_profile_reset_notice = ProfileResetNotice::None;
+        if (g_profile_menu_index < g_profile_catalog.size()) {
+            const bool selected = activate_profile_id(
+                g_profile_catalog[g_profile_menu_index].profile_id);
+            g_profile_select_failed = !selected;
+            if (!selected) {
+                g_profile_cool_name_notice = false;
+                product_diagnostic("UR_PROFILE_UI SELECT_REJECTED");
+            }
+        }
+        // The chooser is modal even if the profile has disappeared or its
+        // storage/selector CAS fails. Never forward Enter to the stock game.
+        return true;
     }
     return true;
 }
@@ -5378,7 +5621,8 @@ void complete_run_record_capture() {
         }
 
         std::ofstream replay(
-            stored_path + ".input", std::ios::binary | std::ios::trunc);
+            ur::product::host_native_path_from_utf8(stored_path + ".input"),
+            std::ios::binary | std::ios::trunc);
         const std::string replay_text =
             ur::product::encode_completed_run_input_file(*record);
         replay.write(
@@ -9886,6 +10130,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (g_profile_menu_visible && modern_mode()) {
         ensure_profile_catalog();
+        reconcile_profile_menu_index();
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
@@ -9916,6 +10161,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height,
             x + 8 * scale, y + 7 * scale,
             "RACERS / PROFILES", 0xFFFFFFFFu, scale);
+        if (g_profile_catalog_refresh_failed) {
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale,
+                y + 52 * scale, "CATALOG UNAVAILABLE", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale,
+                y + 97 * scale, "ESC / F2 CLOSE - RETRY", 0xFFFFFFFFu, scale);
+            return;
+        }
 
         if (ur::product::modern_profile_reset_confirming(
                 g_profile_reset)) {
@@ -9961,6 +10213,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
             }
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
                 "ENTER SAVE   ESC CANCEL", 0xFFFFFFFFu, scale);
+            if (g_profile_edit_save_failed) {
+                snes_ovl_draw_text(pixels, stride, height,
+                    x + 8 * scale, y + 137 * scale,
+                    "SAVE FAILED - NAME OR DISK", 0xFFFFFFFFu, scale);
+            }
         } else if (g_profile_catalog.empty()) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 37 * scale,
                 "NO RACERS YET", 0xFFFFFFFFu, scale);
@@ -9968,6 +10225,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "N / PAD X  CREATE RACER", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 87 * scale,
                 "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
+            if (const char* notice = profile_reset_notice_text()) {
+                snes_ovl_draw_text(pixels, stride, height, x + 8 * scale,
+                    y + 112 * scale, notice, 0xFFFFFFFFu, scale);
+            }
         } else {
             const auto& entry = g_profile_catalog[g_profile_menu_index];
             char name_row[64];
@@ -9991,7 +10252,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 117 * scale,
                 "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
-                "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
+                profile_reset_notice_text()
+                    ? profile_reset_notice_text()
+                    : (g_profile_select_failed
+                        ? "SELECT FAILED - ESC TO CLOSE"
+                        : "ESC / F2  CLOSE"),
+                0xFFFFFFFFu, scale);
         }
         if (g_profile_cool_name_notice) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
@@ -10087,10 +10353,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
                      ur::product::modern_root_destination_index(
                          ur::product::modern_root_menu_selected(view.menu))),
                  true,
-                 [] {
-                     const char* value = std::getenv("UR_REDUCED_MOTION");
-                     return value && std::strcmp(value, "1") == 0;
-                 }()});
+                 ur::product::modern_reduced_motion_preference(
+                     std::getenv("UR_REDUCED_MOTION"))});
             if (g_modern_root_motion_root_presents < UINT64_MAX)
                 ++g_modern_root_motion_root_presents;
             (void)ur::product::paint_modern_menu_selection_motion(

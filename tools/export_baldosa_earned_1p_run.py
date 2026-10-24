@@ -115,16 +115,51 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
         raise OSError('No audited atomic no-replace directory publish on this host')
 
 
+def _portable_run_namespace_entries(root: Path) -> list[Path]:
+    """Refuse nonportable siblings before selecting an earned Windows run.
+
+    A POSIX-produced namespace must not silently lose members when interpreted
+    by Win32 (reserved devices, invalid names, case-insensitive aliases). This
+    is a directory-entry check, not proof that NTFS alternate streams are absent.
+    """
+    entries = list(root.iterdir())
+    seen: set[str] = set()
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
+    reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
+    for entry in entries:
+        name = entry.name
+        stem = name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+        if (not name or name.endswith((' ', '.')) or
+                unicodedata.normalize('NFC', name) != name or
+                any(unicodedata.category(ch) in ('Cc', 'Cf', 'Cs')
+                    or ch in '<>:"|?*\\/' for ch in name) or
+                len(name.encode('utf-16-le')) // 2 > 255 or stem in reserved):
+            raise ValueError(
+                'Nonportable source-earned run filename'
+                if name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')
+                else 'Nonportable sibling in earned-run namespace')
+        folded = name.casefold()
+        if folded in seen:
+            raise ValueError('Win32-colliding sibling in earned-run namespace')
+        seen.add(folded)
+    return entries
+
+
 def export(journey: Path, destination: Path) -> dict[str, object]:
     root_name = journey.name
+    # Validate unencodable code points before computing the Win32 UTF-16
+    # length. POSIX surrogateescaped filenames must get our bounded,
+    # actionable refusal, not an uncaught UnicodeEncodeError.
+    invalid_codepoints = any(
+        ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
+        or ch in '<>:"|?*\\/' for ch in root_name
+    )
     stem = root_name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
-    reserved = {'CON', 'PRN', 'AUX', 'NUL'}
+    reserved = {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'}
     reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
-    if (not root_name or root_name.endswith((' ', '.')) or
+    if (not root_name or root_name.endswith((' ', '.')) or invalid_codepoints or
             unicodedata.normalize('NFC', root_name) != root_name or
             len(root_name.encode('utf-16-le')) // 2 > 255 or
-            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
-                or ch in '<>:"|?*\\/' for ch in root_name) or
             stem in reserved):
         raise ValueError('Nonportable source journey root name')
     if destination == journey or journey in destination.parents:
@@ -157,15 +192,18 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     if (runs_root.is_symlink() or not runs_root.is_dir() or
             runs_root.resolve(strict=True) != runs_root.absolute()):
         raise ValueError('Missing/redirected earned-run namespace')
-    candidates = [entry for entry in runs_root.iterdir()
+    entries = _portable_run_namespace_entries(runs_root)
+    candidates = [entry for entry in entries
                   if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
     if len(candidates) != 1 or candidates[0].suffix != '.urrun':
         raise ValueError('Expected exactly one source-earned .urrun')
     source_name = candidates[0].name
     if (unicodedata.normalize('NFC', source_name) != source_name or
-            len(source_name.encode('utf-8')) > 255 or
-            any(ord(ch) < 32 or unicodedata.category(ch) == 'Cf'
+            # Reject surrogateescaped POSIX filenames before UTF-8 encoding.
+            # The source journey root already follows this bounded policy.
+            any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
                 for ch in source_name) or
+            len(source_name.encode('utf-8')) > 255 or
             source_name[-1] in (' ', '.') or
             any(ch in '<>:"|?*\\' for ch in source_name)):
         raise ValueError('Nonportable source-earned run filename')
@@ -211,6 +249,17 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
         with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
             json.dump(manifest, output, indent=2, sort_keys=True)
             output.write('\n')
+        # Re-open the source AFTER staging. A source run, report, or namespace
+        # changed during the relatively long copy/manifest phase must not be
+        # presented as the immutable original. This narrows the check/publish
+        # window; it cannot eliminate hostile-writer races after this check.
+        if (_regular_bytes(journey / 'report.json', MAX_REPORT_BYTES) != report_bytes or
+                _regular_bytes(candidates[0], MAX_RUN_BYTES) != data):
+            raise ValueError('Source evidence changed during staging')
+        final_candidates = [entry for entry in runs_root.iterdir()
+                            if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
+        if len(final_candidates) != 1 or final_candidates[0].name != source_name:
+            raise ValueError('Source run namespace changed during staging')
         if destination.exists() or destination.is_symlink():
             raise FileExistsError(f'Evidence destination already exists: {destination}')
         # Same-parent rename publishes the complete evidence set at once.

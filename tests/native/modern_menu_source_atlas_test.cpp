@@ -182,6 +182,51 @@ int main() {
     assert(full_frame[0] == 0xFFF8F800u);
     assert(full_frame[1] == 0xFF123456u);
 
+    // The PNG RGBA packer normalizes transparent source pixels to literal
+    // zero. The direct supplied-ARGB painter must enforce that same source
+    // raster invariant, rather than silently admitting invisible nonzero
+    // RGB data on heading/detail or BG1 while the cursor rejects it.
+    // These are synthetic poison pixels only; no ROM-derived art is used.
+    const auto before_hidden_rgb = screen;
+    big[16 * 24 + 1] = 0x00112233u; // P is a LATER glyph after visible O
+    assert(!modern_menu_paint_source_text(
+        big_view, ModernMenuSourceSheet::Heading,
+        screen.data(), screen.size(), 342, 224, 2, 142, "O P", 1));
+    assert(!modern_menu_paint_source_cell(
+        big_view, ModernMenuSourceSheet::Heading,
+        screen.data(), screen.size(), 342, 224, 2, 142, 24, 1));
+    assert(screen == before_hidden_rgb); // complete text refuses atomically
+    big[16 * 24 + 1] = 0u;
+
+    // O is a first-party alias of zero in the detail sheet. Keep that
+    // special contract valid while testing its hidden-RGB cell admission.
+    small[1] = 0x00010203u;
+    small[35 * 8 + 1] = 0x00010203u;
+    assert(modern_menu_source_detail_specials(small_view));
+    assert(!modern_menu_paint_source_text(
+        small_view, ModernMenuSourceSheet::Detail,
+        screen.data(), screen.size(), 342, 224, 2, 142, "O)", 1));
+    assert(!modern_menu_paint_source_cell(
+        small_view, ModernMenuSourceSheet::Detail,
+        screen.data(), screen.size(), 342, 224, 2, 142, 35, 1));
+    assert(screen == before_hidden_rgb);
+    small[1] = 0u;
+    small[35 * 8 + 1] = 0u;
+
+    // Unlike source letters, the full BG1 fallback layer can be partly
+    // transparent. It must reject a poisoned transparent pixel anywhere
+    // in that layer without first writing its visible opening pixel.
+    backdrop[1] = 0x00112233u;
+    const auto before_poisoned_bg1 = full_frame;
+    assert(!modern_menu_paint_source_cell(
+        backdrop_view, ModernMenuSourceSheet::Backdrop,
+        full_frame.data(), full_frame.size(), 256, 224, 0, 0, 0, 1));
+    assert(full_frame == before_poisoned_bg1);
+    backdrop[1] = 0u;
+    assert(modern_menu_paint_source_cell(
+        backdrop_view, ModernMenuSourceSheet::Backdrop,
+        full_frame.data(), full_frame.size(), 256, 224, 0, 0, 0, 1));
+
     // Strong no-partial-output guarantees for invalid glyph, clipping and
     // alpha. These are actually tested on the image buffer, not call counts.
     const auto before = screen;

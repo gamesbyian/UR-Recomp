@@ -1,5 +1,6 @@
 #include "local_tournament_session_coordinator.hpp"
 #include "local_tournament_launch_path_lock.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -18,25 +19,28 @@ bool valid_paths(const LocalTournamentCoordinatorPaths& paths) {
 }
 
 std::string active_session_path(const LocalTournamentCoordinatorPaths& paths) {
-    return (fs::path(paths.tournaments_root) / "active.urtournament").string();
+    return (host_native_path_from_utf8(paths.tournaments_root) /
+            "active.urtournament").u8string();
 }
 
 std::string instance_directory(const LocalTournamentCoordinator& session) {
-    return (fs::path(session.paths.tournaments_root) /
-            session.definition.instance_id).string();
+    return (host_native_path_from_utf8(session.paths.tournaments_root) /
+            session.definition.instance_id).u8string();
 }
 
 std::string receipts_directory(const LocalTournamentCoordinator& session) {
-    return (fs::path(instance_directory(session)) / "fixtures").string();
+    return (host_native_path_from_utf8(instance_directory(session)) /
+            "fixtures").u8string();
 }
 
 std::string archived_session_path(const LocalTournamentCoordinator& session) {
-    return (fs::path(instance_directory(session)) /
-            "session.urtournament").string();
+    return (host_native_path_from_utf8(instance_directory(session)) /
+            "session.urtournament").u8string();
 }
 
 std::string pending_path(const LocalTournamentCoordinator& session) {
-    return (fs::path(instance_directory(session)) / "pending.urlaunch").string();
+    return (host_native_path_from_utf8(instance_directory(session)) /
+            "pending.urlaunch").u8string();
 }
 
 bool same_fixture_participants(const LocalTournamentPendingFixture& pending,
@@ -74,7 +78,8 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     }
     LocalTournamentCoordinator next{*definition, definition->empty_schedule,
                                     {}, paths};
-    const fs::path session_file(active_session_path(paths));
+    const fs::path session_file = host_native_path_from_utf8(
+        active_session_path(paths));
     std::error_code ec;
     const bool present = fs::exists(session_file, ec);
     if (ec) return error(Status::StorageFailed, "cannot inspect existing session");
@@ -84,7 +89,7 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     std::optional<LocalTournamentSessionDefinition> expected_active;
     if (present) {
         const auto prior = load_historical_local_tournament_session_definition(
-            session_file.string());
+            session_file.u8string());
         if (!prior.loaded()) {
             return error(Status::StorageFailed,
                          "cannot replace invalid existing active session");
@@ -103,7 +108,7 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
         LocalTournamentCoordinator incumbent{
             *expected_active, expected_active->empty_schedule, {}, paths};
         incumbent_lease = std::make_unique<TournamentLaunchPathLock>(
-            pending_path(incumbent) + ".live", true);
+            host_native_path_from_utf8(pending_path(incumbent) + ".live"), true);
         if (!incumbent_lease->acquired()) {
             return error(incumbent_lease->busy()
                              ? Status::Busy : Status::StorageFailed,
@@ -116,14 +121,15 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     // when explicit replacement was requested. Refuse reuse whether or not
     // the prior instance is currently active; IDs are unique across events.
     ec.clear();
-    const bool instance_exists = fs::exists(instance_directory(next), ec);
+    const bool instance_exists = fs::exists(host_native_path_from_utf8(instance_directory(next)), ec);
     if (ec) {
         return error(Status::StorageFailed, "cannot inspect instance identity");
     }
     if (instance_exists) {
         return error(Status::AlreadyExists, "tournament instance already used");
     }
-    if (!fs::create_directories(receipts_directory(next), ec) && ec) {
+    if (!fs::create_directories(
+            host_native_path_from_utf8(receipts_directory(next)), ec) && ec) {
         return error(Status::StorageFailed, "cannot create fixture directory");
     }
     // Preserve the canonical immutable plan inside the unique instance root
@@ -144,7 +150,7 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
         return error(Status::StorageFailed, "cannot archive immutable tournament");
     }
     const auto publication = save_local_tournament_session_definition_if_current(
-        session_file.string(), expected_active, next.definition);
+        session_file.u8string(), expected_active, next.definition);
     if (publication == LocalTournamentSessionFileStatus::Conflict) {
         return error(Status::AlreadyExists,
                      "active session changed while tournament was created");
@@ -208,7 +214,9 @@ LocalTournamentCoordinatorResult restore_local_tournament_coordinator(
     // erase previously earned standings from the user's presentation.
     std::error_code directory_error;
     const bool receipt_directory_ok =
-        fs::is_directory(receipts_directory(next), directory_error);
+        fs::is_directory(
+            host_native_path_from_utf8(receipts_directory(next)),
+            directory_error);
     if (directory_error || !receipt_directory_ok) {
         return error(Status::EvidenceRejected,
                      "active tournament receipt directory unavailable");
@@ -231,7 +239,7 @@ LocalTournamentCompletedHistory load_completed_local_tournament_history(
     LocalTournamentCompletedHistory history;
     if (!valid_paths(paths)) return history;
     std::error_code ec;
-    const fs::path root(paths.tournaments_root);
+    const fs::path root = host_native_path_from_utf8(paths.tournaments_root);
     const bool exists = fs::exists(root, ec);
     if (ec) return history;
     if (!exists) {
@@ -267,7 +275,7 @@ LocalTournamentCompletedHistory load_completed_local_tournament_history(
         // deleted/renamed. All credited fixtures still require exact stored
         // receipts and catalog-independent, authoritative saved 2P pairs.
         const auto loaded = load_historical_local_tournament_session_definition(
-            (instance_root / "session.urtournament").string());
+            (instance_root / "session.urtournament").u8string());
         if (!loaded.loaded() || loaded.session->instance_id != instance) {
             ++history.unavailable_instances;
             continue;
@@ -276,7 +284,9 @@ LocalTournamentCompletedHistory load_completed_local_tournament_history(
             *loaded.session, loaded.session->empty_schedule, {}, paths,
         };
         std::error_code receipts_error;
-        if (!fs::is_directory(receipts_directory(candidate), receipts_error) ||
+        if (!fs::is_directory(
+                host_native_path_from_utf8(receipts_directory(candidate)),
+                receipts_error) ||
             receipts_error) {
             ++history.unavailable_instances;
             continue;
@@ -323,7 +333,7 @@ LocalTournamentCoordinatorStatus arm_local_tournament_fixture(
     // Two running games can no longer overwrite one another's live pending
     // token; process death automatically frees the handle for explicit retry.
     auto live_lock = std::make_shared<TournamentLaunchPathLock>(
-        pending_path(session) + ".live", true);
+        host_native_path_from_utf8(pending_path(session) + ".live"), true);
     if (!live_lock->acquired()) {
         return live_lock->busy() ? Status::Busy : Status::StorageFailed;
     }
@@ -404,7 +414,7 @@ LocalTournamentCoordinatorStatus commit_local_tournament_capture(
         // per-path OS mutex used by launch save/retire until the immutable
         // receipt claim is complete, so no cooperative writer can supersede
         // our attempt between validation and awarding points.
-        TournamentLaunchPathLock lock(checkpoint);
+        TournamentLaunchPathLock lock(host_native_path_from_utf8(checkpoint));
         if (!lock.acquired()) return Status::StorageFailed;
         const auto on_disk = load_local_tournament_launch_file(
             checkpoint, session.results, session.definition.instance_id);

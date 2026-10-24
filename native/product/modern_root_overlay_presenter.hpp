@@ -185,15 +185,43 @@ inline void render_modern_options_modal(
                 const auto& row = view.options_rows[i];
                 std::string value(row.value);
                 if (row.adjustable && selected) value = "< " + value + " >";
-                std::string label(row.label);
-                if (label.size() < 9) label.append(9 - label.size(), ' ');
-                paint.draw_text(pixels, stride, surface_height,
-                                bx + 9 * scale, row_y,
-                                fit_modern_overlay_text(
-                                    std::string(selected ? ">" : " ") +
-                                    label + value, cells).c_str(),
-                                selected ? palette.title_yellow : 0xFFFFFFFFu,
-                                scale);
+                const auto colour = selected ? palette.title_yellow :
+                                               0xFFFFFFFFu;
+                if (panel_w >= 320) {
+                    // Match native destination's true prepared-wide layout:
+                    // a stable label column and independent value column.
+                    // Never turn an arbitrary large SDL window into a wide
+                    // logical panel; the caller supplies panel_w explicitly.
+                    constexpr int kValueColumn = 183;
+                    const auto value_cells = modern_overlay_text_cells(
+                        panel_w - kValueColumn - 20);
+                    paint.draw_text(pixels, stride, surface_height,
+                                    bx + 9 * scale, row_y,
+                                    fit_modern_overlay_text(
+                                        std::string(selected ? ">" : " ") +
+                                        std::string(row.label),
+                                        modern_overlay_text_cells(
+                                            kValueColumn - 12)).c_str(),
+                                    colour, scale);
+                    // Action rows can legitimately have no value. Do not
+                    // issue an empty-glyph draw on the right column.
+                    if (!value.empty())
+                        paint.draw_text(pixels, stride, surface_height,
+                                        bx + kValueColumn * scale, row_y,
+                                        fit_modern_overlay_text(
+                                            value, value_cells).c_str(),
+                                        colour, scale);
+                } else {
+                    // Preserve the original compact 4:3 string and spacing.
+                    std::string label(row.label);
+                    if (label.size() < 9) label.append(9 - label.size(), ' ');
+                    paint.draw_text(pixels, stride, surface_height,
+                                    bx + 9 * scale, row_y,
+                                    fit_modern_overlay_text(
+                                        std::string(selected ? ">" : " ") +
+                                        label + value, cells).c_str(),
+                                    colour, scale);
+                }
             }
             const bool has_status = !view.options_status.empty();
             const bool has_notice = !view.options_notice.empty();
@@ -205,7 +233,7 @@ inline void render_modern_options_modal(
                                                : view.options_notice,
                                     cells).c_str(),
                                 has_status ? palette.title_yellow
-                                           : palette.secondary_grey, scale);
+                                           : kModernMenuCheckerLegibleGrey, scale);
             paint.draw_text(pixels, stride, surface_height,
                             bx + 9 * scale, by + 114 * scale,
                             fit_modern_overlay_text(
@@ -244,7 +272,7 @@ inline bool render_modern_root_overlay(
     const int list_w = wide ? 168 : panel_w - 16;
     modern_menu_paint_checker_backdrop(
         paint, pixels, stride, surface_height,
-        x, y, rect.width, rect.height, scale);
+        x, y, rect.width, rect.height, scale, true);
     paint.fill_rect(pixels, stride, surface_height,
         x, y, rect.width, 27 * scale, palette.header_band);
     paint.stroke_rect(pixels, stride, surface_height,
@@ -393,12 +421,21 @@ inline bool render_modern_root_overlay(
                 modern_overlay_text_cells(panel_w)).c_str(),
             palette.title_yellow, scale);
     }
-    paint.draw_text(pixels, stride, surface_height,
-        x + 8 * scale, y + 181 * scale,
-        fit_modern_overlay_text(
-            "A/ENTER SELECT   B/ESC QUIT",
-            modern_overlay_text_cells(panel_w)).c_str(),
-        0xFFFFFFFFu, scale);
+    // An inline modal owns the controls: inside it B/ESC means BACK, and each
+    // modal prints its own legend. Leaving the root's "B/ESC QUIT" visible
+    // below it advertised the opposite of what B does.
+    const bool inline_modal_open =
+        view.practice_picker_open || view.practice_launch_pending ||
+        view.options_open || view.read_only_records_open ||
+        view.two_seat_join_open || view.first_racer_open || view.quit_confirm ||
+        view.unbound_two_player_warning_open;
+    if (!inline_modal_open)
+        paint.draw_text(pixels, stride, surface_height,
+            x + 8 * scale, y + 181 * scale,
+            fit_modern_overlay_text(
+                "A/ENTER SELECT   B/ESC QUIT",
+                modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
     const std::string racer_hint = std::string(
         !view.root_notice.empty()
             ? view.root_notice
@@ -451,7 +488,7 @@ inline bool render_modern_root_overlay(
                                   std::string(view.practice_tour_name) + " - " +
                                       std::string(view.practice_kind_label),
                                   cells).c_str(),
-                        palette.secondary_grey, scale);
+                        kModernMenuCheckerLegibleGrey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 89 * scale,
                         view.practice_courses_open >= 40
@@ -516,7 +553,7 @@ inline bool render_modern_root_overlay(
                         fit_modern_overlay_text(
                             view.records_recent, modern_overlay_text_cells(
                                 panel_w - 30)).c_str(),
-                        palette.secondary_grey, scale);
+                        kModernMenuCheckerLegibleGrey, scale);
         if (!view.records_detail.empty() &&
             view.read_only_records_two_player) {
             paint.draw_text(pixels, stride, surface_height,
@@ -575,10 +612,10 @@ inline bool render_modern_root_overlay(
                         stock.c_str(), palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 98 * scale,
-                        "P1 A READY / B BACK", palette.secondary_grey, scale);
+                        "P1 A READY / B BACK", kModernMenuCheckerLegibleGrey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 113 * scale,
-                        "P2 DPAD+A / B CLEAR", palette.secondary_grey, scale);
+                        "P2 DPAD+A / B CLEAR", kModernMenuCheckerLegibleGrey, scale);
     }
     if (view.first_racer_open) {
         // Shared Modern painter; Baldosa supplies the existing stock preset,
@@ -613,7 +650,7 @@ inline bool render_modern_root_overlay(
                                 : view.first_racer_is_switch
                                     ? "EXISTING PROFILE ONLY"
                                     : "NEW SEPARATE PROGRESS",
-                        palette.secondary_grey, scale);
+                        kModernMenuCheckerLegibleGrey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 94 * scale,
                         view.first_racer_created
@@ -647,7 +684,7 @@ inline bool render_modern_root_overlay(
                         "NEED TWO NAMED RACERS", 0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 63 * scale,
-                        "2P RESULTS NOT SAVED", palette.secondary_grey, scale);
+                        "2P RESULTS NOT SAVED", kModernMenuCheckerLegibleGrey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 92 * scale,
                         "PLAY LOCAL 2P ANYWAY?", 0xFFFFFFFFu, scale);

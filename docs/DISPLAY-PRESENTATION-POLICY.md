@@ -146,6 +146,119 @@ With Remastered Racer HD enabled, Internal Render Scale is resolved from the per
 
 Widened world composition now preserves the configured 1x–4x presentation density without changing the accepted 342×224 logical view, +48 backing/materializer coverage, +43 visible world extent, 7:6 Original PAR or final viewport policy. SNESRecomp allocates the presentation buffer from logical width/height multiplied by density; if the Racer-HD replacement presenter declines the widened frame, the generic nearest-density compositor expands the entire completed widened field, including host-owned margins, exactly. Regional-title replacement likewise preserves its logical retail crop at 1x–4x by nearest-composing the canonical guest title at the selected density, painting the proven Europe crop in logical coordinates expanded by that same integer scale, verifying the density-aware crop digest, and restoring the canonical composed frame on any failure. Current Modern presentation therefore has no global 1x density holdout.
 
+## Desktop display modes and monitor changes
+
+The Display setting has three meanings, and every desktop host must keep them distinct: **Windowed**; **Borderless** (fullscreen at the desktop mode, no mode switch); **Fullscreen** (exclusive, with a concrete display mode). SDL3 has no separate "fullscreen desktop" flag. A fullscreen SDL3 window is borderless unless the host first gives it a mode with `SDL_SetWindowFullscreenMode`. The pinned Baldosa host and Modern Options seam never did, so on the SDL3 Windows product Fullscreen was silently Borderless and switching between the two did nothing.
+
+`tools/baldosa_sdl_display_lifecycle_spike.py` closes this with decisions from `native/product/display_window_lifecycle_policy.h`:
+
+- **Fullscreen mode before every transition.** Before each fullscreen transition (Options, the in-game launcher, Alt+Enter, and window creation), Fullscreen gets SDL's closest exclusive mode to the window's display desktop mode, and Windowed/Borderless clear it. Output Resolution is not a Baldosa Options row yet, so "Native" is the only resolution.
+- **An exclusive refresh that does not judder.** The host presents once per simulated frame. On a desktop between two multiples of the guest rate (75, 144 or 165 Hz), frames alternate between two and three vblanks (one and two at 75 Hz), a steady judder. Borderless cannot avoid that; an exclusive mode switch can. When the desktop refresh is not within 1% of a whole multiple of the guest rate, `ur_display_exclusive_refresh_pick` takes the highest refresh the display offers at the desktop resolution that is (120 Hz on a 144 Hz panel; 60 Hz if nothing higher is). A desktop already at 60, 59.94, 120 or 240 Hz keeps its own refresh, so most panels see no change. Each exclusive mode logs `UR_DISPLAY exclusive_refresh choice=even|desktop desktop_hz=… chosen_hz=…`. The display runner repeats its scenario with a test-only 144 Hz desktop (`SNESRECOMP_UR_DISPLAY_DESKTOP_HZ_OVERRIDE`). It requires an even choice when the hosted display offers one, and records `not_exercised` otherwise. A real high-refresh panel is physical check D19.
+- **No exclusive mode means a refusal.** A display offering no such mode makes Options report a refusal, which the Options seam already rolls back.
+- **Alt+Enter stays borderless.** Alt+Enter moves between windowed and borderless only, so it clears any mode left from an earlier Fullscreen.
+- **Alt+Enter is never a menu key.** The product key hook runs before the framework's command lookup and sees no modifiers, so a visible Modern root took Alt+Enter's Return as CONFIRM and started a 1P game while the window stayed windowed. A key that maps to the framework's fullscreen command now always reaches the framework.
+- **Display events are reconciled, never consumed.** They are handled in all host event pumps:
+  - an exclusive window that lands on another display, or whose display's desktop mode changes, is re-moded for that display;
+  - a windowed window whose title strip no longer shows at least 32 px on any display's usable area (for example after its monitor was removed) is centred on the primary display, shrunk to fit if necessary;
+  - after a DPI change, a default-sized window that no longer fits is re-clamped through the framework's own window-scale rule.
+  - the in-game launcher's own event loop drains display events too, so the same reconcile runs when it returns (`reason=launcher_returned`), for a monitor removed or rescaled while it was open.
+
+**In-game launcher without usable OpenGL.** The launcher asks SDL for a 3.3 core context. Where Windows has no real GL driver (remote desktop, VMs, GPU-less machines), it returns the GDI 1.1 context instead of failing. ImGui's GL3 loader then failed, its result was ignored, and the first draw crashed the whole game through the launcher hotkey (#2272). The display seam now checks the context's own `GL_VERSION` and refuses anything below 3 (`[launcher] UR_LAUNCHER_GL unusable version=…`). The launcher returns UNAVAILABLE, which the host already treats as "resume the game". `tools/run_baldosa_launcher_gl_fallback_acceptance.py` opens the real in-game launcher twice. The first launch uses a test override that forces version 1.1, which must be refused. The second uses the machine's own GL and must not crash. Locally, without the check, the forced launch is not refused.
+
+Presentation pacing still follows the active display's refresh through the host's existing 250 ms re-check.
+
+**After a GPU device reset the game keeps drawing.** When the Direct3D 11 device is lost (a driver update, a GPU timeout, or a monitor switch on a hybrid-GPU laptop), SDL3 frees every texture's GPU data, recovers the device and sends `SDL_EVENT_RENDER_DEVICE_RESET`. The host kept locking its old frame texture, which then fails every frame ("Texture is not currently available"), so the window stayed black for the rest of the run. The display seam now flags the reset (`UR_DISPLAY render_device_reset`), and the next draw rebuilds the frame texture through the host's existing recreate path (`texture_recreated=WxH`). An unrecoverable loss is logged as `render_device_lost`. `tools/run_baldosa_render_reset_acceptance.py` delivers the event in a real launch and requires one rebuild, no failed lock and a running game; without the flag it fails. The game frame is the host's only SDL texture: the framework's FPS readout (`snes_osd.c`) is composited into the frame here, and its separate SDL draw path is never called. Hosted CI cannot remove a real GPU device, so a real device loss is physical check D17.
+
+**A panel slower than the game never slows the game.** The Baldosa host presents once per simulated frame and drops simulation it falls behind on. With VSync on, a panel slower than the SNES's ~60.1 Hz therefore set the game's own speed. A model of the host clock gives 50.000 simulated fps on a 50 Hz panel (83%), against 59.95 on a 59.94 Hz panel and 60.017 on a 60 Hz panel: the usual sync-to-video. Where `ur_display_vsync_cannot_carry` says the panel is more than 1% slower than the guest, the swap interval is now 0, so presents do not wait and the clock paces the game. Windowed play composites normally; exclusive fullscreen may tear. The decision is logged as `UR_DISPLAY vsync panel_hz=… guest_hz=… wait=no|setting` and re-applied when the window changes display or goes fullscreen. An unknown refresh keeps the setting. `tools/run_baldosa_slow_panel_vsync_acceptance.py` checks the renderer's applied interval with a forced 50 Hz and a forced 60 Hz panel, then on the machine's own panel. Locally, without the decision, the 50 Hz launch keeps vsync 1. The pinned 2P route's WRAM CRCs are unchanged. Game speed on a real 50 Hz panel is physical check D16.
+
+The framework's window-size keys (Ctrl+Up/Down when bound, and Ctrl+mouse-wheel) used to change only the live scale. `config.ini` kept the old `WindowScale`, so the chosen size was forgotten on relaunch. An explicit size step now records `WindowScale`, written by the host's existing exit-time config write. A re-clamp after a display or DPI change is not a player choice and is never persisted. Local check: a real Ctrl+wheel step then a normal quit persisted `WindowScale = 1` and relaunched at 320×240; main relaunched at 640×480.
+
+**The default window size follows the display's DPI.** Windows makes the host per-monitor DPI aware, and SDL3 window sizes are in pixels. The framework's fixed default scale, 2 (640×480), was therefore a small window on a 150% or 200% panel. When nobody chose a size (`WindowScale = 0`, with no `WindowWidth`/`WindowHeight`), the display seam asks `ur_display_default_window_scale` before the window is created:
+- the primary display's content scale times 2, rounded, and never below 2;
+- capped at the framework's maximum;
+- stepped down until the window uses at most 90% of the display's usable width and height.
+
+It logs `UR_DISPLAY default_window_scale content_scale=… usable=WxH scale=N`. An explicit `WindowScale`, an explicit size, a saved placement and later display or DPI changes keep their existing rules. Two framework paths used to turn the unset default into a fixed number:
+- the in-game launcher seeded an unset scale as a literal 2 and committed it;
+- the config writer saved an unset scale as `WindowScale = 3`, so the first config write resized the next launch.
+
+The launcher now opens on the live scale and leaves `WindowScale` unset unless the player changes it, and the writer keeps 0.
+
+`tools/run_baldosa_default_window_scale_acceptance.py` checks this in real launches:
+- a forced content scale of 1.0 opens at 2×;
+- a forced 2.0 opens at the policy's scale for the usable area the game logged;
+- an explicit `WindowScale = 1` is kept;
+- a launcher round trip keeps the default unset.
+
+Locally on a 3840×2160 X11 display, 2.0 gave scale 4 (1280×960); on 1024×768 it was clamped to 2. Without the decision, the runner fails; without the writer fix, the launcher round trip writes `WindowScale = 3` and fails. The pinned 2P route's WRAM CRCs are unchanged. A real high-DPI panel is physical check D18.
+
+**The unchosen size follows the display it is on.** SDL3 keeps a window's pixel size when it is dragged to a monitor with another scale, or when that monitor's scaling changes. So a default-sized window became tiny on a 200% monitor, or oversized when it came back to 100%. The window-placement restore can also put the window on a monitor with a different scale from the primary display the default was decided on.
+
+On a display or display-scale change, a windowed, unmaximized game whose size nobody chose is now given `ur_display_default_window_scale` for the display it is on. It keeps its centre where it was and logs `UR_DISPLAY reconcile reason=… action=follow_dpi scale=A->B`. This runs before the existing reachability and fit checks. It never writes `config.ini`. An explicit `WindowScale` or size keeps its existing rule: kept, and re-clamped only if it no longer fits.
+
+The default-scale runner adds three launches with the placement smoke's test-only `dpi:F` mode, which changes the content scale under a running game. A test-only usable area (`SNESRECOMP_UR_DISPLAY_USABLE_OVERRIDE`) lets a 1024×768 hosted desktop hold 3×. The checks:
+- 2×→3× and 3×→2× must follow once, at the expected size, and leave `WindowScale` unset;
+- an explicit `WindowScale = 1` must not follow.
+
+Locally on 1024×768 and 3840×2160 X11 both pass. Without the follow call the runner fails (`expected one follow … got []`). The pinned 2P route's WRAM CRCs are unchanged. Real monitor moves are physical check D10.
+
+**Window placement.** The pinned host always reopened centred on the primary display, so a player who keeps the game on a second monitor had to move it back every launch. At a clean exit the host now writes `window-placement.txt` next to the active `config.ini`. The file records:
+- the window's display, by name and bounds;
+- for a window that is not fullscreen, minimized or maximized, its windowed position;
+- whether a windowed game was maximized (`maximized=1`). The windowed position from before keeps its place in the file, so un-maximizing later returns there.
+
+At the next launch, after the renderer has the window (an OpenGL renderer can recreate it), the saved display is found by `ur_display_placement_match`:
+- an exact name and bounds match wins;
+- otherwise a uniquely named display wins, for a monitor that was rearranged;
+- otherwise the saved display is treated as missing.
+
+What happens next:
+- a missing display logs `saved_display_missing`, and the window stays where SDL put it;
+- a fullscreen window on another display is moved there and re-moded;
+- a windowed window returns to its saved spot only when the 32 px reachability rule still holds, and is otherwise centred on that display;
+- a window saved maximized is then maximized there, on the saved display.
+
+`tools/run_baldosa_window_placement_acceptance.py` runs five real launches:
+1. move the window, then quit;
+2. relaunch, which must reopen at the same spot on the same display, not maximized;
+3. maximize, then quit; the file must keep the moved spot and record `maximized=1`;
+4. relaunch, which must reopen maximized on the same display;
+5. relaunch with the saved display renamed to one that is not connected, which must log the fallback and must not reuse the old spot or the maximized state.
+
+Local X11 run: positive pass. Without the restore call the runner fails, and without the maximize step it fails `relaunch did not restore the maximized state`. Before the restore was moved after renderer creation, it landed at the right spot and was then displaced by window recreation; the runner caught that. Moving between real monitors needs more than one display and is a physical check.
+
+**Session end and console close keep the saves.** The host writes everything it keeps only at its ordinary exit: the cartridge SRAM (with the Modern profile checkpoint around it), the autosave slot, `config.ini` key changes and `window-placement.txt`. On Windows, two ordinary ways of ending the game never reached that exit, so all progress since launch was lost:
+
+- closing the console window that `run-uniracers.cmd` runs the game in. The console sends `CTRL_CLOSE_EVENT`, and the default handler ends the process at once. Ctrl+C and Ctrl+Break did the same;
+- signing out, restarting or shutting down with the game open, including a Windows Update restart. SDL3 does not handle `WM_QUERYENDSESSION`/`WM_ENDSESSION`, and the process can be terminated as soon as `WM_ENDSESSION` returns.
+
+`tools/baldosa_session_end_spike.py` moves the exit-time block, unchanged, into `UrPersistAtExit`. That function runs at most once and is still called from the ordinary exit. It adds two Windows-only entry points:
+
+- **Console events.** A console control handler turns these events into the host's ordinary `SDL_QUIT`. For close, sign-out and shutdown it then waits, inside the system's five seconds, for the main loop to finish `UrPersistAtExit`.
+- **Session messages.** A hidden top-level window receives the session messages during SDL's own event pump, between frames. `WM_QUERYENDSESSION` registers a shutdown-block reason and allows the session to end. `WM_ENDSESSION` saves synchronously before returning, then asks the loop to quit.
+
+Log tokens: `UR_SESSION_END console_event=…`, `end_session ending=1` and `persisted reason=exit|session_end|console_close|console_break`.
+
+`tools/run_baldosa_session_end_acceptance.py` runs the exact PE four times:
+
+- it sends the real session messages to the running game and kills the process the moment `WM_ENDSESSION` returns; the SRAM file and placement must already be on disk;
+- it sends Ctrl+Break, which must quit with exit code 0 through the ordinary exit;
+- it posts `WM_CLOSE` to the game's own console window from a helper attached to it;
+- it performs a simulated close (test-only `close_thread`): the handler runs on a new thread and the process is terminated as soon as it returns, which is what the system does after a close.
+
+On one hosted run the console host did not raise `CTRL_CLOSE_EVENT` for a posted `WM_CLOSE`, while on the next it did: the game logged `console_event=console_close`, was terminated with `STATUS_CONTROL_C_EXIT`, and its saves were on disk. An undelivered real close is therefore recorded `not_exercised` with the window class when no `console_event` follows within 15 s, and the simulated close always carries the check.
+
+What is saved, and when the ordinary exit saves it, is unchanged. A real sign-out or shutdown is physical check S1.
+
+`tools/run_baldosa_display_lifecycle_acceptance.py` drives these transitions on the real Win32 window through the product Options seam and the Alt+Enter command, and checks the window's actual flags and mode after each step. Off-screen rescue is recorded as `not_exercised` when the desktop refuses to move a window off-screen. Local negative controls fail as expected:
+- without the mode decision, `borderless_to_exclusive` and `windowed_to_exclusive` fail;
+- without the Alt+Enter clear, `hotkey_enters_borderless` fails.
+- without the key routing, a visible Modern root takes Alt+Enter as CONFIRM (`stock_requested players=1`), and both hotkey steps fail. The acceptance runs with the Modern root visible and the runner rejects any `stock_requested`.
+
+The pinned 2P route's per-frame WRAM CRCs are unchanged. A hosted runner has one display, so multi-monitor hot-plug, physical DPI changes and real mode-switch hardware remain unaccepted.
+
+**Window-key persistence:** Modern restores the persisted `HostSettings` display mode at boot. An Alt+Enter or launcher change is now adopted into that existing store when the live display changes (`baldosa_options_adopt_live_display`, see [MODERN-PRODUCT-LAYER](MODERN-PRODUCT-LAYER.md)), so it survives the next launch. A missing store keeps `config.ini` authoritative.
+
 ## Presentation cadence
 
 The authoritative simulation remains fixed to original game cadence.

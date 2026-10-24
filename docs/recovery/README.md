@@ -1,6 +1,40 @@
 # UR-Recomp recovery entrypoint
 
+**Evidence transport breakthrough (2026-10-23):** The purported inaccessible Evidence Library was anonymously readable from GitHub Actions. [Evidence ZIP access proof run 40027157602](https://github.com/gamesbyian/UR-Recomp/actions/runs/40027157602) fetched the original **28,106,236-byte H26 QA04 archive**, SHA-256 `601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00`, CRC-verified 33 ZIP members, and uploaded no raw ZIP or source. See [no-settings sandbox recovery runbook](SANDBOX-EVIDENCE-RECOVERY.md) and [recurring intake scopes](RECURRING-VAULT-INTAKE.md). This is transfer evidence, not publication/integration or QA acceptance.
+
+**Continuous intake:** [Recurring Vault Intake](RECURRING-VAULT-INTAKE.md) describes the six-hour GitHub Actions metadata-and-checkpoint route. A successful direct binary download was verified by [run 40022473433](https://github.com/gamesbyian/UR-Recomp/actions/runs/40022473433). These do not certify public source publication or engineering integration.
+
 **Purpose:** reconcile the Google Drive [Agent Recovery Vault](https://drive.google.com/drive/folders/1AAZyC49ZXFY81GB0hI31CAJnUd6iKcTn) with current GitHub `main` without losing unique source, negative evidence, rejected publication history or owner/physical acceptance obligations.
+
+**New transport route (2026-10-23):** [Direct Vault Intake](DIRECT-VAULT-INTAKE.md) and [Recovery Agent Handoff](RECOVERY-AGENT-DIRECT-INTAKE-HANDOFF.md) replace conversational base64 relay for accessible archives. Successful [inventory run 40020834318](https://github.com/gamesbyian/UR-Recomp/actions/runs/40020834318) listed **45 Incoming direct files / 0 errors**, without downloading archive bytes; first real ZIP transfer is pending validation. [PR #2435](https://github.com/gamesbyian/UR-Recomp/pull/2435) merged the working gdown 6.4.2 and PR inventory trigger. No release or integration credit from enumeration. Historical checkpoints below are unchanged.
+
+## Vault reconciliation checkpoint (2026-10-23, supersedes the counts below)
+
+Direct-child counts: **20 Inbox, 38 Incoming, 66 Evidence Library, 51 Integrated, 0 Superseded**. A full pass over the Inbox pointers, small Incoming items and the first-candidate list found almost every previously "held" source already on `main`; check `main` and the cited PR before re-deriving any of these.
+
+- Newly merged: #2397 (`prompt_only_motion` in `tools/verify_title_plate_artifact.py`, Drive `1sk4W9TBmANhiAZk06HypoDiz7T0EbQOk`) and #2425 (QA04 attachment hashing through one opened handle, mitigating #2076).
+- Already integrated (byte-identical blobs or the same code): QA01 evidence-ref guard #2340; dual-disconnect mask #2342; quit-confirm footer; Records save-strip #2341; Unicode runner and profile-ancestor reparse guard #2345; stale-Up results focus #2384; Practice identity/restore/two-repeat #2357/#2356/#2362; package symlink and mods-root guards #2347/#2350; authenticated finish ledger #2354; P2P uint64 anchor #2349 and revocation barrier #2367 (closes #2022); Windows smoke upload/same-run tournament #2352/#2361/#2366 (closed #2185 and #2307 are superseded); source-epoch checker #2381; QA08 patches #2376/#2378/#2379/#2382; SDL log tokens #2250.
+- Superseded: #2198 same-key seat swap repro by #2330; 856px cross-resolution witness by `tools/verify_cross_resolution.py` (#2285).
+- Newly merged after the first checkpoint: #2430 (P2P loopback handshake research module `tools/p2p/direct_loopback_handshake.py`, source blob `167d2e7b` verified from Drive `1fXw7f5CkgsmkO_YBeXqR1aVZ2ngfAFxt`; two of its archived test members were re-expressed, not byte-copied).
+- Still unintegrated: the H26 `h26_five_line_decisions.py` harness (needs evidence ZIPs and `references/agent*` modules that are not in the repo; its manifest/shift/publication-window ideas overlap `tools/strict_vault_manifest.py` and the source-pinned QA06 audits) and the 2 MB to 28 MB H25/H26/H27 bundles, which were not re-opened. The Drive connector returns base64 only, so archives above roughly 8 KB are unreliable to transcribe by hand; per-ZIP-member CRC checks make chunked transcription workable.
+- Open for native Windows proof: #2076 and #2103. No release gate or physical acceptance changed.
+
+## Live integration intake crosswalk (2026-10-21, independently checked)
+
+The latest six-folder direct listing found **3 Integration Inbox pointers, 33 Incoming files, 35 Evidence Library files, 29 Work Journals, 3 Integrated receipts and 0 Superseded**. These are point-in-time direct-child counts, not an archive-member inventory or release proof; retain all source archives and the historical checkpoints above.
+
+The three Inbox pointers represent **two distinct outstanding deliverables**, not three independent integration jobs:
+
+- Original-title/source-to-SDL geometry evidence: pointer `1BRdWTbWMyI6toXGtRCos_jbw2nRPEs06`, extended by original-demo/cross-aspect pointer `1559xj-XZwwaCFM50etdOGRJnrcbSblGE`. Both belong to the same visual evidence candidate. Source-owner reconciliation with draft [#2149](https://github.com/gamesbyian/UR-Recomp/pull/2149) and original-title owner [#2043](https://github.com/gamesbyian/UR-Recomp/pull/2043) remains necessary; no physical/art/source-parity signoff follows from the evidence.
+- Windows smoke ZIP distribution safeguard: pointer `1CJh91PEzzexmDYvESfcKND-d1G0W74YB`. Requires authorized independent review of ROM-containing artifact publication, current workflow source, and retention of already-uploaded artifacts. The pointer is an unpublished candidate, not a merged fix.
+
+This crosswalk supersedes **only** prior claims that the Inbox is still empty. It does not change candidate owners, qualifying source SHAs, historical recovery receipts, or the release ledger. Verify live GitHub heads and exact candidate archives before integration; avoid duplicate ZIPs or separate PRs for an extension of the same work ID.
+
+## Subsequent H29 routing checkpoint (2026-10-21 UTC)
+
+An independent Drive metadata/readback sweep moved **16 surviving administrative files** from `02 Incoming`: 13 preflight/result/manifest receipts to `03 Evidence Library`, three historic continuations/handoffs to `01 Work Journals`. Post-move direct-child counts: **0 Inbox, 29 Incoming, 34 Evidence, 25 Journals, 3 Integrated, 0 Superseded**. File IDs were preserved; no source archive, source patch, candidate manifest or held source write was deleted/integrated. Full 16-ID routing receipt and limits: [H29 metadata routing](VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md).
+
+The Evidence Library also contains a nested **six-file historical-main Git backup** (five transfer ZIPs and a manifest ZIP). Its creation-time manifest said independent Drive verification was pending. This pickup **subsequently downloaded and independently verified all five ZIP CRCs, per-part SHA-256 values, the reconstructed 408,610,900-byte bundle SHA-256, Git bundle completeness, and a fresh bare-repository restore/fsck**: recovered main `7e9a1be4016b7a094c93603e2bad116a7ebf6ba7`, 8,118 commits. The original manifest is unchanged. Newer main commits and non-main GitHub state remain outside the backup scope; keep the backup restricted. Exact commands, hashes and limits appear in the [H29 receipt](VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md).
 
 ## Verified live folder-routing checkpoint (2026-10-21 UTC)
 

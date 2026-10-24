@@ -90,6 +90,16 @@ The initial [direct-transfer proof run](https://github.com/gamesbyian/UR-Recomp/
 downloaded a separate 2,688-byte ZIP with zero reported errors. Neither proof
 constitutes large-Evidence-folder coverage.
 
+## First verified production checkpoint resume (2026-10-24 UTC)
+
+[Manually dispatched run 40066717392](https://github.com/gamesbyian/UR-Recomp/actions/runs/40066717392) restored both scope-specific checkpoints from prior completed scheduled run 40063845604. This is **real production evidence** of #2467's restoration fix, whereas pull-request smokes deliberately skip the restore step.
+
+- **Incoming:** 45 gdown-listed entries; 3 previously audited items skipped; 6 newly audited successful ZIPs; **9 cumulative checkpointed**, 36 still due, 4,465,816 newly accepted bytes, no errors.
+- **Evidence:** 71 gdown-listed entries; 3 previously audited items skipped; 5 newly audited successful ZIPs; **8 cumulative checkpointed**, 63 still due, 61,383 newly accepted bytes. One failure: Evidence Drive ID `142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ` (`20261021T0216Z-agent2-h26-five-line-recovery.zip`) reached the *expanded ZIP budget*, not a network/authentication failure. The failed item remains unverified in the persisted queue, with a preserved failure record and a separate scoped nested-inspection path under #2088.
+- **Overall:** 11 new verified archive transports this run, 17 cumulative per-folder checkpoint entries, **zero automatically published source files**. The workflow is red because the Evidence job correctly reports its one inspection failure; the per-folder checkpoint/report/queue artifacts were still preserved.
+
+[#2473](https://github.com/gamesbyian/UR-Recomp/pull/2473) merged **after** this manual run and makes deterministic expanded/nested ZIP byte-budget failures eligible for cooldown rather than six-hour repetitive downloading, while preserving unmatched source-member fingerprints across future checkpoints. The change's production effect was not measured by this already-completed run. [Issue #2468](https://github.com/gamesbyian/UR-Recomp/issues/2468) owns the remaining verified-review-queue→GitHub PR handoff, avoiding duplicate source integrations already disposed in #2088. Do not equate `unmatched_or_unexamined` with semantic absence on current main.
+
 ## Manual operation
 
 GitHub Actions → Vault Recurring Intake → Run workflow. Choose a bounded

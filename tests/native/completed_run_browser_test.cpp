@@ -195,6 +195,9 @@ int main(int argc, char** argv) {
     assert(records_browser.view() == CompletedRunRecordsView::Runs);
     assert(records_browser.selected_run());
     assert(records_browser.selected_run()->is_previous);
+    // A repeated Confirm in Runs cannot jump back to the newest run.
+    assert(!records_browser.open_selected_course());
+    assert(records_browser.view() == CompletedRunRecordsView::Runs);
     const auto selected_date = completed_run_browser_date_text(
         records_browser.selected_run()->path);
     assert(selected_date.size() == 10);
@@ -219,6 +222,11 @@ int main(int argc, char** argv) {
 
     assert(records_browser.open_selected_run_detail());
     assert(records_browser.view() == CompletedRunRecordsView::Detail);
+    // Detail remains authoritative under repeated course Confirm.
+    const auto detail_run = records_browser.selected_run_index();
+    assert(!records_browser.open_selected_course());
+    assert(records_browser.view() == CompletedRunRecordsView::Detail);
+    assert(records_browser.selected_run_index() == detail_run);
     assert(records_browser.detail_target_kind() ==
            RunDataTargetKind::PersonalBest);
     const auto pb_detail =
@@ -251,6 +259,9 @@ int main(int argc, char** argv) {
     assert(records_browser.move(1));
     assert(records_browser.selected_run());
     assert(records_browser.selected_run()->path != first_run_path);
+    const auto moved_run = records_browser.selected_run_index();
+    assert(!records_browser.open_selected_course());
+    assert(records_browser.selected_run_index() == moved_run);
     const auto historical_previous_delta =
         records_browser.selected_run_previous_delta();
     assert(historical_previous_delta);

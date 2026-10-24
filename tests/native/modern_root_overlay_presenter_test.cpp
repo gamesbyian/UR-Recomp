@@ -501,6 +501,22 @@ int main() {
     assert(contains(" CONTROLS SHOW"));
     assert(contains("SAVED"));
     assert(contains("L/R CHANGE  B BACK"));
+    // Shared root/paused Options must not advertise Left/Right on a
+    // Confirm-only action row. This already works in the native destination.
+    view.options_selected = 2;
+    painted.clear();
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("A SELECT  B BACK"));
+    assert(!contains("L/R CHANGE  B BACK"));
+    // Invalid host focus must never imply an adjustable row.
+    view.options_selected = 99;
+    painted.clear();
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("A SELECT  B BACK"));
+    assert(!contains("L/R CHANGE  B BACK"));
+    view.options_selected = 1;
     // The genuine 342x224 native-wide shell has two independent readable
     // columns instead of a long engineering-width concatenated string.
     painted.clear();
@@ -535,6 +551,17 @@ int main() {
         }));
     assert(text_draws_fit({44,40,1280,816}));
     assert(rect_draws_fit({44,40,1280,816}));
+    view.options_selected = 2;
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,1368,896,4,320,
+                                      {44,40,1280,816},view));
+    assert(contains("A SELECT  B BACK"));
+    assert(!contains("L/R CHANGE  B BACK"));
+    assert(text_draws_fit({44,40,1280,816}));
+    assert(rect_draws_fit({44,40,1280,816}));
+    view.options_selected = 1;
     // Product-owned action rows sometimes carry no value, so their
     // independent right column must not dispatch an empty glyph run.
     view.options_rows[2] = {"CONTROLS", "", false};

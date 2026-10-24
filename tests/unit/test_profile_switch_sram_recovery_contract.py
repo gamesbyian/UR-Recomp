@@ -53,6 +53,12 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         self.assertIn("g_product_state = previous_product;", rollback)
         self.assertIn("std::memcpy(g_sram, previous_sram", rollback)
         self.assertIn("RtlTryWriteSram()", rollback)
+        self.assertIn("previous_save_root != restored_save_root", rollback)
+        self.assertIn("UR_PROFILE_SELECT RESTORE_ROOT_MISMATCH", rollback)
+        self.assertLess(
+            rollback.index("UR_PROFILE_SELECT RESTORE_ROOT_MISMATCH"),
+            rollback.index("RtlTryWriteSram()"),
+        )
         self.assertNotIn("persist_product_state(", rollback)
 
     def test_reloaded_target_format_is_checked_before_guest_sram_write(self):

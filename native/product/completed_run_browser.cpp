@@ -172,6 +172,9 @@ bool CompletedRunRecordsBrowser::adjust_detail_target(int delta) noexcept {
     const RunDataTargetKind requested = delta < 0
         ? RunDataTargetKind::PersonalBest
         : RunDataTargetKind::Previous;
+    // Repeating an already-active target is not a navigation transition.
+    // Keep the user's current split-scroll position on held L/R input.
+    if (requested == detail_target_kind_) return false;
     if (!selected_run_target_summary(requested)) return false;
 
     detail_target_kind_ = requested;

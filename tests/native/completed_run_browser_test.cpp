@@ -304,6 +304,28 @@ int main(int argc, char** argv) {
     assert(std::string(completed_run_browser_status_name(
                CompletedRunBrowserEntryStatus::Incompatible)) == "INCOMPATIBLE");
 
+    // Records must distinguish a genuinely missing (empty) run directory
+    // from an invalid/redirected one. Local Runs already does so. A failed
+    // refresh also revokes previously loaded selection and detail authority.
+    CompletedRunRecordsBrowser scan_guard_browser;
+    assert(scan_guard_browser.refresh(root.string(), records_scope));
+    assert(scan_guard_browser.index().total_completed_runs > 0);
+    const auto not_directory = root / "inspector-not-directory";
+    {
+        std::ofstream out(not_directory, std::ios::binary);
+        out << "not a directory";
+        assert(static_cast<bool>(out));
+    }
+    assert(!scan_guard_browser.refresh(not_directory.string(), records_scope));
+    assert(scan_guard_browser.index().courses.empty());
+    assert(scan_guard_browser.index().total_completed_runs == 0);
+    assert(scan_guard_browser.artifact_health().total_artifacts == 0);
+    assert(!scan_guard_browser.selected_course());
+    const auto missing_directory = root / "inspector-missing-directory";
+    assert(!std::filesystem::exists(missing_directory));
+    assert(scan_guard_browser.refresh(missing_directory.string(), records_scope));
+    assert(scan_guard_browser.index().courses.empty());
+
     // Local Runs and Records must consult the same direct-file authority.
     const auto parity_root = root / "inspector-parity";
     const auto foreign_root = root / "inspector-foreign";
@@ -340,6 +362,9 @@ int main(int argc, char** argv) {
         if (!ec_link) {
             assert(!parity_browser.refresh(alias.string(), target()));
             assert(parity_browser.size() == 0);
+            assert(!scan_guard_browser.refresh(alias.string(), records_scope));
+            assert(scan_guard_browser.index().courses.empty());
+            assert(!scan_guard_browser.selected_course());
         }
     }
 

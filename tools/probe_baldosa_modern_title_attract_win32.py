@@ -197,8 +197,12 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3815 menu=d7 race=00 stable=60",
-        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
+        # The native root logs stock_requested synchronously inside its
+        # admission call; the title logs named_play_requested after that
+        # call returns. Both must follow recovered MAIN, and stock_entered
+        # must follow both. This order is observed in Windows run 40101417391.
         "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
     )
     last = -1

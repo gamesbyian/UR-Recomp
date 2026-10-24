@@ -7,6 +7,37 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
+      - "native/product/local_tournament_utf8_path.hpp"
+      - "native/product/modern_reduced_motion_preference.hpp"
+      - "tools/baldosa_sdl_controller_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py"
+      - "tests/unit/test_modern_title_controller_lifecycle_integration.py"
+      - "native/product/controller_seat_assignment_policy.h"
+      - "tests/native/controller_seat_assignment_policy_test.cpp"
+      - "tools/run_baldosa_controller_lifecycle_acceptance.py"
+      - "tools/run_baldosa_keyboard_pad_join_acceptance.py"
+      - "native/product/baldosa_host_lifecycle_pause.hpp"
+      - "native/product/controller_hotplug_policy.hpp"
+      - "native/product/focus_pause_policy.hpp"
+      - "tests/native/baldosa_host_lifecycle_pause_test.cpp"
+      - "tests/unit/test_baldosa_host_lifecycle_pause.py"
+      - "tools/run_baldosa_lifecycle_pause_acceptance.py"
+      - "tests/native/baldosa_native_options_adopt_test.cpp"
+      - "tests/unit/test_baldosa_native_options_adopt_cpp.py"
+      - "tools/baldosa_sdl_display_lifecycle_spike.py"
+      - "tests/unit/test_baldosa_sdl_display_lifecycle_spike.py"
+      - "native/product/display_window_lifecycle_policy.h"
+      - "tests/native/display_window_lifecycle_policy_test.cpp"
+      - "tools/run_baldosa_display_lifecycle_acceptance.py"
+      - "tools/run_baldosa_window_placement_acceptance.py"
+      - "tools/baldosa_session_end_spike.py"
+      - "tools/run_baldosa_session_end_acceptance.py"
+      - "tests/unit/test_baldosa_session_end_spike.py"
+      - "tools/run_baldosa_launcher_gl_fallback_acceptance.py"
+      - "tools/run_baldosa_slow_panel_vsync_acceptance.py"
+      - "tools/run_baldosa_render_reset_acceptance.py"
+      - "tools/run_baldosa_default_window_scale_acceptance.py"
+      - "tests/unit/test_baldosa_window_placement_acceptance.py"
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/baldosa_win32_live_postraw_sharing_denial.py"
@@ -267,6 +298,7 @@ jobs:
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
+          python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           python tests/unit/test_baldosa_native_practice_courses_probe.py
           python tests/unit/test_modern_pause_overlay_presenter.py
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
@@ -304,6 +336,10 @@ jobs:
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_modern_options_spike.py --game baldosa
+          # Restore the exact merged SDL host seat owner/move implementation;
+          # the Modern root requires these symbols at native link time.
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -345,6 +381,125 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Draft title/controller reconciliation: execute both native test families
+      # against this exact compiled Windows PE, not separate source heads.
+      # All pads here are SDL virtual devices; physical acceptance remains HOLD.
+      - name: Qualify draft controller 15-19 and title 24-28 on one Win32 PE
+        if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'agent2/title-controller-lifecycle-20261023' || github.head_ref == 'integration/modern-title-final-sdl-current-main-20261021') }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python tools/run_baldosa_controller_lifecycle_acceptance.py \
+            --exe "$EXE" --rom "$ROM" \
+            --out "$RUNNER_TEMP/ur-title-controller-lifecycle" --video windows --timeout 120
+          python tools/run_baldosa_keyboard_pad_join_acceptance.py \
+            --exe "$EXE" --rom "$ROM" \
+            --out "$RUNNER_TEMP/ur-title-controller-join" --video windows --timeout 180
+          for confirm in gamepad keyboard start held; do
+            python tools/capture_baldosa_modern_title_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+              --out "$RUNNER_TEMP/ur-title-confirm-$confirm" \
+              --confirm "$confirm" --timeout 100
+          done
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$EXE" --rom "$ROM" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --out "$RUNNER_TEMP/ur-title-original-attract-p1" \
+            --preview-wake --timeout 140
+          # Keyboard 4:3 and unjoined P2 widescreen wake independently.
+          # P2 may wake but cannot take P1 confirmation ownership.
+          for wake in keyboard p2; do
+            case "$wake" in
+              keyboard) aspect="--aspect 4:3"; label="keyboard-4by3" ;;
+              p2) aspect=""; label="p2" ;;
+            esac
+            python tools/probe_baldosa_modern_title_attract_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+              --out "$RUNNER_TEMP/ur-title-original-attract-$label" \
+              --preview-wake --wake-route "$wake" $aspect --timeout 140
+          done
+          # Preserve the original guest's *actual* return to stable MAIN,
+          # then prove named P1 Play is admitted only after that recovery.
+          # The preview witness alone cannot establish either behavior.
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$EXE" --rom "$ROM" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-recovery.script" \
+            --out "$RUNNER_TEMP/ur-title-original-attract-recovery" \
+            --preview-wake --recovery --timeout 140
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$EXE" --rom "$ROM" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-named-play.script" \
+            --bootstrap-script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-first-profile-bootstrap.script" \
+            --out "$RUNNER_TEMP/ur-title-original-attract-named-play" \
+            --preview-wake --recovery --named-play --timeout 140
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          exe = Path(os.environ['GITHUB_WORKSPACE']) / 'baldosa/build-ur-win/UniracersSNESRecomp.exe'
+          expected = hashlib.sha256(exe.read_bytes()).hexdigest()
+          files = {
+              'controller_lifecycle': ('ur-title-controller-lifecycle/receipt.json', 'exe_sha256'),
+              'controller_15_19': ('ur-title-controller-join/receipt.json', 'exe_sha256'),
+              'title_24': ('ur-title-confirm-gamepad/native-title-receipt.json', 'executable_sha256'),
+              'title_25': ('ur-title-confirm-keyboard/native-title-receipt.json', 'executable_sha256'),
+              'title_26': ('ur-title-confirm-start/native-title-receipt.json', 'executable_sha256'),
+              'title_27': ('ur-title-confirm-held/native-title-receipt.json', 'executable_sha256'),
+              'title_28': ('ur-title-original-attract-p1/native-attract-receipt.json', 'candidate_executable_sha256'),
+              'wake_keyboard_4by3': ('ur-title-original-attract-keyboard-4by3/native-attract-receipt.json', 'candidate_executable_sha256'),
+              'wake_p2': ('ur-title-original-attract-p2/native-attract-receipt.json', 'candidate_executable_sha256'),
+              'source_main_recovery': ('ur-title-original-attract-recovery/native-attract-receipt.json', 'candidate_executable_sha256'),
+              'named_play_after_attract': ('ur-title-original-attract-named-play/native-attract-receipt.json', 'candidate_executable_sha256'),
+          }
+          for name, (relative, key) in files.items():
+              receipt = json.loads((root / relative).read_text(encoding='utf-8'))
+              if receipt.get(key) != expected:
+                  raise SystemExit(f'{name}: not the same exact compiled Windows PE')
+              if name.startswith('controller') and receipt.get('source_commit') != os.environ['GITHUB_SHA']:
+                  raise SystemExit(f'{name}: source checkout identity mismatch')
+              wake_route = {'title_28': 'p1', 'wake_keyboard_4by3': 'keyboard', 'wake_p2': 'p2'}.get(name)
+              if wake_route and (receipt.get('native_wake_route') != wake_route or
+                                 receipt.get('original_attract_displayed_on_native_P6') is not True or
+                                 receipt.get('wake_input_tested') is not True):
+                  raise SystemExit(f'{name}: source-driven original attract wake receipt mismatch')
+              if name in ('source_main_recovery', 'named_play_after_attract'):
+                  if (receipt.get('real_guest_main_recovery_verified') is not True or
+                          receipt.get('play_source_admission_guard_tested') is not True or
+                          receipt.get('original_attract_displayed_on_native_P6') is not True):
+                      raise SystemExit(f'{name}: no genuine guest MAIN recovery witness')
+                  phases = {stage.get('phase') for stage in receipt.get('actual_guest_source_markers', [])}
+                  main_phase = ('original_main_stable' if name == 'named_play_after_attract'
+                                else 'native_main_recovered')
+                  if main_phase not in phases:
+                      raise SystemExit(f'{name}: missing original source MAIN recovery phase')
+                  if name == 'named_play_after_attract' and (
+                          receipt.get('named_source_play_verified') is not True or
+                          'original_stock_one_player_entered' not in phases):
+                      raise SystemExit('named Play not source-admitted after attract recovery')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as out:
+              out.write(f'PASS: same-PE native SDL virtual-controller modes 15-19, title modes 24-28, keyboard/P2 wake, real MAIN recovery and named Play admission, exe SHA256 `{expected}`. No physical-pad, final SDL, visual-art or release acceptance.\n')
+          print('SAME_PE_NATIVE_TITLE_CONTROLLER_ACCEPTANCE_OK', expected)
+          PY
+
+      - name: Retain draft title/controller exact-PE receipts
+        if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'agent2/title-controller-lifecycle-20261023' || github.head_ref == 'integration/modern-title-final-sdl-current-main-20261021') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: draft-title-controller-same-pe-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/ur-title-controller-lifecycle/receipt.json
+            ${{ runner.temp }}/ur-title-controller-join/receipt.json
+            ${{ runner.temp }}/ur-title-confirm-*/native-title-receipt.json
+            ${{ runner.temp }}/ur-title-original-attract-*/native-attract-receipt.json
+            ${{ runner.temp }}/ur-title-original-attract-named-play/native-profile-bootstrap.log
+            ${{ runner.temp }}/ur-title-original-attract-named-play/native-attract.log
+            ${{ runner.temp }}/ur-title-original-attract-recovery/native-attract.log
 
       # Title branch only: compile the existing exact Windows AOT candidate
       # above, then exercise its REAL Modern title and native renderer. Its

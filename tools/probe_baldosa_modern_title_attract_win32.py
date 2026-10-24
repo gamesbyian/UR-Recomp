@@ -197,8 +197,17 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     )
     last = -1
     for marker in required:
-        if log.count(marker) != 1:
-            raise ValueError("missing or duplicate named original-game proof: " + marker)
+        count = log.count(marker)
+        if count != 1:
+            # The named-profile process may have a different original source
+            # timeline. Preserve the actual stage observations before deciding
+            # whether this is a timing expectation or a gameplay regression.
+            observed_source_phases = re.findall(
+                r"^UR_MODERN_TITLE_ORIGINAL_SOURCE[^\r\n]*", log, re.MULTILINE)
+            raise ValueError(
+                f"missing or duplicate named original-game proof: {marker}; "
+                f"matches={count}; observed_source_phases={observed_source_phases[:12]!r}; "
+                "inspect retained native-attract.log")
         current = log.find(marker, last + 1)
         if current < 0:
             raise ValueError("named stock input entered before real MAIN recovery: " + marker)
@@ -339,7 +348,8 @@ def main() -> int:
         boot_dir.mkdir()
         boot_env = dict(env)
         boot_env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "8"
-        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "0"
+        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
+        boot_env["UR_BALDOSA_MODERN_INPUT"] = "1"
         boot_env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
         boot_env.pop("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", None)
         boot_cmd = [str(exe), "--no-launcher", "--config", str(cfg),
@@ -357,7 +367,12 @@ def main() -> int:
         if (boot_result.returncode or
                 boot_log.count("UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process") != 1 or
                 not (user / "profiles-v1.txt").is_file()):
-            raise ValueError("genuine P1 X/A native profile creation did not persist")
+            raise ValueError(
+                "genuine P1 X/A native profile creation did not persist; "
+                f"exit={boot_result.returncode}, "
+                f"created={boot_log.count('UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process')}, "
+                f"catalog={(user / 'profiles-v1.txt').is_file()}; "
+                "inspect retained native-profile-bootstrap.log")
         env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
         env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
     if args.preview_wake:

@@ -55,6 +55,23 @@ class WindowsSmokeTransportEnvelopeTests(unittest.TestCase):
     def test_plain_expected_wrapper_still_passes(self):
         self.check(wrapper(), accepted=True)
 
+    def test_streamed_wrapper_with_standard_data_descriptors_passes(self):
+        # GitHub artifact ZIPs can be streamed without seekable output.
+        # The parser must accept ordinary indexed data-descriptor records.
+        class NonSeekable(io.BytesIO):
+            def seek(self, *args, **kwargs):
+                raise io.UnsupportedOperation("streaming ZIP output")
+            def seekable(self):
+                return False
+
+        data = NonSeekable()
+        with zipfile.ZipFile(data, "w", zipfile.ZIP_DEFLATED) as archive:
+            for name in sorted(audit.PORTABLE_MEMBERS):
+                archive.writestr(name, b"synthetic streamed member")
+        with zipfile.ZipFile(io.BytesIO(data.getvalue())) as archive:
+            self.assertTrue(all(info.flag_bits & 8 for info in archive.infolist()))
+        self.check(data.getvalue(), accepted=True)
+
     def test_self_extracting_prefix_rejected(self):
         # zipfile accepts this SFX-like envelope and reports only normal entries.
         self.check(b"MZ" + bytes(32) + wrapper(), accepted=False)

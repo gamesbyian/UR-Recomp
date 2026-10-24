@@ -103,6 +103,28 @@ def make_queue(entries: list[dict], prior: dict, now: datetime,
     return due, skipped
 
 
+def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
+                          refresh_days: int) -> str | None:
+    """Avoid repeated downloads of unchanged files over the 64 MiB hard limit.
+
+    Forced probes and renamed paths bypass this cooldown. Other failures stay
+    retryable on the next cycle; in-place replacements are rechecked eventually.
+    """
+    if (not failure or failure.get("path") != entry["path"]
+            or "download exceeds single-file byte budget"
+            not in str(failure.get("error", ""))):
+        return None
+    try:
+        attempted = datetime.fromisoformat(
+            str(failure["last_attempt"]).replace("Z", "+00:00"))
+    except (KeyError, TypeError, ValueError):
+        return None
+    if attempted.tzinfo is None:
+        return None
+    retry_at = attempted + timedelta(days=refresh_days)
+    return retry_at.isoformat() if now < retry_at else None
+
+
 def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
               previous: Path | None = None, max_files: int = 3,
               max_total_bytes: int = 64 * 1024 * 1024,
@@ -130,6 +152,17 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
     previous_failures = dict(checkpoint.get("failures", {}))
     due, skipped = make_queue(entries, previous_items, now, refresh_days,
                               forced_id, set(previous_failures))
+    cooling, eligible = [], []
+    for item in due:
+        retry_at = (None if forced_id else oversized_retry_after(
+            previous_failures.get(item["id"]), item, now, refresh_days))
+        if retry_at:
+            cooling.append({"id": item["id"], "path": item["path"],
+                            "reason": "oversize_retry_cooldown",
+                            "retry_after": retry_at})
+        else:
+            eligible.append(item)
+    due = eligible
     if git_tree is None:
         git_tree = subprocess.run(
             ["git", "ls-tree", "-r", "-z", "HEAD"],
@@ -143,6 +176,7 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
         "previously_verified_skipped": len(skipped),
         "queued_before_batch": len(due),
         "processed": [], "errors": [], "deferred": [],
+        "retry_cooldown": cooling,
         "downloaded_bytes": 0,
         "published_source_bytes": 0,
         "automatic_integration_decisions": 0,
@@ -190,7 +224,8 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
         "schema": SCHEMA, "saved_at": now.isoformat(), "items": previous_items,
         "failures": previous_failures,
     }
-    report["remaining_due"] = len(report["deferred"]) + len(report["errors"])
+    report["remaining_due"] = (len(report["deferred"]) + len(report["errors"])
+                               + len(cooling))
     report["verified_total"] = len(previous_items)
     report["absent_from_current_listing"] = sorted(
         set(previous_items) - {item["id"] for item in entries}
@@ -210,6 +245,7 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
             and fields.get("unmatched_or_unexamined", 0) > 0
         ],
         "download_errors": report["errors"],
+        "retry_cooldown": cooling,
         "automatic_publication_authorized": False,
     }
     (out / "report.json").write_text(
@@ -246,7 +282,8 @@ def main() -> int:
         f"skipped={report['previously_verified_skipped']} "
         f"pending={report['remaining_due']} "
         f"review_leads={len(queue['needs_engineering_review'])} "
-        f"errors={len(report['errors'])}"
+        f"errors={len(report['errors'])} "
+        f"cooldown={len(report['retry_cooldown'])}"
     )
     return 1 if report["errors"] else 0
 

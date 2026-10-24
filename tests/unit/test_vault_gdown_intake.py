@@ -95,6 +95,37 @@ class VaultGdownIntakeTests(unittest.TestCase):
             )
             self.assertTrue(scan["rights_and_publication_review_required"])
 
+    def test_review_leads_preserve_nested_source_hashes_without_private_names(self):
+        identical = b"print('on main')\n"
+        fresh = b"print('new')\n"
+        nested = archive({
+            "src/nested.py": b"print('nested')\n",
+            "private/secret.py": b"not for metadata",
+        })
+        blob = archive({
+            "payload/h26.zip": nested,
+            "payload/tools/new.py": fresh,
+            "payload/tools/identical.py": identical,
+        })
+        scan = intake.scan_zip(blob, git_tree("tools/current.py", identical))
+        leads = {lead["member"]: lead for lead in scan["review_leads"]}
+        self.assertEqual(set(leads), {
+            "payload/tools/new.py", "payload/h26.zip!/src/nested.py",
+        })
+        self.assertEqual(leads["payload/tools/new.py"]["sha256"],
+                         hashlib.sha256(fresh).hexdigest())
+        self.assertEqual(scan["review_leads_filtered_or_truncated"], 1)
+        self.assertTrue(all(lead["status"] == "unmatched_needs_review"
+                            for lead in leads.values()))
+
+    def test_review_leads_are_bounded_independently_of_archive_members(self):
+        blob = archive({f"payload/tools/lead_{i:03}.py": b"print(42)\n"
+                        for i in range(intake.MAX_REVIEW_LEADS + 4)})
+        scan = intake.scan_zip(blob, b"")
+        self.assertEqual(len(scan["review_leads"]), intake.MAX_REVIEW_LEADS)
+        self.assertEqual(scan["review_leads_filtered_or_truncated"], 4)
+        self.assertEqual(scan["staged_sources"], 0)
+
     def test_invalid_zip_member_rejected_without_extraction(self):
         blob = archive({"../outside.py": b"unsafe"})
         with tempfile.TemporaryDirectory() as tmp:

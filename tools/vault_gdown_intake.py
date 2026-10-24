@@ -41,6 +41,7 @@ MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
 MAX_SESSION_BYTES = 128 * 1024 * 1024
 MAX_SOURCE_BYTES = 1 * 1024 * 1024
 MAX_STAGED_BYTES = 16 * 1024 * 1024
+MAX_REVIEW_LEADS = 256
 
 
 def drive_id(url: str) -> str:
@@ -139,6 +140,32 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None) -> dict
                 "source_like": is_source, "exact_on_main": matching_main,
                 "staged": staged,
             })
+    # Retain a bounded metadata-only handoff for unmatched first-party-looking
+    # source. Never serialize raw source, denied/private paths or ZIP bytes.
+    review_leads, omitted = [], 0
+    for observed in analysis["items"]:
+        if observed.get("status") != "unmatched_needs_review":
+            continue
+        member = observed["member"]
+        leaf = member.rsplit("!/", 1)[-1]
+        # The ancestor archive path must also be eligible for public metadata.
+        components = member.replace("!/", "/").split("/")
+        if (len(member) > 512 or
+                any(part.lower() in DENIED_COMPONENTS or
+                    part.lower().startswith((".env", "private", "secret"))
+                    for part in components) or
+                not safe_source_member(leaf, observed["bytes"])):
+            omitted += 1
+            continue
+        review_leads.append({
+            "member": member, "sha256": observed["member_sha256"],
+            "bytes": observed["bytes"], "kind": observed["kind"],
+            "status": "unmatched_needs_review",
+        })
+    review_leads.sort(key=lambda lead: (lead["kind"] == "patch",
+                                        lead["member"].casefold(), lead["sha256"]))
+    omitted += max(0, len(review_leads) - MAX_REVIEW_LEADS)
+    review_leads = review_leads[:MAX_REVIEW_LEADS]
     return {
         "archive": analysis["outer_sha256"],
         "crosswalk": {
@@ -147,7 +174,10 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None) -> dict
                 "unmatched_or_unexamined", "nested_archives_encountered",
             )
         },
-        "members": items, "staged_sources": staged_count,
+        "members": items,
+        "review_leads": review_leads,
+        "review_leads_filtered_or_truncated": omitted,
+        "staged_sources": staged_count,
         "staged_bytes": staged_bytes,
         "rights_and_publication_review_required": True,
     }

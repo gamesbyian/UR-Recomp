@@ -20,7 +20,8 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 from vault_gdown_intake import (
-    DEFAULT_FOLDER, ID_PATTERN, MAX_SESSION_BYTES, list_public_folder, pull,
+    DEFAULT_FOLDER, ID_PATTERN, MAX_SESSION_BYTES, MAX_REVIEW_LEADS,
+    list_public_folder, pull,
 )
 
 SCHEMA = "ur-vault-recurring-checkpoint/1"
@@ -52,6 +53,22 @@ def read_checkpoint(path: Path | None) -> dict:
             datetime.fromisoformat(item["audited_at"].replace("Z", "+00:00"))
         except ValueError as exc:
             raise ValueError("invalid checkpoint timestamp") from exc
+        leads = item.get("review_leads", [])
+        if not isinstance(leads, list) or len(leads) > MAX_REVIEW_LEADS:
+            raise ValueError("invalid checkpoint review leads")
+        for lead in leads:
+            if (not isinstance(lead, dict)
+                    or not isinstance(lead.get("member"), str)
+                    or not 0 < len(lead["member"]) <= 512
+                    or not re.fullmatch(r"[0-9a-f]{64}", str(lead.get("sha256", "")))
+                    or not isinstance(lead.get("bytes"), int)
+                    or lead["bytes"] < 0
+                    or lead.get("status") != "unmatched_needs_review"
+                    or lead.get("kind") not in ("patch", "source_or_test")):
+                raise ValueError("invalid checkpoint review lead")
+        omitted = item.get("review_leads_filtered_or_truncated", 0)
+        if not isinstance(omitted, int) or omitted < 0:
+            raise ValueError("invalid checkpoint review lead count")
     failures = doc.get("failures", {})
     if not isinstance(failures, dict) or len(failures) > MAX_RETAINED_IDS:
         raise ValueError("invalid checkpoint failures")
@@ -105,14 +122,19 @@ def make_queue(entries: list[dict], prior: dict, now: datetime,
 
 def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
                           refresh_days: int) -> str | None:
-    """Avoid repeated downloads of unchanged files over the 64 MiB hard limit.
+    """Avoid repeat downloads of unchanged archives hitting hard size limits.
 
     Forced probes and renamed paths bypass this cooldown. Other failures stay
     retryable on the next cycle; in-place replacements are rechecked eventually.
     """
+    error = str((failure or {}).get("error", ""))
+    deterministic_budget_errors = (
+        "download exceeds single-file byte budget",
+        "expanded ZIP budget exceeded",
+        "nested ZIP exceeds byte budget",
+    )
     if (not failure or failure.get("path") != entry["path"]
-            or "download exceeds single-file byte budget"
-            not in str(failure.get("error", ""))):
+            or not any(reason in error for reason in deterministic_budget_errors)):
         return None
     try:
         attempted = datetime.fromisoformat(
@@ -213,6 +235,10 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
                 "exact_blob_occurrences": crosswalk.get("exact_blob_occurrences", 0),
                 "unmatched_or_unexamined": crosswalk.get("unmatched_or_unexamined", 0),
                 "nested_archives_encountered": crosswalk.get("nested_archives_encountered", 0),
+                # Bounded metadata only, durable across later no-download cycles.
+                "review_leads": zip_info.get("review_leads", []),
+                "review_leads_filtered_or_truncated": zip_info.get(
+                    "review_leads_filtered_or_truncated", 0),
             }
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             report["errors"].append({"id": item["id"], "path": item["path"],

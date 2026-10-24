@@ -34,7 +34,8 @@
     "Folder Integrated is a historical filing claim, not exact integration proof.",
     "No safety-refused publication operations or release acceptance were performed.",
     "51 Integrated entries now include independently computed whole-file SHA256 and per-item GitHub PR/issue references. 50 ZIPs passed CRC and 291 ZIP-member SHA256 fingerprints are recorded in a separately available raw binary audit; a DOCX is the 51st entry.",
-    "Inbox pointer rows now carry referenced_archives SHA-256 for the cited source/evidence package, separately from the pointer's own null archive_sha256. target_paths identify original proposed or merged semantic-owner paths, not automatic Git blob equality."
+    "Inbox pointer rows now carry referenced_archives SHA-256 for the cited source/evidence package, separately from the pointer's own null archive_sha256. target_paths identify original proposed or merged semantic-owner paths, not automatic Git blob equality.",
+    "Scoped 2026-10-24 source/member review reduced six unresolved vm1 keys to one, without a new implementation PR: H28 QA07 double-escaped-surrogate patch and P2P ACK/cross-invite negative controls superseded or retained as evidence. Source comparisons are specific to current main and research-only tests, no P2P security/release acceptance."
   ],
   "items": [
     {
@@ -85,15 +86,18 @@
       "mime_type": "application/zip",
       "archive_sha256": "94b36c1b6b1d63fbd359da362505e535549f56b6c2cb93a771020af2ebf37d4a",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "Three fingerprinted H28 Records isolated proposal/repro members await exact current-main source/behavior comparison; avoid recent exporter duplication.",
+      "target_paths": [
+        "tests/unit/test_qa07_live_capture_byte_witness.py",
+        "tools/qa07_live_capture_byte_witness.py"
+      ],
+      "current_main_comparison": "Archived QA07 double-escaped surrogate test-literal correction is superseded by main tests/unit/test_qa07_live_capture_byte_witness.py::test_identity_requires_valid_strict_utf8_for_both_fields with chr(codepoint) positive stress negatives. Isolated predicate example remains evidence-only.",
       "github_prs": [],
-      "owner": "Agent 2",
+      "owner": "Agent 1 historical disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Review exact fingerprinted member against current-main behavior and owning merged PR; do not publish solely for Git blob mismatch",
+      "required_test": "Current-main strict UTF-8 negative for attempt and profile with surrogate code points",
+      "next_action": "Retain original H28 archive and historical refused operations; no Agent 2 source recovery from this bundle.",
       "blocker": null,
-      "classification": "requires_agent2_semantic_review",
+      "classification": "semantically_superseded",
       "checkpoint_transport_verified": true
     },
     {
@@ -2589,13 +2593,16 @@
       "mime_type": "application/zip",
       "archive_sha256": "458bef7a8782bbc5055f82546a77193cc21c630dc13d36d4692c8cf98abbf5f2",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "Three fingerprinted unsigned-ACK/cross-invite/commit tests await targeted independent comparison with current signed P2P tests; tracked individually in canonical member ledger.",
+      "target_paths": [
+        "tests/unit/test_p2p_direct_loopback_handshake.py",
+        "tools/p2p/direct_loopback_handshake.py"
+      ],
+      "current_main_comparison": "Two of three source-distinct archived test members (unsigned ACK spoof and cross-invitation challenge binding) semantically covered in merged #2430 and signed completion #2354; test_p2p_commit.py wrong-build/wrong-responder negative still requires bounded independent comparison.",
       "github_prs": [],
       "owner": "Agent 2",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Review exact fingerprinted member against current-main behavior and owning merged PR; do not publish solely for Git blob mismatch",
+      "required_test": "Wrong-build and wrong-responder signed invitation must not consume replay state, plus current loopback signed-completion negatives.",
+      "next_action": "Agent 2 review only test_p2p_commit.py SHA c1519576e04bbf2c8d7bbd8889851fbc11d2262bbb5c796fa68a9c71ca7. Do not duplicate already-covered unsigned ACK and cross-invite tests.",
       "blocker": null,
       "classification": "requires_agent2_semantic_review",
       "checkpoint_transport_verified": true
@@ -4928,12 +4935,12 @@
     "schema": "ur-vault-member-dispositions/1",
     "blob_sha": "478e63f7b2b5446d17d8a022ada076f644344dd9",
     "members_classified": 33,
-    "superseded": 25,
-    "evidence_only": 2,
-    "unresolved": 6,
+    "superseded": 29,
+    "evidence_only": 3,
+    "unresolved": 1,
     "source_archives": 11,
     "contract_merge_pr": 2479,
-    "notes": "Canonical ledger includes stable vm1 SHA-derived candidate IDs; unlisted members remain needs_semantic_review."
+    "notes": "33 vm1 stable source/member fingerprint keys: 29 semantic supersessions, 3 evidence-only, 1 unresolved P2P commit negative. The other H26 nested leaves await scoped review. This recount replaces the earlier 25/2/6 state snapshot."
   },
   "review_packages": [
     {
@@ -4944,18 +4951,18 @@
       "next": "Use earlier scoped extraction and #2088 semantic/prior-merge proof; exclude already checked QA07/QA06 and #2458/#2459. No blanket publication."
     },
     {
-      "work": "H27 unsigned ACK, cross-invite/commit members",
+      "work": "H27 P2P wrong-build / wrong-responder commit negatives",
       "owner": "Agent 2",
       "priority": "P2",
       "archive_drive_id": "1fXw7f5CkgsmkO_YBeXqR1aVZ2ngfAFxt",
-      "next": "Three fingerprinted tests have vm1 unresolved states. Compare with main P2P signed receipt/ACK guards before narrow source PR."
+      "next": "Original archived test_p2p_commit.py (SHA c1519576e04bbf2c8d7bbd8889851fbc11d2262bbb5c796fa68ecc68a9c71ca7) has distinct wrong-build/wrong-responder no-replay-commit cases not individually pinned in current loopback tests. Agent 2 review only this vm1-cc9bbbb9b9c8be1cc19eeb98; challenge binding and unsigned ACK spoof are already semantically represented on main."
     },
     {
-      "work": "H28 Records isolated patch",
-      "owner": "Agent 2",
-      "priority": "P2",
+      "work": "H28 QA07 historical surrogate-test fixture (disposed)",
+      "owner": "Agent 1 / historical evidence retained",
+      "priority": "P4",
       "archive_drive_id": "10zJs9NMaHWxFXBDyLFAAaKDOpLDenl00",
-      "next": "Three fingerprinted archived patch/repro members have unresolved vm1 states. Compare with main exporter after #2449 and portable sibling fixes."
+      "next": "All three archive members dispositioned: apply.py and source.patch superseded by stronger current-main true-surrogate tests; isolated_repro.py evidence-only. No Agent 2 engineering or exporter task."
     },
     {
       "work": "UHD original title/SDL source",

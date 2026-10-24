@@ -38,14 +38,26 @@ def fake_pe(path: pathlib.Path, *, machine: int = 0x8664,
 
 
 class WindowsPortableBinaryTests(unittest.TestCase):
-    def test_accepts_stock_windows_imports_and_api_sets(self):
+    def test_accepts_stock_windows_imports_without_unqualified_api_sets(self):
+        # Real inbox DLLs remain valid, including delay-load imports.
         actual = binary.check_dependencies(dumpbin(
             "KERNEL32.dll", "USER32.dll", "DWMAPI.dll", "ucrtbase.dll",
-            "api-ms-win-core-file-l1-1-0.dll",
-            delay=("XINPUT1_4.DLL", "ext-ms-win-ntuser-window-l1-1-0.dll"),
+            delay=("XINPUT1_4.DLL",),
         ))
         self.assertIn("xinput1_4.dll", actual)
-        self.assertEqual(len(actual), 7)
+        self.assertEqual(len(actual), 5)
+
+        # Namespace prefixes alone do not establish an API-set contract's
+        # availability on every supported Windows installation.
+        for api_set in (
+            "api-ms-win-core-file-l1-1-0.dll",
+            "ext-ms-win-ntuser-window-l1-1-0.dll",
+        ):
+            with self.subTest(api_set=api_set):
+                with self.assertRaisesRegex(ValueError, "non-inbox DLLs"):
+                    binary.check_dependencies(dumpbin(
+                        "KERNEL32.dll", delay=(api_set,),
+                    ))
 
     def test_accepts_windows_inbox_direct2d_and_directwrite_exactly(self):
         # Actual pinned Baldosa AOT Windows import evidence in native CI

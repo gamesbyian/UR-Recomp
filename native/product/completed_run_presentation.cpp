@@ -221,17 +221,35 @@ std::optional<RunResultSummaryPresentation> present_run_result_summary(
         return std::nullopt;
     }
 
+    // A PB pointer may outlive a profile/course switch or a catalog refresh.
+    // Only display its time and signed delta when its provenance belongs to
+    // the current result; otherwise the real finish remains visible alone.
+    const CompletedRunRecord* compatible_pb = personal_best;
+    if (compatible_pb) {
+        const RunPlaybackTarget current_target{
+            current.provenance.game_id,
+            current.provenance.rom_sha256,
+            current.provenance.build_compat_id,
+            current.provenance.course_id,
+            current.provenance.mode,
+        };
+        if (!validate_completed_run_record(*compatible_pb, &detail) ||
+            !compatible_for_playback(*compatible_pb, current_target, &detail)) {
+            compatible_pb = nullptr;
+        }
+    }
+
     RunResultSummaryPresentation summary;
     summary.finish = present_run_timing_panel(
         current.elapsed_ticks60,
-        personal_best,
+        compatible_pb,
         RunTimingPresentationPoint::Finish);
 
-    if (!personal_best) return summary;
+    if (!compatible_pb) return summary;
 
     const auto splits = present_run_split_table(
         current,
-        *personal_best,
+        *compatible_pb,
         RunDataTargetKind::PersonalBest);
     if (splits) {
         summary.splits = splits->rows;

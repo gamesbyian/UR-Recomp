@@ -339,7 +339,8 @@ def main() -> int:
         boot_dir.mkdir()
         boot_env = dict(env)
         boot_env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "8"
-        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "0"
+        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
+        boot_env["UR_BALDOSA_MODERN_INPUT"] = "1"
         boot_env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
         boot_env.pop("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", None)
         boot_cmd = [str(exe), "--no-launcher", "--config", str(cfg),
@@ -357,7 +358,12 @@ def main() -> int:
         if (boot_result.returncode or
                 boot_log.count("UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process") != 1 or
                 not (user / "profiles-v1.txt").is_file()):
-            raise ValueError("genuine P1 X/A native profile creation did not persist")
+            raise ValueError(
+                "genuine P1 X/A native profile creation did not persist; "
+                f"exit={boot_result.returncode}, "
+                f"created={boot_log.count('UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process')}, "
+                f"catalog={(user / 'profiles-v1.txt').is_file()}; "
+                "inspect retained native-profile-bootstrap.log")
         env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
         env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
     if args.preview_wake:

@@ -601,7 +601,7 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,
                         !view.read_only_records_pages_available
-                            ? "A/ENTER  B/ESC BACK"
+                            ? "B/ESC BACK  READ ONLY"
                             : view.read_only_records_two_player
                                 ? "UP/DOWN 1P  B BACK"
                                 : "UP/DOWN 2P  B BACK",

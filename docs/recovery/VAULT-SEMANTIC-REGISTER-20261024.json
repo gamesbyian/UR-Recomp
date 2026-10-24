@@ -35,7 +35,8 @@
     "No safety-refused publication operations or release acceptance were performed.",
     "51 Integrated entries now include independently computed whole-file SHA256 and per-item GitHub PR/issue references. 50 ZIPs passed CRC and 291 ZIP-member SHA256 fingerprints are recorded in a separately available raw binary audit; a DOCX is the 51st entry.",
     "Inbox pointer rows now carry referenced_archives SHA-256 for the cited source/evidence package, separately from the pointer's own null archive_sha256. target_paths identify original proposed or merged semantic-owner paths, not automatic Git blob equality.",
-    "Scoped 2026-10-24 source/member review reduced six unresolved vm1 keys to one, without a new implementation PR: H28 QA07 double-escaped-surrogate patch and P2P ACK/cross-invite negative controls superseded or retained as evidence. Source comparisons are specific to current main and research-only tests, no P2P security/release acceptance."
+    "Scoped 2026-10-24 source/member review reduced six unresolved vm1 keys to one, without a new implementation PR: H28 QA07 double-escaped-surrogate patch and P2P ACK/cross-invite negative controls superseded or retained as evidence. Source comparisons are specific to current main and research-only tests, no P2P security/release acceptance.",
+    "Agent 2's independently qualified late Win32-portable namespace audit fixed an actual current-main exporter staging race in merged PR #2483. This is a current-source derived correction, not 25 Inbox tasks or missing archived implementation."
   ],
   "items": [
     {
@@ -2597,14 +2598,14 @@
         "tests/unit/test_p2p_direct_loopback_handshake.py",
         "tools/p2p/direct_loopback_handshake.py"
       ],
-      "current_main_comparison": "Two of three source-distinct archived test members (unsigned ACK spoof and cross-invitation challenge binding) semantically covered in merged #2430 and signed completion #2354; test_p2p_commit.py wrong-build/wrong-responder negative still requires bounded independent comparison.",
+      "current_main_comparison": "Original direct_loopback_handshake.py source exact on main (blob 167d2e7b...). Agent 2 independently qualified its three archived test groups as re-expressed in current P2P loopback/signed receipt controls (#2088 comment 6381086883). Nonshipping unsigned-ACK limitation is retained explicitly.",
       "github_prs": [],
-      "owner": "Agent 2",
+      "owner": "Agent 1 closure after Agent 2 source qualification",
       "priority": "P4",
       "required_test": "Wrong-build and wrong-responder signed invitation must not consume replay state, plus current loopback signed-completion negatives.",
-      "next_action": "Agent 2 review only test_p2p_commit.py SHA c1519576e04bbf2c8d7bbd8889851fbc11d2262bbb5c796fa68a9c71ca7. Do not duplicate already-covered unsigned ACK and cross-invite tests.",
+      "next_action": "Retain source and negative evidence; no duplicate engineering PR. Production P2P still requires separate signed-completion integration and end-to-end authorization.",
       "blocker": null,
-      "classification": "requires_agent2_semantic_review",
+      "classification": "semantically_superseded",
       "checkpoint_transport_verified": true
     },
     {
@@ -4935,12 +4936,12 @@
     "schema": "ur-vault-member-dispositions/1",
     "blob_sha": "478e63f7b2b5446d17d8a022ada076f644344dd9",
     "members_classified": 33,
-    "superseded": 29,
+    "superseded": 30,
     "evidence_only": 3,
-    "unresolved": 1,
+    "unresolved": 0,
     "source_archives": 11,
     "contract_merge_pr": 2479,
-    "notes": "33 vm1 stable source/member fingerprint keys: 29 semantic supersessions, 3 evidence-only, 1 unresolved P2P commit negative. The other H26 nested leaves await scoped review. This recount replaces the earlier 25/2/6 state snapshot."
+    "notes": "All 33 current scoped SHA-derived vm1 keys explicitly dispositioned: 30 semantic supersessions and 3 evidence only. The final P2P test_p2p_commit.py member is semantically covered by current source and Agent 2 independent qualification (#2088 comment 6381086883). Unlisted/unscoped H26 nested leaves still require review, not silently resolved."
   },
   "review_packages": [
     {
@@ -4951,11 +4952,11 @@
       "next": "Use earlier scoped extraction and #2088 semantic/prior-merge proof; exclude already checked QA07/QA06 and #2458/#2459. No blanket publication."
     },
     {
-      "work": "H27 P2P wrong-build / wrong-responder commit negatives",
-      "owner": "Agent 2",
-      "priority": "P2",
+      "work": "H27 P2P research member (semantically resolved)",
+      "owner": "Agent 1 disposition verified with Agent 2",
+      "priority": "P4",
       "archive_drive_id": "1fXw7f5CkgsmkO_YBeXqR1aVZ2ngfAFxt",
-      "next": "Original archived test_p2p_commit.py (SHA c1519576e04bbf2c8d7bbd8889851fbc11d2262bbb5c796fa68ecc68a9c71ca7) has distinct wrong-build/wrong-responder no-replay-commit cases not individually pinned in current loopback tests. Agent 2 review only this vm1-cc9bbbb9b9c8be1cc19eeb98; challenge binding and unsigned ACK spoof are already semantically represented on main."
+      "next": "Agent 2 confirmed source exact and archival commit/cross-invite/unsigned-ACK cases behaviorally represented on main. All three vm1 keys superseded. Retain known nonshipping prototype unsigned-ACK limitation, no new PR."
     },
     {
       "work": "H28 QA07 historical surrogate-test fixture (disposed)",
@@ -4977,6 +4978,16 @@
       "priority": "P2",
       "archive_drive_id": "19AofFm0zVjhmZaayHvZ4Jk1Y0BVCBPTm",
       "next": "Issue #2103 physical negative; source sibling helper already main, not missing archived code."
+    },
+    {
+      "work": "Windows earned-run exporter late namespace race (merged source correction)",
+      "owner": "Agent 2 implemented / Agent 3 merged; Agent 1 disposition",
+      "priority": "P4 completed",
+      "archive_drive_id": "1mBKQcLSf3SQV8TZRvP6J78N_JJhFTuTr",
+      "github_prs": [
+        "#2483"
+      ],
+      "next": "Merged #2483 at 859ac89d6f6e135f6cce8971c1f0662c2058dc6e. Fresh-main derivation, not replay of denied historical patch; 5,440 tooling-unit tests and hygiene green at premerge head. Separate Windows/NTFS ADS issue #2103 still open."
     }
   ]
 }

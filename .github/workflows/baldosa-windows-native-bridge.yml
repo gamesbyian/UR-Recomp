@@ -11,6 +11,7 @@ on:
       - "native/product/modern_reduced_motion_preference.hpp"
       - "tools/baldosa_sdl_controller_lifecycle_spike.py"
       - "tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py"
+      - "tests/unit/test_modern_title_controller_lifecycle_integration.py"
       - "native/product/controller_seat_assignment_policy.h"
       - "tests/native/controller_seat_assignment_policy_test.cpp"
       - "tools/run_baldosa_controller_lifecycle_acceptance.py"

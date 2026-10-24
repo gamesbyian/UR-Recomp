@@ -2,8 +2,8 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "e7fa864dd52a1279e4d0178dd113af713c6d6d08",
-  "status": "review_candidate_not_formal_qa",
+  "source_sha": "7f8f882820feb6d2b9d46b16f5e90e46dd0544f3",
+  "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
   "groups": {
@@ -1693,5 +1693,7 @@
   "review_policy": "Initial marked bounded_verified criteria inherit linked merged PR evidence but require independent source review before treating as audited; no claim of release gate acceptance. Provisional bounded_coverage must be distinguished from independently_audited_coverage (zero pending explicit audit_state=independent_reviewed).",
   "fidelity_authority": "docs/RELEASE-QUALITY-LEDGER.json QA-01 coverage complete_event_passes; all 45 USA slots stay unverified until unique named event maps and independent admission receipts exist",
   "fixed_denominator_units": 4500,
-  "frozen_contract_fnv1a32": "32c62b80"
+  "frozen_contract_fnv1a32": "32c62b80",
+  "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
+  "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges."
 }

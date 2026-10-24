@@ -9,6 +9,9 @@ import unittest
 
 SOURCE = (Path(__file__).resolve().parents[2] /
           "tools/baldosa_native_modern_root.cpp").read_text(encoding="utf-8")
+ROOT = Path(__file__).resolve().parents[2]
+HOST_PATCH = (ROOT / "tools/baldosa_sdl_controller_lifecycle_spike.py").read_text(encoding="utf-8")
+WINDOWS_WORKFLOW = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
 
 
 def require_lifecycle(source: str) -> None:
@@ -30,7 +33,39 @@ def require_lifecycle(source: str) -> None:
             raise AssertionError("lost merged-main controller behavior: " + token)
 
 
+def require_native_host_linkage(patch: str, workflow: str) -> None:
+    # A C++ declaration without the pinned Baldosa SDL host definition links
+    # unsuccessfully even when every source-only root test passes.
+    for symbol in (
+        "long long snesrecomp_desktop_product_seat_source(int seat) {",
+        "int snesrecomp_desktop_product_seat_move(int from, int to) {",
+    ):
+        if symbol not in patch:
+            raise AssertionError("native host definition missing: " + symbol)
+    stage = 'python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"'
+    if workflow.count(stage) != 2:
+        raise AssertionError("host patch must be staged and idempotence-checked before native link")
+    if workflow.index(stage) > workflow.index("cmake --build baldosa/build-ur-win --target UniracersSNESRecomp"):
+        raise AssertionError("controller host patch stages too late")
+    if "python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py" not in workflow:
+        raise AssertionError("host patch source regression guard missing")
+
+
 class ModernTitleControllerReconciliation(unittest.TestCase):
+    def test_native_host_definitions_are_staged_before_link(self):
+        require_native_host_linkage(HOST_PATCH, WINDOWS_WORKFLOW)
+
+    def test_host_linkage_negative_controls(self):
+        for token in (
+            "long long snesrecomp_desktop_product_seat_source(int seat) {",
+            "int snesrecomp_desktop_product_seat_move(int from, int to) {",
+        ):
+            with self.subTest(symbol=token), self.assertRaises(AssertionError):
+                require_native_host_linkage(HOST_PATCH.replace(token, ""), WINDOWS_WORKFLOW)
+        stage = 'python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"'
+        with self.assertRaises(AssertionError):
+            require_native_host_linkage(HOST_PATCH, WINDOWS_WORKFLOW.replace(stage, ""))
+
     def test_merged_controller_lifecycle_is_present(self):
         require_lifecycle(SOURCE)
 

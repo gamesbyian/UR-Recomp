@@ -3190,6 +3190,11 @@ current_results_navigation_context() {
         progress &&
             ur::product::unique_remaining_tour_slot(
                 progress->qualified).has_value(),
+        g_practice_active &&
+            ur::product::quick_practice_repeat_target_ready(
+                g_practice_launch,
+                g_recent_course_track_id
+                    ? static_cast<int>(*g_recent_course_track_id) : -1),
     };
 }
 

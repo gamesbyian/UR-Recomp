@@ -176,6 +176,41 @@ class VaultGdownIntakeTests(unittest.TestCase):
                     blob, b"", stage_root=Path(tmp),
                     stage_member="src/test.py", stage_sha256="not-a-sha")
 
+    def test_selected_staging_rejects_archive_replacement_before_writing_source(self):
+        original = b"print('approved')\n"
+        raw = archive({"src/candidate.py": original})
+        member_digest = hashlib.sha256(original).hexdigest()
+        def downloader(command, **kwargs):
+            Path(command[command.index("-O") + 1]).write_bytes(raw)
+            return SimpleNamespace(stdout="", stderr="")
+        entry = {
+            "id": "1Abcdefghij12345", "path": "candidate.zip",
+            "url": "https://drive.google.com/uc?id=1Abcdefghij12345",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "archive SHA-256 differs"):
+                intake.pull(
+                    entry, Path(tmp), b"", stage=True,
+                    stage_member="src/candidate.py",
+                    stage_sha256=member_digest,
+                    expected_archive_sha256="f" * 64,
+                    runner=downloader,
+                )
+            self.assertFalse((Path(tmp) / "staged").exists())
+        with tempfile.TemporaryDirectory() as tmp:
+            result = intake.pull(
+                entry, Path(tmp), b"", stage=True,
+                stage_member="src/candidate.py",
+                stage_sha256=member_digest,
+                expected_archive_sha256=hashlib.sha256(raw).hexdigest(),
+                runner=downloader,
+            )
+            self.assertEqual(result["zip"]["staged_sources"], 1)
+            self.assertEqual(
+                (Path(tmp) / "staged/1Abcdefghij12345/selected/src/candidate.py").read_bytes(),
+                original,
+            )
+
     def test_review_leads_preserve_nested_source_hashes_without_private_names(self):
         identical = b"print('on main')\n"
         fresh = b"print('new')\n"

@@ -12,6 +12,8 @@ SOURCE = (Path(__file__).resolve().parents[2] /
 ROOT = Path(__file__).resolve().parents[2]
 HOST_PATCH = (ROOT / "tools/baldosa_sdl_controller_lifecycle_spike.py").read_text(encoding="utf-8")
 WINDOWS_WORKFLOW = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
+ATTRACT_PROBE = (ROOT / "tools/probe_baldosa_modern_title_attract_win32.py").read_text(encoding="utf-8")
+BOOTSTRAP_SCRIPT = (ROOT / "tests/input/baldosa-modern-title-first-profile-bootstrap.script").read_text(encoding="utf-8")
 
 
 def require_lifecycle(source: str) -> None:
@@ -94,6 +96,14 @@ def require_shared_native_acceptance(workflow: str) -> None:
 
 
 class ModernTitleControllerReconciliation(unittest.TestCase):
+    def test_named_bootstrap_uses_proven_first_profile_environment(self):
+        self.assertIn('boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"', ATTRACT_PROBE)
+        self.assertIn('boot_env["UR_BALDOSA_MODERN_INPUT"] = "1"', ATTRACT_PROBE)
+        self.assertNotIn('boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "0"', ATTRACT_PROBE)
+        self.assertIn("wait 900", BOOTSTRAP_SCRIPT)
+        self.assertIn("native-profile-bootstrap.log", WINDOWS_WORKFLOW)
+        self.assertIn("inspect retained native-profile-bootstrap.log", ATTRACT_PROBE)
+
     def test_same_executable_native_acceptance_is_invoked(self):
         require_shared_native_acceptance(WINDOWS_WORKFLOW)
 

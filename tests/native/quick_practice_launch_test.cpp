@@ -314,5 +314,41 @@ int main() {
     }
     assert(!quick_practice_repeat_target_ready({}, 0));
 
+    // The handoff contains only canonical track identity. It cannot dispatch
+    // a stock launch before a new frontend appears, and cannot wait forever.
+    for (std::uint8_t track = 0; track < 45; ++track) {
+        auto launch = begin_quick_practice_launch(
+            quick_practice_target_for_track(track));
+        launch.stage = QuickPracticeLaunchStage::Active;
+        for (int cycle = 0; cycle < 2; ++cycle) {
+            auto route = begin_quick_practice_rematch_route(launch, track);
+            assert(route.pending && route.track_id == track);
+            auto waiting = advance_quick_practice_rematch_route(route, false);
+            assert(!waiting.begin_stock_route && !waiting.timed_out);
+            assert(waiting.route.pending);
+            auto ready = advance_quick_practice_rematch_route(
+                waiting.route, true);
+            assert(ready.begin_stock_route && !ready.route.pending);
+            assert(ready.track_id == track);
+            assert(!advance_quick_practice_rematch_route(
+                ready.route, true).begin_stock_route);
+        }
+        assert(!begin_quick_practice_rematch_route(
+            launch, (track + 1) % 45).pending);
+        auto corrupted = launch;
+        corrupted.target.track_slot = 9;
+        assert(!begin_quick_practice_rematch_route(corrupted, track).pending);
+    }
+    auto timeout = begin_quick_practice_launch(
+        quick_practice_target_for_track(0));
+    timeout.stage = QuickPracticeLaunchStage::Active;
+    auto handoff = begin_quick_practice_rematch_route(timeout, 0);
+    handoff.observations_remaining = 1;
+    const auto expired = advance_quick_practice_rematch_route(handoff, false);
+    assert(expired.timed_out && !expired.route.pending);
+    assert(!advance_quick_practice_rematch_route(
+        expired.route, true).begin_stock_route);
+    assert(!begin_quick_practice_rematch_route({}, 0).pending);
+
     return 0;
 }

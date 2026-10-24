@@ -128,6 +128,50 @@ constexpr bool quick_practice_repeat_target_ready(
            canonical.track_slot == state.target.track_slot;
 }
 
+// A results rematch carries only its validated catalog identity across the
+// transactional Practice restore and guest reboot. It must return through the
+// same stock-menu launch router as a fresh Practice selection.
+struct QuickPracticeRematchRoute {
+    bool pending = false;
+    std::uint8_t track_id = 0;
+    std::uint32_t observations_remaining = 0;
+};
+
+struct QuickPracticeRematchStep {
+    QuickPracticeRematchRoute route{};
+    std::uint8_t track_id = 0;
+    bool begin_stock_route = false;
+    bool timed_out = false;
+};
+
+constexpr QuickPracticeRematchRoute begin_quick_practice_rematch_route(
+    const QuickPracticeLaunchState& launch, int observed_track_id
+) noexcept {
+    if (!quick_practice_repeat_target_ready(launch, observed_track_id)) {
+        return {};
+    }
+    return {true, launch.target.track_id, kQuickPracticeLaunchMaxObservations};
+}
+
+constexpr QuickPracticeRematchStep advance_quick_practice_rematch_route(
+    QuickPracticeRematchRoute route, bool stock_main_ready
+) noexcept {
+    QuickPracticeRematchStep step;
+    step.route = route;
+    step.track_id = route.track_id;
+    if (!route.pending) return step;
+    if (stock_main_ready) {
+        step.route = {};
+        step.begin_stock_route = true;
+    } else if (route.observations_remaining <= 1) {
+        step.route = {};
+        step.timed_out = true;
+    } else {
+        --step.route.observations_remaining;
+    }
+    return step;
+}
+
 constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     QuickPracticeLaunchState state,
     QuickPracticeLaunchObservation observation

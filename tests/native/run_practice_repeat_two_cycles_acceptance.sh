@@ -57,8 +57,12 @@ SNESRECOMP_DUMP_DIR="$DUMPS" \
   timeout 240s xvfb-run -a bash "$0" --inside "$EXE" "$ROM" "$SCRIPT" "$LOG" "$DUMPS"
 
 cat "$LOG"
-[ "$(grep -c 'UR_FAST_NAV REPEAT_PRACTICE' "$LOG")" -eq 2 ]
-[ "$(grep -c 'UR_FAST_NAV REPEAT_VERIFIED sram_equal=1 course_equal=1 practice=1' "$LOG")" -eq 2 ]
+[ "$(grep -c 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_REQUESTED' "$LOG")" -eq 2 ]
+[ "$(grep -c 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_STARTED' "$LOG")" -eq 2 ]
+[ "$(grep -c 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_RACE_READY' "$LOG")" -eq 2 ]
+[ "$(grep -c 'UR_PRACTICE RESTORED' "$LOG")" -eq 2 ]
+! grep -q 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_\(FAILED\|TIMEOUT\)' "$LOG"
+! grep -q 'UR_PRACTICE COURSE_MISMATCH' "$LOG"
 ! grep -q 'UR_PROFILE_AUTOSAVE RESULT' "$LOG"
 test ! -e "$RUN"
 test ! -e "$RUN.input"

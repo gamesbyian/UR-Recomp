@@ -219,6 +219,33 @@ grep -q "UR_RESULTS_NAV MENU .*next=0 track=0 tour=0 repeat=1 records=1 practice
 ! grep -q "UR_RESULTS_NAV .*_STARTED" "$PRACTICE_LOG"
 ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$PRACTICE_LOG"
 
+# The player-facing results rematch must restore disposable Practice state,
+# reboot to stock MAIN, and use the original target-aware Quick Practice
+# launch route. The input script reaches results, then awaits a second race.
+REMATCH_ROOT="$WORK/practice-rematch-save"
+REMATCH_LOG="$WORK/practice-rematch.log"
+REMATCH_DUMPS="$WORK/practice-rematch-dumps"
+rm -rf "$REMATCH_ROOT" "$REMATCH_DUMPS"
+mkdir -p "$REMATCH_ROOT" "$REMATCH_DUMPS"
+SDL_AUDIODRIVER=dummy \
+XDG_DATA_HOME="$PREF_ROOT" \
+UR_PRODUCT_DIAGNOSTICS=1 \
+UR_FAST_REPEAT_ACCEPTANCE=1 \
+UR_PRACTICE_ACCEPTANCE=1 \
+UR_PRACTICE_SAVE_ROOT="$REMATCH_ROOT" \
+UR_HOST_STATE_PATH="$STATE" \
+SNESRECOMP_DUMP_DIR="$REMATCH_DUMPS" \
+  timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$PRACTICE_SCRIPT" \
+    >"$REMATCH_LOG" 2>&1
+cat "$REMATCH_LOG"
+grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_REQUESTED" "$REMATCH_LOG"
+grep -q "UR_PRACTICE RESTORED" "$REMATCH_LOG"
+grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_STARTED" "$REMATCH_LOG"
+grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_RACE_READY" "$REMATCH_LOG"
+! grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_FAILED" "$REMATCH_LOG"
+! grep -q "UR_PRACTICE COURSE_MISMATCH" "$REMATCH_LOG"
+! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$REMATCH_LOG"
+
 # Authentic mode never acquires the results-navigation surface.
 AUTH_ROOT="$WORK/authentic-profile"
 make_fixture "$AUTH_ROOT" 01000

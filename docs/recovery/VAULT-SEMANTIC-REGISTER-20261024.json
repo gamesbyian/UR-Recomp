@@ -38,7 +38,8 @@
     "Scoped 2026-10-24 source/member review reduced six unresolved vm1 keys to one, without a new implementation PR: H28 QA07 double-escaped-surrogate patch and P2P ACK/cross-invite negative controls superseded or retained as evidence. Source comparisons are specific to current main and research-only tests, no P2P security/release acceptance.",
     "Agent 2's independently qualified late Win32-portable namespace audit fixed an actual current-main exporter staging race in merged PR #2483. This is a current-source derived correction, not 25 Inbox tasks or missing archived implementation.",
     "2026-10-24 16:05 UTC later scheduled intake artifacts: 27/45 Incoming and 21/71 runner-enumerated Evidence verified; 4 oversized backup-segment Evidence errors; no source publication. Full ids/artifacts in latest_transport.",
-    "Integrated archive path crosswalk expanded: 21 exact Drive-ID links to Inbox pointer work-scope paths, and five scoped main/PR evidence mappings. No new code-integration credit."
+    "Integrated archive path crosswalk expanded: 21 exact Drive-ID links to Inbox pointer work-scope paths, and five scoped main/PR evidence mappings. No new code-integration credit.",
+    "2026-10-24 Agent 1 direct Integrated archive audit: reopened all 25 previously pathless ZIPs, checked ZIP member CRCs, and mapped 25 archive IDs to existing source/test/workflow work-scope paths on main tree ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1. Five Git blob equalities proven across four archive IDs; other routes are navigation/semantic pointers only."
   ],
   "items": [
     {
@@ -3154,7 +3155,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "b24524d954fb0c32bd771ce0c257079ef176390616ea0611ccafbe970832322e",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_original_title_sdl_rgb_mapping.py",
+        "tests/unit/test_verify_original_title_sdl_rgb_mapping.py"
+      ],
       "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
       "github_prs": [
         "#2149"
@@ -3164,7 +3168,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "11x4qXDt8swIg52188tLpkkLHloauPyhf",
@@ -3175,7 +3184,9 @@
       "mime_type": "application/zip",
       "archive_sha256": "e563281e05f141d032d2f197f0d8918cd47ab0ddf406a2b93912599dfe027276",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/select_three_project_reuse.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2088"
@@ -3185,7 +3196,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "12Ga192_kUjbpveaJpTS7zTPePrZjzsV1",
@@ -3259,7 +3275,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "54bde5cf213afe0f99017cda10569c02f1be430b61964261437e2ff7427e55d8",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/assemble_windows_package.py",
+        "tests/unit/test_windows_package_output_symlink.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2347",
@@ -3270,7 +3289,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1370PCHlfkE2BlGKigKi0ic3Qve4kQJwH",
@@ -3345,7 +3369,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "c73f7efab769dab308707a2f9f40d4196d2bcc0804f3e2d290ca8fa56d84b905",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/completed_run_browser.cpp",
+        "tests/native/completed_run_browser_test.cpp"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2364"
@@ -3355,7 +3382,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "17GvSWypLmsqf2VQeOxzHaqBvmoarSOep",
@@ -3431,7 +3463,11 @@
       "mime_type": "application/zip",
       "archive_sha256": "9f63354bf2f481b562432af1fc8c67ad6a4e4907016681310b7cc0688d0e449e",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        ".github/workflows/windows-native-smoke.yml",
+        ".github/workflows/windows-local-tournament-package-acceptance.yml",
+        "tests/unit/test_windows_smoke_package_handoff_policy.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2366"
@@ -3441,7 +3477,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Preserved proposal.json documents anchored intended changes to three existing workflow/test paths, not published source files. Later merged workflow semantics require independent PR comparison; do not claim the proposal itself merged exactly."
+      }
     },
     {
       "drive_id": "1B6qmg2uacrkudkKtZp1VcEc8unKWAECy",
@@ -3543,7 +3584,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "f902f821a1e89d11c660343c91ba0be0035ab805b6b832677bcea41b134af8a6",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/qa01_sparse_transition_bounds.py",
+        "tests/unit/test_qa01_sparse_transition_bounds.py"
+      ],
       "current_main_comparison": "Bounded research or negative tests already found on main or owned by current QA issue; no product integration inferred from archive location",
       "github_prs": [
         "#2088"
@@ -3553,7 +3597,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "technical_research_or_semantically_resolved"
+      "classification": "technical_research_or_semantically_resolved",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1eBRIAdDsdMitm6R71fecb81Zu_UNtu2t",
@@ -3622,7 +3671,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "c7cd47a9507773879eb96837a4031f6ddc1840feea62937e4e5f2ae3b51138f1",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/completed_run_replay.cpp",
+        "tests/native/completed_run_replay_test.cpp"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2345"
@@ -3632,7 +3684,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1fIAwJlnHdpbUKxAJVb0POclLGBGrzj1v",
@@ -3643,7 +3700,9 @@
       "mime_type": "application/zip",
       "archive_sha256": "999be7e3e594f292692e79ed80a7e89710f1eee72b87973f4f189b50ef5d02e0",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tests/native/run_windows_local_tournament_package_acceptance.sh"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2352",
@@ -3654,7 +3713,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1FsEDOyb2C4koCpoNDgjHK79D14KfyaDp",
@@ -3696,7 +3760,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "c7bf530ff81edd29290890205b5ca2c72045bc0b6229bf844804c02ba96fbfae",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/p2p/signed_completion_receipt_contract.py",
+        "tests/unit/test_p2p_signed_completion_receipt_contract.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2244"
@@ -3706,7 +3773,19 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "exact_archive_member_main_blob_matches": [
+        {
+          "archive_member": "tools/p2p/signed_completion_receipt_contract.py",
+          "current_main_path": "tools/p2p/signed_completion_receipt_contract.py",
+          "git_blob": "055c6f00cdd091fe8d171c7b0568a6d7298f932e"
+        }
+      ]
     },
     {
       "drive_id": "1HFHhn0tFdffg3zbl5onTtZ70MRCxbZnh",
@@ -3749,7 +3828,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "f68db374bc6c421e7f628753ca5b4003c4f262dd9dff32f1eb2b015e1cdaaa7c",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/baldosa_native_modern_root.cpp",
+        "tests/unit/test_baldosa_practice_restore_transaction.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2356"
@@ -3759,7 +3841,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1IiASg_CZn9OsQVaMiqr5EogmEXDTr6Ow",
@@ -3770,7 +3857,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "a5a001f83837758caf97c9833630967d6debd9b96b5208f36ff392f1c8dc20aa",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_modern_root_sdl_contrast.py",
+        "tests/unit/test_modern_root_geometry_log_tokens.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2250"
@@ -3780,7 +3870,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1Iy2Tg_k1MlFsg_UMSBDAYxXXOoL1JMVH",
@@ -3914,7 +4009,9 @@
       "mime_type": "application/zip",
       "archive_sha256": "cdfa3151e7401abd7cfd99d0be93e9c766e5da21cf23f06cc54d775116f779ab",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tests/native/host_product_unicode_path_regression.cpp"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2343"
@@ -3924,7 +4021,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1KHoNBxtQd9XU3AAeeRQQVdiEkaHhWtyQ",
@@ -3966,7 +4068,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "31d93516ba03b2d79c2789aa67818b6eb920e15b7d568a6d06a301f5125fc159",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/rf081_selected_pc_candidate_census.py",
+        "tests/unit/test_rf081_selected_pc_candidate_census.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2088"
@@ -3976,7 +4081,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1m8TpLnvTi9HAiQI5g-s458doBIWEhuwK",
@@ -4018,7 +4128,11 @@
       "mime_type": "application/zip",
       "archive_sha256": "9ccbef4378d8d6f70a19536af9b21e9b1744af23a5228ebe949f114a6c9d78d3",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/baldosa_native_profile_path_guard.hpp",
+        "tests/native/baldosa_native_profile_path_guard_test.cpp",
+        "tests/unit/test_baldosa_native_profile_path_guard_cpp.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2345"
@@ -4028,7 +4142,19 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "exact_archive_member_main_blob_matches": [
+        {
+          "archive_member": "tests/unit/test_baldosa_native_profile_path_guard_cpp.py",
+          "current_main_path": "tests/unit/test_baldosa_native_profile_path_guard_cpp.py",
+          "git_blob": "9f45ec26a6d47eb1a6cfef03eeb9dd523a0aa489"
+        }
+      ]
     },
     {
       "drive_id": "1oq_wIUR5OM1tPsR-QcyyuQxxIAqp4ldR",
@@ -4070,7 +4196,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "421dc23e0449ceb5826e7e60741c739f82b0c4c6e71adec61ae262a08783fc49",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/recovery_source_epoch_check.py",
+        "tests/unit/test_recovery_source_epoch_check.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2381"
@@ -4080,7 +4209,19 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "exact_archive_member_main_blob_matches": [
+        {
+          "archive_member": "tools/recovery_source_epoch_check.py",
+          "current_main_path": "tools/recovery_source_epoch_check.py",
+          "git_blob": "8fae29e170efb966f9b7cb7ba916319d79ede218"
+        }
+      ]
     },
     {
       "drive_id": "1pPMcQcuhhJ6vngM7yD77WDxheYjOn1S6",
@@ -4091,7 +4232,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "e41993670e76ccc7bfcba954eb4e21264505a512a407547f88418e7093cf8a01",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/check_modern_visual_capture_bundle.py",
+        "tests/unit/test_native_visual_sdl_capture_log_tokens.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2250"
@@ -4101,7 +4245,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1pZz8db6OpR4YOzvIk4dKZSaaZM50SUsI",
@@ -4112,7 +4261,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "66fcbb73c2162d80d91e1720d6db40f8eeabfe3e05aacd286b77060dd600e370",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/assemble_windows_package.py",
+        "tests/unit/test_package_mods_root_link.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2350"
@@ -4122,7 +4274,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1QooXD26zEifH_UtuaITbWHP-S8XHecaD",
@@ -4164,7 +4321,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "287074e26d117522af97986751bbb52ce02fe3a3231763765fc3b46c94302de4",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/modern_root_overlay_presenter.hpp",
+        "tests/native/modern_root_overlay_presenter_test.cpp"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2341"
@@ -4174,7 +4334,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1sk4W9TBmANhiAZk06HypoDiz7T0EbQOk",
@@ -4310,7 +4475,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "fd8a9e2200c1a307bad4955cdf43d63c1f61c07f5c4a576183434cb3fb001a4f",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/audit_original_course_event_coverage.py",
+        "tests/unit/test_qa01_evidence_ref_contract.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2340"
@@ -4320,7 +4488,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1uJQoq_mkeaVBUuS0H54pS8-E4QmfUfun",
@@ -4331,7 +4504,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "19d1cbff3943e704671d9971a029035100480b63c2699b5d7921108adaef6187",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/qa08_late_effective_trace_verify.py",
+        "tests/unit/test_qa08_late_effective_marker_boundaries.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2379"
@@ -4341,7 +4517,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1UQ8m7B5L3n9uurVshDIavx2n8XnFiBpM",
@@ -4382,7 +4563,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "d6d004f727102737881f0c61a08e8b4f1a9327869b8372a5c29395fa6d3da79d",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/export_baldosa_earned_1p_run.py",
+        "tests/unit/test_export_baldosa_earned_1p_run.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2345"
@@ -4392,7 +4576,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1wW_zP28K8OWA--3UMLX4Yc2_VuIVOgSq",
@@ -4403,7 +4592,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "25b0c7c00380d43f1e6f7edcac5163614ecf0a1841fff09cf37e8e2049065be0",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "research/qa08/qa08_temporal_source_census.py",
+        "research/qa08/test_qa08_temporal_source_census.py"
+      ],
       "current_main_comparison": "research/qa08 temporal census source and test exact main blobs 8583ed7b/bee9def0",
       "github_prs": [
         "#2088",
@@ -4414,7 +4606,24 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "main_source_or_test_exact_verified"
+      "classification": "main_source_or_test_exact_verified",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "exact_archive_member_main_blob_matches": [
+        {
+          "archive_member": "research/qa08/qa08_temporal_source_census.py",
+          "current_main_path": "research/qa08/qa08_temporal_source_census.py",
+          "git_blob": "8583ed7b037d4ccb4f5271808476d5486dc123e7"
+        },
+        {
+          "archive_member": "research/qa08/test_qa08_temporal_source_census.py",
+          "current_main_path": "research/qa08/test_qa08_temporal_source_census.py",
+          "git_blob": "bee9def01dc0168dcb34c0043b717f6e444ff6f7"
+        }
+      ]
     },
     {
       "drive_id": "1XxdajwxMpiD8Xvdqr4yFTAAXeb9LXKB8",
@@ -4425,7 +4634,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "059b41eed6c36b1df454d6ee6c1e7553b4808fe1223f7f29f0762da3515c8ba8",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_modern_root_sdl_contrast.py",
+        "tests/unit/test_verify_modern_root_sdl_contrast.py"
+      ],
       "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
       "github_prs": [
         "#2149"
@@ -4435,7 +4647,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1YWo79CU1ybzl_EgQX5CBIsvRHhceLnKz",
@@ -4446,7 +4663,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "4a88b4bed0a709da651052b8e061ddb5f44e3aceb9c66f848a3742d20d4b65d5",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/p2p/peer_island_directory_v0.py",
+        "tests/unit/test_p2p_revocation_barrier.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2367"
@@ -4456,7 +4676,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "1z4RpxHOndm_jyGgpavF1w5P7ChINnoQq",
@@ -4467,7 +4692,10 @@
       "mime_type": "application/zip",
       "archive_sha256": "51b3d94c18d993760ca8bba4403a17a78a877c0b6dc30c587d1b72d41f194513",
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/p2p/signed_completion_receipt_contract.py",
+        "tests/unit/test_p2p_signed_completion_receipt_contract.py"
+      ],
       "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
       "github_prs": [
         "#2351"
@@ -4477,7 +4705,12 @@
       "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
       "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "mapped_to_merged_source_or_semantic_successor"
+      "classification": "mapped_to_merged_source_or_semantic_successor",
+      "target_path_provenance": {
+        "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
+        "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      }
     },
     {
       "drive_id": "10lwjdtTbY3RfLsATv1wklGQ0a5pxZ4mhC-EKLIPNcPA",
@@ -5190,8 +5423,11 @@
     "nonzip_docs": 1,
     "scope": "Integrated folder only; no exact-current-main claim from CRC",
     "local_artifact": "ur-vault-integrated-binary-audit-20261024.json",
-    "integrated_rows_with_intended_target_paths": 26,
-    "target_path_comparison_limit": "Target-path map is an auditable navigation aid, not an independent 291-member source equality proof. Pointer-only references can be broader than the archive itself."
+    "integrated_rows_with_intended_target_paths": 51,
+    "target_path_comparison_limit": "All 51 Integrated archive rows have grounded navigation paths. For 25 formerly blank rows the original ZIP contents (CRC-checked) and GitHub main tree existence were read independently, and five selected archive-member Git blob equality checks were independently computed. None of the remaining member blobs are thereby certified exact or accepted.",
+    "integrated_rows_with_direct_archive_reopened_path_crosswalk": 25,
+    "integrated_rows_with_exact_archive_member_main_blob_matches": 4,
+    "exact_archived_member_main_blob_pairs_documented": 5
   },
   "latest_main_reconciled": "468e46ecd0845afecabe8986a7c4c4eb2dab7768",
   "member_decisions": {

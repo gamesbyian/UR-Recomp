@@ -2681,25 +2681,30 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             return;
         }
         struct Step { unsigned frame; SDL_GamepadButton button; };
+        // The native compositor presents asynchronously (the Windows CI
+        // run observed 112 presentations across 1800 simulation frames).
+        // Keep each modal open for 64 simulation frames so the verifier can
+        // require an actual painted destination, not merely open/close logs.
+        // Each press is still released on the following frame below.
         static constexpr Step steps[] = {
             {60u, SDL_GAMEPAD_BUTTON_SOUTH},       // Title -> root
             {84u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},   // Practice
             {88u, SDL_GAMEPAD_BUTTON_SOUTH},       // Open picker
-            {92u, SDL_GAMEPAD_BUTTON_EAST},        // Back
-            {96u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},   // Multiplayer
-            {100u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open join
-            {104u, SDL_GAMEPAD_BUTTON_EAST},       // Back
-            {108u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Records
-            {112u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open archive
-            {116u, SDL_GAMEPAD_BUTTON_EAST},       // Back
-            {120u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Options
-            {124u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open settings
-            {128u, SDL_GAMEPAD_BUTTON_EAST},       // Back
-            {132u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Records
-            {136u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Multiplayer
-            {140u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Practice
-            {144u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Play
-            {148u, SDL_GAMEPAD_BUTTON_SOUTH},      // Original stock 1P
+            {152u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {156u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Multiplayer
+            {160u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open join
+            {224u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {228u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Records
+            {232u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open archive
+            {296u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {300u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Options
+            {304u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open settings
+            {368u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {372u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Records
+            {376u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Multiplayer
+            {380u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Practice
+            {384u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Play
+            {388u, SDL_GAMEPAD_BUTTON_SOUTH},      // Original stock 1P
         };
         for (const auto& step : steps) {
             if (frame != step.frame && frame != step.frame + 1u) continue;

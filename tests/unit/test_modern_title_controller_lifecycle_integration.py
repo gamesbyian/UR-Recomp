@@ -70,6 +70,13 @@ def require_shared_native_acceptance(workflow: str) -> None:
         "--preview-wake --timeout 140",
         "for wake in keyboard p2; do",
         '--preview-wake --wake-route "$wake" $aspect --timeout 140',
+        '--preview-wake --recovery --timeout 140',
+        '--preview-wake --recovery --named-play --timeout 140',
+        '--bootstrap-script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-first-profile-bootstrap.script"',
+        "'source_main_recovery':",
+        "'named_play_after_attract':",
+        "receipt.get('real_guest_main_recovery_verified') is not True",
+        "receipt.get('named_source_play_verified') is not True",
         "'wake_keyboard_4by3':",
         "'wake_p2':",
         "receipt.get('native_wake_route') != wake_route",
@@ -81,7 +88,7 @@ def require_shared_native_acceptance(workflow: str) -> None:
             raise AssertionError("native acceptance coverage missing: " + token)
     if not (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").is_file():
         raise AssertionError("actual native 15-19 acceptance runner missing")
-    if step.count('--exe "$EXE"') != 5:
+    if step.count('--exe "$EXE"') != 7:
         raise AssertionError("controller/title runs must all use one exact Windows PE")
 
 
@@ -96,6 +103,10 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "--preview-wake --timeout 140",
             "for wake in keyboard p2; do",
             "'wake_p2':",
+            "'source_main_recovery':",
+            "'named_play_after_attract':",
+            "receipt.get('real_guest_main_recovery_verified') is not True",
+            "receipt.get('named_source_play_verified') is not True",
             "receipt.get('native_wake_route') != wake_route",
             "if receipt.get(key) != expected:",
         ):

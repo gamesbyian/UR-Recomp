@@ -194,17 +194,15 @@ try {
   Write-Output 'UR_ORIGINAL_CMD_REAL_NTFS_POSTRAW_TYPED_FULL_PRODUCT_PASS'
 }
 finally {
-  if ($attached) {
-    # DiskPart can return a nonzero status even after printing a successful
-    # detach. A message alone cannot establish cleanup; query this exact
-    # disposable image's attached state before deleting its backing file.
+  # DiskPart may attach the VHDX and then fail partition/format/assign.
+  # In that case $attached was never set. Verify every created backing file
+  # rather than relying on the successful-setup flag.
+  $diskExists = Test-Path -LiteralPath $disk -PathType Leaf
+  if ($attached -and -not $diskExists) {
+    throw ('FAIL_CLOSED: expected disposable VHDX backing missing: ' + $disk)
+  }
+  if ($diskExists) {
     $detachDiagnostic = $null
-    try {
-      Invoke-OnlyOriginalVHD @(('select vdisk file=' + '"' + $disk + '"'),'detach vdisk')
-    }
-    catch {
-      $detachDiagnostic = [string]$_
-    }
     try {
       $diskImage = Get-DiskImage -ImagePath $disk -ErrorAction Stop
     }
@@ -213,6 +211,22 @@ finally {
              $_ + '; diskpart=' + $detachDiagnostic)
     }
     if ($diskImage.Attached) {
+      # An error from DiskPart is not conclusive: re-query this exact image.
+      try {
+        Invoke-OnlyOriginalVHD @(('select vdisk file=' + '"' + $disk + '"'),'detach vdisk')
+      }
+      catch {
+        $detachDiagnostic = [string]$_
+      }
+      try {
+        $diskImage = Get-DiskImage -ImagePath $disk -ErrorAction Stop
+      }
+      catch {
+        throw ('FAIL_CLOSED: cannot verify disposable VHDX detach: ' +
+               $_ + '; diskpart=' + $detachDiagnostic)
+      }
+    }
+    if ($diskImage.Attached -ne $false) {
       throw ('FAIL_CLOSED: disposable VHDX remains attached: ' +
              $disk + '; diskpart=' + $detachDiagnostic)
     }

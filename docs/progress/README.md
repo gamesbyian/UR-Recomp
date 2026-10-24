@@ -17,6 +17,8 @@ From repo root, with Python 3 and no third-party packages:
 ```sh
 python3 tools/atomic_progress_v2.py --format markdown
 python3 tools/atomic_progress_v2.py --format json
+# For a claim of CURRENT status, independently review main and supply that HEAD:
+python3 tools/atomic_progress_v2.py --format json --reviewed-head FULL_REVIEWED_UPSTREAM_SHA
 python3 tools/atomic_progress_delta.py --format markdown
 python3 tools/progress_yield_audit.py --format markdown
 python3 -m unittest discover -s tests -p 'test_atomic_progress*.py'

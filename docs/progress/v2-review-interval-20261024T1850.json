@@ -1,0 +1,43 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "reviewed_at_utc": "2026-10-24T18:50:53Z",
+  "from_main_sha": "ff739ca5e1b363ada4db611053f9a06399e571db",
+  "through_main_sha": "c00997af128912297e5cf8bffac54ee0b9f12484",
+  "observed_merge_count": 4,
+  "merge_records": [
+    {
+      "commit_sha": "c09d8c16b5a7939716c86f110cd3e18bc77b5c05",
+      "pr": 2508,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2508",
+      "effect": "release_risk_reduction",
+      "observation": "Revalidate actual reloaded target SRAM identity and stock signature before allowing racer switching; bounded source guard, not completed power-cut recovery"
+    },
+    {
+      "commit_sha": "448397b3b36ac5ad74d29ceb7e0035939e6f333d",
+      "pr": 2514,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2514",
+      "effect": "direct_product",
+      "observation": "Remove phantom Confirm hint in read-only Records footer; useful UI correction but does not complete uncoached UX acceptance"
+    },
+    {
+      "commit_sha": "23a8f6a5ae5c265e35435fb0eeff135a39dea87d",
+      "pr": 2515,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2515",
+      "effect": "direct_product",
+      "observation": "Reject an in-range but stale Results action after menu rows shift; narrower than complete Next Event lifecycle"
+    },
+    {
+      "commit_sha": "c00997af128912297e5cf8bffac54ee0b9f12484",
+      "pr": 2510,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2510",
+      "effect": "release_risk_reduction",
+      "observation": "Verify disposable NTFS VHDX detach state after DiskPart warning; test cleanup hardening, with previously failed actual full-volume run still failed"
+    }
+  ],
+  "criterion_changes": [],
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "All four intervening merges examined via GitHub PR descriptions. None satisfies the whole wording of an unmet frozen v2 criterion; existing credited behaviors receive regression/hardening without extra scoring.",
+  "known_limits": "Some PRs offer only source tests; no new exact-current physical Windows, human UX, original/native all-event or independent release gate evidence. These four are activity/evidence, not 4% completion.",
+  "source_reviewed_by": "integration-measurement-agent"
+}

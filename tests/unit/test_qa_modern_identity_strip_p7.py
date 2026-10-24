@@ -53,10 +53,9 @@ class IdentityStripP7Test(unittest.TestCase):
         self.assertFalse(report["pass"])
         self.assertFalse(report["checks"]["identity_not_clipped"])
 
-    def test_real_wide_drawable_with_compact_source_is_width_failure(self):
-        # The first actual Windows P7 run observed 256 logical columns at
-        # 1280x720. Sample its real 240-wide strip, not a fictitious 320-wide
-        # strip that reports 80 columns of false checkerboard contamination.
+    def test_wrong_wide_source_expectation_is_reported_separately(self):
+        # A caller requesting 342 for the current fixed-scene 256-wide root
+        # must get a width-contract failure, not invented checkerboard bleed.
         frame = FakeFrame(256, output=(1280, 720))
         detection = {"consistent_widths": [256],
                      "nonuniform_fraction": {256: 0.0, 342: 0.0183}}
@@ -69,6 +68,18 @@ class IdentityStripP7Test(unittest.TestCase):
         self.assertTrue(report["checks"]["opaque_strip_no_checker_bleed"])
         self.assertTrue(report["checks"]["identity_not_clipped"])
         self.assertFalse(report["checks"]["expected_logical_width"])
+
+    def test_16x9_window_still_has_fixed_256_root(self):
+        self.assertEqual(audit.EXPECTED[0], (256, (1280, 720)))
+        self.assertEqual(audit.EXPECTED[1], (256, (1024, 768)))
+        detection = {"consistent_widths": [256],
+                     "nonuniform_fraction": {256: 0.0, 342: 0.0183}}
+        with patch.object(audit.visual, "detect_logical", return_value=detection):
+            report = audit.audit_observed_frame(
+                FakeFrame(256, output=(1280, 720)), 256)
+        self.assertTrue(report["pass"], report)
+        self.assertEqual(report["unexpected_logical_pixels"], 0)
+        self.assertTrue(report["checks"]["expected_logical_width"])
 
     def test_detected_expected_width_passes(self):
         for width in (256, 342):

@@ -129,6 +129,9 @@ class VaultGdownIntakeTests(unittest.TestCase):
                 stage_member="bundles/recovery.zip!/src/candidate.py",
                 stage_sha256=hashlib.sha256(chosen).hexdigest())
             self.assertEqual(result["staged_sources"], 1)
+            self.assertEqual(len([m for m in result["members"] if m["staged"]]), 1)
+            self.assertIn("bundles/recovery.zip!/src/candidate.py",
+                          {m["member"] for m in result["members"] if m["staged"]})
             self.assertEqual((Path(tmp) / "selected/src/candidate.py").read_bytes(), chosen)
             self.assertEqual(len(list(Path(tmp).rglob("*.py"))), 1)
 

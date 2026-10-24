@@ -1,0 +1,34 @@
+{
+  "schema": "ur-v2-criterion-movement/1",
+  "date": "2026-10-24",
+  "reviewed_main_sha": "6bbb07983502496c0a1fad53f00bfc9aa0333261",
+  "prior_screened_coverage_percent": 46,
+  "new_screened_coverage_percent": 47,
+  "change_percentage_points": 1,
+  "criterion_id": "ONE-07",
+  "before": "unverified",
+  "after": "bounded_verified",
+  "audit_state": "inherited_pr_screening",
+  "acceptance_requirement": "One-action rematch repeats with fresh legal guest session",
+  "evidence": [
+    "https://github.com/gamesbyian/UR-Recomp/pull/2494",
+    "https://github.com/gamesbyian/UR-Recomp/actions/runs/40078888170",
+    "https://github.com/gamesbyian/UR-Recomp/actions/runs/40078888094"
+  ],
+  "verified_outcomes": [
+    "Production routes Results Repeat Practice through a transactional host session reboot instead of in-race Restart",
+    "Canonical stock MAIN relaunches the retained source-validated Practice course",
+    "Exact-head native heavy router records two consecutive valid rematch cycles with the stock router",
+    "Win32 bridge and six other exact-head workflows reported success"
+  ],
+  "excluded_claims": [
+    "No physical gamepad or uncoached player acceptance",
+    "No formal original/native USA event acceptance",
+    "No awarded physical Windows release gate",
+    "No claim that source can be replaced by a new shortcut simulation"
+  ],
+  "formal_qa_delta": 0,
+  "formal_usa_delta": 0,
+  "previous_v2_frozen_baseline_percent": 50,
+  "net_change_from_v2_initial_baseline_pp": -3
+}

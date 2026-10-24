@@ -19,6 +19,8 @@ def fake_x64_pe(path: Path) -> None:
     struct.pack_into("<I", blob, 0x3c, 128)
     blob[128:132] = b"PE\x00\x00"
     struct.pack_into("<H", blob, 132, 0x8664)
+    # A structural executable fixture must satisfy the production PE flags.
+    struct.pack_into("<H", blob, 150, 0x0002)  # IMAGE_FILE_EXECUTABLE_IMAGE
     struct.pack_into("<H", blob, 152, 0x20b)
     path.write_bytes(blob)
 

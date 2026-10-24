@@ -63,6 +63,15 @@ def check_pe_x64(executable: Path) -> None:
             "portable executable must be AMD64 PE32+ "
             f"(machine=0x{machine:04x}, optional=0x{optional_magic:04x})"
         )
+    # IMAGE_FILE_EXECUTABLE_IMAGE must be set and IMAGE_FILE_DLL must not.
+    # A DLL renamed .exe can otherwise pass the architecture/import checks,
+    # yet fail when the portable launcher attempts to start it as a process.
+    characteristics = struct.unpack_from("<H", header, 22)[0]
+    if not characteristics & 0x0002 or characteristics & 0x2000:
+        raise ValueError(
+            "portable executable must be an executable image, not a DLL "
+            f"(characteristics=0x{characteristics:04x})"
+        )
 
 
 def imported_dlls(dumpbin_text: str) -> tuple[str, ...]:

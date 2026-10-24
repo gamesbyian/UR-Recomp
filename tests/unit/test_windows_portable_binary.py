@@ -25,12 +25,13 @@ def dumpbin(*names: str, delay: tuple[str, ...] = ()) -> str:
 
 
 def fake_pe(path: pathlib.Path, *, machine: int = 0x8664,
-            magic: int = 0x20B) -> None:
+            magic: int = 0x20B, characteristics: int = 0x0002) -> None:
     payload = bytearray(160)
     payload[:2] = b"MZ"
     struct.pack_into("<I", payload, 0x3C, 0x80)
     payload[0x80:0x84] = b"PE\0\0"
     struct.pack_into("<H", payload, 0x84, machine)
+    struct.pack_into("<H", payload, 0x96, characteristics)
     struct.pack_into("<H", payload, 0x98, magic)
     path.write_bytes(payload)
 
@@ -121,6 +122,17 @@ class WindowsPortableBinaryTests(unittest.TestCase):
             exe.write_bytes(b"not a PE")
             with self.assertRaisesRegex(ValueError, "not a Windows PE"):
                 binary.check_pe_x64(exe)
+
+    def test_rejects_x64_dll_and_non_executable_pe_images(self):
+        with tempfile.TemporaryDirectory() as directory:
+            exe = pathlib.Path(directory) / "game.exe"
+            for characteristics in (0x0000, 0x2002, 0x2000):
+                with self.subTest(characteristics=characteristics):
+                    fake_pe(exe, characteristics=characteristics)
+                    with self.assertRaisesRegex(ValueError, "executable image, not a DLL"):
+                        binary.check_pe_x64(exe)
+            fake_pe(exe, characteristics=0x0022)
+            binary.check_pe_x64(exe)
 
     def test_release_workflow_checks_imports_before_assembly(self):
         root = pathlib.Path(__file__).resolve().parents[2]

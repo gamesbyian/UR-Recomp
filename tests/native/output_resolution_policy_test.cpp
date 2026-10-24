@@ -109,6 +109,30 @@ int main() {
     const HostOutputMode expected_unknown_refresh{1920, 1080, 120000};
     assert(*unknown_refresh == expected_unknown_refresh);
 
+    // Unknown refresh (0) must not outrank a measured 59.94 Hz mode when
+    // the desktop refresh is known. Preserve fallback to unknown-only modes.
+    const std::vector<HostOutputMode> mixed_refresh = {
+        {1920, 1080, 0},
+        {1920, 1080, 59940},
+        {1920, 1080, 120000},
+    };
+    const auto known_refresh = resolve_fullscreen_output_mode(
+        HostOutputResolution::native(), mixed_refresh,
+        HostOutputMode{1920, 1080, 60000});
+    assert(known_refresh && known_refresh->refresh_millihz == 59940);
+
+    const auto only_unknown = resolve_fullscreen_output_mode(
+        HostOutputResolution::native(), {{1920, 1080, 0}},
+        HostOutputMode{1920, 1080, 60000});
+    assert(only_unknown && only_unknown->refresh_millihz == 0);
+
+    // If even the desktop refresh is unknown, retain the existing
+    // highest-known-refresh tie break instead of guessing a rate.
+    const auto unknown_desktop = resolve_fullscreen_output_mode(
+        HostOutputResolution::native(), mixed_refresh,
+        HostOutputMode{1920, 1080, 0});
+    assert(unknown_desktop && unknown_desktop->refresh_millihz == 120000);
+
     assert(!resolve_fullscreen_output_mode(
         HostOutputResolution::explicit_size(3840, 2160),
         modes,

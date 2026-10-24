@@ -148,12 +148,16 @@ std::optional<HostOutputMode> resolve_fullscreen_output_mode(
             continue;
         }
 
+        // An unknown candidate refresh is not an exact match for a known
+        // desktop rate. Prefer a measured rate; keep unknown as fallback.
         const std::int64_t distance =
-            native_mode.refresh_millihz > 0 && candidate.refresh_millihz > 0
-                ? refresh_distance(
-                      candidate.refresh_millihz,
-                      native_mode.refresh_millihz)
-                : 0;
+            native_mode.refresh_millihz > 0 && candidate.refresh_millihz == 0
+                ? std::numeric_limits<std::int64_t>::max()
+                : native_mode.refresh_millihz > 0
+                    ? refresh_distance(
+                          candidate.refresh_millihz,
+                          native_mode.refresh_millihz)
+                    : 0;
 
         if (!best ||
             distance < best_distance ||

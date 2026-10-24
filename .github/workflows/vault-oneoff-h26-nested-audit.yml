@@ -1,0 +1,129 @@
+name: Vault One-off H26 Nested Audit
+# One-off recovery investigation (issue #2088): walk the nested ZIPs inside the
+# H26 Evidence archive on a runner and report which source-like leaves have no
+# exact Git blob on main. Metadata only by default; optional review-gated text
+# printing for explicitly named members. Remove after the question closes.
+on:
+  workflow_dispatch:
+    inputs:
+      print_chain:
+        description: 'Optional "outer.zip::inner.zip::leaf" members to print as text, separated by ";" (reviewed source only)'
+        required: false
+        type: string
+      confirm_source_review:
+        description: I checked the named members for ROMs, rights, secrets and publication holds
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: vault-oneoff-h26-nested-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned public Drive downloader
+        run: python -m pip install 'gdown==6.4.2'
+      - name: Download and verify the H26 archive
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/h26"
+          python -m gdown 'https://drive.google.com/uc?id=142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ' -O "$RUNNER_TEMP/h26/h26.zip"
+          python - <<'PY'
+          import hashlib, os
+          p = os.path.join(os.environ['RUNNER_TEMP'], 'h26', 'h26.zip')
+          data = open(p, 'rb').read()
+          digest = hashlib.sha256(data).hexdigest()
+          print('H26 bytes', len(data), 'sha256', digest)
+          assert len(data) == 28106236, 'unexpected size'
+          assert digest == '601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00', 'unexpected sha256'
+          PY
+      - name: Walk nested ZIPs (bounded; no extraction)
+        env:
+          PRINT_CHAIN: ${{ inputs.print_chain }}
+          CONFIRM: ${{ inputs.confirm_source_review }}
+        run: |
+          python - <<'PY'
+          import hashlib, io, os, subprocess, sys, zipfile
+          ROOT = os.getcwd()
+          MAX_DEPTH = 4
+          MAX_MEMBER = 64 * 1024 * 1024
+          MAX_TOTAL = 512 * 1024 * 1024
+          SRC = ('.py', '.cpp', '.hpp', '.c', '.h', '.cc', '.ps1', '.sh', '.yml', '.yaml', '.patch', '.diff')
+          total = [0]
+          tracked = subprocess.check_output(['git', 'ls-files'], text=True).splitlines()
+          by_base = {}
+          for t in tracked:
+              by_base.setdefault(os.path.basename(t), []).append(t)
+
+          def blob_sha(b):
+              return hashlib.sha1(b'blob %d\0' % len(b) + b).hexdigest()
+
+          def on_main(sha):
+              return subprocess.run(['git', 'cat-file', '-e', sha], capture_output=True).returncode == 0
+
+          leaves = {}
+
+          def walk(raw, chain, depth):
+              try:
+                  z = zipfile.ZipFile(io.BytesIO(raw))
+              except zipfile.BadZipFile:
+                  print('NOT-A-ZIP', '::'.join(chain)); return
+              for info in z.infolist():
+                  name = info.filename
+                  if info.is_dir() or info.flag_bits & 1 or '..' in name.split('/') or name.startswith('/') or '\\' in name:
+                      continue
+                  if info.file_size > MAX_MEMBER or total[0] + info.file_size > MAX_TOTAL:
+                      print('SKIP-OVER-BUDGET', '::'.join(chain + [name]), info.file_size); continue
+                  data = z.read(name)  # CRC checked by zipfile
+                  total[0] += len(data)
+                  path = chain + [name]
+                  if name.lower().endswith('.zip') and depth < MAX_DEPTH:
+                      walk(data, path, depth + 1)
+                      continue
+                  sha = hashlib.sha256(data).hexdigest()
+                  leaves.setdefault(sha, []).append(('::'.join(path), len(data), data if name.lower().endswith(SRC) else None))
+
+          raw = open(os.path.join(os.environ['RUNNER_TEMP'], 'h26', 'h26.zip'), 'rb').read()
+          walk(raw, ['h26.zip'], 0)
+          print('LEAF-SUMMARY unique_sha256=%d occurrences=%d decompressed_bytes=%d' % (
+              len(leaves), sum(len(v) for v in leaves.values()), total[0]))
+          missing = 0
+          for sha, occ in sorted(leaves.items(), key=lambda kv: kv[1][0][0]):
+              path, size, data = occ[0]
+              if data is None:
+                  continue
+              git = blob_sha(data)
+              present = on_main(git)
+              base = os.path.basename(path)
+              same_name = by_base.get(base, [])
+              if present:
+                  continue
+              missing += 1
+              print('SRC-NOT-ON-MAIN sha256=%s git=%s bytes=%d occ=%d same_basename_on_main=%s path=%s' % (
+                  sha[:16], git[:12], size, len(occ), ','.join(same_name[:3]) or '-', path))
+          print('SRC-NOT-ON-MAIN-COUNT', missing)
+
+          want = [c for c in os.environ.get('PRINT_CHAIN', '').split(';') if c.strip()]
+          if want:
+              if os.environ.get('CONFIRM') != 'true':
+                  sys.exit('print_chain requires confirm_source_review')
+              printed = 0
+              for sha, occ in leaves.items():
+                  for path, size, data in occ:
+                      if path in want and data is not None and printed < 1_500_000:
+                          print('UR-STAGED-BEGIN bytes=%d sha256=%s %s' % (size, sha, path))
+                          for line in data.decode('utf-8', 'replace').splitlines():
+                              print('| ' + line)
+                          print('UR-STAGED-END')
+                          printed += size
+          PY

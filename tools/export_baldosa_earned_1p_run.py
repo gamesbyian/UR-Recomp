@@ -162,7 +162,12 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
             len(root_name.encode('utf-16-le')) // 2 > 255 or
             stem in reserved):
         raise ValueError('Nonportable source journey root name')
-    if destination == journey or journey in destination.parents:
+    # Compare absolute path identities, not caller spellings. An otherwise
+    # valid relative source ("journey") and absolute nested target can refer
+    # to the same subtree without sharing lexical Path parents.
+    source_absolute = journey.absolute()
+    target_absolute = destination.absolute()
+    if target_absolute == source_absolute or source_absolute in target_absolute.parents:
         raise ValueError('Evidence destination must be outside source journey')
     if (journey.is_symlink() or not journey.is_dir() or
             journey.resolve(strict=True) != journey.absolute()):

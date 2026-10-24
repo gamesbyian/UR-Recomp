@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: windows-portable-consumer-pe-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   consumer-pe:
     runs-on: windows-2022

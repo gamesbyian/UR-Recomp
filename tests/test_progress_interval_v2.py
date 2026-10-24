@@ -11,10 +11,11 @@ class ProgressIntervalV2Tests(unittest.TestCase):
     def setUpClass(cls):
         def read(p):
             return json.loads((ROOT/p).read_text(encoding="utf-8"))
-        cls.prev = read("docs/progress/v2-review-checkpoint-20261024T1708.json")
+        pointer=read("docs/progress/current-v2-review.json")
+        cls.prev = read(pointer["previous"])
         cls.inv = read("docs/progress/windows-beta-v2-inventory.json")
         cls.ledger = read("docs/RELEASE-QUALITY-LEDGER.json")
-        cls.interval = read("docs/progress/v2-review-interval-20261024T1850.json")
+        cls.interval = read(pointer["interval"])
         cls.sha = cls.interval["through_main_sha"]
     def score(self, previous=None, inventory=None, ledger=None, interval=None, sha=None):
         return compare(previous if previous is not None else self.prev,
@@ -27,11 +28,13 @@ class ProgressIntervalV2Tests(unittest.TestCase):
         self.assertEqual(r["previous_product_percent"],47)
         self.assertEqual(r["current_product_percent"],47)
         self.assertEqual(r["interval_product_delta_points"],0)
-        self.assertEqual(r["reviewed_merge_count"],4)
-        self.assertEqual(r["merged_work_mix"],{"direct_product":2,"release_risk_reduction":2})
+        self.assertEqual(r["reviewed_merge_count"],self.interval["observed_merge_count"])
+        self.assertEqual(sum(r["merged_work_mix"].values()),r["reviewed_merge_count"])
+        self.assertEqual(r["current_independent_audit_percent"],2)
         self.assertEqual(r["accepted_USA_events"],0)
         self.assertEqual(r["passed_release_gates"],0)
         self.assertEqual(r["newly_verified"],[])
+        self.assertEqual(set(r["other_audit_transitions"]),{"WIN-03","ONE-05"})
     def test_stale_review_sha_rejected(self):
         with self.assertRaisesRegex(ValueError,"STALE"):
             self.score(sha="a"*40)
@@ -65,7 +68,8 @@ class ProgressIntervalV2Tests(unittest.TestCase):
             self.score(ledger=ledger)
     def test_duplicate_pr_receipt_rejected(self):
         interval=copy.deepcopy(self.interval)
-        interval["merge_records"][1]["pr"]=interval["merge_records"][0]["pr"]
+        interval["merge_records"].append(copy.deepcopy(interval["merge_records"][0]))
+        interval["observed_merge_count"] += 1
         with self.assertRaisesRegex(ValueError,"Duplicate"):
             self.score(interval=interval)
     def test_interval_gap_rejected(self):

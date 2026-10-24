@@ -1,0 +1,767 @@
+{
+  "schema": "ur-v2-screening-audit/1",
+  "date": "2026-10-24",
+  "base_source_sha": "7f8f882820feb6d2b9d46b16f5e90e46dd0544f3",
+  "kind": "documentary_evidence_review_not_independent_qa_or_physical_replay",
+  "total_original_screened": 50,
+  "original_score_percent": 50,
+  "evidence_qualification": "PR descriptions and source-bound project QA notes; no independently executed candidate package during this audit",
+  "rows": [
+    {
+      "id": "WIN-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "source_relinked",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/39822833034",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "Previous PR link was too indirect; replaced with more specifically attributable original/native or hosted-Windows execution receipts.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "source_relinked",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/39822833034",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "Previous PR link was too indirect; replaced with more specifically attributable original/native or hosted-Windows execution receipts.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-03",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2281"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2281"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2286"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2286"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-05",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2297"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2297"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIN-06",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2463"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2463"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1416"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1416"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1416"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1416"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-05",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2362"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2362"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "ONE-06",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2384"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2384"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "TWO-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "TWO-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "TWO-03",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "TWO-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2332"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2332"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "TWO-05",
+      "original_status": "bounded_verified",
+      "new_status": "unverified",
+      "result": "withheld",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2455"
+      ],
+      "review_evidence": [],
+      "reason": "PR #2455 changes only the acceptance runner's source-log guard; no changed product admission code proves the criterion's claimed product behavior.",
+      "audit_state": "pending"
+    },
+    {
+      "id": "MENU-01",
+      "original_status": "bounded_verified",
+      "new_status": "unverified",
+      "result": "withheld",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [],
+      "reason": "PR #1648 explicitly disclaims physical-pad testing; scripted controller-semantic root cannot establish physical-controller requirement.",
+      "audit_state": "pending"
+    },
+    {
+      "id": "MENU-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-03",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-05",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-06",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2384"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2384"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-07",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2414"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2414"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-08",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2472"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2472"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "MENU-09",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2465"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2465"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-03",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-05",
+      "original_status": "bounded_verified",
+      "new_status": "unverified",
+      "result": "withheld",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2405"
+      ],
+      "review_evidence": [],
+      "reason": "PR #2405 reports Linux fixture and source checks but explicitly says Windows runtime/NTFS tests pending; criterion promises Windows-name handling.",
+      "audit_state": "pending"
+    },
+    {
+      "id": "DATA-06",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2450"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2450"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-07",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-08",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "DATA-09",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2452"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2452"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-03",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1990"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2464"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2464"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-05",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2460"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2460"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-06",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2421"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2421"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-07",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2456"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2456"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "RECOVERY-08",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2404"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2404"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "source_relinked",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1082",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1092",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38004162535"
+      ],
+      "reason": "Previous PR link was too indirect; replaced with more specifically attributable original/native or hosted-Windows execution receipts.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "source_relinked",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1210",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38083079741"
+      ],
+      "reason": "Previous PR link was too indirect; replaced with more specifically attributable original/native or hosted-Windows execution receipts.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-04",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2304"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2304"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "WIDE-05",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2463"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2463"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-01",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1648"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-02",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2472"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2472"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-03",
+      "original_status": "bounded_verified",
+      "new_status": "bounded_verified",
+      "result": "screened_retained",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2465"
+      ],
+      "review_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2465"
+      ],
+      "reason": "PR-linked narrow source/product behavior; independent code/runtime verification still required for audited acceptance.",
+      "audit_state": "inherited_pr_screening"
+    },
+    {
+      "id": "UX-04",
+      "original_status": "bounded_verified",
+      "new_status": "unverified",
+      "result": "withheld",
+      "original_evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510"
+      ],
+      "review_evidence": [],
+      "reason": "PR #1510 exercises scripted native profile journeys, not two real human players.",
+      "audit_state": "pending"
+    }
+  ],
+  "withdrawn_ids": [
+    "TWO-05",
+    "MENU-01",
+    "DATA-05",
+    "UX-04"
+  ],
+  "relinked_ids": [
+    "WIN-01",
+    "WIN-02",
+    "WIDE-01",
+    "WIDE-02"
+  ],
+  "retained_ids": [
+    "WIN-03",
+    "WIN-04",
+    "WIN-05",
+    "WIN-06",
+    "ONE-01",
+    "ONE-02",
+    "ONE-04",
+    "ONE-05",
+    "ONE-06",
+    "TWO-01",
+    "TWO-02",
+    "TWO-03",
+    "TWO-04",
+    "MENU-02",
+    "MENU-03",
+    "MENU-04",
+    "MENU-05",
+    "MENU-06",
+    "MENU-07",
+    "MENU-08",
+    "MENU-09",
+    "DATA-01",
+    "DATA-02",
+    "DATA-03",
+    "DATA-04",
+    "DATA-06",
+    "DATA-07",
+    "DATA-08",
+    "DATA-09",
+    "RECOVERY-01",
+    "RECOVERY-02",
+    "RECOVERY-03",
+    "RECOVERY-04",
+    "RECOVERY-05",
+    "RECOVERY-06",
+    "RECOVERY-07",
+    "RECOVERY-08",
+    "WIDE-04",
+    "WIDE-05",
+    "UX-01",
+    "UX-02",
+    "UX-03"
+  ],
+  "current_screened_score_percent": 46,
+  "delta_pp": -4,
+  "independently_audited_score_percent": 0
+}

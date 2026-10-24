@@ -84,16 +84,29 @@ class ModernOverlayTextFitTests(unittest.TestCase):
 
     def test_results_strip_clears_the_records_hint_band(self):
         source = HOST.read_text(encoding="utf-8")
+        self.assertIn("constexpr int kResultsRecordsHintBand = 14;", source)
         self.assertIn(
-            ": height - panel_h - 8 * modal_scale - kResultsRecordsHintBand;",
+            ": height - panel_h -",
             source,
         )
-        self.assertIn("constexpr int kResultsRecordsHintBand = 14;", source)
+        self.assertIn("(8 + kResultsRecordsHintBand) * modal_scale;", source)
+        self.assertNotIn(
+            "8 * modal_scale - kResultsRecordsHintBand;", source
+        )
         browser = (ROOT / "native/product/completed_run_browser_host.cpp").read_text(
             encoding="utf-8"
         )
         hint = _body(browser, "void draw_results_records_hint(", "\n}\n")
-        self.assertIn("8, height - 13,", hint)
+        self.assertIn("resolve_modern_overlay_surface_scale(", hint)
+        self.assertIn("8 * scale, height - 13 * scale,", hint)
+        self.assertIn('"F8 / Y      RECORDS", 0xFFFFFFFFu, scale', hint)
+        self.assertNotIn("8, height - 13,", hint)
+        # Results navigation reserves 8 + 14 logical pixels. The hint
+        # begins 13 logical pixels from the bottom at either density.
+        for density in (1, 4):
+            reserved = (8 + 14) * density
+            hint_top = 13 * density
+            self.assertGreater(reserved, hint_top)
 
     def test_onboarding_rows_are_fitted(self):
         source = HOST.read_text(encoding="utf-8")
@@ -118,14 +131,35 @@ class ModernOverlayTextFitTests(unittest.TestCase):
             _body(browser, "void draw_browser(", "\n}\n"),
         ]
         for body in bodies:
-            self.assertIn("width < 244 ? width - 12 : 236", body)
+            self.assertIn("resolve_modern_overlay_surface_scale(", body)
+            self.assertIn("const int logical_width = width / scale;", body)
+            self.assertIn("const int logical_height = height / scale;", body)
+            self.assertIn("logical_width < 244 ? logical_width - 12 : 236", body)
+            self.assertIn("panel_h > logical_height", body)
             self.assertIn("modern_overlay_text_cells(panel_w)", body)
+            self.assertIn("panel_w * scale, panel_h * scale", body)
+            self.assertIn("(x + 8) * scale, line_y * scale", body)
+            self.assertIn("fitted.c_str(), 0xFFFFFFFFu, scale", body)
+            self.assertNotIn("width < 244 ? width - 12 : 236", body)
+            self.assertNotIn("fitted.c_str(), 0xFFFFFFFFu, 1", body)
             # Every line, fixed or composed, goes through the fitted drawer.
             self.assertEqual(body.count("snes_ovl_draw_text("), 1)
             self.assertIn("fit_modern_overlay_text(text, cells)", body)
             for text in re.findall(r'"((?:[^"\\]|\\.)*)"', body):
                 if "%" not in text:
                     self.assertLessEqual(len(text), cells, text)
+
+        # 1x and 4x must preserve the same logical 236px/27-cell panel,
+        # while projecting its geometry and text to the physical raster.
+        for density in (1, 4):
+            surface_width, surface_height = 256 * density, 224 * density
+            logical_width = surface_width // density
+            logical_height = surface_height // density
+            panel_width = logical_width - 12 if logical_width < 244 else 236
+            self.assertEqual(panel_width, 236)
+            self.assertEqual((panel_width - 16) // 8, 27)
+            self.assertEqual(panel_width * density, 236 * density)
+            self.assertGreaterEqual(logical_height, 205)
 
         # (format, representative long values): each composed row carries its
         # information inside the budget instead of relying on truncation.

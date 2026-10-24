@@ -297,6 +297,7 @@ jobs:
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
+          python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
           python tests/unit/test_baldosa_native_practice_courses_probe.py
           python tests/unit/test_modern_pause_overlay_presenter.py
           python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
@@ -334,6 +335,10 @@ jobs:
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_options_spike.py --game baldosa
           python tools/baldosa_modern_options_spike.py --game baldosa
+          # Restore the exact merged SDL host seat owner/move implementation;
+          # the Modern root requires these symbols at native link time.
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c

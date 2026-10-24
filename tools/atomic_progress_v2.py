@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INV_PATH = ROOT / "docs/progress/windows-beta-v2-inventory.json"
 LEDGER_PATH = ROOT / "docs/RELEASE-QUALITY-LEDGER.json"
 GROUP_COUNTS = {"WIN": 6, "ONE": 10, "TWO": 8, "MENU": 10, "DATA": 10,
-                "RECOVERY": 10, "WIDE": 10, "ART": 10, "FID": 45, "QA": 10, "UX": 6}
+                "RECOVERY": 10, "WIDE": 10, "ART": 10, "QA": 10, "UX": 6, "FID": 45}
 CONTRACT_FINGERPRINT = "ec1572b0"
 STATUS = {"unverified", "bounded_verified", "regressed"}
 AUDIT_STATES = {"pending", "inherited_pr_screening", "independent_reviewed"}

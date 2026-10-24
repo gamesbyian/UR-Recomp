@@ -2,5 +2,5 @@
 # smoke fixture mode8 (X then A), then persisted for a fresh process.
 # No original guest menu/WRAM writes and no synthetic profile serializer.
 turbo on
-wait 210
+wait 900
 quit

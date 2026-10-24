@@ -40,6 +40,8 @@ def scenario(root: Path, *, binary_sidecar: bool = False):
     struct.pack_into("<I", pe, 0x3c, 128)
     pe[128:132] = b"PE\x00\x00"
     struct.pack_into("<H", pe, 132, 0x8664)
+    # A positive synthetic PE must carry the executable-image COFF flag.
+    struct.pack_into("<H", pe, 150, 0x0002)
     struct.pack_into("<H", pe, 152, 0x20b)
     exe.write_bytes(pe)
     candidate = root / qa.ZIP

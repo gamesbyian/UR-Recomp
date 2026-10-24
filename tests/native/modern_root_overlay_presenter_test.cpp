@@ -347,6 +347,8 @@ int main() {
     assert(contains("REPLAY UNAVAILABLE"));
     assert(contains("B/ESC BACK  READ ONLY"));
     assert(!contains("A/ENTER  B/ESC BACK"));
+    assert(!contains("X/F2 RACERS   F1 HELP"));
+    assert(!contains("A/ENTER SELECT   B/ESC QUIT"));
     assert(text_draws_fit(old_view));
     assert(rect_draws_fit(old_view));
     painted.clear();
@@ -356,6 +358,7 @@ int main() {
                                       real_wide_view,view));
     assert(contains("B/ESC BACK  READ ONLY"));
     assert(!contains("A/ENTER  B/ESC BACK"));
+    assert(!contains("X/F2 RACERS   F1 HELP"));
     assert(text_draws_fit(real_wide_view));
     assert(rect_draws_fit(real_wide_view));
     painted.clear();
@@ -388,6 +391,7 @@ int main() {
                                       old_view,view));
     assert(!contains("STORED RUNS"));
     assert(!contains("REPLAY UNAVAILABLE"));
+    assert(contains("X/F2 RACERS   F1 HELP"));
 
     // The native P1/P2 join is now a child of this SAME renderer, never
     // separately drawn by the execution adapter. Older hosts opt out by
@@ -472,6 +476,7 @@ int main() {
     assert(contains("Shuffler - RACE"));
     assert(contains("20 OPEN - MORE FROM MEDALS"));
     assert(contains("A START L/R TOUR B BACK"));
+    assert(!contains("X/F2 RACERS   F1 HELP"));
     painted.clear();
     view.practice_courses_open = 40;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,

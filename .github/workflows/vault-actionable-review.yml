@@ -5,12 +5,6 @@ on:
     workflows: ['Vault Recurring Intake (Public Drive)']
     types: [completed]
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/vault-actionable-review.yml'
-      - 'tools/vault_integration_review.py'
-      - 'docs/recovery/vault-member-dispositions.json'
   pull_request:
     paths:
       - '.github/workflows/vault-actionable-review.yml'

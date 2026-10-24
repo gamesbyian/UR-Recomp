@@ -145,11 +145,13 @@ def verify_two_virtual_pads(log: str) -> None:
 
 
 def verify_owner_disconnect(log: str) -> None:
-    """Require an actual SDL seat-2 unplug, not just a root-level withdrawal.
+    """Require a distinct SDL P2 host detach and root-level withdrawal.
 
-    A changed source ID, synthetic join marker or delayed host detach must not
-    qualify as the two-pad P2-owner-leaves journey. Both initial pads must be
-    distinct and P1 must retain its host seat through keyboard confirmation.
+    run_game captures stdout and stderr separately, then concatenates them.
+    The SDL host emits UR_CONTROLLER_SEAT to stdout; the Modern root emits
+    join_* to stderr. Cross-stream string offsets therefore DO NOT encode
+    real event order. Enforce each stream's independent order, exact device
+    identity, and the root's causal source-owner guard instead.
     """
     stages = (
         "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
@@ -161,37 +163,34 @@ def verify_owner_disconnect(log: str) -> None:
     assignments = [
         (int(m.group(1)), int(m.group(2)), m.start())
         for m in re.finditer(
-            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
-            r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
+            r"(?m)^\\[Gamepad\\] UR_CONTROLLER_SEAT assign "
+            r"instance=(\\d+) seat=([01]) reason=[^\\r\\n]+$", log
         )
     ]
     if (len(assignments) != 2 or
             {seat for _, seat, _ in assignments} != {0, 1} or
-            len({instance for instance, _, _ in assignments}) != 2 or
-            any(pos >= log.index(stages[0]) for _, _, pos in assignments)):
+            len({instance for instance, _, _ in assignments}) != 2):
         raise ValueError("owner leaves: distinct initial host seats not observed")
     p2_instance = next(instance for instance, seat, _ in assignments if seat == 1)
-    p2_confirm = log.index(stages[1])
-    root_clear = log.index(stages[2])
-    p1_confirm = log.index(stages[3])
     vacates = [
         (int(m.group(1)), int(m.group(2)), m.start())
         for m in re.finditer(
-            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT vacate "
-            r"instance=(\d+) seat=([01]) key=[0-9a-fA-F]+$", log
+            r"(?m)^\\[Gamepad\\] UR_CONTROLLER_SEAT vacate "
+            r"instance=(\\d+) seat=([01]) key=[0-9a-fA-F]+$", log
         )
     ]
-    during_join = [
-        (instance, seat, pos) for instance, seat, pos in vacates
-        if p2_confirm < pos < p1_confirm
-    ]
-    if (len(during_join) != 1 or
-            during_join[0][0] != p2_instance or
-            during_join[0][1] != 1 or
-            during_join[0][2] >= root_clear):
-        raise ValueError("owner leaves: actual P2 SDL seat vacate must precede withdrawal")
-    if any(seat == 0 and pos < p1_confirm for _, seat, pos in vacates):
-        raise ValueError("owner leaves: P1 SDL seat vacated before keyboard confirmation")
+    if (len(vacates) != 1 or
+            vacates[0][0] != p2_instance or vacates[0][1] != 1 or
+            vacates[0][2] <= max(pos for _, _, pos in assignments)):
+        raise ValueError("owner leaves: actual assigned P2 SDL seat vacate missing")
+    # A synthetic join marker cannot substitute for the native host's
+    # unique P2 detach. Seat moves/claims would also invalidate continuity.
+    churn = re.findall(
+        r"(?m)^\\[Gamepad\\] UR_CONTROLLER_SEAT (?:move|claim)\\b[^\\r\\n]*$",
+        log,
+    )
+    if churn:
+        raise ValueError("owner leaves: unexpected host seat move/claim")
     reject_unexpected_stock_route(log, "owner leaves")
     if lines(log, "join_pad_moved"):
         raise ValueError("owner leaves: a pad moved while keyboard P1 held seat 1")
@@ -255,9 +254,9 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         verify_owner_disconnect(log)
     except ValueError as exc:
         # Preserve the native host's exact seat evidence beside the root's
-        # join markers. stdout (host) and stderr (root) share one subprocess
-        # pipe but may be buffered differently; the actual ordering must be
-        # investigated before changing any fail-closed acceptance predicate.
+        # join markers. stdout (host) and stderr (root) are separately captured
+        # and concatenated, so log offsets cannot establish cross-stream
+        # chronology; inspect both native event streams independently.
         evidence = [line for line in log.splitlines()
                     if "UR_CONTROLLER_SEAT " in line or
                     "UR_BALDOSA_MODERN_ROOT join_" in line]

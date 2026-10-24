@@ -19,7 +19,8 @@ The ledger uses schema ur-vault-member-dispositions/1 and an items array. Each r
 * For engineering: require a specific source_path, reason, provenance_verified true and publication_authorized true. Only then does a candidate route to Agent 2. Historical test results, Drive readability and lack of Git blob match do not alone grant those flags.
 * For superseded: require a current source_path, detailed evidence and tests documenting the precise behavior already present on main.
 * For held or rejected: supply the exact reason. Preserve old refusal/authorization evidence and the original archive.
-* For merged: require numeric PR, exact 40-character merge_commit, source_path and tests. The workflow cross-checks the *live GitHub* merged_at and SHA before granting the merged state.
+* For merged: require numeric PR, exact 40-character merge_commit, source_path, tests, original archive_sha256, original member_sha256 and a concrete evidence receipt. The workflow cross-checks the *live GitHub* merged_at and SHA before granting the merged state, and refuses merge credit when hashes/evidence are missing.
+* For every member disposition: optional scope, drive_id, archive_sha256, member and member_sha256 fields must agree with the actual checkpoint fingerprint. Any conflict results in identity_conflict with Agent 1 as owner; a plausible vm1 candidate_id cannot disguise misidentified archive bytes. Include both SHA-256 fields on new adjudications wherever observed.
 * For unresolved and evidence_only: supply an accurate reason and a follow-up owner. The original evidence survives.
 
 The initial member ledger is intentionally empty until Agent 1's authoritative per-member reconciliation is supplied. Unlisted items remain needs_semantic_review, never silently integrated. Ledger IDs absent from available checkpoint artifacts are surfaced as orphaned/retained records rather than silently deleted.

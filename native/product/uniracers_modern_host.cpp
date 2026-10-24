@@ -1391,6 +1391,17 @@ ur::product::FastNavigationContext fast_navigation_context() {
 }
 
 bool repeat_current_attempt() {
+    // Practice is a noncareer guest run, but its results shortcut must still
+    // retain the stock-routed course identity. Refuse a stale/corrupted target
+    // before dispatching Restart or touching guest state/SRAM.
+    if (g_practice_active &&
+        !ur::product::quick_practice_repeat_target_ready(
+            g_practice_launch,
+            g_recent_course_track_id
+                ? static_cast<int>(*g_recent_course_track_id) : -1)) {
+        product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_REJECTED_TARGET");
+        return false;
+    }
     if (ur::product::resolve_fast_navigation(
             ur::product::FastNavigationCommand::RepeatAttempt,
             fast_navigation_context()) !=

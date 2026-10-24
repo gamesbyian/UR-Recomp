@@ -297,6 +297,8 @@ std::string g_profile_edit_target_id;
 bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
 bool g_profile_select_failed = false;
+// A catalog commit may succeed even when activation of the new racer fails.
+bool g_profile_create_activation_failed = false;
 // An unreadable canonical roster must not expose stale cached entries to
 // profile selection or mutation. Closing and reopening retries the read.
 bool g_profile_catalog_refresh_failed = false;
@@ -2178,6 +2180,9 @@ bool create_profile_from_editor() {
     }
     g_profile_edit_mode = ProfileEditMode::None;
     const bool activated = activate_profile_id(id);
+    // Catalog registration is durable even if switching away from the
+    // previous racer fails. Keep the new row selected and say so explicitly.
+    g_profile_create_activation_failed = !activated;
     if (activated) product_diagnostic("UR_PROFILE_UI CREATED");
     return activated;
 }
@@ -2283,6 +2288,7 @@ void open_profile_menu() {
     g_profile_edit_target_id.clear();
     g_profile_menu_visible = true;
     g_profile_select_failed = false;
+    g_profile_create_activation_failed = false;
     g_profile_edit_save_failed = false;
     g_profile_reset_notice = ProfileResetNotice::None;
     product_diagnostic("UR_PROFILE_UI OPENED");
@@ -2302,6 +2308,7 @@ void open_profile_menu() {
 }
 
 void begin_profile_create() {
+    g_profile_create_activation_failed = false;
     g_profile_edit_target_id.clear();
     g_profile_select_failed = false;
     g_profile_reset_notice = ProfileResetNotice::None;
@@ -2315,6 +2322,7 @@ void begin_profile_create() {
 }
 
 void begin_profile_rename() {
+    g_profile_create_activation_failed = false;
     ensure_profile_catalog();
     reconcile_profile_menu_index();
     if (g_profile_menu_index >= g_profile_catalog.size()) return;
@@ -2445,6 +2453,7 @@ bool execute_active_profile_progress_reset() {
 }
 
 void open_profile_reset_confirmation() {
+    g_profile_create_activation_failed = false;
     g_profile_reset_notice = ProfileResetNotice::None;
     g_profile_select_failed = false;
     g_profile_cool_name_notice = false;
@@ -2589,6 +2598,7 @@ bool handle_profile_menu_key(int key) {
     if (key == SDLK_r) { begin_profile_rename(); return true; }
     if (key == SDLK_d) { open_profile_reset_confirmation(); return true; }
     if (key == SDLK_UP && !g_profile_catalog.empty()) {
+        g_profile_create_activation_failed = false;
         g_profile_reset_notice = ProfileResetNotice::None;
         g_profile_menu_index =
             (g_profile_menu_index + g_profile_catalog.size() - 1) %
@@ -2597,6 +2607,7 @@ bool handle_profile_menu_key(int key) {
         return true;
     }
     if (key == SDLK_DOWN && !g_profile_catalog.empty()) {
+        g_profile_create_activation_failed = false;
         g_profile_reset_notice = ProfileResetNotice::None;
         g_profile_menu_index =
             (g_profile_menu_index + 1) % g_profile_catalog.size();
@@ -2606,6 +2617,7 @@ bool handle_profile_menu_key(int key) {
     if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
         g_profile_reset_notice = ProfileResetNotice::None;
         if (g_profile_menu_index < g_profile_catalog.size()) {
+            g_profile_create_activation_failed = false;
             const bool selected = activate_profile_id(
                 g_profile_catalog[g_profile_menu_index].profile_id);
             g_profile_select_failed = !selected;
@@ -10265,9 +10277,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
                 profile_reset_notice_text()
                     ? profile_reset_notice_text()
-                    : (g_profile_select_failed
-                        ? "SELECT FAILED - ESC TO CLOSE"
-                        : "ESC / F2  CLOSE"),
+                    : (g_profile_create_activation_failed
+                        ? "RACER SAVED - ENTER TO RETRY"
+                        : (g_profile_select_failed
+                            ? "SELECT FAILED - ESC TO CLOSE"
+                            : "ESC / F2  CLOSE")),
                 0xFFFFFFFFu, scale);
         }
         if (g_profile_cool_name_notice) {

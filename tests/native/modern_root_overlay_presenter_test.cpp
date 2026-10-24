@@ -534,7 +534,7 @@ int main() {
     assert(!contains(">VSYNC    < ON >")); // retained only in 4:3
     assert(std::any_of(text_draws.begin(),text_draws.end(),
         [](const TextDraw& d) {
-            return d.x == 206 && d.y == 91 &&
+            return d.x == 190 && d.y == 91 &&
                    d.content == "< ON >" && d.scale == 1;
         }));
     assert(text_draws_fit(source_wide));
@@ -546,11 +546,43 @@ int main() {
                                       {44,40,1280,816},view));
     assert(std::any_of(text_draws.begin(),text_draws.end(),
         [](const TextDraw& d) {
-            return d.x == 824 && d.y == 364 &&
+            return d.x == 760 && d.y == 364 &&
                    d.content == "< ON >" && d.scale == 4;
         }));
     assert(text_draws_fit({44,40,1280,816}));
     assert(rect_draws_fit({44,40,1280,816}));
+    // The genuine compact-wide panel must show the entire selected value,
+    // including both change arrows. The old 183px column showed only
+    // "< FULLSCREE" and concealed the setting's final letter/arrow.
+    view.options_selected = 0;
+    view.options_rows[0] = {"DISPLAY", "FULLSCREEN", true};
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,342,224,1,320,
+                                      source_wide,view));
+    assert(contains("< FULLSCREEN >"));
+    assert(!contains("< FULLSCREE"));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 190 && d.y == 77 &&
+                   d.content == "< FULLSCREEN >" && d.scale == 1;
+        }));
+    assert(text_draws_fit(source_wide));
+    assert(rect_draws_fit(source_wide));
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,1368,896,4,320,
+                                      {44,40,1280,816},view));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 760 && d.y == 308 &&
+                   d.content == "< FULLSCREEN >" && d.scale == 4;
+        }));
+    assert(text_draws_fit({44,40,1280,816}));
+    assert(rect_draws_fit({44,40,1280,816}));
+    view.options_rows[0] = {"DISPLAY", "WINDOWED", true};
     view.options_selected = 2;
     painted.clear();
     text_draws.clear();

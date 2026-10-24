@@ -192,22 +192,28 @@ inline void render_modern_options_modal(
                     // a stable label column and independent value column.
                     // Never turn an arbitrary large SDL window into a wide
                     // logical panel; the caller supplies panel_w explicitly.
-                    constexpr int kValueColumn = 183;
+                    // At the genuine 320px native-wide panel, the old
+                    // 183px column left only 12 value cells. Selecting a
+                    // ten-character value such as FULLSCREEN adds < > and
+                    // silently cropped the final character and right arrow.
+                    // Shift the entire column for compact-wide panels so
+                    // every row retains stable alignment and full feedback.
+                    const int value_column = panel_w < 340 ? 167 : 183;
                     const auto value_cells = modern_overlay_text_cells(
-                        panel_w - kValueColumn - 20);
+                        panel_w - value_column - 20);
                     paint.draw_text(pixels, stride, surface_height,
                                     bx + 9 * scale, row_y,
                                     fit_modern_overlay_text(
                                         std::string(selected ? ">" : " ") +
                                         std::string(row.label),
                                         modern_overlay_text_cells(
-                                            kValueColumn - 12)).c_str(),
+                                            value_column - 12)).c_str(),
                                     colour, scale);
                     // Action rows can legitimately have no value. Do not
                     // issue an empty-glyph draw on the right column.
                     if (!value.empty())
                         paint.draw_text(pixels, stride, surface_height,
-                                        bx + kValueColumn * scale, row_y,
+                                        bx + value_column * scale, row_y,
                                         fit_modern_overlay_text(
                                             value, value_cells).c_str(),
                                         colour, scale);

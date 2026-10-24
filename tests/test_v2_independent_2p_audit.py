@@ -2,7 +2,6 @@
 import json
 import unittest
 from pathlib import Path
-from tools.progress_interval_v2 import compare
 
 ROOT=Path(__file__).resolve().parents[1]
 def load(path):
@@ -14,8 +13,6 @@ class IndependentTwoPlayerEvidenceTests(unittest.TestCase):
         cls.audit=load("docs/progress/v2-independent-2p-audit-20261024.json")
         cls.previous=load("docs/progress/v2-review-checkpoint-20261024T1916.json")
         cls.interval=load("docs/progress/v2-review-interval-20261024T1924.json")
-        cls.inventory=load("docs/progress/windows-beta-v2-inventory.json")
-        cls.ledger=load("docs/RELEASE-QUALITY-LEDGER.json")
 
     def test_original_win32_three_distinct_source_witnesses(self):
         self.assertEqual({x["id"] for x in self.audit["changes"]},
@@ -26,18 +23,16 @@ class IndependentTwoPlayerEvidenceTests(unittest.TestCase):
             self.assertTrue(item["scope_limit"])
             self.assertTrue(item["outcome"])
 
-    def test_independent_review_changes_only_audit_score(self):
-        result=compare(self.previous,self.inventory,self.ledger,
-                       self.interval,self.interval["through_main_sha"])
-        self.assertEqual(result["previous_product_percent"],47)
-        self.assertEqual(result["current_product_percent"],47)
-        self.assertEqual(result["interval_product_delta_points"],0)
-        self.assertEqual(result["previous_independent_audit_percent"],2)
-        self.assertEqual(result["current_independent_audit_percent"],5)
-        self.assertEqual(set(result["other_audit_transitions"]),
+    def test_historical_2p_review_is_self_contained_as_future_scores_grow(self):
+        self.assertEqual(self.audit["before"]["bounded_coverage_percent"],47)
+        self.assertEqual(self.audit["after"]["bounded_coverage_percent"],47)
+        self.assertEqual(self.audit["before"]["independently_audited_percent"],2)
+        self.assertEqual(self.audit["after"]["independently_audited_percent"],5)
+        self.assertEqual(self.interval["from_main_sha"],self.previous["at_main_sha"])
+        self.assertEqual({x["id"] for x in self.interval["criterion_changes"]},
                          {"TWO-01","TWO-02","TWO-03"})
-        self.assertEqual(result["passed_release_gates"],0)
-        self.assertEqual(result["accepted_USA_events"],0)
+        self.assertEqual(self.interval["formal_events_delta"],0)
+        self.assertEqual(self.interval["formal_release_gates_delta"],0)
 
     def test_historical_2p_producer_does_not_claim_physical_pads(self):
         audited=self.audit

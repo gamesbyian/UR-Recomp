@@ -40,9 +40,9 @@ jobs:
       - name: Run offline fail-closed disposition tests
         run: python -m unittest tests.unit.test_vault_integration_review -v
       - name: Read latest completed main per-folder checkpoints
-        if: \${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' }}
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -75,9 +75,9 @@ jobs:
             fi
           done
       - name: Snapshot active and historical PRs for exact merge verification
-        if: \${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' }}
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -121,9 +121,9 @@ jobs:
           (root / "github.json").write_text(json.dumps({"prs": standardized}))
           PY
       - name: Reconcile member identities and create actionable review artifact
-        if: \${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' }}
         env:
-          REVIEW_ROOT: \${{ runner.temp }}/vault-review
+          REVIEW_ROOT: ${{ runner.temp }}/vault-review
         shell: bash
         run: |
           set -euo pipefail
@@ -135,9 +135,9 @@ jobs:
           cat "$REVIEW_ROOT/sources.txt" >> "$GITHUB_STEP_SUMMARY"
           cat "$REVIEW_ROOT/actionable/actionable.md" >> "$GITHUB_STEP_SUMMARY"
       - name: Retain read-only handoff
-        if: \${{ github.event_name != 'pull_request' && success() }}
+        if: ${{ github.event_name != 'pull_request' && success() }}
         uses: actions/upload-artifact@v4
         with:
           name: vault-actionable-review
-          path: \${{ runner.temp }}/vault-review/actionable/
+          path: ${{ runner.temp }}/vault-review/actionable/
           retention-days: 90

@@ -131,6 +131,7 @@ jobs:
               print(f"- {key}: {data[key]}")
           print(f"- successfully audited on this run: {len(data['processed'])}")
           print(f"- download/inspection errors: {len(data['errors'])}")
+          print(f"- oversized archives cooling down: {len(data.get('retry_cooldown', []))}")
           print(f"- queued review leads: {sum(1 for x in data['processed'] if (x.get('zip') or {}).get('crosswalk', {}).get('unmatched_or_unexamined', 0) > 0)}")
           print("- Original ZIPs and extracted source were NOT published.")
           PY

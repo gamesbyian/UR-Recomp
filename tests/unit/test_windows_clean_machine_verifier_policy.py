@@ -66,6 +66,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             fake_pe[0x80:0x84] = b"PE\0\0"
             struct.pack_into("<H", fake_pe, 0x84, 0x8664)
             struct.pack_into("<H", fake_pe, 0x94, 2)
+            struct.pack_into("<H", fake_pe, 0x96, 0x0002)
             struct.pack_into("<H", fake_pe, 0x98, 0x20B)
             (build / package.EXE_NAME).write_bytes(fake_pe)
             (build / package.ROM_CONFIG_NAME).write_bytes(b"generated rom config")
@@ -104,6 +105,45 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertIn("UR_PORTABLE_ROM_IDENTITY_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_MANIFEST_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK", result.stdout)
+            # Re-sign each malformed PE as a self-consistent package.
+            # The independent Windows consumer must reject it even though
+            # manifest, archive checksum and AMD64/PE32+ signatures agree.
+            for characteristics in (0x0000, 0x2000, 0x2002):
+                with self.subTest(characteristics=characteristics):
+                    forged_package = root / f"bad-pe-{characteristics:04x}-package"
+                    shutil.copytree(output, forged_package)
+                    forged_exe = forged_package / package.EXE_NAME
+                    forged_bytes = bytearray(forged_exe.read_bytes())
+                    struct.pack_into("<H", forged_bytes, 0x96, characteristics)
+                    forged_exe.write_bytes(forged_bytes)
+                    manifest_path = forged_package / package.MANIFEST_NAME
+                    forged_manifest = json.loads(manifest_path.read_text())
+                    for entry in forged_manifest["files"]:
+                        if entry["path"] == package.EXE_NAME:
+                            entry["sha256"] = hashlib.sha256(forged_bytes).hexdigest()
+                            break
+                    else:
+                        self.fail("synthetic package has no executable entry")
+                    manifest_path.write_bytes(
+                        package.canonical_manifest_bytes(forged_manifest)
+                    )
+                    forged_archive = root / f"bad-pe-{characteristics:04x}.zip"
+                    forged_checksum = root / f"bad-pe-{characteristics:04x}.zip.sha256"
+                    package.create_archive(forged_package, forged_archive)
+                    package.write_archive_checksum(forged_archive, forged_checksum)
+                    rejected_cmd = cmd.copy()
+                    rejected_cmd[6] = str(forged_archive)
+                    rejected_cmd[8] = str(forged_checksum)
+                    rejected_cmd[-1] = str(
+                        root / f"bad-pe-{characteristics:04x}-extracted"
+                    )
+                    rejected = subprocess.run(
+                        rejected_cmd, capture_output=True, text=True, check=False,
+                    )
+                    self.assertNotEqual(
+                        rejected.returncode, 0, rejected.stdout + rejected.stderr,
+                    )
+                    self.assertIn("executable image, not a DLL", rejected.stderr)
             # Even a re-signed archive/sidecar must not admit CMD-active
             # build_revision text into the extracted Windows launcher.
             unsafe_archive = root / "unsafe-source-revision.zip"

@@ -1,0 +1,32 @@
+name: Windows portable consumer PE contract
+
+# Run the actual stock-PowerShell verifier against ROM-free, re-signed
+# AMD64/PE32+ synthetic packages. No native build, ROM or physical gate.
+on:
+  pull_request:
+    paths:
+      - "tools/Test-URRecompPortable.ps1"
+      - "tests/unit/test_windows_clean_machine_verifier_policy.py"
+      - "tools/assemble_windows_package.py"
+      - ".github/workflows/windows-portable-consumer-pe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-portable-consumer-pe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  consumer-pe:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify standalone PowerShell consumer against signed synthetic PE variants
+        shell: pwsh
+        run: python -m unittest -v tests.unit.test_windows_clean_machine_verifier_policy

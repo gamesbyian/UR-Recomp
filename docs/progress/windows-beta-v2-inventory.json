@@ -534,14 +534,13 @@
       "id": "DATA-05",
       "area": "DATA",
       "criterion": "Native profile and replay file paths preserve UTF-8 Windows names",
-      "status": "bounded_verified",
-      "evidence": [
-        "https://github.com/gamesbyian/UR-Recomp/pull/2405"
-      ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "status": "unverified",
+      "evidence": [],
+      "evidence_class": "source_and_linux_fixture_only_pending_actual_win32_unicode_file_io",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "pending",
+      "withdrawn_reason": "PR #2405 reports Linux fixture and source checks but explicitly says Windows runtime/NTFS tests pending; criterion promises Windows-name handling."
     },
     {
       "id": "DATA-06",

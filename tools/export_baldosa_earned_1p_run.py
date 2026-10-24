@@ -256,7 +256,11 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
         if (_regular_bytes(journey / 'report.json', MAX_REPORT_BYTES) != report_bytes or
                 _regular_bytes(candidates[0], MAX_RUN_BYTES) != data):
             raise ValueError('Source evidence changed during staging')
-        final_candidates = [entry for entry in runs_root.iterdir()
+        # Recheck the complete Win32-portable directory identity, not only
+        # .urrun candidates: a sidecar added during staging must not escape
+        # the same namespace admission applied before the source was read.
+        final_entries = _portable_run_namespace_entries(runs_root)
+        final_candidates = [entry for entry in final_entries
                             if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
         if len(final_candidates) != 1 or final_candidates[0].name != source_name:
             raise ValueError('Source run namespace changed during staging')

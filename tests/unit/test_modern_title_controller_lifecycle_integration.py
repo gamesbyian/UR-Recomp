@@ -246,7 +246,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
                  selected[2], *stages[7:10],
                  selected[3], *stages[10:13],
                  *selected[4:], *stages[13:]]
-        valid = "\\n".join(lines) + "\\n"
+        valid = "\n".join(lines) + "\n"
         verify_five_destination_pad_journey(valid)
         bad = {
             "missing painted practice": [x for x in lines if x != stages[2]],
@@ -266,7 +266,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         }
         for label, witness in bad.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
-                verify_five_destination_pad_journey("\\n".join(witness) + "\\n")
+                verify_five_destination_pad_journey("\n".join(witness) + "\n")
 
     def test_owner_disconnect_native_causal_source_guard(self):
         # The root may report withdrawal only after it has observed that

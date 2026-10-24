@@ -241,7 +241,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         ]
         # The host stdout is concatenated ahead of stderr; native stderr
         # stages are interleaved with real root selection edges.
-        lines = [host, selected[0], *stages[:4],
+        lines = [host, stages[0], selected[0], *stages[1:4],
                  selected[1], *stages[4:7],
                  selected[2], *stages[7:10],
                  selected[3], *stages[10:13],
@@ -257,6 +257,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
                                for x in lines],
             "missing back": [x for x in lines if x != stages[6]],
             "missing root navigation": [x for x in lines if x != selected[2]],
+            "cursor spliced after opened practice": [x for x in lines if x != selected[0]] + [selected[0]],
             "spurious 2P admission": lines + [
                 "UR_BALDOSA_MODERN_ROOT stock_requested players=2"
             ],

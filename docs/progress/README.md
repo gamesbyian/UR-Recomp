@@ -1,4 +1,4 @@
-# Product-completion measurement v2: atomic Windows beta inventory
+> **2026-10-24 later checkpoint:** The first v2 audit corrected 50.000% → 46.000%; subsequently [ONE-07 exact-head stock Practice rematch](v2-one07-rematch-promotion-20261024.json) earns +1.000 point, yielding **47.000% provisional bounded coverage** at reviewed main `6bbb0798`. The immutable first 50.000% baseline remains as an historical source for `atomic_progress_delta.py` (net −3.000 pp). These are not release gates or independently audited acceptance.\n\n# Product-completion measurement v2: atomic Windows beta inventory
 
 **Status:** 2026-10-24 candidate for independent review. This system supplements, does not replace, the [release quality ledger](../RELEASE-QUALITY-LEDGER.json), the [USA event census](../ORIGINAL-COURSE-EVENT-CENSUS.md), the [existing v1 maturity score](../PROGRESS-INVENTORY.json), or the owner-approved product plan.
 

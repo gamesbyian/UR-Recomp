@@ -177,8 +177,14 @@ class RecurringVaultTests(unittest.TestCase):
                 out=first, enumerator=self.listing, downloader=too_large,
                 git_tree=b"", max_files=1, now=NOW,
             )
-            self.assertEqual(len(failed["errors"]), 1)
-            self.assertEqual(failed["errors"][0]["id"], A)
+            self.assertEqual(failed["errors"], [])
+            self.assertEqual([x["id"] for x in failed["retry_cooldown"]], [A])
+            self.assertEqual(failed["retry_cooldown"][0]["retry_after"],
+                             (NOW + timedelta(days=14)).isoformat())
+            self.assertNotIn(A, recurring.read_checkpoint(
+                first / "checkpoint.json")["items"])
+            self.assertIn(A, recurring.read_checkpoint(
+                first / "checkpoint.json")["failures"])
             seen = []
             resumed, queue = recurring.run_cycle(
                 out=Path(tmp) / "second", previous=first / "checkpoint.json",
@@ -213,6 +219,60 @@ class RecurringVaultTests(unittest.TestCase):
                 now=NOW + timedelta(days=15),
             )
             self.assertIn(A, expired, "14-day cooldown must expire")
+
+    def test_first_six_attempts_count_budget_cooldowns_but_not_red_transport(self):
+        observed = []
+        def downloader(entry, out, tree, stage=False):
+            observed.append(entry["id"])
+            if entry["id"] == A:
+                raise ValueError("download exceeds single-file byte budget")
+            if entry["id"] == B:
+                raise ValueError("expanded ZIP budget exceeded")
+            return archive_result(entry)
+        with tempfile.TemporaryDirectory() as tmp:
+            report, queue = recurring.run_cycle(
+                out=Path(tmp) / "first", enumerator=self.listing,
+                downloader=downloader, git_tree=b"", now=NOW,
+                max_files=3,
+            )
+            self.assertEqual(observed, [A, B, C])
+            self.assertEqual(report["errors"], [])
+            self.assertEqual(len(report["processed"]), 1)
+            self.assertEqual(report["processed"][0]["id"], C)
+            self.assertEqual([x["id"] for x in report["retry_cooldown"]],
+                             [A, B])
+            self.assertEqual(len(queue["retry_cooldown"]), 2)
+            self.assertEqual(report["remaining_due"], 2)
+            ck = recurring.read_checkpoint(Path(tmp) / "first/checkpoint.json")
+            self.assertEqual(set(ck["items"]), {C})
+            self.assertEqual(set(ck["failures"]), {A, B})
+            # The next run proceeds without new errors or repeated downloads.
+            again = []
+            nxt, _ = recurring.run_cycle(
+                out=Path(tmp) / "next",
+                previous=Path(tmp) / "first/checkpoint.json",
+                enumerator=self.listing, git_tree=b"",
+                downloader=lambda item, *args, **kwargs: (
+                    again.append(item["id"]) or archive_result(item)),
+                now=NOW + timedelta(hours=6),
+            )
+            self.assertEqual(again, [])
+            self.assertEqual(nxt["errors"], [])
+            self.assertEqual(len(nxt["retry_cooldown"]), 2)
+
+    def test_explicit_oversize_probe_is_a_hard_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report, _ = recurring.run_cycle(
+                out=Path(tmp) / "probe", enumerator=self.listing,
+                forced_id=A, git_tree=b"",
+                downloader=lambda *args, **kwargs: (
+                    (_ for _ in ()).throw(
+                        ValueError("download exceeds single-file byte budget"))),
+                now=NOW,
+            )
+            self.assertEqual(len(report["errors"]), 1)
+            self.assertEqual(report["errors"][0]["id"], A)
+            self.assertEqual(report["retry_cooldown"], [])
 
     def test_expanded_and_nested_zip_budget_failures_share_retry_cooldown(self):
         for error in ("expanded ZIP budget exceeded",
@@ -282,6 +342,7 @@ class RecurringVaultTests(unittest.TestCase):
                     ".github/workflows/vault-recurring-intake.yml").read_text()
         self.assertIn("Failed Drive ID", workflow)
         self.assertIn("Deferred Drive ID", workflow)
+        self.assertIn("oversized archives cooling down", workflow)
         self.assertIn("ID_PATTERN.fullmatch(drive_id)", workflow)
         self.assertIn("classify_intake_error(error.get", workflow)
 

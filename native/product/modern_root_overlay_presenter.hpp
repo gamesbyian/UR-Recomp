@@ -234,10 +234,17 @@ inline void render_modern_options_modal(
                                     cells).c_str(),
                                 has_status ? palette.title_yellow
                                            : kModernMenuCheckerLegibleGrey, scale);
+            // An action row (for example CONTROLS) opens with Confirm;
+            // Left/Right only changes rows the product actually marks
+            // adjustable. Match the native destination's contextual hint.
+            const bool adjustable = view.options_selected < rows &&
+                view.options_rows[view.options_selected].adjustable;
             paint.draw_text(pixels, stride, surface_height,
                             bx + 9 * scale, by + 114 * scale,
                             fit_modern_overlay_text(
-                                "L/R CHANGE  B BACK", cells).c_str(),
+                                adjustable ? "L/R CHANGE  B BACK"
+                                           : "A SELECT  B BACK",
+                                cells).c_str(),
                             palette.cursor_blue, scale);
         }
 }

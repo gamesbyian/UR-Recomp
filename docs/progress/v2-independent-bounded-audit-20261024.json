@@ -1,0 +1,52 @@
+{
+  "schema": "ur-v2-independent-bounded-review/1",
+  "date": "2026-10-24",
+  "source_reviewed_main_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
+  "review_method": "Independent read-only inspection of full GitHub Actions job log and case output, cross-checked with credited merged PR and frozen criterion text; no new local execution or physical device involved.",
+  "changes": [
+    {
+      "id": "WIN-03",
+      "criterion": "Launcher survives unsupported hardware OpenGL path",
+      "implementation": "https://github.com/gamesbyian/UR-Recomp/pull/2281",
+      "independent_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39741657113/job/119700061393",
+      "outcome": {
+        "runner": "hosted Windows native-windows-x64",
+        "forced_gl_1_1": "refused_unavailable",
+        "machine_gl": "refused version=1.1.0",
+        "native_guest_survived": true,
+        "exe_sha256": "beced3d3f8cced4db5ea0115c8153922ed5ec11295df2b453b3b7c3fdce3b752",
+        "tested_source_commit": "5d6307d85095f65df87bce90010b01f0bba0fd65"
+      },
+      "audit_state": "independent_reviewed",
+      "scope_limit": "Hosted Windows GL1.1 fallback only; no physical RDP/hybrid-GPU device, no upstream unchecked ImGui fix. GitHub issue #2272 remains intentionally open for launcher owner."
+    },
+    {
+      "id": "ONE-05",
+      "criterion": "Real native Practice repeats through two completed result cycles",
+      "implementation": "https://github.com/gamesbyian/UR-Recomp/pull/2362",
+      "independent_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39915291314/job/120288246079",
+      "outcome": {
+        "runner": "Linux Xvfb native independent-tour-a",
+        "case": "practice-two-repeat",
+        "marker": "UR_PRACTICE_TWO_REPEAT_CYCLES=passed course=0 results=2 repeats=2",
+        "frames": 5776,
+        "artifact_id": 12485066990
+      },
+      "audit_state": "independent_reviewed",
+      "scope_limit": "Genuine native script/stock SRAM transitions; not physical pad, Windows display/audio or independently admitted original USA event."
+    }
+  ],
+  "before": {
+    "bounded_coverage_percent": 47,
+    "independently_audited_percent": 0,
+    "USA_events": 0,
+    "Windows_gates": 0
+  },
+  "after": {
+    "bounded_coverage_percent": 47,
+    "independently_audited_percent": 2,
+    "USA_events": 0,
+    "Windows_gates": 0
+  },
+  "notes": "Separate independent evidence grade is for narrow frozen behavior, not for independently accepted physical release candidates. Keep official release ledger unchanged."
+}

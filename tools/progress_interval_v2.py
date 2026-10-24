@@ -18,6 +18,7 @@ from tools.atomic_progress_v2 import validate as validate_v2
 
 DEFAULT_INVENTORY = ROOT / "docs/progress/windows-beta-v2-inventory.json"
 DEFAULT_LEDGER = ROOT / "docs/RELEASE-QUALITY-LEDGER.json"
+REVIEW_POINTER = ROOT / "docs/progress/current-v2-review.json"
 DEFAULT_PREVIOUS = ROOT / "docs/progress/v2-review-checkpoint-20261024T1708.json"
 DEFAULT_INTERVAL = ROOT / "docs/progress/v2-review-interval-20261024T1850.json"
 EFFECTS = {"direct_product", "release_risk_reduction", "enabling_infrastructure",
@@ -144,13 +145,26 @@ def markdown(r):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--reviewed-head", required=True)
-    p.add_argument("--previous", type=Path, default=DEFAULT_PREVIOUS)
-    p.add_argument("--interval", type=Path, default=DEFAULT_INTERVAL)
+    p.add_argument("--previous", type=Path, default=None, help="Prior full status snapshot; defaults to current-v2-review pointer")
+    p.add_argument("--interval", type=Path, default=None, help="Source-reviewed merge interval; defaults to current-v2-review pointer")
     p.add_argument("--inventory", type=Path, default=DEFAULT_INVENTORY)
     p.add_argument("--ledger", type=Path, default=DEFAULT_LEDGER)
     p.add_argument("--format", choices=("json", "markdown"), default="markdown")
     a = p.parse_args()
-    files = [a.previous, a.inventory, a.ledger, a.interval]
+    if a.previous is None or a.interval is None:
+        pointer = json.loads(REVIEW_POINTER.read_text(encoding="utf-8"))
+        if pointer.get("schema") != "ur-v2-review-pointer/1":
+            raise ValueError("Invalid current review pointer")
+        if pointer.get("reviewed_main_sha") != a.reviewed_head:
+            raise ValueError("STALE: current review pointer differs from requested source HEAD")
+        previous = a.previous or ROOT / pointer["previous"]
+        interval = a.interval or ROOT / pointer["interval"]
+    else:
+        previous, interval = a.previous, a.interval
+    for path in (previous, interval):
+        if not path.resolve().is_relative_to(ROOT.resolve()):
+            raise ValueError("Interval review paths must stay in the repository")
+    files = [previous, a.inventory, a.ledger, interval]
     result = compare(*(json.loads(p.read_text(encoding="utf-8")) for p in files), a.reviewed_head)
     print(json.dumps(result, indent=2) if a.format == "json" else markdown(result))
 

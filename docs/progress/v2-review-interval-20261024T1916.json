@@ -1,0 +1,44 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "reviewed_at_utc": "2026-10-24T19:16:19Z",
+  "from_main_sha": "c00997af128912297e5cf8bffac54ee0b9f12484",
+  "through_main_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
+  "observed_merge_count": 1,
+  "merge_records": [
+    {
+      "commit_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
+      "pr": 2518,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2518",
+      "effect": "enabling_infrastructure",
+      "observation": "Merge source-pinned previous-to-current progress reporter; scoring support, no gameplay fix or newly closed product requirement"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "WIN-03",
+      "before": "bounded_verified",
+      "after": "bounded_verified",
+      "audit_before": "inherited_pr_screening",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/39741657113/job/119700061393"
+      ],
+      "reason": "Independent reviewer examined exact-head hosted Win32 binary log: forced GL1.1 and actual GL1.1 refused, native guest process survived; narrower than physical GPU device recovery."
+    },
+    {
+      "id": "ONE-05",
+      "before": "bounded_verified",
+      "after": "bounded_verified",
+      "audit_before": "inherited_pr_screening",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/39915291314/job/120288246079"
+      ],
+      "reason": "Independent reviewer read real native Linux tour-A execution markers: two complete Practice results and repeats from same source course, no fabricated record publication; no physical Windows claim."
+    }
+  ],
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Only main PR #2518 merged between prior and current source SHA. Product criterion statuses and score unchanged at 47%; separate review of archived successful source-bound jobs elevates independently audited bounded coverage from 0% to 2%. No release gate acceptance.",
+  "source_reviewed_by": "independent_measurement_integrator"
+}

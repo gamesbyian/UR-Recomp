@@ -188,6 +188,20 @@ def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
     filenames. Reject both before producing a consumer ZIP, comparing every
     ancestor spelling as well as validating each individual component.
     """
+    # A ZIP may describe both a file and its own directory ancestor.
+    # These names cannot be extracted faithfully on Win32 even when their
+    # spelling and case are individually legal. Reject the full set here
+    # for both producer and independent archive consumer paths.
+    leaf_keys = {relative.casefold(): relative for relative in paths}
+    for relative in paths:
+        parts = relative.split("/")
+        for depth in range(1, len(parts)):
+            ancestor = "/".join(parts[:depth])
+            if ancestor.casefold() in leaf_keys:
+                raise ValueError(
+                    f"{context} contains Windows file/directory prefix collision: "
+                    f"{leaf_keys[ancestor.casefold()]} and {relative}"
+                )
     spellings: dict[str, str] = {}
     for relative in sorted(paths):
         parts = relative.split("/")

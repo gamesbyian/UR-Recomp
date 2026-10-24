@@ -214,6 +214,38 @@ class RecurringVaultTests(unittest.TestCase):
             )
             self.assertIn(A, expired, "14-day cooldown must expire")
 
+    def test_member_review_fingerprints_survive_checkpoint_carry_forward(self):
+        lead = {"member": "payload/tools/new.py", "sha256": "b" * 64,
+                "bytes": 17, "kind": "source_or_test",
+                "status": "unmatched_needs_review"}
+        def downloader(entry, out, tree, stage=False):
+            result = archive_result(entry)
+            result["zip"]["review_leads"] = [lead]
+            result["zip"]["review_leads_filtered_or_truncated"] = 2
+            return result
+        with tempfile.TemporaryDirectory() as tmp:
+            first = Path(tmp) / "first"
+            recurring.run_cycle(
+                out=first, enumerator=self.listing, downloader=downloader,
+                git_tree=b"", max_files=1, now=NOW,
+            )
+            checkpoint = recurring.read_checkpoint(first / "checkpoint.json")
+            self.assertEqual(checkpoint["items"][A]["review_leads"], [lead])
+            second, queue = recurring.run_cycle(
+                out=Path(tmp) / "second", previous=first / "checkpoint.json",
+                enumerator=self.listing, downloader=downloader,
+                git_tree=b"", max_files=1, now=NOW + timedelta(hours=6),
+            )
+            self.assertEqual(second["previously_verified_skipped"], 1)
+            self.assertEqual(queue["needs_engineering_review"][0]["review_leads"], [lead])
+            self.assertEqual(queue["needs_engineering_review"][0][
+                "review_leads_filtered_or_truncated"], 2)
+            checkpoint["items"][A]["review_leads"][0]["sha256"] = "invalid"
+            damaged = Path(tmp) / "tampered.json"
+            damaged.write_text(json.dumps(checkpoint))
+            with self.assertRaisesRegex(ValueError, "invalid checkpoint review lead"):
+                recurring.read_checkpoint(damaged)
+
     def test_invalid_prior_and_empty_inventory_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "prior.json"

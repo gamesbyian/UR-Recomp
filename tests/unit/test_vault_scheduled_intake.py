@@ -263,6 +263,28 @@ class RecurringVaultTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "invalid checkpoint review lead"):
                 recurring.read_checkpoint(damaged)
 
+    def test_workflow_failure_summary_uses_stable_categories_and_ids(self):
+        categories = {
+            "download exceeds single-file byte budget": "archive-size-budget",
+            "expanded ZIP budget exceeded": "expanded-zip-budget",
+            "nested ZIP exceeds byte budget": "nested-zip-budget",
+            "unsafe ZIP member": "unsafe-archive-member",
+            "invalid or corrupt source ZIP": "invalid-archive",
+            "gdown: temporary failure": "download-or-inspection-error",
+        }
+        for detail, category in categories.items():
+            with self.subTest(detail=detail):
+                self.assertEqual(recurring.classify_intake_error(detail), category)
+        self.assertEqual(recurring.classify_intake_error(
+            "bad raw markdown in filename ](https://invalid.example)"),
+            "download-or-inspection-error")
+        workflow = (Path(__file__).resolve().parents[2] /
+                    ".github/workflows/vault-recurring-intake.yml").read_text()
+        self.assertIn("Failed Drive ID", workflow)
+        self.assertIn("Deferred Drive ID", workflow)
+        self.assertIn("ID_PATTERN.fullmatch(drive_id)", workflow)
+        self.assertIn("classify_intake_error(error.get", workflow)
+
     def test_invalid_prior_and_empty_inventory_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "prior.json"

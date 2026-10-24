@@ -136,6 +136,13 @@ def classify_intake_error(error: str) -> str:
     return "download-or-inspection-error"
 
 
+def is_deterministic_budget_error(error: str) -> bool:
+    """Identify hard source size limits; never classify network errors as expected."""
+    return classify_intake_error(error) in {
+        "archive-size-budget", "expanded-zip-budget", "nested-zip-budget",
+    }
+
+
 def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
                           refresh_days: int) -> str | None:
     """Avoid repeat downloads of unchanged archives hitting hard size limits.
@@ -144,13 +151,8 @@ def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
     retryable on the next cycle; in-place replacements are rechecked eventually.
     """
     error = str((failure or {}).get("error", ""))
-    deterministic_budget_errors = (
-        "download exceeds single-file byte budget",
-        "expanded ZIP budget exceeded",
-        "nested ZIP exceeds byte budget",
-    )
     if (not failure or failure.get("path") != entry["path"]
-            or not any(reason in error for reason in deterministic_budget_errors)):
+            or not is_deterministic_budget_error(error)):
         return None
     try:
         attempted = datetime.fromisoformat(
@@ -222,8 +224,9 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
         "archive_deletion_authorized": False,
         "release_gate_credit": 0,
     }
+    attempted = 0
     for item in due:
-        if len(report["processed"]) + len(report["errors"]) >= max_files:
+        if attempted >= max_files:
             report["deferred"].append({"id": item["id"], "path": item["path"],
                                        "reason": "batch_file_limit"})
             continue
@@ -231,6 +234,7 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
             report["deferred"].append({"id": item["id"], "path": item["path"],
                                        "reason": "batch_byte_limit"})
             continue
+        attempted += 1
         try:
             result = downloader(item, out, git_tree, stage=False)
             if result["bytes"] > max_total_bytes - report["downloaded_bytes"]:
@@ -257,11 +261,24 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
                     "review_leads_filtered_or_truncated", 0),
             }
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
-            report["errors"].append({"id": item["id"], "path": item["path"],
-                                     "error": str(exc)[:320]})
-            previous_failures[item["id"]] = {"path": item["path"],
-                                             "last_attempt": now.isoformat(),
-                                             "error": str(exc)[:320]}
+            # An independently bounded ZIP/byte budget is a preserved
+            # cooldown, not broken transport. Still count every attempted
+            # download against the batch cap and fail explicit forced probes.
+            safe_error = str(exc)[:320]
+            previous_failures[item["id"]] = {
+                "path": item["path"], "last_attempt": now.isoformat(),
+                "error": safe_error,
+            }
+            if not forced_id and is_deterministic_budget_error(safe_error):
+                cooling.append({
+                    "id": item["id"], "path": item["path"],
+                    "reason": "oversize_retry_cooldown",
+                    "retry_after": (now + timedelta(days=refresh_days)).isoformat(),
+                })
+            else:
+                report["errors"].append({
+                    "id": item["id"], "path": item["path"], "error": safe_error,
+                })
     new_checkpoint = {
         "schema": SCHEMA, "saved_at": now.isoformat(), "items": previous_items,
         "failures": previous_failures,

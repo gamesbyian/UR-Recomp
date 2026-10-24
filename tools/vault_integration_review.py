@@ -258,13 +258,17 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
             "candidate_id": c["candidate_id"], "owner": "Agent 2",
             "drive_file_id": c["drive_id"], "folder_url": folder_urls[c["scope"]],
             "archive_sha256": c["archive_sha256"],
+            "member": c["member"],
+            "stage_member": c["member"],
             "member_sha256": c["member_sha256"],
+            "stage_member_sha256": c["member_sha256"],
             "source_destination": c["disposition"]["source_path"],
             "manual_workflow": "https://github.com/gamesbyian/UR-Recomp/actions/workflows/vault-direct-intake.yml",
             "download_all": False, "stage_sources": True,
-            "entire_archive_review_required": True,
-            "staging_may_include_other_unmatched_source_members": True,
-            "confirm_source_review": "confirm_ALL_staged_members_and_archive_rights_manually",
+            "entire_archive_review_required": False,
+            "source_member_review_required": True,
+            "staging_may_include_other_unmatched_source_members": False,
+            "confirm_source_review": "verify_selected_member_rights_and_archive_publication_holds",
             "dispatch_automatically": False,
         })
     orphan = sorted(set(decisions) - seen)
@@ -314,7 +318,9 @@ def render(doc, max_rows=35):
     for handoff in doc["staging_handoff"]:
         lines.append(f"- {handoff['candidate_id']}: {handoff['manual_workflow']} "
                      f"| Drive ID {handoff['drive_file_id']} "
-                     f"| rights confirmation required")
+                     f"| member {handoff['stage_member'][:100]} "
+                     f"| SHA-256 {handoff['stage_member_sha256']} "
+                     f"| selected-source rights confirmation required")
     lines += ["", f"Unresolved intake/cooldown/legacy exceptions: {len(doc['exceptions'])}",
               f"Older ledger IDs absent from available checkpoint fingerprints: "
               f"{len(doc['dispositions_not_in_current_artifacts'])}. Preserve them; do not delete.",

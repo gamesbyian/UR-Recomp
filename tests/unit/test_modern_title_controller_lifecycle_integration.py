@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 import sys
 sys.path.insert(0, str(ROOT / "tools"))
 from run_baldosa_keyboard_pad_join_acceptance import verify_owner_disconnect
+from run_baldosa_keyboard_pad_join_acceptance import verify_five_destination_pad_journey
 HOST_PATCH = (ROOT / "tools/baldosa_sdl_controller_lifecycle_spike.py").read_text(encoding="utf-8")
 WINDOWS_WORKFLOW = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
 ATTRACT_PROBE = (ROOT / "tools/probe_baldosa_modern_title_attract_win32.py").read_text(encoding="utf-8")
@@ -200,6 +201,72 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         for label, witness in invalid.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
                 verify_owner_disconnect("\n".join(witness) + "\n")
+
+    def test_five_destination_pad_fixture_uses_one_native_sdl_device(self):
+        start = SOURCE.index('if (std::strcmp(opt, "29") == 0) {')
+        end = SOURCE.index('    // CI-only mode 19:', start)
+        fixture = SOURCE[start:end]
+        self.assertIn('SDL_AttachVirtualJoystick(&desc)', fixture)
+        self.assertIn('SDL_SetJoystickVirtualButton(', fixture)
+        self.assertNotIn('SDL_KEYDOWN', fixture)
+        self.assertNotIn('ur_baldosa_modern_root_gamepad(', fixture)
+        self.assertIn('mode < 1 || mode > 29', SOURCE)
+        self.assertIn('std::strcmp(fixture, "29") != 0', SOURCE)
+        self.assertIn('"five_destination_pad", "29"', (
+            ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py"
+        ).read_text(encoding="utf-8"))
+
+    def test_five_destination_native_view_and_stock_positive_and_negatives(self):
+        host = "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added"
+        stages = [
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=75 input_owned=1",
+            "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=3 course=0 source_menu_required=1",
+            "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT practice_closed=1",
+            "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+            "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT join_closed=1",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=0 unavailable=0",
+            "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
+            "UR_BALDOSA_MODERN_ROOT options_opened row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
+            "UR_BALDOSA_MODERN_DESTINATION stage=options raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT options_closed row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        ]
+        selected = [
+            "UR_BALDOSA_MODERN_ROOT selected=" + str(i)
+            for i in (1, 2, 3, 4, 3, 2, 1, 0)
+        ]
+        # The host stdout is concatenated ahead of stderr; native stderr
+        # stages are interleaved with real root selection edges.
+        lines = [host, selected[0], *stages[:4],
+                 selected[1], *stages[4:7],
+                 selected[2], *stages[7:10],
+                 selected[3], *stages[10:13],
+                 *selected[4:], *stages[13:]]
+        valid = "\\n".join(lines) + "\\n"
+        verify_five_destination_pad_journey(valid)
+        bad = {
+            "missing painted practice": [x for x in lines if x != stages[2]],
+            "duplicate stage": lines + [stages[14]],
+            "stock before options": lines[:lines.index(stages[10])] +
+                                    [stages[13]] + lines[lines.index(stages[10]):],
+            "wrong pad seat": [x.replace("seat=0", "seat=1") if x == host else x
+                               for x in lines],
+            "missing back": [x for x in lines if x != stages[6]],
+            "missing root navigation": [x for x in lines if x != selected[2]],
+            "spurious 2P admission": lines + [
+                "UR_BALDOSA_MODERN_ROOT stock_requested players=2"
+            ],
+            "unexpected pad move": lines + [
+                "[Gamepad] UR_CONTROLLER_SEAT move instance=101 from=0 to=1"
+            ],
+        }
+        for label, witness in bad.items():
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                verify_five_destination_pad_journey("\\n".join(witness) + "\\n")
 
     def test_owner_disconnect_native_causal_source_guard(self):
         # The root may report withdrawal only after it has observed that

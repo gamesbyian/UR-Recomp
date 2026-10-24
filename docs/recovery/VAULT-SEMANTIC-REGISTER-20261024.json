@@ -3720,9 +3720,10 @@
       "archive_sha256": "999be7e3e594f292692e79ed80a7e89710f1eee72b87973f4f189b50ef5d02e0",
       "source_member_sha256": null,
       "target_paths": [
-        "tests/native/run_windows_local_tournament_package_acceptance.sh"
+        "native/product/local_tournament_launch_path_lock.hpp",
+        "tests/native/local_tournament_fixture_launch_store_test.cpp"
       ],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Original ZIP preserves two C++ source/test excerpts for POSIX independent-process path locking. The distinctive four assertions (two-process seed, busy OS lock seen by another process, stale retirement of newer checkpoint refused, and OS lock release after abrupt child exit) are present in current tests/native/local_tournament_fixture_launch_store_test.cpp (observed blob 082174bc1f04880913ff3d0404b498272013d064), using native/product/local_tournament_launch_path_lock.hpp (blob b84aa862b6009fc7bf07d758a686f7dce3006052). This is semantic incorporation of the test excerpt, not exact archive source/member Git blob equality or Windows NTFS acceptance.",
       "github_prs": [
         "#2352",
         "#2366"
@@ -3736,7 +3737,12 @@
       "target_path_provenance": {
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
-        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+        "caveat": "Corrected after reading archived C++ excerpt: the real semantic target is the local-tournament fixture launch store test and OS lock header, not a packaged Windows tournament shell test. No raw archive bytes merged by this documentation update."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": "tests/native/local_tournament_fixture_launch_store_test.cpp",
+        "dependency": "native/product/local_tournament_launch_path_lock.hpp",
+        "proof": "Four distinctive source/test assertion strings observed in current main; archive patch and isolated POSIX probe CRC-read in restricted Drive ZIP; no physical Windows gate"
       }
     },
     {

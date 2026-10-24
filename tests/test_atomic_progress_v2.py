@@ -81,6 +81,7 @@ class AtomicV2Tests(unittest.TestCase):
     def test_fidelity_cannot_claim_unsourced_duplicate_event(self):
         inv = copy.deepcopy(self.inventory)
         row = next(x for x in inv["criteria"] if x["id"] == "FID-01")
+        row.pop("audit_receipt", None)
         row.update(status="bounded_verified", audit_state="inherited_pr_screening",
                    evidence=["https://github.com/gamesbyian/UR-Recomp/pull/1510"], course_event_key="x")
         with self.assertRaisesRegex(ValueError, "USA course admission"):
@@ -88,6 +89,7 @@ class AtomicV2Tests(unittest.TestCase):
 
     def test_unverified_acceptance_flag_rejected(self):
         inv = copy.deepcopy(self.inventory)
+        inv["criteria"][0].pop("audit_receipt", None)
         inv["criteria"][0].update(audit_state="independent_reviewed")
         with self.assertRaisesRegex(ValueError,"separate audit receipt"):
             validate(inv, self.ledger)

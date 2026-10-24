@@ -84,6 +84,9 @@ function Assert-Amd64PortableExecutable {
             ($characteristics -band 0x2000) -ne 0) {
             throw 'Packaged executable must be an executable image, not a DLL'
         }
+        if (($characteristics -band 0x1000) -ne 0) {
+            throw 'Packaged executable must be a user program, not a system image'
+        }
     }
     finally {
         $stream.Dispose()

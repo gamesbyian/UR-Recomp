@@ -80,6 +80,13 @@ def check_pe_x64(executable: Path) -> None:
             "portable executable must be an executable image, not a DLL "
             f"(characteristics=0x{characteristics:04x})"
         )
+    # IMAGE_FILE_SYSTEM (0x1000) marks a system image, not a user program.
+    # A renamed driver/kernel image must not pass normal process preflight.
+    if characteristics & 0x1000:
+        raise ValueError(
+            "portable executable must be a user program, not a system image "
+            f"(characteristics=0x{characteristics:04x})"
+        )
 
 
 def imported_dlls(dumpbin_text: str) -> tuple[str, ...]:

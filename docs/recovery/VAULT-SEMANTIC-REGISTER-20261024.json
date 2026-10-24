@@ -33,7 +33,8 @@
     "Archive Git blob inequality is not behavioral absence.",
     "Folder Integrated is a historical filing claim, not exact integration proof.",
     "No safety-refused publication operations or release acceptance were performed.",
-    "51 Integrated entries now include independently computed whole-file SHA256 and per-item GitHub PR/issue references. 50 ZIPs passed CRC and 291 ZIP-member SHA256 fingerprints are recorded in a separately available raw binary audit; a DOCX is the 51st entry."
+    "51 Integrated entries now include independently computed whole-file SHA256 and per-item GitHub PR/issue references. 50 ZIPs passed CRC and 291 ZIP-member SHA256 fingerprints are recorded in a separately available raw binary audit; a DOCX is the 51st entry.",
+    "Inbox pointer rows now carry referenced_archives SHA-256 for the cited source/evidence package, separately from the pointer's own null archive_sha256. target_paths identify original proposed or merged semantic-owner paths, not automatic Git blob equality."
   ],
   "items": [
     {
@@ -1327,7 +1328,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_original_attract_cross_aspect.py",
+        "tests/unit/test_cross_aspect.py"
+      ],
       "current_main_comparison": "Cross-aspect extension same work ID as original title, not a second code task",
       "github_prs": [
         "#2043",
@@ -1343,7 +1347,15 @@
       "source_drive_ids": [
         "1t6q8W3kd8X40YT2Jj-eI4d2N1B5PPpxd",
         "1Ubhzi-jExEWHcHcouxxaE4xqFjioKAnQ"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1t6q8W3kd8X40YT2Jj-eI4d2N1B5PPpxd",
+          "sha256": "80830360cdb92d5110bf022511c31b8dbc303b251b06b679646e8f56e85f0c44",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "15aVReT3ymsvUiMOYXm_bSDggdxGPsCv_",
@@ -1354,7 +1366,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/audit_original_course_event_coverage.py",
+        "tests/unit/test_qa01_evidence_ref_contract.py"
+      ],
       "current_main_comparison": "QA01 evidence-ref guard merged; no 1/45 acceptance",
       "github_prs": [
         "#2340"
@@ -1369,7 +1384,15 @@
       "source_drive_ids": [
         "1m8TpLnvTi9HAiQI5g-s458doBIWEhuwK",
         "1UGQ1rUCChEH9U2qEfS_NiRKpbuwtaHpn"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1m8TpLnvTi9HAiQI5g-s458doBIWEhuwK",
+          "sha256": "572ada2bf31bdd25e8546ff651dad33108b508e66939d6a66e5eb59b6337cbd2",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1AVJyY8AhZxIR_v_G6BzuFHQqQTLCnfyv",
@@ -1380,7 +1403,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/controller_seat_assignment_policy.h",
+        "tests/native/controller_seat_assignment_policy_test.cpp"
+      ],
       "current_main_comparison": "Old same-key seat-swap research covered by merged #2330",
       "github_prs": [
         "#2198",
@@ -1395,7 +1421,15 @@
       "work_id": "UR-WINQA",
       "source_drive_ids": [
         "1C57qeOCaNH7EHxVDNZaM6qcy3W7SeCji"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1C57qeOCaNH7EHxVDNZaM6qcy3W7SeCji",
+          "sha256": "ceff33cf9da1c7cdccd6bbd779fd61403d89ee13d9ecc991ae5d742eb59a17b3",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1ba08qUSbHikDifeC0g_2jMS-7-yn_PJW",
@@ -1406,7 +1440,9 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tests/native/modern_menu_visual_grammar_test.cpp"
+      ],
       "current_main_comparison": "All-neutral-grey focus-ring coverage merged",
       "github_prs": [
         "#2346"
@@ -1420,7 +1456,15 @@
       "work_id": "UR-UI-VISUAL",
       "source_drive_ids": [
         "1UQ8m7B5L3n9uurVshDIavx2n8XnFiBpM"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1UQ8m7B5L3n9uurVshDIavx2n8XnFiBpM",
+          "sha256": "ef3fe4efaea100f49b632a2393a4a83a78c784920aefd667a07adf002e550055",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1BRdWTbWMyI6toXGtRCos_jbw2nRPEs06",
@@ -1431,7 +1475,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_original_title_sdl_rgb_mapping.py",
+        "tests/unit/test_verify_original_title_sdl_rgb_mapping.py"
+      ],
       "current_main_comparison": "Original-title P6 SDL/P7 evidence publication hold; technical evidence requires native source identity review",
       "github_prs": [
         "#2043",
@@ -1446,7 +1493,15 @@
       "work_id": "UR-UHD",
       "source_drive_ids": [
         "1Ubhzi-jExEWHcHcouxxaE4xqFjioKAnQ"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1Ubhzi-jExEWHcHcouxxaE4xqFjioKAnQ",
+          "sha256": "8a59f35d778169b7df5e725d0cf4a1d74c3266552b91236002ff08f95e13b21a",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1CJh91PEzzexmDYvESfcKND-d1G0W74YB",
@@ -1457,7 +1512,11 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        ".github/workflows/windows-native-smoke.yml",
+        "tools/ci/check_windows_smoke_upload_policy.py",
+        "tests/unit/test_windows_native_smoke_policy.py"
+      ],
       "current_main_comparison": "ROM artifact upload guard superseded by fail-closed no-public-ROM workflow policy",
       "github_prs": [
         "#2352",
@@ -1472,7 +1531,15 @@
       "work_id": "UR-WINSTORAGE",
       "source_drive_ids": [
         "1JgqqXHjt3fFQ3eD7JRytRkUGzvdv7vaF"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1JgqqXHjt3fFQ3eD7JRytRkUGzvdv7vaF",
+          "sha256": "7e90462f2f4efb3dcd05125a7cf36c2db36197fa4cdfb5021d8bf4efe85e34d5",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1DGuneYP9m9puO_6KlwdeaR2-WKgZj7IC",
@@ -1483,7 +1550,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/local_tournament_atomic_replace.hpp",
+        "tests/native/local_tournament_atomic_replace_test.cpp"
+      ],
       "current_main_comparison": "Native path and profile Unicode handling evolved on main",
       "github_prs": [
         "#2386",
@@ -1500,7 +1570,15 @@
       "work_id": "UR-WIN-RESILIENCE",
       "source_drive_ids": [
         "1FsEDOyb2C4koCpoNDgjHK79D14KfyaDp"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1FsEDOyb2C4koCpoNDgjHK79D14KfyaDp",
+          "sha256": "37b2f1075cb6c2b871658e4d3deac7b490e34e29484725879cd48553db9e2f1e",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1eF-toU1VcR-_4EnLUhmeDY2j3InIIUVl",
@@ -1511,7 +1589,10 @@
       "mime_type": "text/plain",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_cross_resolution.py",
+        "tests/unit/test_verify_cross_resolution_synthetic.py"
+      ],
       "current_main_comparison": "Original 856px witness replaced by merged cross-resolution verifier, no art signoff",
       "github_prs": [
         "#2285"
@@ -1525,7 +1606,15 @@
       "work_id": "UR-UHD",
       "source_drive_ids": [
         "1d1ikPoEZBEilf55HaM1i6ZY3u1exbQVO"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1d1ikPoEZBEilf55HaM1i6ZY3u1exbQVO",
+          "sha256": "f36ed141fb116647a971af944fc70f8fd484caa27dc27da19bdfab2bfcfcc6ac",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1fWVBsV--9GwfulQfo3bWKlp6PangCRuT",
@@ -1536,7 +1625,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/export_baldosa_earned_1p_run.py",
+        "tests/unit/test_export_baldosa_earned_1p_run.py"
+      ],
       "current_main_comparison": "Current exporter already implements _portable_run_namespace_entries(), Unicode NFC, reserved-device rejection, casefold sibling collision and tests; bounded archived source transform superseded by main. Open #2103 still controls physical ADS/NTFS acceptance.",
       "github_prs": [
         "#2256",
@@ -1551,7 +1643,15 @@
       "work_id": "UR-WINSTORAGE",
       "source_drive_ids": [
         "19AofFm0zVjhmZaayHvZ4Jk1Y0BVCBPTm"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "19AofFm0zVjhmZaayHvZ4Jk1Y0BVCBPTm",
+          "sha256": "6c1148f8f0806348489590ed652897cad92fb02543b41ffe52ea954a1c6eb0d7",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1HNvodGsFjd6G7iQuWBUFeSDbWl5Lrd5L",
@@ -1562,7 +1662,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/assemble_windows_package.py",
+        "tests/unit/test_windows_package_output_symlink.py"
+      ],
       "current_main_comparison": "Output, ancestor and mods-root symlink guards merged",
       "github_prs": [
         "#2347",
@@ -1579,7 +1682,15 @@
         "1oq_wIUR5OM1tPsR-QcyyuQxxIAqp4ldR",
         "12YkY-_aV3b1wU5blBW4rZz1PS8dSEV1R",
         "1pZz8db6OpR4YOzvIk4dKZSaaZM50SUsI"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1oq_wIUR5OM1tPsR-QcyyuQxxIAqp4ldR",
+          "sha256": "c56308bf337ae4e0df189bc26b29d8bb0bc56c4f8f11479a867780dd52dfdd8f",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1Ijdu-pmdPTBnUceZPhjTDwteG3Wv9YSg",
@@ -1590,7 +1701,12 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/quick_practice_launch.hpp",
+        "tests/native/quick_practice_launch_test.cpp",
+        "tools/baldosa_native_modern_root.cpp",
+        "tests/native/run_practice_repeat_two_cycles_acceptance.sh"
+      ],
       "current_main_comparison": "Practice guards merged. Separate Options rollback historical source not retained (BOM-only Doc revision); Agent 2 independently reproduce if defect persists",
       "github_prs": [
         "#2356",
@@ -1608,7 +1724,15 @@
         "17GvSWypLmsqf2VQeOxzHaqBvmoarSOep",
         "1ihMsh91DJd1eVQVig35GqFpqoHrg6k-1",
         "1QooXD26zEifH_UtuaITbWHP-S8XHecaD"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "17GvSWypLmsqf2VQeOxzHaqBvmoarSOep",
+          "sha256": "911a2e0bd2dd04c6d6d00cb85ae8bc54bd2ab463f21f94a2b131ac83f7236787",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1jEX-wTZMiN5TErwJSn_6eS3xdkVPbiHQ",
@@ -1619,7 +1743,10 @@
       "mime_type": "text/plain",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/p2p/authenticated_finish_ledger.py",
+        "tests/unit/test_p2p_authenticated_finish_ledger.py"
+      ],
       "current_main_comparison": "Authenticated finish ledger source and test exact current main blobs 82042f0f and b28ad923",
       "github_prs": [
         "#2354"
@@ -1633,7 +1760,15 @@
       "work_id": "UR-P2P",
       "source_drive_ids": [
         "1KHoNBxtQd9XU3AAeeRQQVdiEkaHhWtyQ"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1KHoNBxtQd9XU3AAeeRQQVdiEkaHhWtyQ",
+          "sha256": "95647c74d8eb474b52e1f0aa965e26f17204c8515202f70908f91a0014257c6a",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1LZAZtYtcYLTq5t1ZRRZxQer_QUxGMnWL",
@@ -1644,7 +1779,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/completed_run_browser.cpp",
+        "tests/native/completed_run_browser_test.cpp"
+      ],
       "current_main_comparison": "Archived local browser symlink transform is subsumed by shared inspect_completed_run_record_artifacts() path now used by CompletedRunBrowser::refresh, and test for symlinked entry/root in tests/native/completed_run_browser_test.cpp from #2364",
       "github_prs": [
         "#2364"
@@ -1658,7 +1796,15 @@
       "work_id": "UR-RECORDS",
       "source_drive_ids": [
         "1B6qmg2uacrkudkKtZp1VcEc8unKWAECy"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1B6qmg2uacrkudkKtZp1VcEc8unKWAECy",
+          "sha256": "d76ad6ede33b46f290d55f3037c8e356f1efb1be7eb71ce9d2be915e516a6da8",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1mB9lk5msUSfGf70VAJZVcv_Ofb9jLwsE",
@@ -1669,7 +1815,11 @@
       "mime_type": "text/plain",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/baldosa_native_run_save_feedback.hpp",
+        "tests/native/baldosa_native_run_save_feedback_test.cpp",
+        "tools/baldosa_native_modern_root.cpp"
+      ],
       "current_main_comparison": "Records/profile visual regression implemented",
       "github_prs": [
         "#2341"
@@ -1683,7 +1833,15 @@
       "work_id": "UR-RECORDS",
       "source_drive_ids": [
         "1370PCHlfkE2BlGKigKi0ic3Qve4kQJwH"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1370PCHlfkE2BlGKigKi0ic3Qve4kQJwH",
+          "sha256": "dcf3a79845dba1ed2c730be08db0f07911cb22d4c160101cd95a36a3a5b9bb5d",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1nZBbkD5QTCpAlzgrwBnuQ25G3h1XyaBA",
@@ -1694,7 +1852,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/p2p/independent_monotonic_anchor_contract.py",
+        "tests/unit/test_p2p_independent_monotonic_anchor_contract.py"
+      ],
       "current_main_comparison": "Monotonic u64 anchor contract original source exact main; tests evolved",
       "github_prs": [
         "#2349"
@@ -1708,7 +1869,15 @@
       "work_id": "UR-P2P",
       "source_drive_ids": [
         "1ub4e0LiXsWUVyLOvTqlWkeseRr3IOvko"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1ub4e0LiXsWUVyLOvTqlWkeseRr3IOvko",
+          "sha256": "7cc1cf282c8a371a2f763d4fb31993d441134559f63e440fb82a1c13c75fad3d",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1oosOenfR1Yr2hW4ZYc8JDE6QPzW2uhgU",
@@ -1719,7 +1888,11 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/baldosa_native_profile_path_guard.hpp",
+        "native/product/local_tournament_atomic_replace.hpp",
+        "native/product/host_profile_store.cpp"
+      ],
       "current_main_comparison": "Current main native Unicode/reparse implementations supersede recovered old preimages",
       "github_prs": [
         "#2343",
@@ -1738,7 +1911,15 @@
       "source_drive_ids": [
         "15rHhjzc_wDI-Jk_RTxonXE9dI2p_xYT3",
         "1kFw7o3vjfXFspOUUNE0SD4P5sR_FIpJY"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "15rHhjzc_wDI-Jk_RTxonXE9dI2p_xYT3",
+          "sha256": "3b7b1bc09e07c9155587826e04763d877a4ae32abffa738122915e2e083783f9",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1pyNn_RKAhN-9TvM_MH0QyYcqxR_ayGkg",
@@ -1749,7 +1930,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/completed_run_ghost_policy.cpp",
+        "tests/native/completed_run_ghost_policy_test.cpp"
+      ],
       "current_main_comparison": "Invalid ghost target enum fail-closed fix and native negative merged",
       "github_prs": [
         "#2358"
@@ -1763,7 +1947,15 @@
       "work_id": "UR-RECORDS",
       "source_drive_ids": [
         "1jYtiu5YzkypT-FsP24h76kgm_DtfVKja"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1jYtiu5YzkypT-FsP24h76kgm_DtfVKja",
+          "sha256": "dc26bd250cfaa36af9ba7b17ae91d36829dd6e8390b4b2fbd0d22d5bc08b80b0",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1pZ0GmOpFGC15N1s0IPvsiICvlFFTtAbg",
@@ -1774,7 +1966,11 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/baldosa_native_run_save_feedback.hpp",
+        "tests/native/baldosa_native_run_save_feedback_test.cpp",
+        "tools/baldosa_native_modern_root.cpp"
+      ],
       "current_main_comparison": "Current save-feedback header supports 256/342 source widths and host call in tools/baldosa_native_modern_root.cpp already passes width; archived patch behavior present",
       "github_prs": [
         "#2368"
@@ -1788,7 +1984,15 @@
       "work_id": "UR-UI-RESULTS",
       "source_drive_ids": [
         "1JhHl6ZWRVWtiPQI6Sp_PaTw5HDAxR8at"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1JhHl6ZWRVWtiPQI6Sp_PaTw5HDAxR8at",
+          "sha256": "fbafd2d17a8cea516cdd6475116c0fca70c9f3a81a70c20a7a6f87b1c4e657f7",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1r8C62cap2tzLKesTDN4qa9ZkCXRvdvLa",
@@ -1799,7 +2003,10 @@
       "mime_type": "text/plain",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_title_plate_artifact.py",
+        "tests/unit/test_title_prompt_motion_band.py"
+      ],
       "current_main_comparison": "Title prompt verifier and test exact main source blobs d7c83ba2 and d10e75f1",
       "github_prs": [
         "#2397"
@@ -1813,7 +2020,15 @@
       "work_id": "UR-UHD",
       "source_drive_ids": [
         "1sk4W9TBmANhiAZk06HypoDiz7T0EbQOk"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1sk4W9TBmANhiAZk06HypoDiz7T0EbQOk",
+          "sha256": "c0cf29263cce7982275420cc0d903389b8a3d9d70595f34947d457988106de91",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1SwND_Q_272F_3-vzKKJxPQFoToawqAVG",
@@ -1824,7 +2039,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/baldosa_host_lifecycle_pause.hpp",
+        "tests/native/baldosa_host_lifecycle_dual_disconnect_test.cpp"
+      ],
       "current_main_comparison": "Dual seat disconnect mask merged; #2462 is separate open title lifecycle",
       "github_prs": [
         "#2342"
@@ -1838,7 +2056,15 @@
       "work_id": "UR-UI-CONTROLLER",
       "source_drive_ids": [
         "12Ga192_kUjbpveaJpTS7zTPePrZjzsV1"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "12Ga192_kUjbpveaJpTS7zTPePrZjzsV1",
+          "sha256": "771f0d02ed8fbcf45074bf0711ed00b883a10f07a032a94da904883b80a9d311",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1VkOGvu6RwCHvoHt1A2PeeUnuRm0grapT",
@@ -1849,7 +2075,11 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/completed_run_store.cpp",
+        "native/product/completed_run_store.hpp",
+        "tests/native/completed_run_store_test.cpp"
+      ],
       "current_main_comparison": "Missing versus failed/redirected Records scan status covered",
       "github_prs": [
         "#2353"
@@ -1863,7 +2093,15 @@
       "work_id": "UR-RECORDS",
       "source_drive_ids": [
         "1HFHhn0tFdffg3zbl5onTtZ70MRCxbZnh"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1HFHhn0tFdffg3zbl5onTtZ70MRCxbZnh",
+          "sha256": "48bafe0d57249fe6950cb7867a0c701457ece2324df98b5c5fb57566cb86a9af",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1yCp5qmyhZpEpQxgo-9yXziS9IWJ_h6eC",
@@ -1874,7 +2112,9 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "analysis/generated/course-event-qa-census.json"
+      ],
       "current_main_comparison": "Two corrected QA01 census limitation strings already on main",
       "github_prs": [
         "#2088"
@@ -1888,7 +2128,15 @@
       "work_id": "UR-QA01",
       "source_drive_ids": [
         "1hegPPGnMvoqrSQMQcepkFz_T7ZITgXbK"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1hegPPGnMvoqrSQMQcepkFz_T7ZITgXbK",
+          "sha256": "08849ab0188e213e7372055c3fa099d969f9bf81d3a053c378ac69ef7f352768",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1YnySXXyZhq8c-gDu1hHXV6ouJ3qWFZBL",
@@ -1899,7 +2147,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/qa08_rf017_epoch_crc_overlap.py",
+        "tests/unit/test_qa08_rf017_epoch_crc_overlap.py"
+      ],
       "current_main_comparison": "Cross-epoch FNV versus CRC not comparable; #2382 negative merged, QA08 #1996 remains HOLD",
       "github_prs": [
         "#2382",
@@ -1915,7 +2166,15 @@
       "source_drive_ids": [
         "1PpZ62RZs_EljiZQisL3fOXLsS1fPOY_3",
         "1eBRIAdDsdMitm6R71fecb81Zu_UNtu2t"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1PpZ62RZs_EljiZQisL3fOXLsS1fPOY_3",
+          "sha256": "4508ec509fd7f5c8889e9c4ba0e5bc2383b7ba87b06d1bd155c4961114e2ea9f",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1z9QdNymqRHOE2WZkyJ_FRxbKQVC2oC22",
@@ -1926,7 +2185,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "native/product/modern_results_navigation.hpp",
+        "tests/native/modern_results_navigation_test.cpp"
+      ],
       "current_main_comparison": "Merged selection and stale-Up guard; Agent 3 review orphan refused tests",
       "github_prs": [
         "#2360",
@@ -1941,7 +2203,15 @@
       "work_id": "UR-UI-RESULTS",
       "source_drive_ids": [
         "12rwZkOiW1wEnFG8fgc-Y1VJifc9ugXs-"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "12rwZkOiW1wEnFG8fgc-Y1VJifc9ugXs-",
+          "sha256": "837f30edc02172f8dd5bdae55575dd6bd27f4878b2d725bd135bf82055c45389",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1ZGd7qaoHjkbDdfh3tyICOHWVQ0kQWI5s",
@@ -1952,7 +2222,10 @@
       "mime_type": "application/json",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
+      "target_paths": [
+        "tools/verify_title_plate_artifact.py",
+        "tests/unit/test_verify_title_plate_artifact.py"
+      ],
       "current_main_comparison": "Title artifact witness branch exists; original PR publication refused; Agent 3 coordinate independent authorized review without replay",
       "github_prs": [
         "#2043",
@@ -1967,7 +2240,15 @@
       "work_id": "UR-UHD",
       "source_drive_ids": [
         "1j8T18Xaw4xKnIfcgdwlH6AHFyLo0M8IO"
-      ]
+      ],
+      "referenced_archives": [
+        {
+          "drive_id": "1j8T18Xaw4xKnIfcgdwlH6AHFyLo0M8IO",
+          "sha256": "d9477c3eb93abdab8ad85230f32eba29b4557b95b2de6a27f4791d36a077c2cb",
+          "role": "historical first-party source or evidence bundle"
+        }
+      ],
+      "target_path_basis": "archived candidate target or merged semantic successor; not automatically exact blob equality"
     },
     {
       "drive_id": "1-lu5HubqaYaynwphUzAFe83yIqG0S_iW",

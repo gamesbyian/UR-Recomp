@@ -8315,10 +8315,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
         if ((key == SDLK_LEFT || key == SDLK_RIGHT) &&
             ur_modern_options_menu_selected(&g_options_menu) ==
                 UR_MODERN_OPTIONS_VOLUME) {
-            return step_volume_setting(key == SDLK_RIGHT ? 1 : -1) ? 1 : 0;
+            (void)step_volume_setting(key == SDLK_RIGHT ? 1 : -1);
+            return 1;
         }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-            return activate_options_selection() ? 1 : 0;
+            // The modal owns Confirm even if a settings write fails.
+            (void)activate_options_selection();
+            return 1;
         }
     }
 
@@ -8868,11 +8871,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
              button == kGamepadBtn_DpadRight) &&
             ur_modern_options_menu_selected(&g_options_menu) ==
                 UR_MODERN_OPTIONS_VOLUME) {
-            return step_volume_setting(
-                       button == kGamepadBtn_DpadRight ? 1 : -1) ? 1 : 0;
+            (void)step_volume_setting(
+                button == kGamepadBtn_DpadRight ? 1 : -1);
+            return 1;
         }
         if (button == kGamepadBtn_A) {
-            return activate_options_selection() ? 1 : 0;
+            // The modal owns Confirm even if a settings write fails.
+            (void)activate_options_selection();
+            return 1;
         }
     }
 

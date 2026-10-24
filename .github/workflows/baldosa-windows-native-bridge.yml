@@ -381,6 +381,72 @@ jobs:
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Draft title/controller reconciliation: execute both native test families
+      # against this exact compiled Windows PE, not separate source heads.
+      # All pads here are SDL virtual devices; physical acceptance remains HOLD.
+      - name: Qualify draft controller 15-19 and title 24-28 on one Win32 PE
+        if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'agent2/title-controller-lifecycle-20261023' || github.head_ref == 'integration/modern-title-final-sdl-current-main-20261021') }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python tools/run_baldosa_controller_lifecycle_acceptance.py \
+            --exe "$EXE" --rom "$ROM" \
+            --out "$RUNNER_TEMP/ur-title-controller-lifecycle" --video windows --timeout 120
+          python tools/run_baldosa_keyboard_pad_join_acceptance.py \
+            --exe "$EXE" --rom "$ROM" \
+            --out "$RUNNER_TEMP/ur-title-controller-join" --video windows --timeout 180
+          for confirm in gamepad keyboard start held; do
+            python tools/capture_baldosa_modern_title_win32.py \
+              --exe "$EXE" --rom "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+              --out "$RUNNER_TEMP/ur-title-confirm-$confirm" \
+              --confirm "$confirm" --timeout 100
+          done
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$EXE" --rom "$ROM" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script" \
+            --out "$RUNNER_TEMP/ur-title-original-attract-p1" \
+            --preview-wake --timeout 140
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          exe = Path(os.environ['GITHUB_WORKSPACE']) / 'baldosa/build-ur-win/UniracersSNESRecomp.exe'
+          expected = hashlib.sha256(exe.read_bytes()).hexdigest()
+          files = {
+              'controller_lifecycle': ('ur-title-controller-lifecycle/receipt.json', 'exe_sha256'),
+              'controller_15_19': ('ur-title-controller-join/receipt.json', 'exe_sha256'),
+              'title_24': ('ur-title-confirm-gamepad/native-title-receipt.json', 'executable_sha256'),
+              'title_25': ('ur-title-confirm-keyboard/native-title-receipt.json', 'executable_sha256'),
+              'title_26': ('ur-title-confirm-start/native-title-receipt.json', 'executable_sha256'),
+              'title_27': ('ur-title-confirm-held/native-title-receipt.json', 'executable_sha256'),
+              'title_28': ('ur-title-original-attract-p1/native-attract-receipt.json', 'candidate_executable_sha256'),
+          }
+          for name, (relative, key) in files.items():
+              receipt = json.loads((root / relative).read_text(encoding='utf-8'))
+              if receipt.get(key) != expected:
+                  raise SystemExit(f'{name}: not the same exact compiled Windows PE')
+              if name.startswith('controller') and receipt.get('source_commit') != os.environ['GITHUB_SHA']:
+                  raise SystemExit(f'{name}: source checkout identity mismatch')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as out:
+              out.write(f'PASS: same-PE native SDL virtual-controller modes 15-19 and title modes 24-28, exe SHA256 `{expected}`. No physical-pad, final SDL, visual-art or release acceptance.\n')
+          print('SAME_PE_NATIVE_TITLE_CONTROLLER_ACCEPTANCE_OK', expected)
+          PY
+
+      - name: Retain draft title/controller exact-PE receipts
+        if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'agent2/title-controller-lifecycle-20261023' || github.head_ref == 'integration/modern-title-final-sdl-current-main-20261021') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: draft-title-controller-same-pe-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/ur-title-controller-lifecycle/receipt.json
+            ${{ runner.temp }}/ur-title-controller-join/receipt.json
+            ${{ runner.temp }}/ur-title-confirm-*/native-title-receipt.json
+            ${{ runner.temp }}/ur-title-original-attract-p1/native-attract-receipt.json
+
       # Title branch only: compile the existing exact Windows AOT candidate
       # above, then exercise its REAL Modern title and native renderer. Its
       # PAMs are source pixels with guest-frame/EXE hashes, not final SDL

@@ -51,7 +51,49 @@ def require_native_host_linkage(patch: str, workflow: str) -> None:
         raise AssertionError("host patch source regression guard missing")
 
 
+def require_shared_native_acceptance(workflow: str) -> None:
+    # A successful Win32 link is not a controller/title journey. Demand
+    # real native invocations from the SAME compiled executable and receipts.
+    start = "      - name: Qualify draft controller 15-19 and title 24-28 on one Win32 PE"
+    end = "      - name: Retain draft title/controller exact-PE receipts"
+    if workflow.count(start) != 1 or workflow.count(end) != 1:
+        raise AssertionError("missing or duplicated same-PE native acceptance step")
+    step = workflow.split(start, 1)[1].split(end, 1)[0]
+    for token in (
+        "agent2/title-controller-lifecycle-20261023",
+        "integration/modern-title-final-sdl-current-main-20261021",
+        "run_baldosa_controller_lifecycle_acceptance.py",
+        "run_baldosa_keyboard_pad_join_acceptance.py",
+        "for confirm in gamepad keyboard start held; do",
+        "capture_baldosa_modern_title_win32.py",
+        "probe_baldosa_modern_title_attract_win32.py",
+        "--preview-wake --timeout 140",
+        "hashlib.sha256(exe.read_bytes()).hexdigest()",
+        "if receipt.get(key) != expected:",
+        "SAME_PE_NATIVE_TITLE_CONTROLLER_ACCEPTANCE_OK",
+    ):
+        if token not in step:
+            raise AssertionError("native acceptance coverage missing: " + token)
+    if not (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").is_file():
+        raise AssertionError("actual native 15-19 acceptance runner missing")
+    if step.count('--exe "$EXE"') != 4:
+        raise AssertionError("controller/title runs must all use one exact Windows PE")
+
+
 class ModernTitleControllerReconciliation(unittest.TestCase):
+    def test_same_executable_native_acceptance_is_invoked(self):
+        require_shared_native_acceptance(WINDOWS_WORKFLOW)
+
+    def test_same_executable_negative_controls(self):
+        for token in (
+            "run_baldosa_keyboard_pad_join_acceptance.py",
+            "for confirm in gamepad keyboard start held; do",
+            "--preview-wake --timeout 140",
+            "if receipt.get(key) != expected:",
+        ):
+            with self.subTest(token=token), self.assertRaises(AssertionError):
+                require_shared_native_acceptance(WINDOWS_WORKFLOW.replace(token, ""))
+
     def test_native_host_definitions_are_staged_before_link(self):
         require_native_host_linkage(HOST_PATCH, WINDOWS_WORKFLOW)
 

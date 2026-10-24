@@ -283,7 +283,8 @@ int main() {
 
     // Results-time Repeat Practice must reject a missing, changed or
     // corrupted retained course before any guest Restart is dispatched.
-    for (int track_id : {0, 12, 44}) {
+    const int repeat_tracks[] = {0, 12, 44};
+    for (int track_id : repeat_tracks) {
         auto repeat = begin_quick_practice_launch(
             quick_practice_target_for_track(
                 static_cast<std::uint8_t>(track_id)));

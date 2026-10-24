@@ -93,7 +93,7 @@ function Assert-PackageFiles {
     $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($manifest.schema_version -ne 1 -or
         $manifest.package_format -cne 'ur-recomp-windows-x64-portable-v1' -or
-        [string]::IsNullOrWhiteSpace([string]$manifest.source_revision)) {
+        ([string]$manifest.source_revision) -cnotmatch '\A[A-Za-z0-9._-]{1,128}\z') {
         throw 'The package manifest has an unsupported schema or missing revision'
     }
     if ($independentPin -and $manifest.source_revision -cne $ExpectedSourceSha) {

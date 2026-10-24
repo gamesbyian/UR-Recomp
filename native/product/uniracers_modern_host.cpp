@@ -1586,6 +1586,10 @@ bool apply_presentation_fps_setting(
     const ur::product::HostSettings& settings) {
     if (!modern_mode()) return false;
 
+    // VSync reconfiguration can be refused by the host. Preserve the
+    // previously effective presentation cadence until the whole operation
+    // succeeds, rather than leaving live pacing different from saved Options.
+    const auto previous_mode = g_live_presentation_fps_mode;
     g_live_presentation_fps_mode = settings.presentation_fps_mode;
     snesrecomp_desktop_request_clock_reset();
 
@@ -1593,6 +1597,12 @@ bool apply_presentation_fps_setting(
     // the driver. Re-applying the semantic VSync setting lets SNESRecomp's
     // VSyncInterval() select the correct live swap interval for this mode.
     if (!snesrecomp_desktop_set_vsync(vsync_mode_value(settings.vsync_mode))) {
+        g_live_presentation_fps_mode = previous_mode;
+        snesrecomp_desktop_request_clock_reset();
+        // Best effort: restore the previous live swap interval as well. A
+        // second driver refusal cannot authorize committing the new mode.
+        (void)snesrecomp_desktop_set_vsync(
+            vsync_mode_value(g_product_state.settings.vsync_mode));
         product_diagnostic("UR_PRESENTATION_FPS APPLY_FAILED");
         return false;
     }

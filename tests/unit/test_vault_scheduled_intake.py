@@ -160,11 +160,13 @@ class RecurringVaultTests(unittest.TestCase):
                                 for d in report["deferred"]))
             self.assertEqual(len(recurring.read_checkpoint(out / "checkpoint.json")["items"]), 1)
 
-    def test_scheduled_workflow_restores_checkpoints_and_uses_bounded_six_archive_batch(self):
+    def test_scheduled_workflow_restores_checkpoints_and_uses_bounded_twelve_archive_batch(self):
         workflow = (Path(__file__).resolve().parents[2]
                     / '.github/workflows/vault-recurring-intake.yml').read_text()
         self.assertIn("github.event_name == 'schedule' || inputs.scope == 'both'", workflow)
-        self.assertIn("github.event_name == 'schedule' && '6'", workflow)
+        self.assertIn("github.event_name == 'schedule' && '12'", workflow)
+        self.assertIn("options: ['1', '2', '3', '6', '12']", workflow)
+        self.assertEqual(recurring.MAX_BATCH, 12)
         self.assertIn("MAX_MIB: ${{ github.event_name == 'pull_request' && '32' || '64' }}", workflow)
         self.assertIn('vault-recurring-state-${{ matrix.scope }}', workflow)
 

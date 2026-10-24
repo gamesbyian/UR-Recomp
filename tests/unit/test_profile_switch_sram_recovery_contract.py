@@ -44,6 +44,7 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         self.assertLess(load, target_write)
         self.assertLess(target_write, selector_commit)
         self.assertLess(selector_commit, applied)
+
         # A live competing process's selector CAS winner is never rolled
         # back using a stale expectation from our failed local attempt.
         rollback = activation.split("const auto restore_previous = [&]() {", 1)[1].split(
@@ -52,7 +53,64 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         self.assertIn("g_product_state = previous_product;", rollback)
         self.assertIn("std::memcpy(g_sram, previous_sram", rollback)
         self.assertIn("RtlTryWriteSram()", rollback)
+        self.assertIn("previous_save_root != restored_save_root", rollback)
+        self.assertIn("UR_PROFILE_SELECT RESTORE_ROOT_MISMATCH", rollback)
+        self.assertLess(
+            rollback.index("UR_PROFILE_SELECT RESTORE_ROOT_MISMATCH"),
+            rollback.index("RtlTryWriteSram()"),
+        )
         self.assertNotIn("persist_product_state(", rollback)
+
+    def test_reloaded_target_format_is_checked_before_guest_sram_write(self):
+        host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
+            encoding="utf-8"
+        )
+        activation = host.split("bool activate_profile_id(", 1)[1].split(
+            "\n}\n\nbool create_profile_from_editor", 1
+        )[0]
+        # The first check happens before the source profile is persisted.
+        # apply_profile_save_root() subsequently reloads the target from disk,
+        # so the bytes that will actually reach the guest need their own guard.
+        switched = activation.split("g_product_state = product;", 1)[1]
+        reloaded = switched.index("apply_profile_save_root();")
+        guarded = switched.index(
+            "UR_PROFILE_SELECT TARGET_RELOADED_UNFORMATTED_SNAPSHOT"
+        )
+        restored = switched.index("restore_stock_sram_from_profile(")
+        self.assertLess(reloaded, guarded)
+        self.assertLess(guarded, restored)
+        guard_start = switched.index(
+            "if (!ur::product::stock_sram_format_signature_present("
+        )
+        guard_body = switched[guard_start:restored]
+        self.assertIn("g_profile_state->stock_sram->data()", guard_body)
+        self.assertIn("g_profile_state->stock_sram->size()", guard_body)
+        self.assertIn(
+            "UR_PROFILE_SELECT TARGET_RELOADED_UNFORMATTED_SNAPSHOT", guard_body
+        )
+        self.assertIn("return restore_previous();", guard_body)
+
+    def test_reloaded_target_is_bound_to_live_save_root_and_identity(self):
+        host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
+            encoding="utf-8"
+        )
+        activation = host.split("bool activate_profile_id(", 1)[1].split(
+            "\n}\n\nbool create_profile_from_editor", 1
+        )[0]
+        switched = activation.split("g_product_state = product;", 1)[1]
+        reload = switched.index("apply_profile_save_root();")
+        binding = switched.index("const bool target_reload_bound =")
+        refusal = switched.index("UR_PROFILE_SELECT TARGET_RELOAD_UNAVAILABLE")
+        guest_copy = switched.index("restore_stock_sram_from_profile(")
+        self.assertLess(reload, binding)
+        self.assertLess(binding, refusal)
+        self.assertLess(refusal, guest_copy)
+        condition = switched[binding:refusal]
+        self.assertIn("g_profile_state_writable", condition)
+        self.assertIn("g_profile_state->profile_id == profile_id", condition)
+        self.assertIn("g_profile_state_path ==", condition)
+        self.assertIn('std::string(applied_save_root) + "/host-profile.txt"', condition)
+        self.assertIn("return restore_previous();", switched[refusal:guest_copy])
 
 
 if __name__ == "__main__":

@@ -2017,6 +2017,9 @@ bool activate_profile_id(const std::string& profile_id) {
 
     std::array<std::uint8_t, ur::product::kStockSramBytes> previous_sram{};
     std::memcpy(previous_sram.data(), g_sram, previous_sram.size());
+    const char* original_save_root = RtlSaveRoot();
+    if (!original_save_root) return false;
+    const std::string previous_save_root = original_save_root;
     const auto previous_product = g_product_state;
     auto product = previous_product;
     product.active_profile_id = profile_id;
@@ -2031,6 +2034,18 @@ bool activate_profile_id(const std::string& profile_id) {
     g_product_state = product;
     apply_profile_save_root();
 
+    // A rejected save-root override can return before loading the target,
+    // leaving the previous profile cached in memory. Even a same-identity
+    // selection must not write that stale cache into the fallback save root.
+    // Require the live profile and its path to belong to the root actually
+    // selected by the framework before touching guest SRAM.
+    const char* applied_save_root = RtlSaveRoot();
+    const bool target_reload_bound =
+        applied_save_root && g_profile_state && g_profile_state_writable &&
+        g_profile_state->profile_id == profile_id &&
+        g_profile_state_path ==
+            std::string(applied_save_root) + "/host-profile.txt";
+
     // The selector on disk is still previous_product. Failures restore the
     // in-process root and SRAM; no compensating global CAS is appropriate.
     // An intervening independent selector writer must remain untouched.
@@ -2038,6 +2053,14 @@ bool activate_profile_id(const std::string& profile_id) {
         g_product_state = previous_product;
         apply_profile_save_root();
         std::memcpy(g_sram, previous_sram.data(), previous_sram.size());
+        // A rejected root override can reset the framework to default
+        // "saves". Never write the outgoing racer's SRAM to that other root.
+        const char* restored_save_root = RtlSaveRoot();
+        if (!restored_save_root ||
+            previous_save_root != restored_save_root) {
+            product_diagnostic("UR_PROFILE_SELECT RESTORE_ROOT_MISMATCH");
+            return false;
+        }
         const bool restored = RtlTryWriteSram();
         product_diagnostic(
             restored ? "UR_PROFILE_SELECT RESTORED_PRECOMMIT"
@@ -2045,9 +2068,24 @@ bool activate_profile_id(const std::string& profile_id) {
         return false;
     };
 
+    if (!target_reload_bound) {
+        product_diagnostic("UR_PROFILE_SELECT TARGET_RELOAD_UNAVAILABLE");
+        return restore_previous();
+    }
     if (!g_profile_state || !g_profile_state->racer_identity ||
         !g_profile_state->stock_sram) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_STATE_MISSING");
+        return restore_previous();
+    }
+    // apply_profile_save_root() reloads the target after the first preflight
+    // and after saving the previous racer. A concurrent profile writer can
+    // replace its SRAM in that interval. Validate the exact reloaded bytes
+    // before copying them into the live guest or publishing the selector.
+    if (!ur::product::stock_sram_format_signature_present(
+            g_profile_state->stock_sram->data(),
+            g_profile_state->stock_sram->size())) {
+        product_diagnostic(
+            "UR_PROFILE_SELECT TARGET_RELOADED_UNFORMATTED_SNAPSHOT");
         return restore_previous();
     }
     if (ur::product::restore_stock_sram_from_profile(

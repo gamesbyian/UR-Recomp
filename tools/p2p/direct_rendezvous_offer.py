@@ -77,6 +77,17 @@ def _parse(raw):
             raise ValueError('IPv4-mapped IPv6 candidate alias')
         if str(address)!=endpoint['ip']:
             raise ValueError('noncanonical IP spelling')
+        # H25 supplemental unicast policy (recovered from the Evidence Library):
+        # broadcast/reserved IPv4 and unscoped IPv6 link-local or reserved
+        # addresses are not peer endpoints even in 'lan' scope.
+        if address.version==4 and (
+                address==ipaddress.IPv4Address('255.255.255.255') or
+                address in ipaddress.IPv4Network('0.0.0.0/8') or
+                address in ipaddress.IPv4Network('240.0.0.0/4')):
+            raise ValueError('broadcast or reserved IPv4 candidate')
+        if address.version==6 and (
+                address.is_link_local or (address.is_reserved and not address.is_private)):
+            raise ValueError('IPv6 link-local or reserved candidate')
         if (type(endpoint['port']) is not int or not 1 <= endpoint['port'] <= 65535 or
                 address.is_unspecified or address.is_multicast or address.is_loopback or
                 (obj['scope']=='public' and not address.is_global)):

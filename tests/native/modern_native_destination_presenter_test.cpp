@@ -353,6 +353,21 @@ int main() {
                   kModernStockMenuPalette.cursor_blue));
     bounds(1368,896);
     clear();
+    // The real frozen-guest Pause path uses this same native child. Confirm
+    // that the final action row, both messages and its Confirm-only legend
+    // survive the 4x composition without clipping or overwriting.
+    v.options_selected = 4;
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1368,1368,896,v));
+    assert(has_at("SAVED OPTIONS DAMAGED", 88, 676, 4,
+                  kModernMenuCheckerLegibleGrey));
+    assert(has_at("SAVED", 88, 720, 4,
+                  kModernStockMenuPalette.title_yellow));
+    assert(has_at("A SELECT   B BACK", 88, 792, 4,
+                  kModernStockMenuPalette.cursor_blue));
+    bounds(1368,896);
+    clear();
+    v.options_selected = 1;
     // Single-message geometry is unchanged, including the footer.
     v.options_notice = {};
     assert(render_modern_native_destination(painter,scratch,342,224,

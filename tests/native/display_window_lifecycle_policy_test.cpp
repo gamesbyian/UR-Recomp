@@ -66,10 +66,24 @@ void rescue_centres_and_shrinks_to_the_target() {
     assert(r.w == 960 && r.h == 720);
     assert(r.x == (1920 - 960) / 2 && r.y == (1040 - 720) / 2);
     assert(ur_display_window_fits(r, kLeft));
-    // Larger than the target (DPI change / small monitor): shrunk to fit.
+    // Larger than the target (DPI change / small monitor): fit the
+    // original aspect, rather than independently clipping both dimensions.
     r = ur_display_window_rescue({0, 0, 3840, 2160}, kLeft);
-    assert(r.w == 1920 && r.h == 1040 && r.x == 0 && r.y == 0);
+    assert(r.w == 1848 && r.h == 1040 && r.x == 36 && r.y == 0);
     assert(ur_display_window_fits(r, kLeft));
+    // A 16:9 window rescued onto a 1024x768 usable display stays 16:9.
+    const UrDisplayRect smaller{0, 0, 1024, 768};
+    r = ur_display_window_rescue({5000, 5000, 1600, 900}, smaller);
+    assert(r.w == 1024 && r.h == 576 && r.x == 0 && r.y == 96);
+    assert(ur_display_window_fits(r, smaller));
+    // An already-fitting 4:3 window keeps its aspect and full usable area.
+    r = ur_display_window_rescue({0, 0, 960, 720}, {0, 0, 800, 600});
+    assert(r.w == 800 && r.h == 600);
+    // Full-range positive dimensions stay inside the target without
+    // overflow in the aspect comparison or multiplication.
+    r = ur_display_window_rescue({0, 0, INT_MAX, INT_MAX}, {0, 0, 1920, 1080});
+    assert(r.w == 1080 && r.h == 1080);
+    assert(ur_display_window_fits(r, {0, 0, 1920, 1080}));
     // Offset target (monitor not at the origin).
     r = ur_display_window_rescue({-9000, 0, 960, 720}, kRight);
     assert(ur_display_window_fits(r, kRight));

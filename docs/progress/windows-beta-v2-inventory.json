@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "6bbb07983502496c0a1fad53f00bfc9aa0333261",
+  "source_sha": "c00997af128912297e5cf8bffac54ee0b9f12484",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -1701,5 +1701,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges.",
-  "latest_criterion_review_ref": "docs/progress/v2-one07-rematch-promotion-20261024.json"
+  "latest_criterion_review_ref": "docs/progress/v2-one07-rematch-promotion-20261024.json",
+  "latest_review_interval": "docs/progress/v2-review-interval-20261024T1850.json"
 }

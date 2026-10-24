@@ -168,6 +168,52 @@ class RecurringVaultTests(unittest.TestCase):
         self.assertIn("MAX_MIB: ${{ github.event_name == 'pull_request' && '32' || '64' }}", workflow)
         self.assertIn('vault-recurring-state-${{ matrix.scope }}', workflow)
 
+    def test_oversized_failure_cools_down_without_losing_pending_work(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first = Path(tmp) / "first"
+            def too_large(entry, *args, **kwargs):
+                raise ValueError("download exceeds single-file byte budget")
+            failed, _ = recurring.run_cycle(
+                out=first, enumerator=self.listing, downloader=too_large,
+                git_tree=b"", max_files=1, now=NOW,
+            )
+            self.assertEqual(len(failed["errors"]), 1)
+            self.assertEqual(failed["errors"][0]["id"], A)
+            seen = []
+            resumed, queue = recurring.run_cycle(
+                out=Path(tmp) / "second", previous=first / "checkpoint.json",
+                enumerator=self.listing, git_tree=b"", max_files=3,
+                downloader=lambda entry, out, tree, stage=False:
+                    (seen.append(entry["id"]) or archive_result(entry)),
+                now=NOW + timedelta(hours=6),
+            )
+            self.assertEqual(seen, [B, C])
+            self.assertEqual(resumed["remaining_due"], 1)
+            self.assertEqual(resumed["errors"], [])
+            self.assertEqual(resumed["retry_cooldown"][0]["id"], A)
+            self.assertEqual(queue["retry_cooldown"][0]["reason"], "oversize_retry_cooldown")
+            self.assertNotIn(A, resumed["processed"])
+            self.assertNotIn(A, recurring.read_checkpoint(
+                Path(tmp) / "second" / "checkpoint.json")["items"])
+            forced = []
+            recurring.run_cycle(
+                out=Path(tmp) / "forced", previous=first / "checkpoint.json",
+                enumerator=self.listing, git_tree=b"", forced_id=A,
+                downloader=lambda entry, out, tree, stage=False:
+                    (forced.append(entry["id"]) or archive_result(entry)),
+                now=NOW + timedelta(hours=6),
+            )
+            self.assertEqual(forced, [A], "explicit probe bypasses cooldown")
+            expired = []
+            recurring.run_cycle(
+                out=Path(tmp) / "expired", previous=first / "checkpoint.json",
+                enumerator=self.listing, git_tree=b"", max_files=3,
+                downloader=lambda entry, out, tree, stage=False:
+                    (expired.append(entry["id"]) or archive_result(entry)),
+                now=NOW + timedelta(days=15),
+            )
+            self.assertIn(A, expired, "14-day cooldown must expire")
+
     def test_invalid_prior_and_empty_inventory_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "prior.json"

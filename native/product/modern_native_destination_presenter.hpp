@@ -336,15 +336,26 @@ inline bool render_modern_native_destination(
                 }
             }
             const bool status = !v.options_status.empty();
-            modern_native_destination_line(
-                p, pixels, stride, surface_height, c, 112,
-                status ? v.options_status : v.options_notice,
-                status ? col.title_yellow : kModernMenuCheckerLegibleGrey);
+            const bool notice = !v.options_notice.empty();
+            // A successful setting action does not invalidate an earlier
+            // settings-load warning. Give each message its own row, including
+            // the fifth option's focus band, without hiding the Back legend.
+            // Retain existing single-message geometry for other callers.
+            if (notice)
+                modern_native_destination_line(
+                    p, pixels, stride, surface_height, c,
+                    status ? 109 : 112, v.options_notice,
+                    kModernMenuCheckerLegibleGrey);
+            if (status)
+                modern_native_destination_line(
+                    p, pixels, stride, surface_height, c,
+                    notice ? 120 : 112, v.options_status,
+                    col.title_yellow);
             const bool adjustable = v.options_selected < count &&
                 v.options_rows[v.options_selected].adjustable;
             modern_native_destination_line(
                 p, pixels, stride, surface_height, c,
-                125, adjustable
+                status && notice ? 138 : 125, adjustable
                     ? "L/R CHANGE   B BACK" : "A SELECT   B BACK",
                 col.cursor_blue);
         }

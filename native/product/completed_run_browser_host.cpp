@@ -14,6 +14,7 @@ extern "C" {
 #include "host_product_store.hpp"
 #include "local_tournament_utf8_path.hpp"
 #include "modern_host_navigation.h"
+#include "modern_overlay_composition.hpp"
 #include "modern_overlay_text_fit.hpp"
 #include "multiplayer_match_browser.hpp"
 #include "multiplayer_match_summary.hpp"
@@ -1133,24 +1134,34 @@ void draw_records_browser(
 
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
-    const int panel_w = width < 244 ? width - 12 : 236;
+    // This surface may be the 1x stock raster or the 4x Modern
+    // presentation raster. Resolve density from the same authoritative host
+    // contract as the other Modern panels; keep all layout in logical units.
+    const int scale = ur::product::resolve_modern_overlay_surface_scale(
+        ur_uniracers_modern_presentation_scale(), width, height);
+    const int logical_width = width / scale;
+    const int logical_height = height / scale;
+    const int panel_w = logical_width < 244 ? logical_width - 12 : 236;
     const int row_count = 7;
     const int panel_h = 39 + row_count * 15 + 60;
-    const int x = (width - panel_w) / 2;
-    const int y = (height - panel_h) / 2;
+    if (panel_w <= 16 || panel_h > logical_height) return;
+    const int x = (logical_width - panel_w) / 2;
+    const int y = (logical_height - panel_h) / 2;
     const std::size_t cells = ur::product::modern_overlay_text_cells(panel_w);
     const auto draw_line = [&](int line_y, const std::string& text) {
         const std::string fitted =
             ur::product::fit_modern_overlay_text(text, cells);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, line_y,
-            fitted.c_str(), 0xFFFFFFFFu, 1);
+            pixels, stride, height, (x + 8) * scale, line_y * scale,
+            fitted.c_str(), 0xFFFFFFFFu, scale);
     };
 
     snes_ovl_fill_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xEE202020u);
+        pixels, stride, height, x * scale, y * scale,
+        panel_w * scale, panel_h * scale, 0xEE202020u);
     snes_ovl_stroke_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        pixels, stride, height, x * scale, y * scale,
+        panel_w * scale, panel_h * scale, 0xFFF0F0F0u);
 
     if (g_records_browser.view() ==
         ur::product::CompletedRunRecordsView::Courses) {
@@ -1575,24 +1586,34 @@ void draw_browser(
 
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
-    const int panel_w = width < 244 ? width - 12 : 236;
+    // This surface may be the 1x stock raster or the 4x Modern
+    // presentation raster. Resolve density from the same authoritative host
+    // contract as the other Modern panels; keep all layout in logical units.
+    const int scale = ur::product::resolve_modern_overlay_surface_scale(
+        ur_uniracers_modern_presentation_scale(), width, height);
+    const int logical_width = width / scale;
+    const int logical_height = height / scale;
+    const int panel_w = logical_width < 244 ? logical_width - 12 : 236;
     const int row_count = 6;
     const int panel_h = 39 + row_count * 15 + 76;
-    const int x = (width - panel_w) / 2;
-    const int y = (height - panel_h) / 2;
+    if (panel_w <= 16 || panel_h > logical_height) return;
+    const int x = (logical_width - panel_w) / 2;
+    const int y = (logical_height - panel_h) / 2;
     const std::size_t cells = ur::product::modern_overlay_text_cells(panel_w);
     const auto draw_line = [&](int line_y, const std::string& text) {
         const std::string fitted =
             ur::product::fit_modern_overlay_text(text, cells);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, line_y,
-            fitted.c_str(), 0xFFFFFFFFu, 1);
+            pixels, stride, height, (x + 8) * scale, line_y * scale,
+            fitted.c_str(), 0xFFFFFFFFu, scale);
     };
 
     snes_ovl_fill_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xEE202020u);
+        pixels, stride, height, x * scale, y * scale,
+        panel_w * scale, panel_h * scale, 0xEE202020u);
     snes_ovl_stroke_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        pixels, stride, height, x * scale, y * scale,
+        panel_w * scale, panel_h * scale, 0xFFF0F0F0u);
 
     // Playable runs all match the current track (playback compatibility),
     // so it is named once in the title; disabled rows keep their own code.
@@ -1697,9 +1718,11 @@ void draw_results_records_hint(
     }
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
+    const int scale = ur::product::resolve_modern_overlay_surface_scale(
+        ur_uniracers_modern_presentation_scale(), width, height);
     snes_ovl_draw_text(
-        pixels, stride, height, 8, height - 13,
-        "F8 / Y      RECORDS", 0xFFFFFFFFu, 1);
+        pixels, stride, height, 8 * scale, height - 13 * scale,
+        "F8 / Y      RECORDS", 0xFFFFFFFFu, scale);
 }
 
 void draw_browser_hint(
@@ -1718,12 +1741,14 @@ void draw_browser_hint(
     }
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
+    const int scale = ur::product::resolve_modern_overlay_surface_scale(
+        ur_uniracers_modern_presentation_scale(), width, height);
     snes_ovl_draw_text(
-        pixels, stride, height, 8, height - 28,
-        "F8 / Y      RECORDS", 0xFFFFFFFFu, 1);
+        pixels, stride, height, 8 * scale, height - 28 * scale,
+        "F8 / Y      RECORDS", 0xFFFFFFFFu, scale);
     snes_ovl_draw_text(
-        pixels, stride, height, 8, height - 13,
-        "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
+        pixels, stride, height, 8 * scale, height - 13 * scale,
+        "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, scale);
 }
 
 }  // namespace

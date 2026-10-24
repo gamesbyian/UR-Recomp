@@ -194,6 +194,15 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None,
             raise ValueError("duplicate stage destination")
         destination.write_bytes(selected_bytes)
         staged_count, staged_bytes = 1, len(selected_bytes)
+        observed_stage_item = next((row for row in items
+                                    if row["member"] == stage_member), None)
+        if observed_stage_item is None:
+            # Nested members are not listed by the outer ZIP's infolist.
+            items.append({"member": stage_member, "bytes": len(selected_bytes),
+                          "sha256": stage_sha256, "source_like": True,
+                          "exact_on_main": False, "staged": True})
+        else:
+            observed_stage_item["staged"] = True
     # Retain a bounded metadata-only handoff for unmatched first-party-looking
     # source. Never serialize raw source, denied/private paths or ZIP bytes.
     review_leads, omitted = [], 0

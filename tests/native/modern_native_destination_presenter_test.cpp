@@ -342,7 +342,6 @@ int main() {
                   kModernStockMenuPalette.cursor_blue));
     bounds(342,224);
     clear();
-    constexpr HostOverlayRect wide4{44,40,1280,816};
     assert(render_modern_native_destination(painter,scratch,1368,896,
                                              4,320,wide4,v));
     assert(has_at("SAVED OPTIONS DAMAGED", 88, 676, 4,

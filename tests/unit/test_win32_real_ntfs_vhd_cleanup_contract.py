@@ -35,28 +35,41 @@ class Win32RealNtfsVhdCleanupContract(unittest.TestCase):
             "$detachDiagnostic = $null",
             "Invoke-OnlyOriginalVHD @(",
             "Get-DiskImage -ImagePath $disk -ErrorAction Stop",
-            "if ($diskImage.Attached)",
+            "if ($diskImage.Attached -ne $false)",
             "FAIL_CLOSED: cannot verify disposable VHDX detach",
             "FAIL_CLOSED: disposable VHDX remains attached",
             "Write-Warning ('DiskPart reported an error but disposable VHDX is verified detached:",
         ):
             self.assertIn(required, cleanup)
         self.assertLess(
-            cleanup.index("if ($diskImage.Attached)"),
+            cleanup.index("if ($diskImage.Attached -ne $false)"),
             cleanup.index("Remove-Item -LiteralPath $root"),
         )
 
     def test_diskpart_failure_cannot_bypass_image_state_check(self):
         cleanup = self.source.rsplit("\nfinally {", 1)[1]
-        self.assertLess(
-            cleanup.index("$detachDiagnostic = [string]$_"),
-            cleanup.index("Get-DiskImage -ImagePath $disk"),
-        )
-        self.assertLess(
-            cleanup.index("Get-DiskImage -ImagePath $disk"),
-            cleanup.index("if ($detachDiagnostic)"),
-        )
+        first_query = cleanup.index("Get-DiskImage -ImagePath $disk")
+        detach = cleanup.index("Invoke-OnlyOriginalVHD @(")
+        diagnostic = cleanup.index("$detachDiagnostic = [string]$_")
+        second_query = cleanup.index("Get-DiskImage -ImagePath $disk", first_query + 1)
+        fail_closed = cleanup.index("if ($diskImage.Attached -ne $false)")
+        self.assertLess(first_query, detach)
+        self.assertLess(detach, diagnostic)
+        self.assertLess(diagnostic, second_query)
+        self.assertLess(second_query, fail_closed)
+        self.assertLess(fail_closed, cleanup.index("Remove-Item -LiteralPath $root"))
         self.assertIn("throw ('FAIL_CLOSED: disposable VHDX remains attached:", cleanup)
+
+    def test_partially_created_vhd_is_checked_even_when_setup_failed(self):
+        cleanup = self.source.rsplit("\nfinally {", 1)[1]
+        self.assertIn("$diskExists = Test-Path -LiteralPath $disk -PathType Leaf", cleanup)
+        self.assertIn("if ($diskExists) {", cleanup)
+        self.assertNotIn("if ($attached) {", cleanup)
+        self.assertIn("FAIL_CLOSED: expected disposable VHDX backing missing", cleanup)
+        self.assertLess(
+            cleanup.index("if ($diskExists) {"),
+            cleanup.index("Get-DiskImage -ImagePath $disk"),
+        )
 
 
 if __name__ == "__main__":

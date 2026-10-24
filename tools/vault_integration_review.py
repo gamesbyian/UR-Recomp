@@ -244,7 +244,9 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
             "source_destination": c["disposition"]["source_path"],
             "manual_workflow": "https://github.com/gamesbyian/UR-Recomp/actions/workflows/vault-direct-intake.yml",
             "download_all": False, "stage_sources": True,
-            "confirm_source_review": "must_be_explicitly_reviewed_in_manual_dispatch",
+            "entire_archive_review_required": True,
+            "staging_may_include_other_unmatched_source_members": True,
+            "confirm_source_review": "confirm_ALL_staged_members_and_archive_rights_manually",
             "dispatch_automatically": False,
         })
     orphan = sorted(set(decisions) - seen)

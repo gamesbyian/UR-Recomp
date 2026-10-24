@@ -97,6 +97,60 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             "handle_results_navigation(UR_MODERN_HOST_NAV_CONFIRM)", raw)
         self.assertIn("repeat_current_attempt()", source)
 
+    def test_keyboard_and_physical_pad_repeat_shortcuts_share_guarded_route(self):
+        # This is a source-bound routing contract, not physical-pad evidence.
+        # Both one-button shortcuts must use the same target-validated
+        # transaction as the results-menu Confirm action.
+        source = HOST.read_text(encoding="utf-8")
+        keyboard = _body(
+            source,
+            'extern "C" int ur_uniracers_modern_system_key_down(',
+            'extern "C" int ur_uniracers_modern_controls_active(',
+        )
+        raw_pad = _body(
+            source,
+            'extern "C" int ur_uniracers_modern_system_gamepad_button(',
+            'extern "C" int ur_uniracers_modern_system_gamepad_control(',
+        )
+        raw_results = _body(
+            raw_pad,
+            "if (results_navigation_active()) {",
+            "if (g_frontend_options_active && g_options_visible) {",
+        )
+        self.assertIn("if (!pressed) return 1;", raw_results)
+        self.assertIn(
+            "if (button == kGamepadBtn_X) {\n"
+            "            (void)repeat_current_attempt();",
+            raw_results,
+        )
+        self.assertIn(
+            "handle_results_navigation(UR_MODERN_HOST_NAV_CONFIRM)",
+            raw_results,
+        )
+        self.assertNotIn("begin_practice(", raw_results)
+        self.assertNotIn("UR_MODERN_PAUSE_RESTART_HOTKEY", raw_results)
+
+        key_repeat = _body(
+            keyboard,
+            "if (modern_mode() && key == SDLK_r && (mod & KMOD_CTRL)",
+            "return 0;\n}",
+        )
+        self.assertIn("g_surface == UR_UNIRACERS_RESTART_RESULTS", key_repeat)
+        self.assertEqual(key_repeat.count("(void)repeat_current_attempt();"), 2)
+        self.assertNotIn("begin_practice(", key_repeat)
+        self.assertNotIn("UR_MODERN_PAUSE_RESTART_HOTKEY", key_repeat)
+
+        guarded = _body(
+            source,
+            "bool repeat_current_attempt() {",
+            "bool launch_recent_course_practice() {",
+        )
+        practice = guarded[:guarded.index("const uint32_t sram_before")]
+        self.assertIn("begin_quick_practice_rematch_route(", practice)
+        self.assertIn("REPEAT_PRACTICE_REJECTED_TARGET", practice)
+        self.assertIn("request_frontend_reboot(true)", practice)
+        self.assertNotIn("dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY)", practice)
+
     def test_acceptance_enters_through_real_keyboard_handler(self):
         source = HOST.read_text(encoding="utf-8")
         acceptance = _body(

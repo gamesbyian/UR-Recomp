@@ -32,8 +32,8 @@
     "Retired 387 Drive files intentionally deleted by owner, excluded.",
     "Archive Git blob inequality is not behavioral absence.",
     "Folder Integrated is a historical filing claim, not exact integration proof.",
-    "The 51 Integrated archive hashes and 291 ZIP member fingerprints were separately independently audited; pending publication of sidecar index.",
-    "No safety-refused publication operations or release acceptance were performed."
+    "No safety-refused publication operations or release acceptance were performed.",
+    "51 Integrated entries now include independently computed whole-file SHA256 and per-item GitHub PR/issue references. 50 ZIPs passed CRC and 291 ZIP-member SHA256 fingerprints are recorded in a separately available raw binary audit; a DOCX is the 51st entry."
   ],
   "items": [
     {
@@ -1523,16 +1523,17 @@
       "archive_sha256": null,
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "Win32 sibling negative merged #2256, broader ADS/namespace #2103 open; Agent 2 compare exact census member",
+      "current_main_comparison": "Current exporter already implements _portable_run_namespace_entries(), Unicode NFC, reserved-device rejection, casefold sibling collision and tests; bounded archived source transform superseded by main. Open #2103 still controls physical ADS/NTFS acceptance.",
       "github_prs": [
-        "#2256"
+        "#2256",
+        "#2103"
       ],
-      "owner": "Agent 2",
+      "owner": "Agent 3",
       "priority": "P2",
       "required_test": "Compare original source/test members to exact current main and owning PR; run narrowed failing negative",
-      "next_action": "Win32 sibling negative merged #2256, broader ADS/namespace #2103 open; Agent 2 compare exact census member",
+      "next_action": "Mark archived Python/source tests semantically superseded; retain #2103 physical Windows follow-up",
       "blocker": null,
-      "classification": "requires_agent2_semantic_review",
+      "classification": "semantically_superseded",
       "work_id": "UR-WINSTORAGE",
       "source_drive_ids": [
         "19AofFm0zVjhmZaayHvZ4Jk1Y0BVCBPTm"
@@ -1630,16 +1631,16 @@
       "archive_sha256": null,
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "Compare direct-entry Local Runs browser symlink cpp/test to shared safe artifact admission merged #2364; do not assume duplicate",
+      "current_main_comparison": "Archived local browser symlink transform is subsumed by shared inspect_completed_run_record_artifacts() path now used by CompletedRunBrowser::refresh, and test for symlinked entry/root in tests/native/completed_run_browser_test.cpp from #2364",
       "github_prs": [
         "#2364"
       ],
-      "owner": "Agent 2",
+      "owner": "Agent 3",
       "priority": "P2",
       "required_test": "Compare original source/test members to exact current main and owning PR; run narrowed failing negative",
-      "next_action": "Compare direct-entry Local Runs browser symlink cpp/test to shared safe artifact admission merged #2364; do not assume duplicate",
+      "next_action": "Record semantic supersession and avoid duplicate browser patch; no old safety-denied writes replayed",
       "blocker": null,
-      "classification": "requires_agent2_semantic_review",
+      "classification": "semantically_superseded",
       "work_id": "UR-RECORDS",
       "source_drive_ids": [
         "1B6qmg2uacrkudkKtZp1VcEc8unKWAECy"
@@ -1760,7 +1761,7 @@
       "archive_sha256": null,
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "Current feedback header centers strip for source widths 256 and 342; Agent 3 check final host call-site test",
+      "current_main_comparison": "Current save-feedback header supports 256/342 source widths and host call in tools/baldosa_native_modern_root.cpp already passes width; archived patch behavior present",
       "github_prs": [
         "#2368"
       ],
@@ -2828,17 +2829,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 15577,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "b24524d954fb0c32bd771ce0c257079ef176390616ea0611ccafbe970832322e",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
+      "github_prs": [
+        "#2149"
+      ],
+      "owner": "Agent 3 (draft title/QA ownership)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
     },
     {
       "drive_id": "11x4qXDt8swIg52188tLpkkLHloauPyhf",
@@ -2847,17 +2850,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5075,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "e563281e05f141d032d2f197f0d8918cd47ab0ddf406a2b93912599dfe027276",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "12Ga192_kUjbpveaJpTS7zTPePrZjzsV1",
@@ -2866,17 +2871,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5256,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "771f0d02ed8fbcf45074bf0711ed00b883a10f07a032a94da904883b80a9d311",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2342"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "12rwZkOiW1wEnFG8fgc-Y1VJifc9ugXs-",
@@ -2885,17 +2892,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4199,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "837f30edc02172f8dd5bdae55575dd6bd27f4878b2d725bd135bf82055c45389",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2360",
+        "#2384"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "12YkY-_aV3b1wU5blBW4rZz1PS8dSEV1R",
@@ -2904,17 +2914,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 6839,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "54bde5cf213afe0f99017cda10569c02f1be430b61964261437e2ff7427e55d8",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2347",
+        "#2350"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1370PCHlfkE2BlGKigKi0ic3Qve4kQJwH",
@@ -2923,17 +2936,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2762,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "dcf3a79845dba1ed2c730be08db0f07911cb22d4c160101cd95a36a3a5b9bb5d",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2341"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "15rHhjzc_wDI-Jk_RTxonXE9dI2p_xYT3",
@@ -2942,17 +2957,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 7557,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "3b7b1bc09e07c9155587826e04763d877a4ae32abffa738122915e2e083783f9",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2345"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "16lFJf3oHjiewhBd5Wgud4LgRMwIjtwQd",
@@ -2961,17 +2978,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4749,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "c73f7efab769dab308707a2f9f40d4196d2bcc0804f3e2d290ca8fa56d84b905",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2364"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "17GvSWypLmsqf2VQeOxzHaqBvmoarSOep",
@@ -2980,17 +2999,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3040,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "911a2e0bd2dd04c6d6d00cb85ae8bc54bd2ab463f21f94a2b131ac83f7236787",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2357"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "19AofFm0zVjhmZaayHvZ4Jk1Y0BVCBPTm",
@@ -2999,17 +3020,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2467,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "6c1148f8f0806348489590ed652897cad92fb02543b41ffe52ea954a1c6eb0d7",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2256",
+        "#2103"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1AnWhIPnE89aB_vEX4VuW4yYTr08Ktc6h",
@@ -3018,17 +3042,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3678,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "9f63354bf2f481b562432af1fc8c67ad6a4e4907016681310b7cc0688d0e449e",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2366"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1B6qmg2uacrkudkKtZp1VcEc8unKWAECy",
@@ -3037,17 +3063,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2831,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "d76ad6ede33b46f290d55f3037c8e356f1efb1be7eb71ce9d2be915e516a6da8",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2364"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1BaqZ7GNAeis64RmZWcyp_LsBVjSRI5nC",
@@ -3056,17 +3084,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2860,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "ef2a321e5f46e7f96c1f13b050c1ae37b464640891ef015579971986f7599d24",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "ClockBoundWitness first-error sticky guard and regression already on main under tools/live_capture_research/clock_bound_audio_span.py and tests/unit/test_live_capture_audio_interval_h25.py",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_research_or_semantically_resolved"
     },
     {
       "drive_id": "1d1ikPoEZBEilf55HaM1i6ZY3u1exbQVO",
@@ -3075,17 +3105,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5131,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "f36ed141fb116647a971af944fc70f8fd484caa27dc27da19bdfab2bfcfcc6ac",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2285"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1DHRV4082CWJ7YLxicGR20CINyWwFEc8N",
@@ -3094,17 +3126,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2156185,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "f902f821a1e89d11c660343c91ba0be0035ab805b6b832677bcea41b134af8a6",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Bounded research or negative tests already found on main or owned by current QA issue; no product integration inferred from archive location",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_research_or_semantically_resolved"
     },
     {
       "drive_id": "1eBRIAdDsdMitm6R71fecb81Zu_UNtu2t",
@@ -3113,17 +3147,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 9135,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "161c14fdb9c335884c65c7933fe5040aa1c2ce5963fcb448670a01873b38d1da",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "tools/qa08_rf017_epoch_crc_overlap.py and its test exact main blobs 1b1d6dfe/15e85093",
+      "github_prs": [
+        "#2382",
+        "#1996"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "main_source_or_test_exact_verified"
     },
     {
       "drive_id": "1ePFmjMs7Fjmn60YTzEZ9aRwEeLwYRM-FUcK2cX-hkjI",
@@ -3132,17 +3169,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2533,
       "mime_type": "application/vnd.google-apps.document",
-      "archive_sha256": null,
+      "archive_sha256": "fc66672e5f37999bc628b4aeb3226dca22cb918460557c22de2b226b5cf331c9",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2089"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1eUFXr_OkJBZtk6SmfCtibu9nNWhFrfIe",
@@ -3151,17 +3190,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2186,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "c7cd47a9507773879eb96837a4031f6ddc1840feea62937e4e5f2ae3b51138f1",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2345"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1fIAwJlnHdpbUKxAJVb0POclLGBGrzj1v",
@@ -3170,17 +3211,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2951,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "999be7e3e594f292692e79ed80a7e89710f1eee72b87973f4f189b50ef5d02e0",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2352",
+        "#2366"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1FsEDOyb2C4koCpoNDgjHK79D14KfyaDp",
@@ -3189,17 +3233,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3185,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "37b2f1075cb6c2b871658e4d3deac7b490e34e29484725879cd48553db9e2f1e",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2386"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1hB8sr4Nw5uxVwEsEV8Yqx66sBkQhZ8zp",
@@ -3208,17 +3254,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5036,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "c7bf530ff81edd29290890205b5ca2c72045bc0b6229bf844804c02ba96fbfae",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2244"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1HFHhn0tFdffg3zbl5onTtZ70MRCxbZnh",
@@ -3227,17 +3275,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5915,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "48bafe0d57249fe6950cb7867a0c701457ece2324df98b5c5fb57566cb86a9af",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2353"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1ihMsh91DJd1eVQVig35GqFpqoHrg6k-1",
@@ -3246,17 +3296,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5414,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "f68db374bc6c421e7f628753ca5b4003c4f262dd9dff32f1eb2b015e1cdaaa7c",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2356"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1IiASg_CZn9OsQVaMiqr5EogmEXDTr6Ow",
@@ -3265,17 +3317,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3212,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "a5a001f83837758caf97c9833630967d6debd9b96b5208f36ff392f1c8dc20aa",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2250"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1Iy2Tg_k1MlFsg_UMSBDAYxXXOoL1JMVH",
@@ -3284,17 +3338,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 1702,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "63c2e02b5780eaefd0e57e9b85cfd41945bcba5f94849ecd6e1e1d347ad40510",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "tests/unit/test_windows_ads_namespace_observation.py exact on main blob deb03329",
+      "github_prs": [
+        "#2103"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "main_source_or_test_exact_verified"
     },
     {
       "drive_id": "1j8T18Xaw4xKnIfcgdwlH6AHFyLo0M8IO",
@@ -3303,17 +3359,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 8892,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "d9477c3eb93abdab8ad85230f32eba29b4557b95b2de6a27f4791d36a077c2cb",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
+      "github_prs": [
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 3 (draft title/QA ownership)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
     },
     {
       "drive_id": "1JhHl6ZWRVWtiPQI6Sp_PaTw5HDAxR8at",
@@ -3322,17 +3381,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4088,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "fbafd2d17a8cea516cdd6475116c0fca70c9f3a81a70c20a7a6f87b1c4e657f7",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2368"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1jYtiu5YzkypT-FsP24h76kgm_DtfVKja",
@@ -3341,17 +3402,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4948,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "dc26bd250cfaa36af9ba7b17ae91d36829dd6e8390b4b2fbd0d22d5bc08b80b0",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2358"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1kFw7o3vjfXFspOUUNE0SD4P5sR_FIpJY",
@@ -3360,17 +3423,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3509,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "cdfa3151e7401abd7cfd99d0be93e9c766e5da21cf23f06cc54d775116f779ab",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2343"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1KHoNBxtQd9XU3AAeeRQQVdiEkaHhWtyQ",
@@ -3379,17 +3444,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 7450,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "95647c74d8eb474b52e1f0aa965e26f17204c8515202f70908f91a0014257c6a",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "tools/p2p/authenticated_finish_ledger.py and tests/unit/test_p2p_authenticated_finish_ledger.py exact current main blobs 82042f0f/b28ad923",
+      "github_prs": [
+        "#2354"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "main_source_or_test_exact_verified"
     },
     {
       "drive_id": "1laIYLbjFAx_9thpjckEEds8rd_uCSb8r",
@@ -3398,17 +3465,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 11274,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "31d93516ba03b2d79c2789aa67818b6eb920e15b7d568a6d06a301f5125fc159",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1m8TpLnvTi9HAiQI5g-s458doBIWEhuwK",
@@ -3417,17 +3486,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3149,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "572ada2bf31bdd25e8546ff651dad33108b508e66939d6a66e5eb59b6337cbd2",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2340"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1O2zUKoNK-8E092s2tbTQX0W09dlHhBu5",
@@ -3436,17 +3507,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4616,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "9ccbef4378d8d6f70a19536af9b21e9b1744af23a5228ebe949f114a6c9d78d3",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2345"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1oq_wIUR5OM1tPsR-QcyyuQxxIAqp4ldR",
@@ -3455,17 +3528,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2529,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "c56308bf337ae4e0df189bc26b29d8bb0bc56c4f8f11479a867780dd52dfdd8f",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2347"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1p99v0BHznh173DpXFDwj0Yr8Q1ZmBTsX",
@@ -3474,17 +3549,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 9733,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "421dc23e0449ceb5826e7e60741c739f82b0c4c6e71adec61ae262a08783fc49",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2381"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1pPMcQcuhhJ6vngM7yD77WDxheYjOn1S6",
@@ -3493,17 +3570,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2373,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "e41993670e76ccc7bfcba954eb4e21264505a512a407547f88418e7093cf8a01",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2250"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1pZz8db6OpR4YOzvIk4dKZSaaZM50SUsI",
@@ -3512,17 +3591,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4531,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "66fcbb73c2162d80d91e1720d6db40f8eeabfe3e05aacd286b77060dd600e370",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2350"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1QooXD26zEifH_UtuaITbWHP-S8XHecaD",
@@ -3531,17 +3612,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3984,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "6fb8a6c6d9032af63c94a20aab7c90177f6b9aaff32f1f30c41eb5aa05cfbb62",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2362"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1qrK9fovDHaR3dkAzP9wtzUhckqazedOF",
@@ -3550,17 +3633,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2081,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "287074e26d117522af97986751bbb52ce02fe3a3231763765fc3b46c94302de4",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2341"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1sk4W9TBmANhiAZk06HypoDiz7T0EbQOk",
@@ -3569,17 +3654,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 5344,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "c0cf29263cce7982275420cc0d903389b8a3d9d70595f34947d457988106de91",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "tools/verify_title_plate_artifact.py and test exact main blobs d7c83ba2/d10e75f1",
+      "github_prs": [
+        "#2397"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "main_source_or_test_exact_verified"
     },
     {
       "drive_id": "1t6q8W3kd8X40YT2Jj-eI4d2N1B5PPpxd",
@@ -3588,17 +3675,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 6017,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "80830360cdb92d5110bf022511c31b8dbc303b251b06b679646e8f56e85f0c44",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
+      "github_prs": [
+        "#2149"
+      ],
+      "owner": "Agent 3 (draft title/QA ownership)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
     },
     {
       "drive_id": "1ub4e0LiXsWUVyLOvTqlWkeseRr3IOvko",
@@ -3607,17 +3696,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 6244,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "7cc1cf282c8a371a2f763d4fb31993d441134559f63e440fb82a1c13c75fad3d",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2349"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1Ubhzi-jExEWHcHcouxxaE4xqFjioKAnQ",
@@ -3626,17 +3717,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 12274,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "8a59f35d778169b7df5e725d0cf4a1d74c3266552b91236002ff08f95e13b21a",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
+      "github_prs": [
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 3 (draft title/QA ownership)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
     },
     {
       "drive_id": "1UGQ1rUCChEH9U2qEfS_NiRKpbuwtaHpn",
@@ -3645,17 +3739,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3122,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "fd8a9e2200c1a307bad4955cdf43d63c1f61c07f5c4a576183434cb3fb001a4f",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2340"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1uJQoq_mkeaVBUuS0H54pS8-E4QmfUfun",
@@ -3664,17 +3760,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 2095,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "19d1cbff3943e704671d9971a029035100480b63c2699b5d7921108adaef6187",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2379"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1UQ8m7B5L3n9uurVshDIavx2n8XnFiBpM",
@@ -3683,17 +3781,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 1979,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "ef3fe4efaea100f49b632a2393a4a83a78c784920aefd667a07adf002e550055",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2346"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1VUyjniRGAlBzo5tJz1cjVTndbtPndC5k",
@@ -3702,17 +3802,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 3970,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "d6d004f727102737881f0c61a08e8b4f1a9327869b8372a5c29395fa6d3da79d",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2345"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1wW_zP28K8OWA--3UMLX4Yc2_VuIVOgSq",
@@ -3721,17 +3823,20 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 14725,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "25b0c7c00380d43f1e6f7edcac5163614ecf0a1841fff09cf37e8e2049065be0",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "research/qa08 temporal census source and test exact main blobs 8583ed7b/bee9def0",
+      "github_prs": [
+        "#2088",
+        "#1996"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "main_source_or_test_exact_verified"
     },
     {
       "drive_id": "1XxdajwxMpiD8Xvdqr4yFTAAXeb9LXKB8",
@@ -3740,17 +3845,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 4769,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "059b41eed6c36b1df454d6ee6c1e7553b4808fe1223f7f29f0762da3515c8ba8",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Preserved original-title/cross-geometry evidence overlaps existing draft #2043/#2149; source may be present but independent original/native and artistic approval remain open",
+      "github_prs": [
+        "#2149"
+      ],
+      "owner": "Agent 3 (draft title/QA ownership)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Reconcile existing owner PRs #2043/#2149; retain technical evidence without native/art/release credit",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "technical_evidence_present_but_art_or_source_qualification_held"
     },
     {
       "drive_id": "1YWo79CU1ybzl_EgQX5CBIsvRHhceLnKz",
@@ -3759,17 +3866,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 11265,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "4a88b4bed0a709da651052b8e061ddb5f44e3aceb9c66f848a3742d20d4b65d5",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2367"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "1z4RpxHOndm_jyGgpavF1w5P7ChINnoQq",
@@ -3778,17 +3887,19 @@
       "folder_id": "1deqU6Z6IdeudIVvfCmXggW8gV3JRGqsU",
       "bytes": 7378,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "51b3d94c18d993760ca8bba4403a17a78a877c0b6dc30c587d1b72d41f194513",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "github_prs": [
+        "#2351"
+      ],
+      "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current-main path or PR-specific negative regression; independent native/physical proof only for release claims",
+      "next_action": "Verify specific member hashes and source path against linked PR only where unresolved; preserve original",
       "blocker": null,
-      "classification": "integrated_folder_claim_needs_member_crosswalk"
+      "classification": "mapped_to_merged_source_or_semantic_successor"
     },
     {
       "drive_id": "10lwjdtTbY3RfLsATv1wklGQ0a5pxZ4mhC-EKLIPNcPA",
@@ -4493,5 +4604,13 @@
       "blocker": null,
       "classification": "historical_evidence_only"
     }
-  ]
+  ],
+  "source_member_audit": {
+    "scanned_integrated_items": 51,
+    "zip_crc_passed": 50,
+    "zip_members_sha256_observed": 291,
+    "nonzip_docs": 1,
+    "scope": "Integrated folder only; no exact-current-main claim from CRC",
+    "local_artifact": "ur-vault-integrated-binary-audit-20261024.json"
+  }
 }

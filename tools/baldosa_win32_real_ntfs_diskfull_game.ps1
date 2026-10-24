@@ -41,9 +41,11 @@ foreach ($file in @($launcher,$rom,$fixture,$seed,$source)) {
 function Invoke-OnlyOriginalVHD([string[]]$instructions) {
   [IO.File]::WriteAllLines($commands, $instructions, [Text.Encoding]::ASCII)
   $text = (& diskpart.exe /s $commands 2>&1 | Out-String)
-  if ($LASTEXITCODE -ne 0 -or $text -match 'DiskPart has encountered an error' -or
+  $diskpartExitCode = $LASTEXITCODE
+  if ($diskpartExitCode -ne 0 -or $text -match 'DiskPart has encountered an error' -or
       $text -match 'The arguments specified for this command are not valid') {
-    throw ('FAIL_CLOSED: isolated VHDX diskpart failure: ' + $text)
+    throw ('FAIL_CLOSED: isolated VHDX diskpart failure: exit=' +
+           $diskpartExitCode + '; output=' + $text)
   }
 }
 function Invoke-OriginalPhase([string]$phase) {
@@ -192,12 +194,45 @@ try {
   Write-Output 'UR_ORIGINAL_CMD_REAL_NTFS_POSTRAW_TYPED_FULL_PRODUCT_PASS'
 }
 finally {
-  if ($attached) {
+  # DiskPart may attach the VHDX and then fail partition/format/assign.
+  # In that case $attached was never set. Verify every created backing file
+  # rather than relying on the successful-setup flag.
+  $diskExists = Test-Path -LiteralPath $disk -PathType Leaf
+  if ($attached -and -not $diskExists) {
+    throw ('FAIL_CLOSED: expected disposable VHDX backing missing: ' + $disk)
+  }
+  if ($diskExists) {
+    $detachDiagnostic = $null
     try {
-      Invoke-OnlyOriginalVHD @(('select vdisk file=' + '"' + $disk + '"'),'detach vdisk')
+      $diskImage = Get-DiskImage -ImagePath $disk -ErrorAction Stop
     }
     catch {
-      Write-Warning ('Only own disposable VHD detach refused: ' + $_)
+      throw ('FAIL_CLOSED: cannot verify disposable VHDX detach: ' +
+             $_ + '; diskpart=' + $detachDiagnostic)
+    }
+    if ($diskImage.Attached) {
+      # An error from DiskPart is not conclusive: re-query this exact image.
+      try {
+        Invoke-OnlyOriginalVHD @(('select vdisk file=' + '"' + $disk + '"'),'detach vdisk')
+      }
+      catch {
+        $detachDiagnostic = [string]$_
+      }
+      try {
+        $diskImage = Get-DiskImage -ImagePath $disk -ErrorAction Stop
+      }
+      catch {
+        throw ('FAIL_CLOSED: cannot verify disposable VHDX detach: ' +
+               $_ + '; diskpart=' + $detachDiagnostic)
+      }
+    }
+    if ($diskImage.Attached -ne $false) {
+      throw ('FAIL_CLOSED: disposable VHDX remains attached: ' +
+             $disk + '; diskpart=' + $detachDiagnostic)
+    }
+    if ($detachDiagnostic) {
+      Write-Warning ('DiskPart reported an error but disposable VHDX is verified detached: ' +
+                     $detachDiagnostic)
     }
   }
   Remove-Item -LiteralPath $root -Force -Recurse -ErrorAction SilentlyContinue

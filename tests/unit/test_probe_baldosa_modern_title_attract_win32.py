@@ -132,8 +132,8 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0 guest_writes=0",
             "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0 guest_writes=0",
             "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3815 menu=d7 race=00 stable=60 guest_writes=0",
-            "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
             "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+            "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
             "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
         )
         good = "\n".join(stages)
@@ -144,6 +144,16 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             with self.subTest(missing=index), self.assertRaises(ValueError):
                 verify_named_original_play_after_recovery(
                     "\n".join(s for i, s in enumerate(stages) if i != index))
+        # Real native root stock_requested is emitted inside the request
+        # before the title reports named_play_requested on return. Reject
+        # both a reversed pair and any stock request before recovered MAIN.
+        reversed_request = list(stages)
+        reversed_request[10], reversed_request[11] = reversed_request[11], reversed_request[10]
+        premature_request = list(stages)
+        premature_request[9], premature_request[10] = premature_request[10], premature_request[9]
+        for invalid_order in (reversed_request, premature_request):
+            with self.assertRaisesRegex(ValueError, "before real MAIN recovery"):
+                verify_named_original_play_after_recovery("\n".join(invalid_order))
         # Reject anonymous timestamps, a mixed source epoch, and altered
         # source state even when all host-side confirmation markers remain.
         for bad in (

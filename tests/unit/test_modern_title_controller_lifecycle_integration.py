@@ -158,9 +158,10 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
                 require_shared_native_acceptance(WINDOWS_WORKFLOW.replace(token, ""))
 
     def test_owner_leaves_requires_actual_host_p2_unplug(self):
-        # The native 16 route must show the SDL host's seat-2 detach, not
-        # merely a Modern-root "join_seat_left" diagnostic. A different
-        # instance, early/late detach or P1 loss cannot earn the receipt.
+        # run_game joins captured stdout + newline + captured stderr, so
+        # host SDL seat lines precede all root lines even when the real
+        # detach occurred between root confirmations. Never infer causal
+        # cross-stream order from their offsets in this combined string.
         p1 = ("[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 "
               "reason=empty player_index=-1 key=0000000000000001")
         p2 = ("[Gamepad] UR_CONTROLLER_SEAT assign instance=202 seat=1 "
@@ -172,34 +173,50 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         cleared = ("UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 "
                    "confirmation_cleared=1")
         p1_confirm = "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1"
-        expected = [p1, p2, opened, confirmed, vacate, cleared, p1_confirm]
+        host = [p1, p2, vacate]
+        root = [opened, confirmed, cleared, p1_confirm]
+        expected = host + root
         verify_owner_disconnect("\n".join(expected) + "\n")
         invalid = {
-            "no SDL unplug": [p1, p2, opened, confirmed, cleared, p1_confirm],
-            "wrong instance": [p1, p2, opened, confirmed,
-                               vacate.replace("instance=202", "instance=999"),
-                               cleared, p1_confirm],
-            "wrong seat": [p1, p2, opened, confirmed,
-                           vacate.replace("seat=1", "seat=0"),
-                           cleared, p1_confirm],
-            "unplug after withdrawal": [p1, p2, opened, confirmed,
-                                         cleared, vacate, p1_confirm],
-            "P1 also unplugged": [p1, p2, opened, confirmed, vacate,
-                                  vacate.replace("instance=202", "instance=101")
-                                        .replace("seat=1", "seat=0"),
-                                  cleared, p1_confirm],
-            "duplicate unplug": [p1, p2, opened, confirmed, vacate,
-                                 vacate, cleared, p1_confirm],
+            "no SDL unplug": [p1, p2] + root,
+            "wrong instance": [p1, p2,
+                               vacate.replace("instance=202", "instance=999")] + root,
+            "wrong seat": [p1, p2, vacate.replace("seat=1", "seat=0")] + root,
+            "vacate before assignment": [vacate, p1, p2] + root,
+            "P1 also unplugged": host +
+                                 [vacate.replace("instance=202", "instance=101")
+                                        .replace("seat=1", "seat=0")] + root,
+            "duplicate unplug": host + [vacate] + root,
             "duplicate pad identity": [p1, p2.replace("instance=202", "instance=101"),
-                                       opened, confirmed, vacate, cleared, p1_confirm],
+                                       vacate] + root,
             "spurious stock admission": expected +
                                         ["UR_BALDOSA_MODERN_ROOT stock_requested players=2"],
             "unexpected seat move": expected +
-                                    ["UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2"],
+                                    ["[Gamepad] UR_CONTROLLER_SEAT move instance=101 from=0 to=1"],
+            "missing root withdrawal": host + [opened, confirmed, p1_confirm],
+            "root withdrawal before confirmation": host +
+                    [opened, cleared, confirmed, p1_confirm],
         }
-        for label, lines in invalid.items():
+        for label, witness in invalid.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
-                verify_owner_disconnect("\n".join(lines) + "\n")
+                verify_owner_disconnect("\n".join(witness) + "\n")
+
+    def test_owner_disconnect_native_causal_source_guard(self):
+        # The root may report withdrawal only after it has observed that
+        # the confirmed P2 SDL instance no longer owns seat 2.
+        for token in (
+            "g_join_p2_source = snesrecomp_desktop_product_seat_source(1);",
+            "snesrecomp_desktop_product_seat_source(1) == g_join_p2_source;",
+            "if (!g_two_seat_join.open() || !g_two_seat_join.confirmed(1) ||\n        join_p2_owner_present()) return;",
+            "g_two_seat_join.clear(1);",
+        ):
+            self.assertIn(token, SOURCE)
+
+    def test_failed_p2_disconnect_retains_source_evidence(self):
+        self.assertIn("inspect retained p2_owner_leaves/log.txt",
+                      (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").read_text(encoding="utf-8"))
+        self.assertIn("ur-title-controller-join/p2_owner_leaves/log.txt",
+                      WINDOWS_WORKFLOW)
 
     def test_native_host_definitions_are_staged_before_link(self):
         require_native_host_linkage(HOST_PATCH, WINDOWS_WORKFLOW)

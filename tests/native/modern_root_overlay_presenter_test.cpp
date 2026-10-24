@@ -321,6 +321,8 @@ int main() {
     view.racer_shortcuts_available = true;
 
     painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
     // Native Records uses the SAME shared root painter and a read-only
     // modal; old shipping host defaults to modal closed without new UI.
     view.available_destinations =
@@ -343,7 +345,19 @@ int main() {
     assert(contains("VALID 2  UNAVAILABLE 1"));
     assert(contains("LAST: course:02 00:15.50"));
     assert(contains("REPLAY UNAVAILABLE"));
-    assert(contains("A/ENTER  B/ESC BACK"));
+    assert(contains("B/ESC BACK  READ ONLY"));
+    assert(!contains("A/ENTER  B/ESC BACK"));
+    assert(text_draws_fit(old_view));
+    assert(rect_draws_fit(old_view));
+    painted.clear();
+    text_draws.clear();
+    rect_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                      real_wide_view,view));
+    assert(contains("B/ESC BACK  READ ONLY"));
+    assert(!contains("A/ENTER  B/ESC BACK"));
+    assert(text_draws_fit(real_wide_view));
+    assert(rect_draws_fit(real_wide_view));
     painted.clear();
     // The existing 1P modal is still the default for old consumers.
     // Native Baldosa alone advertises an explicit 2P page: no invented

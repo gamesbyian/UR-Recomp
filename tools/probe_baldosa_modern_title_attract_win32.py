@@ -203,7 +203,7 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
             # timeline. Preserve the actual stage observations before deciding
             # whether this is a timing expectation or a gameplay regression.
             observed_source_phases = re.findall(
-                r"^UR_MODERN_TITLE_ORIGINAL_SOURCE[^\\r\\n]*", log, re.MULTILINE)
+                r"^UR_MODERN_TITLE_ORIGINAL_SOURCE[^\r\n]*", log, re.MULTILINE)
             raise ValueError(
                 f"missing or duplicate named original-game proof: {marker}; "
                 f"matches={count}; observed_source_phases={observed_source_phases[:12]!r}; "

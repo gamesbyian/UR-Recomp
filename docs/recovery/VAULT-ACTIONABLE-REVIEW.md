@@ -26,6 +26,9 @@ The initial member ledger is intentionally empty until Agent 1's authoritative p
 
 ## Engineering and PR qualification
 
+The review generator emits at most **two** explicitly approved engineering leads as an inert staging_handoff array. Each includes the exact Drive ID, both hashes, approved destination and direct workflow URL plus explicit confirmation-required state. No unattended dispatch or source staging occurs. **The existing Direct Intake stage option can include other unmatched source members from the same ZIP**, so the package and every stageable member require explicit full-archive rights/hold review before checking confirm_source_review. An authorized individual member is not blanket authorization for its siblings. The existing Direct Intake workflow requires selecting exactly one ID and positively confirming publication/rights review during a manual dispatch. A missing Drive ID in the latest public listing becomes unavailable_source_hold even if a previous checkpoint was verified.
+
+
 Agent 2 takes only queued_engineering cases. Recompare actual member bytes against latest main and open PRs, check provenance and rights, and use the existing single-Drive-ID [Direct Vault Intake](DIRECT-VAULT-INTAKE.md) for reviewed source staging. Preserve negative evidence and failed publication history. Add the candidate_id or the exact token vault-member-sha256:<digest> to the narrow PR body so the consumer finds an existing claim and avoids duplicate PR work. Include the archive SHA-256, member SHA-256, Drive ID, source destination, exact base and head, test receipts, and qualification limits.
 
 Agent 3 independently verifies the newest head, relevant targeted tests and required CI, obtains shared-main merge coordination from Agent 5, then merges only qualified PRs. Update the member ledger and #2088 with actual merge SHA and tests. An open PR, a historic merged claim, or a source hash alone never gets integration or release credit.

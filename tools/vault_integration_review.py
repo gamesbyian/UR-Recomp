@@ -174,6 +174,10 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
             if pending.get("id") not in checkpoint["items"]:
                 errors.append({"scope": scope, "drive_id": pending.get("id"),
                                "type": "awaiting_first_archive_audit"})
+        missing_listing = set(report.get("absent_from_current_listing", []))
+        for fid in sorted(missing_listing):
+            errors.append({"scope": scope, "drive_id": fid,
+                           "type": "absent_from_current_public_listing"})
         for fid, item in sorted(checkpoint["items"].items()):
             if item.get("review_leads_filtered_or_truncated", 0):
                 errors.append({"scope": scope, "drive_id": fid,
@@ -191,6 +195,14 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
                 c.update({"state": state, "reason": reason, "owner": owner,
                           "prs": [p["number"] for p in claims],
                           "related_registry": [r.get("candidate_id") for r in archives.get(fid, [])]})
+                if fid in missing_listing:
+                    c["source_currently_listed"] = False
+                    if c["state"] in ("queued_engineering", "open_pr"):
+                        c["state"] = "unavailable_source_hold"
+                        c["reason"] = "Previously verified source absent from latest listing; reverify original"
+                        c["owner"] = "Agent 1"
+                else:
+                    c["source_currently_listed"] = True
                 if key in decisions:
                     c["disposition"] = decisions[key]
                 records.append(c)
@@ -214,11 +226,35 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
             row["duplicate_of"] = original
         else:
             canonical.setdefault(fingerprint, row["candidate_id"])
+    # Stage preparation is an inert manifest, limited to two authorized
+    # engineering leads. It cannot self-assert the human rights checkbox.
+    folder_urls = {
+        "incoming": "https://drive.google.com/drive/folders/1cdovDqle9IRYKX2lCt513mtWge75HywX",
+        "evidence": "https://drive.google.com/drive/folders/1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
+    }
+    staging = []
+    for c in sorted(records, key=lambda row: row["candidate_id"]):
+        if c["state"] != "queued_engineering" or len(staging) == 2:
+            continue
+        staging.append({
+            "candidate_id": c["candidate_id"], "owner": "Agent 2",
+            "drive_file_id": c["drive_id"], "folder_url": folder_urls[c["scope"]],
+            "archive_sha256": c["archive_sha256"],
+            "member_sha256": c["member_sha256"],
+            "source_destination": c["disposition"]["source_path"],
+            "manual_workflow": "https://github.com/gamesbyian/UR-Recomp/actions/workflows/vault-direct-intake.yml",
+            "download_all": False, "stage_sources": True,
+            "entire_archive_review_required": True,
+            "staging_may_include_other_unmatched_source_members": True,
+            "confirm_source_review": "confirm_ALL_staged_members_and_archive_rights_manually",
+            "dispatch_automatically": False,
+        })
     orphan = sorted(set(decisions) - seen)
     counts = {name: sum(c["state"] == name for c in records)
               for name in sorted({c["state"] for c in records})}
     return {"schema": "ur-vault-actionable-review/1", "status": status,
-            "counts": counts, "records": records, "exceptions": errors,
+            "counts": counts, "records": records, "staging_handoff": staging,
+            "exceptions": errors,
             "dispositions_not_in_current_artifacts": orphan,
             "automatic_publication_authorized": False,
             "automatic_merges": 0, "source_bytes_published": 0}
@@ -252,6 +288,11 @@ def render(doc, max_rows=35):
                      + (f" | {prs}" if prs else ""))
     if len(actionable) > max_rows:
         lines.append(f"- {len(actionable) - max_rows} further members in JSON artifact.")
+    lines += ["", f"Manual, reviewed staging handoffs: {len(doc['staging_handoff'])} (max 2)"]
+    for handoff in doc["staging_handoff"]:
+        lines.append(f"- {handoff['candidate_id']}: {handoff['manual_workflow']} "
+                     f"| Drive ID {handoff['drive_file_id']} "
+                     f"| rights confirmation required")
     lines += ["", f"Unresolved intake/cooldown/legacy exceptions: {len(doc['exceptions'])}",
               f"Older ledger IDs absent from available checkpoint fingerprints: "
               f"{len(doc['dispositions_not_in_current_artifacts'])}. Preserve them; do not delete.",

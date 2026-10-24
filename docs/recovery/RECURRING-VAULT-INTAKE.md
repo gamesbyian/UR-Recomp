@@ -1,5 +1,7 @@
 # Recurring Vault Intake: resumable artifact queue
 
+**Downstream stage:** [Vault Actionable Review](VAULT-ACTIONABLE-REVIEW.md) merges the newest complete main per-folder artifacts with the authoritative member-disposition register, current GitHub PR state and per-member deduplication. The recurring downloader stays read-only and never publishes recovered source. Run completion now triggers the review consumer; reviewed single-archive source transport still uses the separate Direct Intake workflow.
+
 The [Vault Recurring Intake workflow](../../.github/workflows/vault-recurring-intake.yml)
 runs at **23 minutes past every sixth UTC hour** and is also manually dispatchable. Each run audits **both 02 Incoming and 03 Evidence Library**, using separate matrix jobs and independently persisted checkpoints and queue artifacts. Manual dispatch can select `incoming`, `evidence`, or `both`; selecting one folder is required when probing an exact Drive file ID.
 It uses \`tools/vault_scheduled_intake.py\`, \`gdown==6.4.2\`,

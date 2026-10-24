@@ -29,6 +29,8 @@ struct ModernResultsNavigationContext {
     bool router_available = false;
     bool restart_available = false;
     bool next_event_unique = false;
+    // A retained Practice launch must still match its completed course.
+    bool practice_target_ready = false;
 };
 
 struct ModernResultsNavigationMenu {
@@ -45,7 +47,7 @@ constexpr ModernResultsNavigationMenu make_modern_results_navigation_menu(
     }
 
     if (context.practice_active) {
-        if (context.restart_available) {
+        if (context.restart_available && context.practice_target_ready) {
             menu.rows[menu.row_count++] = ModernResultsAction::RepeatPractice;
         }
         menu.rows[menu.row_count++] = ModernResultsAction::Records;

@@ -1,12 +1,13 @@
 """ROM-free negative controls for the final SDL racer identity P7 auditor."""
 import unittest
+from unittest.mock import patch
 
 from tools import qa_modern_identity_strip_p7 as audit
 
 
 class FakeFrame:
-    def __init__(self, logical_width, foreign=None, foreground=True, clipped=False):
-        self.width, self.height = (1280, 720) if logical_width == 342 else (1024, 768)
+    def __init__(self, logical_width, foreign=None, foreground=True, clipped=False, output=None):
+        self.width, self.height = output or ((1280, 720) if logical_width == 342 else (1024, 768))
         self.logical_width = logical_width
         self.foreign = foreign
         self.foreground = foreground
@@ -51,6 +52,40 @@ class IdentityStripP7Test(unittest.TestCase):
         report = audit.audit_frame(FakeFrame(256, clipped=True), 256)
         self.assertFalse(report["pass"])
         self.assertFalse(report["checks"]["identity_not_clipped"])
+
+    def test_real_wide_drawable_with_compact_source_is_width_failure(self):
+        # The first actual Windows P7 run observed 256 logical columns at
+        # 1280x720. Sample its real 240-wide strip, not a fictitious 320-wide
+        # strip that reports 80 columns of false checkerboard contamination.
+        frame = FakeFrame(256, output=(1280, 720))
+        detection = {"consistent_widths": [256],
+                     "nonuniform_fraction": {256: 0.0, 342: 0.0183}}
+        with patch.object(audit.visual, "detect_logical", return_value=detection):
+            report = audit.audit_observed_frame(frame, 342)
+        self.assertFalse(report["pass"])
+        self.assertEqual(report["observed_logical_width"], 256)
+        self.assertEqual(report["expected_logical_width"], 342)
+        self.assertEqual(report["unexpected_logical_pixels"], 0)
+        self.assertTrue(report["checks"]["opaque_strip_no_checker_bleed"])
+        self.assertTrue(report["checks"]["identity_not_clipped"])
+        self.assertFalse(report["checks"]["expected_logical_width"])
+
+    def test_detected_expected_width_passes(self):
+        for width in (256, 342):
+            with self.subTest(width=width):
+                detection = {"consistent_widths": [width],
+                             "nonuniform_fraction": {width: 0.0}}
+                with patch.object(audit.visual, "detect_logical", return_value=detection):
+                    report = audit.audit_observed_frame(FakeFrame(width), width)
+                self.assertTrue(report["pass"], report)
+                self.assertTrue(report["checks"]["expected_logical_width"])
+
+    def test_ambiguous_source_width_refused(self):
+        detection = {"consistent_widths": [256, 342],
+                     "nonuniform_fraction": {256: 0.0, 342: 0.0}}
+        with patch.object(audit.visual, "detect_logical", return_value=detection):
+            with self.assertRaisesRegex(ValueError, "ambiguous native source width"):
+                audit.audit_observed_frame(FakeFrame(256), 342)
 
     def test_invalid_width_refused(self):
         with self.assertRaises(ValueError):

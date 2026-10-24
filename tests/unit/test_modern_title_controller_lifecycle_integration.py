@@ -103,6 +103,20 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         self.assertIn("wait 900", BOOTSTRAP_SCRIPT)
         self.assertIn("native-profile-bootstrap.log", WINDOWS_WORKFLOW)
         self.assertIn("inspect retained native-profile-bootstrap.log", ATTRACT_PROBE)
+    
+    def test_failed_named_play_retains_real_guest_timeline(self):
+        # The first Windows failure after successful bootstrap had no actual
+        # native-attract.log in its retained artifact. Require both guest
+        # timelines and explicit source-stage diagnostics on future failures.
+        for route in ("named-play", "recovery"):
+            path = f"ur-title-original-attract-{route}/native-attract.log"
+            self.assertIn(path, WINDOWS_WORKFLOW)
+            with self.subTest(route=route):
+                self.assertNotIn(path, WINDOWS_WORKFLOW.replace(path, ""))
+        for token in ("observed_source_phases=", "inspect retained native-attract.log",
+                      "matches={count}"):
+            self.assertIn(token, ATTRACT_PROBE)
+
 
     def test_same_executable_native_acceptance_is_invoked(self):
         require_shared_native_acceptance(WINDOWS_WORKFLOW)

@@ -1,0 +1,36 @@
+{
+  "schema": "ur-v2-criterion-movement/1",
+  "date": "2026-10-24",
+  "reviewed_main_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
+  "criterion_id": "TWO-07",
+  "acceptance_requirement": "Two-player cold restart preserves both racer ownership and results",
+  "before": "unverified",
+  "after": "bounded_verified",
+  "previous_screened_percent": 47,
+  "current_screened_percent": 48,
+  "delta_screened_pp": 1,
+  "previous_independently_reviewed_percent": 5,
+  "current_independently_reviewed_percent": 6,
+  "delta_independently_reviewed_pp": 1,
+  "qa_release_delta": 0,
+  "USA_event_delta": 0,
+  "source_code_head": "dddd8b5acf92502010f8b48436bf6c4595ea280f",
+  "source_test_file": "tools/baldosa_native_player_created_2p_records_probe.py",
+  "evidence": [
+    "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+    "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651"
+  ],
+  "qualified_observations": [
+    "Hosted original Windows native execution job passed and printed the actual Mike/Martin five-process source-earned record report",
+    "P1's fresh guest process verified exact committed SRAM and reopened original source-earned paired Records without changing `.urrun` or `.urmatch` bytes",
+    "Test-only selector changed the existing chosen profile to Martin without creating a racer or match",
+    "P2's subsequent new native guest process booted exact prior Martin SRAM and reopened the same canonical paired Records, while prior Mike SRAM and catalog remained unmodified"
+  ],
+  "limits": [
+    "Credit was overlooked at initial v2 screening; it is a recovered preexisting implementation/test, not freshly written 2P gameplay code",
+    "Fixture-selected existing profile, not user-operable selector proof at original exact head",
+    "Both cold boots are process restarts on hosted Windows, not electrical power cut nor test with two physical controllers",
+    "No complete USA original/native source parity or independent Windows release QA gate"
+  ],
+  "deduplication_rationale": "TWO-03 checks separately owned fresh-process Records visibility and publication; TWO-07 adds exact cold-boot binding of two distinct stock SRAM identities and immutable pair across post-selector restart. One test run provides separate explicit assertions for both; no duplication of weighted criterion ID."
+}

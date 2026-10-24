@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "b6ef5b58fbd8757ab02c1eabcbd83cb4830a1772",
+  "source_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -349,12 +349,17 @@
       "id": "TWO-07",
       "area": "TWO",
       "criterion": "Two-player cold restart preserves both racer ownership and results",
-      "status": "unverified",
-      "evidence": [],
-      "evidence_class": "none",
+      "status": "bounded_verified",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651"
+      ],
+      "evidence_class": "historical_exact_head_hosted_Windows_five_process_boot_and_disk_identity",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "pending"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830",
+      "independent_review_note": "Fresh native Mike view verifies its own exact boot SRAM, read-only original earned .urrun/.urmatch; fixture switches canonical selected profile to existing Martin without seeding results; fresh native Martin boot verifies exact distinct P2 SRAM and same immutable paired Records, catalog and other P1 bytes unchanged. Log job 115716339651 green. The old executed version uses test-fixture selection, not player-facing P1 selection or real controllers."
     },
     {
       "id": "TWO-08",
@@ -1713,6 +1718,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges.",
-  "latest_criterion_review_ref": "docs/progress/v2-independent-2p-audit-20261024.json",
+  "latest_criterion_review_ref": "docs/progress/v2-two07-cold-ownership-20261024.json",
   "latest_review_interval": "docs/progress/v2-review-interval-20261024T2005.json"
 }

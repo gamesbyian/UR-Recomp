@@ -28,6 +28,8 @@ def scenario(root: Path, *, binary_mode: bool = False) -> tuple[Path, dict, dict
     struct.pack_into("<I", image, 0x3c, 128)
     image[128:132] = b"PE\x00\x00"
     struct.pack_into("<H", image, 132, 0x8664)
+    # Declare the two PE32+ optional-header magic bytes used by this fixture.
+    struct.pack_into("<H", image, 148, 2)
     # A positive synthetic PE must carry the executable-image COFF flag.
     struct.pack_into("<H", image, 150, 0x0002)
     struct.pack_into("<H", image, 152, 0x20b)

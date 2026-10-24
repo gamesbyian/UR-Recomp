@@ -1951,6 +1951,17 @@ bool activate_profile_id(const std::string& profile_id) {
         product_diagnostic("UR_PROFILE_SELECT REJECTED_SRAM_CONTEXT");
         return false;
     }
+    // A named active racer owns live progression. Refuse a switch if its
+    // current snapshot cannot be saved; otherwise selecting another racer
+    // could silently discard progress when the old metadata is unavailable.
+    // A first-time selection with no active identity remains permitted.
+    if (g_product_state.active_profile_id &&
+        (!g_profile_state || !g_profile_state_writable ||
+         g_profile_state_path.empty() ||
+         g_profile_state->profile_id != *g_product_state.active_profile_id)) {
+        product_diagnostic("UR_PROFILE_SELECT REJECTED_SOURCE_SNAPSHOT");
+        return false;
+    }
     if (!persist_live_profile_snapshot()) return false;
 
     std::array<std::uint8_t, ur::product::kStockSramBytes> previous_sram{};

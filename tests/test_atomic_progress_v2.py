@@ -27,6 +27,7 @@ class AtomicV2Tests(unittest.TestCase):
     def test_one_individually_evidenced_criterion_adds_one_point(self):
         inv = copy.deepcopy(self.inventory)
         row = next(x for x in inv["criteria"] if x["id"] == "ONE-03")
+        row.pop("audit_receipt", None)
         row["status"] = "unverified"
         row["audit_state"] = "pending"
         row["evidence"] = []
@@ -67,7 +68,8 @@ class AtomicV2Tests(unittest.TestCase):
 
     def test_fake_qa_acceptance_rejected(self):
         inv = copy.deepcopy(self.inventory)
-        inv["criteria"][-1]["status"] = "bounded_verified"
+        inv["criteria"][-1].pop("audit_receipt", None)
+        inv["criteria"][-1].update(status="bounded_verified", audit_state="pending", evidence=[])
         with self.assertRaises(ValueError):
             validate(inv, self.ledger)
         inv = copy.deepcopy(self.inventory)

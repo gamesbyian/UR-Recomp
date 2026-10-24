@@ -274,6 +274,23 @@ class RecurringVaultTests(unittest.TestCase):
             self.assertEqual(report["errors"][0]["id"], A)
             self.assertEqual(report["retry_cooldown"], [])
 
+    def test_untrusted_error_text_cannot_masquerade_as_budget_sentinel(self):
+        self.assertFalse(recurring.is_deterministic_budget_error(
+            "gdown failed on file named download exceeds single-file byte budget"))
+        self.assertFalse(recurring.is_deterministic_budget_error(
+            "unsafe ZIP member: expanded ZIP budget exceeded"))
+        with tempfile.TemporaryDirectory() as tmp:
+            report, _ = recurring.run_cycle(
+                out=Path(tmp) / "hostile", enumerator=self.listing,
+                git_tree=b"", max_files=1, now=NOW,
+                downloader=lambda *a, **k: (_ for _ in ()).throw(
+                    OSError("download exceeds single-file byte budget")),
+            )
+            self.assertEqual(len(report["errors"]), 1)
+            self.assertEqual(report["retry_cooldown"], [])
+            self.assertIn(A, recurring.read_checkpoint(
+                Path(tmp) / "hostile/checkpoint.json")["failures"])
+
     def test_expanded_and_nested_zip_budget_failures_share_retry_cooldown(self):
         for error in ("expanded ZIP budget exceeded",
                       "nested ZIP exceeds byte budget"):

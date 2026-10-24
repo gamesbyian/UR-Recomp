@@ -309,14 +309,13 @@
       "id": "TWO-05",
       "area": "TWO",
       "criterion": "Keyboard plus pad admission rejects seat churn through stock GO",
-      "status": "bounded_verified",
-      "evidence": [
-        "https://github.com/gamesbyian/UR-Recomp/pull/2455"
-      ],
-      "evidence_class": "merged_pr_targeted_test_or_witness",
+      "status": "unverified",
+      "evidence": [],
+      "evidence_class": "qa_oracle_hardening_only_not_product_seat_admission",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "pending",
+      "withdrawn_reason": "PR #2455 changes only the acceptance runner's source-log guard; no changed product admission code proves the criterion's claimed product behavior."
     },
     {
       "id": "TWO-06",

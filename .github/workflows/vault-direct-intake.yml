@@ -29,6 +29,14 @@ on:
         required: true
         type: boolean
         default: false
+      stage_member:
+        description: Optional exact one-member path from the reviewed queue (supports !/ nested ZIP path)
+        required: false
+        type: string
+      stage_member_sha256:
+        description: Exact SHA-256 required alongside stage_member; stages no sibling source
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -55,6 +63,8 @@ jobs:
           DOWNLOAD_ALL: ${{ inputs.download_all }}
           STAGE_SOURCES: ${{ inputs.stage_sources }}
           CONFIRM_SOURCE_REVIEW: ${{ inputs.confirm_source_review }}
+          STAGE_MEMBER: ${{ inputs.stage_member }}
+          STAGE_MEMBER_SHA256: ${{ inputs.stage_member_sha256 }}
           INTAKE_DIR: ${{ runner.temp }}/vault-direct-intake
         run: |
           set -euo pipefail
@@ -71,6 +81,16 @@ jobs:
               exit 2
             fi
             args+=(--stage-sources)
+            if [[ -n "$STAGE_MEMBER" || -n "$STAGE_MEMBER_SHA256" ]]; then
+              if [[ -z "$STAGE_MEMBER" || ! "$STAGE_MEMBER_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+                echo 'Exact staging requires one member path and valid 64-character SHA-256.' >&2
+                exit 2
+              fi
+              args+=(--stage-member "$STAGE_MEMBER" --stage-member-sha256 "$STAGE_MEMBER_SHA256")
+            fi
+          elif [[ -n "$STAGE_MEMBER" || -n "$STAGE_MEMBER_SHA256" ]]; then
+            echo 'Exact member selection requires explicitly reviewed source staging.' >&2
+            exit 2
           fi
           python3 tools/vault_gdown_intake.py "${args[@]}"
       - name: Print triage summary (and review-gated staged text) to the job log

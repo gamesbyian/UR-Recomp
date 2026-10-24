@@ -95,6 +95,87 @@ class VaultGdownIntakeTests(unittest.TestCase):
             )
             self.assertTrue(scan["rights_and_publication_review_required"])
 
+    def test_exact_selected_outer_member_stages_no_unapproved_siblings(self):
+        chosen = b"print('approved source')\n"
+        other = b"print('not approved')\n"
+        blob = archive({
+            "source/approved.py": chosen, "source/unreviewed.py": other,
+            "payload/roms/restricted.py": b"not a candidate",
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            result = intake.scan_zip(
+                blob, b"", stage_root=Path(tmp),
+                stage_member="source/approved.py",
+                stage_sha256=hashlib.sha256(chosen).hexdigest())
+            self.assertEqual(result["staged_sources"], 1)
+            self.assertEqual(result["staged_bytes"], len(chosen))
+            self.assertEqual((Path(tmp) / "selected/source/approved.py").read_bytes(), chosen)
+            self.assertEqual(len(list(Path(tmp).rglob("*.py"))), 1)
+            self.assertFalse((Path(tmp) / "source/unreviewed.py").exists())
+
+    def test_exact_nested_member_stages_one_byte_verified_leaf(self):
+        chosen = b"def fixed():\n    return True\n"
+        nested = archive({
+            "src/candidate.py": chosen,
+            "src/another.py": b"print('unreviewed')",
+        })
+        blob = archive({
+            "bundles/recovery.zip": nested,
+            "source/unreviewed.py": b"print('unreviewed sibling')",
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            result = intake.scan_zip(
+                blob, b"", stage_root=Path(tmp),
+                stage_member="bundles/recovery.zip!/src/candidate.py",
+                stage_sha256=hashlib.sha256(chosen).hexdigest())
+            self.assertEqual(result["staged_sources"], 1)
+            self.assertEqual(len([m for m in result["members"] if m["staged"]]), 1)
+            self.assertIn("bundles/recovery.zip!/src/candidate.py",
+                          {m["member"] for m in result["members"] if m["staged"]})
+            self.assertEqual((Path(tmp) / "selected/src/candidate.py").read_bytes(), chosen)
+            self.assertEqual(len(list(Path(tmp).rglob("*.py"))), 1)
+
+    def test_exact_selection_fails_without_writing_source_on_bad_hash(self):
+        chosen = b"print('proposed')\n"
+        blob = archive({"source/candidate.py": chosen})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "not eligible"):
+                intake.scan_zip(
+                    blob, b"", stage_root=Path(tmp),
+                    stage_member="source/candidate.py", stage_sha256="0" * 64)
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+
+    def test_exact_selected_source_must_be_unmatched_and_unrestricted(self):
+        source = b"print('already on main')\n"
+        blob = archive({"src/existing.py": source})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "not eligible"):
+                intake.scan_zip(
+                    blob, git_tree("tools/existing.py", source),
+                    stage_root=Path(tmp), stage_member="src/existing.py",
+                    stage_sha256=hashlib.sha256(source).hexdigest())
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+        hidden = b"print('held')\n"
+        blob = archive({"private/cache.zip": archive({"src/held.py": hidden})})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "not eligible"):
+                intake.scan_zip(
+                    blob, b"", stage_root=Path(tmp),
+                    stage_member="private/cache.zip!/src/held.py",
+                    stage_sha256=hashlib.sha256(hidden).hexdigest())
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+
+    def test_invalid_member_selection_needs_matching_path_and_digest(self):
+        blob = archive({"src/test.py": b"print('source')\n"})
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "requires both"):
+                intake.scan_zip(
+                    blob, b"", stage_root=Path(tmp), stage_member="src/test.py")
+            with self.assertRaisesRegex(ValueError, "invalid exact"):
+                intake.scan_zip(
+                    blob, b"", stage_root=Path(tmp),
+                    stage_member="src/test.py", stage_sha256="not-a-sha")
+
     def test_review_leads_preserve_nested_source_hashes_without_private_names(self):
         identical = b"print('on main')\n"
         fresh = b"print('new')\n"

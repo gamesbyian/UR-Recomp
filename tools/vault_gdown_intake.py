@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from io import BytesIO
 import re
 import subprocess
 import sys
@@ -109,8 +110,37 @@ def safe_source_member(path: str, length: int) -> bool:
     )
 
 
-def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None) -> dict:
-    """Reuse the repo's safety and exact-Git-blob inventory, then hash members."""
+def _extract_one_nested_member(raw: bytes, member_path: str) -> bytes:
+    """CRC-read exactly one previously crosswalk-validated nested source leaf."""
+    parts = member_path.split("!/")
+    if not 1 <= len(parts) <= 3:
+        raise ValueError("selected source nesting exceeds reviewed crosswalk depth")
+    current = raw
+    for depth, part in enumerate(parts):
+        safe_path(part)
+        if depth and not parts[depth - 1].lower().endswith(".zip"):
+            raise ValueError("selected source ancestor is not a ZIP")
+        with ZipFile(BytesIO(current)) as zipped:
+            info = zipped.getinfo(part)
+            budget = MAX_SOURCE_BYTES if depth == len(parts) - 1 else MAX_ARCHIVE_BYTES
+            if info.is_dir() or info.file_size > budget:
+                raise ValueError("selected source member exceeds safe byte budget")
+            current = zipped.read(info)
+    return current
+
+
+def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None,
+             stage_member: str | None = None,
+             stage_sha256: str | None = None) -> dict:
+    """Reuse safe whole-archive crosswalk, optionally stage one exact nested leaf."""
+    if (stage_member is None) != (stage_sha256 is None):
+        raise ValueError("stage selection requires both member path and SHA-256")
+    if stage_member is not None:
+        if (stage_root is None or not isinstance(stage_member, str)
+                or not re.fullmatch(r"[0-9a-f]{64}", str(stage_sha256))):
+            raise ValueError("invalid exact source stage selection")
+        for piece in stage_member.split("!/"):
+            safe_path(piece)
     analysis = crosswalk(raw, tree, max_depth=2)
     exact_members = {
         member["member"] for member in analysis["items"]
@@ -123,7 +153,8 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None) -> dict
             name = info.filename
             is_source = safe_source_member(name, len(payload))
             matching_main = name in exact_members
-            staged = bool(stage_root and is_source and not matching_main)
+            staged = bool(stage_root and stage_member is None
+                          and is_source and not matching_main)
             if staged:
                 staged_bytes += len(payload)
                 if staged_bytes > MAX_STAGED_BYTES:
@@ -140,6 +171,38 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None) -> dict
                 "source_like": is_source, "exact_on_main": matching_main,
                 "staged": staged,
             })
+    if stage_member is not None:
+        matching = [x for x in analysis["items"]
+                    if x.get("member") == stage_member and
+                    x.get("status") == "unmatched_needs_review" and
+                    x.get("member_sha256") == stage_sha256]
+        leaf = stage_member.split("!/")[-1]
+        components = stage_member.replace("!/", "/").split("/")
+        if (len(matching) != 1 or
+                any(part.lower() in DENIED_COMPONENTS or
+                    part.lower().startswith((".env", "private", "secret"))
+                    for part in components) or
+                not safe_source_member(leaf, matching[0]["bytes"])):
+            raise ValueError("selected source member not eligible for staging")
+        selected_bytes = _extract_one_nested_member(raw, stage_member)
+        if hashlib.sha256(selected_bytes).hexdigest() != stage_sha256:
+            raise ValueError("selected source member changed after crosswalk")
+        # No unrelated source members are written by exact-member selection.
+        destination = stage_root / "selected" / safe_path(leaf)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.exists():
+            raise ValueError("duplicate stage destination")
+        destination.write_bytes(selected_bytes)
+        staged_count, staged_bytes = 1, len(selected_bytes)
+        observed_stage_item = next((row for row in items
+                                    if row["member"] == stage_member), None)
+        if observed_stage_item is None:
+            # Nested members are not listed by the outer ZIP's infolist.
+            items.append({"member": stage_member, "bytes": len(selected_bytes),
+                          "sha256": stage_sha256, "source_like": True,
+                          "exact_on_main": False, "staged": True})
+        else:
+            observed_stage_item["staged"] = True
     # Retain a bounded metadata-only handoff for unmatched first-party-looking
     # source. Never serialize raw source, denied/private paths or ZIP bytes.
     review_leads, omitted = [], 0
@@ -179,11 +242,14 @@ def scan_zip(raw: bytes, tree: bytes, *, stage_root: Path | None = None) -> dict
         "review_leads_filtered_or_truncated": omitted,
         "staged_sources": staged_count,
         "staged_bytes": staged_bytes,
+        "selected_member": stage_member,
+        "selected_member_sha256": stage_sha256,
         "rights_and_publication_review_required": True,
     }
 
 
 def pull(entry: dict, output: Path, tree: bytes, *, stage=False,
+         stage_member: str | None = None, stage_sha256: str | None = None,
          runner=subprocess.run) -> dict:
     file_id = entry["id"]
     name = safe_path(entry["path"]).name
@@ -201,9 +267,13 @@ def pull(entry: dict, output: Path, tree: bytes, *, stage=False,
         "sha256": hashlib.sha256(raw).hexdigest(), "zip": None,
         "published": False, "integrated": False,
     }
+    if (stage_member is not None or stage_sha256 is not None) and (
+            not stage or not name.lower().endswith(".zip")):
+        raise ValueError("exact source staging requires a reviewed ZIP")
     if name.lower().endswith(".zip"):
         result["zip"] = scan_zip(
-            raw, tree, stage_root=(output / "staged" / file_id if stage else None)
+            raw, tree, stage_root=(output / "staged" / file_id if stage else None),
+            stage_member=stage_member, stage_sha256=stage_sha256,
         )
     return result
 
@@ -215,11 +285,19 @@ def main() -> int:
     parser.add_argument("--file-id", action="append", default=[])
     parser.add_argument("--download-all", action="store_true")
     parser.add_argument("--stage-sources", action="store_true")
+    parser.add_argument("--stage-member", help="Exact outer or !/ nested member path")
+    parser.add_argument("--stage-member-sha256", help="Expected SHA-256 of one selected member")
     args = parser.parse_args()
     if args.download_all and args.file_id:
         parser.error("choose --download-all or particular --file-id values")
     if args.stage_sources and (args.download_all or len(args.file_id) != 1):
         parser.error("--stage-sources requires exactly one explicit --file-id")
+    if bool(args.stage_member) != bool(args.stage_member_sha256):
+        parser.error("exact staging requires --stage-member and --stage-member-sha256")
+    if args.stage_member and not args.stage_sources:
+        parser.error("exact member selection requires --stage-sources")
+    if args.stage_member_sha256 and not re.fullmatch(r"[0-9a-f]{64}", args.stage_member_sha256):
+        parser.error("invalid selected member SHA-256")
     if any(not ID_PATTERN.fullmatch(item) for item in args.file_id):
         parser.error("invalid Drive file ID")
     if args.out.exists():
@@ -244,7 +322,9 @@ def main() -> int:
     total = 0
     for entry in wanted:
         try:
-            result = pull(entry, args.out, tree, stage=args.stage_sources)
+            result = pull(entry, args.out, tree, stage=args.stage_sources,
+                          stage_member=args.stage_member,
+                          stage_sha256=args.stage_member_sha256)
             total += result["bytes"]
             if total > MAX_SESSION_BYTES:
                 raise ValueError("session byte budget exceeded")

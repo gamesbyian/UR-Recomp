@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import unittest
 
-from tools.check_windows_portable_binary import check_dependencies
+from tools.check_windows_portable_binary import (
+    check_dependencies, WINDOWS_INBOX_API_SET_DLLS,
+)
 
 
 def dumpbin(*names: str, delay: tuple[str, ...] = ()) -> str:
@@ -39,11 +41,33 @@ class WindowsPortableApiSetImportContract(unittest.TestCase):
             "api-ms-win-nonexistent-l1-1-0.dll",
             "ext-ms-win-nonexistent-l1-1-0.dll",
             "API-MS-WIN-UNREVIEWED-L1-1-0.DLL",
-            "api-ms-win-crt-runtime-l1-1-0.dll",
+            "api-ms-win-crt-runtime-l9-9-9.dll",
+            "api-ms-win-crt-imaginary-l1-1-0.dll",
         ):
             with self.subTest(name=name), self.assertRaisesRegex(
                     ValueError, "non-inbox DLLs"):
                 check_dependencies(dumpbin("KERNEL32.dll", name))
+
+    def test_source_observed_ucrt_api_set_contracts_are_exactly_admitted(self):
+        # Authenticated import inventory: Windows native bridge run
+        # 40138475639, 2026-10-24, pinned real UniracersSNESRecomp.exe.
+        # OS release admission remains the independent Windows QA owner's job.
+        parts = (
+            "conio", "convert", "environment", "filesystem", "heap", "locale",
+            "math", "multibyte", "private", "runtime", "stdio", "string",
+            "time", "utility",
+        )
+        observed = {f"api-ms-win-crt-{part}-l1-1-0.dll" for part in parts}
+        self.assertEqual(WINDOWS_INBOX_API_SET_DLLS, observed)
+        self.assertEqual(
+            check_dependencies(dumpbin("KERNEL32.dll", *sorted(observed))),
+            tuple(sorted(observed | {"kernel32.dll"})),
+        )
+        self.assertEqual(
+            check_dependencies(dumpbin("KERNEL32.dll", delay=(
+                "API-MS-WIN-CRT-RUNTIME-L1-1-0.DLL",))),
+            ("api-ms-win-crt-runtime-l1-1-0.dll", "kernel32.dll"),
+        )
 
     def test_unqualified_delay_import_is_also_rejected(self):
         with self.assertRaisesRegex(ValueError, "non-inbox DLLs"):

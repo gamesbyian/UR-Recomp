@@ -40,8 +40,33 @@ WINDOWS_INBOX_DLLS = frozenset(
 # A prefix match alone would certify a fabricated/nonexistent contract as
 # available on stock Windows 10/11. Admit only individually OS-qualified
 # contract names here, after inspecting an actual native PE's imports.
-# The pinned 2026-10-22 Windows x64 candidate imports no API-set contracts.
-WINDOWS_INBOX_API_SET_DLLS: frozenset[str] = frozenset()
+# The October 24 source-bound Windows clang/MinGW build (run 40138475639)
+# imported exactly these 14 UCRT 1.1 API-set contracts, after the ordinary
+# static MinGW-runtime link flag. Microsoft documents UCRT as an OS component
+# on Windows 10+; these virtual contracts do not require identically named
+# files beside the EXE. Admit this observed, deliberately closed set, NOT the
+# api-ms-win-* prefix or any invented version/contract. The Windows release
+# reviewer must still qualify exact OS versions and shipping PE before signoff.
+# https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment
+# https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-apisets
+WINDOWS_INBOX_API_SET_DLLS: frozenset[str] = frozenset(
+    """
+    api-ms-win-crt-conio-l1-1-0.dll
+    api-ms-win-crt-convert-l1-1-0.dll
+    api-ms-win-crt-environment-l1-1-0.dll
+    api-ms-win-crt-filesystem-l1-1-0.dll
+    api-ms-win-crt-heap-l1-1-0.dll
+    api-ms-win-crt-locale-l1-1-0.dll
+    api-ms-win-crt-math-l1-1-0.dll
+    api-ms-win-crt-multibyte-l1-1-0.dll
+    api-ms-win-crt-private-l1-1-0.dll
+    api-ms-win-crt-runtime-l1-1-0.dll
+    api-ms-win-crt-stdio-l1-1-0.dll
+    api-ms-win-crt-string-l1-1-0.dll
+    api-ms-win-crt-time-l1-1-0.dll
+    api-ms-win-crt-utility-l1-1-0.dll
+    """.split()
+)
 IMPORT_LINE = re.compile(r"[A-Za-z0-9_.-]+\.dll", re.IGNORECASE)
 IMPORT_HEADER = re.compile(
     r"^\s*Image has the following (?:delay load )?dependencies:\s*$",

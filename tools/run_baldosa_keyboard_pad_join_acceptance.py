@@ -248,6 +248,25 @@ def verify_five_destination_pad_journey(log: str) -> None:
         positions.append(matches[0].start())
     if positions != sorted(positions) or len(set(positions)) != len(positions):
         raise ValueError("five destinations: native modal/guest stages out of order")
+    # A list of eight cursor indices alone could be spliced from a different
+    # route. Bind each selection to the specific modal it actually opened.
+    cursor_positions = [
+        m.start() for m in re.finditer(
+            r"(?m)^UR_BALDOSA_MODERN_ROOT selected=\\d+$", log
+        )
+    ]
+    expected_windows = (
+        (positions[0], positions[1]),   # title -> Practice
+        (positions[3], positions[4]),   # Practice back -> Multiplayer
+        (positions[6], positions[7]),   # Multiplayer back -> Records
+        (positions[9], positions[10]),  # Records back -> Options
+    )
+    if any(not (lo < cursor_positions[i] < hi)
+           for i, (lo, hi) in enumerate(expected_windows)):
+        raise ValueError("five destinations: root selection not bound to opened modal")
+    if not all(positions[12] < pos < positions[13]
+               for pos in cursor_positions[4:]):
+        raise ValueError("five destinations: Play return cursor path misplaced")
     for forbidden in ("practice_unavailable=1", "join_unavailable=1",
                       "stock_requested players=2", "stock_entered players=2",
                       "stock_rejected=", "stock_aborted=", "active_profile_stale=1",

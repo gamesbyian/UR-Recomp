@@ -280,8 +280,8 @@ def preflight_package_source_budget(
             raise ValueError("package source exceeds shipping size limits")
 
 
-def write_launcher(path: Path, source_revision: str) -> None:
-    path.write_text(
+def launcher_text(source_revision: str) -> str:
+    return (
         "@echo off\r\n"
         "setlocal DisableDelayedExpansion\r\n"
         "cd /d \"%~dp0\"\r\n"
@@ -400,10 +400,40 @@ def write_launcher(path: Path, source_revision: str) -> None:
         "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo subsystem=%~2\r\n"
         "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo result=fatal\r\n"
         ")\r\n"
-        "exit /b 0\r\n",
-        encoding="utf-8",
-        newline="",
+        "exit /b 0\r\n"
     )
+
+
+def write_launcher(path: Path, source_revision: str) -> None:
+    path.write_text(
+        launcher_text(source_revision), encoding="utf-8", newline=""
+    )
+
+
+def validate_launcher_source_revision(
+    entries: list[dict[str, object]],
+    source_revision: str,
+    *,
+    context: str,
+) -> None:
+    """Bind manifest provenance to the executable CMD startup log.
+
+    A self-consistent re-signed ZIP could previously change its manifest
+    source revision and README while retaining the old launcher's embedded
+    build_revision. Check the canonical launcher digest without reading an
+    unbounded ZIP member into memory.
+    """
+    canonical = launcher_text(source_revision).encode("utf-8")
+    launcher = next(
+        (entry for entry in entries if entry.get("path") == LAUNCHER_NAME),
+        None,
+    )
+    if (
+        launcher is None
+        or launcher.get("size") != len(canonical)
+        or launcher.get("sha256") != hashlib.sha256(canonical).hexdigest()
+    ):
+        raise ValueError(f"{context} launcher does not match source revision")
 
 
 def readme_text(source_revision: str) -> str:
@@ -615,6 +645,7 @@ def verify(package: Path) -> dict[str, object]:
         )
     if readme_bytes != readme_text(source_revision).encode("utf-8"):
         raise ValueError("package README is not canonical UTF-8/LF content")
+    validate_launcher_source_revision(actual, source_revision, context="packaged")
 
     return manifest
 
@@ -878,6 +909,9 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 raise ValueError(
                     "package archive README is not canonical UTF-8/LF content"
                 )
+            validate_launcher_source_revision(
+                manifest["files"], source_revision, context="archive package"
+            )
 
             if set(names) != expected_names:
                 raise ValueError(

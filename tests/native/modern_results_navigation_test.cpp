@@ -151,9 +151,9 @@ int main() {
     }
 
 
-    // Exhaustive 512-context matrix: no displayed row may be unactionable.
+    // Exhaustive 1024-context matrix: no displayed row may be unactionable.
     for (unsigned mode = 0; mode < 2u; ++mode) {
-        for (unsigned mask = 0; mask < 256u; ++mask) {
+        for (unsigned mask = 0; mask < 512u; ++mask) {
             auto ctx = ordinary();
             ctx.mode = mode ? ExecutionMode::Modern : ExecutionMode::Authentic;
             ctx.results_surface = (mask & 1u) != 0;
@@ -164,6 +164,7 @@ int main() {
             ctx.router_available = (mask & 32u) != 0;
             ctx.restart_available = (mask & 64u) != 0;
             ctx.next_event_unique = (mask & 128u) != 0;
+            ctx.practice_target_ready = (mask & 256u) != 0;
             auto menu = make_modern_results_navigation_menu(ctx);
             assert(menu.row_count <= menu.rows.size());
             for (std::size_t row = 0; row < menu.row_count; ++row) {

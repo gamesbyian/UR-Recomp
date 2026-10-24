@@ -57,6 +57,16 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         self.assertIn("wake_original_stock_attract();", SOURCE)
         self.assertIn("g_original_attract_p2_release_button", SOURCE)
 
+    def test_current_main_presentation_contracts_survive_title_integration(self):
+        # These are merged main behaviors, not title-only visual approval.
+        self.assertIn('#include "modern_reduced_motion_preference.hpp"', SOURCE)
+        self.assertIn("ur::product::modern_reduced_motion_preference(", SOURCE)
+        self.assertIn('std::getenv("UR_REDUCED_MOTION"));', SOURCE)
+        self.assertIn("height, g_run_save_feedback,\n            width)", SOURCE)
+        self.assertIn("ur::product::modern_menu_source_hero::kClip.frame_count", SOURCE)
+        self.assertIn("ur::product::kModernMenuStockHeroMaxCycle", SOURCE)
+        self.assertIn("root_focus_visible, reduced_motion, hero_source_frames}", SOURCE)
+
     def test_p2_reentry_is_gated_by_observed_stock_main(self):
         start = SOURCE.index("// During stock gameplay P2 remains P2.")
         end = SOURCE.index("if (player != 0) return 0;", start)

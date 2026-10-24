@@ -251,7 +251,20 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         ) from exc
 
     log = run_game(exe, rom, user, out / "p2_owner_leaves", "16", JOIN, video, timeout)
-    verify_owner_disconnect(log)
+    try:
+        verify_owner_disconnect(log)
+    except ValueError as exc:
+        # Preserve the native host's exact seat evidence beside the root's
+        # join markers. stdout (host) and stderr (root) share one subprocess
+        # pipe but may be buffered differently; the actual ordering must be
+        # investigated before changing any fail-closed acceptance predicate.
+        evidence = [line for line in log.splitlines()
+                    if "UR_CONTROLLER_SEAT " in line or
+                    "UR_BALDOSA_MODERN_ROOT join_" in line]
+        raise ValueError(
+            f"{exc}; host/root seat evidence (log order, max 40): "
+            f"{evidence[:40]!r}; inspect retained p2_owner_leaves/log.txt"
+        ) from exc
 
     log = run_game(exe, rom, user, out / "join_cancelled", "17", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",

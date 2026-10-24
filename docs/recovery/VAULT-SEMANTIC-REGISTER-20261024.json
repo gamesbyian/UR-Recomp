@@ -3720,9 +3720,10 @@
       "archive_sha256": "999be7e3e594f292692e79ed80a7e89710f1eee72b87973f4f189b50ef5d02e0",
       "source_member_sha256": null,
       "target_paths": [
-        "tests/native/run_windows_local_tournament_package_acceptance.sh"
+        "native/product/local_tournament_launch_path_lock.hpp",
+        "tests/native/local_tournament_fixture_launch_store_test.cpp"
       ],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Preserved ZIP carries POSIX independent-process launch-lock regression excerpt and isolated probe, not a Windows-package tournament script. Four distinctive C++ assertions for a busy cross-process OS lock, rejection of stale retirement during newer publication, and crash/abrupt-exit lock release are all present in main tests/native/local_tournament_fixture_launch_store_test.cpp (Git blob 082174bc1f04880913ff3d0404b498272013d064), with implementation native/product/local_tournament_launch_path_lock.hpp (blob b84aa862b6009fc7bf07d758a686f7dce3006052). Semantically incorporated test excerpt; no exact raw-archive source equality or physical Windows acceptance asserted.",
       "github_prs": [
         "#2352",
         "#2366"
@@ -3736,7 +3737,12 @@
       "target_path_provenance": {
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
-        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+        "caveat": "Corrected archived-member semantics: intended current test owner is fixture-launch-store POSIX two-process lock, NOT run_windows_local_tournament_package_acceptance.sh. The former work path is unrelated; preserved original safety holds unchanged."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": "tests/native/local_tournament_fixture_launch_store_test.cpp",
+        "dependency": "native/product/local_tournament_launch_path_lock.hpp",
+        "proof": "Read archived patches/posix_cross_process_block.cpp and evidence/isolated_process_lock_probe.cpp; four source-distinctive assertion strings verified in current main test. Source/file CRC admitted; this is not a Windows physical test."
       }
     },
     {

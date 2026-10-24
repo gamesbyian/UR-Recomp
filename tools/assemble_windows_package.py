@@ -89,10 +89,18 @@ def normalize_source_revision(value: object) -> str:
     if not isinstance(value, str):
         raise ValueError("source revision must be a string")
     revision = value.strip()
+    # The revision is embedded in the generated Windows CMD launcher and its
+    # startup log. CI supplies a Git SHA; allow fixture labels, but never CMD
+    # metacharacters, expansion tokens, whitespace or non-ASCII text.
     if (
         not revision
         or revision != value
-        or any(ord(ch) < 0x20 or ord(ch) == 0x7F for ch in revision)
+        or len(revision) > 128
+        or any(
+            not ("a" <= ch <= "z" or "A" <= ch <= "Z"
+                 or "0" <= ch <= "9" or ch in "._-")
+            for ch in revision
+        )
     ):
         raise ValueError("source revision must be one non-empty canonical line")
     return revision

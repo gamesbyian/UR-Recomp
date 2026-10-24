@@ -214,6 +214,23 @@ class RecurringVaultTests(unittest.TestCase):
             )
             self.assertIn(A, expired, "14-day cooldown must expire")
 
+    def test_expanded_and_nested_zip_budget_failures_share_retry_cooldown(self):
+        for error in ("expanded ZIP budget exceeded",
+                      "nested ZIP exceeds byte budget"):
+            with self.subTest(error=error):
+                previous = {"path": "a-first.zip", "error": error,
+                            "last_attempt": NOW.isoformat()}
+                due = recurring.oversized_retry_after(
+                    previous, item(A, "a-first.zip"),
+                    NOW + timedelta(hours=6), 14)
+                self.assertIsNotNone(due)
+                self.assertIsNone(recurring.oversized_retry_after(
+                    previous, item(A, "renamed.zip"),
+                    NOW + timedelta(hours=6), 14))
+                self.assertIsNone(recurring.oversized_retry_after(
+                    previous, item(A, "a-first.zip"),
+                    NOW + timedelta(days=15), 14))
+
     def test_member_review_fingerprints_survive_checkpoint_carry_forward(self):
         lead = {"member": "payload/tools/new.py", "sha256": "b" * 64,
                 "bytes": 17, "kind": "source_or_test",

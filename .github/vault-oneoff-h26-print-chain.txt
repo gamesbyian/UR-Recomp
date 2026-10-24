@@ -1,0 +1,9 @@
+# Reviewed first-party Python members (no ROMs, secrets or media) printed as text by the one-off audit run.
+h26.zip::evidence/agent3-h25.zip::integration_tests/test_export_baldosa_earned_1p_run_stage_race.py
+h26.zip::evidence/agent5-h25.zip::work/agent4-h25.zip::h25/p2p_mapped_address_guard.py
+h26.zip::evidence/agent5-h25.zip::work/agent4-h25.zip::prior_p2p/p2p_endpoint_unicast_policy.py
+h26.zip::evidence/agent5-h25.zip::work/agent4-h25.zip::h25/qa04_anchored_posix.py
+h26.zip::evidence/agent5-h25.zip::work/agent4-h25.zip::h25/qa06_rgba_admission.py
+h26.zip::evidence/agent5-h25.zip::work/agent4-h25.zip::h25/tests/test_agent4_h25.py
+h26.zip::evidence/agent2-h25.zip::evidence/agent2-h24.zip::prior-bundles/20261020T23-agent2-five-line-recovery.zip::evidence/agent2-h22-recovery.zip::tools/windows_earned_namespace_guard.py
+h26.zip::evidence/agent2-h25.zip::evidence/agent2-h24.zip::h23/tools/qa04_packet_path_independent.py

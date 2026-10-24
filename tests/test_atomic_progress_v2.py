@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from tools.atomic_progress_v2 import validate
+from tools.atomic_progress_v2 import validate, require_reviewed_head
 
 ROOT = Path(__file__).resolve().parents[1]
 class AtomicV2Tests(unittest.TestCase):
@@ -55,6 +55,11 @@ class AtomicV2Tests(unittest.TestCase):
         score = validate(inv, ledger)
         self.assertEqual(score["bounded_product_coverage_percent"], round(before + 10 * 100 / 4500, 3))
         self.assertGreaterEqual(score["independently_audited_coverage_percent"], 0.222)
+
+    def test_explicit_latest_head_refuses_stale_report(self):
+        require_reviewed_head(self.inventory, self.inventory["source_sha"])
+        with self.assertRaisesRegex(ValueError, "STALE"):
+            require_reviewed_head(self.inventory, "f" * 40)
 
     def test_denominator_and_criterion_rewording_rejected(self):
         inv = copy.deepcopy(self.inventory)

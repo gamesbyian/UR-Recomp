@@ -1136,6 +1136,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "26") != 0 &&
         std::strcmp(fixture, "27") != 0 &&
         std::strcmp(fixture, "28") != 0 &&
+        std::strcmp(fixture, "29") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&
@@ -2109,13 +2110,14 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."28"; 15-19 remain controller-only, 20-28 title-only.
+    // Smoke modes are decimal "1".."29"; 15-19 exercise controller ownership,
+    // 20-28 exercise title paths, and 29 is one continuous SDL pad journey.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if ((!g_visible && !g_original_attract_visible) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 28) return;
+            mode < 1 || mode > 29) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2655,6 +2657,62 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // All stock menu transitions still occur inside the original guest.
     // The real direct gamepad entrypoints and physical-edge latches are
     // exercised; exact real-device routing needs independent QA later.
+    // CI-only mode 29: ONE real SDL3 virtual pad traverses the title and
+    // all five native destinations in a single process before requesting
+    // original stock 1P. Every edge travels through the host's ordinary
+    // gamepad event pump. The guest, not this fixture, owns stock admission.
+    // This is hosted product evidence, not a physical controller or a
+    // completed race/result/return acceptance.
+    if (std::strcmp(opt, "29") == 0) {
+#if SNESRECOMP_SDL3
+        static SDL_Joystick* pad = nullptr;
+        if (frame == 50u) {
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.vendor_id = 0x1209;
+            desc.product_id = 0x5569;
+            desc.name = "UR five-destination P1";
+            const SDL_JoystickID id = SDL_AttachVirtualJoystick(&desc);
+            pad = id ? SDL_OpenJoystick(id) : nullptr;
+            if (!pad) std::abort();
+            return;
+        }
+        struct Step { unsigned frame; SDL_GamepadButton button; };
+        static constexpr Step steps[] = {
+            {60u, SDL_GAMEPAD_BUTTON_SOUTH},       // Title -> root
+            {84u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},   // Practice
+            {88u, SDL_GAMEPAD_BUTTON_SOUTH},       // Open picker
+            {92u, SDL_GAMEPAD_BUTTON_EAST},        // Back
+            {96u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},   // Multiplayer
+            {100u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open join
+            {104u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {108u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Records
+            {112u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open archive
+            {116u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {120u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Options
+            {124u, SDL_GAMEPAD_BUTTON_SOUTH},      // Open settings
+            {128u, SDL_GAMEPAD_BUTTON_EAST},       // Back
+            {132u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Records
+            {136u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Multiplayer
+            {140u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Practice
+            {144u, SDL_GAMEPAD_BUTTON_DPAD_UP},    // Play
+            {148u, SDL_GAMEPAD_BUTTON_SOUTH},      // Original stock 1P
+        };
+        for (const auto& step : steps) {
+            if (frame != step.frame && frame != step.frame + 1u) continue;
+            if (!pad || !SDL_SetJoystickVirtualButton(
+                    pad, step.button, frame == step.frame))
+                std::abort();
+            return;
+        }
+#else
+        std::abort(); // Native SDL virtual-pad acceptance requires SDL3.
+#endif
+        return;
+    }
     // CI-only mode 19: two independently seated SDL3 virtual pads confirm
     // both players. Keyboard opens the join but confirms neither racer.
     // The real guest must reach 0x3d; this is not physical-controller QA.

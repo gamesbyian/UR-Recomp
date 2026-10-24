@@ -39,10 +39,10 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
                       "g_join_p1_by_keyboard = true;",
                       "join_watch_seat_owners();"):
             with self.subTest(token=token), self.assertRaises(AssertionError):
-                require_lifecycle(SOURCE.replace(token, "", 1))
+                require_lifecycle(SOURCE.replace(token, ""))
 
     def test_title_and_controller_smoke_ids_do_not_collide(self):
-        title = SOURCE.split("g_title = ur::product::modern_title_boot(", 1)[1]
+        title = SOURCE.split('const char* fixture = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");', 1)[1]
         title = title.split("g_title_logged = false;", 1)[0]
         for mode in range(15, 20):
             self.assertIn('std::strcmp(opt, "' + str(mode) + '")', SOURCE)

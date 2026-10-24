@@ -1,0 +1,34 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "reviewed_at_utc": "2026-10-24T20:10:00Z",
+  "from_main_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
+  "through_main_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
+  "observed_merge_count": 1,
+  "merge_records": [
+    {
+      "commit_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
+      "pr": 2526,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2526",
+      "effect": "release_risk_reduction",
+      "observation": "QA08 source-stage negative admission tests recovered from Vault evidence; strengthens validator but does not itself qualify a product/player feature or formal release gate"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "TWO-07",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651"
+      ],
+      "reason": "Historical original-source Win32 native five-process receipt independently audited against executed prior producer. Mike and Martin distinct 8KiB SRAM and one immutable paired source-earned match survive separate native cold boots and selector switch; previously omitted bound criterion TWO-07, no new game source code or physical device."
+    }
+  ],
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Current main added only #2526 after 47/5 reference; score promotion is retrospective independent classification of previously merged game code #1510, not a new implementation caused by #2526 or a new QA04 hardware pass.",
+  "source_reviewed_by": "integration_measurement_reviewer"
+}

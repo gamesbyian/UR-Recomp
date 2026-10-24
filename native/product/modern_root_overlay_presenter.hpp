@@ -225,15 +225,23 @@ inline void render_modern_options_modal(
             }
             const bool has_status = !view.options_status.empty();
             const bool has_notice = !view.options_notice.empty();
-            if (has_status || has_notice)
+            // The boot/load warning and the latest action result are separate
+            // facts. Keep both visible when they coexist: the final row's
+            // focus band ends at +90, and the footer starts at +114.
+            if (has_notice)
                 paint.draw_text(pixels, stride, surface_height,
-                                bx + 9 * scale, by + 98 * scale,
-                                fit_modern_overlay_text(
-                                    has_status ? view.options_status
-                                               : view.options_notice,
-                                    cells).c_str(),
-                                has_status ? palette.title_yellow
-                                           : kModernMenuCheckerLegibleGrey, scale);
+                                bx + 9 * scale,
+                                by + (has_status ? 91 : 98) * scale,
+                                fit_modern_overlay_text(view.options_notice,
+                                                        cells).c_str(),
+                                kModernMenuCheckerLegibleGrey, scale);
+            if (has_status)
+                paint.draw_text(pixels, stride, surface_height,
+                                bx + 9 * scale,
+                                by + (has_notice ? 102 : 98) * scale,
+                                fit_modern_overlay_text(view.options_status,
+                                                        cells).c_str(),
+                                palette.title_yellow, scale);
             // An action row (for example CONTROLS) opens with Confirm;
             // Left/Right only changes rows the product actually marks
             // adjustable. Match the native destination's contextual hint.

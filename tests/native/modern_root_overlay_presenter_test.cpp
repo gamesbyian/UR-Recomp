@@ -580,6 +580,44 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(contains("SAVED OPTIONS DAMAGED"));
+    // A load warning must not disappear behind an action result. Both fit
+    // between the final focus band and the Back legend at 1x and 4x.
+    view.options_status = "SAVED";
+    painted.clear();
+    text_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("SAVED OPTIONS DAMAGED"));
+    assert(contains("SAVED"));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 29 && d.y == 144 &&
+                   d.content == "SAVED OPTIONS DAMAGED" && d.scale == 1;
+        }));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 29 && d.y == 155 &&
+                   d.content == "SAVED" && d.scale == 1;
+        }));
+    assert(text_draws_fit(old_view));
+    painted.clear();
+    text_draws.clear();
+    assert(render_modern_root_overlay(painter,pixels,1368,896,4,320,
+                                      {44,40,1280,816},view));
+    assert(contains("SAVED OPTIONS DAMAGED"));
+    assert(contains("SAVED"));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 128 && d.y == 576 &&
+                   d.content == "SAVED OPTIONS DAMAGED" && d.scale == 4;
+        }));
+    assert(std::any_of(text_draws.begin(),text_draws.end(),
+        [](const TextDraw& d) {
+            return d.x == 128 && d.y == 620 &&
+                   d.content == "SAVED" && d.scale == 4;
+        }));
+    assert(text_draws_fit({44,40,1280,816}));
+    view.options_status = {};
     painted.clear();
     view.options_controls_help = true;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,

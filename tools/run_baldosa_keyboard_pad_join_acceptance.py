@@ -67,8 +67,30 @@ def verify_keyboard_plus_pad(log: str) -> None:
                   "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
                   "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"),
             "keyboard+pad")
-    if len(lines(log, r"UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1")) != 1:
+    moves = list(re.finditer(
+        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1\b[^\r\n]*$", log
+    ))
+    if len(moves) != 1:
         raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")
+    # The host seat move must precede the root's join-moved milestone.
+    # Otherwise a late, unrelated move can satisfy the acceptance log.
+    move = moves[0]
+    join_move = log.index("UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2")
+    stock_entry = log.index("UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d")
+    if move.start() >= join_move:
+        raise ValueError("keyboard+pad: host seat move followed join milestone")
+    # A moved pad must keep its seat through genuine guest 2P admission.
+    # Teardown after stock entry is outside this acceptance interval.
+    churn = re.search(
+        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT "
+        r"(?:vacate|move|claim|assign)\b[^\r\n]*$",
+        log[move.end():stock_entry],
+    )
+    if churn:
+        raise ValueError(
+            "keyboard+pad: host seat ownership changed before admission: "
+            + churn.group(0)
+        )
     for forbidden in ("join_rejected", "join_seat_left", "stock_rejected=",
                       "stock_requested players=1", "stock_entered players=1"):
         if forbidden in log:

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "atlas_id": "URV-MD-005",
+  "source_sha": "e83c68b4b589033d60c27f6b1f1c64fa535e9762",
+  "approved_main_sha": "5097946c1c266ca1142b0cdd68ee5d18638c5595",
+  "exe_sha256": "57f1886eac689bc9ee8579b208206874efb5a9b7d83655b6cc2f2e7a5d280a9a",
+  "png_sha256": "a13e7aa6e3f5d76da518f753d2032c6969a14d919678b720a29347b2ddccb763",
+  "producer_workflow": "Windows Visual Atlas (sharded opt-in capture)",
+  "producer_run": 40012850072,
+  "code_integrated_at_scan": true,
+  "independent_visual_approval": false,
+  "release_gate_credit": 0,
+  "display_class": "source-verified-engineering-reference"
+}

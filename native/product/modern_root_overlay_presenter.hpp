@@ -207,7 +207,7 @@ inline void render_modern_options_modal(
                                         std::string(selected ? ">" : " ") +
                                         std::string(row.label),
                                         modern_overlay_text_cells(
-                                            kValueColumn - 12)).c_str(),
+                                            value_column - 12)).c_str(),
                                     colour, scale);
                     // Action rows can legitimately have no value. Do not
                     // issue an empty-glyph draw on the right column.

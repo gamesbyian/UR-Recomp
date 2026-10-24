@@ -18,6 +18,7 @@ class V2DeltaTests(unittest.TestCase):
     def test_new_item_produces_measurable_gain(self):
         inv=copy.deepcopy(self.inv)
         c=next(x for x in inv["criteria"] if x["id"]=="ONE-03")
+        c.pop("audit_receipt", None)
         c.update(status="unverified",audit_state="pending",evidence=[])
         before=delta(inv,self.baseline,self.ledger)["change_percentage_points"]
         c.update(status="bounded_verified",audit_state="inherited_pr_screening",
@@ -28,6 +29,7 @@ class V2DeltaTests(unittest.TestCase):
     def test_retracted_item_is_negative(self):
         inv=copy.deepcopy(self.inv)
         c=next(x for x in inv["criteria"] if x["id"]=="ONE-01")
+        c.pop("audit_receipt", None)
         c.update(status="bounded_verified",audit_state="inherited_pr_screening",
                  evidence=["https://github.com/gamesbyian/UR-Recomp/pull/1416"])
         before=delta(inv,self.baseline,self.ledger)["change_percentage_points"]

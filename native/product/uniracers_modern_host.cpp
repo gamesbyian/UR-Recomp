@@ -2031,6 +2031,18 @@ bool activate_profile_id(const std::string& profile_id) {
     g_product_state = product;
     apply_profile_save_root();
 
+    // A rejected save-root override can return before loading the target,
+    // leaving the previous profile cached in memory. Even a same-identity
+    // selection must not write that stale cache into the fallback save root.
+    // Require the live profile and its path to belong to the root actually
+    // selected by the framework before touching guest SRAM.
+    const char* applied_save_root = RtlSaveRoot();
+    const bool target_reload_bound =
+        applied_save_root && g_profile_state && g_profile_state_writable &&
+        g_profile_state->profile_id == profile_id &&
+        g_profile_state_path ==
+            std::string(applied_save_root) + "/host-profile.txt";
+
     // The selector on disk is still previous_product. Failures restore the
     // in-process root and SRAM; no compensating global CAS is appropriate.
     // An intervening independent selector writer must remain untouched.
@@ -2045,6 +2057,10 @@ bool activate_profile_id(const std::string& profile_id) {
         return false;
     };
 
+    if (!target_reload_bound) {
+        product_diagnostic("UR_PROFILE_SELECT TARGET_RELOAD_UNAVAILABLE");
+        return restore_previous();
+    }
     if (!g_profile_state || !g_profile_state->racer_identity ||
         !g_profile_state->stock_sram) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_STATE_MISSING");

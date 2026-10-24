@@ -84,6 +84,28 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         )
         self.assertIn("return restore_previous();", guard_body)
 
+    def test_reloaded_target_is_bound_to_live_save_root_and_identity(self):
+        host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
+            encoding="utf-8"
+        )
+        activation = host.split("bool activate_profile_id(", 1)[1].split(
+            "\n}\n\nbool create_profile_from_editor", 1
+        )[0]
+        switched = activation.split("g_product_state = product;", 1)[1]
+        reload = switched.index("apply_profile_save_root();")
+        binding = switched.index("const bool target_reload_bound =")
+        refusal = switched.index("UR_PROFILE_SELECT TARGET_RELOAD_UNAVAILABLE")
+        guest_copy = switched.index("restore_stock_sram_from_profile(")
+        self.assertLess(reload, binding)
+        self.assertLess(binding, refusal)
+        self.assertLess(refusal, guest_copy)
+        condition = switched[binding:refusal]
+        self.assertIn("g_profile_state_writable", condition)
+        self.assertIn("g_profile_state->profile_id == profile_id", condition)
+        self.assertIn("g_profile_state_path ==", condition)
+        self.assertIn('std::string(applied_save_root) + "/host-profile.txt"', condition)
+        self.assertIn("return restore_previous();", switched[refusal:guest_copy])
+
 
 if __name__ == "__main__":
     unittest.main()

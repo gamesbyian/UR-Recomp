@@ -170,7 +170,14 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
         for cooling in queue.get("retry_cooldown", []):
             errors.append({"scope": scope, "drive_id": cooling.get("id"),
                            "type": "retry_cooldown", "retry_after": cooling.get("retry_after")})
+        for pending in queue.get("needs_first_audit", []):
+            errors.append({"scope": scope, "drive_id": pending.get("id"),
+                           "type": "awaiting_first_archive_audit"})
         for fid, item in sorted(checkpoint["items"].items()):
+            if item.get("review_leads_filtered_or_truncated", 0):
+                errors.append({"scope": scope, "drive_id": fid,
+                               "type": "unrepresented_member_leads",
+                               "count": item["review_leads_filtered_or_truncated"]})
             for lead in item.get("review_leads", []):
                 key = member_key(scope, fid, item["sha256"], lead["member"], lead["sha256"])
                 seen.add(key)
@@ -193,6 +200,19 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
                     not item.get("review_leads")):
                 errors.append({"scope": scope, "drive_id": lead["id"],
                                "type": "unfingerprinted_legacy_review_lead"})
+    # Identical content across separate archive IDs is one exact-byte review
+    # candidate, not multiple engineering assignments. Retain every source ID.
+    canonical = {}
+    for row in sorted(records, key=lambda c: c["candidate_id"]):
+        fingerprint = row["member_sha256"]
+        original = canonical.get(fingerprint)
+        if original and row["state"] in ("needs_semantic_review", "queued_engineering"):
+            row["state"] = "duplicate_review_lead"
+            row["owner"] = "Agent 1"
+            row["reason"] = "Exact member SHA-256 already tracked as " + original
+            row["duplicate_of"] = original
+        else:
+            canonical.setdefault(fingerprint, row["candidate_id"])
     orphan = sorted(set(decisions) - seen)
     counts = {name: sum(c["state"] == name for c in records)
               for name in sorted({c["state"] for c in records})}

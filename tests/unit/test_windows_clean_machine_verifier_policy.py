@@ -108,7 +108,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             # Re-sign each malformed PE as a self-consistent package.
             # The independent Windows consumer must reject it even though
             # manifest, archive checksum and AMD64/PE32+ signatures agree.
-            for characteristics in (0x0000, 0x2000, 0x2002):
+            for characteristics in (0x0000, 0x2000, 0x2002, 0x1002):
                 with self.subTest(characteristics=characteristics):
                     forged_package = root / f"bad-pe-{characteristics:04x}-package"
                     shutil.copytree(output, forged_package)
@@ -143,7 +143,9 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
                     self.assertNotEqual(
                         rejected.returncode, 0, rejected.stdout + rejected.stderr,
                     )
-                    self.assertIn("executable image, not a DLL", rejected.stderr)
+                    expected = ("system image" if characteristics == 0x1002
+                                else "executable image, not a DLL")
+                    self.assertIn(expected, rejected.stderr)
             # Even a re-signed archive/sidecar must not admit CMD-active
             # build_revision text into the extracted Windows launcher.
             unsafe_archive = root / "unsafe-source-revision.zip"

@@ -206,6 +206,19 @@ def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
     for relative in sorted(paths):
         parts = relative.split("/")
         for part in parts:
+            # Ordinary NTFS names are limited to 255 UTF-16 code units per
+            # component. A supplementary-plane scalar consumes two units,
+            # and an isolated surrogate is not a valid Win32 filename.
+            try:
+                utf16_units = len(part.encode("utf-16-le")) // 2
+            except UnicodeEncodeError as exc:
+                raise ValueError(
+                    f"{context} contains invalid Windows UTF-16 path: {relative}"
+                ) from exc
+            if utf16_units > 255:
+                raise ValueError(
+                    f"{context} contains overlong Windows UTF-16 component: {relative}"
+                )
             if (
                 not part
                 or part in (".", "..")

@@ -44,6 +44,30 @@ class ProfileSwitchSramRecoveryContract(unittest.TestCase):
         self.assertLess(load, target_write)
         self.assertLess(target_write, selector_commit)
         self.assertLess(selector_commit, applied)
+
+    def test_reloaded_target_format_is_checked_before_guest_sram_write(self):
+        host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
+            encoding="utf-8"
+        )
+        activation = host.split("bool activate_profile_id(", 1)[1].split(
+            "\n}\n\nbool create_profile_from_editor", 1
+        )[0]
+        # The first check happens before the source profile is persisted.
+        # apply_profile_save_root() subsequently reloads the target from disk,
+        # so the bytes that will actually reach the guest need their own guard.
+        switched = activation.split("g_product_state = product;", 1)[1]
+        reloaded = switched.index("apply_profile_save_root();")
+        guarded = switched.index(
+            "UR_PROFILE_SELECT TARGET_RELOADED_UNFORMATTED_SNAPSHOT"
+        )
+        restored = switched.index("restore_stock_sram_from_profile(")
+        self.assertLess(reloaded, guarded)
+        self.assertLess(guarded, restored)
+        check = switched[reloaded:restored]
+        self.assertIn("stock_sram_format_signature_present(", check)
+        self.assertIn("g_profile_state->stock_sram->data()", check)
+        self.assertIn("g_profile_state->stock_sram->size()", check)
+        self.assertIn("return restore_previous();", check)
         # A live competing process's selector CAS winner is never rolled
         # back using a stale expectation from our failed local attempt.
         rollback = activation.split("const auto restore_previous = [&]() {", 1)[1].split(

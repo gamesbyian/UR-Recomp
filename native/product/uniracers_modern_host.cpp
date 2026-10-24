@@ -2050,6 +2050,17 @@ bool activate_profile_id(const std::string& profile_id) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_STATE_MISSING");
         return restore_previous();
     }
+    // apply_profile_save_root() reloads the target after the first preflight
+    // and after saving the previous racer. A concurrent profile writer can
+    // replace its SRAM in that interval. Validate the exact reloaded bytes
+    // before copying them into the live guest or publishing the selector.
+    if (!ur::product::stock_sram_format_signature_present(
+            g_profile_state->stock_sram->data(),
+            g_profile_state->stock_sram->size())) {
+        product_diagnostic(
+            "UR_PROFILE_SELECT TARGET_RELOADED_UNFORMATTED_SNAPSHOT");
+        return restore_previous();
+    }
     if (ur::product::restore_stock_sram_from_profile(
             ur::product::ExecutionMode::Modern,
             *g_profile_state,

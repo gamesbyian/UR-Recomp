@@ -122,14 +122,19 @@ def make_queue(entries: list[dict], prior: dict, now: datetime,
 
 def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
                           refresh_days: int) -> str | None:
-    """Avoid repeated downloads of unchanged files over the 64 MiB hard limit.
+    """Avoid repeat downloads of unchanged archives hitting hard size limits.
 
     Forced probes and renamed paths bypass this cooldown. Other failures stay
     retryable on the next cycle; in-place replacements are rechecked eventually.
     """
+    error = str((failure or {}).get("error", ""))
+    deterministic_budget_errors = (
+        "download exceeds single-file byte budget",
+        "expanded ZIP budget exceeded",
+        "nested ZIP exceeds byte budget",
+    )
     if (not failure or failure.get("path") != entry["path"]
-            or "download exceeds single-file byte budget"
-            not in str(failure.get("error", ""))):
+            or not any(reason in error for reason in deterministic_budget_errors)):
         return None
     try:
         attempted = datetime.fromisoformat(

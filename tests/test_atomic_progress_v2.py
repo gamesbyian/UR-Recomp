@@ -72,7 +72,9 @@ class AtomicV2Tests(unittest.TestCase):
             validate(inv, self.ledger)
         inv = copy.deepcopy(self.inventory)
         ledger = copy.deepcopy(self.ledger)
-        next(x for x in ledger["gates"] if x["id"] == "QA-01")["coverage"]["complete_event_passes"] = 1
+        qa = next(x for x in ledger["gates"] if x["id"] == "QA-01")
+        current = qa["coverage"]["complete_event_passes"]
+        qa["coverage"]["complete_event_passes"] = current + 1 if current < 45 else current - 1
         with self.assertRaisesRegex(ValueError, "must exactly match"):
             validate(inv, ledger)
 

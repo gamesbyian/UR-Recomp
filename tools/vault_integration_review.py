@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+"""Read-only, fail-closed consumer of durable Vault intake artifacts.
+
+A blob mismatch is a review lead, NEVER authorization to publish or evidence
+of an absent behavior. The human-maintained recovery register owns dispositions.
+This program neither downloads source nor mutates GitHub or Drive.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+
+ID = re.compile(r"[A-Za-z0-9_-]{10,128}\Z")
+SHA = re.compile(r"[a-f0-9]{64}\Z")
+CHECKPOINT = "ur-vault-recurring-checkpoint/1"
+QUEUE = "ur-vault-integration-candidates/1"
+REGISTRY = "ur-recovery-registry/1"
+LEDGER = "ur-vault-member-dispositions/1"
+VALID_STATES = {"merged", "superseded", "held", "engineering", "evidence_only",
+                "unresolved", "rejected"}
+
+
+def load(path: Path):
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def member_key(scope: str, file_id: str, archive: str, member: str, digest: str) -> str:
+    raw = json.dumps([scope, file_id, archive, member, digest],
+                     separators=(",", ":"), ensure_ascii=True)
+    return "vm1-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
+
+
+def validate_artifacts(scope: str, root: Path):
+    """Input must be a complete, consistent, named folder artifact."""
+    if not root.is_dir():
+        raise ValueError(f"missing {scope} artifact directory")
+    ck, queue, report = (load(root / filename) for filename in
+                         ("checkpoint.json", "queue.json", "report.json"))
+    if ck.get("schema") != CHECKPOINT or queue.get("schema") != QUEUE:
+        raise ValueError(f"{scope}: incompatible checkpoint/queue")
+    if report.get("schema") != "ur-vault-recurring-intake/1":
+        raise ValueError(f"{scope}: incompatible report")
+    if not isinstance(ck.get("items"), dict) or not isinstance(queue.get("needs_engineering_review"), list):
+        raise ValueError(f"{scope}: malformed artifact")
+    if scope == "incoming" and "1cdovDqle9IRYKX2lCt513mtWge75HywX" not in report.get("folder", ""):
+        raise ValueError("incoming artifact has wrong source folder")
+    if scope == "evidence" and "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2" not in report.get("folder", ""):
+        raise ValueError("evidence artifact has wrong source folder")
+    for fid, item in ck["items"].items():
+        if not ID.fullmatch(fid) or not isinstance(item, dict) or not SHA.fullmatch(str(item.get("sha256", ""))):
+            raise ValueError(f"{scope}: malformed verified item")
+        for lead in item.get("review_leads", []):
+            if (not isinstance(lead, dict) or lead.get("status") != "unmatched_needs_review"
+                    or not SHA.fullmatch(str(lead.get("sha256", "")))
+                    or lead.get("kind") not in ("patch", "source_or_test")
+                    or not isinstance(lead.get("member"), str)
+                    or len(lead["member"]) > 512
+                    or not isinstance(lead.get("bytes"), int)):
+                raise ValueError(f"{scope}: malformed member fingerprint")
+    for lead in queue["needs_engineering_review"]:
+        fid = lead.get("id")
+        if fid not in ck["items"] or lead.get("sha256") != ck["items"][fid]["sha256"]:
+            raise ValueError(f"{scope}: stale or mixed queue/checkpoint")
+    return ck, queue, report
+
+
+def read_registry(path: Path):
+    data = load(path)
+    if data.get("schema") != REGISTRY or not isinstance(data.get("candidates"), list):
+        raise ValueError("invalid historical recovery register")
+    result = {}
+    for row in data["candidates"]:
+        fid = row.get("drive_id")
+        if fid:
+            result.setdefault(fid, []).append(row)
+    return result
+
+
+def read_ledger(path: Path):
+    if not path.exists():
+        raise ValueError("authoritative member ledger missing; refusing guessed dispositions")
+    data = load(path)
+    if data.get("schema") != LEDGER or not isinstance(data.get("items"), list):
+        raise ValueError("invalid member disposition ledger")
+    result = {}
+    for item in data["items"]:
+        key = item.get("candidate_id")
+        if (not isinstance(key, str) or not re.fullmatch(r"vm1-[0-9a-f]{24}", key)
+                or key in result or item.get("state") not in VALID_STATES):
+            raise ValueError("invalid or duplicate ledger record")
+        result[key] = item
+    return result
+
+
+def read_github(path: Path):
+    data = load(path)
+    if not isinstance(data.get("prs"), list):
+        raise ValueError("GitHub PR snapshot unavailable")
+    by_number = {}
+    for row in data["prs"]:
+        if not isinstance(row.get("number"), int):
+            raise ValueError("invalid PR number")
+        by_number[row["number"]] = row
+    return by_number
+
+
+def classify(candidate, record, archive_records, prs):
+    fid = candidate["drive_id"]
+    key = candidate["candidate_id"]
+    matches = [p for p in prs.values() if not p.get("merged_at") and p.get("state") == "OPEN"
+               and (key in str(p.get("body") or "") or
+                    ("vault-member-sha256:" + candidate["member_sha256"]) in str(p.get("body") or ""))]
+    if len(matches) > 1:
+        return "duplicate_pr_collision", "Several active PRs claim identical source", "Agent 3", matches
+    if record:
+        state = record["state"]
+        reason = str(record.get("reason") or "").strip()
+        if state in {"held", "rejected"}:
+            if not reason:
+                return "unresolved", "Hold has no recorded reason", "Agent 1", matches
+            return "held", reason, "Agent 1", matches
+        if state == "merged":
+            pr = prs.get(record.get("pr"))
+            if (pr and pr.get("merged_at") and pr.get("merge_commit_sha")
+                    and pr["merge_commit_sha"] == record.get("merge_commit")
+                    and record.get("tests") and record.get("source_path")):
+                return "merged", "Exact member linked to verified merged PR and tests", "Agent 3", matches
+            return "merge_unverified", "Reverify PR, merge SHA, source path and tests", "Agent 3", matches
+        if state == "superseded":
+            if record.get("source_path") and record.get("evidence") and record.get("tests"):
+                return "superseded", reason or "Per-member semantic evidence recorded", "Agent 1", matches
+            return "unresolved", "Supersession lacks source/test evidence", "Agent 1", matches
+        if state == "evidence_only":
+            return "evidence_only", reason or "Non-adoptable retained evidence", "Agent 1", matches
+        if state == "engineering":
+            if matches:
+                return "open_pr", "Review existing PR at its current head", "Agent 3", matches
+            if (record.get("provenance_verified") is True and record.get("publication_authorized") is True
+                    and record.get("source_path") and record.get("reason")):
+                return "queued_engineering", reason, "Agent 2", matches
+            return "unresolved", "Engineering route missing provenance, destination or authorization", "Agent 1", matches
+        return "unresolved", reason or "Pending semantic classification", "Agent 1", matches
+    if matches:
+        return "open_pr_unverified", "Existing PR claims member; verify provenance and disposition", "Agent 3", matches
+    if any(a.get("state") == "blocked" for a in archive_records):
+        return "held", "Historical archive-level block; per-member review required", "Agent 1", matches
+    return "needs_semantic_review", "Unmatched blob; semantic comparison and publication review required", "Agent 1", matches
+
+
+def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
+             github: Path):
+    archives = read_registry(registry)
+    decisions = read_ledger(ledger)
+    prs = read_github(github)
+    records, status, errors, seen = [], {}, [], set()
+    for scope, root in (("incoming", incoming), ("evidence", evidence)):
+        checkpoint, queue, report = validate_artifacts(scope, root)
+        scope_status = {"scope": scope, "run_time": report.get("scanned_at"),
+                        "verified": len(checkpoint["items"]), "processed": len(report.get("processed", [])),
+                        "errors": len(report.get("errors", [])),
+                        "remaining_due": report.get("remaining_due"),
+                        "cooldowns": len(queue.get("retry_cooldown", []))}
+        status[scope] = scope_status
+        for error in report.get("errors", []):
+            errors.append({"scope": scope, "drive_id": error.get("id"),
+                           "type": "inspection_failure"})
+        for cooling in queue.get("retry_cooldown", []):
+            errors.append({"scope": scope, "drive_id": cooling.get("id"),
+                           "type": "retry_cooldown", "retry_after": cooling.get("retry_after")})
+        for fid, item in sorted(checkpoint["items"].items()):
+            for lead in item.get("review_leads", []):
+                key = member_key(scope, fid, item["sha256"], lead["member"], lead["sha256"])
+                seen.add(key)
+                c = {"candidate_id": key, "scope": scope, "drive_id": fid,
+                     "archive_sha256": item["sha256"], "member": lead["member"],
+                     "member_sha256": lead["sha256"], "member_bytes": lead["bytes"],
+                     "kind": lead["kind"],
+                     "source": "https://drive.google.com/file/d/" + fid + "/view"}
+                state, reason, owner, claims = classify(c, decisions.get(key), archives.get(fid, []), prs)
+                c.update({"state": state, "reason": reason, "owner": owner,
+                          "prs": [p["number"] for p in claims],
+                          "related_registry": [r.get("candidate_id") for r in archives.get(fid, [])]})
+                if key in decisions:
+                    c["disposition"] = decisions[key]
+                records.append(c)
+        # Legacy checkpoints may not yet expose member fingerprint metadata.
+        for lead in queue["needs_engineering_review"]:
+            item = checkpoint["items"][lead["id"]]
+            if (item.get("unmatched_or_unexamined", 0) > 0 and
+                    not item.get("review_leads")):
+                errors.append({"scope": scope, "drive_id": lead["id"],
+                               "type": "unfingerprinted_legacy_review_lead"})
+    orphan = sorted(set(decisions) - seen)
+    counts = {name: sum(c["state"] == name for c in records)
+              for name in sorted({c["state"] for c in records})}
+    return {"schema": "ur-vault-actionable-review/1", "status": status,
+            "counts": counts, "records": records, "exceptions": errors,
+            "dispositions_not_in_current_artifacts": orphan,
+            "automatic_publication_authorized": False,
+            "automatic_merges": 0, "source_bytes_published": 0}
+
+
+def render(doc, max_rows=35):
+    lines = ["# Vault actionable review", "",
+             "Metadata only. **No source staged, PR opened or release gate credited.**",
+             "Review leads are *not* evidence of missing functionality.", ""]
+    for s in doc["status"].values():
+        lines.append(f"- {s['scope']}: {s['verified']} verified in checkpoint, "
+                     f"{s['processed']} inspected this run, {s['errors']} errors; "
+                     f"{s['remaining_due']} due")
+    lines += ["", "## Per-member disposition", ""]
+    for k, v in doc["counts"].items():
+        lines.append(f"- {k}: {v}")
+    lines += ["", "## Bounded actionable candidates", ""]
+    priority = {"duplicate_pr_collision": 0, "merge_unverified": 1,
+                "open_pr": 2, "queued_engineering": 3,
+                "open_pr_unverified": 4, "needs_semantic_review": 5,
+                "unresolved": 6, "held": 7}
+    actionable = sorted(doc["records"], key=lambda c: (priority.get(c["state"], 9),
+                                                          c["candidate_id"]))
+    for c in actionable[:max_rows]:
+        path = c["member"].replace("|", "/").replace("\n", " ")
+        prs = ", ".join(f"https://github.com/gamesbyian/UR-Recomp/pull/{n}" for n in c["prs"])
+        lines.append(f"- \`{c['candidate_id']}\` **{c['state']}** "
+                     f"[Drive {c['drive_id']}]({c['source']}) "
+                     f"\`{path[:100]}\` sha256 \`{c['member_sha256'][:16]}\` "
+                     f"| owner: {c['owner']} | {c['reason'][:140]}"
+                     + (f" | {prs}" if prs else ""))
+    if len(actionable) > max_rows:
+        lines.append(f"- {len(actionable) - max_rows} further members in JSON artifact.")
+    lines += ["", f"Unresolved intake/cooldown/legacy exceptions: {len(doc['exceptions'])}",
+              f"Older ledger IDs absent from available checkpoint fingerprints: "
+              f"{len(doc['dispositions_not_in_current_artifacts'])}. Preserve them; do not delete.",
+              "", "Coordinate in https://github.com/gamesbyian/UR-Recomp/issues/2468; "
+                  "original disposition evidence in issue #2088."]
+    return "\n".join(lines) + "\n"
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--incoming", type=Path, required=True)
+    p.add_argument("--evidence", type=Path, required=True)
+    p.add_argument("--registry", type=Path, default=Path("docs/recovery/agent-candidates.json"))
+    p.add_argument("--ledger", type=Path, default=Path("docs/recovery/vault-member-dispositions.json"))
+    p.add_argument("--github", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True)
+    args = p.parse_args()
+    doc = assemble(args.incoming, args.evidence, args.registry, args.ledger, args.github)
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "actionable.json").write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
+    (args.out / "actionable.md").write_text(render(doc))
+    print(render(doc, max_rows=12))
+
+
+if __name__ == "__main__":
+    main()

@@ -17,6 +17,8 @@
 #endif
 #include <windows.h>
 #else
+#include <csignal>
+#include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -281,6 +283,44 @@ int main(int argc, char** argv) {
                   ".pending-urlaunch-", 0) != 0,
               "sync failure cleans its own private staging");
     }
+#if !defined(_WIN32)
+    // A real kernel-enforced write ceiling, not a mocked sync callback:
+    // stdio may report the failure at fwrite, fflush or fclose. Regardless
+    // of that timing, the previously committed profile must remain intact.
+    const fs::path limited = root / "kernel-limit-profile.txt";
+    check(ur::product::write_host_replace_staged(
+              limited, "last-committed", "urprofile"),
+          "kernel write-limit test establishes committed profile");
+    const pid_t limited_pid = ::fork();
+    check(limited_pid >= 0, "fork kernel-limited writer");
+    if (limited_pid == 0) {
+        struct rlimit limit{};
+        limit.rlim_cur = 1024;
+        limit.rlim_max = 1024;
+        if (::setrlimit(RLIMIT_FSIZE, &limit) != 0) std::_Exit(91);
+        if (std::signal(SIGXFSZ, SIG_IGN) == SIG_ERR) std::_Exit(92);
+        const bool published = ur::product::write_host_replace_staged(
+            limited, std::string(8192, 'N'), "urprofile");
+        std::_Exit(published ? 93 : 0);
+    }
+    int limited_status = 0;
+    check(::waitpid(limited_pid, &limited_status, 0) == limited_pid &&
+              WIFEXITED(limited_status) && WEXITSTATUS(limited_status) == 0,
+          "kernel-limited staged write fails without publishing");
+    check(bytes(limited) == "last-committed",
+          "kernel-limited write retains exact committed profile bytes");
+    for (const auto& item : fs::directory_iterator(root)) {
+        check(item.path().filename().string().rfind(
+                  ".pending-urprofile-", 0) != 0,
+              "kernel-limited write cleans its private staging");
+    }
+    check(ur::product::write_host_replace_staged(
+              limited, std::string(8192, 'N'), "urprofile"),
+          "unlimited cold retry publishes the previously refused payload");
+    check(bytes(limited) == std::string(8192, 'N'),
+          "unlimited retry publishes complete bytes, never partial data");
+#endif
+
     constexpr std::size_t kWriters = 8;
     std::array<std::string, kWriters> candidate{};
     for (std::size_t i = 0; i < kWriters; ++i) {

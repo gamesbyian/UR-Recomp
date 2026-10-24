@@ -95,6 +95,19 @@ def require_shared_native_acceptance(workflow: str) -> None:
         raise AssertionError("controller/title runs must all use one exact Windows PE")
 
 
+def require_named_failure_diagnostics(workflow: str, probe: str) -> None:
+    for token in (
+        "ur-title-original-attract-named-play/native-attract.log",
+        "ur-title-original-attract-recovery/native-attract.log",
+    ):
+        if token not in workflow:
+            raise AssertionError("native original-game failure log not retained: " + token)
+    for token in ("observed_source_phases=", "inspect retained native-attract.log",
+                  "matches={count}"):
+        if token not in probe:
+            raise AssertionError("native source-stage failure diagnostics missing: " + token)
+
+
 class ModernTitleControllerReconciliation(unittest.TestCase):
     def test_named_bootstrap_uses_proven_first_profile_environment(self):
         self.assertIn('boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"', ATTRACT_PROBE)
@@ -105,17 +118,19 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         self.assertIn("inspect retained native-profile-bootstrap.log", ATTRACT_PROBE)
     
     def test_failed_named_play_retains_real_guest_timeline(self):
-        # The first Windows failure after successful bootstrap had no actual
-        # native-attract.log in its retained artifact. Require both guest
-        # timelines and explicit source-stage diagnostics on future failures.
-        for route in ("named-play", "recovery"):
-            path = f"ur-title-original-attract-{route}/native-attract.log"
-            self.assertIn(path, WINDOWS_WORKFLOW)
-            with self.subTest(route=route):
-                self.assertNotIn(path, WINDOWS_WORKFLOW.replace(path, ""))
+        # Preserve the actual guest log after successful bootstrap; otherwise
+        # the first failing source-stage expectation cannot be adjudicated.
+        require_named_failure_diagnostics(WINDOWS_WORKFLOW, ATTRACT_PROBE)
+        for token in (
+            "ur-title-original-attract-named-play/native-attract.log",
+            "ur-title-original-attract-recovery/native-attract.log",
+        ):
+            with self.subTest(path=token), self.assertRaises(AssertionError):
+                require_named_failure_diagnostics(WINDOWS_WORKFLOW.replace(token, ""), ATTRACT_PROBE)
         for token in ("observed_source_phases=", "inspect retained native-attract.log",
                       "matches={count}"):
-            self.assertIn(token, ATTRACT_PROBE)
+            with self.subTest(token=token), self.assertRaises(AssertionError):
+                require_named_failure_diagnostics(WINDOWS_WORKFLOW, ATTRACT_PROBE.replace(token, ""))
 
 
     def test_same_executable_native_acceptance_is_invoked(self):

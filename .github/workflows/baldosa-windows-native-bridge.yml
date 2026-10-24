@@ -497,6 +497,7 @@ jobs:
             ${{ runner.temp }}/ur-title-controller-join/receipt.json
             ${{ runner.temp }}/ur-title-confirm-*/native-title-receipt.json
             ${{ runner.temp }}/ur-title-original-attract-*/native-attract-receipt.json
+            ${{ runner.temp }}/ur-title-original-attract-named-play/native-profile-bootstrap.log
 
       # Title branch only: compile the existing exact Windows AOT candidate
       # above, then exercise its REAL Modern title and native renderer. Its

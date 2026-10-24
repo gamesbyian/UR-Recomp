@@ -1,9 +1,9 @@
 # Real native Quick Practice repeat acceptance.
 # The host enters Quick Practice through the established stock-menu router.
 # This script supplies only race inputs after authoritative race entry, reaches
-# stock results, then waits for the workflow to press the player-facing R
-# shortcut. The repeated attempt must re-enter through Restart, not a forged
-# course or progression write.
+# stock results, then waits for the host's player-facing repeat action.
+# The repeated attempt must return through stock Quick Practice selection,
+# not a forged course, progression write or in-race Restart shortcut.
 
 until 009F == D7 3600
 dump practice-repeat-main

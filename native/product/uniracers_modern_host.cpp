@@ -241,6 +241,8 @@ unsigned g_pause_open_acceptance_frames;
 bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
+ur::product::QuickPracticeRematchRoute g_practice_rematch_route;
+bool g_practice_rematch_verifying = false;
 ur::product::QuickPracticeSelection g_practice_picker;
 bool g_practice_picker_draw_reported = false;
 std::optional<std::string> g_practice_picker_profile_id;
@@ -452,6 +454,7 @@ bool paused();
 bool restart_surface();
 bool dispatch(UrModernPauseAction action);
 bool abort_practice_route_to_frontend(const char* diagnostic);
+bool request_frontend_reboot(bool require_restart_surface);
 bool request_desktop_quit();
 void clear_results_navigation_route();
 void rearm_run_capture_after_retry();
@@ -1202,6 +1205,7 @@ void advance_practice_route(uint64_t next_frame) {
     g_practice_launch = step.state;
 
     if (step.timed_out) {
+        g_practice_rematch_verifying = false;
         // Preserve the timed-out routing state until the reboot request is
         // accepted. If the request fails transactionally, the next host frame
         // retries the same fail-closed abort rather than releasing guest input.
@@ -1213,6 +1217,7 @@ void advance_practice_route(uint64_t next_frame) {
     }
 
     if (step.route_violation || step.course_mismatch) {
+        g_practice_rematch_verifying = false;
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
@@ -1239,6 +1244,12 @@ void advance_practice_route(uint64_t next_frame) {
     }
 
     if (step.race_ready) {
+        if (g_practice_rematch_verifying) {
+            g_practice_rematch_verifying = false;
+            // The existing launch oracle has just confirmed the authoritative
+            // decoded course after the stock Now Playing route.
+            product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_ROUTER_RACE_READY");
+        }
         if (!g_practice_race_ready_reported) {
             g_practice_race_ready_reported = true;
             product_diagnostic("UR_PRACTICE RACE_READY");
@@ -1391,16 +1402,33 @@ ur::product::FastNavigationContext fast_navigation_context() {
 }
 
 bool repeat_current_attempt() {
-    // Practice is a noncareer guest run, but its results shortcut must still
-    // retain the stock-routed course identity. Refuse a stale/corrupted target
-    // before dispatching Restart or touching guest state/SRAM.
-    if (g_practice_active &&
-        !ur::product::quick_practice_repeat_target_ready(
+    if (g_practice_active) {
+        // Practice results must restore disposable SRAM, rebuild the guest and
+        // re-enter the canonical stock Quick Practice router. In-race Restart
+        // remains the existing pause action and is never duplicated here.
+        const auto rematch = ur::product::begin_quick_practice_rematch_route(
             g_practice_launch,
             g_recent_course_track_id
-                ? static_cast<int>(*g_recent_course_track_id) : -1)) {
-        product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_REJECTED_TARGET");
-        return false;
+                ? static_cast<int>(*g_recent_course_track_id) : -1);
+        if (!rematch.pending) {
+            product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_REJECTED_TARGET");
+            return false;
+        }
+        if (ur::product::resolve_fast_navigation(
+                ur::product::FastNavigationCommand::RepeatAttempt,
+                fast_navigation_context()) !=
+            ur::product::FastNavigationAction::RestartAttempt) {
+            return false;
+        }
+        // On failure request_frontend_reboot transactionally restores the
+        // live Practice SRAM/root. Never arm a pending rematch on that path.
+        if (!request_frontend_reboot(true)) return false;
+        g_practice_rematch_route = rematch;
+        g_fast_repeat_sram_before.reset();
+        g_fast_repeat_course_before.reset();
+        rearm_run_capture_after_retry();
+        product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_ROUTER_REQUESTED");
+        return true;
     }
     if (ur::product::resolve_fast_navigation(
             ur::product::FastNavigationCommand::RepeatAttempt,
@@ -4247,6 +4275,10 @@ bool request_frontend_reboot(bool require_restart_surface) {
     g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
     g_exit_frontend_waiting_for_main = true;
     g_exit_frontend_waiting_for_usable = false;
+    // A new reboot supersedes any earlier rematch handoff. The initiating
+    // results action arms its own validated identity only after this succeeds.
+    g_practice_rematch_route = {};
+    g_practice_rematch_verifying = false;
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
@@ -7879,6 +7911,27 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         !g_exit_frontend_waiting_for_main &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
         (void)begin_pending_results_navigation_route();
+    }
+
+    if (g_practice_rematch_route.pending) {
+        const bool stock_main_ready =
+            modern_mode() && g_ram && !g_exit_frontend_waiting_for_main &&
+            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
+        const auto step = ur::product::advance_quick_practice_rematch_route(
+            g_practice_rematch_route, stock_main_ready);
+        g_practice_rematch_route = step.route;
+        if (step.begin_stock_route) {
+            if (begin_practice(step.track_id)) {
+                g_practice_rematch_verifying = true;
+                product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_ROUTER_STARTED");
+            } else {
+                // The original named-profile SRAM was already restored before
+                // reboot. Leave the stock frontend intact on launch failure.
+                product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_ROUTER_FAILED");
+            }
+        } else if (step.timed_out) {
+            product_diagnostic("UR_FAST_NAV REPEAT_PRACTICE_ROUTER_TIMEOUT");
+        }
     }
 
     observe_regional_title_surface();

@@ -137,6 +137,33 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("quick_practice_repeat_target_ready(", context)
         self.assertIn("g_practice_launch", context)
 
+    def test_repeat_practice_uses_stock_router_after_transactional_reboot(self):
+        source = HOST.read_text(encoding="utf-8")
+        repeat = _body(
+            source,
+            "bool repeat_current_attempt() {",
+            "bool launch_recent_course_practice() {",
+        )
+        practice = repeat[:repeat.index("const uint32_t sram_before")]
+        self.assertIn("begin_quick_practice_rematch_route(", practice)
+        self.assertIn("request_frontend_reboot(true)", practice)
+        self.assertIn("g_practice_rematch_route = rematch", practice)
+        self.assertLess(
+            practice.index("request_frontend_reboot(true)"),
+            practice.index("g_practice_rematch_route = rematch"),
+        )
+        self.assertNotIn("dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY)", practice)
+        after_frame = _body(
+            source,
+            'extern "C" void ur_uniracers_modern_after_run_frame(',
+            'extern "C" int ur_uniracers_modern_settled_main_menu(',
+        )
+        self.assertIn("advance_quick_practice_rematch_route(", after_frame)
+        self.assertIn("begin_practice(step.track_id)", after_frame)
+        self.assertIn("REPEAT_PRACTICE_ROUTER_TIMEOUT", after_frame)
+        self.assertIn("REPEAT_PRACTICE_ROUTER_FAILED", after_frame)
+        self.assertIn("REPEAT_PRACTICE_ROUTER_RACE_READY", source)
+
     def test_quick_practice_and_authentic_are_explicit_acceptance_cases(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
         harness = HARNESS.read_text(encoding="utf-8")

@@ -42,6 +42,17 @@ class KeyboardPadSeatLeaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "followed join milestone"):
             verify_keyboard_plus_pad(late)
 
+    def test_malformed_or_embedded_host_move_cannot_count(self):
+        for bad_move in (
+            "[Gamepad] UR_CONTROLLER_SEAT move instance=42 from=0 to=10",
+            "unrelated UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
+        ):
+            with self.subTest(bad_move=bad_move):
+                log = joined(OPEN, P1, bad_move, JOIN_MOVE, P2,
+                             REQUEST, ENTER)
+                with self.assertRaisesRegex(ValueError, "did not move"):
+                    verify_keyboard_plus_pad(log)
+
     def test_host_seat_churn_before_guest_admission_is_rejected(self):
         for event in (
             "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=1",

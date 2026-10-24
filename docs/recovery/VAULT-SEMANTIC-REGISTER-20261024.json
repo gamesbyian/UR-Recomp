@@ -44,7 +44,8 @@
     "Agent 1 read all 22 direct Incoming publication-refusal or preservation-resolution JSON files and recorded exact file SHA256 plus historical_incident_only disposition. These were previously preserved_pending_review; their underlying source status and unresolved art/QA08 holds remain independently governed.",
     "Agent 1 scoped Incoming archive follow-up: 4 exact ZIPs CRC and SHA-256 read; three previously pending archived Windows test/security packages now semantically superseded, and CPU source-member witness refined. Distinct archived bits retained; original explicit safety refusals not reexecuted.",
     "Independent Agent 1 direct Incoming follow-up: five exact source/proposal files reconciled against current main; H26 standalone patch exact duplicate of H26 Evidence ZIP member, QA08 and QA01 source guards/statements present, WinQA same-key guard merged, RF081 candidate research-only. No new integration/release credit.",
-    "Agent 1 completed 45/45 direct Incoming item semantic/owner classification after authenticated readback. Four composite/source-test leads have named Agent 2 reviewer, two standalone title scripts have existing owner/approval holds, exact P2P source and merged test successors are recorded; no generic pending remains. Nested member audit still incomplete."
+    "Agent 1 completed 45/45 direct Incoming item semantic/owner classification after authenticated readback. Four composite/source-test leads have named Agent 2 reviewer, two standalone title scripts have existing owner/approval holds, exact P2P source and merged test successors are recorded; no generic pending remains. Nested member audit still incomplete.",
+    "Agent 1 Evidence direct duplication: 8 exact original standalone JSONs match five candidate manifests and three receipts in authenticated H26 ZIP bit-for-bit. Child SHA-256 and parent ZIP sha pin, unaltered decisions. Records race remains conditional Agent2 work, 9/9 synthetic tests not release credit."
   ],
   "items": [
     {
@@ -565,17 +566,28 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 1010,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
+      "archive_sha256": "42dc9079226f35cecc712ce2022cc1065b3ece1e8eb3b5ec3a7982c23a4b9a0a",
+      "source_member_sha256": "42dc9079226f35cecc712ce2022cc1065b3ece1e8eb3b5ec3a7982c23a4b9a0a",
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. Original H26 GitHub publication receipt. Preserve refused operation history, no replay. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "source_member_path": "receipts/GITHUB-PUBLICATION-STATUS.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "receipts/GITHUB-PUBLICATION-STATUS.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1J1Z6RjZGvPP_g-rvaCnAqDmNxLp5qbgg",
@@ -680,17 +692,28 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 7580,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
+      "archive_sha256": "c3a27b7bb9c55c17017d87d07739593e9f143695187f1b12af4c059088ae5dcd",
+      "source_member_sha256": "c3a27b7bb9c55c17017d87d07739593e9f143695187f1b12af4c059088ae5dcd",
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. Original synthetic source test output, not hardware or release evidence. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "source_member_path": "receipts/RESULTS.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "receipts/RESULTS.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1lNvFQlF7_N3ZDRW30-LkTiwwG6YVTjiU",
@@ -699,17 +722,28 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 3995,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
+      "archive_sha256": "d904a283c12cdef644d6e9ca64be380941bff6d9504f08a7c0a38a986a658fa1",
+      "source_member_sha256": "d904a283c12cdef644d6e9ca64be380941bff6d9504f08a7c0a38a986a658fa1",
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. Authentic 9/9 preflight tests; evidence only. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "source_member_path": "receipts/PREFLIGHT.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "receipts/PREFLIGHT.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
@@ -837,17 +871,30 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2325,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "archive_sha256": "2c2366720a367111924769d79254086b3b7933421ca5f7e505b413220543f05d",
+      "source_member_sha256": "2c2366720a367111924769d79254086b3b7933421ca5f7e505b413220543f05d",
+      "target_paths": [
+        "tools/export_baldosa_earned_1p_run.py"
+      ],
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. Distinct post-final-check source generation race, not resolved by no-replace destination, Agent2 conditional current-main reproduction. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 2 producer-freeze/Records race qualifier; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Qualify current producer quiescence/source-generation evidence; consider fresh ROM-free adversarial test as per #2538; do not republish archived patch.",
+      "blocker": "Current-main producer immutability assumption not proven, physical Windows gate separate",
+      "classification": "requires_agent2_semantic_review",
+      "source_member_path": "candidates/A2-H26-exporter-postcheck-publication-race.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "candidates/A2-H26-exporter-postcheck-publication-race.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1Q12Am-lwkR4rQe_sJUDI1ubOoryh-so3",
@@ -897,17 +944,30 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2172,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "archive_sha256": "86ea780361abf6ce0c6aaaecdb7755133b6b9eafefabaf15ab149d8c5a690989",
+      "source_member_sha256": "86ea780361abf6ce0c6aaaecdb7755133b6b9eafefabaf15ab149d8c5a690989",
+      "target_paths": [
+        "tests/unit/test_qa06_original_block_consistency.py"
+      ],
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. One-pixel source shift source-free false positive already demonstrated on main; original oracle remains required. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "source_member_path": "candidates/A2-H26-whole-block-shift-false-positive.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "candidates/A2-H26-whole-block-shift-false-positive.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1rB_eLV3-_fOSqUPWNDNIUmUj3vEgKNho",
@@ -976,17 +1036,30 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2769,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "archive_sha256": "338c20bcd86fc7f57185ae364e39002ad4724701ca4d90ef5e6199babd4acf86",
+      "source_member_sha256": "338c20bcd86fc7f57185ae364e39002ad4724701ca4d90ef5e6199babd4acf86",
+      "target_paths": [
+        "tools/qa08_probe_robustness.py"
+      ],
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. QA08 chromatic ±1 ambiguity already on main; same-epoch pixels unobserved. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "source_member_path": "candidates/A2-H26-competing-chromatic-probe-robustness.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "candidates/A2-H26-competing-chromatic-probe-robustness.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1tqa8vFBWAbt5oi1B8fHmMpoSv2ogzznV",
@@ -1091,17 +1164,30 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 6517,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "archive_sha256": "e9e1f38ad521cbd6dd647dd3ed54ae3eb8f0c5542e194923c82a799cbeac282d",
+      "source_member_sha256": "e9e1f38ad521cbd6dd647dd3ed54ae3eb8f0c5542e194923c82a799cbeac282d",
+      "target_paths": [
+        "tools/qa01_opposite_state_probe_priority.py"
+      ],
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. QA01 transition priority on current main, no new causal source parity. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "source_member_path": "candidates/A2-H26-bounded-transition-probe-priority.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "candidates/A2-H26-bounded-transition-probe-priority.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1WB1uqNviSubh0RGjR-AsEFq3zJAPhFc0",
@@ -1281,17 +1367,30 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2543,
       "mime_type": "application/json",
-      "archive_sha256": null,
-      "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "archive_sha256": "f1dedf5a156dad8906acba09300c05b16eab1a32dca6931d8176b5b5d1a94700",
+      "source_member_sha256": "f1dedf5a156dad8906acba09300c05b16eab1a32dca6931d8176b5b5d1a94700",
+      "target_paths": [
+        "tools/vault_integration_review.py"
+      ],
+      "current_main_comparison": "Standalone direct Evidence JSON is byte-identical to named member in original authenticated H26 recovery ZIP. H25 transitive duplicate identities, not independent source implementation. The same member already has a scoped decision in #2538; no new engineering work from duplicate location.",
+      "github_prs": [
+        "#2538"
+      ],
+      "owner": "Agent 1 exact duplicate disposition; Agent 3 final queue",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "The original H26 suite 9/9 normal and 9/9 Python -OO was independently rerun; required new source-specific test only if explicitly qualified",
+      "next_action": "Retain original Drive bytes/incident. Count as one content identity with H26 archive member; no duplicate source task.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "source_member_path": "candidates/A2-H26-transitive-h25-manifest-crosswalk.json",
+      "duplicate_member_in_archive": {
+        "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+        "whole_archive_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+        "member_path": "candidates/A2-H26-transitive-h25-manifest-crosswalk.json",
+        "byte_equal_verified": true
+      },
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1z79xAGp1IbfyQoUYmkaw6Jqq1HDPJK8o",

@@ -1,0 +1,133 @@
+{
+  "schema": "ur-vault-h26-top-level-candidate-dispositions/1",
+  "observed_main": "4cdcf8328a1cedaba4bef83964f5464eff9041e2",
+  "scope": "Only five candidates contained in H26 archive root candidates/*.json; NOT a disposition of its nested evidence/agent2-h25.zip 177 filename-filtered source-like occurrences or 114 unique blobs.",
+  "archive": {
+    "id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+    "sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+    "name": "20261021T0216Z-agent2-h26-five-line-recovery.zip",
+    "bytes": 28106236
+  },
+  "audit": {
+    "authenticated_drive_read": true,
+    "outer_zip_crc_passed": true,
+    "full_archive_sha256_verified": true,
+    "source_member_paths": [
+      "tools/h26_five_line_decisions.py",
+      "tests/test_h26.py"
+    ],
+    "source_member_sha256": {
+      "tools/h26_five_line_decisions.py": "fe091514f9762ff8eeb4ba62d078f0e78fef2cfc6361754bd3c142d7c5707dd5",
+      "tests/test_h26.py": "4e5def194d4a83881e287100f45272ccf39b312d070f107e45b4ee66e92fe4be"
+    },
+    "original_suite": {
+      "normal_passed": 9,
+      "optimized_OO_passed": 9,
+      "independent_reexecution_date": "2026-10-24",
+      "fixture": "original 5-line suite against archived preimages and synthetic controls; NOT current repository integration tests"
+    },
+    "safe_extract": "zip member paths constrained to tools/, tests/, references/, evidence/; original never mutated"
+  },
+  "decision_categories": {
+    "semantically_superseded": 3,
+    "historical_provenance_only": 1,
+    "unresolved_release_integrity_discriminator": 1,
+    "confirmed_missing_source_publication": 0
+  },
+  "members": [
+    {
+      "work_id": "UR-QA01-COMPLETE-EVENT",
+      "candidate_id": "A2-H26-bounded-transition-probe-priority",
+      "member": "candidates/A2-H26-bounded-transition-probe-priority.json",
+      "member_sha256": "e9e1f38ad521cbd6dd647dd3ed54ae3eb8f0c5542e194923c82a799cbeac282d",
+      "state": "semantically_superseded",
+      "current_main_path": "tools/qa01_opposite_state_probe_priority.py",
+      "current_main_blob": "97a31f308b101dcced6eb21f1e3c73f87df3129c",
+      "required_test": "tests/unit/test_qa01_opposite_state_probe_priority.py",
+      "comparison": "Current prioritizer computes opposite-state sparse transition brackets, first missing frame 5 and onset frame 17, preserves non-monotonic uncertainty, rejects unbounded 3782 first-divergence inference; no new guest observations or 0/45 credit.",
+      "owner": "Agent 1 completed historical disposition",
+      "priority": "P4",
+      "next_action": "Do not replay H26 original patch. Only new same-instruction-phase source/native evidence can upgrade causal event claims.",
+      "blocker": null,
+      "outer_drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+      "outer_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "work_id": "UR-QA08-EFFECTIVE-PIXEL",
+      "candidate_id": "A2-H26-competing-chromatic-probe-robustness",
+      "member": "candidates/A2-H26-competing-chromatic-probe-robustness.json",
+      "member_sha256": "338c20bcd86fc7f57185ae364e39002ad4724701ca4d90ef5e6199babd4acf86",
+      "state": "semantically_superseded",
+      "current_main_path": "tools/qa08_probe_robustness.py",
+      "current_main_blob": "16ae8d0bf426bca0b7249d928ab660ad9ef6f42b",
+      "required_test": "tests/unit/test_qa08_probe_robustness.py",
+      "comparison": "Current tool searches all 12 channel-permutation/brightness candidates and chooses 6b16, while explicitly refusing unique brightness-scaling discrimination under ±1 RGB-channel uncertainty; same-epoch chromatic PPU pixel remains absent.",
+      "owner": "Agent 1 completed historical disposition; QA08 evidence held #1996",
+      "priority": "P4",
+      "next_action": "No duplicate chromatic optimizer; future genuine source-consumed chromatic observation is an existing QA08 hold.",
+      "blocker": "Original/native same-epoch chromatic source/pixel evidence and independent hardware/art approval, not archived optimizer.",
+      "outer_drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+      "outer_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "work_id": "UR-RECORDS-LIVE-CAPTURE",
+      "candidate_id": "A2-H26-exporter-postcheck-publication-race",
+      "member": "candidates/A2-H26-exporter-postcheck-publication-race.json",
+      "member_sha256": "2c2366720a367111924769d79254086b3b7933421ca5f7e505b413220543f05d",
+      "state": "unresolved_release_integrity_discriminator",
+      "current_main_path": "tools/export_baldosa_earned_1p_run.py",
+      "current_main_blob": "2b64c18710d616cfcaff81b86d0d697f68878eae",
+      "required_test": "Bounded current-main concurrent-producer source mutation timed specifically after final _regular_bytes/source namespace census but before _publish_directory_no_replace; independently observed source generation identity after publication, then native Windows/NTFS hostile-writer qualification",
+      "comparison": "H26 original archived exporter synthetic test mutates source in post-final-check, pre-publish window and proves published artifact retains old source bytes despite changed source. Current main source explicitly documents that its final reread narrows but cannot eliminate this window; #2483 fixes namespace recheck, #2486 adds two-process no-replace, neither supplies producer freeze or immutable input-generation binding. This is a distinct time-of-check-to-time-of-publication integrity discriminator, not proof of release failure in production or authorization to republish H26 denied patch.",
+      "owner": "Agent 2 fresh engineering qualification and source-specific negative; Agent 3/Windows QA final policy decision",
+      "priority": "P2 conditional",
+      "next_action": "Agent 2 independently challenge current-main threat model and reproduce exact window using nonshipping ROM-free fixtures; if meaningful, propose fresh scoped source-pinned atomic snapshot/producer freeze protocol plus adversarial regression. Do not replay held archived source. Agent 3 adjudicates policy/NTFS release gate.",
+      "blocker": "Unqualified producer quiescence/immutability claim and real Windows NTFS hostile-writer evidence",
+      "outer_drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+      "outer_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "work_id": "UR-KNOWLEDGE-RECOVERY-PROVENANCE",
+      "candidate_id": "A2-H26-transitive-h25-manifest-crosswalk",
+      "member": "candidates/A2-H26-transitive-h25-manifest-crosswalk.json",
+      "member_sha256": "f1dedf5a156dad8906acba09300c05b16eab1a32dca6931d8176b5b5d1a94700",
+      "state": "historical_provenance_only",
+      "current_main_path": "tools/vault_integration_review.py",
+      "required_test": "tests/unit/test_vault_integration_review.py",
+      "comparison": "Original H26 evidence independently verifies 23/57/29 declared members across three H25 archive formats, and observes Agent5 nested Agent3 ZIP is byte-identical to standalone Agent3; it is a transitive storage duplicate, not independent confirming evidence. Current queue consumer has stable archive/member dedupe, but no claimed exact reproduction of the original three-H25 specialized manifest verifier. Preserve exact H26 receipt as a provenance example.",
+      "owner": "Agent 1 archival source classification; Agent 3 review consumer if future manifest gap appears",
+      "priority": "P4",
+      "next_action": "Preserve transitive identity and manifest proof; avoid creating second source implementation or false independent evidence count solely from duplicate ZIP placement.",
+      "blocker": null,
+      "outer_drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+      "outer_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "work_id": "UR-QA06-PRESENTATION",
+      "candidate_id": "A2-H26-whole-block-shift-false-positive",
+      "member": "candidates/A2-H26-whole-block-shift-false-positive.json",
+      "member_sha256": "86ea780361abf6ce0c6aaaecdb7755133b6b9eafefabaf15ab149d8c5a690989",
+      "state": "semantically_superseded",
+      "current_main_path": "tools/qa06_original_block_consistency.py",
+      "current_main_blob": "a0c539c724e3fdf0e5776130f83c630a4690fad8",
+      "required_test": "tests/unit/test_qa06_original_block_consistency.py::BlockConsistencyTest::test_whole_source_frame_shift_can_pass_block_consistency",
+      "comparison": "Current test explicitly constructs source +1 pixel full-frame shift in 512x448 Original nearest-neighbor output and proves both correct and shifted frames pass block consistency while remaining source_frame_verified=false and art_approved=false. H26's source-free false-positive conclusion is preserved, not a missing render fix.",
+      "owner": "Agent 1 completed historical disposition",
+      "priority": "P4",
+      "next_action": "Require independently pinned source-frame oracle before upgrading pixel parity or art fidelity.",
+      "blocker": "Real source/native identical raster source and independent art signoff.",
+      "outer_drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
+      "outer_sha256": "601d6131f90b427f29c53d0cee5be69cb4bacde467fda45e45b8144d5b18be00",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    }
+  ]
+}

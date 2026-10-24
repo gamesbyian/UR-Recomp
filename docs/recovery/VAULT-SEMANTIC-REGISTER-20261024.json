@@ -46,7 +46,8 @@
     "Independent Agent 1 direct Incoming follow-up: five exact source/proposal files reconciled against current main; H26 standalone patch exact duplicate of H26 Evidence ZIP member, QA08 and QA01 source guards/statements present, WinQA same-key guard merged, RF081 candidate research-only. No new integration/release credit.",
     "Agent 1 completed 45/45 direct Incoming item semantic/owner classification after authenticated readback. Four composite/source-test leads have named Agent 2 reviewer, two standalone title scripts have existing owner/approval holds, exact P2P source and merged test successors are recorded; no generic pending remains. Nested member audit still incomplete.",
     "Agent 1 Evidence direct duplication: 8 exact original standalone JSONs match five candidate manifests and three receipts in authenticated H26 ZIP bit-for-bit. Child SHA-256 and parent ZIP sha pin, unaltered decisions. Records race remains conditional Agent2 work, 9/9 synthetic tests not release credit.",
-    "Evidence root followup: accepted main 37 vm1 verdicts applied to the two original QA08/audio ZIPs; nested Git backup folder classified administrative rather than pending code (6 children already separately inventoried)."
+    "Evidence root followup: accepted main 37 vm1 verdicts applied to the two original QA08/audio ZIPs; nested Git backup folder classified administrative rather than pending code (6 children already separately inventoried).",
+    "Agent 1 Evidence historical followthrough: 10 additional exact downloaded JSON receipts/pointers classified as semantic supersession, owner-held UHD, issue state mismatch or historical provenance. QA04 #2063 remains open despite #2064, with distinct #2076 path/handle race held. No source publication/release acceptance inferred."
   ],
   "items": [
     {
@@ -118,17 +119,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 3830,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "7ba56f90f68b8721fc4800fa01c3988593e9a38b5dfe5524e98b16f5dcc27f67",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/p2p/signed_completion_receipt_contract.py"
+      ],
+      "current_main_comparison": "Original explicit refused GitHub issue #2111 comment for signed responder completion/replay commit; preservation proof, no code. Current signed finish research has separate merges; denied comment not resubmitted. Production P2P unresolved separately.",
+      "github_prs": [
+        "#2111"
+      ],
+      "owner": "Agent 1 incident retention; Agent 3 issue/hold disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
@@ -160,17 +167,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 662,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "fa5889bbfb774005d58429224c3c04406fea71c14f9e5fdcae6b13694ac814df",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_modern_root_sdl_contrast.py"
+      ],
+      "current_main_comparison": "Pointer to original H28 UHD recovered source bundle Drive 1XxdajwxMpiD8Xvdqr4yFTAAXeb9LXKB8; publication denied, source/art acceptance under existing #2043/#2149 owner. Not an independently missing implementation.",
+      "github_prs": [
+        "#2149"
+      ],
+      "owner": "Agent 3 UHD title art/source owner",
+      "priority": "P3 owner hold",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Retain original and follow existing visual source/art approval, no new standalone source publication",
+      "blocker": "Independent source/art UHD approval pending",
+      "classification": "active_existing_owner_hold",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "174uaFvvPUZU5hJcblskoOURMyLPePXR_",
@@ -199,17 +212,21 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2384,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "84015c67da5a1df13c27ed405b768cf3e73cd9298cbecfd257ad8d96b55fd934",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "H26 integration snapshot of PR2053 divergent base and prior PR2040 CI failure, now outdated chronological research. Candidate JSON has bundle_drive_id=null and patch_drive_id=null; no source bytes or safe merge instruction.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 historical/semantic classification; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "18k3_o_lerMRwyeuNcqMmdIzlMxSzK4Dr",
@@ -240,17 +257,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 1298,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "716e29cc948649d48a4bf56f3adb797eb1c6c5e302c5ee4568d764ada37671b0",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/rf081_selected_pc_candidate_census.py"
+      ],
+      "current_main_comparison": "Agent5 H26 source-local CPU/QA08/UHD cross-check against Agent1 archive identifies independent clocks/one-pixel-raster limitations and source-test distinctness. No source patch, no same-phase RTS identity or release acceptance. Current tools/tests and existing title owner cover the qualified concepts.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 historical/semantic classification; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "191sb6G2uR3C35bdFpKMTFLdNdEQLq9xB",
@@ -278,17 +301,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 1902,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "007a1a45f4496a5ea89a5fbcf460e1a3e17ea4dc674ee939a146edabfc771cce",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/live_capture_timeline_audit.py"
+      ],
+      "current_main_comparison": "Original 120Hz repeated guest-frame with distinct source presentation IDs was rejected by older one-presentation-per-guest-tick research. Current main live capture timeline auditor allows consecutive source presentation IDs while guest frame may repeat; current named unit tests source-bound fixture. Synthetic metadata only, no independent Windows video/audio.",
+      "github_prs": [
+        "#2377"
+      ],
+      "owner": "Agent 1 historical/semantic classification; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1AJjdFwZpUW3oRl65EufZ9pb2vyxUWxxE",
@@ -317,17 +346,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 1016,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "4e3a90893a68b6709f250f5c289361145f01239",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "research/qa08/qa08_temporal_source_census.py"
+      ],
+      "current_main_comparison": "Original PPU temporal census bundle Drive 1wW_zP28K8OWA--3UMLX4Yc2_VuIVOgSq, sha 25b0c7c00380d43f1e6f7edcac5163614ecf0a1841fff09cf37e8e2049065be0, source and test exact main blobs 8583ed7b/bee9def0. Historical refused create_file unchanged; no QA08 gate credit.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 historical/semantic classification; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1c2quzPdRbM2DlLwnU7DamlZGiiJ5ojbG",
@@ -336,17 +371,21 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 1221,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "617c954b2ede1c8d58272f8db78e3e9eadf6c459918ad0942d43d3a586dd2a48",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "current_main_comparison": "H25 authenticated original Drive readback receipts of five files with SHA/length; standalone H25 recovery ZIP and additive patch still preserved. No new source or code task implied by a readback report.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 historical/semantic classification; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1cctOS2awnuLjgNXIEInvqgYmH3m2JWrhjS86HsinLXo",
@@ -374,17 +413,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 1246,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "f68934bcb8f649dc535cb431382385e15d9a33196b130e1718abb6130ebf37c2",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/check_qa04_physical_windows_packets.py"
+      ],
+      "current_main_comparison": "Safety-denied attempt to close issue #2063; source guard merged #2064 but issue #2063 still open at 2026-10-24 checkpoint. Issue #2076 covers separate path/handle TOCTOU and remains open; Agent3 independently decides issue-state closure, no replay of originally denied update_issue.",
+      "github_prs": [
+        "#2064"
+      ],
+      "owner": "Agent 1 incident retention; Agent 3 issue/hold disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Agent 3 independently adjudicate #2063 closure based on #2064 while retaining #2076 as separate active race; do not replay denied update call",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1dnRrywHP9v3O5GXfjopAouiUcBKPa_MZ",
@@ -393,17 +438,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2218,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "09e5634783e1fdb76e859fbb3e641c9932ac8d7b88bfaf06910b7cbf238b629b",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/qa08_rf017_epoch_crc_overlap.py"
+      ],
+      "current_main_comparison": "PPU SHA FNV-vs-CRC noncomparability comment and Drive journal publication refusals; original intentionally held, no source bytes or accepted pixel parity. Keep QA08 #1996 PPU gate.",
+      "github_prs": [
+        "#1996"
+      ],
+      "owner": "Agent 1 incident retention; Agent 3 issue/hold disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Preserve exact original evidence; no duplicate source task based on historical marker.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1Dt3wKrTbdowhCI67q5RbPO_s1SB-v0n0",
@@ -434,17 +485,23 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 2620,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "def48822e5e11301a82d49d4033db3a50548062b6f60fe6beda6303e322ce352",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_modern_root_sdl_contrast.py"
+      ],
+      "current_main_comparison": "Agent5 H26 original native 1024×768 compact root and 1280×720 letterbox contrast source-qualified evidence, older head than owner PR. Source/SDL pixels/art acceptance remains with existing #2043/#2149; candidate manifest not independently publishable.",
+      "github_prs": [
+        "#2149"
+      ],
+      "owner": "Agent 3 UHD title art/source owner",
+      "priority": "P3 owner hold",
+      "required_test": "Current source/PR semantic comparison where specified; no release gate from old receipt",
+      "next_action": "Retain original and follow existing visual source/art approval, no new standalone source publication",
+      "blocker": "Independent source/art UHD approval pending",
+      "classification": "active_existing_owner_hold",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1ET1QF8GUeYgBNOoUFFRGn0LBe3bIqL3S",

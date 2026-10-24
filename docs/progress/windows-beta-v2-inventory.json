@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "c00997af128912297e5cf8bffac54ee0b9f12484",
+  "source_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -92,7 +92,10 @@
       "evidence_class": "merged_pr_targeted_test_or_witness",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39741657113",
+      "independent_review_note": "Hosted Windows actual OpenGL 1.1.0 and forced 1.1 both refused safely, process alive; job 119700061393, binary SHA beced3d3f8cced4db5ea0115c8153922ed5ec11295df2b453b3b7c3fdce3b752. No real remote-desktop or GPU-driver test.",
+      "independent_review_basis": "Independent read-only review of full original CI job log and output markers against frozen bounded criterion wording. No new execution by this reviewer."
     },
     {
       "id": "WIN-04",
@@ -194,7 +197,10 @@
       "evidence_class": "merged_pr_targeted_test_or_witness",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39915291314",
+      "independent_review_note": "Independent Linux/Xvfb native tour-a run job 120288246079, genuine source-driven Practice results=2 repeats=2 course=0; no physical pad or Windows release acceptance.",
+      "independent_review_basis": "Independent read-only review of full original CI job log and output markers against frozen bounded criterion wording. No new execution by this reviewer."
     },
     {
       "id": "ONE-06",
@@ -1701,6 +1707,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges.",
-  "latest_criterion_review_ref": "docs/progress/v2-one07-rematch-promotion-20261024.json",
+  "latest_criterion_review_ref": "docs/progress/v2-independent-bounded-audit-20261024.json",
   "latest_review_interval": "docs/progress/v2-review-interval-20261024T1850.json"
 }

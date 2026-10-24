@@ -14,18 +14,18 @@ using namespace ur::product;
 namespace {
 std::vector<std::string> painted;
 struct TextDraw { int x; int y; int scale; std::string content; std::uint32_t color; };
-struct RectDraw { int x; int y; int width; int height; };
+struct RectDraw { int x; int y; int width; int height; std::uint32_t color; };
 std::vector<TextDraw> text_draws;
 std::vector<RectDraw> rect_draws;
 std::uint32_t chosen_color;
 void fill(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t color) {
     painted.emplace_back("fill");
-    rect_draws.push_back({x,y,w,h});
+    rect_draws.push_back({x,y,w,h,color});
     chosen_color = color;
 }
-void stroke(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t) {
+void stroke(std::uint32_t*,int,int,int x,int y,int w,int h,std::uint32_t color) {
     painted.emplace_back("stroke");
-    rect_draws.push_back({x,y,w,h});
+    rect_draws.push_back({x,y,w,h,color});
 }
 void text(std::uint32_t*,int,int,int x,int y,const char* t,
           std::uint32_t color,int scale) {
@@ -39,6 +39,17 @@ bool contains(const std::string& s) {
 bool drawn_in_color(const std::string& value, std::uint32_t color) {
     for (const auto& row : text_draws)
         if (row.content == value && row.color == color) return true;
+    return false;
+}
+// Verify the actual opaque identity strip at both logical densities.
+bool identity_strip_drawn(int x, int y, int scale, int panel_w) {
+    for (const auto& rect : rect_draws)
+        if (rect.x == x + 5 * scale &&
+            rect.y == y + 31 * scale &&
+            rect.width == (panel_w - 10) * scale &&
+            rect.height == 18 * scale &&
+            rect.color == kModernMenuGreyRamp[4])
+            return true;
     return false;
 }
 int count(const std::string& s) {
@@ -87,6 +98,10 @@ int main() {
     assert(drawn_in_color("RACER: CREATE A RACER WITH X",
                           kModernMenuCheckerLegibleGrey));
     static_assert(kModernMenuCheckerLegibleGrey == 0xFFC8C8C8u);
+    static_assert(kModernMenuGreyRamp[4] == 0xFF181818u);
+    assert(identity_strip_drawn(old_view.x, old_view.y, 1, 240));
+    // Opaque #181818 behind #C8C8C8 is > 10:1 sRGB contrast;
+    // no glyph may sit directly over the #505050 checker.
     assert(contains("> PLAY"));
     assert(contains("  PRACTICE"));
     assert(contains("  MULTIPLAYER"));
@@ -163,6 +178,7 @@ int main() {
                                       wide_view,view));
     assert(contains("UNIRALLY"));
     assert(contains("RACER: CUSTOM RACER"));
+    assert(identity_strip_drawn(wide_view.x, wide_view.y, 4, 356));
     assert(contains("> RECORDS"));
     assert(contains("RECORDS")); // real active destination in wide preview
     assert(!contains("SELECTED")); // generic engineering heading removed
@@ -231,6 +247,7 @@ int main() {
             view.menu = modern_root_menu_move(view.menu, 1);
         assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
                                           real_wide_view,view));
+        assert(identity_strip_drawn(real_wide_view.x, real_wide_view.y, 4, 320));
         assert(contains(expected_lines[i][0]));
         assert(contains(expected_lines[i][1]));
         // Independent of the route hint, its yellow preview heading is

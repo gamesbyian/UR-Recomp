@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Source/PE-bound real SDL P7 audit of Modern racer identity contrast (#2131).
 
-The native root draws a 320/240-wide panel at (11/8, 10), with an opaque
+The current native root is a fixed 256x224 scene, even inside a
+1280x720 16:9 window: the widened 342x224 source is reserved for qualified
+live-race scenes. The root draws a 240-wide panel at (8, 10), with an opaque
 stock #181818 identity strip and stock-family #C8C8C8 label. Sample every
 logical-pixel centre after actual 7:6 PAR SDL nearest-neighbour presentation.
 This verifies a *real final output*, not a synthetic presenter callback.
@@ -24,7 +26,7 @@ except ModuleNotFoundError:  # direct script invocation
 
 BG = (24, 24, 24)
 FG = (200, 200, 200)
-EXPECTED = ((342, (1280, 720)), (256, (1024, 768)))
+EXPECTED = ((256, (1280, 720)), (256, (1024, 768)))
 
 
 def sha256(data: bytes) -> str:
@@ -86,9 +88,9 @@ def audit_frame(frame: visual.Frame, logical_width: int) -> dict:
 def audit_observed_frame(frame: visual.Frame, expected_logical_width: int) -> dict:
     """Measure the actual source grid before sampling the identity strip.
 
-    A 256-wide root stretched to a 1280x720 drawable must not be misreported
-    as 342-wide checkerboard bleed. Keep the width mismatch as a failing
-    product check while reporting the real 256-wide strip's pixel integrity.
+    A fixed 256-wide root inside a 1280x720 drawable must not be misreported
+    as 342-wide checkerboard bleed. Reject any mismatch against the declared
+    scene policy while reporting the actual strip's pixel integrity.
     """
     detected = visual.detect_logical(frame, (256, 342))
     widths = detected["consistent_widths"]
@@ -147,6 +149,7 @@ def main(argv=None) -> int:
         result = {"schema": "ur-modern-identity-final-sdl-p7-v1",
                   "source_sha": a.expected_source_sha,
                   "exe_sha256": captures[0]["exe_sha256"],
+                  "source_scene_policy": "fixed-modern-root-256x224",
                   "captures": captures, "pass": all(c["pass"] for c in captures),
                   "human_visual_approved": False, "physical_monitor_approved": False,
                   "original_guest_equivalence_approved": False, "release_gate_credit": 0}

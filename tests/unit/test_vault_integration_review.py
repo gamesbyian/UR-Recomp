@@ -113,6 +113,7 @@ class ReviewQueueTests(unittest.TestCase):
         self.assertEqual(len(handoff), 1)
         self.assertEqual(handoff[0]["drive_file_id"], DRIVE)
         self.assertEqual(handoff[0]["archive_sha256"], A)
+        self.assertEqual(handoff[0]["expected_archive_sha256"], A)
         self.assertEqual(handoff[0]["member_sha256"], B)
         self.assertFalse(handoff[0]["dispatch_automatically"])
         self.assertFalse(handoff[0]["entire_archive_review_required"])

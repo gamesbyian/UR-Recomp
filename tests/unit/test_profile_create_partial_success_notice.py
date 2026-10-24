@@ -30,6 +30,13 @@ class ProfileCreatePartialSuccessNotice(unittest.TestCase):
         self.assertLess(self.draw.index("g_profile_create_activation_failed"),
                         self.draw.index("SELECT FAILED - ESC TO CLOSE"))
 
+    def test_partial_success_notice_is_not_overwritten_by_cool_name(self):
+        self.assertIn("if (g_profile_cool_name_notice && !g_profile_create_activation_failed)",
+                      self.draw)
+        self.assertIn("if (!activated) g_profile_cool_name_notice = false;", self.create)
+        self.assertLess(self.create.index("g_profile_create_activation_failed = !activated;"),
+                        self.create.index("if (!activated) g_profile_cool_name_notice = false;"))
+
     def test_notice_clears_on_reopen_and_new_editor(self):
         for name in ("void open_profile_menu() {", "void begin_profile_create() {", "void begin_profile_rename() {"):
             block = self.source.split(name, 1)[1].split("\n}", 1)[0]

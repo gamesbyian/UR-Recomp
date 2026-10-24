@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import unittest
 
-from tools.check_windows_portable_binary import (\n    check_dependencies, WINDOWS_INBOX_API_SET_DLLS,\n)
+from tools.check_windows_portable_binary import (
+    check_dependencies, WINDOWS_INBOX_API_SET_DLLS,
+)
 
 
 def dumpbin(*names: str, delay: tuple[str, ...] = ()) -> str:
@@ -39,7 +41,8 @@ class WindowsPortableApiSetImportContract(unittest.TestCase):
             "api-ms-win-nonexistent-l1-1-0.dll",
             "ext-ms-win-nonexistent-l1-1-0.dll",
             "API-MS-WIN-UNREVIEWED-L1-1-0.DLL",
-            "api-ms-win-crt-runtime-l9-9-9.dll",\n            "api-ms-win-crt-imaginary-l1-1-0.dll",
+            "api-ms-win-crt-runtime-l9-9-9.dll",
+            "api-ms-win-crt-imaginary-l1-1-0.dll",
         ):
             with self.subTest(name=name), self.assertRaisesRegex(
                     ValueError, "non-inbox DLLs"):

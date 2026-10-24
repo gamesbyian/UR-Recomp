@@ -3473,7 +3473,7 @@
         ".github/workflows/windows-local-tournament-package-acceptance.yml",
         "tests/unit/test_windows_smoke_package_handoff_policy.py"
       ],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Original Drive ZIP contains proposal.json with a source-exact intended three-path change, including a reviewer-supplied portable_zip_sha256 and candidate_commit_sha pair. Current main .github/workflows/windows-local-tournament-package-acceptance.yml delegates a source SHA-nominated same-run build through windows-native-smoke.yml, but intentionally does not require historical cross-run portable_zip_sha256 pin; the current smoke workflow fingerprints its own produced ZIP and emits an evidence envelope. The archived proposal is therefore semantically evolved/replaced, not byte-copied or a missing independent acceptance gate. Policy tests exist on main; no physical tournament acceptance claimed.",
       "github_prs": [
         "#2366"
       ],
@@ -3487,6 +3487,15 @@
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
         "caveat": "Preserved proposal.json documents anchored intended changes to three existing workflow/test paths, not published source files. Later merged workflow semantics require independent PR comparison; do not claim the proposal itself merged exactly."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": ".github/workflows/windows-local-tournament-package-acceptance.yml",
+        "other_paths": [
+          ".github/workflows/windows-native-smoke.yml",
+          "tests/unit/test_windows_smoke_package_handoff_policy.py"
+        ],
+        "observed_main_tree": "20c5e24bc70720a48e7f19e2350bc0dcf9f0067d",
+        "distinction": "Archived proposal's cross-run ZIP SHA requirement is absent, while main uses same-run self-fingerprinting; these are different policies. Main source and workflow must be read before any stronger engineering credit."
       }
     },
     {

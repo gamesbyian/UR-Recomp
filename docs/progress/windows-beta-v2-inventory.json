@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "7f8f882820feb6d2b9d46b16f5e90e46dd0544f3",
+  "source_sha": "6bbb07983502496c0a1fad53f00bfc9aa0333261",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -213,12 +213,17 @@
       "id": "ONE-07",
       "area": "ONE",
       "criterion": "One-action rematch repeats with fresh legal guest session",
-      "status": "unverified",
-      "evidence": [],
-      "evidence_class": "none",
+      "status": "bounded_verified",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/2494",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40078888170",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40078888094"
+      ],
+      "evidence_class": "exact_pr_head_native_stock_router_relaunch_two_cycles_plus_hosted_Win32_green",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "pending"
+      "audit_state": "inherited_pr_screening",
+      "review_note": "One-action Practice Results Repeat uses transactional restore/session reboot and canonical stock menu entry; exact PR head has green native router (two consecutive cycles), Windows x64 bridge and 6 other workflow checks. Narrow hosted product credit only; no human pad, no original/native full USA acceptance."
     },
     {
       "id": "ONE-08",
@@ -1695,5 +1700,6 @@
   "fixed_denominator_units": 4500,
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
-  "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges."
+  "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges.",
+  "latest_criterion_review_ref": "docs/progress/v2-one07-rematch-promotion-20261024.json"
 }

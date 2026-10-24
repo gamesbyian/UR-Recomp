@@ -249,6 +249,7 @@ def verify_five_destination_pad_journey(log: str) -> None:
     if positions != sorted(positions) or len(set(positions)) != len(positions):
         raise ValueError("five destinations: native modal/guest stages out of order")
     for forbidden in ("practice_unavailable=1", "join_unavailable=1",
+                      "stock_requested players=2", "stock_entered players=2",
                       "stock_rejected=", "stock_aborted=", "active_profile_stale=1",
                       "join_pad_moved", "join_seat_left"):
         if forbidden in log:
@@ -366,8 +367,9 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "rom_sha256": hashlib.sha256(rom.read_bytes()).hexdigest(),
         "video_driver": video,
         "source_commit": os.environ.get("GITHUB_SHA"),
-        "scope": "Modern 2P join with SDL virtual gamepads through the native event "
-                 "loop; not physical controllers or a completed 2P race",
+        "scope": "Modern 2P join and one continuous five-destination title-to-stock "
+                 "journey with SDL virtual gamepads; not physical controllers, "
+                 "completed races/results/returns, or release acceptance",
     }
     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     return receipt

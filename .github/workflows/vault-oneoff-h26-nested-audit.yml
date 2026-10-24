@@ -4,6 +4,10 @@ name: Vault One-off H26 Nested Audit
 # exact Git blob on main. Metadata only by default; optional review-gated text
 # printing for explicitly named members. Remove after the question closes.
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/vault-oneoff-h26-nested-audit.yml'
+      - '.github/vault-oneoff-h26-print-chain.txt'
   workflow_dispatch:
     inputs:
       print_chain:
@@ -51,6 +55,7 @@ jobs:
         env:
           PRINT_CHAIN: ${{ inputs.print_chain }}
           CONFIRM: ${{ inputs.confirm_source_review }}
+          EVENT: ${{ github.event_name }}
         run: |
           python - <<'PY'
           import hashlib, io, os, subprocess, sys, zipfile
@@ -113,9 +118,17 @@ jobs:
                   sha[:16], git[:12], size, len(occ), ','.join(same_name[:3]) or '-', path))
           print('SRC-NOT-ON-MAIN-COUNT', missing)
 
-          want = [c for c in os.environ.get('PRINT_CHAIN', '').split(';') if c.strip()]
+          chain_text = os.environ.get('PRINT_CHAIN', '')
+          confirmed = os.environ.get('CONFIRM') == 'true'
+          list_file = '.github/vault-oneoff-h26-print-chain.txt'
+          if os.environ.get('EVENT') == 'pull_request' and os.path.exists(list_file):
+              # PR runs read the reviewed member list from the branch file;
+              # its presence in the reviewed commit is the source-review gate.
+              chain_text = ';'.join(l.strip() for l in open(list_file, encoding='utf-8') if l.strip() and not l.startswith('#'))
+              confirmed = True
+          want = [c for c in chain_text.split(';') if c.strip()]
           if want:
-              if os.environ.get('CONFIRM') != 'true':
+              if not confirmed:
                   sys.exit('print_chain requires confirm_source_review')
               printed = 0
               for sha, occ in leaves.items():

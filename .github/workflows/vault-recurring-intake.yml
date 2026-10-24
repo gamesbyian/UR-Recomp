@@ -138,11 +138,11 @@ jobs:
               drive_id = error.get("id", "")
               if isinstance(drive_id, str) and ID_PATTERN.fullmatch(drive_id):
                   category = classify_intake_error(error.get("error", ""))
-                  print(f"  - Failed Drive ID \`{drive_id}\`: {category} (not checkpointed)")
+                  print(f"  - Failed Drive ID `{drive_id}`: {category} (not checkpointed)")
           for pending in data.get("retry_cooldown", [])[:12]:
               drive_id = pending.get("id", "")
               if isinstance(drive_id, str) and ID_PATTERN.fullmatch(drive_id):
-                  print(f"  - Deferred Drive ID \`{drive_id}\`: size-budget cooldown; "
+                  print(f"  - Deferred Drive ID `{drive_id}`: size-budget cooldown; "
                         f"retry after {pending.get('retry_after', 'future refresh')}")
           print(f"- oversized archives cooling down: {len(data.get('retry_cooldown', []))}")
           print(f"- new bounded source-member fingerprints: {sum(len((x.get('zip') or {}).get('review_leads', [])) for x in data['processed'])}")

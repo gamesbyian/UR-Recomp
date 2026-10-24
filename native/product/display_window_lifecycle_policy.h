@@ -81,13 +81,27 @@ static inline int ur_display_window_fits(
            (long long)window.y + window.h <= (long long)usable.y + usable.h;
 }
 
-/* Where to put an unreachable window: its size, shrunk to the target
- * usable area if needed, centred on it. */
+/* Rescue an unreachable window on a remaining monitor. Keep its size
+ * when it fits; if it does not, shrink both axes by the same factor so
+ * moving a 16:9 game window to a smaller display does not turn it into a
+ * distorted 4:3 window. Use 64-bit integer ratios to avoid floating-point
+ * drift and overflow for the full range of positive int dimensions. */
 static inline UrDisplayRect ur_display_window_rescue(
     UrDisplayRect window, UrDisplayRect usable) {
     UrDisplayRect out;
     out.w = window.w < usable.w ? window.w : usable.w;
     out.h = window.h < usable.h ? window.h : usable.h;
+    if (window.w > 0 && window.h > 0 && usable.w > 0 && usable.h > 0 &&
+        (window.w > usable.w || window.h > usable.h)) {
+        if ((long long)window.w * usable.h >
+            (long long)window.h * usable.w) {
+            out.w = usable.w;
+            out.h = (int)((long long)window.h * usable.w / window.w);
+        } else {
+            out.h = usable.h;
+            out.w = (int)((long long)window.w * usable.h / window.h);
+        }
+    }
     if (out.w < 1) out.w = 1;
     if (out.h < 1) out.h = 1;
     out.x = usable.x + (usable.w - out.w) / 2;

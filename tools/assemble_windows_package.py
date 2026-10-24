@@ -621,7 +621,6 @@ def verify(package: Path) -> dict[str, object]:
 
     actual_paths = {entry["path"] for entry in actual}
     validate_required_package_paths(actual_paths, context="packaged")
-    validate_launcher_source_revision(actual, source_revision, context="packaged")
     if (package / ROM_CONFIG_NAME).stat().st_size > MAX_PACKAGE_ROM_CONFIG_BYTES:
         raise ValueError("packaged rom.cfg exceeds shipping size limit")
     try:
@@ -646,6 +645,7 @@ def verify(package: Path) -> dict[str, object]:
         )
     if readme_bytes != readme_text(source_revision).encode("utf-8"):
         raise ValueError("package README is not canonical UTF-8/LF content")
+    validate_launcher_source_revision(actual, source_revision, context="packaged")
 
     return manifest
 
@@ -885,9 +885,6 @@ def verify_archive(archive: Path) -> dict[str, object]:
             validate_required_package_paths(
                 relative_paths, context="archive package"
             )
-            validate_launcher_source_revision(
-                manifest["files"], source_revision, context="archive package"
-            )
             try:
                 validate_rom_config(
                     source.read(f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}"),
@@ -912,6 +909,9 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 raise ValueError(
                     "package archive README is not canonical UTF-8/LF content"
                 )
+            validate_launcher_source_revision(
+                manifest["files"], source_revision, context="archive package"
+            )
 
             if set(names) != expected_names:
                 raise ValueError(

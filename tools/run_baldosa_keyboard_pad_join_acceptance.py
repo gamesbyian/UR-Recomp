@@ -252,7 +252,7 @@ def verify_five_destination_pad_journey(log: str) -> None:
     # route. Bind each selection to the specific modal it actually opened.
     cursor_positions = [
         m.start() for m in re.finditer(
-            r"(?m)^UR_BALDOSA_MODERN_ROOT selected=\\d+$", log
+            r"(?m)^UR_BALDOSA_MODERN_ROOT selected=\d+$", log
         )
     ]
     expected_windows = (

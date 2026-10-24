@@ -183,18 +183,20 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     required = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=",
         # Named-profile cold boot has a source-observed -3-frame startup
-        # offset (Windows exact-head run 40092886488): 437/940/1529.
+        # offset (Windows exact-head runs 40092886488 and 40097172085):
+        # 437/940/1529, source reveal 940 and stable MAIN recovery 3815.
+        # Host-script action frames 1600/1674/1710/3770/3900 do not shift.
         # Preserve the exact source chronology, D7/84/01 state and title
         # overlay; anonymous 440/943/1532 checks remain independent.
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=437 menu=d7 race=00 overlay_title=1",
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=940 menu=84 race=00 overlay_title=1",
-        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=940",
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1529 menu=00 race=01 overlay_title=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600",
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0",
-        "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3815 menu=d7 race=00 stable=60",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
         "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
@@ -222,7 +224,7 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     return [
         {"phase": "named_play_denied_while_demo", "frame": 1710},
         {"phase": "named_play_denied_while_menu_unsettled", "frame": 3770},
-        {"phase": "original_main_stable", "frame": 3818},
+        {"phase": "original_main_stable", "frame": 3815},
         {"phase": "original_stock_one_player_entered", "frame": 3900},
     ]
 

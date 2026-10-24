@@ -122,12 +122,12 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             "bool repeat_current_attempt() {",
             "bool launch_recent_course_practice() {",
         )
-        guard = repeat.index("quick_practice_repeat_target_ready(")
+        guard = repeat.index("begin_quick_practice_rematch_route(")
         reject = repeat.index("REPEAT_PRACTICE_REJECTED_TARGET")
         restart = repeat.index("dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY)")
         self.assertLess(guard, reject)
         self.assertLess(reject, restart)
-        self.assertIn("g_practice_active &&", repeat)
+        self.assertIn("if (g_practice_active)", repeat)
         self.assertIn("g_recent_course_track_id", repeat)
         context = _body(
             source,

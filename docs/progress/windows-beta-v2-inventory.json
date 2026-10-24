@@ -6,51 +6,50 @@
   "status": "review_candidate_not_formal_qa",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
-  "fixed_total_basis_points": 10000,
   "groups": {
     "WIN": {
       "label": "Windows host and package",
-      "weight_basis_points": 600
+      "weight_units": 270
     },
     "ONE": {
       "label": "Single-player playable journey",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "TWO": {
       "label": "Local 2P and match journeys",
-      "weight_basis_points": 800
+      "weight_units": 360
     },
     "MENU": {
       "label": "Modern frontend features",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "DATA": {
       "label": "Profiles, records and persistence",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "RECOVERY": {
       "label": "Windows failure recovery",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "WIDE": {
       "label": "Widescreen and display presentation",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "ART": {
       "label": "Approved remastered racer and art",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "QA": {
       "label": "Current exact-package release proof",
-      "weight_basis_points": 1000
+      "weight_units": 450
     },
     "UX": {
       "label": "Usability and accessibility",
-      "weight_basis_points": 600
+      "weight_units": 270
     },
     "FID": {
       "label": "45 independently accepted USA original/native events",
-      "weight_basis_points": 1000
+      "weight_units": 450
     }
   },
   "criteria": [
@@ -58,1496 +57,1631 @@
       "id": "WIN-01",
       "area": "WIN",
       "criterion": "Hosted Windows x64 package boots the native Modern game",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIN-02",
       "area": "WIN",
       "criterion": "ROM-free host launcher exposes functioning Modern destinations",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIN-03",
       "area": "WIN",
       "criterion": "Launcher survives unsupported hardware OpenGL path",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2281"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIN-04",
       "area": "WIN",
       "criterion": "Native renderer resumes frames after GPU device reset",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2286"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIN-05",
       "area": "WIN",
       "criterion": "Default window size follows primary-display DPI",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2297"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIN-06",
       "area": "WIN",
       "criterion": "Off-screen window recovery preserves aspect ratio",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2463"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "ONE-01",
       "area": "ONE",
       "criterion": "Native guest boots into an actual single-player stock race",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1416"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "ONE-02",
       "area": "ONE",
       "criterion": "Single-player native race reaches an authentic scored result",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1416"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "ONE-03",
       "area": "ONE",
       "criterion": "Tour Next Event preserves completed results and progression",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ONE-04",
       "area": "ONE",
       "criterion": "Practice picker respects stock-unlocked available courses",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "ONE-05",
       "area": "ONE",
       "criterion": "Real native Practice repeats through two completed result cycles",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2362"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "ONE-06",
       "area": "ONE",
       "criterion": "Result focus recovers Up to Records and Down to Next Event",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2384"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "ONE-07",
       "area": "ONE",
       "criterion": "One-action rematch repeats with fresh legal guest session",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ONE-08",
       "area": "ONE",
       "criterion": "Restart returns to active race without leaking guest Start",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ONE-09",
       "area": "ONE",
       "criterion": "Representative expert racing physics independently matches original",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ONE-10",
       "area": "ONE",
       "criterion": "Full course-result lifecycle retains original rules and audio",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "TWO-01",
       "area": "TWO",
       "criterion": "Two controller-created profiles enter genuine original 2P GO",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "TWO-02",
       "area": "TWO",
       "criterion": "Genuine two-player race reaches settled guest 2P results",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "TWO-03",
       "area": "TWO",
       "criterion": "Both 2P racers persist independently earned fresh-process Records",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "TWO-04",
       "area": "TWO",
       "criterion": "Lost seat-one pad moves remaining sole pad into menu seat one",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2332"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "TWO-05",
       "area": "TWO",
       "criterion": "Keyboard plus pad admission rejects seat churn through stock GO",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2455"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "TWO-06",
       "area": "TWO",
       "criterion": "Local best-of tournament completes real fixtures",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "TWO-07",
       "area": "TWO",
       "criterion": "Two-player cold restart preserves both racer ownership and results",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "TWO-08",
       "area": "TWO",
       "criterion": "Full original/native two-player match logic is accepted",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "MENU-01",
       "area": "MENU",
       "criterion": "Physical-controller root exposes five Modern destinations",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-02",
       "area": "MENU",
       "criterion": "Modern Options exposes real Display VSync Volume and Defaults",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-03",
       "area": "MENU",
       "criterion": "Practice selection enumerates stock-unlocked courses",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-04",
       "area": "MENU",
       "criterion": "Records destination shows earned native runs after fresh process",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-05",
       "area": "MENU",
       "criterion": "Multiplayer join enters original 2P without alternate simulator",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-06",
       "area": "MENU",
       "criterion": "Modern Results directional stale-focus recovery passes negative tests",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2384"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-07",
       "area": "MENU",
       "criterion": "Profile create/rename failures provide explicit visible explanation",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2414"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-08",
       "area": "MENU",
       "criterion": "Modern root identity maintains measurable contrast over checkerboard",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2472"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-09",
       "area": "MENU",
       "criterion": "Records and Local Runs panels scale with presentation density",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2465"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "MENU-10",
       "area": "MENU",
       "criterion": "Title idle leads to genuine stock attract/demo and wake control",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "DATA-01",
       "area": "DATA",
       "criterion": "Unseeded original Windows guest creates genuine P1 named profile",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-02",
       "area": "DATA",
       "criterion": "Unseeded original Windows guest creates independent P2 profile",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-03",
       "area": "DATA",
       "criterion": "Both racers retain immutable earned two-player records on restart",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-04",
       "area": "DATA",
       "criterion": "Host Options settings persist outside SRAM without mixing identities",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-05",
       "area": "DATA",
       "criterion": "Native profile and replay file paths preserve UTF-8 Windows names",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2405"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-06",
       "area": "DATA",
       "criterion": "Tournament fixtures and checkpoints accept UTF-8 filesystem paths",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2450"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-07",
       "area": "DATA",
       "criterion": "Stored current racer survives normal quit and next cold session",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1990"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-08",
       "area": "DATA",
       "criterion": "Completed run browser uses persisted earned records, not fixtures",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-09",
       "area": "DATA",
       "criterion": "Profile editor rejects unsafe catalog conflict without reset",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2452"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "DATA-10",
       "area": "DATA",
       "criterion": "Ghost/replay actually plays source-authentic saved run",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "RECOVERY-01",
       "area": "RECOVERY",
       "criterion": "Win32 native profile crash journal preserves unaffected profiles",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1990"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-02",
       "area": "RECOVERY",
       "criterion": "No-replace immutable archive protects preexisting earned run",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1990"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-03",
       "area": "RECOVERY",
       "criterion": "Native packaged recovery has real full/denied NTFS regression",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1990"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-04",
       "area": "RECOVERY",
       "criterion": "Short staged-write failure preserves committed profile bytes",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2464"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-05",
       "area": "RECOVERY",
       "criterion": "Failed post-creation activation is explained as committed create",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2460"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-06",
       "area": "RECOVERY",
       "criterion": "Rename conflict preserves binding to immutable racer identity",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2421"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-07",
       "area": "RECOVERY",
       "criterion": "Missing current snapshot blocks racer switching without data loss",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2456"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-08",
       "area": "RECOVERY",
       "criterion": "Unicode SRAM intent and cold-replay path is preserved",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2404"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "RECOVERY-09",
       "area": "RECOVERY",
       "criterion": "Actual power-cut torn-file and second-cold-start recovery accepted",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "RECOVERY-10",
       "area": "RECOVERY",
       "criterion": "Exact-current packaged Windows R/T/S/Q journey independently accepted",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "WIDE-01",
       "area": "WIDE",
       "criterion": "Widescreen extends real in-game course/world visibility",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIDE-02",
       "area": "WIDE",
       "criterion": "Original mode restores native 256 by 224 view without crop",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIDE-03",
       "area": "WIDE",
       "criterion": "7:6 pixel aspect is independently tested on physical display",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "WIDE-04",
       "area": "WIDE",
       "criterion": "Window default DPI and monitor changes preserve usability",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2304"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIDE-05",
       "area": "WIDE",
       "criterion": "Off-screen window rescue avoids wrong aspect during restoration",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2463"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "WIDE-06",
       "area": "WIDE",
       "criterion": "4K 3840×2160 output is independently measured on real hardware",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "WIDE-07",
       "area": "WIDE",
       "criterion": "Camera and tile streaming remain source-correct in full widescreen",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "WIDE-08",
       "area": "WIDE",
       "criterion": "Split-screen two-player widescreen has accepted visual coverage",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "WIDE-09",
       "area": "WIDE",
       "criterion": "Original and native HDMA/V0 moving frames pass pixel comparison",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "WIDE-10",
       "area": "WIDE",
       "criterion": "No brightness, OBJ or CGRAM artifact remains in shipping frames",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-01",
       "area": "ART",
       "criterion": "Original title and packaging references define racer likeness",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-02",
       "area": "ART",
       "criterion": "Shared pose-registered 3D racer model geometry is implemented",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-03",
       "area": "ART",
       "criterion": "Approved silhouette and rounded proportions match original identity",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-04",
       "area": "ART",
       "criterion": "Approved eyes, saddle, forks and wheel identity survive 4K",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-05",
       "area": "ART",
       "criterion": "Movement and rotations use consistent pose/rig art",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-06",
       "area": "ART",
       "criterion": "Gameplay source frames and title character agree in appearance",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-07",
       "area": "ART",
       "criterion": "Source-visible motion occlusion and sprite ordering are faithful",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-08",
       "area": "ART",
       "criterion": "Remastered assets support real 4× output across course states",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-09",
       "area": "ART",
       "criterion": "Unsupported original states fall back without drawing corruption",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "ART-10",
       "area": "ART",
       "criterion": "Human owner explicitly approves final racer art after visual review",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-01",
       "area": "QA",
       "criterion": "Current nominated Windows package has immutable binary SHA receipt",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-02",
       "area": "QA",
       "criterion": "Clean physical Windows PC opens packaged game with no dependencies",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-03",
       "area": "QA",
       "criterion": "Physical P1 controller runs a complete Modern race journey",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-04",
       "area": "QA",
       "criterion": "Physical two-controller guest race completes and returns to menus",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-05",
       "area": "QA",
       "criterion": "Physical sound output matches original baseline without clipping",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-06",
       "area": "QA",
       "criterion": "True physical 4K window/fullscreen path is independently verified",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-07",
       "area": "QA",
       "criterion": "Real Windows NTFS denial crash/restart recovery passes latest package",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-08",
       "area": "QA",
       "criterion": "Two-hour multi-mode soak on the nominated candidate is accepted",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-09",
       "area": "QA",
       "criterion": "Independent QA signs all mandatory release gates against candidate",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "QA-10",
       "area": "QA",
       "criterion": "Uncoached real-player complete launch/race/Records journey accepted",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "UX-01",
       "area": "UX",
       "criterion": "Five destination controller-first root is readable and navigable",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1648"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "UX-02",
       "area": "UX",
       "criterion": "Racer identity contrast passes automated visibility measurement",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2472"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "UX-03",
       "area": "UX",
       "criterion": "Native Records and Local Runs labels scale to readable density",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/2465"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "UX-04",
       "area": "UX",
       "criterion": "Two real players can create and identify separate profiles",
-      "weight_bp": 100,
       "status": "bounded_verified",
       "evidence": [
         "https://github.com/gamesbyian/UR-Recomp/pull/1510"
       ],
       "evidence_class": "merged_pr_targeted_test_or_witness",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "inherited_pr_screening"
     },
     {
       "id": "UX-05",
       "area": "UX",
       "criterion": "Accessibility and focus order pass real first-user review",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "UX-06",
       "area": "UX",
       "criterion": "All modal failure and interrupted-controller journeys pass manual UX",
-      "weight_bp": 100,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "none",
-      "release_gate_credit": false
+      "release_gate_credit": false,
+      "weight_units": 45,
+      "audit_state": "pending"
     },
     {
       "id": "USA-01",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 1; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-02",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 2; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-03",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 3; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-04",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 4; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-05",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 5; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-06",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 6; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-07",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 7; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-08",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 8; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-09",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 9; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-10",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 10; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-11",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 11; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-12",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 12; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-13",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 13; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-14",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 14; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-15",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 15; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-16",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 16; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-17",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 17; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-18",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 18; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-19",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 19; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-20",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 20; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-21",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 21; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-22",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 22; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-23",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 23; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-24",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 24; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-25",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 25; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-26",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 26; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-27",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 27; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-28",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 28; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-29",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 29; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-30",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 30; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-31",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 31; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-32",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 32; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-33",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 33; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-34",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 34; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-35",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 35; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-36",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 36; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-37",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 37; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-38",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 38; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-39",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 39; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-40",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 40; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-41",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 41; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-42",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 42; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-43",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 43; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-44",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 44; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     },
     {
       "id": "USA-45",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 45; must bind unique canonical course/event key before promotion",
-      "weight_bp": 22.22222222222222,
       "status": "unverified",
       "evidence": [],
       "evidence_class": "independent_qa_only",
       "release_gate_credit": false,
-      "course_event_key": null
+      "course_event_key": null,
+      "weight_units": 10,
+      "audit_state": "pending"
     }
   ],
   "scoring": {
@@ -1555,6 +1689,7 @@
     "unverified": "Earn no points",
     "regressed": "Earn no points and retain prior receipt history"
   },
-  "review_policy": "Initial marked bounded_verified criteria inherit linked merged PR evidence but require independent source review before treating as audited; no claim of release gate acceptance.",
-  "fidelity_authority": "docs/RELEASE-QUALITY-LEDGER.json QA-01 coverage complete_event_passes; all 45 USA slots stay unverified until unique named event maps and independent admission receipts exist"
+  "review_policy": "Initial marked bounded_verified criteria inherit linked merged PR evidence but require independent source review before treating as audited; no claim of release gate acceptance. Provisional bounded_coverage must be distinguished from independently_audited_coverage (zero pending explicit audit_state=independent_reviewed).",
+  "fidelity_authority": "docs/RELEASE-QUALITY-LEDGER.json QA-01 coverage complete_event_passes; all 45 USA slots stay unverified until unique named event maps and independent admission receipts exist",
+  "fixed_denominator_units": 4500
 }

@@ -116,6 +116,21 @@ def classify(candidate, record, archive_records, prs):
     if len(matches) > 1:
         return "duplicate_pr_collision", "Several active PRs claim identical source", "Agent 3", matches
     if record:
+        # A human disposition cannot claim a different retained archive under
+        # a valid-looking member key. Require every stated identity field to
+        # agree with the independently checkpointed member.
+        identity = {
+            "scope": candidate["scope"],
+            "drive_id": candidate["drive_id"],
+            "archive_sha256": candidate["archive_sha256"],
+            "member": candidate["member"],
+            "member_sha256": candidate["member_sha256"],
+        }
+        for field, expected in identity.items():
+            if field in record and record[field] != expected:
+                return ("identity_conflict",
+                        "Ledger " + field + " contradicts verified checkpoint fingerprint",
+                        "Agent 1", matches)
         state = record["state"]
         reason = str(record.get("reason") or "").strip()
         if state in {"held", "rejected"}:
@@ -126,9 +141,12 @@ def classify(candidate, record, archive_records, prs):
             pr = prs.get(record.get("pr"))
             if (pr and pr.get("merged_at") and pr.get("merge_commit_sha")
                     and pr["merge_commit_sha"] == record.get("merge_commit")
-                    and record.get("tests") and record.get("source_path")):
+                    and record.get("tests") and record.get("source_path")
+                    and record.get("evidence")
+                    and record.get("archive_sha256") == candidate["archive_sha256"]
+                    and record.get("member_sha256") == candidate["member_sha256"]):
                 return "merged", "Exact member linked to verified merged PR and tests", "Agent 3", matches
-            return "merge_unverified", "Reverify PR, merge SHA, source path and tests", "Agent 3", matches
+            return "merge_unverified", "Reverify PR, merge SHA, archive/member hashes, provenance, source path and tests", "Agent 3", matches
         if state == "superseded":
             if record.get("source_path") and record.get("evidence") and record.get("tests"):
                 return "superseded", reason or "Per-member semantic evidence recorded", "Agent 1", matches
@@ -272,7 +290,8 @@ def render(doc, max_rows=35):
     for k, v in doc["counts"].items():
         lines.append(f"- {k}: {v}")
     lines += ["", "## Bounded actionable candidates", ""]
-    priority = {"duplicate_pr_collision": 0, "merge_unverified": 1,
+    priority = {"identity_conflict": 0, "duplicate_pr_collision": 0,
+                "merge_unverified": 1,
                 "open_pr": 2, "queued_engineering": 3,
                 "open_pr_unverified": 4, "needs_semantic_review": 5,
                 "unresolved": 6, "held": 7}
@@ -280,7 +299,10 @@ def render(doc, max_rows=35):
                                                           c["candidate_id"]))
     for c in actionable[:max_rows]:
         path = c["member"].replace("|", "/").replace("\n", " ")
-        prs = ", ".join(f"https://github.com/gamesbyian/UR-Recomp/pull/{n}" for n in c["prs"])
+        prs = ", ".join(
+            f"https://github.com/gamesbyian/UR-Recomp/pull/{n} "
+            f"(checks: https://github.com/gamesbyian/UR-Recomp/pull/{n}/checks)"
+            for n in c["prs"])
         lines.append(f"- \`{c['candidate_id']}\` **{c['state']}** "
                      f"[Drive {c['drive_id']}]({c['source']}) "
                      f"\`{path[:100]}\` sha256 \`{c['member_sha256'][:16]}\` "

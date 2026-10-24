@@ -66,8 +66,8 @@ class KeyboardPadJoinTests(unittest.TestCase):
         stages = (
             "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
-            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
             "UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
+            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
             "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
             "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
@@ -93,8 +93,8 @@ class KeyboardPadJoinTests(unittest.TestCase):
         stages = (
             "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
-            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
             "[Gamepad] UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
+            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
             "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
             "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",

@@ -8300,7 +8300,10 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
     if (g_quit_confirm_visible &&
         (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
-        return request_desktop_quit() ? 1 : 0;
+        // A failed SDL quit request leaves the confirmation modal active.
+        // Its Confirm must never become a stock guest key.
+        (void)request_desktop_quit();
+        return 1;
     }
 
     if (g_options_visible) {
@@ -8373,7 +8376,9 @@ extern "C" int ur_uniracers_modern_system_key_down(
             g_restart_return_release = {};
             g_restart_input_probe_remaining = 0;
         }
-        return handled ? 1 : 0;
+        // A failed pause action (including settings persistence) remains
+        // host-owned; the modal still consumes this Confirm edge.
+        return 1;
     }
     if (modern_mode() && key == SDLK_r && (mod & KMOD_CTRL) &&
         restart_surface()) {
@@ -8855,7 +8860,8 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
 
     if (g_quit_confirm_visible && button == kGamepadBtn_A) {
-        return request_desktop_quit() ? 1 : 0;
+        (void)request_desktop_quit();
+        return 1;
     }
 
     if (g_options_visible) {
@@ -8908,7 +8914,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return handled ? 1 : 0;
     }
     if (button == kGamepadBtn_A) {
-        return activate_pause_selection() ? 1 : 0;
+        // Keep the pause surface's Confirm even when an action fails.
+        (void)activate_pause_selection();
+        return 1;
     }
     if (button == kGamepadBtn_B) {
         return dispatch(UR_MODERN_PAUSE_CANCEL) ? 1 : 0;

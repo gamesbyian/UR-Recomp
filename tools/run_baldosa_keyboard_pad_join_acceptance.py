@@ -163,8 +163,8 @@ def verify_owner_disconnect(log: str) -> None:
     assignments = [
         (int(m.group(1)), int(m.group(2)), m.start())
         for m in re.finditer(
-            r"(?m)^\\[Gamepad\\] UR_CONTROLLER_SEAT assign "
-            r"instance=(\\d+) seat=([01]) reason=[^\\r\\n]+$", log
+            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
+            r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
         )
     ]
     if (len(assignments) != 2 or
@@ -175,8 +175,8 @@ def verify_owner_disconnect(log: str) -> None:
     vacates = [
         (int(m.group(1)), int(m.group(2)), m.start())
         for m in re.finditer(
-            r"(?m)^\\[Gamepad\\] UR_CONTROLLER_SEAT vacate "
-            r"instance=(\\d+) seat=([01]) key=[0-9a-fA-F]+$", log
+            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT vacate "
+            r"instance=(\d+) seat=([01]) key=[0-9a-fA-F]+$", log
         )
     ]
     if (len(vacates) != 1 or
@@ -186,7 +186,7 @@ def verify_owner_disconnect(log: str) -> None:
     # A synthetic join marker cannot substitute for the native host's
     # unique P2 detach. Seat moves/claims would also invalidate continuity.
     churn = re.findall(
-        r"(?m)^\\[Gamepad\\] UR_CONTROLLER_SEAT (?:move|claim)\\b[^\\r\\n]*$",
+        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT (?:move|claim)\b[^\r\n]*$",
         log,
     )
     if churn:

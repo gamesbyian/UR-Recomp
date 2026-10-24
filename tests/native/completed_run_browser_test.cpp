@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
     assert(pb_detail->splits[0].delta_text == "+0:00.10/60");
     assert(records_browser.adjust_detail_target(1));
     assert(records_browser.detail_target_kind() == RunDataTargetKind::Previous);
-    assert(records_browser.adjust_detail_target(1));
+    assert(!records_browser.adjust_detail_target(1));
     assert(records_browser.detail_target_kind() == RunDataTargetKind::Previous);
     const auto previous_detail =
         records_browser.selected_run_target_summary(
@@ -309,6 +309,17 @@ int main(int argc, char** argv) {
     assert(scroll_browser.adjust_detail_target(1));
     assert(scroll_browser.detail_target_kind() == RunDataTargetKind::Previous);
     assert(scroll_browser.detail_split_offset() == 0);
+    assert(scroll_browser.adjust_detail_split_offset(1));
+    assert(scroll_browser.detail_split_offset() == 1);
+    // A held Right/Left must not repeatedly reset the detail scroll.
+    assert(!scroll_browser.adjust_detail_target(1));
+    assert(scroll_browser.detail_split_offset() == 1);
+    assert(scroll_browser.adjust_detail_target(-1));
+    assert(scroll_browser.detail_target_kind() == RunDataTargetKind::PersonalBest);
+    assert(scroll_browser.detail_split_offset() == 0);
+    assert(scroll_browser.adjust_detail_split_offset(1));
+    assert(!scroll_browser.adjust_detail_target(-1));
+    assert(scroll_browser.detail_split_offset() == 1);
 
     assert(std::string(completed_run_browser_status_name(
                CompletedRunBrowserEntryStatus::Corrupt)) == "CORRUPT");

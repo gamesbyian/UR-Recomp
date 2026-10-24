@@ -144,6 +144,59 @@ def verify_two_virtual_pads(log: str) -> None:
             raise ValueError(f"two virtual pads: unexpected {forbidden}")
 
 
+def verify_owner_disconnect(log: str) -> None:
+    """Require an actual SDL seat-2 unplug, not just a root-level withdrawal.
+
+    A changed source ID, synthetic join marker or delayed host detach must not
+    qualify as the two-pad P2-owner-leaves journey. Both initial pads must be
+    distinct and P1 must retain its host seat through keyboard confirmation.
+    """
+    stages = (
+        "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+        "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 confirmation_cleared=1",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+    )
+    ordered(log, stages, "owner leaves")
+    assignments = [
+        (int(m.group(1)), int(m.group(2)), m.start())
+        for m in re.finditer(
+            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
+            r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
+        )
+    ]
+    if (len(assignments) != 2 or
+            {seat for _, seat, _ in assignments} != {0, 1} or
+            len({instance for instance, _, _ in assignments}) != 2 or
+            any(pos >= log.index(stages[0]) for _, _, pos in assignments)):
+        raise ValueError("owner leaves: distinct initial host seats not observed")
+    p2_instance = next(instance for instance, seat, _ in assignments if seat == 1)
+    p2_confirm = log.index(stages[1])
+    root_clear = log.index(stages[2])
+    p1_confirm = log.index(stages[3])
+    vacates = [
+        (int(m.group(1)), int(m.group(2)), m.start())
+        for m in re.finditer(
+            r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT vacate "
+            r"instance=(\d+) seat=([01]) key=[0-9a-fA-F]+$", log
+        )
+    ]
+    during_join = [
+        (instance, seat, pos) for instance, seat, pos in vacates
+        if p2_confirm < pos < p1_confirm
+    ]
+    if (len(during_join) != 1 or
+            during_join[0][0] != p2_instance or
+            during_join[0][1] != 1 or
+            during_join[0][2] >= root_clear):
+        raise ValueError("owner leaves: actual P2 SDL seat vacate must precede withdrawal")
+    if any(seat == 0 and pos < p1_confirm for _, seat, pos in vacates):
+        raise ValueError("owner leaves: P1 SDL seat vacated before keyboard confirmation")
+    reject_unexpected_stock_route(log, "owner leaves")
+    if lines(log, "join_pad_moved"):
+        raise ValueError("owner leaves: a pad moved while keyboard P1 held seat 1")
+
+
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""
     for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
@@ -198,14 +251,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         ) from exc
 
     log = run_game(exe, rom, user, out / "p2_owner_leaves", "16", JOIN, video, timeout)
-    ordered(log, ("UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
-                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
-                  "UR_BALDOSA_MODERN_ROOT join_seat_left seat=2 confirmation_cleared=1",
-                  "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1"), "owner leaves")
-    reject_unexpected_stock_route(log, "owner leaves")
-    if lines(log, "join_pad_moved"):
-        raise ValueError("owner leaves: a pad was moved although P1 confirmed by keyboard "
-                         "while seat 2 was held")
+    verify_owner_disconnect(log)
 
     log = run_game(exe, rom, user, out / "join_cancelled", "17", JOIN, video, timeout)
     ordered(log, ("UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",

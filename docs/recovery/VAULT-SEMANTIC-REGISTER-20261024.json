@@ -40,7 +40,8 @@
     "2026-10-24 16:05 UTC later scheduled intake artifacts: 27/45 Incoming and 21/71 runner-enumerated Evidence verified; 4 oversized backup-segment Evidence errors; no source publication. Full ids/artifacts in latest_transport.",
     "Integrated archive path crosswalk expanded: 21 exact Drive-ID links to Inbox pointer work-scope paths, and five scoped main/PR evidence mappings. No new code-integration credit.",
     "2026-10-24 Agent 1 direct Integrated archive audit: reopened all 25 previously pathless ZIPs, checked ZIP member CRCs, and mapped 25 archive IDs to existing source/test/workflow work-scope paths on main tree ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1. Five Git blob equalities proven across four archive IDs; other routes are navigation/semantic pointers only.",
-    "Authenticated recursive child inventory includes six files under the one Evidence nested backup folder; separate from the 224 direct-child entries. H29 reconstructed historical 408610900-byte Git bundle/strict-fsck receipt proves backup integrity, not current-main or release acceptance."
+    "Authenticated recursive child inventory includes six files under the one Evidence nested backup folder; separate from the 224 direct-child entries. H29 reconstructed historical 408610900-byte Git bundle/strict-fsck receipt proves backup integrity, not current-main or release acceptance.",
+    "Agent 1 read all 22 direct Incoming publication-refusal or preservation-resolution JSON files and recorded exact file SHA256 plus historical_incident_only disposition. These were previously preserved_pending_review; their underlying source status and unresolved art/QA08 holds remain independently governed."
   ],
   "items": [
     {
@@ -2269,17 +2270,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2110,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "4f1b5ffafa23b020dffb95b1dd1a98f46100f4d90a76f7872792ca88fa2464e5",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/completed_run_browser.cpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2364"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "local-runs-symlink",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "12hZ-D2-MIV_EWBI-J9pNs__XK3G-YhFBd0AGR675yeU",
@@ -2345,17 +2353,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2367,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "779a4ffb2d99e53b45c05f27a4a67111d3705d7028ba6c539c9ed05f853bb423",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_title_plate_artifact.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P3 evidence hold",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain original denial and related work archive; independent original/source art or QA08 hold remains under existing owner. Do not replay denied operation.",
+      "blocker": "Original/native artistic or QA08 release/provenance approval remains separate from this JSON receipt",
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "uhd-title-pr-refusal",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "16COCzeUjMh604R-3aPowacYM8nomQlUabIqyQ2ku57s",
@@ -2385,17 +2401,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 870,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "ef15eef6c42cd66baef8008af6e2c1860b51eb0d1a7f941419bd3298e516c031",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tests/native/modern_menu_visual_grammar_test.cpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2346"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "focus-ring",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "186GARvCxtFdbaD8Zg6bn0YQ1aZvQzMUq",
@@ -2423,17 +2446,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2634,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "b20551be50d3ac422c0d63281174c636c6f24bc0267b66953e55f29d9b572ee4",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/baldosa_native_profile_path_guard.hpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2345"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "profile-root-ancestor",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1b_rW6FVI9_vIpQl1PubRysooivUbpwgQ",
@@ -2442,17 +2472,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 8838,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "6d2449c09f89ebf52d49d05ee90689b3e1548d85bbe71a42507a133388200e76",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tests/unit/test_windows_local_tournament_candidate_pin_policy.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2185",
+        "#2352"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "pr2185-retired-test-contract",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1C57qeOCaNH7EHxVDNZaM6qcy3W7SeCji",
@@ -2501,17 +2539,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2578,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "a071efdd28cc11fcf116288ece8a3db890a64df3d183916a932b47cb72a52a12",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tests/native/local_tournament_fixture_launch_store_test.cpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2533"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "posix-launch-lock",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1dZB_JsStTig5vsQYTmz0fxuEV3-qraYe",
@@ -2520,17 +2565,26 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2082,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "a88870baa333922645c801040b30b759dfaa25a9a6b6cacd82184fa56b975b7a",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_title_plate_artifact.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2397",
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P3 evidence hold",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain original denial and related work archive; independent original/source art or QA08 hold remains under existing owner. Do not replay denied operation.",
+      "blocker": "Original/native artistic or QA08 release/provenance approval remains separate from this JSON receipt",
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "uhd-title-prompt",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1Evp7xewYwnvQEY7wJT0tJFFNZzZvYZNL",
@@ -2558,17 +2612,23 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 2963,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "58d10d50b720560caec175e1b4ff3992fdeba99d4470a953a418a1c7be55cb1a",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2185",
+        "#2352"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "pr2185-review-refusal",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1fog_2M1xOs7gi9fJ8N8jSKGbVnJQkqoJ",
@@ -2622,17 +2682,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1474,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "d3cb0a6f3239182c036b1191d658f2b30ba1edbeccbd2232e3d07167504c02ea",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tests/native/modern_results_navigation_test.cpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2360",
+        "#2384"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "results-navigation",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1hegPPGnMvoqrSQMQcepkFz_T7ZITgXbK",
@@ -2661,17 +2729,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1498,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "3e9e78c768e9705c02d0d41df3d12f68ce0754ae37d98cd517b44852b1999e7d",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/completed_run_ghost_policy.cpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2358"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "records-ghost-guard",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1HuigZk8uraQMhzegwqVTTMY4rJnCyCyO",
@@ -2680,17 +2755,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1154,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "4f83d3bc70cbffa4a1d8a956a7e05d16269a60715729eaafeca2182bbe424914",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/completed_run_browser.cpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2364"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "local-runs-review-comment-refusal",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1j_75lQCG2FE-ykL6DXysszXdWfzPTLP2",
@@ -2784,17 +2866,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1045,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "5ae39a5b60ba2bcc11dc2935020acdd4a80562760a790ffe6992117fc7f0bece",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/qa08_late_effective_trace_verify.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2379",
+        "#1996"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P3 evidence hold",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain original denial and related work archive; independent original/source art or QA08 hold remains under existing owner. Do not replay denied operation.",
+      "blocker": "Original/native artistic or QA08 release/provenance approval remains separate from this JSON receipt",
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "qa08-marker",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1kULfQIJSV-YJ1lwWBPJAnH6iLtzt5W9d",
@@ -2823,17 +2913,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1694,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "6abf967289c27451f596148e698a7cba9022bc3d9a4f8ef4229569de8384834a",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_modern_root_sdl_contrast.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2250",
+        "#2149"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P3 evidence hold",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain original denial and related work archive; independent original/source art or QA08 hold remains under existing owner. Do not replay denied operation.",
+      "blocker": "Original/native artistic or QA08 release/provenance approval remains separate from this JSON receipt",
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "uhd-root-geometry",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1lU_NYUH7cZ6vCqSZcT4-5jWmRVHzAhnZ",
@@ -2842,17 +2940,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 984,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "ce3d50e367d10856d717004d466584bd85114e3796e3443fb6cf6156dd38be3e",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tools/assemble_windows_package.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2347",
+        "#2350"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "package-symlink-review-refusal",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1mBKQcLSf3SQV8TZRvP6J78N_JJhFTuTr",
@@ -2881,17 +2987,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1418,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "20c51221ab8f7574f6db0a5e2d966ff9be9fd45ba581f3a65dd7e030801cce6c",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tools/assemble_windows_package.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2347"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "package-output-symlink",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1PiSt8K1rQgC27TuMxQ7-aNRvPeyW0Q9C",
@@ -2962,17 +3075,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1154,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "e4ed4418fb01909be4ddcc1acc53e0eec7075d6ae790c8009549ca1cd375cb13",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tools/assemble_windows_package.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2350"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "package-mods-symlink",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1SgI4I3WM2xs8T55rrupN7LxvxQSiFY_y",
@@ -2981,17 +3101,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1370,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "1cad047674910dca5368074bed90a16a2e5862e76663d707637c07f74defed6b",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/quick_practice_launch.hpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2357",
+        "#2494"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "practice-target",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1sVcQMd5kGedG_yjCdYxHeng225unaVsR",
@@ -3020,17 +3148,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1489,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "c7b3ad89801e92cb15182844c90e09b70841cca0478645b23de283d7a890530f",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "tools/rf081_selected_pc_candidate_census.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "cpu-source-local",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1TXNhekVuoXpzMkZ9m1EtlVIEGwPhVXSd",
@@ -3039,17 +3174,25 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1364,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "e2f0aaa40e56baae36bbe75ddabdddba1ea42da5d95aa2df82fdf106e987dbdd",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/completed_run_store.hpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2353",
+        "#2493"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "records-scan-status",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1WsplF879707hLLpUj7IyxGZ7WWDdw4Ti",
@@ -3058,17 +3201,22 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 3199,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "4e91f32d9a620e049b021a88bf18a5e517f187de8ba1ffcd2d798adc497f7c8c",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "vault-preservation-resolution",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1Wtq1Qa10_46mEJKEpl3JYVF7TvKfHT9H",
@@ -3116,17 +3264,26 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1499,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "3d5a5e35c30dbddfe462e3a93582fe26a9596c835d86068b9de124f17d012f46",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_cross_resolution.py"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2285",
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P3 evidence hold",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain original denial and related work archive; independent original/source art or QA08 hold remains under existing owner. Do not replay denied operation.",
+      "blocker": "Original/native artistic or QA08 release/provenance approval remains separate from this JSON receipt",
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "uhd-856px-artifact",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1ZwfcHFRgtso-1-MkPH7T0u6g0PUGezd0",
@@ -3135,17 +3292,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 1398,
       "mime_type": "application/json",
-      "archive_sha256": null,
+      "archive_sha256": "197697c1e2d4445b8365b1a6e0d5dd7396ce5eaaeb893729911b554c88c3874d",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "target_paths": [
+        "native/product/baldosa_native_run_save_feedback.hpp"
+      ],
+      "current_main_comparison": "Direct JSON incident/resolution record, independently downloaded and parsed. Documents original refused/interrupted operation or retention status; historical incident is preserved and supplies no independent product-source proof. Related source behavior may have merged or evolved under linked PRs, but this incident itself was not retroactively successful.",
+      "github_prs": [
+        "#2368"
+      ],
+      "owner": "Agent 1 incident disposition; Agent 3 final PR/recovery policy",
+      "priority": "P4 historical",
+      "required_test": "No source/module test implied by historical incident alone; use independent existing source/test PR evidence",
+      "next_action": "Retain incident JSON and related staged ZIP as historical evidence. Do not create new engineering ticket based solely on this receipt; check linked source PR and underlying archive independently.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_incident_only",
+      "provenance_type": "original_publication_incident_or_preservation_resolution",
+      "historical_work_group": "results-save-feedback",
+      "raw_file_sha256_verified": true
     },
     {
       "drive_id": "1_P9So8OzGkH3J2IWHR9yOkDf9yEigq9D",
@@ -5668,5 +5832,13 @@
     "total_file_entries_below_six_folders": 229,
     "total_entries_including_nested_backup_folder": 230,
     "note": "Headline counts remain 224 direct children; six nested backup files appear only in nested_file_inventory and are not six missing product candidates. Six top-level taxonomy folders are excluded from both counts."
+  },
+  "historical_incident_direct_files": {
+    "scope": "22 exact Incoming direct JSON files, raw whole-file SHA256 independently observed, each parsed and reviewed",
+    "count": 22,
+    "status": "historical_incident_only",
+    "original_denial_state_retained": true,
+    "no_source_publication_inferred": true,
+    "remaining_underlying_source_holds": "UHD art/title #2043/#2149 and QA08 #1996 are separate; historical #2185 closed unmerged, later same-run policy #2352/#2366 superseded; do not treat incident count as code integration."
   }
 }

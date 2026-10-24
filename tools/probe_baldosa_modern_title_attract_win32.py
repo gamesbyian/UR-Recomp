@@ -197,8 +197,17 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     )
     last = -1
     for marker in required:
-        if log.count(marker) != 1:
-            raise ValueError("missing or duplicate named original-game proof: " + marker)
+        count = log.count(marker)
+        if count != 1:
+            # The named-profile process may have a different original source
+            # timeline. Preserve the actual stage observations before deciding
+            # whether this is a timing expectation or a gameplay regression.
+            observed_source_phases = re.findall(
+                r"^UR_MODERN_TITLE_ORIGINAL_SOURCE[^\\r\\n]*", log, re.MULTILINE)
+            raise ValueError(
+                f"missing or duplicate named original-game proof: {marker}; "
+                f"matches={count}; observed_source_phases={observed_source_phases[:12]!r}; "
+                "inspect retained native-attract.log")
         current = log.find(marker, last + 1)
         if current < 0:
             raise ValueError("named stock input entered before real MAIN recovery: " + marker)

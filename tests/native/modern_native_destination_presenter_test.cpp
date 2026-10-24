@@ -33,6 +33,15 @@ bool has(std::string_view text) {
     return std::find(text_seen.begin(), text_seen.end(),
                      std::string(text)) != text_seen.end();
 }
+bool has_at(std::string_view text, int x, int y, int scale,
+            std::uint32_t colour) {
+    for (std::size_t i = 0; i < text_seen.size(); ++i)
+        if (text_seen[i] == text && painted_text[i].x == x &&
+            painted_text[i].y == y && painted_text[i].size == scale &&
+            painted_text[i].colour == colour)
+            return true;
+    return false;
+}
 void clear() { text_seen.clear(); painted.clear(); painted_text.clear(); }
 void bounds(int width, int height) {
     for (const auto& rect : painted) {
@@ -309,6 +318,62 @@ int main() {
     assert(!has("SETTINGS")); // compact renderer keeps its source-width title
     assert(has("L/R CHANGE   B BACK"));
     clear();
+    // Both a persisted-settings warning and a later action result must be
+    // visible. The shared root painter already preserves both; the native
+    // destination (also used by Pause) must not silently discard the warning.
+    v.options_notice = "SAVED OPTIONS DAMAGED";
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    assert(has_at("SAVED OPTIONS DAMAGED", 19, 169, 1,
+                  kModernMenuCheckerLegibleGrey));
+    assert(has_at("SAVED", 19, 180, 1,
+                  kModernStockMenuPalette.title_yellow));
+    assert(has_at("L/R CHANGE   B BACK", 19, 198, 1,
+                  kModernStockMenuPalette.cursor_blue));
+    bounds(256,224);
+    clear();
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has_at("SAVED OPTIONS DAMAGED", 22, 169, 1,
+                  kModernMenuCheckerLegibleGrey));
+    assert(has_at("SAVED", 22, 180, 1,
+                  kModernStockMenuPalette.title_yellow));
+    assert(has_at("L/R CHANGE   B BACK", 22, 198, 1,
+                  kModernStockMenuPalette.cursor_blue));
+    bounds(342,224);
+    clear();
+    constexpr HostOverlayRect wide4{44,40,1280,816};
+    assert(render_modern_native_destination(painter,scratch,1368,896,
+                                             4,320,wide4,v));
+    assert(has_at("SAVED OPTIONS DAMAGED", 88, 676, 4,
+                  kModernMenuCheckerLegibleGrey));
+    assert(has_at("SAVED", 88, 720, 4,
+                  kModernStockMenuPalette.title_yellow));
+    assert(has_at("L/R CHANGE   B BACK", 88, 792, 4,
+                  kModernStockMenuPalette.cursor_blue));
+    bounds(1368,896);
+    clear();
+    // Single-message geometry is unchanged, including the footer.
+    v.options_notice = {};
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has_at("SAVED", 22, 172, 1,
+                  kModernStockMenuPalette.title_yellow));
+    assert(has_at("L/R CHANGE   B BACK", 22, 185, 1,
+                  kModernStockMenuPalette.cursor_blue));
+    assert(!has("SAVED OPTIONS DAMAGED"));
+    clear();
+    v.options_status = {};
+    v.options_notice = "SAVED OPTIONS DAMAGED";
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has_at("SAVED OPTIONS DAMAGED", 22, 172, 1,
+                  kModernMenuCheckerLegibleGrey));
+    assert(has_at("L/R CHANGE   B BACK", 22, 185, 1,
+                  kModernStockMenuPalette.cursor_blue));
+    clear();
+    v.options_status = "SAVED";
+    v.options_notice = {};
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));
     assert(has("SETTINGS"));

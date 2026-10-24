@@ -171,8 +171,9 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
             errors.append({"scope": scope, "drive_id": cooling.get("id"),
                            "type": "retry_cooldown", "retry_after": cooling.get("retry_after")})
         for pending in queue.get("needs_first_audit", []):
-            errors.append({"scope": scope, "drive_id": pending.get("id"),
-                           "type": "awaiting_first_archive_audit"})
+            if pending.get("id") not in checkpoint["items"]:
+                errors.append({"scope": scope, "drive_id": pending.get("id"),
+                               "type": "awaiting_first_archive_audit"})
         for fid, item in sorted(checkpoint["items"].items()):
             if item.get("review_leads_filtered_or_truncated", 0):
                 errors.append({"scope": scope, "drive_id": fid,

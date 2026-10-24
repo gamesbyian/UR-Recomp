@@ -188,6 +188,15 @@ class VaultGdownIntakeTests(unittest.TestCase):
             "url": "https://drive.google.com/uc?id=1Abcdefghij12345",
         }
         with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "requires original archive SHA-256 pin"):
+                intake.pull(
+                    entry, Path(tmp), b"", stage=True,
+                    stage_member="src/candidate.py",
+                    stage_sha256=member_digest,
+                    runner=downloader,
+                )
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+        with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "archive SHA-256 differs"):
                 intake.pull(
                     entry, Path(tmp), b"", stage=True,

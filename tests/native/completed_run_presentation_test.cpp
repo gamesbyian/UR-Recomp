@@ -174,6 +174,37 @@ int main() {
     assert(!result_no_pb->finish.target_available);
     assert(result_no_pb->splits.empty());
 
+    // A stale PB from another course, ROM, build, game or mode must never
+    // appear as an earned delta against this authoritative finish.
+    const auto unrelated_pb_is_hidden = [&current](const CompletedRunRecord& other) {
+        const auto summary = present_run_result_summary(current, &other);
+        assert(summary);
+        assert(summary->finish.clock_text == "0:28.45/60");
+        assert(!summary->finish.target_available);
+        assert(summary->finish.target_text == "--");
+        assert(!summary->finish.comparison_available);
+        assert(summary->finish.comparison_text == "--");
+        assert(summary->splits.empty());
+    };
+    auto unrelated_pb = record;
+    unrelated_pb.provenance.course_id = "course:02";
+    unrelated_pb_is_hidden(unrelated_pb);
+    unrelated_pb = record;
+    unrelated_pb.provenance.game_id = "different-game";
+    unrelated_pb_is_hidden(unrelated_pb);
+    unrelated_pb = record;
+    unrelated_pb.provenance.rom_sha256 = std::string(64, 'f');
+    unrelated_pb_is_hidden(unrelated_pb);
+    unrelated_pb = record;
+    unrelated_pb.provenance.build_compat_id = "other-build";
+    unrelated_pb_is_hidden(unrelated_pb);
+    unrelated_pb = record;
+    unrelated_pb.provenance.mode = "race-2p";
+    unrelated_pb_is_hidden(unrelated_pb);
+    unrelated_pb = record;
+    unrelated_pb.inputs[0].duration = 0;
+    unrelated_pb_is_hidden(unrelated_pb);
+
     const auto no_pb_panel = present_run_timing_panel(
         844, nullptr, RunTimingPresentationPoint::Live);
     assert(!no_pb_panel.target_available);

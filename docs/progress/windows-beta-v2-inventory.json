@@ -1144,7 +1144,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-01",
+      "id": "FID-01",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 1; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1156,7 +1156,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-02",
+      "id": "FID-02",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 2; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1168,7 +1168,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-03",
+      "id": "FID-03",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 3; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1180,7 +1180,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-04",
+      "id": "FID-04",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 4; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1192,7 +1192,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-05",
+      "id": "FID-05",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 5; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1204,7 +1204,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-06",
+      "id": "FID-06",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 6; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1216,7 +1216,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-07",
+      "id": "FID-07",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 7; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1228,7 +1228,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-08",
+      "id": "FID-08",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 8; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1240,7 +1240,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-09",
+      "id": "FID-09",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 9; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1252,7 +1252,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-10",
+      "id": "FID-10",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 10; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1264,7 +1264,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-11",
+      "id": "FID-11",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 11; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1276,7 +1276,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-12",
+      "id": "FID-12",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 12; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1288,7 +1288,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-13",
+      "id": "FID-13",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 13; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1300,7 +1300,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-14",
+      "id": "FID-14",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 14; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1312,7 +1312,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-15",
+      "id": "FID-15",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 15; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1324,7 +1324,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-16",
+      "id": "FID-16",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 16; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1336,7 +1336,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-17",
+      "id": "FID-17",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 17; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1348,7 +1348,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-18",
+      "id": "FID-18",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 18; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1360,7 +1360,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-19",
+      "id": "FID-19",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 19; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1372,7 +1372,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-20",
+      "id": "FID-20",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 20; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1384,7 +1384,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-21",
+      "id": "FID-21",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 21; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1396,7 +1396,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-22",
+      "id": "FID-22",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 22; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1408,7 +1408,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-23",
+      "id": "FID-23",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 23; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1420,7 +1420,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-24",
+      "id": "FID-24",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 24; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1432,7 +1432,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-25",
+      "id": "FID-25",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 25; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1444,7 +1444,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-26",
+      "id": "FID-26",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 26; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1456,7 +1456,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-27",
+      "id": "FID-27",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 27; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1468,7 +1468,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-28",
+      "id": "FID-28",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 28; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1480,7 +1480,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-29",
+      "id": "FID-29",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 29; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1492,7 +1492,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-30",
+      "id": "FID-30",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 30; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1504,7 +1504,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-31",
+      "id": "FID-31",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 31; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1516,7 +1516,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-32",
+      "id": "FID-32",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 32; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1528,7 +1528,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-33",
+      "id": "FID-33",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 33; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1540,7 +1540,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-34",
+      "id": "FID-34",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 34; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1552,7 +1552,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-35",
+      "id": "FID-35",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 35; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1564,7 +1564,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-36",
+      "id": "FID-36",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 36; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1576,7 +1576,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-37",
+      "id": "FID-37",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 37; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1588,7 +1588,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-38",
+      "id": "FID-38",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 38; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1600,7 +1600,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-39",
+      "id": "FID-39",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 39; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1612,7 +1612,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-40",
+      "id": "FID-40",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 40; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1624,7 +1624,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-41",
+      "id": "FID-41",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 41; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1636,7 +1636,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-42",
+      "id": "FID-42",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 42; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1648,7 +1648,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-43",
+      "id": "FID-43",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 43; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1660,7 +1660,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-44",
+      "id": "FID-44",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 44; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1672,7 +1672,7 @@
       "audit_state": "pending"
     },
     {
-      "id": "USA-45",
+      "id": "FID-45",
       "area": "FID",
       "criterion": "Independent complete original/native USA event acceptance slot 45; must bind unique canonical course/event key before promotion",
       "status": "unverified",
@@ -1692,5 +1692,5 @@
   "review_policy": "Initial marked bounded_verified criteria inherit linked merged PR evidence but require independent source review before treating as audited; no claim of release gate acceptance. Provisional bounded_coverage must be distinguished from independently_audited_coverage (zero pending explicit audit_state=independent_reviewed).",
   "fidelity_authority": "docs/RELEASE-QUALITY-LEDGER.json QA-01 coverage complete_event_passes; all 45 USA slots stay unverified until unique named event maps and independent admission receipts exist",
   "fixed_denominator_units": 4500,
-  "frozen_contract_fnv1a32": "ec1572b0"
+  "frozen_contract_fnv1a32": "32c62b80"
 }

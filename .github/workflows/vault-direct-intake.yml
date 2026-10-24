@@ -37,6 +37,10 @@ on:
         description: Exact SHA-256 required alongside stage_member; stages no sibling source
         required: false
         type: string
+      expected_archive_sha256:
+        description: Required for exact-member staging to pin the approved Drive ZIP bytes
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -65,6 +69,7 @@ jobs:
           CONFIRM_SOURCE_REVIEW: ${{ inputs.confirm_source_review }}
           STAGE_MEMBER: ${{ inputs.stage_member }}
           STAGE_MEMBER_SHA256: ${{ inputs.stage_member_sha256 }}
+          EXPECTED_ARCHIVE_SHA256: ${{ inputs.expected_archive_sha256 }}
           INTAKE_DIR: ${{ runner.temp }}/vault-direct-intake
         run: |
           set -euo pipefail
@@ -82,8 +87,8 @@ jobs:
             fi
             args+=(--stage-sources)
             if [[ -n "$STAGE_MEMBER" || -n "$STAGE_MEMBER_SHA256" ]]; then
-              if [[ -z "$STAGE_MEMBER" || ! "$STAGE_MEMBER_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
-                echo 'Exact staging requires one member path and valid 64-character SHA-256.' >&2
+              if [[ -z "$STAGE_MEMBER" || ! "$STAGE_MEMBER_SHA256" =~ ^[0-9a-f]{64}$ || ! "$EXPECTED_ARCHIVE_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+                echo 'Exact staging requires member path, member SHA-256 and approved outer archive SHA-256.' >&2
                 exit 2
               fi
               args+=(--stage-member "$STAGE_MEMBER" --stage-member-sha256 "$STAGE_MEMBER_SHA256")
@@ -91,6 +96,13 @@ jobs:
           elif [[ -n "$STAGE_MEMBER" || -n "$STAGE_MEMBER_SHA256" ]]; then
             echo 'Exact member selection requires explicitly reviewed source staging.' >&2
             exit 2
+          fi
+          if [[ -n "$EXPECTED_ARCHIVE_SHA256" ]]; then
+            if [[ ! "$EXPECTED_ARCHIVE_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+              echo 'Invalid outer archive SHA-256.' >&2
+              exit 2
+            fi
+            args+=(--expected-archive-sha256 "$EXPECTED_ARCHIVE_SHA256")
           fi
           python3 tools/vault_gdown_intake.py "${args[@]}"
       - name: Print triage summary (and review-gated staged text) to the job log

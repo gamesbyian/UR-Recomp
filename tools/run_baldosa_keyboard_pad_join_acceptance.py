@@ -196,6 +196,65 @@ def verify_owner_disconnect(log: str) -> None:
         raise ValueError("owner leaves: a pad moved while keyboard P1 held seat 1")
 
 
+def verify_five_destination_pad_journey(log: str) -> None:
+    """One SDL P1 device, one native process, all five Modern destinations.
+
+    SDL seat logs are stdout and product/view logs are stderr, so enforce
+    chronology only among product/view markers, not across the two streams.
+    This establishes native title/root/modal/stock entry, NOT a finished
+    original race, returned result, physical controller, or release gate.
+    """
+    host_assignments = re.findall(
+        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
+        r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
+    )
+    if len(host_assignments) != 1 or host_assignments[0][1] != "0":
+        raise ValueError("five destinations: exactly one SDL P1 assignment required")
+    if re.search(
+        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT (?:move|claim)\b", log
+    ):
+        raise ValueError("five destinations: unexpected SDL ownership change")
+
+    selections = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT selected=(\d+)$", log
+    )
+    if selections != ["1", "2", "3", "4", "3", "2", "1", "0"]:
+        raise ValueError(f"five destinations: actual root selections differ: {selections}")
+
+    # All these source-owned events share stderr ordering. In particular,
+    # the painted destination receipt must follow opening the actual modal.
+    stages = (
+        r"^UR_BALDOSA_MODERN_TITLE entered_root=1 frame=\d+ input_owned=1$",
+        r"^UR_BALDOSA_MODERN_ROOT practice_opened=1 available=\d+ course=\d+ source_menu_required=1$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_ROOT practice_closed=1$",
+        r"^UR_BALDOSA_MODERN_ROOT join_opened=1 players=2$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_ROOT join_closed=1$",
+        r"^UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=\d+ unavailable=\d+$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
+        r"^UR_BALDOSA_MODERN_ROOT options_opened row=[^\r\n]+$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=options\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_ROOT options_closed row=[^\r\n]+$",
+        r"^UR_BALDOSA_MODERN_ROOT stock_requested players=1$",
+        r"^UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c$",
+    )
+    positions = []
+    for stage in stages:
+        matches = list(re.finditer(stage, log, re.MULTILINE))
+        if len(matches) != 1:
+            raise ValueError(f"five destinations: missing/duplicate native stage {stage!r}")
+        positions.append(matches[0].start())
+    if positions != sorted(positions) or len(set(positions)) != len(positions):
+        raise ValueError("five destinations: native modal/guest stages out of order")
+    for forbidden in ("practice_unavailable=1", "join_unavailable=1",
+                      "stock_rejected=", "stock_aborted=", "active_profile_stale=1",
+                      "join_pad_moved", "join_seat_left"):
+        if forbidden in log:
+            raise ValueError(f"five destinations: unexpected {forbidden}")
+
+
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""
     for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
@@ -284,8 +343,21 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         raise ValueError("lone P2 pad: the host did not move the pad to seat 1 once")
     reject_unexpected_stock_route(log, "lone P2 pad")
 
+    # Unlike separate 15-19/24-28 receipts, this is a single continuous
+    # SDL virtual-pad title -> five destinations -> original stock admission.
+    log = run_game(exe, rom, user, out / "five_destination_pad", "29",
+                   POSITIVE_JOIN, video, timeout)
+    try:
+        verify_five_destination_pad_journey(log)
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; native route milestones: {route_milestones(log)!r}; "
+            "inspect retained five_destination_pad/log.txt"
+        ) from exc
+
     receipt = {
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
+        "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
         "two_virtual_pads": "distinct_host_seats_and_guest_2p_entry",
         "join_cancelled": "moved_pad_returned_to_p1_and_drives_root",

@@ -81,7 +81,7 @@ def require_shared_native_acceptance(workflow: str) -> None:
             raise AssertionError("native acceptance coverage missing: " + token)
     if not (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").is_file():
         raise AssertionError("actual native 15-19 acceptance runner missing")
-    if step.count('--exe "$EXE"') != 4:
+    if step.count('--exe "$EXE"') != 5:
         raise AssertionError("controller/title runs must all use one exact Windows PE")
 
 

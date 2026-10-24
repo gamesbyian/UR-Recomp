@@ -128,7 +128,7 @@ def compare(previous, inventory, ledger, interval, reviewed_head):
 
 def markdown(r):
     lines = ["# UR-Recomp product progress | reviewed interval", "",
-       f"Source: \`{r['from_reviewed_main']}\` → \`{r['through_reviewed_main']}\`",
+       f"Source: `{r['from_reviewed_main']}` → `{r['through_reviewed_main']}`",
        f"**Screened Windows beta:** {r['previous_product_percent']:.3f}% → **{r['current_product_percent']:.3f}%** ({r['interval_product_delta_points']:+.3f} pp)",
        f"**Independent criteria audit:** {r['previous_independent_audit_percent']:.3f}% → {r['current_independent_audit_percent']:.3f}%",
        f"**USA event admissions:** {r['accepted_USA_events']}/45 ({r['accepted_USA_delta']:+d})",

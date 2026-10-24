@@ -36,6 +36,12 @@ WINDOWS_INBOX_DLLS = frozenset(
     xinput9_1_0 xaudio2_9
     """.split()
 )
+# Windows API-set contract names are virtual imports, not physical DLL files.
+# A prefix match alone would certify a fabricated/nonexistent contract as
+# available on stock Windows 10/11. Admit only individually OS-qualified
+# contract names here, after inspecting an actual native PE's imports.
+# The pinned 2026-10-22 Windows x64 candidate imports no API-set contracts.
+WINDOWS_INBOX_API_SET_DLLS: frozenset[str] = frozenset()
 IMPORT_LINE = re.compile(r"[A-Za-z0-9_.-]+\.dll", re.IGNORECASE)
 IMPORT_HEADER = re.compile(
     r"^\s*Image has the following (?:delay load )?dependencies:\s*$",
@@ -119,7 +125,7 @@ def check_dependencies(dumpbin_text: str) -> tuple[str, ...]:
     external = [
         dll for dll in imports
         if dll.removesuffix(".dll") not in WINDOWS_INBOX_DLLS
-        and not dll.startswith(("api-ms-win-", "ext-ms-win-"))
+        and dll not in WINDOWS_INBOX_API_SET_DLLS
     ]
     if external:
         raise ValueError(

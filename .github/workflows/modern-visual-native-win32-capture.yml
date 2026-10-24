@@ -11,6 +11,8 @@ on:
       - "tools/qa_modern_visual_diagnostics.py"
       - "tools/qa_modern_motion_final_sdl_pair.py"
       - "tests/unit/test_qa_modern_motion_final_sdl_pair.py"
+      - "tools/qa_modern_identity_strip_p7.py"
+      - "tests/unit/test_qa_modern_identity_strip_p7.py"
       # Destination PR #2040 may request actual 4:3/wide native SDL evidence
       # with the existing independent QA driver, not a parallel test runtime.
       - "native/product/modern_native_destination_presenter.hpp"
@@ -26,7 +28,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -52,6 +54,7 @@ jobs:
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
+            tests.unit.test_qa_modern_identity_strip_p7 \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
             tests.unit.test_check_modern_visual_capture_bundle \
             tests.unit.test_qa_authentic_presdl_sdl_rgb_parity
@@ -120,6 +123,16 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
           done
           echo "Actual final-drawable Windows Modern engineering baseline 1280x720 and 1024x768; same PE, separate clean runs; no redesign or physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify repaired racer identity on actual 16:9 and compact Windows SDL P7
+        if: github.head_ref == 'qa/agent3-identity-p7-20261024'
+        run: |
+          set -euo pipefail
+          python tools/qa_modern_identity_strip_p7.py \
+            --wide "$RUNNER_TEMP/ur-modern-win32-visual-1280x720" \
+            --compact "$RUNNER_TEMP/ur-modern-win32-visual-1024x768" \
+            --expected-source-sha "$(git rev-parse HEAD)" \
+            --output "$RUNNER_TEMP/modern-identity-strip-final-p7.json"
+          echo "Exact PE/SDL P7 root identity contrast, checker bleed and glyph bounds verified at both sizes. No human/physical/release approval." >> "$GITHUB_STEP_SUMMARY"
       - name: Capture additional matrix output sizes (diagnostic, may be refused by the runner display)
         # Acceptance-matrix root cases at 1080p, 480p and 4K. A runner display
         # that cannot hold a size makes the host refuse that capture; that is
@@ -308,6 +321,7 @@ jobs:
         with:
           name: modern-visual-win32-size-comparison
           path: |
+            ${{ runner.temp }}/modern-identity-strip-final-p7.json
             ${{ runner.temp }}/ur-modern-win32-visual-1280x720/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-modern-win32-visual-1280x720/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-visual-1280x720/probe_first/actual-sdl-drawable.pam

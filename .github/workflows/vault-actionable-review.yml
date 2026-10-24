@@ -1,0 +1,143 @@
+name: Vault Actionable Review (read-only)
+
+on:
+  workflow_run:
+    workflows: ['Vault Recurring Intake (Public Drive)']
+    types: [completed]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/vault-actionable-review.yml'
+      - 'tools/vault_integration_review.py'
+      - 'tests/unit/test_vault_integration_review.py'
+      - 'docs/recovery/vault-member-dispositions.json'
+      - 'docs/recovery/agent-candidates.json'
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: vault-actionable-review
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event != 'pull_request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run offline fail-closed disposition tests
+        run: python -m unittest tests.unit.test_vault_integration_review -v
+      - name: Read latest completed main per-folder checkpoints
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/vault-review"
+          gh run list -R "$GITHUB_REPOSITORY" \
+            --workflow vault-recurring-intake.yml --branch main --limit 50 \
+            --json databaseId,status,headBranch,event \
+            --jq '.[] | select(.status == "completed" and .headBranch == "main" and .event != "pull_request") | .databaseId' \
+            > "$RUNNER_TEMP/vault-review/runs.txt"
+          # A failed overall matrix run can still have a valid preserved
+          # per-folder artifact. Fail closed when neither recent source exists.
+          for scope in incoming evidence; do
+            dest="$RUNNER_TEMP/vault-review/$scope"
+            found=0
+            while IFS= read -r run_id; do
+              [[ -n "$run_id" ]] || continue
+              mkdir -p "$dest"
+              if gh run download "$run_id" -R "$GITHUB_REPOSITORY" \
+                  --name "vault-recurring-state-$scope" --dir "$dest" >/dev/null 2>&1 \
+                  && [[ -s "$dest/checkpoint.json" && -s "$dest/queue.json" && -s "$dest/report.json" ]]; then
+                echo "$scope source run: $run_id" >> "$RUNNER_TEMP/vault-review/sources.txt"
+                found=1
+                break
+              fi
+              rm -rf "$dest"
+            done < "$RUNNER_TEMP/vault-review/runs.txt"
+            if [[ "$found" != 1 ]]; then
+              echo "::error::No complete $scope checkpoint/report/queue in 50 completed main intake runs"
+              exit 1
+            fi
+          done
+      - name: Snapshot active and historical PRs for exact merge verification
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/vault-review"
+          gh pr list -R "$GITHUB_REPOSITORY" --state open --limit 100 \
+            --json number,state,body,mergedAt,mergeCommit \
+            > "$root/pr-open.json"
+          gh pr list -R "$GITHUB_REPOSITORY" --state merged --limit 500 \
+            --json number,state,body,mergedAt,mergeCommit \
+            > "$root/pr-merged.json"
+          # Curated historical candidates may be older than the bounded
+          # bulk query. Verify their exact PR numbers with current GitHub API.
+          python3 - "$root" <<'PY'
+          import json, pathlib, subprocess, sys
+          root = pathlib.Path(sys.argv[1])
+          legacy = json.loads(pathlib.Path("docs/recovery/agent-candidates.json").read_text())
+          members = json.loads(pathlib.Path("docs/recovery/vault-member-dispositions.json").read_text())
+          prs = json.loads((root / "pr-open.json").read_text())
+          prs += json.loads((root / "pr-merged.json").read_text())
+          known = {x["number"] for x in prs}
+          numbers = {x.get("github_pr") for x in legacy.get("candidates", [])}
+          numbers |= {x.get("pr") for x in members.get("items", [])}
+          for n in sorted(x for x in numbers if isinstance(x, int) and x not in known)[:100]:
+              response = subprocess.run(
+                  ["gh", "api", f"repos/{__import__('os').environ['GITHUB_REPOSITORY']}/pulls/{n}"],
+                  capture_output=True, text=True, check=False)
+              if response.returncode:
+                  raise SystemExit(f"GitHub PR verification failed: {n}")
+              info = json.loads(response.stdout)
+              prs.append({"number": n, "state": "MERGED" if info.get("merged_at") else info["state"].upper(),
+                          "body": info.get("body"),
+                          "mergedAt": info.get("merged_at"),
+                          "mergeCommit": {"oid": info.get("merge_commit_sha")}})
+          dedup = {p["number"]: p for p in prs}
+          standardized = []
+          for row in dedup.values():
+              standardized.append({"number": row["number"], "state": row["state"],
+                                   "body": row.get("body"),
+                                   "merged_at": row.get("mergedAt"),
+                                   "merge_commit_sha": (row.get("mergeCommit") or {}).get("oid")})
+          (root / "github.json").write_text(json.dumps({"prs": standardized}))
+          PY
+      - name: Reconcile member identities and create actionable review artifact
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          REVIEW_ROOT: ${{ runner.temp }}/vault-review
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/vault_integration_review.py \
+            --incoming "$REVIEW_ROOT/incoming" \
+            --evidence "$REVIEW_ROOT/evidence" \
+            --github "$REVIEW_ROOT/github.json" \
+            --out "$REVIEW_ROOT/actionable"
+          cat "$REVIEW_ROOT/sources.txt" >> "$GITHUB_STEP_SUMMARY"
+          cat "$REVIEW_ROOT/actionable/actionable.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain read-only handoff
+        if: ${{ github.event_name != 'pull_request' && success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vault-actionable-review
+          path: ${{ runner.temp }}/vault-review/actionable/
+          retention-days: 90

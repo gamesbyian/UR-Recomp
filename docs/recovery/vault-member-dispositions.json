@@ -1,0 +1,5 @@
+{
+  "schema": "ur-vault-member-dispositions/1",
+  "note": "Agent 1 owns member-level semantic classification and provenance. Agent 3 validates GitHub integration and advances review stages. Absence of an entry means needs_semantic_review, NEVER integrated. Preserve every Drive original and historical hold. For each item use the stable vm1 candidate_id from actionable.json. All disposition assertions require reviewed evidence; no speculative entries.",
+  "items": []
+}

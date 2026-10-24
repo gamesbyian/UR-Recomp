@@ -82,6 +82,28 @@ def audit_frame(frame: visual.Frame, logical_width: int) -> dict:
     }
 
 
+
+def audit_observed_frame(frame: visual.Frame, expected_logical_width: int) -> dict:
+    """Measure the actual source grid before sampling the identity strip.
+
+    A 256-wide root stretched to a 1280x720 drawable must not be misreported
+    as 342-wide checkerboard bleed. Keep the width mismatch as a failing
+    product check while reporting the real 256-wide strip's pixel integrity.
+    """
+    detected = visual.detect_logical(frame, (256, 342))
+    widths = detected["consistent_widths"]
+    if len(widths) != 1:
+        raise ValueError("ambiguous native source width in final SDL P7")
+    observed_width = widths[0]
+    report = audit_frame(frame, observed_width)
+    report["expected_logical_width"] = expected_logical_width
+    report["observed_logical_width"] = observed_width
+    report["logical_width_nonuniform_fraction"] = detected["nonuniform_fraction"]
+    report["checks"]["expected_logical_width"] = observed_width == expected_logical_width
+    report["pass"] = all(report["checks"].values())
+    return report
+
+
 def audit_capture(directory: Path, logical_width: int, expected_output: tuple[int, int],
                   expected_source_sha: str) -> dict:
     receipt = json.loads((directory / "readback-receipt.json").read_text())
@@ -100,7 +122,7 @@ def audit_capture(directory: Path, logical_width: int, expected_output: tuple[in
     converted = visual.Frame(png)
     if (frame.width, frame.height) != expected_output or frame.rgba != converted.rgba:
         raise ValueError(f"P7/PNG final SDL pixels differ: {directory}")
-    report = audit_frame(frame, logical_width)
+    report = audit_observed_frame(frame, logical_width)
     report.update({"p7_sha256": sha256(raw), "png_sha256": sha256(png),
                    "exe_sha256": receipt["exe_sha256"],
                    "source_sha": receipt["source_sha"],

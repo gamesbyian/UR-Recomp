@@ -509,13 +509,23 @@ int main() {
                                       old_view,view));
     assert(contains("A SELECT  B BACK"));
     assert(!contains("L/R CHANGE  B BACK"));
-    // Invalid host focus must never imply an adjustable row.
+    // Invalid host focus must not advertise a Confirm action, and an
+    // empty Options model has no selectable action at all.
     view.options_selected = 99;
     painted.clear();
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
-    assert(contains("A SELECT  B BACK"));
+    assert(contains("B BACK"));
+    assert(!contains("A SELECT  B BACK"));
     assert(!contains("L/R CHANGE  B BACK"));
+    view.options_row_count = 0;
+    view.options_selected = 0;
+    painted.clear();
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("B BACK"));
+    assert(!contains("A SELECT  B BACK"));
+    view.options_row_count = 3;
     view.options_selected = 1;
     // The genuine 342x224 native-wide shell has two independent readable
     // columns instead of a long engineering-width concatenated string.

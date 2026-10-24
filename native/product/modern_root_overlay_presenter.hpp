@@ -251,13 +251,15 @@ inline void render_modern_options_modal(
             // An action row (for example CONTROLS) opens with Confirm;
             // Left/Right only changes rows the product actually marks
             // adjustable. Match the native destination's contextual hint.
-            const bool adjustable = view.options_selected < rows &&
+            const bool has_selection = view.options_selected < rows;
+            const bool adjustable = has_selection &&
                 view.options_rows[view.options_selected].adjustable;
             paint.draw_text(pixels, stride, surface_height,
                             bx + 9 * scale, by + 114 * scale,
                             fit_modern_overlay_text(
-                                adjustable ? "L/R CHANGE  B BACK"
-                                           : "A SELECT  B BACK",
+                                !has_selection ? "B BACK" : adjustable
+                                    ? "L/R CHANGE  B BACK"
+                                    : "A SELECT  B BACK",
                                 cells).c_str(),
                             palette.cursor_blue, scale);
         }

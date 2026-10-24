@@ -442,6 +442,21 @@ int main() {
     assert(has("A SELECT   B BACK"));
     assert(!has("L/R CHANGE   B BACK"));
     clear();
+    // Out-of-range focus and zero rows must not offer a nonexistent action.
+    v.options_selected = 99;
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    assert(has("B BACK"));
+    assert(!has("A SELECT   B BACK"));
+    clear();
+    v.options_row_count = 0;
+    v.options_selected = 0;
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,320,wide,v));
+    assert(has("B BACK"));
+    assert(!has("A SELECT   B BACK"));
+    clear();
+    v.options_row_count = 99;
     v.options_selected = 1;
     v.options_controls_help = true;
     assert(render_modern_native_destination(painter,scratch,256,224,

@@ -3187,7 +3187,7 @@
       "target_paths": [
         "tools/select_three_project_reuse.py"
       ],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Archive's standalone tools/knowledge_reuse_matrix_id_guard.py is absent from main as a separate module; current tools/select_three_project_reuse.py validate() rejects duplicate capability matrix IDs and duplicate reuse register IDs, while candidates() also refuses duplicate matrix IDs. Archive remains an older first-party guard/research implementation, semantically covered by existing reuse preflight, not source-exact.",
       "github_prs": [
         "#2088"
       ],
@@ -3201,6 +3201,11 @@
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
         "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": "tools/select_three_project_reuse.py",
+        "test_reference": "Independent duplicate-ID negative in current source; existing unit coverage should be reviewed before attributing particular archived test exactness",
+        "review_basis": "Direct old archive member inspection plus current-main source read; historical origin and publication incident preserved; no hardware/QA credit"
       }
     },
     {
@@ -3588,7 +3593,7 @@
         "tools/qa01_sparse_transition_bounds.py",
         "tests/unit/test_qa01_sparse_transition_bounds.py"
       ],
-      "current_main_comparison": "Bounded research or negative tests already found on main or owned by current QA issue; no product integration inferred from archive location",
+      "current_main_comparison": "Archived tools/qa01_sparse_transition_bounds.py Git blob e3bb7abd95d939ae6e10cfaf8a5f3fb0297180ad is older than main's 0d5da974a8d93ad35c0786dcb65afb0fb49f3091. Main implements transition_bounds() preserving parity-constrained minimum/maximum transitions, unconstrained suffix, identical/nonidentical endpoint nonmonotonic warning, exact RF081 source digest, 41-pair source census, and release/event zero. tests/unit/test_qa01_sparse_transition_bounds.py independently enumerates boolean path extremes and bad-epoch inputs. Earlier archive retained; no missing game implementation.",
       "github_prs": [
         "#2088"
       ],
@@ -3602,6 +3607,11 @@
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
         "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": "tools/qa01_sparse_transition_bounds.py",
+        "test_reference": "tests/unit/test_qa01_sparse_transition_bounds.py",
+        "review_basis": "Direct old archive member inspection plus current-main source read; historical origin and publication incident preserved; no hardware/QA credit"
       }
     },
     {
@@ -4072,7 +4082,7 @@
         "tools/rf081_selected_pc_candidate_census.py",
         "tests/unit/test_rf081_selected_pc_candidate_census.py"
       ],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Preserved RF081 source-local test qualification reflects earlier selected-PC census implementation. Current tools/rf081_selected_pc_candidate_census.py (main Git blob 77920709ae726ead86c80ea98ae235573da72200) requires nine authenticated frame records, ordered source-local original/native sequence markers, explicit source fetch stages, typed PCs and zero causal/event promotion. tests/unit/test_rf081_selected_pc_candidate_census.py exercises swapped frames, invalid source-local order and unqualified semantic phase. Older test edits are superseded by stronger current source/test; no actual same-phase original/native RTS operand proven.",
       "github_prs": [
         "#2088"
       ],
@@ -4086,6 +4096,11 @@
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
         "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": "tools/rf081_selected_pc_candidate_census.py",
+        "test_reference": "tests/unit/test_rf081_selected_pc_candidate_census.py",
+        "review_basis": "Direct old archive member inspection plus current-main source read; historical origin and publication incident preserved; no hardware/QA credit"
       }
     },
     {

@@ -108,9 +108,15 @@ def validate(inventory, ledger):
         "status":"v2 candidate screening; independent audit not finished; old 48.5% maturity baseline not comparable"
     }
 
+def require_reviewed_head(inventory, reviewed_head):
+    if not isinstance(reviewed_head, str) or len(reviewed_head) != 40 or any(x not in "0123456789abcdef" for x in reviewed_head):
+        raise ValueError("Reviewed head must be a full lowercase source SHA")
+    if inventory.get("source_sha") != reviewed_head:
+        raise ValueError("STALE v2 inventory: source_sha differs from requested reviewed HEAD")
+
 def report(d):
     lines = ["# Windows beta v2 | atomic progress",
-             "", f"Candidate bounded product coverage: **{d['bounded_product_coverage_percent']:.3f}%**",
+             f"Source reviewed: {d['inventory_source_sha']}", "", f"Candidate bounded product coverage: **{d['bounded_product_coverage_percent']:.3f}%**",
              f"Independently audited criterion coverage: **{d['independently_audited_coverage_percent']:.3f}%**",
              f"Accepted full USA events: **{d['independent_USA_complete_events']}/45**",
              f"Accepted Windows release gates: **{d['formal_windows_gates_passed']}/12**",
@@ -126,9 +132,12 @@ def main():
     p.add_argument("--inventory", type=Path, default=INV_PATH)
     p.add_argument("--ledger", type=Path, default=LEDGER_PATH)
     p.add_argument("--format", choices=["json","markdown"], default="markdown")
+    p.add_argument("--reviewed-head", help="Optional full current upstream SHA; refuses stale inventory instead of printing a current claim")
     a = p.parse_args()
-    value = validate(json.loads(a.inventory.read_text(encoding="utf-8")),
-                     json.loads(a.ledger.read_text(encoding="utf-8")))
+    inventory = json.loads(a.inventory.read_text(encoding="utf-8"))
+    if a.reviewed_head:
+        require_reviewed_head(inventory, a.reviewed_head)
+    value = validate(inventory, json.loads(a.ledger.read_text(encoding="utf-8")))
     print(json.dumps(value, indent=2) if a.format == "json" else report(value))
 
 if __name__ == "__main__":

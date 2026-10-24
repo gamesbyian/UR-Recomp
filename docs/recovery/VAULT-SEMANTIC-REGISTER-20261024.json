@@ -45,7 +45,8 @@
     "Agent 1 scoped Incoming archive follow-up: 4 exact ZIPs CRC and SHA-256 read; three previously pending archived Windows test/security packages now semantically superseded, and CPU source-member witness refined. Distinct archived bits retained; original explicit safety refusals not reexecuted.",
     "Independent Agent 1 direct Incoming follow-up: five exact source/proposal files reconciled against current main; H26 standalone patch exact duplicate of H26 Evidence ZIP member, QA08 and QA01 source guards/statements present, WinQA same-key guard merged, RF081 candidate research-only. No new integration/release credit.",
     "Agent 1 completed 45/45 direct Incoming item semantic/owner classification after authenticated readback. Four composite/source-test leads have named Agent 2 reviewer, two standalone title scripts have existing owner/approval holds, exact P2P source and merged test successors are recorded; no generic pending remains. Nested member audit still incomplete.",
-    "Agent 1 Evidence direct duplication: 8 exact original standalone JSONs match five candidate manifests and three receipts in authenticated H26 ZIP bit-for-bit. Child SHA-256 and parent ZIP sha pin, unaltered decisions. Records race remains conditional Agent2 work, 9/9 synthetic tests not release credit."
+    "Agent 1 Evidence direct duplication: 8 exact original standalone JSONs match five candidate manifests and three receipts in authenticated H26 ZIP bit-for-bit. Child SHA-256 and parent ZIP sha pin, unaltered decisions. Records race remains conditional Agent2 work, 9/9 synthetic tests not release credit.",
+    "Evidence root followup: accepted main 37 vm1 verdicts applied to the two original QA08/audio ZIPs; nested Git backup folder classified administrative rather than pending code (6 children already separately inventoried)."
   ],
   "items": [
     {
@@ -754,15 +755,21 @@
       "mime_type": "application/vnd.google-apps.folder",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "docs/recovery/VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md"
+      ],
+      "current_main_comparison": "One Evidence direct-child folder, not a ZIP or source implementation. Its six children (five 70–80 MiB transfer parts plus 945-byte manifest) are fully enumerated in nested_file_inventory; H29 receipt independently restored 408610900-byte historical Git bundle SHA 322c4841... and ran strict fsck, 8,118 commits at old main 7e9a1be4. These files are larger than 64 MiB recurring single-file budget, source archives should not be inferred missing.",
+      "github_prs": [
+        "#2533"
+      ],
+      "owner": "Agent 3 intake administrative routing; Agent 1 historic backup evidence",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Previously independently restored bundle verification and strict Git fsck documented in H29 receipt; no product build implication",
+      "next_action": "Preserve originals and manifest. Agent 3 may independently add exact-ID historical administrative skip while retaining byte-budget checks for genuinely new ZIPs.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_backup_folder",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1ngXWIRgzx-x0GK3FeLOUXw35dTndSpyQ",
@@ -812,17 +819,26 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 5222,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "2660ebec802e03de8b7066a120c34c5f1eccd3dea03ac4b3c262dca0ce4e6b13",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/qa08_probe_robustness.py",
+        "tests/unit/test_qa08_triplet_field_admission_h25.py"
+      ],
+      "current_main_comparison": "Original whole ZIP CRC/hash-qualified; its two SHA-keyed vm1 source/test leaves now semantic supersessions in accepted 37-key main ledger. Current QA08 parser and merged field-negative tests reject nonnumeric beam, missing substage-1 RGB555, invalid stage identity. Old PR2313 review reproducer is preserved, not a missing module.",
+      "github_prs": [
+        "#2322",
+        "#2526",
+        "#2528"
+      ],
+      "owner": "Agent 1 canonical vm1 to Evidence row; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "tests/unit/test_qa08_triplet_field_admission_h25.py",
+      "next_action": "No separate QA08 code task. Retain original ZIP and review-denial history; QA08 #1996 physical raster remains held.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1OYY5iDYUef-kXr8gm1Z3iPDBB85ZAdJZ",
@@ -1145,17 +1161,25 @@
       "folder_id": "1t0J4GT0N9PQEJkf2TqDt1P6lbYlLArx2",
       "bytes": 5064,
       "mime_type": "application/zip",
-      "archive_sha256": null,
+      "archive_sha256": "3a768d3899743885a328b8fd4994a5bf4ec66795e251c86aba0999840ccb7552",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "tools/live_capture_research/clock_bound_audio_span.py",
+        "tests/unit/test_live_capture_audio_interval_h25.py"
+      ],
+      "current_main_comparison": "Original archive SHA and source/test members independently qualified; accepted vm1 audio source and historical 3,600-frame +75ms drift negative now superseded by current ClockBoundWitness global audio cursor/PTS check and explicit reject-on-cumulative-drift long-run test. This is synthetic host-tap, not recorded hardware source.",
+      "github_prs": [
+        "#2293",
+        "#2528"
+      ],
+      "owner": "Agent 1 canonical vm1 to Evidence row; Agent 3 final disposition",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "tests/unit/test_live_capture_audio_interval_h25.py",
+      "next_action": "No duplicate audio clock implementation. Keep earlier refusal and original executable negative as historical evidence.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "semantically_superseded",
+      "release_gate_credit": 0,
+      "source_publication_authorized": false
     },
     {
       "drive_id": "1vSbfM5C1mjmN8j9IqQu6mzuJ3MnM-mTm",

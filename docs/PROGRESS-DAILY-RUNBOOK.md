@@ -1,4 +1,4 @@
-# Progress reporting: repeatable daily handoff
+> **2026-10-24 candidate v2 (not yet the official completion headline):** [Atomic Windows beta inventory and outcome audit](progress/README.md) now produce 135 criterion-specific binary receipts, explicit fresh gains/retractions, and an evidence-screening classification of *all* main merges in a pinned interval. Use `python3 tools/atomic_progress_v2.py`, `python3 tools/atomic_progress_delta.py`, and `python3 tools/progress_yield_audit.py` when asked for progress; report v1 48.5% as historical and v2 as a separately named candidate until independent classification review. Formal USA and Windows QA acceptance remain governed solely by the release ledger. A changing main SHA must be re-reviewed and source-pinned; no automatic self-certification.\n\n# Progress reporting: repeatable daily handoff
 
 The [fixed 100-point Windows-beta inventory](PROGRESS-INVENTORY.json) is unchanged. Scoring tiers are coarse, so the companion evidence-velocity report records reviewed and merged product advances between score transitions. **Do not equate counts of PRs, changes, lines or tests with percentage completion.**
 

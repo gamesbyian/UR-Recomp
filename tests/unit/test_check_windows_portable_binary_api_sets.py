@@ -18,7 +18,7 @@ def dumpbin(*names: str, delay: tuple[str, ...] = ()) -> str:
         lines.append("Image has the following delay load dependencies:")
         lines.extend("    " + name for name in delay)
     lines.append("Summary")
-    return "\\n".join(lines) + "\\n"
+    return "\n".join(lines) + "\n"
 
 
 class WindowsPortableApiSetImportContract(unittest.TestCase):

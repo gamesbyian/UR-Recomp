@@ -252,6 +252,8 @@ def pull(entry: dict, output: Path, tree: bytes, *, stage=False,
          stage_member: str | None = None, stage_sha256: str | None = None,
          expected_archive_sha256: str | None = None,
          runner=subprocess.run) -> dict:
+    if stage_member is not None and (not stage or expected_archive_sha256 is None):
+        raise ValueError("single-member source staging requires original archive SHA-256 pin")
     file_id = entry["id"]
     name = safe_path(entry["path"]).name
     dest = output / "downloads" / file_id / name

@@ -125,13 +125,13 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
             MAIN.replace("frame=440", "frame=437"),
             TITLE.replace("frame=943", "frame=940"),
-            "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=940 menu=84 focus=host guest_writes=0",
             DEMO.replace("frame=1532", "frame=1529").replace("overlay_title=1", "overlay_title=0"),
             "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
             "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
             "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0 guest_writes=0",
             "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0 guest_writes=0",
-            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60 guest_writes=0",
+            "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3815 menu=d7 race=00 stable=60 guest_writes=0",
             "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
             "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
             "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
@@ -139,6 +139,7 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         good = "\n".join(stages)
         result = verify_named_original_play_after_recovery(good)
         self.assertEqual(result[-1]["phase"], "original_stock_one_player_entered")
+        self.assertEqual(result[2], {"phase": "original_main_stable", "frame": 3815})
         for index in range(len(stages)):
             with self.subTest(missing=index), self.assertRaises(ValueError):
                 verify_named_original_play_after_recovery(
@@ -149,6 +150,8 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             good.replace("phase=main_menu frame=437", "phase=main_menu frame=440"),
             good.replace("phase=attract_title frame=940", "phase=attract_title frame=943"),
             good.replace("phase=demo_race frame=1529", "phase=demo_race frame=1532"),
+            good.replace("source_revealed=1 frame=940", "source_revealed=1 frame=943"),
+            good.replace("source_main_recovered=1 frame=3815", "source_main_recovered=1 frame=3818"),
             good.replace("frame=437 menu=d7", "frame=437 menu=84"),
             good.replace("frame=1529 menu=00 race=01", "frame=1529 menu=00 race=00"),
             good.replace("stock_entered players=1 menu=3c",

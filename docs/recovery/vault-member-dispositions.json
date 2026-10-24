@@ -1,7 +1,7 @@
 {
   "schema": "ur-vault-member-dispositions/1",
-  "note": "Agent 1's bounded dispositions of stable review-lead vm1 keys from exact October 24 intake checkpoint artifacts 12550460740 and 12549589792, against current-main source and issue #2088. Other unlisted member keys remain needs_semantic_review; no source publication authorization or release gate is implied. Maintains original rights/holds. On 2026-10-24 scoped semantic follow-up, five of six previously unresolved H28/P2P keys were dispositioned against current main; the P2P commit-negatives key vm1-cc9bbbb9b9c8be1cc19eeb98 remains unresolved for wrong-build/wrong-responder source-bound test comparison. Agent 2's independent exact-source/behavioral comparison #2088 comment 6381086883 resolves final P2P commit negative as semantically covered. All 33 fingerprinted vm1 leads now have explicit superseded or evidence-only dispositions, with no publication authorization.",
-  "observed_main": "468e46ecd0845afecabe8986a7c4c4eb2dab7768",
+  "note": "Agent 1 member-level semantic dispositions of 37 reviewed stable vm1 keys across October 24 production artifacts. Original 33 dispositions sourced from intake artifacts 12550460740 and 12549589792; four additional members (QA08 admission and audio-clock drift) from successful downstream Actionable Review run 40110030302 artifact 12565524081 and original verified Evidence ZIPs. All 37 fingerprints explicitly dispositioned: 34 semantically superseded and 3 research/evidence-only; ZERO automatically authorized engineering or release-gate credits. Unlisted or unsampled H26 nested members remain needs_semantic_review. Historical Git safety refusals and source rights/QA08/P2P approval holds remain in effect.",
+  "observed_main": "9e95438dd95baa8b8b62d4cdbfc1f8e926a9ddb3",
   "intake_run": 40068102434,
   "items": [
     {
@@ -114,6 +114,20 @@
       "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1 semantic disposition",
+      "release_gate_credit": 0
+    },
+    {
+      "candidate_id": "vm1-46c5ecb87275be3294157914",
+      "scope": "evidence",
+      "drive_id": "1OuEyzPUFGpBjMaFEFWJQVbTrd-cF_Mnb",
+      "state": "superseded",
+      "source_path": "tools/qa08_probe_robustness.py",
+      "tests": "tests/unit/test_qa08_triplet_field_admission_h25.py",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2322",
+      "reason": "Archived qa08_probe_robustness_pr2313.py (6130 B; SHA256 2ce0a8e449b16d53bbc5af402570b9c8171dfa88c5155a2e6d515fa7a11e8a0e; Git blob 0b243792f81ee824bba312e269f1590072749e9f from merged #2313) is an older accepted source. Current main tools/qa08_probe_robustness.py (observed Git blob 16ae8d0bf426bca0b7249d928ab660ad9ef6f42b) checks numeric frame/x/logical_y/ppu_line at all three stages and selected_rgb555 at both source substages; merged #2322 added independent negative tests. Superseded source behavior, no second QA08 parser.",
+      "provenance_verified": true,
+      "publication_authorized": false,
+      "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
       "release_gate_credit": 0
     },
     {
@@ -285,6 +299,20 @@
       "release_gate_credit": 0
     },
     {
+      "candidate_id": "vm1-9d502bbf75f14880522e45c7",
+      "scope": "evidence",
+      "drive_id": "1vmDPtMARo2C4USzZUcUCQPK-l4U8IpnK",
+      "state": "superseded",
+      "source_path": "tools/live_capture_research/clock_bound_audio_span.py",
+      "tests": "tests/unit/test_live_capture_audio_interval_h25.py",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2293",
+      "reason": "Archived clock_bound_audio_span.py (3014 B; SHA256 9488a293bf114a81f41880642ae01b8a3bc4cd79b36967a0cd09ba93d6b244ad; archive 3a768d3899743885a328b8fd4994a5bf4ec66795e251c86aba0999840ccb7552) was the historical PR #2293 version allowing per-frame +/-1 sample rounding errors to accumulate. Current main clock_bound_audio_span.py (Git blob a1102a5c7d9f10f5b2ae9014eba560172cb1aa1e) anchors every committed audio cursor and final terminal sample count to first frame PTS with global +/-1 sample tolerance, poison-on-drift and exact terminal receipt. It supersedes the archived version; synthetic audio is not a physical capture.",
+      "provenance_verified": true,
+      "publication_authorized": false,
+      "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
+      "release_gate_credit": 0
+    },
+    {
       "candidate_id": "vm1-9e14b5e7d3404384fa0c3cfe",
       "scope": "evidence",
       "drive_id": "174uaFvvPUZU5hJcblskoOURMyLPePXR_",
@@ -296,6 +324,20 @@
       "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1 semantic disposition",
+      "release_gate_credit": 0
+    },
+    {
+      "candidate_id": "vm1-9fb1015f857bb94ddb060f20",
+      "scope": "evidence",
+      "drive_id": "1OuEyzPUFGpBjMaFEFWJQVbTrd-cF_Mnb",
+      "state": "superseded",
+      "source_path": "tools/qa08_probe_robustness.py",
+      "tests": "tests/unit/test_qa08_triplet_field_admission_h25.py",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2322",
+      "reason": "Archived agent5_qa08_triplet_admission_review.py (2553 B; SHA256 74b932e4bee4bbbea0992fdf248144b6948690f652597a85e87f8002bb091cd1; archive 2660ebec802e03de8b7066a120c34c5f1eccd3dea03ac4b3c262dca0ce4e6b13) demonstrated four previously accepted malformed genuine-source triplets. Merged #2322 independently reversed each acceptance into a negative regression in tests/unit/test_qa08_triplet_field_admission_h25.py: absent/malformed sub=1 RGB555; absent ppu_line; nonnumeric frame, with additional out-of-range coordinates. This old test expects incorrect acceptance, so it is historical evidence and must not be copied as a current regression. No QA08 raster-source/physical approval.",
+      "provenance_verified": true,
+      "publication_authorized": false,
+      "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
       "release_gate_credit": 0
     },
     {
@@ -352,6 +394,20 @@
       "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1 then Agent 2",
+      "release_gate_credit": 0
+    },
+    {
+      "candidate_id": "vm1-d15fd3a3aa43b862fe6c6ec6",
+      "scope": "evidence",
+      "drive_id": "1vmDPtMARo2C4USzZUcUCQPK-l4U8IpnK",
+      "state": "superseded",
+      "source_path": "tools/live_capture_research/clock_bound_audio_span.py",
+      "tests": "tests/unit/test_live_capture_audio_interval_h25.py::test_sixty_second_one_sample_each_frame_does_not_accumulate_75ms",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088",
+      "reason": "Archived test_cumulative_drift.py (1132 B; SHA256 069eda9ef5f355518376a0c7fa13dc38d0dbd0d1cfaab4482679f826d5eef022) intentionally asserts that 3,600 frames * 801 samples at 60 Hz yields an accepted +3,600-sample/+75ms error. Current main tests/unit/test_live_capture_audio_interval_h25.py explicitly expects a ValueError('cumulative audio clock drift') for exactly that scenario, plus a full 3,600-frame * 800-sample positive and terminal +2-sample refusal. Archived incorrect-success assertion is historical negative evidence only; its useful failure contract is expressed as current regression. No duplicated test source.",
+      "provenance_verified": true,
+      "publication_authorized": false,
+      "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
       "release_gate_credit": 0
     },
     {

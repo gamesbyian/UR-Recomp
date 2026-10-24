@@ -1,0 +1,65 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "reviewed_at_utc": "2026-10-24T19:24:07Z",
+  "from_main_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
+  "through_main_sha": "ea0f421df3f9a0c0007b1dfb17cede979518cb33",
+  "observed_merge_count": 2,
+  "merge_records": [
+    {
+      "commit_sha": "447292775e268a741d7cd14ffaa9c69dbc16a2cc",
+      "pr": 2519,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2519",
+      "effect": "enabling_infrastructure",
+      "observation": "Bound deterministic Vault size-limit retry/cooldown behavior; no direct player-feature or release-gate claim"
+    },
+    {
+      "commit_sha": "ea0f421df3f9a0c0007b1dfb17cede979518cb33",
+      "pr": 2520,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2520",
+      "effect": "enabling_infrastructure",
+      "observation": "Qualify two bounded existing behavior receipts by independent CI execution-log review; no new source-code feature"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "TWO-01",
+      "before": "bounded_verified",
+      "after": "bounded_verified",
+      "audit_before": "inherited_pr_screening",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651"
+      ],
+      "reason": "Independent examination of exact tested Win32 five-process native source journey: distinct controller-script P1/P2 creation, actual settled guest result, exactly one .urrun/.urmatch pair and fresh native Records reopened from both racers. Bounded product behavior, not hardware or source-exact original event certification."
+    },
+    {
+      "id": "TWO-02",
+      "before": "bounded_verified",
+      "after": "bounded_verified",
+      "audit_before": "inherited_pr_screening",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651"
+      ],
+      "reason": "Independent examination of exact tested Win32 five-process native source journey: distinct controller-script P1/P2 creation, actual settled guest result, exactly one .urrun/.urmatch pair and fresh native Records reopened from both racers. Bounded product behavior, not hardware or source-exact original event certification."
+    },
+    {
+      "id": "TWO-03",
+      "before": "bounded_verified",
+      "after": "bounded_verified",
+      "audit_before": "inherited_pr_screening",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651"
+      ],
+      "reason": "Independent examination of exact tested Win32 five-process native source journey: distinct controller-script P1/P2 creation, actual settled guest result, exactly one .urrun/.urmatch pair and fresh native Records reopened from both racers. Bounded product behavior, not hardware or source-exact original event certification."
+    }
+  ],
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Two intervening merged commits are enabling-only. Source-validated and independently exercised five-native-process Windows 2P acceptance from historical merged #1510 independently qualifies three already-screened bounded product criteria; no product point gain or release gate.",
+  "source_reviewed_by": "independent_measurement_integrator"
+}

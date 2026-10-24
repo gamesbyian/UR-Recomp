@@ -1,7 +1,7 @@
 {
   "schema": "ur-v2-review-pointer/1",
-  "previous": "docs/progress/v2-review-checkpoint-20261024T1850.json",
-  "interval": "docs/progress/v2-review-interval-20261024T1916.json",
-  "reviewed_main_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
+  "previous": "docs/progress/v2-review-checkpoint-20261024T1916.json",
+  "interval": "docs/progress/v2-review-interval-20261024T1924.json",
+  "reviewed_main_sha": "ea0f421df3f9a0c0007b1dfb17cede979518cb33",
   "note": "Advance only with source review and a complete new interval; the CLI must still receive the explicitly reviewed --reviewed-head and reject stale values."
 }

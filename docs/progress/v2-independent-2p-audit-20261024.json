@@ -1,0 +1,62 @@
+{
+  "schema": "ur-v2-independent-bounded-review/1",
+  "date": "2026-10-24",
+  "source_reviewed_main_sha": "ea0f421df3f9a0c0007b1dfb17cede979518cb33",
+  "review_method": "Independently inspected exact historical GitHub Actions native Windows x64 job log and present merged test producer source. Five distinct native application processes and canonical paired immutable archive assertion, not a new replay or physical gamepad session.",
+  "changes": [
+    {
+      "id": "TWO-01",
+      "criterion": "Two controller-created profiles enter genuine original 2P GO",
+      "implementation": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+      "independent_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651",
+      "outcome": {
+        "runner": "Hosted Windows native-windows-x64",
+        "profiles": "Mike and Martin independently created by native UI/controller-semantic scripted input",
+        "result": "real source stock 2P GO and named paired participants verified"
+      },
+      "scope_limit": "Scripted controller-semantic input, NOT two physical pads or two human players. This is not MENU-01 or UX-04."
+    },
+    {
+      "id": "TWO-02",
+      "criterion": "Genuine two-player race reaches settled guest 2P results",
+      "implementation": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+      "independent_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651",
+      "outcome": {
+        "runner": "Hosted Windows native-windows-x64",
+        "marker": "PASS: native-created Mike/Martin -> played original 2P source match -> exactly one paired record -> both fresh native Records views.",
+        "test_producer": "tools/baldosa_native_player_created_2p_records_probe.py"
+      },
+      "scope_limit": "Authentic guest-derived settled race but not an independently compared original/native USA complete-event pass."
+    },
+    {
+      "id": "TWO-03",
+      "criterion": "Both 2P racers persist independently earned fresh-process Records",
+      "implementation": "https://github.com/gamesbyian/UR-Recomp/pull/1510",
+      "independent_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651",
+      "outcome": {
+        "runner": "Hosted Windows native-windows-x64",
+        "source_checks": [
+          "exactly one nonempty .urrun/.urmatch archive pair",
+          "reloaded Mike exact 8192-byte SRAM and paired Records",
+          "reloaded Martin exact 8192-byte SRAM and paired Records",
+          "immutable matching pair SHA-256 after both read-only opens",
+          "canonical catalog and distinct profile save roots remain unchanged"
+        ]
+      },
+      "scope_limit": "Fifth process uses test-fixture native selector for already-created Martin; this does not prove that the product's existing-profile picker is user-facing or physically tested."
+    }
+  ],
+  "before": {
+    "bounded_coverage_percent": 47,
+    "independently_audited_percent": 2,
+    "USA_events": 0,
+    "Windows_gates": 0
+  },
+  "after": {
+    "bounded_coverage_percent": 47,
+    "independently_audited_percent": 5,
+    "USA_events": 0,
+    "Windows_gates": 0
+  },
+  "caveat": "Log-based independent review of historical exact-source native tests. Not a new current-main package build, source-exact reference parity, physical Windows controller/audio/display, or formal QA release gate."
+}

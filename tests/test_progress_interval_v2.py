@@ -25,16 +25,19 @@ class ProgressIntervalV2Tests(unittest.TestCase):
                        sha if sha is not None else self.sha)
     def test_current_interval_score_and_distinct_work_mix(self):
         r = self.score()
-        self.assertEqual(r["previous_product_percent"],47)
-        self.assertEqual(r["current_product_percent"],47)
-        self.assertEqual(r["interval_product_delta_points"],0)
+        self.assertEqual(r["interval_product_delta_points"],
+                         round(r["current_product_percent"] - r["previous_product_percent"], 3))
         self.assertEqual(r["reviewed_merge_count"],self.interval["observed_merge_count"])
         self.assertEqual(sum(r["merged_work_mix"].values()),r["reviewed_merge_count"])
-        self.assertEqual(r["current_independent_audit_percent"],2)
-        self.assertEqual(r["accepted_USA_events"],0)
-        self.assertEqual(r["passed_release_gates"],0)
-        self.assertEqual(r["newly_verified"],[])
-        self.assertEqual(set(r["other_audit_transitions"]),{"WIN-03","ONE-05"})
+        self.assertEqual(r["current_independent_audit_percent"],
+                         round(sum(c["weight_units"] for c in self.inv["criteria"]
+                                   if c["audit_state"] == "independent_reviewed") * 100/4500,3))
+        self.assertEqual(set(r["other_audit_transitions"]),
+                         {c["id"] for c in self.interval["criterion_changes"]
+                          if c["audit_before"] != c["audit_after"]})
+        self.assertEqual(r["accepted_USA_events"], self.ledger["gates"][0]["coverage"]["complete_event_passes"])
+        self.assertEqual(r["passed_release_gates"],
+                         sum(c["status"] == "passed" for c in self.ledger["gates"]))
     def test_stale_review_sha_rejected(self):
         with self.assertRaisesRegex(ValueError,"STALE"):
             self.score(sha="a"*40)

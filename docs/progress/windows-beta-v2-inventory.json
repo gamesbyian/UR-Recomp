@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "9a6091ed1fadf34c85d62003cac6164623c3c786",
+  "source_sha": "ea0f421df3f9a0c0007b1dfb17cede979518cb33",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -275,7 +275,9 @@
       "evidence_class": "merged_pr_targeted_test_or_witness",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830",
+      "independent_review_note": "Independent inspection of original 2026-10-14 hosted Win32 job 115716339651 plus source-visible real-process verifier tools/baldosa_native_player_created_2p_records_probe.py. Real native Mike/Martin create, stock 2P result and exact paired Records both fresh views. Scripted controller semantics, not physical pads; no source-exact USA event accepted."
     },
     {
       "id": "TWO-02",
@@ -288,7 +290,9 @@
       "evidence_class": "merged_pr_targeted_test_or_witness",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830",
+      "independent_review_note": "Independent inspection of original 2026-10-14 hosted Win32 job 115716339651 plus source-visible real-process verifier tools/baldosa_native_player_created_2p_records_probe.py. Real native Mike/Martin create, stock 2P result and exact paired Records both fresh views. Scripted controller semantics, not physical pads; no source-exact USA event accepted."
     },
     {
       "id": "TWO-03",
@@ -301,7 +305,9 @@
       "evidence_class": "merged_pr_targeted_test_or_witness",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "inherited_pr_screening"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830",
+      "independent_review_note": "Independent inspection of original 2026-10-14 hosted Win32 job 115716339651 plus source-visible real-process verifier tools/baldosa_native_player_created_2p_records_probe.py. Real native Mike/Martin create, stock 2P result and exact paired Records both fresh views. Scripted controller semantics, not physical pads; no source-exact USA event accepted."
     },
     {
       "id": "TWO-04",
@@ -1707,6 +1713,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source-linked initial v2 claim audit of all 50 previously credited items; no independent execution or new promotion of post-baseline merges.",
-  "latest_criterion_review_ref": "docs/progress/v2-independent-bounded-audit-20261024.json",
+  "latest_criterion_review_ref": "docs/progress/v2-independent-2p-audit-20261024.json",
   "latest_review_interval": "docs/progress/v2-review-interval-20261024T1850.json"
 }

@@ -3,6 +3,10 @@
 import argparse
 import json
 from pathlib import Path
+import sys
+REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 from tools.atomic_progress_v2 import validate, ROOT, INV_PATH, LEDGER_PATH
 
 BASE = ROOT/"docs/progress/windows-beta-v2-baseline.json"

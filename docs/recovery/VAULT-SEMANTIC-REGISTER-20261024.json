@@ -36,7 +36,8 @@
     "51 Integrated entries now include independently computed whole-file SHA256 and per-item GitHub PR/issue references. 50 ZIPs passed CRC and 291 ZIP-member SHA256 fingerprints are recorded in a separately available raw binary audit; a DOCX is the 51st entry.",
     "Inbox pointer rows now carry referenced_archives SHA-256 for the cited source/evidence package, separately from the pointer's own null archive_sha256. target_paths identify original proposed or merged semantic-owner paths, not automatic Git blob equality.",
     "Scoped 2026-10-24 source/member review reduced six unresolved vm1 keys to one, without a new implementation PR: H28 QA07 double-escaped-surrogate patch and P2P ACK/cross-invite negative controls superseded or retained as evidence. Source comparisons are specific to current main and research-only tests, no P2P security/release acceptance.",
-    "Agent 2's independently qualified late Win32-portable namespace audit fixed an actual current-main exporter staging race in merged PR #2483. This is a current-source derived correction, not 25 Inbox tasks or missing archived implementation."
+    "Agent 2's independently qualified late Win32-portable namespace audit fixed an actual current-main exporter staging race in merged PR #2483. This is a current-source derived correction, not 25 Inbox tasks or missing archived implementation.",
+    "2026-10-24 16:05 UTC later scheduled intake artifacts: 27/45 Incoming and 21/71 runner-enumerated Evidence verified; 4 oversized backup-segment Evidence errors; no source publication. Full ids/artifacts in latest_transport."
   ],
   "items": [
     {
@@ -1712,16 +1713,19 @@
         "tools/baldosa_native_modern_root.cpp",
         "tests/native/run_practice_repeat_two_cycles_acceptance.sh"
       ],
-      "current_main_comparison": "Practice guards merged. Separate Options rollback historical source not retained (BOM-only Doc revision); Agent 2 independently reproduce if defect persists",
+      "current_main_comparison": "Practice target identity, restoration and guarded two-repeat stock-router work represented by merged #2356/#2357/#2362/#2478/#2494/#2499; old denial records retained. Separate original Options rollback source is not present in BOM-only historical Doc and has no verified recoverable bytes.",
       "github_prs": [
         "#2356",
         "#2357",
-        "#2362"
+        "#2362",
+        "#2478",
+        "#2494",
+        "#2499"
       ],
       "owner": "Agent 3",
       "priority": "P3",
       "required_test": "Existing merged source/test and exact-head CI provenance; no release gate",
-      "next_action": "Practice guards merged. Separate Options rollback historical source not retained (BOM-only Doc revision); Agent 2 independently reproduce if defect persists",
+      "next_action": "Agent 3 archive final disposition with member-level exact vs adapted distinction; Agent 2 only investigates a reproducible still-current Options rollback gap independently, not replays an old denied operation.",
       "blocker": null,
       "classification": "semantically_superseded",
       "work_id": "UR-UI-OPTIONS",
@@ -3933,9 +3937,11 @@
       "archive_sha256": "6fb8a6c6d9032af63c94a20aab7c90177f6b9aaff32f1f30c41eb5aa05cfbb62",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Original Practice two-repeat script exact-published on #2494 head then merged; archived native harness structure semantically adapted to stock router, not byte-identical. #2499 merged unified keyboard/pad guarded rematch. Historical source denial remains an incident, never replayed. No acceptance gate credited.",
       "github_prs": [
-        "#2362"
+        "#2362",
+        "#2494",
+        "#2499"
       ],
       "owner": "Agent 3 (historical crosswalk validation)",
       "priority": "P4",
@@ -4949,7 +4955,7 @@
       "owner": "Agent 2",
       "priority": "P2",
       "archive_drive_id": "142bXAi_4D-928Wz7FntyRbVzTYvt_sJZ",
-      "next": "Use earlier scoped extraction and #2088 semantic/prior-merge proof; exclude already checked QA07/QA06 and #2458/#2459. No blanket publication."
+      "next": "Review ONLY unsampled source/test behavior after Agent 2 exact checks; #2458/#2459 and recovered real two-process no-replace regression #2486 are merged. Historical optional DOS CLOCK$ QA04 candidate #2490 closed unmerged after malformed source-write readback; preserve source/incident, do not retry denied operations. Scope remains bounded and no new PR from hash mismatch."
     },
     {
       "work": "H27 P2P research member (semantically resolved)",
@@ -4988,6 +4994,49 @@
         "#2483"
       ],
       "next": "Merged #2483 at 859ac89d6f6e135f6cce8971c1f0662c2058dc6e. Fresh-main derivation, not replay of denied historical patch; 5,440 tooling-unit tests and hygiene green at premerge head. Separate Windows/NTFS ADS issue #2103 still open."
+    },
+    {
+      "work": "Historic Options rollback source unavailable",
+      "owner": "Agent 2 conditional engineering / independent authorization",
+      "priority": "P3 conditional",
+      "archive_drive_id": "1_3tsAlIptW03MNeT9z1QIhztyZwfEFO2rqEAt06V32c",
+      "status": "outside current 224-item six-folder inventory; single-revision BOM-only native Google Doc, source bytes not preserved",
+      "next": "Do not infer recoverable source from title/old branch. If defect is demonstrable on current main, derive independent regression, respect original publication hold."
     }
-  ]
+  ],
+  "latest_transport": {
+    "workflow_run": 40109967527,
+    "head_sha": "e81a28564a660fd423317e06dcf48846bcb405d6",
+    "state": "completed_with_evidence_job_failure_and_preserved_scope_artifacts",
+    "incoming": {
+      "artifact_id": 12565997956,
+      "runner_entries": 45,
+      "checkpoint_verified": 27,
+      "remaining_due": 18,
+      "newly_verified": 6,
+      "errors": 0
+    },
+    "evidence": {
+      "artifact_id": 12566117554,
+      "runner_entries": 71,
+      "authenticated_direct_children": 66,
+      "checkpoint_verified": 21,
+      "remaining_due": 50,
+      "newly_verified": 2,
+      "errors": 4,
+      "failed_ids": [
+        "12kR7_5fT43i57Zl-Bp5IoBRWb8dw1zXo",
+        "1twfDxRBCFhJ0P-sfphIuo5vHtNZIIVN1",
+        "1vIBqgoZrd6G6pVMFnshNaX4bW4GZyjWi",
+        "10Ez78lv7bfGnn8NsK7bfgxHtCJrKsSl1"
+      ],
+      "error_class": "download exceeds single-file byte budget (historical Git-backup segments)",
+      "retry_cooldown_count": 2
+    },
+    "automatic_publication": 0,
+    "semantic_integrations_credited": 0,
+    "note": "Preserved checkpoint success is distinct from the workflow conclusion. Do not interpret oversize backup parts as absent source; nested H26 scoped review remains separate. The run's queue counts are advisory and do not rewrite the 33 member-level semantic verdicts."
+  },
+  "last_checked_main_head": "c00997af128912297e5cf8bffac54ee0b9f12484",
+  "last_checked_main_note": "Current live main identity for October 24 afternoon follow-up; per-member source comparisons remain pinned to their cited observation and are not all revalidated at this SHA."
 }

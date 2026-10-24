@@ -23,7 +23,7 @@ The ledger uses schema ur-vault-member-dispositions/1 and an items array. Each r
 * For every member disposition: optional scope, drive_id, archive_sha256, member and member_sha256 fields must agree with the actual checkpoint fingerprint. Any conflict results in identity_conflict with Agent 1 as owner; a plausible vm1 candidate_id cannot disguise misidentified archive bytes. Include both SHA-256 fields on new adjudications wherever observed.
 * For unresolved and evidence_only: supply an accurate reason and a follow-up owner. The original evidence survives.
 
-The initial member ledger is intentionally empty until Agent 1's authoritative per-member reconciliation is supplied. Unlisted items remain needs_semantic_review, never silently integrated. Ledger IDs absent from available checkpoint artifacts are surfaced as orphaned/retained records rather than silently deleted.
+The authoritative member ledger is now populated: Agent 1's 33 reviewed dispositions were merged in [#2481](https://github.com/gamesbyian/UR-Recomp/pull/2481), and four separately source-qualified QA08/audio decisions in [#2528](https://github.com/gamesbyian/UR-Recomp/pull/2528), for **37 scoped fingerprinted members (34 superseded, 3 evidence-only)**. A ledger decision applies only to its exact vm1 key/verified member identity; **newly encountered source members still need semantic review**. The full Vault inventory and unsampled H26 nested content remain distinct from those 37 records. Ledger IDs absent from available checkpoint artifacts are surfaced as orphaned/retained records rather than silently deleted. A green PR's *offline* review checks do not prove that the next scheduled `main` run has executed the updated ledger.
 
 ## Engineering and PR qualification
 

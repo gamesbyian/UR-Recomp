@@ -10,8 +10,7 @@ the existing public-Drive download helper and current-revision Git blob crosswal
 ## What the automation does
 
 1. Index publicly linked **02 Incoming** (45 direct files at its initial snapshot) and **03 Evidence Library** (66 direct children from the authenticated Drive listing). The gdown Evidence enumeration returned 71 items in its independent live check; that count may include nested entries and must not be mistaken for authenticated direct-child count.
-2. Restore the newest checkpoint from the \`vault-recurring-state\` artifact of a
-   completed \`main\` workflow run, or start fresh if absent/expired.
+2. Restore the newest per-scope checkpoint from `vault-recurring-state-incoming` and `vault-recurring-state-evidence` artifacts of completed `main` workflow runs. The latest usable artifact may come from **different** runs after a partially failed matrix; only Incoming may fall back to the old `vault-recurring-state` name. Start fresh only if absent or expired.
 3. Prioritize unexamined ZIPs, then other files, then old rechecks. Scheduled runs use a six-archive file-count allowance per folder; manual dispatch keeps its chosen allowance (default three), and PR smoke audits only one known archive per folder.
    Download at most **6 files per folder per scheduled run** (12 hard maximum per folder job) and enforce
    a **64 MiB accepted-byte budget per folder job** (128 MiB hard upper bound per job). Original
@@ -20,7 +19,7 @@ the existing public-Drive download helper and current-revision Git blob crosswal
 4. Audit downloaded ZIP/member paths, size/CRC, nested archives to the bounded
    crosswalk depth, member SHA-256 and exact Git-blob matches against the
    checkout revision. Error cases remain unaudited and eligible for retry.
-5. Upload the metadata-only artifact \`vault-recurring-state\` containing:
+5. Upload **two separate metadata-only artifacts**, `vault-recurring-state-incoming` and `vault-recurring-state-evidence`, each containing:
    - \`report.json\`: that run's successes, failures, deferred work, SHA-256,
      sizes and ZIP-member hash inventory.
    - \`checkpoint.json\`: last verified date, byte count, SHA-256 and exact
@@ -54,19 +53,14 @@ clock delivery.
   inspector bounds expanded totals. The total-run budget is an *accepted-byte*
   budget, not a hard limit on download network transfer, because public folder
   enumeration does not expose trusted content lengths in advance.
-- A failed file does not poison the checkpoint. The run reports the error
-  and exits nonzero after preserving its successful items.
+- A failed file does not poison the checkpoint. Unexpected transport, corruption and inspection failures exit nonzero after preserving successes. Exactly recognized first-encountered file/expanded/nested byte-budget `ValueError`s instead receive an unaudited cooldown without red CI; explicit forced probes still fail.
 - Concurrent intake executions are serialized through a single workflow
   concurrency group; other project CI remains unaffected.
 
 ## How recovery agents consume results
 
 Open [Actions: Vault Recurring Intake](https://github.com/gamesbyian/UR-Recomp/actions/workflows/vault-recurring-intake.yml).
-Select the newest completed \`main\` run, download \`vault-recurring-state\`,
-and begin with \`queue.json\` and \`report.json\`. The candidate queue is
-advisory; inspect original source via direct Python download in a shell
-environment, or the *separate, explicitly reviewed* staging option in the
-[manual Direct Intake workflow](DIRECT-VAULT-INTAKE.md).
+For each scope, inspect the newest complete `main` artifact named `vault-recurring-state-incoming` or `vault-recurring-state-evidence` (possibly from different completed runs). Use `checkpoint.json`, `queue.json` and `report.json`; [Vault Actionable Review](VAULT-ACTIONABLE-REVIEW.md) joins these per-scope artifacts to the semantic ledger. The queue is advisory; inspect original source through [the separate, explicitly reviewed Direct Intake workflow](DIRECT-VAULT-INTAKE.md) or locally in an authorized environment.
 
 Compare each reviewed member against **fresh main, active PRs and rights /
 publication holds**, then create focused implementation/test PRs as permitted.

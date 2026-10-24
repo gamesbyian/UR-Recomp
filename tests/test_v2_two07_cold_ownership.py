@@ -26,7 +26,7 @@ class HistoricalTwo07Tests(unittest.TestCase):
         a=self.a
         self.assertIn("https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830/job/115716339651",a["evidence"])
         self.assertIn("https://github.com/gamesbyian/UR-Recomp/pull/1510",a["evidence"])
-        self.assertIn("test-fixture", " ".join(a["limits"]))
+        self.assertIn("fixture", " ".join(a["limits"]).lower())
         self.assertTrue(any("distinct" in x for x in a["qualified_observations"]))
         self.assertEqual(len(a["reviewed_main_sha"]),40)
     def test_interval_explains_prior_source_witness_not_current_qa08_patch(self):

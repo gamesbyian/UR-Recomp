@@ -115,6 +115,21 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("!g_next_event_verify_track", acceptance)
         self.assertNotIn("activate_results_navigation_action(", acceptance)
 
+    def test_repeat_rejects_stale_practice_identity_before_guest_restart(self):
+        source = HOST.read_text(encoding="utf-8")
+        repeat = _body(
+            source,
+            "bool repeat_current_attempt() {",
+            "bool launch_recent_course_practice() {",
+        )
+        guard = repeat.index("quick_practice_repeat_target_ready(")
+        reject = repeat.index("REPEAT_PRACTICE_REJECTED_TARGET")
+        restart = repeat.index("dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY)")
+        self.assertLess(guard, reject)
+        self.assertLess(reject, restart)
+        self.assertIn("g_practice_active &&", repeat)
+        self.assertIn("g_recent_course_track_id", repeat)
+
     def test_quick_practice_and_authentic_are_explicit_acceptance_cases(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
         harness = HARNESS.read_text(encoding="utf-8")

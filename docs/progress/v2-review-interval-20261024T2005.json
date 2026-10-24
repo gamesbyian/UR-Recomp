@@ -1,0 +1,49 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "reviewed_at_utc": "2026-10-24T20:05:07Z",
+  "from_main_sha": "68f870cecfae61bc897db0ec22a44eddbc2b0dbe",
+  "through_main_sha": "b6ef5b58fbd8757ab02c1eabcbd83cb4830a1772",
+  "observed_merge_count": 5,
+  "merge_records": [
+    {
+      "commit_sha": "a22a43a2351a25790eba38590fb631c0cbb4b6f0",
+      "pr": 2521,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2521",
+      "effect": "direct_product",
+      "observation": "Hide root-only racer shortcuts/notice behind active child modal; real Modern presenter improvement but does not finish an unmet complete navigation criterion"
+    },
+    {
+      "commit_sha": "c519d191957609ce4e5f8f3ddc98819a04f2acc1",
+      "pr": 2517,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2517",
+      "effect": "release_risk_reduction",
+      "observation": "Reject extraneous pre/post/hidden ZIP transport bytes in Windows smoke artifact audit; evidence-integrity improvement, no shipped Windows fault acceptance"
+    },
+    {
+      "commit_sha": "b3229cee0a94eb74002694486cbd0b5e18746c5a",
+      "pr": 2461,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2461",
+      "effect": "release_risk_reduction",
+      "observation": "Bind extracted and archived package manifest source revision to exact canonical CMD launcher bytes, preventing a relabelled-source package; does not certify current Windows release package"
+    },
+    {
+      "commit_sha": "9e95438dd95baa8b8b62d4cdbfc1f8e926a9ddb3",
+      "pr": 2481,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2481",
+      "effect": "enabling_infrastructure",
+      "observation": "Source-classify 224 surviving Drive vault children and 33 bounded recovered members; does not implement a new game feature"
+    },
+    {
+      "commit_sha": "b6ef5b58fbd8757ab02c1eabcbd83cb4830a1772",
+      "pr": 2524,
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2524",
+      "effect": "operations",
+      "observation": "Keep existing five scheduled agent anchors but direct each next closure toward exact Windows package and player/release acceptance instead of accumulating low-yield guard PRs"
+    }
+  ],
+  "criterion_changes": [],
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Reviewed all five merges strictly after prior 47/5 source checkpoint: one narrow UI product improvement, two release/evidence integrity risk reductions, one archival classification and one operational board change. No currently unmet frozen v2 requirement was wholly satisfied or promoted and no separate independent bounded criterion audit occurred.",
+  "source_reviewed_by": "integration_measurement_reviewer"
+}

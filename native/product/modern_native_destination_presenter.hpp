@@ -358,7 +358,7 @@ inline bool render_modern_native_destination(
                 p, pixels, stride, surface_height, c,
                 status && notice ? 138 : 125, !has_selection
                     ? "B BACK" : adjustable
-                        ? "L/R CHANGE   B BACK" : "A SELECT   B BACK"
+                        ? "L/R CHANGE   B BACK" : "A SELECT   B BACK",
                 col.cursor_blue);
         }
     } else if (v.practice_picker_open || v.practice_launch_pending) {

@@ -259,7 +259,7 @@ inline void render_modern_options_modal(
                             fit_modern_overlay_text(
                                 !has_selection ? "B BACK" : adjustable
                                     ? "L/R CHANGE  B BACK"
-                                    : "A SELECT  B BACK"
+                                    : "A SELECT  B BACK",
                                 cells).c_str(),
                             palette.cursor_blue, scale);
         }

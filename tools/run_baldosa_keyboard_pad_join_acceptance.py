@@ -68,7 +68,7 @@ def verify_keyboard_plus_pad(log: str) -> None:
                   "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"),
             "keyboard+pad")
     moves = list(re.finditer(
-        r"(?m)^.*UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1[^\r\n]*$", log
+        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1\b[^\r\n]*$", log
     ))
     if len(moves) != 1:
         raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")

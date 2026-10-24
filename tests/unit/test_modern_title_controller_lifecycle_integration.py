@@ -68,6 +68,11 @@ def require_shared_native_acceptance(workflow: str) -> None:
         "capture_baldosa_modern_title_win32.py",
         "probe_baldosa_modern_title_attract_win32.py",
         "--preview-wake --timeout 140",
+        "for wake in keyboard p2; do",
+        '--preview-wake --wake-route "$wake" $aspect --timeout 140',
+        "'wake_keyboard_4by3':",
+        "'wake_p2':",
+        "receipt.get('native_wake_route') != wake_route",
         "hashlib.sha256(exe.read_bytes()).hexdigest()",
         "if receipt.get(key) != expected:",
         "SAME_PE_NATIVE_TITLE_CONTROLLER_ACCEPTANCE_OK",
@@ -89,6 +94,9 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "run_baldosa_keyboard_pad_join_acceptance.py",
             "for confirm in gamepad keyboard start held; do",
             "--preview-wake --timeout 140",
+            "for wake in keyboard p2; do",
+            "'wake_p2':",
+            "receipt.get('native_wake_route') != wake_route",
             "if receipt.get(key) != expected:",
         ):
             with self.subTest(token=token), self.assertRaises(AssertionError):

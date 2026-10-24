@@ -1314,6 +1314,40 @@ class WindowsPackageTests(unittest.TestCase):
         self.assertIn("UR-Recomp-Windows-x64.zip.sha256", workflow)
 
 
+    def test_source_revision_cannot_inject_windows_launcher_commands(self):
+        # The value appears in an unquoted CMD echo and a diagnostic line.
+        # Source provenance must be a single inert token, even for offline
+        # assembly where --source-revision is supplied by the caller.
+        for revision in ("abc123", "test-revision", "release_2026.10.23", "a" * 40):
+            with self.subTest(allowed=revision):
+                self.assertEqual(package_tool.normalize_source_revision(revision), revision)
+        for revision in (
+            "rev&whoami", "rev|more", "rev>file", "rev<file",
+            "rev%COMSPEC%", "rev!EXPAND!", "rev^caret", 'rev"quote',
+            "rev (parentheses)", "rev/branch", "rev\\branch",
+            "rev\u00e9", "rev\nspoof", "x" * 129,
+        ):
+            with self.subTest(rejected=revision):
+                with self.assertRaises(ValueError):
+                    package_tool.normalize_source_revision(revision)
+
+        # Fail before touching a previously completed package tree.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            output = root / "package"
+            output.mkdir()
+            sentinel = output / "completed-build.txt"
+            sentinel.write_text("preserve existing bytes", encoding="utf-8")
+            result = self.run_tool(
+                "assemble", "--build-dir", build, "--rom", rom,
+                "--output", output, "--source-revision", "rev&whoami",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("source revision is required for a shippable package", result.stderr)
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "preserve existing bytes")
+
     def test_missing_source_revision_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

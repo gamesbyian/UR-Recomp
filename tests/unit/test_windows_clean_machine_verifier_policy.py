@@ -104,6 +104,34 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertIn("UR_PORTABLE_ROM_IDENTITY_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_MANIFEST_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK", result.stdout)
+            # Even a re-signed archive/sidecar must not admit CMD-active
+            # build_revision text into the extracted Windows launcher.
+            unsafe_archive = root / "unsafe-source-revision.zip"
+            unsafe_checksum = root / "unsafe-source-revision.zip.sha256"
+            with zipfile.ZipFile(archive) as original, zipfile.ZipFile(
+                unsafe_archive, "w", compression=zipfile.ZIP_DEFLATED,
+            ) as forged:
+                for info in original.infolist():
+                    payload = original.read(info.filename)
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        unsafe_manifest = json.loads(payload)
+                        unsafe_manifest["source_revision"] = "rev&whoami"
+                        payload = package.canonical_manifest_bytes(unsafe_manifest)
+                    forged.writestr(info, payload)
+            package.write_archive_checksum(unsafe_archive, unsafe_checksum)
+            unsafe_cmd = cmd.copy()
+            unsafe_cmd[6] = str(unsafe_archive)
+            unsafe_cmd[8] = str(unsafe_checksum)
+            unsafe_destination = root / "unsafe revision extraction"
+            unsafe_cmd[-1] = str(unsafe_destination)
+            unsafe_result = subprocess.run(
+                unsafe_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(unsafe_result.returncode, 0)
+            self.assertIn(
+                "unsupported schema or missing revision", unsafe_result.stderr,
+            )
+
             self.assertTrue(
                 (destination / package.ARCHIVE_ROOT / package.EXE_NAME).is_file()
             )

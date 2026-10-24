@@ -58,7 +58,7 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope == 'both' || inputs.scope == matrix.scope }}
         run: python -m pip install 'gdown==6.4.2'
       - name: Restore most recent preserved checkpoint from main runs
-        if: ${{ github.event_name != 'pull_request' && (inputs.scope == 'both' || inputs.scope == matrix.scope) }}
+        if: ${{ github.event_name != 'pull_request' && (github.event_name == 'schedule' || inputs.scope == 'both' || inputs.scope == matrix.scope) }}
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

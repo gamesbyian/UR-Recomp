@@ -281,5 +281,38 @@ int main() {
     assert(begin_quick_practice_launch(canonical).stage ==
            QuickPracticeLaunchStage::AwaitMain);
 
+    // Results-time Repeat Practice must reject a missing, changed or
+    // corrupted retained course before any guest Restart is dispatched.
+    const int repeat_tracks[] = {0, 12, 44};
+    for (int track_id : repeat_tracks) {
+        auto repeat = begin_quick_practice_launch(
+            quick_practice_target_for_track(
+                static_cast<std::uint8_t>(track_id)));
+        assert(!quick_practice_repeat_target_ready(repeat, track_id));
+        repeat.stage = QuickPracticeLaunchStage::Active;
+        assert(quick_practice_repeat_target_ready(repeat, track_id));
+        assert(!quick_practice_repeat_target_ready(repeat, -1));
+        assert(!quick_practice_repeat_target_ready(repeat, 45));
+        assert(!quick_practice_repeat_target_ready(
+            repeat, (track_id + 1) % 45));
+        auto corrupted = repeat;
+        corrupted.target.valid = false;
+        assert(!quick_practice_repeat_target_ready(corrupted, track_id));
+        corrupted = repeat;
+        corrupted.target.tour_option = 8;  // unsupported stock tour
+        assert(!quick_practice_repeat_target_ready(corrupted, track_id));
+        corrupted = repeat;
+        corrupted.target.track_slot =
+            static_cast<std::uint8_t>((track_id + 1) % 5);
+        assert(!quick_practice_repeat_target_ready(corrupted, track_id));
+        corrupted = repeat;
+        corrupted.target.track_id = 45;
+        assert(!quick_practice_repeat_target_ready(corrupted, track_id));
+        corrupted = repeat;
+        corrupted.stage = QuickPracticeLaunchStage::AwaitRace;
+        assert(!quick_practice_repeat_target_ready(corrupted, track_id));
+    }
+    assert(!quick_practice_repeat_target_ready({}, 0));
+
     return 0;
 }

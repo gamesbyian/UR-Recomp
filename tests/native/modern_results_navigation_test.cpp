@@ -15,6 +15,7 @@ static ModernResultsNavigationContext ordinary() {
         true,
         true,
         true,
+        true,  // canonical Practice target still available
     };
 }
 
@@ -99,6 +100,21 @@ int main() {
         assert(menu.row_count == 2);
         assert(menu.rows[0] == ModernResultsAction::RepeatPractice);
         assert(menu.rows[1] == ModernResultsAction::Records);
+
+        // If the retained target is lost or corrupted after results, do not
+        // advertise a Restart that cannot safely repeat the same course.
+        practice.practice_target_ready = false;
+        const auto invalid = make_modern_results_navigation_menu(practice);
+        assert(invalid.row_count == 1);
+        assert(invalid.rows[0] == ModernResultsAction::Records);
+        assert(!modern_results_action_available(
+            ModernResultsAction::RepeatPractice, practice));
+        ModernResultsNavigationMenu stale_repeat{};
+        stale_repeat.rows[0] = ModernResultsAction::RepeatPractice;
+        stale_repeat.row_count = 1;
+        assert(activate_modern_results_navigation_menu(
+            stale_repeat, practice, UR_MODERN_HOST_NAV_CONFIRM) ==
+            ModernResultsAction::None);
     }
 
     {
@@ -135,9 +151,9 @@ int main() {
     }
 
 
-    // Exhaustive 512-context matrix: no displayed row may be unactionable.
+    // Exhaustive 1024-context matrix: no displayed row may be unactionable.
     for (unsigned mode = 0; mode < 2u; ++mode) {
-        for (unsigned mask = 0; mask < 256u; ++mask) {
+        for (unsigned mask = 0; mask < 512u; ++mask) {
             auto ctx = ordinary();
             ctx.mode = mode ? ExecutionMode::Modern : ExecutionMode::Authentic;
             ctx.results_surface = (mask & 1u) != 0;
@@ -148,6 +164,7 @@ int main() {
             ctx.router_available = (mask & 32u) != 0;
             ctx.restart_available = (mask & 64u) != 0;
             ctx.next_event_unique = (mask & 128u) != 0;
+            ctx.practice_target_ready = (mask & 256u) != 0;
             auto menu = make_modern_results_navigation_menu(ctx);
             assert(menu.row_count <= menu.rows.size());
             for (std::size_t row = 0; row < menu.row_count; ++row) {

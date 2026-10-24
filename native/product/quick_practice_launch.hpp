@@ -108,6 +108,26 @@ constexpr QuickPracticeLaunchState begin_quick_practice_launch(
     return state;
 }
 
+// Results-time repeat is permitted only for the same canonical Practice
+// identity that completed the stock launch. A stale/missing Recent Course or
+// a corrupted retained target cannot authorize a guest Restart. The caller
+// checks this before dispatching any guest-mutating action.
+constexpr bool quick_practice_repeat_target_ready(
+    const QuickPracticeLaunchState& state, int observed_track_id
+) noexcept {
+    if (state.stage != QuickPracticeLaunchStage::Active ||
+        !state.target.valid || observed_track_id < 0 ||
+        observed_track_id >= 45 ||
+        state.target.track_id != observed_track_id) {
+        return false;
+    }
+    const auto canonical =
+        quick_practice_target_for_track(state.target.track_id);
+    return canonical.valid &&
+           canonical.tour_option == state.target.tour_option &&
+           canonical.track_slot == state.target.track_slot;
+}
+
 constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     QuickPracticeLaunchState state,
     QuickPracticeLaunchObservation observation

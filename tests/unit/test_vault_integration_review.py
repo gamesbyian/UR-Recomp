@@ -102,6 +102,36 @@ class ReviewQueueTests(unittest.TestCase):
         row = self.run_review()["records"][0]
         self.assertEqual((row["state"], row["owner"]), ("queued_engineering", "Agent 2"))
 
+    def test_approved_member_produces_only_manual_bounded_stage_handoff(self):
+        key = self.seed()
+        save(self.ledger, {"schema": q.LEDGER, "items": [
+            {"candidate_id": key, "state": "engineering",
+             "source_path": "tools/new.py", "reason": "verified missing source",
+             "provenance_verified": True, "publication_authorized": True}]})
+        result = self.run_review()
+        handoff = result["staging_handoff"]
+        self.assertEqual(len(handoff), 1)
+        self.assertEqual(handoff[0]["drive_file_id"], DRIVE)
+        self.assertEqual(handoff[0]["archive_sha256"], A)
+        self.assertEqual(handoff[0]["member_sha256"], B)
+        self.assertFalse(handoff[0]["dispatch_automatically"])
+        self.assertNotEqual(handoff[0]["confirm_source_review"], True)
+
+    def test_missing_source_after_checkpoint_prevents_engineering_stage(self):
+        key = self.seed()
+        save(self.ledger, {"schema": q.LEDGER, "items": [
+            {"candidate_id": key, "state": "engineering",
+             "source_path": "tools/new.py", "reason": "verified missing source",
+             "provenance_verified": True, "publication_authorized": True}]})
+        report = q.load(self.root / "incoming" / "report.json")
+        report["absent_from_current_listing"] = [DRIVE]
+        save(self.root / "incoming" / "report.json", report)
+        result = self.run_review()
+        self.assertEqual(result["records"][0]["state"], "unavailable_source_hold")
+        self.assertEqual(result["staging_handoff"], [])
+        self.assertIn("absent_from_current_public_listing",
+                      [item["type"] for item in result["exceptions"]])
+
     def test_merged_requires_live_matching_sha_and_tests(self):
         key = self.seed()
         entry = {"candidate_id": key, "state": "merged", "pr": 2459,

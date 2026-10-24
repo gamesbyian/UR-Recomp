@@ -48,6 +48,30 @@ int main() {
         assert(menu.rows[1] == ModernResultsAction::TrackSelect);
         assert(menu.rows[2] == ModernResultsAction::TourSelect);
         assert(menu.rows[3] == ModernResultsAction::Records);
+
+        // The old selected index can remain in range while rows shift.
+        // RETRY remains available but row 1 now displays TRACK SELECT:
+        // confirming an old row must not execute a different visible action.
+        auto stale = make_modern_results_navigation_menu(ordinary());
+        stale.selected = 1;
+        assert(modern_results_action_available(
+            ModernResultsAction::Retry, ambiguous));
+        assert(activate_modern_results_navigation_menu(
+            stale, ambiguous, UR_MODERN_HOST_NAV_CONFIRM) ==
+            ModernResultsAction::None);
+        stale.selected = 2;  // TRACK SELECT moved from row 2 to row 1.
+        assert(activate_modern_results_navigation_menu(
+            stale, ambiguous, UR_MODERN_HOST_NAV_CONFIRM) ==
+            ModernResultsAction::None);
+        stale.selected = 4;  // RECORDS moved from row 4 to row 3.
+        assert(activate_modern_results_navigation_menu(
+            stale, ambiguous, UR_MODERN_HOST_NAV_CONFIRM) ==
+            ModernResultsAction::None);
+        auto fresh = menu;
+        fresh.selected = 1;
+        assert(activate_modern_results_navigation_menu(
+            fresh, ambiguous, UR_MODERN_HOST_NAV_CONFIRM) ==
+            ModernResultsAction::TrackSelect);
     }
 
     {

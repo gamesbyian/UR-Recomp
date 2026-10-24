@@ -43,10 +43,24 @@ def _read(archive: zipfile.ZipFile, member: str, *, limit: int) -> bytes:
 
 
 def _open_transport(path: Path, *, exactly: set[str] | None = None) -> zipfile.ZipFile:
-    if not path.is_file() or path.stat().st_size > MAX_TRANSPORT_BYTES:
+    if not path.is_file() or not 22 <= path.stat().st_size <= MAX_TRANSPORT_BYTES:
         raise ValueError("missing or oversized transport artifact")
+    # A ZIP central directory can describe an apparently exact member set
+    # even when the file has a self-extracting prefix, unindexed local
+    # records, a comment or an opaque trailer. Windows Actions evidence
+    # wrappers have no reason to carry any of these additional bytes.
+    with path.open("rb") as source:
+        first = source.read(4)
+        source.seek(-22, 2)
+        end = source.read(22)
+    if (first != b"PK\x03\x04" or end[:4] != b"PK\x05\x06" or
+            end[-2:] != b"\x00\x00"):
+        raise ValueError("noncanonical transport ZIP envelope")
     archive = zipfile.ZipFile(path)
     names = archive.namelist()
+    if (not names or min(info.header_offset for info in archive.infolist()) != 0):
+        archive.close()
+        raise ValueError("noncanonical transport ZIP local member offset")
     if len(names) > 250 or len(names) != len(set(names)) or (
         exactly is not None and set(names) != exactly
     ):

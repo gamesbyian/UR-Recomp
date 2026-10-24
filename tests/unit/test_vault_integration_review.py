@@ -115,6 +115,8 @@ class ReviewQueueTests(unittest.TestCase):
         self.assertEqual(handoff[0]["archive_sha256"], A)
         self.assertEqual(handoff[0]["member_sha256"], B)
         self.assertFalse(handoff[0]["dispatch_automatically"])
+        self.assertTrue(handoff[0]["entire_archive_review_required"])
+        self.assertTrue(handoff[0]["staging_may_include_other_unmatched_source_members"])
         self.assertNotEqual(handoff[0]["confirm_source_review"], True)
 
     def test_missing_source_after_checkpoint_prevents_engineering_stage(self):

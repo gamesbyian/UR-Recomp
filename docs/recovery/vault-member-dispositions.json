@@ -125,10 +125,14 @@
       "tests": "tests/unit/test_qa08_triplet_field_admission_h25.py",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2322",
       "reason": "Archived qa08_probe_robustness_pr2313.py (6130 B; SHA256 2ce0a8e449b16d53bbc5af402570b9c8171dfa88c5155a2e6d515fa7a11e8a0e; Git blob 0b243792f81ee824bba312e269f1590072749e9f from merged #2313) is an older accepted source. Current main tools/qa08_probe_robustness.py (observed Git blob 16ae8d0bf426bca0b7249d928ab660ad9ef6f42b) checks numeric frame/x/logical_y/ppu_line at all three stages and selected_rgb555 at both source substages; merged #2322 added independent negative tests. Superseded source behavior, no second QA08 parser.",
-      "provenance_verified": true,
+      "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "archive_sha256": "2660ebec802e03de8b7066a120c34c5f1eccd3dea03ac4b3c262dca0ce4e6b13",
+      "member_sha256": "2ce0a8e449b16d53bbc5af402570b9c8171dfa88c5155a2e6d515fa7a11e8a0e",
+      "member_path": "qa08_probe_robustness_pr2313.py",
+      "member_bytes": 6130
     },
     {
       "candidate_id": "vm1-4a3a7bd060583649daebee47",
@@ -307,10 +311,14 @@
       "tests": "tests/unit/test_live_capture_audio_interval_h25.py",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2293",
       "reason": "Archived clock_bound_audio_span.py (3014 B; SHA256 9488a293bf114a81f41880642ae01b8a3bc4cd79b36967a0cd09ba93d6b244ad; archive 3a768d3899743885a328b8fd4994a5bf4ec66795e251c86aba0999840ccb7552) was the historical PR #2293 version allowing per-frame +/-1 sample rounding errors to accumulate. Current main clock_bound_audio_span.py (Git blob a1102a5c7d9f10f5b2ae9014eba560172cb1aa1e) anchors every committed audio cursor and final terminal sample count to first frame PTS with global +/-1 sample tolerance, poison-on-drift and exact terminal receipt. It supersedes the archived version; synthetic audio is not a physical capture.",
-      "provenance_verified": true,
+      "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "archive_sha256": "3a768d3899743885a328b8fd4994a5bf4ec66795e251c86aba0999840ccb7552",
+      "member_sha256": "9488a293bf114a81f41880642ae01b8a3bc4cd79b36967a0cd09ba93d6b244ad",
+      "member_path": "clock_bound_audio_span.py",
+      "member_bytes": 3014
     },
     {
       "candidate_id": "vm1-9e14b5e7d3404384fa0c3cfe",
@@ -335,10 +343,14 @@
       "tests": "tests/unit/test_qa08_triplet_field_admission_h25.py",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2322",
       "reason": "Archived agent5_qa08_triplet_admission_review.py (2553 B; SHA256 74b932e4bee4bbbea0992fdf248144b6948690f652597a85e87f8002bb091cd1; archive 2660ebec802e03de8b7066a120c34c5f1eccd3dea03ac4b3c262dca0ce4e6b13) demonstrated four previously accepted malformed genuine-source triplets. Merged #2322 independently reversed each acceptance into a negative regression in tests/unit/test_qa08_triplet_field_admission_h25.py: absent/malformed sub=1 RGB555; absent ppu_line; nonnumeric frame, with additional out-of-range coordinates. This old test expects incorrect acceptance, so it is historical evidence and must not be copied as a current regression. No QA08 raster-source/physical approval.",
-      "provenance_verified": true,
+      "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "archive_sha256": "2660ebec802e03de8b7066a120c34c5f1eccd3dea03ac4b3c262dca0ce4e6b13",
+      "member_sha256": "74b932e4bee4bbbea0992fdf248144b6948690f652597a85e87f8002bb091cd1",
+      "member_path": "agent5_qa08_triplet_admission_review.py",
+      "member_bytes": 2553
     },
     {
       "candidate_id": "vm1-b63f3b468f1706f7e66edc00",
@@ -405,10 +417,14 @@
       "tests": "tests/unit/test_live_capture_audio_interval_h25.py::test_sixty_second_one_sample_each_frame_does_not_accumulate_75ms",
       "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088",
       "reason": "Archived test_cumulative_drift.py (1132 B; SHA256 069eda9ef5f355518376a0c7fa13dc38d0dbd0d1cfaab4482679f826d5eef022) intentionally asserts that 3,600 frames * 801 samples at 60 Hz yields an accepted +3,600-sample/+75ms error. Current main tests/unit/test_live_capture_audio_interval_h25.py explicitly expects a ValueError('cumulative audio clock drift') for exactly that scenario, plus a full 3,600-frame * 800-sample positive and terminal +2-sample refusal. Archived incorrect-success assertion is historical negative evidence only; its useful failure contract is expressed as current regression. No duplicated test source.",
-      "provenance_verified": true,
+      "provenance_verified": false,
       "publication_authorized": false,
       "assigned_owner": "Agent 1: semantic triage; Agent 3: independently verify PR/merge",
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "archive_sha256": "3a768d3899743885a328b8fd4994a5bf4ec66795e251c86aba0999840ccb7552",
+      "member_sha256": "069eda9ef5f355518376a0c7fa13dc38d0dbd0d1cfaab4482679f826d5eef022",
+      "member_path": "test_cumulative_drift.py",
+      "member_bytes": 1132
     },
     {
       "candidate_id": "vm1-d324ef123aba367aac97f0e5",

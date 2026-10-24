@@ -31,6 +31,7 @@ def fake_pe(path: pathlib.Path, *, machine: int = 0x8664,
     struct.pack_into("<I", payload, 0x3C, 0x80)
     payload[0x80:0x84] = b"PE\0\0"
     struct.pack_into("<H", payload, 0x84, machine)
+    struct.pack_into("<H", payload, 0x94, 2)  # declared optional header includes magic
     struct.pack_into("<H", payload, 0x96, characteristics)
     struct.pack_into("<H", payload, 0x98, magic)
     path.write_bytes(payload)
@@ -122,6 +123,18 @@ class WindowsPortableBinaryTests(unittest.TestCase):
             exe.write_bytes(b"not a PE")
             with self.assertRaisesRegex(ValueError, "not a Windows PE"):
                 binary.check_pe_x64(exe)
+
+    def test_rejects_missing_or_truncated_optional_header(self):
+        with tempfile.TemporaryDirectory() as directory:
+            exe = pathlib.Path(directory) / "game.exe"
+            for declared_size in (0, 1, 64):
+                with self.subTest(declared_size=declared_size):
+                    fake_pe(exe)
+                    payload = bytearray(exe.read_bytes())
+                    struct.pack_into("<H", payload, 0x94, declared_size)
+                    exe.write_bytes(payload)
+                    with self.assertRaisesRegex(ValueError, "optional header size"):
+                        binary.check_pe_x64(exe)
 
     def test_rejects_x64_dll_and_non_executable_pe_images(self):
         with tempfile.TemporaryDirectory() as directory:

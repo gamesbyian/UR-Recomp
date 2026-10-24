@@ -102,6 +102,28 @@ void identical_monitors_need_bounds_to_disambiguate() {
     assert(ur_display_placement_match("DELL U2720Q", {5120, 0, 2560, 1440}, twins, 2) == -1);
 }
 
+void duplicated_exact_monitor_identity_is_ambiguous() {
+    // Mirrored/virtual displays may share both their reported name and
+    // desktop bounds. Neither one is uniquely identifiable across launches.
+    const UrDisplayIdentity mirrored[] = {
+        {"Duplicate", {0, 0, 1920, 1080}},
+        {"Duplicate", {0, 0, 1920, 1080}},
+    };
+    assert(ur_display_placement_match(
+        "Duplicate", {0, 0, 1920, 1080}, mirrored, 2) == -1);
+    // Even a third same-named monitor at other bounds cannot disambiguate
+    // two exact matches. A unique exact match remains valid among twins.
+    const UrDisplayIdentity three[] = {
+        {"Duplicate", {0, 0, 1920, 1080}},
+        {"Duplicate", {0, 0, 1920, 1080}},
+        {"Duplicate", {1920, 0, 1920, 1080}},
+    };
+    assert(ur_display_placement_match(
+        "Duplicate", {0, 0, 1920, 1080}, three, 3) == -1);
+    assert(ur_display_placement_match(
+        "Duplicate", {1920, 0, 1920, 1080}, three, 3) == 2);
+}
+
 void unnamed_displays_never_match() {
     const UrDisplayIdentity anonymous[] = {{"", {0, 0, 1920, 1080}}, {nullptr, {0, 0, 1, 1}}};
     assert(ur_display_placement_match("", {0, 0, 1920, 1080}, anonymous, 2) == -1);
@@ -201,6 +223,7 @@ int main() {
     rescue_centres_and_shrinks_to_the_target();
     placement_matches_the_same_named_display();
     identical_monitors_need_bounds_to_disambiguate();
+    duplicated_exact_monitor_identity_is_ambiguous();
     unnamed_displays_never_match();
     vsync_waits_only_where_the_panel_can_carry_the_game();
     default_window_scale_follows_the_display();

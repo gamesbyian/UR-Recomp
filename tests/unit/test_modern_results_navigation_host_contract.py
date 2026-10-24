@@ -129,6 +129,13 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertLess(reject, restart)
         self.assertIn("g_practice_active &&", repeat)
         self.assertIn("g_recent_course_track_id", repeat)
+        context = _body(
+            source,
+            "current_results_navigation_context() {",
+            "void refresh_results_navigation_menu() {",
+        )
+        self.assertIn("quick_practice_repeat_target_ready(", context)
+        self.assertIn("g_practice_launch", context)
 
     def test_quick_practice_and_authentic_are_explicit_acceptance_cases(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)

@@ -77,6 +77,13 @@ function Assert-Amd64PortableExecutable {
             ([long]$peOffset + 24 + $optionalSize) -gt $stream.Length) {
             throw $message
         }
+        # Keep the clean-machine consumer in parity with the producer's PE
+        # gate: an AMD64 PE32+ DLL renamed .exe is not launchable as a process.
+        $characteristics = [BitConverter]::ToUInt16($pe, 22)
+        if (($characteristics -band 0x0002) -eq 0 -or
+            ($characteristics -band 0x2000) -ne 0) {
+            throw 'Packaged executable must be an executable image, not a DLL'
+        }
     }
     finally {
         $stream.Dispose()

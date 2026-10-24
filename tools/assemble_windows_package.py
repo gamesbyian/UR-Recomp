@@ -400,7 +400,7 @@ def launcher_text(source_revision: str) -> str:
         "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo subsystem=%~2\r\n"
         "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo result=fatal\r\n"
         ")\r\n"
-        "exit /b 0\r\n",
+        "exit /b 0\r\n"
     )
 
 

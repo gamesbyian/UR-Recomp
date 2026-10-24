@@ -138,8 +138,10 @@ def classify_intake_error(error: str) -> str:
 
 def is_deterministic_budget_error(error: str) -> bool:
     """Identify hard source size limits; never classify network errors as expected."""
-    return classify_intake_error(error) in {
-        "archive-size-budget", "expanded-zip-budget", "nested-zip-budget",
+    return error in {
+        "download exceeds single-file byte budget",
+        "expanded ZIP budget exceeded",
+        "nested ZIP exceeds byte budget",
     }
 
 
@@ -269,7 +271,8 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
                 "path": item["path"], "last_attempt": now.isoformat(),
                 "error": safe_error,
             }
-            if not forced_id and is_deterministic_budget_error(safe_error):
+            if (not forced_id and isinstance(exc, ValueError)
+                    and is_deterministic_budget_error(safe_error)):
                 cooling.append({
                     "id": item["id"], "path": item["path"],
                     "reason": "oversize_retry_cooldown",

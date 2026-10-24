@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import re
+import struct
 import tempfile
 import zipfile
 from pathlib import Path
@@ -42,16 +43,75 @@ def _read(archive: zipfile.ZipFile, member: str, *, limit: int) -> bytes:
     return archive.read(info)
 
 
+def _check_indexed_local_records(path: Path, archive: zipfile.ZipFile) -> None:
+    """Reject local ZIP data not included in the central member inventory.
+
+    This is bounded by the already-limited 250 transport members and reads
+    only local headers/names/descriptors, not compressed file payloads.
+    A ZIP's central directory can omit a complete local-only record while
+    every indexed member still passes CRC and name checks.
+    """
+    cursor = 0
+    with path.open("rb") as stream:
+        for info in sorted(archive.infolist(), key=lambda item: item.header_offset):
+            if info.header_offset != cursor:
+                raise ValueError("noncanonical transport ZIP local member layout")
+            stream.seek(cursor)
+            header = stream.read(30)
+            if len(header) != 30 or header[:4] != b"PK\x03\x04":
+                raise ValueError("noncanonical transport ZIP local member header")
+            flags, method = struct.unpack_from("<HH", header, 6)
+            name_len, extra_len = struct.unpack_from("<HH", header, 26)
+            if flags != info.flag_bits or method != info.compress_type:
+                raise ValueError("noncanonical transport ZIP local member metadata")
+            name = stream.read(name_len)
+            if name.decode("utf-8" if flags & 0x800 else "cp437") != info.filename:
+                raise ValueError("noncanonical transport ZIP local member name")
+            cursor += 30 + name_len + extra_len + info.compress_size
+            if flags & 8:
+                stream.seek(cursor)
+                has_signature = stream.read(4) == b"PK\x07\x08"
+                if has_signature:
+                    cursor += 4
+                stream.seek(cursor)
+                suffix = stream.read(20)
+                expected = (info.CRC, info.compress_size, info.file_size)
+                if len(suffix) >= 12 and struct.unpack_from("<III", suffix) == expected:
+                    cursor += 12
+                elif len(suffix) == 20 and struct.unpack_from("<IQQ", suffix) == expected:
+                    cursor += 20
+                else:
+                    raise ValueError("noncanonical transport ZIP data descriptor")
+        if cursor != archive.start_dir:
+            raise ValueError("noncanonical transport ZIP unindexed local bytes")
+
+
 def _open_transport(path: Path, *, exactly: set[str] | None = None) -> zipfile.ZipFile:
-    if not path.is_file() or path.stat().st_size > MAX_TRANSPORT_BYTES:
+    if not path.is_file() or not 22 <= path.stat().st_size <= MAX_TRANSPORT_BYTES:
         raise ValueError("missing or oversized transport artifact")
+    # A ZIP central directory can describe an apparently exact member set
+    # even when the file has a self-extracting prefix, unindexed local
+    # records, a comment or an opaque trailer. Windows Actions evidence
+    # wrappers have no reason to carry any of these additional bytes.
+    with path.open("rb") as source:
+        first = source.read(4)
+        source.seek(-22, 2)
+        end = source.read(22)
+    if (first != b"PK\x03\x04" or end[:4] != b"PK\x05\x06" or
+            end[-2:] != b"\x00\x00"):
+        raise ValueError("noncanonical transport ZIP envelope")
     archive = zipfile.ZipFile(path)
     names = archive.namelist()
-    if len(names) > 250 or len(names) != len(set(names)) or (
+    if len(names) > 250 or len(names) != len(set(names)) or not names or (
         exactly is not None and set(names) != exactly
     ):
         archive.close()
         raise ValueError("duplicate, excessive or unexpected transport members")
+    try:
+        _check_indexed_local_records(path, archive)
+    except (ValueError, UnicodeError, struct.error):
+        archive.close()
+        raise
     return archive
 
 

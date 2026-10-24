@@ -234,6 +234,9 @@ bool CompletedRunRecordsBrowser::move(int delta) noexcept {
 }
 
 bool CompletedRunRecordsBrowser::open_selected_course() noexcept {
+    // Confirm only opens a course from the course list. Repeated confirm
+    // in Runs/Detail must not reset the selected run or close its detail.
+    if (view_ != CompletedRunRecordsView::Courses) return false;
     const auto* course = selected_course();
     if (!course || course->catalog.entries.empty()) return false;
 

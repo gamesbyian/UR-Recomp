@@ -118,6 +118,33 @@ jobs:
                   sha[:16], git[:12], size, len(occ), ','.join(same_name[:3]) or '-', path))
           print('SRC-NOT-ON-MAIN-COUNT', missing)
 
+          # Semantic triage: do the defined names of each Python leaf exist
+          # anywhere in main's tracked source? A leaf whose every def/class
+          # name already exists is probably represented; missing names are
+          # review leads, not proof of missing behavior.
+          import re
+          idents = set()
+          for t in tracked:
+              if t.endswith(('.py', '.cpp', '.hpp', '.c', '.h', '.cc', '.ps1', '.sh')):
+                  try:
+                      idents.update(re.findall(r'[A-Za-z_][A-Za-z0-9_]*', open(t, encoding='utf-8', errors='ignore').read()))
+                  except OSError:
+                      pass
+          covered = 0
+          for sha, occ in sorted(leaves.items(), key=lambda kv: kv[1][0][0]):
+              path, size, data = occ[0]
+              if data is None or not path.lower().endswith('.py') or on_main(blob_sha(data)):
+                  continue
+              names = re.findall(r'(?m)^\s*(?:def|class)\s+([A-Za-z_][A-Za-z0-9_]*)', data.decode('utf-8', 'replace'))
+              names = [n for n in names if not n.startswith('test_') and n not in ('setUp', 'tearDown', 'main')]
+              absent = sorted(set(n for n in names if n not in idents))
+              if names and not absent:
+                  covered += 1
+                  continue
+              print('SYMBOL-LEAD defs=%d absent=%d bytes=%d occ=%d path=%s absent_names=%s' % (
+                  len(set(names)), len(absent), size, len(occ), path.replace('h26.zip::', ''), ','.join(absent[:8]) or '(no defs)'))
+          print('SYMBOL-COVERED-PY-LEAVES', covered)
+
           chain_text = os.environ.get('PRINT_CHAIN', '')
           confirmed = os.environ.get('CONFIRM') == 'true'
           list_file = '.github/vault-oneoff-h26-print-chain.txt'

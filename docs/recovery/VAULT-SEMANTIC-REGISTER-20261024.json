@@ -39,7 +39,8 @@
     "Agent 2's independently qualified late Win32-portable namespace audit fixed an actual current-main exporter staging race in merged PR #2483. This is a current-source derived correction, not 25 Inbox tasks or missing archived implementation.",
     "2026-10-24 16:05 UTC later scheduled intake artifacts: 27/45 Incoming and 21/71 runner-enumerated Evidence verified; 4 oversized backup-segment Evidence errors; no source publication. Full ids/artifacts in latest_transport.",
     "Integrated archive path crosswalk expanded: 21 exact Drive-ID links to Inbox pointer work-scope paths, and five scoped main/PR evidence mappings. No new code-integration credit.",
-    "2026-10-24 Agent 1 direct Integrated archive audit: reopened all 25 previously pathless ZIPs, checked ZIP member CRCs, and mapped 25 archive IDs to existing source/test/workflow work-scope paths on main tree ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1. Five Git blob equalities proven across four archive IDs; other routes are navigation/semantic pointers only."
+    "2026-10-24 Agent 1 direct Integrated archive audit: reopened all 25 previously pathless ZIPs, checked ZIP member CRCs, and mapped 25 archive IDs to existing source/test/workflow work-scope paths on main tree ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1. Five Git blob equalities proven across four archive IDs; other routes are navigation/semantic pointers only.",
+    "Authenticated recursive child inventory includes six files under the one Evidence nested backup folder; separate from the 224 direct-child entries. H29 reconstructed historical 408610900-byte Git bundle/strict-fsck receipt proves backup integrity, not current-main or release acceptance."
   ],
   "items": [
     {
@@ -3720,9 +3721,10 @@
       "archive_sha256": "999be7e3e594f292692e79ed80a7e89710f1eee72b87973f4f189b50ef5d02e0",
       "source_member_sha256": null,
       "target_paths": [
-        "tests/native/run_windows_local_tournament_package_acceptance.sh"
+        "native/product/local_tournament_launch_path_lock.hpp",
+        "tests/native/local_tournament_fixture_launch_store_test.cpp"
       ],
-      "current_main_comparison": "Relevant merged PR/current-main implementation identified; archived transform may differ in bytes, so exact member equivalence is not asserted",
+      "current_main_comparison": "Preserved ZIP carries POSIX independent-process launch-lock regression excerpt and isolated probe, not a Windows-package tournament script. Four distinctive C++ assertions for a busy cross-process OS lock, rejection of stale retirement during newer publication, and crash/abrupt-exit lock release are all present in main tests/native/local_tournament_fixture_launch_store_test.cpp (Git blob 082174bc1f04880913ff3d0404b498272013d064), with implementation native/product/local_tournament_launch_path_lock.hpp (blob b84aa862b6009fc7bf07d758a686f7dce3006052). Semantically incorporated test excerpt; no exact raw-archive source equality or physical Windows acceptance asserted.",
       "github_prs": [
         "#2352",
         "#2366"
@@ -3736,7 +3738,12 @@
       "target_path_provenance": {
         "kind": "direct_archive_member_or_source_patch_work_scope_verified_against_main_tree",
         "observed_tree_sha": "ad2a0aad60ccbfdafb9aef7f6048f06ac5fdfeb1",
-        "caveat": "Proposed/archived path mapped to current file; path existence and valid ZIP CRC do not establish byte-equal source, functional equivalence or release acceptance. Consult member proof and merged PR before claiming integration."
+        "caveat": "Corrected archived-member semantics: intended current test owner is fixture-launch-store POSIX two-process lock, NOT run_windows_local_tournament_package_acceptance.sh. The former work path is unrelated; preserved original safety holds unchanged."
+      },
+      "current_main_semantic_evidence": {
+        "source_path": "tests/native/local_tournament_fixture_launch_store_test.cpp",
+        "dependency": "native/product/local_tournament_launch_path_lock.hpp",
+        "proof": "Read archived patches/posix_cross_process_block.cpp and evidence/isolated_process_lock_probe.cpp; four source-distinctive assertion strings verified in current main test. Source/file CRC admitted; this is not a Windows physical test."
       }
     },
     {
@@ -5554,5 +5561,112 @@
     "note": "Preserved checkpoint success is distinct from the workflow conclusion. Do not interpret oversize backup parts as absent source; nested H26 scoped review remains separate. The run's queue counts are advisory and do not rewrite the 33 member-level semantic verdicts."
   },
   "last_checked_main_head": "c00997af128912297e5cf8bffac54ee0b9f12484",
-  "last_checked_main_note": "Current live main identity for October 24 afternoon follow-up; per-member source comparisons remain pinned to their cited observation and are not all revalidated at this SHA."
+  "last_checked_main_note": "Current live main identity for October 24 afternoon follow-up; per-member source comparisons remain pinned to their cited observation and are not all revalidated at this SHA.",
+  "nested_file_inventory": {
+    "schema": "ur-vault-nested-files/1",
+    "parent_drive_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+    "parent_name": "UR-Recomp Git History Backups",
+    "parent_direct_folder": "evidence",
+    "counts": {
+      "nested_direct_files": 6,
+      "parts": 5,
+      "manifest": 1
+    },
+    "audit": "Direct authenticated Google Drive folder listing, cross-referenced with docs/recovery/VAULT-H29-ADMINISTRATIVE-ROUTING-20261021.md independent bundle restore/fsck receipt. No 80MB+ ZIP re-download in this classification pass.",
+    "historical_main_commit": "7e9a1be4016b7a094c93603e2bad116a7ebf6ba7",
+    "historical_bundle_bytes": 408610900,
+    "historical_bundle_sha256": "322c4841ab82a4ed4434b8f4a442a922c2e78b3e28b6cd31fef014dbbdfbff49",
+    "restore_accepted": "independently git bundle verify, fresh bare restore and git fsck --strict success documented in H29 receipt",
+    "source_publication_authorized": false,
+    "release_gate_credit": 0,
+    "items": [
+      {
+        "drive_id": "10Ez78lv7bfGnn8NsK7bfgxHtCJrKsSl1",
+        "parent_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+        "name": "UR-main-history-7e9a1be4-part-05.zip",
+        "bytes": 73066754,
+        "role": "part05",
+        "archive_sha256": null,
+        "classification": "historical_git_backup_evidence_only",
+        "current_main_comparison": "Historical 7e9a1be4 main backup, not current main source/test. H29 independent complete reconstruction and fsck proved historical bundle integrity. Outer ZIP's direct SHA-256 not independently rechecked in this pass.",
+        "owner": "Agent 3 recurring intake metadata routing; Agent 1 evidence disposition",
+        "action": "Preserve original; never count transport byte-budget failure as missing implementation; do not auto-stage; schedule policy review for exact known historical backup IDs.",
+        "blocker": "Current 64MiB single-file budget below segment size; known administrative evidence, not a source recovery blocker"
+      },
+      {
+        "drive_id": "12kR7_5fT43i57Zl-Bp5IoBRWb8dw1zXo",
+        "parent_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+        "name": "UR-main-history-7e9a1be4-part-02.zip",
+        "bytes": 83886254,
+        "role": "part02",
+        "archive_sha256": null,
+        "classification": "historical_git_backup_evidence_only",
+        "current_main_comparison": "Historical 7e9a1be4 main backup, not current main source/test. H29 independent complete reconstruction and fsck proved historical bundle integrity. Outer ZIP's direct SHA-256 not independently rechecked in this pass.",
+        "owner": "Agent 3 recurring intake metadata routing; Agent 1 evidence disposition",
+        "action": "Preserve original; never count transport byte-budget failure as missing implementation; do not auto-stage; schedule policy review for exact known historical backup IDs.",
+        "blocker": "Current 64MiB single-file budget below segment size; known administrative evidence, not a source recovery blocker"
+      },
+      {
+        "drive_id": "1JTixAbBfsSjK5fFvHhGMLwWcUXff-j_q",
+        "parent_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+        "name": "UR-main-history-7e9a1be4-part-01.zip",
+        "bytes": 83886254,
+        "role": "part01",
+        "archive_sha256": null,
+        "classification": "historical_git_backup_evidence_only",
+        "current_main_comparison": "Historical 7e9a1be4 main backup, not current main source/test. H29 independent complete reconstruction and fsck proved historical bundle integrity. Outer ZIP's direct SHA-256 not independently rechecked in this pass.",
+        "owner": "Agent 3 recurring intake metadata routing; Agent 1 evidence disposition",
+        "action": "Preserve original; never count transport byte-budget failure as missing implementation; do not auto-stage; schedule policy review for exact known historical backup IDs.",
+        "blocker": "Current 64MiB single-file budget below segment size; known administrative evidence, not a source recovery blocker"
+      },
+      {
+        "drive_id": "1twfDxRBCFhJ0P-sfphIuo5vHtNZIIVN1",
+        "parent_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+        "name": "UR-main-history-7e9a1be4-part-03.zip",
+        "bytes": 83886254,
+        "role": "part03",
+        "archive_sha256": null,
+        "classification": "historical_git_backup_evidence_only",
+        "current_main_comparison": "Historical 7e9a1be4 main backup, not current main source/test. H29 independent complete reconstruction and fsck proved historical bundle integrity. Outer ZIP's direct SHA-256 not independently rechecked in this pass.",
+        "owner": "Agent 3 recurring intake metadata routing; Agent 1 evidence disposition",
+        "action": "Preserve original; never count transport byte-budget failure as missing implementation; do not auto-stage; schedule policy review for exact known historical backup IDs.",
+        "blocker": "Current 64MiB single-file budget below segment size; known administrative evidence, not a source recovery blocker"
+      },
+      {
+        "drive_id": "1vIBqgoZrd6G6pVMFnshNaX4bW4GZyjWi",
+        "parent_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+        "name": "UR-main-history-7e9a1be4-part-04.zip",
+        "bytes": 83886254,
+        "role": "part04",
+        "archive_sha256": null,
+        "classification": "historical_git_backup_evidence_only",
+        "current_main_comparison": "Historical 7e9a1be4 main backup, not current main source/test. H29 independent complete reconstruction and fsck proved historical bundle integrity. Outer ZIP's direct SHA-256 not independently rechecked in this pass.",
+        "owner": "Agent 3 recurring intake metadata routing; Agent 1 evidence disposition",
+        "action": "Preserve original; never count transport byte-budget failure as missing implementation; do not auto-stage; schedule policy review for exact known historical backup IDs.",
+        "blocker": "Current 64MiB single-file budget below segment size; known administrative evidence, not a source recovery blocker"
+      },
+      {
+        "drive_id": "1VY1CCWsAUcC-9sKGFLyfsEfw0SJqf2ni",
+        "parent_id": "1nfjVLtyQEcOrghqZJnh5XIlS9KvddxA5",
+        "name": "UR-main-history-7e9a1be4-manifest.zip",
+        "bytes": 945,
+        "role": "manifest",
+        "archive_sha256": null,
+        "classification": "historical_git_backup_evidence_only",
+        "current_main_comparison": "Historical 7e9a1be4 main backup, not current main source/test. H29 independent complete reconstruction and fsck proved historical bundle integrity. Outer ZIP's direct SHA-256 not independently rechecked in this pass.",
+        "owner": "Agent 3 recurring intake metadata routing; Agent 1 evidence disposition",
+        "action": "Preserve original; never count transport byte-budget failure as missing implementation; do not auto-stage; schedule policy review for exact known historical backup IDs.",
+        "blocker": "Current 64MiB single-file budget below segment size; known administrative evidence, not a source recovery blocker"
+      }
+    ]
+  },
+  "inventory_denominator": {
+    "direct_child_entries_in_six_folders": 224,
+    "of_which_nested_folder_direct_entry": 1,
+    "direct_file_entries": 223,
+    "additional_nested_backup_files": 6,
+    "total_file_entries_below_six_folders": 229,
+    "total_entries_including_nested_backup_folder": 230,
+    "note": "Headline counts remain 224 direct children; six nested backup files appear only in nested_file_inventory and are not six missing product candidates. Six top-level taxonomy folders are excluded from both counts."
+  }
 }

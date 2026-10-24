@@ -485,7 +485,9 @@ inline bool render_modern_root_overlay(
     // Empty means this host has no available setup shortcut. The selected
     // racer's identity is already displayed above, and navigation help is
     // already at y+181; do not paint a fabricated/duplicated footer.
-    if (!racer_hint.empty())
+    // A child modal owns navigation. Do not advertise root-only
+    // racer shortcuts or pending root notices behind that modal.
+    if (!inline_modal_open && !racer_hint.empty())
         paint.draw_text(pixels, stride, surface_height,
             x + 8 * scale, y + 193 * scale,
             fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))

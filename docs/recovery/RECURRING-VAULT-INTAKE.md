@@ -10,8 +10,8 @@ the existing public-Drive download helper and current-revision Git blob crosswal
 1. Index publicly linked **02 Incoming** (45 direct files at its initial snapshot) and **03 Evidence Library** (66 direct children from the authenticated Drive listing). The gdown Evidence enumeration returned 71 items in its independent live check; that count may include nested entries and must not be mistaken for authenticated direct-child count.
 2. Restore the newest checkpoint from the \`vault-recurring-state\` artifact of a
    completed \`main\` workflow run, or start fresh if absent/expired.
-3. Prioritize unexamined ZIPs, then other files, then old rechecks.
-   Download at most **3 files per folder per scheduled run** (12 hard maximum per folder job) and enforce
+3. Prioritize unexamined ZIPs, then other files, then old rechecks. Scheduled runs use a six-archive file-count allowance per folder; manual dispatch keeps its chosen allowance (default three), and PR smoke audits only one known archive per folder.
+   Download at most **6 files per folder per scheduled run** (12 hard maximum per folder job) and enforce
    a **64 MiB accepted-byte budget per folder job** (128 MiB hard upper bound per job). Original
    downloads are confined to the ephemeral runner. A file whose downloaded
    size breaches the remaining batch budget is deferred, not credited.
@@ -26,7 +26,7 @@ the existing public-Drive download helper and current-revision Git blob crosswal
    - \`queue.json\`: unaudited file IDs, failed downloads, and existing
      unmatched/source-like **review leads** for recovery agents.
 
-Failed file IDs are retained separately and attempted **after** fresh candidates, so a repeatedly malformed package cannot stall all scheduled progress. The artifacts are named **`vault-recurring-state-incoming`** and **`vault-recurring-state-evidence`**. Incoming restores old `vault-recurring-state` checkpoints where available; Evidence starts its own history. The checkpoint is not a semantic integration ledger. ZIP member names and
+Failed file IDs are retained separately and attempted **after** fresh candidates, so a repeatedly malformed package cannot stall all scheduled progress. The artifacts are named **`vault-recurring-state-incoming`** and **`vault-recurring-state-evidence`**. Incoming restores old `vault-recurring-state` checkpoints where available; Evidence starts its own history. The checkpoint is not a semantic integration ledger. The workflow summary reports per-run audited archive count, errors and newly surfaced review leads. A review lead is **not** a recovered source PR. ZIP member names and
 blob hashes may provide leads, **not rights or publication permission**.
 Archives can be changed under the same Drive ID: every verified file becomes
 eligible for re-download after 14 days, or at any time with a manual

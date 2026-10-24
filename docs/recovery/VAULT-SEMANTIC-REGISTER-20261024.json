@@ -43,7 +43,8 @@
     "Authenticated recursive child inventory includes six files under the one Evidence nested backup folder; separate from the 224 direct-child entries. H29 reconstructed historical 408610900-byte Git bundle/strict-fsck receipt proves backup integrity, not current-main or release acceptance.",
     "Agent 1 read all 22 direct Incoming publication-refusal or preservation-resolution JSON files and recorded exact file SHA256 plus historical_incident_only disposition. These were previously preserved_pending_review; their underlying source status and unresolved art/QA08 holds remain independently governed.",
     "Agent 1 scoped Incoming archive follow-up: 4 exact ZIPs CRC and SHA-256 read; three previously pending archived Windows test/security packages now semantically superseded, and CPU source-member witness refined. Distinct archived bits retained; original explicit safety refusals not reexecuted.",
-    "Independent Agent 1 direct Incoming follow-up: five exact source/proposal files reconciled against current main; H26 standalone patch exact duplicate of H26 Evidence ZIP member, QA08 and QA01 source guards/statements present, WinQA same-key guard merged, RF081 candidate research-only. No new integration/release credit."
+    "Independent Agent 1 direct Incoming follow-up: five exact source/proposal files reconciled against current main; H26 standalone patch exact duplicate of H26 Evidence ZIP member, QA08 and QA01 source guards/statements present, WinQA same-key guard merged, RF081 candidate research-only. No new integration/release credit.",
+    "Agent 1 completed 45/45 direct Incoming item semantic/owner classification after authenticated readback. Four composite/source-test leads have named Agent 2 reviewer, two standalone title scripts have existing owner/approval holds, exact P2P source and merged test successors are recorded; no generic pending remains. Nested member audit still incomplete."
   ],
   "items": [
     {
@@ -2300,15 +2301,24 @@
       "mime_type": "application/vnd.google-apps.document",
       "archive_sha256": null,
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "native/product/modern_results_navigation.hpp",
+        "tests/native/modern_results_navigation_test.cpp"
+      ],
+      "current_main_comparison": "Native Google Doc contains fully recovered SOURCE_BEGIN/TEST_BEGIN C++ text, not a byte-equivalent ZIP. Its 117-line old source lacks main's stronger stale Confirm row-identity guard, while main implements stale Up/Down focus recovery. Its archived 54-line exhaustive 128-context/384 malformed focus matrix has no identical test block in current modern_results_navigation_test.cpp. This is a conditional source-distinct regression coverage lead, not proven missing product behavior. Revision ID AHj4eMSyBTMUog8JndRnj6A2JrbCAG1rckqZtS-nudXH_WtVjcswf7ngBmgHUwTyzHYgYDHZdkFtvigD2nqqxJ1ojWmgB0NqqG7ImcQ47-M.",
+      "github_prs": [
+        "#2360",
+        "#2384",
+        "#2515"
+      ],
+      "owner": "Agent 2 source-specific test qualification; Agent 3 final disposition",
+      "priority": "P3",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Agent 2 independently determine whether 128-context stale focus/row-count negatives give meaningful untested coverage; if yes, write fresh narrowly scoped test PR, avoiding obsolete original source and held publication. Preserve Google Doc and source text.",
+      "blocker": "Original native Google Docs source has no independently recovered raw ZIP/source byte identity; the exact archived test is not on main.",
+      "classification": "requires_agent2_semantic_review",
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "136WJmoZe3lN8D-pyBa0dVLf-JPI2s8jT",
@@ -2445,17 +2455,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 7456,
       "mime_type": "text/x-python",
-      "archive_sha256": null,
+      "archive_sha256": "6e14792967b6f93dd6d52c191db495bcba290fe09f7dd362d012ef95a690f195",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tools/verify_title_plate_artifact.py"
+      ],
+      "current_main_comparison": "First-party staging Python script is a source-bound Windows SDL title-plate artifact verification proposal with pinned workflow run 39558777827 and artifact 12327216738; synthetic consistency evidence, no original artwork/person likeness or native release approval. Source remains in Incoming and original corresponding publishing hold remains independent.",
+      "github_prs": [
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 3 UHD title/SDL source and art approval lane",
+      "priority": "P3",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Attach byte-pinned script as supporting evidence to existing UHD/title owner review, not as a new standalone product source PR; maintain source/art authorization and genuine native pixels signoff.",
+      "blocker": "UHD title source/art review under #2043/#2149, no independent acceptance.",
+      "classification": "active_existing_owner_hold",
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1a-aVzlkLarZ2kcgqlfUuGlZfkIuROeqt",
@@ -2547,17 +2564,26 @@
       "bytes": 7681,
       "mime_type": "application/zip",
       "archive_sha256": "2dc6a8aace4c1555fb659fdaa03cad9fab139e2b9f1db141b721f0295a057696",
-      "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "source_member_sha256": "74c1d6d91f6fbd955272cb516c30150010397302edea3376662434bbb954c30c",
+      "target_paths": [
+        "tools/p2p/direct_loopback_handshake.py",
+        "tests/unit/test_p2p_direct_loopback_handshake.py"
+      ],
+      "current_main_comparison": "Eight-member first-party P2P archive CRC-valid. Archived tools/p2p_direct_loopback_handshake.py Git blob 167d2e7bdd38ebd262cb749999a61bd90ca94adf matches main tools/p2p/direct_loopback_handshake.py byte-for-byte. Archived test_p2p_commit.py source SHA c1519576e04bbf2c8d7bbd8889851fbc11d2262bbb5c796fa68ecc68a9c71ca7 is behaviorally represented in existing main tests and merged #2529's two source-distinct real-TCP wrong-build/wrong-responder replay-state negatives. Nonshipping prototype has known unsigned ACK limitation; no WAN/NAT or release credit.",
+      "github_prs": [
+        "#2430",
+        "#2529"
+      ],
+      "owner": "Agent 1 exact semantic closure; P2P production safety belongs existing owner",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Preserve ZIP; no duplicate P2P source/test recovery. Maintain separate P2P authentication/production acceptance owner.",
       "blocker": null,
-      "classification": "preserved_pending_review",
-      "checkpoint_transport_verified": true
+      "classification": "integrated_exact_source_and_test_successor",
+      "checkpoint_transport_verified": true,
+      "source_member_path": "tools/p2p_direct_loopback_handshake.py",
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1DMo2N9GJIMpPAPbRcOBIffmp3bYhA3Sl",
@@ -2953,16 +2979,26 @@
       "mime_type": "application/zip",
       "archive_sha256": "57067026d35a840c7828b59144c753cc68dcdd3239cabee974deed80113f983e",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review",
-      "checkpoint_transport_verified": true
+      "target_paths": [
+        "tools/rf081_selected_pc_candidate_census.py",
+        "tools/p2p/sqlite_checkpoint_anchor.py",
+        "tools/qa08_brightness_discriminator.py"
+      ],
+      "current_main_comparison": "Agent1 H26 multi-line archive has 123 CRC-valid ZIP members. Handoff covers RF081 wake/stack binding, SQLite local permission pilot, hardlinked QA04 receipt, QA08 rational brightness identifiability and UHD matte geometry. Most sampled semantics now appear in current source/test; uninspected source-distinct inner members are NOT qualified by a generic archive hash mismatch.",
+      "github_prs": [
+        "#2088",
+        "#2458",
+        "#2459"
+      ],
+      "owner": "Agent 2 nested source/test review; Agent 1 final semantic register",
+      "priority": "P2",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Bounded classify only unsampled nested source/test members by exact member SHA and current-main semantic tests. Keep CPU same-phase witness, Windows physical and UHD source-art holds distinct; no blanket 123 tasks.",
+      "blocker": "Member-level exactness/semantic check incomplete for all original 123 members.",
+      "classification": "requires_agent2_semantic_review",
+      "checkpoint_transport_verified": true,
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1leSIVQ4Emo7qSY81vbtOfjtT8ZUMW-7u",
@@ -3027,16 +3063,26 @@
       "mime_type": "application/zip",
       "archive_sha256": "7ab3989a584c05f46492794fcf98f8a7261aa3771dc4fad162b951443646c580",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review",
-      "checkpoint_transport_verified": true
+      "target_paths": [
+        "tools/rf081_selected_pc_candidate_census.py",
+        "tools/p2p/direct_loopback_handshake.py",
+        "tools/export_baldosa_earned_1p_run.py"
+      ],
+      "current_main_comparison": "Agent1 H27 full recovery has 31 CRC-clean outer members and five work-ID candidate leads: CPU missing same-phase RTS witness, P2P SQLite rollback despite private perms, PPU grayscale dual-model ambiguity, UHD raster source proof, and Records Win32-colon sidecar. Scoped CPU/P2P/Records discoveries are covered as research, held acceptance, or merged source changes (Records #2483). No 31 independent missing implementations inferred.",
+      "github_prs": [
+        "#2088",
+        "#2483",
+        "#2458"
+      ],
+      "owner": "Agent 2 residual H27 composite member qualification; Agent 1 dispositions",
+      "priority": "P2",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Use current H27 source dispositions in issue #2088; inspect only unclassified members that show source-distinct behavior after merged fixes. Retain all intact archive and original denial history.",
+      "blocker": "Not every member in five-work-ID H27 composite has independently adjudicated current-main proof.",
+      "classification": "requires_agent2_semantic_review",
+      "checkpoint_transport_verified": true,
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1NlZl1O86KyOXrVYDvz35qSPKjZeDxBur",
@@ -3094,17 +3140,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 50890,
       "mime_type": "text/x-diff",
-      "archive_sha256": null,
+      "archive_sha256": "aa96187507a25c245c2e4f349c52d3c43f457590d17914cf944477e9143f113a",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
+      "target_paths": [
+        "research/agent5_h25/README.md"
+      ],
+      "current_main_comparison": "Incoming standalone 50,890-byte patch is EXACT byte duplicate of member agent5-h25-five-line-additive.patch in independently downloaded, CRC-valid H25 ZIP Drive 1rFARJznFkWQpOl-mNSPEi5Ix-4d2Yb76, SHA-256 aa96187507a25c245c2e4f349c52d3c43f457590d17914cf944477e9143f113a. It proposes historical research source across QA08, UHD, P2P, Git epoch and recovery, not a separate package requiring five new implementations.",
+      "github_prs": [
+        "#2088"
+      ],
+      "owner": "Agent 1 duplicate-source-hash disposition; Agent 2 parent H25 review",
       "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Preserve original duplicate patch; adjudicate parent H25 member-level original once, do not create independent duplicate tasks from alternate Drive location.",
       "blocker": null,
-      "classification": "preserved_pending_review"
+      "classification": "historical_research_only",
+      "source_member_path": "agent5-h25-five-line-additive.patch (byte-identical member of H25 archive Drive 1rFARJznFkWQpOl-mNSPEi5Ix-4d2Yb76)",
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1rFARJznFkWQpOl-mNSPEi5Ix-4d2Yb76",
@@ -3115,16 +3168,25 @@
       "mime_type": "application/zip",
       "archive_sha256": "e11d61a181842fe6e45ef6b266c4f02fd3e09209118d92ebf5befb60da3518fa",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review",
-      "checkpoint_transport_verified": true
+      "target_paths": [
+        "tools/qa08_probe_robustness.py",
+        "tools/qa06_original_block_consistency.py",
+        "tools/p2p/signed_checkpoint_anchor_lab.py"
+      ],
+      "current_main_comparison": "First-party Agent5 H25 30-member ZIP CRC-clean. Contains QR QA08 chromatic probe, source-free nearest-neighbor UHD checker, P2P SQLite hardlink/alias and signed checkpoint pilots, CI compare epoch and recovery ZIP admission controls. Many selected pieces already on current main and newer H26/H27. Remaining source-like members require member-specific comparison; no blanket research patch publication, physical PPU or shipping P2P acceptance.",
+      "github_prs": [
+        "#2088",
+        "#1996"
+      ],
+      "owner": "Agent 2 residual H25 source/test qualification; Agent 1 disposition register",
+      "priority": "P2",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Agent 2 inspect genuinely unsampled source/test leaves; explicit candidate SHA+path+behavior before narrow independent PR. Avoid duplicating main H25-derived tools or its standalone identical patch.",
+      "blocker": "Not all nested H25 source-like members independently qualified against current main.",
+      "classification": "requires_agent2_semantic_review",
+      "checkpoint_transport_verified": true,
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1rlZd26m_lkm0WGDnpvWfIwhr6chlzIdU",
@@ -3319,17 +3381,24 @@
       "folder_id": "1cdovDqle9IRYKX2lCt513mtWge75HywX",
       "bytes": 9912,
       "mime_type": "text/x-python",
-      "archive_sha256": null,
+      "archive_sha256": "22cd49a9ba9779b2792d96987775fc49abe0a584617403e9a749b92811b6611e",
       "source_member_sha256": null,
-      "target_paths": [],
-      "current_main_comparison": "unexamined_or_existing_receipt",
-      "github_prs": [],
-      "owner": "Agent 1 (triage); Agent 3 (disposition)",
-      "priority": "P4",
-      "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Preserve; consult issue #2088 crosswalk, no work based solely on file count",
-      "blocker": null,
-      "classification": "preserved_pending_review"
+      "target_paths": [
+        "tests/unit/test_verify_title_plate_artifact.py"
+      ],
+      "current_main_comparison": "Separate 9,912-byte first-party Python synthetic/optional Windows title-plate tests for 4:3 and 16:9; source-only virtual fixture, explicitly no ROM/GPU/art release proof. Tests remain preserved pending existing UHD title owner.",
+      "github_prs": [
+        "#2043",
+        "#2149"
+      ],
+      "owner": "Agent 3 UHD title/SDL source and art approval lane",
+      "priority": "P3",
+      "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
+      "next_action": "Use as bounded held technical test evidence within #2043/#2149, do not interpret as approved art or independently merge denied source.",
+      "blocker": "Original-native SDL/art source identity and independent art approval remain held.",
+      "classification": "active_existing_owner_hold",
+      "source_publication_authorized": false,
+      "release_gate_credit": 0
     },
     {
       "drive_id": "1ztwZ0f_keijw0OFvHDYSIDRrLl-Ob3zP",
@@ -5914,5 +5983,18 @@
     "original_denial_state_retained": true,
     "no_source_publication_inferred": true,
     "remaining_underlying_source_holds": "UHD art/title #2043/#2149 and QA08 #1996 are separate; historical #2185 closed unmerged, later same-run policy #2352/#2366 superseded; do not treat incident count as code integration."
+  },
+  "incoming_scope_completion": {
+    "direct_entries": 45,
+    "generic_pending": 0,
+    "disposition_statuses": {
+      "historical_incident_only": 22,
+      "requires_agent2_semantic_review": 5,
+      "semantically_superseded": 11,
+      "historical_research_only": 4,
+      "active_existing_owner_hold": 2,
+      "integrated_exact_source_and_test_successor": 1
+    },
+    "meaning": "Every Incoming direct file has explicit semantic/historical disposition or named follow-up owner. Does not close all nested H25-H27/H26 member-level source review, or the next runner intake due count. No new automatic source-publication authorization."
   }
 }

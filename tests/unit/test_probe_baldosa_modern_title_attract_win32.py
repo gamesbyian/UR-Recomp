@@ -123,10 +123,10 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
     def test_real_named_profile_after_source_recovery_requires_stock_one_player(self):
         stages = (
             "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
-            MAIN,
-            TITLE,
+            MAIN.replace("frame=440", "frame=437"),
+            TITLE.replace("frame=943", "frame=940"),
             "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
-            DEMO.replace("overlay_title=1", "overlay_title=0"),
+            DEMO.replace("frame=1532", "frame=1529").replace("overlay_title=1", "overlay_title=0"),
             "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
             "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
             "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0 guest_writes=0",
@@ -143,7 +143,14 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
             with self.subTest(missing=index), self.assertRaises(ValueError):
                 verify_named_original_play_after_recovery(
                     "\n".join(s for i, s in enumerate(stages) if i != index))
+        # Reject anonymous timestamps, a mixed source epoch, and altered
+        # source state even when all host-side confirmation markers remain.
         for bad in (
+            good.replace("phase=main_menu frame=437", "phase=main_menu frame=440"),
+            good.replace("phase=attract_title frame=940", "phase=attract_title frame=943"),
+            good.replace("phase=demo_race frame=1529", "phase=demo_race frame=1532"),
+            good.replace("frame=437 menu=d7", "frame=437 menu=84"),
+            good.replace("frame=1529 menu=00 race=01", "frame=1529 menu=00 race=00"),
             good.replace("stock_entered players=1 menu=3c",
                          "stock_entered players=2 menu=3d"),
             good.replace("source_stable=60", "source_stable=1"),

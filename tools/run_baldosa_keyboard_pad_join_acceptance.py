@@ -440,8 +440,9 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         "UR_BALDOSA_MODERN_ROOT selected=3",
     )
     # Earlier root selections also exist, so locate post-reentry choices
-    # only in the tail. Reentry/repaint must precede all such choices.
-    pre = stages[:6]
+    # only in the tail. Paint and post-event acknowledgement can occur in
+    # either order, but both must follow genuine source-admitted reentry.
+    pre = stages[:4]
     positions = []
     for marker in pre:
         matches = list(re.finditer(rf"(?m)^{re.escape(marker)}$", log))
@@ -449,8 +450,13 @@ def verify_five_destination_pad_post_result(log: str) -> None:
             raise ValueError(f"pad earned return: missing/duplicate {marker!r}")
         positions.append(matches[0].start())
     if positions != sorted(positions):
-        raise ValueError("pad earned return: source result/return/repaint order invalid")
-    tail = log[positions[5] + len(pre[5]):]
+        raise ValueError("pad earned return: source result/reentry order invalid")
+    tail = log[positions[-1] + len(pre[-1]):]
+    for marker in stages[4:6]:
+        matches = list(re.finditer(rf"(?m)^{re.escape(marker)}$", log))
+        if len(matches) != 1 or matches[0].start() <= positions[-1]:
+            raise ValueError(f"pad earned return: missing/early {marker!r}")
+    paint_pos = log.index(stages[5])
     post = (
         r"^UR_BALDOSA_MODERN_ROOT selected=1$",
         r"^UR_BALDOSA_MODERN_ROOT selected=2$",
@@ -462,11 +468,16 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
     )
     last = -1
+    first_selection = None
     for marker in post:
         matches = list(re.finditer(marker, tail, re.MULTILINE))
         if len(matches) != 1 or matches[0].start() <= last:
             raise ValueError(f"pad earned return: missing/reordered {marker!r}")
         last = matches[0].start()
+        if first_selection is None:
+            first_selection = positions[-1] + len(pre[-1]) + last
+    if first_selection is None or paint_pos >= first_selection:
+        raise ValueError("pad earned return: controller navigated before repaint")
     if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
         raise ValueError("pad earned return: unexpected stock relaunch")
 

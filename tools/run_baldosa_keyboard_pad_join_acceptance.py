@@ -371,24 +371,30 @@ def verify_five_destination_pad_race(log: str) -> None:
     """
     verify_five_destination_pad_journey(log)
     require_single_pad_seat_continuity(log, "pad earned race")
+    # Root/fixture markers share product stderr. The native result observer
+    # may use another stream; run_game concatenates stdout before stderr, so
+    # no cross-stream offset is a legitimate chronology witness.
     markers = (
         r"^UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c$",
         r"^UR_BALDOSA_MODERN_PAD_RACE source_stock_setup=1 menu=3c$",
         r"^UR_BALDOSA_MODERN_PAD_RACE source_start_pulses=4$",
         r"^UR_BALDOSA_MODERN_PAD_RACE source_go=1 phase=8610 ticker=[1-9][0-9]*$",
-        r"^UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
-        r"race_host=([0-9]+) result_host=([0-9]+) "
-        r"finish_ticks60=([0-9]+) input_frames=([0-9]+) "
-        r"input_runs=([0-9]+) published=([01])$",
     )
     found = [list(re.finditer(marker, log, re.MULTILINE)) for marker in markers]
     if any(len(matches) != 1 for matches in found):
-        raise ValueError("pad earned race: source GO/result milestones missing or duplicated")
+        raise ValueError("pad earned race: source GO milestones missing or duplicated")
     positions = [matches[0].start() for matches in found]
     if positions != sorted(positions):
-        raise ValueError("pad earned race: stock/GO/result ordering invalid")
+        raise ValueError("pad earned race: stock/GO ordering invalid")
+    result = re.findall(
+        r"(?m)^UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
+        r"race_host=([0-9]+) result_host=([0-9]+) "
+        r"finish_ticks60=([0-9]+) input_frames=([0-9]+) "
+        r"input_runs=([0-9]+) published=([01])$", log)
+    if len(result) != 1:
+        raise ValueError("pad earned race: genuine native result missing or duplicated")
     race_host, result_host, ticks, input_frames, input_runs, published = (
-        int(value) for value in found[-1][0].groups()
+        int(value) for value in result[0]
     )
     if (race_host >= result_host or ticks <= 0 or input_frames <= 0 or
             input_runs <= 0 or published != 1):

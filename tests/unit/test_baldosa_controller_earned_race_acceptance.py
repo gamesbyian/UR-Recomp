@@ -61,6 +61,20 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertEqual(PAD_RACE.splitlines(), ["turbo on", "wait 7200", "quit"])
         self.assertEqual(PAD_RACE, "turbo on\nwait 7200\nquit\n")
 
+    def test_earned_race_native_log_is_retained_for_independent_qa(self):
+        # A summary receipt cannot independently establish the original
+        # source milestones and uninterrupted SDL seat history. Keep the
+        # exact native log alongside the same-PE acceptance receipt.
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            "${{ runner.temp }}/ur-title-controller-join/five_destination_earned_race/log.txt",
+            workflow,
+        )
+        self.assertIn(
+            "${{ runner.temp }}/ur-title-controller-join/receipt.json",
+            workflow,
+        )
+
     def test_real_source_witness_and_adversarial_mutations(self):
         good = [HOST, *PREFIX, *TAIL]
         verify_five_destination_pad_race("\n".join(good) + "\n")

@@ -31,6 +31,12 @@ PURE_MODEL_PATHS = (
 
 
 class ToolingUnitWorkflowContractTests(unittest.TestCase):
+    def test_cancelled_suite_preserves_unfinished_shard_diagnostics(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("if: failure() || cancelled()", workflow)
+        self.assertIn("name: ci-tooling-unit-failure-logs", workflow)
+        self.assertIn("path: ${{ runner.temp }}/unit-shard*.log", workflow)
+
     def test_pure_product_models_trigger_their_unit_wrappers(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         for path in PURE_MODEL_PATHS:

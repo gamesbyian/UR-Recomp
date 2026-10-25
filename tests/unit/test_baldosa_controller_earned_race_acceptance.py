@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Adversarial QA for one SDL P1 driving a genuine source-earned 1P race."""
+import sys
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+from run_baldosa_keyboard_pad_join_acceptance import verify_five_destination_pad_race
+
+SOURCE = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(encoding="utf-8")
+RUNNER = (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").read_text(encoding="utf-8")
+
+HOST = "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added"
+PREFIX = [
+    "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=75 input_owned=1",
+    "UR_BALDOSA_MODERN_ROOT selected=1",
+    "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=3 course=0 source_menu_required=1",
+    "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_ROOT practice_closed=1",
+    "UR_BALDOSA_MODERN_ROOT selected=2",
+    "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+    "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_ROOT join_closed=1",
+    "UR_BALDOSA_MODERN_ROOT selected=3",
+    "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=0 unavailable=0",
+    "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_ROOT records_closed=1",
+    "UR_BALDOSA_MODERN_ROOT selected=4",
+    "UR_BALDOSA_MODERN_ROOT options_opened row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
+    "UR_BALDOSA_MODERN_DESTINATION stage=options raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_ROOT options_closed row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
+    "UR_BALDOSA_MODERN_ROOT selected=3",
+    "UR_BALDOSA_MODERN_ROOT selected=2",
+    "UR_BALDOSA_MODERN_ROOT selected=1",
+    "UR_BALDOSA_MODERN_ROOT selected=0",
+    "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+    "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+]
+TAIL = [
+    "UR_BALDOSA_MODERN_PAD_RACE source_stock_setup=1 menu=3c",
+    "UR_BALDOSA_MODERN_PAD_RACE source_start_pulses=4",
+    "UR_BALDOSA_MODERN_PAD_RACE source_go=1 phase=8610 ticker=1",
+    "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-1p profile=mike course=course:01 source=guest",
+    "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p race_host=100 result_host=200 finish_ticks60=1679 input_frames=500 input_runs=7 published=1",
+]
+
+
+class EarnedControllerJourney(unittest.TestCase):
+    def test_source_uses_sdl_pad_and_never_scripts_guest_buttons(self):
+        self.assertIn('std::strcmp(opt, "31") == 0', SOURCE)
+        self.assertIn("SDL_GAMEPAD_BUTTON_START", SOURCE)
+        self.assertIn("source_phase == 0x8610u", SOURCE)
+        line = next(line for line in RUNNER.splitlines()
+                    if line.startswith("PAD_RACE = "))
+        self.assertIn("turbo on", line)
+        self.assertIn("wait 7200", line)
+        self.assertNotIn("press ", line)
+
+    def test_real_source_witness_and_adversarial_mutations(self):
+        good = [HOST, *PREFIX, *TAIL]
+        verify_five_destination_pad_race("\n".join(good) + "\n")
+        mutants = {
+            "no source GO": [x for x in good if "source_go=1" not in x],
+            "no source result": [x for x in good if "NATIVE_RESULT" not in x],
+            "no captured run": [x for x in good if "NATIVE_RUN CAPTURED" not in x],
+            "unpublished": [x.replace("published=1", "published=0") for x in good],
+            "result before GO": good[:-3] + [good[-1], *good[-3:-1]],
+            "reassigned pad": good + ["[Gamepad] UR_CONTROLLER_SEAT assign instance=102 seat=0 reason=added"],
+            "detached pad": good + ["[Gamepad] UR_CONTROLLER_SEAT vacate instance=101 seat=0 key=0001"],
+            "duplicate result": good + [good[-1]],
+            "foreign profile": [x.replace("profile=mike", "profile=andrew") for x in good],
+            "wrong course": [x.replace("course=course:01", "course=course:02") for x in good],
+        }
+        for label, candidate in mutants.items():
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                verify_five_destination_pad_race("\n".join(candidate) + "\n")
+
+
+if __name__ == "__main__":
+    unittest.main()

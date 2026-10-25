@@ -499,6 +499,7 @@ jobs:
             ${{ runner.temp }}/ur-title-controller-join/five_destination_pad/log.txt
             ${{ runner.temp }}/ur-title-controller-join/five_destination_return/log.txt
             ${{ runner.temp }}/ur-title-controller-join/five_destination_earned_race/log.txt
+            ${{ runner.temp }}/ur-title-controller-join/five_destination_earned_return/log.txt
             ${{ runner.temp }}/ur-title-confirm-*/native-title-receipt.json
             ${{ runner.temp }}/ur-title-original-attract-*/native-attract-receipt.json
             ${{ runner.temp }}/ur-title-original-attract-named-play/native-profile-bootstrap.log

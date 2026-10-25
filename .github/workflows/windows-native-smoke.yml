@@ -9,6 +9,11 @@ name: Windows native build and boot smoke
 # framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
 
 on:
+  # A workflow edit needs a native Windows execution before it can merge.
+  # The job guard below excludes untrusted fork PRs from ROM-bearing builds.
+  pull_request:
+    paths:
+      - ".github/workflows/windows-native-smoke.yml"
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -64,6 +69,7 @@ permissions:
 
 jobs:
   windows:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: windows-2022
     timeout-minutes: ${{ inputs.run_tournament_acceptance && 45 || 20 }}
     defaults:
@@ -376,7 +382,7 @@ jobs:
           cp -R "$TEST_PACKAGE" "$RO_PACKAGE"
           export RO_PACKAGE_WIN="$(cygpath -w "$RO_PACKAGE")"
           RO_USER_WIN="$(cygpath -w "$RO_USER")"
-          RO_SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          export RO_SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
           RO_DUMPS_WIN="$(cygpath -w "$RO_DUMPS")"
 
           cleanup_readonly() {
@@ -400,6 +406,8 @@ jobs:
             }
           '
           for boot in 1 2; do
+            # Require each launch to produce its own fresh main-menu witness.
+            rm -f "$RO_DUMPS/package-main-menu.wram.bin"
             (
               cd "$RO_CALLER"
               SDL_VIDEODRIVER=offscreen \
@@ -411,6 +419,8 @@ jobs:
                   >"$RUNNER_TEMP/read-only-unicode-boot-$boot.log" 2>&1
             )
             grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
+            grep -Fq "$RO_USER_WIN" "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
+            test -s "$RO_DUMPS/package-main-menu.wram.bin"
             python - "$RO_DUMPS/package-main-menu.wram.bin" <<'PY'
           from pathlib import Path
           import sys
@@ -422,6 +432,7 @@ jobs:
             test -f "$RO_USER/mod-state.toml"
             test -d "$RO_USER/saves"
             test ! -e "$RO_PACKAGE/config.ini"
+            test ! -e "$RO_PACKAGE/keybinds.ini"
             test ! -e "$RO_PACKAGE/saves"
             test ! -e "$RO_CALLER/config.ini"
             python tools/assemble_windows_package.py verify --package "$RO_PACKAGE"

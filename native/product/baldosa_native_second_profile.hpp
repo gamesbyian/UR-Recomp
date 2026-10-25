@@ -58,17 +58,17 @@ inline BaldosaSecondRacerResult create_baldosa_second_preset_for_next_boot(
     // first-racer recovery: global -> catalog -> current typed profile.
     // External profile creation may not race another P1 selection or source
     // checkpoint. Never nest the locking CAS store below these leases.
-    TournamentLaunchPathLock global_lock(global_path.string(), true);
+    TournamentLaunchPathLock global_lock(global_path, true);
     if (!global_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
-    TournamentLaunchPathLock catalog_lock(catalog_path.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog_path, true);
     if (!catalog_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
 
     const auto selected =
-        load_host_product_state_file(global_path.string());
+        load_host_product_state_file(global_path.u8string());
     const auto roster =
-        load_host_profile_catalog_file(catalog_path.string());
+        load_host_profile_catalog_file(catalog_path.u8string());
     if (!selected.loaded() || !selected.state->active_profile_id ||
         *selected.state->active_profile_id != expected_active_profile ||
         !roster || roster->size() != 1u ||
@@ -86,7 +86,7 @@ inline BaldosaSecondRacerResult create_baldosa_second_preset_for_next_boot(
         return {BaldosaSecondRacerStatus::ExistingData, {}};
     const fs::path active_typed =
         user_root / active_root.save_root / "host-profile.txt";
-    TournamentLaunchPathLock active_lock(active_typed.string(), true);
+    TournamentLaunchPathLock active_lock(active_typed, true);
     if (!active_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
 
@@ -94,7 +94,7 @@ inline BaldosaSecondRacerResult create_baldosa_second_preset_for_next_boot(
     // ownership and exact matching raw SRAM before permitting another name
     // to be published in this P1 user's catalog.
     const auto active = load_host_profile_state_file(
-        ExecutionMode::Modern, active_typed.string(),
+        ExecutionMode::Modern, active_typed.u8string(),
         std::string(expected_active_profile));
     if (!active.loaded() || !active.state->stock_sram ||
         !catalog_entry_matches_profile_state(roster->front(), *active.state) ||
@@ -137,7 +137,7 @@ inline BaldosaSecondRacerResult create_baldosa_second_preset_for_next_boot(
 
     const fs::path typed_path = directory / "host-profile.txt";
     if (save_host_profile_state_file_if_current(
-            ExecutionMode::Modern, typed_path.string(), std::nullopt,
+            ExecutionMode::Modern, typed_path.u8string(), std::nullopt,
             *state) != HostProfileSaveStatus::Saved)
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
     const fs::path raw_path = directory / "save.srm";
@@ -163,7 +163,7 @@ inline BaldosaSecondRacerResult create_baldosa_second_preset_for_next_boot(
     // primitive, after the roster was loaded under THIS exclusive lock.
     std::vector<HostProfileCatalogEntry> expanded = *roster;
     expanded.push_back({id, *proposed});
-    if (!save_host_profile_catalog_file(catalog_path.string(), expanded))
+    if (!save_host_profile_catalog_file(catalog_path.u8string(), expanded))
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
     // Global selection remains the original, verified P1 throughout.
     return {BaldosaSecondRacerStatus::Created, id};
@@ -197,15 +197,15 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
         !baldosa_native_real_file(catalog) ||
         !baldosa_native_real_directory(user_root / "saves"))
         return {BaldosaSecondRacerStatus::ExistingData, {}};
-    TournamentLaunchPathLock selector_lock(selector.string(), true);
+    TournamentLaunchPathLock selector_lock(selector, true);
     if (!selector_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
-    TournamentLaunchPathLock catalog_lock(catalog.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog, true);
     if (!catalog_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
 
-    const auto selected = load_host_product_state_file(selector.string());
-    const auto roster = load_host_profile_catalog_file(catalog.string());
+    const auto selected = load_host_product_state_file(selector.u8string());
+    const auto roster = load_host_profile_catalog_file(catalog.u8string());
     if (!selected.loaded() || !selected.state->active_profile_id ||
         *selected.state->active_profile_id != expected_active_profile ||
         !roster || roster->size() != 1u ||
@@ -236,10 +236,10 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
     staged_mutex += ".urmutex";
     if (!baldosa_native_real_file(staged_mutex))
         return {BaldosaSecondRacerStatus::ExistingData, {}};
-    TournamentLaunchPathLock active_lock(active_typed.string(), true);
+    TournamentLaunchPathLock active_lock(active_typed, true);
     if (!active_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
-    TournamentLaunchPathLock staged_lock(staged_typed.string(), true);
+    TournamentLaunchPathLock staged_lock(staged_typed, true);
     if (!staged_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
 
@@ -250,10 +250,10 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
         !baldosa_native_selected_profile_paths_are_real(user_root, p1.save_root) ||
         !baldosa_native_selected_profile_paths_are_real(user_root, p2.save_root))
         return {BaldosaSecondRacerStatus::ExistingData, {}};
-    const auto current = load_host_product_state_file(selector.string());
-    const auto current_roster = load_host_profile_catalog_file(catalog.string());
+    const auto current = load_host_product_state_file(selector.u8string());
+    const auto current_roster = load_host_profile_catalog_file(catalog.u8string());
     const auto active = load_host_profile_state_file(
-        ExecutionMode::Modern, active_typed.string(),
+        ExecutionMode::Modern, active_typed.u8string(),
         std::string(expected_active_profile));
     if (!current.loaded() || !(*current.state == *selected.state) ||
         !current_roster || *current_roster != *roster ||
@@ -297,7 +297,7 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
         return {BaldosaSecondRacerStatus::Invalid, {}};
 
     const auto staged = load_host_profile_state_file(
-        ExecutionMode::Modern, staged_typed.string(), id);
+        ExecutionMode::Modern, staged_typed.u8string(), id);
     if (!staged.loaded() || !(*staged.state == *expected) ||
         !baldosa_sram_file_matches_exact(
             staged_root / "save.srm", stock.data(), kStockSramBytes))
@@ -308,7 +308,7 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
     // the source P1, staged P2 and catalog intact for explicit diagnosis.
     auto expanded = *roster;
     expanded.push_back({id, *preset});
-    if (!save_host_profile_catalog_file(catalog.string(), expanded))
+    if (!save_host_profile_catalog_file(catalog.u8string(), expanded))
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
     return {BaldosaSecondRacerStatus::Recovered, id};
 }

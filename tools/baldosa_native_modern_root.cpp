@@ -2726,6 +2726,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         // keyboard shortcut, synthetic result or guest-input script.
         static unsigned return_stage = 0;
         static unsigned settled_setup = 0;
+        static unsigned reopened_frame = 0;
         if (std::strcmp(opt, "30") == 0 && pad) {
             const unsigned menu = g_ram[0x009fu];
             const bool stock_setup = g_stock_handed_off && !g_visible &&
@@ -2761,8 +2762,29 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 return_stage = 4;
             } else if (return_stage == 4 && g_visible) {
                 return_stage = 5;
+                reopened_frame = frame;
                 std::fprintf(stderr,
                     "UR_BALDOSA_MODERN_PAD_RETURN reopened=1 source_menu=d7\n");
+            } else if (return_stage == 5 && g_visible) {
+                // Reentry must restore live controller focus, not just paint
+                // an inert root. Reopen Records using the SAME SDL P1, wait
+                // for an actual native paint, then close it with physical B.
+                static constexpr Step post_return[] = {
+                    {16u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+                    {20u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+                    {24u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+                    {28u, SDL_GAMEPAD_BUTTON_SOUTH},
+                    {92u, SDL_GAMEPAD_BUTTON_EAST},
+                };
+                for (const auto& step : post_return) {
+                    if (frame != reopened_frame + step.frame &&
+                        frame != reopened_frame + step.frame + 1u) continue;
+                    if (!SDL_SetJoystickVirtualButton(
+                            pad, step.button,
+                            frame == reopened_frame + step.frame))
+                        std::abort();
+                    break;
+                }
             }
             if (!g_visible && g_stock_handed_off && frame % 180u == 0u)
                 std::fprintf(stderr,

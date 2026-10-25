@@ -2582,22 +2582,24 @@
       "source_member_sha256": null,
       "target_paths": [
         "native/product/modern_results_navigation.hpp",
-        "tests/native/modern_results_navigation_test.cpp"
+        "tests/native/modern_results_stale_direction_test.cpp",
+        "tests/unit/test_modern_results_navigation_cpp.py"
       ],
-      "current_main_comparison": "Native Google Doc contains fully recovered SOURCE_BEGIN/TEST_BEGIN C++ text, not a byte-equivalent ZIP. Its 117-line old source lacks main's stronger stale Confirm row-identity guard, while main implements stale Up/Down focus recovery. Its archived 54-line exhaustive 128-context/384 malformed focus matrix has no identical test block in current modern_results_navigation_test.cpp. This is a conditional source-distinct regression coverage lead, not proven missing product behavior. Revision ID AHj4eMSyBTMUog8JndRnj6A2JrbCAG1rckqZtS-nudXH_WtVjcswf7ngBmgHUwTyzHYgYDHZdkFtvigD2nqqxJ1ojWmgB0NqqG7ImcQ47-M.",
+      "current_main_comparison": "Original Google Doc TEST_BEGIN/TEST_END preserved 128-context/384-check C++ matrix. Agent 2 authenticated Doc content and read actual main tests/native/modern_results_stale_direction_test.cpp (Git blob 8c949132be159f51b682590353d1022a2a2264eb), finding original and current 2,618-character test bodies equal after CRLF/blank-line normalization. Separate tests/unit/test_modern_results_navigation_cpp.py (Git blob 54440ad9420d523e0e350897656647a80e4657d4) compiles and executes that standalone test. Current native/product/modern_results_navigation.hpp (blob 6be51a1500e71d5c5cdff4d2a6de4bfea4ba0970) preserves stale Up/Down and adds Confirm identity/practice_target_ready checks. Source-body equivalence is normalized semantic equality, not byte-exact Git blob equality; original old source is superseded.",
       "github_prs": [
         "#2360",
         "#2384",
         "#2515"
       ],
-      "owner": "Agent 2 source-specific test qualification; Agent 3 final disposition",
+      "owner": "Agent 1 documented source crosswalk; Agent 3 final integration",
       "priority": "P3",
       "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
-      "next_action": "Agent 2 independently determine whether 128-context stale focus/row-count negatives give meaningful untested coverage; if yes, write fresh narrowly scoped test PR, avoiding obsolete original source and held publication. Preserve Google Doc and source text.",
-      "blocker": "Original native Google Docs source has no independently recovered raw ZIP/source byte identity; the exact archived test is not on main.",
-      "classification": "requires_agent2_semantic_review",
+      "next_action": "No Agent 2 test implementation needed. Agent 3 independently verify current-main test and accept disposition in #2541; retain Doc and original publication incident.",
+      "blocker": null,
+      "classification": "semantically_superseded_with_exact_normalized_test_body",
       "source_publication_authorized": false,
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088#issuecomment-6390539468"
     },
     {
       "drive_id": "136WJmoZe3lN8D-pyBa0dVLf-JPI2s8jT",

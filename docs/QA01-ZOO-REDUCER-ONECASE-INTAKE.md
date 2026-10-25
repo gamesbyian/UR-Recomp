@@ -19,7 +19,7 @@ Run this helper on the **same successful source checkout**, using the actual cas
 
 The intake refuses a wrong Zoo producer, ROM/SMV/SRAM identity mismatch, changed core/native/observer hashes, unqualified original/native race entry, mismatched supplied P1 input after source-earned two-host-clock shift, missing logs or wrong observed guest frame, nonidentical whole +5039 WRAM, any +5040 difference outside $0063/$0069, or wrong active Zoo track/race state. It validates all 131072 bytes per original/native image and derives the *current* target-byte values from this exact producer. Historic 0x73/0x4D values cannot be force-fitted.
 
-Only after the authentic source preflight succeeds, start **one** bounded reduction:
+**Per-candidate preservation check:** the generated private oracle now binds the full exact source +5039 WRAM SHA-256 (\`pre_target\` = \`scene-05039.wram.bin\`). Every candidate must independently capture this prior checkpoint from **both** guest subprocesses, each at its own authenticated +5039 host frame, and both 131072-byte buffers must have the exact source-qualified digest. Matching only the +5040 target byte and a few stage anchors cannot reproduce the original source circumstance. A candidate that changes earlier game state is rejected as \`invalid_route\`, even if the two +5040 bytes coincidentally match. This is intentionally conservative: a source-equivalent earlier state may prevent large reductions, and late +5040 equality does **not** itself prove the first instruction-level causal divergence.\n\nOnly after the authentic source preflight succeeds, start **one** bounded reduction:
 
     python3 tools/reduce_controller_fixture.py \
       --input /private/reducer/original.input \

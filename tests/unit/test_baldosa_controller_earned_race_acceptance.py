@@ -65,7 +65,7 @@ class EarnedControllerJourney(unittest.TestCase):
             "no source result": [x for x in good if "NATIVE_RESULT" not in x],
             "no captured run": [x for x in good if "NATIVE_RUN CAPTURED" not in x],
             "unpublished": [x.replace("published=1", "published=0") for x in good],
-            "GO before stock Start": good[:-3] + [good[-3], good[-4], *good[-2:]],
+            "GO before stock Start": good[:-4] + [good[-3], good[-4], *good[-2:]],
             "reassigned pad": good + ["[Gamepad] UR_CONTROLLER_SEAT assign instance=102 seat=0 reason=added"],
             "detached pad": good + ["[Gamepad] UR_CONTROLLER_SEAT vacate instance=101 seat=0 key=0001"],
             "duplicate result": good + [good[-1]],

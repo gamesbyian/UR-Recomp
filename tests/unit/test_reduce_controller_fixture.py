@@ -19,11 +19,12 @@ p.add_argument('--candidate',required=True,type=Path)
 p.add_argument('--receipt',required=True,type=Path)
 p.add_argument('--bad-hash',action='store_true')
 p.add_argument('--invalid-original',action='store_true')
+p.add_argument('--need-tail',action='store_true')
 a=p.parse_args()
 data=a.candidate.read_bytes()
 rows=data.decode().splitlines()
 valid='0:100:001' in rows and not a.invalid_original
-success=valid and '100:10:002' in rows
+success=valid and '100:10:002' in rows and (not a.need_tail or '140:10:008' in rows)
 result=dict(schema='ur-controller-reducer-oracle/1',
     candidate_sha256=('0'*64 if a.bad_hash else hashlib.sha256(data).hexdigest()),
     source_sha='a'*40,original_rom_sha256='b'*64,native_binary_sha256='c'*64,
@@ -64,6 +65,52 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(len(runs), 4)
         self.assertEqual(evidence["oracle_calls"], 4)
 
+    def test_exact_observation_horizon_verifies_late_tail_first(self):
+        runs, receipt = tool.reduce(
+            controller_input.load_controller_runs(self.fixture),
+            hashlib.sha256(self.fixture.read_bytes()).hexdigest(),
+            100, [sys.executable, str(self.oracle)],
+            max_calls=4, observation_frame=110,
+        )
+        self.assertEqual(tool.encode(runs), b"0:100:001\n100:10:002\n")
+        self.assertTrue(receipt["post_observation_trial"])
+        self.assertEqual(receipt["post_observation_removed_runs"], 2)
+        self.assertEqual(receipt["observation_frame"], 110)
+        self.assertEqual(receipt["oracle_calls"], 4)
+        self.assertEqual(receipt["removed_runs"], 2)
+        self.assertTrue(receipt["budget_exhausted"])
+
+    def test_unreproduced_tail_removal_keeps_exact_original_route(self):
+        runs, receipt = tool.reduce(
+            controller_input.load_controller_runs(self.fixture),
+            hashlib.sha256(self.fixture.read_bytes()).hexdigest(),
+            100, [sys.executable, str(self.oracle), "--need-tail"],
+            max_calls=4, observation_frame=110,
+        )
+        self.assertEqual(tool.encode(runs), self.fixture.read_bytes())
+        self.assertTrue(receipt["post_observation_trial"])
+        self.assertEqual(receipt["post_observation_removed_runs"], 0)
+        self.assertTrue(receipt["budget_exhausted"])
+
+    def test_observation_boundary_and_legacy_mode(self):
+        with self.assertRaisesRegex(ValueError, "authenticated original"):
+            tool.reduce(controller_input.load_controller_runs(self.fixture),
+                        "0" * 64, 100, [sys.executable, str(self.oracle)],
+                        observation_frame=99)
+        # The run starting exactly at the observation frame is retained.
+        runs, receipt = tool.reduce(
+            controller_input.load_controller_runs(self.fixture),
+            hashlib.sha256(self.fixture.read_bytes()).hexdigest(),
+            100, [sys.executable, str(self.oracle)],
+            max_calls=4, observation_frame=100,
+        )
+        self.assertIn(b"100:10:002", tool.encode(runs))
+        self.assertEqual(receipt["post_observation_removed_runs"], 2)
+        _, legacy = self.run_case(max_calls=4)
+        self.assertIsNone(legacy["observation_frame"])
+        self.assertFalse(legacy["post_observation_trial"])
+        self.assertEqual(legacy["post_observation_removed_runs"], 0)
+
     def test_exact_candidate_mismatch_aborts(self):
         with self.assertRaisesRegex(ValueError, "exact candidate"):
             self.run_case(["--bad-hash"])
@@ -71,6 +118,20 @@ class ReducerTests(unittest.TestCase):
     def test_unqualified_original_cannot_seed_reducer(self):
         with self.assertRaisesRegex(ValueError, "does not reproduce"):
             self.run_case(["--invalid-original"])
+
+    def test_cli_observation_frame_bounded_tail(self):
+        import subprocess
+        output = self.root / "tail-minimal.script"
+        report = self.root / "tail-minimal.json"
+        subprocess.run([
+            sys.executable, str(ROOT / "tools" / "reduce_controller_fixture.py"),
+            "--input", str(self.fixture), "--output", str(output),
+            "--report", str(report), "--protected-before-frame", "100",
+            "--observation-frame", "110", "--max-calls", "4",
+            "--oracle", sys.executable, str(self.oracle),
+        ], check=True, capture_output=True, text=True, timeout=30)
+        self.assertEqual(output.read_bytes(), b"0:100:001\n100:10:002\n")
+        self.assertEqual(json.loads(report.read_text())["post_observation_removed_runs"], 2)
 
     def test_cli_writes_report_and_reduced_script(self):
         import subprocess

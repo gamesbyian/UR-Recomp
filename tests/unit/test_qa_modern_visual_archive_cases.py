@@ -146,13 +146,11 @@ class ArchiveCasesTest(unittest.TestCase):
                 self.assertEqual(len(identity), 1)
                 self.assertTrue(identity[0]["pass"])
                 altered = dict(witness, source_sha="c" * 40)
-                refused = ac.analyse(
-                    zp, {"captures": [altered]},
-                    matrix={candidate["id"]: candidate},
-                    expected_source_sha=source_sha, expected_exe_sha="a" * 64)
-                self.assertFalse(refused["pass"])
-                self.assertFalse(next(c for c in refused["captures"][0]["checks"]
-                                      if c["check"] == "source-identity")["pass"])
+                with self.assertRaisesRegex(ValueError, "external source/PE pins"):
+                    ac.analyse(
+                        zp, {"captures": [altered]},
+                        matrix={candidate["id"]: candidate},
+                        expected_source_sha=source_sha, expected_exe_sha="a" * 64)
 
 
     def test_source_qualified_cli_requires_external_pins_on_verified_zip(self):

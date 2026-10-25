@@ -38,11 +38,37 @@ jobs:
         run: |
           set -euo pipefail
           # Query the complete PR file census; avoid a large checkout-history fetch.
-          mapfile -t changed < <(
-            gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
-              --jq '.[].filename' |
-              grep -E '^\.github/workflows/[^/]+\.ya?ml$' || true
+          # Fetch first, so an API/auth failure is an explicit warning instead
+          # of being swallowed by grep's legitimate "no matches" exit code.
+          pr_files="$RUNNER_TEMP/actionlint-pr-files.txt"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$pr_files"
+          mapfile -t discovered < <(
+            grep -E '^\.github/workflows/[^/]+\.ya?ml
+          if (( ${#changed[@]} == 0 )); then
+            echo "No workflow definitions changed; actionlint not needed." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          version=1.7.12
+          tarball="$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://github.com/rhysd/actionlint/releases/download/v${version}/actionlint_${version}_linux_amd64.tar.gz" \
+            --output "$tarball"
+          printf '%s  %s\n' \
+            '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8' \
+            "$tarball" | sha256sum --check --status
+          mkdir -p "$RUNNER_TEMP/actionlint-bin"
+          tar -xzf "$tarball" -C "$RUNNER_TEMP/actionlint-bin" actionlint
+          echo "### actionlint: changed workflow definitions" >> "$GITHUB_STEP_SUMMARY"
+          printf -- '- %s\n' "${changed[@]}" >> "$GITHUB_STEP_SUMMARY"
+          "$RUNNER_TEMP/actionlint-bin/actionlint" -oneline "${changed[@]}"
+ "$pr_files" || true
           )
+          # Deleted workflows have no checked-out source file to lint.
+          changed=()
+          for path in "${discovered[@]}"; do
+            [[ ! -f "$path" ]] || changed+=("$path")
+          done
           if (( ${#changed[@]} == 0 )); then
             echo "No workflow definitions changed; actionlint not needed." >> "$GITHUB_STEP_SUMMARY"
             exit 0

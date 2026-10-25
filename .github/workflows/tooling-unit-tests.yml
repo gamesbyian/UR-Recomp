@@ -251,7 +251,8 @@ jobs:
           retention-days: 14
 
       - name: Preserve full failing-shard diagnostics
-        if: failure()
+        # Timeout cancellation must retain the last executed test name.
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: ci-tooling-unit-failure-logs

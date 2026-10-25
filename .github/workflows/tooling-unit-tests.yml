@@ -13,6 +13,9 @@ on:
       - "tests/native/widescreen_output_composition_test.cpp"
       - "tests/native/modern_pause_menu_test.cpp"
       - "tests/native/modern_pause_input_test.cpp"
+      # Options rollback refusal is an executable native C++ regression.
+      - "native/product/baldosa_native_options.hpp"
+      - "tests/native/baldosa_native_options_test.cpp"
       - "native/product/modern_pause_menu.cpp"
       - "native/product/modern_pause_menu.h"
       - "native/product/modern_pause_input.cpp"

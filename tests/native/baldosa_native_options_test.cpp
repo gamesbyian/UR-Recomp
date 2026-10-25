@@ -20,6 +20,7 @@ struct FakeHost {
     int display_applies = 0;
     int volume_applies = 0;
     bool refuse_display = false;
+    bool refuse_display_after_first_success = false;
     bool refuse_volume = false;
 };
 
@@ -31,7 +32,9 @@ bool fake_get_display(void* ctx, int* fullscreen, int* vsync) {
 }
 bool fake_apply_display(void* ctx, int fullscreen, int vsync) {
     auto* host = static_cast<FakeHost*>(ctx);
-    if (host->refuse_display) return false;
+    if (host->refuse_display ||
+        (host->refuse_display_after_first_success &&
+         host->display_applies >= 1)) return false;
     ++host->display_applies;
     host->fullscreen = fullscreen;
     host->vsync = vsync;
@@ -264,6 +267,26 @@ int main() {
         assert(blocked.status == BaldosaOptionsStatus::SaveFailed);
         assert(other.fullscreen == 0);  // rolled back
         assert(blocked.display == HostDisplayMode::Windowed);
+    }
+
+    // When persistence fails AND the OS refuses the rollback, Options must
+    // show the actual live display rather than a falsely restored old value.
+    {
+        FakeHost fake;
+        fake.refuse_display_after_first_success = true;
+        BaldosaNativeOptions model;
+        const auto unavailable = root / "missing-rollback-parent" / "options.txt";
+        baldosa_options_boot(model, unavailable.string(), make_host(fake));
+        baldosa_options_open(model);
+        baldosa_options_adjust(model, 1);
+        assert(fake.display_applies == 1);  // requested change did apply
+        assert(fake.fullscreen == 1);       // rollback was refused
+        assert(model.display == HostDisplayMode::BorderlessFullscreen);
+        assert(model.vsync == HostVSyncMode::On);
+        assert(model.status == BaldosaOptionsStatus::RollbackFailed);
+        assert(std::string(baldosa_options_status_text(model.status)) ==
+               "DISPLAY NOT RESTORED");
+        assert(!fs::exists(unavailable));  // no false persisted-success claim
     }
 
     // Another process rewrote the file between open and change: the stale

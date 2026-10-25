@@ -51,6 +51,7 @@ enum class BaldosaOptionsStatus : std::uint8_t {
     SaveFailed,         // could not persist; live change was rolled back
     ChangedElsewhere,   // another process rewrote the file; rolled back
     DamagedQuarantined, // damaged file preserved aside, fresh file written
+    RollbackFailed,     // persistence failed and host refused live restoration
 };
 
 // The live host seam. Plain function pointers keep the model unit-testable
@@ -144,6 +145,8 @@ constexpr const char* baldosa_options_status_text(
         return "CHANGED ELSEWHERE - RETRY";
     case BaldosaOptionsStatus::DamagedQuarantined:
         return "OLD FILE KEPT .damaged";
+    case BaldosaOptionsStatus::RollbackFailed:
+        return "DISPLAY NOT RESTORED";
     }
     return "";
 }
@@ -394,6 +397,13 @@ inline void change_display_vsync(
             baldosa_options_vsync_value(restore_vsync))) {
         model.display = restore_display;
         model.vsync = restore_vsync;
+    } else {
+        // A second OS refusal leaves the live mode different from the saved
+        // state. Re-read the actual host instead of displaying the stale
+        // prechange values, and tell the player restoration also failed.
+        pull_live(model);
+        model.status = BaldosaOptionsStatus::RollbackFailed;
+        return;
     }
     model.status = status;
 }

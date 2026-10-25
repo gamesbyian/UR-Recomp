@@ -1,0 +1,57 @@
+{
+  "schema": "ur-qa01-rf083-executed-original-evidence-checkpoint/1",
+  "source_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40237658745",
+  "case_artifact_id": 12615823047,
+  "instrumented_case_sha256": "97d72f79b4b1879cb1bbee8f606addf23d22b8c6d58cc85d0c47707278c02cc1",
+  "unmodified_case_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40168208753",
+  "unmodified_case_artifact_id": 12589271295,
+  "unmodified_case_sha256": "02c23eef482e1841f61d5df7d48e87f8d7898d625dd5ad7b75f59d3414deb68b",
+  "paired_unmasked_raw_members_compared": 320,
+  "paired_unmasked_raw_members_byte_exact": 320,
+  "original_cpu_heartbeat_frames": [
+    6069,
+    6070,
+    6071,
+    6072,
+    6073,
+    6074,
+    6075,
+    6076,
+    6077,
+    6078,
+    6079
+  ],
+  "original_executed_opcode_interval_deltas": 3122,
+  "original_real_setbyte_entries": 0,
+  "by_slot": {
+    "0063": {
+      "828154|E6": 1481,
+      "82814B|85": 69,
+      "8282CE|64": 3,
+      "82813B|85": 1
+    },
+    "0064": {
+      "82814B|85": 64,
+      "828154|E6": 6,
+      "82813B|85": 4,
+      "8282D0|64": 4
+    },
+    "0065": {
+      "828145|E6": 5,
+      "82812F|85": 3
+    },
+    "0069": {
+      "8280E0|E6": 1482
+    }
+  },
+  "frame_5039_full_wram_sha256": "9178bce73ad12cd8efec893a17b10109230c04131b00de0a915098098390f104",
+  "frame_5040_original_wram_sha256": "d4fa759e5cea9af974757833939cba1e6029e1be3e857637341cf639861d5f2b",
+  "frame_5040_native_wram_sha256": "5e25360680c12c680a83ab623e5979201746e831e9c7ba8d4f2d209fecea28b5",
+  "native_binary_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+  "original_instrumented_core_sha256": "a7f7b3908c1ac16a9aa9150e6b6c0d66d79f932852fd9909d86be59331316d4e",
+  "cpu_guest_instruction_cross_implementation_parity_proven": false,
+  "physical_snes_bus_write_proven": false,
+  "source_setbyte_helper_covers_actual_dp_writes": false,
+  "release_course_credit": 0,
+  "windows_gate_credit": 0
+}

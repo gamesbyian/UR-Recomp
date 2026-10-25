@@ -86,10 +86,11 @@ def load_mesen_class(repo: Path):
 
 
 class FixtureRunner:
-    def __init__(self, mesen, dump_dir: Path, controller_runs: list[ControllerRun] | None = None):
+    def __init__(self, mesen, dump_dir: Path, controller_runs: list[ControllerRun] | None = None, batch_controller_intervals: bool = False):
         self.mesen = mesen
         self.dump_dir = dump_dir
         self.controller_runs = controller_runs
+        self.batch_controller_intervals = batch_controller_intervals
         self.frame = 0
         self.started = False
         self.previous_masks: tuple[int | None, int | None] = (None, None)
@@ -118,6 +119,21 @@ class FixtureRunner:
             self.started = True
             self.frame = int(result["status"]["frame"])
             return
+        if not self.batch_controller_intervals:
+            # Preserve established per-frame source evidence by default until
+            # exact pinned Mesen A/B receipts qualify the faster path.
+            for _ in range(frames):
+                self._apply_stream_for_frame()
+                result = self.mesen.tool("run.step_frames", frames=1, reset=not self.started)
+                self.started = True
+                status_frame = int(result["status"]["frame"])
+                if status_frame < self.frame + 1:
+                    raise RuntimeError(
+                        f"Mesen frame counter did not advance: expected >= {self.frame + 1}, got {status_frame}"
+                    )
+                self.frame += 1
+            return
+
         # A canonical controller stream is piecewise constant. Replay every
         # frame, but make only one RPC call per stable input interval. This
         # preserves original absolute timing and both controller ports.
@@ -221,6 +237,8 @@ def main() -> int:
     ap.add_argument("--dump-dir", default="analysis/mesen-fixture-dumps")
     ap.add_argument("--mesen-for-ai-repo", default=os.environ.get("MESEN_FOR_AI_REPO", str(DEFAULT_MESEN_REPO)))
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--batch-controller-intervals", action="store_true",
+                    help="Experimental input-transition RPC batching; requires pinned real-emulator A/B before acceptance use")
     args = ap.parse_args()
 
     commands = parse_fixture(Path(args.script))
@@ -235,7 +253,10 @@ def main() -> int:
     Mesen = load_mesen_class(mesen_repo)
     with Mesen(repo=str(mesen_repo)) as mesen:
         mesen.load_rom(str(Path(args.rom).resolve()), timeout=180)
-        FixtureRunner(mesen, Path(args.dump_dir), controller_runs=controller_runs).execute(commands)
+        FixtureRunner(
+            mesen, Path(args.dump_dir), controller_runs=controller_runs,
+            batch_controller_intervals=args.batch_controller_intervals,
+        ).execute(commands)
     return 0
 
 

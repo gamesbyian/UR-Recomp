@@ -41,7 +41,7 @@ class FakeMesen:
 class MesenBatchTests(unittest.TestCase):
     def test_long_stable_input_uses_only_two_step_rpc_calls(self):
         client = FakeMesen()
-        runner = FixtureRunner(client, Path("."), [ControllerRun(10, 90, 0x001)])
+        runner = FixtureRunner(client, Path("."), [ControllerRun(10, 90, 0x001)], batch_controller_intervals=True)
         runner.step(100)
         self.assertEqual(client.calls, [10, 90])
         self.assertEqual(len(client.frames), 100)
@@ -55,7 +55,7 @@ class MesenBatchTests(unittest.TestCase):
             ControllerRun(12, 3, 0x004, 0x008),
         ]
         client = FakeMesen()
-        runner = FixtureRunner(client, Path("."), runs)
+        runner = FixtureRunner(client, Path("."), runs, batch_controller_intervals=True)
         runner.step(5)
         runner.step(15)
         self.assertEqual(client.frames, [masks_at(runs, frame) for frame in range(20)])
@@ -64,7 +64,7 @@ class MesenBatchTests(unittest.TestCase):
 
     def test_conditional_until_remains_frame_by_frame(self):
         client = FakeMesen()
-        runner = FixtureRunner(client, Path("."), [ControllerRun(0, 20, 0x001)])
+        runner = FixtureRunner(client, Path("."), [ControllerRun(0, 20, 0x001)], batch_controller_intervals=True)
         runner.execute([
             {"op": "until", "address": 0x55, "operator": "==", "value": 1,
              "timeout": 10},
@@ -72,6 +72,14 @@ class MesenBatchTests(unittest.TestCase):
         ])
         self.assertEqual(len(client.frames), 5)
         self.assertEqual(client.calls, [1] * 5)
+
+    def test_default_mode_keeps_legacy_per_frame_reference_calls(self):
+        client = FakeMesen()
+        runner = FixtureRunner(client, Path("."), [ControllerRun(10, 90, 0x001)])
+        runner.step(100)
+        self.assertEqual(client.calls, [1] * 100)
+        self.assertEqual(client.frames[:10], [(0, 0)] * 10)
+        self.assertEqual(client.frames[10:], [(1, 0)] * 90)
 
     def test_no_input_file_keeps_original_single_bulk_call(self):
         client = FakeMesen()

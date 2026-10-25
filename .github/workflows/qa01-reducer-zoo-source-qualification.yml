@@ -1,0 +1,25 @@
+name: QA01 Zoo +5039/+5040 original/native reducer source qualification
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/qa01-reducer-zoo-source-qualification.yml"
+permissions:
+  contents: read
+concurrency:
+  group: ur-qa01-zoo-reducer-qualification-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  zoo-source-evidence:
+    if: ${{ github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'qa/reducer-zoo-source-qualification-20261025' }}
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: false
+      source_followthrough: false
+      zoo_next_bowl: false
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_dp_pointer_once: false

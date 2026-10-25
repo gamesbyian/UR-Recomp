@@ -28,8 +28,11 @@ inspect_baldosa_native_two_player_records_archive(
     }
     if (ec || fs::is_symlink(status) || !fs::is_directory(status))
         return out;
+    bool scan_succeeded = false;
+    auto inspected = inspect_multiplayer_match_artifacts(
+        directory, &scan_succeeded);
+    if (!scan_succeeded) return out;
     out.directory_available = true;
-    auto inspected = inspect_multiplayer_match_artifacts(directory);
     std::vector<StoredMultiplayerMatch> admitted;
     admitted.reserve(inspected.size());
     for (auto& item : inspected) {

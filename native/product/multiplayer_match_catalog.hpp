@@ -56,7 +56,8 @@ struct MultiplayerMatchArtifactHealth {
  * the validated run+sidecar pair.
  */
 std::vector<InspectedMultiplayerMatchArtifact>
-inspect_multiplayer_match_artifacts(const std::string& directory);
+inspect_multiplayer_match_artifacts(const std::string& directory,
+                                   bool* scan_succeeded = nullptr);
 
 MultiplayerMatchArtifactHealth summarize_multiplayer_match_artifact_health(
     const std::vector<InspectedMultiplayerMatchArtifact>& artifacts);

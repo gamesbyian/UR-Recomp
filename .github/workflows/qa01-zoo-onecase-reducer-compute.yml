@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: 95efaf2538c6c8a5758ae7f0b2fd490d91c3e4d4
+          ref: b64c82d3cafc0ec8624c71bb9d5b6cd8b704690f
           path: qa-tools
       - name: Check out exact historical producer source, not current main
         uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
           test -f qa-tools/tools/qa01_reducer_clock_rebase.py
           test -f qa-tools/tools/reduce_controller_fixture.py
           echo "Source epoch: $(git -C source-checkout rev-parse HEAD)"
-          test "$(git -C qa-tools rev-parse HEAD)" = "95efaf2538c6c8a5758ae7f0b2fd490d91c3e4d4"
+          test "$(git -C qa-tools rev-parse HEAD)" = "b64c82d3cafc0ec8624c71bb9d5b6cd8b704690f"
           echo "Review/analysis tool commit: $(git -C qa-tools rev-parse HEAD)"
       - name: Download immutable real Zoo source case from successful producer
         uses: actions/download-artifact@v4

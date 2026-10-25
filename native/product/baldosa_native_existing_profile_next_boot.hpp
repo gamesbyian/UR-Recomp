@@ -92,15 +92,17 @@ select_baldosa_existing_profile_for_next_boot(
     // Holding BOTH typed locks prevents one source checkpoint from changing
     // either owner between authorization and selector publication. Order
     // their two canonical path strings to avoid cross-selection deadlocks.
-    TournamentLaunchPathLock selector_lock(selector.string(), true);
+    // Lock native filesystem paths directly; product codecs receive UTF-8.
+    // path.string() is locale-dependent on Windows and corrupts Unicode roots.
+    TournamentLaunchPathLock selector_lock(selector, true);
     if (!selector_lock.acquired())
         return {Status::BusyOrIoError, {}};
-    TournamentLaunchPathLock catalog_lock(catalog.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog, true);
     if (!catalog_lock.acquired())
         return {Status::BusyOrIoError, {}};
 
-    const auto global = load_host_product_state_file(selector.string());
-    const auto roster = load_host_profile_catalog_file(catalog.string());
+    const auto global = load_host_product_state_file(selector.u8string());
+    const auto roster = load_host_profile_catalog_file(catalog.u8string());
     if (!global.loaded() || !global.state->active_profile_id ||
         *global.state->active_profile_id != expected_active_profile ||
         !roster || roster->size() < 2u)
@@ -143,10 +145,10 @@ select_baldosa_existing_profile_for_next_boot(
     std::sort(typed_paths.begin(), typed_paths.end());
     if (typed_paths[0] == typed_paths[1])
         return {Status::RejectedAuthority, {}};
-    TournamentLaunchPathLock first_lock(typed_paths[0].string(), true);
+    TournamentLaunchPathLock first_lock(typed_paths[0], true);
     if (!first_lock.acquired())
         return {Status::BusyOrIoError, {}};
-    TournamentLaunchPathLock second_lock(typed_paths[1].string(), true);
+    TournamentLaunchPathLock second_lock(typed_paths[1], true);
     if (!second_lock.acquired())
         return {Status::BusyOrIoError, {}};
 
@@ -155,9 +157,9 @@ select_baldosa_existing_profile_for_next_boot(
     if (!baldosa_native_real_file(selector) ||
         !baldosa_native_real_file(catalog))
         return {Status::RejectedAuthority, {}};
-    const auto again = load_host_product_state_file(selector.string());
+    const auto again = load_host_product_state_file(selector.u8string());
     const auto current_roster =
-        load_host_profile_catalog_file(catalog.string());
+        load_host_profile_catalog_file(catalog.u8string());
     if (!again.loaded() || !again.state->active_profile_id ||
         *again.state->active_profile_id != expected_active_profile ||
         !current_roster || *current_roster != *roster)
@@ -181,7 +183,7 @@ select_baldosa_existing_profile_for_next_boot(
             continue;
         const auto profile = load_host_profile_state_file(
             ExecutionMode::Modern,
-            (user_root / location.save_root / "host-profile.txt").string(),
+            (user_root / location.save_root / "host-profile.txt").u8string(),
             entry.profile_id);
         if (!profile.loaded() || !profile.state->stock_sram ||
             !catalog_entry_matches_profile_state(entry, *profile.state) ||
@@ -205,7 +207,7 @@ select_baldosa_existing_profile_for_next_boot(
     // BEFORE this authoritative selector may be changed.
     if (validate_only)
         return {Status::SelectedForNextBoot, std::string(requested_profile)};
-    if (save_host_product_state_file(selector.string(), next) !=
+    if (save_host_product_state_file(selector.u8string(), next) !=
         HostProductSaveStatus::Saved)
         return {Status::BusyOrIoError, {}};
     return {Status::SelectedForNextBoot, std::string(requested_profile)};

@@ -69,6 +69,11 @@ class PairedOracleTests(unittest.TestCase):
                 "offset": 0x200, "original_byte": 2, "native_byte": 3,
             },
             "anchors": [{"offset": 0x100, "value": 42}],
+            "guest_clocks": {
+                "reference_entry_frame": 0, "native_entry_frame": 0,
+                "reference_observation_frame": 105,
+                "native_observation_frame": 105,
+            },
         }
         self.manifest = config
 
@@ -125,6 +130,52 @@ class PairedOracleTests(unittest.TestCase):
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             with self.assertRaisesRegex(ValueError, "divergent target"):
                 adapter.validate(self.manifest)
+
+    def test_real_pair_clocks_must_preserve_observation_phase(self):
+        from unittest import mock
+        self.manifest["guest_clocks"]["native_entry_frame"] = 2
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "unequal race-relative"):
+                adapter.execute(self.manifest, self.input)
+
+    def test_rebased_candidate_supplies_separately_hashed_guest_inputs(self):
+        from qa01_reducer_clock_rebase import paired_streams
+        runs = load_controller_runs(self.input)
+        original_bytes, native_bytes = paired_streams(runs, 0, 2)
+        self.assertEqual(original_bytes, self.input.read_bytes())
+        self.assertIn(b"102:10:002", native_bytes)
+        self.assertNotIn(b"100:10:002", native_bytes)
+        self.assertNotEqual(hashlib.sha256(original_bytes).hexdigest(),
+                            hashlib.sha256(native_bytes).hexdigest())
+
+    def test_preentry_controller_input_fails_closed(self):
+        from qa01_reducer_clock_rebase import paired_streams
+        with self.assertRaisesRegex(ValueError, "pre-entry"):
+            paired_streams(load_controller_runs(self.input), 1, 3)
+
+    def test_original_scene_shim_rejects_unsupported_p2_stream(self):
+        from qa01_reducer_clock_rebase import paired_streams
+        self.input.write_text("0:100:001:002\n")
+        with self.assertRaisesRegex(ValueError, "original P1"):
+            paired_streams(load_controller_runs(self.input), 0, 2)
+
+    def test_actual_subprocess_both_anchored_on_independent_guest_clocks(self):
+        from unittest import mock
+        # Model's authentic phase is 105 original, 107 native. Each supplied
+        # input file must shift +2 for the native process while target result
+        # and original menu/track anchors still remain the same.
+        self.manifest["guest_clocks"]["native_entry_frame"] = 2
+        self.manifest["guest_clocks"]["native_observation_frame"] = 107
+        # Process fixture reads full canonical string, but the shifted native
+        # script no longer matches the original fixed absolute positions.
+        # That must refuse to reproduce rather than shift its guest meaning.
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            receipt = adapter.execute(self.manifest, self.input)
+        self.assertFalse(receipt["native_valid"])
+        self.assertEqual(receipt["result"], "invalid_route")
+        self.assertEqual(receipt["native_frame_shift"], 2)
+        self.assertNotEqual(receipt["reference_supplied_input_sha256"],
+                            receipt["native_supplied_input_sha256"])
 
     def test_reducer_integration_against_two_real_synthetic_processes(self):
         # Full reducer path with a running external paired process in each

@@ -77,6 +77,18 @@ def validate(config):
         check(str(Path(cmd["argv"][0]).resolve()) ==
               str(Path(config[("reference_binary" if key == "reference" else "native_binary")]["path"]).resolve()),
               "command does not execute pinned binary")
+    clocks = config.get("guest_clocks")
+    check(type(clocks) is dict and set(clocks) ==
+          {"reference_entry_frame", "native_entry_frame",
+           "reference_observation_frame", "native_observation_frame"},
+          "missing separate original/native guest clocks")
+    check(all(type(value) is int and 0 <= value < 200000
+              for value in clocks.values()), "invalid paired guest clock frame")
+    check(clocks["reference_observation_frame"] > clocks["reference_entry_frame"]
+          and clocks["native_observation_frame"] > clocks["native_entry_frame"]
+          and clocks["reference_observation_frame"] - clocks["reference_entry_frame"]
+              == clocks["native_observation_frame"] - clocks["native_entry_frame"],
+          "unequal race-relative semantic observation phases")
     d = config.get("discrepancy")
     check(type(d) is dict and set(d) ==
           {"id", "phase", "offset", "original_byte", "native_byte"}, "invalid discrepancy predicate")
@@ -131,20 +143,28 @@ def execute(config, candidate, timeout=120):
     check(candidate.is_file() and not candidate.is_symlink(), "missing candidate controller file")
     # Validate the actual canonical P1/P2 controller grammar, including overlap.
     from controller_input import load_controller_runs
-    load_controller_runs(candidate)
+    from qa01_reducer_clock_rebase import paired_streams
+    runs = load_controller_runs(candidate)
     source = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     check(source == cfg["source_sha"], "paired commands source SHA is stale")
     rom = Path(cfg["rom"]["path"]).resolve()
     with tempfile.TemporaryDirectory(prefix="ur-qa01-reduce-pair-") as tmp:
         root = Path(tmp)
+        clocks = cfg["guest_clocks"]
+        original_input, native_input = paired_streams(
+            runs, clocks["reference_entry_frame"], clocks["native_entry_frame"])
+        original_path = root / "original-clock.input"
+        native_path = root / "native-clock.input"
+        original_path.write_bytes(original_input)
+        native_path.write_bytes(native_input)
         reference_command = {**cfg["reference"],
                              "_reference_core": cfg["reference_core"]["path"]}
         original_valid, original = observe(
-            reference_command, candidate.resolve(), rom, root / "original",
+            reference_command, original_path, rom, root / "original",
             cfg["anchors"], timeout)
         native_valid, native = observe(
-            cfg["native"], candidate.resolve(), rom, root / "native",
+            cfg["native"], native_path, rom, root / "native",
             cfg["anchors"], timeout)
         predicate = cfg["discrepancy"]
         reproduced = bool(original_valid and native_valid
@@ -152,6 +172,10 @@ def execute(config, candidate, timeout=120):
                           and native[predicate["offset"]] == predicate["native_byte"])
     return {
         "schema": ORACLE_SCHEMA, "candidate_sha256": sha(candidate),
+        "reference_supplied_input_sha256": hashlib.sha256(original_input).hexdigest(),
+        "native_supplied_input_sha256": hashlib.sha256(native_input).hexdigest(),
+        "guest_clocks": dict(clocks),
+        "native_frame_shift": clocks["native_entry_frame"] - clocks["reference_entry_frame"],
         "source_sha": cfg["source_sha"],
         "original_rom_sha256": cfg["rom"]["sha256"],
         "native_binary_sha256": cfg["native_binary"]["sha256"],

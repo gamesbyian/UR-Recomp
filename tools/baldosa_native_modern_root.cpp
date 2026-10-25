@@ -841,6 +841,8 @@ void choose() {
         quit.type = SDL_QUIT;
         if (SDL_PushEvent(&quit) != 1)
             std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT quit_event_rejected\n");
+        else
+            std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1\n");
         return;
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);
@@ -2937,21 +2939,39 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                     std::fprintf(stderr,
                         "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7\n");
                 } else if (post_stage == 11u && g_visible) {
-                    static constexpr Step records_steps[] = {
-                        {16u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
-                        {20u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
-                        {24u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
-                        {28u, SDL_GAMEPAD_BUTTON_SOUTH},
-                        {92u, SDL_GAMEPAD_BUTTON_EAST},
+                    // Keep Modern visible for 900 genuine guest frames before
+                    // the same SDL pad resumes navigation. The guest attract
+                    // loop may continue beneath the Modern surface.
+                    if (frame == reopened_frame + 900u)
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_MODERN_PAD_POST idle_completed=1 frames=900 modern_visible=1\n");
+                    static constexpr Step post_root_steps[] = {
+                        {916u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+                        {920u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+                        {924u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
+                        {928u, SDL_GAMEPAD_BUTTON_SOUTH},
+                        {992u, SDL_GAMEPAD_BUTTON_EAST}, // Close earned Records.
+                        {1050u, SDL_GAMEPAD_BUTTON_EAST}, // Open Quit prompt.
+                        {1070u, SDL_GAMEPAD_BUTTON_SOUTH}, // Confirm Quit.
                     };
-                    for (const auto& step : records_steps) {
+                    for (const auto& step : post_root_steps) {
                         if (frame != reopened_frame + step.frame &&
                             frame != reopened_frame + step.frame + 1u)
                             continue;
+                        if (frame == reopened_frame + 1050u && g_confirm_quit)
+                            std::abort();
+                        if (frame == reopened_frame + 1070u && !g_confirm_quit)
+                            std::abort();
                         if (!SDL_SetJoystickVirtualButton(
                                 pad, step.button,
                                 frame == reopened_frame + step.frame))
                             std::abort();
+                        if (frame == reopened_frame + 1050u)
+                            std::fprintf(stderr,
+                                "UR_BALDOSA_MODERN_PAD_POST quit_prompt_b=1\n");
+                        if (frame == reopened_frame + 1070u)
+                            std::fprintf(stderr,
+                                "UR_BALDOSA_MODERN_PAD_POST quit_confirm_a=1 prompt=1\n");
                         break;
                     }
                 }

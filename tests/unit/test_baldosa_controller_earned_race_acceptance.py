@@ -65,6 +65,9 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertEqual(PAD_RACE, "turbo on\nwait 7200\nquit\n")
         self.assertEqual(PAD_RACE_RETURN, "turbo on\nwait 11000\nquit\n")
         self.assertIn('std::strcmp(opt, "32") == 0', SOURCE)
+        self.assertIn("reopened_frame + 900u", SOURCE)
+        self.assertIn("reopened_frame + 1070u && !g_confirm_quit", SOURCE)
+        self.assertIn("native_sdl_quit_queued=1", SOURCE)
 
     def test_earned_race_native_log_is_retained_for_independent_qa(self):
         # A summary receipt cannot independently establish the original
@@ -96,12 +99,16 @@ class EarnedControllerJourney(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
             "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7",
             "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+            "UR_BALDOSA_MODERN_PAD_POST idle_completed=1 frames=900 modern_visible=1",
             "UR_BALDOSA_MODERN_ROOT selected=1",
             "UR_BALDOSA_MODERN_ROOT selected=2",
             "UR_BALDOSA_MODERN_ROOT selected=3",
             "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=0",
             "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
             "UR_BALDOSA_MODERN_ROOT records_closed=1",
+            "UR_BALDOSA_MODERN_PAD_POST quit_prompt_b=1",
+            "UR_BALDOSA_MODERN_PAD_POST quit_confirm_a=1 prompt=1",
+            "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1",
         ]
         good = [HOST, *PREFIX, *TAIL, *post]
         verify_five_destination_pad_post_result("\n".join(good) + "\n")
@@ -125,6 +132,14 @@ class EarnedControllerJourney(unittest.TestCase):
             "missing tour back": [x for x in good if "tour_back_x=1" not in x],
             "missing rider back": [x for x in good if "rider_back_x=1" not in x],
             "no original MAIN": [x for x in good if "root_back_b=1" not in x],
+            "missing idle witness": [x for x in good if "idle_completed=1" not in x],
+            "idle after navigation": [x for x in good if "idle_completed=1" not in x] + [post[10]],
+            "missing Quit prompt": [x for x in good if "quit_prompt_b=1" not in x],
+            "missing Quit confirm": [x for x in good if "quit_confirm_a=1" not in x],
+            "missing native SDL Quit": [x for x in good if "quit_confirmed=1" not in x],
+            "rejected SDL Quit": good + ["UR_BALDOSA_MODERN_ROOT quit_event_rejected"],
+            "Quit before Records close": [x for x in good if "quit_prompt_b=1" not in x][:-3] +
+                [post[-3]] + [x for x in good if "quit_prompt_b=1" not in x][-3:],
             "duplicate source reentry": good + [
                 "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0"
             ],

@@ -489,6 +489,27 @@ def verify_five_destination_pad_post_result(log: str) -> None:
             first_selection = tail_start + last
     if first_selection is None or paint_pos >= first_selection:
         raise ValueError("pad earned return: controller navigated before repaint")
+    # The native Modern root must still accept this P1 after 900 guest
+    # frames of idle time; source gameplay may advance underneath it.
+    idle = "UR_BALDOSA_MODERN_PAD_POST idle_completed=1 frames=900 modern_visible=1"
+    idle_matches = list(re.finditer(rf"(?m)^{re.escape(idle)}$", log))
+    if (len(idle_matches) != 1 or not paint_pos < idle_matches[0].start() < first_selection):
+        raise ValueError("pad earned return: idle Modern focus not witnessed before navigation")
+    # Native Quit must be explicitly queued by the same SDL controller
+    # after Records closes, never satisfied by the script's fallback quit.
+    quit_markers = (
+        "UR_BALDOSA_MODERN_PAD_POST quit_prompt_b=1",
+        "UR_BALDOSA_MODERN_PAD_POST quit_confirm_a=1 prompt=1",
+        "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1",
+    )
+    last_quit = tail_start + last
+    for marker in quit_markers:
+        matches = list(re.finditer(rf"(?m)^{re.escape(marker)}$", log))
+        if len(matches) != 1 or matches[0].start() <= last_quit:
+            raise ValueError(f"pad earned return: missing/reordered native Quit {marker!r}")
+        last_quit = matches[0].start()
+    if "UR_BALDOSA_MODERN_ROOT quit_event_rejected" in log:
+        raise ValueError("pad earned return: SDL quit event was rejected")
     if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
         raise ValueError("pad earned return: unexpected stock relaunch")
 

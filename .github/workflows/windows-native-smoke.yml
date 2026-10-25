@@ -60,9 +60,9 @@ on:
       - "native/presentation/**"
       - "native/title/**"
 
-# The direct PR smoke and the QA-05/09 reusable caller may trigger on
-# the same PR. Keep their cancellation scopes separate by caller workflow.
 concurrency:
+  # Direct smoke and the QA-05/09 reusable caller may run for the same PR.
+  # Distinguish their cancellation scopes by caller workflow.
   group: windows-native-smoke-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 

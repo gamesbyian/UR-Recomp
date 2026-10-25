@@ -54,10 +54,11 @@ BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     out.directory_available = true;
     out.total_artifacts = artifacts.size();
     for (const auto& artifact : artifacts) {
-        // The canonical codec accepts several run modes. A valid 2P or
-        // noncareer Practice file in this profile's 1P archive must not
-        // become a 1P result or displace its latest earned course/time.
+        // The portable codec validates syntax, not game ownership or mode.
+        // Foreign-game and 2P/Practice files must not become earned
+        // Uniracers 1P history or displace its latest course/time.
         if (!artifact.loaded() ||
+            artifact.record->provenance.game_id != "uniracers" ||
             artifact.record->provenance.mode != "race-1p") {
             ++out.unavailable_artifacts;
             continue;

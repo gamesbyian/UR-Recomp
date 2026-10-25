@@ -193,9 +193,11 @@ class PairedOracleTests(unittest.TestCase):
                             receipt["native_supplied_input_sha256"])
 
     def test_modified_source_sram_seed_is_rejected(self):
+        from unittest import mock
         self.seed.write_bytes(b"Z" * 8192)
-        with self.assertRaisesRegex(ValueError, "original-movie 8192-byte"):
-            adapter.execute(self.manifest, self.input)
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "original-movie 8192-byte"):
+                adapter.execute(self.manifest, self.input)
 
     def test_missing_native_config_arg_fails_closed(self):
         from unittest import mock

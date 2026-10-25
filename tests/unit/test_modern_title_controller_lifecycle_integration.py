@@ -211,6 +211,8 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         self.assertIn('SDL_SetJoystickVirtualButton(', fixture)
         self.assertIn('SDL_GAMEPAD_BUTTON_WEST', fixture)
         self.assertIn('SDL_GAMEPAD_BUTTON_EAST', fixture)
+        self.assertIn("static constexpr Step post_return[]", fixture)
+        self.assertIn("reopened_frame = frame;", fixture)
         self.assertNotIn('SDL_KEYDOWN', fixture)
         self.assertNotIn('ur_baldosa_modern_root_gamepad(', fixture)
         self.assertIn('mode < 1 || mode > 30', SOURCE)
@@ -309,7 +311,15 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "UR_BALDOSA_MODERN_PAD_RETURN reopened=1 source_menu=d7",
             "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
         ]
-        valid = "\n".join(prefix + returned) + "\n"
+        post_return = [
+            "UR_BALDOSA_MODERN_ROOT selected=1",
+            "UR_BALDOSA_MODERN_ROOT selected=2",
+            "UR_BALDOSA_MODERN_ROOT selected=3",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=0 unavailable=0",
+            "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
+        ]
+        valid = "\n".join(prefix + returned + post_return) + "\n"
         verify_five_destination_pad_return(valid)
         invalid = {
             "no actual source return": prefix + returned[:1] + returned[2:],
@@ -319,6 +329,15 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "duplicate host reopen": prefix + returned + [returned[2]],
             "missing initial destination": [x for x in prefix if x != stages[8]] + returned,
         }
+        invalid = {label: witness + post_return
+                   for label, witness in invalid.items()}
+        invalid.update({
+            "no post-return Records paint": prefix + returned + [x for x in post_return if x != post_return[4]],
+            "post-return Records never closed": prefix + returned + post_return[:-1],
+            "post-return cursor never reached Records": prefix + returned + post_return[:2] + post_return[3:],
+            "post-return Records opened before selection": prefix + returned + [post_return[3], *post_return[:3], *post_return[4:]],
+            "unintended stock relaunch": prefix + returned + post_return + ["UR_BALDOSA_MODERN_ROOT stock_requested players=1"],
+        })
         for label, witness in invalid.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
                 verify_five_destination_pad_return("\n".join(witness) + "\n")

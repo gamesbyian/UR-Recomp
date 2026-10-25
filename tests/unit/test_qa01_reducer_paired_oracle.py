@@ -28,6 +28,12 @@ if "100:10:002" in rows:
     b[0x200]=2 if os.environ["ROLE"]=="original" else 3
 else:
     b[0x200]=1
+if os.environ.get("PRE_TARGET")=="1":
+    pre=bytearray(131072)
+    if os.environ.get("PRE_DIFF")=="1":
+        pre[0x123]=1
+    (Path(os.environ["DUMP_DIR"])/"checkpoint-before.wram.bin").write_bytes(pre)
+    print("script f=" + os.environ.get("BEFORE_FRAME","104") + " dump checkpoint-before")
 (Path(os.environ["DUMP_DIR"])/"checkpoint.wram.bin").write_bytes(b)
 print("script f=" + os.environ["OBS_FRAME"] + " dump checkpoint")
 """
@@ -252,6 +258,63 @@ class PairedOracleTests(unittest.TestCase):
         self.manifest["native_xvfb"] = "xvfb-run; shell"
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             with self.assertRaisesRegex(ValueError, "explicit boolean"):
+                adapter.validate(self.manifest)
+
+    def qualified_zoo_predecessor(self):
+        self.observer.write_text(
+            "wait 104\ndump checkpoint-before\nwait 1\ndump checkpoint\nquit\n"
+        )
+        self.manifest["observation_script"]["sha256"] = adapter.sha(self.observer)
+        self.manifest["discrepancy"]["id"] = "original-zoo-first-sound-synthetic"
+        self.manifest["pre_target"] = {
+            "dump": "checkpoint-before.wram.bin",
+            "sha256": hashlib.sha256(bytes(131072)).hexdigest(),
+        }
+        self.manifest["reference"]["environment"]["PRE_TARGET"] = "1"
+        self.manifest["native"]["environment"]["PRE_TARGET"] = "1"
+
+    def test_authentic_zoo_prestate_required_even_when_target_bytes_match(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            result = adapter.execute(self.manifest, self.input)
+        self.assertEqual(result["result"], "reproduced")
+        self.assertEqual(result["preceding_source_wram_sha256"],
+                         hashlib.sha256(bytes(131072)).hexdigest())
+
+    def test_zoo_causal_claim_without_pre_target_is_rejected(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest.pop("pre_target")
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "preceding full WRAM"):
+                adapter.validate(self.manifest)
+
+    def test_same_target_bytes_but_modified_prior_state_is_invalid(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest["native"]["environment"]["PRE_DIFF"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            result = adapter.execute(self.manifest, self.input)
+        self.assertEqual(result["result"], "invalid_route")
+        self.assertFalse(result["native_valid"])
+        self.assertTrue(result["original_valid"])
+
+    def test_prior_bytes_on_wrong_guest_frame_are_invalid(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest["native"]["environment"]["BEFORE_FRAME"] = "103"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            result = adapter.execute(self.manifest, self.input)
+        self.assertEqual(result["result"], "invalid_route")
+
+    def test_prestate_script_must_precede_target(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.observer.write_text("dump checkpoint\ndump checkpoint-before\n")
+        self.manifest["observation_script"]["sha256"] = adapter.sha(self.observer)
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "authentic preceding frame"):
                 adapter.validate(self.manifest)
 
     def test_modified_source_sram_seed_is_rejected(self):

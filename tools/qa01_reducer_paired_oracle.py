@@ -153,6 +153,22 @@ def validate(config):
               and row["offset"] not in offsets, "invalid or duplicate checkpoint anchor")
         offsets.add(row["offset"])
     check(d["offset"] not in offsets, "divergent target cannot be an equal-stage anchor")
+    pre = config.get("pre_target")
+    if d["id"].startswith("original-zoo-first-sound"):
+        check(pre is not None, "Zoo causal reducer must protect preceding full WRAM")
+    if pre is not None:
+        check(type(pre) is dict and set(pre) == {"dump", "sha256"},
+              "missing exact before-target WRAM source binding")
+        check(type(pre["dump"]) is str
+              and bool(re.fullmatch(r"[A-Za-z0-9_.-]+\.wram\.bin", pre["dump"]))
+              and pre["dump"] != config["reference"]["dump"],
+              "invalid distinct preceding WRAM dump")
+        check(type(pre["sha256"]) is str and bool(HEX64.fullmatch(pre["sha256"])),
+              "missing genuine source before-target SHA256")
+        pretag = pre["dump"][:-len(".wram.bin")]
+        check(source_lines.count("dump " + pretag) == 1
+              and source_lines.index("dump " + pretag) < source_lines.index("dump " + tag),
+              "source observer does not sample authentic preceding frame")
     return config
 
 
@@ -179,7 +195,7 @@ def native_execution_argv(argv, use_xvfb):
 
 
 def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observer, expected_frame,
-            native_xvfb=False):
+            native_xvfb=False, pre_target=None):
     work.mkdir()
     # Both real engines must boot from the same independently verified
     # historical SRAM. A disposable native cwd gives it an isolated saves/
@@ -206,6 +222,18 @@ def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observe
     observed_frames = [int(f) for f in pattern.findall(proc.stdout + "\n" + proc.stderr)]
     if observed_frames != [expected_frame]:
         return False, None
+    if pre_target is not None:
+        pretag = pre_target["dump"][:-len(".wram.bin")]
+        preframes = [int(f) for f in re.findall(
+            r"\bscript f=(\d+) dump " + re.escape(pretag) + r"(?:\s|$)",
+            proc.stdout + "\n" + proc.stderr)]
+        if preframes != [expected_frame - 1]:
+            return False, None
+        previous = work / pre_target["dump"]
+        if (not previous.is_file() or previous.is_symlink() or
+                previous.stat().st_size != BYTES or
+                sha(previous) != pre_target["sha256"]):
+            return False, None
     checkpoint = work / command["dump"]
     if not checkpoint.is_file() or checkpoint.is_symlink() or checkpoint.stat().st_size != BYTES:
         return False, None
@@ -244,11 +272,13 @@ def execute(config, candidate, timeout=120):
         original_valid, original = observe(
             reference_command, original_path, rom, root / "original",
             cfg["anchors"], timeout, seed_bytes, observer,
-            clocks["reference_observation_frame"])
+            clocks["reference_observation_frame"],
+            pre_target=cfg.get("pre_target"))
         native_valid, native = observe(
             cfg["native"], native_path, rom, root / "native",
             cfg["anchors"], timeout, seed_bytes, observer,
-            clocks["native_observation_frame"], cfg.get("native_xvfb", False))
+            clocks["native_observation_frame"], cfg.get("native_xvfb", False),
+            pre_target=cfg.get("pre_target"))
         check(sha(observer) == cfg["observation_script"]["sha256"],
               "observer script changed during paired process execution")
         predicate = cfg["discrepancy"]
@@ -264,6 +294,7 @@ def execute(config, candidate, timeout=120):
         "source_sha": cfg["source_sha"],
         "source_sram_sha256": cfg["source_sram"]["sha256"],
         "observation_script_sha256": cfg["observation_script"]["sha256"],
+        "preceding_source_wram_sha256": (cfg.get("pre_target") or {}).get("sha256"),
         "original_rom_sha256": cfg["rom"]["sha256"],
         "native_binary_sha256": cfg["native_binary"]["sha256"],
         "reference_engine": cfg["reference_engine"] + ":" + cfg["reference_binary"]["sha256"]

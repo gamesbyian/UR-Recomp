@@ -117,6 +117,9 @@ class ZooReducerIntakeTests(unittest.TestCase):
                          manifest["guest_clocks"]["reference_entry_frame"], 2)
         self.assertEqual(manifest["discrepancy"]["original_byte"], 0x73)
         self.assertEqual(manifest["discrepancy"]["native_byte"], 0x4D)
+        self.assertEqual(manifest["pre_target"]["dump"], "scene-05039.wram.bin")
+        self.assertEqual(manifest["pre_target"]["sha256"],
+                         actual_hash(self.reference / "scene-05039.wram.bin"))
         self.assertEqual(receipt["release_gate_credit"], 0)
         self.assertEqual(manifest["native_xvfb"], True)
         # The synthetic ROM bypass is limited to the real ROM hash check. All

@@ -408,6 +408,14 @@ jobs:
           python -m unittest -v tests.unit.test_baldosa_native_existing_profile_next_boot_cpp
           echo "PASS: compiled Unicode named-profile selector preserves typed/raw/catalog; hosted filesystem evidence only." >> "$GITHUB_STEP_SUMMARY"
 
+      # Compile the first/second racer fixture against native Win32 paths.
+      - name: Verify Unicode first/second named-profile creation on Win32
+        run: |
+          set -euo pipefail
+          source "${TOOLCHAIN_DIR}/env.sh"
+          python -m unittest -v tests.unit.test_baldosa_native_first_profile_cpp
+          echo "PASS: Unicode P1/P2 publication and unchanged P1 bytes; hosted Win32 only." >> "$GITHUB_STEP_SUMMARY"
+
       # Same exact PE, real Win32 window: Options seam and Alt+Enter through
       # windowed / borderless / exclusive, then an unreachable-window rescue.
       - name: Exercise SDL3 display mode transitions on Win32

@@ -108,6 +108,41 @@ int main() {
         return std::string(std::istreambuf_iterator<char>(stream),
                            std::istreambuf_iterator<char>());
     };
+    // Win32 must preserve non-ACP characters in both named racers.
+    const fs::path unicode = workspace / fs::u8path(u8"unicode-雪-Δ");
+    assert(fs::create_directory(unicode));
+    const auto unicode_first = create_baldosa_first_preset_for_next_boot(unicode, 0);
+    assert(unicode_first.created() && unicode_first.profile_id == "mike");
+    const fs::path unicode_selector = unicode / "host-state-v1.txt";
+    const fs::path unicode_catalog = unicode / "profiles-v1.txt";
+    const fs::path unicode_mike_raw = unicode / "saves/profile-mike/save.srm";
+    const fs::path unicode_mike_typed = unicode / "saves/profile-mike/host-profile.txt";
+    const auto unicode_selected = load_host_product_state_file(unicode_selector.u8string());
+    assert(unicode_selected.loaded() && unicode_selected.state->active_profile_id == "mike");
+    const auto unicode_mike_raw_before = exact_contents(unicode_mike_raw);
+    const auto unicode_mike_typed_before = exact_contents(unicode_mike_typed);
+    const auto unicode_selector_before = exact_contents(unicode_selector);
+    assert(unicode_mike_raw_before.size() == kStockSramBytes);
+    assert(!unicode_mike_typed_before.empty());
+    const auto unicode_second = create_baldosa_second_preset_for_next_boot(unicode, "mike", 1);
+    assert(unicode_second.created() && unicode_second.profile_id == "andrew");
+    const auto unicode_roster = load_host_profile_catalog_file(unicode_catalog.u8string());
+    assert(unicode_roster && unicode_roster->size() == 2u);
+    assert(exact_contents(unicode_selector) == unicode_selector_before);
+    assert(exact_contents(unicode_mike_raw) == unicode_mike_raw_before);
+    assert(exact_contents(unicode_mike_typed) == unicode_mike_typed_before);
+    const fs::path unicode_andrew_typed = unicode / "saves/profile-andrew/host-profile.txt";
+    const auto unicode_p2 = load_host_profile_state_file(
+        ExecutionMode::Modern, unicode_andrew_typed.u8string(), "andrew");
+    assert(unicode_p2.loaded() && unicode_p2.state->stock_sram);
+    assert(baldosa_sram_file_matches_exact(
+        unicode / "saves/profile-andrew/save.srm",
+        unicode_p2.state->stock_sram->data(), kStockSramBytes));
+    assert(create_baldosa_second_preset_for_next_boot(
+        unicode, "mike", 1).status == BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(unicode_mike_raw) == unicode_mike_raw_before);
+    assert(exact_contents(unicode_mike_typed) == unicode_mike_typed_before);
+
     const auto typed_bytes = exact_contents(interrupted_typed);
     const auto raw_bytes = exact_contents(interrupted_raw);
     const auto catalog_bytes = exact_contents(interrupted_catalog);

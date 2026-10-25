@@ -76,6 +76,20 @@ std::unique_ptr<ur::product::TournamentLaunchPathLock>
 std::unique_ptr<ur::product::TournamentLaunchPathLock>
     g_native_shutdown_catalog_lock;
 
+// Win32 narrow getenv() uses the active ANSI code page. Preserve the
+// native UTF-16 user-data root through profile creation and recovery.
+std::optional<std::filesystem::path> native_user_data_root() {
+#if defined(_WIN32)
+    const wchar_t* value = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
+    if (!value || !*value) return std::nullopt;
+    return std::filesystem::path(value);
+#else
+    const char* value = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!value || !*value) return std::nullopt;
+    return std::filesystem::path(value);
+#endif
+}
+
 int reject(const char* why) {
     std::fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE REJECTED reason=%s\n", why);
     std::fflush(stderr);
@@ -102,13 +116,11 @@ extern "C" int ur_baldosa_modern_run_recovery_command(void) {
     const char* action = std::getenv("UR_BALDOSA_RECOVERY_ACTION");
     if (!action || !*action) return 0;
     if (!activated()) return 88;
-    const char* root = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!root || !*root) return 88;
-    const std::filesystem::path user_root =
-        ur::product::host_native_path_from_utf8(std::string(root));
-    if (!user_root.is_absolute() ||
-        !ur::product::baldosa_native_real_directory(user_root))
+    const auto native_root = native_user_data_root();
+    if (!native_root || !native_root->is_absolute() ||
+        !ur::product::baldosa_native_real_directory(*native_root))
         return 88;
+    const std::filesystem::path& user_root = *native_root;
     const char* override_selector = std::getenv("UR_HOST_STATE_PATH");
     if (override_selector && *override_selector &&
         std::strcmp(override_selector, "host-state-v1.txt") != 0)
@@ -169,12 +181,10 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 
     // The same root the existing portable Windows launcher validates.
     // Do not interpret an executable-relative host-state file as a profile.
-    const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!user_root || !*user_root)
+    const auto user_root = native_user_data_root();
+    if (!user_root)
         return reject("modern_user_root_absent");
-
-    const std::filesystem::path native_root =
-        ur::product::host_native_path_from_utf8(std::string(user_root));
+    const std::filesystem::path& native_root = *user_root;
     if (!native_root.is_absolute())
         return reject("modern_user_root_not_absolute");
 
@@ -319,10 +329,10 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 extern "C" int ur_baldosa_modern_create_first_preset(unsigned index) {
     if (!activated() || !g_verified_native_profile_id.empty() ||
         g_launch_global || g_launch_profile) return 0;
-    const char* path = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!path || !*path) return 0;
+    const auto user_root = native_user_data_root();
+    if (!user_root) return 0;
     auto result =
-        ur::product::create_baldosa_first_preset_for_next_boot(path, index);
+        ur::product::create_baldosa_first_preset_for_next_boot(*user_root, index);
     if (result.status == ur::product::BaldosaFirstRacerStatus::ExistingData) {
         // A process can die after committing a complete catalog/typed/raw
         // first-racer triplet but BEFORE publishing its active selector.
@@ -330,7 +340,7 @@ extern "C" int ur_baldosa_modern_create_first_preset(unsigned index) {
         // only after canonical locks and exact state+SRAM revalidation.
         // Never adopt arbitrary orphan directories or repair corrupt data.
         result = ur::product::recover_baldosa_first_preset_for_next_boot(
-            path, index);
+            *user_root, index);
     }
     std::fprintf(stderr,
         "UR_BALDOSA_NATIVE_FIRST_RACER status=%u preset=%u id=%s "
@@ -350,16 +360,16 @@ extern "C" int ur_baldosa_modern_create_first_preset(unsigned index) {
 extern "C" int ur_baldosa_modern_create_second_preset(unsigned index) {
     if (!activated() || g_verified_native_profile_id.empty() ||
         !g_launch_global || !g_launch_profile) return 0;
-    const char* path = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!path || !*path) return 0;
+    const auto user_root = native_user_data_root();
+    if (!user_root) return 0;
     auto result = ur::product::create_baldosa_second_preset_for_next_boot(
-        path, g_verified_native_profile_id, index);
+        *user_root, g_verified_native_profile_id, index);
     if (result.status == ur::product::BaldosaSecondRacerStatus::ExistingData) {
         // Resume ONLY a complete initial typed/raw P2 whose catalog append
         // was interrupted. Explicit user X/preset/A is required; no directory
         // scan, raw SRAM repair, hot swap or synthetic identity is permitted.
         result = ur::product::recover_baldosa_second_preset_for_next_boot(
-            path, g_verified_native_profile_id, index);
+            *user_root, g_verified_native_profile_id, index);
     }
     if (result.status == ur::product::BaldosaSecondRacerStatus::Recovered)
         std::fprintf(stderr,

@@ -65,6 +65,18 @@ class NativeFirstModernRacerTests(unittest.TestCase):
         self.assertNotIn("RtlRunFrame(", root)
         self.assertNotIn("RtlWriteSram(", root)
 
+    def test_unicode_windows_profile_creation_uses_native_paths(self):
+        first = (PRODUCT / "baldosa_native_first_profile.hpp").read_text()
+        second = (PRODUCT / "baldosa_native_second_profile.hpp").read_text()
+        activation = (ROOT / "tools/baldosa_modern_profile_activation.cpp").read_text()
+        for source in (first, second):
+            self.assertNotIn(".string()", source)
+            self.assertIn(".u8string()", source)
+        self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', activation)
+        self.assertIn("create_baldosa_first_preset_for_next_boot(*user_root, index)", activation)
+        self.assertIn("*user_root, g_verified_native_profile_id, index", activation)
+        self.assertIn("const std::filesystem::path& native_root = *user_root;", activation)
+
 
 if __name__ == "__main__":
     unittest.main()

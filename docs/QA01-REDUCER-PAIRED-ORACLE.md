@@ -18,6 +18,12 @@ The manifest additionally requires source_sram with path and SHA-256 of the exac
 
 These constraints reproduce the source-2014 original/native boot-path convention from probe_original_event_complete.py instead of silently using the default all-silver SRAM or a previous run's mutable saves. They **do not** replace an independent confirmation that original/native CPU joypad polls or ROM save reads consumed the supplied bytes. Producer scripts still require source-owner qualification and real-core replay.
 
+## Optional native Linux display transport
+
+The genuine QA01 native producer in probe_original_event_complete.py uses \`xvfb-run -a\` when launching the exact compiled Windows-independent Linux game host in headless GitHub Actions. The generic reducer adapter now recognizes the single optional manifest Boolean \`native_xvfb: true\`. The runner then uses the allowlisted system \`xvfb-run -a\` **around the already SHA-pinned native executable and unchanged arguments**, without relaxing the original/native binary, ROM, SRAM, script, guest-frame or WRAM evidence checks. A missing Xvfb executable is an explicit error; arbitrary wrapper strings and shell commands are not accepted. The default is false, so existing direct-exec local tests and any direct-supporting host remain unchanged. On a genuine Linux GHA run, install the trusted distro xvfb package separately in the job.
+
+This is transport qualification only: having a graphical process launch does not prove the game consumed original joypad polls, reached the correct semantic phase or attained release parity. The pinned source observer checks are still mandatory.
+
 ## Pinned source observer and actual guest-log frame
 
 The paired manifest now also requires observation_script as a path plus SHA-256, and **both original and native producers must use exactly that same immutable .script file**. For snesref, SNESREF_SCRIPT=%OBSERVER% must be explicit. For the native host, the executable arguments must include --script %OBSERVER%. The script must contain exactly one "dump CHECKPOINT" statement corresponding to the single named .wram.bin artifact expected from both guests. This is a fail-closed antidote to comparing memory files accidentally captured by two different observations.

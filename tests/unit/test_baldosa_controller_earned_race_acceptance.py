@@ -105,7 +105,21 @@ class EarnedControllerJourney(unittest.TestCase):
         ]
         good = [HOST, *PREFIX, *TAIL, *post]
         verify_five_destination_pad_post_result("\n".join(good) + "\n")
+
+        def move_result_observation(before_marker: str) -> list[str]:
+            candidate = [line for line in good
+                         if "PAD_POST source_observed frame=" not in line]
+            index = next(i for i, line in enumerate(candidate)
+                         if before_marker in line)
+            candidate.insert(index, post[1])
+            return candidate
+
         mutants = {
+            "result observed before race input completed":
+                move_result_observation("source_input_completed=1"),
+            "result observed after menu continuation":
+                move_result_observation("track_back_x=1"),
+            "duplicate original result observation": good + [post[1]],
             "missing result continue": [x for x in good if "result_continue_a=1" not in x],
             "missing track back": [x for x in good if "track_back_x=1" not in x],
             "missing tour back": [x for x in good if "tour_back_x=1" not in x],

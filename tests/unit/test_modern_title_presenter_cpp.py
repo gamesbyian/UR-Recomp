@@ -42,10 +42,11 @@ class NativeModernTitleTest(unittest.TestCase):
         self.assertIn('std::strcmp(fixture, "27") != 0', source)
         self.assertIn('std::strcmp(opt, "27") == 0', source)
         self.assertIn('std::strcmp(fixture, "28") != 0', source)
-        self.assertIn("mode > 29", source)
+        self.assertIn("mode > 30", source)
         self.assertIn('std::strcmp(fixture, "29") != 0', source)
+        self.assertIn('std::strcmp(fixture, "30") != 0', source)
         self.assertIn('std::strcmp(opt, "29") == 0', source)
-        self.assertNotIn('std::strcmp(opt, "30") == 0', source)
+        self.assertIn('std::strcmp(opt, "30") == 0', source)
         # Controller 15-19 must not be admitted as title-only smoke modes.
         for mode in range(15, 20):
             self.assertNotIn(f'std::strcmp(fixture, "{mode}") != 0', source)

@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 import re
 import subprocess
@@ -57,6 +58,16 @@ def validate(config):
               "invalid SHA-256 for " + key)
         check(file_sha(Path(obj["path"])) == obj["sha256"], "mismatched pinned " + key)
     check(config["rom"]["sha256"] == ROM_USA_SHA256, "only canonical original USA ROM")
+    seed = config.get("source_sram")
+    check(type(seed) is dict and set(seed) == {"path", "sha256"},
+          "missing authenticated original-movie SRAM seed")
+    check(type(seed["sha256"]) is str and bool(HEX64.fullmatch(seed["sha256"])),
+          "invalid original-movie SRAM digest")
+    seed_file = Path(seed["path"])
+    check(seed_file.is_file() and not seed_file.is_symlink()
+          and seed_file.stat().st_size == 8192
+          and file_sha(seed_file) == seed["sha256"],
+          "original-movie 8192-byte SRAM seed mismatched")
     for key in ("reference", "native"):
         cmd = config.get(key)
         check(type(cmd) is dict and set(cmd) == {"argv", "environment", "dump"},
@@ -74,6 +85,19 @@ def validate(config):
         check("%ROM%" in joined, "both guests must use pinned original ROM")
         if key == "reference":
             check("%CORE%" in joined, "reference must load pinned original emulator core")
+            check(cmd["environment"].get("SNESREF_SRAM_IN") == "%SRAM%"
+                  and cmd["environment"].get("SNESREF_INPUT_FILE") == "%CANDIDATE%"
+                  and cmd["environment"].get("SNESREF_DUMP_DIR") == "%DUMP_DIR%",
+                  "reference must use pinned SRAM, input and real dump transport")
+        else:
+            check(cmd["environment"].get("UR_QA_SCENE_INPUT_FILE") == "%CANDIDATE%"
+                  and cmd["environment"].get("SNESRECOMP_DUMP_DIR") == "%DUMP_DIR%"
+                  and cmd["environment"].get("SNESRECOMP_ROM") == "%ROM%",
+                  "native must use pinned source scene input and real dump transport")
+            check("--config" in cmd["argv"]
+                  and "%CONFIG%" in cmd["argv"]
+                  and "--no-launcher" in cmd["argv"],
+                  "native must use explicit config and isolated save root")
         check(str(Path(cmd["argv"][0]).resolve()) ==
               str(Path(config[("reference_binary" if key == "reference" else "native_binary")]["path"]).resolve()),
               "command does not execute pinned binary")
@@ -110,22 +134,33 @@ def validate(config):
     return config
 
 
-def render(text, candidate, output, rom, core):
+def render(text, candidate, output, rom, core, seed, config):
     return (text.replace("%CANDIDATE%", str(candidate))
             .replace("%DUMP_DIR%", str(output))
             .replace("%ROM%", str(rom))
-            .replace("%CORE%", str(core)))
+            .replace("%CORE%", str(core))
+            .replace("%SRAM%", str(seed))
+            .replace("%CONFIG%", str(config)))
 
 
-def observe(command, candidate, rom, work, anchors, timeout):
+def observe(command, candidate, rom, work, anchors, timeout, seed_bytes):
     work.mkdir()
+    # Both real engines must boot from the same independently verified
+    # historical SRAM. A disposable native cwd gives it an isolated saves/
+    # tree; the reference receives the matching file via SNESREF_SRAM_IN.
+    source_seed = work / "source-seed.srm"
+    source_seed.write_bytes(seed_bytes)
+    saves = work / "saves"
+    saves.mkdir()
+    (saves / "save.srm").write_bytes(seed_bytes)
+    config = work / "qa01-candidate.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     env = dict(os.environ)
-    # Core pin is mandatory for the original reference and harmless for native.
     core = Path(command.get("_reference_core", rom))
-    env.update({k: render(v, candidate, work, rom, core)
+    env.update({k: render(v, candidate, work, rom, core, source_seed, config)
                 for k, v in command["environment"].items()})
-    args = [render(s, candidate, work, rom, core) for s in command["argv"]]
-    proc = subprocess.run(args, cwd=ROOT, env=env, capture_output=True,
+    args = [render(s, candidate, work, rom, core, source_seed, config) for s in command["argv"]]
+    proc = subprocess.run(args, cwd=work, env=env, capture_output=True,
                           text=True, errors="replace", check=False, timeout=timeout)
     check(proc.returncode == 0, "guest execution failed (exit " + str(proc.returncode)
           + "): " + (proc.stderr or proc.stdout)[-300:])
@@ -149,6 +184,9 @@ def execute(config, candidate, timeout=120):
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     check(source == cfg["source_sha"], "paired commands source SHA is stale")
     rom = Path(cfg["rom"]["path"]).resolve()
+    seed_bytes = Path(cfg["source_sram"]["path"]).read_bytes()
+    check(len(seed_bytes) == 8192 and hashlib.sha256(seed_bytes).hexdigest()
+          == cfg["source_sram"]["sha256"], "original source SRAM changed after validation")
     with tempfile.TemporaryDirectory(prefix="ur-qa01-reduce-pair-") as tmp:
         root = Path(tmp)
         clocks = cfg["guest_clocks"]
@@ -162,10 +200,10 @@ def execute(config, candidate, timeout=120):
                              "_reference_core": cfg["reference_core"]["path"]}
         original_valid, original = observe(
             reference_command, original_path, rom, root / "original",
-            cfg["anchors"], timeout)
+            cfg["anchors"], timeout, seed_bytes)
         native_valid, native = observe(
             cfg["native"], native_path, rom, root / "native",
-            cfg["anchors"], timeout)
+            cfg["anchors"], timeout, seed_bytes)
         predicate = cfg["discrepancy"]
         reproduced = bool(original_valid and native_valid
                           and original[predicate["offset"]] == predicate["original_byte"]
@@ -177,6 +215,7 @@ def execute(config, candidate, timeout=120):
         "guest_clocks": dict(clocks),
         "native_frame_shift": clocks["native_entry_frame"] - clocks["reference_entry_frame"],
         "source_sha": cfg["source_sha"],
+        "source_sram_sha256": cfg["source_sram"]["sha256"],
         "original_rom_sha256": cfg["rom"]["sha256"],
         "native_binary_sha256": cfg["native_binary"]["sha256"],
         "reference_engine": cfg["reference_engine"] + ":" + cfg["reference_binary"]["sha256"]

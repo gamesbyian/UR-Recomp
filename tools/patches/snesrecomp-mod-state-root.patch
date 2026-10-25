@@ -1,10 +1,16 @@
 --- a/runner/src/mod_runtime.cpp
 +++ b/runner/src/mod_runtime.cpp
-@@ -1448,9 +1448,16 @@ bool scan(Runtime& runtime, std::string* error) {
+@@ -1448,9 +1448,22 @@ bool scan(Runtime& runtime, std::string* error) {
      return true;
  }
  
 +fs::path state_path(const Runtime& runtime) {
++#if defined(_WIN32)
++    // Keep a Windows-native UTF-16 path through filesystem operations.
++    const wchar_t* wide_override = _wgetenv(L"SNESRECOMP_MOD_STATE_PATH");
++    if (wide_override && wide_override[0])
++        return fs::path(wide_override);
++#endif
 +    const char* override_path = std::getenv("SNESRECOMP_MOD_STATE_PATH");
 +    if (override_path && override_path[0])
 +        return fs::path(override_path);

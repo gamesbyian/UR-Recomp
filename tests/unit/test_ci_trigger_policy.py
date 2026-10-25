@@ -4,7 +4,9 @@ import unittest
 
 
 WORKFLOWS = Path(".github/workflows")
-MAIN_PUSH_ALLOWLIST = set()
+# The Windows producer runs on main product changes, and on PRs only when
+# its own workflow is edited. These are disjoint invalidation surfaces.
+MAIN_PUSH_ALLOWLIST = {"windows-native-smoke.yml"}
 
 ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST = {
     "native-build-smoke.yml",
@@ -455,10 +457,18 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"retained research/deferred-platform workflows must be manually dispatched: {offenders}",
         )
 
-    def test_windows_smoke_runs_only_on_final_main(self):
+    def test_windows_smoke_pr_is_same_repo_workflow_edit_only(self):
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
         self.assertTrue(_pushes_main(text))
-        self.assertFalse(_block(text, "pull_request"))
+        self.assertEqual(
+            _block(text, "pull_request").strip(),
+            'paths:\n      - ".github/workflows/windows-native-smoke.yml"',
+        )
+        self.assertIn(
+            "if: github.event_name != 'pull_request' || "
+            "github.event.pull_request.head.repo.full_name == github.repository",
+            text,
+        )
 
     def test_results_navigation_shared_fanout_is_bounded(self):
         text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()
@@ -806,18 +816,31 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"native/product/uniracers_modern_host.*"', _block(text, "pull_request"))
 
 
-    def test_main_push_allowlist_is_evidence_writing(self):
-        for name in MAIN_PUSH_ALLOWLIST:
-            path = WORKFLOWS / name
-            text = path.read_text()
-            self.assertTrue(_block(text, "pull_request"), name)
-            self.assertTrue(_pushes_main(text), name)
-            self.assertRegex(text, r"(?ms)^permissions:\s*\n(?:.*\n)*?  contents: write\s*$")
-            self.assertTrue(
-                "cancel-in-progress: false" in text
-                or "cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}" in text,
-                name,
-            )
+    def test_main_push_windows_producer_is_read_only(self):
+        # This sole main-push exception builds/boots Windows; it does not
+        # publish Git contents. Never use a DOTALL nested-line regex here:
+        # on a long workflow with contents: read and no contents: write it
+        # catastrophically backtracks and times out the entire unit job.
+        self.assertEqual(MAIN_PUSH_ALLOWLIST, {"windows-native-smoke.yml"})
+        text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        self.assertTrue(_block(text, "pull_request"))
+        self.assertTrue(_pushes_main(text))
+        self.assertRegex(text, r"(?m)^permissions:\n  contents: read[ \t]*$")
+        self.assertNotRegex(text, r"(?m)^  contents: write[ \t]*$")
+
+    def test_windows_reusable_callers_do_not_cancel_one_another(self):
+        # Both workflows can trigger on a PR editing the Windows workflow
+        # and the Modern host. A ref-only group cancels one valid build.
+        text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        qa05 = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text()
+        self.assertIn(
+            "uses: ./.github/workflows/windows-native-smoke.yml", qa05
+        )
+        self.assertIn(
+            "group: windows-native-smoke-${{ github.workflow }}-${{ github.ref }}",
+            text,
+        )
+        self.assertIn("cancel-in-progress: true", text)
 
 
 if __name__ == "__main__":

@@ -614,7 +614,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-user-data-root.patch",
-          "sha256": "7ff51c17f69c039a819129ede4385f2d7189858cbced9696b0b75be5cc0bbcad"
+          "sha256": "c52225ec7db8cb68e76aec84b95a6b26258e1d1aa92682ad19d6cafa2ce1cca0"
         },
         {
           "path": "tools/patches/snesrecomp-startup-failure-presentation.patch",
@@ -626,7 +626,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-mod-state-root.patch",
-          "sha256": "cd3b125823f274b6726ab7205801e56d20c116f15fd08331f84cca5002daef80"
+          "sha256": "3dea1619071f9ac6eb34137ae06ae1b3a9aa1d16afed9e0bb5e7d4fc9453d396"
         },
         {
           "path": "tools/patches/snesrecomp-user-rom-cache.patch",

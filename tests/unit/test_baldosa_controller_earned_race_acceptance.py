@@ -111,7 +111,7 @@ class EarnedControllerJourney(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1",
         ]
         good = [HOST, *PREFIX, *TAIL, *post,
-                "exit: SDL_QUIT event after 7176 frames"]
+                "[host +30.064s] exit: SDL_QUIT event after 7176 frames\r"]
         verify_five_destination_pad_post_result("\n".join(good) + "\n")
 
         def move_result_observation(before_marker: str) -> list[str]:
@@ -120,6 +120,11 @@ class EarnedControllerJourney(unittest.TestCase):
             index = next(i for i, line in enumerate(candidate)
                          if before_marker in line)
             candidate.insert(index, post[1])
+            return candidate
+
+        def move_before(moved: str, marker: str) -> list[str]:
+            candidate = [line for line in good if line != moved]
+            candidate.insert(candidate.index(marker), moved)
             return candidate
 
         mutants = {
@@ -139,14 +144,15 @@ class EarnedControllerJourney(unittest.TestCase):
             "missing Quit confirm": [x for x in good if "quit_confirm_a=1" not in x],
             "missing native SDL Quit": [x for x in good if "quit_confirmed=1" not in x],
             "rejected SDL Quit": good + ["UR_BALDOSA_MODERN_ROOT quit_event_rejected"],
-            "missing native exit": [x for x in good if not x.startswith("exit: SDL_QUIT")],
+            "missing native exit": [x for x in good if "exit: SDL_QUIT" not in x],
             "script-only quit at fallback": [x.replace("after 7176 frames",
                                                     "after 11000 frames") for x in good],
-            "duplicate native exit": good + ["exit: SDL_QUIT event after 7177 frames"],
+            "duplicate native exit": good + ["[host +30.065s] exit: SDL_QUIT event after 7177 frames\r"],
             "zero-frame exit": [x.replace("after 7176 frames",
                                            "after 0 frames") for x in good],
-            "Quit before Records close": [x for x in good if "quit_prompt_b=1" not in x][:-3] +
-                [post[-3]] + [x for x in good if "quit_prompt_b=1" not in x][-3:],
+            "Quit before Records close": move_before(
+                post[-3], "UR_BALDOSA_MODERN_ROOT records_closed=1"),
+            "spoofed unprefixed exit": [x.replace("[host +30.064s] ", "") for x in good],
             "duplicate source reentry": good + [
                 "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0"
             ],

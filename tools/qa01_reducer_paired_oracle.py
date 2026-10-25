@@ -237,6 +237,17 @@ def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observe
     args = native_execution_argv(args, native_xvfb)
     proc = subprocess.run(args, cwd=work, env=env, capture_output=True,
                           text=True, errors="replace", check=False, timeout=timeout)
+    trace = proc.stdout + "\n" + proc.stderr
+    # The original script has source-authenticated "until" gates. A reduced
+    # controller candidate may legitimately fail to reach the result screen:
+    # snesref/native then exits 3 with an explicit fixed-script timeout. Such a
+    # candidate is NOT the sought divergence, but should not abort ddmin.
+    # All other nonzero exits remain hard failures (broken infrastructure).
+    if proc.returncode == 3 and re.search(
+        r"\bscript f=\d+ until [0-9A-Fa-f]{4} (?:==|!=) [0-9A-Fa-f]{2} "
+        r"\d+ TIMEOUT after \d+ frames \(value=[0-9A-Fa-f]{2}\)", trace
+    ):
+        return False, None
     check(proc.returncode == 0, "guest execution failed (exit " + str(proc.returncode)
           + "): " + (proc.stderr or proc.stdout)[-300:])
     checkpoint_tag = command["dump"][:-len(".wram.bin")]

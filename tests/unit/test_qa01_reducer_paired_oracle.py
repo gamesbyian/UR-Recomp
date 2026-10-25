@@ -21,6 +21,14 @@ seed=(Path(os.environ["SNESREF_SRAM_IN"]) if os.environ["ROLE"]=="original"
       else Path.cwd()/"saves"/"save.srm")
 assert seed.read_bytes()==b"Q"*8192, "must boot identical source SRAM"
 assert Path.cwd().name in ("original", "native"), "runner leaked source cwd"
+if os.environ.get("FORCE_SCENE_TIMEOUT") == "1":
+    print("script f=15137 until 009F == BC 9000 TIMEOUT after 9000 frames (value=00)")
+    raise SystemExit(3)
+if os.environ.get("FORCE_BAD_GUEST_EXIT") == "1":
+    raise SystemExit(2)
+if os.environ.get("FORCE_UNCLASSIFIED_EXIT3") == "1":
+    print("other unknown subprocess failure")
+    raise SystemExit(3)
 b=bytearray(131072)
 if "0:100:001" in rows:
     b[0x100]=42
@@ -137,6 +145,29 @@ class PairedOracleTests(unittest.TestCase):
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             row = adapter.execute(self.manifest, self.input)
         self.assertEqual(row["result"], "not_reproduced")
+
+    def test_real_child_process_stage_timeout_is_nonreproducing_not_infra(self):
+        from unittest import mock
+        self.manifest["reference"]["environment"]["FORCE_SCENE_TIMEOUT"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            result = adapter.execute(self.manifest, self.input)
+        self.assertFalse(result["original_valid"])
+        self.assertEqual(result["result"], "invalid_route")
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_unclassified_exit3_remains_hard_failure(self):
+        from unittest import mock
+        self.manifest["reference"]["environment"]["FORCE_UNCLASSIFIED_EXIT3"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "guest execution failed"):
+                adapter.execute(self.manifest, self.input)
+
+    def test_other_subprocess_failure_is_not_hidden_as_invalid_route(self):
+        from unittest import mock
+        self.manifest["native"]["environment"]["FORCE_BAD_GUEST_EXIT"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "guest execution failed"):
+                adapter.execute(self.manifest, self.input)
 
     def test_missing_authentic_stage_anchor_is_invalid_route(self):
         from unittest import mock

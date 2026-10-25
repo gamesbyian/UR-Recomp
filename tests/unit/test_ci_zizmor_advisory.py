@@ -21,6 +21,7 @@ class ZizmorHygieneTests(unittest.TestCase):
             "uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
             self.workflow)
         self.assertIn("persist-credentials: false", self.workflow)
+        self.assertIn("permissions:\n  contents: read\n  pull-requests: read", self.workflow)
         self.assertNotIn("uses: actions/checkout@v4", self.workflow)
 
     def test_security_pilot_is_advisory_and_only_on_pull_requests(self):

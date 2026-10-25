@@ -20,7 +20,7 @@
 
 [**October 21 director narrative brief (verbatim excerpt)**](DIRECTOR-EXCERPT-2026-10-21-NARRATIVE-BRIEF.md) records the specific editorial correction and its source limitations.
 
-[**Conversation preservation protocol**](CONVERSATION-PRESERVATION-PROTOCOL.md) and [**episode provenance manifest**](EPISODE-PROVENANCE.json): source classes, safe exports, gaps in historical transcripts and links from all **85 numbered episodes** to recorded evidence leads.
+[**Conversation preservation protocol**](CONVERSATION-PRESERVATION-PROTOCOL.md), [**October 25 source registry**](CONVERSATION-SOURCES-2026-10-25.json) and [**episode provenance manifest**](EPISODE-PROVENANCE.json): source classes, safe exports, gaps in historical transcripts and links from all **85 numbered episodes** to recorded evidence leads.
 
 [**Editorial and future-update guide**](PRODUCTION-DIARY-EDITORIAL-GUIDE.md): voice, director presence, evidence hierarchy, daily 3–8-episode target when busy, source preflight, QA distinctions, attribution, cadence, backfills, parity and review checks.
 

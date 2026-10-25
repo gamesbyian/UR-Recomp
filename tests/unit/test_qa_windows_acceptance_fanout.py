@@ -165,6 +165,17 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                              list(range(3, 13)))
             self.assertTrue(independent["all_passed"])
 
+    def test_pre_digest_v1_receipt_cannot_be_misread_as_current(self):
+        old = packet("seed-dependent")
+        old["schema"] = "ur-win32-acceptance-fanout/1"
+        for row in old["cases"]:
+            for key in ("log_sha256", "log_bytes", "summary_sha256", "summary_bytes"):
+                row.pop(key)
+        old["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in old.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", old)
+        self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
     def test_tampered_private_output_digest_is_rejected(self):
         value = packet("seed-dependent")
         value["cases"][0]["log_sha256"] = "not-a-real-sha"

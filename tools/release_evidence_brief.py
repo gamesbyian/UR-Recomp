@@ -9,8 +9,8 @@ import re
 from pathlib import Path
 
 DEFAULT = Path(__file__).resolve().parents[1] / "docs/RELEASE-QUALITY-LEDGER.json"
-HEX40 = re.compile(r"[0-9a-f]{40}\\Z")
-HEX64 = re.compile(r"[0-9a-f]{64}\\Z")
+HEX40 = re.compile(r"[0-9a-f]{40}\Z")
+HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 STATUSES = {"unverified", "in_progress", "passed", "failed", "blocked", "waived"}
 
 
@@ -79,7 +79,7 @@ def markdown(result: dict) -> str:
         "# Release evidence handoff (read-only)",
         "",
         "Diagnostic inventory only. **References, completed tests and witness counts do not award release credit.**",
-        f"Ledger candidate: \\u0060{result['ledger_candidate_commit']}\\u0060; ZIP SHA256: \\u0060{result['ledger_zip_sha256']}\\u0060.",
+        f"Ledger candidate: `{result['ledger_candidate_commit']}`; ZIP SHA256: `{result['ledger_zip_sha256']}`.",
         f"Gate status: {result['accepted_gate_count']}/12 accepted; {result['pending_gate_count']} pending (excluding explicit waivers).",
         f"Requested source matches nominated candidate: {result['source_matches_ledger']}.",
         "",
@@ -95,7 +95,7 @@ def markdown(result: dict) -> str:
         lines.append(f"- **{row['id']}**: {row['next_action']}")
     lines.extend(["", "Cross-check authoritative ledger and independent evidence before any adjudication.",
                   "No tests, GitHub API calls, hardware checks or evidence authentication were performed."])
-    return "\\n".join(lines) + "\\n"
+    return "\n".join(lines) + "\n"
 
 
 def main() -> int:
@@ -111,7 +111,7 @@ def main() -> int:
     rendered = markdown(result)
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+        args.json_out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if args.markdown_out:
         args.markdown_out.parent.mkdir(parents=True, exist_ok=True)
         args.markdown_out.write_text(rendered, encoding="utf-8")

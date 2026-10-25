@@ -32,7 +32,8 @@ int main() {
 
     fs::create_directories(runs);
     CompletedRunRecord record{};
-    record.provenance.game_id = "uniracers";
+    // Match the actual native producer in baldosa_native_run_record_admission.cpp.
+    record.provenance.game_id = "uniracers-usa";
     record.provenance.rom_sha256 = std::string(64, 'a');
     record.provenance.build_compat_id = "historic-backend-only";
     record.provenance.course_id = "course:01";
@@ -120,6 +121,24 @@ int main() {
     assert(game_isolated.unavailable_artifacts == 6);
     assert(game_isolated.recent_course == "course:02");
     assert(game_isolated.recent_ticks60 == 930);
+
+    // The historical short alias is codec-valid but is NOT the identity
+    // emitted by the real Windows guest. Reject it rather than silently
+    // counting another game's artifact as earned native 1P history.
+    auto wrong_alias = record;
+    wrong_alias.provenance.game_id = "uniracers";
+    wrong_alias.provenance.course_id = "course:98";
+    wrong_alias.elapsed_ticks60 = 42;
+    assert(save_completed_run_record_file(
+        (runs / "0009-wrong-alias.urrun").string(), wrong_alias));
+    const auto alias_isolated =
+        inspect_baldosa_native_records_archive(runs.string());
+    assert(alias_isolated.directory_available);
+    assert(alias_isolated.total_artifacts == 9);
+    assert(alias_isolated.validated_archives == 2);
+    assert(alias_isolated.unavailable_artifacts == 7);
+    assert(alias_isolated.recent_course == "course:02");
+    assert(alias_isolated.recent_ticks60 == 930);
 
     // The native Records summary must resolve the same UTF-8 root that the
     // canonical writer and run catalog already support. On Windows, using

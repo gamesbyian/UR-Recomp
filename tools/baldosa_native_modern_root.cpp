@@ -2110,14 +2110,18 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."29"; 15-19 exercise controller ownership,
-    // 20-28 exercise title paths, and 29 is one continuous SDL pad journey.
+    // Smoke modes are decimal "1".."30"; 15-19 exercise controller ownership,
+    // 20-28 exercise title paths, 29 is the qualified SDL pad journey,
+    // and 30 probes genuine guest-menu return with the same SDL pad.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
-        if ((!g_visible && !g_original_attract_visible) ||
+        const bool source_return_probe =
+            mode == 30 && g_stock_handed_off && !g_visible;
+        if ((!g_visible && !g_original_attract_visible &&
+             !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 29) return;
+            mode < 1 || mode > 30) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2663,7 +2667,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // gamepad event pump. The guest, not this fixture, owns stock admission.
     // This is hosted product evidence, not a physical controller or a
     // completed race/result/return acceptance.
-    if (std::strcmp(opt, "29") == 0) {
+    if (std::strcmp(opt, "29") == 0 || std::strcmp(opt, "30") == 0) {
 #if SNESRECOMP_SDL3
         static SDL_Joystick* pad = nullptr;
         if (frame == 50u) {
@@ -2712,6 +2716,58 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                     pad, step.button, frame == step.frame))
                 std::abort();
             return;
+        }
+        // Mode 30 alone continues beyond original 1P stock admission.
+        // Use the *same* SDL pad and original source menu observations:
+        // original X backs out of the 1P setup (B advances it), then a
+        // separate fresh physical B edge may reopen the Modern root only
+        // when the real guest has reached MAIN D7. No WRAM/menu writes,
+        // keyboard shortcut, synthetic result or guest-input script.
+        static unsigned return_stage = 0;
+        static unsigned settled_setup = 0;
+        if (std::strcmp(opt, "30") == 0 && pad) {
+            const unsigned menu = g_ram[0x009fu];
+            const bool stock_setup = g_stock_handed_off && !g_visible &&
+                menu == 0x3cu && g_ram[0x0313u] != 1u;
+            if (return_stage == 0) {
+                settled_setup = stock_setup ? settled_setup + 1u : 0u;
+                if (settled_setup >= 60u) {
+                    if (!SDL_SetJoystickVirtualButton(
+                            pad, SDL_GAMEPAD_BUTTON_WEST, true))
+                        std::abort();
+                    return_stage = 1;
+                    std::fprintf(stderr,
+                        "UR_BALDOSA_MODERN_PAD_RETURN guest_back_x=1 source_menu=3c\n");
+                }
+            } else if (return_stage == 1) {
+                if (!SDL_SetJoystickVirtualButton(
+                        pad, SDL_GAMEPAD_BUTTON_WEST, false))
+                    std::abort();
+                return_stage = 2;
+            } else if (return_stage == 2 && g_stock_handed_off &&
+                       !g_visible && menu == 0xd7u &&
+                       g_ram[0x0313u] != 1u) {
+                if (!SDL_SetJoystickVirtualButton(
+                        pad, SDL_GAMEPAD_BUTTON_EAST, true))
+                    std::abort();
+                return_stage = 3;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_PAD_RETURN root_back_b=1 source_menu=d7\n");
+            } else if (return_stage == 3) {
+                if (!SDL_SetJoystickVirtualButton(
+                        pad, SDL_GAMEPAD_BUTTON_EAST, false))
+                    std::abort();
+                return_stage = 4;
+            } else if (return_stage == 4 && g_visible) {
+                return_stage = 5;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_PAD_RETURN reopened=1 source_menu=d7\n");
+            }
+            if (!g_visible && g_stock_handed_off && frame % 180u == 0u)
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_PAD_RETURN source_observed frame=%u menu=%02x race=%02x stage=%u\n",
+                    frame, menu, static_cast<unsigned>(g_ram[0x0313u]),
+                    return_stage);
         }
 #else
         std::abort(); // Native SDL virtual-pad acceptance requires SDL3.

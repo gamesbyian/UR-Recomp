@@ -103,6 +103,24 @@ int main() {
     assert(mode_isolated.recent_course == "course:02");
     assert(mode_isolated.recent_ticks60 == 930);
 
+    // The codec validates provenance syntax, not the owning game. A
+    // checksum-valid race-1p record from another game must not mint an
+    // Uniracers result or replace the most recent earned course/time.
+    auto other_game = record;
+    other_game.provenance.game_id = "unrelated-game";
+    other_game.provenance.course_id = "course:99";
+    other_game.elapsed_ticks60 = 60;
+    assert(save_completed_run_record_file(
+        (runs / "0008-other-game.urrun").string(), other_game));
+    const auto game_isolated =
+        inspect_baldosa_native_records_archive(runs.string());
+    assert(game_isolated.directory_available);
+    assert(game_isolated.total_artifacts == 8);
+    assert(game_isolated.validated_archives == 2);
+    assert(game_isolated.unavailable_artifacts == 6);
+    assert(game_isolated.recent_course == "course:02");
+    assert(game_isolated.recent_ticks60 == 930);
+
     // The native Records summary must resolve the same UTF-8 root that the
     // canonical writer and run catalog already support. On Windows, using
     // filesystem::path(utf8) silently loses non-ACP user-directory names.

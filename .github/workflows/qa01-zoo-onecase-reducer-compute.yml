@@ -4,7 +4,7 @@ name: QA01 exact Zoo reducer one-shot compute (unmerged)
 # original/native evidence and guest game sources remain separately owned.
 on:
   pull_request:
-    types: [ready_for_review]
+    types: [ready_for_review, synchronize]
     paths:
       - ".github/workflows/qa01-zoo-onecase-reducer-compute.yml"
 
@@ -101,7 +101,8 @@ jobs:
             reference/imported/tas-bots/dessyreqt-4250-submission.smv \
             --input-out "$RUNNER_TEMP/source-movie-full.input" \
             --sram-out "$case_dir/anchored.srm" \
-            --sram-size 8192
+            --sram-size 8192 \
+            --json-out "$RUNNER_TEMP/qa01-reducer-private-source-extract.json"
           test "$(wc -c < "$case_dir/anchored.srm")" = "8192"
           echo "Source SRAM SHA-256: $(sha256sum "$case_dir/anchored.srm" | cut -d ' ' -f1)"
       - name: Prepare authenticated original/native +5039/+5040 QA01 intake

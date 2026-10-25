@@ -111,6 +111,7 @@ def summarize(
         "failed_runs": 0,
         "jobs": 0,
         "runs_with_job_timing": 0,
+        "runs_missing_job_timing": 0,
         "runner_seconds": 0.0,
         "observed_job_span_seconds": 0.0,
         "peak_active_jobs": 0,
@@ -200,6 +201,8 @@ def summarize(
                 row["cancelled_runner_seconds"] += profile["runner_seconds"]
             elif run.get("conclusion") == "failure":
                 row["failed_runner_seconds"] += profile["runner_seconds"]
+        else:
+            row["runs_missing_job_timing"] += 1
         for job in job_map.get(int(run_id), []):
             row["jobs"] += 1
             row["job_queue_seconds"] += elapsed_seconds(
@@ -297,12 +300,14 @@ def markdown(report: dict[str, Any]) -> str:
         "These are measured started/completed job spans, not dependency-DAG critical paths. "
         "Missing job intervals are excluded; queue time is reported separately.",
         "",
-        "| Workflow | Timed runs | Runner min | Cancelled runner min | Failed runner min | Observed span min | Mean active jobs | Peak active jobs |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "Missing or unstarted job intervals are excluded. Runner minutes are observed lower bounds, not billing totals.",
+        "",
+        "| Workflow | Timed runs | Missing timing | Runner min | Cancelled runner min | Failed runner min | Observed span min | Mean active jobs | Peak active jobs |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for row in report["workflows"]:
         lines.append(
-            f"| {row['workflow']} | {row['runs_with_job_timing']} | "
+            f"| {row['workflow']} | {row['runs_with_job_timing']} | {row['runs_missing_job_timing']} | "
             f"{row['runner_seconds']/60:.1f} | "
             f"{row['cancelled_runner_seconds']/60:.1f} | "
             f"{row['failed_runner_seconds']/60:.1f} | "

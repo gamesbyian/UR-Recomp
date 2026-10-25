@@ -348,8 +348,11 @@ def execute(config, candidate, timeout=120):
             cfg["anchors"], timeout, seed_bytes, observer,
             clocks["native_observation_frame"], cfg.get("native_xvfb", False),
             pre_target=cfg.get("pre_target"))
-        check(sha(observer) == cfg["observation_script"]["sha256"],
-              "observer script changed during paired process execution")
+        check(sha(observer) == (cfg.get("bounded_observer_script")
+                                or cfg["observation_script"])["sha256"]
+              and sha(Path(cfg["observation_script"]["path"])) ==
+                  cfg["observation_script"]["sha256"],
+              "source or executed observer changed during paired process execution")
         predicate = cfg["discrepancy"]
         reproduced = bool(original_valid and native_valid
                           and original[predicate["offset"]] == predicate["original_byte"]

@@ -40,6 +40,8 @@ POSITIVE_JOIN = "turbo on\nwait 1800\nquit\n"
 # Mode 31: no guest input commands, only turbo/wait/quit while the SDL P1
 # delivers every stock menu and gameplay edge through the native host.
 PAD_RACE = "turbo on\nwait 7200\nquit\n"
+# Same controller, but allow the source-result menu and return to settle.
+PAD_RACE_RETURN = "turbo on\nwait 11000\nquit\n"
 
 
 def lines(log: str, pattern: str) -> list[str]:
@@ -408,6 +410,61 @@ def verify_five_destination_pad_race(log: str) -> None:
         raise ValueError("pad earned race: canonical run not durably published")
 
 
+
+def verify_five_destination_pad_post_result(log: str) -> None:
+    """One SDL P1 earns the native result, returns, and opens earned Records.
+
+    Source/host output streams are concatenated, not synchronized. Require
+    chronological ordering only among the product's own stderr markers.
+    """
+    verify_five_destination_pad_race(log)
+    require_single_pad_seat_continuity(log, "pad earned return")
+    if not re.search(
+            r"(?m)^UR_BALDOSA_MODERN_PAD_POST source_observed "
+            r"frame=\\d+ menu=99 race=[0-9a-f]{2} stage=0$", log):
+        raise ValueError("pad earned return: no observed original result menu")
+    stages = (
+        "UR_BALDOSA_MODERN_PAD_RACE source_input_completed=1",
+        "UR_BALDOSA_MODERN_PAD_POST result_back_x=1 source_menu=99",
+        "UR_BALDOSA_MODERN_PAD_POST root_back_b=1 source_menu=d7",
+        "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
+        "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7",
+        "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+        "UR_BALDOSA_MODERN_ROOT selected=1",
+        "UR_BALDOSA_MODERN_ROOT selected=2",
+        "UR_BALDOSA_MODERN_ROOT selected=3",
+    )
+    # Earlier root selections also exist, so locate post-reentry choices
+    # only in the tail. Reentry/repaint must precede all such choices.
+    pre = stages[:6]
+    positions = []
+    for marker in pre:
+        matches = list(re.finditer(rf"(?m)^{re.escape(marker)}$", log))
+        if len(matches) != 1:
+            raise ValueError(f"pad earned return: missing/duplicate {marker!r}")
+        positions.append(matches[0].start())
+    if positions != sorted(positions):
+        raise ValueError("pad earned return: source result/return/repaint order invalid")
+    tail = log[positions[5] + len(pre[5]):]
+    post = (
+        r"^UR_BALDOSA_MODERN_ROOT selected=1$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=2$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=3$",
+        r"^UR_BALDOSA_MODERN_ROOT records_opened=1 "
+        r"profile=selected validated=([1-9][0-9]*) unavailable=[0-9]+$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\\b"
+        r"[^\\r\\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
+    )
+    last = -1
+    for marker in post:
+        matches = list(re.finditer(marker, tail, re.MULTILINE))
+        if len(matches) != 1 or matches[0].start() <= last:
+            raise ValueError(f"pad earned return: missing/reordered {marker!r}")
+        last = matches[0].start()
+    if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
+        raise ValueError("pad earned return: unexpected stock relaunch")
+
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""
     for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
@@ -544,8 +601,46 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         raise ValueError("pad earned race: exactly one new canonical .urrun required")
     earned_sha256 = hashlib.sha256(next(iter(new_runs)).read_bytes()).hexdigest()
 
+    # Run the stricter post-result journey in its own fresh canonical user
+    # directory. Two source-earned races may produce identical archive names;
+    # sharing the first user's directory could falsely report no new record.
+    return_user = out / "user_earned_return"
+    return_user.mkdir()
+    run_game(exe, rom, return_user, out / "return_create_p1",
+             "4", QUIET, video, timeout)
+    run_game(exe, rom, return_user, out / "return_create_p2",
+             "5", QUIET, video, timeout)
+    return_archive = return_user / "runs" / "mike"
+    return_existing = (set(return_archive.glob("*.urrun"))
+                       if return_archive.is_dir() else set())
+    return_log = run_game(exe, rom, return_user,
+                          out / "five_destination_earned_return", "32",
+                          PAD_RACE_RETURN, video, max(timeout, 360))
+    try:
+        verify_five_destination_pad_post_result(return_log)
+    except ValueError as exc:
+        source = [line for line in return_log.splitlines()
+                  if line.startswith("UR_BALDOSA_MODERN_PAD_POST ")
+                  or line.startswith("UR_BALDOSA_MODERN_ROOT reopened")
+                  or line.startswith("UR_BALDOSA_MODERN_ROOT records_")]
+        raise ValueError(
+            f"{exc}; source return trace: {source[-35:]!r}; "
+            "inspect retained five_destination_earned_return/log.txt"
+        ) from exc
+    return_after = (set(return_archive.glob("*.urrun"))
+                    if return_archive.is_dir() else set())
+    return_new = return_after - return_existing
+    if (len(return_new) != 1 or return_existing - return_after or
+            any(p.is_symlink() or not p.is_file() or p.stat().st_size == 0
+                for p in return_new)):
+        raise ValueError("pad earned return: exactly one new canonical .urrun required")
+    return_earned_sha256 = hashlib.sha256(
+        next(iter(return_new)).read_bytes()).hexdigest()
+
     receipt = {
         "five_destination_earned_race": "one_sdl_p1_real_original_go_source_settled_1p_record",
+        "five_destination_earned_return": "one_sdl_p1_source_earned_1p_post_result_root_records",
+        "earned_return_run_sha256": return_earned_sha256,
         "earned_run_sha256": earned_sha256,
         "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
@@ -561,8 +656,9 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "scope": "Modern 2P join and one continuous five-destination title-to-stock "
                  "journey and stock-setup-to-Modern-root return with SDL virtual "
                  "gamepads; mode 31 additionally earns a source-settled 1P "
-                 "record, but post-result navigation, physical controllers "
-                 "and release acceptance remain outstanding",
+                 "record; mode 32 attempts the same-controller post-result "
+                 "root/earned-Records return. Physical controllers, genuine "
+                 "Repeat, and release acceptance remain outstanding",
     }
     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     return receipt

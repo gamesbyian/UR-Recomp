@@ -53,13 +53,15 @@ class PairedOracleTests(unittest.TestCase):
             "reference": {
                 "argv": [str(binary), "-c", RUNNER],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
-                                "DUMP_DIR": "%DUMP_DIR%", "ROLE": "original"},
+                                "DUMP_DIR": "%DUMP_DIR%", "ROLE": "original",
+                                "ROM_PATH": "%ROM%", "CORE_PATH": "%CORE%"},
                 "dump": "checkpoint.wram.bin",
             },
             "native": {
                 "argv": [str(binary), "-c", RUNNER],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
-                                "DUMP_DIR": "%DUMP_DIR%", "ROLE": "native"},
+                                "DUMP_DIR": "%DUMP_DIR%", "ROLE": "native",
+                                "ROM_PATH": "%ROM%"},
                 "dump": "checkpoint.wram.bin",
             },
             "discrepancy": {

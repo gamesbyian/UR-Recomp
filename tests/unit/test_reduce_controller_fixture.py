@@ -59,6 +59,9 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(tool.encode(runs), b"0:100:001\n100:10:002\n")
         self.assertEqual(evidence["removed_runs"], 2)
         self.assertEqual(evidence["protected_runs"], 1)
+        self.assertEqual(evidence["native_skipped_oracle_calls"], 0)
+        self.assertEqual(sum(evidence["oracle_result_counts"].values()),
+                         evidence["oracle_calls"])
         self.assertFalse(evidence["release_gate_accepted"])
 
     def test_budget_stops_without_unverified_output(self):
@@ -119,6 +122,32 @@ class ReducerTests(unittest.TestCase):
         self.assertIsNone(legacy["observation_frame"])
         self.assertFalse(legacy["post_observation_trial"])
         self.assertEqual(legacy["post_observation_removed_runs"], 0)
+
+    def test_unexecuted_native_never_counts_as_reproduced(self):
+        receipt = dict(
+            schema=tool.SCHEMA, candidate_sha256="d" * 64,
+            source_sha="a" * 40, original_rom_sha256="b" * 64,
+            native_binary_sha256="c" * 64, reference_engine="snes9x",
+            discrepancy_id="zoo", semantic_phase="source+5040",
+            original_valid=False, native_valid=False,
+            native_executed=False, native_skip_reason="original_stage_invalid",
+            result="invalid_route")
+        tool.verify_receipt(receipt, "d" * 64)
+        receipt["native_valid"] = True
+        with self.assertRaisesRegex(ValueError, "unexecuted native"):
+            tool.verify_receipt(receipt, "d" * 64)
+        receipt["native_valid"] = False
+        receipt["result"] = "reproduced"
+        with self.assertRaisesRegex(ValueError, "unexecuted native"):
+            tool.verify_receipt(receipt, "d" * 64)
+        receipt["result"] = "invalid_route"
+        receipt["native_skip_reason"] = "invented"
+        with self.assertRaisesRegex(ValueError, "unexecuted native"):
+            tool.verify_receipt(receipt, "d" * 64)
+        receipt["native_executed"] = True
+        receipt["native_skip_reason"] = "original_stage_invalid"
+        with self.assertRaisesRegex(ValueError, "executed native"):
+            tool.verify_receipt(receipt, "d" * 64)
 
     def test_exact_candidate_mismatch_aborts(self):
         with self.assertRaisesRegex(ValueError, "exact candidate"):

@@ -343,21 +343,37 @@ def execute(config, candidate, timeout=120):
             cfg["anchors"], timeout, seed_bytes, observer,
             clocks["reference_observation_frame"],
             pre_target=cfg.get("pre_target"))
-        native_valid, native = observe(
-            cfg["native"], native_path, rom, root / "native",
-            cfg["anchors"], timeout, seed_bytes, observer,
-            clocks["native_observation_frame"], cfg.get("native_xvfb", False),
-            pre_target=cfg.get("pre_target"))
+        predicate = cfg["discrepancy"]
+        pair = cfg.get("after_target_pair")
+        # A candidate can reproduce the exact paired source discrepancy only
+        # if the *original* authentic guest first preserves the observed route
+        # and source-earned target bytes. Otherwise a second, costly native
+        # process is incapable of changing the answer. Keep native's evidence
+        # explicitly unobserved, never report a fictitious native pass/fail.
+        original_target_qualified = bool(
+            original_valid
+            and original[predicate["offset"]] == predicate["original_byte"]
+            and (pair is None or all(
+                original[row["offset"]] == row["original_byte"] for row in pair)))
+        native_executed = original_target_qualified
+        native_skip_reason = (None if native_executed else
+                              "original_stage_invalid" if not original_valid else
+                              "original_target_changed")
+        if native_executed:
+            native_valid, native = observe(
+                cfg["native"], native_path, rom, root / "native",
+                cfg["anchors"], timeout, seed_bytes, observer,
+                clocks["native_observation_frame"], cfg.get("native_xvfb", False),
+                pre_target=cfg.get("pre_target"))
+        else:
+            native_valid, native = False, None
         check(sha(observer) == (cfg.get("bounded_observer_script")
                                 or cfg["observation_script"])["sha256"]
               and sha(Path(cfg["observation_script"]["path"])) ==
                   cfg["observation_script"]["sha256"],
               "source or executed observer changed during paired process execution")
-        predicate = cfg["discrepancy"]
-        reproduced = bool(original_valid and native_valid
-                          and original[predicate["offset"]] == predicate["original_byte"]
+        reproduced = bool(original_target_qualified and native_valid
                           and native[predicate["offset"]] == predicate["native_byte"])
-        pair = cfg.get("after_target_pair")
         if reproduced and pair is not None:
             # The exact source had ONLY the $0063 and $0069 differences at
             # +5040. A new third WRAM mismatch or missing partner is a
@@ -388,6 +404,8 @@ def execute(config, candidate, timeout=120):
                             + ":" + cfg["reference_core"]["sha256"],
         "discrepancy_id": predicate["id"], "semantic_phase": predicate["phase"],
         "original_valid": bool(original_valid), "native_valid": bool(native_valid),
+        "native_executed": native_executed,
+        "native_skip_reason": native_skip_reason,
         "result": ("reproduced" if reproduced else "not_reproduced"
                    if original_valid and native_valid else "invalid_route"),
         "release_gate_credit": 0,

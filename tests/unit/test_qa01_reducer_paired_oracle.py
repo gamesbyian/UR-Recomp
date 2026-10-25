@@ -136,6 +136,8 @@ class PairedOracleTests(unittest.TestCase):
         self.assertEqual(row["result"], "reproduced")
         self.assertTrue(row["original_valid"])
         self.assertTrue(row["native_valid"])
+        self.assertTrue(row["native_executed"])
+        self.assertIsNone(row["native_skip_reason"])
         self.assertEqual(row["candidate_sha256"], adapter.sha(self.input))
         self.assertEqual(row["release_gate_credit"], 0)
 
@@ -144,7 +146,11 @@ class PairedOracleTests(unittest.TestCase):
         self.input.write_text("0:100:001\n120:10:004\n")
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             row = adapter.execute(self.manifest, self.input)
-        self.assertEqual(row["result"], "not_reproduced")
+        self.assertEqual(row["result"], "invalid_route")
+        self.assertTrue(row["original_valid"])
+        self.assertFalse(row["native_valid"])
+        self.assertFalse(row["native_executed"])
+        self.assertEqual(row["native_skip_reason"], "original_target_changed")
 
     def test_checkpoint_only_observer_preserves_source_prefix(self):
         from unittest import mock
@@ -187,7 +193,34 @@ class PairedOracleTests(unittest.TestCase):
             result = adapter.execute(self.manifest, self.input)
         self.assertFalse(result["original_valid"])
         self.assertEqual(result["result"], "invalid_route")
+        self.assertFalse(result["native_executed"])
+        self.assertEqual(result["native_skip_reason"], "original_stage_invalid")
         self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_invalid_original_skips_faulty_native_subprocess(self):
+        from unittest import mock
+        self.manifest["reference"]["environment"]["FORCE_SCENE_TIMEOUT"] = "1"
+        self.manifest["native"]["environment"]["FORCE_BAD_GUEST_EXIT"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            row = adapter.execute(self.manifest, self.input)
+        self.assertEqual(row["result"], "invalid_route")
+        self.assertFalse(row["native_valid"])
+        self.assertFalse(row["native_executed"])
+        self.assertEqual(row["native_skip_reason"], "original_stage_invalid")
+
+    def test_changed_original_target_skips_faulty_native_subprocess(self):
+        from unittest import mock
+        self.manifest["native"]["environment"]["FORCE_BAD_GUEST_EXIT"] = "1"
+        # The original stage anchors still match, but the source-earned
+        # original target byte is now wrong: native cannot rescue the pair.
+        self.manifest["discrepancy"]["original_byte"] = 4
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            row = adapter.execute(self.manifest, self.input)
+        self.assertTrue(row["original_valid"])
+        self.assertFalse(row["native_valid"])
+        self.assertFalse(row["native_executed"])
+        self.assertEqual(row["native_skip_reason"], "original_target_changed")
+        self.assertEqual(row["result"], "invalid_route")
 
     def test_unclassified_exit3_remains_hard_failure(self):
         from unittest import mock

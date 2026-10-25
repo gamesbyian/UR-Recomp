@@ -50,6 +50,16 @@ def verify_receipt(receipt, candidate_hash):
         raise ValueError("missing two-engine validity assertions")
     if receipt.get("result") not in ("reproduced", "not_reproduced", "invalid_route"):
         raise ValueError("invalid oracle result")
+    if "native_executed" in receipt:
+        if type(receipt["native_executed"]) is not bool:
+            raise ValueError("invalid native execution evidence")
+        if not receipt["native_executed"] and (
+                receipt["native_valid"] or receipt["result"] != "invalid_route"
+                or receipt.get("native_skip_reason") not in
+                ("original_stage_invalid", "original_target_changed")):
+            raise ValueError("unexecuted native cannot claim paired evidence")
+        if receipt["native_executed"] and receipt.get("native_skip_reason") is not None:
+            raise ValueError("executed native cannot claim skipped evidence")
     return tuple(receipt[k] for k in FIELDS)
 
 
@@ -66,14 +76,16 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
     protected = [r for r in runs if r.start < protected_before_frame]
     mutable = [r for r in runs if r.start >= protected_before_frame]
     base_identity = None
-    calls = tests = 0
+    calls = tests = native_skips = 0
+    observed_results = {"reproduced": 0, "not_reproduced": 0, "invalid_route": 0}
+    observed_skip_reasons = {"original_stage_invalid": 0, "original_target_changed": 0}
     cache = {}
     with tempfile.TemporaryDirectory(prefix="ur-replay-reduce-") as tmp:
         candidate = Path(tmp) / "candidate.script"
         receipt_path = Path(tmp) / "receipt.json"
 
         def check(sequence):
-            nonlocal base_identity, calls, tests
+            nonlocal base_identity, calls, tests, native_skips
             raw = encode(sequence)
             hashed = digest(raw)
             if hashed in cache:
@@ -100,6 +112,13 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
                 except (ValueError, UnicodeError) as exc:
                     raise ValueError("malformed oracle receipt") from exc
                 identity = verify_receipt(receipt, hashed)
+                # Keep compact decision counts instead of private candidate
+                # inputs or guest stdout/stderr. Every count comes from the
+                # actual validated per-run paired-oracle receipt.
+                observed_results[receipt["result"]] += 1
+                if receipt.get("native_executed") is False:
+                    native_skips += 1
+                    observed_skip_reasons[receipt["native_skip_reason"]] += 1
                 if observation_frame is not None:
                     clocks = receipt.get("guest_clocks")
                     if (type(clocks) is not dict
@@ -175,6 +194,9 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
         "reduced_runs": len(final),
         "removed_runs": len(runs) - len(final),
         "oracle_calls": calls,
+        "native_skipped_oracle_calls": native_skips,
+        "oracle_result_counts": observed_results,
+        "native_skip_reason_counts": observed_skip_reasons,
         "candidates_tested": tests,
         "repeats_per_candidate": repeats,
         "budget_exhausted": exhausted,

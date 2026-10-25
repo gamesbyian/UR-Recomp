@@ -54,11 +54,15 @@ def verify_receipt(receipt, candidate_hash):
 
 
 def reduce(runs, source_hash, protected_before_frame, oracle,
-           max_calls=60, repeats=2, timeout=120):
+           max_calls=60, repeats=2, timeout=120, observation_frame=None):
     if not runs or protected_before_frame < 1 or not oracle:
         raise ValueError("need source runs, protected original prefix and oracle")
     if not (1 <= repeats <= 5 and repeats <= max_calls <= 10000 and 1 <= timeout <= 3600):
         raise ValueError("invalid execution budget")
+    if observation_frame is not None and (
+            type(observation_frame) is not int
+            or not protected_before_frame <= observation_frame < 200000):
+        raise ValueError("observation frame must be an authenticated original guest clock")
     protected = [r for r in runs if r.start < protected_before_frame]
     mutable = [r for r in runs if r.start >= protected_before_frame]
     base_identity = None
@@ -96,6 +100,12 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
                 except (ValueError, UnicodeError) as exc:
                     raise ValueError("malformed oracle receipt") from exc
                 identity = verify_receipt(receipt, hashed)
+                if observation_frame is not None:
+                    clocks = receipt.get("guest_clocks")
+                    if (type(clocks) is not dict
+                            or type(clocks.get("reference_observation_frame")) is not int
+                            or clocks["reference_observation_frame"] != observation_frame):
+                        raise ValueError("oracle original guest observation frame differs from horizon")
                 if base_identity is None:
                     base_identity = identity
                 elif base_identity != identity:
@@ -108,9 +118,27 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
 
         if not check(protected + mutable):
             raise ValueError("initial replay does not reproduce authentic paired discrepancy")
+        # A controller run beginning strictly after the source-authenticated
+        # observation cannot causally affect a preceding checkpoint. Verify
+        # removal with the SAME paired authentic oracle rather than inferring
+        # semantic equivalence from a timeline alone. A spanning run remains.
+        # This exact-horizon trial comes BEFORE ddmin to avoid spending the
+        # small oracle budget testing implausibly large early-route deletions.
+        post_observation_trial = False
+        post_observation_removed_runs = 0
         partitions = 2
         exhausted = False
-        while mutable:
+        if observation_frame is not None:
+            prefix = [r for r in mutable if r.start <= observation_frame]
+            if len(prefix) < len(mutable):
+                post_observation_trial = True
+                try:
+                    if check(protected + prefix):
+                        post_observation_removed_runs = len(mutable) - len(prefix)
+                        mutable = prefix
+                except StopIteration:
+                    exhausted = True
+        while mutable and not exhausted:
             count = len(mutable)
             span = math.ceil(count / partitions)
             changed = False
@@ -139,6 +167,9 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
         "reduced_fixture_sha256": digest(encode(final)),
         "oracle_identity": dict(zip(FIELDS, base_identity)),
         "protected_before_frame": protected_before_frame,
+        "observation_frame": observation_frame,
+        "post_observation_trial": post_observation_trial,
+        "post_observation_removed_runs": post_observation_removed_runs,
         "protected_runs": len(protected),
         "original_runs": len(runs),
         "reduced_runs": len(final),
@@ -158,6 +189,8 @@ def main():
     p.add_argument("--output", required=True, type=Path)
     p.add_argument("--report", required=True, type=Path)
     p.add_argument("--protected-before-frame", type=int, required=True)
+    p.add_argument("--observation-frame", type=int,
+                   help="authenticated original guest checkpoint; verify all strictly later input rows first")
     p.add_argument("--max-calls", type=int, default=60)
     p.add_argument("--repeats", type=int, default=2)
     p.add_argument("--timeout", type=int, default=120)
@@ -168,7 +201,8 @@ def main():
         p.error("need oracle executable and distinct input, output, report paths")
     result, report = reduce(
         load_controller_runs(args.input), digest(args.input.read_bytes()),
-        args.protected_before_frame, argv, args.max_calls, args.repeats, args.timeout
+        args.protected_before_frame, argv, args.max_calls, args.repeats, args.timeout,
+        args.observation_frame
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.report.parent.mkdir(parents=True, exist_ok=True)

@@ -80,6 +80,27 @@ int main() {
     assert(protected_result.recent_course == "course:02");
     assert(protected_result.recent_ticks60 == 930);
 
+    // The native Records summary must resolve the same UTF-8 root that the
+    // canonical writer and run catalog already support. On Windows, using
+    // filesystem::path(utf8) silently loses non-ACP user-directory names.
+    {
+        const auto unicode_root = fs::temp_directory_path() /
+            fs::u8path(u8"ur-native-records-路径-🌈");
+        fs::remove_all(unicode_root);
+        const auto unicode_runs = unicode_root / "runs/rider-1";
+        std::string stored_path;
+        assert(append_completed_run_record(
+            unicode_runs.u8string(), record, &stored_path));
+        const auto unicode_view = inspect_baldosa_native_records_archive(
+            unicode_runs.u8string());
+        assert(unicode_view.directory_available);
+        assert(unicode_view.total_artifacts == 1);
+        assert(unicode_view.validated_archives == 1);
+        assert(unicode_view.recent_course == "course:02");
+        assert(unicode_view.recent_ticks60 == 930);
+        fs::remove_all(unicode_root);
+    }
+
     // The native frontend never grants cross-backend replay authority or
     // rewrites any of these original existing-host artifacts.
     assert(fs::file_size(runs / "0001.urrun") != 0);

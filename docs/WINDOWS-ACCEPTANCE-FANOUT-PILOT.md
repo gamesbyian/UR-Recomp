@@ -20,6 +20,13 @@ Group seed-dependent runs the original baseline first, checks its actual newly p
 
 The Ubuntu aggregate validates both SHA256-bound receipts, their shared source/EXE/fixture/ZIP identity, all original 13 case indices and step names, every exit code, missingness, duplicate coverage and any attempted release credit. It fails closed on missing group or mismatch, but never writes RELEASE-QUALITY-LEDGER.json.
 
+### Private original-script output fingerprints
+
+Each original Win32 script's combined stdout/stderr log stays on the ephemeral Windows worker. The producer records a SHA-256 and byte length for each actual log and (when present) its optional Markdown summary, using strict fixed filenames. Missing or symlinked logs fail closed. A missing optional summary is represented as `summary_sha256: null` and `summary_bytes: 0`, not invented evidence. All 13 fingerprints flow into the aggregate receipt without uploading private logs, user paths, ROM or SRAM.
+
+These digests bind the output to a future separately authorized inspection, but **are not signatures or independent guest acceptance evidence by themselves**. Historic #40167815138 ran before this provenance addition and cannot be described as having these case-level hashes.
+
+
 ## Why this pilot has intentionally limited scope
 
 The existing native Windows bridge already has a two/three-process on-runner journey parallelism pilot and four-cohort independent reliability fan-out. This additional workflow validates whether **two separate GHA Windows jobs** provide a worthwhile wall-time/runner-minute tradeoff using one pre-built candidate. It is not a new gameplay oracle. The bridge still executes many additional source-bounded CMD, process-crash, save, extracted-ZIP and other regressions; these are not silently replaced. A passing aggregate can assist independent QA but cannot mark any Windows release gate as passed, and physical controllers/displays are not available through hosted Windows evidence.

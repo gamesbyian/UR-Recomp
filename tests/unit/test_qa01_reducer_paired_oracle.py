@@ -241,7 +241,10 @@ class PairedOracleTests(unittest.TestCase):
 
     def test_missing_native_config_arg_fails_closed(self):
         from unittest import mock
-        self.manifest["native"]["argv"] = self.manifest["native"]["argv"][:3]
+        self.manifest["native"]["argv"] = [
+            arg for arg in self.manifest["native"]["argv"]
+            if arg not in ("--config", "%CONFIG%")
+        ]
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             with self.assertRaisesRegex(ValueError, "explicit config"):
                 adapter.validate(self.manifest)

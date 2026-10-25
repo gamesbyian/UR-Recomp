@@ -21,7 +21,10 @@ def packet(group, who=None):
     indices = fanout.GROUPS[group]
     rows = [{"index": i, "name": bridge.STEPS[i], "exit_code": 0,
              "elapsed_seconds": 1.5, "log": "step-%02d.log" % i,
-             "summary": "step-%02d.md" % i} for i in indices]
+             "summary": "step-%02d.md" % i,
+             "log_sha256": "b" * 64, "log_bytes": 82,
+             "summary_sha256": "c" * 64, "summary_bytes": 16}
+            for i in indices]
     result = {"schema": fanout.SCHEMA, "group": group,
               "candidate_identity": dict(who or WHO),
               "expected_indices": list(indices), "cases": rows,
@@ -133,6 +136,8 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             path.write_bytes(path.name.encode())
 
         def fake_runner(i, script, work, environ):
+            (work / ("step-%02d.log" % i)).write_text("genuine-script-output")
+            (work / ("step-%02d.md" % i)).write_text("original-step-summary")
             if i == 0:
                 save = (self.path / "UR Baldosa Win32 Pause Route" /
                         "baseline" / "Modern Player Data With Spaces" /
@@ -159,6 +164,60 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             self.assertEqual([r["index"] for r in independent["cases"]],
                              list(range(3, 13)))
             self.assertTrue(independent["all_passed"])
+
+    def test_tampered_private_output_digest_is_rejected(self):
+        value = packet("seed-dependent")
+        value["cases"][0]["log_sha256"] = "not-a-real-sha"
+        value["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in value.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", value)
+        self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
+    def test_private_log_digest_is_actual_file_content(self):
+        work = self.path / "proof"
+        work.mkdir()
+        rows = [{"index": 8, "log": "step-08.log",
+                 "summary": "step-08.md"}]
+        contents = b"test-only-genuine-source-log\n"
+        (work / rows[0]["log"]).write_bytes(contents)
+        (work / rows[0]["summary"]).write_bytes(b"summary")
+        fanout.attest_private_case_files(rows, work)
+        self.assertEqual(rows[0]["log_sha256"],
+                         hashlib.sha256(contents).hexdigest())
+        self.assertEqual(rows[0]["summary_bytes"], len(b"summary"))
+        self.assertEqual(rows[0]["log_bytes"], len(contents))
+
+    def test_missing_private_original_log_is_not_success(self):
+        work = self.path / "missing-proof"
+        work.mkdir()
+        with self.assertRaisesRegex(ValueError, "missing original Windows log"):
+            fanout.attest_private_case_files(
+                [{"index": 0, "log": "step-00.log",
+                  "summary": "step-00.md"}], work)
+
+    def test_optional_original_summary_records_explicit_absence(self):
+        work = self.path / "optional-summary"
+        work.mkdir()
+        (work / "step-03.log").write_bytes(b"original log")
+        rows = [{"index": 3, "log": "step-03.log",
+                 "summary": "step-03.md"}]
+        fanout.attest_private_case_files(rows, work)
+        self.assertIsNone(rows[0]["summary_sha256"])
+        self.assertEqual(rows[0]["summary_bytes"], 0)
+
+    def test_redirected_private_original_log_is_rejected(self):
+        work = self.path / "redirect"
+        work.mkdir()
+        source = self.path / "outside-log"
+        source.write_bytes(b"source")
+        try:
+            (work / "step-00.log").symlink_to(source)
+        except OSError:
+            self.skipTest("symlinks unavailable")
+        with self.assertRaisesRegex(ValueError, "redirected original Windows"):
+            fanout.attest_private_case_files(
+                [{"index": 0, "log": "step-00.log",
+                  "summary": "step-00.md"}], work)
 
     def test_aggregate_cli_publishes_fail_closed_machine_receipt(self):
         import subprocess

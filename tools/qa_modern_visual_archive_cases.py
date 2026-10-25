@@ -2,8 +2,9 @@
 """Geometry/focus/safe-area evidence for a retained native SDL capture ZIP.
 
 Reuses (does not duplicate) `qa_modern_visual_actions_archive.verify`, which
-independently proves transport and provenance of each capture: successful
-Windows SDL3 process, exact log, P7 == PNG bytes, route stage, PE/source SHA.
+checks Windows SDL3 transport, exact log, P7 == PNG bytes, route stage and
+receipt-reported PE/source hashes. Independent source/PE identity requires
+external pins; an internally consistent producer receipt alone cannot prove it.
 On top of a verified ZIP this adds, per capture:
 
 * `witnessed-source-width`: the logical width inferred from the pixels alone
@@ -57,7 +58,9 @@ def _png_member(names, capture_id):
 
 
 def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
-            require_ring: bool = False) -> dict:
+            require_ring: bool = False,
+            expected_source_sha: str | None = None,
+            expected_exe_sha: str | None = None) -> dict:
     matrix = matrix if matrix is not None else cases.load_cases()
     out = []
     with zipfile.ZipFile(zip_path) as z:
@@ -79,9 +82,18 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
                                       tuple(cap["pixels"])))
             case_report = None
             if case_id:
-                # The source SHA is independently bound by archive.verify,
-                # unlike directory-mode receipts. Preserve that distinction
-                # when evaluating an explicitly source-qualified scene.
+                # A producer-controlled receipt can agree with a case SHA
+                # without proving which source/PE actually produced it.
+                # Require external pins for native-title-root; main() has
+                # archive.verify check those pins against the retained ZIP.
+                if matrix[case_id].get("source_scene") == "native-title-root":
+                    if not expected_source_sha or not expected_exe_sha:
+                        raise ValueError(
+                            "source-qualified archive case requires external source and PE SHA pins")
+                    if (cap["source_sha"] != expected_source_sha or
+                            cap["exe_sha256"] != expected_exe_sha):
+                        raise ValueError(
+                            "source-qualified archive case disagrees with external source/PE pins")
                 case_report = cases.evaluate(
                     matrix[case_id], frame, require_ring,
                     observed_source_sha=cap["source_sha"])
@@ -183,7 +195,9 @@ def main(argv=None) -> int:
         if a.artifact:
             verified = archive.verify(a.artifact, a.expected_source_sha,
                                       a.expected_exe_sha)
-            report = analyse(a.artifact, verified, require_ring=a.require_ring)
+            report = analyse(a.artifact, verified, require_ring=a.require_ring,
+                             expected_source_sha=a.expected_source_sha,
+                             expected_exe_sha=a.expected_exe_sha)
         else:
             report = analyse_dirs(a.dir, require_ring=a.require_ring)
     except (archive.AuditError, ValueError, OSError, KeyError,

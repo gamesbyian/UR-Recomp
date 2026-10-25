@@ -39,7 +39,7 @@ JOIN = "wait 400\nquit\n"  # Negative controls retain their short bounded window
 POSITIVE_JOIN = "turbo on\nwait 1800\nquit\n"
 # Mode 31: no guest input commands, only turbo/wait/quit while the SDL P1
 # delivers every stock menu and gameplay edge through the native host.
-PAD_RACE = "turbo on\\nwait 7200\\nquit\\n"
+PAD_RACE = "turbo on\nwait 7200\nquit\n"
 
 
 def lines(log: str, pattern: str) -> list[str]:

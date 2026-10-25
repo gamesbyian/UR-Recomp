@@ -94,7 +94,7 @@ class CompareMesenBatchTests(unittest.TestCase):
 
     def test_wrong_wram_size_fails_closed(self):
         (self.batched / "observed-4.wram.bin").write_bytes(bytes(32))
-        with self.assertRaisesRegex(ValueError, "128 KiB"):
+        with self.assertRaisesRegex(ValueError, "invalid full source WRAM"):
             self.measure()
 
     def test_symlinked_source_input_cannot_pass(self):

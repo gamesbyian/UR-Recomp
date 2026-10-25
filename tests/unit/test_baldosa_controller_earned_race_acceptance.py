@@ -6,7 +6,10 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
-from run_baldosa_keyboard_pad_join_acceptance import PAD_RACE, verify_five_destination_pad_race
+from run_baldosa_keyboard_pad_join_acceptance import (
+    PAD_RACE, PAD_RACE_RETURN, verify_five_destination_pad_race,
+    verify_five_destination_pad_post_result,
+)
 
 SOURCE = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(encoding="utf-8")
 RUNNER = (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").read_text(encoding="utf-8")
@@ -60,6 +63,8 @@ class EarnedControllerJourney(unittest.TestCase):
         # backslash-n sequence fails before the SDL journey even starts.
         self.assertEqual(PAD_RACE.splitlines(), ["turbo on", "wait 7200", "quit"])
         self.assertEqual(PAD_RACE, "turbo on\nwait 7200\nquit\n")
+        self.assertEqual(PAD_RACE_RETURN, "turbo on\nwait 11000\nquit\n")
+        self.assertIn('std::strcmp(opt, "32") == 0', SOURCE)
 
     def test_earned_race_native_log_is_retained_for_independent_qa(self):
         # A summary receipt cannot independently establish the original
@@ -71,9 +76,49 @@ class EarnedControllerJourney(unittest.TestCase):
             workflow,
         )
         self.assertIn(
+            "${{ runner.temp }}/ur-title-controller-join/five_destination_earned_return/log.txt",
+            workflow,
+        )
+        self.assertIn(
             "${{ runner.temp }}/ur-title-controller-join/receipt.json",
             workflow,
         )
+
+    def test_post_result_source_return_and_adversarial_cases(self):
+        post = [
+            "UR_BALDOSA_MODERN_PAD_RACE source_input_completed=1",
+            "UR_BALDOSA_MODERN_PAD_POST source_observed frame=5500 menu=99 race=00 stage=0",
+            "UR_BALDOSA_MODERN_PAD_POST result_back_x=1 source_menu=99",
+            "UR_BALDOSA_MODERN_PAD_POST root_back_b=1 source_menu=d7",
+            "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
+            "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7",
+            "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+            "UR_BALDOSA_MODERN_ROOT selected=1",
+            "UR_BALDOSA_MODERN_ROOT selected=2",
+            "UR_BALDOSA_MODERN_ROOT selected=3",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=0",
+            "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
+        ]
+        good = [HOST, *PREFIX, *TAIL, *post]
+        verify_five_destination_pad_post_result("\n".join(good) + "\n")
+        mutants = {
+            "missing result back": [x for x in good if "result_back_x=1" not in x],
+            "no original MAIN": [x for x in good if "root_back_b=1" not in x],
+            "duplicate source reentry": good + [post[4]],
+            "empty earned Records": [x.replace("validated=1", "validated=0") for x in good],
+            "post-return controller replacement": good + [
+                "[Gamepad] UR_CONTROLLER_SEAT assign instance=102 seat=0 reason=added"
+            ],
+            "no source result": [x for x in good if "NATIVE_RESULT" not in x],
+            "unpainted navigation": [
+                *[x for x in good if "reopened_painted=1" not in x],
+                post[6],
+            ],
+        }
+        for label, candidate in mutants.items():
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                verify_five_destination_pad_post_result("\n".join(candidate) + "\n")
 
     def test_real_source_witness_and_adversarial_mutations(self):
         good = [HOST, *PREFIX, *TAIL]

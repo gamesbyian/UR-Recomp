@@ -271,6 +271,9 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "unexpected pad move": lines + [
                 "[Gamepad] UR_CONTROLLER_SEAT move instance=101 from=0 to=1"
             ],
+            "pad detached during destination journey": lines[:1] + [
+                "[Gamepad] UR_CONTROLLER_SEAT vacate instance=101 seat=0 key=abcd"
+            ] + lines[1:],
         }
         for label, witness in bad.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
@@ -337,6 +340,12 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "post-return cursor never reached Records": prefix + returned + post_return[:2] + post_return[3:],
             "post-return Records opened before selection": prefix + returned + [post_return[3], *post_return[:3], *post_return[4:]],
             "unintended stock relaunch": prefix + returned + post_return + ["UR_BALDOSA_MODERN_ROOT stock_requested players=1"],
+            "pad detached after return": prefix + returned + post_return + [
+                "[Gamepad] UR_CONTROLLER_SEAT vacate instance=101 seat=0 key=abcd"
+            ],
+            "pad replaced after return": prefix + returned + post_return + [
+                "[Gamepad] UR_CONTROLLER_SEAT assign instance=202 seat=0 reason=added"
+            ],
         })
         for label, witness in invalid.items():
             with self.subTest(label=label), self.assertRaises(ValueError):

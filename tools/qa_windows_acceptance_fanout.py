@@ -163,8 +163,21 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     return report
 
 
+def summarize_case_failures(group, rows):
+    """Public, bounded failure identifiers only; never private guest logs."""
+    expected = GROUPS[group]
+    by_index = {row["index"]: row for row in rows}
+    return [
+        {"group": group, "index": index, "name": bridge.STEPS[index],
+         "reason": "missing_case" if index not in by_index else "nonzero_exit",
+         "exit_code": None if index not in by_index else by_index[index]["exit_code"]}
+        for index in expected
+        if index not in by_index or by_index[index]["exit_code"] != 0
+    ]
+
+
 def aggregate(root, source_sha):
-    problems, cases, identities = [], [], []
+    problems, cases, identities, failures = [], [], [], []
     for group in GROUPS:
         path = root / ("windows-fanout-" + group) / "result.json"
         try:
@@ -172,8 +185,10 @@ def aggregate(root, source_sha):
             row = json.loads(path.read_text(encoding="utf-8"))
             identities.append(validate_receipt(row, group, source_sha))
             cases.extend(row["cases"])
+            failures.extend(summarize_case_failures(group, row["cases"]))
             if not row["all_passed"]:
-                problems.append(group + ": original Windows journey failed")
+                problems.append(group + ": " + str(len(summarize_case_failures(group, row["cases"]))) +
+                                " failed/missing original Windows journeys")
         except (OSError, ValueError, TypeError, KeyError) as error:
             problems.append(group + ": " + str(error))
     if len(identities) == 2 and identities[0] != identities[1]:
@@ -192,6 +207,7 @@ def aggregate(root, source_sha):
                           "summary_bytes": row["summary_bytes"]} for row in cases),
                         key=lambda x: x["index"]),
         "observed_cases": len(indices), "expected_cases": 13,
+        "failed_cases": sorted(failures, key=lambda x: x["index"]),
         "transport_complete": not problems, "issues": problems,
         "release_gate_credit": 0, "independent_physical_qa": False,
     }
@@ -225,6 +241,12 @@ def main():
             output.write("Transport complete: %s. Release credit: 0.\n" % result["transport_complete"])
             for problem in result["issues"]:
                 output.write("\n- " + problem)
+            if result["failed_cases"]:
+                output.write("\n\nFailed source journeys (index, step, exit):\n")
+                for row in result["failed_cases"]:
+                    output.write("\n- %02d %s: %s (%s)" %
+                                 (row["index"], row["name"], row["reason"],
+                                  row["exit_code"]))
     return 0 if result["transport_complete"] else 1
 
 

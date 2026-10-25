@@ -196,7 +196,7 @@ static int seed_readonly_records_archive(
         return 64;
     CompletedRunRecord archived{};
     archived.provenance = {
-        "uniracers",
+        "uniracers-usa",
         "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
         "fixture-historical-backend",
         "course:01",

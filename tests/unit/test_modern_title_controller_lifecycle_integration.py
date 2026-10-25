@@ -204,7 +204,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
                 verify_owner_disconnect("\n".join(witness) + "\n")
 
     def test_five_destination_pad_fixture_uses_one_native_sdl_device(self):
-        start = SOURCE.index('if (std::strcmp(opt, "29") == 0 || std::strcmp(opt, "30") == 0) {')
+        start = SOURCE.index('if (std::strcmp(opt, "29") == 0 || std::strcmp(opt, "30") == 0 ||')
         end = SOURCE.index('    // CI-only mode 19:', start)
         fixture = SOURCE[start:end]
         self.assertIn('SDL_AttachVirtualJoystick(&desc)', fixture)

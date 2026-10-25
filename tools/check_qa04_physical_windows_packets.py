@@ -154,13 +154,56 @@ def safe_member(root: Path, name: object) -> Path:
     return path
 
 
+def read_receipt_json_bytes(path: Path) -> bytes:
+    """Read witness.json from one bound regular-file descriptor.
+
+    Pre/post leaf and packet-parent identities catch observable replacement
+    during the read. On Linux, O_NOFOLLOW also blocks a swapped leaf symlink.
+    This is not a native Windows directory-handle walk and does not protect
+    against an adversary restoring original paths between the final checks.
+    """
+    require(path.parent.is_dir() and
+            path.parent.resolve(strict=True) == path.parent.absolute(),
+            "unsafe receipt packet directory")
+    try:
+        before = path.lstat()
+        parent_before = path.parent.lstat()
+        require(stat.S_ISREG(before.st_mode) and before.st_nlink == 1
+                and 0 < before.st_size <= 1024 * 1024,
+                "missing/unsafe or hardlinked receipt JSON")
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+                     | getattr(os, "O_BINARY", 0))
+    except OSError as exc:
+        raise ValueError("QA04_PACKET_REJECTED: unsafe receipt open") from exc
+    with os.fdopen(fd, "rb") as stream:
+        opened = os.fstat(stream.fileno())
+        require(stat.S_ISREG(opened.st_mode) and opened.st_nlink == 1
+                and (opened.st_dev, opened.st_ino, opened.st_size,
+                     opened.st_mtime_ns, opened.st_ctime_ns) ==
+                    (before.st_dev, before.st_ino, before.st_size,
+                     before.st_mtime_ns, before.st_ctime_ns),
+                "receipt changed before descriptor read")
+        data = stream.read(1024 * 1024 + 1)
+        closed = os.fstat(stream.fileno())
+    try:
+        after = path.lstat()
+        parent_after = path.parent.lstat()
+    except OSError as exc:
+        raise ValueError("QA04_PACKET_REJECTED: receipt changed during read") from exc
+    identity = lambda info: (info.st_dev, info.st_ino, info.st_size,
+                             info.st_mtime_ns, info.st_ctime_ns, info.st_nlink)
+    parent_identity = lambda info: (info.st_dev, info.st_ino)
+    require(len(data) == before.st_size
+            and identity(before) == identity(opened) == identity(closed) == identity(after)
+            and stat.S_ISREG(after.st_mode)
+            and parent_identity(parent_before) == parent_identity(parent_after),
+            "receipt changed during descriptor read")
+    return data
+
+
 def inspect_packet(path: Path, *, commit: str, zip_sha: str,
                    pe_sha: str) -> tuple[dict, dict]:
-    require(path.is_file() and not path.is_symlink()
-            and path.stat().st_nlink == 1
-            and 0 < path.stat().st_size <= 1024 * 1024,
-            "missing/unsafe or hardlinked receipt JSON")
-    receipt = json.loads(path.read_text(encoding="utf-8"),
+    receipt = json.loads(read_receipt_json_bytes(path).decode("utf-8"),
                          object_pairs_hook=unique_json_fields)
     require(type(receipt) is dict
             and receipt.get("schema") == "ur-windows-physical-witness/1",

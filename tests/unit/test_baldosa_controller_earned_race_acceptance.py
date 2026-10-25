@@ -6,7 +6,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
-from run_baldosa_keyboard_pad_join_acceptance import verify_five_destination_pad_race
+from run_baldosa_keyboard_pad_join_acceptance import PAD_RACE, verify_five_destination_pad_race
 
 SOURCE = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(encoding="utf-8")
 RUNNER = (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").read_text(encoding="utf-8")
@@ -56,6 +56,10 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertIn("turbo on", line)
         self.assertIn("wait 7200", line)
         self.assertNotIn("press ", line)
+        # The native script parser requires real line separators; a literal
+        # backslash-n sequence fails before the SDL journey even starts.
+        self.assertEqual(PAD_RACE.splitlines(), ["turbo on", "wait 7200", "quit"])
+        self.assertEqual(PAD_RACE, "turbo on\nwait 7200\nquit\n")
 
     def test_real_source_witness_and_adversarial_mutations(self):
         good = [HOST, *PREFIX, *TAIL]

@@ -53,8 +53,14 @@ def attest_private_case_files(rows, work):
             require(row.get(label) == expected,
                     "original script output name changed")
             path = work / expected
-            require(path.is_file() and not path.is_symlink(),
-                    "missing or redirected original Windows " + label)
+            # The existing original bridge permits an absent optional .md
+            # summary; only the subprocess's combined .log is mandatory.
+            require(not path.is_symlink(), "redirected original Windows " + label)
+            if label == "summary" and not path.exists():
+                row["summary_sha256"] = None
+                row["summary_bytes"] = 0
+                continue
+            require(path.is_file(), "missing original Windows " + label)
             data = path.read_bytes()
             row[label + "_sha256"] = hashlib.sha256(data).hexdigest()
             row[label + "_bytes"] = len(data)
@@ -91,8 +97,10 @@ def validate_receipt(receipt, group, source_sha):
         for label, ext in (("log", ".log"), ("summary", ".md")):
             require(row.get(label) == f"step-{idx:02d}{ext}",
                     "changed original private Windows output label")
-            require(type(row.get(label + "_sha256")) is str
-                    and bool(HEX64.fullmatch(row[label + "_sha256"])),
+            value = row.get(label + "_sha256")
+            require((value is None and label == "summary" and
+                     row.get("summary_bytes") == 0)
+                    or (type(value) is str and bool(HEX64.fullmatch(value))),
                     "missing original output SHA256")
             require(type(row.get(label + "_bytes")) is int
                     and 0 <= row[label + "_bytes"] < 50_000_000,

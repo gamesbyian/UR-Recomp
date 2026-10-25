@@ -275,6 +275,42 @@ def verify_five_destination_pad_journey(log: str) -> None:
             raise ValueError(f"five destinations: unexpected {forbidden}")
 
 
+
+def verify_five_destination_pad_return(log: str) -> None:
+    """Require the same SDL pad to back out of genuine stock 1P into Modern.
+
+    The original X backtrack is delivered to the guest while it owns input;
+    only a later fresh B at observed MAIN D7 may reopen the shared root.
+    This does not claim a completed race, result or physical controller.
+    """
+    reopened = "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0"
+    if log.count(reopened) != 1:
+        raise ValueError("pad return: missing/duplicate source-admitted root reentry")
+    # Before the source reentry the existing strict five-destination
+    # acceptance must still pass with exactly one seated SDL P1 device.
+    verify_five_destination_pad_journey(log[:log.index(reopened)])
+    stages = (
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        "UR_BALDOSA_MODERN_PAD_RETURN guest_back_x=1 source_menu=3c",
+        "UR_BALDOSA_MODERN_PAD_RETURN root_back_b=1 source_menu=d7",
+        reopened,
+        "UR_BALDOSA_MODERN_PAD_RETURN reopened=1 source_menu=d7",
+        "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+    )
+    positions = []
+    for stage in stages:
+        matches = [m.start() for m in re.finditer(
+            rf"(?m)^{re.escape(stage)}$", log)]
+        if len(matches) != 1:
+            raise ValueError(f"pad return: missing/duplicate native stage {stage!r}")
+        positions.append(matches[0])
+    if positions != sorted(positions):
+        raise ValueError("pad return: source X/B/MAIN/root paint out of order")
+    if "UR_BALDOSA_MODERN_ROOT stock_entered players=2" in log:
+        raise ValueError("pad return: unintended 2P admission")
+
+
+
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""
     for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
@@ -375,7 +411,24 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             "inspect retained five_destination_pad/log.txt"
         ) from exc
 
+    # Separate CI-only mode 30 uses the same SDL virtual-pad route and
+    # probes original X backtrack followed by physical B reentry at MAIN D7.
+    # Keep mode 29's previously qualified admission receipt independently.
+    log = run_game(exe, rom, user, out / "five_destination_return", "30",
+                   POSITIVE_JOIN, video, timeout)
+    try:
+        verify_five_destination_pad_return(log)
+    except ValueError as exc:
+        source = [line for line in log.splitlines()
+                  if line.startswith("UR_BALDOSA_MODERN_PAD_RETURN ") or
+                  "UR_BALDOSA_MODERN_ROOT reopened" in line]
+        raise ValueError(
+            f"{exc}; guest return source trace: {source[-25:]!r}; "
+            "inspect retained five_destination_return/log.txt"
+        ) from exc
+
     receipt = {
+        "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
@@ -387,8 +440,9 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "video_driver": video,
         "source_commit": os.environ.get("GITHUB_SHA"),
         "scope": "Modern 2P join and one continuous five-destination title-to-stock "
-                 "journey with SDL virtual gamepads; not physical controllers, "
-                 "completed races/results/returns, or release acceptance",
+                 "journey and stock-setup-to-Modern-root return with SDL virtual "
+                 "gamepads; not physical controllers, completed races/results "
+                 "or release acceptance",
     }
     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     return receipt

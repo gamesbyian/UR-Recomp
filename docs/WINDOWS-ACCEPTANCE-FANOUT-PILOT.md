@@ -42,3 +42,7 @@ The existing native Windows bridge already has a two/three-process on-runner jou
 Measure identical candidate sequential/2-process versus this exact fan-out before adopting it beyond opt-in. If the relative GHA setup and artifact transfer costs outweigh gains, retain the old route. Avoid broad scheduled dispatches.
 
 ROM-free contract tests: python3 -m unittest tests.unit.test_qa_windows_acceptance_fanout
+
+### Actionable aggregate failures
+
+The aggregate now reports `failed_cases` with the original script index, canonical journey name, nonzero exit code, or explicit `missing_case`. This replaces generic group-only diagnosis for validated per-group receipts. The original per-case logs remain **private** on ephemeral Windows workers: no stdout/stderr, profile, path, ROM, SRAM, controller input or new artifacts are disclosed. Missing or tampered group receipts still fail closed as transport problems and cannot be promoted into fabricated case evidence. The machine receipt and Actions summary remain producer diagnostics with **zero** release-gate or physical QA credit.

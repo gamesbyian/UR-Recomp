@@ -1,5 +1,11 @@
-name: Windows acceptance fan-out (manual exact candidate)
+name: Windows acceptance fan-out (exact candidate, qualified PR / manual)
 on:
+  # Only the in-repository computational qualification PR can run automatically.
+  # Other PRs and normal pushes cannot start this expensive Windows campaign.
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/windows-acceptance-fanout-pilot.yml"
   workflow_dispatch:
     inputs:
       candidate_run_id:
@@ -13,7 +19,17 @@ concurrency:
   group: ur-windows-acceptance-fanout-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  candidate:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ci/windows-fanout-qualification-20261025' }}
+    uses: ./.github/workflows/baldosa-windows-native-bridge.yml
+    with:
+      export_campaign_inputs: true
+      parallel_journeys: true
+      run_on_draft: true
+
   journeys:
+    needs: candidate
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.candidate.result == 'success') && (github.event_name != 'pull_request' || (github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ci/windows-fanout-qualification-20261025')) }}
     runs-on: windows-2022
     timeout-minutes: 35
     strategy:
@@ -36,6 +52,7 @@ jobs:
           path: baldosa
           persist-credentials: false
       - name: Authenticate producer as successful exact source
+        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
           PRODUCER_RUN: ${{ inputs.candidate_run_id }}
@@ -48,7 +65,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: qa-baldosa-native-export
-          run-id: ${{ inputs.candidate_run_id }}
+          # On a trusted PR, the candidate reusable job above ran within this
+          # same workflow run. Manual use still supplies the audited producer ID.
+          run-id: ${{ github.event_name == 'pull_request' && github.run_id || inputs.candidate_run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/fanout-inputs
       - name: Verify original and packaged candidate identities

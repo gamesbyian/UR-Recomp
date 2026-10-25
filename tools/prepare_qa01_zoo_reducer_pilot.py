@@ -136,6 +136,8 @@ def prepare(*, producer: Path, case: Path, binaries: Path, rom: Path, movie: Pat
         "reference_core": {"path": str(core.resolve()), "sha256": sha(core)},
         "native_binary": {"path": str(executable.resolve()), "sha256": sha(executable)},
         "observation_script": {"path": str(observer.resolve()), "sha256": script_hash},
+        "pre_target": {"dump": BEFORE + ".wram.bin",
+                       "sha256": hashlib.sha256(before_ref).hexdigest()},
         "native_xvfb": True,
         "guest_clocks": {
             "reference_entry_frame": rf, "native_entry_frame": nf,

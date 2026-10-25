@@ -123,5 +123,33 @@ class ArchiveCasesTest(unittest.TestCase):
                                                      [1280, 720], wide, 256)]})
 
 
+    def test_verified_zip_binds_source_qualified_root_case(self):
+        from unittest.mock import patch
+        wide = frame_png(342, 1280, 720)
+        with tempfile.TemporaryDirectory() as tmp:
+            zp = self.make(tmp, {"native-title": wide})
+            witness = capture("native-title", "root-quit", [1280, 720], wide, 342)
+            source_sha = witness["source_sha"]
+            candidate = dict(ac.cases.load_cases()["root-wide-720"],
+                             id="source-qualified-native-title-root",
+                             source_scene="native-title-root", source_sha=source_sha)
+            route = ("root-quit", (1280, 720))
+            with patch.dict(ac.ROUTE_CASE, {route: candidate["id"]}):
+                passed = ac.analyse(zp, {"captures": [witness]},
+                                    matrix={candidate["id"]: candidate})
+                self.assertTrue(passed["pass"], passed)
+                self.assertEqual(passed["release_gate_credit"], 0)
+                identity = [c for c in passed["captures"][0]["checks"]
+                            if c["check"] == "source-identity"]
+                self.assertEqual(len(identity), 1)
+                self.assertTrue(identity[0]["pass"])
+                altered = dict(witness, source_sha="c" * 40)
+                refused = ac.analyse(zp, {"captures": [altered]},
+                                     matrix={candidate["id"]: candidate})
+                self.assertFalse(refused["pass"])
+                self.assertFalse(next(c for c in refused["captures"][0]["checks"]
+                                      if c["check"] == "source-identity")["pass"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -79,7 +79,12 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
                                       tuple(cap["pixels"])))
             case_report = None
             if case_id:
-                case_report = cases.evaluate(matrix[case_id], frame, require_ring)
+                # The source SHA is independently bound by archive.verify,
+                # unlike directory-mode receipts. Preserve that distinction
+                # when evaluating an explicitly source-qualified scene.
+                case_report = cases.evaluate(
+                    matrix[case_id], frame, require_ring,
+                    observed_source_sha=cap["source_sha"])
                 checks += case_report["checks"]
             out.append({"capture": cap["id"], "route": cap["native_semantic_route"],
                         "pixels": cap["pixels"], "png_sha256": frame.sha256,

@@ -2,6 +2,7 @@
 #include "completed_run_store.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
+#include "multiplayer_match_catalog.hpp"
 
 #include <cassert>
 #include <cstdio>

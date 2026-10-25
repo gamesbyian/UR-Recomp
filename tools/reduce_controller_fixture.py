@@ -77,6 +77,8 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
     mutable = [r for r in runs if r.start >= protected_before_frame]
     base_identity = None
     calls = tests = native_skips = 0
+    observed_results = {"reproduced": 0, "not_reproduced": 0, "invalid_route": 0}
+    observed_skip_reasons = {"original_stage_invalid": 0, "original_target_changed": 0}
     cache = {}
     with tempfile.TemporaryDirectory(prefix="ur-replay-reduce-") as tmp:
         candidate = Path(tmp) / "candidate.script"
@@ -110,8 +112,13 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
                 except (ValueError, UnicodeError) as exc:
                     raise ValueError("malformed oracle receipt") from exc
                 identity = verify_receipt(receipt, hashed)
+                # Keep compact decision counts instead of private candidate
+                # inputs or guest stdout/stderr. Every count comes from the
+                # actual validated per-run paired-oracle receipt.
+                observed_results[receipt["result"]] += 1
                 if receipt.get("native_executed") is False:
                     native_skips += 1
+                    observed_skip_reasons[receipt["native_skip_reason"]] += 1
                 if observation_frame is not None:
                     clocks = receipt.get("guest_clocks")
                     if (type(clocks) is not dict
@@ -188,6 +195,8 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
         "removed_runs": len(runs) - len(final),
         "oracle_calls": calls,
         "native_skipped_oracle_calls": native_skips,
+        "oracle_result_counts": observed_results,
+        "native_skip_reason_counts": observed_skip_reasons,
         "candidates_tested": tests,
         "repeats_per_candidate": repeats,
         "budget_exhausted": exhausted,

@@ -59,6 +59,9 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(tool.encode(runs), b"0:100:001\n100:10:002\n")
         self.assertEqual(evidence["removed_runs"], 2)
         self.assertEqual(evidence["protected_runs"], 1)
+        self.assertEqual(evidence["native_skipped_oracle_calls"], 0)
+        self.assertEqual(sum(evidence["oracle_result_counts"].values()),
+                         evidence["oracle_calls"])
         self.assertFalse(evidence["release_gate_accepted"])
 
     def test_budget_stops_without_unverified_output(self):

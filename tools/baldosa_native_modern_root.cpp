@@ -2810,9 +2810,11 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 static_cast<unsigned>(g_ram[0x0053u]) |
                 (static_cast<unsigned>(g_ram[0x0054u]) << 8);
             if (race_stage == 0 && g_stock_handed_off && !g_visible &&
-                g_ram[0x009fu] == 0x3cu && g_ram[0x0313u] != 1u) {
+                g_ram[0x009fu] == 0x3cu && g_ram[0x0313u] != 1u &&
+                source_phase == 0xf60cu) {
                 race_stage = 1;
-                race_step_frame = frame + 200u;
+                // Match the proven stock-script F60C + 900-frame settle.
+                race_step_frame = frame + 900u;
                 std::fprintf(stderr,
                     "UR_BALDOSA_MODERN_PAD_RACE source_stock_setup=1 menu=3c\n");
             }

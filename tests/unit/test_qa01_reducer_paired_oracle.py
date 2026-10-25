@@ -17,6 +17,10 @@ RUNNER = """
 import os
 from pathlib import Path
 rows=Path(os.environ["CANDIDATE"]).read_text().splitlines()
+seed=(Path(os.environ["SNESREF_SRAM_IN"]) if os.environ["ROLE"]=="original"
+      else Path.cwd()/"saves"/"save.srm")
+assert seed.read_bytes()==b"Q"*8192, "must boot identical source SRAM"
+assert Path.cwd().name in ("original", "native"), "runner leaked source cwd"
 b=bytearray(131072)
 if "0:100:001" in rows:
     b[0x100]=42
@@ -42,11 +46,14 @@ class PairedOracleTests(unittest.TestCase):
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
         self.rom = self.root / "dummy.sfc"
         self.rom.write_bytes(b"fake test-only contents")
+        self.seed = self.root / "original-movie.srm"
+        self.seed.write_bytes(b"Q" * 8192)
         config = {
             "schema": adapter.SCHEMA,
             "source_sha": source_sha,
             "reference_engine": "synthetic-test-only",
             "rom": {"path": str(self.rom), "sha256": adapter.ROM_USA_SHA256},
+            "source_sram": {"path": str(self.seed), "sha256": adapter.sha(self.seed)},
             "reference_binary": identity,
             "native_binary": identity,
             "reference_core": identity,
@@ -54,14 +61,21 @@ class PairedOracleTests(unittest.TestCase):
                 "argv": [str(binary), "-c", RUNNER],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
                                 "DUMP_DIR": "%DUMP_DIR%", "ROLE": "original",
-                                "ROM_PATH": "%ROM%", "CORE_PATH": "%CORE%"},
+                                "ROM_PATH": "%ROM%", "CORE_PATH": "%CORE%",
+                                "SNESREF_INPUT_FILE": "%CANDIDATE%",
+                                "SNESREF_SRAM_IN": "%SRAM%",
+                                "SNESREF_DUMP_DIR": "%DUMP_DIR%"},
                 "dump": "checkpoint.wram.bin",
             },
             "native": {
-                "argv": [str(binary), "-c", RUNNER],
+                "argv": [str(binary), "-c", RUNNER, "--no-launcher",
+                         "--config", "%CONFIG%"],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
                                 "DUMP_DIR": "%DUMP_DIR%", "ROLE": "native",
-                                "ROM_PATH": "%ROM%"},
+                                "ROM_PATH": "%ROM%",
+                                "UR_QA_SCENE_INPUT_FILE": "%CANDIDATE%",
+                                "SNESRECOMP_DUMP_DIR": "%DUMP_DIR%",
+                                "SNESRECOMP_ROM": "%ROM%"},
                 "dump": "checkpoint.wram.bin",
             },
             "discrepancy": {
@@ -120,6 +134,7 @@ class PairedOracleTests(unittest.TestCase):
     def test_engine_must_consume_candidate_and_isolated_dump(self):
         from unittest import mock
         self.manifest["reference"]["environment"].pop("CANDIDATE")
+        self.manifest["reference"]["environment"].pop("SNESREF_INPUT_FILE")
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             with self.assertRaisesRegex(ValueError, "both guests must consume"):
                 adapter.validate(self.manifest)
@@ -176,6 +191,25 @@ class PairedOracleTests(unittest.TestCase):
         self.assertEqual(receipt["native_frame_shift"], 2)
         self.assertNotEqual(receipt["reference_supplied_input_sha256"],
                             receipt["native_supplied_input_sha256"])
+
+    def test_modified_source_sram_seed_is_rejected(self):
+        self.seed.write_bytes(b"Z" * 8192)
+        with self.assertRaisesRegex(ValueError, "original-movie 8192-byte"):
+            adapter.execute(self.manifest, self.input)
+
+    def test_missing_native_config_arg_fails_closed(self):
+        from unittest import mock
+        self.manifest["native"]["argv"] = self.manifest["native"]["argv"][:3]
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "explicit config"):
+                adapter.validate(self.manifest)
+
+    def test_both_real_processes_receive_seed_and_isolated_cwd(self):
+        from unittest import mock
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            receipt = adapter.execute(self.manifest, self.input)
+        self.assertEqual(receipt["result"], "reproduced")
+        self.assertEqual(receipt["source_sram_sha256"], adapter.sha(self.seed))
 
     def test_reducer_integration_against_two_real_synthetic_processes(self):
         # Full reducer path with a running external paired process in each

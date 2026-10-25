@@ -318,6 +318,28 @@ def verify_five_destination_pad_return(log: str) -> None:
     if "UR_BALDOSA_MODERN_ROOT stock_entered players=2" in log:
         raise ValueError("pad return: unintended 2P admission")
 
+    # A repainted root can still be unusable if guest->host controller focus
+    # was not restored. Require the same SDL pad to navigate from Play to
+    # Records, open a genuinely painted archive and close it with B.
+    tail = log[positions[reopened] + len(reopened):]
+    post_stages = (
+        r"^UR_BALDOSA_MODERN_ROOT selected=1$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=2$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=3$",
+        r"^UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=\d+ unavailable=\d+$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
+    )
+    post_positions = []
+    for stage in post_stages:
+        matches = list(re.finditer(stage, tail, re.MULTILINE))
+        if len(matches) != 1:
+            raise ValueError(f"pad return: missing/duplicate post-return Records stage {stage!r}")
+        post_positions.append(matches[0].start())
+    if post_positions != sorted(post_positions) or len(set(post_positions)) != len(post_positions):
+        raise ValueError("pad return: post-return controller Records journey out of order")
+    if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
+        raise ValueError("pad return: unexpected stock relaunch after reentry")
 
 
 def reject_unexpected_stock_route(log: str, label: str) -> None:

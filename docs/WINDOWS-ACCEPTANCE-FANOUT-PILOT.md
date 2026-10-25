@@ -20,6 +20,14 @@ Group seed-dependent runs the original baseline first, checks its actual newly p
 
 The Ubuntu aggregate validates both SHA256-bound receipts, their shared source/EXE/fixture/ZIP identity, all original 13 case indices and step names, every exit code, missingness, duplicate coverage and any attempted release credit. It fails closed on missing group or mismatch, but never writes RELEASE-QUALITY-LEDGER.json.
 
+### First real Windows v2 provenance run (October 25, 2026)
+
+[Actions run #40222618116](https://github.com/gamesbyian/UR-Recomp/actions/runs/40222618116), source checkout `2c63f44593da14fe9873e0493a5086f9934016f9`, **completed successfully** on all four real hosted-Windows/aggregate jobs: one source-guarded build-only candidate, exact original scripts 0–2 with dependent live 8192-byte seed, ten independent original scripts 3–12, and fail-closed Ubuntu aggregate. The artifact producer published candidate `12609778026`; private-log-hashed group v2 receipts `12609728771` (seed-dependent) and `12610626142` (independent); and aggregate `12610228004`. The aggregate job passed with all 13 original case inputs and matching candidate identities.
+
+This real acceptance-transport run exercises merged [#2577](https://github.com/gamesbyian/UR-Recomp/pull/2577), upgrading group and aggregate schemas to `ur-win32-acceptance-fanout/2` and `ur-win32-acceptance-fanout-aggregate/2`. No original guest logs or private user/ROM/SRAM contents are uploaded; only their content hash and byte length are available for later owner-authorized inspection. The temporary PR ready-for-review trigger [#2578](https://github.com/gamesbyian/UR-Recomp/pull/2578) was **closed without merge**. Normal production workflows remain opt-in manual.
+
+**Limits:** this does not prove physical Windows controllers/screens/audio, full original CMD/fault/packaging coverage, 45-course original/native parity or any complete Windows release gate. The success does not rewrite the authoritative `RELEASE-QUALITY-LEDGER.json`.
+
 ### Private original-script output fingerprints
 
 Each original Win32 script's combined stdout/stderr log stays on the ephemeral Windows worker. The producer records a SHA-256 and byte length for each actual log and (when present) its optional Markdown summary, using strict fixed filenames. Missing or symlinked logs fail closed. A missing optional summary is represented as `summary_sha256: null` and `summary_bytes: 0`, not invented evidence. All 13 fingerprints flow into the aggregate receipt without uploading private logs, user paths, ROM or SRAM.

@@ -25,12 +25,18 @@ def summarize(root: Path, metadata: dict[str, str]) -> dict:
             if re.fullmatch(r"shard[0-9]+=[0-9]+", line):
                 key, value = line.split("=", 1)
                 exits[key] = int(value)
+    manifest = root / "unit-shard-count.txt"
+    expected = None
+    if manifest.is_file() and not manifest.is_symlink():
+        raw_count = manifest.read_text(encoding="utf-8").strip()
+        if re.fullmatch(r"[2-4]", raw_count):
+            expected = int(raw_count)
     shards = []
     found = set(exits) | {m.group(1) for f in root.glob("unit-shard*.log")
                           if (m := re.fullmatch(r"unit-(shard[0-9]+)\.log", f.name))}
     # Always expect at least the historical two shards so a missing log is
     # reported as not_run rather than silently omitted.
-    names = sorted(found | {"shard0", "shard1"}, key=lambda n: int(n[5:]))
+    names = sorted(found | {f"shard{i}" for i in range(expected or 2)}, key=lambda n: int(n[5:]))
     for name in names:
         path = root / f"unit-{name}.log"
         if not path.is_file():
@@ -52,13 +58,14 @@ def summarize(root: Path, metadata: dict[str, str]) -> dict:
                        "log_sha256": hashlib.sha256(raw).hexdigest(),
                        "issues": ISSUE.findall(log)[:8]})
     outcomes = {x["outcome"] for x in shards}
-    overall = ("incomplete" if "not_run" in outcomes or "incomplete" in outcomes else
+    overall = ("incomplete" if expected is None or "not_run" in outcomes or "incomplete" in outcomes else
                "harness_error" if "harness_error" in outcomes else
                "fail" if "fail" in outcomes else "pass")
     return {"schema": "UR-CI-UNIT-RESULT/1", "authority": "diagnostic-only",
             "outcome": overall, "source": metadata,
+            "expected_shards": expected, "observed_shards": len(found),
             "total_tests_observed": sum(x["tests"] or 0 for x in shards),
-            "shards": shards, "missing_evidence": [x["id"] for x in shards
+            "shards": shards, "missing_evidence": (["shard_manifest"] if expected is None else []) + [x["id"] for x in shards
                                                    if x["outcome"] in ("not_run", "incomplete", "harness_error")]}
 
 

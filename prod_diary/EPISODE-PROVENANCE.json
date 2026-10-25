@@ -1,6 +1,6 @@
 {
   "schema": "ur-production-episode-provenance/1",
-  "scope": "retrospective reconstructed episode index; links are evidence leads, not automatic verification",
+  "scope": "Retrospective/source-limited episode index; PRs and archives are evidence leads, not automatic validation; numbered episodes 1–85",
   "created": "2026-10-20",
   "episodes": [
     {
@@ -1033,6 +1033,238 @@
       "verbatim_transcript_verified": false,
       "source_coverage": "partial",
       "notes": "October 21–23 retrospective catch-up published October 23; source conversations are selective reconstructed summaries, not verbatim transcripts. Paired Bayou chapter PRODUCTION-DIARY-CAJUN-2026-10-23.md. PRs are evidence leads rather than automatic validation."
+    },
+    {
+      "id": 76,
+      "title": "“Do you stuff, homey,” says the director to the Vault",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2439,
+        2479,
+        2481
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 77,
+      "title": "The archive receives a fingerprint, not a pardon",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2485,
+        2488,
+        2492,
+        2481
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 78,
+      "title": "A future player opens a ZIP on the wrong computer",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2466,
+        2461,
+        2463,
+        2149
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 79,
+      "title": "The director refuses to confuse activity with arrival",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 80,
+      "title": "The title can attract a player before it can pass the gate",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2149,
+        2462,
+        2428
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 81,
+      "title": "A director tells the agents to build a better shovel",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2551,
+        2552,
+        2573
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 82,
+      "title": "Zoo makes the reducer prove it saw a real animal",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2576,
+        2582,
+        2583,
+        2588
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 83,
+      "title": "A tiny sound pointer finally leaves footprints",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2589,
+        2591,
+        2592
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 84,
+      "title": "The Windows package learns to say “unavailable” truthfully",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2568,
+        2569,
+        2556,
+        2566,
+        2571,
+        2546,
+        2593
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
+    },
+    {
+      "id": 85,
+      "title": "The tests get tested; the diary remembers the person",
+      "volume": "PRODUCTION-DIARY-2026-10-25.md",
+      "pr_numbers": [
+        2595,
+        2594
+      ],
+      "issue_numbers": [],
+      "archive_files": [
+        "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+        "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md"
+      ],
+      "source_ids": [
+        "UR-DIRECTOR-EXCERPTS-20261021-25",
+        "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25"
+      ],
+      "record_kind": "retrospective_synthesis",
+      "verbatim_transcript_verified": false,
+      "source_coverage": "partial",
+      "notes": "October 24–25 editorial reconstruction, composed October 25; direct user excerpts are bounded source_excerpt, not a complete conversation export. Pair: PRODUCTION-DIARY-CAJUN-2026-10-25.md. GitHub PRs are source evidence and must be checked for date-specific disposition; no event or Windows release gate inferred."
     }
   ]
 }

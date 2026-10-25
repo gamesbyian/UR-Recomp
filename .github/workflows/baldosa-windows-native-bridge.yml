@@ -399,6 +399,15 @@ jobs:
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Exercise the real compiled next-boot selector with a Unicode root on
+      # Windows. Linux UTF-8 paths alone cannot detect ANSI path conversion.
+      - name: Verify Unicode named-profile next-boot selection on Win32
+        run: |
+          set -euo pipefail
+          source "${TOOLCHAIN_DIR}/env.sh"
+          python -m unittest -v tests.unit.test_baldosa_native_existing_profile_next_boot_cpp
+          echo "PASS: compiled Unicode named-profile selector preserves typed/raw/catalog; hosted filesystem evidence only." >> "$GITHUB_STEP_SUMMARY"
+
       # Same exact PE, real Win32 window: Options seam and Alt+Enter through
       # windowed / borderless / exclusive, then an unreachable-window rescue.
       - name: Exercise SDL3 display mode transitions on Win32

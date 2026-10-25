@@ -62,12 +62,19 @@ class NativeNextBootProfileSwitchTests(unittest.TestCase):
             "catalog_entry_matches_profile_state",
             "stock_sram_format_signature_present",
             "baldosa_sram_file_matches_exact",
-            "save_host_product_state_file(selector.string(), next)",
+            "save_host_product_state_file(selector.u8string(), next)",
             "next.active_profile_id = std::string(requested_profile)",
             "expected_active_profile == requested_profile",
             "next_profile_id",
         ):
             self.assertIn(expected, header)
+        # Windows native locks use filesystem paths, while codecs accept UTF-8.
+        self.assertIn("selector_lock(selector, true)", header)
+        self.assertIn("catalog_lock(catalog, true)", header)
+        self.assertIn("first_lock(typed_paths[0], true)", header)
+        self.assertIn("second_lock(typed_paths[1], true)", header)
+        self.assertNotIn("selector.string()", header)
+        self.assertNotIn("catalog.string()", header)
         self.assertNotIn("save_host_product_state_file_if_current(", header)
         self.assertNotIn("RtlWriteSram", header)
         self.assertNotIn("RtlSetSaveRoot", header)

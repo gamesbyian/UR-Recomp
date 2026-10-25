@@ -65,6 +65,30 @@ int main() {
     assert(create_baldosa_second_preset_for_next_boot(
                empty, "mike", 1).created());
 
+    // Native Windows profile switching must preserve the same UTF-8 user
+    // root used by SDL. An ASCII-only root hides path.string() conversions
+    // that break Windows directories outside the active ANSI code page.
+    const fs::path unicode_root = root / fs::u8path(u8"racer-雪-Δ");
+    fs::copy(empty, unicode_root, fs::copy_options::recursive);
+    const fs::path unicode_selector = unicode_root / "host-state-v1.txt";
+    const fs::path unicode_catalog = unicode_root / "profiles-v1.txt";
+    const fs::path unicode_raw = unicode_root / "saves/profile-mike/save.srm";
+    const fs::path unicode_typed = unicode_root / "saves/profile-mike/host-profile.txt";
+    const std::string unicode_catalog_before = bytes(unicode_catalog);
+    const std::string unicode_raw_before = bytes(unicode_raw);
+    const std::string unicode_typed_before = bytes(unicode_typed);
+    const auto unicode_selection = select_baldosa_existing_profile_for_next_boot(
+        unicode_root, "mike", "andrew");
+    assert(unicode_selection.selected());
+    const auto unicode_after = load_host_product_state_file(
+        unicode_selector.u8string());
+    assert(unicode_after.loaded() &&
+           unicode_after.state->active_profile_id == "andrew");
+    assert(bytes(unicode_catalog) == unicode_catalog_before);
+    assert(bytes(unicode_raw) == unicode_raw_before);
+    assert(bytes(unicode_typed) == unicode_typed_before);
+
+
     const fs::path global = empty / "host-state-v1.txt";
     const fs::path catalog = empty / "profiles-v1.txt";
     const fs::path mtyped = empty / "saves/profile-mike/host-profile.txt";

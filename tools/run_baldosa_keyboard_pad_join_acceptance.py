@@ -37,6 +37,9 @@ JOIN = "wait 400\nquit\n"  # Negative controls retain their short bounded window
 # The established native Windows Modern 2P journey uses 1800 turbo frames
 # for the actual guest stock-menu transition; 400 can stop before admission.
 POSITIVE_JOIN = "turbo on\nwait 1800\nquit\n"
+# Mode 31: no guest input commands, only turbo/wait/quit while the SDL P1
+# delivers every stock menu and gameplay edge through the native host.
+PAD_RACE = "turbo on\\nwait 7200\\nquit\\n"
 
 
 def lines(log: str, pattern: str) -> list[str]:
@@ -360,6 +363,45 @@ def verify_five_destination_pad_return(log: str) -> None:
         raise ValueError("pad return: unexpected stock relaunch after reentry")
 
 
+def verify_five_destination_pad_race(log: str) -> None:
+    """Require source-settled 1P after one uninterrupted SDL controller route.
+
+    The original guest result observer and saved archive remain authorities.
+    This does not yet establish controller navigation AFTER the result.
+    """
+    verify_five_destination_pad_journey(log)
+    require_single_pad_seat_continuity(log, "pad earned race")
+    markers = (
+        r"^UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c$",
+        r"^UR_BALDOSA_MODERN_PAD_RACE source_stock_setup=1 menu=3c$",
+        r"^UR_BALDOSA_MODERN_PAD_RACE source_start_pulses=4$",
+        r"^UR_BALDOSA_MODERN_PAD_RACE source_go=1 phase=8610 ticker=[1-9][0-9]*$",
+        r"^UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
+        r"race_host=([0-9]+) result_host=([0-9]+) "
+        r"finish_ticks60=([0-9]+) input_frames=([0-9]+) "
+        r"input_runs=([0-9]+) published=([01])$",
+    )
+    found = [list(re.finditer(marker, log, re.MULTILINE)) for marker in markers]
+    if any(len(matches) != 1 for matches in found):
+        raise ValueError("pad earned race: source GO/result milestones missing or duplicated")
+    positions = [matches[0].start() for matches in found]
+    if positions != sorted(positions):
+        raise ValueError("pad earned race: stock/GO/result ordering invalid")
+    race_host, result_host, ticks, input_frames, input_runs, published = (
+        int(value) for value in found[-1][0].groups()
+    )
+    if (race_host >= result_host or ticks <= 0 or input_frames <= 0 or
+            input_runs <= 0 or published != 1):
+        raise ValueError("pad earned race: source result not settled/published")
+    if len(re.findall(
+            r"(?m)^UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-1p "
+            r"profile=mike course=course:01 ", log)) != 1:
+        raise ValueError("pad earned race: actual Mike course:01 capture missing")
+    if ("UR_BALDOSA_NATIVE_RUN SAVE_PENDING=1" in log or
+            "UR_BALDOSA_NATIVE_RUN NOT_SAVED=1" in log):
+        raise ValueError("pad earned race: canonical run not durably published")
+
+
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""
     for marker in ("UR_BALDOSA_MODERN_ROOT stock_requested",
@@ -476,7 +518,29 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             "inspect retained five_destination_return/log.txt"
         ) from exc
 
+    # Unlike the old stock GO script, this native guest receives every
+    # original stock/race button edge from the same SDL virtual P1.
+    archive = user / "runs" / "mike"
+    existing = set(archive.glob("*.urrun")) if archive.is_dir() else set()
+    log = run_game(exe, rom, user, out / "five_destination_earned_race", "31",
+                   PAD_RACE, video, max(timeout, 300))
+    try:
+        verify_five_destination_pad_race(log)
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; inspect retained five_destination_earned_race/log.txt"
+        ) from exc
+    after = set(archive.glob("*.urrun")) if archive.is_dir() else set()
+    new_runs = after - existing
+    if (len(new_runs) != 1 or existing - after or
+            any(path.is_symlink() or not path.is_file() or
+                path.stat().st_size == 0 for path in new_runs)):
+        raise ValueError("pad earned race: exactly one new canonical .urrun required")
+    earned_sha256 = hashlib.sha256(next(iter(new_runs)).read_bytes()).hexdigest()
+
     receipt = {
+        "five_destination_earned_race": "one_sdl_p1_real_original_go_source_settled_1p_record",
+        "earned_run_sha256": earned_sha256,
         "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
@@ -490,8 +554,9 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "source_commit": os.environ.get("GITHUB_SHA"),
         "scope": "Modern 2P join and one continuous five-destination title-to-stock "
                  "journey and stock-setup-to-Modern-root return with SDL virtual "
-                 "gamepads; not physical controllers, completed races/results "
-                 "or release acceptance",
+                 "gamepads; mode 31 additionally earns a source-settled 1P "
+                 "record, but post-result navigation, physical controllers "
+                 "and release acceptance remain outstanding",
     }
     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     return receipt

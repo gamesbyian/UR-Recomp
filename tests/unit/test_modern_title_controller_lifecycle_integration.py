@@ -215,13 +215,14 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         self.assertIn("reopened_frame = frame;", fixture)
         self.assertNotIn('SDL_KEYDOWN', fixture)
         self.assertNotIn('ur_baldosa_modern_root_gamepad(', fixture)
-        self.assertIn('mode < 1 || mode > 31', SOURCE)
+        self.assertIn('mode < 1 || mode > 32', SOURCE)
         self.assertIn('std::strcmp(fixture, "29") != 0', SOURCE)
         runner = (
             ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py"
         ).read_text(encoding="utf-8")
         self.assertIn('"five_destination_pad", "29"', runner)
         self.assertIn('"five_destination_return", "30"', runner)
+        self.assertIn('"five_destination_earned_return", "32"', runner)
 
     def test_five_destination_native_view_and_stock_positive_and_negatives(self):
         host = "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added"

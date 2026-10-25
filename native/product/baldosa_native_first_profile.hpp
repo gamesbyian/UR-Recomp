@@ -66,7 +66,7 @@ inline BaldosaFirstRacerResult create_baldosa_first_preset_for_next_boot(
 
     const fs::path global = user_root / "host-state-v1.txt";
     const fs::path catalog = user_root / "profiles-v1.txt";
-    const auto existing = load_host_product_state_file(global.string());
+    const auto existing = load_host_product_state_file(global.u8string());
     // load_host_product_state_file reports a dangling symlink as missing
     // on some hosts. Creation must never follow or repair such a selector.
     if (existing.status != HostProductLoadStatus::Missing ||
@@ -111,7 +111,7 @@ inline BaldosaFirstRacerResult create_baldosa_first_preset_for_next_boot(
 
     const fs::path typed = profile_dir / "host-profile.txt";
     if (save_host_profile_state_file_if_current(
-            ExecutionMode::Modern, typed.string(), std::nullopt, *state) !=
+            ExecutionMode::Modern, typed.u8string(), std::nullopt, *state) !=
         HostProfileSaveStatus::Saved)
         return {BaldosaFirstRacerStatus::IoError, {}};
     // Only create a previously absent raw file. No 'repair' or automatic
@@ -136,21 +136,21 @@ inline BaldosaFirstRacerResult create_baldosa_first_preset_for_next_boot(
     // is the final CAS publication; process death earlier leaves no active
     // racer and therefore cannot make the next boot adopt partial data.
     {
-        TournamentLaunchPathLock catalog_lock(catalog.string(), true);
+        TournamentLaunchPathLock catalog_lock(catalog, true);
         if (!catalog_lock.acquired())
             return {BaldosaFirstRacerStatus::IoError, {}};
         if (!baldosa_first_profile_entry_absent(catalog) ||
-            load_host_product_state_file(global.string()).status !=
+            load_host_product_state_file(global.u8string()).status !=
                 HostProductLoadStatus::Missing)
             return {BaldosaFirstRacerStatus::AlreadyConfigured, {}};
         if (!save_host_profile_catalog_file(
-                catalog.string(), {{id, *preset}}))
+                catalog.u8string(), {{id, *preset}}))
             return {BaldosaFirstRacerStatus::IoError, {}};
     }
     HostProductState selected{};
     selected.active_profile_id = id;
     if (save_host_product_state_file_if_current(
-            global.string(), std::nullopt, selected) !=
+            global.u8string(), std::nullopt, selected) !=
         HostProductSaveStatus::Saved)
         return {BaldosaFirstRacerStatus::IoError, {}};
     return {BaldosaFirstRacerStatus::Created, id};
@@ -180,7 +180,7 @@ inline BaldosaFirstRacerResult recover_baldosa_first_preset_for_next_boot(
         return {BaldosaFirstRacerStatus::AlreadyConfigured, {}};
     if (!baldosa_native_real_file(catalog_path))
         return {BaldosaFirstRacerStatus::ExistingData, {}};
-    const auto roster = load_host_profile_catalog_file(catalog_path.string());
+    const auto roster = load_host_profile_catalog_file(catalog_path.u8string());
     if (!roster || roster->size() != 1u ||
         !(roster->front().identity == *expected) ||
         !is_safe_profile_storage_id(roster->front().profile_id))
@@ -197,28 +197,28 @@ inline BaldosaFirstRacerResult recover_baldosa_first_preset_for_next_boot(
     // The same canonical lock order as the existing native guest shutdown:
     // selector -> catalog -> typed profile. Nonblocking failure leaves all
     // bytes untouched so another process remains the sole authority.
-    TournamentLaunchPathLock selector_lock(global.string(), true);
+    TournamentLaunchPathLock selector_lock(global, true);
     if (!selector_lock.acquired())
         return {BaldosaFirstRacerStatus::IoError, {}};
-    TournamentLaunchPathLock catalog_lock(catalog_path.string(), true);
+    TournamentLaunchPathLock catalog_lock(catalog_path, true);
     if (!catalog_lock.acquired())
         return {BaldosaFirstRacerStatus::IoError, {}};
-    TournamentLaunchPathLock typed_lock(typed.string(), true);
+    TournamentLaunchPathLock typed_lock(typed, true);
     if (!typed_lock.acquired())
         return {BaldosaFirstRacerStatus::IoError, {}};
     if (!baldosa_first_profile_entry_absent(global) ||
-        load_host_product_state_file(global.string()).status !=
+        load_host_product_state_file(global.u8string()).status !=
             HostProductLoadStatus::Missing ||
         !baldosa_native_real_file(catalog_path) ||
         !baldosa_native_selected_profile_paths_are_real(
             user_root, location.save_root))
         return {BaldosaFirstRacerStatus::ExistingData, {}};
     const auto reread = load_host_profile_catalog_file(
-        catalog_path.string());
+        catalog_path.u8string());
     if (!reread || *reread != *roster)
         return {BaldosaFirstRacerStatus::ExistingData, {}};
     const auto profile = load_host_profile_state_file(
-        ExecutionMode::Modern, typed.string(), id);
+        ExecutionMode::Modern, typed.u8string(), id);
     if (!profile.loaded() || !profile.state->stock_sram ||
         !catalog_entry_matches_profile_state(
             roster->front(), *profile.state) ||
@@ -234,7 +234,7 @@ inline BaldosaFirstRacerResult recover_baldosa_first_preset_for_next_boot(
     // Call its staged-write primitive directly: save_if_current() acquires
     // this SAME selector lock internally and would self-deadlock here.
     // Typed/catalog/raw content is immutable throughout this publication.
-    if (save_host_product_state_file(global.string(), selected) !=
+    if (save_host_product_state_file(global.u8string(), selected) !=
         HostProductSaveStatus::Saved)
         return {BaldosaFirstRacerStatus::IoError, {}};
     return {BaldosaFirstRacerStatus::Recovered, id};

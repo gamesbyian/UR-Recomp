@@ -107,7 +107,7 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["runner_seconds"], 300)
         self.assertEqual(row["observed_job_span_seconds"], 240)
         self.assertEqual(row["mean_active_jobs"], 1.25)
-        self.assertIn("| Modern | 1 | 5.0 | 0.0 | 0.0 | 4.0 | 1.25 | 2 |", markdown(report))
+        self.assertIn("| Modern | 1 | 0 | 5.0 | 0.0 | 0.0 | 4.0 | 1.25 | 2 |", markdown(report))
 
     def test_sample_coverage_and_cancelled_runner_cost_are_explicit(self):
         now = datetime(2026, 10, 4, tzinfo=timezone.utc)
@@ -150,6 +150,8 @@ class CiRuntimeReportTest(unittest.TestCase):
                            }]}]})
         row = report["workflows"][0]
         self.assertEqual(row["runs_with_job_timing"], 0)
+        self.assertEqual(row["runs_missing_job_timing"], 1)
+        self.assertIn("lower bounds", markdown(report))
         self.assertEqual(row["runner_seconds"], 0)
         self.assertEqual(row["mean_active_jobs"], 0)
         self.assertEqual(row["peak_active_jobs"], 0)

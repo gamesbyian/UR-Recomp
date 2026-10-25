@@ -1,7 +1,17 @@
 name: MesenCE ordinary 2P evidence
 
 on:
+  pull_request:
+    types: [ready_for_review]
+    paths:
+      - ".github/workflows/mesence-two-player-reference.yml"
   workflow_dispatch:
+    inputs:
+      benchmark_controller_batches:
+        description: "Compare opt-in controller input batching to original full WRAM"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: mesence-ordinary-2p-${{ github.ref }}
@@ -15,6 +25,7 @@ env:
 
 jobs:
   mesence-two-player:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.head_ref == 'ci/mesen-batching-qualification-20261025' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false) }}
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
@@ -97,7 +108,52 @@ jobs:
           chmod +x "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/scripts/run_headless.sh"
           mkdir -p "$RUNNER_TEMP/mesen-dumps"
           export MESEN_FOR_AI_REPO="$GITHUB_WORKSPACE/third_party/src/mesen-for-ai"
-          timeout 240s xvfb-run -a             python3 tools/run_fixture_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --script tests/input/two-player-first-race-observe.script               --dump-dir "$RUNNER_TEMP/mesen-dumps"             | tee "$RUNNER_TEMP/mesen-two-player.log"
+          /usr/bin/time -f '%e' -o "$RUNNER_TEMP/mesen-legacy-seconds.txt" \
+            timeout 240s xvfb-run -a             python3 tools/run_fixture_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --script tests/input/two-player-first-race-observe.script               --dump-dir "$RUNNER_TEMP/mesen-dumps"             | tee "$RUNNER_TEMP/mesen-two-player.log"
+
+      - name: Replay with opt-in batched controller transitions
+        if: ${{ github.event_name == 'pull_request' || inputs.benchmark_controller_batches == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/mesen-batched-dumps"
+          export MESEN_FOR_AI_REPO="$GITHUB_WORKSPACE/third_party/src/mesen-for-ai"
+          /usr/bin/time -f '%e' -o "$RUNNER_TEMP/mesen-batched-seconds.txt" \
+            timeout 240s xvfb-run -a python3 tools/run_fixture_mesen.py \
+              "reference/roms/retail/Uniracers_USA.sfc" \
+              --input-file tests/input/two-player-first-race.input \
+              --script tests/input/two-player-first-race-observe.script \
+              --batch-controller-intervals \
+              --dump-dir "$RUNNER_TEMP/mesen-batched-dumps" \
+            | tee "$RUNNER_TEMP/mesen-batched.log"
+
+      - name: Compare every raw WRAM byte and guest frame milestone
+        if: ${{ github.event_name == 'pull_request' || inputs.benchmark_controller_batches == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compare_mesen_batch_replay.py \
+            --source-sha "$GITHUB_SHA" \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --mesen "$MESEN_BIN" \
+            --input tests/input/two-player-first-race.input \
+            --script tests/input/two-player-first-race-observe.script \
+            --legacy "$RUNNER_TEMP/mesen-dumps" \
+            --batched "$RUNNER_TEMP/mesen-batched-dumps" \
+            --legacy-log "$RUNNER_TEMP/mesen-two-player.log" \
+            --batched-log "$RUNNER_TEMP/mesen-batched.log" \
+            --legacy-time "$RUNNER_TEMP/mesen-legacy-seconds.txt" \
+            --batched-time "$RUNNER_TEMP/mesen-batched-seconds.txt" \
+            --out "$RUNNER_TEMP/mesen-batching-ab-result.json"
+          python3 - "$RUNNER_TEMP/mesen-batching-ab-result.json" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1],encoding="utf-8"))
+          print("### MesenCE input replay A/B, not release QA")
+          print(f"- Full source WRAM parity: {sum(x['identical'] for x in r['source_observations'])}/{len(r['source_observations'])} checkpoints")
+          print(f"- Replay-only elapsed: {r['legacy_seconds']}s old, {r['batched_seconds']}s batched")
+          print(f"- Time reduction: {r['replay_only_percent_time_reduction']}%")
+          print("- Independent emulator/native/physical/release gate credit: **0**")
+          PY
 
       - name: Summarize MesenCE paired-player checkpoints
         shell: bash
@@ -170,4 +226,9 @@ jobs:
             ${{ runner.temp }}/mesen-two-player-state.json
             ${{ runner.temp }}/mesen-two-player-state.txt
             ${{ runner.temp }}/mesen-dumps/
+            ${{ runner.temp }}/mesen-batched-dumps/
+            ${{ runner.temp }}/mesen-batched.log
+            ${{ runner.temp }}/mesen-legacy-seconds.txt
+            ${{ runner.temp }}/mesen-batched-seconds.txt
+            ${{ runner.temp }}/mesen-batching-ab-result.json
           retention-days: 7

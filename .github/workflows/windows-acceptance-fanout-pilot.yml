@@ -1,10 +1,16 @@
-name: Windows acceptance fan-out (manual exact candidate)
+name: Windows acceptance fan-out (one-build, two-group manual pilot)
 on:
   workflow_dispatch:
     inputs:
-      candidate_run_id:
-        description: "Successful same-SHA Baldosa Windows bridge run with exported candidate"
+      build_only:
+        description: "Build one exact ROM-free candidate in this run, then run all 13 original journeys"
         required: true
+        type: boolean
+        default: true
+      candidate_run_id:
+        description: "For build_only=false: exact-source successful bridge or build-only producer run ID"
+        required: false
+        default: ""
         type: string
 permissions:
   contents: read
@@ -13,7 +19,13 @@ concurrency:
   group: ur-windows-acceptance-fanout-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  candidate:
+    if: ${{ inputs.build_only == true }}
+    uses: ./.github/workflows/windows-exact-build-only.yml
+
   journeys:
+    needs: candidate
+    if: ${{ always() && (inputs.build_only == true && needs.candidate.result == 'success' || inputs.build_only != true) }}
     runs-on: windows-2022
     timeout-minutes: 35
     strategy:
@@ -36,6 +48,7 @@ jobs:
           path: baldosa
           persist-credentials: false
       - name: Authenticate producer as successful exact source
+        if: ${{ inputs.build_only != true }}
         env:
           GH_TOKEN: ${{ github.token }}
           PRODUCER_RUN: ${{ inputs.candidate_run_id }}
@@ -43,12 +56,12 @@ jobs:
           set -euo pipefail
           [[ "$PRODUCER_RUN" =~ ^[1-9][0-9]*$ ]]
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PRODUCER_RUN" > "$RUNNER_TEMP/candidate-producer.json"
-          python -c 'import json,os,pathlib; r=json.loads((pathlib.Path(os.environ["RUNNER_TEMP"])/"candidate-producer.json").read_text()); assert r["head_sha"]==os.environ["GITHUB_SHA"], "source SHA mismatch"; assert r["status"]=="completed" and r["conclusion"]=="success", "candidate run not green"; assert r["name"]=="Baldosa native Windows x64 bridge feasibility", "wrong candidate producer"'
+          python -c 'import json,os,pathlib; r=json.loads((pathlib.Path(os.environ["RUNNER_TEMP"])/"candidate-producer.json").read_text()); assert r["head_sha"]==os.environ["GITHUB_SHA"], "source SHA mismatch"; assert r["status"]=="completed" and r["conclusion"]=="success", "candidate run not green"; assert r["name"] in ("Baldosa native Windows x64 bridge feasibility", "Exact Baldosa Windows x64 build-only candidate"), "wrong candidate producer"'
       - name: Download the exact verified candidate (no native compilation)
         uses: actions/download-artifact@v4
         with:
           name: qa-baldosa-native-export
-          run-id: ${{ inputs.candidate_run_id }}
+          run-id: ${{ inputs.build_only == true && github.run_id || inputs.candidate_run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/fanout-inputs
       - name: Verify original and packaged candidate identities

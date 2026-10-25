@@ -426,7 +426,7 @@ def verify_five_destination_pad_post_result(log: str) -> None:
     require_single_pad_seat_continuity(log, "pad earned return")
     if not re.search(
             r"(?m)^UR_BALDOSA_MODERN_PAD_POST source_observed "
-            r"frame=\\d+ menu=99 race=[0-9a-f]{2} stage=0$", log):
+            r"frame=\d+ menu=99 race=[0-9a-f]{2} stage=0$", log):
         raise ValueError("pad earned return: no observed original result menu")
     stages = (
         "UR_BALDOSA_MODERN_PAD_RACE source_input_completed=1",
@@ -463,8 +463,8 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         r"^UR_BALDOSA_MODERN_ROOT selected=3$",
         r"^UR_BALDOSA_MODERN_ROOT records_opened=1 "
         r"profile=selected validated=([1-9][0-9]*) unavailable=[0-9]+$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\\b"
-        r"[^\\r\\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\b"
+        r"[^\r\n]*source=modern_product_view$",
         r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
     )
     last = -1

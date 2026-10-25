@@ -13,7 +13,7 @@ from pathlib import Path
 
 import run_baldosa_parallel_windows_journeys as bridge
 
-SCHEMA = "ur-win32-acceptance-fanout/1"
+SCHEMA = "ur-win32-acceptance-fanout/2"
 GROUPS = {"seed-dependent": (0, 1, 2), "independent": tuple(range(3, 13))}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -182,7 +182,7 @@ def aggregate(root, source_sha):
     if sorted(indices) != list(range(13)):
         problems.append("original thirteen-journey inventory incomplete or duplicated")
     return {
-        "schema": "ur-win32-acceptance-fanout-aggregate/1",
+        "schema": "ur-win32-acceptance-fanout-aggregate/2",
         "source_sha": source_sha, "candidate_identity": identities[0] if identities else None,
         "cases": sorted(({"index": row["index"], "exit_code": row["exit_code"],
                           "elapsed_seconds": row["elapsed_seconds"],

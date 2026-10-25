@@ -37,8 +37,17 @@ class ModernHostUtf8IoTests(unittest.TestCase):
             begin = source.index("std::string product_user_data_root() {")
             end = source.index("\n}", begin)
             function = source[begin:end]
-            self.assertEqual(function.count("host_trim_user_data_root("), 2,
-                             name)
+            # The Modern host has an additional native UTF-16 environment
+            # branch on Windows; both hosts retain the POSIX override and
+            # SDL preference-path fallback. Count each actual trim path.
+            expected = 3 if name == "uniracers_modern_host.cpp" else 2
+            self.assertEqual(function.count("host_trim_user_data_root("),
+                             expected, name)
+            if name == "uniracers_modern_host.cpp":
+                self.assertIn('_wgetenv(L"UR_RECOMP_USER_DATA_ROOT")',
+                              function)
+                self.assertIn("std::filesystem::path(wide_root).u8string()",
+                              function)
             self.assertNotIn("root.pop_back()", function, name)
 
     def test_compiled_unicode_directory_file_roundtrip(self):

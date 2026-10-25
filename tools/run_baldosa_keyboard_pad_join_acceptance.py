@@ -512,6 +512,14 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         raise ValueError("pad earned return: SDL quit event was rejected")
     if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
         raise ValueError("pad earned return: unexpected stock relaunch")
+    # The fallback script also quits cleanly at frame 11000. A product
+    # "quit queued" receipt alone cannot establish that its SDL_QUIT was
+    # actually consumed. Require the native host's exit witness strictly
+    # before the script's termination deadline; stdout/stderr are separate
+    # streams, so do not infer their relative order from concatenation.
+    exits = re.findall(r"(?m)^exit: SDL_QUIT event after ([0-9]+) frames$", log)
+    if len(exits) != 1 or not (0 < int(exits[0]) < 11000):
+        raise ValueError("pad earned return: native SDL Quit not witnessed before script fallback")
 
 
 def reject_unexpected_stock_route(log: str, label: str) -> None:

@@ -13,6 +13,9 @@ on:
       - "tests/native/widescreen_output_composition_test.cpp"
       - "tests/native/modern_pause_menu_test.cpp"
       - "tests/native/modern_pause_input_test.cpp"
+      # Options rollback refusal is an executable native C++ regression.
+      - "native/product/baldosa_native_options.hpp"
+      - "tests/native/baldosa_native_options_test.cpp"
       - "native/product/modern_pause_menu.cpp"
       - "native/product/modern_pause_menu.h"
       - "native/product/modern_pause_input.cpp"
@@ -29,6 +32,8 @@ on:
       - "tests/native/multiplayer_match_catalog_test.cpp"
       - "native/product/baldosa_native_multiplayer_records_summary.*"
       - "tests/native/baldosa_native_multiplayer_records_summary_test.cpp"
+      - "native/product/baldosa_native_records_summary.*"
+      - "tests/native/baldosa_native_records_summary_test.cpp"
       - "native/product/local_tournament_utf8_path.hpp"
       - "native/product/local_tournament_fixture_launch_store.cpp"
       - "native/product/local_tournament_fixture_launch_store.hpp"
@@ -246,7 +251,8 @@ jobs:
           retention-days: 14
 
       - name: Preserve full failing-shard diagnostics
-        if: failure()
+        # Timeout cancellation must retain the last executed test name.
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
           name: ci-tooling-unit-failure-logs

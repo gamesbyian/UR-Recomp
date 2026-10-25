@@ -22,7 +22,9 @@ bool is_run_artifact(const std::filesystem::directory_entry& entry) {
 }  // namespace
 
 std::vector<InspectedMultiplayerMatchArtifact>
-inspect_multiplayer_match_artifacts(const std::string& directory) {
+inspect_multiplayer_match_artifacts(const std::string& directory,
+                                   bool* scan_succeeded) {
+    if (scan_succeeded) *scan_succeeded = false;
     std::vector<InspectedMultiplayerMatchArtifact> inspected;
     if (directory.empty()) return inspected;
 
@@ -31,9 +33,14 @@ inspect_multiplayer_match_artifacts(const std::string& directory) {
     if (ec) return inspected;
 
     std::vector<std::filesystem::path> paths;
-    for (const auto& entry : it) {
-        if (is_run_artifact(entry)) paths.push_back(entry.path());
+    // A partial or failed enumeration cannot masquerade as empty history.
+    // Use the error-code increment so mid-scan I/O failures also fail closed.
+    const std::filesystem::directory_iterator end;
+    for (; it != end; it.increment(ec)) {
+        if (is_run_artifact(*it)) paths.push_back(it->path());
     }
+    if (ec) return inspected;
+    if (scan_succeeded) *scan_succeeded = true;
     std::sort(paths.begin(), paths.end());
 
     inspected.reserve(paths.size());

@@ -1,0 +1,181 @@
+name: Exact Baldosa Windows x64 build-only candidate
+
+# Build only, no player-journey acceptance. The source-preserved build
+# steps are independently checked against the long Windows bridge.
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: ur-exact-build-only-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify build scripts match authoritative Windows producer
+        run: |
+          python tools/check_windows_build_source_reuse.py
+          python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+      - name: Guard guest CRC, pause witness and Modern mutable-root stage
+        run: |
+          python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_baldosa_io_access_clock_order_patch.py
+          python tests/unit/test_windows_rf017_source_identity.py
+          python tests/unit/test_bind_baldosa_candidate_receipt.py
+          python tests/unit/test_audit_baldosa_romless_candidate.py
+          python tests/unit/test_check_windows_pe_timestamp.py
+          python tests/unit/test_baldosa_windows_native_pause_route.py
+          python tests/unit/test_baldosa_native_1p_records_probe.py
+          python tests/unit/test_baldosa_native_2p_records_probe.py
+          python tests/unit/test_baldosa_native_first_profile_cpp.py
+          python tests/unit/test_baldosa_native_first_racer_probe.py
+          python tests/unit/test_baldosa_native_existing_p1_ui_probe.py
+          python tests/unit/test_baldosa_native_second_racer_probe.py
+          python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
+          python tests/unit/test_baldosa_modern_user_data_spike.py
+          python tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python tests/unit/test_baldosa_modern_options_spike.py
+          python tests/unit/test_baldosa_native_options_cpp.py
+          python tests/unit/test_baldosa_native_options_probe.py
+          python tests/unit/test_baldosa_native_practice_courses_probe.py
+          python tests/unit/test_baldosa_sdl_display_lifecycle_spike.py
+          python tests/unit/test_modern_pause_overlay_presenter.py
+          python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
+          python tests/unit/test_baldosa_sdl_controller_lifecycle_spike.py
+          python tests/unit/test_baldosa_host_lifecycle_pause.py
+          python tests/unit/test_baldosa_native_options_adopt_cpp.py
+          python tests/unit/test_baldosa_window_placement_acceptance.py
+          python tests/unit/test_baldosa_session_end_spike.py
+      - name: Verify immutable native source pins
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          test -s baldosa/src/gen/dispatch_v2.c
+          git -C baldosa submodule status --recursive
+      - name: Stage only the verified UR native boundary
+        run: |
+          set -euo pipefail
+          # RF-015: source-qualified DRAM-refresh beam correction.
+          python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          # RF-017: source-qualified in-order CPU I/O clocks.
+          # The existing Windows bridge must regenerate exact USA game source,
+          # not link RF-015-only code.
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python tools/baldosa_io_access_clock_order_patch.py \
+            --game baldosa --verify-gen | tee "$RUNNER_TEMP/rf017-generated-source.txt"
+          grep -Fx 'verified 89 generated files: 15484 in-order charge statements, every block total unchanged' \
+            "$RUNNER_TEMP/rf017-generated-source.txt"
+          echo "RF-015 + RF-017 generated game/CPU clock-order source verified; independent Windows event acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
+          python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_controller_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # After the Options seam: SDL3 exclusive/borderless and display events.
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_sdl_display_lifecycle_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # After the display seam: exit-time saves also on session end / console close.
+          python tools/baldosa_session_end_spike.py --game baldosa
+          python tools/baldosa_session_end_spike.py --game baldosa
+          # No second native core, ROM or alternate product frontend.
+          test -s baldosa/src/main.c
+          test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
+      - name: Use Baldosa's already-proven Windows clang toolchain path
+        run: |
+          set -euo pipefail
+          # Source-bound player candidates must never silently follow mutable latest.
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
+      - name: Build real native AOT Windows x64 title plus UR host bridges
+        run: |
+          set -euo pipefail
+          # Same toolchain as pinned Baldosa upstream Windows workflow.
+          source "${TOOLCHAIN_DIR}/env.sh"
+          # Proven original Windows packages differ only in two linked
+          # COFF/debug timestamp fields. LLD 22 honors SOURCE_DATE_EPOCH;
+          # bind both fields to THIS exact GitHub checkout commit, not wall
+          # clock, and do not post-link patch/rewrite tested PE bytes.
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ["TOOLCHAIN_DIR"])
+          v = json.loads((root / "retcomm-toolchain.json").read_text())
+          assert v["version"] == "1.0.14", ("toolchain version drift", v.get("version"))
+          PY
+          clang --version | head -n1 | grep -F "22.1.8"
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          [[ "$SOURCE_DATE_EPOCH" =~ ^[0-9]{10}$ ]] || {
+            echo "::error::source commit timestamp invalid"; exit 1;
+          }
+          cmake -S baldosa -B baldosa/build-ur-win -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build baldosa/build-ur-win --target UniracersSNESRecomp -j 3
+          cmake --build baldosa/build-ur-win --target ur-baldosa-modern-profile-fixture -j 3
+          test -s baldosa/build-ur-win/UniracersSNESRecomp.exe
+          test -s baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe
+          python tools/check_windows_pe_timestamp.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --source-epoch "$SOURCE_DATE_EPOCH"
+          echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Same exact PE, real Win32 window: Options seam and Alt+Enter through
+      # windowed / borderless / exclusive, then an unreachable-window rescue.
+
+      - name: Assemble and bind exact ROM-free Windows candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/build-only-romless"
+          python tools/assemble_baldosa_windows_candidate.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --out "$RUNNER_TEMP/build-only-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --revision "$GITHUB_SHA"
+          (cd "$RUNNER_TEMP/build-only-romless" && sha256sum UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip > UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256)
+          python tools/bind_baldosa_candidate_receipt.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --zip "$RUNNER_TEMP/build-only-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --zip-sha256-file "$RUNNER_TEMP/build-only-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256" \
+            --revision "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/build-only-romless/candidate-binding.json"
+          echo "This is only a source-pinned build and package; no guest Windows acceptance journeys or physical hardware evidence were executed." >> "$GITHUB_STEP_SUMMARY"
+      - name: Export exact candidate for separately governed acceptance
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/qa-win32-reuse-inputs"
+          mkdir -p "$root"
+          cp "baldosa/build-ur-win/UniracersSNESRecomp.exe" "$root/UniracersSNESRecomp.exe"
+          cp "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" "$root/ur-baldosa-modern-profile-fixture.exe"
+          cp "$RUNNER_TEMP/build-only-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" "$root/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip"
+          (cd "$root" && sha256sum UniracersSNESRecomp.exe ur-baldosa-modern-profile-fixture.exe UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip > SHA256SUMS)
+          printf '%s\n' "$GITHUB_SHA" > "$root/source-commit.txt"
+          test "$(find "$root" -maxdepth 1 -type f | wc -l)" -eq 5
+      - name: Publish artifact, never a release QA receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-baldosa-native-export
+          path: ${{ runner.temp }}/qa-win32-reuse-inputs/
+          if-no-files-found: error
+          retention-days: 7

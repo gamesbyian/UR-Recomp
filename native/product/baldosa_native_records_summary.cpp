@@ -1,6 +1,7 @@
 #include "baldosa_native_records_summary.hpp"
 
 #include "completed_run_store.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <cstdio>
 #include <filesystem>
@@ -26,7 +27,9 @@ BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     const std::string& directory) {
     BaldosaNativeRecordsSummary out{};
     if (directory.empty()) return out;
-    const std::filesystem::path root(directory);
+    // Product directory APIs carry UTF-8; a narrow path constructor on
+    // Windows interprets these bytes using the active ANSI code page.
+    const std::filesystem::path root = host_native_path_from_utf8(directory);
     std::error_code ec;
     // A missing first-run directory is a valid empty archive, but a
     // dangling symlink is NOT missing: exists() follows its target and
@@ -41,8 +44,14 @@ BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     if (ec || std::filesystem::is_symlink(status) ||
         !std::filesystem::is_directory(status))
         return out;
+    // An existing directory can still refuse enumeration (permissions,
+    // I/O failure or a concurrent removal). Do not report an empty Records
+    // history when the canonical inspector could not finish its scan.
+    bool scan_succeeded = false;
+    const auto artifacts = inspect_completed_run_record_artifacts(
+        directory, &scan_succeeded);
+    if (!scan_succeeded) return out;
     out.directory_available = true;
-    const auto artifacts = inspect_completed_run_record_artifacts(directory);
     out.total_artifacts = artifacts.size();
     for (const auto& artifact : artifacts) {
         if (!artifact.loaded()) {

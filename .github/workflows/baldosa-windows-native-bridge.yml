@@ -226,6 +226,11 @@ on:
         type: boolean
         required: false
         default: false
+      export_campaign_inputs:
+        description: "Also retain verified single-build candidate for manual acceptance fan-out"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
       parallel_journeys:

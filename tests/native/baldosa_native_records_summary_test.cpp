@@ -80,6 +80,27 @@ int main() {
     assert(protected_result.recent_course == "course:02");
     assert(protected_result.recent_ticks60 == 930);
 
+    // The native Records summary must resolve the same UTF-8 root that the
+    // canonical writer and run catalog already support. On Windows, using
+    // filesystem::path(utf8) silently loses non-ACP user-directory names.
+    {
+        const auto unicode_root = fs::temp_directory_path() /
+            fs::u8path(u8"ur-native-records-路径-🌈");
+        fs::remove_all(unicode_root);
+        const auto unicode_runs = unicode_root / "runs/rider-1";
+        std::string stored_path;
+        assert(append_completed_run_record(
+            unicode_runs.u8string(), record, &stored_path));
+        const auto unicode_view = inspect_baldosa_native_records_archive(
+            unicode_runs.u8string());
+        assert(unicode_view.directory_available);
+        assert(unicode_view.total_artifacts == 1);
+        assert(unicode_view.validated_archives == 1);
+        assert(unicode_view.recent_course == "course:02");
+        assert(unicode_view.recent_ticks60 == 930);
+        fs::remove_all(unicode_root);
+    }
+
     // The native frontend never grants cross-backend replay authority or
     // rewrites any of these original existing-host artifacts.
     assert(fs::file_size(runs / "0001.urrun") != 0);
@@ -105,6 +126,28 @@ int main() {
     const auto non_directory = inspect_baldosa_native_records_archive(regular.string());
     assert(!non_directory.directory_available);
     assert(non_directory.total_artifacts == 0);
+#if !defined(_WIN32)
+    // A directory may pass symlink_status but deny enumeration. This is
+    // distinct from a valid empty archive and must remain visibly unavailable
+    // rather than silently reporting NO RUNS. Privileged test runners may
+    // bypass mode bits, so assert the negative only for unprivileged users.
+    const auto unreadable = root / "unreadable-runs";
+    fs::create_directory(unreadable);
+    fs::permissions(unreadable, fs::perms::none);
+    bool scan_succeeded = false;
+    (void)inspect_completed_run_record_artifacts(
+        unreadable.string(), &scan_succeeded);
+    if (geteuid() != 0) assert(!scan_succeeded);
+    if (!scan_succeeded) {
+        const auto refused = inspect_baldosa_native_records_archive(
+            unreadable.string());
+        assert(!refused.directory_available);
+        assert(refused.total_artifacts == 0);
+        assert(refused.validated_archives == 0);
+        assert(refused.recent_course.empty());
+    }
+    fs::permissions(unreadable, fs::perms::owner_all);
+#endif
     fs::remove_all(root);
     std::puts("PASS: native Records reads only canonical selected-profile archives");
 }

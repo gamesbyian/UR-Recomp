@@ -1,0 +1,97 @@
+{
+  "schema": "ur-vault-incoming-scoped-source-review/1",
+  "scope": "Four exact surviving Incoming ZIP Drive IDs identified after canonical 224 direct-child inventory; remaining Incoming entries unexamined here.",
+  "observed_main": "cf9625a176b9d3b648ade4f758de179c1e40d3ca",
+  "counts": {
+    "archives_reopened_and_crc_clean": 4,
+    "semantically_superseded": 4,
+    "novel_source_behavior_proven_missing": 0
+  },
+  "members": [
+    {
+      "drive_id": "1j_75lQCG2FE-ykL6DXysszXdWfzPTLP2",
+      "name": "20261022-agent3-UR-WINSTORAGE-01-pr2185-test-contract-alignment-stage.zip",
+      "archive_sha256": "e31d0412f53124807f3d8b579b9b516cda0d9f967a746de66f7d73a1a3b1c6b5",
+      "source_member": "tests/unit/test_windows_local_tournament_candidate_pin_policy.py",
+      "source_member_sha256": "1a36f78b92956b65809cd2f215f2ce0cb9c7206d1b92a09eaf83a1d4a1635410",
+      "classification": "semantically_superseded",
+      "current_main_path": "tests/unit/test_windows_local_tournament_candidate_pin_policy.py",
+      "current_main_blob": "359865aca03ecd0c8433a50d6428a6c12daac729",
+      "github_prs": [
+        "#2185 closed unmerged",
+        "#2352 merged",
+        "#2366 merged"
+      ],
+      "comparison": "Archive preimage pins old #2185 head 80208c54 and explicitly warns its branch is held. Current same-run tournament policy tests nominate a main source SHA and verify/fingerprint package generated within same Windows Actions run; retired external portable_zip_sha256 upload expectations from #2185 are no longer the current acceptance contract.",
+      "owner": "Agent 1 disposition; Agent 3 no duplicate merge",
+      "priority": "P4",
+      "required_test": "tests/unit/test_windows_local_tournament_candidate_pin_policy.py; genuine native Windows same-run package QA remains separate",
+      "next_action": "Retain archived proposed test as historical PR2185 repair evidence; no attempt to replay held source; no new implementation PR.",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "drive_id": "1kbjAgArTRjLV0lpAnPEhwwSNyF0xvQZH",
+      "name": "agent5_windows_upload_policy_unnamed_step_recovery.zip",
+      "archive_sha256": "054b02a64e88a478e0a2cfa6e0ccc5adf8e5d86c0200e8b34e48450ab704b4ca",
+      "source_member": "agent5_windows_upload_policy_unnamed_step_repro.py",
+      "source_member_sha256": "1d27551ed58299eed857df66dc1245b10172a0244c3b7829f5e9e55c3cfd318d",
+      "classification": "semantically_superseded",
+      "current_main_path": "tools/ci/check_windows_smoke_upload_policy.py",
+      "current_main_blob": "1b9badfbb698371cbdec5bec3fe251dd8fc40ae1",
+      "github_prs": [
+        "#2352 merged",
+        "#2366 merged"
+      ],
+      "comparison": "Historical checker only counted named upload-artifact steps, permitting an unnamed - uses: actions/upload-artifact@v4 step to escape policy. Current check_workflow() fails closed if source.casefold().count('actions/upload-artifact@') != 1 and embedded PolicyNegatives explicitly tests unnamed upload steps before/after the named step and inline variants. Original reproducer is evidence of the old defect, not a still-missing fix.",
+      "owner": "Agent 1 disposition",
+      "priority": "P4",
+      "required_test": "tools/ci/check_windows_smoke_upload_policy.py::PolicyNegatives::test_disallows_unnamed_artifact_after_allowlisted_step and before allowance",
+      "next_action": "No new Windows uploader PR or old denied comment replay. Keep archived incident as provenance.",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "drive_id": "1sVcQMd5kGedG_yjCdYxHeng225unaVsR",
+      "name": "20261021T222950Z-agent3-UR-WINSTORAGE-01-pr2185-ci-test-repair.zip",
+      "archive_sha256": "54f046e88ec88c7d9e3eb2cfd36b1e90208d0ee3844904bb472ecbaf71011cd5",
+      "source_member": "tests.patch",
+      "source_member_sha256": "fd37c07ae2ccf386b922e71bec11f616fa9421a0ae1b994a5aa44c525692c196",
+      "classification": "semantically_superseded",
+      "current_main_path": "tools/ci/check_windows_smoke_upload_policy.py",
+      "current_main_blob": "1b9badfbb698371cbdec5bec3fe251dd8fc40ae1",
+      "github_prs": [
+        "#2185 closed unmerged",
+        "#2352 merged",
+        "#2366 merged"
+      ],
+      "comparison": "Preserved patch updates an abandoned #2185 expectation that internal retail-data ZIP should be uploaded; current workflow verifies private ZIP in runner temp and uploads only allowlisted evidence, with policy tool executed by tooling CI. The old PR's source replacement remains explicitly safety-denied and is not now a suitable source patch.",
+      "owner": "Agent 1 disposition; Agent 3 no duplicate merge",
+      "priority": "P4",
+      "required_test": "tests/unit/test_windows_smoke_upload_policy.py and tools/ci/check_windows_smoke_upload_policy.py --self-test",
+      "next_action": "Preserve original safety-denial incident, avoid relaunching stale PR #2185.",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    },
+    {
+      "drive_id": "1Wtq1Qa10_46mEJKEpl3JYVF7TvKfHT9H",
+      "name": "UR-CPU-01-verified-preservation.zip",
+      "archive_sha256": "90247ef293e6143afdfb990642cbc1926bef6af9f1fa97fa736e86ada807eefe",
+      "source_member": "source.patch",
+      "source_member_sha256": "0bf79dcef6edc0e0c74b85aee1aed907fe6b975750e41d66b6d715d0392cd08e",
+      "classification": "semantically_superseded",
+      "current_main_path": "tools/rf081_selected_pc_candidate_census.py",
+      "current_main_blob": "77920709ae726ead86c80ea98ae235573da72200",
+      "github_prs": [
+        "#2088 historical qualification"
+      ],
+      "comparison": "Archived H26 patch adds old_fetch stage == fetch admission guard. Current main selected-PC census checks exactly old_fetch.get('stage') != 'fetch' as rejection, and source-local sequence order; tests/unit/test_rf081_selected_pc_candidate_census.py checks invalid source stages, frame swapping and sequence failures. Original proposed preimage/test members remain byte-preserved, with no new first-causal-divergence proof.",
+      "owner": "Agent 1 disposition; CPU original/native qualification existing owner",
+      "priority": "P4",
+      "required_test": "tests/unit/test_rf081_selected_pc_candidate_census.py::SelectedPCCandidateTests::test_selected_original_fetch_stage_is_explicit",
+      "next_action": "Do not replay GitHub source-write or Drive move errors; need new original/native executed-instruction observations rather than old selected-stage test.",
+      "publication_authorized": false,
+      "release_gate_credit": 0
+    }
+  ]
+}

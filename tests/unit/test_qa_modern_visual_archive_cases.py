@@ -123,5 +123,98 @@ class ArchiveCasesTest(unittest.TestCase):
                                                      [1280, 720], wide, 256)]})
 
 
+    def test_verified_zip_binds_source_qualified_root_case(self):
+        from unittest.mock import patch
+        wide = frame_png(342, 1280, 720)
+        with tempfile.TemporaryDirectory() as tmp:
+            zp = self.make(tmp, {"native-title": wide})
+            witness = capture("native-title", "root-quit", [1280, 720], wide, 342)
+            source_sha = witness["source_sha"]
+            candidate = dict(ac.cases.load_cases()["root-wide-720"],
+                             id="source-qualified-native-title-root",
+                             source_scene="native-title-root", source_sha=source_sha)
+            route = ("root-quit", (1280, 720))
+            with patch.dict(ac.ROUTE_CASE, {route: candidate["id"]}):
+                passed = ac.analyse(
+                    zp, {"captures": [witness]},
+                    matrix={candidate["id"]: candidate},
+                    expected_source_sha=source_sha, expected_exe_sha="a" * 64)
+                self.assertTrue(passed["pass"], passed)
+                self.assertEqual(passed["release_gate_credit"], 0)
+                identity = [c for c in passed["captures"][0]["checks"]
+                            if c["check"] == "source-identity"]
+                self.assertEqual(len(identity), 1)
+                self.assertTrue(identity[0]["pass"])
+                altered = dict(witness, source_sha="c" * 40)
+                with self.assertRaisesRegex(ValueError, "external source/PE pins"):
+                    ac.analyse(
+                        zp, {"captures": [altered]},
+                        matrix={candidate["id"]: candidate},
+                        expected_source_sha=source_sha, expected_exe_sha="a" * 64)
+
+
+    def test_source_qualified_cli_requires_external_pins_on_verified_zip(self):
+        """Internally consistent source/PE receipts cannot self-qualify."""
+        import json
+        from unittest.mock import patch
+        from tools import qa_modern_visual_actions_archive as archive
+
+        wide = frame_png(342, 1280, 720)
+        source_sha, exe_sha = "b" * 40, "a" * 64
+        p7 = (b"P7\nWIDTH 1280\nHEIGHT 720\nDEPTH 4\nMAXVAL 255\n"
+              b"TUPLTYPE RGB_ALPHA\nENDHDR\n" +
+              archive.png_rgba(wide, (1280, 720)))
+        log = (b"UR_BALDOSA_MODERN_DESTINATION stage=root raster=342x224 "
+               b"root=11,10,320,204 source=modern_product_view\n"
+               b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 guest_frame=40 "
+               b"output=1280x720 source=SDL_RenderReadPixels backend=sdl3\n")
+        receipt = {
+            "schema_version": 1, "native_process_exit": 0,
+            "SDL_driver": "windows", "actual_sdl_renderer_output": [1280, 720],
+            "observed_in_draw": 40,
+            "png_sha256": hashlib.sha256(wide).hexdigest(),
+            "p7_sha256": hashlib.sha256(p7).hexdigest(),
+            "native_process_log_sha256": hashlib.sha256(log).hexdigest(),
+            "exe_sha256": exe_sha, "source_sha": source_sha,
+            "native_semantic_route": "root-quit", "execution_mode": "modern",
+            "native_route_marker_observed": False,
+            "authentic_isolation_approved": False, "visual_approved": False,
+            "hardware_approved": False, "release_gate_credit": 0,
+        }
+        candidate = dict(ac.cases.load_cases()["root-wide-720"],
+                         id="source-qualified-native-title-root",
+                         source_scene="native-title-root", source_sha=source_sha)
+        route = ("root-quit", (1280, 720))
+        with tempfile.TemporaryDirectory() as tmp:
+            zp = self.make(tmp, {"native-title": wide})
+            with zipfile.ZipFile(zp, "a") as z:
+                z.writestr("native-title/readback-receipt.json",
+                           json.dumps(receipt))
+                z.writestr("native-title/probe_first/actual-sdl-drawable.pam", p7)
+                z.writestr("native-title/probe_first/native-process.log", log)
+            # Exercise real ZIP verification rather than an injected
+            # pre-verified capture dictionary.
+            self.assertEqual(archive.verify(
+                zp, expected_source_sha=source_sha,
+                expected_exe_sha=exe_sha)["captures"][0]["source_sha"],
+                source_sha)
+            with (patch.dict(ac.ROUTE_CASE, {route: candidate["id"]}),
+                  patch.object(ac.cases, "load_cases",
+                               return_value={candidate["id"]: candidate})):
+                self.assertEqual(ac.main(["--artifact", str(zp)]), 1)
+                self.assertEqual(ac.main([
+                    "--artifact", str(zp),
+                    "--expected-source-sha", "c" * 40,
+                    "--expected-exe-sha", exe_sha]), 1)
+                self.assertEqual(ac.main([
+                    "--artifact", str(zp),
+                    "--expected-source-sha", source_sha,
+                    "--expected-exe-sha", "d" * 64]), 1)
+                self.assertEqual(ac.main([
+                    "--artifact", str(zp),
+                    "--expected-source-sha", source_sha,
+                    "--expected-exe-sha", exe_sha]), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

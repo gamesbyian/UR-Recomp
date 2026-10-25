@@ -1,0 +1,136 @@
+name: Windows acceptance fan-out (one-build, two-group manual pilot)
+on:
+  workflow_dispatch:
+    inputs:
+      build_only:
+        description: "Build one exact ROM-free candidate in this run, then run all 13 original journeys"
+        required: true
+        type: boolean
+        default: true
+      candidate_run_id:
+        description: "For build_only=false: exact-source successful bridge or build-only producer run ID"
+        required: false
+        default: ""
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: ur-windows-acceptance-fanout-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  candidate:
+    if: ${{ inputs.build_only == true }}
+    uses: ./.github/workflows/windows-exact-build-only.yml
+
+  journeys:
+    needs: candidate
+    if: ${{ always() && (inputs.build_only == true && needs.candidate.result == 'success' || inputs.build_only != true) }}
+    runs-on: windows-2022
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        group: [seed-dependent, independent]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check out pinned source of unchanged original Windows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          persist-credentials: false
+      - name: Authenticate producer as successful exact source
+        if: ${{ inputs.build_only != true }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRODUCER_RUN: ${{ inputs.candidate_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$PRODUCER_RUN" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PRODUCER_RUN" > "$RUNNER_TEMP/candidate-producer.json"
+          python -c 'import json,os,pathlib; r=json.loads((pathlib.Path(os.environ["RUNNER_TEMP"])/"candidate-producer.json").read_text()); assert r["head_sha"]==os.environ["GITHUB_SHA"], "source SHA mismatch"; assert r["status"]=="completed" and r["conclusion"]=="success", "candidate run not green"; assert r["name"] in ("Baldosa native Windows x64 bridge feasibility", "Exact Baldosa Windows x64 build-only candidate"), "wrong candidate producer"'
+      - name: Download the exact verified candidate (no native compilation)
+        uses: actions/download-artifact@v4
+        with:
+          name: qa-baldosa-native-export
+          run-id: ${{ inputs.build_only == true && github.run_id || inputs.candidate_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/fanout-inputs
+      - name: Verify original and packaged candidate identities
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fanout-inputs"
+          test "$(cat source-commit.txt)" = "$GITHUB_SHA"
+          sha256sum -c SHA256SUMS
+          test -s UniracersSNESRecomp.exe
+          test -s ur-baldosa-modern-profile-fixture.exe
+          test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+          sha256sum UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip > "$RUNNER_TEMP/package.sha256"
+          cd "$GITHUB_WORKSPACE"
+          python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          mkdir -p baldosa/build-ur-win
+          cp "$RUNNER_TEMP/fanout-inputs/UniracersSNESRecomp.exe" baldosa/build-ur-win/
+          cp "$RUNNER_TEMP/fanout-inputs/ur-baldosa-modern-profile-fixture.exe" baldosa/build-ur-win/
+          python tools/bind_baldosa_candidate_receipt.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --zip "$RUNNER_TEMP/fanout-inputs/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --zip-sha256-file "$RUNNER_TEMP/package.sha256" \
+            --revision "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/candidate-binding.json"
+          python -m unittest tests.unit.test_qa_windows_acceptance_fanout
+      - name: Execute original 13-journey group with fresh private storage
+        env:
+          GROUP: ${{ matrix.group }}
+        run: |
+          set -euo pipefail
+          python tools/qa_windows_acceptance_fanout.py run \
+            --group "$GROUP" --source-sha "$GITHUB_SHA" \
+            --archive "$RUNNER_TEMP/fanout-inputs/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --work "$RUNNER_TEMP/qa-fanout-result"
+      - name: Preserve only a small hashed receipt, not ROM or user data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-fanout-${{ matrix.group }}
+          path: ${{ runner.temp }}/qa-fanout-result/result.json
+          retention-days: 14
+          if-no-files-found: warn
+  aggregate:
+    needs: journeys
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover even partial Windows results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: windows-fanout-*
+          path: ${{ runner.temp }}/fanout-results
+          merge-multiple: false
+      - name: Require all original cases and one unchanged candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/fanout-results"
+          python3 tools/qa_windows_acceptance_fanout.py aggregate \
+            --source-sha "$GITHUB_SHA" \
+            --results "$RUNNER_TEMP/fanout-results" \
+            --out "$RUNNER_TEMP/fanout-aggregate.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Publish compact aggregate for independent QA review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-fanout-aggregate
+          path: ${{ runner.temp }}/fanout-aggregate.json
+          retention-days: 14
+          if-no-files-found: warn

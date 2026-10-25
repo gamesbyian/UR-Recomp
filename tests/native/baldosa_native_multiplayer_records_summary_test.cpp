@@ -2,6 +2,7 @@
 #include "completed_run_store.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
+#include "multiplayer_match_catalog.hpp"
 
 #include <cassert>
 #include <cstdio>
@@ -156,6 +157,27 @@ int main() {
     fs::create_directory_symlink(root / "missing", broken);
     assert(!inspect_baldosa_native_two_player_records_archive(
         broken.string(), "alpha").directory_available);
+#if !defined(_WIN32)
+    // Existing 2P archive directories can refuse enumeration after a
+    // successful symlink_status check. Never show zero matches as truth.
+    const auto unreadable = root / "unreadable-multiplayer-runs";
+    fs::create_directory(unreadable);
+    fs::permissions(unreadable, fs::perms::none);
+    bool scan_succeeded = true;
+    const auto refused_scan = inspect_multiplayer_match_artifacts(
+        unreadable.string(), &scan_succeeded);
+    if (geteuid() != 0) assert(!scan_succeeded);
+    if (!scan_succeeded) {
+        assert(refused_scan.empty());
+        const auto refused = inspect_baldosa_native_two_player_records_archive(
+            unreadable.string(), "alpha");
+        assert(!refused.directory_available);
+        assert(refused.validated_pairs == 0);
+        assert(refused.selected_profile_matches == 0);
+        assert(refused.latest_match_line.empty());
+    }
+    fs::permissions(unreadable, fs::perms::owner_all);
+#endif
     fs::remove_all(root);
     std::puts("PASS: Baldosa native Records reads only paired ordinary-2P matches for the selected profile");
 }

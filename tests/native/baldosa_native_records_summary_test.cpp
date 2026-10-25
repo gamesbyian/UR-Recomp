@@ -80,6 +80,29 @@ int main() {
     assert(protected_result.recent_course == "course:02");
     assert(protected_result.recent_ticks60 == 930);
 
+    // Codec-valid records of another mode are still visible as unavailable
+    // artifacts, but cannot mint a 1P result or replace the latest earned
+    // 1P course/time. A copied 2P run and noncareer Practice fixture are
+    // both later than the legitimate saved 1P result.
+    auto foreign_mode = record;
+    foreign_mode.provenance.mode = "race-2p";
+    foreign_mode.provenance.course_id = "course:44";
+    foreign_mode.elapsed_ticks60 = 300;
+    assert(save_completed_run_record_file(
+        (runs / "0006-foreign-2p.urrun").string(), foreign_mode));
+    foreign_mode.provenance.mode = "practice";
+    foreign_mode.provenance.course_id = "course:45";
+    assert(save_completed_run_record_file(
+        (runs / "0007-noncareer.urrun").string(), foreign_mode));
+    const auto mode_isolated =
+        inspect_baldosa_native_records_archive(runs.string());
+    assert(mode_isolated.directory_available);
+    assert(mode_isolated.total_artifacts == 7);
+    assert(mode_isolated.validated_archives == 2);
+    assert(mode_isolated.unavailable_artifacts == 5);
+    assert(mode_isolated.recent_course == "course:02");
+    assert(mode_isolated.recent_ticks60 == 930);
+
     // The native Records summary must resolve the same UTF-8 root that the
     // canonical writer and run catalog already support. On Windows, using
     // filesystem::path(utf8) silently loses non-ACP user-directory names.

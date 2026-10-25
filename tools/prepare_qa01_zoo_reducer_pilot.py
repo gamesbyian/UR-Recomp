@@ -14,7 +14,7 @@ import re
 
 from controller_input import load_controller_runs
 from qa01_reducer_clock_rebase import paired_streams
-from qa01_reducer_paired_oracle import ROM_USA_SHA256
+from qa01_reducer_paired_oracle import ROM_USA_SHA256, checkpoint_only_observer
 from reduce_controller_fixture import encode
 
 SOURCE_MOVIE_SHA256 = "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442"
@@ -210,6 +210,19 @@ def main():
         binaries=args.binaries, rom=args.rom, movie=args.movie, source_sha=args.source_sha)
     for path in destinations:
         path.parent.mkdir(parents=True, exist_ok=True)
+    # The full source observer remains SHA-bound. Reducer predicates end at
+    # +5040, so executing the later 9000-frame result-screen gate only turns
+    # wrong-route candidates into expensive unrelated native/Xvfb timeouts.
+    bounded_path = destinations[0].parent / "qa01-zoo-through-05040.script"
+    require(not bounded_path.exists() and bounded_path not in destinations,
+            "checkpoint-only observer must be a new private path")
+    source = Path(manifest["observation_script"]["path"])
+    script = checkpoint_only_observer(source.read_text(encoding="utf-8"), TAG)
+    bounded_path.write_text(script, encoding="utf-8")
+    manifest["bounded_observer_script"] = {
+        "path": str(bounded_path),
+        "sha256": hashlib.sha256(script.encode("utf-8")).hexdigest(),
+    }
     destinations[0].write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
     destinations[1].write_bytes(data)
     destinations[2].write_text(json.dumps(receipt, sort_keys=True, indent=2) + "\n")

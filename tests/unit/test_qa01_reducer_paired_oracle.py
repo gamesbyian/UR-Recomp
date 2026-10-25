@@ -166,9 +166,6 @@ class PairedOracleTests(unittest.TestCase):
         # and original menu/track anchors still remain the same.
         self.manifest["guest_clocks"]["native_entry_frame"] = 2
         self.manifest["guest_clocks"]["native_observation_frame"] = 107
-        self.manifest["native"]["environment"]["ROLE"] = "native2"
-        patched_driver = RUNNER.replace(
-            'valid_original =', 'valid_original =') if False else RUNNER
         # Process fixture reads full canonical string, but the shifted native
         # script no longer matches the original fixed absolute positions.
         # That must refuse to reproduce rather than shift its guest meaning.

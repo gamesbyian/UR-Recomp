@@ -412,51 +412,55 @@ def verify_five_destination_pad_race(log: str) -> None:
 
 
 def verify_five_destination_pad_post_result(log: str) -> None:
-    """One SDL P1 earns the native result, returns, and opens earned Records.
+    """Require the source-documented result-to-MAIN path and earned Records.
 
-    Source/host output streams are concatenated, not synchronized. Require
-    chronological ordering only among the product's own stderr markers.
+    Host controller stdout and product stderr are concatenated, not one
+    synchronized clock. Order only the product's own stderr markers.
     """
     reopened = "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0"
     if log.count(reopened) != 1:
         raise ValueError("pad earned return: missing/duplicate source reentry")
-    # The initial five-destination verifier requires exactly eight selections
-    # and one Records open. Post-return actions deliberately add more.
+    # The original five-destination verifier requires exactly eight root
+    # selections and one Records open; post-return navigation adds more.
     verify_five_destination_pad_race(log[:log.index(reopened)])
     require_single_pad_seat_continuity(log, "pad earned return")
     if not re.search(
             r"(?m)^UR_BALDOSA_MODERN_PAD_POST source_observed "
             r"frame=\d+ menu=99 race=[0-9a-f]{2} stage=0$", log):
         raise ValueError("pad earned return: no observed original result menu")
+    # The documented original source route is RESULT 99 -> TRACK F6 (A),
+    # then TOUR 6D -> RIDER 3C -> MAIN D7 (X each). Only a fresh B
+    # from MAIN may reopen Modern. Never accept a direct host teleport.
     stages = (
         "UR_BALDOSA_MODERN_PAD_RACE source_input_completed=1",
-        "UR_BALDOSA_MODERN_PAD_POST result_back_x=1 source_menu=99",
+        "UR_BALDOSA_MODERN_PAD_POST result_continue_a=1 source_menu=99",
+        "UR_BALDOSA_MODERN_PAD_POST track_back_x=1 source_menu=f6",
+        "UR_BALDOSA_MODERN_PAD_POST tour_back_x=1 source_menu=6d",
+        "UR_BALDOSA_MODERN_PAD_POST rider_back_x=1 source_menu=3c",
         "UR_BALDOSA_MODERN_PAD_POST root_back_b=1 source_menu=d7",
-        "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
-        "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7",
-        "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
-        "UR_BALDOSA_MODERN_ROOT selected=1",
-        "UR_BALDOSA_MODERN_ROOT selected=2",
-        "UR_BALDOSA_MODERN_ROOT selected=3",
+        reopened,
     )
-    # Earlier root selections also exist, so locate post-reentry choices
-    # only in the tail. Paint and post-event acknowledgement can occur in
-    # either order, but both must follow genuine source-admitted reentry.
-    pre = stages[:4]
     positions = []
-    for marker in pre:
+    for marker in stages:
         matches = list(re.finditer(rf"(?m)^{re.escape(marker)}$", log))
         if len(matches) != 1:
             raise ValueError(f"pad earned return: missing/duplicate {marker!r}")
         positions.append(matches[0].start())
     if positions != sorted(positions):
-        raise ValueError("pad earned return: source result/reentry order invalid")
-    tail = log[positions[-1] + len(pre[-1]):]
-    for marker in stages[4:6]:
+        raise ValueError("pad earned return: source menu return order invalid")
+    tail_start = positions[-1] + len(stages[-1])
+    tail = log[tail_start:]
+    acknowledgements = (
+        "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7",
+        "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+    )
+    for marker in acknowledgements:
         matches = list(re.finditer(rf"(?m)^{re.escape(marker)}$", log))
         if len(matches) != 1 or matches[0].start() <= positions[-1]:
             raise ValueError(f"pad earned return: missing/early {marker!r}")
-    paint_pos = log.index(stages[5])
+    # Repaint and controller-ack may be interleaved by SDL. Neither can
+    # occur before source reentry, and repaint must precede navigation.
+    paint_pos = log.index(acknowledgements[1])
     post = (
         r"^UR_BALDOSA_MODERN_ROOT selected=1$",
         r"^UR_BALDOSA_MODERN_ROOT selected=2$",
@@ -475,11 +479,12 @@ def verify_five_destination_pad_post_result(log: str) -> None:
             raise ValueError(f"pad earned return: missing/reordered {marker!r}")
         last = matches[0].start()
         if first_selection is None:
-            first_selection = positions[-1] + len(pre[-1]) + last
+            first_selection = tail_start + last
     if first_selection is None or paint_pos >= first_selection:
         raise ValueError("pad earned return: controller navigated before repaint")
     if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
         raise ValueError("pad earned return: unexpected stock relaunch")
+
 
 def reject_unexpected_stock_route(log: str, label: str) -> None:
     """A withdrawn/cancelled join must not request OR enter a stock route."""

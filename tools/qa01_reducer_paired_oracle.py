@@ -71,6 +71,9 @@ def validate(config):
         joined = json.dumps({"argv": cmd["argv"], "environment": cmd["environment"]})
         check("%CANDIDATE%" in joined and "%DUMP_DIR%" in joined,
               "both guests must consume exact controller candidate and write isolated dumps")
+        check("%ROM%" in joined, "both guests must use pinned original ROM")
+        if key == "reference":
+            check("%CORE%" in joined, "reference must load pinned original emulator core")
         check(str(Path(cmd["argv"][0]).resolve()) ==
               str(Path(config[("reference_binary" if key == "reference" else "native_binary")]["path"]).resolve()),
               "command does not execute pinned binary")
@@ -95,18 +98,21 @@ def validate(config):
     return config
 
 
-def render(text, candidate, output, rom):
+def render(text, candidate, output, rom, core):
     return (text.replace("%CANDIDATE%", str(candidate))
             .replace("%DUMP_DIR%", str(output))
-            .replace("%ROM%", str(rom)))
+            .replace("%ROM%", str(rom))
+            .replace("%CORE%", str(core)))
 
 
 def observe(command, candidate, rom, work, anchors, timeout):
     work.mkdir()
     env = dict(os.environ)
-    env.update({k: render(v, candidate, work, rom)
+    # Core pin is mandatory for the original reference and harmless for native.
+    core = Path(command.get("_reference_core", rom))
+    env.update({k: render(v, candidate, work, rom, core)
                 for k, v in command["environment"].items()})
-    args = [render(s, candidate, work, rom) for s in command["argv"]]
+    args = [render(s, candidate, work, rom, core) for s in command["argv"]]
     proc = subprocess.run(args, cwd=ROOT, env=env, capture_output=True,
                           text=True, errors="replace", check=False, timeout=timeout)
     check(proc.returncode == 0, "guest execution failed (exit " + str(proc.returncode)
@@ -132,8 +138,10 @@ def execute(config, candidate, timeout=120):
     rom = Path(cfg["rom"]["path"]).resolve()
     with tempfile.TemporaryDirectory(prefix="ur-qa01-reduce-pair-") as tmp:
         root = Path(tmp)
+        reference_command = {**cfg["reference"],
+                             "_reference_core": cfg["reference_core"]["path"]}
         original_valid, original = observe(
-            cfg["reference"], candidate.resolve(), rom, root / "original",
+            reference_command, candidate.resolve(), rom, root / "original",
             cfg["anchors"], timeout)
         native_valid, native = observe(
             cfg["native"], candidate.resolve(), rom, root / "native",

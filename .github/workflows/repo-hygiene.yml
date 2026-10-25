@@ -38,11 +38,20 @@ jobs:
         run: |
           set -euo pipefail
           # Query the complete PR file census; avoid a large checkout-history fetch.
-          mapfile -t changed < <(
-            gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
-              --jq '.[].filename' |
-              grep -E '^\.github/workflows/[^/]+\.ya?ml$' || true
+          # An API failure must not masquerade as "no changed workflows".
+          pr_files="$RUNNER_TEMP/actionlint-pr-files.txt"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$pr_files"
+          mapfile -t discovered < <(
+            grep -E '^\.github/workflows/[^/]+\.ya?ml$' "$pr_files" || true
           )
+          # A deleted YAML file no longer exists in the checkout.
+          changed=()
+          for path in "${discovered[@]}"; do
+            if [[ -f "$path" ]]; then
+              changed+=("$path")
+            fi
+          done
           if (( ${#changed[@]} == 0 )); then
             echo "No workflow definitions changed; actionlint not needed." >> "$GITHUB_STEP_SUMMARY"
             exit 0

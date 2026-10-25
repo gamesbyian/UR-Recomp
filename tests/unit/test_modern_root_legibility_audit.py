@@ -112,7 +112,7 @@ class ModernRootLegibilityAudit(unittest.TestCase):
         painter at its native logical canvas, fitted into each matrix output
         with the shipped 7:6 nearest mapping, then the full case checks."""
         matrix = cc.load_cases()
-        for case_id, width in (("root-wide-720", 342), ("root-wide-1080", 342),
+        for case_id, width in (("root-wide-720", 256), ("root-wide-1080", 256),
                                ("root-43-768", 256), ("root-43-480", 256)):
             out = Path(self.tmp.name) / f"{case_id}.p7"
             run = subprocess.run([str(self.exe), str(width), str(out), "root"])

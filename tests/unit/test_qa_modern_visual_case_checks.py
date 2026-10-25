@@ -102,6 +102,44 @@ class CaseChecksTest(unittest.TestCase):
         self.assertFalse(next(c for c in wrong["checks"]
                               if c["check"] == "logical-width")["pass"])
 
+    def test_explicit_native_title_root_is_source_bound_not_aspect_inferred(self):
+        # Draft #2149/#2462 paints a different 342-wide native root.
+        # It must be admitted by an explicit case and exact source identity;
+        # the frozen shipped-root case stays 256-wide.
+        fixed = cc.load_cases()["root-wide-720"]
+        sha = "a" * 40
+        candidate = dict(fixed, id="native-title-root-wide-720",
+                         source_scene="native-title-root", source_sha=sha)
+        self.assertEqual(cc.plan(fixed)["logical"], [256, 224])
+        self.assertEqual(cc.plan(candidate)["logical"], [342, 224])
+        wide, h = busy(342)
+        put_band(wide, 342, 12, 60)
+        frame = render_fit(wide, 342, h, 1280, 720)
+        accepted = cc.evaluate(candidate, frame, observed_source_sha=sha)
+        self.assertTrue(accepted["pass"], accepted)
+        self.assertEqual(accepted["release_gate_credit"], 0)
+        self.assertTrue(next(c for c in accepted["checks"]
+                             if c["check"] == "source-identity")["pass"])
+        for observed in (None, "b" * 40):
+            refused = cc.evaluate(candidate, frame,
+                                  observed_source_sha=observed)
+            self.assertFalse(next(c for c in refused["checks"]
+                                  if c["check"] == "source-identity")["pass"])
+        compact, ch = busy(256)
+        put_band(compact, 256, 12, 60)
+        wrong_width = cc.evaluate(candidate,
+                                  render_fit(compact, 256, ch, 1280, 720),
+                                  observed_source_sha=sha)
+        self.assertFalse(next(c for c in wrong_width["checks"]
+                              if c["check"] == "logical-width")["pass"])
+        for invalid in (dict(candidate, source_sha=None),
+                        dict(candidate, source_sha="f" * 39),
+                        dict(candidate, screen="records"),
+                        dict(candidate, aspect="4:3"),
+                        dict(candidate, source_scene="unknown")):
+            with self.assertRaises(ValueError):
+                cc.plan(invalid)
+
     def test_missing_ring_is_advisory_unless_required(self):
         case = cc.load_cases()["root-wide-720"]
         grid, h = busy(256)

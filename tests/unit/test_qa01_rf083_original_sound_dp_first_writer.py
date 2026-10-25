@@ -29,6 +29,19 @@ class RF083Source(unittest.TestCase):
         for fn in ("S9xGetByte(","S9xGetWord(","S9xSetByte(","S9xSetWord("):
             self.assertNotIn(fn,m.C)
 
+    def test_exact_repository_original_snes9x_source_layout(self):
+        # Exercise the actual tracked reference-source snapshot, not only a
+        # hand-authored 5-line fixture. Never alter the tracked source.
+        root=Path(__file__).resolve().parents[2]/"third_party"/"src"/"snes9x-libretro"
+        original=(root/"cpuexec.cpp").read_text(encoding="utf-8")
+        getset=(root/"getset.h").read_text(encoding="utf-8")
+        edited_cpu,edited_getset=m.patch(original,getset)
+        self.assertEqual(edited_cpu.count("(*Opcodes[Op].S9xOpcode)();"),
+                         original.count("(*Opcodes[Op].S9xOpcode)();"))
+        self.assertEqual(edited_getset.count(m.BYTE),getset.count(m.BYTE))
+        self.assertIn("rf083_setbyte_entry(Byte,Address);",edited_getset)
+        self.assertIn("rf083_post();",edited_cpu)
+
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())
         for x,y in ((a,b),(source()+m.STAMP,setter()),

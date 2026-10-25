@@ -294,18 +294,27 @@ def verify_five_destination_pad_return(log: str) -> None:
         "UR_BALDOSA_MODERN_PAD_RETURN guest_back_x=1 source_menu=3c",
         "UR_BALDOSA_MODERN_PAD_RETURN root_back_b=1 source_menu=d7",
         reopened,
+    )
+    witnesses = stages + (
         "UR_BALDOSA_MODERN_PAD_RETURN reopened=1 source_menu=d7",
         "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
     )
-    positions = []
-    for stage in stages:
+    positions = {}
+    for stage in witnesses:
         matches = [m.start() for m in re.finditer(
             rf"(?m)^{re.escape(stage)}$", log)]
         if len(matches) != 1:
             raise ValueError(f"pad return: missing/duplicate native stage {stage!r}")
-        positions.append(matches[0])
-    if positions != sorted(positions):
-        raise ValueError("pad return: source X/B/MAIN/root paint out of order")
+        positions[stage] = matches[0]
+    if (list(map(positions.get, stages)) !=
+            sorted(positions[stage] for stage in stages)):
+        raise ValueError("pad return: source X/B/MAIN/root reentry out of order")
+    # SDL presentation may occur between the host B edge and the next
+    # simulated guest frame. Both repaint and post-event acknowledgement
+    # must follow actual source-admitted reentry, but neither is ordered
+    # relative to the other.
+    if any(positions[stage] <= positions[reopened] for stage in witnesses[4:]):
+        raise ValueError("pad return: root repaint/ack preceded source reentry")
     if "UR_BALDOSA_MODERN_ROOT stock_entered players=2" in log:
         raise ValueError("pad return: unintended 2P admission")
 

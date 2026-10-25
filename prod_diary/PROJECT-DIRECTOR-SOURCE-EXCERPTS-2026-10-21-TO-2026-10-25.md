@@ -64,13 +64,29 @@ Selected visible messages from the *Project Completion Estimate* conversation, p
 
 > So 0% progress change since yesterday?
 
+> A progress update now please
+
 > Finish the calculator please
 
 > Where we at now, dude?
 
+> Do what needs to be done, please
+
+> Keep going, I don't want to be left hanging when I ask for a progress update tomorrow
+
+> Go ahead with final merges, and and anything else needed right now
+
+> Update please!
+
 > So if the repo has been so busy and lanes have been moving forward but the project completion percentage hasn't changed, either we're doing a lot of worthless work or we aren't measuring progress.
 
 > Go ahead as you think best
+
+> Go ahead as you think best
+
+> Keep going as you think best
+
+> Please keep going, as far as you can. You have my confidence and full autonomy. Be voracious and restless. When you must wait, find other things to do.
 
 The final statement is direct evidence of the director's dissatisfaction with **measurement or value**, without establishing that the engineering work was worthless. His questions demand evidence that distinguishes genuine progress from an unchanging headline percentage.
 
@@ -98,6 +114,8 @@ The director pasted an earlier agent recommendation, quoted below as **assistant
 > Please keep going, as far as you can. You have my confidence and full autonomy. Be voracious and restless. When you must wait, find other things to do. Use PRs to dispatch workflows whenever you like
 
 > Session stalled, it probably couldn't contain your awesomness! Please carefully recover your work and thinking, then keep on as you think best.
+
+The same stall-recovery text recurs in the visible continuation, including repeated turns. Duplicate lines are not collapsed into a fictitious single original message; their exact individual timing and intervening assistant replies are unavailable in this excerpt view.
 
 From the separate *Diagnose Zoo Timeout* conversation:
 

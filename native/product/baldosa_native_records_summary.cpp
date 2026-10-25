@@ -58,7 +58,7 @@ BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
         // Foreign-game and 2P/Practice files must not become earned
         // Uniracers 1P history or displace its latest course/time.
         if (!artifact.loaded() ||
-            artifact.record->provenance.game_id != "uniracers" ||
+            artifact.record->provenance.game_id != "uniracers-usa" ||
             artifact.record->provenance.mode != "race-1p") {
             ++out.unavailable_artifacts;
             continue;

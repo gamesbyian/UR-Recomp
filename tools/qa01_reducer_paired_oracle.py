@@ -68,6 +68,15 @@ def validate(config):
           and seed_file.stat().st_size == 8192
           and file_sha(seed_file) == seed["sha256"],
           "original-movie 8192-byte SRAM seed mismatched")
+    observer = config.get("observation_script")
+    check(type(observer) is dict and set(observer) == {"path", "sha256"},
+          "missing qualified observation script source binding")
+    check(type(observer["sha256"]) is str
+          and bool(HEX64.fullmatch(observer["sha256"])), "invalid observer digest")
+    observer_file = Path(observer["path"])
+    check(observer_file.suffix == ".script" and
+          file_sha(observer_file) == observer["sha256"],
+          "qualified observer script changed")
     for key in ("reference", "native"):
         cmd = config.get(key)
         check(type(cmd) is dict and set(cmd) == {"argv", "environment", "dump"},
@@ -85,6 +94,8 @@ def validate(config):
         check("%ROM%" in joined, "both guests must use pinned original ROM")
         if key == "reference":
             check("%CORE%" in joined, "reference must load pinned original emulator core")
+            check(cmd["environment"].get("SNESREF_SCRIPT") == "%OBSERVER%",
+                  "reference must execute qualified observer script")
             check(cmd["environment"].get("SNESREF_SRAM_IN") == "%SRAM%"
                   and cmd["environment"].get("SNESREF_INPUT_FILE") == "%CANDIDATE%"
                   and cmd["environment"].get("SNESREF_DUMP_DIR") == "%DUMP_DIR%",
@@ -94,6 +105,9 @@ def validate(config):
                   and cmd["environment"].get("SNESRECOMP_DUMP_DIR") == "%DUMP_DIR%"
                   and cmd["environment"].get("SNESRECOMP_ROM") == "%ROM%",
                   "native must use pinned source scene input and real dump transport")
+            check(any(cmd["argv"][i:i+2] == ["--script", "%OBSERVER%"]
+                      for i in range(len(cmd["argv"]) - 1)),
+                  "native must execute the identical pinned observer script")
             check("--config" in cmd["argv"]
                   and "%CONFIG%" in cmd["argv"]
                   and "--no-launcher" in cmd["argv"],
@@ -113,6 +127,12 @@ def validate(config):
           and clocks["reference_observation_frame"] - clocks["reference_entry_frame"]
               == clocks["native_observation_frame"] - clocks["native_entry_frame"],
           "unequal race-relative semantic observation phases")
+    require_same_tag = config["reference"]["dump"] == config["native"]["dump"]
+    check(require_same_tag, "original/native observers must produce same named checkpoint")
+    tag = config["reference"]["dump"][:-len(".wram.bin")]
+    source_lines = observer_file.read_text(encoding="utf-8").splitlines()
+    check(source_lines.count("dump " + tag) == 1,
+          "observer script must contain exactly one named target dump")
     d = config.get("discrepancy")
     check(type(d) is dict and set(d) ==
           {"id", "phase", "offset", "original_byte", "native_byte"}, "invalid discrepancy predicate")
@@ -134,16 +154,17 @@ def validate(config):
     return config
 
 
-def render(text, candidate, output, rom, core, seed, config):
+def render(text, candidate, output, rom, core, seed, config, observer):
     return (text.replace("%CANDIDATE%", str(candidate))
             .replace("%DUMP_DIR%", str(output))
             .replace("%ROM%", str(rom))
             .replace("%CORE%", str(core))
             .replace("%SRAM%", str(seed))
-            .replace("%CONFIG%", str(config)))
+            .replace("%CONFIG%", str(config))
+            .replace("%OBSERVER%", str(observer)))
 
 
-def observe(command, candidate, rom, work, anchors, timeout, seed_bytes):
+def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observer, expected_frame):
     work.mkdir()
     # Both real engines must boot from the same independently verified
     # historical SRAM. A disposable native cwd gives it an isolated saves/
@@ -157,13 +178,18 @@ def observe(command, candidate, rom, work, anchors, timeout, seed_bytes):
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     env = dict(os.environ)
     core = Path(command.get("_reference_core", rom))
-    env.update({k: render(v, candidate, work, rom, core, source_seed, config)
+    env.update({k: render(v, candidate, work, rom, core, source_seed, config, observer)
                 for k, v in command["environment"].items()})
-    args = [render(s, candidate, work, rom, core, source_seed, config) for s in command["argv"]]
+    args = [render(s, candidate, work, rom, core, source_seed, config, observer) for s in command["argv"]]
     proc = subprocess.run(args, cwd=work, env=env, capture_output=True,
                           text=True, errors="replace", check=False, timeout=timeout)
     check(proc.returncode == 0, "guest execution failed (exit " + str(proc.returncode)
           + "): " + (proc.stderr or proc.stdout)[-300:])
+    checkpoint_tag = command["dump"][:-len(".wram.bin")]
+    pattern = re.compile(r"\bscript f=(\d+) dump " + re.escape(checkpoint_tag) + r"(?:\s|$)")
+    observed_frames = [int(f) for f in pattern.findall(proc.stdout + "\n" + proc.stderr)]
+    if observed_frames != [expected_frame]:
+        return False, None
     checkpoint = work / command["dump"]
     if not checkpoint.is_file() or checkpoint.is_symlink() or checkpoint.stat().st_size != BYTES:
         return False, None
@@ -184,6 +210,7 @@ def execute(config, candidate, timeout=120):
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     check(source == cfg["source_sha"], "paired commands source SHA is stale")
     rom = Path(cfg["rom"]["path"]).resolve()
+    observer = Path(cfg["observation_script"]["path"]).resolve()
     seed_bytes = Path(cfg["source_sram"]["path"]).read_bytes()
     check(len(seed_bytes) == 8192 and hashlib.sha256(seed_bytes).hexdigest()
           == cfg["source_sram"]["sha256"], "original source SRAM changed after validation")
@@ -200,10 +227,14 @@ def execute(config, candidate, timeout=120):
                              "_reference_core": cfg["reference_core"]["path"]}
         original_valid, original = observe(
             reference_command, original_path, rom, root / "original",
-            cfg["anchors"], timeout, seed_bytes)
+            cfg["anchors"], timeout, seed_bytes, observer,
+            clocks["reference_observation_frame"])
         native_valid, native = observe(
             cfg["native"], native_path, rom, root / "native",
-            cfg["anchors"], timeout, seed_bytes)
+            cfg["anchors"], timeout, seed_bytes, observer,
+            clocks["native_observation_frame"])
+        check(sha(observer) == cfg["observation_script"]["sha256"],
+              "observer script changed during paired process execution")
         predicate = cfg["discrepancy"]
         reproduced = bool(original_valid and native_valid
                           and original[predicate["offset"]] == predicate["original_byte"]
@@ -216,6 +247,7 @@ def execute(config, candidate, timeout=120):
         "native_frame_shift": clocks["native_entry_frame"] - clocks["reference_entry_frame"],
         "source_sha": cfg["source_sha"],
         "source_sram_sha256": cfg["source_sram"]["sha256"],
+        "observation_script_sha256": cfg["observation_script"]["sha256"],
         "original_rom_sha256": cfg["rom"]["sha256"],
         "native_binary_sha256": cfg["native_binary"]["sha256"],
         "reference_engine": cfg["reference_engine"] + ":" + cfg["reference_binary"]["sha256"]

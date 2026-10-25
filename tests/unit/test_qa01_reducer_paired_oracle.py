@@ -29,6 +29,7 @@ if "100:10:002" in rows:
 else:
     b[0x200]=1
 (Path(os.environ["DUMP_DIR"])/"checkpoint.wram.bin").write_bytes(b)
+print("script f=" + os.environ["OBS_FRAME"] + " dump checkpoint")
 """
 
 
@@ -46,6 +47,8 @@ class PairedOracleTests(unittest.TestCase):
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
         self.rom = self.root / "dummy.sfc"
         self.rom.write_bytes(b"fake test-only contents")
+        self.observer = self.root / "checkpoint.script"
+        self.observer.write_text("wait 105\ndump checkpoint\nquit\n")
         self.seed = self.root / "original-movie.srm"
         self.seed.write_bytes(b"Q" * 8192)
         config = {
@@ -54,6 +57,7 @@ class PairedOracleTests(unittest.TestCase):
             "reference_engine": "synthetic-test-only",
             "rom": {"path": str(self.rom), "sha256": adapter.ROM_USA_SHA256},
             "source_sram": {"path": str(self.seed), "sha256": adapter.sha(self.seed)},
+            "observation_script": {"path": str(self.observer), "sha256": adapter.sha(self.observer)},
             "reference_binary": identity,
             "native_binary": identity,
             "reference_core": identity,
@@ -64,18 +68,20 @@ class PairedOracleTests(unittest.TestCase):
                                 "ROM_PATH": "%ROM%", "CORE_PATH": "%CORE%",
                                 "SNESREF_INPUT_FILE": "%CANDIDATE%",
                                 "SNESREF_SRAM_IN": "%SRAM%",
-                                "SNESREF_DUMP_DIR": "%DUMP_DIR%"},
+                                "SNESREF_DUMP_DIR": "%DUMP_DIR%",
+                                "SNESREF_SCRIPT": "%OBSERVER%",
+                                "OBS_FRAME": "105"},
                 "dump": "checkpoint.wram.bin",
             },
             "native": {
                 "argv": [str(binary), "-c", RUNNER, "--no-launcher",
-                         "--config", "%CONFIG%"],
+                         "--config", "%CONFIG%", "--script", "%OBSERVER%"],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
                                 "DUMP_DIR": "%DUMP_DIR%", "ROLE": "native",
                                 "ROM_PATH": "%ROM%",
                                 "UR_QA_SCENE_INPUT_FILE": "%CANDIDATE%",
                                 "SNESRECOMP_DUMP_DIR": "%DUMP_DIR%",
-                                "SNESRECOMP_ROM": "%ROM%"},
+                                "SNESRECOMP_ROM": "%ROM%", "OBS_FRAME": "105"},
                 "dump": "checkpoint.wram.bin",
             },
             "discrepancy": {
@@ -192,6 +198,40 @@ class PairedOracleTests(unittest.TestCase):
         self.assertNotEqual(receipt["reference_supplied_input_sha256"],
                             receipt["native_supplied_input_sha256"])
 
+    def test_missing_or_mutated_source_observer_fails(self):
+        from unittest import mock
+        self.observer.write_text("wait 106\ndump checkpoint\nquit\n")
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "qualified observer script changed"):
+                adapter.execute(self.manifest, self.input)
+
+    def test_native_must_use_same_qualified_observer(self):
+        from unittest import mock
+        self.manifest["native"]["argv"] = [
+            arg for arg in self.manifest["native"]["argv"]
+            if arg not in ("--script", "%OBSERVER%")
+        ]
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "identical pinned observer"):
+                adapter.validate(self.manifest)
+
+    def test_matching_memory_at_wrong_guest_frame_is_invalid(self):
+        from unittest import mock
+        self.manifest["native"]["environment"]["OBS_FRAME"] = "106"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            receipt = adapter.execute(self.manifest, self.input)
+        self.assertEqual(receipt["result"], "invalid_route")
+        self.assertFalse(receipt["native_valid"])
+        self.assertTrue(receipt["original_valid"])
+
+    def test_named_source_observer_must_have_single_dump(self):
+        from unittest import mock
+        self.observer.write_text("dump checkpoint\ndump checkpoint\n")
+        self.manifest["observation_script"]["sha256"] = adapter.sha(self.observer)
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                adapter.validate(self.manifest)
+
     def test_modified_source_sram_seed_is_rejected(self):
         from unittest import mock
         self.seed.write_bytes(b"Z" * 8192)
@@ -201,7 +241,10 @@ class PairedOracleTests(unittest.TestCase):
 
     def test_missing_native_config_arg_fails_closed(self):
         from unittest import mock
-        self.manifest["native"]["argv"] = self.manifest["native"]["argv"][:3]
+        self.manifest["native"]["argv"] = [
+            arg for arg in self.manifest["native"]["argv"]
+            if arg not in ("--config", "%CONFIG%")
+        ]
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             with self.assertRaisesRegex(ValueError, "explicit config"):
                 adapter.validate(self.manifest)

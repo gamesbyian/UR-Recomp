@@ -43,6 +43,9 @@ class CaseChecksTest(unittest.TestCase):
             plan = cc.plan(case)
             self.assertIn(plan["logical"][0], (256, 342))
             self.assertEqual(plan["output"], case["pixels"])
+        self.assertEqual(cc.plan(cases["root-wide-720"])["logical"], [256, 224])
+        self.assertEqual(cc.plan(cases["profile-first-run"])["logical"], [256, 224])
+        self.assertEqual(cc.plan(cases["title-wide-1080"])["logical"], [342, 224])
         self.assertTrue(cc.plan(cases["root-wide-720"])["check_clip"])
         self.assertTrue(cc.plan(cases["root-wide-720"])["check_focus"])
         self.assertFalse(cc.plan(cases["title-wide-1080"])["check_clip"])
@@ -50,43 +53,98 @@ class CaseChecksTest(unittest.TestCase):
         self.assertEqual(cc.plan(cases["title-compact-43"])["logical"], [256, 224])
         self.assertEqual(cc.plan(cases["root-wide-4k-virtual"])["output"], [3840, 2160])
 
-    def test_genuine_wide_root_passes_and_wrong_size_or_width_fails(self):
+    def test_fixed_root_in_wide_window_passes_and_wrong_source_fails(self):
         case = cc.load_cases()["root-wide-720"]
-        grid, h = busy(342)
-        put_band(grid, 342, 12, 60)
-        ok = cc.evaluate(case, render_fit(grid, 342, h, 1280, 720))
+        grid, h = busy(256)
+        put_band(grid, 256, 12, 60)
+        ok = cc.evaluate(case, render_fit(grid, 256, h, 1280, 720))
         self.assertTrue(ok["pass"], ok)
         self.assertEqual(ok["release_gate_credit"], 0)
         self.assertEqual(
             sorted(c["check"] for c in ok["checks"]),
             ["action-safe", "focus-ring", "logical-width", "output-size",
              "single-focus-bar"])
-        # right canvas, wrong output size
-        bad = cc.evaluate(case, render_fit(grid, 342, h, 1920, 1080))
-        self.assertFalse(bad["pass"])
+        # Correct 256 source, wrong SDL output size.
+        bad = cc.evaluate(case, render_fit(grid, 256, h, 1920, 1080))
         self.assertFalse(next(c for c in bad["checks"]
                               if c["check"] == "output-size")["pass"])
-        # a 256-wide source stretched into the 16:9 slot is not a wide source
-        narrow, nh = busy(256)
-        put_band(narrow, 256, 12, 60)
-        stretched = cc.evaluate(case, render_fit(narrow, 256, nh, 1280, 720))
-        self.assertFalse(next(c for c in stretched["checks"]
+        # A genuine 342-wide *world* source cannot satisfy a fixed-root case.
+        wide, wh = busy(342)
+        put_band(wide, 342, 12, 60)
+        wrong_scene = cc.evaluate(case, render_fit(wide, 342, wh, 1280, 720))
+        self.assertFalse(next(c for c in wrong_scene["checks"]
                               if c["check"] == "logical-width")["pass"])
-        # no focus bar / two focus bars both fail
-        grid2, _ = busy(342)
-        none = cc.evaluate(case, render_fit(grid2, 342, h, 1280, 720))
+        # No focus bar or two focus bars both fail.
+        grid2, _ = busy(256)
+        none = cc.evaluate(case, render_fit(grid2, 256, h, 1280, 720))
         self.assertFalse(next(c for c in none["checks"]
                               if c["check"] == "single-focus-bar")["pass"])
-        put_band(grid, 342, 12, 120)
-        two = cc.evaluate(case, render_fit(grid, 342, h, 1280, 720))
+        put_band(grid, 256, 12, 120)
+        two = cc.evaluate(case, render_fit(grid, 256, h, 1280, 720))
         self.assertFalse(next(c for c in two["checks"]
                               if c["check"] == "single-focus-bar")["pass"])
 
+    def test_fixed_children_do_not_relax_wide_world_width(self):
+        for screen in cc.UI_SCREENS:
+            case = {"id": "fixed-" + screen, "screen": screen,
+                    "mode": "modern", "aspect": "16:9",
+                    "pixels": [1280, 720], "state": "normal"}
+            self.assertEqual(cc.plan(case)["logical"], [256, 224])
+        world = {"id": "world-width-control", "screen": "race",
+                 "mode": "modern", "aspect": "16:9",
+                 "pixels": [1280, 720], "state": "normal"}
+        self.assertEqual(cc.plan(world)["logical"], [342, 224])
+        wide, h = busy(342)
+        self.assertTrue(cc.evaluate(
+            world, render_fit(wide, 342, h, 1280, 720))["pass"])
+        compact, h = busy(256)
+        wrong = cc.evaluate(world, render_fit(compact, 256, h, 1280, 720))
+        self.assertFalse(next(c for c in wrong["checks"]
+                              if c["check"] == "logical-width")["pass"])
+
+    def test_explicit_native_title_root_is_source_bound_not_aspect_inferred(self):
+        # Draft #2149/#2462 paints a different 342-wide native root.
+        # It must be admitted by an explicit case and exact source identity;
+        # the frozen shipped-root case stays 256-wide.
+        fixed = cc.load_cases()["root-wide-720"]
+        sha = "a" * 40
+        candidate = dict(fixed, id="native-title-root-wide-720",
+                         source_scene="native-title-root", source_sha=sha)
+        self.assertEqual(cc.plan(fixed)["logical"], [256, 224])
+        self.assertEqual(cc.plan(candidate)["logical"], [342, 224])
+        wide, h = busy(342)
+        put_band(wide, 342, 12, 60)
+        frame = render_fit(wide, 342, h, 1280, 720)
+        accepted = cc.evaluate(candidate, frame, observed_source_sha=sha)
+        self.assertTrue(accepted["pass"], accepted)
+        self.assertEqual(accepted["release_gate_credit"], 0)
+        self.assertTrue(next(c for c in accepted["checks"]
+                             if c["check"] == "source-identity")["pass"])
+        for observed in (None, "b" * 40):
+            refused = cc.evaluate(candidate, frame,
+                                  observed_source_sha=observed)
+            self.assertFalse(next(c for c in refused["checks"]
+                                  if c["check"] == "source-identity")["pass"])
+        compact, ch = busy(256)
+        put_band(compact, 256, 12, 60)
+        wrong_width = cc.evaluate(candidate,
+                                  render_fit(compact, 256, ch, 1280, 720),
+                                  observed_source_sha=sha)
+        self.assertFalse(next(c for c in wrong_width["checks"]
+                              if c["check"] == "logical-width")["pass"])
+        for invalid in (dict(candidate, source_sha=None),
+                        dict(candidate, source_sha="f" * 39),
+                        dict(candidate, screen="records"),
+                        dict(candidate, aspect="4:3"),
+                        dict(candidate, source_scene="unknown")):
+            with self.assertRaises(ValueError):
+                cc.plan(invalid)
+
     def test_missing_ring_is_advisory_unless_required(self):
         case = cc.load_cases()["root-wide-720"]
-        grid, h = busy(342)
-        put(grid, 342, 12, 60, 3, 16, BAR)  # legacy bar, no ring
-        frame = render_fit(grid, 342, h, 1280, 720)
+        grid, h = busy(256)
+        put(grid, 256, 12, 60, 3, 16, BAR)  # legacy bar, no ring
+        frame = render_fit(grid, 256, h, 1280, 720)
         self.assertTrue(cc.evaluate(case, frame)["pass"])
         strict = cc.evaluate(case, frame, require_ring=True)
         self.assertFalse(strict["pass"])
@@ -107,9 +165,9 @@ class CaseChecksTest(unittest.TestCase):
         self.assertTrue(rep["pass"], rep)
 
     def test_cli_pins_hash_and_rejects_unknown_case(self):
-        grid, h = busy(342)
-        put_band(grid, 342, 12, 60)
-        frame = render_fit(grid, 342, h, 1280, 720)
+        grid, h = busy(256)
+        put_band(grid, 256, 12, 60)
+        frame = render_fit(grid, 256, h, 1280, 720)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "f.p7"
             path.write_bytes(p7(frame.width, frame.height,

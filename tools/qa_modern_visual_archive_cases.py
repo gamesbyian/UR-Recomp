@@ -8,7 +8,8 @@ On top of a verified ZIP this adds, per capture:
 
 * `witnessed-source-width`: the logical width inferred from the pixels alone
   (`detect_logical`) must equal the native source canvas the host itself
-  logged (342 wide / 256 compact), an independent cross-check;
+  logged (256 for fixed Modern menu scenes, 342 for qualified wide-world
+  scenes), an independent cross-check;
 * for captures the frozen coverage map ties to an acceptance case, the full
   `qa_modern_visual_case_checks.evaluate` (output size, logical width,
   action-safe, single focus bar where applicable).

@@ -2,7 +2,8 @@
 """Derive and run the machine-checkable part of a Modern visual acceptance case.
 
 For each case in analysis/modern-visual-acceptance-matrix.json this fixes the
-expected native logical canvas (16:9 -> 342x224, 4:3 -> 256x224) and the
+scene-qualified native logical canvas (fixed Modern menu scenes -> 256x224,
+wide live-world scenes -> 342x224) and the
 checks a final-SDL capture of that case can be held to without a human:
 
 * output size equals the case's `pixels` (exact mode/geometry evidence);
@@ -51,8 +52,24 @@ def load_cases(path: Path = MATRIX) -> dict:
 
 
 def plan(case: dict) -> dict:
-    lw = LOGICAL[case["aspect"]]
+    # The shipped fixed menu uses 256px even in a wide SDL window (#2534).
+    # A different, explicitly source-bound native title/root candidate can
+    # legitimately render a 342px root (#2149/#2462). Never infer that
+    # candidate from the output aspect alone or silently accept either width.
     ui = case["mode"] == "modern" and case["screen"] in UI_SCREENS
+    scene = case.get("source_scene")
+    if scene is not None and scene != "native-title-root":
+        raise ValueError("unsupported visual source_scene")
+    if scene == "native-title-root":
+        sha = case.get("source_sha")
+        if (case["mode"] != "modern" or case["screen"] != "root"
+                or case["aspect"] != "16:9" or not isinstance(sha, str)
+                or len(sha) != 40
+                or any(c not in "0123456789abcdef" for c in sha)):
+            raise ValueError("native-title-root requires wide Modern root and exact source SHA")
+        lw = 342
+    else:
+        lw = 256 if ui else LOGICAL[case["aspect"]]
     return {"case": case["id"], "output": list(case["pixels"]),
             "logical": [lw, 224],
             "check_clip": ui,
@@ -60,7 +77,8 @@ def plan(case: dict) -> dict:
                            and case["screen"] != "records"}
 
 
-def evaluate(case: dict, frame: d.Frame, require_ring: bool = False) -> dict:
+def evaluate(case: dict, frame: d.Frame, require_ring: bool = False,
+             observed_source_sha: str | None = None) -> dict:
     p = plan(case)
     checks = []
 
@@ -69,6 +87,9 @@ def evaluate(case: dict, frame: d.Frame, require_ring: bool = False) -> dict:
 
     add("output-size", [frame.width, frame.height] == p["output"],
         {"expected": p["output"], "observed": [frame.width, frame.height]})
+    if case.get("source_scene") == "native-title-root":
+        add("source-identity", observed_source_sha == case["source_sha"],
+            {"expected": case["source_sha"], "observed": observed_source_sha})
     det = d.detect_logical(frame, (256, 342))
     add("logical-width", det["consistent_widths"] == [p["logical"][0]],
         {"expected": p["logical"][0], "nonuniform": det["nonuniform_fraction"]})

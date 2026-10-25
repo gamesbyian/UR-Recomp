@@ -88,7 +88,10 @@ class EarnedControllerJourney(unittest.TestCase):
         post = [
             "UR_BALDOSA_MODERN_PAD_RACE source_input_completed=1",
             "UR_BALDOSA_MODERN_PAD_POST source_observed frame=5500 menu=99 race=00 stage=0",
-            "UR_BALDOSA_MODERN_PAD_POST result_back_x=1 source_menu=99",
+            "UR_BALDOSA_MODERN_PAD_POST result_continue_a=1 source_menu=99",
+            "UR_BALDOSA_MODERN_PAD_POST track_back_x=1 source_menu=f6",
+            "UR_BALDOSA_MODERN_PAD_POST tour_back_x=1 source_menu=6d",
+            "UR_BALDOSA_MODERN_PAD_POST rider_back_x=1 source_menu=3c",
             "UR_BALDOSA_MODERN_PAD_POST root_back_b=1 source_menu=d7",
             "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
             "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7",
@@ -103,9 +106,14 @@ class EarnedControllerJourney(unittest.TestCase):
         good = [HOST, *PREFIX, *TAIL, *post]
         verify_five_destination_pad_post_result("\n".join(good) + "\n")
         mutants = {
-            "missing result back": [x for x in good if "result_back_x=1" not in x],
+            "missing result continue": [x for x in good if "result_continue_a=1" not in x],
+            "missing track back": [x for x in good if "track_back_x=1" not in x],
+            "missing tour back": [x for x in good if "tour_back_x=1" not in x],
+            "missing rider back": [x for x in good if "rider_back_x=1" not in x],
             "no original MAIN": [x for x in good if "root_back_b=1" not in x],
-            "duplicate source reentry": good + [post[4]],
+            "duplicate source reentry": good + [
+                "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0"
+            ],
             "empty earned Records": [x.replace("validated=1", "validated=0") for x in good],
             "post-return controller replacement": good + [
                 "[Gamepad] UR_CONTROLLER_SEAT assign instance=102 seat=0 reason=added"
@@ -113,7 +121,7 @@ class EarnedControllerJourney(unittest.TestCase):
             "no source result": [x for x in good if "NATIVE_RESULT" not in x],
             "unpainted navigation": [
                 *[x for x in good if "reopened_painted=1" not in x],
-                post[6],
+                "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
             ],
         }
         for label, candidate in mutants.items():

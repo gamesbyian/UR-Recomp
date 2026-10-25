@@ -28,6 +28,14 @@ if "100:10:002" in rows:
     b[0x200]=2 if os.environ["ROLE"]=="original" else 3
 else:
     b[0x200]=1
+if os.environ.get("SOUND_PAIR")=="1":
+    # Real Zoo source mismatch has exactly the two signed DP bytes.
+    b[0x200]=2
+    b[0x63]=0x73 if os.environ["ROLE"]=="original" else 0x4D
+    b[0x69]=(0xBE if os.environ["ROLE"]=="original"
+             or os.environ.get("PAIR_LOST")=="1" else 0x97)
+    if os.environ.get("EXTRA_DIFF")=="1":
+        b[0x234]=1
 if os.environ.get("PRE_TARGET")=="1":
     pre=bytearray(131072)
     if os.environ.get("PRE_DIFF")=="1":
@@ -265,13 +273,23 @@ class PairedOracleTests(unittest.TestCase):
             "wait 104\ndump checkpoint-before\nwait 1\ndump checkpoint\nquit\n"
         )
         self.manifest["observation_script"]["sha256"] = adapter.sha(self.observer)
-        self.manifest["discrepancy"]["id"] = "original-zoo-first-sound-synthetic"
+        self.manifest["discrepancy"] = {
+            "id": "original-zoo-first-sound-synthetic",
+            "phase": "test-zoo-relative+5040",
+            "offset": 0x63, "original_byte": 0x73, "native_byte": 0x4D,
+        }
+        self.manifest["after_target_pair"] = [
+            {"offset": 0x63, "original_byte": 0x73, "native_byte": 0x4D},
+            {"offset": 0x69, "original_byte": 0xBE, "native_byte": 0x97},
+        ]
         self.manifest["pre_target"] = {
             "dump": "checkpoint-before.wram.bin",
             "sha256": hashlib.sha256(bytes(131072)).hexdigest(),
         }
         self.manifest["reference"]["environment"]["PRE_TARGET"] = "1"
         self.manifest["native"]["environment"]["PRE_TARGET"] = "1"
+        self.manifest["reference"]["environment"]["SOUND_PAIR"] = "1"
+        self.manifest["native"]["environment"]["SOUND_PAIR"] = "1"
 
     def test_authentic_zoo_prestate_required_even_when_target_bytes_match(self):
         from unittest import mock
@@ -288,6 +306,40 @@ class PairedOracleTests(unittest.TestCase):
         self.manifest.pop("pre_target")
         with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
             with self.assertRaisesRegex(ValueError, "preceding full WRAM"):
+                adapter.validate(self.manifest)
+
+    def test_only_first_dp_byte_different_is_not_same_source_event(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest["native"]["environment"]["PAIR_LOST"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            row = adapter.execute(self.manifest, self.input)
+        self.assertEqual(row["result"], "not_reproduced")
+        self.assertTrue(row["original_valid"] and row["native_valid"])
+
+    def test_new_third_wram_disparity_is_not_same_source_event(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest["native"]["environment"]["EXTRA_DIFF"] = "1"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            row = adapter.execute(self.manifest, self.input)
+        self.assertEqual(row["result"], "not_reproduced")
+        self.assertTrue(row["original_valid"] and row["native_valid"])
+
+    def test_missing_two_dp_byte_pair_cannot_claim_zoo_source(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest.pop("after_target_pair")
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "both original DP differences"):
+                adapter.validate(self.manifest)
+
+    def test_post_frame_discrepancy_identity_must_match_pair(self):
+        from unittest import mock
+        self.qualified_zoo_predecessor()
+        self.manifest["after_target_pair"][0]["native_byte"] = 0x71
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "primary target differs"):
                 adapter.validate(self.manifest)
 
     def test_same_target_bytes_but_modified_prior_state_is_invalid(self):

@@ -37,6 +37,30 @@ def candidate_identity(source_sha, exe, fixture, archive):
             "zip_sha256": bridge.sha256_file(archive)}
 
 
+def attest_private_case_files(rows, work):
+    """Bind private original script outputs without publishing their contents.
+
+    Full guest logs stay on the ephemeral Windows runner. The artifact exposes
+    only the SHA-256, size and fixed filename, so a later separately authorized
+    read can detect whether the original bytes differ from the producer claim.
+    A digest is not a signature and cannot, by itself, independently verify
+    that the guest actually executed its claimed journey.
+    """
+    for row in rows:
+        index = row["index"]
+        for label, suffix in (("log", ".log"), ("summary", ".md")):
+            expected = f"step-{index:02d}{suffix}"
+            require(row.get(label) == expected,
+                    "original script output name changed")
+            path = work / expected
+            require(path.is_file() and not path.is_symlink(),
+                    "missing or redirected original Windows " + label)
+            data = path.read_bytes()
+            row[label + "_sha256"] = hashlib.sha256(data).hexdigest()
+            row[label + "_bytes"] = len(data)
+    return rows
+
+
 def validate_receipt(receipt, group, source_sha):
     require(isinstance(receipt, dict) and receipt.get("schema") == SCHEMA, "wrong receipt schema")
     require(group in GROUPS and receipt.get("group") == group, "wrong group")
@@ -64,6 +88,15 @@ def validate_receipt(receipt, group, source_sha):
         require(type(row.get("exit_code")) is int, "invalid original step exit code")
         require(type(row.get("elapsed_seconds")) in (float, int)
                 and row["elapsed_seconds"] >= 0, "invalid measured step time")
+        for label, ext in (("log", ".log"), ("summary", ".md")):
+            require(row.get(label) == f"step-{idx:02d}{ext}",
+                    "changed original private Windows output label")
+            require(type(row.get(label + "_sha256")) is str
+                    and bool(HEX64.fullmatch(row[label + "_sha256"])),
+                    "missing original output SHA256")
+            require(type(row.get(label + "_bytes")) is int
+                    and 0 <= row[label + "_bytes"] < 50_000_000,
+                    "invalid private original output size")
     require(receipt.get("release_gate_credit") == 0
             and receipt.get("independent_physical_qa") is False,
             "producer attempted QA promotion")
@@ -109,6 +142,7 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     require(candidate_identity(source_sha, bridge.EXE, bridge.FIXTURE, archive) == who,
             "candidate changed during original scripts")
     rows.sort(key=lambda row: row["index"])
+    attest_private_case_files(rows, work)
     report = {
         "schema": SCHEMA, "group": group, "candidate_identity": who,
         "expected_indices": list(GROUPS[group]), "cases": rows,
@@ -143,7 +177,11 @@ def aggregate(root, source_sha):
         "schema": "ur-win32-acceptance-fanout-aggregate/1",
         "source_sha": source_sha, "candidate_identity": identities[0] if identities else None,
         "cases": sorted(({"index": row["index"], "exit_code": row["exit_code"],
-                          "elapsed_seconds": row["elapsed_seconds"]} for row in cases),
+                          "elapsed_seconds": row["elapsed_seconds"],
+                          "log_sha256": row["log_sha256"],
+                          "log_bytes": row["log_bytes"],
+                          "summary_sha256": row["summary_sha256"],
+                          "summary_bytes": row["summary_bytes"]} for row in cases),
                         key=lambda x: x["index"]),
         "observed_cases": len(indices), "expected_cases": 13,
         "transport_complete": not problems, "issues": problems,

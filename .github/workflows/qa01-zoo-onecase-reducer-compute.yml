@@ -30,7 +30,7 @@ jobs:
       - name: Check out exact historical producer source, not current main
         uses: actions/checkout@v4
         with:
-          ref: c6b46344dc5eed5fbf09c663e1ed016b68887f23
+          ref: aacaaf28bba6f92c6be31e23feec16aee0610240
           persist-credentials: false
           submodules: recursive
           path: source-checkout
@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C source-checkout rev-parse HEAD)" = "c6b46344dc5eed5fbf09c663e1ed016b68887f23"
+          test "$(git -C source-checkout rev-parse HEAD)" = "aacaaf28bba6f92c6be31e23feec16aee0610240"
           test -f qa-tools/tools/prepare_qa01_zoo_reducer_pilot.py
           test -f qa-tools/tools/qa01_reducer_paired_oracle.py
           test -f qa-tools/tools/qa01_reducer_clock_rebase.py
@@ -117,7 +117,7 @@ jobs:
             --binaries "$RUNNER_TEMP/qa01-binaries" \
             --rom "$GITHUB_WORKSPACE/source-checkout/reference/roms/retail/Uniracers_USA.sfc" \
             --movie "$GITHUB_WORKSPACE/source-checkout/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
-            --source-sha "c6b46344dc5eed5fbf09c663e1ed016b68887f23" \
+            --source-sha "aacaaf28bba6f92c6be31e23feec16aee0610240" \
             --output-manifest "$RUNNER_TEMP/qa01-reducer-private/paired.json" \
             --output-input "$RUNNER_TEMP/qa01-reducer-private/original.input" \
             --output-receipt "$RUNNER_TEMP/qa01-reducer-private/intake.json"

@@ -349,6 +349,13 @@ def verify_five_destination_pad_return(log: str) -> None:
         post_positions.append(matches[0].start())
     if post_positions != sorted(post_positions) or len(set(post_positions)) != len(post_positions):
         raise ValueError("pad return: post-return controller Records journey out of order")
+    # The root and its selection events share the product stderr stream.
+    # A late compositor repaint must not satisfy a controller journey that
+    # already navigated an unpainted root. The previous check required a
+    # repaint after reentry, but did not bind it before the first selection.
+    repaint = "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared"
+    if positions[repaint] >= positions[reopened] + len(reopened) + post_positions[0]:
+        raise ValueError("pad return: controller navigated before root repaint")
     if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
         raise ValueError("pad return: unexpected stock relaunch after reentry")
 

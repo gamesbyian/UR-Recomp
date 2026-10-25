@@ -126,6 +126,28 @@ int main() {
     const auto non_directory = inspect_baldosa_native_records_archive(regular.string());
     assert(!non_directory.directory_available);
     assert(non_directory.total_artifacts == 0);
+#if !defined(_WIN32)
+    // A directory may pass symlink_status but deny enumeration. This is
+    // distinct from a valid empty archive and must remain visibly unavailable
+    // rather than silently reporting NO RUNS. Privileged test runners may
+    // bypass mode bits, so assert the negative only for unprivileged users.
+    const auto unreadable = root / "unreadable-runs";
+    fs::create_directory(unreadable);
+    fs::permissions(unreadable, fs::perms::none);
+    bool scan_succeeded = false;
+    (void)inspect_completed_run_record_artifacts(
+        unreadable.string(), &scan_succeeded);
+    if (geteuid() != 0) assert(!scan_succeeded);
+    if (!scan_succeeded) {
+        const auto refused = inspect_baldosa_native_records_archive(
+            unreadable.string());
+        assert(!refused.directory_available);
+        assert(refused.total_artifacts == 0);
+        assert(refused.validated_archives == 0);
+        assert(refused.recent_course.empty());
+    }
+    fs::permissions(unreadable, fs::perms::owner_all);
+#endif
     fs::remove_all(root);
     std::puts("PASS: native Records reads only canonical selected-profile archives");
 }

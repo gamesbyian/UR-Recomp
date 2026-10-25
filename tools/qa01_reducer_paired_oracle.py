@@ -154,7 +154,8 @@ def validate(config):
         offsets.add(row["offset"])
     check(d["offset"] not in offsets, "divergent target cannot be an equal-stage anchor")
     pre = config.get("pre_target")
-    if d["id"].startswith("original-zoo-first-sound"):
+    is_zoo_sound = d["id"].startswith("original-zoo-first-sound")
+    if is_zoo_sound:
         check(pre is not None, "Zoo causal reducer must protect preceding full WRAM")
     if pre is not None:
         check(type(pre) is dict and set(pre) == {"dump", "sha256"},
@@ -169,6 +170,27 @@ def validate(config):
         check(source_lines.count("dump " + pretag) == 1
               and source_lines.index("dump " + pretag) < source_lines.index("dump " + tag),
               "source observer does not sample authentic preceding frame")
+    after_pair = config.get("after_target_pair")
+    if is_zoo_sound:
+        check(after_pair is not None, "Zoo sound comparison must bind both original DP differences")
+    if after_pair is not None:
+        check(type(after_pair) is list and len(after_pair) == 2,
+              "Zoo after-pair needs exactly two source-earned differences")
+        check([row.get("offset") for row in after_pair if type(row) is dict]
+              == [0x63, 0x69], "Zoo after-pair has wrong or incomplete offsets")
+        for row in after_pair:
+            check(type(row) is dict and set(row) ==
+                  {"offset", "original_byte", "native_byte"}
+                  and type(row["original_byte"]) is int
+                  and type(row["native_byte"]) is int
+                  and 0 <= row["original_byte"] <= 255
+                  and 0 <= row["native_byte"] <= 255
+                  and row["original_byte"] != row["native_byte"],
+                  "invalid source-earned Zoo two-byte discrepancy")
+        check(after_pair[0]["original_byte"] == d["original_byte"]
+              and after_pair[0]["native_byte"] == d["native_byte"]
+              and after_pair[0]["offset"] == d["offset"],
+              "Zoo primary target differs from exact source DP pair")
     return config
 
 
@@ -285,6 +307,16 @@ def execute(config, candidate, timeout=120):
         reproduced = bool(original_valid and native_valid
                           and original[predicate["offset"]] == predicate["original_byte"]
                           and native[predicate["offset"]] == predicate["native_byte"])
+        pair = cfg.get("after_target_pair")
+        if reproduced and pair is not None:
+            # The exact source had ONLY the $0063 and $0069 differences at
+            # +5040. A new third WRAM mismatch or missing partner is a
+            # different experiment, even if $0063 happens to match.
+            positions = [i for i, (a, b) in enumerate(zip(original, native))
+                         if a != b]
+            reproduced = (positions == [0x63, 0x69] and all(
+                original[row["offset"]] == row["original_byte"]
+                and native[row["offset"]] == row["native_byte"] for row in pair))
     return {
         "schema": ORACLE_SCHEMA, "candidate_sha256": sha(candidate),
         "reference_supplied_input_sha256": hashlib.sha256(original_input).hexdigest(),
@@ -295,6 +327,9 @@ def execute(config, candidate, timeout=120):
         "source_sram_sha256": cfg["source_sram"]["sha256"],
         "observation_script_sha256": cfg["observation_script"]["sha256"],
         "preceding_source_wram_sha256": (cfg.get("pre_target") or {}).get("sha256"),
+        "after_target_pair_sha256": (
+            hashlib.sha256(json.dumps(cfg["after_target_pair"], sort_keys=True).encode()).hexdigest()
+            if cfg.get("after_target_pair") is not None else None),
         "original_rom_sha256": cfg["rom"]["sha256"],
         "native_binary_sha256": cfg["native_binary"]["sha256"],
         "reference_engine": cfg["reference_engine"] + ":" + cfg["reference_binary"]["sha256"]

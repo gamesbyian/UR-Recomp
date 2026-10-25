@@ -117,6 +117,10 @@ class ZooReducerIntakeTests(unittest.TestCase):
                          manifest["guest_clocks"]["reference_entry_frame"], 2)
         self.assertEqual(manifest["discrepancy"]["original_byte"], 0x73)
         self.assertEqual(manifest["discrepancy"]["native_byte"], 0x4D)
+        self.assertEqual(manifest["after_target_pair"], [
+            {"offset": 0x63, "original_byte": 0x73, "native_byte": 0x4D},
+            {"offset": 0x69, "original_byte": 0xBE, "native_byte": 0x97},
+        ])
         self.assertEqual(manifest["pre_target"]["dump"], "scene-05039.wram.bin")
         self.assertEqual(manifest["pre_target"]["sha256"],
                          actual_hash(self.reference / "scene-05039.wram.bin"))

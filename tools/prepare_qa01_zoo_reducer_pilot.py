@@ -138,6 +138,11 @@ def prepare(*, producer: Path, case: Path, binaries: Path, rom: Path, movie: Pat
         "observation_script": {"path": str(observer.resolve()), "sha256": script_hash},
         "pre_target": {"dump": BEFORE + ".wram.bin",
                        "sha256": hashlib.sha256(before_ref).hexdigest()},
+        "after_target_pair": [
+            {"offset": offset, "original_byte": after_ref[offset],
+             "native_byte": after_native[offset]}
+            for offset in (0x63, 0x69)
+        ],
         "native_xvfb": True,
         "guest_clocks": {
             "reference_entry_frame": rf, "native_entry_frame": nf,

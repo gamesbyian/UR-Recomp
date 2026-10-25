@@ -910,6 +910,17 @@ void product_diagnostic(const char* message) {
 }
 
 std::string product_user_data_root() {
+#if defined(_WIN32)
+    // getenv() narrows a native Windows environment path through the active
+    // ANSI code page. Preserve the actual UTF-16 value as UTF-8 before any
+    // Modern profile, catalog, Records or host-state filesystem operation.
+    if (const wchar_t* wide_root = _wgetenv(L"UR_RECOMP_USER_DATA_ROOT");
+        wide_root && *wide_root) {
+        const auto utf8 = std::filesystem::path(wide_root).u8string();
+        return ur::product::host_trim_user_data_root(
+            std::string(utf8.begin(), utf8.end()));
+    }
+#endif
     const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
     if (override_root && *override_root) {
         return ur::product::host_trim_user_data_root(override_root);

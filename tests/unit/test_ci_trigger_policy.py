@@ -4,7 +4,9 @@ import unittest
 
 
 WORKFLOWS = Path(".github/workflows")
-MAIN_PUSH_ALLOWLIST = set()
+# The Windows producer runs on main product changes, and on PRs only when
+# its own workflow is edited. These are disjoint invalidation surfaces.
+MAIN_PUSH_ALLOWLIST = {"windows-native-smoke.yml"}
 
 ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST = {
     "native-build-smoke.yml",
@@ -455,10 +457,18 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"retained research/deferred-platform workflows must be manually dispatched: {offenders}",
         )
 
-    def test_windows_smoke_runs_only_on_final_main(self):
+    def test_windows_smoke_pr_is_same_repo_workflow_edit_only(self):
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
         self.assertTrue(_pushes_main(text))
-        self.assertFalse(_block(text, "pull_request"))
+        self.assertEqual(
+            _block(text, "pull_request").strip(),
+            'paths:\n      - ".github/workflows/windows-native-smoke.yml"',
+        )
+        self.assertIn(
+            "if: github.event_name != 'pull_request' || "
+            "github.event.pull_request.head.repo.full_name == github.repository",
+            text,
+        )
 
     def test_results_navigation_shared_fanout_is_bounded(self):
         text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()

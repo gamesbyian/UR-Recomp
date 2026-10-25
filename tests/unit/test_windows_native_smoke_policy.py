@@ -15,6 +15,7 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         cls.text = WORKFLOW.read_text(encoding="utf-8")
 
     def test_shipping_runtime_surfaces_retrigger_final_main_package_acceptance(self) -> None:
+        push = self.text.split("  push:\n", 1)[1].split("\nconcurrency:", 1)[0]
         for path in (
             '      - "tools/verify_rom.py"',
             '      - "tools/check_result_screen_time.py"',
@@ -25,18 +26,18 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             '      - "native/presentation/**"',
             '      - "native/title/**"',
         ):
-            self.assertIn(path, self.text)
+            self.assertIn(path, push)
         self.assertNotIn(
             '      - ".github/workflows/windows-native-smoke.yml"',
-            self.text,
+            push,
         )
 
     def test_push_path_entries_are_structurally_indented(self) -> None:
-        paths_start = self.text.index("    paths:\n") + len("    paths:\n")
-        paths_end = self.text.index("\n\nconcurrency:", paths_start)
+        push = self.text.split("  push:\n", 1)[1].split("\nconcurrency:", 1)[0]
+        paths_start = push.index("    paths:\n") + len("    paths:\n")
         entries = [
             line
-            for line in self.text[paths_start:paths_end].splitlines()
+            for line in push[paths_start:].splitlines()
             if line.strip()
         ]
         self.assertTrue(entries)

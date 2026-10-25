@@ -1,6 +1,6 @@
 --- a/runner/src/host_paths.c
 +++ b/runner/src/host_paths.c
-@@ -146,31 +146,50 @@
+@@ -146,31 +146,81 @@
 -static int dir_is_writable(const char *dir) {
 -    char probe[1024];
 -    if (snprintf(probe, sizeof(probe), "%s.snesrecomp_write_probe",
@@ -32,6 +32,11 @@
 -    fprintf(stderr, "[Launcher] Config/saves anchored to '%s'.\n", dir);
 -    return 1;
 -}
++#if defined(_WIN32)
++#include <direct.h>
++#include <wchar.h>
++#endif
++
 +static int dir_is_writable(const char *dir) {
 +    char probe[1024];
 +    size_t len = dir ? strlen(dir) : 0;
@@ -49,6 +54,32 @@
 +}
 +
 +int snesrecomp_anchor_to_exe_dir(void) {
++#if defined(_WIN32)
++    /* The CRT narrow environment and filesystem calls use the active ANSI
++     * code page. They cannot represent a Windows account/root containing
++     * characters outside that page. The launcher supplies a native UTF-16
++     * environment value, so keep it wide through the probe and chdir. */
++    const wchar_t *wide_root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
++    if (wide_root && *wide_root) {
++        wchar_t probe[1024];
++        size_t len = wcslen(wide_root);
++        const wchar_t *sep =
++            (len && wide_root[len - 1] != L'/' && wide_root[len - 1] != L'\\')
++                ? L"\\" : L"";
++        int count = swprintf(probe, sizeof(probe) / sizeof(probe[0]),
++                             L"%ls%ls.snesrecomp_write_probe", wide_root, sep);
++        if (count < 0 || (size_t)count >= sizeof(probe) / sizeof(probe[0]))
++            return 0;
++        FILE *f = _wfopen(probe, L"wb");
++        if (!f) return 0;
++        fclose(f);
++        if (_wremove(probe) != 0 || _wchdir(wide_root) != 0) return 0;
++        const char *display_root = getenv("SNESRECOMP_USER_DATA_DIR");
++        fprintf(stderr, "[Launcher] Config/saves anchored to user data '%s'.\n",
++                display_root ? display_root : "(native Windows path)");
++        return 1;
++    }
++#endif
 +    char dir[1024];
 +    const char *user_data = getenv("SNESRECOMP_USER_DATA_DIR");
 +    if (user_data && user_data[0]) {

@@ -408,6 +408,7 @@ jobs:
           for boot in 1 2; do
             # Require each launch to produce its own fresh main-menu witness.
             rm -f "$RO_DUMPS/package-main-menu.wram.bin"
+            set +e
             (
               cd "$RO_CALLER"
               SDL_VIDEODRIVER=offscreen \
@@ -418,8 +419,11 @@ jobs:
                   '& (Join-Path $env:RO_PACKAGE_WIN "run-uniracers.cmd") --script $env:RO_SCRIPT_WIN; exit $LASTEXITCODE' \
                   >"$RUNNER_TEMP/read-only-unicode-boot-$boot.log" 2>&1
             )
+            RO_RC=$?
+            set -e
+            cat "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
+            test "$RO_RC" -eq 0
             grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
-            grep -Fq "$RO_USER_WIN" "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
             test -s "$RO_DUMPS/package-main-menu.wram.bin"
             python - "$RO_DUMPS/package-main-menu.wram.bin" <<'PY'
           from pathlib import Path

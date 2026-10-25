@@ -133,6 +133,22 @@ class ZooReducerIntakeTests(unittest.TestCase):
                         if Path(path) == self.rom else actual_hash(Path(path))):
             validate_oracle(manifest)
 
+    def test_derived_checkpoint_script_stops_before_result_gate(self):
+        from qa01_reducer_paired_oracle import checkpoint_only_observer
+        self.script.write_text("until 009F == 16 8000\ndump race-entered\n"
+                               "wait 5039\ndump scene-05039\nwait 1\n"
+                               "dump scene-05040\nuntil 009F == BC 9000\n"
+                               "dump result-onset\nquit\n")
+        source = self.script.read_text()
+        derived = checkpoint_only_observer(source, "scene-05040")
+        self.assertEqual(derived, source.split("until 009F == BC 9000")[0] +
+                         "quit\n")
+        self.assertEqual(derived.count("dump scene-05039"), 1)
+        self.assertEqual(derived.count("dump scene-05040"), 1)
+        self.assertNotIn("9000", derived)
+        with self.assertRaisesRegex(ValueError, "one authentic checkpoint"):
+            checkpoint_only_observer(source, "result-unknown")
+
     def test_preceding_frame_must_be_full_byte_identical(self):
         image = bytearray((self.native / "scene-05039.wram.bin").read_bytes())
         image[0x01EE] = 1

@@ -132,9 +132,24 @@ def validate(config):
     require_same_tag = config["reference"]["dump"] == config["native"]["dump"]
     check(require_same_tag, "original/native observers must produce same named checkpoint")
     tag = config["reference"]["dump"][:-len(".wram.bin")]
-    source_lines = observer_file.read_text(encoding="utf-8").splitlines()
+    source_text = observer_file.read_text(encoding="utf-8")
+    source_lines = source_text.splitlines()
     check(source_lines.count("dump " + tag) == 1,
           "observer script must contain exactly one named target dump")
+    bounded = config.get("bounded_observer_script")
+    if bounded is not None:
+        check(type(bounded) is dict and set(bounded) == {"path", "sha256"},
+              "missing bound checkpoint-only observer identity")
+        check(type(bounded["sha256"]) is str
+              and bool(HEX64.fullmatch(bounded["sha256"])),
+              "invalid checkpoint-only observer digest")
+        bound_file = Path(bounded["path"])
+        check(bound_file.suffix == ".script" and
+              file_sha(bound_file) == bounded["sha256"],
+              "checkpoint-only observer hash changed")
+        check(bound_file.read_text(encoding="utf-8") ==
+              checkpoint_only_observer(source_text, tag),
+              "checkpoint-only observer changes source precheckpoint execution")
     d = config.get("discrepancy")
     check(type(d) is dict and set(d) ==
           {"id", "phase", "offset", "original_byte", "native_byte"}, "invalid discrepancy predicate")
@@ -202,6 +217,26 @@ def render(text, candidate, output, rom, core, seed, config, observer):
             .replace("%SRAM%", str(seed))
             .replace("%CONFIG%", str(config))
             .replace("%OBSERVER%", str(observer)))
+
+
+def checkpoint_only_observer(source: str, tag: str) -> str:
+    """Exact source script prefix through a unique checkpoint, then quit.
+
+    Never alter the pre-checkpoint script, frames or input clocks. The source
+    SHA stays pinned independently of this deliberately derived observer.
+    """
+    check(bool(re.fullmatch(r"[A-Za-z0-9_.-]+", tag)), "invalid bounded checkpoint tag")
+    lines = source.splitlines(keepends=True)
+    markers = [i for i, line in enumerate(lines)
+               if line.strip() == "dump " + tag]
+    check(len(markers) == 1, "bounded observer requires one authentic checkpoint")
+    end = markers[0]
+    check(all(line.strip() != "quit" for line in lines[:end]),
+          "source observer quits before selected checkpoint")
+    check(any(line.strip() == "quit" for line in lines[end + 1:]),
+          "source observer must include terminal quit")
+    check(lines[end].endswith("\n"), "source checkpoint must end with newline")
+    return "".join(lines[:end + 1]) + "quit\n"
 
 
 def native_execution_argv(argv, use_xvfb):
@@ -287,7 +322,8 @@ def execute(config, candidate, timeout=120):
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     check(source == cfg["source_sha"], "paired commands source SHA is stale")
     rom = Path(cfg["rom"]["path"]).resolve()
-    observer = Path(cfg["observation_script"]["path"]).resolve()
+    observer = Path((cfg.get("bounded_observer_script")
+                     or cfg["observation_script"])["path"]).resolve()
     seed_bytes = Path(cfg["source_sram"]["path"]).read_bytes()
     check(len(seed_bytes) == 8192 and hashlib.sha256(seed_bytes).hexdigest()
           == cfg["source_sram"]["sha256"], "original source SRAM changed after validation")
@@ -312,8 +348,11 @@ def execute(config, candidate, timeout=120):
             cfg["anchors"], timeout, seed_bytes, observer,
             clocks["native_observation_frame"], cfg.get("native_xvfb", False),
             pre_target=cfg.get("pre_target"))
-        check(sha(observer) == cfg["observation_script"]["sha256"],
-              "observer script changed during paired process execution")
+        check(sha(observer) == (cfg.get("bounded_observer_script")
+                                or cfg["observation_script"])["sha256"]
+              and sha(Path(cfg["observation_script"]["path"])) ==
+                  cfg["observation_script"]["sha256"],
+              "source or executed observer changed during paired process execution")
         predicate = cfg["discrepancy"]
         reproduced = bool(original_valid and native_valid
                           and original[predicate["offset"]] == predicate["original_byte"]
@@ -337,6 +376,8 @@ def execute(config, candidate, timeout=120):
         "source_sha": cfg["source_sha"],
         "source_sram_sha256": cfg["source_sram"]["sha256"],
         "observation_script_sha256": cfg["observation_script"]["sha256"],
+        "executed_observer_sha256": (cfg.get("bounded_observer_script")
+                                    or cfg["observation_script"])["sha256"],
         "preceding_source_wram_sha256": (cfg.get("pre_target") or {}).get("sha256"),
         "after_target_pair_sha256": (
             hashlib.sha256(json.dumps(cfg["after_target_pair"], sort_keys=True).encode()).hexdigest()

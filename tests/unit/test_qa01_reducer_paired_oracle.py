@@ -146,6 +146,40 @@ class PairedOracleTests(unittest.TestCase):
             row = adapter.execute(self.manifest, self.input)
         self.assertEqual(row["result"], "not_reproduced")
 
+    def test_checkpoint_only_observer_preserves_source_prefix(self):
+        from unittest import mock
+        self.observer.write_text(
+            "until 009F == 16 8000\ndump checkpoint\n"
+            "until 009F == BC 9000\nquit\n")
+        self.manifest["observation_script"]["sha256"] = adapter.sha(self.observer)
+        expected = "until 009F == 16 8000\ndump checkpoint\nquit\n"
+        self.assertEqual(adapter.checkpoint_only_observer(
+            self.observer.read_text(), "checkpoint"), expected)
+        bounded = self.root / "bounded.script"
+        bounded.write_text(expected)
+        self.manifest["bounded_observer_script"] = {
+            "path": str(bounded), "sha256": adapter.sha(bounded)}
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            self.assertEqual(adapter.execute(self.manifest, self.input)["result"],
+                             "reproduced")
+        self.assertEqual(self.manifest["observation_script"]["sha256"],
+                         adapter.sha(self.observer))
+
+    def test_checkpoint_only_observer_mutations_refused_even_with_new_sha(self):
+        from unittest import mock
+        self.observer.write_text("wait 105\ndump checkpoint\n"
+                                 "until 009F == BC 9000\nquit\n")
+        self.manifest["observation_script"]["sha256"] = adapter.sha(self.observer)
+        bounded = self.root / "bounded.script"
+        bounded.write_text("wait 104\ndump checkpoint\nquit\n")
+        self.manifest["bounded_observer_script"] = {
+            "path": str(bounded), "sha256": adapter.sha(bounded)}
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "precheckpoint"):
+                adapter.validate(self.manifest)
+        with self.assertRaisesRegex(ValueError, "terminal quit"):
+            adapter.checkpoint_only_observer("wait 105\ndump checkpoint\n", "checkpoint")
+
     def test_real_child_process_stage_timeout_is_nonreproducing_not_infra(self):
         from unittest import mock
         self.manifest["reference"]["environment"]["FORCE_SCENE_TIMEOUT"] = "1"

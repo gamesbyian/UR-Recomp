@@ -36,7 +36,7 @@ class PairedOracleTests(unittest.TestCase):
         self.input = self.root / "source.input"
         self.input.write_text("0:100:001\n100:10:002\n120:10:004\n140:10:008\n")
         self.config = self.root / "paired.json"
-        binary = Path(sys.executable)
+        binary = Path(sys.executable).resolve()
         identity = {"path": str(binary), "sha256": adapter.sha(binary)}
         source_sha = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
@@ -51,13 +51,13 @@ class PairedOracleTests(unittest.TestCase):
             "native_binary": identity,
             "reference_core": identity,
             "reference": {
-                "argv": [sys.executable, "-c", RUNNER],
+                "argv": [str(binary), "-c", RUNNER],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
                                 "DUMP_DIR": "%DUMP_DIR%", "ROLE": "original"},
                 "dump": "checkpoint.wram.bin",
             },
             "native": {
-                "argv": [sys.executable, "-c", RUNNER],
+                "argv": [str(binary), "-c", RUNNER],
                 "environment": {"CANDIDATE": "%CANDIDATE%",
                                 "DUMP_DIR": "%DUMP_DIR%", "ROLE": "native"},
                 "dump": "checkpoint.wram.bin",

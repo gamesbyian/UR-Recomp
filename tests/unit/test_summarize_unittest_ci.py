@@ -55,7 +55,7 @@ class SummarizeUnittestCiTests(unittest.TestCase):
             self.assertEqual(report["outcome"], "incomplete")
             self.assertEqual(report["shards"][0]["outcome"], "harness_error")
             self.assertEqual(report["shards"][1]["outcome"], "not_run")
-            self.assertEqual(report["missing_evidence"], ["shard0", "shard1"])
+            self.assertEqual(report["missing_evidence"], ["shard_manifest", "shard0", "shard1"])
 
     def test_success_log_without_exit_receipt_is_not_a_pass(self):
         with tempfile.TemporaryDirectory() as temp:

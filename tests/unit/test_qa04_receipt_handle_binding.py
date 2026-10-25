@@ -16,7 +16,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import check_qa04_physical_windows_packets as qa
-from test_check_qa04_physical_windows_packets import (
+from tests.unit.test_check_qa04_physical_windows_packets import (
     SOURCE, ZIP, PE, make_packet,
 )
 

@@ -424,10 +424,15 @@ def verify_five_destination_pad_post_result(log: str) -> None:
     # selections and one Records open; post-return navigation adds more.
     verify_five_destination_pad_race(log[:log.index(reopened)])
     require_single_pad_seat_continuity(log, "pad earned return")
-    if not re.search(
-            r"(?m)^UR_BALDOSA_MODERN_PAD_POST source_observed "
-            r"frame=\d+ menu=99 race=[0-9a-f]{2} stage=0$", log):
-        raise ValueError("pad earned return: no observed original result menu")
+    # These markers share the product stderr stream, so the original RESULT
+    # observation must occur after controller race input finishes and before
+    # the A press that advances from RESULT to TRACK. A late/duplicate RESULT
+    # observation is not evidence of a valid source-driven transition.
+    observed_results = list(re.finditer(
+        r"(?m)^UR_BALDOSA_MODERN_PAD_POST source_observed "
+        r"frame=\d+ menu=99 race=[0-9a-f]{2} stage=0$", log))
+    if len(observed_results) != 1:
+        raise ValueError("pad earned return: missing/duplicate original result observation")
     # The documented original source route is RESULT 99 -> TRACK F6 (A),
     # then TOUR 6D -> RIDER 3C -> MAIN D7 (X each). Only a fresh B
     # from MAIN may reopen Modern. Never accept a direct host teleport.
@@ -448,6 +453,8 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         positions.append(matches[0].start())
     if positions != sorted(positions):
         raise ValueError("pad earned return: source menu return order invalid")
+    if not positions[0] < observed_results[0].start() < positions[1]:
+        raise ValueError("pad earned return: original result observed outside source transition")
     tail_start = positions[-1] + len(stages[-1])
     tail = log[tail_start:]
     acknowledgements = (

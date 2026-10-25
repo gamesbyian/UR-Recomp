@@ -16,6 +16,10 @@ on:
       - ".github/workflows/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: read
+
 concurrency:
   group: repo-hygiene-${{ github.ref }}
   cancel-in-progress: true
@@ -25,7 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Check repository boundaries and generated surfaces
         run: python3 tools/check_repo_hygiene.py
       - name: Advisory actionlint for changed workflow files
@@ -69,3 +75,41 @@ jobs:
           echo "### actionlint: changed workflow definitions" >> "$GITHUB_STEP_SUMMARY"
           printf -- '- %s\n' "${changed[@]}" >> "$GITHUB_STEP_SUMMARY"
           "$RUNNER_TEMP/actionlint-bin/actionlint" -oneline "${changed[@]}"
+
+      - name: Advisory offline zizmor security scan of changed workflow files
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          pr_files="$RUNNER_TEMP/zizmor-pr-files.txt"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$pr_files"
+          mapfile -t discovered < <(
+            grep -E '^\.github/workflows/[^/]+\.ya?ml$' "$pr_files" || true
+          )
+          changed=()
+          for path in "${discovered[@]}"; do
+            if [[ -f "$path" ]]; then changed+=("$path"); fi
+          done
+          if (( ${#changed[@]} == 0 )); then
+            echo "No modified workflow YAML files for zizmor." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          version=1.31.1
+          tarball="$RUNNER_TEMP/zizmor-$version.tar.gz"
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://github.com/zizmorcore/zizmor/releases/download/v$version/zizmor-x86_64-unknown-linux-gnu.tar.gz" \
+            --output "$tarball"
+          printf '%s  %s\n' \
+            'd185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99' \
+            "$tarball" | sha256sum --check --status
+          mkdir -p "$RUNNER_TEMP/zizmor-bin"
+          tar -xzf "$tarball" -C "$RUNNER_TEMP/zizmor-bin" zizmor
+          test -x "$RUNNER_TEMP/zizmor-bin/zizmor"
+          echo "### zizmor: offline security review of changed workflows" >> "$GITHUB_STEP_SUMMARY"
+          printf -- '- %s\n' "${changed[@]}" >> "$GITHUB_STEP_SUMMARY"
+          "$RUNNER_TEMP/zizmor-bin/zizmor" --offline --min-severity high "${changed[@]}"

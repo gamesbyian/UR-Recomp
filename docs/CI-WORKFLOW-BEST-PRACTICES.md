@@ -537,3 +537,12 @@ Actions -> Native build and boot smoke -> Run workflow (ref: main)
 ```
 
 Rolling `run_id` keys with prefix restore mean each run saves a new entry and the newest matching entry is restored; GitHub evicts old entries when the repository cache quota is reached. Seeded 2026-10-14 from `1df9378`: unit-test job 120 s, native smoke 215 s (both cold).
+
+
+## Changed-workflow security checks (October 25 pilot)
+
+The existing Repository hygiene job now performs two narrow **advisory** checks on changed GitHub Actions YAML in first-party PRs: the SHA-pinned `actionlint` syntax/expression/shell linter, then the SHA-pinned `zizmor` high-severity security audit. Both fetch the exact paginated PR file census, filter to non-deleted direct `.github/workflows/*.yml` and `.yaml` source files, and explicitly fail the step if the GitHub API query fails. The job does not scan 180+ workflows on unrelated source changes.
+
+The `zizmor` executable is installed from immutable upstream release v1.31.1 with its published `x86_64-unknown-linux-gnu` SHA-256 verified before extraction. It runs `--offline --min-severity high`, with **no network audits, no automatic rewrite, no write token and no new Actions job or research factory**. Findings are advisory during baseline triage and are not release QA verdicts. Human review must separate real shell/expression injection paths from workflow-context false positives; make focused source/CI changes only when a finding is independently reproduced. Avoid globally disabling a security rule merely to turn the job green.
+
+The audit targets workflow source changes only. It does not replace independent review of workflow permissions, third-party actions, artifact binding, script injection, or release output provenance.

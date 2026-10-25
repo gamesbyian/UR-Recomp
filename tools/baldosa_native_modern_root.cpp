@@ -1137,6 +1137,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "27") != 0 &&
         std::strcmp(fixture, "28") != 0 &&
         std::strcmp(fixture, "29") != 0 &&
+        std::strcmp(fixture, "30") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&

@@ -417,7 +417,12 @@ def verify_five_destination_pad_post_result(log: str) -> None:
     Source/host output streams are concatenated, not synchronized. Require
     chronological ordering only among the product's own stderr markers.
     """
-    verify_five_destination_pad_race(log)
+    reopened = "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0"
+    if log.count(reopened) != 1:
+        raise ValueError("pad earned return: missing/duplicate source reentry")
+    # The initial five-destination verifier requires exactly eight selections
+    # and one Records open. Post-return actions deliberately add more.
+    verify_five_destination_pad_race(log[:log.index(reopened)])
     require_single_pad_seat_continuity(log, "pad earned return")
     if not re.search(
             r"(?m)^UR_BALDOSA_MODERN_PAD_POST source_observed "

@@ -14,6 +14,7 @@ import sys
 sys.path.insert(0, str(ROOT / "tools"))
 from run_baldosa_keyboard_pad_join_acceptance import verify_owner_disconnect
 from run_baldosa_keyboard_pad_join_acceptance import verify_five_destination_pad_journey
+from run_baldosa_keyboard_pad_join_acceptance import verify_five_destination_pad_return
 HOST_PATCH = (ROOT / "tools/baldosa_sdl_controller_lifecycle_spike.py").read_text(encoding="utf-8")
 WINDOWS_WORKFLOW = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
 ATTRACT_PROBE = (ROOT / "tools/probe_baldosa_modern_title_attract_win32.py").read_text(encoding="utf-8")
@@ -208,13 +209,17 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         fixture = SOURCE[start:end]
         self.assertIn('SDL_AttachVirtualJoystick(&desc)', fixture)
         self.assertIn('SDL_SetJoystickVirtualButton(', fixture)
+        self.assertIn('SDL_GAMEPAD_BUTTON_WEST', fixture)
+        self.assertIn('SDL_GAMEPAD_BUTTON_EAST', fixture)
         self.assertNotIn('SDL_KEYDOWN', fixture)
         self.assertNotIn('ur_baldosa_modern_root_gamepad(', fixture)
-        self.assertIn('mode < 1 || mode > 29', SOURCE)
+        self.assertIn('mode < 1 || mode > 30', SOURCE)
         self.assertIn('std::strcmp(fixture, "29") != 0', SOURCE)
-        self.assertIn('"five_destination_pad", "29"', (
+        runner = (
             ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py"
-        ).read_text(encoding="utf-8"))
+        ).read_text(encoding="utf-8")
+        self.assertIn('"five_destination_pad", "29"', runner)
+        self.assertIn('"five_destination_return", "30"', runner)
 
     def test_five_destination_native_view_and_stock_positive_and_negatives(self):
         host = "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added"
@@ -268,6 +273,55 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         for label, witness in bad.items():
             with self.subTest(label=label), self.assertRaises(ValueError):
                 verify_five_destination_pad_journey("\n".join(witness) + "\n")
+
+    def test_same_sdl_pad_original_stock_back_and_root_repaint(self):
+        # Source-owned root/modal acceptance remains mandatory before the
+        # original stock 1P menu can be backed out of with X.
+        host = "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added"
+        stages = [
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=75 input_owned=1",
+            "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=3 course=0 source_menu_required=1",
+            "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT practice_closed=1",
+            "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+            "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT join_closed=1",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=0 unavailable=0",
+            "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
+            "UR_BALDOSA_MODERN_ROOT options_opened row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
+            "UR_BALDOSA_MODERN_DESTINATION stage=options raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_ROOT options_closed row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        ]
+        selections = ["UR_BALDOSA_MODERN_ROOT selected=" + str(i)
+                      for i in (1, 2, 3, 4, 3, 2, 1, 0)]
+        prefix = [host, stages[0], selections[0], *stages[1:4],
+                  selections[1], *stages[4:7],
+                  selections[2], *stages[7:10],
+                  selections[3], *stages[10:13],
+                  *selections[4:], *stages[13:]]
+        returned = [
+            "UR_BALDOSA_MODERN_PAD_RETURN guest_back_x=1 source_menu=3c",
+            "UR_BALDOSA_MODERN_PAD_RETURN root_back_b=1 source_menu=d7",
+            "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
+            "UR_BALDOSA_MODERN_PAD_RETURN reopened=1 source_menu=d7",
+            "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+        ]
+        valid = "\n".join(prefix + returned) + "\n"
+        verify_five_destination_pad_return(valid)
+        invalid = {
+            "no actual source return": prefix + returned[:1] + returned[2:],
+            "missing paint": prefix + returned[:-1],
+            "B before original X": prefix + [returned[1], returned[0], *returned[2:]],
+            "root reopened before physical B": prefix + [returned[0], returned[2], returned[1], *returned[3:]],
+            "duplicate host reopen": prefix + returned + [returned[2]],
+            "missing initial destination": [x for x in prefix if x != stages[8]] + returned,
+        }
+        for label, witness in invalid.items():
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                verify_five_destination_pad_return("\n".join(witness) + "\n")
 
     def test_owner_disconnect_native_causal_source_guard(self):
         # The root may report withdrawal only after it has observed that

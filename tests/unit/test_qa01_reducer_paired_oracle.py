@@ -232,6 +232,28 @@ class PairedOracleTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "exactly one"):
                 adapter.validate(self.manifest)
 
+    def test_optional_native_display_wrapper_keeps_pinned_engine_argv(self):
+        from unittest import mock
+        direct = [str(Path(sys.executable).resolve()), "--no-launcher"]
+        self.assertEqual(adapter.native_execution_argv(direct, False), direct)
+        with mock.patch.object(adapter.shutil, "which", return_value=str(Path(sys.executable).resolve())):
+            wrapped = adapter.native_execution_argv(direct, True)
+        self.assertEqual(wrapped, [str(Path(sys.executable).resolve()), "-a", *direct])
+        self.assertEqual(wrapped[2:], direct)
+
+    def test_missing_native_xvfb_is_a_hard_error(self):
+        from unittest import mock
+        with mock.patch.object(adapter.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(ValueError, "unavailable"):
+                adapter.native_execution_argv([str(Path(sys.executable).resolve())], True)
+
+    def test_native_xvfb_cannot_be_a_string_or_command(self):
+        from unittest import mock
+        self.manifest["native_xvfb"] = "xvfb-run; shell"
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "explicit boolean"):
+                adapter.validate(self.manifest)
+
     def test_modified_source_sram_seed_is_rejected(self):
         from unittest import mock
         self.seed.write_bytes(b"Z" * 8192)

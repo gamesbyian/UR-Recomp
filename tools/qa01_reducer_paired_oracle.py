@@ -77,6 +77,8 @@ def validate(config):
     check(observer_file.suffix == ".script" and
           file_sha(observer_file) == observer["sha256"],
           "qualified observer script changed")
+    check(type(config.get("native_xvfb", False)) is bool,
+          "native_xvfb must be explicit boolean")
     for key in ("reference", "native"):
         cmd = config.get(key)
         check(type(cmd) is dict and set(cmd) == {"argv", "environment", "dump"},
@@ -164,7 +166,20 @@ def render(text, candidate, output, rom, core, seed, config, observer):
             .replace("%OBSERVER%", str(observer)))
 
 
-def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observer, expected_frame):
+def native_execution_argv(argv, use_xvfb):
+    """Preserve the pinned native executable as argv[0], optionally under Xvfb."""
+    if type(use_xvfb) is not bool:
+        raise ValueError("native Xvfb transport must be explicit boolean")
+    if not use_xvfb:
+        return argv
+    wrapper = shutil.which("xvfb-run")
+    check(wrapper is not None and Path(wrapper).is_file(),
+          "native Xvfb display wrapper is unavailable")
+    return [wrapper, "-a", *argv]
+
+
+def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observer, expected_frame,
+            native_xvfb=False):
     work.mkdir()
     # Both real engines must boot from the same independently verified
     # historical SRAM. A disposable native cwd gives it an isolated saves/
@@ -181,6 +196,7 @@ def observe(command, candidate, rom, work, anchors, timeout, seed_bytes, observe
     env.update({k: render(v, candidate, work, rom, core, source_seed, config, observer)
                 for k, v in command["environment"].items()})
     args = [render(s, candidate, work, rom, core, source_seed, config, observer) for s in command["argv"]]
+    args = native_execution_argv(args, native_xvfb)
     proc = subprocess.run(args, cwd=work, env=env, capture_output=True,
                           text=True, errors="replace", check=False, timeout=timeout)
     check(proc.returncode == 0, "guest execution failed (exit " + str(proc.returncode)
@@ -232,7 +248,7 @@ def execute(config, candidate, timeout=120):
         native_valid, native = observe(
             cfg["native"], native_path, rom, root / "native",
             cfg["anchors"], timeout, seed_bytes, observer,
-            clocks["native_observation_frame"])
+            clocks["native_observation_frame"], cfg.get("native_xvfb", False))
         check(sha(observer) == cfg["observation_script"]["sha256"],
               "observer script changed during paired process execution")
         predicate = cfg["discrepancy"]

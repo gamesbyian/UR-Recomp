@@ -44,8 +44,14 @@ BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     if (ec || std::filesystem::is_symlink(status) ||
         !std::filesystem::is_directory(status))
         return out;
+    // An existing directory can still refuse enumeration (permissions,
+    // I/O failure or a concurrent removal). Do not report an empty Records
+    // history when the canonical inspector could not finish its scan.
+    bool scan_succeeded = false;
+    const auto artifacts = inspect_completed_run_record_artifacts(
+        directory, &scan_succeeded);
+    if (!scan_succeeded) return out;
     out.directory_available = true;
-    const auto artifacts = inspect_completed_run_record_artifacts(directory);
     out.total_artifacts = artifacts.size();
     for (const auto& artifact : artifacts) {
         if (!artifact.loaded()) {

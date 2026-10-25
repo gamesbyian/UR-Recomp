@@ -113,9 +113,11 @@ class PairedOracleTests(unittest.TestCase):
             adapter.execute(self.manifest, self.input)
 
     def test_engine_must_consume_candidate_and_isolated_dump(self):
+        from unittest import mock
         self.manifest["reference"]["environment"].pop("CANDIDATE")
-        with self.assertRaisesRegex(ValueError, "both guests must consume"):
-            adapter.validate(self.manifest)
+        with mock.patch.object(adapter, "file_sha", side_effect=self._verified()):
+            with self.assertRaisesRegex(ValueError, "both guests must consume"):
+                adapter.validate(self.manifest)
 
     def test_source_anchored_target_cannot_be_counted_as_valid_stage(self):
         self.manifest["anchors"].append({"offset": 0x200, "value": 2})

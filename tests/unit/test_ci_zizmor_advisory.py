@@ -16,6 +16,13 @@ class ZizmorHygieneTests(unittest.TestCase):
         self.assertIn("Advisory offline zizmor security scan of changed workflow files", self.workflow)
         self.assertNotIn("  zizmor:\n", self.workflow)
 
+    def test_scanned_checkout_is_exact_upstream_pin_and_no_persisted_token(self):
+        self.assertIn(
+            "uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+            self.workflow)
+        self.assertIn("persist-credentials: false", self.workflow)
+        self.assertNotIn("uses: actions/checkout@v4", self.workflow)
+
     def test_security_pilot_is_advisory_and_only_on_pull_requests(self):
         section = self.workflow.split(
             "      - name: Advisory offline zizmor security scan of changed workflow files\n", 1)[1]

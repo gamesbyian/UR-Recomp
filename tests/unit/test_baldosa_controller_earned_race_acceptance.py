@@ -110,7 +110,8 @@ class EarnedControllerJourney(unittest.TestCase):
             "UR_BALDOSA_MODERN_PAD_POST quit_confirm_a=1 prompt=1",
             "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1",
         ]
-        good = [HOST, *PREFIX, *TAIL, *post]
+        good = [HOST, *PREFIX, *TAIL, *post,
+                "exit: SDL_QUIT event after 7176 frames"]
         verify_five_destination_pad_post_result("\n".join(good) + "\n")
 
         def move_result_observation(before_marker: str) -> list[str]:
@@ -138,6 +139,12 @@ class EarnedControllerJourney(unittest.TestCase):
             "missing Quit confirm": [x for x in good if "quit_confirm_a=1" not in x],
             "missing native SDL Quit": [x for x in good if "quit_confirmed=1" not in x],
             "rejected SDL Quit": good + ["UR_BALDOSA_MODERN_ROOT quit_event_rejected"],
+            "missing native exit": [x for x in good if not x.startswith("exit: SDL_QUIT")],
+            "script-only quit at fallback": [x.replace("after 7176 frames",
+                                                    "after 11000 frames") for x in good],
+            "duplicate native exit": good + ["exit: SDL_QUIT event after 7177 frames"],
+            "zero-frame exit": [x.replace("after 7176 frames",
+                                           "after 0 frames") for x in good],
             "Quit before Records close": [x for x in good if "quit_prompt_b=1" not in x][:-3] +
                 [post[-3]] + [x for x in good if "quit_prompt_b=1" not in x][-3:],
             "duplicate source reentry": good + [

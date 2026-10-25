@@ -9,6 +9,7 @@ pinned mesen-for-ai client; this file only adapts UR-Recomp fixture semantics.
 from __future__ import annotations
 
 import argparse
+from bisect import bisect_right
 import importlib.util
 import json
 import os
@@ -92,6 +93,9 @@ class FixtureRunner:
         self.frame = 0
         self.started = False
         self.previous_masks: tuple[int | None, int | None] = (None, None)
+        self._transition_frames = sorted(
+            {boundary for run in (controller_runs or []) for boundary in (run.start, run.end)}
+        )
 
     def _apply_stream_for_frame(self) -> None:
         if self.controller_runs is None:
@@ -114,16 +118,32 @@ class FixtureRunner:
             self.started = True
             self.frame = int(result["status"]["frame"])
             return
-        for _ in range(frames):
+        # A canonical controller stream is piecewise constant. Replay every
+        # frame, but make only one RPC call per stable input interval. This
+        # preserves original absolute timing and both controller ports.
+        # The 'until' fixture operator still invokes step(1) and checks every
+        # frame, so no conditional observation is skipped.
+        remaining = frames
+        while remaining:
             self._apply_stream_for_frame()
-            result = self.mesen.tool("run.step_frames", frames=1, reset=not self.started)
+            idx = bisect_right(self._transition_frames, self.frame)
+            next_change = (
+                self._transition_frames[idx]
+                if idx < len(self._transition_frames)
+                else self.frame + remaining
+            )
+            batch = min(remaining, next_change - self.frame)
+            if batch < 1:
+                raise AssertionError("nonpositive controller interval")
+            result = self.mesen.tool("run.step_frames", frames=batch, reset=not self.started)
             self.started = True
             status_frame = int(result["status"]["frame"])
-            if status_frame < self.frame + 1:
+            if status_frame < self.frame + batch:
                 raise RuntimeError(
-                    f"Mesen frame counter did not advance: expected >= {self.frame + 1}, got {status_frame}"
+                    f"Mesen frame counter did not advance: expected >= {self.frame + batch}, got {status_frame}"
                 )
-            self.frame += 1
+            self.frame += batch
+            remaining -= batch
 
     def read_byte(self, address: int) -> int:
         result = self.mesen.tool(

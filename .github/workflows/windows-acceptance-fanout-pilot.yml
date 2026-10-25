@@ -111,7 +111,7 @@ jobs:
           if-no-files-found: warn
   aggregate:
     needs: journeys
-    if: always()
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'ci/windows-fanout-qualification-20261025')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

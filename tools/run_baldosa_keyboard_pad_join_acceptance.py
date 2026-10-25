@@ -196,6 +196,24 @@ def verify_owner_disconnect(log: str) -> None:
         raise ValueError("owner leaves: a pad moved while keyboard P1 held seat 1")
 
 
+def require_single_pad_seat_continuity(log: str, label: str) -> None:
+    """Reject seat loss/replacement in a claimed continuous one-pad journey.
+
+    Host SDL seat logs arrive on stdout and product milestones on stderr.
+    Their concatenated order is not a clock, so check the entire native log.
+    """
+    host_assignments = re.findall(
+        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
+        r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
+    )
+    if len(host_assignments) != 1 or host_assignments[0][1] != "0":
+        raise ValueError(f"{label}: exactly one SDL P1 assignment required")
+    if re.search(
+        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT (?:move|claim|vacate)\b", log
+    ):
+        raise ValueError(f"{label}: unexpected SDL ownership change")
+
+
 def verify_five_destination_pad_journey(log: str) -> None:
     """One SDL P1 device, one native process, all five Modern destinations.
 
@@ -204,16 +222,7 @@ def verify_five_destination_pad_journey(log: str) -> None:
     This establishes native title/root/modal/stock entry, NOT a finished
     original race, returned result, physical controller, or release gate.
     """
-    host_assignments = re.findall(
-        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT assign "
-        r"instance=(\d+) seat=([01]) reason=[^\r\n]+$", log
-    )
-    if len(host_assignments) != 1 or host_assignments[0][1] != "0":
-        raise ValueError("five destinations: exactly one SDL P1 assignment required")
-    if re.search(
-        r"(?m)^\[Gamepad\] UR_CONTROLLER_SEAT (?:move|claim)\b", log
-    ):
-        raise ValueError("five destinations: unexpected SDL ownership change")
+    require_single_pad_seat_continuity(log, "five destinations")
 
     selections = re.findall(
         r"(?m)^UR_BALDOSA_MODERN_ROOT selected=(\d+)$", log
@@ -289,6 +298,8 @@ def verify_five_destination_pad_return(log: str) -> None:
     # Before the source reentry the existing strict five-destination
     # acceptance must still pass with exactly one seated SDL P1 device.
     verify_five_destination_pad_journey(log[:log.index(reopened)])
+    # Prefix-only validation misses unplug/reassignment after root reentry.
+    require_single_pad_seat_continuity(log, "pad return")
     stages = (
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
         "UR_BALDOSA_MODERN_PAD_RETURN guest_back_x=1 source_menu=3c",

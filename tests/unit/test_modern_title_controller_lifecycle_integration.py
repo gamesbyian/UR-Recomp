@@ -340,6 +340,10 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
             "post-return cursor never reached Records": prefix + returned + post_return[:2] + post_return[3:],
             "post-return Records opened before selection": prefix + returned + [post_return[3], *post_return[:3], *post_return[4:]],
             "unintended stock relaunch": prefix + returned + post_return + ["UR_BALDOSA_MODERN_ROOT stock_requested players=1"],
+            "repaint after controller selection": prefix + returned[:-1] +
+                post_return[:1] + returned[-1:] + post_return[1:],
+            "repaint after Records closed": prefix + returned[:-1] +
+                post_return + returned[-1:],
             "pad detached after return": prefix + returned + post_return + [
                 "[Gamepad] UR_CONTROLLER_SEAT vacate instance=101 seat=0 key=abcd"
             ],

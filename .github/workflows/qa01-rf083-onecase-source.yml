@@ -1,0 +1,687 @@
+name: QA-01 bounded original/native event campaign
+
+# Research workload: never PR/push/schedule. Existing QA-01 original-event
+# producer remains semantic authority; this is an execution/receipt fan-out.
+on:
+  workflow_call:
+    inputs:
+      selected:
+        required: true
+        type: string
+      zoo_terminal_phase:
+        required: false
+        type: boolean
+        default: false
+      zoo_race_mesh:
+        required: false
+        type: boolean
+        default: false
+      zoo_dp_window:
+        required: false
+        type: boolean
+        default: false
+      qa01_apu_phase:
+        required: false
+        type: boolean
+        default: false
+      source_followthrough:
+        required: false
+        type: boolean
+        default: false
+      baldosa_refresh_beam_rate:
+        required: false
+        type: boolean
+        default: false
+      baldosa_io_clock_order:
+        required: false
+        type: boolean
+        default: false
+      baldosa_spc_reference_rate:
+        required: false
+        type: boolean
+        default: false
+      baldosa_dp_pointer_once:
+        required: false
+        type: boolean
+        default: false
+      baldosa_hdma_cpu_stall:
+        required: false
+        type: boolean
+        default: false
+      baldosa_spc_interrupt_stage:
+        required: false
+        type: boolean
+        default: false
+      qa01_cold_guest_reload:
+        required: false
+        type: boolean
+        default: false
+      zoo_next_bowl:
+        required: false
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      selected:
+        description: "Existing source-qualified event population (all = 3 cases)"
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - zoom-zoo
+          - bowl
+          - switcher
+      zoo_race_mesh:
+        description: "Opt-in 2014 Zoo event original/native unmasked WRAM mesh through +5120 (no admission)"
+        type: boolean
+        required: false
+        default: false
+      zoo_dp_window:
+        description: "Opt-in 13 consecutive Zoo +5034..+5046 unmasked DP/WRAM pairs, requires race mesh"
+        type: boolean
+        required: false
+        default: false
+      zoo_terminal_phase:
+        description: "Opt-in Zoo fixed +5156..+5173 guest/host phase witness (requires selected=zoom-zoo)"
+        type: boolean
+        required: false
+        default: false
+
+      qa01_apu_phase:
+        description: "Opt-in read-only original/Baldosa APU port-2 and CPU-source opcode trace around Zoo result"
+        type: boolean
+        required: false
+        default: false
+      source_followthrough:
+        description: "Opt-in true 2014 original/native +8/+16/+24/+32 result follow-through (3 real event cases, no admission)"
+        type: boolean
+        required: false
+        default: false
+      baldosa_refresh_beam_rate:
+        description: "Opt-in RF-015 correction: stage one DRAM refresh per 1364-clock beam line into the pinned Baldosa build"
+        type: boolean
+        required: false
+        default: false
+      baldosa_io_clock_order:
+        description: "Opt-in RF-017 correction: charge static block clocks in instruction order around register accesses (regenerates src/gen)"
+        type: boolean
+        required: false
+        default: false
+      baldosa_spc_reference_rate:
+        description: "Opt-in RF-016 correction: clock the SPC700 at the reference 15664/328125 cycles per master clock"
+        type: boolean
+        required: false
+        default: false
+      baldosa_dp_pointer_once:
+        description: "Opt-in RF-018 correction: read each [dp],Y pointer once (regenerates src/gen)"
+        type: boolean
+        required: false
+        default: false
+      baldosa_hdma_cpu_stall:
+        description: "Opt-in RF-019 correction: charge HDMA's per-line CPU stall in the beam frame driver"
+        type: boolean
+        required: false
+        default: false
+      baldosa_spc_interrupt_stage:
+        description: "Opt-in RF-021/023/024/026/028 stage (SPC power-on anchor 0, frame clock, bus-cycle SPC, interrupt-entry cost); requires all RF-015..019 inputs"
+        type: boolean
+        required: false
+        default: false
+      qa01_cold_guest_reload:
+        description: "Opt-in fresh original/native guest reload of source-earned Zoom Zoo ranked record (requires zoom-zoo + source_followthrough)"
+        type: boolean
+        required: false
+        default: false
+      zoo_next_bowl:
+        description: "Opt-in original Zoo-to-next Bowl race from authentic movie, requires zoom-zoo and source_followthrough"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+# Manual launches on the same ref queue instead of cancelling expensive evidence.
+concurrency:
+  group: qa01-event-campaign-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate dispatcher and freeze exact case population
+        id: select
+        shell: bash
+        env:
+          SELECTED: ${{ inputs.selected }}
+          ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          ZOO_MESH: ${{ inputs.zoo_race_mesh }}
+          ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
+          QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
+          QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
+          QA01_SPC_INTERRUPT_STAGE: ${{ inputs.baldosa_spc_interrupt_stage }}
+          QA01_RF015_019: >-
+            ${{ inputs.baldosa_refresh_beam_rate && inputs.baldosa_io_clock_order &&
+                inputs.baldosa_spc_reference_rate && inputs.baldosa_dp_pointer_once &&
+                inputs.baldosa_hdma_cpu_stall }}
+        run: |
+          set -euo pipefail
+          if [[ "$ZOO_DP_WINDOW" == "true" && ( "$ZOO_MESH" != "true" || "$SELECTED" != "zoom-zoo" ) ]]; then
+            echo "Dense +5040 DP boundary requires original Zoo race mesh" >&2
+            exit 1
+          fi
+          if [[ "$ZOO_MESH" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "Original Zoo full-race mesh requires selected=zoom-zoo" >&2
+            exit 1
+          fi
+          if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "Zoo fixed-host phase is scoped to selected=zoom-zoo only" >&2
+            exit 1
+          fi
+          if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
+            exit 1
+          fi
+          if [[ "$QA01_COLD_GUEST" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
+            echo "Cold Zoom Zoo ranked-record reload needs zoom-zoo + source_followthrough" >&2
+            exit 1
+          fi
+          if [[ "$QA01_NEXT_BOWL" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
+            echo "Next original Bowl entry requires zoom-zoo + source_followthrough" >&2
+            exit 1
+          fi
+          # The RF-021..028 stage was measured only on top of RF-015..019
+          # (the frame-clock tool also requires RF-016's clock).
+          if [[ "$QA01_SPC_INTERRUPT_STAGE" == "true" && "$QA01_RF015_019" != "true" ]]; then
+            echo "baldosa_spc_interrupt_stage needs all five RF-015..019 inputs" >&2
+            exit 1
+          fi
+          python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
+          python3 tools/qa01_event_campaign.py plan \
+            --selected "$SELECTED" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --out "$RUNNER_TEMP/qa01-plan.json" \
+            --gha-output "$GITHUB_OUTPUT" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-plan
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa01-plan.json
+
+  build:
+    needs: plan
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - name: Check out exact source and imported original inputs
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Check out the existing pinned research guest
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify original ROM, historical movie and pinned guest source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_next_bowl.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_full_wram_audit.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_race_mesh.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_dp_window.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
+          python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
+          python3 -m unittest discover -s tests/unit -p test_baldosa_interrupt_entry_cost_patch.py
+      - name: Build original Snes9x/snesref and research native exactly once
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          # RF083 source-bound one-shot: original actual fetched opcode and
+          # real S9xSetByte setter entry only. No native/gameplay patch.
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+          make -C "$CORE_SRC/libretro" -j2
+          # Explicitly opted-in, disposable source+native observers only.
+          if [[ "${{ inputs.qa01_apu_phase }}" == "true" ]]; then
+            CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+            python3 tools/qa01_apu_phase_observers.py original "$CORE_SRC/cpuexec.cpp"
+            make -C "$CORE_SRC/libretro" -j2
+            python3 tools/qa01_apu_phase_observers.py native \
+              baldosa/snesrecomp/runner/src/common_rtl.c
+          fi
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-snesref" -j2
+          # Existing QA-only host transport; never change guest gameplay.
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          # Explicitly opted-in RF-015 framework correction; default builds stay pinned.
+          if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then
+            python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          fi
+          # Explicitly opted-in RF-017 emitter correction; regenerates src/gen
+          # with --cfg-roots (reproduces the committed output without it) and
+          # fails unless only static clock charges moved.
+          if [[ "${{ inputs.baldosa_io_clock_order }}" == "true" ]]; then
+            python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa
+            (cd baldosa && bash tools/regen.sh --cfg-roots \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+            python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
+          fi
+          if [[ "${{ inputs.baldosa_spc_reference_rate }}" == "true" ]]; then
+            python3 tools/baldosa_spc_reference_rate_patch.py --game baldosa
+          fi
+          # Opted-in RF-018 emitter correction, regenerated after (and verified
+          # separately from) RF-017 so each verifier checks only its own change.
+          if [[ "${{ inputs.baldosa_dp_pointer_once }}" == "true" ]]; then
+            python3 tools/baldosa_dp_indirect_long_pointer_once_patch.py --game baldosa
+            (cd baldosa && bash tools/regen.sh --cfg-roots \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+            python3 tools/baldosa_dp_indirect_long_pointer_once_patch.py --game baldosa --verify-gen
+          fi
+          if [[ "${{ inputs.baldosa_hdma_cpu_stall }}" == "true" ]]; then
+            python3 tools/baldosa_hdma_cpu_stall_patch.py --game baldosa
+          fi
+          # Opted-in RF-021/023/024/026/028 stage, in its measured order:
+          # exact-age SPC power-on anchor, frame clock, SPC opcodes on their
+          # last cycle, 65816 interrupt-entry cost.
+          if [[ "${{ inputs.baldosa_spc_interrupt_stage }}" == "true" ]]; then
+            python3 tools/baldosa_spc_power_on_patch.py --game baldosa --anchor 0
+            python3 tools/baldosa_spc_frame_clock_patch.py --game baldosa
+            python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
+            python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
+          fi
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          OUT="$RUNNER_TEMP/qa01-binaries"
+          mkdir -p "$OUT"
+          install -m 755 "$RUNNER_TEMP/qa01-snesref/snesref" "$OUT/snesref"
+          install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native"
+          cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
+          (cd "$OUT" && sha256sum snesref native snes9x_libretro.so > SHA256SUMS && \
+            sha256sum -c SHA256SUMS)
+      - name: Upload one immutable candidate for all case shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-reference-and-native-binaries
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa01-binaries/
+
+  cases:
+    needs: [plan, build]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa01-campaign-plan
+          path: ${{ runner.temp }}/qa01-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa01-campaign-reference-and-native-binaries
+          path: ${{ runner.temp }}/qa01-binaries
+      - name: Verify binary integrity and runtime prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            libsdl2-2.0-0 libgl1 libopengl0 libfreetype6 libdecor-0-0 \
+            libx11-6 libxext6 libxrandr2 \
+            libxcursor1 libxi6 libxss1 libwayland-client0 \
+            libxkbcommon0 libegl1 libgles2 libdrm2 libgbm1 \
+            libasound2 libpulse0 libudev1 libdbus-1-3 xvfb
+          (cd "$RUNNER_TEMP/qa01-binaries" && sha256sum -c SHA256SUMS)
+          chmod +x "$RUNNER_TEMP/qa01-binaries/native" "$RUNNER_TEMP/qa01-binaries/snesref"
+          ldd "$RUNNER_TEMP/qa01-binaries/native" > "$RUNNER_TEMP/qa01-native-ldd.log"
+          cat "$RUNNER_TEMP/qa01-native-ldd.log"
+          if grep -q 'not found' "$RUNNER_TEMP/qa01-native-ldd.log"; then
+            echo "Missing case-runner native shared libraries; cannot produce an event witness" >&2
+            exit 1
+          fi
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+      - name: Run and classify source-qualified ${{ matrix.case }} without masking strict differences
+        shell: bash
+        env:
+          QA01_CASE: ${{ matrix.case }}
+          UR_QA01_RF083_ZOO_DP: "1"
+          QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          QA01_ZOO_MESH: ${{ inputs.zoo_race_mesh }}
+          QA01_ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
+          QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
+          QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
+          # Distinct original and native clock axes; historical Zoo result
+          # windows, NOT time-shifted input or assumed frame equivalence.
+          UR_QA01_APU_ORIGINAL_FIRST: "6748"
+          UR_QA01_APU_ORIGINAL_LAST: "6778"
+          UR_QA01_APU_NATIVE_FIRST: "6748"
+          UR_QA01_APU_NATIVE_LAST: "6778"
+        run: |
+          set -euo pipefail
+          extra_args=()
+          if [[ "$QA01_ZOO_TERMINAL" == "true" ]]; then
+            extra_args+=(--zoo-terminal-phase)
+          fi
+          if [[ "$QA01_ZOO_MESH" == "true" ]]; then
+            extra_args+=(--zoo-race-mesh)
+          fi
+          if [[ "$QA01_ZOO_DP_WINDOW" == "true" ]]; then
+            extra_args+=(--zoo-dp-window)
+          fi
+          if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" ]]; then
+            extra_args+=(--source-followthrough)
+          fi
+          if [[ "$QA01_NEXT_BOWL" == "true" ]]; then
+            extra_args+=(--zoo-next-bowl)
+          fi
+          ROOT="$RUNNER_TEMP/qa01-case"
+          BIN="$RUNNER_TEMP/qa01-binaries"
+          mkdir -p "$ROOT"
+          # Reuse the SHA256SUMS already validated against the shared binaries.
+          # Retain the tiny original manifest beside this case's producer JSON.
+          cp "$BIN/SHA256SUMS" "$ROOT/SHA256SUMS"
+          set +e
+          timeout --signal=TERM --kill-after=30s 75m \
+            python3 tools/probe_original_event_complete.py \
+              --case "$QA01_CASE" \
+              --native-backend pinned-baldosa \
+              --source-horizon 22000 \
+              --snesref "$BIN/snesref" \
+              --core "$BIN/snes9x_libretro.so" \
+              --native "$BIN/native" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work-dir "$ROOT/work" \
+              --json-out "$ROOT/producer-report.json" \
+              "${extra_args[@]}" \
+              > "$ROOT/producer.log" 2>&1
+          producer_rc=$?
+          set -e
+          echo "Original/native producer exit: $producer_rc"
+          tail -n 60 "$ROOT/producer.log" || true
+          set +e
+          python3 tools/qa01_event_campaign.py classify \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --case "$QA01_CASE" \
+            --producer-exit "$producer_rc" \
+            --producer-report "$ROOT/producer-report.json" \
+            --producer-log "$ROOT/producer.log" \
+            --out "$ROOT/case-result.json"
+          case_rc=$?
+          set -e
+          python3 - "$ROOT/case-result.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("## " + v["case"] + "\n\n")
+              f.write("Disposition: **" + v["disposition"] + "**\n\n")
+              f.write(v.get("reason","") + "\n\n")
+              f.write("**Release course credit: 0.**\n")
+          PY
+          if [[ "$QA01_NEXT_BOWL" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))["zoo_next_bowl_handoff"]
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nAuthentic next Bowl entry: original="
+                      + str(v["source_next_bowl_active_entry_offset"])
+                      + ", fresh-original=" + str(v["fresh_reference_next_bowl_entry_offset"])
+                      + ", fresh-native=" + str(v["fresh_native_next_bowl_entry_offset"])
+                      + ". Triple source-state agreement="
+                      + str(v["all_triplet_named_states_equal"])
+                      + ". No release credit.\n")
+          PY
+          fi
+          # A coarse whole-Circuit checkpoint mesh is a new observation,
+          # not evidence that unsampled frames or CPU instructions agree.
+          # A report containing a scientifically genuine strict divergence is
+          # useful even though the producer exits nonzero. Never suppress the
+          # first mismatch merely because the complete-event classifier fails.
+          if [[ "$QA01_ZOO_MESH" == "true" && -f "$ROOT/producer-report.json" ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          mesh=json.load(open(sys.argv[1]))["zoo_race_mesh"]
+          if not isinstance(mesh,dict) or mesh["masked_or_excluded_wram_bytes"] != 0:
+              raise SystemExit("missing unmasked real Zoo full-event mesh")
+          brief={k:mesh[k] for k in (
+              "mesh_checkpoint_count","new_post_2400_checkpoint_count",
+              "last_race_relative_checkpoint","raw_byte_exact_sample_count",
+              "first_nonidentical_raw_wram_pair",
+              "every_gameplay_frame_compared","cpu_instruction_or_logic_tick_parity_proven",
+              "release_complete_usa_event_credit")}
+          print("QA01_ZOO_FULL_RACE_UNMASKED_MESH=" + json.dumps(brief,sort_keys=True))
+          dp=mesh.get("late_direct_page_window")
+          if dp is not None:
+              if (dp.get("range_inclusive") != [5034,5046]
+                      or not dp.get("all_guest_frames_in_range_captured")
+                      or dp.get("raw_wram_bytes_excluded") != 0
+                      or len(dp.get("samples",[])) != 13):
+                  raise SystemExit("incomplete unmasked 13-frame +5040 DP boundary")
+              print("QA01_ZOO_LATE_DP_BOUNDARY=" + json.dumps(dp,sort_keys=True,
+                                                             separators=(",",":")))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nZoo genuine 2014 course sampled through +" +
+                      str(mesh["last_race_relative_checkpoint"]) +
+                      "; original/native full WRAM masked bytes **0**, 0/45 event credit.\\n")
+          PY
+          fi
+          # Preserve bounded first-difference receipts in visible job logs as
+          # well as raw producer artifact. A digest inequality grants no
+          # semantic exemption, logic-frame parity or 45-course credit.
+          if [[ "$QA01_NEXT_BOWL" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          def digest(rows, key, frame_key):
+              return [{"offset": x[frame_key],
+                       "differing_bytes": x[key]["differing_byte_count"],
+                       "first_address": x[key]["first_differing_address"],
+                       "first_24": x[key]["first_24_differences"]} for x in rows]
+          result = {}
+          phase=v.get("zoo_terminal_host_phase")
+          if phase:
+              result["dense_guest_relative"] = digest(
+                  phase["relative_frame_comparisons"],
+                  "full_wram_byte_difference", "relative_frame")
+          follow=v.get("source_terminal_followthrough")
+          if follow:
+              result["result_followthrough"] = digest(
+                  follow["samples"], "full_wram_byte_difference",
+                  "offset_from_each_observed_result_onset")
+          next_bowl=v["zoo_next_bowl_handoff"]
+          result["next_bowl"] = digest(
+              next_bowl["samples"], "original_native_full_wram_byte_difference",
+              "offset_from_observed_zoo_result")
+          print("QA01_UNMASKED_WRAM_BYTE_CENSUS=" + json.dumps(
+              result, sort_keys=True, separators=(",",":")))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nUnmasked 128-KiB WRAM differences: original/native "
+                      "byte counts, first 24 addresses and exact 256-byte page "
+                      "histograms in the source-pinned producer artifact. "
+                      "No masking or event credit.\n")
+          PY
+          fi
+          # Read-only bounded SRAM byte attribution for the single corrected
+          # source-qualified Zoo result. Never changes the strict classifier.
+          if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" && "$QA01_CASE" == "zoom-zoo" &&
+                "$producer_rc" -eq 0 && "$case_rc" -eq 0 ]]; then
+            python3 tools/qa01_postresult_sram_diff.py \
+              --producer-report "$ROOT/producer-report.json" \
+              --original-dir "$ROOT/work/zoom-zoo/replay/ref" \
+              --native-dir "$ROOT/work/zoom-zoo/replay/native" \
+              --out "$ROOT/qa01-postresult-sram-differences.json"
+            python3 - "$ROOT/qa01-postresult-sram-differences.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nSRAM first *sampled* full-image difference: +"
+                      + str(v["first_sampled_full_sram_difference_offset"])
+                      + "; exact changed addresses in case artifact; no event credit.\n")
+          PY
+          fi
+          # Only on actual source-qualified successful Zoo replay. Fresh
+          # subprocesses seed their own captured genuine battery images;
+          # this is guest-level recovery, NEVER a game-host durable-file pass.
+          if [[ "$QA01_COLD_GUEST" == "true" && "$QA01_CASE" == "zoom-zoo" &&
+                "$QA01_SOURCE_FOLLOWTHROUGH" == "true" &&
+                "$producer_rc" -eq 0 && "$case_rc" -eq 0 ]]; then
+            python3 tools/qa01_cold_result_record.py \
+              --producer-report "$ROOT/producer-report.json" \
+              --replay "$ROOT/work/zoom-zoo/replay" \
+              --snesref "$BIN/snesref" \
+              --core "$BIN/snes9x_libretro.so" \
+              --native "$BIN/native" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work "$ROOT/qa01-cold-guest-boot" \
+              --out "$ROOT/qa01-cold-guest-report.json"
+            echo 'Fresh original/native guest record reload checked; host disk durability NOT proven; zero event credit' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ "$QA01_APU_PHASE" == "true" ]]; then
+            python3 tools/qa01_apu_phase_report.py \
+              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
+              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
+              --out "$ROOT/qa01-apu-edge-report.json"
+            echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$case_rc"
+      - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
+        if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_zoo_raw_archive_audit.py \
+            --artifact-root "$RUNNER_TEMP/qa01-case" \
+            --out "$RUNNER_TEMP/qa01-case/qa01-zoo-independent-raw-audit.json"
+          echo 'Original/native full 78-checkpoint Zoo WRAM and 11 Zoo-to-Bowl WRAM/SRAM bytes independently rechecked (USA credit 0)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Always retain per-case receipt and bounded diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-case-${{ matrix.case }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-case/case-result.json
+            ${{ runner.temp }}/qa01-case/qa01-postresult-sram-differences.json
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-report.json
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
+            ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
+            ${{ runner.temp }}/qa01-case/producer-report.json
+            ${{ runner.temp }}/qa01-case/qa01-zoo-independent-raw-audit.json
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.wram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.sram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.wram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.sram.bin
+            ${{ runner.temp }}/qa01-case/SHA256SUMS
+            ${{ runner.temp }}/qa01-case/producer.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/reference.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/complete.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/switcher-reference-penultimate.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref.input
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/pinned-baldosa.input
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/reference.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/native.log
+
+  aggregate:
+    if: always() && needs.plan.result == 'success'
+    needs: [plan, build, cases]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa01-campaign-plan
+          path: ${{ runner.temp }}/qa01-input
+      - name: Retrieve case evidence, including partial-failure campaigns
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: qa01-campaign-case-*
+          path: ${{ runner.temp }}/qa01-results
+          merge-multiple: false
+      - name: Aggregate completed and absent cases; never award release credit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-results"
+          python3 tools/qa01_event_campaign.py aggregate \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --results-dir "$RUNNER_TEMP/qa01-results" \
+            --out "$RUNNER_TEMP/campaign-result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Independently reopen all retained primary producer reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_event_primary_artifact_audit.py \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --results-dir "$RUNNER_TEMP/qa01-results" \
+            --campaign-result "$RUNNER_TEMP/campaign-result.json" \
+            --source-movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+            --source-meta "$GITHUB_WORKSPACE/analysis/generated/historical-2014-smv-metadata.json" \
+            --out "$RUNNER_TEMP/qa01-primary-artifact-audit.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Upload final bounded campaign report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-aggregate
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/campaign-result.json
+            ${{ runner.temp }}/qa01-primary-artifact-audit.json

@@ -1,0 +1,22 @@
+name: QA01 RF083 single authenticated Zoo original writer test (unmerged)
+
+# PR-only temporary, single-iteration experiment; never merge.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/qa01-rf083-onecase-dispatch.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-zoo:
+    uses: ./.github/workflows/qa01-rf083-onecase-source.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true

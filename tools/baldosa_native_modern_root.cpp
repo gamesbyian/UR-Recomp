@@ -2871,10 +2871,11 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                         "UR_BALDOSA_MODERN_PAD_RACE source_input_completed=1\n");
                 }
             }
-            // Mode 32 alone attempts the missing *same-controller* return
-            // after a genuine source result. All decisions use observed
-            // original menu/race bytes. Never inject a guest-state write,
-            // keyboard event, forged result or second controller.
+            // Mode 32 follows the *documented original menu graph* after
+            // source RESULT_RACE 0x99: A -> TRACK F6, then physical X
+            // back through TOUR 6D, RIDER 3C and MAIN D7. A fresh B at
+            // MAIN alone can reopen Modern. The same SDL P1 owns every
+            // input; no guest-state writes or keyboard substitution.
             if (std::strcmp(opt, "32") == 0 && race_stage == 4) {
                 static unsigned post_stage = 0;
                 static unsigned post_settle = 0;
@@ -2890,82 +2891,52 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                         frame, menu, racing, post_stage);
                     last_menu = menu;
                 }
-                // The original 1P result menu is 0x99. A stable result
-                // must precede a fresh physical X/back edge.
-                if (post_stage == 0) {
-                    post_settle = menu == 0x99u && racing != 1u
+                // No action on a transient source menu byte: each state
+                // must remain observed for 60 consecutive guest frames.
+                const unsigned expected_menu =
+                    post_stage == 0 ? 0x99u :
+                    post_stage == 2 ? 0xf6u :
+                    post_stage == 4 ? 0x6du :
+                    post_stage == 6 ? 0x3cu :
+                    post_stage == 8 ? 0xd7u : 0x100u;
+                if (expected_menu != 0x100u) {
+                    post_settle = menu == expected_menu && racing != 1u
                         ? post_settle + 1u : 0u;
                     if (post_settle >= 60u) {
-                        if (!SDL_SetJoystickVirtualButton(
-                                pad, SDL_GAMEPAD_BUTTON_WEST, true))
+                        const SDL_GamepadButton button = post_stage == 0
+                            ? SDL_GAMEPAD_BUTTON_SOUTH
+                            : post_stage == 8 ? SDL_GAMEPAD_BUTTON_EAST
+                            : SDL_GAMEPAD_BUTTON_WEST;
+                        if (!SDL_SetJoystickVirtualButton(pad, button, true))
                             std::abort();
-                        post_stage = 1;
+                        const char* witness =
+                            post_stage == 0 ? "result_continue_a=1 source_menu=99" :
+                            post_stage == 2 ? "track_back_x=1 source_menu=f6" :
+                            post_stage == 4 ? "tour_back_x=1 source_menu=6d" :
+                            post_stage == 6 ? "rider_back_x=1 source_menu=3c" :
+                                              "root_back_b=1 source_menu=d7";
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_MODERN_PAD_POST %s\n", witness);
+                        ++post_stage;
                         post_frame = frame;
                         post_settle = 0;
-                        std::fprintf(stderr,
-                            "UR_BALDOSA_MODERN_PAD_POST result_back_x=1 source_menu=99\n");
                     }
-                } else if (post_stage == 1 && frame >= post_frame + 2u) {
-                    if (!SDL_SetJoystickVirtualButton(
-                            pad, SDL_GAMEPAD_BUTTON_WEST, false))
+                } else if (post_stage <= 9u &&
+                           (post_stage % 2u) == 1u &&
+                           frame >= post_frame + 2u) {
+                    const SDL_GamepadButton button = post_stage == 1u
+                        ? SDL_GAMEPAD_BUTTON_SOUTH
+                        : post_stage == 9u ? SDL_GAMEPAD_BUTTON_EAST
+                        : SDL_GAMEPAD_BUTTON_WEST;
+                    if (!SDL_SetJoystickVirtualButton(pad, button, false))
                         std::abort();
-                    post_stage = 2;
-                } else if (post_stage == 2) {
-                    // The source may return directly to MAIN or pass
-                    // through the original 1P setup. Never assume either.
-                    if (menu == 0x3cu && racing != 1u) {
-                        if (++post_settle >= 60u) {
-                            if (!SDL_SetJoystickVirtualButton(
-                                    pad, SDL_GAMEPAD_BUTTON_WEST, true))
-                                std::abort();
-                            post_stage = 3;
-                            post_frame = frame;
-                            post_settle = 0;
-                            std::fprintf(stderr,
-                                "UR_BALDOSA_MODERN_PAD_POST setup_back_x=1 source_menu=3c\n");
-                        }
-                    } else if (menu == 0xd7u && racing != 1u) {
-                        if (++post_settle >= 60u) {
-                            if (!SDL_SetJoystickVirtualButton(
-                                    pad, SDL_GAMEPAD_BUTTON_EAST, true))
-                                std::abort();
-                            post_stage = 5;
-                            post_frame = frame;
-                            post_settle = 0;
-                            std::fprintf(stderr,
-                                "UR_BALDOSA_MODERN_PAD_POST root_back_b=1 source_menu=d7\n");
-                        }
-                    } else {
-                        post_settle = 0;
-                    }
-                } else if (post_stage == 3 && frame >= post_frame + 2u) {
-                    if (!SDL_SetJoystickVirtualButton(
-                            pad, SDL_GAMEPAD_BUTTON_WEST, false))
-                        std::abort();
-                    post_stage = 4;
-                } else if (post_stage == 4) {
-                    post_settle = menu == 0xd7u && racing != 1u
-                        ? post_settle + 1u : 0u;
-                    if (post_settle >= 60u) {
-                        if (!SDL_SetJoystickVirtualButton(
-                                pad, SDL_GAMEPAD_BUTTON_EAST, true))
-                            std::abort();
-                        post_stage = 5;
-                        post_frame = frame;
-                        std::fprintf(stderr,
-                            "UR_BALDOSA_MODERN_PAD_POST root_back_b=1 source_menu=d7\n");
-                    }
-                } else if (post_stage == 5 && frame >= post_frame + 2u) {
-                    if (!SDL_SetJoystickVirtualButton(
-                            pad, SDL_GAMEPAD_BUTTON_EAST, false))
-                        std::abort();
-                    post_stage = 6;
-                } else if (post_stage == 6 && g_visible) {
-                    post_stage = 7;
+                    ++post_stage;
+                } else if (post_stage == 10u && g_visible) {
+                    post_stage = 11u;
                     reopened_frame = frame;
                     std::fprintf(stderr,
                         "UR_BALDOSA_MODERN_PAD_POST reopened=1 source_menu=d7\n");
-                } else if (post_stage == 7 && g_visible) {
+                } else if (post_stage == 11u && g_visible) {
                     static constexpr Step records_steps[] = {
                         {16u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},
                         {20u, SDL_GAMEPAD_BUTTON_DPAD_DOWN},

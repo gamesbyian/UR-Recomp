@@ -1,0 +1,170 @@
+name: QA01 exact Zoo reducer one-shot compute (unmerged)
+
+# Temporary branch-owned compute-only trigger. Never merge this workflow:
+# original/native evidence and guest game sources remain separately owned.
+on:
+  pull_request:
+    types: [ready_for_review]
+    paths:
+      - ".github/workflows/qa01-zoo-onecase-reducer-compute.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-zoo-onecase-artifact-reducer-${{ github.head_ref }}
+  cancel-in-progress: false
+
+jobs:
+  reduce-zoo:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false && github.head_ref == 'compute/qa01-zoo-onecase-artifact-reducer-20261025' && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out validated modern reduction tools, distinct from source epoch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: qa-tools
+      - name: Check out exact historical producer source, not current main
+        uses: actions/checkout@v4
+        with:
+          ref: c6b46344dc5eed5fbf09c663e1ed016b68887f23
+          persist-credentials: false
+          submodules: recursive
+          path: source-checkout
+      - name: Authenticate original source and tool provenance before artifact download
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source-checkout rev-parse HEAD)" = "c6b46344dc5eed5fbf09c663e1ed016b68887f23"
+          test -f qa-tools/tools/prepare_qa01_zoo_reducer_pilot.py
+          test -f qa-tools/tools/qa01_reducer_paired_oracle.py
+          test -f qa-tools/tools/qa01_reducer_clock_rebase.py
+          test -f qa-tools/tools/reduce_controller_fixture.py
+          echo "Source epoch: $(git -C source-checkout rev-parse HEAD)"
+          echo "Review/analysis tool commit: $(git -C qa-tools rev-parse HEAD)"
+      - name: Download immutable real Zoo source case from successful producer
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40168208753
+          name: qa01-campaign-case-zoom-zoo
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/qa01-case
+      - name: Download exact Snes9x reference/core and patched native built by producer
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 40168208753
+          name: qa01-campaign-reference-and-native-binaries
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/qa01-binaries
+      - name: Install original guest runtime dependencies, not a substitute emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            libsdl2-2.0-0 libgl1 libopengl0 libfreetype6 libdecor-0-0 \
+            libx11-6 libxext6 libxrandr2 \
+            libxcursor1 libxi6 libxss1 libwayland-client0 \
+            libxkbcommon0 libegl1 libgles2 libdrm2 libgbm1 \
+            libasound2 libpulse0 libudev1 libdbus-1-3 xvfb
+      - name: Validate artifact-origin binaries, historical ROM/movie, and analysis-only overlays
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd "$RUNNER_TEMP/qa01-binaries" && sha256sum -c SHA256SUMS)
+          chmod +x "$RUNNER_TEMP/qa01-binaries/native" "$RUNNER_TEMP/qa01-binaries/snesref"
+          cd source-checkout
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          test -f "$RUNNER_TEMP/qa01-case/producer-report.json"
+          test -s "$RUNNER_TEMP/qa01-case/work/zoom-zoo/replay/complete.script"
+          for name in prepare_qa01_zoo_reducer_pilot.py qa01_reducer_paired_oracle.py qa01_reducer_clock_rebase.py reduce_controller_fixture.py; do
+            cp "$GITHUB_WORKSPACE/qa-tools/tools/$name" "tools/$name"
+            sha256sum "tools/$name"
+          done
+          # These are read-only QA transport scripts; no native/ROM/source
+          # recompilation or modified source guest takes place.
+          git status --short
+          ldd "$RUNNER_TEMP/qa01-binaries/native" | tee "$RUNNER_TEMP/native-deps.log"
+          if grep -q 'not found' "$RUNNER_TEMP/native-deps.log"; then exit 1; fi
+      - name: Reconstitute exact historical source SRAM only in private scratch root
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source-checkout
+          case_dir="$RUNNER_TEMP/qa01-case/work/zoom-zoo"
+          test ! -e "$case_dir/anchored.srm"
+          python3 tools/extract_smv_input.py \
+            reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --input-out "$RUNNER_TEMP/source-movie-full.input" \
+            --sram-out "$case_dir/anchored.srm" \
+            --sram-size 8192
+          test "$(wc -c < "$case_dir/anchored.srm")" = "8192"
+          echo "Source SRAM SHA-256: $(sha256sum "$case_dir/anchored.srm" | cut -d ' ' -f1)"
+      - name: Prepare authenticated original/native +5039/+5040 QA01 intake
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source-checkout
+          mkdir -p "$RUNNER_TEMP/qa01-reducer-private"
+          python3 tools/prepare_qa01_zoo_reducer_pilot.py \
+            --producer "$RUNNER_TEMP/qa01-case/producer-report.json" \
+            --case "$RUNNER_TEMP/qa01-case/work/zoom-zoo" \
+            --binaries "$RUNNER_TEMP/qa01-binaries" \
+            --rom "$GITHUB_WORKSPACE/source-checkout/reference/roms/retail/Uniracers_USA.sfc" \
+            --movie "$GITHUB_WORKSPACE/source-checkout/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+            --source-sha "c6b46344dc5eed5fbf09c663e1ed016b68887f23" \
+            --output-manifest "$RUNNER_TEMP/qa01-reducer-private/paired.json" \
+            --output-input "$RUNNER_TEMP/qa01-reducer-private/original.input" \
+            --output-receipt "$RUNNER_TEMP/qa01-reducer-private/intake.json"
+          python3 - "$RUNNER_TEMP/qa01-reducer-private/intake.json" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          print("### Original/native Zoo source intake (non-admitted)")
+          print("Exact source SHA: "+d["source_sha"])
+          print("Source +5039 full WRAM equal: "+str(d["original_and_native_equal_before"]))
+          print("Next-frame differing WRAM offsets: "+str(d["current_first_sound_mismatch_offsets"]))
+          print("Original/native complete-event release credit: **0**")
+          PY
+      - name: One bounded real original/native replay minimization
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd source-checkout
+          entry="$(python3 - "$RUNNER_TEMP/qa01-reducer-private/paired.json" <<'PY'
+          import json,sys
+          print(json.load(open(sys.argv[1]))["guest_clocks"]["reference_entry_frame"])
+          PY
+          )"
+          timeout --signal=TERM --kill-after=15s 32m \
+            python3 tools/reduce_controller_fixture.py \
+              --input "$RUNNER_TEMP/qa01-reducer-private/original.input" \
+              --output "$RUNNER_TEMP/qa01-reducer-private/reduced.input" \
+              --report "$RUNNER_TEMP/qa01-reducer-private/reduced.json" \
+              --protected-before-frame "$entry" \
+              --max-calls 12 --repeats 2 --timeout 240 \
+              --oracle python3 tools/qa01_reducer_paired_oracle.py \
+              --manifest "$RUNNER_TEMP/qa01-reducer-private/paired.json"
+          python3 - "$RUNNER_TEMP/qa01-reducer-private/reduced.json" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          print("### Authentic bounded Zoo source reduction (not release QA)")
+          for k in ("source_fixture_sha256","reduced_fixture_sha256",
+                    "protected_before_frame","original_runs","reduced_runs",
+                    "removed_runs","oracle_calls","candidates_tested",
+                    "budget_exhausted","release_gate_accepted"):
+            print(f"- {k}: {d[k]}")
+          PY
+      - name: Publish only hash/decision receipts, never copyrighted source bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-zoo-reducer-onecase-hash-receipts
+          path: |
+            ${{ runner.temp }}/qa01-reducer-private/intake.json
+            ${{ runner.temp }}/qa01-reducer-private/reduced.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -3265,7 +3265,7 @@
         "tools/p2p/sqlite_checkpoint_anchor.py",
         "tools/qa08_brightness_discriminator.py"
       ],
-      "current_main_comparison": "Agent1 H26 multi-line archive has 123 CRC-valid ZIP members. Handoff covers RF081 wake/stack binding, SQLite local permission pilot, hardlinked QA04 receipt, QA08 rational brightness identifiability and UHD matte geometry. Most sampled semantics now appear in current source/test; uninspected source-distinct inner members are NOT qualified by a generic archive hash mismatch.",
+      "current_main_comparison": "Agent 2 checked 123/123 outer member CRC and re-executed RUN_TESTS.py 89/89 normal and 89/89 -OO (CPU26 P2P39 QA04 4+2 QA08 13 UHD5 each mode). Three archived core source Git blobs exact main: p2p/checkpoint_chain_audit.py 25d54aa1..., p2p/context_bound_checkpoint_chain.py 1bee73fc..., QA08 brightness candidate 26354934.... CPU RF081 reporter revisions, SQLite checkpoint CAS, QA04 hardlink, QA08 probe and UHD matte audit are all covered by stricter current tools or remain explicitly research-only; they do not prove physical Windows/guest PPU/RS event acceptance. Only unclassified nested children are unreviewed. #2088 comment 6390602585.",
       "github_prs": [
         "#2088",
         "#2458",
@@ -3274,12 +3274,13 @@
       "owner": "Agent 2 nested source/test review; Agent 1 final semantic register",
       "priority": "P2",
       "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
-      "next_action": "Bounded classify only unsampled nested source/test members by exact member SHA and current-main semantic tests. Keep CPU same-phase witness, Windows physical and UHD source-art holds distinct; no blanket 123 tasks.",
+      "next_action": "Agent 2 skip five top-level source lines now independently bounded and focus only source-distinct unclassified nested descendants with SHA and current-main comparison. Keep early-stage CPU/PPU/NTFS release gates separate.",
       "blocker": "Member-level exactness/semantic check incomplete for all original 123 members.",
       "classification": "requires_agent2_semantic_review",
       "checkpoint_transport_verified": true,
       "source_publication_authorized": false,
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088#issuecomment-6390602585"
     },
     {
       "drive_id": "1leSIVQ4Emo7qSY81vbtOfjtT8ZUMW-7u",
@@ -3401,7 +3402,7 @@
       "archive_sha256": "778d58ef765a977d7bc35a8172fc53fb4a72e5d759b9066f0039bbfa7858520b",
       "source_member_sha256": null,
       "target_paths": [],
-      "current_main_comparison": "SDL/PPU H26 source largely covered by #2252/#2253; distinct inner leaves still need review",
+      "current_main_comparison": "Agent 2 independently CRC-read 35/35 outer members and ran archived source/test_agent5_h26.py 8/8 normal and 8/8 -OO. Archived qa06_modern_native_surface_admission.py, qa08_temporal_source_census.py, qa06_original_block_consistency.py and qa06_raster_roi_reference.py are byte-exact current main; remaining rf081_phase_gap_admission.py is semantically subsumed by stronger selected-PC census but proves no guest same-phase/RTS or event acceptance. All FIVE named original work-ID interpretations are accounted for; nested source/retained native visual evidence requires separate provenance if unsampled. #2088 comment 6390569186.",
       "github_prs": [
         "#2252",
         "#2253"
@@ -3409,10 +3410,11 @@
       "owner": "Agent 2",
       "priority": "P2",
       "required_test": "Exact archive/member SHA and semantic main/PR comparison if actionable",
-      "next_action": "Targeted member-level source/test comparison; avoid duplicate PR",
+      "next_action": "No duplicate source PR for original five H26 work-ID modules. Agent 2 only investigate genuinely unsampled nested source/test or source-bound visual evidence with exact members, keeping physical Windows/art/QA08 proof explicitly held.",
       "blocker": null,
       "classification": "requires_agent2_semantic_review",
-      "checkpoint_transport_verified": true
+      "checkpoint_transport_verified": true,
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088#issuecomment-6390569186"
     },
     {
       "drive_id": "1pR7X9McID-xWM-JDSqHOjsguSbr9hjnf",
@@ -3454,7 +3456,7 @@
         "tools/qa06_original_block_consistency.py",
         "tools/p2p/signed_checkpoint_anchor_lab.py"
       ],
-      "current_main_comparison": "First-party Agent5 H25 30-member ZIP CRC-clean. Contains QR QA08 chromatic probe, source-free nearest-neighbor UHD checker, P2P SQLite hardlink/alias and signed checkpoint pilots, CI compare epoch and recovery ZIP admission controls. Many selected pieces already on current main and newer H26/H27. Remaining source-like members require member-specific comparison; no blanket research patch publication, physical PPU or shipping P2P acceptance.",
+      "current_main_comparison": "Agent 2 independently re-ran the H25 outer work/test suite 13/13 normal and 13/13 -OO, with 30/30 archive CRC. Three original source modules byte-exact current main (QA06 original block consistency, QA06 raster ROI reference, P2P checkpoint chain/anchor source accounted within original five lines); four older H25 source variants QA08 probe, P2P checkpoint_store_cas, CI compare provenance and recovery ZIP admission are semantically superseded by stronger current main. This closes FIVE named top-level work lines only, not nested agent3-h25.zip/agent4-h25.zip members. Details #2088 comment 6390555234.",
       "github_prs": [
         "#2088",
         "#1996"
@@ -3462,12 +3464,13 @@
       "owner": "Agent 2 residual H25 source/test qualification; Agent 1 disposition register",
       "priority": "P2",
       "required_test": "Bounded original member/current-main comparison or existing linked unit regression. Do not claim release gate from archived metadata.",
-      "next_action": "Agent 2 inspect genuinely unsampled source/test leaves; explicit candidate SHA+path+behavior before narrow independent PR. Avoid duplicating main H25-derived tools or its standalone identical patch.",
+      "next_action": "Agent 2 inspect ONLY unclassified nested H25 descendants with member SHA + target path/current-main behavior, not top-level five-line source; preserve nested source and original tests. Already 13/13 normal and optimized suite passing.",
       "blocker": "Not all nested H25 source-like members independently qualified against current main.",
       "classification": "requires_agent2_semantic_review",
       "checkpoint_transport_verified": true,
       "source_publication_authorized": false,
-      "release_gate_credit": 0
+      "release_gate_credit": 0,
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/issues/2088#issuecomment-6390555234"
     },
     {
       "drive_id": "1rlZd26m_lkm0WGDnpvWfIwhr6chlzIdU",

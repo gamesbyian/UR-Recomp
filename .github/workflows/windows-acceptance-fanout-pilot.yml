@@ -1,5 +1,10 @@
 name: Windows acceptance fan-out (one-build, two-group manual pilot)
 on:
+  # Trusted one-shot qualification branch only; never merge this PR trigger.
+  pull_request:
+    types: [ready_for_review]
+    paths:
+      - ".github/workflows/windows-acceptance-fanout-pilot.yml"
   workflow_dispatch:
     inputs:
       build_only:
@@ -20,12 +25,12 @@ concurrency:
   cancel-in-progress: false
 jobs:
   candidate:
-    if: ${{ inputs.build_only == true }}
+    if: ${{ inputs.build_only == true || (github.event_name == 'pull_request' && github.head_ref == 'compute/windows-fanout-v2-private-logs-20261025' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false) }}
     uses: ./.github/workflows/windows-exact-build-only.yml
 
   journeys:
     needs: candidate
-    if: ${{ always() && (inputs.build_only == true && needs.candidate.result == 'success' || inputs.build_only != true) }}
+    if: ${{ always() && ((github.event_name == 'pull_request' && github.head_ref == 'compute/windows-fanout-v2-private-logs-20261025' && github.event.pull_request.head.repo.full_name == github.repository && needs.candidate.result == 'success') || (github.event_name == 'workflow_dispatch' && (inputs.build_only == true && needs.candidate.result == 'success' || inputs.build_only != true))) }}
     runs-on: windows-2022
     timeout-minutes: 35
     strategy:
@@ -48,7 +53,7 @@ jobs:
           path: baldosa
           persist-credentials: false
       - name: Authenticate producer as successful exact source
-        if: ${{ inputs.build_only != true }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_only != true }}
         env:
           GH_TOKEN: ${{ github.token }}
           PRODUCER_RUN: ${{ inputs.candidate_run_id }}
@@ -61,7 +66,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: qa-baldosa-native-export
-          run-id: ${{ inputs.build_only == true && github.run_id || inputs.candidate_run_id }}
+          run-id: ${{ (github.event_name == 'pull_request' || inputs.build_only == true) && github.run_id || inputs.candidate_run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/fanout-inputs
       - name: Verify original and packaged candidate identities
@@ -105,7 +110,7 @@ jobs:
           if-no-files-found: warn
   aggregate:
     needs: journeys
-    if: always()
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.head_ref == 'compute/windows-fanout-v2-private-logs-20261025' && github.event.pull_request.head.repo.full_name == github.repository)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

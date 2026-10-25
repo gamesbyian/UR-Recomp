@@ -100,6 +100,12 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
                 except (ValueError, UnicodeError) as exc:
                     raise ValueError("malformed oracle receipt") from exc
                 identity = verify_receipt(receipt, hashed)
+                if observation_frame is not None:
+                    clocks = receipt.get("guest_clocks")
+                    if (type(clocks) is not dict
+                            or type(clocks.get("reference_observation_frame")) is not int
+                            or clocks["reference_observation_frame"] != observation_frame):
+                        raise ValueError("oracle original guest observation frame differs from horizon")
                 if base_identity is None:
                     base_identity = identity
                 elif base_identity != identity:

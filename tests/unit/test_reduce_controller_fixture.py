@@ -20,6 +20,7 @@ p.add_argument('--receipt',required=True,type=Path)
 p.add_argument('--bad-hash',action='store_true')
 p.add_argument('--invalid-original',action='store_true')
 p.add_argument('--need-tail',action='store_true')
+p.add_argument('--obs-frame',type=int,default=110)
 a=p.parse_args()
 data=a.candidate.read_bytes()
 rows=data.decode().splitlines()
@@ -30,6 +31,7 @@ result=dict(schema='ur-controller-reducer-oracle/1',
     source_sha='a'*40,original_rom_sha256='b'*64,native_binary_sha256='c'*64,
     reference_engine='snes9x',discrepancy_id='nmi-test',semantic_phase='test-return',
     original_valid=valid,native_valid=True,
+    guest_clocks=dict(reference_observation_frame=a.obs_frame),
     result=('reproduced' if success else 'not_reproduced'))
 a.receipt.write_text(json.dumps(result))
 """
@@ -101,11 +103,18 @@ class ReducerTests(unittest.TestCase):
         runs, receipt = tool.reduce(
             controller_input.load_controller_runs(self.fixture),
             hashlib.sha256(self.fixture.read_bytes()).hexdigest(),
-            100, [sys.executable, str(self.oracle)],
+            100, [sys.executable, str(self.oracle), "--obs-frame", "100"],
             max_calls=4, observation_frame=100,
         )
         self.assertIn(b"100:10:002", tool.encode(runs))
         self.assertEqual(receipt["post_observation_removed_runs"], 2)
+        with self.assertRaisesRegex(ValueError, "differs from horizon"):
+            tool.reduce(
+                controller_input.load_controller_runs(self.fixture),
+                hashlib.sha256(self.fixture.read_bytes()).hexdigest(),
+                100, [sys.executable, str(self.oracle)],
+                max_calls=4, observation_frame=109,
+            )
         _, legacy = self.run_case(max_calls=4)
         self.assertIsNone(legacy["observation_frame"])
         self.assertFalse(legacy["post_observation_trial"])

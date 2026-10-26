@@ -171,13 +171,13 @@ class CiTriggerPolicyTest(unittest.TestCase):
                 # Keep the second, event-based check even with the branch filter.
                 self.assertIn("github.event.workflow_run.event != 'pull_request'", content)
 
-    def test_intake_pr_tests_do_not_install_unused_public_drive_downloader(self):
-        content = (WORKFLOWS / "vault-recurring-intake.yml").read_text(
+    def test_intake_pr_dry_run_keeps_pinned_downloader(self):
+        workflow = (WORKFLOWS / "vault-recurring-intake.yml").read_text(
             encoding="utf-8")
-        install = content.split("      - name: Install pinned public Drive downloader\n", 1)[1]
+        install = workflow.split("      - name: Install pinned public Drive downloader\\n", 1)[1]
         install = install.split("      - name: Restore most recent preserved checkpoint", 1)[0]
-        self.assertIn("github.event_name != 'pull_request'", install)
-        self.assertIn("inputs.scope == matrix.scope", install)
+        self.assertIn("github.event_name != 'workflow_dispatch'", install)
+        self.assertNotIn("github.event_name != 'pull_request'", install)
         self.assertIn("gdown==6.4.2", install)
 
     def test_pull_requests_are_path_scoped(self):

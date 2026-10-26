@@ -838,12 +838,12 @@ class CiTriggerPolicyTest(unittest.TestCase):
         # main-push and manual routes, not an expensive second PR trigger.
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
         qa05 = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text()
-        self.assertNotIn("\\n  pull_request:\\n", text)
+        self.assertNotIn("\n  pull_request:\n", text)
         self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', qa05)
-        self.assertIn("  pull_request:\\n", qa05)
+        self.assertIn("  pull_request:\n", qa05)
         self.assertIn("github.event.pull_request.draft == false", qa05)
-        self.assertIn("  workflow_call:\\n", text)
-        self.assertIn("  workflow_dispatch:\\n", text)
+        self.assertIn("  workflow_call:\n", text)
+        self.assertIn("  workflow_dispatch:\n", text)
         self.assertIn(
             "uses: ./.github/workflows/windows-native-smoke.yml", qa05
         )

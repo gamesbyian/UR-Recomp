@@ -184,6 +184,41 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertIn("/actions/runs/4001", markdown(report))
         self.assertTrue(required_live_sources_present(report))
 
+    def test_manual_dispatch_does_not_mask_missing_recurring_vault_producer(self):
+        def manually_green(path):
+            if "/actions/workflows/" in path:
+                return {"workflow_runs": [{
+                    "id": 7000, "head_branch": "main",
+                    "event": "workflow_dispatch",
+                    "created_at": "2026-10-21T11:30:00Z",
+                    "status": "completed", "conclusion": "success"}]}
+            return self.request(path)
+        report = self.report(get=manually_green)
+        self.assertEqual(report["recovery_workflows"]["intake"]["status"],
+                         "UNKNOWN_NO_ELIGIBLE_RUN")
+        self.assertEqual(report["recovery_workflows"]["review"]["status"],
+                         "UNKNOWN_NO_ELIGIBLE_RUN")
+        self.assertFalse(required_live_sources_present(report))
+
+    def test_newer_manual_intake_cannot_hide_stale_scheduled_intake(self):
+        def restored_once(path):
+            if "/actions/workflows/" in path:
+                intake = "vault-recurring-intake" in path
+                prior = "schedule" if intake else "workflow_run"
+                return {"workflow_runs": [
+                    {"id": 7001, "head_branch": "main", "event": "workflow_dispatch",
+                     "created_at": "2026-10-21T11:30:00Z",
+                     "status": "completed", "conclusion": "success"},
+                    {"id": 7002, "head_branch": "main", "event": prior,
+                     "created_at": "2026-10-20T10:00:00Z",
+                     "status": "completed", "conclusion": "success"}]}
+            return self.request(path)
+        report = self.report(get=restored_once)
+        self.assertEqual(report["recovery_workflows"]["intake"]["run_id"], 7002)
+        self.assertEqual(report["recovery_workflows"]["review"]["run_id"], 7002)
+        self.assertEqual(report["recovery_workflows"]["intake"]["status"], "OVERDUE_REVIEW")
+        self.assertFalse(required_live_sources_present(report))
+
     def test_latest_intake_after_still_green_review_is_not_green_overall(self):
         def simulated(path):
             if "/actions/workflows/" in path:

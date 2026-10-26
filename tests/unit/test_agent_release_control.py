@@ -1,0 +1,117 @@
+"""Read-only source-bound agent integration control regression tests."""
+import json
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+from tools import agent_release_control as m
+
+ROOT = Path(__file__).resolve().parents[2]
+SHA = "a" * 40
+OTHER = "b" * 40
+
+def snapshot():
+    return {
+        "schema": "UR-GITHUB-PR-SNAPSHOT/1", "repository": "gamesbyian/UR-Recomp",
+        "main_sha": SHA, "open_census_complete": True,
+        "closed_census_complete": False, "closed_prs_sample": [
+            {"number": 3, "created_at": "2026-10-20T00:00:00Z",
+             "merged_at": "2026-10-20T02:00:00Z"}],
+        "open_prs": [
+            {"number": 10, "title": "Approved candidate", "head_sha": OTHER,
+             "base_sha": SHA, "draft": False, "mergeable_state": "clean",
+             "files": ["tools/foo.py"], "files_complete": True,
+             "checks_complete": True,
+             "checks": [{"head_sha": OTHER, "name": "unit",
+                         "status": "completed", "conclusion": "success"}]},
+            {"number": 11, "title": "Draft", "head_sha": OTHER,
+             "base_sha": OTHER, "draft": True, "mergeable_state": "dirty",
+             "files": ["tools/foo.py"], "files_complete": True,
+             "checks_complete": True, "checks": []},
+        ],
+    }
+
+class AgentReleaseControlTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ledger = json.loads((ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_text())
+
+    def test_bound_advisory_integration(self):
+        view = m.assess(snapshot(), self.ledger, "release-qa", "QA-04")
+        self.assertEqual(view["release"]["decision"],
+                         "HOLD_independent_source_zip_hardware_and_gameplay_review")
+        self.assertEqual(view["release"]["passed_recorded"], 0)
+        self.assertTrue(view["open_prs"][0]["integration_review_candidate"])
+        self.assertFalse(view["open_prs"][1]["integration_review_candidate"])
+        self.assertEqual(view["open_prs"][0]["overlaps_with"], [11])
+        self.assertEqual(view["integration_metrics"]["sample_median_creation_to_merge_hours"], 2)
+        self.assertIn("zero gate credit", m.markdown(view))
+
+    def test_check_states_do_not_promote_stale_or_pending(self):
+        record = snapshot()["open_prs"][0]
+        for checks, expected in [
+            ([{"head_sha": SHA, "status": "completed", "conclusion": "success"}], "unknown"),
+            ([{"head_sha": OTHER, "status": "in_progress", "conclusion": None}], "pending"),
+            ([{"head_sha": OTHER, "status": "completed", "conclusion": "failure"}], "failed"),
+            ([], "unknown"),
+        ]:
+            with self.subTest(state=expected):
+                record["checks"] = checks
+                self.assertEqual(m.checks_state(checks, True, OTHER), expected)
+
+    def test_missing_census_and_attachments_not_silent_success(self):
+        s = snapshot()
+        s["open_census_complete"] = False
+        s["open_prs"][0]["files_complete"] = False
+        view = m.assess(s, self.ledger, "ci")
+        self.assertFalse(view["open_census_complete"])
+        self.assertIsNone(view["open_prs"][0]["overlaps_with"])
+        self.assertFalse(view["open_prs"][0]["integration_review_candidate"])
+
+    def test_no_duplicate_pr_and_no_cross_lane_gate(self):
+        s = snapshot()
+        s["open_prs"][1]["number"] = 10
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            m.assess(s, self.ledger, "release-qa")
+        with self.assertRaisesRegex(ValueError, "gate outside"):
+            m.assess(snapshot(), self.ledger, "racer-hd", "QA-02")
+
+    def test_indexed_evidence_stays_source_bound_and_diagnostic(self):
+        receipt = {"schema": "UR-CI-UNIT-RESULT/1", "source_sha": SHA,
+                   "digest": "c" * 64, "outcome": "pass",
+                   "observed": 1, "failures": 0, "missing": 0, "release_gate_credit": 0}
+        result = m.assess(snapshot(), self.ledger, "ci", receipts=[receipt])
+        self.assertEqual(len(result["indexed_main_producer_receipts"]), 1)
+        for changed in ({**receipt, "source_sha": OTHER},
+                        {**receipt, "release_gate_credit": 1}):
+            with self.assertRaisesRegex(ValueError, "receipt"):
+                m.assess(snapshot(), self.ledger, "ci", receipts=[changed])
+
+    def test_ci_cost_sampling_is_explicit(self):
+        ci = {"schema_version": 3, "window_census_complete": False,
+              "workflows": [{"workflow": "Windows", "runner_seconds": 100,
+                             "runs_missing_job_timing": 1}]}
+        result = m.assess(snapshot(), self.ledger, "ci", ci=ci)
+        self.assertEqual(result["ci_cost"]["coverage"], "sample_only")
+        self.assertEqual(result["ci_cost"]["observed_top_workflows"][0]["missing_job_timing"], 1)
+
+    def test_live_pr_head_change_and_valid_snapshot(self):
+        pr = {"number": 10, "title": "One", "head": {"sha": OTHER},
+              "base": {"sha": SHA}, "draft": False}
+        responses = [
+            {"commit": {"sha": SHA}}, [pr], [{"filename": "tools/a.py"}],
+            {"check_runs": [], "total_count": 0},
+            {"head": {"sha": SHA}, "base": {"sha": SHA}, "mergeable_state": "clean"},
+        ]
+        with patch.object(m, "api", side_effect=responses):
+            with self.assertRaisesRegex(ValueError, "PR advanced"):
+                m.live_snapshot()
+        responses[4]["head"]["sha"] = OTHER
+        responses.extend([{"commit": {"sha": SHA}}, []])
+        with patch.object(m, "api", side_effect=responses):
+            got = m.live_snapshot()
+        self.assertEqual(got["main_sha"], SHA)
+        self.assertEqual(len(got["open_prs"]), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

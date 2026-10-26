@@ -1,0 +1,92 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-26",
+  "from_main_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
+  "through_main_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "observed_merge_count": 119,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/2636e284d7917e127a5fc5b1acaf5322a42b583b...82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "merge_records_scope": "Representative verified high-impact examples, not 119 individually restated PR narratives. Compare API authenticated total=119.",
+  "merge_records": [
+    {
+      "pr": 2640,
+      "effect": "direct_product",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2640",
+      "observation": "Modern title 256/342 integration with hosted SDL/CMD source evidence; does not satisfy separate real-pad item MENU-01"
+    },
+    {
+      "pr": 2546,
+      "effect": "direct_product_and_bounded_acceptance",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2546",
+      "observation": "Actual Windows runtime proves five packaged Pause/Restart cases and all twelve sampled no-Start frames; ONE-08 earned"
+    },
+    {
+      "pr": 2572,
+      "effect": "direct_product",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2572",
+      "observation": "Unicode racer creation native path correction, but DATA-05 full exact integrated boundary not qualified"
+    },
+    {
+      "pr": 2615,
+      "effect": "release_risk_reduction",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2615",
+      "observation": "True Windows process death at staged profile state plus cold recovery, short of physical power loss"
+    },
+    {
+      "pr": 2565,
+      "effect": "enabling_infrastructure",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2565",
+      "observation": "Actual 13/13 hosted Windows journeys single candidate, not release gate"
+    },
+    {
+      "pr": 2627,
+      "effect": "operations",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2627",
+      "observation": "Five hourly agents share ranked work pool; no particular new product criterion"
+    },
+    {
+      "pr": 2592,
+      "effect": "parity_research",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2592",
+      "observation": "Zoo sound-writer trace narrowed; no source/native complete-event admission"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "ONE-08",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40161080894/job/121072588296",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2390"
+      ],
+      "reason": "Newly integrated hosted Win32 script-restart behavior source log shows 5/5 paused Restart returns with guest resumed, 12/12 post-restart guest input samples with zero Start on each. Actual executed source evidence read independently, not physical release approval."
+    },
+    {
+      "id": "ART-01",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md"
+      ],
+      "reason": "Retroactive oversight corrected: existing October 10 dossier already defines original-game title/manual/box/promotional reference hierarchy and likeness attributes. Not new engineered racer art or owner approval."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 48,
+    "current_bounded_percent": 50,
+    "gross_delta_percentage_points": 2,
+    "new_work_earned_percentage_points": 1,
+    "retroactive_identification_percentage_points": 1,
+    "previous_independent_audit_percent": 6,
+    "current_independent_audit_percent": 8
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "All 135 fixed statuses reviewed for possible source/evidence promotions; only 2 criteria qualified, including 1 old overlooked document. 119 intervening commits counted by GitHub source comparison; selected commits and exact CI witness independently examined, not all 119 code changes re-executed. Physical/release QA and all 45 source/native event slots remain untouched.",
+  "source_reviewed_by": "independent_repository_progress_audit",
+  "limitations": "Bounded CI/source evidence and repository doc inspection. Current head wasn't rerun on a clean physical Windows device; no current candidate certified; all earlier bounded-verified statuses retained provisionally under frozen contract."
+}

@@ -43,6 +43,73 @@ class IndexTests(unittest.TestCase):
             self.assertNotIn("private-",db.read_bytes().decode("latin-1"))
             self.assertTrue(all(len(row["digest"])==64 for row in rows))
 
+
+    def test_PR_synthetic_merge_is_not_falsely_indexed_under_PR_head(self):
+        pr_head = "b" * 40
+        event_sha = "c" * 40
+        actual_checkout = "d" * 40
+        data = unit()
+        data["source"] = {
+            "pr_head_sha": pr_head,
+            "GITHUB_SHA": event_sha,
+            "checked_out_sha": actual_checkout,
+        }
+        projected = m.project(data)
+        self.assertEqual(projected["source_sha"], actual_checkout)
+        self.assertEqual(projected["source_binding"],
+                         "git_checkout_head_at_receipt")
+        self.assertEqual(projected["pr_head_sha"], pr_head)
+        self.assertEqual(projected["actions_event_sha"], event_sha)
+        with tempfile.TemporaryDirectory() as temp:
+            p = Path(temp) / "unit.json"
+            p.write_text(json.dumps(data))
+            db = Path(temp) / "index.sqlite"
+            m.ingest(db, [p])
+            self.assertEqual(m.query(db, pr_head, 10), [])
+            self.assertEqual(m.query(db, event_sha, 10), [])
+            indexed = m.query(db, actual_checkout, 10)
+            self.assertEqual(len(indexed), 1)
+            self.assertEqual(indexed[0]["source_binding"],
+                             "git_checkout_head_at_receipt")
+
+    def test_older_receipt_only_environment_SHA_is_not_qualified_checkout(self):
+        data = unit()
+        data["source"] = {"GITHUB_SHA": "c" * 40, "pr_head_sha": "b" * 40}
+        result = m.project(data)
+        self.assertEqual(result["source_sha"], "c" * 40)
+        self.assertEqual(result["source_binding"],
+                         "actions_event_sha_checkout_unverified")
+        self.assertNotEqual(result["source_sha"], data["source"]["pr_head_sha"])
+
+    def test_legacy_database_must_be_preserved_and_rebuilt_not_reused(self):
+        with tempfile.TemporaryDirectory() as temp:
+            db = Path(temp) / "legacy.sqlite"
+            with sqlite3.connect(db) as con:
+                con.executescript(m.DDL)
+                con.execute("PRAGMA user_version=0")
+            p = Path(temp) / "unit.json"
+            p.write_text(json.dumps(unit()))
+            with self.assertRaisesRegex(ValueError, "legacy CI receipt"):
+                m.ingest(db, [p])
+            with self.assertRaisesRegex(ValueError, "legacy CI receipt"):
+                m.query(db, SHA, 10)
+            self.assertTrue(db.is_file())
+            fresh = Path(temp) / "rebuilt-v2.sqlite"
+            m.ingest(fresh, [p])
+            self.assertEqual(len(m.query(fresh, SHA, 10)), 1)
+
+    def test_conflicting_or_malformed_unit_source_fields_fail_closed(self):
+        for invalid in (
+            {"GITHUB_SHA": SHA, "checked_out_sha": "oops"},
+            {"GITHUB_SHA": "invalid", "pr_head_sha": SHA},
+            {"pr_head_sha": SHA},
+        ):
+            data = unit()
+            data["source"] = invalid
+            with self.subTest(source=invalid):
+                with self.assertRaisesRegex(ValueError, "SHA|source"):
+                    m.project(data)
+
     def test_invalid_second_receipt_rolls_back_entire_batch(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)

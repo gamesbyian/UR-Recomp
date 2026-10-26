@@ -669,6 +669,45 @@ def route_milestones(log: str) -> list[str]:
     ][-20:]
 
 
+def retain_two_pad_ci_pair(new_pairs: set[Path], run: Path, out: Path) -> dict[str, str]:
+    """Retain only the two bounded CI-earned match files for external byte QA.
+
+    The run is generated from fresh synthetic Mike/Andrew CI profiles, never
+    from a user's save directory. No ROM, SRAM, catalog or profile is copied.
+    """
+    sidecar = run.with_name(run.name + ".urmatch")
+    if {p.name for p in new_pairs} != {run.name, sidecar.name}:
+        raise ValueError("two-pad evidence: canonical pair names required")
+    evidence = out / "controller_only_two_pad_race" / "earned_pair"
+    evidence.mkdir(parents=True, exist_ok=False)
+    digests: dict[str, str] = {}
+    manifest: dict[str, dict[str, str | int]] = {}
+    for source, retained in ((run, "source.urrun"),
+                             (sidecar, "source.urrun.urmatch")):
+        if source.is_symlink() or not source.is_file():
+            raise ValueError("two-pad evidence: source must be a regular file")
+        data = source.read_bytes()
+        if not 0 < len(data) <= 1024 * 1024:
+            raise ValueError("two-pad evidence: source size outside CI limit")
+        digest = hashlib.sha256(data).hexdigest()
+        destination = evidence / retained
+        destination.write_bytes(data)
+        if hashlib.sha256(destination.read_bytes()).hexdigest() != digest:
+            raise ValueError("two-pad evidence: retained byte mismatch")
+        digests[source.name] = digest
+        manifest[retained] = {
+            "original_name": source.name,
+            "sha256": digest,
+            "size": len(data),
+        }
+    (evidence / "manifest.json").write_text(
+        json.dumps({"scope": "CI synthetic two-controller source-earned match",
+                    "files": manifest}, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return digests
+
+
 def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     exe, rom, out = exe.resolve(strict=True), rom.resolve(strict=True), out.resolve()
     # The product ignores pads while the window is unfocused (#2334); a hosted
@@ -792,10 +831,11 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             or any(p.is_symlink() or not p.is_file() or p.stat().st_size == 0
                    for p in new_pairs)):
         raise ValueError("two-pad race: one new canonical source-earned pair required")
-    two_pad_pair_sha256 = {
-        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-        for p in sorted(new_pairs)
-    }
+    # Retain the exact synthetic CI pair so an independent reviewer can
+    # recompute the hashes and inspect both raw canonical records.
+    two_pad_pair_sha256 = retain_two_pad_ci_pair(
+        new_pairs, new_runs[0], out
+    )
 
     # Separate CI-only mode 30 uses the same SDL virtual-pad route and
     # probes original X backtrack followed by physical B reentry at MAIN D7.

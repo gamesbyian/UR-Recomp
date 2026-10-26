@@ -6,7 +6,10 @@ actual Windows AOT executable and its retained source-scored guest log.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -15,6 +18,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 from run_baldosa_keyboard_pad_join_acceptance import (
     verify_controller_only_two_pad_race,
+    retain_two_pad_ci_pair,
 )
 # Self-contained source fixtures: unittest discovery does not require
 # tests/ to be an importable package on every runner.
@@ -75,6 +79,42 @@ class TwoPadSourceRaceAcceptance(unittest.TestCase):
         self.assertIn('"controller_only_two_pad_race", "34"', runner)
         self.assertIn("verify_controller_only_two_pad_race(log)", runner)
         self.assertIn("controller_only_two_pad_race/log.txt", workflow)
+        self.assertIn("controller_only_two_pad_race/earned_pair/source.urrun", workflow)
+        self.assertIn("controller_only_two_pad_race/earned_pair/source.urrun.urmatch", workflow)
+        self.assertIn("controller_only_two_pad_race/earned_pair/manifest.json", workflow)
+
+    def test_retained_pair_bytes_match_manifest_and_receipt(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            pair = root / "multiplayer-runs"
+            pair.mkdir()
+            run = pair / "earned.urrun"
+            sidecar = pair / "earned.urrun.urmatch"
+            run.write_bytes(b"CI synthetic source run")
+            sidecar.write_bytes(b"CI synthetic source match")
+            digests = retain_two_pad_ci_pair({run, sidecar}, run, root)
+            evidence = root / "controller_only_two_pad_race" / "earned_pair"
+            manifest = json.loads((evidence / "manifest.json").read_text())
+            self.assertEqual(set(manifest["files"]),
+                             {"source.urrun", "source.urrun.urmatch"})
+            for retained, details in manifest["files"].items():
+                raw = (evidence / retained).read_bytes()
+                self.assertEqual(raw, (pair / details["original_name"]).read_bytes())
+                self.assertEqual(details["sha256"], hashlib.sha256(raw).hexdigest())
+                self.assertEqual(digests[details["original_name"]], details["sha256"])
+                self.assertEqual(details["size"], len(raw))
+
+    def test_retention_rejects_missing_or_oversize_source(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            run = root / "earned.urrun"
+            sidecar = root / "earned.urrun.urmatch"
+            run.write_bytes(b"run")
+            with self.assertRaises(ValueError):
+                retain_two_pad_ci_pair({run}, run, root)
+            sidecar.write_bytes(b"x" * (1024 * 1024 + 1))
+            with self.assertRaises(ValueError):
+                retain_two_pad_ci_pair({run, sidecar}, run, root)
 
     def test_result_requires_source_guest_and_distinct_profiles(self):
         good = "\n".join([*HOST, *SOURCE]) + "\n"

@@ -53,67 +53,56 @@ def load_json(path):
 
 
 def extract_board(markdown):
-    """Parse only the current two named tables, never historical prose."""
-    agents, lines = {}, {}
+    """Parse the five equal scheduled workers and the ranked shared work pool.
+
+    The board specifies priorities, not permanent agent ownership. Reject old
+    two-anchor board contracts rather than silently treating them as active.
+    """
+    agents, jobs = {}, {}
     for raw in markdown.splitlines():
         if not raw.startswith("|"):
             continue
         cells = [c.strip() for c in raw.strip().strip("|").split("|")]
-        if len(cells) != 4 and len(cells) != 5:
-            continue
         if len(cells) == 4 and re.fullmatch(r"\*\*Agent [1-5]\*\*", cells[0]):
             number = int(re.search(r"\d", cells[0]).group())
             m = re.fullmatch(r"\*\*:(\d{2})\*\*", cells[1])
-            if not m or int(m.group(1)) >= 60:
-                raise ValueError("invalid agent minute")
-            pieces = re.split(r"\s+\+\s+", cells[2].replace("**", ""))
-            anchors = []
-            for piece in pieces:
-                match = re.match(r"^(\d+)\s+\S", piece)
-                if not match:
-                    raise ValueError("invalid anchor: " + piece)
-                anchors.append(int(match.group(1)))
-            if number in agents or len(anchors) != 2 or anchors[0] == anchors[1]:
-                raise ValueError("duplicate or invalid agent anchors")
+            if number in agents or not m or int(m.group(1)) >= 60:
+                raise ValueError("duplicate agent or invalid scheduled minute")
+            if "Shared ranked pool" not in cells[2] or "inspect five jobs" not in cells[2]:
+                raise ValueError("agent assigned a lane instead of shared five-job pool")
             agents[number] = {"number": number, "minute": int(m.group(1)),
-                              "anchors": anchors,
+                              "selection": "shared_pool_top_five",
                               "independence": cells[3]}
-        elif len(cells) == 5 and re.fullmatch(r"\d{1,2}", cells[0]) and WORK_ID.fullmatch(cells[1]):
-            number = int(cells[0])
-            if number in lines:
-                raise ValueError("duplicate work line " + str(number))
-            shards = {}
-            for part in re.split(r";\s*(?=\d{1,2}[abc]:)", cells[3]):
-                match = re.fullmatch(r"(\d{1,2})([abc]):\s*(.+)", part)
-                if not match or int(match.group(1)) != number:
-                    raise ValueError("malformed shard " + part)
-                if match.group(2) in shards:
-                    raise ValueError("duplicate shard " + part)
-                shards[match.group(2)] = match.group(3)
-            if set(shards) != {"a", "b", "c"}:
-                raise ValueError("expected a/b/c shards on line " + str(number))
-            lines[number] = {"position": number, "work_id": cells[1],
-                             "objective": cells[2], "shards": shards,
-                             "ownership": cells[4]}
-    if set(lines) != set(range(1, 11)) or len({v["work_id"] for v in lines.values()}) != 10:
-        raise ValueError("expected ten unique active work lines")
-    if set(agents) != set(range(1, 6)):
+        elif len(cells) == 6 and re.fullmatch(r"\d{1,3}", cells[0]):
+            rank = int(cells[0])
+            if rank in jobs:
+                raise ValueError("duplicate work rank")
+            if not WORK_ID.fullmatch(cells[1]):
+                raise ValueError("invalid work ID on rank " + str(rank))
+            if cells[2] not in {"ready", "in_review", "hold", "deferred"}:
+                raise ValueError("invalid work state on rank " + str(rank))
+            if any(not value.strip() for value in cells[3:]):
+                raise ValueError("work job missing actionable outcome, receipt, or stop rule")
+            jobs[rank] = {"position": rank, "work_id": cells[1],
+                          "state": cells[2], "objective": cells[3],
+                          "receipt": cells[4], "acceptance": cells[5]}
+    if len(agents) != 5 or set(agents) != set(range(1, 6)):
         raise ValueError("expected five scheduled agents")
-    anchors = [n for v in agents.values() for n in v["anchors"]]
-    if sorted(anchors) != list(range(1, 11)):
-        raise ValueError("each work line must have exactly one scheduled anchor")
-    if len({v["minute"] for v in agents.values()}) != 5:
-        raise ValueError("scheduled start minutes must be distinct")
     expected_minutes = {1: 0, 2: 12, 3: 24, 4: 36, 5: 48}
-    for agent_id, minute in expected_minutes.items():
-        if agents[agent_id]["minute"] != minute:
-            raise ValueError("agent start minute differs from installed schedule: Agent " + str(agent_id))
-    for item in agents.values():
-        item["work_ids"] = [lines[n]["work_id"] for n in item["anchors"]]
-    return {"schema": "ur-agent-control/1",
+    for number, minute in expected_minutes.items():
+        if agents[number]["minute"] != minute:
+            raise ValueError("agent start minute differs from installed schedule: Agent " + str(number))
+    if len(jobs) < 5 or set(jobs) != set(range(1, len(jobs) + 1)):
+        raise ValueError("expected contiguous ranked shared jobs, at least five")
+    if len({v["work_id"] for v in jobs.values()}) != len(jobs):
+        raise ValueError("duplicate work ID")
+    if sum(v["state"] in {"ready", "in_review"} for v in jobs.values()) < 5:
+        raise ValueError("fewer than five selectable jobs")
+    return {"schema": "ur-agent-control/2",
             "authority": "docs/HOURLY-AGENT-LINES.md",
+            "selection": "ranked_shared_pool_top_five",
             "agents": [agents[n] for n in sorted(agents)],
-            "work": [lines[n] for n in sorted(lines)]}
+            "work": [jobs[n] for n in sorted(jobs)]}
 
 
 def validate_registry(registry, board):
@@ -184,16 +173,20 @@ def summary(board, registry):
     lines = [
         "# UR-Recomp agent control / recovery (offline snapshot)",
         "",
-        "**Assignments:** 5 schedules, 10 work IDs; source is the live Markdown board.",
+        f"**Dispatch:** {len(board['agents'])} interchangeable hourly agents, "
+        f"{len(board['work'])} shared jobs, five candidates considered per run.",
         "**Recovery:** curated historical dispositions, not a live Drive or GitHub API scan.",
         "**Release:** only docs/RELEASE-QUALITY-LEDGER.json can establish QA gates.",
         "",
-        "| Agent / start minute | Primary / fallback |",
+        "| Agent / start minute | Selection |",
         "| --- | --- |",
     ]
     for agent in board["agents"]:
-        lines.append(f"| {agent['number']} / :{agent['minute']:02d} | "
-                     f"{' → '.join(agent['work_ids'])} |")
+        lines.append(f"| {agent['number']} / :{agent['minute']:02d} | Shared ranked pool (five-candidate scan) |")
+    lines.extend(["", "| Rank | Work ID | State |",
+                  "| --- | --- | --- |"])
+    for job in board["work"]:
+        lines.append(f"| {job['position']} | {job['work_id']} | {job['state']} |")
     lines.extend(["", "**Recovery index:** " +
                   ", ".join(f"{counts[k]} {k.replace('_', ' ')}" for k in sorted(counts)) +
                   f" ({len(registry['candidates'])} indexed).", ""])
@@ -223,7 +216,7 @@ def main():
               f"{checked['candidates']} curated recovery candidates")
     elif args.agent is not None:
         selected = board["agents"][args.agent - 1]
-        selected["owned_lines"] = [board["work"][n - 1] for n in selected["anchors"]]
+        selected["candidate_jobs"] = [job for job in board["work"] if job["state"] in {"ready", "in_review"}][:5]
         print(json.dumps(selected, indent=2, ensure_ascii=False))
     elif args.format == "json":
         print(json.dumps({"board": board, "registry": registry, "validation": checked},

@@ -457,13 +457,20 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"retained research/deferred-platform workflows must be manually dispatched: {offenders}",
         )
 
-    def test_windows_smoke_pr_is_same_repo_workflow_edit_only(self):
+    def test_windows_smoke_pr_uses_one_ready_reusable_caller(self):
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        wrapper = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text()
         self.assertTrue(_pushes_main(text))
-        self.assertEqual(
-            _block(text, "pull_request").strip(),
-            'paths:\n      - ".github/workflows/windows-native-smoke.yml"',
+        self.assertEqual(_block(text, "pull_request").strip(), "")
+        self.assertIn('      - ".github/workflows/windows-native-smoke.yml"',
+                      _block(wrapper, "pull_request"))
+        self.assertIn(
+            "uses: ./.github/workflows/windows-native-smoke.yml", wrapper,
         )
+        self.assertIn(
+            "github.event.pull_request.draft == false", wrapper,
+        )
+        self.assertIn("  workflow_call:\n", text)
         self.assertIn(
             "if: github.event_name != 'pull_request' || "
             "github.event.pull_request.head.repo.full_name == github.repository",

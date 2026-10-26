@@ -22,6 +22,8 @@ P10, median and P90 are deliberately **wide expert-prior scenarios**, not statis
 3. In every future update decompose changes into **earned completed work**, **re-estimated outstanding work** and **scope corrections**. Never label a reduction in an estimate as verified engineering completion.
 4. Release gates and all 45 USA original/native events remain under independent authority; an effort estimate cannot award them.
 
+An independently resolved shared blocker may also be recorded under the adjustments file's completed_shared array, with its stable shared-task ID, evidence URL, independent reviewer and reason. It removes that once-only cost even while dependent acceptance criteria remain open, without changing formal completion or release counters.
+
 ## Priorities for calibration
 
 Measure active agent-session work where receipts permit it, and separately record assignment-to-acceptance elapsed time, CI/review waiting, rework and blocked human/physical time. Calibrate by task family, not PR count. Only then derive throughput distributions, dependency-aware P50/P80 dates and a work-weighted completion baseline. Until then use the relative-work ranking to prioritize a first complete event, actual player-controller routes, full Unicode persistence and remastered racer art, instead of starting new general-purpose infrastructure projects.

@@ -285,7 +285,7 @@ void verify_preclaim_cold_recovery(const fs::path& file) {
             "successful retry does not promote or delete dead child's stage");
     std::cout << "WIN32_PROFILE_PRECLAIM_COLD_OK death=86"
               << " incumbent=unchanged orphan=non-authoritative"
-              << " explicit_retry=pass cold=pass\\n";
+              << " explicit_retry=pass cold=pass\n";
 }
 
 void parent(const fs::path& file) {

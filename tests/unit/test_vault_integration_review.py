@@ -76,6 +76,13 @@ class ReviewQueueTests(unittest.TestCase):
         self.assertFalse(one["automatic_publication_authorized"])
         self.assertEqual(one["source_bytes_published"], 0)
 
+    def test_review_leads_are_available_to_every_scheduled_generalist(self):
+        self.seed()
+        row = self.run_review()["records"][0]
+        self.assertEqual(row["state"], "needs_semantic_review")
+        self.assertEqual(row["owner"], q.SHARED_POOL)
+        self.assertNotIn("Agent ", q.render(self.run_review()))
+
     def test_archive_level_merge_is_not_member_level_merge(self):
         self.seed()
         save(self.registry, {"schema": q.REGISTRY,
@@ -100,7 +107,7 @@ class ReviewQueueTests(unittest.TestCase):
              "source_path": "tools/new.py", "publication_authorized": True,
              "provenance_verified": True}]})
         row = self.run_review()["records"][0]
-        self.assertEqual((row["state"], row["owner"]), ("queued_engineering", "Agent 2"))
+        self.assertEqual((row["state"], row["owner"]), ("queued_engineering", q.SHARED_POOL))
 
     def test_approved_member_produces_only_manual_bounded_stage_handoff(self):
         key = self.seed()
@@ -113,6 +120,7 @@ class ReviewQueueTests(unittest.TestCase):
         self.assertEqual(len(handoff), 1)
         self.assertEqual(handoff[0]["drive_file_id"], DRIVE)
         self.assertEqual(handoff[0]["archive_sha256"], A)
+        self.assertEqual(handoff[0]["owner"], q.SHARED_POOL)
         self.assertEqual(handoff[0]["expected_archive_sha256"], A)
         self.assertEqual(handoff[0]["member_sha256"], B)
         self.assertFalse(handoff[0]["dispatch_automatically"])

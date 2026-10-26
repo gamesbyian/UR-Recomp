@@ -31,6 +31,15 @@ class ExtractedCmdColdSurfaceTest(unittest.TestCase):
             OPEN + "UR_BALDOSA_MODERN_TITLE painted=1 raster=999x224 host=modern\n",
             OPEN + "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=guest\n",
             OPEN + "prefix UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern\n",
+            # One good receipt cannot mask a second malformed paint attempt.
+            OPEN + ROOT_PAINT +
+            "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=guest\n",
+            OPEN + TITLE_342 +
+            "UR_BALDOSA_MODERN_ROOT painted=1 destinations=6 renderer=shared\n",
+            OPEN + TITLE_342 +
+            "UR_BALDOSA_MODERN_ROOT painted=0 destinations=5 renderer=shared\n",
+            OPEN + TITLE_342 +
+            "UR_BALDOSA_MODERN_TITLE painted=1 raster=999x224 host=modern\n",
         ):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 verify_no_input_modern_paint(bad)

@@ -164,17 +164,27 @@ def verify_no_input_modern_paint(log: str) -> str:
     controller-driven test must prove title -> root on title-enabled builds.
     """
     opened = re.findall(r"(?m)^UR_BALDOSA_MODERN_ROOT opened=1\r?$", log)
-    root = re.findall(
-        r"(?m)^UR_BALDOSA_MODERN_ROOT painted=1 "
-        r"destinations=5 renderer=shared\r?$", log)
-    title = re.findall(
-        r"(?m)^UR_BALDOSA_MODERN_TITLE painted=1 "
-        r"raster=(256|342)x224 host=modern\r?$", log)
+    # Count *all* anchored Modern paint attempts, not only valid receipts.
+    # Otherwise one valid root/title plus a malformed second surface could
+    # silently pass as an unambiguous cold boot.
+    paint_attempts = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_(?:ROOT|TITLE) painted[^\r\n]*\r?$", log)
     require(len(opened) == 1,
             "actual CMD did not open exactly one native Modern host")
-    require((len(root), len(title)) in ((1, 0), (0, 1)),
-            "no-input CMD must paint exactly one Modern root or title surface")
-    return "title" if title else "root"
+    require(len(paint_attempts) == 1,
+            "no-input CMD must emit exactly one Modern root or title paint receipt")
+    attempt = paint_attempts[0].removesuffix("\r")
+    if re.fullmatch(
+        r"UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
+        attempt,
+    ):
+        return "root"
+    if re.fullmatch(
+        r"UR_BALDOSA_MODERN_TITLE painted=1 raster=(256|342)x224 host=modern",
+        attempt,
+    ):
+        return "title"
+    raise ValueError("no-input CMD emitted a malformed Modern paint receipt")
 
 
 def run(archive: Path, personal_rom: Path, output: Path, timeout: int,

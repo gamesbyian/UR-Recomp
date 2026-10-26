@@ -79,5 +79,39 @@ class NativeModernTitleTest(unittest.TestCase):
         self.assertIn("native_p1_start=1", source)
 
 
+    def test_unknown_original_attract_wake_release_is_host_owned(self):
+        # Source contract for the native input boundary. Full guest/SDL
+        # execution and physical input remain distinct evidence classes.
+        source = HOST.read_text(encoding="utf-8")
+        keyboard = source.split(
+            'extern "C" int ur_baldosa_modern_root_key(', 1
+        )[1].split('extern "C" int ur_baldosa_modern_root_gamepad(', 1)[0]
+        pad = source.split(
+            'extern "C" int ur_baldosa_modern_root_gamepad(', 1
+        )[1].split('extern "C" int ur_baldosa_modern_root_window_base_width(', 1)[0]
+        self.assertIn("g_original_attract_unknown_key_releases.count(key)", keyboard)
+        self.assertIn("if (!pressed) g_original_attract_unknown_key_releases.erase(key)", keyboard)
+        self.assertIn("g_original_attract_unknown_key_releases.insert(key)", keyboard)
+        self.assertLess(
+            keyboard.index("g_original_attract_unknown_key_releases.count(key)"),
+            keyboard.index("switch (key)"),
+        )
+        self.assertIn("g_original_attract_unknown_pad_releases.count(button)", pad)
+        self.assertIn("if (!pressed) g_original_attract_unknown_pad_releases.erase(button)", pad)
+        self.assertIn("g_original_attract_unknown_pad_releases.insert(button)", pad)
+        self.assertLess(
+            pad.index("g_original_attract_unknown_pad_releases.count(button)"),
+            pad.index("switch (button)", pad.index("if (player != 0) return 0;")),
+        )
+        self.assertIn(
+            "if (g_original_attract_visible) {\\n"
+            "            if (pressed) {\\n"
+            "                g_original_attract_unknown_pad_releases.insert(button);",
+            pad,
+        )
+        self.assertIn("g_original_attract_unknown_key_releases.clear();", source)
+        self.assertIn("g_original_attract_unknown_pad_releases.clear();", source)
+
+
 if __name__ == "__main__":
     unittest.main()

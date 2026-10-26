@@ -858,6 +858,8 @@ void choose() {
         quit.type = SDL_QUIT;
         if (SDL_PushEvent(&quit) != 1)
             std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT quit_event_rejected\n");
+        else
+            std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1\n");
         return;
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);

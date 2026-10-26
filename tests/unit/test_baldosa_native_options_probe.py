@@ -34,5 +34,19 @@ class OptionsProbeTests(unittest.TestCase):
         self.assertIn('"release_gate_credit": 0', text)
 
 
+    def test_native_root_keeps_non_acp_user_paths_for_options_and_practice(self):
+        # Source seam only: actual Win32 quarantine and cold-reopen still need
+        # execution against the combined Options fix on an integrated PE.
+        root = (Path(__file__).resolve().parents[2] /
+                "tools/baldosa_native_modern_root.cpp").read_text(
+                    encoding="utf-8")
+        self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', root)
+        self.assertIn("const fs::path user_root = modern_user_data_root();", root)
+        self.assertIn("const auto user_root = modern_user_data_root();", root)
+        self.assertIn("baldosa_options_path(user_root).u8string()", root)
+        self.assertNotIn("baldosa_options_path(user_root).string()", root)
+        self.assertNotIn('const fs::path user_root(configured_root)', root)
+
+
 if __name__ == "__main__":
     unittest.main()

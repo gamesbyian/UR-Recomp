@@ -13,6 +13,8 @@
 #include <windows.h>
 
 #include "host_profile_store.hpp"
+#include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <array>
 #include <chrono>
@@ -85,7 +87,7 @@ int verify_cold(const fs::path& file, char marker) {
     const auto loaded = load_host_profile_state_file(
         ExecutionMode::Modern, utf8_path(file), "profile.alpha");
     if (!loaded.loaded() || loaded.state->autosave_generation !=
-        (marker == 'R' ? 3u : 2u)) return 50;
+        (marker == 'C' ? 4u : marker == 'R' ? 3u : 2u)) return 50;
     std::array<std::uint8_t, kStockSramBytes> actual{};
     if (restore_stock_sram_from_profile(
             ExecutionMode::Modern, *loaded.state,
@@ -195,6 +197,97 @@ void verify_sharing_denial_recovery(const fs::path& file, char winner) {
               << " refused=io-error incumbent=unchanged cold_retry=pass\n";
 }
 
+// Actual child-process death after flushing a complete typed profile into
+// private staging, but before the canonical rename. This is a deterministic
+// process-cut witness, NOT a real power cut or NTFS short write.
+int crash_before_profile_claim(const fs::path& file) {
+    const auto loaded = load_host_profile_state_file(
+        ExecutionMode::Modern, utf8_path(file), "profile.alpha");
+    if (!loaded.loaded() || loaded.state->autosave_generation != 3) return 60;
+    HostProfileState next = *loaded.state;
+    const auto replacement = payload('C');
+    if (capture_stock_sram_for_profile(
+            ExecutionMode::Modern, next,
+            replacement.data(), replacement.size()) !=
+        HostProfileTransferStatus::Applied) return 61;
+    const auto encoded = encode_host_profile_state(next);
+    if (encoded.empty()) return 62;
+    // The public CAS API intentionally has no crash hook. Use its exact
+    // production staged-writer primitive with a test-only process cut.
+    // There is no concurrent writer during this controlled boundary.
+    (void)write_host_replace_staged(
+        host_native_path_from_utf8(utf8_path(file)), encoded, "urprofile",
+        [] { std::_Exit(86); });
+    return 63; // Reaching here means the cut never fired.
+}
+
+void verify_preclaim_cold_recovery(const fs::path& file) {
+    const auto path = utf8_path(file);
+    const auto incumbent = load_host_profile_state_file(
+        ExecutionMode::Modern, path, "profile.alpha");
+    require(incumbent.loaded() && incumbent.state->autosave_generation == 3,
+            "preclaim cut begins with committed generation three");
+    std::ifstream before_stream(file, std::ios::binary);
+    require(before_stream.good(), "read committed profile before process cut");
+    const std::string before{
+        std::istreambuf_iterator<char>{before_stream},
+        std::istreambuf_iterator<char>{}};
+    before_stream.close();
+
+    HostProfileState next = *incumbent.state;
+    const auto replacement = payload('C');
+    require(capture_stock_sram_for_profile(
+                ExecutionMode::Modern, next,
+                replacement.data(), replacement.size()) ==
+            HostProfileTransferStatus::Applied,
+            "prepare genuine encoded generation-four candidate");
+    const std::string staged_expected = encode_host_profile_state(next);
+    require(!staged_expected.empty(), "generation-four codec succeeded");
+
+    auto dying = start_child(
+        self_executable(), file, L"--crash-before-profile-claim");
+    require(finish_child(dying) == 86,
+            "independent process died at flushed preclaim boundary");
+    std::ifstream after_stream(file, std::ios::binary);
+    require(after_stream.good(), "read canonical profile after process death");
+    const std::string after{
+        std::istreambuf_iterator<char>{after_stream},
+        std::istreambuf_iterator<char>{}};
+    after_stream.close();
+    require(after == before, "preclaim death preserves incumbent exact bytes");
+
+    fs::path orphan;
+    for (const auto& entry : fs::directory_iterator(file.parent_path())) {
+        if (entry.path().filename().wstring().rfind(
+                L".pending-urprofile-", 0) != 0) continue;
+        const auto staged = entry.path() / "record.tmp";
+        if (!fs::is_regular_file(staged)) continue;
+        std::ifstream staged_stream(staged, std::ios::binary);
+        const std::string bytes{
+            std::istreambuf_iterator<char>{staged_stream},
+            std::istreambuf_iterator<char>{}};
+        if (bytes == staged_expected) orphan = entry.path();
+    }
+    require(!orphan.empty(),
+            "actual dead child left complete but non-authoritative typed stage");
+    auto cold = start_child(self_executable(), file, L"--verify-R");
+    require(finish_child(cold) == 0,
+            "independent cold boot ignores uncommitted stage");
+
+    require(save_host_profile_state_file_if_current(
+                ExecutionMode::Modern, path, incumbent.state, next) ==
+            HostProfileSaveStatus::Saved,
+            "explicit CAS retry commits after crashed process");
+    auto recovered = start_child(self_executable(), file, L"--verify-C");
+    require(finish_child(recovered) == 0,
+            "second cold process recovers exact generation-four SRAM");
+    require(fs::is_directory(orphan),
+            "successful retry does not promote or delete dead child's stage");
+    std::cout << "WIN32_PROFILE_PRECLAIM_COLD_OK death=86"
+              << " incumbent=unchanged orphan=non-authoritative"
+              << " explicit_retry=pass cold=pass\\n";
+}
+
 void parent(const fs::path& file) {
     const fs::path root = file.parent_path();
     require(fs::create_directories(root) || fs::is_directory(root),
@@ -261,6 +354,7 @@ void parent(const fs::path& file) {
     std::cout << "WIN32_PROFILE_CAS_OK winner=" << winner
               << " loser=conflict cold_process=pass\n";
     verify_sharing_denial_recovery(file, winner);
+    verify_preclaim_cold_recovery(file);
 }
 
 } // namespace
@@ -278,5 +372,8 @@ int main(int argc, char** argv) {
     if (mode == "--verify-A") return verify_cold(file, 'A');
     if (mode == "--verify-B") return verify_cold(file, 'B');
     if (mode == "--verify-R") return verify_cold(file, 'R');
+    if (mode == "--verify-C") return verify_cold(file, 'C');
+    if (mode == "--crash-before-profile-claim")
+        return crash_before_profile_claim(file);
     return 4;
 }

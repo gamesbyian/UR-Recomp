@@ -3015,8 +3015,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             {152u, 0, SDL_GAMEPAD_BUTTON_EAST},       // Close Practice
             {156u, 0, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Multiplayer
             {160u, 0, SDL_GAMEPAD_BUTTON_SOUTH},      // Open join
-            {164u, 0, SDL_GAMEPAD_BUTTON_SOUTH},      // Confirm P1
-            {168u, 1, SDL_GAMEPAD_BUTTON_SOUTH},      // Confirm P2
+            {228u, 0, SDL_GAMEPAD_BUTTON_SOUTH},      // Confirm P1
+            {232u, 1, SDL_GAMEPAD_BUTTON_SOUTH},      // Confirm P2
         };
         for (const auto& step : steps) {
             if (frame != step.frame && frame != step.frame + 1u) continue;

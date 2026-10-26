@@ -44,8 +44,8 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
         )[0]
         self.assertIn("SDL_AttachVirtualJoystick(&desc)", fixture)
         self.assertIn("SDL_SetJoystickVirtualButton(", fixture)
-        self.assertIn("{164u, 0, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)
-        self.assertIn("{168u, 1, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)
+        self.assertIn("{228u, 0, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)
+        self.assertIn("{232u, 1, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)
         self.assertNotIn("SDL_KEYDOWN", fixture)
         self.assertNotIn("ur_baldosa_modern_root_gamepad(", fixture)
         runner = (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").read_text(encoding="utf-8")

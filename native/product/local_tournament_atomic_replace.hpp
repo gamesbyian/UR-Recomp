@@ -163,9 +163,24 @@ inline bool write_host_replace_staged(
     // and before the atomic visibility transition. Production never supplies it.
     if (after_staging_for_test) after_staging_for_test();
 #if defined(_WIN32)
-    const bool published = MoveFileExW(
-        tmp.c_str(), final_path.c_str(),
-        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+    // Contending Windows writers can briefly deny a rename while an old
+    // destination handle is being released. Retry transient sharing/lock
+    // errors against the SAME fully synced stage, without rewriting bytes.
+    // Permanent permission, disk-full and no-replace intent failures are
+    // never retried here; a persistent denial retains the old canonical file.
+    bool published = false;
+    for (unsigned attempt = 0; attempt < 8; ++attempt) {
+        if (MoveFileExW(tmp.c_str(), final_path.c_str(),
+                MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0) {
+            published = true;
+            break;
+        }
+        const DWORD error = GetLastError();
+        if ((error != ERROR_SHARING_VIOLATION &&
+             error != ERROR_LOCK_VIOLATION) || attempt == 7)
+            break;
+        Sleep(1u << attempt);  // Bounded total: 127 ms.
+    }
 #else
     std::error_code ec;
     fs::rename(tmp, final_path, ec);

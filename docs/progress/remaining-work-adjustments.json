@@ -1,0 +1,6 @@
+{
+  "schema": "ur-effort-adjustments/1",
+  "baseline_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "changes": [],
+  "guidance": "Only evidence-supported remaining-work revisions. One latest revision per active ID, [optimistic,likely,pessimistic], reason, source URL. Revised cost is not earned-value completion. Preserve old revisions in Git history."
+}

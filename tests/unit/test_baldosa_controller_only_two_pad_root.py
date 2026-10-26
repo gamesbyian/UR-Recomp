@@ -21,7 +21,9 @@ HOST = [
     "[Gamepad] UR_CONTROLLER_SEAT assign instance=202 seat=1 reason=added",
 ]
 STAGES = [
+    "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern",
     "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=75 input_owned=1",
+    "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
     "UR_BALDOSA_MODERN_ROOT selected=1",
     "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=3 course=0 source_menu_required=1",
     "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=0,0,342,224 source=modern_product_view",
@@ -44,6 +46,9 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
         )[0]
         self.assertIn('std::strcmp(fixture, "33") != 0', source)
         self.assertIn("SDL_AttachVirtualJoystick(&desc)", fixture)
+        self.assertIn("UR_BALDOSA_MODERN_TITLE painted=1", source)
+        self.assertIn("UR_BALDOSA_MODERN_ROOT painted=1 destinations=5", source)
+        self.assertIn("{160u, 0, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)  # join shown before confirmations
         self.assertIn("SDL_SetJoystickVirtualButton(", fixture)
         self.assertIn("{228u, 0, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)
         self.assertIn("{232u, 1, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)
@@ -60,6 +65,14 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
         verify_controller_only_two_pad_root("\n".join(good) + "\n")
         mutants = {
             "no title": [x for x in good if "entered_root=1" not in x],
+            "title never painted": [x for x in good if "TITLE painted=1" not in x],
+            "root never painted": [x for x in good if "ROOT painted=1" not in x],
+            "wrong title raster": [x.replace("raster=342x224", "raster=256x224") if "TITLE painted" in x else x for x in good],
+            "cropped Practice": [x.replace("root=0,0,342,224", "root=0,0,300,224") if "stage=practice-picker" in x else x for x in good],
+            "narrow Multiplayer": [x.replace("raster=342x224", "raster=256x224") if "stage=multiplayer-join" in x else x for x in good],
+            "root painted after Practice": [*HOST, *STAGES[:2], *STAGES[3:6], STAGES[2], *STAGES[6:]],
+            "duplicate title paint": [*good, STAGES[0]],
+            "native paint refusal": [*good, "UR_BALDOSA_MODERN_DESTINATION paint_refused=1 source=modern_product_view"],
             "no painted Practice": [x for x in good if "stage=practice-picker" not in x],
             "no painted join": [x for x in good if "stage=multiplayer-join" not in x],
             "missing P1 confirmation": [x for x in good if "confirmed seat=1" not in x],
@@ -70,9 +83,9 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
             "duplicate host P1": [*good, HOST[0]],
             "seat churn": [*HOST, "[Gamepad] UR_CONTROLLER_SEAT vacate instance=202 seat=1 key=abcd", *STAGES],
             "wrong selection": [x.replace("selected=2", "selected=3") for x in good],
-            "join before Practice close": [*HOST, *STAGES[:4], *STAGES[6:8],
-                                           *STAGES[4:6], *STAGES[8:]],
-            "P2 before P1": [*HOST, *STAGES[:8], STAGES[9], STAGES[8], *STAGES[10:]],
+            "join before Practice close": [*HOST, *STAGES[:6], STAGES[7], STAGES[8],
+                                           STAGES[6], *STAGES[9:]],
+            "P2 before P1": [*HOST, *STAGES[:10], STAGES[11], STAGES[10], *STAGES[12:]],
             "spurious 1P request": [*good, "UR_BALDOSA_MODERN_ROOT stock_requested players=1"],
             "duplicate admission": [*good, STAGES[-1]],
         }

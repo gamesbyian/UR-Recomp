@@ -306,14 +306,16 @@ def verify_controller_only_two_pad_root(log: str) -> None:
     if selections != ["1", "2"]:
         raise ValueError(f"controller-only 2P root: wrong selections {selections}")
     stages = (
+        r"^UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern\r?$",
         r"^UR_BALDOSA_MODERN_TITLE entered_root=1 frame=\d+ input_owned=1\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\r?$",
         r"^UR_BALDOSA_MODERN_ROOT selected=1\r?$",
         r"^UR_BALDOSA_MODERN_ROOT practice_opened=1 available=\d+ course=\d+ source_menu_required=1\r?$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker\b[^\r\n]*source=modern_product_view\r?$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=0,0,342,224 source=modern_product_view\r?$",
         r"^UR_BALDOSA_MODERN_ROOT practice_closed=1\r?$",
         r"^UR_BALDOSA_MODERN_ROOT selected=2\r?$",
         r"^UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\r?$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join\b[^\r\n]*source=modern_product_view\r?$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=0,0,342,224 source=modern_product_view\r?$",
         r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\r?$",
         r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\r?$",
         r"^UR_BALDOSA_MODERN_ROOT stock_requested players=2\r?$",
@@ -333,6 +335,7 @@ def verify_controller_only_two_pad_root(log: str) -> None:
         "UR_BALDOSA_MODERN_ROOT join_closed=1",
         "UR_BALDOSA_MODERN_ROOT practice_unavailable=1",
         "UR_BALDOSA_MODERN_ROOT join_unavailable=1",
+        "UR_BALDOSA_MODERN_DESTINATION paint_refused=1",
         "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1",
     ):

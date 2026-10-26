@@ -2,7 +2,7 @@
 
 **Status: 2026-10-26, hypothetical relative-work estimates, not a ship-date forecast.** This supplements the immutable 135-criterion Windows-beta v2 completion measure.
 
-The [relative-work prior](remaining-work-prior-v1.json) covers every currently unfinished criterion (85 at the reviewed source 82fd7d2a), with small/moderate/large/hard/unknown/physical/event effort ranges. Its unit is one ordinal small bounded engineering delivery, **not an agent hour, PR, calendar day, or percentage point**. The script expands the stable IDs from the v2 inventory and treats shared parity, raster, racer art and release-package prerequisites as four one-time tasks. Marginal event checks are modeled conditional on shared parity, so 45 events do not repeat the same underlying correction 45 times.
+The [relative-work prior](remaining-work-prior-v1.json) covers every currently unfinished criterion (85 at the reviewed source 82fd7d2a), with small/moderate/large/hard/unknown/physical/event effort ranges. The model also counts **42 provisionally completed but not independently reviewed criteria** as separate bounded-audit work, with deliberately small [0.25, 1, 3] relative-unit ranges per review. This cannot award another completion point and does not stand in for physical release sign-off. Its unit is one ordinal small bounded engineering delivery, **not an agent hour, PR, calendar day, or percentage point**. The script expands the stable IDs from the v2 inventory and treats shared parity, raster, racer art and release-package prerequisites as four one-time tasks. Marginal event checks are modeled conditional on shared parity, so 45 events do not repeat the same underlying correction 45 times.
 
 Reproduce from repo root with Python 3 standard library:
 
@@ -21,6 +21,8 @@ P10, median and P90 are deliberately **wide expert-prior scenarios**, not statis
 2. If a real discovery changes the effort *without completing the criterion*, add one current range adjustment to [adjustments](remaining-work-adjustments.json), with the item/shared-task ID, new three-point estimates, a precise reason and GitHub evidence URL. Git history retains the previous estimate. Unverified time spent earns nothing.
 3. In every future update decompose changes into **earned completed work**, **re-estimated outstanding work** and **scope corrections**. Never label a reduction in an estimate as verified engineering completion.
 4. Release gates and all 45 USA original/native events remain under independent authority; an effort estimate cannot award them.
+
+An independently resolved shared blocker may also be recorded under the adjustments file's completed_shared array, with its stable shared-task ID, evidence URL, independent reviewer and reason. It removes that once-only cost even while dependent acceptance criteria remain open, without changing formal completion or release counters.
 
 ## Priorities for calibration
 

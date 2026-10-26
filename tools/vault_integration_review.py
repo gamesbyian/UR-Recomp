@@ -21,6 +21,9 @@ REGISTRY = "ur-recovery-registry/1"
 LEDGER = "ur-vault-member-dispositions/1"
 VALID_STATES = {"merged", "superseded", "held", "engineering", "evidence_only",
                 "unresolved", "rejected"}
+# The five scheduled generalists select work from the same ranked board.
+# Live conflicting writes and independent review still govern eligibility.
+SHARED_POOL = "shared_ranked_pool"
 
 
 def load(path: Path):
@@ -114,7 +117,7 @@ def classify(candidate, record, archive_records, prs):
                and (key in str(p.get("body") or "") or
                     ("vault-member-sha256:" + candidate["member_sha256"]) in str(p.get("body") or ""))]
     if len(matches) > 1:
-        return "duplicate_pr_collision", "Several active PRs claim identical source", "Agent 3", matches
+        return "duplicate_pr_collision", "Several active PRs claim identical source", SHARED_POOL, matches
     if record:
         # A human disposition cannot claim a different retained archive under
         # a valid-looking member key. Require every stated identity field to
@@ -130,13 +133,13 @@ def classify(candidate, record, archive_records, prs):
             if field in record and record[field] != expected:
                 return ("identity_conflict",
                         "Ledger " + field + " contradicts verified checkpoint fingerprint",
-                        "Agent 1", matches)
+                        SHARED_POOL, matches)
         state = record["state"]
         reason = str(record.get("reason") or "").strip()
         if state in {"held", "rejected"}:
             if not reason:
-                return "unresolved", "Hold has no recorded reason", "Agent 1", matches
-            return "held", reason, "Agent 1", matches
+                return "unresolved", "Hold has no recorded reason", SHARED_POOL, matches
+            return "held", reason, SHARED_POOL, matches
         if state == "merged":
             pr = prs.get(record.get("pr"))
             if (pr and pr.get("merged_at") and pr.get("merge_commit_sha")
@@ -145,27 +148,27 @@ def classify(candidate, record, archive_records, prs):
                     and record.get("evidence")
                     and record.get("archive_sha256") == candidate["archive_sha256"]
                     and record.get("member_sha256") == candidate["member_sha256"]):
-                return "merged", "Exact member linked to verified merged PR and tests", "Agent 3", matches
-            return "merge_unverified", "Reverify PR, merge SHA, archive/member hashes, provenance, source path and tests", "Agent 3", matches
+                return "merged", "Exact member linked to verified merged PR and tests", SHARED_POOL, matches
+            return "merge_unverified", "Reverify PR, merge SHA, archive/member hashes, provenance, source path and tests", SHARED_POOL, matches
         if state == "superseded":
             if record.get("source_path") and record.get("evidence") and record.get("tests"):
-                return "superseded", reason or "Per-member semantic evidence recorded", "Agent 1", matches
-            return "unresolved", "Supersession lacks source/test evidence", "Agent 1", matches
+                return "superseded", reason or "Per-member semantic evidence recorded", SHARED_POOL, matches
+            return "unresolved", "Supersession lacks source/test evidence", SHARED_POOL, matches
         if state == "evidence_only":
-            return "evidence_only", reason or "Non-adoptable retained evidence", "Agent 1", matches
+            return "evidence_only", reason or "Non-adoptable retained evidence", SHARED_POOL, matches
         if state == "engineering":
             if matches:
-                return "open_pr", "Review existing PR at its current head", "Agent 3", matches
+                return "open_pr", "Review existing PR at its current head", SHARED_POOL, matches
             if (record.get("provenance_verified") is True and record.get("publication_authorized") is True
                     and record.get("source_path") and record.get("reason")):
-                return "queued_engineering", reason, "Agent 2", matches
-            return "unresolved", "Engineering route missing provenance, destination or authorization", "Agent 1", matches
-        return "unresolved", reason or "Pending semantic classification", "Agent 1", matches
+                return "queued_engineering", reason, SHARED_POOL, matches
+            return "unresolved", "Engineering route missing provenance, destination or authorization", SHARED_POOL, matches
+        return "unresolved", reason or "Pending semantic classification", SHARED_POOL, matches
     if matches:
-        return "open_pr_unverified", "Existing PR claims member; verify provenance and disposition", "Agent 3", matches
+        return "open_pr_unverified", "Existing PR claims member; verify provenance and disposition", SHARED_POOL, matches
     if any(a.get("state") == "blocked" for a in archive_records):
-        return "held", "Historical archive-level block; per-member review required", "Agent 1", matches
-    return "needs_semantic_review", "Unmatched blob; semantic comparison and publication review required", "Agent 1", matches
+        return "held", "Historical archive-level block; per-member review required", SHARED_POOL, matches
+    return "needs_semantic_review", "Unmatched blob; semantic comparison and publication review required", SHARED_POOL, matches
 
 
 def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
@@ -218,7 +221,7 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
                     if c["state"] in ("queued_engineering", "open_pr"):
                         c["state"] = "unavailable_source_hold"
                         c["reason"] = "Previously verified source absent from latest listing; reverify original"
-                        c["owner"] = "Agent 1"
+                        c["owner"] = SHARED_POOL
                 else:
                     c["source_currently_listed"] = True
                 if key in decisions:
@@ -239,7 +242,7 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
         original = canonical.get(fingerprint)
         if original and row["state"] in ("needs_semantic_review", "queued_engineering"):
             row["state"] = "duplicate_review_lead"
-            row["owner"] = "Agent 1"
+            row["owner"] = SHARED_POOL
             row["reason"] = "Exact member SHA-256 already tracked as " + original
             row["duplicate_of"] = original
         else:
@@ -255,7 +258,7 @@ def assemble(incoming: Path, evidence: Path, registry: Path, ledger: Path,
         if c["state"] != "queued_engineering" or len(staging) == 2:
             continue
         staging.append({
-            "candidate_id": c["candidate_id"], "owner": "Agent 2",
+            "candidate_id": c["candidate_id"], "owner": SHARED_POOL,
             "drive_file_id": c["drive_id"], "folder_url": folder_urls[c["scope"]],
             "archive_sha256": c["archive_sha256"],
             "expected_archive_sha256": c["archive_sha256"],

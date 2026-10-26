@@ -275,7 +275,7 @@ def markdown(s):
     else:
         rows.append("- **Drive backup:** UNKNOWN (no valid historical custody receipt)")
     rows.extend(["", "## Dispatch definitions, not observed scheduled-agent activity", "",
-                 "| Agent | Start | Primary / fallback |", "| --- | --- | --- |"])
+                 "| Agent | Start | Shared top-five candidate work IDs |", "| --- | --- | --- |"])
     for a in s["dispatch"]:
         rows.append(f"| {a['agent']} | :{a['minute']:02d} | " +
                     " / ".join(a["candidate_work_ids"]) + " |")

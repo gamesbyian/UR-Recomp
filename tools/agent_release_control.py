@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
@@ -154,8 +154,103 @@ def parse_date(value):
         return None
 
 
+
+def retention_decision(report, snapshot, *, now=None):
+    """Join one existing availability report without promoting metadata to evidence.
+
+    Saved metadata can age or originate outside this GitHub repository. An
+    exact SHA match is a *navigation hint*, not verified artifact custody.
+    """
+    require(isinstance(report, dict)
+            and report.get("schema") == "UR-CI-ARTIFACT-AVAILABILITY/1"
+            and report.get("authority") == "github_metadata_only_zero_release_credit"
+            and report.get("release_gate_credit") == 0,
+            "invalid artifact availability authority")
+    head = report.get("run_head_sha")
+    require(isinstance(head, str) and bool(HEX40.fullmatch(head)),
+            "artifact availability missing exact source")
+    require(report.get("expected_sha") == head
+            and report.get("source_matches_expected") is True,
+            "artifact availability not source-qualified")
+    require(type(report.get("run_id")) is int and report["run_id"] > 0,
+            "artifact availability missing run ID")
+    require(type(report.get("producer_passed")) is bool
+            and type(report.get("artifact_census_complete")) is bool,
+            "artifact availability missing producer/census status")
+    inspection = parse_date(report.get("inspected_at"))
+    require(inspection is not None and inspection.tzinfo is not None,
+            "artifact availability missing timezone-bound inspection")
+    now = datetime.now(timezone.utc) if now is None else (
+        parse_date(now) if isinstance(now, str) else now)
+    require(isinstance(now, datetime) and now.tzinfo is not None,
+            "artifact decision time must be timezone-bound")
+    age_minutes = (now - inspection).total_seconds() / 60
+    fresh = -2 <= age_minutes <= 60
+    known = {snapshot["main_sha"]: "main"}
+    for pr in snapshot["open_prs"]:
+        known[pr["head_sha"]] = "open_PR_head"
+    # A report from an old SHA is still usable in its own exact checkout,
+    # but must not be silently joined to current main or any current PR.
+    require(head in known, "artifact source absent from current PR/main census")
+    rows = report.get("artifacts")
+    require(isinstance(rows, list) and len(rows) <= 100
+            and report.get("artifact_count_observed") == len(rows),
+            "artifact availability inventory inconsistent")
+    states = {
+        "metadata_ready_for_independent_byte_audit",
+        "expiry_urgent_review", "expired_or_unavailable",
+        "producer_not_successful", "source_unqualified",
+        "digest_or_bytes_missing",
+    }
+    decisions, seen = [], set()
+    for row in rows:
+        require(isinstance(row, dict), "artifact entry invalid")
+        ident, state = row.get("artifact_id"), row.get("availability")
+        require(type(ident) is int and ident > 0 and ident not in seen,
+                "duplicate artifact ID")
+        seen.add(ident)
+        require(state in states, "artifact availability state invalid")
+        name = row.get("name")
+        require(isinstance(name, str) and 0 < len(name) <= 150,
+                "artifact name invalid")
+        digest = row.get("reported_outer_sha256")
+        require(digest is None or isinstance(digest, str)
+                and bool(re.fullmatch(r"[0-9a-f]{64}", digest)),
+                "artifact digest invalid")
+        ready = (fresh and report["producer_passed"]
+                 and report["artifact_census_complete"]
+                 and state == "metadata_ready_for_independent_byte_audit")
+        if not fresh:
+            action = "refresh_GitHub_retention_metadata"
+        elif not report["artifact_census_complete"]:
+            action = "retrieve_complete_artifact_census"
+        elif state == "expiry_urgent_review":
+            action = "owner_review_rights_safe_preservation_before_expiry"
+        elif ready:
+            action = "independently_download_and_verify_outer_bytes_and_inner_identity"
+        else:
+            action = "find_other_source_bound_witness_or_review_producer_failure"
+        decisions.append({
+            "artifact_id": ident, "name": name, "reported_outer_sha256": digest,
+            "metadata_state": state, "next_action": action,
+            "metadata_ready_for_byte_review": ready,
+            "release_gate_credit": 0,
+        })
+    return {
+        "run_id": report["run_id"], "source_sha": head,
+        "source_scope": known[head], "inspected_at": inspection.isoformat(),
+        "fresh_at_preflight": fresh,
+        "artifact_census_complete": report["artifact_census_complete"],
+        "producer_passed": report["producer_passed"],
+        "artifacts": decisions,
+        "reuse_authority": "metadata_only_not_download_or_independent_inspection",
+        "next_action": ("inspect_original_run_and_byte_audit_or_report_missing_witness"
+                        if decisions else "find_source_bound_producer_artifacts"),
+    }
+
+
 def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None,
-           previous_brief=None, ledger_digest=None):
+           previous_brief=None, ledger_digest=None, artifact_report=None):
     require(isinstance(snapshot, dict)
             and snapshot.get("schema") == "UR-GITHUB-PR-SNAPSHOT/1",
             "invalid snapshot schema")
@@ -269,6 +364,8 @@ def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None,
             "decision": "HOLD_independent_source_zip_hardware_and_gameplay_review",
         },
         "indexed_main_producer_receipts": local,
+        "artifact_retention": (retention_decision(artifact_report, snapshot)
+                               if artifact_report is not None else None),
         "evidence_index_scope": ("local_only" if receipts is not None else "unknown_not_supplied"),
         "ci_cost": cost,
         "recorded_release_status_delta": status_delta,
@@ -331,6 +428,18 @@ def markdown(result):
         lines.append("- " + x["workflow"] + ": runner seconds >= "
                      + str(x["runner_seconds_lower_bound"])
                      + "; missing jobs=" + str(x["missing_job_timing"]))
+    retention = result["artifact_retention"]
+    if retention is not None:
+        lines.extend(["", "## Artifact retention, metadata only", "",
+                      "Run " + str(retention["run_id"]) + "; source scope "
+                      + retention["source_scope"] + "; fresh="
+                      + str(retention["fresh_at_preflight"]) + "; census complete="
+                      + str(retention["artifact_census_complete"])])
+        for item in retention["artifacts"]:
+            lines.append("- Artifact " + str(item["artifact_id"]) + " "
+                         + json.dumps(item["name"]) + ": " + item["metadata_state"]
+                         + "; next=" + item["next_action"])
+        lines.append("No download/byte inspection, ROM/private ZIP proof, or release gate credit.")
     status = result["recorded_release_status_delta"]
     lines.append(
         "Recorded release metadata delta: " + status["state"]
@@ -374,6 +483,8 @@ def main():
     p.add_argument("--receipt-db", type=Path)
     p.add_argument("--ci-runtime-report", type=Path)
     p.add_argument("--previous-brief", type=Path)
+    p.add_argument("--artifact-availability", type=Path,
+                   help="JSON from artifact_retention_preflight.py for one exact current SHA")
     p.add_argument("--json-out", type=Path)
     p.add_argument("--markdown-out", type=Path)
     args = p.parse_args()
@@ -395,8 +506,10 @@ def main():
                if args.ci_runtime_report else None)
     previous = (json.loads(args.previous_brief.read_text(encoding="utf-8"))
                 if args.previous_brief else None)
+    retention = (json.loads(args.artifact_availability.read_text(encoding="utf-8"))
+                 if args.artifact_availability else None)
     result = assess(data, ledger, args.lane, args.gate, existing, costing,
-                    previous, hashlib.sha256(ledger_bytes).hexdigest())
+                    previous, hashlib.sha256(ledger_bytes).hexdigest(), retention)
     rendered = markdown(result)
     if args.snapshot_out:
         save_snapshot(args.snapshot_out, data)

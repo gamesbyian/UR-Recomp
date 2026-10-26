@@ -2,7 +2,7 @@
 
 **Status: 2026-10-26, hypothetical relative-work estimates, not a ship-date forecast.** This supplements the immutable 135-criterion Windows-beta v2 completion measure.
 
-The [relative-work prior](remaining-work-prior-v1.json) covers every currently unfinished criterion (85 at the reviewed source 82fd7d2a), with small/moderate/large/hard/unknown/physical/event effort ranges. Its unit is one ordinal small bounded engineering delivery, **not an agent hour, PR, calendar day, or percentage point**. The script expands the stable IDs from the v2 inventory and treats shared parity, raster, racer art and release-package prerequisites as four one-time tasks. Marginal event checks are modeled conditional on shared parity, so 45 events do not repeat the same underlying correction 45 times.
+The [relative-work prior](remaining-work-prior-v1.json) covers every currently unfinished criterion (85 at the reviewed source 82fd7d2a), with small/moderate/large/hard/unknown/physical/event effort ranges. The model also counts **42 provisionally completed but not independently reviewed criteria** as separate bounded-audit work, with deliberately small [0.25, 1, 3] relative-unit ranges per review. This cannot award another completion point and does not stand in for physical release sign-off. Its unit is one ordinal small bounded engineering delivery, **not an agent hour, PR, calendar day, or percentage point**. The script expands the stable IDs from the v2 inventory and treats shared parity, raster, racer art and release-package prerequisites as four one-time tasks. Marginal event checks are modeled conditional on shared parity, so 45 events do not repeat the same underlying correction 45 times.
 
 Reproduce from repo root with Python 3 standard library:
 

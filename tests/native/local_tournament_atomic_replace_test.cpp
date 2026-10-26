@@ -411,6 +411,42 @@ int main(int argc, char** argv) {
           "unlimited cold retry publishes the previously refused payload");
     check(bytes(limited) == std::string(8192, 'N'),
           "unlimited retry publishes complete bytes, never partial data");
+
+    // The immutable no-replace path is used for recovery intents. A short
+    // fwrite can return fewer bytes while fflush, fsync and fclose all
+    // succeed: the result must NEVER become an authoritative intent.
+    // Use an actual kernel file-size limit in a child, not a mocked callback.
+    const fs::path limited_intent = root / "kernel-limit-intent.pending";
+    check(!fs::exists(limited_intent),
+          "immutable short-write target begins absent");
+    const pid_t intent_pid = ::fork();
+    check(intent_pid >= 0, "fork kernel-limited immutable intent writer");
+    if (intent_pid == 0) {
+        struct rlimit limit{};
+        limit.rlim_cur = 1024;
+        limit.rlim_max = 1024;
+        if (::setrlimit(RLIMIT_FSIZE, &limit) != 0) std::_Exit(91);
+        if (std::signal(SIGXFSZ, SIG_IGN) == SIG_ERR) std::_Exit(92);
+        const bool published = ur::product::write_host_create_staged_native(
+            limited_intent, std::string(8192, 'I'), "sram-intent");
+        std::_Exit(published ? 93 : 0);
+    }
+    int intent_status = 0;
+    check(::waitpid(intent_pid, &intent_status, 0) == intent_pid &&
+              WIFEXITED(intent_status) && WEXITSTATUS(intent_status) == 0,
+          "kernel-limited immutable intent must refuse short fwrite");
+    check(!fs::exists(limited_intent),
+          "short immutable write never claims a truncated public intent");
+    for (const auto& item : fs::directory_iterator(root)) {
+        check(item.path().filename().string().rfind(
+                  ".pending-sram-intent-", 0) != 0,
+              "failed immutable short write cleans its private staging");
+    }
+    check(ur::product::write_host_create_staged_native(
+              limited_intent, std::string(8192, 'I'), "sram-intent"),
+          "unlimited retry can create a complete immutable intent");
+    check(bytes(limited_intent) == std::string(8192, 'I'),
+          "recovered immutable intent has every expected byte");
 #endif
 
     constexpr std::size_t kWriters = 8;

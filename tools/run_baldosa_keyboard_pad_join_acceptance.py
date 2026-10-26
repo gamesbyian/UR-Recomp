@@ -368,6 +368,7 @@ def verify_controller_only_two_pad_race(log: str) -> dict:
     stock = log.index("UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d")
     patterns = (
         r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_p2_picker=right seat=2\r?$",
         r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\r?$",
         r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=[1-9][0-9]*\r?$",
         r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\r?$",
@@ -378,7 +379,7 @@ def verify_controller_only_two_pad_race(log: str) -> dict:
         if len(matches) != 1:
             raise ValueError(f"two-pad race: missing/duplicate source stage {pattern!r}")
         positions.append(matches[0].start())
-    if not (stock < positions[0] < positions[1] < positions[2] < positions[3]):
+    if not (stock < positions[0] < positions[1] < positions[2] < positions[3] < positions[4]):
         raise ValueError("two-pad race: stock setup, source GO or SDL drive out of order")
     # This existing native observer independently checks source result,
     # P1/P2 rider identity, input history and actual paired publication.

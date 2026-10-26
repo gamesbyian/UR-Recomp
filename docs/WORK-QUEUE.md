@@ -25,5 +25,6 @@ A **completed player journey** with runnable source-bound evidence, a **reproduc
 - **Product scope:** [PROJECT-PLAN.md](PROJECT-PLAN.md), [Modern shipping context](MODERN-FRONTEND-SHIPPING-STATUS.md), [UI state map](UI-STATE-MAP.md).
 - **Actual gate acceptance:** [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json), independently updated; neither an agent nor this file can self-award a gate.
 - **Agent tooling:** `python3 tools/agent_control.py --check` validates the shared board, and `python3 tools/agent_control.py --agent N` prints the same top-five candidates for any agent. Reconcile PR status live before acting.
+- **Cross-project reuse:** For substantial Baldosa/UR implementation, the existing three-project reuse preflight is `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional`. It is advisory for a selected live job, never a competing queue or a reason to delay qualified integration.
 
 If no qualifying job can advance, record the actual block and next authorized action; do not create busywork. Past statuses and work phases live in the [archived October 26 queue](archive/WORK-QUEUE-FIXED-ANCHORS-20261026.md).

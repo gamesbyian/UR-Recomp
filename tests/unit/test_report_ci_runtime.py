@@ -79,6 +79,23 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["top_steps"][0]["step"], "Prove deterministic route acceptance")
 
 
+    def test_skipped_matrix_job_with_github_synthetic_timestamps_is_not_runner_time(self):
+        jobs = [
+            {"id": 101, "conclusion": "success",
+             "started_at": "2026-10-26T19:19:54Z",
+             "completed_at": "2026-10-26T19:20:38Z"},
+            {"id": 102, "conclusion": "skipped",
+             "started_at": "2026-10-26T19:19:52Z",
+             "completed_at": "2026-10-26T19:19:51Z"},
+            {"id": 103, "conclusion": "skipped",
+             "started_at": "2026-10-26T19:19:52Z",
+             "completed_at": "2026-10-26T19:20:38Z"},
+        ]
+        profile = job_parallelism_profile(jobs)
+        self.assertEqual(profile["runner_seconds"], 44)
+        self.assertEqual(profile["peak_active_jobs"], 1)
+        self.assertIsNone(job_parallelism_profile(jobs[1:]))
+
     def test_observed_parallelism_is_measured_from_intervals(self):
         jobs = [
             {"started_at": "2026-10-03T00:00:00Z", "completed_at": "2026-10-03T00:02:00Z"},

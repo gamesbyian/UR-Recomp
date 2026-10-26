@@ -1,0 +1,7 @@
+# Pinned Baldosa script vocabulary: exactly the existing turbo/wait/quit
+# steps; no fake guest state, guest input, or manufactured menu flags.
+# Native Modern title starts at boot. Its CI-only human semantic P1 A edge
+# at guest frame 60 triggers 14-frame exit, then the real five-way host root.
+turbo on
+wait 180
+quit

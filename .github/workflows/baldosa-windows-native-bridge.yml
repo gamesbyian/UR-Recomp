@@ -78,6 +78,14 @@ on:
       - "tests/native/baldosa_native_options_test.cpp"
       - "tests/unit/test_baldosa_native_options_cpp.py"
       - "tools/baldosa_native_modern_root.cpp"
+      - "native/product/modern_title_presenter.hpp"
+      - "native/product/modern_title_retail_reference.hpp"
+      - "tests/native/modern_title_presenter_test.cpp"
+      - "tests/unit/test_modern_title_presenter_cpp.py"
+      - "tests/unit/test_modern_title_current_main_integration.py"
+      - "tools/capture_baldosa_modern_title_win32.py"
+      - "tests/input/baldosa-modern-title-native-capture.script"
+      - "tests/unit/test_capture_baldosa_modern_title_win32.py"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -318,6 +326,13 @@ jobs:
           python tests/unit/test_baldosa_window_placement_acceptance.py
           python tests/unit/test_baldosa_session_end_spike.py
 
+      # Keep title-only checks separate from the five exact Windows build
+      # bodies shared with the candidate-only producer.
+      - name: Validate Modern title native presenter and capture contracts
+        run: |
+          python tests/unit/test_modern_title_presenter_cpp.py
+          python -m unittest -v tests.unit.test_capture_baldosa_modern_title_win32
+
       - name: Verify immutable native source pins
         run: |
           set -euo pipefail
@@ -386,7 +401,8 @@ jobs:
           assert v["version"] == "1.0.14", ("toolchain version drift", v.get("version"))
           PY
           clang --version | head -n1 | grep -F "22.1.8"
-          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          export SOURCE_DATE_EPOCH
           [[ "$SOURCE_DATE_EPOCH" =~ ^[0-9]{10}$ ]] || {
             echo "::error::source commit timestamp invalid"; exit 1;
           }
@@ -400,6 +416,35 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Reuse the exact native Windows PE built above. This is genuine host
+      # title/root source and presented SDL evidence, not physical/art approval.
+      - name: Capture Modern title to five-destination root on actual Win32 PE
+        if: ${{ hashFiles('native/product/modern_title_presenter.hpp') != '' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --out "$RUNNER_TEMP/ur-title-native-16by9" --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --aspect 4:3 --out "$RUNNER_TEMP/ur-title-native-4by3" --timeout 100
+          echo "PASS: same PE native Modern title and five-destination root on 16:9 and 4:3; independent physical/controller/art/release acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain native title source and SDL presentation evidence
+        if: ${{ always() && hashFiles('native/product/modern_title_presenter.hpp') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-title-current-main-source-and-sdl
+          path: |
+            ${{ runner.temp }}/ur-title-native-16by9
+            ${{ runner.temp }}/ur-title-native-4by3
+          if-no-files-found: warn
+          retention-days: 14
 
       # Exercise the real compiled next-boot selector with a Unicode root on
       # Windows. Linux UTF-8 paths alone cannot detect ANSI path conversion.
@@ -629,6 +674,8 @@ jobs:
           # extracted consumer ZIP will not contain.
           EXE_WIN="$(cygpath -w "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe")"
           export EXE_WIN
+          # Embedded PowerShell intentionally uses literal dollar variables.
+          # shellcheck disable=SC2016
           powershell.exe -NoProfile -Command '
             $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
             $vs = & $vswhere -latest -property installationPath

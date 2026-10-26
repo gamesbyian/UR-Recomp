@@ -128,7 +128,13 @@ inline bool write_host_replace_staged(
     if (final_path.empty() || data.empty()) return false;
     const auto staging = detail::reserve_tournament_staging(
         final_path.parent_path(), staging_family);
-    if (!staging) return false;
+    if (!staging) {
+#if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=reserve error=%lu\\n",
+                     static_cast<unsigned long>(GetLastError()));
+#endif
+        return false;
+    }
     const fs::path tmp = *staging / "record.tmp";
     const auto cleanup = [&] {
         std::error_code ec;
@@ -142,6 +148,10 @@ inline bool write_host_replace_staged(
     std::FILE* file = std::fopen(tmp.c_str(), "wb");
 #endif
     if (!file) {
+#if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=open errno=%d error=%lu\\n",
+                     errno, static_cast<unsigned long>(GetLastError()));
+#endif
         cleanup();
         return false;
     }
@@ -156,6 +166,11 @@ inline bool write_host_replace_staged(
                             : detail::sync_staged_file(file));
     const bool closed = std::fclose(file) == 0;
     if (written != data.size() || !flushed || !synced || !closed) {
+#if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=sync written=%zu expected=%zu flushed=%d synced=%d closed=%d errno=%d\\n",
+                     written, data.size(), static_cast<int>(flushed),
+                     static_cast<int>(synced), static_cast<int>(closed), errno);
+#endif
         cleanup();
         return false;
     }
@@ -176,6 +191,12 @@ inline bool write_host_replace_staged(
             break;
         }
         const DWORD error = GetLastError();
+#if defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        if (attempt == 7 || (error != ERROR_SHARING_VIOLATION &&
+                             error != ERROR_LOCK_VIOLATION))
+            std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=rename error=%lu attempt=%u\\n",
+                         static_cast<unsigned long>(error), attempt);
+#endif
         if ((error != ERROR_SHARING_VIOLATION &&
              error != ERROR_LOCK_VIOLATION) || attempt == 7)
             break;

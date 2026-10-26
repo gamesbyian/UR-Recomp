@@ -1159,6 +1159,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "31") != 0 &&
         std::strcmp(fixture, "32") != 0 &&
         std::strcmp(fixture, "33") != 0 &&
+        std::strcmp(fixture, "34") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&
@@ -2132,10 +2133,10 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."33"; 15-19 exercise controller ownership,
+    // Smoke modes are decimal "1".."34"; 15-19 exercise controller ownership,
     // 20-28 exercise title paths, 29 is the qualified SDL pad journey,
     // 30 probes guest-menu return, 31 earns 1P, 32 probes post-result return,
-    // and 33 proves two controller-only seats from visible title to guest 2P.
+    // 33 proves two controller-only seats to guest 2P, and 34 extends those\n    // same SDL seats through source GO and the genuine 2P input sequence.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
@@ -2144,7 +2145,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if ((!g_visible && !g_original_attract_visible &&
              !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 33) return;
+            mode < 1 || mode > 34) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2997,13 +2998,13 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
 #endif
         return;
     }
-    // CI-only mode 33: two independently seated SDL virtual controllers
+    // CI-only modes 33/34: two independently seated SDL virtual controllers
     // traverse the ACTUAL title, visible Practice and Multiplayer join.
     // Neither keyboard nor direct root handler is used: the same P1 opens
     // both destinations, and distinct P1/P2 SDL button edges confirm the
     // join before original stock guest 2P admission (menu 0x3d).
     // This is a native hosted journey, NOT physical two-pad certification.
-    if (std::strcmp(opt, "33") == 0) {
+    if (std::strcmp(opt, "33") == 0 || std::strcmp(opt, "34") == 0) {
 #if SNESRECOMP_SDL3
         static SDL_Joystick* pads[2] = {};
         if (frame == 50u || frame == 52u) {
@@ -3038,6 +3039,88 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                     pads[step.seat], step.button, frame == step.frame))
                 std::abort();
             return;
+        }
+        // Mode 34 extends the *same two SDL seats* past stock admission.
+        // Every stock-menu and race input remains a real host gamepad event.
+        // The original source phase/ticker, not elapsed fixture time, gates GO.
+        // This intentionally does not inject guest RAM or fabricate a result.
+        if (std::strcmp(opt, "34") == 0) {
+            static unsigned two_stage = 0;
+            static unsigned two_setup_start = 0;
+            static unsigned two_go_frame = 0;
+            const unsigned source_phase =
+                static_cast<unsigned>(g_ram[0x0053u]) |
+                (static_cast<unsigned>(g_ram[0x0054u]) << 8);
+            if (two_stage == 0 && g_stock_handed_off && !g_visible &&
+                g_ram[0x009fu] == 0x3du && g_ram[0x0313u] != 1u &&
+                source_phase == 0xf60cu) {
+                two_stage = 1;
+                two_setup_start = frame + 900u;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\\n");
+            }
+            if (two_stage == 1 && frame >= two_setup_start) {
+                // Source-backed stock path: P1 racer, P2's default Andrew
+                // racer, then tour, track and NOW PLAYING. Distinct SDL
+                // pads, with two-frame Start presses and 200-frame settling.
+                // Andrew is the independently created P2 profile in this
+                // journey; changing its stock rider would invalidate binding.
+                struct TwoStep { unsigned offset; int seat; };
+                static constexpr TwoStep start_steps[] = {
+                    {0u, 0}, {202u, 1}, {404u, 0},
+                    {606u, 0}, {808u, 0},
+                };
+                for (const auto& step : start_steps) {
+                    if (frame != two_setup_start + step.offset &&
+                        frame != two_setup_start + step.offset + 2u)
+                        continue;
+                    if (!pads[step.seat] || !SDL_SetJoystickVirtualButton(
+                            pads[step.seat], SDL_GAMEPAD_BUTTON_START,
+                            frame == two_setup_start + step.offset))
+                        std::abort();
+                    if (step.offset == 808u &&
+                        frame == two_setup_start + 2u + step.offset) {
+                        two_stage = 2;
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\\n");
+                    }
+                    return;
+                }
+            }
+            if (two_stage == 2 && source_phase == 0x8610u &&
+                g_ram[0x0e1fu] != 0u) {
+                two_stage = 3;
+                two_go_frame = frame;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=%u\\n",
+                    static_cast<unsigned>(g_ram[0x0e1fu]));
+            }
+            if (two_stage == 3) {
+                const unsigned elapsed = frame - two_go_frame;
+                // Established genuine 2P result drive, expressed as SDL
+                // button holds rather than the old guest-input script.
+                const bool right = elapsed < 3190u;
+                const bool stunt = elapsed >= 800u && elapsed < 830u;
+                const bool turn = elapsed >= 1630u && elapsed < 1690u;
+                if (!SDL_SetJoystickVirtualButton(
+                        pads[0], SDL_GAMEPAD_BUTTON_DPAD_RIGHT, right) ||
+                    !SDL_SetJoystickVirtualButton(
+                        pads[1], SDL_GAMEPAD_BUTTON_DPAD_RIGHT, right) ||
+                    !SDL_SetJoystickVirtualButton(
+                        pads[0], SDL_GAMEPAD_BUTTON_SOUTH, stunt) ||
+                    !SDL_SetJoystickVirtualButton(
+                        pads[1], SDL_GAMEPAD_BUTTON_EAST, stunt) ||
+                    !SDL_SetJoystickVirtualButton(
+                        pads[0], SDL_GAMEPAD_BUTTON_DPAD_UP, turn) ||
+                    !SDL_SetJoystickVirtualButton(
+                        pads[1], SDL_GAMEPAD_BUTTON_DPAD_DOWN, turn))
+                    std::abort();
+                if (elapsed == 3190u) {
+                    two_stage = 4;
+                    std::fprintf(stderr,
+                        "UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\\n");
+                }
+            }
         }
 #else
         std::abort();  // SDL virtual-pad acceptance requires SDL3.

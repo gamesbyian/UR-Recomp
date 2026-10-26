@@ -242,6 +242,18 @@ Use pull-request validation when the result is primarily needed before merge. Ad
 
 **Narrow Windows exact-main evidence exception:** `windows-native-smoke.yml` includes its own path on `main` because the merged workflow must produce a new, source-bound, ROM-free PE and binding receipt. A successful PR smoke on a synthetic merge cannot serve as an exact-main executable nomination. This exception does not authorize self-triggering other workflows or waive independent package/device/release acceptance. The PR-side direct smoke and QA-05/09 reusable caller currently duplicate full Windows builds (19.22 hosted runner-minutes measured on #2601); retire the redundant PR producer only after separately verifying required check names and coverage. Preserve the one main-push exact-source producer.
 
+**2026-10-26 Windows PR-side deduplication:** The smoke workflow no longer
+subscribes directly to its own `pull_request` YAML changes. The existing
+`qa05-qa09-windows-candidate.yml` still watches that YAML, requires a
+ready PR, and calls the same Windows smoke workflow exactly once. Keep
+`workflow_call`, the main-push self-trigger for post-merge source-bound PE
+evidence, and manual dispatch. If a future ruleset requires the old direct
+`windows` status check, reconcile the required context with the integration
+owner before merge; the read-only source contract test guards retention of
+the reusable QA route. The earlier measured 10.63 direct-job runner-minutes
+is a historical opportunity, not yet a measured saving.
+
+
 Use this pattern instead:
 
 - if the workflow already has a `pull_request` trigger, include its own YAML path there so workflow edits are exercised before merge;

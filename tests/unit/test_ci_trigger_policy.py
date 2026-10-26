@@ -457,13 +457,20 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"retained research/deferred-platform workflows must be manually dispatched: {offenders}",
         )
 
-    def test_windows_smoke_pr_is_same_repo_workflow_edit_only(self):
+    def test_windows_smoke_pr_uses_one_ready_reusable_caller(self):
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        wrapper = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text()
         self.assertTrue(_pushes_main(text))
-        self.assertEqual(
-            _block(text, "pull_request").strip(),
-            'paths:\n      - ".github/workflows/windows-native-smoke.yml"',
+        self.assertEqual(_block(text, "pull_request").strip(), "")
+        self.assertIn('      - ".github/workflows/windows-native-smoke.yml"',
+                      _block(wrapper, "pull_request"))
+        self.assertIn(
+            "uses: ./.github/workflows/windows-native-smoke.yml", wrapper,
         )
+        self.assertIn(
+            "github.event.pull_request.draft == false", wrapper,
+        )
+        self.assertIn("  workflow_call:\n", text)
         self.assertIn(
             "if: github.event_name != 'pull_request' || "
             "github.event.pull_request.head.repo.full_name == github.repository",
@@ -827,16 +834,23 @@ class CiTriggerPolicyTest(unittest.TestCase):
         # catastrophically backtracks and times out the entire unit job.
         self.assertEqual(MAIN_PUSH_ALLOWLIST, {"windows-native-smoke.yml"})
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
-        self.assertTrue(_block(text, "pull_request"))
+        self.assertFalse(_block(text, "pull_request"))
         self.assertTrue(_pushes_main(text))
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read[ \t]*$")
         self.assertNotRegex(text, r"(?m)^  contents: write[ \t]*$")
 
     def test_windows_reusable_callers_do_not_cancel_one_another(self):
-        # Both workflows can trigger on a PR editing the Windows workflow
-        # and the Modern host. A ref-only group cancels one valid build.
+        # Only the QA wrapper now triggers when smoke YAML changes on a
+        # ready, same-repo PR. The called workflow still has its own
+        # main-push and manual routes, not an expensive second PR trigger.
         text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
         qa05 = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text()
+        self.assertNotIn("\n  pull_request:\n", text)
+        self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', qa05)
+        self.assertIn("  pull_request:\n", qa05)
+        self.assertIn("github.event.pull_request.draft == false", qa05)
+        self.assertIn("  workflow_call:\n", text)
+        self.assertIn("  workflow_dispatch:\n", text)
         self.assertIn(
             "uses: ./.github/workflows/windows-native-smoke.yml", qa05
         )

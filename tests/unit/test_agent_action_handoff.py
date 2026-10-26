@@ -85,8 +85,12 @@ class AgentActionHandoffTests(unittest.TestCase):
             "ci", gate="QA-12", since=SINCE, previous_brief=before
         )
         self.assertEqual(result["brief_delta_state"], "diagnostic_only")
-        self.assertEqual(result["brief_delta"]["changed_gate_count"], 12)
+        self.assertEqual(result["brief_delta"]["changed_gate_count"], 0)
         self.assertEqual(result["brief_delta"]["after_source"], HEAD)
+        self.assertEqual(
+            result["brief_delta"]["metadata_changes"]["checked_source_commit"],
+            {"before": SINCE, "after": HEAD},
+        )
         self.assertNotIn("accepted_gate_count", result["brief_delta"])
 
     def test_rejects_wrong_lane_gate_and_incorrect_baseline(self):

@@ -44,7 +44,7 @@ class RF084GeneratedWrite(unittest.TestCase):
         helper = ("static int ur_rf084_opt_in" +
                   m.HOOK.split("static int ur_rf084_opt_in", 1)[1]
                   .split("static void ur_rf084_after", 1)[0])
-        source = "#include <stddef.h>\\n".replace("\\\\n", "\\n") + helper + """
+        source = "#include <stddef.h>\n" + helper + """
 int main(void) {
     const char *flags[] = {"", "0", "1", "10", "true", "01"};
     const int expected[] = {0, 0, 1, 0, 0, 0};

@@ -163,13 +163,13 @@ def verify_no_input_modern_paint(log: str) -> str:
     paint, two surfaces, or an arbitrary/partial title diagnostic. A separate
     controller-driven test must prove title -> root on title-enabled builds.
     """
-    opened = re.findall(r"(?m)^UR_BALDOSA_MODERN_ROOT opened=1\\r?$", log)
+    opened = re.findall(r"(?m)^UR_BALDOSA_MODERN_ROOT opened=1\r?$", log)
     root = re.findall(
         r"(?m)^UR_BALDOSA_MODERN_ROOT painted=1 "
-        r"destinations=5 renderer=shared\\r?$", log)
+        r"destinations=5 renderer=shared\r?$", log)
     title = re.findall(
         r"(?m)^UR_BALDOSA_MODERN_TITLE painted=1 "
-        r"raster=(256|342)x224 host=modern\\r?$", log)
+        r"raster=(256|342)x224 host=modern\r?$", log)
     require(len(opened) == 1,
             "actual CMD did not open exactly one native Modern host")
     require((len(root), len(title)) in ((1, 0), (0, 1)),

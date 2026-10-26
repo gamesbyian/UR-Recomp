@@ -240,16 +240,16 @@ def verify_five_destination_pad_journey(log: str) -> None:
     stages = (
         r"^UR_BALDOSA_MODERN_TITLE entered_root=1 frame=\d+ input_owned=1$",
         r"^UR_BALDOSA_MODERN_ROOT practice_opened=1 available=\d+ course=\d+ source_menu_required=1$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=11,10,320,204 source=modern_product_view$",
         r"^UR_BALDOSA_MODERN_ROOT practice_closed=1$",
         r"^UR_BALDOSA_MODERN_ROOT join_opened=1 players=2$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=11,10,320,204 source=modern_product_view$",
         r"^UR_BALDOSA_MODERN_ROOT join_closed=1$",
         r"^UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=\d+ unavailable=\d+$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=11,10,320,204 source=modern_product_view$",
         r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
         r"^UR_BALDOSA_MODERN_ROOT options_opened row=[^\r\n]+$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=options\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=options raster=342x224 root=11,10,320,204 source=modern_product_view$",
         r"^UR_BALDOSA_MODERN_ROOT options_closed row=[^\r\n]+$",
         r"^UR_BALDOSA_MODERN_ROOT stock_requested players=1$",
         r"^UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c$",
@@ -262,6 +262,18 @@ def verify_five_destination_pad_journey(log: str) -> None:
         positions.append(matches[0].start())
     if positions != sorted(positions) or len(set(positions)) != len(positions):
         raise ValueError("five destinations: native modal/guest stages out of order")
+    # Controller navigation is not visible acceptance if title/root never
+    # rendered. Keep these witnesses in the same native product stream.
+    title_paint = list(re.finditer(
+        r"(?m)^UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern$", log))
+    root_paint = list(re.finditer(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared$", log))
+    if len(title_paint) != 1 or len(root_paint) != 1:
+        raise ValueError("five destinations: native title/root paint missing or duplicated")
+    first_selection = re.search(r"(?m)^UR_BALDOSA_MODERN_ROOT selected=1$", log)
+    if first_selection is None or not (title_paint[0].start() < positions[0] <
+            root_paint[0].start() < first_selection.start()):
+        raise ValueError("five destinations: controller navigated before native title/root paint")
     # A list of eight cursor indices alone could be spliced from a different
     # route. Bind each selection to the specific modal it actually opened.
     cursor_positions = [
@@ -281,7 +293,8 @@ def verify_five_destination_pad_journey(log: str) -> None:
     if not all(positions[12] < pos < positions[13]
                for pos in cursor_positions[4:]):
         raise ValueError("five destinations: Play return cursor path misplaced")
-    for forbidden in ("practice_unavailable=1", "join_unavailable=1",
+    for forbidden in ("UR_BALDOSA_MODERN_DESTINATION paint_refused=1",
+                      "practice_unavailable=1", "join_unavailable=1",
                       "stock_requested players=2", "stock_entered players=2",
                       "stock_rejected=", "stock_aborted=", "active_profile_stale=1",
                       "join_pad_moved", "join_seat_left"):
@@ -396,7 +409,7 @@ def verify_five_destination_pad_return(log: str) -> None:
         r"^UR_BALDOSA_MODERN_ROOT selected=2$",
         r"^UR_BALDOSA_MODERN_ROOT selected=3$",
         r"^UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=\d+ unavailable=\d+$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p\b[^\r\n]*source=modern_product_view$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=11,10,320,204 source=modern_product_view$",
         r"^UR_BALDOSA_MODERN_ROOT records_closed=1$",
     )
     post_positions = []

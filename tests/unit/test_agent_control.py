@@ -79,7 +79,7 @@ class AgentBoardControlTests(unittest.TestCase):
             extract_board("".join(lines))
 
     def test_unrecognized_job_state_is_rejected(self):
-        bad = replace_table_cell(self.text, "1", 4, "merged")
+        bad = replace_table_cell(self.text, "1", 3, "merged")
         with self.assertRaisesRegex(ValueError, "invalid work state"):
             extract_board(bad)
 
@@ -119,7 +119,7 @@ class AgentBoardControlTests(unittest.TestCase):
         for n in range(1, len(self.board["work"]) - 3):
             row = self.board["work"][n - 1]
             if row["state"] in {"ready", "in_review"}:
-                bad = replace_table_cell(bad, str(n), 4, "hold")
+                bad = replace_table_cell(bad, str(n), 3, "hold")
         with self.assertRaisesRegex(ValueError, "fewer than five selectable jobs"):
             extract_board(bad)
 

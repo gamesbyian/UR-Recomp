@@ -38,7 +38,10 @@ class NativeOptionsAdoptTests(unittest.TestCase):
         # Same gate as baldosa_options_boot in the Modern root.
         self.assertIn('std::getenv("UR_BALDOSA_MODERN_ROOT")', glue)
         self.assertIn('std::strcmp(mode, "authentic") == 0', glue)
-        self.assertIn("baldosa_options_path(user_root)", glue)
+        self.assertIn("baldosa_native_options_user_path_utf8()", glue)
+        self.assertIn("options_path.empty()", glue)
+        self.assertIn("options_path, fullscreen, vsync", glue)
+        self.assertNotIn('std::getenv("SNESRECOMP_USER_DATA_DIR")', glue)
         frame = source[source.index('extern "C" void ur_baldosa_product_after_run_frame('):]
         self.assertIn("adopt_live_display_change();", frame[:frame.index("\n}\n")])
 

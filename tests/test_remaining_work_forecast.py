@@ -43,7 +43,7 @@ class RemainingWorkForecastTests(unittest.TestCase):
         new = calculate(self.prior, inv, self.adjustments, samples=200, seed=11)
         self.assertEqual(new["product_criteria_remaining"],
                          base["product_criteria_remaining"] - 1)
-        self.assertLess(new["remaining_effort_median"], base["remaining_effort_median"])
+        self.assertLess(new["expected_relative_work_units"], base["expected_relative_work_units"])
 
     def test_all_event_completions_remove_shared_parity_once(self):
         inv = copy.deepcopy(self.inventory)
@@ -103,7 +103,7 @@ class RemainingWorkForecastTests(unittest.TestCase):
         self.assertEqual(after["product_criteria_remaining"], before["product_criteria_remaining"])
         self.assertEqual(after["unreviewed_provisional_criteria"],
                          before["unreviewed_provisional_criteria"] - 1)
-        self.assertLess(after["remaining_effort_median"], before["remaining_effort_median"])
+        self.assertLess(after["expected_relative_work_units"], before["expected_relative_work_units"])
 
     def test_frozen_inventory_contract_required(self):
         inv = copy.deepcopy(self.inventory)

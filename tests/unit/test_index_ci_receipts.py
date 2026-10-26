@@ -107,7 +107,7 @@ class IndexTests(unittest.TestCase):
             data = unit()
             data["source"] = invalid
             with self.subTest(source=invalid):
-                with self.assertRaisesRegex(ValueError, "SHA|source"):
+                with self.assertRaisesRegex(ValueError, "SHA|source|checked_out_sha"):
                     m.project(data)
 
     def test_invalid_second_receipt_rolls_back_entire_batch(self):

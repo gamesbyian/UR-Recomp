@@ -12,6 +12,29 @@ The [2026-10-10 CI/research-apparatus audit](CI-RESEARCH-APPARATUS-AUDIT-2026101
 
 **Result-first reporting:** maintained decision-bearing experiments should publish an Actions Job Summary describing the measured result, positive/negative/inconclusive status, population/frame coverage, important missingness and the exact next action. Upload a small machine-readable primary result plus hashed evidence/source receipt; upload large logs/shards only when needed. For a new workflow, prefer the tested `tools/publish_experiment_result.py` transport envelope (demonstrated in `one-shot-execution-coverage-ab.yml`) and existing domain-specific `tools/evidence_contract.py` validation, rather than introducing another framework. This generic publisher marks a produced report **not adjudicated**; it never decides whether the experiment proved the hypothesis. Distinguish actual assertion violations, scientific negative results, missing evidence and infra failures. Promote useful conclusions and bounded data by reviewed commit into the owning ledger/analysis, never automatic workflow writes to main.
 
+**CI receipt provenance (index v2):** A pull-request test normally checks out a
+synthetic merge commit. Its GitHub event SHA and its PR head are separately
+meaningful; neither should be silently labeled the executable checkout.
+`summarize_unittest_ci.py` now records the `git rev-parse HEAD` observed at
+publication in `source.checked_out_sha`, alongside the existing event and
+PR-head SHAs. `index_ci_receipts.py` indexes verified-format checkout
+identity first. Older receipts without an observed checkout can still be
+indexed by their Actions event SHA, but are explicitly marked
+`actions_event_sha_checkout_unverified` and are unsuitable as exact-source
+proof without returning to the original workflow and checkout. Original/native
+fan-out uses its own producer source claim and remains diagnostic only.
+
+Old local SQLite receipt indexes could have stored PR-head labels over
+synthetic merge observations. Preserve these legacy v1 files, **do not reuse
+them as source-exact**, and build a fresh v2 index from original saved receipts
+with `python3 tools/index_ci_receipts.py ingest --db /private/index-v2.sqlite
+/path/to/receipt.json`. An existing legacy index is refused, never
+silently migrated with unresolvable source identities. Query v2 with
+`python3 tools/index_ci_receipts.py query --db /private/index-v2.sqlite
+--source-sha EXACT_CHECKOUT_SHA`. The index contains only hashed, bounded
+producer diagnostics. Original artifact availability, independent byte
+inspection and QA acceptance remain separate decisions.
+
 For cheap CI unit tests, `tools/summarize_unittest_ci.py` now emits `ci-tooling-unit-result.json` and a bounded summary, with full raw shard logs retained on failure. First read the summary, then the result artifact, then only the relevant failing logs. Pathfinder's `publish-solver-sweep-result`/retrieval pattern informed the transport boundary, but its solver-specific schemas and claims are not portable game-oracle authority.
 
 **Change coupling rule:** whenever a workflow changes its trigger, routing predicate, build-sharing threshold, or summary contract, update *all* existing policy tests that assert the previous behavior in the same change. Search both focused classifier tests and `tests/unit/test_ci_trigger_policy.py`, then verify the actual first failing assertion on the current head. The 2026-10-10 pairwise-build rollout exposed a stale three-suite assertion; the follow-up audit records the correction. A newly green classifier unit test does not imply the broader CI policy suite is green.
@@ -239,6 +262,20 @@ The fast native gate owns boot, basic deterministic race entry, product-host san
 Use pull-request validation when the result is primarily needed before merge. Add a main-push run only when integrated-main validation provides additional value.
 
 **Do not include a workflow's own `.github/workflows/<name>.yml` path in its `push.paths` merely to prove that workflow edits execute.** That creates a redundant full rerun immediately after every workflow-maintenance merge.
+
+**Narrow Windows exact-main evidence exception:** `windows-native-smoke.yml` includes its own path on `main` because the merged workflow must produce a new, source-bound, ROM-free PE and binding receipt. A successful PR smoke on a synthetic merge cannot serve as an exact-main executable nomination. This exception does not authorize self-triggering other workflows or waive independent package/device/release acceptance. The PR-side direct smoke and QA-05/09 reusable caller currently duplicate full Windows builds (19.22 hosted runner-minutes measured on #2601); retire the redundant PR producer only after separately verifying required check names and coverage. Preserve the one main-push exact-source producer.
+
+**2026-10-26 Windows PR-side deduplication:** The smoke workflow no longer
+subscribes directly to its own `pull_request` YAML changes. The existing
+`qa05-qa09-windows-candidate.yml` still watches that YAML, requires a
+ready PR, and calls the same Windows smoke workflow exactly once. Keep
+`workflow_call`, the main-push self-trigger for post-merge source-bound PE
+evidence, and manual dispatch. If a future ruleset requires the old direct
+`windows` status check, reconcile the required context with the integration
+owner before merge; the read-only source contract test guards retention of
+the reusable QA route. The earlier measured 10.63 direct-job runner-minutes
+is a historical opportunity, not yet a measured saving.
+
 
 Use this pattern instead:
 
@@ -546,3 +583,26 @@ The existing Repository hygiene job now performs two narrow **advisory** checks 
 The `zizmor` executable is installed from immutable upstream release v1.31.1 with its published `x86_64-unknown-linux-gnu` SHA-256 verified before extraction. It runs `--offline --min-severity high`, with **no network audits, no automatic rewrite, no write token and no new Actions job or research factory**. Findings are advisory during baseline triage and are not release QA verdicts. Human review must separate real shell/expression injection paths from workflow-context false positives; make focused source/CI changes only when a finding is independently reproduced. Avoid globally disabling a security rule merely to turn the job green.
 
 The audit targets workflow source changes only. It does not replace independent review of workflow permissions, third-party actions, artifact binding, script injection, or release output provenance.
+
+
+### Same-source cross-workflow build candidate detection (2026-10-26)
+
+The existing opt-in `tools/report_ci_runtime.py` now reports **possible**
+repeat compilation when two different workflows on the same *Actions head
+SHA* have measured build-like steps within two hours. The bounded table
+shows run IDs, workflow names and total **observed timed build-step** minutes,
+not estimated savings or total billed runner minutes. A shared head SHA is
+not necessarily an identical checked-out source, executable, portable ZIP,
+toolchain or required acceptance configuration. Exact source/PE/ZIP
+provenance and branch protection must be reconciled before removing a run.
+No step timestamps means no duplicate detection, **not** proof of no
+redundancy. The tool adds no API calls or CI runners; the existing manual
+runtime reporter already collects the relevant timing information.
+
+A measured example is PR #2601's Windows smoke YAML edit, for which the
+direct smoke and QA-05/09 reusable caller independently compiled on the
+same synthetic source and cost **10.63 + 8.58 = 19.22 observed runner-minutes**
+across their two Windows jobs. Their PEs differed in COFF timestamp bytes and
+their private ZIP hashes also differed. Owner PR #2606 must retain main-push
+candidate evidence while independently verifying that any PR-side trigger
+reduction preserves required checks and native Windows acceptance.

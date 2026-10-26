@@ -1,0 +1,61 @@
+{
+  "schema": "ur-conversation-source-registry/1",
+  "updated": "2026-10-25",
+  "scope": "Selected new UR-Recomp conversation evidence only. No complete project ChatGPT/Claude export is represented.",
+  "sources": [
+    {
+      "source_id": "UR-DIRECTOR-EXCERPTS-20261021-25",
+      "capture_kind": "source_excerpt",
+      "platform": "ChatGPT project conversation messages visible to the chronicler plus selective historical recall",
+      "observed_start": "2026-10-21",
+      "observed_end": "2026-10-25",
+      "time_precision": "conversation date window; not timestamp for individual excerpt",
+      "speaker_types": [
+        "director"
+      ],
+      "completeness": "partial",
+      "source_sha256": null,
+      "published_sha256": null,
+      "redacted": false,
+      "archive_path": "PROJECT-DIRECTOR-SOURCE-EXCERPTS-2026-10-21-TO-2026-10-25.md",
+      "linked_episodes": [
+        76,
+        77,
+        79,
+        81,
+        85
+      ],
+      "limitations": "No complete session export, all assistant responses, hidden tool results or full worker trajectories were accessible. The archive preserves only quoted visible user text and separates cited earlier assistant wording."
+    },
+    {
+      "source_id": "UR-CONVERSATIONS-RECONSTRUCTED-20261024-25",
+      "capture_kind": "reconstructed_summary",
+      "platform": "editorial synthesis from partial project conversation context and live first-party GitHub PR descriptions",
+      "observed_start": "2026-10-24",
+      "observed_end": "2026-10-25",
+      "time_precision": "date window",
+      "speaker_types": [
+        "director",
+        "agent"
+      ],
+      "completeness": "partial and paraphrased",
+      "source_sha256": null,
+      "published_sha256": null,
+      "redacted": false,
+      "archive_path": "PROJECT-CONVERSATIONS-2026-10-24-TO-2026-10-25-RECONSTRUCTED.md",
+      "linked_episodes": [
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85
+      ],
+      "limitations": "This file is not a transcript; do not use its paraphrases as direct dialogue. GitHub PRs remain independently verifiable publication/evidence records."
+    }
+  ]
+}

@@ -128,7 +128,13 @@ inline bool write_host_replace_staged(
     if (final_path.empty() || data.empty()) return false;
     const auto staging = detail::reserve_tournament_staging(
         final_path.parent_path(), staging_family);
-    if (!staging) return false;
+    if (!staging) {
+#if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=reserve error=%lu\n",
+                     static_cast<unsigned long>(GetLastError()));
+#endif
+        return false;
+    }
     const fs::path tmp = *staging / "record.tmp";
     const auto cleanup = [&] {
         std::error_code ec;
@@ -142,6 +148,10 @@ inline bool write_host_replace_staged(
     std::FILE* file = std::fopen(tmp.c_str(), "wb");
 #endif
     if (!file) {
+#if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=open errno=%d error=%lu\n",
+                     errno, static_cast<unsigned long>(GetLastError()));
+#endif
         cleanup();
         return false;
     }
@@ -156,6 +166,11 @@ inline bool write_host_replace_staged(
                             : detail::sync_staged_file(file));
     const bool closed = std::fclose(file) == 0;
     if (written != data.size() || !flushed || !synced || !closed) {
+#if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=sync written=%zu expected=%zu flushed=%d synced=%d closed=%d errno=%d\n",
+                     written, data.size(), static_cast<int>(flushed),
+                     static_cast<int>(synced), static_cast<int>(closed), errno);
+#endif
         cleanup();
         return false;
     }
@@ -163,9 +178,41 @@ inline bool write_host_replace_staged(
     // and before the atomic visibility transition. Production never supplies it.
     if (after_staging_for_test) after_staging_for_test();
 #if defined(_WIN32)
-    const bool published = MoveFileExW(
-        tmp.c_str(), final_path.c_str(),
-        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+    // Contending Windows writers can briefly deny a rename while an old
+    // destination handle is being released. Retry bounded sharing/lock and
+    // existing-writable-destination access denials against the SAME synced
+    // stage, without rewriting bytes. Permanent failures remain failures;
+    // the immutable no-replace intent path below is never retried.
+    bool published = false;
+    for (unsigned attempt = 0; attempt < 8; ++attempt) {
+        if (MoveFileExW(tmp.c_str(), final_path.c_str(),
+                MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0) {
+            published = true;
+            break;
+        }
+        const DWORD error = GetLastError();
+        bool transient = error == ERROR_SHARING_VIOLATION ||
+                         error == ERROR_LOCK_VIOLATION;
+        // Windows also reports ERROR_ACCESS_DENIED (5) for some genuine
+        // concurrent replacement races. Exact MSVC x64 evidence: two
+        // independent eight-thread writers failed with error=5, and a real
+        // destination handle without FILE_SHARE_DELETE reproduces it.
+        // Bound retries to an existing, non-read-only regular destination;
+        // never retry absent paths, read-only files, directories or disk full.
+        if (error == ERROR_ACCESS_DENIED) {
+            const DWORD attributes = GetFileAttributesW(final_path.c_str());
+            transient = attributes != INVALID_FILE_ATTRIBUTES &&
+                (attributes & (FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_DIRECTORY)) == 0;
+        }
+#if defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
+        if (attempt == 7 || !transient)
+            std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=rename error=%lu attempt=%u\n",
+                         static_cast<unsigned long>(error), attempt);
+#endif
+        if (!transient || attempt == 7)
+            break;
+        Sleep(1u << attempt);  // Bounded total: 127 ms.
+    }
 #else
     std::error_code ec;
     fs::rename(tmp, final_path, ec);

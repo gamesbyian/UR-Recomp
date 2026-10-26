@@ -8,6 +8,15 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class WindowsSmokeUploadPolicyTests(unittest.TestCase):
+    def test_workflow_edit_triggers_main_windows_candidate(self):
+        """The source-to-PE evidence step must run after its own workflow merges."""
+        workflow = (ROOT / ".github/workflows/windows-native-smoke.yml").read_text(
+            encoding="utf-8"
+        )
+        push = workflow.split("\n  push:\n", 1)[1].split("\nconcurrency:", 1)[0]
+        self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', push)
+        self.assertIn("    branches: [main]", push)
+
     def test_normal_workflow_policy_and_mutation_negatives(self):
         check = ROOT / "tools" / "ci" / "check_windows_smoke_upload_policy.py"
         normal = subprocess.run([sys.executable, str(check)], cwd=ROOT,

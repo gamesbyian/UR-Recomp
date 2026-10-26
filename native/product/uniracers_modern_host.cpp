@@ -452,6 +452,7 @@ void product_diagnostic(const char* message);
 std::string controller_display_name(std::uint64_t source_id);
 bool paused();
 bool restart_surface();
+bool results_navigation_router_available();
 bool dispatch(UrModernPauseAction action);
 bool abort_practice_route_to_frontend(const char* diagnostic);
 bool request_frontend_reboot(bool require_restart_surface);
@@ -1409,6 +1410,8 @@ ur::product::FastNavigationContext fast_navigation_context() {
         g_practice_active,
         g_recent_course_track_id.has_value(),
         recent_course_available_for_active_profile(),
+        g_surface == UR_UNIRACERS_RESTART_RESULTS,
+        results_navigation_router_available(),
     };
 }
 

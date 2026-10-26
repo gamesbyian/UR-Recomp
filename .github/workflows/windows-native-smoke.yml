@@ -9,11 +9,11 @@ name: Windows native build and boot smoke
 # framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
 
 on:
-  # A workflow edit needs a native Windows execution before it can merge.
-  # The job guard below excludes untrusted fork PRs from ROM-bearing builds.
-  pull_request:
-    paths:
-      - ".github/workflows/windows-native-smoke.yml"
+  # PR changes to this workflow are tested once by the QA-05/09 reusable
+  # caller (which watches this YAML, excludes draft PRs and invokes
+  # workflow_call), not a second standalone full build. The called Windows
+  # job retains its same-repository fork guard and private ROM boundary.
+  # Direct main-push and deliberate manual execution remain separate.
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -29,6 +29,7 @@ on:
   push:
     branches: [main]
     paths:
+      - ".github/workflows/windows-native-smoke.yml"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
@@ -227,6 +228,18 @@ jobs:
           test -f "$PACKAGE/rom.cfg"
           test -f "$PACKAGE/run-uniracers.cmd"
           test -f "$PACKAGE/PACKAGE-MANIFEST.json"
+
+      - name: Stage ROM-free executable for independent audit
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.unit.test_stage_windows_smoke_romfree_exe
+          python tools/ci/stage_windows_smoke_romfree_exe.py \
+            --package "$PACKAGE" \
+            --archive "$PACKAGE_ARCHIVE" \
+            --checksum "$PACKAGE_ARCHIVE_CHECKSUM" \
+            --source "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/windows-romfree-binary"
+          echo "ROM-free exact PE and source/ZIP binding staged; full ROM-bearing package remains on runner." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Independently verify portable ZIP with stock Windows PowerShell
         run: |
@@ -1153,8 +1166,11 @@ jobs:
             ${{ runner.temp }}/package-race-result-dumps/race-results.*
             ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
+            ${{ runner.temp }}/windows-romfree-binary/UniracersSNESRecomp.exe
+            ${{ runner.temp }}/windows-romfree-binary/binding.json
             ${{ runner.temp }}/windows-tournament-candidate.txt
             ${{ runner.temp }}/tournament-qa-envelope.json
+            !${{ runner.temp }}/**/*.sram.bin
           if-no-files-found: warn
           retention-days: 7
 

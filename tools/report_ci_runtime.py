@@ -96,6 +96,82 @@ def job_parallelism_profile(jobs: list[dict[str, Any]]) -> dict[str, float] | No
     }
 
 
+
+def same_source_cross_workflow_build_candidates(
+    payload: dict[str, Any],
+    jobs_payload: dict[str, Any] | None,
+    since_hours: float | None,
+    now: datetime,
+) -> list[dict[str, Any]]:
+    """Identify possible duplicate builds using *observed* job step timestamps.
+
+    Same Actions head SHA does NOT establish equal checkout, toolchain, compiled
+    EXE, private ZIP, or intended acceptance. This reports review candidates,
+    not estimated avoidable runner cost or jobs that should be disabled.
+    """
+    import re
+
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    job_map = jobs_by_run(jobs_payload)
+    for run in payload.get("workflow_runs", []):
+        sha = run.get("head_sha")
+        if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+            continue
+        started = parse_time(run.get("run_started_at") or run.get("created_at"))
+        if started is None or (since_hours is not None and
+                               (now - started).total_seconds() > since_hours * 3600):
+            continue
+        if run.get("status") != "completed" or type(run.get("id")) is not int:
+            continue
+        build_seconds = 0.0
+        observed_build_steps = 0
+        for job in job_map.get(run["id"], []):
+            for step in job.get("steps", []):
+                if step_bucket(str(step.get("name") or "")) != "build":
+                    continue
+                seconds = elapsed_seconds(step.get("started_at"), step.get("completed_at"))
+                if seconds > 0:
+                    build_seconds += seconds
+                    observed_build_steps += 1
+        if build_seconds > 0:
+            grouped[sha].append({
+                "run_id": run["id"],
+                "workflow": str(run.get("name") or "unknown")[:140],
+                "event": str(run.get("event") or "unknown")[:40],
+                "started": started,
+                "build_seconds": round(build_seconds, 3),
+                "timed_build_steps": observed_build_steps,
+            })
+    result = []
+    for sha, rows in grouped.items():
+        rows.sort(key=lambda row: (row["started"], row["run_id"]))
+        # Only compare close-in-time executions: an old deliberate re-run
+        # and a current regression are not an obvious consolidation case.
+        for start in range(len(rows)):
+            group = [rows[start]]
+            for row in rows[start + 1:]:
+                if (row["started"] - rows[start]["started"]).total_seconds() > 7200:
+                    break
+                group.append(row)
+            names = {row["workflow"] for row in group}
+            if len(names) < 2:
+                continue
+            result.append({
+                "head_sha": sha,
+                "run_ids": [row["run_id"] for row in group[:12]],
+                "workflow_names": sorted(names)[:10],
+                "runs_observed": len(group),
+                "timed_build_steps": sum(row["timed_build_steps"] for row in group),
+                "observed_build_step_seconds": round(
+                    sum(row["build_seconds"] for row in group), 3),
+                "start_span_seconds": round(
+                    (group[-1]["started"] - group[0]["started"]).total_seconds(), 3),
+                "status": "manual_review_only_identity_and_coverage_unverified",
+            })
+            break
+    result.sort(key=lambda row: (-row["observed_build_step_seconds"], row["head_sha"]))
+    return result[:10]
+
 def summarize(
     payload: dict[str, Any],
     since_hours: float | None = None,
@@ -111,6 +187,7 @@ def summarize(
         "failed_runs": 0,
         "jobs": 0,
         "runs_with_job_timing": 0,
+        "runs_missing_job_timing": 0,
         "runner_seconds": 0.0,
         "observed_job_span_seconds": 0.0,
         "peak_active_jobs": 0,
@@ -200,6 +277,8 @@ def summarize(
                 row["cancelled_runner_seconds"] += profile["runner_seconds"]
             elif run.get("conclusion") == "failure":
                 row["failed_runner_seconds"] += profile["runner_seconds"]
+        else:
+            row["runs_missing_job_timing"] += 1
         for job in job_map.get(int(run_id), []):
             row["jobs"] += 1
             row["job_queue_seconds"] += elapsed_seconds(
@@ -264,6 +343,8 @@ def summarize(
         "sample_oldest_created_at": oldest_available.isoformat() if oldest_available else None,
         "sample_newest_created_at": newest_available.isoformat() if newest_available else None,
         "window_census_complete": bool(window_complete),
+        "possible_same_source_cross_workflow_builds":
+            same_source_cross_workflow_build_candidates(payload, jobs_payload, since_hours, now),
         "workflows": workflows,
     }
 
@@ -297,17 +378,38 @@ def markdown(report: dict[str, Any]) -> str:
         "These are measured started/completed job spans, not dependency-DAG critical paths. "
         "Missing job intervals are excluded; queue time is reported separately.",
         "",
-        "| Workflow | Timed runs | Runner min | Cancelled runner min | Failed runner min | Observed span min | Mean active jobs | Peak active jobs |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "Missing or unstarted job intervals are excluded. Runner minutes are observed lower bounds, not billing totals.",
+        "",
+        "| Workflow | Timed runs | Missing timing | Runner min | Cancelled runner min | Failed runner min | Observed span min | Mean active jobs | Peak active jobs |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for row in report["workflows"]:
         lines.append(
-            f"| {row['workflow']} | {row['runs_with_job_timing']} | "
+            f"| {row['workflow']} | {row['runs_with_job_timing']} | {row['runs_missing_job_timing']} | "
             f"{row['runner_seconds']/60:.1f} | "
             f"{row['cancelled_runner_seconds']/60:.1f} | "
             f"{row['failed_runner_seconds']/60:.1f} | "
             f"{row['observed_job_span_seconds']/60:.1f} | "
             f"{row['mean_active_jobs']:.2f} | {row['peak_active_jobs']} |"
+        )
+
+    lines.extend([
+        "",
+        "## Possible same-source duplicate build work (review only)",
+        "",
+        "Pairs use observed timed build-like steps within two hours on the same "
+        "Actions head SHA and across different workflows. This is NOT proof "
+        "of identical checkout/PE/ZIP, redundant required checks or avoidable "
+        "runner charges. Missing step timing can hide candidates.",
+    ])
+    for group in report.get("possible_same_source_cross_workflow_builds", []):
+        lines.append(
+            "- " + group["head_sha"][:12] + ": "
+            + ", ".join(group["workflow_names"])
+            + "; run ids=" + ",".join(str(x) for x in group["run_ids"])
+            + "; observed build-like step minutes="
+            + str(round(group["observed_build_step_seconds"] / 60, 2))
+            + "; **manual review only**"
         )
 
     for row in report["workflows"]:

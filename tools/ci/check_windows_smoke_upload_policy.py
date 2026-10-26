@@ -20,8 +20,11 @@ EXPECTED_PATHS = (
     "${{ runner.temp }}/package-race-result-dumps/race-results.*",
     "${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json",
     "${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256",
+    "${{ runner.temp }}/windows-romfree-binary/UniracersSNESRecomp.exe",
+    "${{ runner.temp }}/windows-romfree-binary/binding.json",
     "${{ runner.temp }}/windows-tournament-candidate.txt",
     "${{ runner.temp }}/tournament-qa-envelope.json",
+    "!${{ runner.temp }}/**/*.sram.bin",
 )
 
 
@@ -57,6 +60,9 @@ def check_workflow(source: str) -> None:
         raise ValueError("Unexpected artifact retention")
     if "python tools/assemble_windows_package.py verify-archive" not in source:
         raise ValueError("Internal archive verification was removed")
+    if ("python tools/ci/stage_windows_smoke_romfree_exe.py" not in source
+            or '--output "$RUNNER_TEMP/windows-romfree-binary"' not in source):
+        raise ValueError("ROM-free PE staging is missing")
 
 
 class PolicyNegatives(unittest.TestCase):
@@ -65,6 +71,8 @@ class PolicyNegatives(unittest.TestCase):
         paths = "".join(f"            {path}\n" for path in EXPECTED_PATHS)
         return ("      - name: Verify package\n"
                 "        run: python tools/assemble_windows_package.py verify-archive --archive $ARCHIVE\n"
+                "      - name: Stage ROM-free executable for independent audit\n"
+                '        run: python tools/ci/stage_windows_smoke_romfree_exe.py --output "$RUNNER_TEMP/windows-romfree-binary"\n'
                 "      - name: Upload Windows evidence\n"
                 "        if: always()\n"
                 "        uses: actions/upload-artifact@v4\n"
@@ -76,6 +84,18 @@ class PolicyNegatives(unittest.TestCase):
 
     def test_current_policy(self):
         check_workflow(self.valid_source())
+
+    def test_disallows_unstaged_pe(self):
+        fixture = self.valid_source().replace(
+            "python tools/ci/stage_windows_smoke_romfree_exe.py", "echo skipped")
+        with self.assertRaisesRegex(ValueError, "staging"):
+            check_workflow(fixture)
+
+    def test_disallows_reexposed_sram_dumps(self):
+        fixture = self.valid_source().replace(
+            "            !${{ runner.temp }}/**/*.sram.bin\n", "")
+        with self.assertRaisesRegex(ValueError, "allowlist"):
+            check_workflow(fixture)
 
     def test_disallows_internal_zip(self):
         fixture = self.valid_source().replace(

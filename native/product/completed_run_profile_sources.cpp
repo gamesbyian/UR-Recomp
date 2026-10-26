@@ -26,8 +26,13 @@ load_run_records_profile_sources(const std::string& user_data_root) {
     std::vector<RunRecordsProfileSource> out;
     out.reserve(catalog->size());
     for (const auto& entry : *catalog) {
+        bool scan_succeeded = false;
         auto artifacts = inspect_completed_run_record_artifacts(
-            (root / "runs" / entry.profile_id).u8string());
+            (root / "runs" / entry.profile_id).u8string(), &scan_succeeded);
+        // Missing per-profile runs are legitimately empty. A present but
+        // unreadable, non-directory or redirected namespace is not: do not
+        // present a failed scan as zero earned Records for that racer.
+        if (!scan_succeeded) return std::nullopt;
         std::vector<StoredRunRecord> records;
         records.reserve(artifacts.size());
         for (auto& artifact : artifacts) {

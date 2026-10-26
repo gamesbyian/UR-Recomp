@@ -81,6 +81,40 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.update("independent", bad)
         self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
 
+    def test_failed_case_is_actionable_without_private_log_contents(self):
+        bad = packet("independent")
+        bad["cases"][4]["exit_code"] = 9
+        bad["all_passed"] = False
+        bad["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in bad.items() if k != "receipt_sha256"})
+        self.update("independent", bad)
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertEqual(result["failed_cases"], [{
+            "group": "independent", "index": 7, "name": bridge.STEPS[7],
+            "reason": "nonzero_exit", "exit_code": 9}])
+        self.assertNotIn("genuine-script-output", json.dumps(result))
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_failure_receipt_with_missing_case_never_claims_full_inventory(self):
+        bad = packet("seed-dependent")
+        bad["cases"] = bad["cases"][:1]
+        bad["all_passed"] = False
+        bad["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in bad.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", bad)
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertTrue(any("missing" in issue or "case" in issue
+                            for issue in result["issues"]))
+
+    def test_summarizer_never_invents_missing_case_success(self):
+        rows = packet("seed-dependent")["cases"][:1]
+        problems = fanout.summarize_case_failures("seed-dependent", rows)
+        self.assertEqual([(r["index"], r["reason"], r["exit_code"])
+                          for r in problems],
+                         [(1, "missing_case", None), (2, "missing_case", None)])
+
     def test_real_original_script_failure_is_rejected(self):
         bad = packet("seed-dependent")
         bad["cases"][0]["exit_code"] = 1

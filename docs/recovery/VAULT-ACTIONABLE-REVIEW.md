@@ -1,6 +1,6 @@
 # Vault actionable review: runbook
 
-**Lane ownership:** Agent 1 owns member-level provenance and semantic classification, Agent 2 owns missing source implementation, Agent 3 owns automation and GitHub integration, hourly Agent 5 controls shared-main release decisions. Coordinate in [#2468](https://github.com/gamesbyian/UR-Recomp/issues/2468), and retain authoritative human findings in [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088).
+**Current agent assignment:** Any of the five interchangeable scheduled agents may select this recovery job from the [shared priority board](../HOURLY-AGENT-LINES.md). Semantic classification, first-party source implementation and independent merge review are distinct tasks/roles **for a particular candidate**, not permanent Agent 1/2/3/5 lanes. Coordinate in [#2468](https://github.com/gamesbyian/UR-Recomp/issues/2468), and retain authoritative human findings in [#2088](https://github.com/gamesbyian/UR-Recomp/issues/2088).
 
 ## The read-only workflow
 
@@ -12,11 +12,11 @@ It uploads a bounded actionable.md summary and complete metadata-only actionable
 
 A fresh SHA mismatch proves only byte inequality. It is not proof of missing behavior, rights, publication authorization or semantic novelty. A legacy archive-level merged record never automatically marks a newly surfaced nested member integrated.
 
-## Member ledger: Agent 1 owns classification
+## Member ledger: independently qualified classification
 
 The ledger uses schema ur-vault-member-dispositions/1 and an items array. Each record names the exact candidate_id (vm1- plus 24 lowercase SHA-derived hex digits) published in actionable.json, with one state among engineering, merged, superseded, held, evidence_only, unresolved or rejected.
 
-* For engineering: require a specific source_path, reason, provenance_verified true and publication_authorized true. Only then does a candidate route to Agent 2. Historical test results, Drive readability and lack of Git blob match do not alone grant those flags.
+* For engineering: require a specific source_path, reason, provenance_verified true and publication_authorized true. Only then does a candidate become eligible for source implementation by any available agent. Historical test results, Drive readability and lack of Git blob match do not alone grant those flags.
 * For superseded: require a current source_path, detailed evidence and tests documenting the precise behavior already present on main.
 * For held or rejected: supply the exact reason. Preserve old refusal/authorization evidence and the original archive.
 * For merged: require numeric PR, exact 40-character merge_commit, source_path, tests, original archive_sha256, original member_sha256 and a concrete evidence receipt. The workflow cross-checks the *live GitHub* merged_at and SHA before granting the merged state, and refuses merge credit when hashes/evidence are missing.
@@ -27,12 +27,12 @@ The authoritative member ledger is now populated: Agent 1's 33 reviewed disposit
 
 ## Engineering and PR qualification
 
-The review generator emits at most **two** explicitly approved engineering leads as an inert staging_handoff array. Each includes the exact Drive ID, `expected_archive_sha256` matching the checkpoint's entire original ZIP, **outer/nested `stage_member` path**, exact `stage_member_sha256`, source destination, workflow URL and confirmation-required state. No unattended dispatch or source staging occurs. Since [#2485](https://github.com/gamesbyian/UR-Recomp/pull/2485), the manually dispatched Direct Intake accepts both exact member fields and emits **only one approved, hash-verified source member**, including inside bounded nested ZIPs. Agent 2 must enter both fields and separately review the member's rights/privacy and historical package holds. Leave both fields empty only when archive-wide staging of all eligible members has genuinely been reviewed and authorized. A missing Drive ID in the latest public listing becomes `unavailable_source_hold` even if previously verified.
+The review generator emits at most **two** explicitly approved engineering leads as an inert staging_handoff array. Each includes the exact Drive ID, `expected_archive_sha256` matching the checkpoint's entire original ZIP, **outer/nested `stage_member` path**, exact `stage_member_sha256`, source destination, workflow URL and confirmation-required state. No unattended dispatch or source staging occurs. Since [#2485](https://github.com/gamesbyian/UR-Recomp/pull/2485), the manually dispatched Direct Intake accepts both exact member fields and emits **only one approved, hash-verified source member**, including inside bounded nested ZIPs. The agent staging the candidate must enter both fields and separately review the member's rights/privacy and historical package holds. Leave both fields empty only when archive-wide staging of all eligible members has genuinely been reviewed and authorized. A missing Drive ID in the latest public listing becomes `unavailable_source_hold` even if previously verified.
 
 
-Agent 2 takes only queued_engineering cases. Recompare actual member bytes against latest main and open PRs, check provenance and rights, and use the existing single-Drive-ID [Direct Vault Intake](DIRECT-VAULT-INTAKE.md) for reviewed source staging. Preserve negative evidence and failed publication history. Add the candidate_id or the exact token vault-member-sha256:<digest> to the narrow PR body so the consumer finds an existing claim and avoids duplicate PR work. Include the archive SHA-256, member SHA-256, Drive ID, source destination, exact base and head, test receipts, and qualification limits.
+A selected source-implementation agent takes only queued_engineering cases. Recompare actual member bytes against latest main and open PRs, check provenance and rights, and use the existing single-Drive-ID [Direct Vault Intake](DIRECT-VAULT-INTAKE.md) for reviewed source staging. Preserve negative evidence and failed publication history. Add the candidate_id or the exact token vault-member-sha256:<digest> to the narrow PR body so the consumer finds an existing claim and avoids duplicate PR work. Include the archive SHA-256, member SHA-256, Drive ID, source destination, exact base and head, test receipts, and qualification limits.
 
-Agent 3 independently verifies the newest head, relevant targeted tests and required CI, obtains shared-main merge coordination from Agent 5, then merges only qualified PRs. Update the member ledger and #2088 with actual merge SHA and tests. An open PR, a historic merged claim, or a source hash alone never gets integration or release credit.
+A distinct agent independently verifies the newest head, relevant targeted tests and required CI, coordinates genuine concurrent writes, then merges only qualified PRs. No named agent has a shared-main merge monopoly. Update the member ledger and #2088 with actual merge SHA and tests. An open PR, a historic merged claim, or a source hash alone never gets integration or release credit.
 
 The existing recurring workflow has no source publication permission. This consumer also uses read-only GitHub permissions and does not publish ZIPs, source, branches or PRs. Reviewed staging remains an explicit source-owner operation. Automatic PR creation from raw review leads is intentionally forbidden until rights, source bytes and destinations are independently established.
 

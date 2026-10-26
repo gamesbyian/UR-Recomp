@@ -207,6 +207,8 @@ jobs:
           # runtime (unknown modules get a default weight, so coverage never
           # depends on the timing file being current).
           shards=$(nproc); (( shards > 4 )) && shards=4; (( shards < 2 )) && shards=2
+          # Persist intended population before starting any child process.
+          printf '%s\n' "$shards" > "$RUNNER_TEMP/unit-shard-count.txt"
           pids=()
           for ((i = 0; i < shards; i++)); do
             mapfile -t mods < <(python3 tools/partition_unit_tests.py --shards "$shards" --index "$i")

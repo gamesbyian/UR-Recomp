@@ -53,6 +53,8 @@ on:
       - "native/product/modern_root_physical_edges.hpp"
       - "tests/native/baldosa_native_first_profile_test.cpp"
       - "tests/unit/test_baldosa_native_first_profile_cpp.py"
+      - "tests/native/host_product_unicode_path_regression.cpp"
+      - "tests/unit/test_host_product_unicode_path_cpp.py"
       - "tests/unit/test_baldosa_native_first_racer_probe.py"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/unit/test_baldosa_native_2p_records_probe.py"
@@ -406,7 +408,11 @@ jobs:
           set -euo pipefail
           source "${TOOLCHAIN_DIR}/env.sh"
           python -m unittest -v tests.unit.test_baldosa_native_existing_profile_next_boot_cpp
-          echo "PASS: compiled Unicode named-profile selector preserves typed/raw/catalog; hosted filesystem evidence only." >> "$GITHUB_STEP_SUMMARY"
+          # This preserved first-party regression exercises the actual
+          # UTF-8 SDL-style host-state save/load path on Win32. Linux runs
+          # cannot expose a locale-dependent narrow Windows path conversion.
+          python -m unittest -v tests.unit.test_host_product_unicode_path_cpp
+          echo "PASS: compiled Unicode named-profile selector and UTF-8 host-state save/load preserve native paths; hosted filesystem evidence only." >> "$GITHUB_STEP_SUMMARY"
 
       # Compile the first/second racer fixture against native Win32 paths.
       - name: Verify Unicode first/second named-profile creation on Win32

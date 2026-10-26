@@ -2,6 +2,8 @@
 """Focus-loss / disconnect pause in the integrated Baldosa product."""
 from __future__ import annotations
 
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -47,6 +49,49 @@ class BaldosaHostLifecyclePauseTests(unittest.TestCase):
                  "-o", str(exe)],
                 check=True)
             subprocess.run([str(exe)], check=True)
+
+    def test_pause_options_use_native_unicode_root(self):
+        source = LIFECYCLE.read_text(encoding="utf-8")
+        self.assertIn('#include "baldosa_native_options_user_root.hpp"', source)
+        self.assertEqual(source.count("baldosa_native_options_user_path_utf8()"), 2)
+        self.assertNotIn('std::getenv("SNESRECOMP_USER_DATA_DIR")', source)
+        focus = body(source, "bool load_focus_pause_setting() {", "\n}\n")
+        self.assertIn("load_host_product_state_file(options_path)", focus)
+        self.assertIn("if (options_path.empty())", focus)
+        adoption = body(source, "void adopt_live_display_change() {", "\n}\n")
+        self.assertIn("baldosa_options_adopt_live_display(", adoption)
+        self.assertIn("options_path, fullscreen, vsync", adoption)
+
+    def test_unicode_user_root_reads_and_updates_real_host_state(self):
+        compiler = shutil.which("g++") or shutil.which("clang++")
+        if not compiler:
+            self.skipTest("C++17 compiler unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            exe = Path(directory) / ("pause-user-root.exe" if os.name == "nt"
+                                      else "pause-user-root")
+            files = [
+                ROOT / "tests/native/baldosa_native_pause_user_root_test.cpp",
+                *[ROOT / "native/product" / name for name in (
+                    "output_resolution_policy.cpp",
+                    "host_product_state.cpp",
+                    "host_product_store.cpp",
+                )],
+            ]
+            built = subprocess.run(
+                [compiler, "-std=c++17", "-O0", "-Wall", "-Wextra",
+                 "-Werror", "-pedantic", "-pthread",
+                 "-I", str(ROOT / "native/product"),
+                 *map(str, files), "-o", str(exe)],
+                capture_output=True, text=True, timeout=180)
+            self.assertEqual(built.returncode, 0, built.stderr + built.stdout)
+            env = os.environ.copy()
+            env["SNESRECOMP_USER_DATA_DIR"] = str(
+                Path(directory) / "測試_日本語_Ω")
+            run = subprocess.run(
+                [str(exe)], env=env, capture_output=True,
+                text=True, timeout=60)
+            self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
+            self.assertIn("PASS: Unicode user root", run.stdout)
 
     def test_pause_is_decided_at_the_completed_frame_boundary(self):
         source = LIFECYCLE.read_text(encoding="utf-8")

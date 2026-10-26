@@ -61,6 +61,7 @@ on:
       - "tests/unit/test_baldosa_native_1p_records_probe.py"
       - "tests/unit/test_baldosa_windows_native_pause_route.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
+      - "native/product/baldosa_native_options_user_root.hpp"
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"

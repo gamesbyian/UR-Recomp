@@ -512,6 +512,28 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         raise ValueError("pad earned return: SDL quit event was rejected")
     if "UR_BALDOSA_MODERN_ROOT stock_requested" in tail:
         raise ValueError("pad earned return: unexpected stock relaunch")
+    # Product stderr contains actual mapped-human-word filter samples.
+    # The guest may advance under Modern; its human button bits may not.
+    isolation = list(re.finditer(
+        r"(?m)^UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=(\d+) frame=(\d+) "
+        r"incoming=([0-9a-f]{8}) guest=([0-9a-f]{8}) "
+        r"queued=([0-9a-f]{4}) host_owns=1\r?$", log))
+    window = [m for m in isolation if positions[-1] < m.start() < last_quit]
+    counts = [int(m.group(1)) for m in window]
+    if not counts or counts != sorted(set(counts)):
+        raise ValueError("pad earned return: missing/duplicate/out-of-order host input samples")
+    idle_counts = {int(m.group(1)) for m in window if m.start() < first_selection}
+    if not {180, 360, 540, 720, 900}.issubset(idle_counts):
+        raise ValueError("pad earned return: incomplete 900-sample native input isolation")
+    for sample in window:
+        incoming = int(sample.group(3), 16)
+        guest = int(sample.group(4), 16)
+        queued = int(sample.group(5), 16)
+        if queued or guest != (incoming & 0xff000000):
+            raise ValueError("pad earned return: host-owned human input leaked to guest")
+    if not any(m.start() > idle_matches[0].start() and
+               (int(m.group(3), 16) & 0x00ffffff) for m in window):
+        raise ValueError("pad earned return: no actual post-idle controller input sampled")
     # The fallback script also quits cleanly at frame 11000. A product
     # "quit queued" receipt alone cannot establish that its SDL_QUIT was
     # actually consumed. Require the native host's exit witness strictly
@@ -671,9 +693,19 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     return_archive = return_user / "runs" / "mike"
     return_existing = (set(return_archive.glob("*.urrun"))
                        if return_archive.is_dir() else set())
-    return_log = run_game(exe, rom, return_user,
-                          out / "five_destination_earned_return", "32",
-                          PAD_RACE_RETURN, video, max(timeout, 360))
+    # Only mode 32 needs the bounded actual mapped-input isolation witness.
+    # Keep the diagnostic disabled for every other native acceptance mode.
+    prior_isolation = os.environ.get("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS")
+    try:
+        os.environ["UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS"] = "1"
+        return_log = run_game(exe, rom, return_user,
+                              out / "five_destination_earned_return", "32",
+                              PAD_RACE_RETURN, video, max(timeout, 360))
+    finally:
+        if prior_isolation is None:
+            os.environ.pop("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", None)
+        else:
+            os.environ["UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS"] = prior_isolation
     try:
         verify_five_destination_pad_post_result(return_log)
     except ValueError as exc:

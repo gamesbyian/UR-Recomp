@@ -68,6 +68,10 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertIn("reopened_frame + 900u", SOURCE)
         self.assertIn("reopened_frame + 1070u && !g_confirm_quit", SOURCE)
         self.assertIn("native_sdl_quit_queued=1", SOURCE)
+        product_input = (ROOT / "tools/baldosa_native_product_execution.cpp").read_text(
+            encoding="utf-8")
+        self.assertIn("UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=", product_input)
+        self.assertIn("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", RUNNER)
 
     def test_earned_race_native_log_is_retained_for_independent_qa(self):
         # A summary receipt cannot independently establish the original
@@ -110,7 +114,22 @@ class EarnedControllerJourney(unittest.TestCase):
             "UR_BALDOSA_MODERN_PAD_POST quit_confirm_a=1 prompt=1",
             "UR_BALDOSA_MODERN_ROOT quit_confirmed=1 native_sdl_quit_queued=1",
         ]
-        good = [HOST, *PREFIX, *TAIL, *post,
+        isolation_idle = [
+            f"UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample={n} frame={6500+n} "
+            "incoming=c0000000 guest=c0000000 queued=0000 host_owns=1"
+            for n in (180, 360, 540, 720, 900)
+        ]
+        isolation_press = [
+            "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=916 frame=7416 "
+            "incoming=c0000100 guest=c0000000 queued=0000 host_owns=1",
+            "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=928 frame=7428 "
+            "incoming=c0000080 guest=c0000000 queued=0000 host_owns=1",
+        ]
+        post_with_isolation = [
+            *post[:10], *isolation_idle, post[10],
+            *isolation_press, *post[11:],
+        ]
+        good = [HOST, *PREFIX, *TAIL, *post_with_isolation,
                 "[host +30.064s] exit: SDL_QUIT event after 7176 frames\r"]
         verify_five_destination_pad_post_result("\n".join(good) + "\n")
 
@@ -145,6 +164,27 @@ class EarnedControllerJourney(unittest.TestCase):
             "missing native SDL Quit": [x for x in good if "quit_confirmed=1" not in x],
             "rejected SDL Quit": good + ["UR_BALDOSA_MODERN_ROOT quit_event_rejected"],
             "missing native exit": [x for x in good if "exit: SDL_QUIT" not in x],
+            "missing native input filter samples": [
+                x for x in good if "PRODUCT_INPUT_ISOLATION" not in x
+            ],
+            "incomplete idle isolation": [
+                x for x in good if "sample=720 " not in x
+            ],
+            "guest input leaked during Modern": [
+                x.replace("sample=916 frame=7416 incoming=c0000100 guest=c0000000",
+                          "sample=916 frame=7416 incoming=c0000100 guest=c0000100")
+                for x in good
+            ],
+            "stock menu input queued under Modern": [
+                x.replace("sample=916 frame=7416 incoming=c0000100 guest=c0000000 queued=0000",
+                          "sample=916 frame=7416 incoming=c0000100 guest=c0000000 queued=0080")
+                for x in good
+            ],
+            "no post-idle mapped input": [
+                x.replace("incoming=c0000100", "incoming=c0000000")
+                 .replace("incoming=c0000080", "incoming=c0000000")
+                for x in good
+            ],
             "script-only quit at fallback": [x.replace("after 7176 frames",
                                                     "after 11000 frames") for x in good],
             "duplicate native exit": good + ["[host +30.065s] exit: SDL_QUIT event after 7177 frames\r"],

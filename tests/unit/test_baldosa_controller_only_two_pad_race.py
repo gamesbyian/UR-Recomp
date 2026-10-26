@@ -44,6 +44,7 @@ SOURCE = [
     "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike source=real_guest",
     *STAGES,
     "UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c",
+    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_p2_picker=right seat=2",
     "UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2",
     "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=1",
     "UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190",
@@ -64,6 +65,10 @@ class TwoPadSourceRaceAcceptance(unittest.TestCase):
         self.assertIn("SDL_AttachVirtualJoystick(&desc)", mode)
         self.assertIn("SDL_SetJoystickVirtualButton(", mode)
         self.assertIn("source_phase == 0x8610u", mode)
+        self.assertIn("SDL_GAMEPAD_BUTTON_DPAD_RIGHT", mode)
+        self.assertIn("source_p2_picker=right seat=2", mode)
+        self.assertLess(mode.index("source_p2_picker=right seat=2"),
+                        mode.index("source_start_pulses=5 seats=1,2"))
         self.assertIn("source_input_completed=1 frames=3190", mode)
         self.assertNotIn("SDL_KEYDOWN", mode)
         self.assertNotIn("ur_baldosa_modern_root_gamepad(", mode)
@@ -77,6 +82,9 @@ class TwoPadSourceRaceAcceptance(unittest.TestCase):
         self.assertEqual(result["source_input_frames"], 3190)
         mutants = {
             "no original GO": [x for x in SOURCE if "source_go=1" not in x],
+            "no P2 rider choice": [x for x in SOURCE if "source_p2_picker=" not in x],
+            "wrong P2 choice": [x.replace("source_p2_picker=right", "source_p2_picker=down") for x in SOURCE],
+            "P2 choice after starts": [*SOURCE[:3], SOURCE[4], SOURCE[3], *SOURCE[5:]],
             "no 2P result": [x for x in SOURCE if "NATIVE_RESULT observed" not in x],
             "no source pair": [x for x in SOURCE if "NATIVE_MATCH CAPTURED" not in x],
             "wrong P2 rider": [x.replace("riders=0,1", "riders=0,2") for x in SOURCE],

@@ -214,6 +214,27 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertNotIn("certutil -addstore", script)
 
 
+    def test_launcher_checks_real_staging_writability_before_guest(self):
+        script = candidate.launcher().decode("utf-8")
+        # Existing directory existence and cd /d are not write permission
+        # checks. A refused new-file write must fail before any guest frames.
+        self.assertIn("[IO.FileMode]::CreateNew", script)
+        self.assertIn("[IO.FileAccess]::Write", script)
+        self.assertIn("[IO.FileShare]::None", script)
+        self.assertIn("$s.WriteByte(1); $s.Flush($true)", script)
+        self.assertIn("[IO.File]::Delete($p)", script)
+        self.assertIn("$env:UR_RECOMP_USER_DATA_ROOT", script)
+        self.assertIn("NewGuid().ToString('N')", script)
+        self.assertIn("User folder cannot create, flush and remove a staged file", script)
+        self.assertIn("the game was not started", script)
+        probe = script.index("[IO.FileMode]::CreateNew")
+        self.assertLess(script.index("ReparsePoint"), probe)
+        self.assertLess(probe, script.index('set "SNESRECOMP_USER_DATA_DIR='))
+        self.assertLess(probe, script.index(':UR-BALDOSA-NATIVE-START'))
+        self.assertIn("call :UR-BALDOSA-HOLD & exit /b 3", script)
+        # This check is an early fail-closed diagnostic, not evidence of
+        # full-volume short-write or electrical-outage resilience.
+
     def test_launcher_user_data_root_requires_fully_qualified_path(self):
         script = candidate.launcher().decode("utf-8")
         self.assertEqual(script.count("[IO.Path]::IsPathRooted($d)"), 1)

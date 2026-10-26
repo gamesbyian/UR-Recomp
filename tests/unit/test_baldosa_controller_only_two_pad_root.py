@@ -41,7 +41,7 @@ STAGES = [
 class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
     def test_source_uses_two_real_sdl_seats_and_no_keyboard_shortcut(self):
         source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(encoding="utf-8")
-        fixture = source.split('if (std::strcmp(opt, "33") == 0) {', 1)[1].split(
+        fixture = source.split('if (std::strcmp(opt, "33") == 0 || std::strcmp(opt, "34") == 0) {', 1)[1].split(
             "    // CI-only mode 19:", 1
         )[0]
         self.assertIn('std::strcmp(fixture, "33") != 0', source)

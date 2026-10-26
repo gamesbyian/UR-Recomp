@@ -79,6 +79,15 @@ def audit(path):
         require(REQUIRED.issubset(set(names)), "missing ROM-free audit membership")
         require(not any(n.lower().endswith((".sfc", ".smc", ".swc", ".fig"))
                         for n in names), "ROM content named in public artifact")
+        # Audit the *whole retained transport*, including optional diagnostic
+        # members. Checking only PE/manifest/binding can quietly approve an
+        # archive whose unrelated member is corrupt or truncated. Bounded
+        # sizes/counts above limit decompression work; never print bytes.
+        try:
+            corrupt_member = archive.testzip()
+        except (OSError, RuntimeError, ValueError, EOFError) as exc:
+            raise ValueError("artifact ZIP member CRC/decompression failure") from exc
+        require(corrupt_member is None, "artifact ZIP member CRC mismatch")
         exe = archive.read(EXE)
         require(len(exe) <= MAX_PE_BYTES, "oversized PE")
         offset = pe_header(exe)

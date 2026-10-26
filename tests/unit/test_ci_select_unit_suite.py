@@ -17,15 +17,15 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertEqual(classify([f(path)]), "ops")
         self.assertEqual(classify([f("tools/agent_control.py"),
                                    f("tests/unit/test_agent_control.py")]), "ops")
+        self.assertEqual(classify([f("tools/report_ci_runtime.py"),
+                                   f("tests/unit/test_report_ci_runtime.py")]), "ops")
         self.assertIn("tests.unit.test_agent_control", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_trigger_policy", FOCUSED_TEST_MODULES)
 
     def test_any_mixed_or_indirect_change_uses_complete_original_suite(self):
         for path in (
-            "tools/report_ci_runtime.py",
             "tools/ci_select_unit_suite.py",
             "tools/strict_vault_manifest.py",
-            "tests/unit/test_report_ci_runtime.py",
             ".github/workflows/tooling-unit-tests.yml",
             "docs/RELEASE-QUALITY-LEDGER.json",
             "native/product/modern_root_menu.hpp",
@@ -112,7 +112,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 10)
+        self.assertEqual(len(OPERATIONS_ONLY), 12)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
         self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY))
 

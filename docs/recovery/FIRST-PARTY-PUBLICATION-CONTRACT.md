@@ -1,6 +1,6 @@
 # First-party Vault-to-GitHub publication contract
 
-Owner direction, 2026-10-22. Applies to manual end-to-end recovery sessions and the five scheduled agents when they encounter preserved first-party source. This is a **publication** policy, not an exemption from branch protection, ROM/rights boundaries, independent QA or release gates. The current assignment board remains `docs/HOURLY-AGENT-LINES.md`.
+Owner direction, 2026-10-22. Applies to manual end-to-end recovery sessions and the five scheduled agents when they encounter preserved first-party source. This is a **publication** policy, not an exemption from branch protection, ROM/rights boundaries, independent QA or release gates. The live [shared ranked assignment board](../HOURLY-AGENT-LINES.md) applies equally to all five interchangeable scheduled agents. The owner's [ROM research-access policy](../OWNER-ROM-RESEARCH-RISK-PRIORITY.md) rejects secrecy-driven friction based only on discoverability.
 
 ## The default presumption
 
@@ -14,7 +14,7 @@ Do not treat these as interchangeable. **Get useful work to GitHub first; qualif
 
 ## Minimal prepublication checks
 
-- Confirm actual member integrity and rights/privacy boundaries; do not publish ROMs, restricted captures, credentials or unsupported binary data.
+- Confirm actual source/member integrity, real rights/platform constraints and credential/user-data safety. The owner's acceptance of public ROM/derived-data discoverability risk means research must not be delayed by speculative secrecy controls; it grants no redistribution license or right to bypass an explicit platform refusal.
 - Identify source revision, changed files, existing tests, and whether the same work already exists in `main` or an accessible PR. Perform a bounded current-head comparison.
 - Prefer publishing original source/test bytes with provenance and stated limitations. Make necessary conflict fixes only, not a speculative rewrite. Keep one small PR per coherent reusable implementation.
 - When code still conflicts, publish the intact non-prohibited original material on a clearly named recovery branch/draft PR as appropriate, rather than waiting for an unrelated acceptance campaign; clearly mark integration work outstanding. Never force a broken branch into `main`.
@@ -30,6 +30,6 @@ A rejected invocation alone does **not** establish that the first-party source i
 
 ## Division of labor and accounting
 
-One **end-to-end manual recovery agent** owns scout → branch/draft PR → source adaptation → relevant CI → merge/disposition. Do not create a new team or approval queue. Five hourly agents retain existing board-assigned engineering roles; they produce legitimate original work, and a manual recovery agent picks up stranded packages without duplicating genuinely active writes. Ownership is per **specific active branch/file/candidate**, not inferred from an old PR.
+One **end-to-end manual recovery agent** owns scout → branch/draft PR → source adaptation → relevant CI → merge/disposition. Do not create a new team or approval queue. Five hourly agents now select from one shared pool, including relevant Vault integration jobs; there is no assigned recovery agent or exclusive merge writer. A manual integrator may also advance stranded packages without duplicating genuinely active writes. Ownership is per **specific active branch/file/candidate**, not inferred from an old PR.
 
 Prefer useful source publication over administrative cleanup. Use existing PRs, #2088 and minimal work-ID pointers rather than growing shadow ledgers. Report **new GitHub publications, merges, substantive capability, honest checks and remaining unpublished source** separately from Evidence moves and already-merged duplicates. Existing vault files and intentional owner deletions remain untouched absent specific disposition.

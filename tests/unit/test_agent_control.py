@@ -51,49 +51,39 @@ class AgentBoardControlTests(unittest.TestCase):
         cls.text = BOARD.read_text(encoding="utf-8")
         cls.board = extract_board(cls.text)
 
-    def test_live_board_exactly_five_agents_ten_unique_lines(self):
+    def test_shared_pool_and_staggered_schedule(self):
         board = self.board
+        self.assertEqual(board["schema"], "ur-agent-control/2")
+        self.assertEqual(board["selection"], "ranked_shared_pool_top_five")
         self.assertEqual(len(board["agents"]), 5)
-        self.assertEqual(len(board["work"]), 10)
+        self.assertGreaterEqual(len(board["work"]), 10)
         self.assertEqual(
-            sorted(n for a in board["agents"] for n in a["anchors"]),
-            list(range(1, 11)),
-        )
-        # The board owns assignment changes; no test freezes Agent 4's
-        # historical pair or prevents an authorized reshuffle.
-        for agent in board["agents"]:
-            self.assertEqual(
-                agent["work_ids"],
-                [board["work"][number - 1]["work_id"] for number in agent["anchors"]],
-            )
+            [a["minute"] for a in board["agents"]], [0, 12, 24, 36, 48])
+        self.assertTrue(all(a["selection"] == "shared_pool_top_five"
+                            and "anchors" not in a for a in board["agents"]))
+        self.assertEqual(
+            [job["position"] for job in board["work"]],
+            list(range(1, len(board["work"]) + 1)))
 
-    def test_duplicate_anchor_is_rejected(self):
-        first = self.board["agents"][0]["anchors"][0]
+    def test_fixed_lane_regression_is_rejected(self):
         bad = replace_table_cell(
             self.text, "**Agent 1**", 3,
-            f"**{first} first anchor + {first} duplicated anchor**",
-        )
-        self.assertNotEqual(bad, self.text)
-        with self.assertRaisesRegex(ValueError, "duplicate or invalid agent anchors"):
+            "**1 Windows owner + 2 storage owner**")
+        with self.assertRaisesRegex(ValueError, "shared five-job pool"):
             extract_board(bad)
 
-    def test_missing_shard_fails_closed(self):
-        line = self.board["work"][0]
-        number = line["position"]
-        bad = replace_table_cell(
-            self.text, str(number), 4,
-            f"{number}a: {line['shards']['a']}; {number}b: {line['shards']['b']}",
-        )
-        self.assertNotEqual(bad, self.text)
-        with self.assertRaisesRegex(ValueError, "expected a/b/c shards"):
+    def test_missing_board_entry_is_rejected(self):
+        lines = self.text.splitlines(keepends=True)
+        lines = [s for s in lines if not s.startswith("| 2 | UR-")]
+        with self.assertRaisesRegex(ValueError, "contiguous ranked"):
+            extract_board("".join(lines))
+
+    def test_unrecognized_job_state_is_rejected(self):
+        bad = replace_table_cell(self.text, "1", 3, "merged")
+        with self.assertRaisesRegex(ValueError, "invalid work state"):
             extract_board(bad)
 
-    def test_board_start_minutes_match_the_five_installed_schedules(self):
-        expected = {1: 0, 2: 12, 3: 24, 4: 36, 5: 48}
-        self.assertEqual(
-            {row["number"]: row["minute"] for row in self.board["agents"]},
-            expected,
-        )
+    def test_schedule_drift_is_rejected(self):
         for original, altered in (
             ("**:00**", "**:01**"),
             ("**:12**", "**:13**"),
@@ -103,29 +93,35 @@ class AgentBoardControlTests(unittest.TestCase):
         ):
             with self.subTest(original=original):
                 bad = self.text.replace(original, altered, 1)
-                self.assertNotEqual(bad, self.text)
                 with self.assertRaisesRegex(ValueError, "differs from installed schedule"):
                     extract_board(bad)
 
-    def test_dated_work_ids_parse_without_changing_agent_schedule(self):
-        # Synthetic replacement: future board owners may rename all lines.
+    def test_new_work_id_can_be_reprioritized(self):
         dated = "UR-VAULT-CONTRACT-20991231"
-        amended = replace_table_cell(self.text, "1", 2, dated)
-        new_board = extract_board(amended)
+        new_board = extract_board(
+            replace_table_cell(self.text, "1", 2, dated))
         self.assertEqual(new_board["work"][0]["work_id"], dated)
-        self.assertEqual(
-            [agent["minute"] for agent in new_board["agents"]],
-            [agent["minute"] for agent in self.board["agents"]])
+        self.assertEqual([a["minute"] for a in new_board["agents"]],
+                         [a["minute"] for a in self.board["agents"]])
 
-    def test_invalid_dated_work_id_is_not_silently_assigned(self):
-        broken = replace_table_cell(
-            self.text, "1", 2, "UR-VAULT-EXTRACT-NOT-A-DATE")
-        with self.assertRaisesRegex(ValueError, "ten unique active work lines"):
-            extract_board(broken)
+    def test_invalid_work_id_rejected(self):
+        bad = replace_table_cell(
+            self.text, "1", 2, "UR-VAULT-NOT-A-DATE")
+        with self.assertRaisesRegex(ValueError, "invalid work ID"):
+            extract_board(bad)
 
-    def test_board_never_scrapes_old_prose_as_dispatch(self):
-        altered = self.text + "\nHistorical reference: UR-OBSOLETE-99 and Agent 9\n"
+    def test_historical_prose_is_not_dispatch(self):
+        altered = self.text + "\nHistoric: UR-OLD-99 Agent 9 anchors 1+2\n"
         self.assertEqual(extract_board(altered), self.board)
+
+    def test_fewer_than_five_eligible_jobs_rejected(self):
+        bad = self.text
+        for n in range(1, len(self.board["work"]) - 3):
+            row = self.board["work"][n - 1]
+            if row["state"] in {"ready", "in_review"}:
+                bad = replace_table_cell(bad, str(n), 3, "hold")
+        with self.assertRaisesRegex(ValueError, "fewer than five selectable jobs"):
+            extract_board(bad)
 
 
 class RecoveryRegistryControlTests(unittest.TestCase):

@@ -396,7 +396,8 @@ jobs:
           assert v["version"] == "1.0.14", ("toolchain version drift", v.get("version"))
           PY
           clang --version | head -n1 | grep -F "22.1.8"
-          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          export SOURCE_DATE_EPOCH
           [[ "$SOURCE_DATE_EPOCH" =~ ^[0-9]{10}$ ]] || {
             echo "::error::source commit timestamp invalid"; exit 1;
           }
@@ -668,6 +669,7 @@ jobs:
           # extracted consumer ZIP will not contain.
           EXE_WIN="$(cygpath -w "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe")"
           export EXE_WIN
+          # shellcheck disable=SC2016 -- this is PowerShell, not Bash interpolation.
           powershell.exe -NoProfile -Command '
             $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
             $vs = & $vswhere -latest -property installationPath

@@ -85,10 +85,22 @@ def live_snapshot(repo="gamesbyian/UR-Recomp"):
             "checks_complete": len(checks["check_runs"]) < 100
                                and checks.get("total_count", 0) <= 100,
         })
-    require(api(repo, f"repos/{repo}/branches/main")["commit"]["sha"] == main,
-            "main advanced during census")
     closed = api(repo, f"repos/{repo}/pulls?state=closed&sort=updated&direction=desc&per_page=30")
     require(isinstance(closed, list), "invalid closed sample")
+    # An agent may update a PR after its individual head/check check. A
+    # complete final list re-read refuses to publish a stale review candidate.
+    # This is a bounded repeat of an existing read, not a second API client.
+    final_pulls = api(repo, f"repos/{repo}/pulls?state=open&per_page=100")
+    require(isinstance(final_pulls, list), "invalid final PR census")
+    def identity(rows):
+        return [(item["number"], item["head"]["sha"],
+                 item.get("draft"), item["base"]["sha"])
+                for item in rows[:MAX_PRS]]
+    require(identity(final_pulls) == identity(pulls)
+            and len(final_pulls) == len(pulls),
+            "open PR head, draft, base or population changed during census")
+    require(api(repo, f"repos/{repo}/branches/main")["commit"]["sha"] == main,
+            "main advanced during census")
     return {
         "schema": "UR-GITHUB-PR-SNAPSHOT/1", "repository": repo,
         "main_sha": main, "open_census_complete": len(pulls) < 100 and len(pulls) <= MAX_PRS,

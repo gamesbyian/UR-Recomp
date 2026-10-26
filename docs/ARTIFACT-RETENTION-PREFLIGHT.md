@@ -10,7 +10,10 @@ does not download, preserve or republish raw private artifacts.
       --expected-sha d5fb2dd14ecf42eb5a9424bd5da53cd96782daad \
       --json-out /tmp/artifact-retention.json
 
-Requires authenticated gh CLI with read-only Actions access. Offline
+Uses the repository's existing read-only Python API transport in
+`tools/ops_live_status.py`, with optional `GH_TOKEN` or
+`GITHUB_TOKEN` for authenticated Actions access. No separate
+GitHub CLI dependency or custom HTTP implementation. Offline
 replay accepts a saved GitHub runs/{id} response and its original
 runs/{id}/artifacts?per_page=100 response through --saved-run and
 --saved-artifacts. The source/identity/availability checks are

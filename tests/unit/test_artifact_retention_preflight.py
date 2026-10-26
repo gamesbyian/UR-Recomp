@@ -86,6 +86,19 @@ class ArtifactAvailabilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             inspect(RUN, x, expected_sha=SOURCE)
 
+    def test_live_fetch_uses_canonical_read_only_ops_reader(self):
+        from unittest.mock import patch, MagicMock
+        getter = MagicMock(return_value={"id": 42})
+        with patch("tools.artifact_retention_preflight.github_reader",
+                   return_value=getter) as connector:
+            value = __import__(
+                "tools.artifact_retention_preflight",
+                fromlist=["github_get"]).github_get(
+                    "gamesbyian/UR-Recomp", "actions/runs/42")
+        self.assertEqual(value["id"], 42)
+        connector.assert_called_once()
+        getter.assert_called_once_with("/repos/gamesbyian/UR-Recomp/actions/runs/42")
+
     def test_run_metadata_not_release_authority(self):
         x = inspect(RUN, listing(), expected_sha=SOURCE,
                     now="2026-10-27T01:00:00Z")

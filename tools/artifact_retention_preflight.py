@@ -9,9 +9,14 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
-import subprocess
+
+try:
+    from .ops_live_status import reader as github_reader
+except ImportError:
+    from ops_live_status import reader as github_reader
 
 HEX40 = re.compile(r"[a-f0-9]{40}\Z")
 HEX64 = re.compile(r"[a-f0-9]{64}\Z")
@@ -40,12 +45,12 @@ def github_get(repo, suffix):
             "invalid repository")
     require(re.fullmatch(r"actions/runs/[1-9][0-9]*(?:/artifacts\?per_page=100)?", suffix),
             "unsupported read-only endpoint")
-    proc = subprocess.run(
-        ["gh", "api", f"repos/{repo}/{suffix}"],
-        capture_output=True, text=True, timeout=30, check=False)
-    require(proc.returncode == 0, "GitHub metadata unavailable")
-    require(len(proc.stdout) < 2_000_000, "oversized metadata")
-    return json.loads(proc.stdout)
+    # Reuse canonical live-ops URL allowlist, token, timeout, and API errors.
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
+    result = github_reader(token)(f"/repos/{repo}/{suffix}")
+    require(len(json.dumps(result, ensure_ascii=True)) < 2_000_000,
+            "oversized metadata")
+    return result
 
 
 def inspect(run, listing, *, expected_sha=None, now=None, warning_hours=48):

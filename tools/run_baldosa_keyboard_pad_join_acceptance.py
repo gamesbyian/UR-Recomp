@@ -301,23 +301,23 @@ def verify_controller_only_two_pad_root(log: str) -> None:
     """
     verify_two_virtual_pads(log)
     selections = re.findall(
-        r"(?m)^UR_BALDOSA_MODERN_ROOT selected=(\\d+)\\r?$", log
+        r"(?m)^UR_BALDOSA_MODERN_ROOT selected=(\d+)\r?$", log
     )
     if selections != ["1", "2"]:
         raise ValueError(f"controller-only 2P root: wrong selections {selections}")
     stages = (
-        r"^UR_BALDOSA_MODERN_TITLE entered_root=1 frame=\\d+ input_owned=1\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT selected=1\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT practice_opened=1 available=\\d+ course=\\d+ source_menu_required=1\\r?$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker\\b[^\\r\\n]*source=modern_product_view\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT practice_closed=1\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT selected=2\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\\r?$",
-        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join\\b[^\\r\\n]*source=modern_product_view\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT stock_requested players=2\\r?$",
-        r"^UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\\r?$",
+        r"^UR_BALDOSA_MODERN_TITLE entered_root=1 frame=\d+ input_owned=1\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=1\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT practice_opened=1 available=\d+ course=\d+ source_menu_required=1\r?$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker\b[^\r\n]*source=modern_product_view\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT practice_closed=1\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=2\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\r?$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join\b[^\r\n]*source=modern_product_view\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT stock_requested players=2\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\r?$",
     )
     positions = []
     for stage in stages:

@@ -24,6 +24,7 @@ EXPECTED_PATHS = (
     "${{ runner.temp }}/windows-romfree-binary/binding.json",
     "${{ runner.temp }}/windows-tournament-candidate.txt",
     "${{ runner.temp }}/tournament-qa-envelope.json",
+    "!${{ runner.temp }}/**/*.sram.bin",
 )
 
 
@@ -88,6 +89,12 @@ class PolicyNegatives(unittest.TestCase):
         fixture = self.valid_source().replace(
             "python tools/ci/stage_windows_smoke_romfree_exe.py", "echo skipped")
         with self.assertRaisesRegex(ValueError, "staging"):
+            check_workflow(fixture)
+
+    def test_disallows_reexposed_sram_dumps(self):
+        fixture = self.valid_source().replace(
+            "            !${{ runner.temp }}/**/*.sram.bin\\n", "")
+        with self.assertRaisesRegex(ValueError, "allowlist"):
             check_workflow(fixture)
 
     def test_disallows_internal_zip(self):

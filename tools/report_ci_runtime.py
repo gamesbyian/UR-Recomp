@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
+from statistics import median
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,30 @@ def elapsed_seconds(start_value: str | None, end_value: str | None) -> float:
     if not start or not end or end < start:
         return 0.0
     return (end - start).total_seconds()
+
+
+def observed_completed_wall_seconds(start_value, end_value) -> float | None:
+    """None means timing unavailable, not an observed zero-second run."""
+    try:
+        start = parse_time(start_value)
+        end = parse_time(end_value)
+    except (ValueError, TypeError, OverflowError):
+        return None
+    if (start is None or end is None or start.tzinfo is None
+            or end.tzinfo is None or end < start):
+        return None
+    return (end - start).total_seconds()
+
+
+def p90_nearest_rank(samples: list[float]) -> float | None:
+    """90th percentile by nearest rank, with no invented zero for empty data."""
+    if not samples:
+        return None
+    return sorted(samples)[(9 * len(samples) + 9) // 10 - 1]
+
+
+def elapsed_minutes_or_unknown(value) -> str:
+    return "unknown" if value is None else f"{value / 60:.1f}"
 
 
 def step_bucket(name: str) -> str:
@@ -187,6 +212,8 @@ def summarize(
     groups: dict[str, dict[str, Any]] = defaultdict(lambda: {
         "runs": 0,
         "completed_runs": 0,
+        "timed_completed_runs": 0,
+        "completed_runs_missing_wall_timing": 0,
         "cancelled_runs": 0,
         "failed_runs": 0,
         "jobs": 0,
@@ -215,6 +242,7 @@ def summarize(
         "bucket": "other",
     })
     included = 0
+    observed_wall_by_workflow: dict[str, list[float]] = defaultdict(list)
     source_runs = payload.get("workflow_runs", [])
     source_created = [parse_time(run.get("created_at")) for run in source_runs]
     source_created = [created for created in source_created if created is not None]
@@ -253,17 +281,22 @@ def summarize(
             row["failed_runs"] += 1
 
         started_value = run.get("run_started_at") or run.get("created_at")
-        wall_seconds = elapsed_seconds(started_value, run.get("updated_at"))
-        # A queued or running workflow's updated_at is not an end time.
-        # Including it silently understates the baseline and contaminates
-        # averages used to decide which gate needs optimization.
+        wall_seconds = observed_completed_wall_seconds(
+            started_value, run.get("updated_at"))
+        # The updated_at field is only a valid end time for completed runs.
+        # Missing/reversed timestamps must not bias measured averages to zero.
         if run.get("status") == "completed":
-            row["total_wall_seconds"] += wall_seconds
-            row["max_wall_seconds"] = max(row["max_wall_seconds"], wall_seconds)
+            if wall_seconds is None:
+                row["completed_runs_missing_wall_timing"] += 1
+            else:
+                observed_wall_by_workflow[name].append(wall_seconds)
+                row["timed_completed_runs"] += 1
+                row["total_wall_seconds"] += wall_seconds
+                row["max_wall_seconds"] = max(row["max_wall_seconds"], wall_seconds)
         row["run_queue_seconds"] += elapsed_seconds(
             run.get("created_at"), run.get("run_started_at")
         )
-        if run.get("conclusion") == "cancelled":
+        if run.get("conclusion") == "cancelled" and wall_seconds is not None:
             row["cancelled_wall_seconds"] += wall_seconds
 
         run_id = run.get("id")
@@ -305,9 +338,12 @@ def summarize(
     workflows = []
     for name, row in groups.items():
         row["workflow"] = name
+        measured = observed_wall_by_workflow[name]
         row["avg_wall_seconds"] = (
-            row["total_wall_seconds"] / row["completed_runs"] if row["completed_runs"] else 0.0
+            row["total_wall_seconds"] / len(measured) if measured else None
         )
+        row["p50_wall_seconds"] = median(measured) if measured else None
+        row["p90_wall_seconds"] = p90_nearest_rank(measured)
         row["avg_run_queue_seconds"] = (
             row["run_queue_seconds"] / row["runs"] if row["runs"] else 0.0
         )
@@ -362,13 +398,19 @@ def markdown(report: dict[str, Any]) -> str:
         f"Sample created-at range: {report.get('sample_oldest_created_at') or 'unknown'} to {report.get('sample_newest_created_at') or 'unknown'}",
         f"Requested lookback fully covered: {'yes' if report.get('window_census_complete') else 'NO (sample only; do not infer 7-day totals)'}",
         "",
-        "| Workflow | Runs | Total min | Avg min | Max min | Run queue avg | Job queue avg | Dependencies | Build | Execution | Cancelled min | Failed |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "Completed runs lacking timestamps are explicitly excluded from observed wall-time averages and percentiles; p90 uses nearest rank.",
+        "| Workflow | Runs | Timed completed | Missing timing | Total min | Avg min | p50 min | p90 min | Max min | Run queue avg | Job queue avg | Dependencies | Build | Execution | Cancelled min | Failed |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in report["workflows"]:
         lines.append(
-            f"| {row['workflow']} | {row['runs']} | {row['total_wall_seconds']/60:.1f} | "
-            f"{row['avg_wall_seconds']/60:.1f} | {row['max_wall_seconds']/60:.1f} | "
+            f"| {row['workflow']} | {row['runs']} | "
+            f"{row['timed_completed_runs']} | {row['completed_runs_missing_wall_timing']} | "
+            f"{row['total_wall_seconds']/60:.1f} | "
+            f"{elapsed_minutes_or_unknown(row['avg_wall_seconds'])} | "
+            f"{elapsed_minutes_or_unknown(row['p50_wall_seconds'])} | "
+            f"{elapsed_minutes_or_unknown(row['p90_wall_seconds'])} | "
+            f"{row['max_wall_seconds']/60:.1f} | "
             f"{row['avg_run_queue_seconds']/60:.1f} | {row['avg_job_queue_seconds']/60:.1f} | "
             f"{row['dependency_seconds']/60:.1f} | {row['build_seconds']/60:.1f} | "
             f"{row['execution_seconds']/60:.1f} | {row['cancelled_wall_seconds']/60:.1f} | "

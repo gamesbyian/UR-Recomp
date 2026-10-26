@@ -3066,10 +3066,27 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 // pads, with two-frame Start presses and 200-frame settling.
                 // Andrew is the independently created P2 profile in this
                 // journey; changing its stock rider would invalidate binding.
+                // The real stock P2 picker needs a directional selection
+                // before its Start. The earlier five-Start-only fixture
+                // remained in F60C for 10,000 frames (Win32 #40337863432).
+                // The established ordinary 2P Mike/Andrew source route uses
+                // P2 Right, then P2 Start; Down selects a different rider.
+                // Keep both actions on the actual SDL P2 device.
+                if (frame == two_setup_start + 202u ||
+                    frame == two_setup_start + 204u) {
+                    if (!pads[1] || !SDL_SetJoystickVirtualButton(
+                            pads[1], SDL_GAMEPAD_BUTTON_DPAD_RIGHT,
+                            frame == two_setup_start + 202u))
+                        std::abort();
+                    if (frame == two_setup_start + 204u)
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_MODERN_TWO_PAD_RACE source_p2_picker=right seat=2\n");
+                    return;
+                }
                 struct TwoStep { unsigned offset; int seat; };
                 static constexpr TwoStep start_steps[] = {
-                    {0u, 0}, {202u, 1}, {404u, 0},
-                    {606u, 0}, {808u, 0},
+                    {0u, 0}, {234u, 1}, {436u, 0},
+                    {638u, 0}, {840u, 0},
                 };
                 for (const auto& step : start_steps) {
                     if (frame != two_setup_start + step.offset &&
@@ -3079,7 +3096,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                             pads[step.seat], SDL_GAMEPAD_BUTTON_START,
                             frame == two_setup_start + step.offset))
                         std::abort();
-                    if (step.offset == 808u &&
+                    if (step.offset == 840u &&
                         frame == two_setup_start + 2u + step.offset) {
                         two_stage = 2;
                         std::fprintf(stderr,
@@ -3087,6 +3104,14 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                     }
                     return;
                 }
+            }
+            // One bounded source-state diagnostic if the real GO barrier
+            // remains absent. Never advance the race or mint a result here.
+            if (two_stage == 2 && frame == two_setup_start + 2000u) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go_pending=1 menu=%02x phase=%04x ticker=%u\\n",
+                    static_cast<unsigned>(g_ram[0x009fu]), source_phase,
+                    static_cast<unsigned>(g_ram[0x0e1fu]));
             }
             if (two_stage == 2 && source_phase == 0x8610u &&
                 g_ram[0x0e1fu] != 0u) {

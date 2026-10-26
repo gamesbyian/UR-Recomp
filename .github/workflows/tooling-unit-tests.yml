@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - "tools/**"
-      - "tests/test_remaining_work_forecast.py"
       - "tests/unit/**"
       - "tests/native/**/*.c"
       # QA-10 Original 7:6/PAR and UHD viewport source+fixture must run

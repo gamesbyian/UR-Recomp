@@ -55,7 +55,8 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope == 'both' || inputs.scope == matrix.scope }}
         run: python -m unittest tests.unit.test_vault_scheduled_intake -v
       - name: Install pinned public Drive downloader
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.scope == 'both' || inputs.scope == matrix.scope }}
+        # PR validation is offline. Only actual intake uses the downloader.
+        if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.scope == 'both' || inputs.scope == matrix.scope) }}
         run: python -m pip install 'gdown==6.4.2'
       - name: Restore most recent preserved checkpoint from main runs
         if: ${{ github.event_name != 'pull_request' && (github.event_name == 'schedule' || inputs.scope == 'both' || inputs.scope == matrix.scope) }}

@@ -17,6 +17,48 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(report["workflows"][1]["cancelled_runs"], 1)
         self.assertEqual(report["workflows"][1]["cancelled_wall_seconds"], 300)
 
+    def test_wall_percentiles_exclude_completed_runs_without_valid_timing(self):
+        runs = [
+            {"id": 1, "name": "Gate", "status": "completed",
+             "created_at": "2026-10-20T10:00:00Z",
+             "run_started_at": "2026-10-20T10:00:00Z",
+             "updated_at": "2026-10-20T10:02:00Z"},
+            {"id": 2, "name": "Gate", "status": "completed",
+             "created_at": "2026-10-20T10:00:00Z",
+             "run_started_at": "2026-10-20T10:00:00Z",
+             "updated_at": "2026-10-20T10:05:00Z"},
+            {"id": 3, "name": "Gate", "status": "completed",
+             "created_at": "2026-10-20T10:00:00Z",
+             "run_started_at": "2026-10-20T10:00:00Z",
+             "updated_at": None},
+            {"id": 4, "name": "Gate", "status": "in_progress",
+             "created_at": "2026-10-20T10:00:00Z",
+             "run_started_at": "2026-10-20T10:00:00Z",
+             "updated_at": "2026-10-20T10:01:00Z"},
+            {"id": 5, "name": "Empty", "status": "completed",
+             "created_at": "2026-10-20T10:00:00Z",
+             "run_started_at": "2026-10-20T10:03:00Z",
+             "updated_at": "2026-10-20T10:02:00Z"},
+        ]
+        result = summarize({"workflow_runs": runs}, 72,
+                           datetime(2026, 10, 21, tzinfo=timezone.utc))
+        by_name = {x["workflow"]: x for x in result["workflows"]}
+        gate = by_name["Gate"]
+        self.assertEqual(gate["completed_runs"], 3)
+        self.assertEqual(gate["timed_completed_runs"], 2)
+        self.assertEqual(gate["completed_runs_missing_wall_timing"], 1)
+        self.assertEqual(gate["total_wall_seconds"], 420)
+        self.assertEqual(gate["avg_wall_seconds"], 210)
+        self.assertEqual(gate["p50_wall_seconds"], 210)
+        self.assertEqual(gate["p90_wall_seconds"], 300)
+        self.assertIsNone(by_name["Empty"]["avg_wall_seconds"])
+        self.assertIsNone(by_name["Empty"]["p50_wall_seconds"])
+        self.assertIsNone(by_name["Empty"]["p90_wall_seconds"])
+        report = markdown(result)
+        self.assertIn("p50 min", report)
+        self.assertIn("p90 min", report)
+        self.assertIn("unknown", report)
+
     def test_pending_runs_do_not_pollute_completed_wall_average(self):
         payload = {"workflow_runs": [
             {"id": 11, "name": "Gate", "status": "completed", "conclusion": "success",

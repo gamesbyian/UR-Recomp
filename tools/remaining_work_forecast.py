@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Source-bound scenario ranges for remaining UR-Recomp effort; NOT release dates."""
 import argparse
-import hashlib
 import json
 import random
-import statistics
 from collections import defaultdict
 from pathlib import Path
 
@@ -78,14 +76,15 @@ def calculate(prior, inventory, adjustments=None, samples=3000, seed=20261026):
             if not change.get("reason") or len(change["reason"]) < 12:
                 raise ValueError("Adjustment needs a reason")
             candidates[0]["range"] = _range(change["range"], key)
-    rng = random.Random(seed)
+    # Per-job deterministic streams keep comparisons stable when a task is completed.
+    streams = {job["id"]: random.Random("%s:%s" % (seed, job["id"])) for job in jobs}
     totals = []
     group_samples = defaultdict(list)
     for _ in range(samples):
         group_totals = defaultdict(float)
         for job in jobs:
             low, mode, high = job["range"]
-            group_totals[job["group"]] += rng.triangular(low, high, mode)
+            group_totals[job["group"]] += streams[job["id"]].triangular(low, high, mode)
         for group in set(group_totals) | {"SHARED"}:
             group_samples[group].append(group_totals[group])
         totals.append(sum(group_totals.values()))

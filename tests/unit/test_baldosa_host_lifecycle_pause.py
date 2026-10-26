@@ -55,10 +55,10 @@ class BaldosaHostLifecyclePauseTests(unittest.TestCase):
         self.assertIn('#include "baldosa_native_options_user_root.hpp"', source)
         self.assertEqual(source.count("baldosa_native_options_user_path_utf8()"), 2)
         self.assertNotIn('std::getenv("SNESRECOMP_USER_DATA_DIR")', source)
-        focus = body(source, "bool load_focus_pause_setting() {", "\\n}\\n")
+        focus = body(source, "bool load_focus_pause_setting() {", "\n}\n")
         self.assertIn("load_host_product_state_file(options_path)", focus)
         self.assertIn("if (options_path.empty())", focus)
-        adoption = body(source, "void adopt_live_display(", "\\n}\\n")
+        adoption = body(source, "void adopt_live_display_change() {", "\n}\n")
         self.assertIn("baldosa_options_adopt_live_display(", adoption)
         self.assertIn("options_path, fullscreen, vsync", adoption)
 

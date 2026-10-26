@@ -115,6 +115,50 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
         raise OSError('No audited atomic no-replace directory publish on this host')
 
 
+def _reject_win32_named_streams(path: Path) -> None:
+    """Fail closed when a Windows evidence file has hidden named streams.
+
+    Win32 directory iteration and ordinary file hashes only see the unnamed
+    stream. FindFirstStreamW/FindNextStreamW expose the additional namespace;
+    inability to enumerate is not evidence that no named stream exists.
+    """
+    if os.name != 'nt':
+        return
+    import ctypes
+    from ctypes import wintypes
+
+    class StreamData(ctypes.Structure):
+        _fields_ = [('size', ctypes.c_int64), ('name', ctypes.c_wchar * 296)]
+
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    first = kernel.FindFirstStreamW
+    first.argtypes = (wintypes.LPCWSTR, wintypes.DWORD,
+                      ctypes.POINTER(StreamData), wintypes.DWORD)
+    first.restype = wintypes.HANDLE
+    next_stream = kernel.FindNextStreamW
+    next_stream.argtypes = (wintypes.HANDLE, ctypes.POINTER(StreamData))
+    next_stream.restype = wintypes.BOOL
+    close = kernel.FindClose
+    close.argtypes = (wintypes.HANDLE,)
+    close.restype = wintypes.BOOL
+
+    data = StreamData()
+    handle = first(str(path), 0, ctypes.byref(data), 0)
+    if handle == ctypes.c_void_p(-1).value:
+        raise ValueError(f'Unable to enumerate Windows alternate data streams: {path.name}')
+    try:
+        while True:
+            if data.name.casefold() != '::$data':
+                raise ValueError(f'Named alternate data stream in source evidence: {path.name}')
+            if next_stream(handle, ctypes.byref(data)):
+                continue
+            if ctypes.get_last_error() == 38:  # ERROR_HANDLE_EOF
+                break
+            raise ValueError(f'Unable to complete Windows stream enumeration: {path.name}')
+    finally:
+        close(handle)
+
+
 def _portable_run_namespace_entries(root: Path) -> list[Path]:
     """Refuse nonportable siblings before selecting an earned Windows run.
 
@@ -142,6 +186,11 @@ def _portable_run_namespace_entries(root: Path) -> list[Path]:
         if folded in seen:
             raise ValueError('Win32-colliding sibling in earned-run namespace')
         seen.add(folded)
+    # Win32 enumeration omits ADS. Check each regular namespace member, not
+    # only the selected .urrun; siblings can otherwise carry hidden payloads.
+    for entry in entries:
+        if entry.is_file():
+            _reject_win32_named_streams(entry)
     return entries
 
 
@@ -172,6 +221,7 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     if (journey.is_symlink() or not journey.is_dir() or
             journey.resolve(strict=True) != journey.absolute()):
         raise ValueError('Missing/redirected native Windows journey')
+    _reject_win32_named_streams(journey / 'report.json')
     report_bytes = _regular_bytes(journey / 'report.json', MAX_REPORT_BYTES)
     report = json.loads(report_bytes, object_pairs_hook=_unique_pairs,
                         parse_float=_finite_float, parse_constant=_reject_constant)
@@ -258,6 +308,7 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
         # changed during the relatively long copy/manifest phase must not be
         # presented as the immutable original. This narrows the check/publish
         # window; it cannot eliminate hostile-writer races after this check.
+        _reject_win32_named_streams(journey / 'report.json')
         if (_regular_bytes(journey / 'report.json', MAX_REPORT_BYTES) != report_bytes or
                 _regular_bytes(candidates[0], MAX_RUN_BYTES) != data):
             raise ValueError('Source evidence changed during staging')

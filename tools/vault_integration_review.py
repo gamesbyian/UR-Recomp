@@ -24,6 +24,36 @@ VALID_STATES = {"merged", "superseded", "held", "engineering", "evidence_only",
 # The five scheduled generalists select work from the same ranked board.
 # Live conflicting writes and independent review still govern eligibility.
 SHARED_POOL = "shared_ranked_pool"
+SOURCE_SCOPES = ("incoming", "evidence")
+SOURCE_FILES = ("checkpoint.json", "queue.json", "report.json")
+
+
+def source_run_receipts(path: Path, roots: dict[str, Path]) -> dict:
+    """Identify exact restored intake bytes and their selected Actions runs.
+
+    The download loop supplies these run IDs. Local content hashes are not
+    remote artifact authentication, source publication or release evidence.
+    """
+    by_scope = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = re.fullmatch(r"(incoming|evidence) source run: ([1-9][0-9]{0,14})", line)
+        if not match:
+            raise ValueError("invalid Vault source-run receipt line")
+        scope, run_id = match.groups()
+        if scope in by_scope:
+            raise ValueError("duplicate Vault source-run scope")
+        if scope not in roots:
+            raise ValueError("unavailable Vault source-run scope")
+        hashes = {name: hashlib.sha256((roots[scope] / name).read_bytes()).hexdigest()
+                  for name in SOURCE_FILES}
+        by_scope[scope] = {
+            "source_run_id": int(run_id),
+            "source_run_url": f"https://github.com/gamesbyian/UR-Recomp/actions/runs/{run_id}",
+            "input_sha256": hashes,
+        }
+    if set(by_scope) != set(SOURCE_SCOPES):
+        raise ValueError("missing Incoming or Evidence Vault source-run receipt")
+    return {scope: by_scope[scope] for scope in SOURCE_SCOPES}
 
 
 def load(path: Path):
@@ -294,6 +324,13 @@ def render(doc, max_rows=35):
         lines.append(f"- {s['scope']}: {s['verified']} verified in checkpoint, "
                      f"{s['processed']} inspected this run, {s['errors']} errors; "
                      f"{s['remaining_due']} due")
+    if doc.get("source_artifacts"):
+        lines += ["", "## Exact intake input ancestry", ""]
+        for scope, source in doc["source_artifacts"].items():
+            lines.append(f"- {scope}: {source['source_run_url']}; "
+                         + "; ".join(f"{name} sha256 {digest}"
+                                     for name, digest in source["input_sha256"].items()))
+        lines.append("Locally hashed restored bytes; not independent remote attestation.")
     lines += ["", "## Per-member disposition", ""]
     for k, v in doc["counts"].items():
         lines.append(f"- {k}: {v}")
@@ -340,9 +377,13 @@ def main():
     p.add_argument("--registry", type=Path, default=Path("docs/recovery/agent-candidates.json"))
     p.add_argument("--ledger", type=Path, default=Path("docs/recovery/vault-member-dispositions.json"))
     p.add_argument("--github", type=Path, required=True)
+    p.add_argument("--sources", type=Path, help="per-folder Actions run IDs from intake restoration")
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
     doc = assemble(args.incoming, args.evidence, args.registry, args.ledger, args.github)
+    if args.sources is not None:
+        doc["source_artifacts"] = source_run_receipts(
+            args.sources, {"incoming": args.incoming, "evidence": args.evidence})
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "actionable.json").write_text(json.dumps(doc, indent=2, sort_keys=True) + "\n")
     (args.out / "actionable.md").write_text(render(doc))

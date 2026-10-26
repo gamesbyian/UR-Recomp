@@ -1,7 +1,7 @@
 {
   "schema": "ur-v2-review-pointer/1",
-  "previous": "docs/progress/v2-review-checkpoint-20261024T2008.json",
-  "interval": "docs/progress/v2-review-interval-20261024T2010.json",
-  "reviewed_main_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
-  "note": "Advance only with source review and a complete new interval; the CLI must still receive the explicitly reviewed --reviewed-head and reject stale values."
+  "previous": "docs/progress/v2-review-interval-20261024T2010.json",
+  "interval": "docs/progress/v2-review-interval-20261026T2253.json",
+  "reviewed_main_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "note": "Source-screened exact 119-commit interval. Candidate v2 50%, independent bounded audit 8%. Recent outcome +1pp ONE-08, historical omission correction +1pp ART-01. Physical QA gates and 45 USA events remain zero; review does not assert full live binary physical acceptance."
 }

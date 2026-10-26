@@ -206,6 +206,7 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertEqual(report["recovery_workflows"]["intake"]["run_id"], 4124)
         self.assertEqual(report["recovery_workflows"]["review"]["status"], "OVERDUE_REVIEW")
         self.assertIn("OVERDUE_REVIEW", markdown(report))
+        self.assertFalse(required_live_sources_present(report))
 
     def test_unavailable_vault_workflow_api_cannot_make_ops_monitor_green(self):
         def forbidden(path):

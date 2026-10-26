@@ -4,7 +4,7 @@
 
 This is the **small orientation and enduring contract**, not a progress diary. The [live work queue](docs/WORK-QUEUE.md) owns priority, the [durable project plan](docs/PROJECT-PLAN.md) owns product intent, the [document map](docs/README.md) owns reference routing and [release quality ledger](docs/RELEASE-QUALITY-LEDGER.json) alone owns acceptance. For a compact, non-authoritative 12-gate review packet at a specific checked-out commit, use `python3 tools/release_evidence_brief.py --source-sha $(git rev-parse HEAD)`; see [its limits](docs/RELEASE-EVIDENCE-BRIEF.md). Read current source, PRs and recent merged evidence before trusting a dated description. An unclosed test, ongoing research or tool prototype does not grant a release gate.
 
-For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-runtime preflight, use python3 tools/agent_release_control.py --live --lane release-qa --gate QA-04 (GitHub read token); see docs/AGENT-RELEASE-CONTROL-PREFLIGHT.md. Results are advisory and never replace the owning board or ledger.
+For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-runtime preflight, use python3 tools/agent_release_control.py --live --lane release-qa --gate QA-04 (GitHub read token); see docs/AGENT-RELEASE-CONTROL-PREFLIGHT.md. Results are advisory and never replace the owning board or ledger. For a source-matched artifact-expiry decision, create metadata-only JSON with `tools/artifact_retention_preflight.py --live-run-id RUN_ID --expected-sha EXACT_HEAD --json-out FILE` and pass `--artifact-availability FILE` to the live preflight; reported availability is not independently audited bytes.
 
 ## Dispatch and task routes
 

@@ -12,7 +12,10 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 import struct
-import zipfile
+try:
+    from .audit_windows_smoke_artifact import _open_transport
+except ImportError:
+    from audit_windows_smoke_artifact import _open_transport
 
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -55,7 +58,7 @@ def audit(path):
     require(path.is_file() and not path.is_symlink(), "missing or redirected archive")
     require(path.stat().st_size <= MAX_ARTIFACT_BYTES, "outer artifact too large")
     outer = sha(path.read_bytes())
-    with zipfile.ZipFile(path) as archive:
+    with _open_transport(path) as archive:
         infos = archive.infolist()
         require(len(infos) <= MAX_MEMBERS, "too many artifact members")
         names = [i.filename for i in infos]

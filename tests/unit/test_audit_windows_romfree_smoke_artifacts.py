@@ -101,6 +101,18 @@ class WindowsRomfreeAuditTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "alias"):
                 m.audit(p)
 
+    def test_rejects_hidden_zip_prefix_using_shared_transport_parser(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp)/"a.zip"
+            fixture(p)
+            original = p.read_bytes()
+            # zipfile can often read a self-extracting prefix by adjusting
+            # central offsets; the repository's canonical transport reader
+            # must reject unindexed bytes before auditing published receipts.
+            p.write_bytes(b"NOT_A_CANONICAL_ZIP" + original)
+            with self.assertRaisesRegex(ValueError, "noncanonical transport"):
+                m.audit(p)
+
     def test_rejects_more_than_eight_for_bounded_work(self):
         with self.assertRaisesRegex(ValueError, "eight"):
             m.compare([Path("missing.zip")] * 9)

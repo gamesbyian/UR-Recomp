@@ -39,3 +39,12 @@ must still be independently checked. No gate is promoted by this auditor.
 Run the ROM-free negative tests locally or in existing tooling CI:
 
     python3 -m unittest tests.unit.test_audit_windows_romfree_smoke_artifacts -v
+
+The wrapper's local/central member structure is validated using the
+**existing shared** `tools.audit_windows_smoke_artifact._open_transport`
+parser, rather than maintaining an additional ZIP local-header implementation.
+This rejects ZIP comments/prefixes, unindexed local members and mismatched
+local data descriptors before any PE hash is considered. Both original
+Windows Actions artifacts from #2601 were independently checked against
+these strict structural rules and satisfy them; this is still not proof of
+their private full ZIP bytes or release acceptance.

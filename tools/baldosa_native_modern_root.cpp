@@ -85,6 +85,7 @@ int snesrecomp_desktop_product_seat_move(int from, int to);
 #include <filesystem>
 #include <string>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 #include <utility>
 
@@ -155,6 +156,10 @@ bool g_original_attract_woken = false;
 bool g_original_attract_main_recovered = false;
 std::uint16_t g_original_attract_main_stable = 0;
 int g_original_attract_p2_release_button = -1;
+// Unknown wake buttons are host-owned through their matching release.
+// Do not consume unrelated keys/buttons once the settled title is restored.
+std::unordered_set<int> g_original_attract_unknown_key_releases;
+std::unordered_set<int> g_original_attract_unknown_pad_releases;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -1166,6 +1171,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_original_attract_main_recovered = false;
     g_original_attract_main_stable = 0;
     g_original_attract_p2_release_button = -1;
+    g_original_attract_unknown_key_releases.clear();
+    g_original_attract_unknown_pad_releases.clear();
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1271,6 +1278,12 @@ void wake_original_stock_attract() {
 }
 
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
+    // Unknown keys that woke the original demo remain host-owned until
+    // release, even though the wake has already restored the Modern title.
+    if (g_original_attract_unknown_key_releases.count(key)) {
+        if (!pressed) g_original_attract_unknown_key_releases.erase(key);
+        return 1;
+    }
     // The authentic demo's first keyboard wake is always consumed. Unknown
     // keyboard keys also restore the title, never reach the hidden guest.
     if (g_original_attract_visible) {
@@ -1278,7 +1291,10 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
             key == SDLK_RETURN || key == SDLK_ESCAPE || key == SDLK_x ||
             key == SDLK_LEFT || key == SDLK_RIGHT;
         if (!known) {
-            if (pressed) wake_original_stock_attract();
+            if (pressed) {
+                g_original_attract_unknown_key_releases.insert(key);
+                wake_original_stock_attract();
+            }
             return 1;
         }
     }
@@ -1376,6 +1392,12 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         return reopen_on_observed_stock_main() ? 1 : 0;
     }
     if (player != 0) return 0;
+    // A P1 button unsupported by the root can still wake the original demo.
+    // Consume its later release, but not unrelated buttons on the title.
+    if (g_original_attract_unknown_pad_releases.count(button)) {
+        if (!pressed) g_original_attract_unknown_pad_releases.erase(button);
+        return 1;
+    }
     // Keyboard + one pad: the keyboard has confirmed P1 and seat 2 has no
     // pad, so the seat-0 pad's Confirm is a P2 join. The pad moves seats
     // (its held bits are released by the host) and this press is consumed;
@@ -1404,7 +1426,15 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     case kGamepadBtn_X: physical = 5; action = 4; break;
     case kGamepadBtn_DpadLeft: physical = 6; action = 5; break;
     case kGamepadBtn_DpadRight: physical = 7; action = 6; break;
-    default: return 0;
+    default:
+        if (g_original_attract_visible) {
+            if (pressed) {
+                g_original_attract_unknown_pad_releases.insert(button);
+                wake_original_stock_attract();
+            }
+            return 1;
+        }
+        return 0;
     }
     // A and Start keep separate physical latches while sharing Confirm.
     // P2 never owns this root. These latches do not alter the guest word.

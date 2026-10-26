@@ -68,6 +68,10 @@ def job_parallelism_profile(jobs: list[dict[str, Any]]) -> dict[str, float] | No
     """
     intervals: list[tuple[datetime, datetime]] = []
     for job in jobs:
+        # GitHub can populate synthetic timestamps for skipped matrix jobs,
+        # even in reverse order. They never occupied a runner.
+        if job.get("conclusion") == "skipped":
+            continue
         start = parse_time(job.get("started_at"))
         end = parse_time(job.get("completed_at"))
         if start and end and end > start:

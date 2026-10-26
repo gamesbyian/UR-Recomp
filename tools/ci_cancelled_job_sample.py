@@ -22,6 +22,10 @@ def check_complete_intervals(jobs):
             if type(jid) is not int or jid <= 0 or jid in seen_ids:
                 raise ValueError("duplicate or invalid job ID")
             seen_ids.add(jid)
+        # A skipped job is unstarted even if GitHub emits synthetic/reversed
+        # timestamps. Preserve job ID uniqueness without treating it as time.
+        if job.get("conclusion") == "skipped":
+            continue
         started = job.get("started_at")
         completed = job.get("completed_at")
         if started is None and completed is None:

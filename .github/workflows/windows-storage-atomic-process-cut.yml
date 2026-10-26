@@ -61,7 +61,7 @@ jobs:
             '@echo off',
             "call `"$vcvars`"",
             'if errorlevel 1 exit /b 1',
-            "cl /nologo /std:c++17 /EHsc /W3 /I`"$include`" `"$source`" /Fe:`"$exe`"",
+            "cl /nologo /DUR_ATOMIC_REPLACE_TEST_DIAGNOSTICS=1 /std:c++17 /EHsc /W3 /I`"$include`" `"$source`" /Fe:`"$exe`"",
             'if errorlevel 1 exit /b 1',
             "`"$exe`"",
             'if errorlevel 1 exit /b 1',

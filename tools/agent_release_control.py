@@ -92,6 +92,23 @@ def live_snapshot(repo="gamesbyian/UR-Recomp"):
     }
 
 
+def require_local_main(expected_main):
+    """Prevent joining live GitHub heads to stale or modified local ledger."""
+    require(isinstance(expected_main, str) and bool(HEX40.fullmatch(expected_main)),
+            "invalid expected main")
+    try:
+        head = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"], cwd=ROOT, text=True,
+            capture_output=True, timeout=12, check=True).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=ROOT,
+            text=True, capture_output=True, timeout=12, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+        raise ValueError("local Git provenance unavailable") from exc
+    require(head == expected_main, "live GitHub main and local ledger checkout differ")
+    require(not status, "local tracked files modified; ledger attribution unsafe")
+
+
 def checks_state(rows, complete, head):
     if not complete or not isinstance(rows, list) or not rows:
         return "unknown"
@@ -298,6 +315,8 @@ def main():
     args = p.parse_args()
     data = live_snapshot(args.repo) if args.live else json.loads(
         args.snapshot.read_text(encoding="utf-8"))
+    if args.live:
+        require_local_main(data["main_sha"])
     ledger = json.loads((ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_text())
     existing = (query_receipts(args.receipt_db, data["main_sha"], 100)
                 if args.receipt_db else None)

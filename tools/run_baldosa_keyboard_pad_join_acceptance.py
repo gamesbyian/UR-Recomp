@@ -42,6 +42,8 @@ POSITIVE_JOIN = "turbo on\nwait 1800\nquit\n"
 PAD_RACE = "turbo on\nwait 7200\nquit\n"
 # Same controller, but allow the source-result menu and return to settle.
 PAD_RACE_RETURN = "turbo on\nwait 11000\nquit\n"
+# Two distinct SDL pads continue through stock 2P GO and source-scored play.
+TWO_PAD_RACE = "turbo on\nwait 10000\nquit\n"
 
 
 def lines(log: str, pattern: str) -> list[str]:
@@ -354,6 +356,39 @@ def verify_controller_only_two_pad_root(log: str) -> None:
     ):
         if forbidden in log:
             raise ValueError(f"controller-only 2P root: unexpected {forbidden}")
+
+
+def verify_controller_only_two_pad_race(log: str) -> dict:
+    """Same two SDL pads: painted title/2P join -> stock GO -> earned match.
+
+    Original 2P result and canonical match publication remain separate
+    source-owned witnesses. A synthetic route marker alone never passes.
+    """
+    verify_controller_only_two_pad_root(log)
+    stock = log.index("UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d")
+    patterns = (
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=[1-9][0-9]*\\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\\r?$",
+    )
+    positions = []
+    for pattern in patterns:
+        matches = list(re.finditer(pattern, log, re.MULTILINE))
+        if len(matches) != 1:
+            raise ValueError(f"two-pad race: missing/duplicate source stage {pattern!r}")
+        positions.append(matches[0].start())
+    if not (stock < positions[0] < positions[1] < positions[2] < positions[3]):
+        raise ValueError("two-pad race: stock setup, source GO or SDL drive out of order")
+    # This existing native observer independently checks source result,
+    # P1/P2 rider identity, input history and actual paired publication.
+    from baldosa_native_2p_records_probe import source_match_published
+    result = source_match_published(
+        log, p1_profile="mike", p2_profile="andrew", p1_rider=0, p2_rider=1,
+    )
+    if log.index("UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p") <= positions[2]:
+        raise ValueError("two-pad race: result preceded source GO")
+    return result
 
 
 def verify_five_destination_pad_return(log: str) -> None:
@@ -729,6 +764,38 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             "inspect retained controller_only_two_pad_root/log.txt"
         ) from exc
 
+    # Mode 34 continues the very same keyboard-free two-pad journey into
+    # original source GO, drives both players through actual SDL events and
+    # requires a real source-scored paired result. No guest-input script.
+    pair_archive = user / "multiplayer-runs"
+    prior_pairs = set(pair_archive.iterdir()) if pair_archive.is_dir() else set()
+    log = run_game(exe, rom, user, out / "controller_only_two_pad_race", "34",
+                   TWO_PAD_RACE, video, max(timeout, 360))
+    try:
+        two_pad_source_result = verify_controller_only_two_pad_race(log)
+    except ValueError as exc:
+        source = [line for line in log.splitlines()
+                  if line.startswith("UR_BALDOSA_MODERN_TWO_PAD_RACE ")
+                  or line.startswith("UR_BALDOSA_NATIVE_RESULT ")
+                  or line.startswith("UR_BALDOSA_NATIVE_MATCH ")]
+        raise ValueError(
+            f"{exc}; 2P source trace: {source[-25:]!r}; "
+            "inspect retained controller_only_two_pad_race/log.txt"
+        ) from exc
+    after_pairs = set(pair_archive.iterdir()) if pair_archive.is_dir() else set()
+    new_pairs = after_pairs - prior_pairs
+    new_runs = [p for p in new_pairs if p.name.endswith(".urrun")]
+    if (len(new_pairs) != 2 or len(new_runs) != 1 or prior_pairs - after_pairs
+            or {p.name for p in new_pairs} !=
+            {new_runs[0].name, new_runs[0].name + ".urmatch"}
+            or any(p.is_symlink() or not p.is_file() or p.stat().st_size == 0
+                   for p in new_pairs)):
+        raise ValueError("two-pad race: one new canonical source-earned pair required")
+    two_pad_pair_sha256 = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(new_pairs)
+    }
+
     # Separate CI-only mode 30 uses the same SDL virtual-pad route and
     # probes original X backtrack followed by physical B reentry at MAIN D7.
     # Keep mode 29's previously qualified admission receipt independently.
@@ -818,6 +885,9 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "earned_run_sha256": earned_sha256,
         "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
         "controller_only_two_pad_root": "two_sdl_pads_title_practice_multiplayer_original_2p_admission",
+        "controller_only_two_pad_race": "two_sdl_pads_original_2p_go_and_source_earned_pair",
+        "controller_only_two_pad_race_result": two_pad_source_result,
+        "controller_only_two_pad_race_pair_sha256": two_pad_pair_sha256,
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
@@ -829,7 +899,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "video_driver": video,
         "source_commit": os.environ.get("GITHUB_SHA"),
         "scope": "Modern 2P join and one continuous five-destination title-to-stock "
-                 "journey and stock-setup-to-Modern-root return with SDL virtual "
+                 "journey, actual two-pad source-scored match and stock-to-Modern return with SDL virtual "
                  "gamepads; mode 31 additionally earns a source-settled 1P "
                  "record; mode 32 attempts the same-controller post-result "
                  "root/earned-Records return. Physical controllers, genuine "

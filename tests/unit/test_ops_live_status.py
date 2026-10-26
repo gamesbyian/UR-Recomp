@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from agent_control import BOARD, REGISTRY, extract_board, load_json
-from ops_live_status import markdown, snapshot, timestamp
+from ops_live_status import markdown, required_live_sources_present, snapshot, timestamp
 from validate_history_custody import load as load_custody
 
 SHA = "a" * 40
@@ -132,6 +132,42 @@ class LiveOperationsTests(unittest.TestCase):
         report = self.report(get=all_green)
         self.assertEqual(report["actions"]["cancelled_by_workflow"], [])
         self.assertNotIn("Cancellation leads", markdown(report))
+
+    def test_actions_api_failure_is_non_green_even_with_valid_main_and_prs(self):
+        def no_actions(path):
+            if "/actions/runs?" in path:
+                raise ValueError("HTTP 403")
+            return self.request(path)
+        report = self.report(get=no_actions)
+        self.assertIsNotNone(report["main"])
+        self.assertIsNotNone(report["prs"])
+        self.assertIsNone(report["actions"])
+        self.assertEqual(report["errors"]["actions"], "HTTP 403")
+        self.assertFalse(required_live_sources_present(report))
+        self.assertIn("Actions: UNKNOWN", markdown(report))
+        self.assertTrue(required_live_sources_present(self.report()))
+
+    def test_recent_action_failure_and_old_inflight_run_have_source_leads(self):
+        def incidents(path):
+            if "/actions/runs?" in path:
+                return {"workflow_runs": [
+                    {"id": 1234, "name": "Tooling", "status": "completed",
+                     "conclusion": "failure", "created_at": "2026-10-21T11:00:00Z"},
+                    {"id": 5678, "name": "Windows", "status": "in_progress",
+                     "conclusion": None, "created_at": "2026-10-21T08:00:00Z"},
+                    {"id": 9012, "name": "Queued", "status": "queued",
+                     "conclusion": None, "created_at": "2026-10-21T11:45:00Z"},
+                ]}
+            return self.request(path)
+        report = self.report(get=incidents)
+        actions = report["actions"]
+        self.assertEqual([v["run_id"] for v in actions["failed_run_leads"]], [1234])
+        self.assertEqual([v["run_id"] for v in actions["aging_in_flight_leads"]], [5678])
+        self.assertEqual(actions["aging_in_flight_leads"][0]["age_minutes"], 240)
+        narrative = markdown(report)
+        self.assertIn("https://github.com/gamesbyian/UR-Recomp/actions/runs/1234", narrative)
+        self.assertIn("not proof of stalls", narrative)
+        self.assertNotIn("/runs/9012", narrative)
 
     def test_uncorroborated_drive_and_schedule_state_are_unknown(self):
         result = self.report()

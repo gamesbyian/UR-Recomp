@@ -1,0 +1,159 @@
+{
+  "schema": "ur-effort-prior/1",
+  "source_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "contract_hash": "32c62b80",
+  "date": "2026-10-26",
+  "unit": "relative bounded-work unit (NOT labor hour or calendar time)",
+  "tier_ranges": {
+    "small": [
+      0.5,
+      1.5,
+      4
+    ],
+    "moderate": [
+      1,
+      3,
+      9
+    ],
+    "large": [
+      3,
+      9,
+      30
+    ],
+    "hard": [
+      6,
+      20,
+      70
+    ],
+    "unknown": [
+      8,
+      30,
+      120
+    ],
+    "physical": [
+      1,
+      3,
+      12
+    ],
+    "event": [
+      0.3,
+      1,
+      4
+    ],
+    "first_event": [
+      2,
+      8,
+      28
+    ]
+  },
+  "group_tiers": {
+    "ONE": "moderate",
+    "TWO": "moderate",
+    "MENU": "moderate",
+    "DATA": "moderate",
+    "RECOVERY": "large",
+    "WIDE": "large",
+    "ART": "large",
+    "QA": "physical",
+    "UX": "moderate",
+    "FID": "event"
+  },
+  "overrides": {
+    "ONE-09": "unknown",
+    "ONE-10": "hard",
+    "TWO-06": "large",
+    "TWO-08": "hard",
+    "MENU-10": "large",
+    "DATA-10": "large",
+    "RECOVERY-09": "hard",
+    "RECOVERY-10": "large",
+    "WIDE-07": "hard",
+    "WIDE-08": "large",
+    "WIDE-09": "unknown",
+    "WIDE-10": "hard",
+    "ART-02": "hard",
+    "ART-05": "hard",
+    "ART-08": "hard",
+    "QA-08": "hard",
+    "QA-09": "large",
+    "UX-06": "large",
+    "FID-01": "first_event"
+  },
+  "shared": [
+    {
+      "id": "COMMON-PARITY",
+      "range": [
+        8,
+        30,
+        125
+      ],
+      "dependent_prefix": "FID-",
+      "extra": [
+        "ONE-09",
+        "ONE-10",
+        "TWO-08"
+      ]
+    },
+    {
+      "id": "COMMON-RASTER",
+      "range": [
+        4,
+        15,
+        65
+      ],
+      "dependent_ids": [
+        "WIDE-07",
+        "WIDE-08",
+        "WIDE-09",
+        "WIDE-10"
+      ]
+    },
+    {
+      "id": "COMMON-ART",
+      "range": [
+        5,
+        17,
+        65
+      ],
+      "dependent_prefix": "ART-",
+      "exclude": [
+        "ART-10"
+      ]
+    },
+    {
+      "id": "COMMON-PACKAGE",
+      "range": [
+        2,
+        6,
+        18
+      ],
+      "dependent_prefix": "QA-",
+      "extra": [
+        "RECOVERY-10"
+      ]
+    }
+  ],
+  "external_validation": [
+    "MENU-01",
+    "RECOVERY-09",
+    "RECOVERY-10",
+    "WIDE-03",
+    "WIDE-06",
+    "ART-03",
+    "ART-04",
+    "ART-10",
+    "QA-02",
+    "QA-03",
+    "QA-04",
+    "QA-05",
+    "QA-06",
+    "QA-07",
+    "QA-08",
+    "QA-09",
+    "QA-10",
+    "UX-04",
+    "UX-05",
+    "UX-06"
+  ],
+  "meaning": "Three-point expert judgment PR-based priors, not empirically measured effort. Marginal item ranges assume shared dependency work is counted once. External waiting is unbounded and excluded from engineering estimates."
+}

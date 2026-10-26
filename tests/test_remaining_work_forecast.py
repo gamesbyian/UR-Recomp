@@ -1,0 +1,69 @@
+import copy
+import json
+import unittest
+from pathlib import Path
+from tools.remaining_work_forecast import calculate
+
+ROOT = Path(__file__).resolve().parents[1]
+DOCS = ROOT / "docs/progress"
+
+class RemainingWorkForecastTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.prior = json.loads((DOCS / "remaining-work-prior-v1.json").read_text())
+        cls.inventory = json.loads((DOCS / "windows-beta-v2-inventory.json").read_text())
+        cls.adjustments = json.loads((DOCS / "remaining-work-adjustments.json").read_text())
+
+    def test_current_count_and_reproducible_bounds(self):
+        one = calculate(self.prior, self.inventory, self.adjustments, samples=150, seed=15)
+        two = calculate(self.prior, self.inventory, self.adjustments, samples=150, seed=15)
+        self.assertEqual(one, two)
+        self.assertEqual(one["product_criteria_remaining"], 85)
+        self.assertEqual(one["one_time_shared_tasks_remaining"], 4)
+        self.assertEqual(one["external_validation_dependencies_remaining"], 20)
+        self.assertLess(one["remaining_effort_p10"], one["remaining_effort_median"])
+        self.assertLess(one["remaining_effort_median"], one["remaining_effort_p90"])
+        self.assertIsNone(one["forecast_dates"])
+
+    def test_completion_removes_one_marginal_task(self):
+        inv = copy.deepcopy(self.inventory)
+        base = calculate(self.prior, inv, self.adjustments, samples=200, seed=11)
+        row = next(c for c in inv["criteria"] if c["id"] == "ONE-03")
+        row["status"] = "bounded_verified"
+        new = calculate(self.prior, inv, self.adjustments, samples=200, seed=11)
+        self.assertEqual(new["product_criteria_remaining"], 84)
+        self.assertLess(new["remaining_effort_median"], base["remaining_effort_median"])
+
+    def test_all_event_completions_remove_shared_parity_once(self):
+        inv = copy.deepcopy(self.inventory)
+        for row in inv["criteria"]:
+            if row["area"] == "FID" or row["id"] in ("ONE-09","ONE-10","TWO-08"):
+                row["status"] = "bounded_verified"
+        output = calculate(self.prior, inv, self.adjustments, samples=100, seed=1)
+        self.assertEqual(output["one_time_shared_tasks_remaining"], 3)
+
+    def test_unverified_external_is_never_implicitly_certified(self):
+        output = calculate(self.prior, self.inventory, self.adjustments, samples=100)
+        self.assertGreater(output["external_validation_dependencies_remaining"], 0)
+        self.assertIn("no observed agent-hours", output["calibration_status"])
+
+    def test_adjustments_need_source_and_cannot_target_closed(self):
+        changes = copy.deepcopy(self.adjustments)
+        changes["changes"].append({"id":"ONE-03","range":[0.5,1,3],"reason":"Independent review revised scope"})
+        with self.assertRaisesRegex(ValueError, "evidence"):
+            calculate(self.prior,self.inventory,changes,samples=100)
+        changes["changes"][0]["evidence"]="https://github.com/gamesbyian/UR-Recomp/pull/2640"
+        good = calculate(self.prior,self.inventory,changes,samples=100)
+        self.assertEqual(good["product_criteria_remaining"], 85)
+        changes["changes"][0]["id"]="WIN-01"
+        with self.assertRaisesRegex(ValueError, "completed"):
+            calculate(self.prior,self.inventory,changes,samples=100)
+
+    def test_frozen_inventory_contract_required(self):
+        inv = copy.deepcopy(self.inventory)
+        inv["frozen_contract_fnv1a32"] = "bad"
+        with self.assertRaisesRegex(ValueError, "contract"):
+            calculate(self.prior,inv,self.adjustments,samples=100)
+
+if __name__ == "__main__":
+    unittest.main()

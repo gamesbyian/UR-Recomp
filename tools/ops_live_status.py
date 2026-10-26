@@ -70,9 +70,20 @@ def latest_recovery_workflows(get, base, now):
             "status": status, "run_id": run_id,
             "url": f"https://github.com/{REPO}/actions/runs/{run_id}",
             "conclusion": valid.get("conclusion"),
+            "created_at": when.isoformat(),
             "age_hours": round(age_seconds / 3600, 1),
             "sampled_runs": len(runs),
         }
+    # Two independent green recent runs can conceal a missing downstream
+    # trigger if the last actionable review predates the newest intake.
+    intake = observations.get("intake", {})
+    review = observations.get("review", {})
+    if (intake.get("status") == "RECENT_SUCCESS"
+            and review.get("status") in {"RECENT_SUCCESS", "IN_FLIGHT"}
+            and review.get("created_at") < intake.get("created_at")):
+        review["status"] = "UPSTREAM_NOT_REVIEWED"
+        review["latest_intake_run_id"] = intake["run_id"]
+        review["latest_intake_url"] = intake["url"]
     return observations
 
 
@@ -334,6 +345,8 @@ def markdown(s):
             if observed.get("url"):
                 row += (f" ({observed['url']}, age {observed['age_hours']}h, "
                         f"conclusion={observed['conclusion']})")
+            if observed.get("latest_intake_url"):
+                row += f"; awaiting review after {observed['latest_intake_url']}"
             rows.append(row + "; latest 30 workflow runs only, not a full history.")
     if actions and actions["cancelled_by_workflow"]:
         rows.append("- Cancellation leads (same latest sample only): " +

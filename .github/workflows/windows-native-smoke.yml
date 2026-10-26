@@ -10,7 +10,9 @@ name: Windows native build and boot smoke
 
 on:
   # PR changes to this workflow are tested once by the QA-05/09 reusable
-  # caller (which watches this YAML), not a second standalone full build.
+  # caller (which watches this YAML, excludes draft PRs and invokes
+  # workflow_call), not a second standalone full build. The called Windows
+  # job retains its same-repository fork guard and private ROM boundary.
   # Direct main-push and deliberate manual execution remain separate.
   workflow_dispatch:
   workflow_call:

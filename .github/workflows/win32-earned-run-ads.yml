@@ -1,0 +1,43 @@
+name: Windows earned-run named-stream discriminator
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/win32-earned-run-ads.yml"
+      - "tests/unit/test_export_earned_run_win32_ads.py"
+      - "tools/export_baldosa_earned_1p_run.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: earned-run-ads-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-ads-discriminator:
+    runs-on: windows-2022
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Win32 ADS refusal and late-stream rechecks
+        shell: pwsh
+        run: |
+          @'
+          import os
+          import unittest
+          from tests.unit import test_export_earned_run_win32_ads
+
+          suite = unittest.defaultTestLoader.loadTestsFromModule(test_export_earned_run_win32_ads)
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+              summary.write('### Win32 earned-run named-stream discriminator\n\n')
+              summary.write(f'Tests: {result.testsRun}; skipped: {len(result.skipped)}; '
+                            f'expected failures: {len(result.expectedFailures)}; '
+                            f'unexpected successes: {len(result.unexpectedSuccesses)}.\n\n')
+              summary.write('ADS-capable Windows validation must reject hidden and late-added named streams. '
+                            'This is source/host evidence, not release acceptance.\n')
+          if result.testsRun != 7 or result.skipped or result.expectedFailures or result.unexpectedSuccesses or not result.wasSuccessful():
+              raise SystemExit('Inconclusive/changed Win32 ADS behavior: inspect the individual tests before claiming coverage')
+          '@ | python -

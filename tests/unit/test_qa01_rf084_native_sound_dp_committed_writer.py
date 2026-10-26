@@ -1,6 +1,9 @@
 """RF084 true generated native paced-word and paced-byte writer controls."""
 from pathlib import Path
+import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
 import qa01_rf084_native_sound_dp_committed_writer as m
@@ -30,6 +33,36 @@ class RF084GeneratedWrite(unittest.TestCase):
         self.assertIn('getenv("UR_QA01_RF084_NATIVE_SOUND_DP")',patched)
         for bus in ("cpu_read8(", "cpu_read16(", "cpu_write8(", "cpu_write16("):
             self.assertNotIn(bus,m.HOOK)
+
+    def test_observer_requires_exact_one_opt_in(self):
+        # Compile the exact C predicate emitted into generated native source.
+        # An explicit "0" must never silently turn on instrumentation.
+        self.assertIn("if(!ur_rf084_opt_in(flag) ||", m.HOOK)
+        compiler = shutil.which("cc") or shutil.which("gcc") or shutil.which("clang")
+        if not compiler:
+            self.skipTest("no C compiler available for generated predicate")
+        helper = ("static int ur_rf084_opt_in" +
+                  m.HOOK.split("static int ur_rf084_opt_in", 1)[1]
+                  .split("static void ur_rf084_after", 1)[0])
+        source = "#include <stddef.h>\\n".replace("\\\\n", "\\n") + helper + """
+int main(void) {
+    const char *flags[] = {"", "0", "1", "10", "true", "01"};
+    const int expected[] = {0, 0, 1, 0, 0, 0};
+    if (ur_rf084_opt_in(NULL)) return 1;
+    for (int i = 0; i < 6; ++i)
+        if (ur_rf084_opt_in(flags[i]) != expected[i]) return i + 2;
+    return 0;
+}
+"""
+        with tempfile.TemporaryDirectory() as temp:
+            c_file = Path(temp) / "rf084_opt_in.c"
+            executable = Path(temp) / "rf084_opt_in"
+            c_file.write_text(source, encoding="utf-8")
+            subprocess.run([compiler, "-std=c11", "-Wall", "-Wextra",
+                            "-Werror", str(c_file), "-o", str(executable)],
+                           check=True, capture_output=True, text=True)
+            subprocess.run([str(executable)], check=True,
+                           capture_output=True, text=True)
 
     def test_existing_native_source_callsite_drift_refused(self):
         source=fixture()

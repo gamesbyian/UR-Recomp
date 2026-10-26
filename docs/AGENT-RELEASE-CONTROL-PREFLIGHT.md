@@ -77,3 +77,32 @@ not independently reauthenticated evidence or an acceptance award. It is
 displayed *separately* from merged PR count, so agent throughput cannot be
 confused with product or QA completion. A baseline without an exact checked
 source is rejected.
+
+
+## Connect existing artifact metadata to the live agent preflight
+
+For **one exact main or currently open PR head**, use the already merged
+retention inspector and pass its JSON to the live agent preflight:
+
+    python3 tools/artifact_retention_preflight.py --live-run-id RUN_ID \
+      --expected-sha EXACT_MAIN_OR_OPEN_PR_HEAD --json-out /tmp/retention.json
+    python3 tools/agent_release_control.py --live --lane ci \
+      --artifact-availability /tmp/retention.json
+
+The join refuses mismatched/missing source identities, foreign schemas,
+release-credit claims, and a source absent from the current main/open-PR
+census. It reports per-artifact next actions rather than a generic list:
+byte-inspect qualifying original artifacts, urgently request authorized
+rights-safe preservation, refresh aged metadata, or investigate a failed
+producer/partial listing. Metadata older than 60 minutes is stale, even
+when the historical API reported an available artifact. Check the original
+GitHub run and repository when consuming saved JSON because a source SHA
+alone does not authenticate repository custody.
+
+A matching, fresh, complete metadata entry **only** indicates that the
+original artifact may be available for independent download, digest
+verification and executable/inner-ZIP provenance inspection. It does
+not establish that bytes have been inspected, that GitHub still serves
+them, that the workflow head equals a packaged PE, or that any gameplay,
+hardware or release QA gate passed. This remains a read-only route with no
+automatic CI dispatch or private ROM/player/SRAM upload.

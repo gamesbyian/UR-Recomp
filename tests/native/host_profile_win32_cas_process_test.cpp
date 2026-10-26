@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 #include <thread>
 
@@ -83,7 +84,8 @@ int writer(const fs::path& file, char marker) {
 int verify_cold(const fs::path& file, char marker) {
     const auto loaded = load_host_profile_state_file(
         ExecutionMode::Modern, utf8_path(file), "profile.alpha");
-    if (!loaded.loaded() || loaded.state->autosave_generation != 2) return 50;
+    if (!loaded.loaded() || loaded.state->autosave_generation !=
+        (marker == 'R' ? 3u : 2u)) return 50;
     std::array<std::uint8_t, kStockSramBytes> actual{};
     if (restore_stock_sram_from_profile(
             ExecutionMode::Modern, *loaded.state,
@@ -127,6 +129,70 @@ DWORD finish_child(PROCESS_INFORMATION& process) {
     CloseHandle(process.hProcess);
     require(waited == WAIT_OBJECT_0 && got_exit, "child completed on time");
     return exit_code;
+}
+
+// A real Win32 sharing denial must not discard an earned typed profile.
+// Antivirus, indexers and another process can hold a handle without
+// FILE_SHARE_DELETE while permitting reads. The canonical replacement must
+// fail closed; after the handle is released a fresh save and cold boot work.
+void verify_sharing_denial_recovery(const fs::path& file, char winner) {
+    const std::string path = utf8_path(file);
+    const auto incumbent = load_host_profile_state_file(
+        ExecutionMode::Modern, path, "profile.alpha");
+    require(incumbent.loaded() && incumbent.state->autosave_generation == 2,
+            "sharing-denial case starts from committed CAS winner");
+    std::ifstream before_stream(file, std::ios::binary);
+    require(before_stream.good(), "read exact incumbent encoded bytes");
+    const std::string before{
+        std::istreambuf_iterator<char>{before_stream},
+        std::istreambuf_iterator<char>{}};
+    before_stream.close();
+    require(!before.empty(), "incumbent encoded bytes are nonempty");
+
+    HostProfileState next = *incumbent.state;
+    const auto replacement = payload('R');
+    require(capture_stock_sram_for_profile(
+                ExecutionMode::Modern, next,
+                replacement.data(), replacement.size()) ==
+            HostProfileTransferStatus::Applied,
+            "prepare generation-three replacement");
+
+    HANDLE blocker = CreateFileW(
+        file.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+        nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    require(blocker != INVALID_HANDLE_VALUE,
+            "hold real Win32 handle denying canonical rename/delete");
+    const auto refused = save_host_profile_state_file_if_current(
+        ExecutionMode::Modern, path, incumbent.state, next);
+    require(refused == HostProfileSaveStatus::IoError,
+            "OS sharing denial rejects typed-profile replacement");
+    std::ifstream after_stream(file, std::ios::binary);
+    require(after_stream.good(), "read incumbent after refused replacement");
+    const std::string after{
+        std::istreambuf_iterator<char>{after_stream},
+        std::istreambuf_iterator<char>{}};
+    after_stream.close();
+    require(after == before, "sharing denial retains exact incumbent bytes");
+    require(CloseHandle(blocker) != 0, "release Win32 sharing-denial handle");
+
+    const auto still_current = load_host_profile_state_file(
+        ExecutionMode::Modern, path, "profile.alpha");
+    require(still_current.loaded() && *still_current.state == *incumbent.state,
+            "refused save leaves original typed CAS baseline valid");
+    require(save_host_profile_state_file_if_current(
+                ExecutionMode::Modern, path, incumbent.state, next) ==
+            HostProfileSaveStatus::Saved,
+            "explicit retry commits after sharing denial is released");
+    auto cold = start_child(self_executable(), file, L"--verify-R");
+    require(finish_child(cold) == 0,
+            "independent cold process recovers retry's generation-three SRAM");
+    for (const auto& entry : fs::directory_iterator(file.parent_path())) {
+        require(entry.path().filename().wstring().rfind(
+                    L".pending-urprofile-", 0) != 0,
+                "sharing-denial and retry leave no private stages");
+    }
+    std::cout << "WIN32_PROFILE_SHARING_DENIAL_OK winner=" << winner
+              << " refused=io-error incumbent=unchanged cold_retry=pass\n";
 }
 
 void parent(const fs::path& file) {
@@ -194,6 +260,7 @@ void parent(const fs::path& file) {
     }
     std::cout << "WIN32_PROFILE_CAS_OK winner=" << winner
               << " loser=conflict cold_process=pass\n";
+    verify_sharing_denial_recovery(file, winner);
 }
 
 } // namespace
@@ -210,5 +277,6 @@ int main(int argc, char** argv) {
     if (mode == "--writer-B") return writer(file, 'B');
     if (mode == "--verify-A") return verify_cold(file, 'A');
     if (mode == "--verify-B") return verify_cold(file, 'B');
+    if (mode == "--verify-R") return verify_cold(file, 'R');
     return 4;
 }

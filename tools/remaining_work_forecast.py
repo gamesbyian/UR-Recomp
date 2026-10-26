@@ -117,6 +117,7 @@ def calculate(prior, inventory, adjustments=None, samples=3000, seed=20261026):
         "external_validation_dependencies_remaining": sum(x["id"] in remaining_ids for x in
             ({"id": v} for v in prior["external_validation"])),
         "units": prior["unit"],
+        "expected_relative_work_units": round(sum(sum(job["range"]) / 3 for job in jobs), 1),
         "remaining_effort_p10": percentile(totals, .10),
         "remaining_effort_median": percentile(totals, .50),
         "remaining_effort_p90": percentile(totals, .90),
@@ -133,6 +134,7 @@ def markdown(report):
         "; provisional criteria awaiting independent bounded review: " +
         str(report["unreviewed_provisional_criteria"]) +
         "; one-time shared blockers: " + str(report["one_time_shared_tasks_remaining"]),
+        "Expected relative work units (mean of declared priors): " + str(report["expected_relative_work_units"]),
         "Remaining relative units, scenario P10 / median / P90: " +
         " / ".join(str(report[k]) for k in
             ("remaining_effort_p10","remaining_effort_median","remaining_effort_p90")),

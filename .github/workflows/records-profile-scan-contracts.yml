@@ -1,0 +1,26 @@
+name: Records profile scan contracts
+
+on:
+  pull_request:
+    paths:
+      - "native/product/completed_run_profile_sources.*"
+      - "native/product/completed_run_store.*"
+      - "native/product/host_profile_catalog.*"
+      - "tests/native/completed_run_profile_sources_test.cpp"
+      - "tests/unit/test_completed_run_profile_sources_cpp.py"
+      - ".github/workflows/records-profile-scan-contracts.yml"
+
+concurrency:
+  group: records-profile-scan-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  profile-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out proposed source
+        uses: actions/checkout@v4
+
+      - name: Compile and execute native Records profile regression
+        run: python3 -m unittest -v tests.unit.test_completed_run_profile_sources_cpp

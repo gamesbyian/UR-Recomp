@@ -21,6 +21,9 @@ DDL = """CREATE TABLE IF NOT EXISTS receipts (
     digest TEXT PRIMARY KEY,
     schema TEXT NOT NULL,
     source_sha TEXT NOT NULL,
+    source_binding TEXT NOT NULL,
+    actions_event_sha TEXT,
+    pr_head_sha TEXT,
     outcome TEXT NOT NULL,
     expected INTEGER,
     observed INTEGER NOT NULL,
@@ -29,6 +32,7 @@ DDL = """CREATE TABLE IF NOT EXISTS receipts (
     release_gate_credit INTEGER NOT NULL DEFAULT 0 CHECK(release_gate_credit = 0)
 );
 CREATE INDEX IF NOT EXISTS receipts_by_source ON receipts(source_sha, schema);
+PRAGMA user_version=2;
 """
 
 def _require(value: bool, reason: str) -> None:
@@ -47,9 +51,24 @@ def project(receipt: object) -> dict:
                  "unit receipt authority mismatch")
         source = receipt.get("source")
         _require(isinstance(source, dict), "unit source missing")
-        sha = source.get("pr_head_sha") or source.get("GITHUB_SHA")
-        _require(isinstance(sha, str) and bool(SHA40.fullmatch(sha)),
-                 "unit source SHA not exact")
+        checkout = source.get("checked_out_sha")
+        event = source.get("GITHUB_SHA")
+        pr_head = source.get("pr_head_sha")
+        # A PR Actions run is often a synthetic merge checkout. The
+        # PR head is a *review identity*, never automatically the tested
+        # tree. New receipts report git HEAD; older ones are indexed as
+        # environment-only hints instead of silently claiming exact code.
+        for label, value in (("checked_out_sha", checkout),
+                             ("GITHUB_SHA", event), ("pr_head_sha", pr_head)):
+            _require(value is None or value == "" or
+                     isinstance(value, str) and bool(SHA40.fullmatch(value)),
+                     "invalid unit " + label)
+        observed = checkout or event
+        _require(isinstance(observed, str) and bool(SHA40.fullmatch(observed)),
+                 "unit checkout/event SHA not exact")
+        sha = observed
+        source_binding = ("git_checkout_head_at_receipt" if checkout
+                          else "actions_event_sha_checkout_unverified")
         outcome = receipt.get("outcome")
         _require(outcome in ("pass", "fail", "incomplete", "harness_error"),
                  "unit outcome invalid")
@@ -69,7 +88,9 @@ def project(receipt: object) -> dict:
             _require(not missing and all(x["outcome"] == "pass" for x in shards),
                      "unit success contradicts shard evidence")
         failures = sum(x["outcome"] in ("fail", "harness_error") for x in shards)
-        return {"schema": schema, "source_sha": sha, "outcome": outcome,
+        return {"schema": schema, "source_sha": sha,
+                "source_binding": source_binding, "actions_event_sha": event or None,
+                "pr_head_sha": pr_head or None, "outcome": outcome,
                 "expected": len(shards), "observed": count, "failures": failures,
                 "missing": len(missing), "release_gate_credit": 0}
     sha = receipt.get("source_sha")
@@ -93,6 +114,8 @@ def project(receipt: object) -> dict:
     _require(receipt.get("independent_physical_qa") is False,
              "producer attempted independent physical acceptance")
     return {"schema": schema, "source_sha": sha,
+            "source_binding": "windows_producer_reported_source",
+            "actions_event_sha": None, "pr_head_sha": None,
             "outcome": "pass" if complete else "incomplete",
             "expected": expected, "observed": observed,
             "failures": len(failed), "missing": len(issues),
@@ -113,10 +136,22 @@ def ingest(db: Path, paths: list[Path]) -> dict:
     # Validate everything before opening the database; no partial admission.
     db.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(db) as con:
-        con.executescript(DDL)
+        existing = con.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='receipts'"
+        ).fetchone() is not None
+        if existing:
+            version = con.execute("PRAGMA user_version").fetchone()[0]
+            _require(version == 2,
+                     "legacy CI receipt index cannot prove checkout identity; "
+                     "preserve it and rebuild a v2 index from original receipts")
+        else:
+            con.executescript(DDL)
         con.executemany("""INSERT OR IGNORE INTO receipts
-            (digest,schema,source_sha,outcome,expected,observed,failures,missing,release_gate_credit)
-            VALUES (:digest,:schema,:source_sha,:outcome,:expected,:observed,:failures,:missing,:release_gate_credit)""", rows)
+            (digest,schema,source_sha,source_binding,actions_event_sha,pr_head_sha,
+             outcome,expected,observed,failures,missing,release_gate_credit)
+            VALUES (:digest,:schema,:source_sha,:source_binding,:actions_event_sha,
+                    :pr_head_sha,:outcome,:expected,:observed,:failures,:missing,
+                    :release_gate_credit)""", rows)
     return {"processed": len(rows), "unique_input_digests": len({r["digest"] for r in rows})}
 
 def query(db: Path, source_sha: str, limit: int) -> list[dict]:
@@ -125,8 +160,12 @@ def query(db: Path, source_sha: str, limit: int) -> list[dict]:
     _require(db.is_file() and not db.is_symlink(), "index missing")
     with sqlite3.connect(f"file:{db.resolve()}?mode=ro", uri=True) as con:
         con.row_factory = sqlite3.Row
+        _require(con.execute("PRAGMA user_version").fetchone()[0] == 2,
+                 "legacy CI receipt index cannot prove checkout identity; "
+                 "preserve it and rebuild a v2 index from original receipts")
         return [dict(row) for row in con.execute(
-            """SELECT digest,schema,source_sha,outcome,expected,observed,failures,missing,
+            """SELECT digest,schema,source_sha,source_binding,actions_event_sha,
+                      pr_head_sha,outcome,expected,observed,failures,missing,
                       release_gate_credit FROM receipts
                WHERE source_sha=? ORDER BY schema,digest LIMIT ?""",
             (source_sha, limit))]

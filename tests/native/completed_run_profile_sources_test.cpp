@@ -66,6 +66,22 @@ int main(int argc, char** argv) {
     assert((*loaded)[1].records.empty());
     assert((*loaded)[1].total_artifacts == 0);
 
+    // A missing runs directory is an ordinary new racer, not an I/O error.
+    // A present file where that directory belongs is a failed scan and must
+    // never be displayed as a genuine zero-record history. One bad profile
+    // makes the combined view unavailable instead of hiding only its runs.
+    const auto beta_runs = root / "runs" / "beta";
+    {
+        std::ofstream obstructed(beta_runs);
+        obstructed << "not a directory\n";
+    }
+    assert(!load_run_records_profile_sources(root.string()));
+    std::filesystem::remove(beta_runs);
+    const auto recovered = load_run_records_profile_sources(root.string());
+    assert(recovered && recovered->size() == 2);
+    assert((*recovered)[0].records.size() == 1);
+    assert((*recovered)[1].records.empty());
+
     const auto missing_root = root / "missing";
     std::filesystem::create_directories(missing_root);
     const auto missing =

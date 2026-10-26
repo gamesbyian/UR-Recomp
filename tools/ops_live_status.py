@@ -80,7 +80,10 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         "repository": repo, "main": None, "prs": None, "actions": None,
         "qa": None, "backup": None, "errors": {}, "drive": "UNKNOWN_NOT_CONNECTED",
         "scheduled_agent_health": "UNKNOWN_NOT_CONNECTED",
-        "dispatch": [{"agent": x["number"], "minute": x["minute"], "work_ids": x["work_ids"]}
+        "dispatch": [{"agent": x["number"], "minute": x["minute"],
+                      "selection": "shared_pool_top_five",
+                      "candidate_work_ids": [j["work_id"] for j in board["work"]
+                                             if j["state"] in {"ready", "in_review"}][:5]}
                      for x in board["agents"]],
         "recovery": [], "handoff_drift": {"status": "UNKNOWN_NOT_CHECKED"},
     }
@@ -272,10 +275,10 @@ def markdown(s):
     else:
         rows.append("- **Drive backup:** UNKNOWN (no valid historical custody receipt)")
     rows.extend(["", "## Dispatch definitions, not observed scheduled-agent activity", "",
-                 "| Agent | Start | Primary / fallback |", "| --- | --- | --- |"])
+                 "| Agent | Start | Shared top-five candidate work IDs |", "| --- | --- | --- |"])
     for a in s["dispatch"]:
         rows.append(f"| {a['agent']} | :{a['minute']:02d} | " +
-                    " then ".join(a["work_ids"]) + " |")
+                    " / ".join(a["candidate_work_ids"]) + " |")
     drift = s["handoff_drift"]
     rows.append("- Recovery handoff cross-check: " + drift["status"] +
                 " (closed PR descriptions vs curated registry; no Drive readback).")

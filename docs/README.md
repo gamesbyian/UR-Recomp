@@ -1,6 +1,6 @@
 # Document map and source-of-truth policy
 
-**For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
+**For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). The [ranked hourly shared board](HOURLY-AGENT-LINES.md) is the only active five-agent assignment authority. Every generalist considers five eligible jobs. A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
 ## Windows screenshot atlas and visual reference IDs
 

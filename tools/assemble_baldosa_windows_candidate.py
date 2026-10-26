@@ -86,6 +86,23 @@ def launcher() -> bytes:
         'if errorlevel 1 (echo UR-BALDOSA-STARTUP-PREFLIGHT: Windows PowerShell verification failed. 1>&2 & echo The built-in Windows PowerShell check could not run, so the ROM and save folder were not verified. Nothing was changed. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" mkdir "%UR_RECOMP_USER_DATA_ROOT%" 2>nul',
         'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Could not create a writable user folder. 1>&2 & echo Windows would not let the game create its save folder. Pick a writable location with UR_RECOMP_USER_DATA_ROOT. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
+        # The directory can already exist but deny new files (read-only
+        # portable media, an ACL, or an exhausted filesystem). Check the
+        # staging operation needed by the real atomic save writer before
+        # launching a guest that might earn progression. This is a bounded
+        # writability preflight, not a disk-full or power-cut guarantee.
+        # Pass the path via the environment, never as PowerShell source.
+        'powershell.exe -NoProfile -NonInteractive -Command '
+        '"$ErrorActionPreference = \'Stop\'; '
+        '$p = [IO.Path]::Combine($env:UR_RECOMP_USER_DATA_ROOT, '
+        '(\'.ur-recomp-write-probe-\' + [guid]::NewGuid().ToString(\'N\'))); '
+        'try { '
+        '$s = [IO.File]::Open($p, [IO.FileMode]::CreateNew, '
+        '[IO.FileAccess]::Write, [IO.FileShare]::None); '
+        'try { $s.WriteByte(1); $s.Flush($true) } finally { $s.Dispose() }; '
+        '[IO.File]::Delete($p) '
+        '} catch { try { [IO.File]::Delete($p) } catch {}; exit 3 }"',
+        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: User folder cannot create, flush and remove a staged file. 1>&2 & echo Choose a writable user-data folder; the game was not started. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         'set "SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%"',
         'set "UR_EXECUTION_MODE=modern"',
         'set "UR_BALDOSA_MODERN_ROOT=1"',

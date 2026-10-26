@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Consumer-facing invariants for ROMless native Windows candidate."""
 import json
+import os
+import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -213,6 +216,80 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)
         self.assertNotIn("certutil -addstore", script)
 
+
+    def test_launcher_checks_real_staging_writability_before_guest(self):
+        script = candidate.launcher().decode("utf-8")
+        # Existing directory existence and cd /d are not write permission
+        # checks. A refused new-file write must fail before any guest frames.
+        self.assertIn("[IO.FileMode]::CreateNew", script)
+        self.assertIn("[IO.FileAccess]::Write", script)
+        self.assertIn("[IO.FileShare]::None", script)
+        self.assertIn("$s.WriteByte(1); $s.Flush($true)", script)
+        self.assertIn("[IO.File]::Delete($p)", script)
+        self.assertIn("$env:UR_RECOMP_USER_DATA_ROOT", script)
+        self.assertIn("NewGuid().ToString('N')", script)
+        self.assertIn("User folder cannot create, flush and remove a staged file", script)
+        self.assertIn("the game was not started", script)
+        probe = script.index("[IO.FileMode]::CreateNew")
+        self.assertLess(script.index("ReparsePoint"), probe)
+        self.assertLess(probe, script.index('set "SNESRECOMP_USER_DATA_DIR='))
+        self.assertLess(probe, script.index(':UR-BALDOSA-NATIVE-START'))
+        self.assertIn("call :UR-BALDOSA-HOLD & exit /b 3", script)
+        # This check is an early fail-closed diagnostic, not evidence of
+        # full-volume short-write or electrical-outage resilience.
+
+    @unittest.skipUnless(os.name == "nt", "requires real Windows ACLs")
+    def test_win32_acl_denies_staging_before_guest_launch(self):
+        # The repository's private ROM remains local to the Windows runner.
+        # No actual game executable is staged: reaching that command would
+        # itself fail this test's expected pre-guest error classification.
+        rom = (Path(__file__).resolve().parents[2] / "reference" /
+               "roms" / "retail" / candidate.ROM)
+        if not rom.is_file():
+            self.skipTest("canonical ROM unavailable in this checkout")
+        self.assertEqual(candidate.sha256(rom.read_bytes()),
+                         candidate.USA_SHA256)
+        sid = subprocess.check_output(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+             "[Security.Principal.WindowsIdentity]::GetCurrent().User.Value"],
+            text=True, timeout=15).strip()
+        self.assertRegex(sid, r"^S-1-")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "extracted package"
+            package.mkdir()
+            user_root = root / "user state"
+            user_root.mkdir()
+            launcher = package / candidate.LAUNCHER
+            launcher.write_bytes(candidate.launcher())
+            shutil.copyfile(rom, package / candidate.ROM)
+            # WD on a directory is FILE_ADD_FILE. Keep directory traversal
+            # and read access intact so the failure is specifically staging.
+            deny = subprocess.run(
+                ["icacls.exe", str(user_root), "/deny", f"*{sid}:(WD)"],
+                text=True, capture_output=True, timeout=15)
+            self.assertEqual(deny.returncode, 0, deny.stdout + deny.stderr)
+            try:
+                env = os.environ.copy()
+                env["UR_RECOMP_USER_DATA_ROOT"] = str(user_root)
+                env["UR_BALDOSA_NO_HOLD"] = "1"
+                result = subprocess.run(
+                    f'"{launcher}"', shell=True,
+                    cwd=package, env=env, text=True,
+                    capture_output=True, timeout=40)
+                self.assertEqual(result.returncode, 3,
+                                 result.stdout + result.stderr)
+                self.assertIn(
+                    "UR-BALDOSA-STARTUP-SAVE-ROOT: User folder cannot create, "
+                    "flush and remove a staged file",
+                    result.stdout + result.stderr)
+                self.assertFalse(list(user_root.iterdir()))
+            finally:
+                restore = subprocess.run(
+                    ["icacls.exe", str(user_root), "/remove:d", f"*{sid}"],
+                    text=True, capture_output=True, timeout=15)
+                self.assertEqual(restore.returncode, 0,
+                                 restore.stdout + restore.stderr)
 
     def test_launcher_user_data_root_requires_fully_qualified_path(self):
         script = candidate.launcher().decode("utf-8")

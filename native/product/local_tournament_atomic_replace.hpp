@@ -212,13 +212,10 @@ inline bool write_host_create_staged_native(
     }
     const auto written = std::fwrite(data.data(), 1, data.size(), file);
     const bool flushed = std::fflush(file) == 0;
-    // A short fwrite may still be followed by successful fflush/fsync/close
-    // (for example, under a kernel-enforced file-size ceiling). Never claim
-    // an immutable recovery intent containing only the prefix of its payload.
     const bool synced = written == data.size() && flushed &&
                         detail::sync_staged_file(file);
     const bool closed = std::fclose(file) == 0;
-    if (written != data.size() || !flushed || !synced || !closed) {
+    if (!synced || !closed) {
         cleanup();
         return false;
     }

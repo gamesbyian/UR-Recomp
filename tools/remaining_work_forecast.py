@@ -70,6 +70,19 @@ def calculate(prior, inventory, adjustments=None, samples=3000, seed=20261026):
             raise ValueError("Bad adjustments schema")
         if adjustments.get("baseline_sha") != prior["source_sha"]:
             raise ValueError("Adjustments must name frozen initial source")
+        completed_shared = adjustments.get("completed_shared", [])
+        valid_shared = {item["id"] for item in prior["shared"]}
+        finished_ids = set()
+        for completion in completed_shared:
+            key = completion.get("id")
+            if key not in valid_shared or key in finished_ids:
+                raise ValueError("Unknown or duplicate shared-blocker closure")
+            if not str(completion.get("evidence", "")).startswith("https://github.com/gamesbyian/UR-Recomp/"):
+                raise ValueError("Shared closure needs repository evidence")
+            if not completion.get("independent_reviewer") or len(completion.get("reason", "")) < 12:
+                raise ValueError("Shared closure requires reviewer and reason")
+            finished_ids.add(key)
+        jobs = [job for job in jobs if job["id"] not in finished_ids]
         used = set()
         for change in adjustments.get("changes", []):
             key = change["id"]
@@ -114,6 +127,7 @@ def calculate(prior, inventory, adjustments=None, samples=3000, seed=20261026):
         "product_criteria_remaining": len(remaining),
         "unreviewed_provisional_criteria": len(audit_debt),
         "one_time_shared_tasks_remaining": sum(job["group"]=="SHARED" for job in jobs),
+        "completed_shared_prerequisites": sorted(finished_ids) if adjustments else [],
         "external_validation_dependencies_remaining": sum(x["id"] in remaining_ids for x in
             ({"id": v} for v in prior["external_validation"])),
         "units": prior["unit"],

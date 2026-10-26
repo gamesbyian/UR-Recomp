@@ -57,16 +57,44 @@ int main(int argc, char** argv) {
     HANDLE blocker = hold_without_delete(path);
     // The release timer begins only after the staged writer has synced and
     // closed its own file. Its first rename must encounter a genuine blocker.
+    // A stage-creation/sync failure never invokes after_stage(). Without a
+    // completion signal the release thread would wait forever, concealing the
+    // actual writer failure behind a CI timeout instead of failing this test.
+    std::atomic<bool> writer_finished{false};
     std::thread release([&] {
-        while (!staged.load(std::memory_order_acquire)) Sleep(1);
-        Sleep(35);
+        while (!staged.load(std::memory_order_acquire) &&
+               !writer_finished.load(std::memory_order_acquire)) Sleep(1);
+        if (staged.load(std::memory_order_acquire)) Sleep(35);
         require(CloseHandle(blocker) != 0, "release transient blocker");
     });
     const bool committed = ur::product::write_host_replace_staged(
         path, "generation-two", "urprofile", &after_stage);
+    writer_finished.store(true, std::memory_order_release);
     release.join();
     require(committed, "transient sharing refusal retried to completion");
     require(read_bytes(path) == "generation-two", "exact replacement after transient denial");
+    no_stages(root);
+
+    // Negative control: a nonexistent parent refuses before the staging
+    // callback. The same wait condition must wake on writer completion.
+    staged.store(false, std::memory_order_release);
+    std::atomic<bool> failed_writer_finished{false};
+    std::atomic<bool> failure_waiter_woke{false};
+    std::thread failure_waiter([&] {
+        while (!staged.load(std::memory_order_acquire) &&
+               !failed_writer_finished.load(std::memory_order_acquire)) Sleep(1);
+        failure_waiter_woke.store(!staged.load(std::memory_order_acquire),
+                                  std::memory_order_release);
+    });
+    const fs::path invalid_path = root / "missing-parent" / "profile.txt";
+    const bool invalid_committed = ur::product::write_host_replace_staged(
+        invalid_path, "generation-invalid", "urprofile", &after_stage);
+    failed_writer_finished.store(true, std::memory_order_release);
+    failure_waiter.join();
+    require(!invalid_committed, "missing staging parent must refuse");
+    require(failure_waiter_woke.load(std::memory_order_acquire),
+            "pre-stage refusal wakes waiting thread");
+    require(!fs::exists(invalid_path), "pre-stage refusal has no canonical file");
     no_stages(root);
 
     blocker = hold_without_delete(path);

@@ -45,6 +45,14 @@ def calculate(prior, inventory, adjustments=None, samples=3000, seed=20261026):
         if tier not in tiers:
             raise ValueError("Missing tier for " + key)
         jobs.append({"id": key, "group": item["area"], "range": tiers[tier], "tier": tier})
+    # Separately estimate independent review debt for PR-screened (not audited)
+    # criteria. This is verification effort, never another completion point.
+    audit_debt = [item for item in inventory["criteria"]
+                  if item["status"] == "bounded_verified" and
+                  item["audit_state"] != "independent_reviewed"]
+    for item in audit_debt:
+        jobs.append({"id": "AUDIT-" + item["id"], "group": "AUDIT",
+                     "range": [0.25, 1.0, 3.0], "tier": "review"})
     for shared in prior["shared"]:
         _range(shared["range"], shared["id"])
         dependents = set(shared.get("dependent_ids", []))
@@ -104,6 +112,7 @@ def calculate(prior, inventory, adjustments=None, samples=3000, seed=20261026):
         "frozen_contract": prior["contract_hash"],
         "product_criteria_total": len(ids),
         "product_criteria_remaining": len(remaining),
+        "unreviewed_provisional_criteria": len(audit_debt),
         "one_time_shared_tasks_remaining": sum(job["group"]=="SHARED" for job in jobs),
         "external_validation_dependencies_remaining": sum(x["id"] in remaining_ids for x in
             ({"id": v} for v in prior["external_validation"])),
@@ -121,6 +130,8 @@ def markdown(report):
     lines = ["# Remaining engineering effort (hypothesis, not measured hours)", "",
         "Reviewed product source: " + report["as_of_source"],
         "Unfinished fixed criteria: " + str(report["product_criteria_remaining"]) +
+        "; provisional criteria awaiting independent bounded review: " +
+        str(report["unreviewed_provisional_criteria"]) +
         "; one-time shared blockers: " + str(report["one_time_shared_tasks_remaining"]),
         "Remaining relative units, scenario P10 / median / P90: " +
         " / ".join(str(report[k]) for k in

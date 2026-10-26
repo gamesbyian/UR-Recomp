@@ -164,7 +164,7 @@ def _portable_run_namespace_entries(root: Path) -> list[Path]:
 
     A POSIX-produced namespace must not silently lose members when interpreted
     by Win32 (reserved devices, invalid names, case-insensitive aliases). This
-    is a directory-entry check, not proof that NTFS alternate streams are absent.
+    also rejects named streams on regular Win32 namespace members.
     """
     entries = list(root.iterdir())
     seen: set[str] = set()

@@ -1,7 +1,8 @@
 name: Cumulative research campaigns (seven independent lanes)
 
 # One serialized, source-bound run at a time, no canceled expensive experiments.
-# Twice weekly the auto selector rotates seven distinct research families.
+# The seven-family coordinator is manual-only during integration-first work.
+# Three recent scheduled attempts failed before creating a job; see runbook.
 # Manual dispatch can choose any lane and a bounded real-work budget.
 # Only this coordinator writes to research/qa-cumulative-ledger.
 # Runner-aware admission runs BEFORE seed reservation: a deferred run reserves
@@ -51,8 +52,6 @@ on:
         required: true
         default: auto
         options: [auto, force]
-  schedule:
-    - cron: "17 9 * * 2,5"
 
 permissions:
   contents: write

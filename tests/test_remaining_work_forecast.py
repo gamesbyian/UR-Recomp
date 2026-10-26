@@ -21,6 +21,10 @@ class RemainingWorkForecastTests(unittest.TestCase):
         outstanding = {c["id"] for c in self.inventory["criteria"]
                        if c["status"] != "bounded_verified"}
         self.assertEqual(one["product_criteria_remaining"], len(outstanding))
+        self.assertEqual(one["unreviewed_provisional_criteria"],
+                         sum(c["status"] == "bounded_verified" and
+                             c["audit_state"] != "independent_reviewed"
+                             for c in self.inventory["criteria"]))
         self.assertLessEqual(one["one_time_shared_tasks_remaining"], len(self.prior["shared"]))
         self.assertEqual(one["external_validation_dependencies_remaining"],
                          len(outstanding & set(self.prior["external_validation"])))
@@ -85,6 +89,21 @@ class RemainingWorkForecastTests(unittest.TestCase):
         changes["changes"][0]["id"]=finished
         with self.assertRaisesRegex(ValueError, "completed"):
             calculate(self.prior,self.inventory,changes,samples=100)
+
+    def test_independent_review_removes_only_audit_debt(self):
+        inv = copy.deepcopy(self.inventory)
+        row = next((c for c in inv["criteria"]
+                    if c["status"] == "bounded_verified" and
+                    c["audit_state"] != "independent_reviewed"), None)
+        if row is None:
+            self.skipTest("Every completed criterion is independently reviewed")
+        before = calculate(self.prior, inv, self.adjustments, samples=200, seed=13)
+        row["audit_state"] = "independent_reviewed"
+        after = calculate(self.prior, inv, self.adjustments, samples=200, seed=13)
+        self.assertEqual(after["product_criteria_remaining"], before["product_criteria_remaining"])
+        self.assertEqual(after["unreviewed_provisional_criteria"],
+                         before["unreviewed_provisional_criteria"] - 1)
+        self.assertLess(after["remaining_effort_median"], before["remaining_effort_median"])
 
     def test_frozen_inventory_contract_required(self):
         inv = copy.deepcopy(self.inventory)

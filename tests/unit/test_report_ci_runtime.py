@@ -177,7 +177,7 @@ class CiRuntimeReportTest(unittest.TestCase):
                 "completed_at": f"2026-10-26T01:{seconds:02d}:00Z",
             }]}]}
         jobs = {"runs": [job(1, 10), job(2, 8), job(3, 9),
-                         job(4, 8, "No compile here")]}
+                         job(4, 8, "Print summary")]}
         report = summarize(runs, 72, datetime(2026, 10, 27, tzinfo=timezone.utc),
                            jobs_payload=jobs)
         candidates = report["possible_same_source_cross_workflow_builds"]

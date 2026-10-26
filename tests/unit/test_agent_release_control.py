@@ -114,6 +114,18 @@ class AgentReleaseControlTests(unittest.TestCase):
         self.assertEqual(result["ci_cost"]["coverage"], "sample_only")
         self.assertEqual(result["ci_cost"]["observed_top_workflows"][0]["missing_job_timing"], 1)
 
+    def test_existing_ops_reader_is_used_without_second_http_client(self):
+        from unittest.mock import MagicMock
+        getter = MagicMock(return_value={"commit": {"sha": SHA}})
+        with patch.object(m, "github_reader", return_value=getter) as reader:
+            result = m.api("gamesbyian/UR-Recomp",
+                           "repos/gamesbyian/UR-Recomp/branches/main")
+        self.assertEqual(result["commit"]["sha"], SHA)
+        reader.assert_called_once()
+        getter.assert_called_once_with("/repos/gamesbyian/UR-Recomp/branches/main")
+        with self.assertRaisesRegex(ValueError, "foreign API"):
+            m.api("gamesbyian/UR-Recomp", "repos/other/repo/branches/main")
+
     def test_live_ledger_preflight_rejects_stale_or_dirty_checkout(self):
         import subprocess
         from unittest.mock import MagicMock

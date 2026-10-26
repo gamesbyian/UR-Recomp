@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 from datetime import datetime
 import json
 from pathlib import Path
@@ -20,11 +21,13 @@ try:
     from .index_ci_receipts import query as query_receipts
     from .release_evidence_brief import briefing
     from .release_evidence_delta import compare as compare_briefs
+    from .ops_live_status import reader as github_reader
 except ImportError:
     from build_agent_context import LANE_RELEASE_GATES
     from index_ci_receipts import query as query_receipts
     from release_evidence_brief import briefing
     from release_evidence_delta import compare as compare_briefs
+    from ops_live_status import reader as github_reader
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "UR-LIVE-AGENT-RELEASE-PREFLIGHT/1"
@@ -39,14 +42,16 @@ def require(ok, reason):
 
 
 def api(repo, endpoint):
-    """Only gh api read operations, no shell strings, token or log disclosure."""
+    """Reuse the repository's canonical read-only live GitHub API client."""
     require(bool(REPO.fullmatch(repo)), "invalid repository")
     require(endpoint.startswith("repos/" + repo + "/"), "foreign API repository")
-    run = subprocess.run(["gh", "api", endpoint], text=True, capture_output=True,
-                         timeout=30, check=False)
-    require(run.returncode == 0, "GitHub API unavailable: no partial live report")
-    require(len(run.stdout) < 3_000_000, "API response oversized")
-    return json.loads(run.stdout)
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
+    # ops_live_status.reader already owns URL allowlisting, timeout,
+    # GitHub API version, token transport and safe failure classification.
+    result = github_reader(token)("/" + endpoint)
+    require(len(json.dumps(result, ensure_ascii=True)) < 3_000_000,
+            "API response oversized")
+    return result
 
 
 def live_snapshot(repo="gamesbyian/UR-Recomp"):

@@ -8,7 +8,9 @@ Run from an authenticated checkout with read-only GitHub access:
     python3 tools/agent_release_control.py --live --lane release-qa --gate QA-04 \
         --json-out /tmp/agent-control.json --markdown-out /tmp/agent-control.md
 
-The script requires an authenticated gh CLI. It collects fresh main and up
+The script reuses the canonical read-only Python GitHub API reader in
+`tools/ops_live_status.py`, using `GH_TOKEN` or `GITHUB_TOKEN`
+for authenticated access. No separate gh CLI is required. It collects fresh main and up
 to 25 open PRs, each exact-head status, file names and GitHub mergeability,
 a bounded recently closed sample, and rechecks main and each PR head.
 No guest logs, binaries, ROMs or player files are fetched. Incomplete file

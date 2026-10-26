@@ -86,6 +86,26 @@ class AgentReleaseControlTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "receipt"):
                 m.assess(snapshot(), self.ledger, "ci", receipts=[changed])
 
+    def test_recorded_release_change_distinct_from_merged_pr_sample(self):
+        import hashlib
+        from tools.release_evidence_brief import briefing
+        older = briefing(self.ledger, source_sha=OTHER)
+        older["ledger_file_sha256"] = "a" * 64
+        current_sha = "b" * 64
+        view = m.assess(snapshot(), self.ledger, "release-qa",
+                        previous_brief=older, ledger_digest=current_sha)
+        delta = view["recorded_release_status_delta"]
+        self.assertEqual(delta["state"],
+                         "diagnostic_only_not_independent_gate_adjudication")
+        self.assertEqual(delta["passed_status_change"], 0)
+        self.assertTrue(delta["ledger_bytes_changed"])
+        self.assertEqual(view["integration_metrics"]["merged_sample_count"], 1)
+        self.assertIn("not independent QA", m.markdown(view))
+        older["checked_source_commit"] = None
+        with self.assertRaisesRegex(ValueError, "previous brief missing"):
+            m.assess(snapshot(), self.ledger, "release-qa",
+                     previous_brief=older, ledger_digest=current_sha)
+
     def test_ci_cost_sampling_is_explicit(self):
         ci = {"schema_version": 3, "window_census_complete": False,
               "workflows": [{"workflow": "Windows", "runner_seconds": 100,

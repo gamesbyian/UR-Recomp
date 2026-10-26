@@ -26,6 +26,7 @@
 #include "baldosa_native_match_publish_retry.hpp"
 #include "baldosa_host_lifecycle_pause.hpp"
 #include "baldosa_native_options.hpp"
+#include "baldosa_native_options_user_root.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -311,10 +312,9 @@ unsigned g_lifecycle_pauses_applied;
 ur::product::BaldosaLifecyclePauseReason g_lifecycle_last_reason;
 
 bool load_focus_pause_setting() {
-    const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!user_root || !*user_root) return ur::product::HostSettings{}.pause_on_focus_loss;
-    const auto loaded = ur::product::load_host_product_state_file(
-        ur::product::baldosa_options_path(user_root).string());
+    const auto options_path = ur::product::baldosa_native_options_user_path_utf8();
+    if (options_path.empty()) return ur::product::HostSettings{}.pause_on_focus_loss;
+    const auto loaded = ur::product::load_host_product_state_file(options_path);
     return loaded.loaded()
         ? loaded.state->settings.pause_on_focus_loss
         : ur::product::HostSettings{}.pause_on_focus_loss;
@@ -371,12 +371,12 @@ void adopt_live_display_change() {
     g_adopt_live_display = live;
     const char* root = std::getenv("UR_BALDOSA_MODERN_ROOT");
     const char* mode = std::getenv("UR_EXECUTION_MODE");
-    const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    const auto options_path = ur::product::baldosa_native_options_user_path_utf8();
     if (!root || std::strcmp(root, "1") != 0 ||
-        (mode && std::strcmp(mode, "authentic") == 0) || !user_root || !*user_root)
+        (mode && std::strcmp(mode, "authentic") == 0) || options_path.empty())
         return;
     const auto result = ur::product::baldosa_options_adopt_live_display(
-        ur::product::baldosa_options_path(user_root).string(), fullscreen, vsync);
+        options_path, fullscreen, vsync);
     std::fprintf(stderr, "UR_BALDOSA_OPTIONS adopt_live_display fullscreen=%d vsync=%d result=%d\n",
                  fullscreen, vsync, static_cast<int>(result));
     std::fflush(stderr);

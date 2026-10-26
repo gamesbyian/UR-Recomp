@@ -12,7 +12,7 @@ class ZizmorHygieneTests(unittest.TestCase):
 
     def test_existing_hygiene_runner_remains_single_job(self):
         self.assertEqual(self.workflow.count("  hygiene:\n"), 1)
-        self.assertIn("Advisory actionlint for changed workflow files", self.workflow)
+        self.assertIn("Validate changed workflow files with actionlint", self.workflow)
         self.assertIn("Advisory offline zizmor security scan of changed workflow files", self.workflow)
         self.assertNotIn("  zizmor:\n", self.workflow)
 

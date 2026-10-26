@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 
 RAN = re.compile(r"(?m)^Ran (\d+) tests? in ([0-9.]+)s$")
 ISSUE = re.compile(r"(?m)^(?:FAIL|ERROR): (.+)$")
@@ -93,6 +94,18 @@ def main() -> int:
             ("GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_SHA", "GITHUB_WORKFLOW",
              "GITHUB_EVENT_NAME", "GITHUB_HEAD_REF")}
     meta["pr_head_sha"] = os.environ.get("SOURCE_HEAD_SHA", "")
+    # The Actions event SHA can be the synthetic merge, and a workflow may
+    # explicitly check out an alternative ref. Record what git says is
+    # checked out rather than assuming the PR head was tested.
+    try:
+        checked = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True, text=True, check=True, timeout=8,
+        ).stdout.strip().lower()
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        checked = ""
+    meta["checked_out_sha"] = checked if re.fullmatch(r"[0-9a-f]{40}", checked) else ""
     result = summarize(args.root, meta)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")

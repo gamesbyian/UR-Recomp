@@ -26,10 +26,12 @@ except ImportError:
     from audit_recovery_handoff_drift import scan as scan_handoff_drift
 
 REPO = "gamesbyian/UR-Recomp"
-# Workflows that must remain functional outside the latest 100-run sample.
+# Recurring producers: a successful manual dispatch does not prove the
+# scheduler or its automatic workflow_run trigger is still working.
+# Each probe examines the workflow-specific latest 30 runs, not latest 100.
 CRITICAL_RECOVERY = {
-    "intake": ("vault-recurring-intake.yml", {"schedule", "workflow_dispatch"}),
-    "review": ("vault-actionable-review.yml", {"workflow_run", "workflow_dispatch"}),
+    "intake": ("vault-recurring-intake.yml", {"schedule"}),
+    "review": ("vault-actionable-review.yml", {"workflow_run"}),
 }
 RECOVERY_REVIEW_AFTER_HOURS = 18
 

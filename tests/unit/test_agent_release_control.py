@@ -94,6 +94,23 @@ class AgentReleaseControlTests(unittest.TestCase):
         self.assertEqual(result["ci_cost"]["coverage"], "sample_only")
         self.assertEqual(result["ci_cost"]["observed_top_workflows"][0]["missing_job_timing"], 1)
 
+    def test_live_ledger_preflight_rejects_stale_or_dirty_checkout(self):
+        import subprocess
+        from unittest.mock import MagicMock
+        def completed(stdout):
+            return MagicMock(stdout=stdout)
+        with patch.object(m.subprocess, "run", side_effect=[
+            completed("b" * 40 + "\n"), completed("")]):
+            with self.assertRaisesRegex(ValueError, "differ"):
+                m.require_local_main(SHA)
+        with patch.object(m.subprocess, "run", side_effect=[
+            completed(SHA + "\n"), completed(" M docs/RELEASE-QUALITY-LEDGER.json")]):
+            with self.assertRaisesRegex(ValueError, "modified"):
+                m.require_local_main(SHA)
+        with patch.object(m.subprocess, "run", side_effect=[
+            completed(SHA + "\n"), completed("")]):
+            m.require_local_main(SHA)
+
     def test_live_pr_head_change_and_valid_snapshot(self):
         pr = {"number": 10, "title": "One", "head": {"sha": OTHER},
               "base": {"sha": SHA}, "draft": False}

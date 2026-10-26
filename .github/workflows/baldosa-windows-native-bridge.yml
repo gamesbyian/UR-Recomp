@@ -669,7 +669,8 @@ jobs:
           # extracted consumer ZIP will not contain.
           EXE_WIN="$(cygpath -w "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe")"
           export EXE_WIN
-          # shellcheck disable=SC2016 -- this is PowerShell, not Bash interpolation.
+          # Embedded PowerShell intentionally uses literal dollar variables.
+          # shellcheck disable=SC2016
           powershell.exe -NoProfile -Command '
             $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
             $vs = & $vswhere -latest -property installationPath

@@ -24,6 +24,10 @@ struct FastNavigationContext {
     bool practice_active = false;
     bool recent_course_valid = false;
     bool recent_course_profile_matches = false;
+    // Post-run Practice repeats require a settled results router. In-race
+    // Restart continues to use the existing pause authority.
+    bool results_surface = false;
+    bool results_router_available = false;
 };
 
 constexpr FastNavigationAction resolve_fast_navigation(
@@ -34,7 +38,9 @@ constexpr FastNavigationAction resolve_fast_navigation(
 
     switch (command) {
     case FastNavigationCommand::RepeatAttempt:
-        return context.restart_surface && context.restart_available
+        return context.restart_surface && context.restart_available &&
+                (!context.practice_active ||
+                 (context.results_surface && context.results_router_available))
             ? FastNavigationAction::RestartAttempt
             : FastNavigationAction::None;
     case FastNavigationCommand::RecentCourse:

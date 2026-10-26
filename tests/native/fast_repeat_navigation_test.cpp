@@ -17,6 +17,26 @@ int main() {
         FastNavigationCommand::RepeatAttempt, ctx) ==
         FastNavigationAction::RestartAttempt);
 
+    // The post-run Practice route is unavailable during a race and whenever
+    // its results router is busy. Ordinary non-Practice Restart is unchanged.
+    ctx.practice_active = true;
+    assert(resolve_fast_navigation(
+        FastNavigationCommand::RepeatAttempt, ctx) ==
+        FastNavigationAction::None);
+    ctx.results_surface = true;
+    assert(resolve_fast_navigation(
+        FastNavigationCommand::RepeatAttempt, ctx) ==
+        FastNavigationAction::None);
+    ctx.results_router_available = true;
+    assert(resolve_fast_navigation(
+        FastNavigationCommand::RepeatAttempt, ctx) ==
+        FastNavigationAction::RestartAttempt);
+    ctx.results_surface = false;
+    assert(resolve_fast_navigation(
+        FastNavigationCommand::RepeatAttempt, ctx) ==
+        FastNavigationAction::None);
+    ctx.practice_active = false;
+
     ctx.modern_mode = false;
     assert(resolve_fast_navigation(
         FastNavigationCommand::RepeatAttempt, ctx) ==

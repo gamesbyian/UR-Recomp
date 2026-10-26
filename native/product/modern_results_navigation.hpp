@@ -47,7 +47,8 @@ constexpr ModernResultsNavigationMenu make_modern_results_navigation_menu(
     }
 
     if (context.practice_active) {
-        if (context.restart_available && context.practice_target_ready) {
+        if (context.restart_available && context.practice_target_ready &&
+            context.router_available) {
             menu.rows[menu.row_count++] = ModernResultsAction::RepeatPractice;
         }
         menu.rows[menu.row_count++] = ModernResultsAction::Records;

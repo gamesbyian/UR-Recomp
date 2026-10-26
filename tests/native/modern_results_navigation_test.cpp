@@ -125,6 +125,19 @@ int main() {
         assert(menu.rows[0] == ModernResultsAction::RepeatPractice);
         assert(menu.rows[1] == ModernResultsAction::Records);
 
+        // A busy results router must not advertise a Practice repeat or
+        // confirm a row that was displayed before routing became busy.
+        practice.router_available = false;
+        const auto busy = make_modern_results_navigation_menu(practice);
+        assert(busy.row_count == 1);
+        assert(busy.rows[0] == ModernResultsAction::Records);
+        assert(!modern_results_action_available(
+            ModernResultsAction::RepeatPractice, practice));
+        assert(activate_modern_results_navigation_menu(
+            menu, practice, UR_MODERN_HOST_NAV_CONFIRM) ==
+            ModernResultsAction::None);
+        practice.router_available = true;
+
         // If the retained target is lost or corrupted after results, do not
         // advertise a Restart that cannot safely repeat the same course.
         practice.practice_target_ready = false;

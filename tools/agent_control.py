@@ -205,14 +205,14 @@ def main():
     parser.add_argument("--registry", type=Path, default=REGISTRY)
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--agent", type=int, choices=range(1, 6),
-                        help="show one hourly agent's primary and fallback work")
+                        help="show shared top-five candidate jobs for the specified agent")
     parser.add_argument("--check", action="store_true", help="validate without displaying report")
     args = parser.parse_args()
     board = extract_board(args.board.read_text(encoding="utf-8"))
     registry = load_json(args.registry)
     checked = validate_registry(registry, board)
     if args.check:
-        print(f"OK: {len(board['agents'])} agents, {len(board['work'])} lines, "
+        print(f"OK: {len(board['agents'])} agents, {len(board['work'])} shared jobs, "
               f"{checked['candidates']} curated recovery candidates")
     elif args.agent is not None:
         selected = board["agents"][args.agent - 1]

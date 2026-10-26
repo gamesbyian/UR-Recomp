@@ -104,8 +104,8 @@ class NativeModernTitleTest(unittest.TestCase):
             pad.index("switch (button)", pad.index("if (player != 0) return 0;")),
         )
         self.assertIn(
-            "if (g_original_attract_visible) {\\n"
-            "            if (pressed) {\\n"
+            "if (g_original_attract_visible) {\n"
+            "            if (pressed) {\n"
             "                g_original_attract_unknown_pad_releases.insert(button);",
             pad,
         )

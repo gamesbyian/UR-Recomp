@@ -497,6 +497,7 @@ jobs:
             ${{ runner.temp }}/ur-title-controller-join/receipt.json
             ${{ runner.temp }}/ur-title-controller-join/p2_owner_leaves/log.txt
             ${{ runner.temp }}/ur-title-controller-join/five_destination_pad/log.txt
+            ${{ runner.temp }}/ur-title-controller-join/controller_only_two_pad_root/log.txt
             ${{ runner.temp }}/ur-title-controller-join/five_destination_return/log.txt
             ${{ runner.temp }}/ur-title-controller-join/five_destination_earned_race/log.txt
             ${{ runner.temp }}/ur-title-controller-join/five_destination_earned_return/log.txt

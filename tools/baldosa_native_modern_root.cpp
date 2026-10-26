@@ -2118,9 +2118,10 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are decimal "1".."32"; 15-19 exercise controller ownership,
+    // Smoke modes are decimal "1".."33"; 15-19 exercise controller ownership,
     // 20-28 exercise title paths, 29 is the qualified SDL pad journey,
-    // 30 probes guest-menu return, 31 earns 1P, and 32 probes post-result return.
+    // 30 probes guest-menu return, 31 earns 1P, 32 probes post-result return,
+    // and 33 proves two controller-only seats from visible title to guest 2P.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
@@ -2129,7 +2130,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if ((!g_visible && !g_original_attract_visible &&
              !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 32) return;
+            mode < 1 || mode > 33) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2979,6 +2980,53 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
 #else
         std::abort(); // Native SDL virtual-pad acceptance requires SDL3.
+#endif
+        return;
+    }
+    // CI-only mode 33: two independently seated SDL virtual controllers
+    // traverse the ACTUAL title, visible Practice and Multiplayer join.
+    // Neither keyboard nor direct root handler is used: the same P1 opens
+    // both destinations, and distinct P1/P2 SDL button edges confirm the
+    // join before original stock guest 2P admission (menu 0x3d).
+    // This is a native hosted journey, NOT physical two-pad certification.
+    if (std::strcmp(opt, "33") == 0) {
+#if SNESRECOMP_SDL3
+        static SDL_Joystick* pads[2] = {};
+        if (frame == 50u || frame == 52u) {
+            const int i = frame == 50u ? 0 : 1;
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.vendor_id = 0x1209;
+            desc.product_id = static_cast<Uint16>(0x5571 + i);
+            desc.name = i ? "UR root 2P P2" : "UR root 2P P1";
+            const SDL_JoystickID id = SDL_AttachVirtualJoystick(&desc);
+            pads[i] = id ? SDL_OpenJoystick(id) : nullptr;
+            if (!pads[i]) std::abort();
+            return;
+        }
+        struct Step { unsigned frame; int seat; SDL_GamepadButton button; };
+        static constexpr Step steps[] = {
+            {60u, 0, SDL_GAMEPAD_BUTTON_SOUTH},       // Title -> root
+            {84u, 0, SDL_GAMEPAD_BUTTON_DPAD_DOWN},   // Practice
+            {88u, 0, SDL_GAMEPAD_BUTTON_SOUTH},       // Open Practice
+            {152u, 0, SDL_GAMEPAD_BUTTON_EAST},       // Close Practice
+            {156u, 0, SDL_GAMEPAD_BUTTON_DPAD_DOWN},  // Multiplayer
+            {160u, 0, SDL_GAMEPAD_BUTTON_SOUTH},      // Open join
+            {164u, 0, SDL_GAMEPAD_BUTTON_SOUTH},      // Confirm P1
+            {168u, 1, SDL_GAMEPAD_BUTTON_SOUTH},      // Confirm P2
+        };
+        for (const auto& step : steps) {
+            if (frame != step.frame && frame != step.frame + 1u) continue;
+            if (!pads[step.seat] || !SDL_SetJoystickVirtualButton(
+                    pads[step.seat], step.button, frame == step.frame))
+                std::abort();
+            return;
+        }
+#else
+        std::abort();  // SDL virtual-pad acceptance requires SDL3.
 #endif
         return;
     }

@@ -290,6 +290,56 @@ def verify_five_destination_pad_journey(log: str) -> None:
 
 
 
+
+def verify_controller_only_two_pad_root(log: str) -> None:
+    """Title -> painted Practice -> painted 2P join -> genuine stock 2P.
+
+    Both pads must be native SDL virtual devices, with independent host seats
+    and P1/P2 confirmations. Host seat stdout is concatenated before product
+    stderr, so only compare order within the product stream. This remains
+    hosted acceptance, never physical-controller or release-gate evidence.
+    """
+    verify_two_virtual_pads(log)
+    selections = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT selected=(\\d+)\\r?$", log
+    )
+    if selections != ["1", "2"]:
+        raise ValueError(f"controller-only 2P root: wrong selections {selections}")
+    stages = (
+        r"^UR_BALDOSA_MODERN_TITLE entered_root=1 frame=\\d+ input_owned=1\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=1\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT practice_opened=1 available=\\d+ course=\\d+ source_menu_required=1\\r?$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=practice-picker\\b[^\\r\\n]*source=modern_product_view\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT practice_closed=1\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT selected=2\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\\r?$",
+        r"^UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join\\b[^\\r\\n]*source=modern_product_view\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT stock_requested players=2\\r?$",
+        r"^UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\\r?$",
+    )
+    positions = []
+    for stage in stages:
+        matches = list(re.finditer(stage, log, re.MULTILINE))
+        if len(matches) != 1:
+            raise ValueError(
+                f"controller-only 2P root: missing/duplicate stage {stage!r}"
+            )
+        positions.append(matches[0].start())
+    if positions != sorted(set(positions)):
+        raise ValueError("controller-only 2P root: source route out of order")
+    for forbidden in (
+        "UR_BALDOSA_MODERN_ROOT join_closed=1",
+        "UR_BALDOSA_MODERN_ROOT practice_unavailable=1",
+        "UR_BALDOSA_MODERN_ROOT join_unavailable=1",
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=1",
+    ):
+        if forbidden in log:
+            raise ValueError(f"controller-only 2P root: unexpected {forbidden}")
+
+
 def verify_five_destination_pad_return(log: str) -> None:
     """Require the same SDL pad to back out of genuine stock 1P into Modern.
 
@@ -650,6 +700,19 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             "inspect retained five_destination_pad/log.txt"
         ) from exc
 
+    # Mode 33 closes the keyboard-free 2P gap left by mode 19: the same
+    # real SDL P1 enters title, painted Practice and painted Multiplayer;
+    # a distinct SDL P2 then confirms and the ORIGINAL guest admits 0x3d.
+    log = run_game(exe, rom, user, out / "controller_only_two_pad_root", "33",
+                   POSITIVE_JOIN, video, timeout)
+    try:
+        verify_controller_only_two_pad_root(log)
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; native route milestones: {route_milestones(log)!r}; "
+            "inspect retained controller_only_two_pad_root/log.txt"
+        ) from exc
+
     # Separate CI-only mode 30 uses the same SDL virtual-pad route and
     # probes original X backtrack followed by physical B reentry at MAIN D7.
     # Keep mode 29's previously qualified admission receipt independently.
@@ -738,6 +801,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "earned_return_run_sha256": return_earned_sha256,
         "earned_run_sha256": earned_sha256,
         "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
+        "controller_only_two_pad_root": "two_sdl_pads_title_practice_multiplayer_original_2p_admission",
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",
@@ -753,7 +817,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
                  "gamepads; mode 31 additionally earns a source-settled 1P "
                  "record; mode 32 attempts the same-controller post-result "
                  "root/earned-Records return. Physical controllers, genuine "
-                 "Repeat, and release acceptance remain outstanding",
+                 "Repeat, physical 2P, and release acceptance remain outstanding",
     }
     (out / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     return receipt

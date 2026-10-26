@@ -76,8 +76,7 @@ class Win32NamedStreamTests(unittest.TestCase):
         self.assertEqual(self.stream.read_bytes(), b"synthetic alternate data stream")
 
     def test_export_must_refuse_hidden_named_stream(self) -> None:
-        # A future implementation should reject this before publishing any
-        # evidence, and this expectedFailure decorator must then be removed.
+        # Refusal must occur before any evidence destination is published.
         self.add_named_stream()
         destination = self.root / "should-not-publish"
         with self.assertRaisesRegex(ValueError, "(?i)alternate.*stream|named.*stream"):

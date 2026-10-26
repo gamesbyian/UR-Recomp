@@ -143,9 +143,9 @@ void verify_sharing_denial_recovery(const fs::path& file, char winner) {
             "sharing-denial case starts from committed CAS winner");
     std::ifstream before_stream(file, std::ios::binary);
     require(before_stream.good(), "read exact incumbent encoded bytes");
-    const std::string before(
-        std::istreambuf_iterator<char>(before_stream),
-        std::istreambuf_iterator<char>());
+    const std::string before{
+        std::istreambuf_iterator<char>{before_stream},
+        std::istreambuf_iterator<char>{}};
     before_stream.close();
     require(!before.empty(), "incumbent encoded bytes are nonempty");
 
@@ -168,9 +168,9 @@ void verify_sharing_denial_recovery(const fs::path& file, char winner) {
             "OS sharing denial rejects typed-profile replacement");
     std::ifstream after_stream(file, std::ios::binary);
     require(after_stream.good(), "read incumbent after refused replacement");
-    const std::string after(
-        std::istreambuf_iterator<char>(after_stream),
-        std::istreambuf_iterator<char>());
+    const std::string after{
+        std::istreambuf_iterator<char>{after_stream},
+        std::istreambuf_iterator<char>{}};
     after_stream.close();
     require(after == before, "sharing denial retains exact incumbent bytes");
     require(CloseHandle(blocker) != 0, "release Win32 sharing-denial handle");

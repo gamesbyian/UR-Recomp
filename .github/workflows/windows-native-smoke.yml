@@ -228,6 +228,18 @@ jobs:
           test -f "$PACKAGE/run-uniracers.cmd"
           test -f "$PACKAGE/PACKAGE-MANIFEST.json"
 
+      - name: Stage ROM-free executable for independent audit
+        run: |
+          set -euo pipefail
+          python -m unittest -v tests.unit.test_stage_windows_smoke_romfree_exe
+          python tools/ci/stage_windows_smoke_romfree_exe.py \
+            --package "$PACKAGE" \
+            --archive "$PACKAGE_ARCHIVE" \
+            --checksum "$PACKAGE_ARCHIVE_CHECKSUM" \
+            --source "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/windows-romfree-binary"
+          echo "ROM-free exact PE and source/ZIP binding staged; full ROM-bearing package remains on runner." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Independently verify portable ZIP with stock Windows PowerShell
         run: |
           set -euo pipefail
@@ -1153,6 +1165,8 @@ jobs:
             ${{ runner.temp }}/package-race-result-dumps/race-results.*
             ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
+            ${{ runner.temp }}/windows-romfree-binary/UniracersSNESRecomp.exe
+            ${{ runner.temp }}/windows-romfree-binary/binding.json
             ${{ runner.temp }}/windows-tournament-candidate.txt
             ${{ runner.temp }}/tournament-qa-envelope.json
           if-no-files-found: warn

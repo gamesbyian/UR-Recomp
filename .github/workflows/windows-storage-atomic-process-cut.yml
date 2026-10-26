@@ -8,6 +8,7 @@ on:
       - "native/product/local_tournament_atomic_replace.hpp"
       - "tests/native/local_tournament_atomic_replace_test.cpp"
       - "tests/native/host_profile_win32_cas_process_test.cpp"
+      - "tests/native/host_staged_replace_sharing_retry_win32_test.cpp"
       - "native/product/host_profile_store.cpp"
       - "native/product/local_tournament_launch_path_lock.hpp"
       - ".github/workflows/windows-storage-atomic-process-cut.yml"
@@ -40,6 +41,10 @@ jobs:
           $source = Join-Path $env:GITHUB_WORKSPACE 'tests\native\local_tournament_atomic_replace_test.cpp'
           $exe = Join-Path $env:RUNNER_TEMP 'local_tournament_atomic_replace_test.exe'
           $runner = Join-Path $env:RUNNER_TEMP 'run-atomic-writer.cmd'
+          $retryExe = Join-Path $env:RUNNER_TEMP 'host_staged_replace_sharing_retry_win32_test.exe'
+          $retrySource = Join-Path $env:GITHUB_WORKSPACE 'tests\native\host_staged_replace_sharing_retry_win32_test.cpp'
+          $retryRoot = Join-Path $env:RUNNER_TEMP ('ur-replace-retry-' + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $retryRoot | Out-Null
           $casExe = Join-Path $env:RUNNER_TEMP 'host_profile_win32_cas_process_test.exe'
           $casRoot = Join-Path $env:RUNNER_TEMP ('ur-profile-cas-' + [guid]::NewGuid().ToString('N'))
           New-Item -ItemType Directory -Path $casRoot | Out-Null
@@ -63,6 +68,10 @@ jobs:
             "cl /nologo /std:c++17 /EHsc /W3 /I`"$include`" $casSources /Fe:`"$casExe`"",
             'if errorlevel 1 exit /b 1',
             "`"$casExe`" `"$casRoot\profile.state`"",
+            'if errorlevel 1 exit /b 1',
+            "cl /nologo /std:c++17 /EHsc /W3 /I`"$include`" `"$retrySource`" /Fe:`"$retryExe`"",
+            'if errorlevel 1 exit /b 1',
+            "`"$retryExe`" `"$retryRoot`"",
             'exit /b %ERRORLEVEL%'
           )
           [System.IO.File]::WriteAllLines($runner, $commands, [System.Text.Encoding]::ASCII)

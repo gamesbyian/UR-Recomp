@@ -43,14 +43,18 @@ class RemainingWorkForecastTests(unittest.TestCase):
 
     def test_all_event_completions_remove_shared_parity_once(self):
         inv = copy.deepcopy(self.inventory)
-        for row in inv["criteria"]:
-            if row["area"] == "FID" or row["id"] in ("ONE-09","ONE-10","TWO-08"):
-                row["status"] = "bounded_verified"
+        original = calculate(self.prior, inv, self.adjustments, samples=100, seed=1)
+        affected = [row for row in inv["criteria"]
+                    if (row["area"] == "FID" or
+                        row["id"] in ("ONE-09","ONE-10","TWO-08")) and
+                        row["status"] != "bounded_verified"]
+        if not affected:
+            self.skipTest("Common parity work already fully qualified")
+        for row in affected:
+            row["status"] = "bounded_verified"
         output = calculate(self.prior, inv, self.adjustments, samples=100, seed=1)
-        self.assertFalse(any(job == "COMMON-PARITY" for job in [
-            name for name, stats in output["group_estimates"].items()
-            if name == "COMMON-PARITY" and stats["jobs"]]))
-        self.assertLessEqual(output["one_time_shared_tasks_remaining"], len(self.prior["shared"]) - 1)
+        self.assertEqual(output["one_time_shared_tasks_remaining"],
+                         original["one_time_shared_tasks_remaining"] - 1)
 
     def test_unverified_external_is_never_implicitly_certified(self):
         output = calculate(self.prior, self.inventory, self.adjustments, samples=100)

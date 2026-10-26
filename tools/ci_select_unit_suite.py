@@ -18,11 +18,13 @@ OPERATIONS_ONLY = frozenset({
     "tools/agent_control.py",
     "tools/ops_live_status.py",
     "tools/ci_cancelled_job_sample.py",
+    "tools/report_ci_runtime.py",
     "tools/validate_history_custody.py",
     "tools/backup_main_history.py",
     "tests/unit/test_agent_control.py",
     "tests/unit/test_ops_live_status.py",
     "tests/unit/test_ci_cancelled_job_sample.py",
+    "tests/unit/test_report_ci_runtime.py",
     "tests/unit/test_validate_history_custody.py",
     "tests/unit/test_backup_main_history.py",
 })

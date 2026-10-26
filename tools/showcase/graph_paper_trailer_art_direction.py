@@ -60,28 +60,38 @@ def ink_overlay(im,source,crop,xy,width,opacity=1.0):
     black=Image.new("RGB",crop_im.size,(24,26,27))
     im.paste(black,xy,alpha)
 def footer(im,track):
-    d=ImageDraw.Draw(im)
-    # Extend the left-hand part of the pencil schematic as a low landscape
-    # track; preserve original source unicycle / right-hand track geometry.
-    upper=[];lower=[];centre=[]
-    for x in range(-16,800,4):
-        t=x/800
-        yc=955 + 17*math.sin(2*math.pi*(1.10*t+0.15)) + 9*math.sin(2*math.pi*(2.25*t))
-        # source left edge ~ top 900 lower 940 at join
-        yc += (922-yc)*(max(0,t)**8)
-        upper.append((x,int(yc-17)))
-        lower.append((x,int(yc+20)))
-        centre.append((x,int(yc)))
-    d.line(upper,fill=(75,77,73),width=2,joint="curve")
-    d.line(lower,fill=(75,77,73),width=2,joint="curve")
-    d.line(centre,fill=(150,147,139),width=1,joint="curve")
-    for x in range(14,785,33):
-        cy=centre[min((x+16)//4,len(centre)-1)][1]
-        d.line((x,cy-15,x+9,cy+18),fill=(157,157,147),width=1)
-        d.line((x+5,cy-45,x+5,cy+41),fill=(204,202,193),width=1)
-    ink_overlay(im,track,(0,205,1536,495),(779,836),1141)
-    d.line((116,1028,680,1028),fill=(107,110,108),width=1)
-    label(d,"DRAWING / TRACK 02", (117,1036),16,SLATE)
+    """Use the owner's complete long continuous track, edge-to-edge.
+
+    Crop only empty paper above/below the drawing, never trim the horizontal
+    ends or redraw course geometry. Preserve all original construction strokes,
+    pen hatch and the authentic unicycle. This intentionally replaces the old
+    hand-computed left-side continuation.
+    """
+    source=Image.open(track).convert("RGB")
+    gray=ImageOps.grayscale(source)
+    # The owner's updated reference has very pale graph guides. Detect only
+    # meaningful pencil/ink mass to avoid removing the subtle drawing detail.
+    histogram=[]
+    for y in range(source.height):
+        band=gray.crop((0,y,source.width,y+1))
+        n=sum(band.histogram()[:205])
+        histogram.append(n)
+    significant=[y for y,count in enumerate(histogram) if count >= max(15, source.width//220)]
+    if not significant:
+        raise ValueError("Long footer source has no recognizable track strokes")
+    top=max(0,min(significant)-12)
+    bottom=min(source.height,max(significant)+13)
+    # Keep the entire drawing from left to right. Never stretch its aspect.
+    artwork=source.crop((0,top,source.width,bottom))
+    target_h=round(artwork.height*W/artwork.width)
+    artwork=artwork.resize((W,target_h),Image.Resampling.LANCZOS)
+    if target_h>300:
+        raise ValueError("Long footer is too tall after whitespace crop")
+    # Entire original paper image is placed flush at the bottom. It is
+    # already white graph paper; retaining its original lines avoids losing
+    # fine gray drafting detail via thresholded masks.
+    im.paste(artwork,(0,H-target_h))
+
 def header(im,logo,title,deck,small="UNIRACERS / ENGINEERING NOTES"):
     ink_overlay(im,logo,(60,213,1480,693),(89,28),688)
     d=ImageDraw.Draw(im)

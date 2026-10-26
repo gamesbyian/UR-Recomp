@@ -313,8 +313,6 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
-          python tests/unit/test_modern_title_presenter_cpp.py
-          python -m unittest -v tests.unit.test_capture_baldosa_modern_title_win32
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
@@ -327,6 +325,13 @@ jobs:
           python tests/unit/test_baldosa_native_options_adopt_cpp.py
           python tests/unit/test_baldosa_window_placement_acceptance.py
           python tests/unit/test_baldosa_session_end_spike.py
+
+      # Keep title-only checks separate from the five exact Windows build
+      # bodies shared with the candidate-only producer.
+      - name: Validate Modern title native presenter and capture contracts
+        run: |
+          python tests/unit/test_modern_title_presenter_cpp.py
+          python -m unittest -v tests.unit.test_capture_baldosa_modern_title_win32
 
       - name: Verify immutable native source pins
         run: |

@@ -71,6 +71,22 @@ class CancelledRunnerSampleTests(unittest.TestCase):
         self.assertEqual(s["unselected_cancelled_runs"], 10)
         self.assertEqual(s["verified_job_censuses"], 8)
 
+    def test_real_skipped_job_with_reversed_github_timestamps_does_not_poison_census(self):
+        runs = [{"id": 100, "name": "Modern", "conclusion": "cancelled"}]
+        result = sample_cancelled_jobs(lambda path: {
+            "total_count": 2,
+            "jobs": [
+                {"id": 101, "conclusion": "cancelled",
+                 "started_at": "2026-10-26T19:19:54Z",
+                 "completed_at": "2026-10-26T19:20:38Z"},
+                {"id": 102, "conclusion": "skipped",
+                 "started_at": "2026-10-26T19:19:52Z",
+                 "completed_at": "2026-10-26T19:19:51Z"},
+            ]}, "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(result["verified_job_censuses"], 1)
+        self.assertEqual(result["observed_runner_seconds"], 44)
+        self.assertEqual(result["unknown_censuses"], [])
+
     def test_invalid_dates_do_not_inflate_occupancy(self):
         rows = [{"id": 1, "name": "One", "conclusion": "cancelled"}]
         s = sample_cancelled_jobs(

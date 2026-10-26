@@ -1,4 +1,5 @@
 """Regression tests for the read-only vault queue-to-review consumer."""
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -82,6 +83,45 @@ class ReviewQueueTests(unittest.TestCase):
         self.assertEqual(row["state"], "needs_semantic_review")
         self.assertEqual(row["owner"], q.SHARED_POOL)
         self.assertNotIn("Agent ", q.render(self.run_review()))
+
+    def test_source_run_receipts_bind_mixed_runs_and_exact_restored_bytes(self):
+        self.seed()
+        path = self.root / "sources.txt"
+        path.write_text("incoming source run: 40329743528\n"
+                        "evidence source run: 40272055532\n", encoding="utf-8")
+        roots = {scope: self.root / scope for scope in FOLDERS}
+        receipts = q.source_run_receipts(path, roots)
+        self.assertEqual(receipts["incoming"]["source_run_id"], 40329743528)
+        self.assertEqual(receipts["evidence"]["source_run_id"], 40272055532)
+        self.assertEqual(receipts["incoming"]["source_run_url"],
+                         "https://github.com/gamesbyian/UR-Recomp/actions/runs/40329743528")
+        for scope in FOLDERS:
+            for name in q.SOURCE_FILES:
+                actual = hashlib.sha256((self.root / scope / name).read_bytes()).hexdigest()
+                self.assertEqual(receipts[scope]["input_sha256"][name], actual)
+        previous = receipts["incoming"]["input_sha256"]["report.json"]
+        report_path = self.root / "incoming" / "report.json"
+        altered = json.loads(report_path.read_text(encoding="utf-8"))
+        altered["scanned_at"] = "2026-10-25"
+        save(report_path, altered)
+        reread = q.source_run_receipts(path, roots)
+        self.assertNotEqual(previous, reread["incoming"]["input_sha256"]["report.json"])
+        self.assertEqual(receipts["evidence"], reread["evidence"])
+
+    def test_source_run_receipts_reject_missing_duplicate_and_malformed_scopes(self):
+        for contents in (
+            "incoming source run: 123\n",
+            "incoming source run: 123\nincoming source run: 124\nevidence source run: 125\n",
+            "incoming source run: 0\nevidence source run: 123\n",
+            "incoming source run: 123\nevidence source run: invalid\n",
+            "incoming source run: 123\nevidence source run: 124\nother source run: 125\n",
+        ):
+            with self.subTest(contents=contents):
+                path = self.root / "sources.txt"
+                path.write_text(contents, encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    q.source_run_receipts(
+                        path, {scope: self.root / scope for scope in FOLDERS})
 
     def test_archive_level_merge_is_not_member_level_merge(self):
         self.seed()

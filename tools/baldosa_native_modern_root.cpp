@@ -2141,7 +2141,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         const bool source_return_probe =
-            (mode == 30 || mode == 31 || mode == 32) && g_stock_handed_off && !g_visible;
+            (mode == 30 || mode == 31 || mode == 32 || mode == 34) &&
+            g_stock_handed_off && !g_visible;
         if ((!g_visible && !g_original_attract_visible &&
              !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||

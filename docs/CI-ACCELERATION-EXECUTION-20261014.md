@@ -96,3 +96,23 @@ The first synthetic unit suite failed because its proposed duplicate-index negat
 **Interpretation:** The 21-second source-verified targeted gate actually ran; it was not a simulated selector or a skipped required check. The previous three jobs had a **121–228-second observed range**. This is not equal-work A/B testing, aggregate seven-day resource accounting, or evidence of saved Windows builds. Each run's measured job wall span is an observed duration, **not** a billing receipt. Report broader speed improvements only after accumulating like-for-like samples.
 
 The existing [manual CI runtime report](../.github/workflows/ci-runtime-report.yml) can now expose **p50 and nearest-rank p90** of legitimately timed completed runs, plus the count of completed runs whose timing is absent or reversed. [#2643](https://github.com/gamesbyian/UR-Recomp/pull/2643) corrects the former average that silently divided observed wall seconds by *all* completed runs, counting absent timing as zero-duration samples. This improves decision quality; it does not by itself make gameplay CI faster, reduce release standards or repair historical startup failures.
+
+## 2026-10-26: PR readiness-to-merge latency, using real GitHub timeline events
+
+**Read-only population:** 24 most recently updated, *merged* PRs from the closed-PR API snapshot at approximately 21:50 UTC, PRs #2622–#2647 plus older #2592 (selected by actual API order, not a contiguous PR-number range). For each selected PR, fetched the **individual GitHub issue timeline** (maximum 22 events observed, under the 100-event page bound), looked for a `ready_for_review` transition and used its last event timestamp when present. Otherwise used creation timestamp because no draft→ready transition appeared in that PR's observed timeline. End = actual `merged_at` timestamp. The sample contains **four explicit ready transitions** (#2629, #2609, #2619, #2622); other records use observed creation. No UI estimation or PR status-label guesswork.
+
+| Sample (2026-10-26) | PRs | Median ready→merge | Nearest-rank p90 | Longest |
+| --- | ---: | ---: | ---: | ---: |
+| All selected merges | 24 | **3.9 min** | **41.1 min** | 1,285.1 min |
+| Operations/CI/docs/recovery | 18 | **2.15 min** | **8.0 min** | 68.2 min |
+| Player/product/QA source | 6 | **26.55 min** | **1,285.1 min** | 1,285.1 min |
+
+**Source-checkable examples:**
+- [#2629](https://github.com/gamesbyian/UR-Recomp/pull/2629): explicit `ready_for_review` **19:41:38Z**, merged **20:16:04Z**, **34.4 min**, versus **56.3 min** from original PR creation. This illustrates why draft/ready transitions must be measured.
+- [#2609](https://github.com/gamesbyian/UR-Recomp/pull/2609): explicit ready **19:01:18Z**, merged **19:09:41Z**, **8.4 min** despite being created much earlier as a held draft.
+- [#2619](https://github.com/gamesbyian/UR-Recomp/pull/2619): explicit ready **18:41:04Z**, merged **18:59:44Z**, **18.7 min**.
+- [#2622](https://github.com/gamesbyian/UR-Recomp/pull/2622): explicit ready **18:40:35Z**, merged **18:45:09Z**, **4.6 min**.
+- [#2641](https://github.com/gamesbyian/UR-Recomp/pull/2641): no ready-transition event; created **21:06:56Z**, merged **21:48:02Z**, creation-baseline **41.1 min**.
+- [#2592](https://github.com/gamesbyian/UR-Recomp/pull/2592): no ready-transition event in the 16 returned timeline events; created **2026-10-25 22:28:14Z**, merged **2026-10-26 19:53:19Z**; **1,285.1 min** drives the product-sample p90. It is not evidence of 21 hours of continuous agent work or CI occupancy.
+
+**What this does and does not prove:** This is the requested measurable *ready-PR-to-merge* latency for a bounded real sample, **not** general creation-to-merge, time to independent release acceptance, review-only delay, agent-hours or runner billing. Readiness-to-merge includes any outstanding checks, repair, scheduled-agent handoff, manual deliberation or integration dependency, and the sample is heavily weighted toward fast infra PRs opened/merged in one session. Without a comparably sampled historical cohort and stable PR mix, neither the faster operations median nor the later product median establishes a causal acceleration effect. Preserve the raw source URLs and do not attach release-gate credit.

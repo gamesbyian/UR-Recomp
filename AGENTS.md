@@ -2,7 +2,7 @@
 
 **Goal:** deliver a fully playable, faithful Uniracers remaster, with usable modern menus, complete controller journeys and reliable records/profiles. The immediate critical path is the **private Windows x64 release**, independently qualified against original/native behavior, exact packaged builds and release QA. The repository itself is public; avoid assuming that a private distribution target makes source, ROMs or third-party assets publishable.
 
-This is the **small orientation and enduring contract**, not a progress diary. The [live work queue](docs/WORK-QUEUE.md) owns priority, the [durable project plan](docs/PROJECT-PLAN.md) owns product intent, the [document map](docs/README.md) owns reference routing and [release quality ledger](docs/RELEASE-QUALITY-LEDGER.json) alone owns acceptance. Read current source, PRs and recent merged evidence before trusting a dated description. An unclosed test, ongoing research or tool prototype does not grant a release gate.
+This is the **small orientation and enduring contract**, not a progress diary. The [live work queue](docs/WORK-QUEUE.md) owns priority, the [durable project plan](docs/PROJECT-PLAN.md) owns product intent, the [document map](docs/README.md) owns reference routing and [release quality ledger](docs/RELEASE-QUALITY-LEDGER.json) alone owns acceptance. For a compact, non-authoritative 12-gate review packet at a specific checked-out commit, use `python3 tools/release_evidence_brief.py --source-sha $(git rev-parse HEAD)`; see [its limits](docs/RELEASE-EVIDENCE-BRIEF.md). Read current source, PRs and recent merged evidence before trusting a dated description. An unclosed test, ongoing research or tool prototype does not grant a release gate.
 
 ## Dispatch and task routes
 

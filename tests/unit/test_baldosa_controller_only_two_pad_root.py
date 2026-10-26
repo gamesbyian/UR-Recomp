@@ -42,6 +42,7 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
         fixture = source.split('if (std::strcmp(opt, "33") == 0) {', 1)[1].split(
             "    // CI-only mode 19:", 1
         )[0]
+        self.assertIn('std::strcmp(fixture, "33") != 0', source)
         self.assertIn("SDL_AttachVirtualJoystick(&desc)", fixture)
         self.assertIn("SDL_SetJoystickVirtualButton(", fixture)
         self.assertIn("{228u, 0, SDL_GAMEPAD_BUTTON_SOUTH}", fixture)

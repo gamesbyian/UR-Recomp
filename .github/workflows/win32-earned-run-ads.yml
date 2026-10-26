@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
-      - name: Verify Win32 ADS refusal for run, report and sibling
+      - name: Verify Win32 ADS refusal and late-stream rechecks
         shell: pwsh
         run: |
           @'
@@ -36,8 +36,8 @@ jobs:
               summary.write(f'Tests: {result.testsRun}; skipped: {len(result.skipped)}; '
                             f'expected failures: {len(result.expectedFailures)}; '
                             f'unexpected successes: {len(result.unexpectedSuccesses)}.\n\n')
-              summary.write('ADS-capable Windows validation must reject hidden named streams. '
+              summary.write('ADS-capable Windows validation must reject hidden and late-added named streams. '
                             'This is source/host evidence, not release acceptance.\n')
-          if result.testsRun != 5 or result.skipped or result.expectedFailures or result.unexpectedSuccesses or not result.wasSuccessful():
+          if result.testsRun != 7 or result.skipped or result.expectedFailures or result.unexpectedSuccesses or not result.wasSuccessful():
               raise SystemExit('Inconclusive/changed Win32 ADS behavior: inspect the individual tests before claiming coverage')
           '@ | python -

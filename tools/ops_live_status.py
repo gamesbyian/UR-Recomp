@@ -396,9 +396,12 @@ def markdown(s):
     return "\n".join(rows)
 
 def required_live_sources_present(report):
-    """Critical live inputs must be readable before the daily report is green."""
-    return all(report.get(key) is not None
-               for key in ("main", "prs", "actions", "recovery_workflows"))
+    """Fail closed when critical GitHub data or recurring recovery is unhealthy."""
+    if not all(report.get(key) is not None
+               for key in ("main", "prs", "actions", "recovery_workflows")):
+        return False
+    return all(row["status"] in {"RECENT_SUCCESS", "IN_FLIGHT"}
+               for row in report["recovery_workflows"].values())
 
 
 def main():

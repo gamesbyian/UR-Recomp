@@ -93,7 +93,7 @@ class PolicyNegatives(unittest.TestCase):
 
     def test_disallows_reexposed_sram_dumps(self):
         fixture = self.valid_source().replace(
-            "            !${{ runner.temp }}/**/*.sram.bin\\n", "")
+            "            !${{ runner.temp }}/**/*.sram.bin\n", "")
         with self.assertRaisesRegex(ValueError, "allowlist"):
             check_workflow(fixture)
 

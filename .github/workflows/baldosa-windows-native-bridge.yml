@@ -83,6 +83,9 @@ on:
       - "tests/native/modern_title_presenter_test.cpp"
       - "tests/unit/test_modern_title_presenter_cpp.py"
       - "tests/unit/test_modern_title_current_main_integration.py"
+      - "tools/capture_baldosa_modern_title_win32.py"
+      - "tests/input/baldosa-modern-title-native-capture.script"
+      - "tests/unit/test_capture_baldosa_modern_title_win32.py"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -310,6 +313,8 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python tests/unit/test_modern_title_presenter_cpp.py
+          python -m unittest -v tests.unit.test_capture_baldosa_modern_title_win32
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
@@ -405,6 +410,35 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Reuse the exact native Windows PE built above. This is genuine host
+      # title/root source and presented SDL evidence, not physical/art approval.
+      - name: Capture Modern title to five-destination root on actual Win32 PE
+        if: ${{ hashFiles('native/product/modern_title_presenter.hpp') != '' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --out "$RUNNER_TEMP/ur-title-native-16by9" --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --aspect 4:3 --out "$RUNNER_TEMP/ur-title-native-4by3" --timeout 100
+          echo "PASS: same PE native Modern title and five-destination root on 16:9 and 4:3; independent physical/controller/art/release acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain native title source and SDL presentation evidence
+        if: ${{ always() && hashFiles('native/product/modern_title_presenter.hpp') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-title-current-main-source-and-sdl
+          path: |
+            ${{ runner.temp }}/ur-title-native-16by9
+            ${{ runner.temp }}/ur-title-native-4by3
+          if-no-files-found: warn
+          retention-days: 14
 
       # Exercise the real compiled next-boot selector with a Unicode root on
       # Windows. Linux UTF-8 paths alone cannot detect ANSI path conversion.

@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+from unittest.mock import patch
 import sys
 import tempfile
 import unittest
@@ -107,6 +108,30 @@ class ReviewQueueTests(unittest.TestCase):
         reread = q.source_run_receipts(path, roots)
         self.assertNotEqual(previous, reread["incoming"]["input_sha256"]["report.json"])
         self.assertEqual(receipts["evidence"], reread["evidence"])
+
+    def test_production_cli_writes_ancestry_into_existing_json_and_markdown(self):
+        self.seed()
+        source_runs = self.root / "sources.txt"
+        source_runs.write_text("incoming source run: 40329743528\n"
+                               "evidence source run: 40272055532\n", encoding="utf-8")
+        dest = self.root / "actionable"
+        argv = ["vault_integration_review.py",
+                "--incoming", str(self.root / "incoming"),
+                "--evidence", str(self.root / "evidence"),
+                "--registry", str(self.registry),
+                "--ledger", str(self.ledger),
+                "--github", str(self.github),
+                "--sources", str(source_runs),
+                "--out", str(dest)]
+        with patch("sys.argv", argv):
+            q.main()
+        doc = q.load(dest / "actionable.json")
+        self.assertEqual(doc["source_artifacts"]["incoming"]["source_run_id"], 40329743528)
+        self.assertEqual(doc["source_artifacts"]["evidence"]["source_run_id"], 40272055532)
+        self.assertEqual(doc["records"][0]["state"], "needs_semantic_review")
+        markdown = (dest / "actionable.md").read_text(encoding="utf-8")
+        self.assertIn("Exact intake input ancestry", markdown)
+        self.assertIn("/actions/runs/40329743528", markdown)
 
     def test_source_run_receipts_reject_missing_duplicate_and_malformed_scopes(self):
         for contents in (

@@ -350,12 +350,25 @@ def markdown(result):
     return "\n".join(lines) + "\n"
 
 
+def save_snapshot(path: Path, snapshot: dict) -> None:
+    """Write one immutable, narrow observation for exact-checkout offline replay."""
+    require(isinstance(snapshot, dict)
+            and snapshot.get("schema") == "UR-GITHUB-PR-SNAPSHOT/1",
+            "cannot save unvalidated snapshot")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8") as output:
+        json.dump(snapshot, output, sort_keys=True, indent=2)
+        output.write("\n")
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--repo", default="gamesbyian/UR-Recomp")
     selection = p.add_mutually_exclusive_group(required=True)
     selection.add_argument("--live", action="store_true")
     selection.add_argument("--snapshot", type=Path)
+    p.add_argument("--snapshot-out", type=Path,
+                   help="write immutable GitHub inventory for later exact-source replay")
     p.add_argument("--lane", required=True, choices=sorted(LANE_RELEASE_GATES))
     p.add_argument("--gate")
     p.add_argument("--receipt-db", type=Path)
@@ -366,8 +379,14 @@ def main():
     args = p.parse_args()
     data = live_snapshot(args.repo) if args.live else json.loads(
         args.snapshot.read_text(encoding="utf-8"))
-    if args.live:
-        require_local_main(data["main_sha"])
+    require(data.get("repository") == args.repo, "snapshot repository mismatch")
+    require_local_main(data["main_sha"])
+    require(args.snapshot_out is None or args.live,
+            "snapshot export requires a live observation")
+    output_paths = [path for path in (args.snapshot_out, args.json_out,
+                                     args.markdown_out) if path is not None]
+    require(len(output_paths) == len(set(path.resolve() for path in output_paths)),
+            "output paths collide")
     ledger_bytes = (ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_bytes()
     ledger = json.loads(ledger_bytes)
     existing = (query_receipts(args.receipt_db, data["main_sha"], 100)
@@ -379,6 +398,8 @@ def main():
     result = assess(data, ledger, args.lane, args.gate, existing, costing,
                     previous, hashlib.sha256(ledger_bytes).hexdigest())
     rendered = markdown(result)
+    if args.snapshot_out:
+        save_snapshot(args.snapshot_out, data)
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")

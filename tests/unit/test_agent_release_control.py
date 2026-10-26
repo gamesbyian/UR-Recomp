@@ -143,6 +143,19 @@ class AgentReleaseControlTests(unittest.TestCase):
             completed(SHA + "\n"), completed("")]):
             m.require_local_main(SHA)
 
+    def test_snapshot_replay_must_be_source_bound_and_immutable(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "live-snapshot.json"
+            m.save_snapshot(path, snapshot())
+            recorded = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(recorded["main_sha"], SHA)
+            self.assertEqual(recorded["open_prs"][0]["head_sha"], OTHER)
+            with self.assertRaises(FileExistsError):
+                m.save_snapshot(path, snapshot())
+            with self.assertRaisesRegex(ValueError, "unvalidated"):
+                m.save_snapshot(Path(folder) / "bad.json", {"schema": "foreign"})
+
     def test_live_pr_head_change_and_valid_snapshot(self):
         pr = {"number": 10, "title": "One", "head": {"sha": OTHER},
               "base": {"sha": SHA}, "draft": False}

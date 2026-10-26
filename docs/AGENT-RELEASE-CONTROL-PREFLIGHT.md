@@ -19,7 +19,15 @@ is a collision hint, NOT a Git merge conflict. Passing observed checks do
 not prove that branch-protection-required checks are satisfied. Only the
 hourly board and independent Agent 5 authorize shared integration work.
 
-For a saved offline GitHub snapshot, use --snapshot PATH instead of --live.
+For reproducible offline review, add `--snapshot-out /private/observation.json`
+to a **live** command. It records the exact GitHub main SHA, observed PR
+heads and checks, population completeness and closed-PR sample without
+credentials or raw artifacts, and refuses to overwrite an existing snapshot.
+Then use `--snapshot /private/observation.json` instead of `--live`.
+**Both modes require the same clean local Git checkout at the recorded main
+commit** before reading the release ledger. To replay an older snapshot,
+check out its exact original source commit first; never join a historical
+GitHub census to a newer ledger. The repository identifier must also match.
 For optional exact-main diagnostic receipt reuse, pass --receipt-db PATH.
 That database is built by tools/index_ci_receipts.py. Its source-bound
 unit/fanout rows are producer receipts, never independent release proof;

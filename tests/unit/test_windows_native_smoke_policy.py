@@ -27,10 +27,13 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             '      - "native/title/**"',
         ):
             self.assertIn(path, push)
-        self.assertNotIn(
+        # The first integrated-main PE/binding must be produced even when
+        # the only merged change is the workflow that stages those bytes.
+        self.assertIn(
             '      - ".github/workflows/windows-native-smoke.yml"',
             push,
         )
+        self.assertIn("    branches: [main]", push)
 
     def test_push_path_entries_are_structurally_indented(self) -> None:
         push = self.text.split("  push:\n", 1)[1].split("\nconcurrency:", 1)[0]

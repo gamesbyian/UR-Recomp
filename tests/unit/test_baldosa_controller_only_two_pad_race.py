@@ -80,11 +80,15 @@ class TwoPadSourceRaceAcceptance(unittest.TestCase):
         good = "\n".join([*HOST, *SOURCE]) + "\n"
         result = verify_controller_only_two_pad_race(good)
         self.assertEqual(result["source_input_frames"], 3190)
+        picker_index = next(i for i, line in enumerate(SOURCE)
+                            if "source_p2_picker=" in line)
         mutants = {
             "no original GO": [x for x in SOURCE if "source_go=1" not in x],
             "no P2 rider choice": [x for x in SOURCE if "source_p2_picker=" not in x],
             "wrong P2 choice": [x.replace("source_p2_picker=right", "source_p2_picker=down") for x in SOURCE],
-            "P2 choice after starts": [*SOURCE[:3], SOURCE[4], SOURCE[3], *SOURCE[5:]],
+            "P2 choice after starts": [*SOURCE[:picker_index],
+                                       SOURCE[picker_index + 1], SOURCE[picker_index],
+                                       *SOURCE[picker_index + 2:]],
             "no 2P result": [x for x in SOURCE if "NATIVE_RESULT observed" not in x],
             "no source pair": [x for x in SOURCE if "NATIVE_MATCH CAPTURED" not in x],
             "wrong P2 rider": [x.replace("riders=0,1", "riders=0,2") for x in SOURCE],

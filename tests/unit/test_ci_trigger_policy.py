@@ -710,17 +710,21 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn('"tools/patches/**"', _block(text, "pull_request"))
 
     def test_main_push_does_not_self_trigger_on_workflow_yaml(self):
+        # Windows smoke is the sole justified exception: its first main run
+        # publishes a source-bound ROM-free PE after the producer YAML merges.
+        # A PR-merge test cannot supply that exact-main executable witness.
+        allowed = {"windows-native-smoke.yml"}
         offenders = []
         for path in _workflow_paths():
             text = path.read_text()
             push = _block(text, "push")
             own_path = f'.github/workflows/{path.name}'
-            if _pushes_main(text) and own_path in push:
+            if _pushes_main(text) and own_path in push and path.name not in allowed:
                 offenders.append(path.name)
         self.assertEqual(
             offenders,
             [],
-            f"main-push workflows must not rerun solely because their own YAML changed: {offenders}",
+            f"only the Windows exact-main PE producer may self-trigger on main: {offenders}",
         )
 
     def test_shell_continuations_are_not_interrupted_by_comments(self):

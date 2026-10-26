@@ -66,6 +66,18 @@ class ReleaseEvidenceDeltaTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             compare(old, new)
 
+    def test_rejects_false_source_match_and_legacy_unknown_claim(self):
+        old = packet()
+        self.assertIsNone(old["source_matches_ledger"])
+        tampered = copy.deepcopy(old)
+        tampered["source_matches_ledger"] = True
+        with self.assertRaisesRegex(ValueError, "source comparison"):
+            compare(old, tampered)
+        tampered = packet("e" * 40)
+        tampered["source_matches_ledger"] = True
+        with self.assertRaisesRegex(ValueError, "source comparison"):
+            compare(old, tampered)
+
     def test_rejects_fake_counts_and_duplicate_ids(self):
         old = packet()
         new = copy.deepcopy(old)

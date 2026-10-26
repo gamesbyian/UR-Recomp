@@ -53,7 +53,9 @@ def briefing(ledger: dict, *, source_sha: str | None = None) -> dict:
             blockers.append("no_registered_independent_witness")
         if claimed is not None and claimed != pinned:
             blockers.append("gate_candidate_mismatch")
-        if source_sha is not None and source_sha != pinned:
+        if source_sha is None:
+            blockers.append("requested_source_not_checked")
+        elif source_sha != pinned:
             blockers.append("requested_source_differs_from_nominated_candidate")
         rows.append({
             "id": gate["id"], "status": status, "required_layer": gate["required_layer"],
@@ -67,7 +69,7 @@ def briefing(ledger: dict, *, source_sha: str | None = None) -> dict:
         "ledger_candidate_commit": pinned,
         "ledger_zip_sha256": digest,
         "checked_source_commit": source_sha,
-        "source_matches_ledger": source_sha is None or source_sha == pinned,
+        "source_matches_ledger": None if source_sha is None else source_sha == pinned,
         "accepted_gate_count": sum(r["status"] == "passed" for r in rows),
         "pending_gate_count": sum(r["status"] not in ("passed", "waived") for r in rows),
         "gates": rows,
@@ -75,13 +77,18 @@ def briefing(ledger: dict, *, source_sha: str | None = None) -> dict:
 
 
 def markdown(result: dict) -> str:
+    match_state = result["source_matches_ledger"]
+    source_comparison = (
+        "UNKNOWN (no checked source supplied)" if match_state is None
+        else "MATCH" if match_state else "MISMATCH"
+    )
     lines = [
         "# Release evidence handoff (read-only)",
         "",
         "Diagnostic inventory only. **References, completed tests and witness counts do not award release credit.**",
         f"Ledger candidate: `{result['ledger_candidate_commit']}`; ZIP SHA256: `{result['ledger_zip_sha256']}`.",
         f"Gate status: {result['accepted_gate_count']}/12 accepted; {result['pending_gate_count']} pending (excluding explicit waivers).",
-        f"Requested source matches nominated candidate: {result['source_matches_ledger']}.",
+        f"Source comparison: {source_comparison}.",
         "",
         "| Gate | Status | Layer | References | Witnesses | Blockers |",
         "|---|---|---|---:|---:|---|",

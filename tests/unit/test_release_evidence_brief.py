@@ -21,9 +21,29 @@ class ReleaseEvidenceBriefTests(unittest.TestCase):
         self.assertEqual(self.ledger, self.original)
         self.assertIn("read-only", markdown(result).lower())
 
+    def test_missing_source_is_explicitly_unknown_not_a_match(self):
+        result = briefing(self.ledger)
+        self.assertIsNone(result["checked_source_commit"])
+        self.assertIsNone(result["source_matches_ledger"])
+        self.assertTrue(all("requested_source_not_checked" in row["blockers"]
+                            for row in result["gates"]))
+        self.assertIn("Source comparison: UNKNOWN", markdown(result))
+        self.assertNotIn("Source comparison: MATCH", markdown(result))
+        self.assertEqual(result["accepted_gate_count"], 0)
+
+    def test_verified_nominee_source_is_a_match(self):
+        source = self.ledger["candidate"]["commit_sha"]
+        result = briefing(self.ledger, source_sha=source)
+        self.assertIs(result["source_matches_ledger"], True)
+        self.assertNotIn("requested_source_not_checked", result["gates"][0]["blockers"])
+        self.assertNotIn("requested_source_differs_from_nominated_candidate",
+                         result["gates"][0]["blockers"])
+        self.assertIn("Source comparison: MATCH", markdown(result))
+
     def test_wrong_source_marks_every_gate_without_awarding_credit(self):
         result = briefing(self.ledger, source_sha="e" * 40)
-        self.assertFalse(result["source_matches_ledger"])
+        self.assertIs(result["source_matches_ledger"], False)
+        self.assertIn("Source comparison: MISMATCH", markdown(result))
         self.assertTrue(all("requested_source_differs_from_nominated_candidate" in x["blockers"]
                             for x in result["gates"]))
 

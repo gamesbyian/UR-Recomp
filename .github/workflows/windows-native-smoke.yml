@@ -1170,6 +1170,7 @@ jobs:
             ${{ runner.temp }}/windows-romfree-binary/binding.json
             ${{ runner.temp }}/windows-tournament-candidate.txt
             ${{ runner.temp }}/tournament-qa-envelope.json
+            !${{ runner.temp }}/**/*.sram.bin
           if-no-files-found: warn
           retention-days: 7
 

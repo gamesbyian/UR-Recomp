@@ -16,7 +16,28 @@ sys.path.insert(0, str(ROOT / "tools"))
 from run_baldosa_keyboard_pad_join_acceptance import (
     verify_controller_only_two_pad_race,
 )
-from tests.unit.test_baldosa_controller_only_two_pad_root import HOST, STAGES
+# Self-contained source fixtures: unittest discovery does not require
+# tests/ to be an importable package on every runner.
+HOST = [
+    "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added",
+    "[Gamepad] UR_CONTROLLER_SEAT assign instance=202 seat=1 reason=added",
+]
+STAGES = [
+    "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern",
+    "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=75 input_owned=1",
+    "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
+    "UR_BALDOSA_MODERN_ROOT selected=1",
+    "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=3 course=0 source_menu_required=1",
+    "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=11,10,320,204 source=modern_product_view",
+    "UR_BALDOSA_MODERN_ROOT practice_closed=1",
+    "UR_BALDOSA_MODERN_ROOT selected=2",
+    "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+    "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=11,10,320,204 source=modern_product_view",
+    "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+    "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+    "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+    "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+]
 
 
 SOURCE = [

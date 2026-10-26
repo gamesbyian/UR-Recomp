@@ -7,6 +7,7 @@ artifact download, branch mutation, release promotion or automatic merge.
 from __future__ import annotations
 
 import argparse
+import hashlib
 from datetime import datetime
 import json
 from pathlib import Path
@@ -18,10 +19,12 @@ try:
     from .build_agent_context import LANE_RELEASE_GATES
     from .index_ci_receipts import query as query_receipts
     from .release_evidence_brief import briefing
+    from .release_evidence_delta import compare as compare_briefs
 except ImportError:
     from build_agent_context import LANE_RELEASE_GATES
     from index_ci_receipts import query as query_receipts
     from release_evidence_brief import briefing
+    from release_evidence_delta import compare as compare_briefs
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "UR-LIVE-AGENT-RELEASE-PREFLIGHT/1"
@@ -134,7 +137,8 @@ def parse_date(value):
         return None
 
 
-def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None):
+def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None,
+           previous_brief=None, ledger_digest=None):
     require(isinstance(snapshot, dict)
             and snapshot.get("schema") == "UR-GITHUB-PR-SNAPSHOT/1",
             "invalid snapshot schema")
@@ -147,6 +151,27 @@ def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None):
              and (allowed is None or gate in allowed)),
             "gate outside lane scope")
     view = briefing(ledger, source_sha=main)
+    status_delta = {"state": "no_previous_brief",
+                    "tracked_gates_changed": None, "passed_status_change": None}
+    if previous_brief is not None:
+        require(isinstance(previous_brief, dict)
+                and isinstance(previous_brief.get("checked_source_commit"), str)
+                and bool(HEX40.fullmatch(previous_brief["checked_source_commit"])),
+                "previous brief missing exact source")
+        require(isinstance(ledger_digest, str)
+                and bool(re.fullmatch(r"[0-9a-f]{64}", ledger_digest)),
+                "current ledger byte fingerprint unavailable")
+        view["ledger_file_sha256"] = ledger_digest
+        delta = compare_briefs(previous_brief, view)
+        old_passed = sum(g["status"] == "passed" for g in previous_brief["gates"])
+        status_delta = {
+            "state": "diagnostic_only_not_independent_gate_adjudication",
+            "tracked_gates_changed": delta["changed_gate_count"],
+            "passed_status_change": view["accepted_gate_count"] - old_passed,
+            "ledger_bytes_changed": not delta["same_ledger_bytes"],
+            "unexplained_ledger_byte_change": delta["unexplained_ledger_byte_change"],
+            "changed_gate_ids": [row["id"] for row in delta["gate_changes"]],
+        }
     relevant = [row for row in view["gates"]
                 if allowed is None or row["id"] in allowed]
     prs = snapshot.get("open_prs")
@@ -229,6 +254,7 @@ def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None):
         "indexed_main_producer_receipts": local,
         "evidence_index_scope": ("local_only" if receipts is not None else "unknown_not_supplied"),
         "ci_cost": cost,
+        "recorded_release_status_delta": status_delta,
         "integration_metrics": {
             "closed_sample_count": len(snapshot.get("closed_prs_sample", [])),
             "merged_sample_count": len(durations),
@@ -288,6 +314,13 @@ def markdown(result):
         lines.append("- " + x["workflow"] + ": runner seconds >= "
                      + str(x["runner_seconds_lower_bound"])
                      + "; missing jobs=" + str(x["missing_job_timing"]))
+    status = result["recorded_release_status_delta"]
+    lines.append(
+        "Recorded release metadata delta: " + status["state"]
+        + "; changed gates=" + str(status["tracked_gates_changed"])
+        + "; recorded passed-status change=" + str(status["passed_status_change"])
+        + " (not independent QA)."
+    )
     m = result["integration_metrics"]
     lines.append(
         f"Recent closed sample {m['closed_sample_count']}, merged {m['merged_sample_count']}, "
@@ -310,6 +343,7 @@ def main():
     p.add_argument("--gate")
     p.add_argument("--receipt-db", type=Path)
     p.add_argument("--ci-runtime-report", type=Path)
+    p.add_argument("--previous-brief", type=Path)
     p.add_argument("--json-out", type=Path)
     p.add_argument("--markdown-out", type=Path)
     args = p.parse_args()
@@ -317,12 +351,16 @@ def main():
         args.snapshot.read_text(encoding="utf-8"))
     if args.live:
         require_local_main(data["main_sha"])
-    ledger = json.loads((ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_text())
+    ledger_bytes = (ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_bytes()
+    ledger = json.loads(ledger_bytes)
     existing = (query_receipts(args.receipt_db, data["main_sha"], 100)
                 if args.receipt_db else None)
     costing = (json.loads(args.ci_runtime_report.read_text(encoding="utf-8"))
                if args.ci_runtime_report else None)
-    result = assess(data, ledger, args.lane, args.gate, existing, costing)
+    previous = (json.loads(args.previous_brief.read_text(encoding="utf-8"))
+                if args.previous_brief else None)
+    result = assess(data, ledger, args.lane, args.gate, existing, costing,
+                    previous, hashlib.sha256(ledger_bytes).hexdigest())
     rendered = markdown(result)
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

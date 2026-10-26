@@ -152,6 +152,15 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"post-merge side effects. offenders={offenders}",
         )
 
+    def test_changed_workflow_actionlint_is_required_not_advisory(self):
+        hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
+        block = hygiene.split("      - name: Validate changed workflow files with actionlint", 1)[1]
+        block = block.split("      - name: Advisory offline zizmor", 1)[0]
+        self.assertNotIn("continue-on-error:", block)
+        self.assertIn("gh api --paginate", block)
+        self.assertIn("sha256sum --check --status", block)
+        self.assertIn('actionlint" -oneline "${changed[@]}"', block)
+
     def test_pull_requests_are_path_scoped(self):
         offenders = []
         for path in _workflow_paths():

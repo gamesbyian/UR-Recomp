@@ -151,16 +151,22 @@ def compare(paths, *, expected_source=None, expected_zip=None):
     for i, (left, left_offset) in enumerate(binaries):
         for j in range(i + 1, len(binaries)):
             right, right_offset = binaries[j]
-            diff = [p for p, (a, b) in enumerate(zip(left, right)) if a != b]
+            # Compare in constant auxiliary memory: never retain every
+            # differing byte position from an untrusted 128 MiB PE.
+            length_matches = len(left) == len(right)
+            diff_count = sum(a != b for a, b in zip(left, right))
+            diff_count += abs(len(left) - len(right))
             time_fields = (
-                len(left) == len(right) and left_offset == right_offset
-                and all(left_offset + 8 <= p < left_offset + 12 for p in diff)
+                bool(diff_count) and length_matches
+                and left_offset == right_offset
+                and left[:left_offset + 8] == right[:right_offset + 8]
+                and left[left_offset + 12:] == right[right_offset + 12:]
             )
             pairwise.append({
                 "left": i, "right": j,
-                "different_byte_count": len(diff) + abs(len(left) - len(right)),
+                "different_byte_count": diff_count,
                 "same_executable_bytes": left == right,
-                "only_coff_timestamp_bytes_differ": bool(diff and time_fields),
+                "only_coff_timestamp_bytes_differ": time_fields,
                 "same_private_zip_sha256_claim": (
                     rows[i]["private_portable_zip_sha256_claim"] ==
                     rows[j]["private_portable_zip_sha256_claim"]),

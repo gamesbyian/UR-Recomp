@@ -387,7 +387,7 @@ def verify_controller_only_two_pad_race(log: str) -> dict:
     result = source_match_published(
         log, p1_profile="mike", p2_profile="andrew", p1_rider=0, p2_rider=1,
     )
-    if log.index("UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p") <= positions[2]:
+    if log.index("UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p") <= positions[3]:
         raise ValueError("two-pad race: result preceded source GO")
     return result
 

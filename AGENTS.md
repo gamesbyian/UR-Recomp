@@ -8,7 +8,7 @@ This is the **small orientation and enduring contract**, not a progress diary. T
 
 | Task | Start here |
 |---|---|
-| New agent / current release blocker | `docs/WORK-QUEUE.md`, current PRs, then the owning specialist and direct code. For assigned lanes: `python3 tools/build_agent_context.py <lane>` |
+| New agent / current release blocker | `docs/WORK-QUEUE.md`, current PRs, then the owning specialist and direct code. For assigned lanes: `python3 tools/build_agent_context.py <lane>`; for one source-bound actionable gate handoff, use `python3 tools/agent_action_handoff.py <lane> --gate QA-XX` (read-only, explicit gate, no inferred ownership) |
 | Five scheduled agents, slot assignments, manual/vault coordination | `docs/HOURLY-AGENT-LINES.md` (only live slot owner), `docs/AGENT-COORDINATION.md`, relevant active PR. Position numbers are not durable work IDs |
 | Windows boot/build, exact package, native host | `docs/BRINGUP.md`, `docs/VALIDATION.md`, `docs/PLATFORM-TARGETS.md`, current workflow/host source |
 | Modern menus, controller, screen state and 2P | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, `analysis/ui-capture-manifest.json`, `docs/TWO-PLAYER-FIXTURE-PLAN.md` |

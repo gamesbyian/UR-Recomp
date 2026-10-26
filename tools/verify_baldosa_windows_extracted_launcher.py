@@ -154,6 +154,29 @@ def verify_first_user_cmd_relaunch_log(log: str) -> None:
 
 
 
+def verify_no_input_modern_paint(log: str) -> str:
+    """Require exactly one actual painted host surface on a cold CMD launch.
+
+    Pre-title builds paint the five-destination root immediately. The
+    integrated Modern title intentionally waits for a *new* physical confirm
+    edge before painting that root. Neither route may silently pass with no
+    paint, two surfaces, or an arbitrary/partial title diagnostic. A separate
+    controller-driven test must prove title -> root on title-enabled builds.
+    """
+    opened = re.findall(r"(?m)^UR_BALDOSA_MODERN_ROOT opened=1\\r?$", log)
+    root = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT painted=1 "
+        r"destinations=5 renderer=shared\\r?$", log)
+    title = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_TITLE painted=1 "
+        r"raster=(256|342)x224 host=modern\\r?$", log)
+    require(len(opened) == 1,
+            "actual CMD did not open exactly one native Modern host")
+    require((len(root), len(title)) in ((1, 0), (0, 1)),
+            "no-input CMD must paint exactly one Modern root or title surface")
+    return "title" if title else "root"
+
+
 def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         *, expected_revision: str | None = None,
         save_fault_fixture: Path | None = None,
@@ -311,10 +334,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         bounded_log(log), encoding="utf-8")
     require(good.returncode == 0,
             f"extracted CMD launcher returned {good.returncode}: {log[-2500:]}")
-    for marker in ("UR_BALDOSA_MODERN_ROOT opened=1",
-                   "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"):
-        require(log.count(marker) == 1,
-                f"real extracted launcher did not reach shared Modern painter: {marker}")
+    no_input_surface = verify_no_input_modern_paint(log)
     save = user_root / "saves" / "save.srm"
     require(save.is_file() and save.stat().st_size == 8192,
             "real installed process did not publish exact 8KiB user SRAM")
@@ -508,7 +528,9 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         "packaged_live_original_save_failure_exit_8": packaged_save_failure is not None,
         "packaged_live_original_save_failure_source_witness": packaged_save_failure,
         "rejected_profile_save_unchanged": True,
-        "native_root_drawn": True,
+        "native_root_drawn": no_input_surface == "root",
+        "native_title_drawn": no_input_surface == "title",
+        "no_input_modern_surface": no_input_surface,
         "canonical_8192_byte_save_outside_package": True,
         "published_zip_unchanged": True,
         "archive_sha256": approved_archive_sha256,

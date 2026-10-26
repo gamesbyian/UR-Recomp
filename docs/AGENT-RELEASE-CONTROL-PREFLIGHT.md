@@ -46,3 +46,12 @@ Run source-only regression checks:
 The result is deliberately advisory: re-read the live hourly board and
 owning PR, identify the smallest missing witness, run only a decision-
 changing test, and route fixes to their specialist and Agent 5.
+
+Alternatively, after this tool merges onto main, run the **existing** manual
+Agent control and recovery contract GitHub Actions workflow with
+`live_preflight=true`. The new manual-only step renders the read-only
+report into the GitHub Actions Job Summary using the runner's read-only
+GitHub token. Ordinary PR/push validations never execute the live scan;
+that step has no rights to edit branches, Actions or release ledgers.
+A workflow-dispatch run cannot prove current-main agreement if main moves;
+the command detects and fails on that exact-source mismatch.

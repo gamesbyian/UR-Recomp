@@ -46,6 +46,13 @@ def row(campaign, disposition="completed_positive", digest=None, run_id=1):
 
 
 class AdmissionDecisions(unittest.TestCase):
+    def test_coordinator_manual_only_during_integration_first_period(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        triggers = workflow.split("\non:", 1)[1].split("\npermissions:", 1)[0]
+        self.assertIn("workflow_dispatch:", triggers)
+        self.assertNotIn("  schedule:", triggers)
+        self.assertIn("qa-cumulative-research-single-ledger-writer", workflow)
+
     def test_idle_capacity_admits_exact_request(self):
         d = a.decide(snap(), req(parallel=4))
         self.assertEqual((d["decision"], d["frontier_parallel"]), ("admit", 4))

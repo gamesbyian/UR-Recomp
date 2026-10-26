@@ -25,10 +25,14 @@ HOOK=r'''/* UR_QA01_RF084_NATIVE_SOUND_DP_COMMIT
  */
 extern int snes_frame_counter;
 static unsigned ur_rf084_rows;
+/* Only the documented exact value enables this opt-in observer. */
+static int ur_rf084_opt_in(const char *flag) {
+    return flag && flag[0]=='1' && flag[1]=='\0';
+}
 static void ur_rf084_after(CpuState *cpu, unsigned pc, unsigned width,
                            uint16 addr, uint16 old, uint16 value) {
     const char *flag=getenv("UR_QA01_RF084_NATIVE_SOUND_DP");
-    if(!flag || !*flag || snes_frame_counter<6054 ||
+    if(!ur_rf084_opt_in(flag) || snes_frame_counter<6054 ||
        snes_frame_counter>6068) return;
     if(++ur_rf084_rows>10000u) {
         if(ur_rf084_rows==10001u)

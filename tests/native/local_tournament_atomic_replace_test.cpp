@@ -90,6 +90,26 @@ int run_real_process_cut_child(const std::string& mode) {
         (void)ur::product::write_host_replace_staged(
             root / "real-postclaim.txt", "committed-child", "urprofile",
             nullptr, nullptr, &terminate_at_real_process_cut);
+    } else if (mode == "--real-race-A" || mode == "--real-race-B") {
+        // An actual second Windows process, not another thread in this one.
+        // Wait until both children are alive before racing the same target.
+        const char writer = mode.back();
+        const fs::path ready = root / (std::string("race-ready-") + writer);
+        {
+            std::ofstream signal(ready, std::ios::binary);
+            signal << "ready";
+            signal.flush();
+            if (!signal.good()) return 95;
+        }
+        const auto deadline = std::chrono::steady_clock::now() +
+                              std::chrono::seconds(15);
+        while (!fs::exists(root / "race-go")) {
+            if (std::chrono::steady_clock::now() >= deadline) return 96;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        const bool published = ur::product::write_host_replace_staged(
+            root / "race-target.txt", std::string(8192, writer), "urprofile");
+        return published ? 0 : 94;
     } else {
         return 88;
     }
@@ -140,6 +160,77 @@ void run_real_process_cut(const fs::path& root, const char* self,
     check(waitpid(pid, &status, 0) == pid &&
               WIFEXITED(status) && WEXITSTATUS(status) == 86,
           "real POSIX child died at crash cut");
+#endif
+}
+
+
+void run_real_two_process_writer_race(const fs::path& root) {
+#if defined(_WIN32)
+    // Unlike the existing eight-thread fixture, these are separate Win32
+    // processes with independent CRT buffers and private stage reservations.
+    const fs::path race_root = root / "real-two-process";
+    check(fs::create_directory(race_root), "two-process root created");
+    check(SetEnvironmentVariableW(
+              L"UR_ATOMIC_TEST_CUT_ROOT", race_root.c_str()) != 0,
+          "two-process root inherited by children");
+    std::wstring executable(32768, L'\0');
+    const DWORD length = GetModuleFileNameW(
+        nullptr, executable.data(), static_cast<DWORD>(executable.size()));
+    check(length > 0 && length < executable.size(),
+          "two-process executable path obtained");
+    executable.resize(length);
+    PROCESS_INFORMATION children[2]{};
+    for (unsigned i = 0; i < 2; ++i) {
+        const wchar_t label = i == 0 ? L'A' : L'B';
+        std::wstring command = L"\"" + executable +
+                               L"\" --real-race-" + label;
+        STARTUPINFOW startup{};
+        startup.cb = sizeof(startup);
+        check(CreateProcessW(executable.c_str(), command.data(),
+                             nullptr, nullptr, FALSE, CREATE_NO_WINDOW,
+                             nullptr, nullptr, &startup, &children[i]) != 0,
+              "independent Windows writer process started");
+    }
+    const auto deadline = std::chrono::steady_clock::now() +
+                          std::chrono::seconds(15);
+    while ((!fs::exists(race_root / "race-ready-A") ||
+            !fs::exists(race_root / "race-ready-B")) &&
+           std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    check(fs::exists(race_root / "race-ready-A") &&
+          fs::exists(race_root / "race-ready-B"),
+          "both independent writers reached publication barrier");
+    {
+        std::ofstream go(race_root / "race-go", std::ios::binary);
+        go << "go";
+        go.flush();
+        check(go.good(), "two-process publication barrier released");
+    }
+    bool at_least_one_committed = false;
+    for (auto& child : children) {
+        const DWORD waited = WaitForSingleObject(child.hProcess, 30000);
+        DWORD exit_code = 0;
+        const bool exited = waited == WAIT_OBJECT_0 &&
+            GetExitCodeProcess(child.hProcess, &exit_code) != 0;
+        CloseHandle(child.hThread);
+        CloseHandle(child.hProcess);
+        check(exited && (exit_code == 0 || exit_code == 94),
+              "independent writer completed or reported publication conflict");
+        at_least_one_committed |= exit_code == 0;
+    }
+    check(at_least_one_committed, "at least one Windows writer committed");
+    const std::string final_bytes = bytes(race_root / "race-target.txt");
+    check(final_bytes == std::string(8192, 'A') ||
+          final_bytes == std::string(8192, 'B'),
+          "two-process target contains exactly one complete writer payload");
+    for (const auto& entry : fs::directory_iterator(race_root)) {
+        check(entry.path().filename().wstring().rfind(
+                  L".pending-urprofile-", 0) != 0,
+              "both independent writers cleaned their private stages");
+    }
+#else
+    (void)root;
 #endif
 }
 
@@ -256,6 +347,7 @@ int main(int argc, char** argv) {
     run_real_process_cut(unicode_dir, argv[0], "--real-postclaim");
     check(bytes(real_postclaim) == "committed-child",
           "real process death after claim retains committed bytes");
+    run_real_two_process_writer_race(unicode_dir);
     const fs::path raced_intent = unicode_dir / "raced-intent.pending";
     competing_immutable_target = raced_intent;
     check(!ur::product::write_host_create_staged_native(

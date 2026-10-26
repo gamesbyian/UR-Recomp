@@ -9,11 +9,9 @@ name: Windows native build and boot smoke
 # framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
 
 on:
-  # A workflow edit needs a native Windows execution before it can merge.
-  # The job guard below excludes untrusted fork PRs from ROM-bearing builds.
-  pull_request:
-    paths:
-      - ".github/workflows/windows-native-smoke.yml"
+  # PR changes to this workflow are tested once by the QA-05/09 reusable
+  # caller (which watches this YAML), not a second standalone full build.
+  # Direct main-push and deliberate manual execution remain separate.
   workflow_dispatch:
   workflow_call:
     inputs:

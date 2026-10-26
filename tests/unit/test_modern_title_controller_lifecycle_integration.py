@@ -215,7 +215,7 @@ class ModernTitleControllerReconciliation(unittest.TestCase):
         self.assertIn("reopened_frame = frame;", fixture)
         self.assertNotIn('SDL_KEYDOWN', fixture)
         self.assertNotIn('ur_baldosa_modern_root_gamepad(', fixture)
-        self.assertIn('mode < 1 || mode > 33', SOURCE)
+        self.assertIn('mode < 1 || mode > 34', SOURCE)
         self.assertIn('std::strcmp(fixture, "29") != 0', SOURCE)
         runner = (
             ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py"

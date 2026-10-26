@@ -184,6 +184,42 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertIn("/actions/runs/4001", markdown(report))
         self.assertTrue(required_live_sources_present(report))
 
+    def test_latest_intake_after_still_green_review_is_not_green_overall(self):
+        def simulated(path):
+            if "/actions/workflows/" in path:
+                intake = "vault-recurring-intake" in path
+                return {"workflow_runs": [{
+                    "id": 5000 if intake else 5001,
+                    "head_branch": "main",
+                    "event": "schedule" if intake else "workflow_run",
+                    "created_at": ("2026-10-21T11:00:00Z" if intake
+                                   else "2026-10-21T10:30:00Z"),
+                    "status": "completed", "conclusion": "success"}]}
+            return self.request(path)
+        report = self.report(get=simulated)
+        self.assertEqual(report["recovery_workflows"]["intake"]["status"], "RECENT_SUCCESS")
+        review = report["recovery_workflows"]["review"]
+        self.assertEqual(review["status"], "UPSTREAM_NOT_REVIEWED")
+        self.assertEqual(review["latest_intake_run_id"], 5000)
+        self.assertIn("awaiting review after", markdown(report))
+        self.assertFalse(required_live_sources_present(report))
+
+    def test_review_newer_than_latest_intake_is_recent_without_claiming_bytes(self):
+        def simulated(path):
+            if "/actions/workflows/" in path:
+                intake = "vault-recurring-intake" in path
+                return {"workflow_runs": [{
+                    "id": 6000 if intake else 6001,
+                    "head_branch": "main",
+                    "event": "schedule" if intake else "workflow_run",
+                    "created_at": ("2026-10-21T10:00:00Z" if intake
+                                   else "2026-10-21T10:01:00Z"),
+                    "status": "completed", "conclusion": "success"}]}
+            return self.request(path)
+        report = self.report(get=simulated)
+        self.assertEqual(report["recovery_workflows"]["review"]["status"], "RECENT_SUCCESS")
+        self.assertTrue(required_live_sources_present(report))
+
     def test_vault_failure_and_overdue_are_visible_without_guessing_success(self):
         def broken(path):
             if "/actions/workflows/" in path:

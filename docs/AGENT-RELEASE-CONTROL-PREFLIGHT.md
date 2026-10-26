@@ -55,3 +55,15 @@ GitHub token. Ordinary PR/push validations never execute the live scan;
 that step has no rights to edit branches, Actions or release ledgers.
 A workflow-dispatch run cannot prove current-main agreement if main moves;
 the command detects and fails on that exact-source mismatch.
+
+For release progress across two exact-source checkouts, supply
+`--previous-brief /private/earlier-release-brief.json`, produced from
+the separately checked old checkout with `tools/release_evidence_brief.py
+--source-sha EXACT_OLD_COMMIT --json-out FILE`. The combined preflight
+uses the existing fail-closed `tools/release_evidence_delta.py` schema to
+report whether ledger bytes and tracked gate metadata changed and how many
+statuses say passed before/after. This is a change in **recorded metadata**,
+not independently reauthenticated evidence or an acceptance award. It is
+displayed *separately* from merged PR count, so agent throughput cannot be
+confused with product or QA completion. A baseline without an exact checked
+source is rejected.

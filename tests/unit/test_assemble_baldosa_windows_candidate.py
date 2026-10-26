@@ -274,7 +274,7 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                 env["UR_RECOMP_USER_DATA_ROOT"] = str(user_root)
                 env["UR_BALDOSA_NO_HOLD"] = "1"
                 result = subprocess.run(
-                    ["cmd.exe", "/d", "/s", "/c", f'""{launcher}""'],
+                    f'"{launcher}"', shell=True,
                     cwd=package, env=env, text=True,
                     capture_output=True, timeout=40)
                 self.assertEqual(result.returncode, 3,

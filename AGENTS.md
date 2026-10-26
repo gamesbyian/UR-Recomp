@@ -60,3 +60,12 @@ Prefer the cheapest targeted local test, then the owning [validation strategy](d
 Keep generated files and large imported research separate from hand-edited core code. The bonus emulator-assisted ROM hack, future decentralized P2P, extra platforms and promotional experiments do not silently become Windows release blockers. New platforms use host adapters rather than changes to authoritative game simulation. No proprietary SDKs, keys or confidential materials in source.
 
 The historical [pre-audit AGENTS snapshot](docs/archive/AGENTS-PRE-ROUTER-2026-10-22.md) preserves detailed old operational incidents and one-off rules for reference. It is **not another current work queue or override**. When a rare subsystem requires more detail, route to its named current owner above, confirm current source and avoid compulsory full-history reading.
+
+
+For an already downloaded public Windows smoke ZIP, optionally add
+`--romfree-archive PATH` alongside `--artifact-availability FILE`.
+This reuses the existing independent byte auditor and binds the actual
+outer SHA256/size to precisely one GitHub artifact, while retaining
+distinct Actions head, build-checkout claim, executable digest and private
+ZIP claim. Synthetic PR merge evidence is not exact PR-head/main executable
+evidence, and no QA gate is awarded.

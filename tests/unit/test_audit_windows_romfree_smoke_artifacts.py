@@ -6,7 +6,7 @@ from pathlib import Path
 import struct
 import tempfile
 import unittest
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZipFile, ZIP_DEFLATED, ZIP_STORED
 
 from tools import audit_windows_romfree_smoke_artifacts as m
 
@@ -73,6 +73,23 @@ class WindowsRomfreeAuditTests(unittest.TestCase):
                     fixture(p, rom=variant=="rom", corrupt=variant=="corrupt")
                     with self.assertRaises(ValueError):
                         m.audit(p)
+
+    def test_corrupted_unrelated_diagnostic_member_fails_whole_archive_audit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "screenshot-diagnostic.zip"
+            fixture(path)
+            marker = b"UNIQUE_DIAGNOSTIC_PAYLOAD_DO_NOT_PRINT"
+            with ZipFile(path, "a") as archive:
+                archive.writestr("screenshots/diagnostic.txt", marker,
+                                 compress_type=ZIP_STORED)
+            # The four source-binding files remain valid, but another
+            # archive member is corrupt. Auditing only named members would
+            # have incorrectly accepted this ZIP.
+            raw = path.read_bytes()
+            self.assertEqual(raw.count(marker), 1)
+            path.write_bytes(raw.replace(marker, b"X" + marker[1:]))
+            with self.assertRaisesRegex(ValueError, "CRC"):
+                m.audit(path)
 
     def test_source_is_claim_not_authenticated(self):
         with tempfile.TemporaryDirectory() as tmp:

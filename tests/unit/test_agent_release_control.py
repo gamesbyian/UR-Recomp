@@ -271,5 +271,86 @@ class AgentReleaseControlTests(unittest.TestCase):
 
 
 
+    def test_original_archive_byte_audit_join_never_splices_owning_identities(self):
+        from copy import deepcopy
+        source = SHA
+        other_source = "d" * 40
+        base = {
+            "schema": "UR-CI-ARTIFACT-AVAILABILITY/1",
+            "authority": "github_metadata_only_zero_release_credit",
+            "release_gate_credit": 0, "run_id": 42,
+            "run_head_sha": source, "expected_sha": source,
+            "source_matches_expected": True,
+            "producer_passed": True, "artifact_census_complete": True,
+            "artifact_count_observed": 1,
+            "inspected_at": "2026-10-26T12:00:00Z",
+            "artifacts": [{
+                "artifact_id": 111, "name": "windows-native-smoke",
+                "reported_outer_sha256": "e" * 64, "size_in_bytes": 200,
+                "availability": "metadata_ready_for_independent_byte_audit",
+            }],
+        }
+        audit = {
+            "outer_artifact_sha256": "e" * 64,
+            "source_commit_claim": other_source,
+            "staged_exe_sha256": "2" * 64,
+            "private_portable_zip_sha256_claim": "3" * 64,
+            "release_gate_credit": 0,
+        }
+        view = m.retention_decision(base, snapshot(),
+                                    now="2026-10-26T12:02:00Z",
+                                    romfree_audit=audit, romfree_size=200)
+        member = view["artifacts"][0]
+        rendered = m.assess(snapshot(), self.ledger, "ci")
+        rendered["artifact_retention"] = view
+        markdown = m.markdown(rendered)
+        self.assertIn("Artifact retention, original ROM-free bytes inspected", markdown)
+        self.assertIn("ROM-free original ZIP bytes and all member CRCs inspected", markdown)
+        self.assertIn("private playable ZIP bytes", markdown)
+        self.assertNotIn("No download/byte inspection", markdown)
+        self.assertTrue(member["romfree_independent_byte_audit"]
+                        ["outer_sha256_matches_GitHub_metadata"])
+        self.assertEqual(member["romfree_independent_byte_audit"]
+                         ["run_head_sha"], source)
+        self.assertEqual(member["romfree_independent_byte_audit"]
+                         ["built_source_commit_claim"], other_source)
+        self.assertFalse(member["romfree_independent_byte_audit"]
+                         ["built_source_claim_matches_run_head"])
+        self.assertIn("synthetic_checkout", member["next_action"])
+        self.assertFalse(member["romfree_independent_byte_audit"]
+                         ["private_zip_bytes_inspected"])
+        self.assertEqual(member["romfree_independent_byte_audit"]
+                         ["release_gate_credit"], 0)
+        same_source = {**audit, "source_commit_claim": source}
+        exact = m.retention_decision(base, snapshot(),
+                                    now="2026-10-26T12:02:00Z",
+                                    romfree_audit=same_source, romfree_size=200)
+        self.assertIn("compare_actual_PE", exact["artifacts"][0]["next_action"])
+        self.assertNotIn("synthetic_checkout", exact["artifacts"][0]["next_action"])
+
+        for name, report, bytes_report, size in (
+            ("wrong digest", base, {**audit, "outer_artifact_sha256": "f"*64}, 200),
+            ("wrong byte count", base, audit, 199),
+            ("attempt gate promotion", base, {**audit, "release_gate_credit": 1}, 200),
+            ("duplicate outer bytes", {
+                **base, "artifact_count_observed": 2,
+                "artifacts": base["artifacts"] + [
+                    {**base["artifacts"][0], "artifact_id": 112}],
+            }, audit, 200),
+        ):
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError):
+                    m.retention_decision(report, snapshot(),
+                                         now="2026-10-26T12:02:00Z",
+                                         romfree_audit=bytes_report, romfree_size=size)
+
+    def test_byte_audit_requires_retention_report(self):
+        with self.assertRaisesRegex(ValueError, "requires original retention"):
+            m.assess(snapshot(), self.ledger, "ci",
+                     romfree_audit={"outer_artifact_sha256": "f" * 64},
+                     romfree_size=50)
+
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -106,3 +106,35 @@ not establish that bytes have been inspected, that GitHub still serves
 them, that the workflow head equals a packaged PE, or that any gameplay,
 hardware or release QA gate passed. This remains a read-only route with no
 automatic CI dispatch or private ROM/player/SRAM upload.
+
+
+## Optional original-byte Windows artifact qualification
+
+When the original public `windows-native-smoke` Actions ZIP is already
+downloaded, preflight joins three separate identities without conflating them:
+
+    python3 tools/artifact_retention_preflight.py --live-run-id RUN_ID \
+      --expected-sha EXACT_GITHUB_RUN_HEAD --json-out /tmp/retention.json
+    python3 tools/agent_release_control.py --live --lane ci \
+      --artifact-availability /tmp/retention.json \
+      --romfree-archive /private/retrieved-windows-native-smoke.zip
+
+This invokes the existing independent ROM-free auditor directly. It checks
+canonical ZIP structure, **every retained member's CRC**, AMD64 PE, executable
+digest, original public binding and manifest, and the private full ZIP digest
+**claim**. The actual downloaded outer SHA256 and byte length must match
+exactly one artifact in the saved original GitHub run metadata; missing,
+duplicated or inconsistent metadata is rejected.
+
+The report keeps the GitHub run-head SHA, separately claimed original
+build-checkout commit, staged PE hash and private ZIP digest claim distinct.
+A synthetic PR merge build can differ from its run head. Such a PE cannot be
+reused as exact PR-head/main bytes by assertion; the report directs source
+review. A verified downloaded archive may exist even after its availability
+metadata grows stale, so byte inspection and API availability are reported
+separately.
+
+The private playable ZIP is **not** inspected, downloaded or authenticated.
+This remains zero independent release, original/native, hardware or gameplay
+acceptance. Do not inspect/publish ROM, save-state, player or restricted
+test data through this route.

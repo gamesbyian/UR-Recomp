@@ -22,12 +22,14 @@ try:
     from .release_evidence_brief import briefing
     from .release_evidence_delta import compare as compare_briefs
     from .ops_live_status import reader as github_reader
+    from .audit_windows_romfree_smoke_artifacts import audit as audit_romfree_bytes
 except ImportError:
     from build_agent_context import LANE_RELEASE_GATES
     from index_ci_receipts import query as query_receipts
     from release_evidence_brief import briefing
     from release_evidence_delta import compare as compare_briefs
     from ops_live_status import reader as github_reader
+    from audit_windows_romfree_smoke_artifacts import audit as audit_romfree_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "UR-LIVE-AGENT-RELEASE-PREFLIGHT/1"
@@ -155,7 +157,8 @@ def parse_date(value):
 
 
 
-def retention_decision(report, snapshot, *, now=None):
+def retention_decision(report, snapshot, *, now=None, romfree_audit=None,
+                       romfree_size=None):
     """Join one existing availability report without promoting metadata to evidence.
 
     Saved metadata can age or originate outside this GitHub repository. An
@@ -236,6 +239,52 @@ def retention_decision(report, snapshot, *, now=None):
             "metadata_ready_for_byte_review": ready,
             "release_gate_credit": 0,
         })
+
+    # Only independently opened original ZIP bytes can elevate a retention
+    # hint to a *limited ROM-free audit*. Link the actual outer digest and
+    # byte size to exactly one original GitHub artifact, without equating a
+    # PR-run head, synthetic integration checkout, PE or private ZIP.
+    if romfree_audit is not None:
+        require(isinstance(romfree_audit, dict)
+                and romfree_audit.get("release_gate_credit") == 0,
+                "invalid ROM-free byte audit authority")
+        outer = romfree_audit.get("outer_artifact_sha256")
+        built = romfree_audit.get("source_commit_claim")
+        pe = romfree_audit.get("staged_exe_sha256")
+        private_zip = romfree_audit.get("private_portable_zip_sha256_claim")
+        require(all(isinstance(x, str) and bool(re.fullmatch(r"[0-9a-f]{64}", x))
+                    for x in (outer, pe, private_zip))
+                and isinstance(built, str) and bool(HEX40.fullmatch(built)),
+                "ROM-free byte audit missing separate provenance identities")
+        require(type(romfree_size) is int and romfree_size > 0,
+                "ROM-free original ZIP length unavailable")
+        matched = [row for row in rows
+                   if row.get("name") == "windows-native-smoke"
+                   and row.get("reported_outer_sha256") == outer
+                   and row.get("size_in_bytes") == romfree_size]
+        require(len(matched) == 1,
+                "ROM-free outer digest and length cannot uniquely bind original artifact")
+        selected = next(x for x in decisions
+                        if x["artifact_id"] == matched[0]["artifact_id"])
+        source_equal = built == head
+        selected["romfree_independent_byte_audit"] = {
+            "outer_sha256_matches_GitHub_metadata": True,
+            "outer_size_matches_GitHub_metadata": True,
+            "all_zip_members_crc_checked": True,
+            "binding_and_manifest_checked": True,
+            "run_head_sha": head,
+            "built_source_commit_claim": built,
+            "built_source_claim_matches_run_head": source_equal,
+            "staged_pe_sha256": pe,
+            "private_zip_sha256_claim_only": private_zip,
+            "private_zip_bytes_inspected": False,
+            "release_gate_credit": 0,
+        }
+        selected["next_action"] = (
+            "review_PR_synthetic_checkout_before_source_or_binary_reuse"
+            if not source_equal else
+            "compare_actual_PE_and_private_ZIP_identities_with_test_configuration"
+        )
     return {
         "run_id": report["run_id"], "source_sha": head,
         "source_scope": known[head], "inspected_at": inspection.isoformat(),
@@ -250,7 +299,10 @@ def retention_decision(report, snapshot, *, now=None):
 
 
 def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None,
-           previous_brief=None, ledger_digest=None, artifact_report=None):
+           previous_brief=None, ledger_digest=None, artifact_report=None,
+           romfree_audit=None, romfree_size=None):
+    require(artifact_report is not None or romfree_audit is None,
+            "ROM-free byte audit requires original retention report")
     require(isinstance(snapshot, dict)
             and snapshot.get("schema") == "UR-GITHUB-PR-SNAPSHOT/1",
             "invalid snapshot schema")
@@ -364,8 +416,9 @@ def assess(snapshot, ledger, lane, gate=None, receipts=None, ci=None,
             "decision": "HOLD_independent_source_zip_hardware_and_gameplay_review",
         },
         "indexed_main_producer_receipts": local,
-        "artifact_retention": (retention_decision(artifact_report, snapshot)
-                               if artifact_report is not None else None),
+        "artifact_retention": (retention_decision(
+            artifact_report, snapshot, romfree_audit=romfree_audit,
+            romfree_size=romfree_size) if artifact_report is not None else None),
         "evidence_index_scope": ("local_only" if receipts is not None else "unknown_not_supplied"),
         "ci_cost": cost,
         "recorded_release_status_delta": status_delta,
@@ -430,7 +483,7 @@ def markdown(result):
                      + "; missing jobs=" + str(x["missing_job_timing"]))
     retention = result["artifact_retention"]
     if retention is not None:
-        lines.extend(["", "## Artifact retention, metadata only", "",
+        lines.extend(["", ("## Artifact retention, original ROM-free bytes inspected" if any(item.get("romfree_independent_byte_audit") is not None for item in retention["artifacts"]) else "## Artifact retention, metadata only"), "",
                       "Run " + str(retention["run_id"]) + "; source scope "
                       + retention["source_scope"] + "; fresh="
                       + str(retention["fresh_at_preflight"]) + "; census complete="
@@ -439,7 +492,21 @@ def markdown(result):
             lines.append("- Artifact " + str(item["artifact_id"]) + " "
                          + json.dumps(item["name"]) + ": " + item["metadata_state"]
                          + "; next=" + item["next_action"])
-        lines.append("No download/byte inspection, ROM/private ZIP proof, or release gate credit.")
+            audit = item.get("romfree_independent_byte_audit")
+            if audit is not None:
+                lines.append("  - Actual ROM-free outer ZIP/CRC/PE binding inspected; "
+                             + "run head=" + audit["run_head_sha"]
+                             + "; built-source claim=" + audit["built_source_commit_claim"]
+                             + "; source-equal=" + str(audit["built_source_claim_matches_run_head"])
+                             + "; PE=" + audit["staged_pe_sha256"]
+                             + "; private ZIP digest CLAIM=" + audit["private_zip_sha256_claim_only"])
+        if any(item.get("romfree_independent_byte_audit") is not None
+               for item in retention["artifacts"]):
+            lines.append("ROM-free original ZIP bytes and all member CRCs inspected; "
+                         "private playable ZIP bytes, ROM, hardware, original/native "
+                         "parity and release QA remain unverified.")
+        else:
+            lines.append("No download/byte inspection, ROM/private ZIP proof, or release gate credit.")
     status = result["recorded_release_status_delta"]
     lines.append(
         "Recorded release metadata delta: " + status["state"]
@@ -485,6 +552,8 @@ def main():
     p.add_argument("--previous-brief", type=Path)
     p.add_argument("--artifact-availability", type=Path,
                    help="JSON from artifact_retention_preflight.py for one exact current SHA")
+    p.add_argument("--romfree-archive", type=Path,
+                   help="optional original downloaded windows-native-smoke ZIP for byte audit")
     p.add_argument("--json-out", type=Path)
     p.add_argument("--markdown-out", type=Path)
     args = p.parse_args()
@@ -508,8 +577,16 @@ def main():
                 if args.previous_brief else None)
     retention = (json.loads(args.artifact_availability.read_text(encoding="utf-8"))
                  if args.artifact_availability else None)
+    require(retention is not None or args.romfree_archive is None,
+            "ROM-free archive needs original artifact availability metadata")
+    audited = None
+    original_size = None
+    if args.romfree_archive is not None:
+        audited, _exe, _pe_offset = audit_romfree_bytes(args.romfree_archive)
+        original_size = args.romfree_archive.stat().st_size
     result = assess(data, ledger, args.lane, args.gate, existing, costing,
-                    previous, hashlib.sha256(ledger_bytes).hexdigest(), retention)
+                    previous, hashlib.sha256(ledger_bytes).hexdigest(), retention,
+                    audited, original_size)
     rendered = markdown(result)
     if args.snapshot_out:
         save_snapshot(args.snapshot_out, data)

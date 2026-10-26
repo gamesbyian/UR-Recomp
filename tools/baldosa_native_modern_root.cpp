@@ -89,6 +89,20 @@ int snesrecomp_desktop_product_seat_move(int from, int to);
 #include <utility>
 
 namespace {
+// Windows' narrow getenv may transcode through the active ANSI codepage.
+// Obtain the native wide environment path before any UTF-8 serialization.
+std::filesystem::path modern_user_data_root() {
+#if defined(_WIN32)
+    const wchar_t* root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
+    return root && *root ? std::filesystem::path(root)
+                         : std::filesystem::path{};
+#else
+    const char* root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    return root && *root ? std::filesystem::path(root)
+                         : std::filesystem::path{};
+#endif
+}
+
 using ur::product::ModernRootDestination;
 using ur::product::ModernRootMenu;
 using ur::product::ModernRootOverlayPainter;
@@ -323,9 +337,8 @@ bool begin_practice_session() {
     // settle. The existing QuickPracticeLaunch::AwaitMain stage waits for
     // 0xD7 and its source-qualified 60-frame stable window; requiring MAIN
     // here prematurely rejects a valid real P1 Down/A/A root gesture.
-    const char* configured_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!configured_root || !*configured_root) return deny("user_root_absent");
-    const fs::path user_root = fs::u8path(configured_root);
+    const fs::path user_root = modern_user_data_root();
+    if (user_root.empty()) return deny("user_root_absent");
     if (!user_root.is_absolute()) return deny("user_root_not_absolute");
     std::error_code ec;
     if (!fs::is_directory(user_root, ec) || ec ||
@@ -1172,10 +1185,9 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         // Restore saved Display/VSync before the window is created; a
         // missing file leaves the framework's own config.ini authoritative
         // and a damaged one is reported in OPTIONS without being forced.
-        const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
-        const std::string options_path = user_root && *user_root
-            ? ur::product::baldosa_options_path(
-                std::filesystem::u8path(user_root)).u8string()
+        const auto user_root = modern_user_data_root();
+        const std::string options_path = !user_root.empty()
+            ? ur::product::baldosa_options_path(user_root).u8string()
             : std::string{};
         ur::product::baldosa_options_boot(
             g_options, options_path, options_host());

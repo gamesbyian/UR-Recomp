@@ -1,0 +1,109 @@
+{
+  "schema": "ur-pr-cycle-observations/1",
+  "sample_date": "2026-10-26",
+  "source": "GitHub PR metadata inspected on October 26",
+  "selection": "Twenty specifically selected merged recent PRs; nonrandom. Rounded values retained from observed created-to-merged timestamps.",
+  "observable": "PR open-to-merge wall-clock hours, not agent labor or total engineering effort. Excludes pre-PR work and includes CI waiting; NOT a validated forecast calibration.",
+  "items": [
+    {
+      "pr": 2640,
+      "workstream": "product",
+      "cycle_hours": 2.13
+    },
+    {
+      "pr": 2650,
+      "workstream": "product",
+      "cycle_hours": 0.97
+    },
+    {
+      "pr": 2617,
+      "workstream": "reliability",
+      "cycle_hours": 0.74
+    },
+    {
+      "pr": 2629,
+      "workstream": "product",
+      "cycle_hours": 0.94
+    },
+    {
+      "pr": 2615,
+      "workstream": "reliability",
+      "cycle_hours": 0.62
+    },
+    {
+      "pr": 2621,
+      "workstream": "infrastructure",
+      "cycle_hours": 0.48
+    },
+    {
+      "pr": 2592,
+      "workstream": "research",
+      "cycle_hours": 21.42
+    },
+    {
+      "pr": 2565,
+      "workstream": "infrastructure",
+      "cycle_hours": 0.1
+    },
+    {
+      "pr": 2546,
+      "workstream": "product",
+      "cycle_hours": 6.85
+    },
+    {
+      "pr": 2572,
+      "workstream": "product",
+      "cycle_hours": 1.85
+    },
+    {
+      "pr": 2494,
+      "workstream": "product",
+      "cycle_hours": 2.14
+    },
+    {
+      "pr": 2653,
+      "workstream": "measurement",
+      "cycle_hours": 0.03
+    },
+    {
+      "pr": 2632,
+      "workstream": "infrastructure",
+      "cycle_hours": 0.04
+    },
+    {
+      "pr": 2648,
+      "workstream": "infrastructure",
+      "cycle_hours": 0.23
+    },
+    {
+      "pr": 2627,
+      "workstream": "operations",
+      "cycle_hours": 0.05
+    },
+    {
+      "pr": 2641,
+      "workstream": "product",
+      "cycle_hours": 0.69
+    },
+    {
+      "pr": 2593,
+      "workstream": "reliability",
+      "cycle_hours": 0.79
+    },
+    {
+      "pr": 2613,
+      "workstream": "reliability",
+      "cycle_hours": 0.06
+    },
+    {
+      "pr": 2619,
+      "workstream": "product",
+      "cycle_hours": 3.46
+    },
+    {
+      "pr": 2643,
+      "workstream": "infrastructure",
+      "cycle_hours": 0.01
+    }
+  ]
+}

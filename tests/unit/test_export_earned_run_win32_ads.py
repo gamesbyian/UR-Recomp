@@ -4,10 +4,9 @@ Issue #2103. Unlike synthetic POSIX colon filenames, these cases exercise
 actual Win32 named-stream behavior on a filesystem supporting ADS. This is
 bounded source/evidence QA, not a physical-device or release-gate verdict.
 
-The exporter currently validates visible directory entries, not hidden NTFS
-named streams. Keep the refusal check an expected failure until the source
-implements an independently reviewed policy. Do not turn this into a passing
-release claim merely because Linux skips it.
+The exporter must reject hidden NTFS named streams on the selected run,
+report, and regular sibling files. A successful hosted Windows run is bounded
+filesystem evidence, not physical-device or release-gate acceptance.
 """
 from __future__ import annotations
 
@@ -49,10 +48,12 @@ class Win32NamedStreamTests(unittest.TestCase):
         }
         (self.journey / "report.json").write_text(json.dumps(report), encoding="utf-8")
 
-    def add_named_stream(self) -> None:
+    def add_named_stream(self, target: Path | None = None) -> None:
         # On FAT/exFAT or a filesystem that does not support NTFS ADS, do not
         # mistake an unsupported operation for an exporter policy result.
-        self.stream = Path(str(self.run) + ":agent3-probe")
+        target = self.run if target is None else target
+        before = target.read_bytes()
+        self.stream = Path(str(target) + ":agent3-probe")
         try:
             self.stream.write_bytes(b"synthetic alternate data stream")
             observed = self.stream.read_bytes()
@@ -60,7 +61,7 @@ class Win32NamedStreamTests(unittest.TestCase):
             self.skipTest(f"named streams unsupported on this Windows volume: {exc}")
         if observed != b"synthetic alternate data stream":
             self.skipTest("named stream did not round-trip as an NTFS stream")
-        self.assertEqual(self.run.read_bytes(), self.payload)
+        self.assertEqual(target.read_bytes(), before)
 
     def test_clean_source_exports_before_named_stream_is_added(self) -> None:
         receipt = export(self.journey, self.root / "clean")
@@ -74,13 +75,27 @@ class Win32NamedStreamTests(unittest.TestCase):
                          ["source.urrun"])
         self.assertEqual(self.stream.read_bytes(), b"synthetic alternate data stream")
 
-    @unittest.expectedFailure
     def test_export_must_refuse_hidden_named_stream(self) -> None:
-        # Red-first requirement, not a claim that the current exporter passes.
         # A future implementation should reject this before publishing any
         # evidence, and this expectedFailure decorator must then be removed.
         self.add_named_stream()
         destination = self.root / "should-not-publish"
+        with self.assertRaisesRegex(ValueError, "(?i)alternate.*stream|named.*stream"):
+            export(self.journey, destination)
+        self.assertFalse(destination.exists())
+
+    def test_export_must_refuse_named_stream_on_report(self) -> None:
+        self.add_named_stream(self.journey / "report.json")
+        destination = self.root / "should-not-publish-report"
+        with self.assertRaisesRegex(ValueError, "(?i)alternate.*stream|named.*stream"):
+            export(self.journey, destination)
+        self.assertFalse(destination.exists())
+
+    def test_export_must_refuse_named_stream_on_regular_sibling(self) -> None:
+        sibling = self.runs / "notes.txt"
+        sibling.write_bytes(b"synthetic sibling; not earned gameplay")
+        self.add_named_stream(sibling)
+        destination = self.root / "should-not-publish-sibling"
         with self.assertRaisesRegex(ValueError, "(?i)alternate.*stream|named.*stream"):
             export(self.journey, destination)
         self.assertFalse(destination.exists())

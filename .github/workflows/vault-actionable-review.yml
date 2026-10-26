@@ -130,6 +130,7 @@ jobs:
           python3 tools/vault_integration_review.py \
             --incoming "$REVIEW_ROOT/incoming" \
             --evidence "$REVIEW_ROOT/evidence" \
+            --sources "$REVIEW_ROOT/sources.txt" \
             --github "$REVIEW_ROOT/github.json" \
             --out "$REVIEW_ROOT/actionable"
           cat "$REVIEW_ROOT/sources.txt" >> "$GITHUB_STEP_SUMMARY"

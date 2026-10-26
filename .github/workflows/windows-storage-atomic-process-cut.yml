@@ -7,6 +7,9 @@ on:
     paths:
       - "native/product/local_tournament_atomic_replace.hpp"
       - "tests/native/local_tournament_atomic_replace_test.cpp"
+      - "tests/native/host_profile_win32_cas_process_test.cpp"
+      - "native/product/host_profile_store.cpp"
+      - "native/product/local_tournament_launch_path_lock.hpp"
       - ".github/workflows/windows-storage-atomic-process-cut.yml"
   workflow_dispatch:
 
@@ -37,6 +40,18 @@ jobs:
           $source = Join-Path $env:GITHUB_WORKSPACE 'tests\native\local_tournament_atomic_replace_test.cpp'
           $exe = Join-Path $env:RUNNER_TEMP 'local_tournament_atomic_replace_test.exe'
           $runner = Join-Path $env:RUNNER_TEMP 'run-atomic-writer.cmd'
+          $casExe = Join-Path $env:RUNNER_TEMP 'host_profile_win32_cas_process_test.exe'
+          $casRoot = Join-Path $env:RUNNER_TEMP ('ur-profile-cas-' + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $casRoot | Out-Null
+          $casFiles = @(
+            'native\product\host_product_state.cpp',
+            'native\product\output_resolution_policy.cpp',
+            'native\product\modern_racer_identity.cpp',
+            'native\product\host_profile_state.cpp',
+            'native\product\host_profile_store.cpp',
+            'tests\native\host_profile_win32_cas_process_test.cpp'
+          )
+          $casSources = ($casFiles | ForEach-Object { '"' + (Join-Path $env:GITHUB_WORKSPACE $_) + '"' }) -join ' '
           $commands = @(
             '@echo off',
             "call `"$vcvars`"",
@@ -44,9 +59,13 @@ jobs:
             "cl /nologo /std:c++17 /EHsc /W3 /I`"$include`" `"$source`" /Fe:`"$exe`"",
             'if errorlevel 1 exit /b 1',
             "`"$exe`"",
+            'if errorlevel 1 exit /b 1',
+            "cl /nologo /std:c++17 /EHsc /W3 /I`"$include`" $casSources /Fe:`"$casExe`"",
+            'if errorlevel 1 exit /b 1',
+            "`"$casExe`" `"$casRoot\profile.state`"",
             'exit /b %ERRORLEVEL%'
           )
           [System.IO.File]::WriteAllLines($runner, $commands, [System.Text.Encoding]::ASCII)
           & cmd.exe /d /c "`"$runner`""
           if ($LASTEXITCODE -ne 0) { throw "Windows storage process-cut fixture failed: $LASTEXITCODE" }
-          Write-Host 'Windows atomic storage process-cut regression passed'
+          Write-Host 'Windows atomic storage process-cut and profile CAS regressions passed'

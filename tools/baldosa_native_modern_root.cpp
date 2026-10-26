@@ -325,7 +325,7 @@ bool begin_practice_session() {
     // here prematurely rejects a valid real P1 Down/A/A root gesture.
     const char* configured_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
     if (!configured_root || !*configured_root) return deny("user_root_absent");
-    const fs::path user_root(configured_root);
+    const fs::path user_root = fs::u8path(configured_root);
     if (!user_root.is_absolute()) return deny("user_root_not_absolute");
     std::error_code ec;
     if (!fs::is_directory(user_root, ec) || ec ||
@@ -1174,7 +1174,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         // and a damaged one is reported in OPTIONS without being forced.
         const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
         const std::string options_path = user_root && *user_root
-            ? ur::product::baldosa_options_path(user_root).string()
+            ? ur::product::baldosa_options_path(
+                std::filesystem::u8path(user_root)).u8string()
             : std::string{};
         ur::product::baldosa_options_boot(
             g_options, options_path, options_host());

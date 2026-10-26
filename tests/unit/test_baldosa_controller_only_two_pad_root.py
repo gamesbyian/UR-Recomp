@@ -60,6 +60,22 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
         self.assertIn("verify_controller_only_two_pad_root(log)", runner)
         self.assertIn("controller_only_two_pad_root/log.txt", workflow)
 
+    def test_utf8_user_data_root_reaches_options_and_practice(self):
+        # Source-level regression only. Actual Windows non-ACP codepage
+        # persistence/quarantine remains a separate native acceptance journey.
+        source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "const fs::path user_root = fs::u8path(configured_root);", source
+        )
+        self.assertIn(
+            "std::filesystem::u8path(user_root)).u8string()", source
+        )
+        self.assertNotIn(
+            "baldosa_options_path(user_root).string()", source
+        )
+
     def test_native_product_route_and_mutations(self):
         good = [*HOST, *STAGES]
         verify_controller_only_two_pad_root("\n".join(good) + "\n")

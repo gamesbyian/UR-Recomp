@@ -277,5 +277,6 @@ int main(int argc, char** argv) {
     if (mode == "--writer-B") return writer(file, 'B');
     if (mode == "--verify-A") return verify_cold(file, 'A');
     if (mode == "--verify-B") return verify_cold(file, 'B');
+    if (mode == "--verify-R") return verify_cold(file, 'R');
     return 4;
 }

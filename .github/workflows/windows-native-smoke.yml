@@ -29,6 +29,7 @@ on:
   push:
     branches: [main]
     paths:
+      - ".github/workflows/windows-native-smoke.yml"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"

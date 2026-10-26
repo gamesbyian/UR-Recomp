@@ -3109,7 +3109,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             // remains absent. Never advance the race or mint a result here.
             if (two_stage == 2 && frame == two_setup_start + 2000u) {
                 std::fprintf(stderr,
-                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go_pending=1 menu=%02x phase=%04x ticker=%u\\n",
+                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go_pending=1 menu=%02x phase=%04x ticker=%u\n",
                     static_cast<unsigned>(g_ram[0x009fu]), source_phase,
                     static_cast<unsigned>(g_ram[0x0e1fu]));
             }

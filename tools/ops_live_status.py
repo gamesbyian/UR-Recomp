@@ -26,6 +26,56 @@ except ImportError:
     from audit_recovery_handoff_drift import scan as scan_handoff_drift
 
 REPO = "gamesbyian/UR-Recomp"
+# Workflows that must remain functional outside the latest 100-run sample.
+CRITICAL_RECOVERY = {
+    "intake": ("vault-recurring-intake.yml", {"schedule", "workflow_dispatch"}),
+    "review": ("vault-actionable-review.yml", {"workflow_run", "workflow_dispatch"}),
+}
+RECOVERY_REVIEW_AFTER_HOURS = 18
+
+
+def latest_recovery_workflows(get, base, now):
+    """Observe bounded actual runs; never mistake PR-only CI for production."""
+    observations = {}
+    for lane, (workflow, allowed_events) in CRITICAL_RECOVERY.items():
+        response = get(base + f"/actions/workflows/{workflow}/runs?per_page=30")
+        runs = response.get("workflow_runs")
+        if not isinstance(runs, list):
+            raise ValueError("invalid critical workflow run sample")
+        valid = next((run for run in runs
+                      if run.get("head_branch") == "main"
+                      and run.get("event") in allowed_events), None)
+        if valid is None:
+            observations[lane] = {"status": "UNKNOWN_NO_ELIGIBLE_RUN",
+                                  "sampled_runs": len(runs)}
+            continue
+        when = timestamp(valid.get("created_at"))
+        run_id = valid.get("id")
+        if when is None or type(run_id) is not int or run_id <= 0:
+            observations[lane] = {"status": "UNKNOWN_MALFORMED_RUN"}
+            continue
+        age_seconds = (now - when).total_seconds()
+        if age_seconds < 0:
+            observations[lane] = {"status": "UNKNOWN_FUTURE_TIMESTAMP"}
+            continue
+        if age_seconds >= RECOVERY_REVIEW_AFTER_HOURS * 3600:
+            status = "OVERDUE_REVIEW"
+        elif valid.get("status") != "completed":
+            status = "IN_FLIGHT"
+        elif valid.get("conclusion") == "success":
+            status = "RECENT_SUCCESS"
+        else:
+            status = "RECENT_NON_SUCCESS"
+        observations[lane] = {
+            "status": status, "run_id": run_id,
+            "url": f"https://github.com/{REPO}/actions/runs/{run_id}",
+            "conclusion": valid.get("conclusion"),
+            "age_hours": round(age_seconds / 3600, 1),
+            "sampled_runs": len(runs),
+        }
+    return observations
+
+
 def timestamp(value):
     try:
         result = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -78,7 +128,7 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
     result = {
         "schema": "ur-ops-live/1", "observed_at_utc": now.isoformat().replace("+00:00", "Z"),
         "repository": repo, "main": None, "prs": None, "actions": None,
-        "qa": None, "backup": None, "errors": {}, "drive": "UNKNOWN_NOT_CONNECTED",
+        "recovery_workflows": None, "qa": None, "backup": None, "errors": {}, "drive": "UNKNOWN_NOT_CONNECTED",
         "scheduled_agent_health": "UNKNOWN_NOT_CONNECTED",
         "dispatch": [{"agent": x["number"], "minute": x["minute"],
                       "selection": "shared_pool_top_five",
@@ -201,6 +251,10 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         }
     except (ValueError, TypeError, KeyError, AttributeError) as err:
         result["errors"]["actions"] = str(err)
+    try:
+        result["recovery_workflows"] = latest_recovery_workflows(get, base, now)
+    except (ValueError, TypeError, KeyError, AttributeError) as err:
+        result["errors"]["recovery_workflows"] = str(err)
     for item in registry["candidates"]:
         row = {"candidate_id": item["candidate_id"], "work_id": item["work_id"],
                "recorded_state": item["state"], "drive_id": item["drive_id"],
@@ -271,6 +325,16 @@ def markdown(s):
                               f"{item['age_minutes']}m since created] {item['url']}"
                               for item in actions["aging_in_flight_leads"]) +
                     ". Check current status before intervening.")
+    recovery_workflows = s["recovery_workflows"]
+    if recovery_workflows is None:
+        rows.append("- **Critical Vault workflow health:** UNKNOWN (GitHub API read failed).")
+    else:
+        for name, observed in recovery_workflows.items():
+            row = f"- **Vault {name} production:** {observed['status']}"
+            if observed.get("url"):
+                row += (f" ({observed['url']}, age {observed['age_hours']}h, "
+                        f"conclusion={observed['conclusion']})")
+            rows.append(row + "; latest 30 workflow runs only, not a full history.")
     if actions and actions["cancelled_by_workflow"]:
         rows.append("- Cancellation leads (same latest sample only): " +
                     "; ".join(f"{x['workflow']}: {x['count']}" for x in actions["cancelled_by_workflow"]) +
@@ -332,8 +396,9 @@ def markdown(s):
     return "\n".join(rows)
 
 def required_live_sources_present(report):
-    """Main, open PRs, and Actions are mandatory for an operational snapshot."""
-    return all(report.get(key) is not None for key in ("main", "prs", "actions"))
+    """Critical live inputs must be readable before the daily report is green."""
+    return all(report.get(key) is not None
+               for key in ("main", "prs", "actions", "recovery_workflows"))
 
 
 def main():

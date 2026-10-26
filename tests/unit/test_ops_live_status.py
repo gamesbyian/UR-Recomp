@@ -41,6 +41,13 @@ class LiveOperationsTests(unittest.TestCase):
                     "merge_commit_sha": "2321f3f4b6286204be43bb2502dce6573378fc2c"}
         if "/pulls/1996" in path:
             return {"state": "open", "merged_at": None, "draft": True}
+        if "/actions/workflows/" in path:
+            event = "schedule" if "vault-recurring-intake" in path else "workflow_run"
+            return {"workflow_runs": [
+                {"id": 4000 if event == "schedule" else 4001,
+                 "head_branch": "main", "event": event,
+                 "created_at": "2026-10-21T10:00:00Z",
+                 "status": "completed", "conclusion": "success"}]}
         if "/actions/runs" in path:
             return {"total_count": 40000, "workflow_runs": [
                 {"created_at": "2026-10-21T06:00:00Z", "status": "completed",
@@ -168,6 +175,50 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertIn("https://github.com/gamesbyian/UR-Recomp/actions/runs/1234", narrative)
         self.assertIn("not proof of stalls", narrative)
         self.assertNotIn("/runs/9012", narrative)
+
+    def test_vault_health_is_not_lost_when_latest_100_runs_omit_vault(self):
+        report = self.report()
+        self.assertEqual(report["recovery_workflows"]["intake"]["status"], "RECENT_SUCCESS")
+        self.assertEqual(report["recovery_workflows"]["review"]["status"], "RECENT_SUCCESS")
+        self.assertEqual(report["recovery_workflows"]["intake"]["run_id"], 4000)
+        self.assertIn("/actions/runs/4001", markdown(report))
+        self.assertTrue(required_live_sources_present(report))
+
+    def test_vault_failure_and_overdue_are_visible_without_guessing_success(self):
+        def broken(path):
+            if "/actions/workflows/" in path:
+                if "vault-recurring-intake" in path:
+                    return {"workflow_runs": [
+                        {"id": 4123, "head_branch": "feature", "event": "pull_request",
+                         "created_at": "2026-10-21T11:30:00Z",
+                         "status": "completed", "conclusion": "success"},
+                        {"id": 4124, "head_branch": "main", "event": "schedule",
+                         "created_at": "2026-10-21T11:00:00Z",
+                         "status": "completed", "conclusion": "failure"}]}
+                return {"workflow_runs": [
+                    {"id": 4144, "head_branch": "main", "event": "workflow_run",
+                     "created_at": "2026-10-20T10:00:00Z",
+                     "status": "completed", "conclusion": "success"}]}
+            return self.request(path)
+        report = self.report(get=broken)
+        self.assertEqual(report["recovery_workflows"]["intake"]["status"],
+                         "RECENT_NON_SUCCESS")
+        self.assertEqual(report["recovery_workflows"]["intake"]["run_id"], 4124)
+        self.assertEqual(report["recovery_workflows"]["review"]["status"], "OVERDUE_REVIEW")
+        self.assertIn("OVERDUE_REVIEW", markdown(report))
+
+    def test_unavailable_vault_workflow_api_cannot_make_ops_monitor_green(self):
+        def forbidden(path):
+            if "/actions/workflows/" in path:
+                raise ValueError("HTTP 403")
+            return self.request(path)
+        report = self.report(get=forbidden)
+        self.assertIsNotNone(report["main"])
+        self.assertIsNotNone(report["actions"])
+        self.assertIsNone(report["recovery_workflows"])
+        self.assertIn("recovery_workflows", report["errors"])
+        self.assertFalse(required_live_sources_present(report))
+        self.assertIn("Critical Vault workflow health", markdown(report))
 
     def test_uncorroborated_drive_and_schedule_state_are_unknown(self):
         result = self.report()

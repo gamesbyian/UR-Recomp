@@ -16,22 +16,24 @@ RUNNER = (ROOT / "tools/run_baldosa_keyboard_pad_join_acceptance.py").read_text(
 
 HOST = "[Gamepad] UR_CONTROLLER_SEAT assign instance=101 seat=0 reason=added"
 PREFIX = [
+    "UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern",
     "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=75 input_owned=1",
+    "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
     "UR_BALDOSA_MODERN_ROOT selected=1",
     "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=3 course=0 source_menu_required=1",
-    "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_DESTINATION stage=practice-picker raster=342x224 root=11,10,320,204 source=modern_product_view",
     "UR_BALDOSA_MODERN_ROOT practice_closed=1",
     "UR_BALDOSA_MODERN_ROOT selected=2",
     "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
-    "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_DESTINATION stage=multiplayer-join raster=342x224 root=11,10,320,204 source=modern_product_view",
     "UR_BALDOSA_MODERN_ROOT join_closed=1",
     "UR_BALDOSA_MODERN_ROOT selected=3",
     "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=0 unavailable=0",
-    "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=11,10,320,204 source=modern_product_view",
     "UR_BALDOSA_MODERN_ROOT records_closed=1",
     "UR_BALDOSA_MODERN_ROOT selected=4",
     "UR_BALDOSA_MODERN_ROOT options_opened row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
-    "UR_BALDOSA_MODERN_DESTINATION stage=options raster=342x224 root=0,0,342,224 source=modern_product_view",
+    "UR_BALDOSA_MODERN_DESTINATION stage=options raster=342x224 root=11,10,320,204 source=modern_product_view",
     "UR_BALDOSA_MODERN_ROOT options_closed row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing",
     "UR_BALDOSA_MODERN_ROOT selected=3",
     "UR_BALDOSA_MODERN_ROOT selected=2",
@@ -109,7 +111,7 @@ class EarnedControllerJourney(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT selected=2",
             "UR_BALDOSA_MODERN_ROOT selected=3",
             "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=0",
-            "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=0,0,342,224 source=modern_product_view",
+            "UR_BALDOSA_MODERN_DESTINATION stage=records-1p raster=342x224 root=11,10,320,204 source=modern_product_view",
             "UR_BALDOSA_MODERN_ROOT records_closed=1",
             "UR_BALDOSA_MODERN_PAD_POST quit_prompt_b=1",
             "UR_BALDOSA_MODERN_PAD_POST quit_confirm_a=1 prompt=1",
@@ -225,6 +227,22 @@ class EarnedControllerJourney(unittest.TestCase):
         good = [HOST, *PREFIX, *TAIL]
         verify_five_destination_pad_race("\n".join(good) + "\n")
         mutants = {
+            "missing native title paint": [x for x in good if "TITLE painted=1" not in x],
+            "missing native root paint": [x for x in good if "ROOT painted=1" not in x],
+            "title paint after root": [*good, good[1]],
+            "cropped Records": [
+                x.replace("stage=records-1p raster=342x224 root=11,10,320,204",
+                          "stage=records-1p raster=342x224 root=11,10,300,204")
+                for x in good
+            ],
+            "wrong Options raster": [
+                x.replace("stage=options raster=342x224",
+                          "stage=options raster=256x224")
+                for x in good
+            ],
+            "destination painter refusal": good + [
+                "UR_BALDOSA_MODERN_DESTINATION paint_refused=1 stage=options"
+            ],
             "no source GO": [x for x in good if "source_go=1" not in x],
             "no source result": [x for x in good if "NATIVE_RESULT" not in x],
             "no captured run": [x for x in good if "NATIVE_RUN CAPTURED" not in x],

@@ -1,0 +1,139 @@
+{
+  "schema": "ur-v2-source-reviewed-checkpoint/1",
+  "review_date": "2026-10-26",
+  "from_sha": "2636e284d7917e127a5fc5b1acaf5322a42b583b",
+  "through_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "comparison": {
+    "verified_by": "GitHub compare commits",
+    "ahead_by": 119,
+    "behind_by": 0,
+    "compare_url": "https://github.com/gamesbyian/UR-Recomp/compare/2636e284d7917e127a5fc5b1acaf5322a42b583b...82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+    "note": "119 integrated commits measured. Criterion evaluation uses immutable inventory, current merged source references, selected exact historical Windows job logs and current release authority; this is not 119 independent source-test reruns."
+  },
+  "before": {
+    "bounded_product_coverage_percent": 48,
+    "independently_reviewed_bounded_percent": 6,
+    "verified_product_criteria": 48,
+    "qa_gates": 0,
+    "accepted_usa_events": 0
+  },
+  "after": {
+    "bounded_product_coverage_percent": 50,
+    "independently_reviewed_bounded_percent": 8,
+    "verified_product_criteria": 50,
+    "qa_gates": 0,
+    "accepted_usa_events": 0
+  },
+  "changes": [
+    {
+      "id": "ONE-08",
+      "old_status": "unverified",
+      "new_status": "bounded_verified",
+      "basis": "newly integrated Windows behavior; no physical acceptance",
+      "source_pr": "https://github.com/gamesbyian/UR-Recomp/pull/2546",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40161080894/job/121072588296",
+      "supporting_validator": "https://github.com/gamesbyian/UR-Recomp/pull/2390",
+      "verified_observations": "Actual Windows 2022 native bridge 2026-10-25: five of five packaged scripted pause->Restart -> resumed guest stereo cases; each prints WINDOWS_MODERN_RESTART_AUDIO PASS restarted_guest=1 resumed_stereo_audible=1 and UR_QA05_RESTART_GUEST_WORD=passed samples=12. Source guard rejects Start bit in every post-restart sample and incomplete/malformed windows.",
+      "limits": "Covers 12 sampled guest frames and bounded hosted restart behavior only. No physical sound device or full-controller, native/original gameplay parity, or release gate credit."
+    },
+    {
+      "id": "ART-01",
+      "old_status": "unverified",
+      "new_status": "bounded_verified",
+      "basis": "retroactive evidence correction; doc predates Oct24 baseline, not fresh engineering velocity",
+      "reference": "https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md",
+      "verified_observations": "October 10 historical reference dossier identifies original title/intro, box/manual and promotional rendering reference precedence and links, explicit silhouette/saddle/tire/fork/materials checklist, caveats distinguishing promo illustration from authentic game model and source sprite pose.",
+      "limits": "Criterion concerns documented references, NOT a new 3D model, finished proportions, local rights-cleared images, owner art approval, or gameplay raster fidelity."
+    }
+  ],
+  "reviewed_non_promotions": [
+    {
+      "id": "TWO-05",
+      "reason": "Windows 2P keyboard+pad test at run 39986054104 job 120525412993 failed because exact stock_entered players=2 menu=3d was not observed; later source-hardening PR titles alone cannot prove actual stable stock GO.",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39986054104/job/120525412993"
+    },
+    {
+      "id": "MENU-01",
+      "reason": "Merged native title/root passed hosted builds/capture; criterion explicitly requires actual physical-controller five-destination traversal",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2640"
+    },
+    {
+      "id": "DATA-05",
+      "reason": "Win32 Unicode paths strengthened in multiple commits, but integrated Options quarantine seam and non-ACP full creation/save/replay/reopen proof remain incomplete",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2629"
+    },
+    {
+      "id": "RECOVERY-09",
+      "reason": "Real-process process-cut and sharing-denial tests are valuable but not actual power-cut plus second cold boot on current package",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2615"
+    },
+    {
+      "id": "QA-01",
+      "reason": "ROM-free PE/package provenance artifact testing does not itself constitute official current package nomination with independent acceptance",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2624"
+    },
+    {
+      "id": "FID-01..45",
+      "reason": "Full authentic original/native event parity and persistence not accepted; source-level Zoo sound/reducer improvements are bounded investigative work",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2592"
+    }
+  ],
+  "key_deliveries": [
+    {
+      "type": "direct_product",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2640",
+      "effect": "Native Modern 342/256 title graft on current root, with six applicable workflows; completion of real pad journeys still blocked"
+    },
+    {
+      "type": "direct_product",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2617",
+      "effect": "Bounded Win32 transient staged-save sharing retries and regression"
+    },
+    {
+      "type": "direct_product",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2629",
+      "effect": "Modern Options/Practice Unicode user-root integration"
+    },
+    {
+      "type": "release_risk_reduction",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2615",
+      "effect": "Typed profile staged process-death/rollback cold-recovery test"
+    },
+    {
+      "type": "enabling",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2565",
+      "effect": "13/13 source-pinned hosted Windows journey fan-out with one build, all jobs passed; 0 physical QA credit"
+    },
+    {
+      "type": "enabling",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2627",
+      "effect": "Interchangeable five-agent shared ranked assignment board"
+    },
+    {
+      "type": "parity_research",
+      "url": "https://github.com/gamesbyian/UR-Recomp/pull/2592",
+      "effect": "RF084 Zoo sound-writer source probe; no complete original/native acceptance"
+    }
+  ],
+  "velocity": {
+    "window_hours_approx": 50.73,
+    "new_post_checkpoint_bounded_points": 1,
+    "retroactive_correction_points": 1,
+    "net_recognized_points": 2,
+    "new_actual_points_per_day_approx": 0.473,
+    "note": "Small two-day sample and acceptance batching prohibit reliable date prediction. 119 commits is throughput, not units completed or agent-hours."
+  },
+  "remaining": {
+    "unverified_non_fidelity_criteria": 40,
+    "unverified_fidelity_events": 45,
+    "unverified_total_criteria": 85,
+    "bounded_score_remaining_points": 50,
+    "critical_release_blockers": "first full 45-event original/native parity, current nominated executable and real pads/audio/4K/NTFS/soak, finished owner-approved 3D racer art"
+  },
+  "authority": {
+    "release_ledger": "docs/RELEASE-QUALITY-LEDGER.json",
+    "event_census": "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
+    "reminder": "bounded independently reviewed is not formal QA release acceptance"
+  },
+  "review_limits": "Evaluated frozen 135-criterion statuses against merged-source changes and selected original independent CI witness logs. Only ONE-08 and ART-01 met complete listed criteria in this review. No live physical Windows, full source/oracle run or every-commit CI retest was performed."
+}

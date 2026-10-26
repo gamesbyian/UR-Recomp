@@ -161,6 +161,25 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("sha256sum --check --status", block)
         self.assertIn('actionlint" -oneline "${changed[@]}"', block)
 
+    def test_downstream_workflow_run_is_main_branch_filtered_at_trigger(self):
+        for file in ("windows-visual-atlas-intake.yml", "vault-actionable-review.yml"):
+            with self.subTest(file=file):
+                content = (WORKFLOWS / file).read_text(encoding="utf-8")
+                trigger = content.split("\n  workflow_run:\n", 1)[1]
+                trigger = trigger.split("\n  workflow_dispatch:", 1)[0]
+                self.assertIn("    branches: [main]", trigger)
+                # Keep the second, event-based check even with the branch filter.
+                self.assertIn("github.event.workflow_run.event != 'pull_request'", content)
+
+    def test_intake_pr_tests_do_not_install_unused_public_drive_downloader(self):
+        content = (WORKFLOWS / "vault-recurring-intake.yml").read_text(
+            encoding="utf-8")
+        install = content.split("      - name: Install pinned public Drive downloader\n", 1)[1]
+        install = install.split("      - name: Restore most recent preserved checkpoint", 1)[0]
+        self.assertIn("github.event_name != 'pull_request'", install)
+        self.assertIn("inputs.scope == matrix.scope", install)
+        self.assertIn("gdown==6.4.2", install)
+
     def test_pull_requests_are_path_scoped(self):
         offenders = []
         for path in _workflow_paths():

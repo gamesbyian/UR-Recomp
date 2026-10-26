@@ -184,5 +184,92 @@ class AgentReleaseControlTests(unittest.TestCase):
                 m.live_snapshot()
 
 
+    def test_artifact_retention_reuse_requires_fresh_metadata_and_byte_audit(self):
+        artifact = {
+            "schema": "UR-CI-ARTIFACT-AVAILABILITY/1",
+            "authority": "github_metadata_only_zero_release_credit",
+            "release_gate_credit": 0, "run_id": 42,
+            "run_head_sha": SHA, "expected_sha": SHA,
+            "source_matches_expected": True, "producer_passed": True,
+            "artifact_census_complete": True, "artifact_count_observed": 1,
+            "inspected_at": "2026-10-26T10:00:00Z",
+            "artifacts": [{
+                "artifact_id": 70, "name": "windows-native-smoke",
+                "availability": "metadata_ready_for_independent_byte_audit",
+                "reported_outer_sha256": "f" * 64,
+            }],
+        }
+        preflight = m.retention_decision(
+            artifact, snapshot(), now="2026-10-26T10:05:00Z")
+        self.assertEqual(preflight["source_scope"], "main")
+        self.assertTrue(preflight["artifacts"][0]["metadata_ready_for_byte_review"])
+        self.assertIn("independently_download",
+                      preflight["artifacts"][0]["next_action"])
+        self.assertEqual(preflight["artifacts"][0]["release_gate_credit"], 0)
+        stale = m.retention_decision(
+            artifact, snapshot(), now="2026-10-26T12:00:00Z")
+        self.assertFalse(stale["artifacts"][0]["metadata_ready_for_byte_review"])
+        self.assertEqual(stale["artifacts"][0]["next_action"],
+                         "refresh_GitHub_retention_metadata")
+        partial = {**artifact, "artifact_census_complete": False}
+        self.assertEqual(m.retention_decision(
+            partial, snapshot(), now="2026-10-26T10:05:00Z")
+            ["artifacts"][0]["next_action"], "retrieve_complete_artifact_census")
+        expiring = {**artifact, "artifacts": [
+            {**artifact["artifacts"][0], "availability": "expiry_urgent_review"}]}
+        self.assertEqual(m.retention_decision(
+            expiring, snapshot(), now="2026-10-26T10:05:00Z")
+            ["artifacts"][0]["next_action"],
+            "owner_review_rights_safe_preservation_before_expiry")
+
+    def test_artifact_report_joins_only_exact_current_census(self):
+        report = {
+            "schema": "UR-CI-ARTIFACT-AVAILABILITY/1",
+            "authority": "github_metadata_only_zero_release_credit",
+            "release_gate_credit": 0, "run_id": 42,
+            "run_head_sha": OTHER, "expected_sha": OTHER,
+            "source_matches_expected": True, "producer_passed": True,
+            "artifact_census_complete": True, "artifact_count_observed": 0,
+            "inspected_at": "2026-10-26T10:00:00Z", "artifacts": [],
+        }
+        preflight = m.retention_decision(
+            report, snapshot(), now="2026-10-26T10:01:00Z")
+        self.assertEqual(preflight["source_scope"], "open_PR_head")
+        wrong = {**report, "run_head_sha": "c" * 40}
+        with self.assertRaisesRegex(ValueError, "source-qualified"):
+            m.retention_decision(wrong, snapshot(), now="2026-10-26T10:01:00Z")
+        removed = snapshot()
+        removed["open_prs"] = []
+        with self.assertRaisesRegex(ValueError, "absent from current"):
+            m.retention_decision(report, removed, now="2026-10-26T10:01:00Z")
+        for invalid in (
+            {**report, "source_matches_expected": False},
+            {**report, "authority": "release-accepted"},
+            {**report, "release_gate_credit": 1},
+            {**report, "inspected_at": "2026-10-26T10:00:00"},
+        ):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    m.retention_decision(invalid, snapshot(),
+                                         now="2026-10-26T10:01:00Z")
+
+    def test_artifact_preflight_result_is_composed_without_release_promotion(self):
+        report = {
+            "schema": "UR-CI-ARTIFACT-AVAILABILITY/1",
+            "authority": "github_metadata_only_zero_release_credit",
+            "release_gate_credit": 0, "run_id": 73,
+            "run_head_sha": SHA, "expected_sha": SHA,
+            "source_matches_expected": True, "producer_passed": False,
+            "artifact_census_complete": True, "artifact_count_observed": 0,
+            "inspected_at": "2026-10-26T10:00:00Z", "artifacts": [],
+        }
+        result = m.assess(snapshot(), self.ledger, "ci", artifact_report=report)
+        self.assertEqual(result["artifact_retention"]["run_id"], 73)
+        self.assertEqual(result["release"]["passed_recorded"], 0)
+        self.assertIn("Artifact retention, metadata only", m.markdown(result))
+        self.assertIn("No download/byte inspection", m.markdown(result))
+
+
+
 if __name__ == "__main__":
     unittest.main()

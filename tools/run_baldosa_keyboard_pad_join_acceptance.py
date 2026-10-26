@@ -367,10 +367,10 @@ def verify_controller_only_two_pad_race(log: str) -> dict:
     verify_controller_only_two_pad_root(log)
     stock = log.index("UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d")
     patterns = (
-        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\\r?$",
-        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\\r?$",
-        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=[1-9][0-9]*\\r?$",
-        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=[1-9][0-9]*\r?$",
+        r"^UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\r?$",
     )
     positions = []
     for pattern in patterns:

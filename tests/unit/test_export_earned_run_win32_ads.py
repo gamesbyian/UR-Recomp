@@ -28,7 +28,7 @@ class Win32NamedStreamTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve(strict=True)
         self.journey = self.root / "journey"
         self.runs = self.journey / "Brand New Player With Spaces" / "runs" / "mike"
         self.runs.mkdir(parents=True)

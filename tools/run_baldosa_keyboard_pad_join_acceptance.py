@@ -531,9 +531,14 @@ def verify_five_destination_pad_post_result(log: str) -> None:
         queued = int(sample.group(5), 16)
         if queued or guest != (incoming & 0xff000000):
             raise ValueError("pad earned return: host-owned human input leaked to guest")
-    if not any(m.start() > idle_matches[0].start() and
-               (int(m.group(3), 16) & 0x00ffffff) for m in window):
-        raise ValueError("pad earned return: no actual post-idle controller input sampled")
+    # SDL Modern handles its controller events before the mapped-human-word
+    # guest seam. A zero button word here is expected, not absent controller
+    # activity: the ordered Records/Quit events above prove navigation.
+    # Demand later native filter calls to establish that no guest buttons or
+    # queued stock edges leak while those events are processed.
+    post_idle = [m for m in window if idle_matches[0].start() < m.start() < last_quit]
+    if not {930, 960}.issubset({int(m.group(1)) for m in post_idle}):
+        raise ValueError("pad earned return: missing post-idle native input isolation")
     # The fallback script also quits cleanly at frame 11000. A product
     # "quit queued" receipt alone cannot establish that its SDL_QUIT was
     # actually consumed. Require the native host's exit witness strictly

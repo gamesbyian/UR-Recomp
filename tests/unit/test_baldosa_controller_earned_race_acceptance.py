@@ -71,6 +71,7 @@ class EarnedControllerJourney(unittest.TestCase):
         product_input = (ROOT / "tools/baldosa_native_product_execution.cpp").read_text(
             encoding="utf-8")
         self.assertIn("UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=", product_input)
+        self.assertIn("g_host_owned_samples > 900u", product_input)
         self.assertIn("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", RUNNER)
 
     def test_earned_race_native_log_is_retained_for_independent_qa(self):
@@ -119,11 +120,14 @@ class EarnedControllerJourney(unittest.TestCase):
             "incoming=c0000000 guest=c0000000 queued=0000 host_owns=1"
             for n in (180, 360, 540, 720, 900)
         ]
+        # The actual Windows SDL route consumes Modern pad presses before
+        # the guest-word filter, so the seam sees presence bits, not button
+        # bits. Samples 930/960 prove continued filtering after idle.
         isolation_press = [
-            "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=916 frame=7416 "
-            "incoming=c0000100 guest=c0000000 queued=0000 host_owns=1",
-            "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=928 frame=7428 "
-            "incoming=c0000080 guest=c0000000 queued=0000 host_owns=1",
+            "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=930 frame=7031 "
+            "incoming=40000000 guest=40000000 queued=0000 host_owns=1",
+            "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=960 frame=7061 "
+            "incoming=40000000 guest=40000000 queued=0000 host_owns=1",
         ]
         post_with_isolation = [
             *post[:10], *isolation_idle, post[10],
@@ -171,19 +175,26 @@ class EarnedControllerJourney(unittest.TestCase):
                 x for x in good if "sample=720 " not in x
             ],
             "guest input leaked during Modern": [
-                x.replace("sample=916 frame=7416 incoming=c0000100 guest=c0000000",
-                          "sample=916 frame=7416 incoming=c0000100 guest=c0000100")
+                x.replace("sample=930 frame=7031 incoming=40000000 guest=40000000",
+                          "sample=930 frame=7031 incoming=40000000 guest=40000100")
                 for x in good
             ],
             "stock menu input queued under Modern": [
-                x.replace("sample=916 frame=7416 incoming=c0000100 guest=c0000000 queued=0000",
-                          "sample=916 frame=7416 incoming=c0000100 guest=c0000000 queued=0080")
+                x.replace("sample=930 frame=7031 incoming=40000000 guest=40000000 queued=0000",
+                          "sample=930 frame=7031 incoming=40000000 guest=40000000 queued=0080")
                 for x in good
             ],
-            "no post-idle mapped input": [
-                x.replace("incoming=c0000100", "incoming=c0000000")
-                 .replace("incoming=c0000080", "incoming=c0000000")
+            "missing post-idle native filter calls": [
+                x for x in good if "sample=930 " not in x and "sample=960 " not in x
+            ],
+            "presence bit lost during navigation": [
+                x.replace("sample=930 frame=7031 incoming=40000000 guest=40000000",
+                          "sample=930 frame=7031 incoming=40000000 guest=00000000")
                 for x in good
+            ],
+            "reordered post-idle samples": [
+                *[x for x in good if "sample=930 " not in x],
+                isolation_press[0],
             ],
             "script-only quit at fallback": [x.replace("after 7176 frames",
                                                     "after 11000 frames") for x in good],

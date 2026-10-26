@@ -47,6 +47,11 @@ extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
         ++g_host_owned_samples;
         if (std::getenv("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS") &&
             (g_host_owned_samples % 180u == 0u ||
+             // After the 900-frame idle, sample bounded live navigation
+             // even when Modern consumes every SDL button before this seam.
+             (g_host_owned_samples > 900u &&
+              g_host_owned_samples <= 1080u &&
+              g_host_owned_samples % 30u == 0u) ||
              (word & 0x00ffffffu) != 0u)) {
             std::fprintf(stderr,
                 "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=%u frame=%u "

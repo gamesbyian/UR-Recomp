@@ -182,23 +182,42 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     """
     required = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=",
-        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440",
-        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
-        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943",
-        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        # Named-profile cold boot has a source-observed -3-frame startup
+        # offset (Windows exact-head runs 40092886488 and 40097172085):
+        # 437/940/1529, source reveal 940 and stable MAIN recovery 3815.
+        # Host-script action frames 1600/1674/1710/3770/3900 do not shift.
+        # Preserve the exact source chronology, D7/84/01 state and title
+        # overlay; anonymous 440/943/1532 checks remain independent.
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=437 menu=d7 race=00 overlay_title=1",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=940 menu=84 race=00 overlay_title=1",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=940",
+        "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1529 menu=00 race=01 overlay_title=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600",
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=1710 source_admitted=0",
         "UR_MODERN_TITLE_STOCK_ATTRACT named_play_denied=1 frame=3770 source_admitted=0",
-        "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3818 menu=d7 race=00 stable=60",
-        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
+        "UR_MODERN_TITLE_STOCK_ATTRACT source_main_recovered=1 frame=3815 menu=d7 race=00 stable=60",
+        # The native root logs stock_requested synchronously inside its
+        # admission call; the title logs named_play_requested after that
+        # call returns. Both must follow recovered MAIN, and stock_entered
+        # must follow both. This order is observed in Windows run 40101417391.
         "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+        "UR_MODERN_TITLE_STOCK_ATTRACT named_play_requested=1 frame=3900 source_main=d7 source_stable=60",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
     )
     last = -1
     for marker in required:
-        if log.count(marker) != 1:
-            raise ValueError("missing or duplicate named original-game proof: " + marker)
+        count = log.count(marker)
+        if count != 1:
+            # The named-profile process may have a different original source
+            # timeline. Preserve the actual stage observations before deciding
+            # whether this is a timing expectation or a gameplay regression.
+            observed_source_phases = re.findall(
+                r"^UR_MODERN_TITLE_ORIGINAL_SOURCE[^\r\n]*", log, re.MULTILINE)
+            raise ValueError(
+                f"missing or duplicate named original-game proof: {marker}; "
+                f"matches={count}; observed_source_phases={observed_source_phases[:12]!r}; "
+                "inspect retained native-attract.log")
         current = log.find(marker, last + 1)
         if current < 0:
             raise ValueError("named stock input entered before real MAIN recovery: " + marker)
@@ -209,7 +228,7 @@ def verify_named_original_play_after_recovery(log: str) -> list[dict[str, int | 
     return [
         {"phase": "named_play_denied_while_demo", "frame": 1710},
         {"phase": "named_play_denied_while_menu_unsettled", "frame": 3770},
-        {"phase": "original_main_stable", "frame": 3818},
+        {"phase": "original_main_stable", "frame": 3815},
         {"phase": "original_stock_one_player_entered", "frame": 3900},
     ]
 
@@ -339,7 +358,8 @@ def main() -> int:
         boot_dir.mkdir()
         boot_env = dict(env)
         boot_env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "8"
-        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "0"
+        boot_env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
+        boot_env["UR_BALDOSA_MODERN_INPUT"] = "1"
         boot_env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
         boot_env.pop("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE", None)
         boot_cmd = [str(exe), "--no-launcher", "--config", str(cfg),
@@ -357,7 +377,12 @@ def main() -> int:
         if (boot_result.returncode or
                 boot_log.count("UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process") != 1 or
                 not (user / "profiles-v1.txt").is_file()):
-            raise ValueError("genuine P1 X/A native profile creation did not persist")
+            raise ValueError(
+                "genuine P1 X/A native profile creation did not persist; "
+                f"exit={boot_result.returncode}, "
+                f"created={boot_log.count('UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process')}, "
+                f"catalog={(user / 'profiles-v1.txt').is_file()}; "
+                "inspect retained native-profile-bootstrap.log")
         env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
         env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
     if args.preview_wake:

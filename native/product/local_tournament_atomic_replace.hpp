@@ -179,10 +179,10 @@ inline bool write_host_replace_staged(
     if (after_staging_for_test) after_staging_for_test();
 #if defined(_WIN32)
     // Contending Windows writers can briefly deny a rename while an old
-    // destination handle is being released. Retry transient sharing/lock
-    // errors against the SAME fully synced stage, without rewriting bytes.
-    // Permanent permission, disk-full and no-replace intent failures are
-    // never retried here; a persistent denial retains the old canonical file.
+    // destination handle is being released. Retry bounded sharing/lock and
+    // existing-writable-destination access denials against the SAME synced
+    // stage, without rewriting bytes. Permanent failures remain failures;
+    // the immutable no-replace intent path below is never retried.
     bool published = false;
     for (unsigned attempt = 0; attempt < 8; ++attempt) {
         if (MoveFileExW(tmp.c_str(), final_path.c_str(),
@@ -191,14 +191,25 @@ inline bool write_host_replace_staged(
             break;
         }
         const DWORD error = GetLastError();
+        bool transient = error == ERROR_SHARING_VIOLATION ||
+                         error == ERROR_LOCK_VIOLATION;
+        // Windows also reports ERROR_ACCESS_DENIED (5) for some genuine
+        // concurrent replacement races. Exact MSVC x64 evidence: two
+        // independent eight-thread writers failed with error=5, and a real
+        // destination handle without FILE_SHARE_DELETE reproduces it.
+        // Bound retries to an existing, non-read-only regular destination;
+        // never retry absent paths, read-only files, directories or disk full.
+        if (error == ERROR_ACCESS_DENIED) {
+            const DWORD attributes = GetFileAttributesW(final_path.c_str());
+            transient = attributes != INVALID_FILE_ATTRIBUTES &&
+                (attributes & (FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_DIRECTORY)) == 0;
+        }
 #if defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
-        if (attempt == 7 || (error != ERROR_SHARING_VIOLATION &&
-                             error != ERROR_LOCK_VIOLATION))
+        if (attempt == 7 || !transient)
             std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=rename error=%lu attempt=%u\n",
                          static_cast<unsigned long>(error), attempt);
 #endif
-        if ((error != ERROR_SHARING_VIOLATION &&
-             error != ERROR_LOCK_VIOLATION) || attempt == 7)
+        if (!transient || attempt == 7)
             break;
         Sleep(1u << attempt);  // Bounded total: 127 ms.
     }

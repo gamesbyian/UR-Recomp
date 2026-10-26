@@ -37,6 +37,9 @@ def _validate(packet: dict) -> None:
     source = packet.get("checked_source_commit")
     if source is not None and (not isinstance(source, str) or not HEX40.fullmatch(source)):
         raise ValueError("invalid checked source")
+    expected_match = None if source is None else source == val
+    if packet.get("source_matches_ledger") is not expected_match:
+        raise ValueError("source comparison conflicts with exact source pins")
     gates = packet.get("gates")
     if not isinstance(gates, list) or len(gates) != 12:
         raise ValueError("incomplete release gate inventory")

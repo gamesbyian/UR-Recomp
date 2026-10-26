@@ -66,3 +66,16 @@ navigation packet and does not query GitHub for open PRs, read private
 Windows/ROM evidence, run a guest, dispatch Actions, nominate a release
 candidate or accept any gate. Re-read live board/PR/CI before acting;
 only independent reviewers may adjudicate release evidence.
+
+## Unchecked source is not an exact candidate match
+
+A source-free call (`python3 tools/release_evidence_brief.py`) can show
+ledger status for navigation, but **cannot establish source equality**.
+Its JSON `source_matches_ledger` is now `null` and its Markdown says
+`UNKNOWN`. Every gate carries `requested_source_not_checked`.
+Only a supplied exact 40-character `--source-sha` may report
+`MATCH` or `MISMATCH`; even a source match does not authenticate a
+build or confer release evidence. The existing briefing comparison now
+rejects an unbound snapshot claiming a match. Regenerate any pre-fix
+source-free briefing files rather than treating historical `true` values
+as genuine evidence.

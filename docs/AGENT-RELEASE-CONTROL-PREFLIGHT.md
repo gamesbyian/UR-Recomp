@@ -12,7 +12,7 @@ The script reuses the canonical read-only Python GitHub API reader in
 `tools/ops_live_status.py`, using `GH_TOKEN` or `GITHUB_TOKEN`
 for authenticated access. No separate gh CLI is required. It collects fresh main and up
 to 25 open PRs, each exact-head status, file names and GitHub mergeability,
-a bounded recently closed sample, and rechecks main and each PR head.
+a bounded recently closed sample, then rechecks the entire selected PR\nhead/draft/base census and main before reporting. A mid-scan PR update\nrefuses the report; no stale green head is presented as current.
 No guest logs, binaries, ROMs or player files are fetched. Incomplete file
 or PR listings are explicitly labelled unknown. Changed-path overlap
 is a collision hint, NOT a Git merge conflict. Passing observed checks do

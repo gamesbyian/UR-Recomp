@@ -67,10 +67,16 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(
-            "const fs::path user_root = fs::u8path(configured_root);", source
+            '_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', source
         )
         self.assertIn(
-            "std::filesystem::u8path(user_root)).u8string()", source
+            "const fs::path user_root = modern_user_data_root();", source
+        )
+        self.assertIn(
+            "const auto user_root = modern_user_data_root();", source
+        )
+        self.assertIn(
+            "baldosa_options_path(user_root).u8string()", source
         )
         self.assertNotIn(
             "baldosa_options_path(user_root).string()", source

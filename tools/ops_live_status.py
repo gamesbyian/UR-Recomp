@@ -164,6 +164,26 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
             raise ValueError("invalid workflow sample")
         cancel_groups = Counter((x.get("name") or "unnamed workflow")
                                 for x in latest if x.get("conclusion") == "cancelled")
+        # Preserve up to five exact run links per diagnostic class. These
+        # hints are bounded by the sampled first page, not a complete census.
+        failed_leads, aging_leads = [], []
+        for run in latest:
+            run_id = run.get("id")
+            if type(run_id) is not int or run_id <= 0:
+                continue
+            lead = {"run_id": run_id,
+                    "workflow": str(run.get("name") or "unnamed workflow")[:120],
+                    "url": f"https://github.com/{repo}/actions/runs/{run_id}"}
+            if run.get("conclusion") in {"failure", "timed_out", "startup_failure", "action_required"}:
+                if len(failed_leads) < 5:
+                    failed_leads.append({**lead, "conclusion": run["conclusion"]})
+            elif run.get("status") in {"queued", "in_progress", "waiting", "pending", "requested"}:
+                started = timestamp(run.get("created_at"))
+                if started is not None:
+                    seconds = (now - started).total_seconds()
+                    if seconds >= 7200 and len(aging_leads) < 5:
+                        aging_leads.append({**lead, "status": run["status"],
+                                            "age_minutes": int(seconds // 60)})
         result["actions"] = {
             "scope": "latest_100_only_not_a_day_or_billing_measure",
             "cancelled_runner_job_sample": sample_cancelled_jobs(get, base, latest),
@@ -172,6 +192,8 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
                 for name, count in sorted(cancel_groups.items(), key=lambda pair: (-pair[1], pair[0]))[:5]
             ],
             "sampled": len(latest),
+            "failed_run_leads": failed_leads,
+            "aging_in_flight_leads": aging_leads,
             "outcomes": dict(Counter(x.get("conclusion") or x.get("status") or "unknown"
                                      for x in latest)),
             "earliest_observed_at": latest[-1].get("created_at") if latest else None,
@@ -238,6 +260,17 @@ def markdown(s):
     rows.append("- Actions: " +
                 (f"latest {actions['sampled']} only " + repr(actions["outcomes"]) +
                  " (NOT daily totals or runner minutes)" if actions else "UNKNOWN"))
+    if actions and actions["failed_run_leads"]:
+        rows.append("- **Recent failure triage (latest sample only):** " +
+                    "; ".join(f"{item['workflow']} [{item['conclusion']}] {item['url']}"
+                              for item in actions["failed_run_leads"]) +
+                    ". Inspect each job's first failed step; this is not a full census.")
+    if actions and actions["aging_in_flight_leads"]:
+        rows.append("- **Older in-flight review leads (not proof of stalls):** " +
+                    "; ".join(f"{item['workflow']} [{item['status']}, "
+                              f"{item['age_minutes']}m since created] {item['url']}"
+                              for item in actions["aging_in_flight_leads"]) +
+                    ". Check current status before intervening.")
     if actions and actions["cancelled_by_workflow"]:
         rows.append("- Cancellation leads (same latest sample only): " +
                     "; ".join(f"{x['workflow']}: {x['count']}" for x in actions["cancelled_by_workflow"]) +
@@ -298,6 +331,11 @@ def markdown(s):
     rows.extend(["", "Neither a successful source check nor a Drive archive awards a QA gate.", ""])
     return "\n".join(rows)
 
+def required_live_sources_present(report):
+    """Main, open PRs, and Actions are mandatory for an operational snapshot."""
+    return all(report.get(key) is not None for key in ("main", "prs", "actions"))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--format", choices=("markdown", "json"), default="markdown")
@@ -323,7 +361,8 @@ def main():
         args.output.write_text(output, encoding="utf8")
     else:
         print(output, end="")
-    return 0 if report["main"] and report["prs"] else 1
+    # Preserve the partial report but make absent mandatory telemetry non-green.
+    return 0 if required_live_sources_present(report) else 1
 
 if __name__ == "__main__":
     sys.exit(main())

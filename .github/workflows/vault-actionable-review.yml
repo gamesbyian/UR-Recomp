@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ['Vault Recurring Intake (Public Drive)']
     types: [completed]
+    branches: [main]
   workflow_dispatch:
   pull_request:
     paths:

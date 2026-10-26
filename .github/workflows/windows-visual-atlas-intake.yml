@@ -7,6 +7,7 @@ on:
       - "Modern visual QA native SDL baseline"
       - "Windows Visual Atlas (sharded opt-in capture)"
     types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -81,9 +82,11 @@ jobs:
             gh run download "$SOURCE_RUN" --repo "$REPO" \
               -n "$artifact_name" --dir "$RUNNER_TEMP/atlas-upstream/$artifact_name"
           done < <(jq -r '.artifacts[] | select(.expired == false) | [.name, .size_in_bytes] | @tsv' "$RUNNER_TEMP/atlas-artifacts.json")
-          echo "source_run=$SOURCE_RUN" >> "$GITHUB_OUTPUT"
-          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
-          echo "producer_name=$name" >> "$GITHUB_OUTPUT"
+          {
+            echo "source_run=$SOURCE_RUN"
+            echo "source_sha=$source_sha"
+            echo "producer_name=$name"
+          } >> "$GITHUB_OUTPUT"
           printf '### Opportunistic capture intake\nProducer: %s / run %s\n' "$name" "$SOURCE_RUN" >> "$GITHUB_STEP_SUMMARY"
       - name: Authenticate candidate images against merged source and actual P7/logs
         id: qualify

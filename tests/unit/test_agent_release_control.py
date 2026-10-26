@@ -155,11 +155,20 @@ class AgentReleaseControlTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "PR advanced"):
                 m.live_snapshot()
         responses[4]["head"]["sha"] = OTHER
-        responses.extend([{"commit": {"sha": SHA}}, []])
+        responses.extend([[], [pr], {"commit": {"sha": SHA}}])
         with patch.object(m, "api", side_effect=responses):
             got = m.live_snapshot()
         self.assertEqual(got["main_sha"], SHA)
         self.assertEqual(len(got["open_prs"]), 1)
+        changed = {**pr, "head": {"sha": SHA}}
+        with patch.object(m, "api", side_effect=responses[:-2] + [[changed],
+                {"commit": {"sha": SHA}}]):
+            with self.assertRaisesRegex(ValueError, "changed during census"):
+                m.live_snapshot()
+        with patch.object(m, "api", side_effect=responses[:-2] + [[pr, changed],
+                {"commit": {"sha": SHA}}]):
+            with self.assertRaisesRegex(ValueError, "changed during census"):
+                m.live_snapshot()
 
 
 if __name__ == "__main__":

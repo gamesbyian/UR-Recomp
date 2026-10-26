@@ -3057,7 +3057,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 two_stage = 1;
                 two_setup_start = frame + 900u;
                 std::fprintf(stderr,
-                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\\n");
+                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_stock_setup=1 menu=3d phase=f60c\n");
             }
             if (two_stage == 1 && frame >= two_setup_start) {
                 // Source-backed stock path: P1 racer, P2's default Andrew
@@ -3082,7 +3082,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                         frame == two_setup_start + 2u + step.offset) {
                         two_stage = 2;
                         std::fprintf(stderr,
-                            "UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\\n");
+                            "UR_BALDOSA_MODERN_TWO_PAD_RACE source_start_pulses=5 seats=1,2\n");
                     }
                     return;
                 }
@@ -3092,7 +3092,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 two_stage = 3;
                 two_go_frame = frame;
                 std::fprintf(stderr,
-                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=%u\\n",
+                    "UR_BALDOSA_MODERN_TWO_PAD_RACE source_go=1 phase=8610 ticker=%u\n",
                     static_cast<unsigned>(g_ram[0x0e1fu]));
             }
             if (two_stage == 3) {
@@ -3118,7 +3118,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 if (elapsed == 3190u) {
                     two_stage = 4;
                     std::fprintf(stderr,
-                        "UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\\n");
+                        "UR_BALDOSA_MODERN_TWO_PAD_RACE source_input_completed=1 frames=3190\n");
                 }
             }
         }

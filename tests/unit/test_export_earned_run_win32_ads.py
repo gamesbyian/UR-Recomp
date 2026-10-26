@@ -100,5 +100,40 @@ class Win32NamedStreamTests(unittest.TestCase):
         self.assertFalse(destination.exists())
 
 
+    def _assert_late_named_stream_rejected(self, target: Path, destination_name: str) -> None:
+        """Inject an ADS after the initial byte read, before publication.
+
+        This proves the existing post-staging checks catch a deterministic
+        namespace change. It does not prove immunity to arbitrary races.
+        """
+        import export_baldosa_earned_1p_run as exporter
+        from unittest.mock import patch
+
+        original_read = exporter._regular_bytes
+        injected = False
+
+        def read_then_inject(path: Path, limit: int) -> bytes:
+            nonlocal injected
+            data = original_read(path, limit)
+            if path == target and not injected:
+                injected = True
+                self.add_named_stream(target)
+            return data
+
+        destination = self.root / destination_name
+        with patch.object(exporter, "_regular_bytes", side_effect=read_then_inject):
+            with self.assertRaisesRegex(ValueError, "(?i)alternate.*stream|named.*stream"):
+                exporter.export(self.journey, destination)
+        self.assertTrue(injected, "late-stream injection point was not reached")
+        self.assertFalse(destination.exists())
+
+    def test_recheck_report_after_stream_arrives_during_copy(self) -> None:
+        self._assert_late_named_stream_rejected(
+            self.journey / "report.json", "late-report")
+
+    def test_recheck_run_after_stream_arrives_during_copy(self) -> None:
+        self._assert_late_named_stream_rejected(self.run, "late-run")
+
+
 if __name__ == "__main__":
     unittest.main()

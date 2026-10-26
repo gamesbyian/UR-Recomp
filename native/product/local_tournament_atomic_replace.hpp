@@ -130,7 +130,7 @@ inline bool write_host_replace_staged(
         final_path.parent_path(), staging_family);
     if (!staging) {
 #if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
-        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=reserve error=%lu\\n",
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=reserve error=%lu\n",
                      static_cast<unsigned long>(GetLastError()));
 #endif
         return false;
@@ -149,7 +149,7 @@ inline bool write_host_replace_staged(
 #endif
     if (!file) {
 #if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
-        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=open errno=%d error=%lu\\n",
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=open errno=%d error=%lu\n",
                      errno, static_cast<unsigned long>(GetLastError()));
 #endif
         cleanup();
@@ -167,7 +167,7 @@ inline bool write_host_replace_staged(
     const bool closed = std::fclose(file) == 0;
     if (written != data.size() || !flushed || !synced || !closed) {
 #if defined(_WIN32) && defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
-        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=sync written=%zu expected=%zu flushed=%d synced=%d closed=%d errno=%d\\n",
+        std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=sync written=%zu expected=%zu flushed=%d synced=%d closed=%d errno=%d\n",
                      written, data.size(), static_cast<int>(flushed),
                      static_cast<int>(synced), static_cast<int>(closed), errno);
 #endif
@@ -194,7 +194,7 @@ inline bool write_host_replace_staged(
 #if defined(UR_ATOMIC_REPLACE_TEST_DIAGNOSTICS)
         if (attempt == 7 || (error != ERROR_SHARING_VIOLATION &&
                              error != ERROR_LOCK_VIOLATION))
-            std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=rename error=%lu attempt=%u\\n",
+            std::fprintf(stderr, "WIN32_ATOMIC_REPLACE_DIAGNOSTIC stage=rename error=%lu attempt=%u\n",
                          static_cast<unsigned long>(error), attempt);
 #endif
         if ((error != ERROR_SHARING_VIOLATION &&

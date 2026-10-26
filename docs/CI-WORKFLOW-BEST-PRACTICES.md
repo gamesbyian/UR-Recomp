@@ -240,6 +240,8 @@ Use pull-request validation when the result is primarily needed before merge. Ad
 
 **Do not include a workflow's own `.github/workflows/<name>.yml` path in its `push.paths` merely to prove that workflow edits execute.** That creates a redundant full rerun immediately after every workflow-maintenance merge.
 
+**Narrow Windows exact-main evidence exception:** `windows-native-smoke.yml` includes its own path on `main` because the merged workflow must produce a new, source-bound, ROM-free PE and binding receipt. A successful PR smoke on a synthetic merge cannot serve as an exact-main executable nomination. This exception does not authorize self-triggering other workflows or waive independent package/device/release acceptance. The PR-side direct smoke and QA-05/09 reusable caller currently duplicate full Windows builds (19.22 hosted runner-minutes measured on #2601); retire the redundant PR producer only after separately verifying required check names and coverage. Preserve the one main-push exact-source producer.
+
 Use this pattern instead:
 
 - if the workflow already has a `pull_request` trigger, include its own YAML path there so workflow edits are exercised before merge;

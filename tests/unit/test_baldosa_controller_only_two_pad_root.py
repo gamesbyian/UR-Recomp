@@ -67,7 +67,7 @@ class ControllerOnlyTwoPadRootAcceptance(unittest.TestCase):
             "wrong source menu": [x.replace("menu=3d", "menu=3c") for x in good],
             "missing seat P2": [x for x in good if "instance=202" not in x],
             "duplicate host P1": [*good, HOST[0]],
-            "seat churn": [*good, "[Gamepad] UR_CONTROLLER_SEAT vacate instance=202 seat=1 key=abcd"],
+            "seat churn": [*HOST, "[Gamepad] UR_CONTROLLER_SEAT vacate instance=202 seat=1 key=abcd", *STAGES],
             "wrong selection": [x.replace("selected=2", "selected=3") for x in good],
             "join before Practice close": [*HOST, *STAGES[:4], *STAGES[6:8],
                                            *STAGES[4:6], *STAGES[8:]],

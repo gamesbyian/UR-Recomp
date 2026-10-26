@@ -229,7 +229,8 @@ class EarnedControllerJourney(unittest.TestCase):
         mutants = {
             "missing native title paint": [x for x in good if "TITLE painted=1" not in x],
             "missing native root paint": [x for x in good if "ROOT painted=1" not in x],
-            "title paint after root": [*good, good[1]],
+            "title paint after root": [good[0], good[2], good[3],
+                                       good[1], *good[4:]],
             "cropped Records": [
                 x.replace("stage=records-1p raster=342x224 root=11,10,320,204",
                           "stage=records-1p raster=342x224 root=11,10,300,204")

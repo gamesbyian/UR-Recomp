@@ -174,7 +174,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
     def test_intake_pr_dry_run_keeps_pinned_downloader(self):
         workflow = (WORKFLOWS / "vault-recurring-intake.yml").read_text(
             encoding="utf-8")
-        install = workflow.split("      - name: Install pinned public Drive downloader\\n", 1)[1]
+        install = workflow.split("      - name: Install pinned public Drive downloader\n", 1)[1]
         install = install.split("      - name: Restore most recent preserved checkpoint", 1)[0]
         self.assertIn("github.event_name != 'workflow_dispatch'", install)
         self.assertNotIn("github.event_name != 'pull_request'", install)

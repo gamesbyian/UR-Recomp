@@ -157,5 +157,64 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["peak_active_jobs"], 0)
 
 
+    def test_detects_close_same_source_cross_workflow_builds_only(self):
+        source = "a" * 40
+        other = "b" * 40
+        def run(ident, name, sha, start, event="pull_request"):
+            return {"id": ident, "name": name, "head_sha": sha,
+                    "status": "completed", "conclusion": "success", "event": event,
+                    "created_at": start, "run_started_at": start,
+                    "updated_at": "2026-10-26T01:30:00Z"}
+        runs = {"workflow_runs": [
+            run(1, "Windows smoke", source, "2026-10-26T01:00:00Z"),
+            run(2, "QA-05/09 wrapper", source, "2026-10-26T01:00:20Z"),
+            run(3, "Unrelated branch", other, "2026-10-26T01:00:00Z"),
+            run(4, "Missing timed build", source, "2026-10-26T01:02:00Z"),
+        ]}
+        def job(ident, seconds, name="Build source"):
+            return {"run_id": ident, "jobs": [{"steps": [{
+                "name": name, "started_at": "2026-10-26T01:01:00Z",
+                "completed_at": f"2026-10-26T01:{seconds:02d}:00Z",
+            }]}]}
+        jobs = {"runs": [job(1, 10), job(2, 8), job(3, 9),
+                         job(4, 8, "Print summary")]}
+        report = summarize(runs, 72, datetime(2026, 10, 27, tzinfo=timezone.utc),
+                           jobs_payload=jobs)
+        candidates = report["possible_same_source_cross_workflow_builds"]
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["head_sha"], source)
+        self.assertEqual(candidates[0]["run_ids"], [1, 2])
+        self.assertEqual(candidates[0]["runs_observed"], 2)
+        self.assertEqual(candidates[0]["timed_build_steps"], 2)
+        self.assertIn("manual review only", markdown(report))
+        # A build-like label and a shared SHA only flag a possible duplicate,
+        # not PE/ZIP equality or removable release coverage.
+        self.assertIn("identity_and_coverage_unverified",
+                      candidates[0]["status"])
+
+    def test_distant_or_missing_build_times_do_not_create_false_match(self):
+        sha = "c" * 40
+        payload = {"workflow_runs": [
+            {"id": 1, "name": "A", "head_sha": sha, "status": "completed",
+             "created_at": "2026-10-25T00:00:00Z", "event": "push"},
+            {"id": 2, "name": "B", "head_sha": sha, "status": "completed",
+             "created_at": "2026-10-26T00:00:00Z", "event": "push"},
+        ]}
+        jobs = {"runs": [
+            {"run_id": i, "jobs": [{"steps": [{
+                "name": "Build native", "started_at": start,
+                "completed_at": finish,
+            }]}]} for i, start, finish in [
+                (1, "2026-10-25T00:00:00Z", "2026-10-25T00:01:00Z"),
+                (2, "2026-10-26T00:00:00Z", "2026-10-26T00:01:00Z"),
+            ]
+        ]}
+        report = summarize(payload, 72, datetime(2026, 10, 27, tzinfo=timezone.utc),
+                           jobs_payload=jobs)
+        self.assertEqual(report["possible_same_source_cross_workflow_builds"], [])
+        self.assertEqual(summarize(payload, 72, datetime(2026, 10, 27, tzinfo=timezone.utc))
+                         ["possible_same_source_cross_workflow_builds"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

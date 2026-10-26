@@ -546,3 +546,26 @@ The existing Repository hygiene job now performs two narrow **advisory** checks 
 The `zizmor` executable is installed from immutable upstream release v1.31.1 with its published `x86_64-unknown-linux-gnu` SHA-256 verified before extraction. It runs `--offline --min-severity high`, with **no network audits, no automatic rewrite, no write token and no new Actions job or research factory**. Findings are advisory during baseline triage and are not release QA verdicts. Human review must separate real shell/expression injection paths from workflow-context false positives; make focused source/CI changes only when a finding is independently reproduced. Avoid globally disabling a security rule merely to turn the job green.
 
 The audit targets workflow source changes only. It does not replace independent review of workflow permissions, third-party actions, artifact binding, script injection, or release output provenance.
+
+
+### Same-source cross-workflow build candidate detection (2026-10-26)
+
+The existing opt-in `tools/report_ci_runtime.py` now reports **possible**
+repeat compilation when two different workflows on the same *Actions head
+SHA* have measured build-like steps within two hours. The bounded table
+shows run IDs, workflow names and total **observed timed build-step** minutes,
+not estimated savings or total billed runner minutes. A shared head SHA is
+not necessarily an identical checked-out source, executable, portable ZIP,
+toolchain or required acceptance configuration. Exact source/PE/ZIP
+provenance and branch protection must be reconciled before removing a run.
+No step timestamps means no duplicate detection, **not** proof of no
+redundancy. The tool adds no API calls or CI runners; the existing manual
+runtime reporter already collects the relevant timing information.
+
+A measured example is PR #2601's Windows smoke YAML edit, for which the
+direct smoke and QA-05/09 reusable caller independently compiled on the
+same synthetic source and cost **10.63 + 8.58 = 19.22 observed runner-minutes**
+across their two Windows jobs. Their PEs differed in COFF timestamp bytes and
+their private ZIP hashes also differed. Owner PR #2606 must retain main-push
+candidate evidence while independently verifying that any PR-side trigger
+reduction preserves required checks and native Windows acceptance.

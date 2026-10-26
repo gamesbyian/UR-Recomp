@@ -483,7 +483,7 @@ def markdown(result):
                      + "; missing jobs=" + str(x["missing_job_timing"]))
     retention = result["artifact_retention"]
     if retention is not None:
-        lines.extend(["", "## Artifact retention, metadata only", "",
+        lines.extend(["", ("## Artifact retention, original ROM-free bytes inspected" if any(item.get("romfree_independent_byte_audit") is not None for item in retention["artifacts"]) else "## Artifact retention, metadata only"), "",
                       "Run " + str(retention["run_id"]) + "; source scope "
                       + retention["source_scope"] + "; fresh="
                       + str(retention["fresh_at_preflight"]) + "; census complete="
@@ -500,7 +500,13 @@ def markdown(result):
                              + "; source-equal=" + str(audit["built_source_claim_matches_run_head"])
                              + "; PE=" + audit["staged_pe_sha256"]
                              + "; private ZIP digest CLAIM=" + audit["private_zip_sha256_claim_only"])
-        lines.append("No download/byte inspection, ROM/private ZIP proof, or release gate credit.")
+        if any(item.get("romfree_independent_byte_audit") is not None
+               for item in retention["artifacts"]):
+            lines.append("ROM-free original ZIP bytes and all member CRCs inspected; "
+                         "private playable ZIP bytes, ROM, hardware, original/native "
+                         "parity and release QA remain unverified.")
+        else:
+            lines.append("No download/byte inspection, ROM/private ZIP proof, or release gate credit.")
     status = result["recorded_release_status_delta"]
     lines.append(
         "Recorded release metadata delta: " + status["state"]

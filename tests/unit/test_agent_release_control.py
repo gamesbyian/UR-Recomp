@@ -301,6 +301,13 @@ class AgentReleaseControlTests(unittest.TestCase):
                                     now="2026-10-26T12:02:00Z",
                                     romfree_audit=audit, romfree_size=200)
         member = view["artifacts"][0]
+        rendered = m.assess(snapshot(), self.ledger, "ci")
+        rendered["artifact_retention"] = view
+        markdown = m.markdown(rendered)
+        self.assertIn("Artifact retention, original ROM-free bytes inspected", markdown)
+        self.assertIn("ROM-free original ZIP bytes and all member CRCs inspected", markdown)
+        self.assertIn("private playable ZIP bytes", markdown)
+        self.assertNotIn("No download/byte inspection", markdown)
         self.assertTrue(member["romfree_independent_byte_audit"]
                         ["outer_sha256_matches_GitHub_metadata"])
         self.assertEqual(member["romfree_independent_byte_audit"]

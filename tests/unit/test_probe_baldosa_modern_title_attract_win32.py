@@ -7,7 +7,8 @@ import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
     verify_original_guest_presentations, verify_source_driven_recovery,
-    verify_named_original_play_after_recovery, set_attract_override)
+    verify_named_original_play_after_recovery, set_attract_override,
+    verify_native_p2_mapped_input_isolation)
 
 OPEN = "UR_BALDOSA_MODERN_ROOT opened=1"
 MAIN = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1"
@@ -16,6 +17,33 @@ DEMO = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=00 race=
 
 
 class StockIdleAttractWitnessTest(unittest.TestCase):
+
+    def test_actual_mapped_p2_word_must_remain_zero_after_sdl_b(self):
+        sent = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_event_submitted=1 frame=1642"
+        release = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=1644"
+        isolated = "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1645"
+        def sample(frame, incoming="c0000000", guest="c0000000", queued="0000"):
+            return (f"UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample={frame} "
+                    f"frame={frame} incoming={incoming} guest={guest} "
+                    f"queued={queued} host_owns=1")
+        good = "\n".join((sent, sample(1643), sample(1644), release,
+                          sample(1645), isolated))
+        self.assertTrue(verify_native_p2_mapped_input_isolation(good))
+        for bad in (
+            good.replace(sample(1643), ""),
+            good.replace(sample(1643), sample(1643, incoming="c0001000")),
+            good.replace(sample(1644), sample(1644, guest="c0001000")),
+            good.replace(sample(1645), sample(1645, queued="0001")),
+            good.replace(sample(1643), sample(1643) + "\n" + sample(1643)),
+            good.replace("host_owns=1", "host_owns=0"),
+            good.replace(sent, ""),
+            good.replace(release, ""),
+            good.replace(isolated, ""),
+            good.replace("frame=1644", "frame=1646"),
+        ):
+            with self.subTest(bad=bad[-110:]), self.assertRaises(ValueError):
+                verify_native_p2_mapped_input_isolation(bad)
+
     def test_default_witness_removes_even_inherited_preview_opt_in(self):
         inherited = {"UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW": "1", "SDL_VIDEODRIVER": "dummy"}
         set_attract_override(inherited, preview_wake=True, default_attract=True)

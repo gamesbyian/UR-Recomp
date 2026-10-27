@@ -2485,6 +2485,34 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // CI-only mode 22: unjoined P2 can wake true original demo, but does
     // not own P1 selection. A distinct P1 A remains required for root entry.
     if (std::strcmp(opt, "22") == 0) {
+        // The historical direct-callback wake remains a control. In the
+        // opt-in mapped-word witness, a *different* B arrives through a real
+        // SDL3 virtual seat-2 device and the ordinary event pump.
+        const bool mapped_p2_probe =
+            std::getenv("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS") != nullptr;
+#if SNESRECOMP_SDL3
+        static SDL_Joystick* p1_pad = nullptr;
+        static SDL_Joystick* p2_pad = nullptr;
+        if (mapped_p2_probe && (frame == 1570u || frame == 1572u)) {
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.vendor_id = 0x1209;
+            desc.product_id = frame == 1570u ? 0x5571 : 0x5572;
+            desc.name = frame == 1570u ? "UR attract seat 1" : "UR attract seat 2";
+            const SDL_JoystickID id = SDL_AttachVirtualJoystick(&desc);
+            SDL_Joystick*& pad = frame == 1570u ? p1_pad : p2_pad;
+            pad = id ? SDL_OpenJoystick(id) : nullptr;
+            if (!pad) std::abort();
+            return;
+        }
+        if (mapped_p2_probe && frame == 1590u &&
+            (snesrecomp_desktop_product_seat_source(0) == -1 ||
+             snesrecomp_desktop_product_seat_source(1) == -1))
+            std::abort();
+#endif
         if (frame == 1600) {
             if (!g_original_attract_visible ||
                 !ur_baldosa_modern_root_gamepad(1, kGamepadBtn_A, 1) ||
@@ -2504,13 +2532,45 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 g_stock_target != -1 || g_two_seat_join.open())
                 std::abort();
         } else if (frame == 1642) {
-            // Different P2 button after wake must also remain host-owned.
-            if (!ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 1) ||
-                !ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 0) ||
-                !g_visible || g_stock_target != -1)
-                std::abort();
-            std::fprintf(stderr,
-                "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=%u\n", frame);
+            // Submit the unrelated P2 B through SDL, not the direct host
+            // callback. The mapped-human-word witness must separately show
+            // that this event never reaches the hidden guest.
+#if SNESRECOMP_SDL3
+            if (mapped_p2_probe) {
+                if (!p2_pad || !SDL_SetJoystickVirtualButton(
+                        p2_pad, SDL_GAMEPAD_BUTTON_EAST, true))
+                    std::abort();
+                std::fprintf(stderr,
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_event_submitted=1 frame=%u\n", frame);
+            } else
+#endif
+            {
+                if (!ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 1) ||
+                    !ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 0) ||
+                    !g_visible || g_stock_target != -1)
+                    std::abort();
+                std::fprintf(stderr,
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=%u\n", frame);
+            }
+        } else if (frame == 1644) {
+#if SNESRECOMP_SDL3
+            if (mapped_p2_probe) {
+                if (!p2_pad || !SDL_SetJoystickVirtualButton(
+                        p2_pad, SDL_GAMEPAD_BUTTON_EAST, false))
+                    std::abort();
+                std::fprintf(stderr,
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=%u\n", frame);
+            }
+#endif
+        } else if (frame == 1645) {
+#if SNESRECOMP_SDL3
+            if (mapped_p2_probe) {
+                if (!g_visible || g_stock_target != -1 || g_two_seat_join.open())
+                    std::abort();
+                std::fprintf(stderr,
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=%u\n", frame);
+            }
+#endif
         } else if (frame == 1660) {
             if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
                 !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))

@@ -121,6 +121,51 @@ def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[
     return markers
 
 
+
+P2_MAPPED_INPUT = re.compile(
+    r"^UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=(\d+) "
+    r"frame=(\d+) incoming=([0-9a-f]{8}) guest=([0-9a-f]{8}) "
+    r"queued=([0-9a-f]{4}) host_owns=1$", re.MULTILINE
+)
+
+
+def verify_native_p2_mapped_input_isolation(log: str) -> bool:
+    """Require real SDL P2 B submission AND mapped guest-word non-leakage.
+
+    Host callback return values alone cannot prove this. The existing
+    human-word filter logs actual input BEFORE script/debug merge. A
+    zero P2 mask in both incoming and guest at 1643..1645 proves the
+    event did not reach the mapped guest input, not physical hardware QA.
+    """
+    sent = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_event_submitted=1 frame=1642"
+    released = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=1644"
+    isolated = "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1645"
+    if (log.count(sent) != 1 or log.count(released) != 1 or
+            log.count(isolated) != 1 or
+            not (log.index(sent) < log.index(released) < log.index(isolated))):
+        raise ValueError("missing or unordered real SDL P2 follow-up")
+    samples = {}
+    for match in P2_MAPPED_INPUT.finditer(log):
+        frame = int(match[2])
+        if frame not in (1643, 1644, 1645):
+            continue
+        if frame in samples:
+            raise ValueError("duplicate P2 mapped-input frame")
+        incoming, guest, queued = (int(match[3], 16),
+                                   int(match[4], 16), int(match[5], 16))
+        if incoming & 0x00fff000 or guest & 0x00fff000 or queued:
+            raise ValueError("P2 input reached mapped word or stock queue")
+        if guest & 0x00ffffff:
+            raise ValueError("hidden guest received host-owned input")
+        samples[frame] = match.start()
+    if set(samples) != {1643, 1644, 1645}:
+        raise ValueError("missing mapped P2 guest-word witness")
+    if not (log.index(sent) < samples[1643] < log.index(released) <
+            samples[1645] < log.index(isolated)):
+        raise ValueError("mapped P2 guest-word witness not bound to SDL edge")
+    return True
+
+
 def verify_source_driven_recovery(log: str) -> list[dict[str, int | str]]:
     """Real guest demo must finish before *new* gameplay selection is admitted.
 
@@ -403,6 +448,8 @@ def main() -> int:
                 "inspect retained native-profile-bootstrap.log")
         env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
         env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
+    if args.preview_wake and args.default_attract and args.wake_route == "p2":
+        env["UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS"] = "1"
     if args.preview_wake:
         env.update({
             "SNESRECOMP_SCREENSHOT_DIR": str(presented),
@@ -436,6 +483,11 @@ def main() -> int:
         else verify_source_driven_recovery(log) if args.recovery
         else verify_source_driven_preview(log, wake_route=args.wake_route) if args.preview_wake
         else verify_original_source_attract(log))
+    p2_mapped_verified = (
+        verify_native_p2_mapped_input_isolation(log)
+        if args.preview_wake and args.default_attract and args.wake_route == "p2"
+        else False
+    )
     presented_receipt = (
         verify_original_guest_presentations(
             presented, modern_width=256 if args.aspect == "4:3" else 342)
@@ -455,6 +507,7 @@ def main() -> int:
         "historical_preview_environment_override_used": args.preview_wake and not args.default_attract,
         "default_stock_attract_without_preview_override": args.default_attract,
         "native_wake_route": args.wake_route if args.preview_wake else None,
+        "p2_mapped_input_isolation_verified": p2_mapped_verified,
         "drawable_aspect": args.aspect,
         "native_stock_demo_and_wake_presentations": presented_receipt,
         "native_stock_demo_index_sha256": (

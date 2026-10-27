@@ -61,10 +61,11 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
             '// CI-only mode 20:', 1
         )[0]
         self.assertIn("frame == 1642", region)
-        self.assertIn("ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 1)",
-                      region)
-        self.assertIn("ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 0)",
-                      region)
+        self.assertIn("SDL_SetJoystickVirtualButton(", region)
+        self.assertIn("p2_pad, SDL_GAMEPAD_BUTTON_EAST, true", region)
+        self.assertIn("p2_pad, SDL_GAMEPAD_BUTTON_EAST, false", region)
+        self.assertIn("p2_sdl_event_submitted=1", region)
+        self.assertIn("p2_sdl_release_submitted=1", region)
         self.assertIn("p2_other_button_isolated=1", region)
 
 

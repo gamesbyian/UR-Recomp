@@ -304,6 +304,12 @@ jobs:
             CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
             python3 -m unittest discover -s tests/unit -p test_qa01_rf083_original_sound_dp_first_writer.py
             python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+            # The pinned libretro Makefile compiles %.o from %.cpp without
+            # header prerequisites. Re-linking alone leaves cpuops.o using the
+            # OLD cpumacro.h/getset.h even though the patched headers exist.
+            # Rebuild every dependent object after staging the disposable
+            # observer; never accept an uninstrumented original as evidence.
+            make -C "$CORE_SRC/libretro" clean
             make -C "$CORE_SRC/libretro" -j2
           fi
           # Explicitly opted-in, disposable source+native observers only.

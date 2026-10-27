@@ -8,9 +8,9 @@ This is a build **request**, not an acceptance claim. Do not run it for every PR
 
 ## Next build request
 
-- Request sequence: **0** (not yet used)
-- Requested reason: Initial dispatch contract installation; no build requested by this PR
-- Expected candidate: The exact `main` merge commit of the **next** PR that increments this sequence
+- Request sequence: **1** (first requested integrated-main technical playtest build)
+- Requested reason: Generate the first integrated-main verified ROM-free Windows x64 candidate for upcoming physical H01–H07 sessions, now that P2 title, original attract and Unicode Options fixes are merged
+- Expected candidate: The exact `main` merge commit of **this** request PR (not the setup PR or test merge)
 - Requested by: Authorized project maintainer/agent
 - Required workflow outcome: `verify_only` equivalent, temporary Actions artifact, **zero release gate credit**
 

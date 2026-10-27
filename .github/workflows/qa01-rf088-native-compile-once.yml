@@ -1,0 +1,65 @@
+# Temporary RF088 pinned-native compile gate. Remove after receipt is retained.
+name: QA01 RF088 pinned native compile (temporary)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf088-native-compile-once.yml"
+permissions:
+  contents: read
+concurrency:
+  group: qa01-rf088-compile-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  pinned-native-compile:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify pins and compile real RF084 + RF086 + RF088 native guest
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf084_native_sound_dp_committed_writer.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf086_native_first_boundary.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf088_native_apu_echo_window.py
+          python3 tools/qa01_rf084_native_sound_dp_committed_writer.py --root baldosa
+          python3 tools/qa01_rf086_native_first_boundary_commit.py --root baldosa
+          python3 tools/qa01_rf088_native_apu_echo_window.py --root baldosa
+          test "$(grep -Fc UR_QA01_RF088_NATIVE_APU_ECHO_WINDOW baldosa/snesrecomp/runner/src/cpu_state.c)" -eq 1
+          mkdir -p "$RUNNER_TEMP/rf088"
+          sha256sum baldosa/snesrecomp/runner/src/cpu_state.c > "$RUNNER_TEMP/rf088/patched-cpu-state-sha256.txt"
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev libdbus-1-dev
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -s baldosa/build/UniracersSNESRecomp
+          sha256sum baldosa/build/UniracersSNESRecomp > "$RUNNER_TEMP/rf088/native-exe-sha256.txt"
+          printf 'source=%s\npinned_guest=10b864b9d14a7b7416dd909eb7b054c88faef101\npinned_snesrecomp=075fbe4c8e0d97b0013be541795c39cb644a9709\nRF084+RF086+RF088 compiled; no ROM executed, no parity or release acceptance.\n' "$GITHUB_SHA" > "$RUNNER_TEMP/rf088/README.txt"
+          cat "$RUNNER_TEMP/rf088/README.txt" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rf088-native-source-compile-receipt
+          path: ${{ runner.temp }}/rf088/
+          retention-days: 14
+          if-no-files-found: warn

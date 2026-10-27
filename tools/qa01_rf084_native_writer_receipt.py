@@ -35,8 +35,8 @@ ORIG_WORD = re.compile(
 
 
 ORIG_INC16 = re.compile(
-    r"^QA01RF083ORIG_INC16 seq=(\\d+) frame=(\\d+) pc=828154 "
-    r"addr=([0-9A-F]{6}) wrap=(\\d+) old=([0-9A-F]{4}) "
+    r"^QA01RF083ORIG_INC16 seq=(\d+) frame=(\d+) pc=828154 "
+    r"addr=([0-9A-F]{6}) wrap=(\d+) old=([0-9A-F]{4}) "
     r"supplied=([0-9A-F]{4}) rawAfter=([0-9A-F]{4})$"
 )
 
@@ -116,7 +116,7 @@ def audit_original(raw: bytes) -> dict:
             inc16_count += 1
             if (int(seq) != inc16_count or not 6069 <= int(frame) <= 6079 or
                 int(addr, 16) & 0xFFFF != 0x0063 or int(wrap) > 2 or
-                int(supplied, 16) != (int(old, 16) + 1) & 0xFFFF or
+                int(supplied, 16) != ((int(old, 16) + 1) & 0xFFFF) or
                 supplied != after):
                 raise ValueError("RF083 original INC16 writer/commit mismatch")
         elif line.startswith("QA01RF083ORIG_WORD"):

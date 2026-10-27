@@ -1,0 +1,52 @@
+# One deliberate exact-main original/native Zoo RF083/RF084 causal campaign.
+# PR changes to the request marker are the sole automatic trigger. Existing
+# source-qualified QA-01 producer, tests, artifacts and release gate authority
+# are preserved by calling the owning reusable campaign without alteration.
+name: Source-bound Zoo RF083/RF084 causal request
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/qa01/REQUEST-ZOO-CAUSAL.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-zoo-causal-request-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  qualify_request:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Reject unrelated source edits or unincremented campaign requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          git show "${GITHUB_SHA}^:docs/qa01/REQUEST-ZOO-CAUSAL.md" > "$RUNNER_TEMP/previous-zoo-request.md"
+          python3 tools/ci_playtest_request_guard.py \
+            --previous "$RUNNER_TEMP/previous-zoo-request.md" \
+            --current docs/qa01/REQUEST-ZOO-CAUSAL.md \
+            --source-sha "$GITHUB_SHA" \
+            --marker docs/qa01/REQUEST-ZOO-CAUSAL.md
+          echo "Authorized source-bound Zoo observer campaign; no automatic USA event or release credit." >> "$GITHUB_STEP_SUMMARY"
+
+  original_native_zoo_causal:
+    needs: qualify_request
+    if: ${{ needs.qualify_request.result == 'success' && github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      qa01_rf084_native_sound_dp: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true

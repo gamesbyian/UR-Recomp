@@ -60,7 +60,42 @@ def patch_host_paths(source: str) -> str:
         return 0;""")
     source = once(
         source, HOST_ANCHOR,
-        """    const char *modern_root = getenv("SNESRECOMP_USER_DATA_DIR");
+        """#if defined(_WIN32)
+    /* The native Windows environment is UTF-16. Never convert a non-ACP
+     * player directory through getenv/fopen/chdir's narrow code page. */
+    const wchar_t *wide_root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
+    if (wide_root && *wide_root) {
+        size_t length = wcslen(wide_root);
+        if (length < 3) return 0;
+        const int drive = ((wide_root[0] >= L'A' && wide_root[0] <= L'Z') ||
+                           (wide_root[0] >= L'a' && wide_root[0] <= L'z')) &&
+                          wide_root[1] == L':' &&
+                          (wide_root[2] == L'/' || wide_root[2] == 92);
+        const int unc = wide_root[0] == 92 && wide_root[1] == 92 &&
+                        wide_root[2] != 0;
+        if (!drive && !unc) return 0;
+        wchar_t probe_wide[1024];
+        const wchar_t *separator =
+            (wide_root[length - 1] == L'/' || wide_root[length - 1] == 92)
+                ? L"" : L"/";
+        int count = swprintf(probe_wide, 1024,
+                            L"%ls%ls.snesrecomp_write_probe",
+                            wide_root, separator);
+        if (count < 0 || count >= 1024) return 0;
+        FILE *f = _wfopen(probe_wide, L"wb");
+        if (!f) return 0;
+        if (fclose(f) != 0) {
+            _wremove(probe_wide);
+            return 0;
+        }
+        if (_wremove(probe_wide) != 0 || _wchdir(wide_root) != 0)
+            return 0;
+        fprintf(stderr,
+                "[Launcher] Config/saves anchored to native Windows user-data root.\\n");
+        return 1;
+    }
+#endif
+    const char *modern_root = getenv("SNESRECOMP_USER_DATA_DIR");
     if (modern_root && *modern_root) {
         /* """ + MARK + """: do not silently save beside the executable. */
         if (snprintf(dir, sizeof(dir), "%s", modern_root) >= (int)sizeof(dir))
@@ -85,6 +120,13 @@ def patch_host_paths(source: str) -> str:
             return 0;
     }
     if (!dir_is_writable(dir)) {""")
+    # The C host has to include native wide-file/chdir declarations before
+    # the function, not rely on the active code page or transitive headers.
+    source = """#if defined(_WIN32)
+#include <wchar.h>
+#include <direct.h>
+#endif
+""" + source
     return source
 
 
@@ -96,8 +138,14 @@ def patch_keybinds(source: str) -> str:
         """static void derive_ini_path(const char *exe_path) {
     /* """ + MARK + """: the host has already selected the explicit cwd.
      * Do not reach back into the immutable executable/package directory. */
+#if defined(_WIN32)
+    const wchar_t *wide_root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
+    const int explicit_root = wide_root && *wide_root;
+#else
     const char *modern_root = getenv("SNESRECOMP_USER_DATA_DIR");
-    if (modern_root && *modern_root) {
+    const int explicit_root = modern_root && *modern_root;
+#endif
+    if (explicit_root) {
         strcpy(s_ini_path, "keybinds.ini");
         return;
     }
@@ -112,8 +160,14 @@ def patch_host_main(source: str) -> str:
         """  /* """ + MARK + """: also anchor for an explicit --config.
    * The existing Windows launcher uses absolute exe/ROM paths and selects
    * the mutable root; a failed explicit root must not fall back to cwd. */
+#if defined(_WIN32)
+  const wchar_t *wide_root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
+  const int explicit_root = wide_root && *wide_root;
+#else
   const char *modern_root = getenv("SNESRECOMP_USER_DATA_DIR");
-  if (modern_root && *modern_root && !snesrecomp_anchor_to_exe_dir()) {
+  const int explicit_root = modern_root && *modern_root;
+#endif
+  if (explicit_root && !snesrecomp_anchor_to_exe_dir()) {
     fprintf(stderr,
             "UR-STARTUP-SAVE-ROOT: invalid or unwritable native user-data root\\n");
     return 7;
@@ -122,7 +176,7 @@ def patch_host_main(source: str) -> str:
     /* Anchor cwd to the binary's own directory FIRST.""")
     source = once(
         source, HOST_MAIN_CALL,
-        """    int anchored = modern_root && *modern_root
+        """    int anchored = explicit_root
         ? 1 : snesrecomp_anchor_to_exe_dir();
     if (!anchored) {""")
     return source

@@ -53,7 +53,7 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         self.assertIn("int anchored = explicit_root", bridged)
         self.assertIn("? 1 : snesrecomp_anchor_to_exe_dir()", bridged)
         self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', bridged)
-        self.assertIn("explicit_root\\n        ? 1 : snesrecomp_anchor_to_exe_dir()", bridged)
+        self.assertIn("explicit_root && !snesrecomp_anchor_to_exe_dir()", bridged)
         with self.assertRaisesRegex(ValueError, "diverged"):
             port.patch_host_main(main.replace(port.HOST_MAIN_CALL, ""))
 

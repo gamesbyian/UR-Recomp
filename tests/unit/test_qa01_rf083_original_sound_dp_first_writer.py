@@ -10,7 +10,8 @@ def source():
       "Op = CPU.PCBase[Registers.PCw];\n"+
       "Op = S9xGetByte(Registers.PBPC);\n"+m.OP+"\n}\n")
 def setter():
-    return m.BYTE+"  actually_map(Byte,Address);\n}\n"
+    return (m.BYTE+"  actually_map(Byte,Address);\n}\n"+
+            m.WORD+"  actually_write_word(Word,Address);\n}\n")
 
 class RF083Source(unittest.TestCase):
     def test_true_fetch_and_setter_identity_with_no_extra_guest_accesses(self):
@@ -22,9 +23,12 @@ class RF083Source(unittest.TestCase):
         self.assertLess(a.index(m.OP),a.index("rf083_post();"))
         self.assertLess(b.index("rf083_setbyte_entry(Byte,Address);"),
                         b.index("actually_map(Byte,Address);"))
+        self.assertLess(b.index("rf083_setword_entry(Word,Address,(int)w,(int)o);"),
+                        b.index("actually_write_word(Word,Address);"))
         for marker in ("setter_entry","opcode_delta","QA01RF083ORIG_HEART",
                        "QA01RF083ORIG_TRUNCATED","clock=original_cpu",
-                       "setterAddr=%06X","pc=%06X","6069u","6079u"):
+                       "setterAddr=%06X","pc=%06X","6069u","6079u",
+                       "QA01RF083ORIG_WORD_TRUNCATED","rawBefore=%04X"):
             self.assertIn(marker,a)
         for fn in ("S9xGetByte(","S9xGetWord(","S9xSetByte(","S9xSetWord("):
             self.assertNotIn(fn,m.C)
@@ -39,7 +43,9 @@ class RF083Source(unittest.TestCase):
         self.assertEqual(edited_cpu.count("(*Opcodes[Op].S9xOpcode)();"),
                          original.count("(*Opcodes[Op].S9xOpcode)();"))
         self.assertEqual(edited_getset.count(m.BYTE),getset.count(m.BYTE))
+        self.assertEqual(edited_getset.count(m.WORD),getset.count(m.WORD))
         self.assertIn("rf083_setbyte_entry(Byte,Address);",edited_getset)
+        self.assertIn("rf083_setword_entry(Word,Address,(int)w,(int)o);",edited_getset)
         self.assertIn("rf083_post();",edited_cpu)
 
     def test_source_drift_and_partial_patch_refused(self):
@@ -49,12 +55,14 @@ class RF083Source(unittest.TestCase):
                     (source().replace(m.OP,"fake()"),setter()),
                     (source().replace("Op = CPU.PCBase[Registers.PCw];",""),setter()),
                     (source().replace("Op = S9xGetByte(Registers.PBPC);",""),setter()),
-                    (source(),setter().replace(m.BYTE,"fake_setter()"))):
+                    (source(),setter().replace(m.BYTE,"fake_setter()")),
+                    (source(),setter().replace(m.WORD,"fake_word_setter()"))):
             with self.subTest(size=(len(x),len(y))):
                 with self.assertRaises(ValueError):m.patch(x,y)
 
     def test_ambiguous_callsites_refused(self):
-        for x,y in ((source()+m.OP,setter()),(source(),setter()+m.BYTE)):
+        for x,y in ((source()+m.OP,setter()),(source(),setter()+m.BYTE),
+                    (source(),setter()+m.WORD)):
             with self.assertRaisesRegex(ValueError,"drift"):m.patch(x,y)
 
 if __name__=="__main__":

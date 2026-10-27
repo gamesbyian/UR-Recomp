@@ -23,6 +23,8 @@ If either digest disagrees with `PLAYTEST-PROVENANCE.json`, stop; preserve the m
 
 Use these checks as a **single ordered human session**. Record each as pass, fail, blocked or not run, with what was actually *seen/heard/done*. A passing script or virtual SDL pad is not a physical witness.
 
+**Before the session:** copy the [one-candidate H01–H07 results sheet](WINDOWS-PLAYTEST-RESULTS-TEMPLATE.md). Fill its source/inner-ZIP/PE hashes and setup once, then record seven real pass/fail/blocked/not-run outcomes and any scrubbed evidence labels. A single consistent report reduces tester rework and lets distinct QA reviewers adjudicate several criteria without confusing builds or machines. Do not publish a private raw packet or count an unchecked PASS as acceptance.
+
 | Short test | Real action and failure discriminator | Candidate progress v2 or release relevance |
 | --- | --- | --- |
 | **H01 Cold start** | From a clean extraction, launch by packaged CMD with no special fixture and without developer runtimes; create player, exit process, relaunch; note any startup dependencies | `QA-02`, `QA-01` provenance prerequisite |

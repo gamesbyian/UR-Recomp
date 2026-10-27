@@ -103,16 +103,31 @@ def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
         "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=baseline frame=1599 value=0000 source=wr030f-0310",)
+           if wake_route == "p2" else ())),
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
         wake,
-        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
-           if wake_route == "p2" else ())),
+        *(((
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_wake frame=1601 value=0000 source=wr030f-0310",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_release frame=1603 value=0000 source=wr030f-0310",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1642",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_other frame=1643 value=0000 source=wr030f-0310",
+        ) if wake_route == "p2" else ())),
         *((("UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=1640 root_unselected=1",)
            if wake_route == "p1" else ())),
         confirm,
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
         "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=1690 no_stock_route=1",
     )
+    if wake_route == "p2":
+        # An additional malformed/contradictory guest-word line must not
+        # hide behind four individually valid markers.
+        guest_words = re.findall(
+            r"^UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word[^\r\n]*",
+            log, re.MULTILINE)
+        if len(guest_words) != 4:
+            raise ValueError("missing, duplicate or extra P2 guest-word wake receipt")
     before = -1
     for line in required:
         if log.count(line) != 1 or log.find(line, before + 1) < 0:

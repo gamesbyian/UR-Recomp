@@ -34,6 +34,7 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         workflow = (Path(__file__).resolve().parents[2] /
                     ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
         self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
+        self.assertIn("agent4/ur-ui-nav-p2-guest-word-20261026", workflow)
         self.assertIn("default_attract_args=(--default-attract)", workflow)
         self.assertIn("default_stock_attract_without_preview_override", workflow)
         self.assertIn("p2_other_button_isolated=1", workflow)
@@ -91,10 +92,20 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
              "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_consumed=1 frame=1600",
              "UR_MODERN_TITLE_STOCK_ATTRACT p2_then_p1_confirm=1 frame=1660"),
         ):
-            release = (
-                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
+            baseline = (
+                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=baseline frame=1599 value=0000 source=wr030f-0310",)
                 if route == "p2" else ())
-            good = "\n".join((*common, first, *release, confirm, *end))
+            release = (
+                (
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_wake frame=1601 value=0000 source=wr030f-0310",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_release frame=1603 value=0000 source=wr030f-0310",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1642",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_other frame=1643 value=0000 source=wr030f-0310",
+                )
+                if route == "p2" else ())
+            good = "\n".join((*common[:-1], *baseline, common[-1],
+                              first, *release, confirm, *end))
             with self.subTest(route=route):
                 self.assertEqual(len(verify_source_driven_preview(
                     good, wake_route=route)), 3)
@@ -110,6 +121,24 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                         verify_source_driven_preview(good.replace(
                             "p2_wake_release_consumed=1",
                             "p2_wake_release_consumed=0"), wake_route="p2")
+                    # Host-consumed events are insufficient: independently
+                    # require unchanged actual guest P2 input bytes.
+                    for marker in (*baseline, *(line for line in release
+                                                 if "p2_guest_word" in line)):
+                        with self.subTest(marker=marker), self.assertRaisesRegex(
+                                ValueError, "wake"):
+                            verify_source_driven_preview(
+                                good.replace(marker, marker.replace(
+                                    "value=0000", "value=0001")),
+                                wake_route="p2")
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(
+                            good.replace(baseline[0], baseline[0] + "\n" + baseline[0]),
+                            wake_route="p2")
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(
+                            good + "\n" + baseline[0].replace("value=0000", "value=0001"),
+                            wake_route="p2")
         with self.assertRaisesRegex(ValueError, "unsupported"):
             verify_source_driven_preview("\n".join(common), wake_route="unknown")
 

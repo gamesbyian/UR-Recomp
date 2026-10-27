@@ -1,0 +1,58 @@
+name: Review real flagship export frames against approved art
+
+on:
+  pull_request:
+    paths:
+      - "tools/showcase/audit_full_export_frames.py"
+      - ".github/workflows/promo-final-frame-review.yml"
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Completed source-matched full flagship export run"
+        required: true
+        type: string
+        default: "40465519774"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: promo-final-frame-review-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  final-frame-audit:
+    name: Decode actual MP4s and compare owner-approved background pixels
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch completed, source-pinned actual video exports
+        uses: actions/download-artifact@v4
+        with:
+          name: ur-promo-owner-approved-full-flagship
+          run-id: ${{ inputs.source_run_id || '40465519774' }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/flagship-real-output
+      - name: Install actual decoding tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python3 -m venv "$RUNNER_TEMP/visual-venv"
+          "$RUNNER_TEMP/visual-venv/bin/python" -m pip install "Pillow>=11,<13"
+      - name: Decode and inspect 80s / 27s actual MP4 frames
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/visual-venv/bin/python" tools/showcase/audit_full_export_frames.py \
+            --export "$RUNNER_TEMP/flagship-real-output" \
+            --out "$RUNNER_TEMP/promo-final-frame-review"
+      - name: Preserve individual preview frames and independent region checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-promo-final-frame-review
+          path: ${{ runner.temp }}/promo-final-frame-review/
+          retention-days: 14
+          if-no-files-found: warn

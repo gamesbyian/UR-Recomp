@@ -243,7 +243,7 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
     for i,(key,start,frames,caption,kind) in enumerate(shots):
         source_fps=60
         if key.startswith("card_"):
-            input_path=cards[key]
+            input_path=(cards["__portrait__"] / (key.removeprefix("card_") + ".png")) if vertical else cards[key]
             source_fps=60
             # loop still with source exactly lasting the specified frame count
             duration=frames/FPS
@@ -300,9 +300,11 @@ def main():
     # fabricated Remastered gameplay still.
     with tempfile.TemporaryDirectory(prefix="ur-flagship-") as t:
         tmp=Path(t)
-        produce_blue_assets(tmp / "blue-art")
+        produce_blue_assets(tmp / "blue-art", aspect="16x9")
+        produce_blue_assets(tmp / "portrait-art", aspect="portrait")
         cards={k:tmp/"blue-art"/(k.removeprefix("card_")+".png") for k in ("card_windows","card_4k","card_cta")}
         cards["__artdir__"]=tmp/"blue-art"
+        cards["__portrait__"]=tmp/"portrait-art"
         score=tmp/"original-flagship-score.wav"
         render_score(score)
         master=a.outdir/"ur-recomp-blue-action-80s-1080p.mp4"

@@ -219,10 +219,22 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
             duration=frames/FPS
             part=tmp/f"part-{i:02d}.mp4"
             cap=caption.replace("'","").replace(":"," ").replace("→","TO")[:65]
-            vis=("scale=1080:608:flags=neighbor,pad=1080:1920:0:656:0x08101f"
+            vis=("scale=1080:1920:flags=lanczos"
                  if vertical else "scale=1920:1080:flags=neighbor")
-            textline=(",drawtext=text='"+cap+"':fontsize=36:fontcolor=white:"
-                      "x=(w-text_w)/2:y=440" if vertical else "")
+            # Text belongs to the video overlay, never painted into source art.
+            # Use dark printed ink on the owner's light blueprint backgrounds.
+            textline=(",drawtext=text='"+cap+"':fontsize="+("36" if vertical else "52")+
+                      ":fontcolor=0x202427:x=(w-text_w)/2:y="+
+                      ("440" if vertical else "360")+
+                      ":box=1:boxcolor=white@0.75:boxborderw=16")
+            if key == "card_cta":
+                textline+=(
+                    ",drawtext=text='github.com/gamesbyian/UR-Recomp':fontsize="+
+                    ("32" if vertical else "40")+
+                    ":fontcolor=0x202427:x=(w-text_w)/2:y="+("550" if vertical else "530")+
+                    ",drawtext=text='ianmakesjokes@gmail.com':fontsize="+
+                    ("32" if vertical else "40")+
+                    ":fontcolor=0x202427:x=(w-text_w)/2:y="+("625" if vertical else "605"))
             run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
                 "-loop","1","-framerate","60","-i",input_path,"-t",str(duration),
                 "-vf",vis+textline+",fade=t=in:st=0:d=0.16,"

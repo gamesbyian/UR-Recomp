@@ -1726,6 +1726,45 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     return event
 
 
+# Reuse the pinned snesrecomp cpu_state.c bus-write recorder instead of
+# adding another generated-site hook. This records actual bus write calls from
+# AOT, interpreter and direct-WRAM paths, but is PRE-COMMIT instrumentation:
+# it does not establish the writer's instruction PC or original/native parity.
+RF084_BUS_WLOG_CAP = 200000
+RF084_BUS_WLOG_NAME = "qa01-native-dp-bus-writes.log"
+
+
+def configure_rf084_native_bus_wlog(env: dict[str, str], output: Path,
+                                     *, case: str, script_name: str) -> Path | None:
+    """Isolate the opt-in Zoo replay bus trace from calibration and other cases.
+
+    WLOG_STATE calls additional CPU read helpers, and WLOG_ADDR_HALT exits the
+    guest; neither is permitted in this non-invasive parity experiment.
+    """
+    for key in ("SNESRECOMP_WLOG_ADDR", "SNESRECOMP_WLOG_ADDR_CAP",
+                "SNESRECOMP_WLOG_STATE", "SNESRECOMP_WLOG_ADDR_HALT"):
+        env.pop(key, None)
+    if (env.get("UR_QA01_RF084_NATIVE_SOUND_DP") != "1" or
+            case != "zoom-zoo" or script_name != "complete.script"):
+        return None
+    path = output / RF084_BUS_WLOG_NAME
+    env["SNESRECOMP_WLOG_ADDR"] = f"0062:0069:{path}"
+    env["SNESRECOMP_WLOG_ADDR_CAP"] = str(RF084_BUS_WLOG_CAP)
+    return path
+
+
+def verify_rf084_native_bus_wlog(path: Path, *, cap: int = RF084_BUS_WLOG_CAP) -> int:
+    """Fail closed on absent/empty/capped writer evidence, not on no early hit."""
+    if not path.is_file():
+        raise CompleteEventError("RF084 native bus-write recorder did not create a file")
+    with path.open("r", encoding="utf-8", errors="replace") as stream:
+        rows = sum(1 for _ in stream)
+    if rows == 0 or rows >= cap:
+        raise CompleteEventError(
+            f"RF084 native bus-write log empty or cap exhausted: {rows}/{cap}")
+    return rows
+
+
 def run_pinned_baldosa(work: Path, args, script: Path,
                        events: list[tuple[int, int, int]], shift: int) -> str:
     """QA-only pinned Baldosa host transport; never alter source controller masks.
@@ -1771,6 +1810,8 @@ def run_pinned_baldosa(work: Path, args, script: Path,
             SNESRECOMP_DUMP_DIR=str(output),
             SNESRECOMP_ROM=str(args.rom),
         )
+        bus_log = configure_rf084_native_bus_wlog(
+            env, output, case=getattr(args, "case", None), script_name=script.name)
         if lines:
             env["UR_QA_SCENE_INPUT_FILE"] = str(input_file)
         else:
@@ -1794,6 +1835,8 @@ def run_pinned_baldosa(work: Path, args, script: Path,
              "--script", str(script), str(args.rom)],
             cwd=work, env=env, capture_output=True, text=True, timeout=900,
         )
+        if bus_log is not None:
+            verify_rf084_native_bus_wlog(bus_log)
         return proc.stdout + proc.stderr
     finally:
         shutil.rmtree(save_root, ignore_errors=True)

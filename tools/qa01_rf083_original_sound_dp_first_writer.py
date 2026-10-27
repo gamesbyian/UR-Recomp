@@ -33,7 +33,8 @@ static unsigned rf083_inc16_rows;
  * first sound-data increment. No extra APU bus reads, guest writes or ticks.
  * CMP live Z comes from ICPU._Zero, not the lazily packed Registers.PL.
  * Live Z plus the following BNE next PC reveal echo retry outcomes,
- * but do not disclose the actual returned SPC port byte. */
+ * but RF089 alone cannot disclose the actual returned SPC port byte;
+ * RF090 below separately records actual already-returned PPU reads. */
 static unsigned rf089_rows, rf089_a0, rf089_p0, rf089_z0;
 static unsigned rf090_rows;
 static int rf089_target;
@@ -262,8 +263,9 @@ def patch_macro(macro: str) -> str:
 def patch(executor:str,getset:str)->tuple[str,str]:
     if STAMP in executor or STAMP in getset or "rf083_setbyte_entry" in getset:
         raise ValueError("RF083 already or partly staged")
-    if executor.count(HEADER)!=1 or executor.count(OP)!=1 or getset.count(BYTE)!=1 or getset.count(WORD)!=1 or
-        getset.count(READ_BYTE_PPU)!=1 or getset.count(READ_WORD_PPU)!=1:
+    if (executor.count(HEADER)!=1 or executor.count(OP)!=1 or
+            getset.count(BYTE)!=1 or getset.count(WORD)!=1 or
+            getset.count(READ_BYTE_PPU)!=1 or getset.count(READ_WORD_PPU)!=1):
         raise ValueError("RF083 pinned opcode or source setter drift")
     if executor.count("Op = CPU.PCBase[Registers.PCw];")!=1 or \
        executor.count("Op = S9xGetByte(Registers.PBPC);")!=1:

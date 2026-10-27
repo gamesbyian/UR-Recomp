@@ -689,7 +689,7 @@ jobs:
             # executed rows, not proof of original/native timing equivalence.
             if grep -Eq 'QA01RF089ORIG_TRUNCATED|QA01RF090ORIG_TRUNCATED' "$original" ||
                grep -Eq 'QA01RF088NATIVE_TRUNCATED' "$native"; then
-              echo "RF088/RF089 echo witness truncated" >&2
+              echo "RF088/RF089/RF090 echo witness truncated" >&2
               exit 1
             fi
             # The genuine Zoo path uses Snd_UploadBlock 82:80DB CMP

@@ -1,0 +1,58 @@
+name: One-shot October 26 playtest, art and agent-hours recruitment film
+on:
+  push:
+    branches:
+      - media/oct26-targeted-contributors
+    paths:
+      - .github/workflows/one-shot-oct26-recruitment.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ur-oct26-targeted-recruitment
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install renderer dependencies
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user 'Pillow>=9,<12'
+          ffmpeg -version | head -n 1
+      - name: Validate text syntax and original media inputs
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/showcase/build_targeted_recruitment_20261026.py
+          python3 tools/showcase/build_targeted_recruitment_20261026.py --cards-only \
+            --outdir /tmp/ur-oct26-cards-review
+      - name: Render genuine gameplay plus audience-specific cards and inspect frames
+        run: |
+          set -euo pipefail
+          python3 tools/showcase/build_targeted_recruitment_20261026.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('media/showcase/2026-10-26/recruitment/recruitment-provenance.json')
+          j=json.loads(p.read_text())
+          assert j['frames']==5700 and j['duration_seconds']==95
+          assert len(j['witnesses_sha256'])==11
+          assert len(j['new_editorial_panels'])==4
+          print('OK: 95s / 5700f / four role-specific plates / eleven witness frames')
+          PY
+      - name: Publish finished film, cards and checked witness frames to this branch
+        run: |
+          set -euo pipefail
+          git config user.name "UR Media Render Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-26/recruitment
+          if git diff --cached --quiet; then
+            echo "No changes to publish"
+          else
+            git commit -m "Media: publish 95s targeted recruitment film and exact frame evidence"
+            git push origin HEAD:media/oct26-targeted-contributors
+          fi

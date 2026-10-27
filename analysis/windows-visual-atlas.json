@@ -2,7 +2,7 @@
   "schema_version": 1,
   "product": "Uniracers / UR-Recomp Windows x64",
   "description": "Planned visual inspection surface inventory. Capturable means a driver route exists, not that pixels have been captured or verified. Remaining cases stay explicitly conceptual. Original UI and visual acceptance authorities are inventoried separately as explicitly uncaptured source-bound slots.",
-  "art_base": "media/showcase/2026-10-20/graphpaper-final/cards",
+  "art_base": "assets/promo/canonical",
   "entries": [
     {
       "id": "URV-MD-001",

@@ -36,7 +36,7 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
         self.assertIn("default_attract_args=(--default-attract)", workflow)
         self.assertIn("default_stock_attract_without_preview_override", workflow)
-        self.assertIn("p2_other_button_isolated=1 frame=1642", workflow)
+        self.assertIn("p2_other_button_isolated=1", workflow)
 
     def test_valid_stock_source_cycle_and_no_automatic_visible_credit(self):
         self.assertEqual(

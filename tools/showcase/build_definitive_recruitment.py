@@ -125,13 +125,16 @@ def build(args):
     poster=args.outdir/"ur-recomp-recruitment-final-poster.png"
     input_files=[args.title,args.modern,args.reveal,args.comparison,args.technical,
                  args.art,args.archaeology,args.race]
-    # Inputs 0..7 are videos; 8 and 9 are deliberately editorial solid cards;
-    # 10 is our original synthesized score. All captured gameplay plays from
-    # exact consecutive source frames, without minterpolate or synthetic pans.
+    # 8/9 are the exclusive approved video background plates; 10 is score.
+    plates=Path(__file__).resolve().parents[2] / "assets/promo/canonical"
+    wide=plates/"blueprint-16x9-logo-right.png"
+    portrait=plates/"blueprint-9x16-portrait-2160x3840.png"
+    if not wide.is_file() or not portrait.is_file():
+        raise ValueError("Owner-approved promotional background missing")
     input_flags=[]
     for f in input_files: input_flags.extend(["-i",str(f)])
-    input_flags+=["-f","lavfi","-i","color=c=0x091421:s=1920x1080:r=60:d=4"]
-    input_flags+=["-f","lavfi","-i","color=c=0x091421:s=1080x1920:r=60:d=3"]
+    input_flags+=["-loop","1","-framerate","60","-i",str(wide)]
+    input_flags+=["-loop","1","-framerate","60","-i",str(portrait)]
     horizontal=[]
     source_index={"title":0,"modern":1,"reveal":2,"comparison":3,
                   "technical":4,"art":5,"archaeology":6,"race":7,"cta":8}
@@ -144,7 +147,7 @@ def build(args):
                   "[0:v]trim=start_frame=420:end_frame=570,setpts=PTS-STARTPTS[originalmenu];"
                   "[originaltitle][originalmenu]concat=n=2:v=1:a=0")
         elif role=="cta":
-            filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
+            filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS,scale=1920:1080:flags=lanczos"
         else:
             filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
         if role in ROLE_LABELS:
@@ -174,25 +177,30 @@ def build(args):
     # Editorial 20s mobile version retains *both* 2P bands by fitting the
     # complete raster, never cropping the lower racer out of the vertical cut.
     def mobile(idx, begin, duration, caption, out):
+        bg="bg"+out[1:]
+        clip="clip"+out[1:]
         return (
             f"[{idx}:v]trim=start={begin}:duration={duration},"
             "setpts=PTS-STARTPTS,scale=1080:608:flags=neighbor,"
-            "pad=1080:1920:0:656:0x091421,"
+            f"format=rgba[{clip}];"
+            f"[{bg}][{clip}]overlay=x=0:y=656:shortest=1,"
             f"drawtext=text='{caption}':fontsize=42:fontcolor=white:"
             f"x=(w-text_w)/2:y=360,"
             f"format=yuv420p[{out}]"
         )
     graph_v=";".join([
+      "[9:v]scale=1080:1920:flags=lanczos,split=5[bg0][bg1][bg2][bg3][bg4]",
       "[0:v]trim=start_frame=270:end_frame=360,setpts=PTS-STARTPTS[verticaltitle]",
       "[0:v]trim=start_frame=420:end_frame=450,setpts=PTS-STARTPTS[verticalmenu]",
       "[verticaltitle][verticalmenu]concat=n=2:v=1:a=0,"
-      "scale=1080:608:flags=neighbor,pad=1080:1920:0:656:0x091421,"
+      "scale=1080:608:flags=neighbor,format=rgba[clip0]",
+      "[bg0][clip0]overlay=x=0:y=656:shortest=1,"
       "drawtext=text='GENUINE ORIGINAL TITLE AND MENU':fontsize=40:fontcolor=white:"
       "x=(w-text_w)/2:y=360,format=yuv420p[m0]",
       mobile(1,0,4,"REAL MODERN FRONTEND","m1"),
       mobile(2,1,6,"43 EXTRA WORLD COLUMNS PER SIDE","m2"),
       mobile(7,2,5,"UNINTERRUPTED TWO-PLAYER RACING","m3"),
-      "[9:v]trim=duration=3,setpts=PTS-STARTPTS,"
+      "[bg4]trim=duration=3,setpts=PTS-STARTPTS,"
       "drawtext=text='REBUILD THE REAL GAME':fontsize=58:fontcolor=white:"
       "x=(w-text_w)/2:y=680,"
       "drawtext=text='github.com/gamesbyian/UR-Recomp':fontsize=29:"

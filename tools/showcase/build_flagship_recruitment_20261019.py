@@ -99,58 +99,8 @@ def text_fit(d,point,message,size,fill=LIGHT,bold=False,width=1580):
     d.text(point,message,font=font(size,bold),fill=fill)
     return size
 
-def background():
-    im=Image.new("RGB",(1920,1080),INK)
-    d=ImageDraw.Draw(im)
-    # Precise technical diagrams, deliberately editorial rather than game assets.
-    for x in range(0,1920,80):d.line((x,0,x,1080),fill=(14,31,49),width=1)
-    for y in range(0,1080,80):d.line((0,y,1920,y),fill=(14,31,49),width=1)
-    d.rectangle((0,0,1919,8),fill=CYAN)
-    d.rectangle((110,161,118,902),fill=GOLD)
-    d.line((115,962,1806,962),fill=(53,111,129),width=3)
-    text_fit(d,(132,978),"UR-RECOMP    /    INDEPENDENT EVIDENCE • OCTOBER 2026",24,(161,185,207))
-    return im,d
-
-def make_cards(folder):
-    cards={}
-    im,d=background()
-    text_fit(d,(145,85),"NATIVE WINDOWS PRODUCT",32,CYAN,True)
-    text_fit(d,(145,200),"FROM ZERO TO A SAVED RECORD",77,LIGHT,True)
-    tasks=[("01","CREATE RACER","Named-profile native onboarding"),
-           ("02","COMPLETE NATIVE RACE","Scripted 1P / 2P result journeys"),
-           ("03","REOPEN RECORDS","Cold process restart, canonical entries")]
-    for i,(number,head,sub) in enumerate(tasks):
-        x=150+i*559
-        d.rounded_rectangle((x,385,x+529,751),radius=22,fill=(17,41,65),outline=(56,130,150),width=3)
-        text_fit(d,(x+28,405),number,62,GOLD,True)
-        text_fit(d,(x+28,530),head,35,LIGHT,True,width=480)
-        text_fit(d,(x+28,620),sub,22,(182,204,219),width=470)
-        if i<2:d.polygon([(x+529,540),(x+546,554),(x+529,568)],fill=CYAN)
-    text_fit(d,(148,832),"Verified scripted native Windows journeys. Physical controller and release QA remain open.",25,(183,206,226),width=1670)
-    cards["card_windows"]=folder/"editorial-windows-evidence.png";im.save(cards["card_windows"])
-    im,d=background()
-    text_fit(d,(145,78),"ACTUAL SDL FRAMEBUFFER • BOUNDED ORIGINAL 2P",30,CYAN,True)
-    text_fit(d,(145,205),"8,294,400",158,GOLD,True)
-    text_fit(d,(153,414),"SOURCE-CHECKED OUTPUT PIXELS",65,LIGHT,True)
-    text_fit(d,(150,574),"3840 × 2160   /   FRAME 2208   /   7:6 ORIGINAL PIXEL ASPECT",32,(183,219,226),True)
-    for i,v in enumerate(["342×224 genuine logical world","4× nearest Original compositor","Exact SDL output readback"]):
-        y=680+i*75
-        d.rounded_rectangle((152,y,1725,y+61),radius=14,fill=(17,40,61),outline=(38,93,115),width=2)
-        text_fit(d,(178,y+12),v,31,LIGHT)
-    text_fit(d,(145,924),"This card cites real output QA, NOT newly filmed 4K gameplay.",22,GOLD,True)
-    cards["card_4k"]=folder/"editorial-4k-evidence.png";im.save(cards["card_4k"])
-    im,d=background()
-    text_fit(d,(145,88),"ONE GENUINE GAME. A MUCH BIGGER PROJECT.",30,CYAN,True)
-    text_fit(d,(142,230),"UNIRACERS",125,LIGHT,True)
-    text_fit(d,(148,372),"NATIVE RECOMP",85,GOLD,True)
-    text_fit(d,(148,520),"BUILD THE NEXT VERSION",73,LIGHT,True)
-    skills=["C++ / REVERSE ENGINEERING","3D CHARACTER ART / ANIMATION","SOURCE-GROUNDED QA / TOOLING"]
-    for i,v in enumerate(skills):
-        text_fit(d,(166,656+i*64),"• "+v,32,CYAN,True)
-    d.rounded_rectangle((140,880,1782,956),radius=20,fill=(29,98,113),outline=CYAN,width=2)
-    text_fit(d,(206,896),"github.com/gamesbyian/UR-Recomp",44,LIGHT,True)
-    cards["card_cta"]=folder/"editorial-contribution-invitation.png";im.save(cards["card_cta"])
-    return cards
+# Old procedurally painted recruitment cards are retired. Approved source plates
+# are selected by blue_trailer_art_direction.produce instead.
 
 def render_score(path,seconds=85,rate=22050):
     """Newly synthesized, deterministic 132 BPM electronic score. No samples."""
@@ -195,7 +145,7 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False,
           "x=(w-text_w)/2:y=450:box=1:boxcolor=black@0.62:boxborderw=14")
     else:
         width,height=1920,1080
-        visual="scale=1707:960:flags=neighbor,pad=1920:1080:106:60:0x08101f"
+        visual="scale=1920:1080:flags=neighbor"
         cap=caption.replace("'","").replace(":"," ").replace("→","TO")[:78]
         stamp=(
            ",drawtext=text='"+cap+"':fontsize=25:fontcolor=white:"
@@ -205,6 +155,26 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False,
     if src is None:
         raise ValueError("Missing source for editorial card")
     fade="fade=t=in:st=0:d=0.10,fade=t=out:st="+str(max(0,dur-0.12))+":d=0.12"
+    if vertical:
+        approved=ROOT/"assets/promo/canonical/blueprint-9x16-portrait-2160x3840.png"
+        if not approved.is_file():
+            raise ValueError("Exclusive approved portrait source missing")
+        graph=(
+            "[1:v]fps=60,scale=1080:608:flags=neighbor,format=rgba[clip];"
+            "[0:v]scale=1080:1920:flags=lanczos[design];"
+            "[design][clip]overlay=x=0:y=656:shortest=1"
+            +stamp+","+fade+",format=yuv420p[final]")
+        run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+            "-loop","1","-framerate","60","-i",approved,
+            "-ss",str(start/source_fps),"-i",src,
+            "-t",str(dur),"-filter_complex",graph,"-map","[final]",
+            "-an","-frames:v",str(round(dur*FPS)),"-r","60",
+            "-c:v","libx264","-preset","ultrafast","-crf","21",
+            "-pix_fmt","yuv420p","-video_track_timescale","60000",output)
+        o=probe(output)
+        assert (o["width"],o["height"],o["r_frame_rate"],int(o["nb_read_frames"]))==(
+            width,height,"60/1",round(dur*FPS)),(output,o)
+        return
     vf="fps=60,"+visual+stamp+","+fade+",format=yuv420p"
     if blue_frame and not vertical:
         filter_graph=(
@@ -243,7 +213,7 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
     for i,(key,start,frames,caption,kind) in enumerate(shots):
         source_fps=60
         if key.startswith("card_"):
-            input_path=cards[key]
+            input_path=(cards["__portrait__"] / (key.removeprefix("card_") + ".png")) if vertical else cards[key]
             source_fps=60
             # loop still with source exactly lasting the specified frame count
             duration=frames/FPS
@@ -300,9 +270,11 @@ def main():
     # fabricated Remastered gameplay still.
     with tempfile.TemporaryDirectory(prefix="ur-flagship-") as t:
         tmp=Path(t)
-        produce_blue_assets(tmp / "blue-art")
+        produce_blue_assets(tmp / "blue-art", aspect="16x9")
+        produce_blue_assets(tmp / "portrait-art", aspect="portrait")
         cards={k:tmp/"blue-art"/(k.removeprefix("card_")+".png") for k in ("card_windows","card_4k","card_cta")}
         cards["__artdir__"]=tmp/"blue-art"
+        cards["__portrait__"]=tmp/"portrait-art"
         score=tmp/"original-flagship-score.wav"
         render_score(score)
         master=a.outdir/"ur-recomp-blue-action-80s-1080p.mp4"
@@ -341,6 +313,7 @@ def main():
     outputs=[master,vertical,poster]
     manifest={
         "schema":"UR-FLAGSHIP-RECRUITMENT/1",
+        "approved_visual_assets":{"portrait":"blueprint-9x16-portrait-2160x3840.png","landscape":"blueprint-16x9-logo-right.png"},
         "build_edition":"2026-10-19",
         "source_identity":{k:{"path":str(v[0].relative_to(ROOT)),"sha256":v[1],"frames":v[2],"fps":v[3],"classification":v[4]} for k,v in SOURCES.items()},
         "poster_source":{"path":str(SOURCES["action"][0].relative_to(ROOT)),"sha256":SOURCES["action"][1],"source_ordinal":570,"actual_inverted_airborne_rider_source":True},

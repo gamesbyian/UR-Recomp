@@ -30,6 +30,28 @@ class ApprovedPromoTests(unittest.TestCase):
         self.assertEqual(module.SOURCES["portrait"],
                          "blueprint-9x16-portrait-2160x3840.png")
 
+    def test_all_known_exporters_reference_approved_sources(self):
+        showcase = ROOT / "tools/showcase"
+        blue = (showcase / "blue_trailer_art_direction.py").read_text(encoding="utf-8")
+        flagship = (showcase / "build_flagship_recruitment_20261019.py").read_text(encoding="utf-8")
+        upgrade = (showcase / "upgrade_flagship_vertical_20261019.py").read_text(encoding="utf-8")
+        definitive = (showcase / "build_definitive_recruitment.py").read_text(encoding="utf-8")
+        teaser = (showcase / "build_recruitment_teaser.py").read_text(encoding="utf-8")
+        continuous = (showcase / "build_continuous_recruitment_edits.py").read_text(encoding="utf-8")
+        three_source = (showcase / "build_three_source_recruitment.py").read_text(encoding="utf-8")
+        self.assertIn("graph_paper_trailer_art_direction", blue)
+        self.assertNotIn("ImageDraw", blue)
+        self.assertIn('aspect="portrait"', flagship)
+        self.assertIn('cards["__portrait__"]', flagship)
+        self.assertIn("blueprint-9x16-portrait-2160x3840.png", upgrade)
+        self.assertNotIn("boxblur", upgrade)
+        self.assertIn("blueprint-9x16-portrait-2160x3840.png", definitive)
+        self.assertNotIn("color=c=0x091421", definitive)
+        self.assertIn("approved_visual_assets", teaser)
+        self.assertIn("approved_visual_assets", continuous)
+        self.assertIn("blueprint-16x9-logo-right.png", three_source)
+        self.assertNotIn("color=c=black", three_source)
+
     def test_portrait_only_approved_plate(self):
         self.assertEqual(promo.SOURCES["portrait"],
                          "blueprint-9x16-portrait-2160x3840.png")

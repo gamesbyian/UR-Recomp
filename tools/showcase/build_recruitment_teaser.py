@@ -15,6 +15,7 @@ import subprocess
 import wave
 import zipfile
 from pathlib import Path
+from functools import lru_cache
 from PIL import Image, ImageDraw, ImageFont
 
 FPS = 24
@@ -54,13 +55,24 @@ def source_images(z):
     assert '002208' in evidence['retained_raw_native_image']
     return {'original':original,'wide':wide,'start':start,'late':later,'early':early},evidence
 
+@lru_cache(maxsize=2)
+def approved_plate(w,h):
+    """Decode/resize an approved plate once, not once for every film frame."""
+    root=Path(__file__).resolve().parents[2]/'assets/promo/canonical'
+    if h>w:
+        plate=root/'blueprint-9x16-portrait-2160x3840.png'
+    else:
+        plate=root/'blueprint-16x9-logo-right.png'
+    with Image.open(plate) as source:
+        if source.width*h != source.height*w:
+            raise ValueError('Approved promotional plate aspect ratio mismatch')
+        im=source.convert('RGB').resize((w,h),Image.Resampling.LANCZOS)
+    return im
+
+
 def template(w,h):
-    im=Image.new('RGB',(w,h),C['bg']);d=ImageDraw.Draw(im)
-    for x in range(0,w,48):d.line((x,0,x,h),fill='#0e1a29',width=1)
-    for y in range(0,h,48):d.line((0,y,w,y),fill='#0e1a29',width=1)
-    d.rectangle((0,0,w,8),fill=C['cyan'])
-    d.rectangle((0,h-6,w,h),fill=C['cyan'])
-    return im,d
+    im=approved_plate(w,h).copy()
+    return im,ImageDraw.Draw(im)
 
 def framed(im,src,xywh,border=True):
     x,y,w,h=xywh;sw,sh=src.size
@@ -229,7 +241,7 @@ def main():
     # Intermediate uncompressed audio is reproducible and deliberately not retained in Git.
     soundtrack.unlink()
     outputs=[full,vertical,args.outdir/'ur-recomp-recruitment-poster-20261010.png',args.outdir/'native-late-source-frame-2208.png']
-    result={'schema':'UR-RECRUITMENT-TEASER/1','source_run':SOURCE_RUN,'source_artifact_id':SOURCE_ARTIFACT,'source_zip_sha256':checksum(args.zip),'guest_frame_2208_ppu_sha256':evidence['late_ppu_rgba_sha256'],'original_centre_match_1856':True,'late_full_ppu_changed_pixels':evidence['changed_full_ppu_pixels_from_earlier'],'guest_crc_matching_frames':evidence['independent_guest_frames_equal'],'footage':'Discrete authentic native frames, selected from CI; video edits are holds and cuts, not gameplay frame interpolation','music':'Synthetic original editorial audio, not source-game soundtrack','status':'Development footage only; no release or L4/L5 QA gate implied','outputs':{p.name:{'bytes':p.stat().st_size,'sha256':checksum(p)} for p in outputs},'script':'tools/showcase/build_recruitment_teaser.py'}
+    result={'schema':'UR-RECRUITMENT-TEASER/1','source_run':SOURCE_RUN,'source_artifact_id':SOURCE_ARTIFACT,'source_zip_sha256':checksum(args.zip),'guest_frame_2208_ppu_sha256':evidence['late_ppu_rgba_sha256'],'original_centre_match_1856':True,'late_full_ppu_changed_pixels':evidence['changed_full_ppu_pixels_from_earlier'],'guest_crc_matching_frames':evidence['independent_guest_frames_equal'],'footage':'Discrete authentic native frames, selected from CI; video edits are holds and cuts, not gameplay frame interpolation','music':'Synthetic original editorial audio, not source-game soundtrack','status':'Development footage only; no release or L4/L5 QA gate implied','outputs':{p.name:{'bytes':p.stat().st_size,'sha256':checksum(p)} for p in outputs},'script':'tools/showcase/build_recruitment_teaser.py','approved_visual_assets':{'landscape':'blueprint-16x9-logo-right.png','portrait':'blueprint-9x16-portrait-2160x3840.png'}}
     (args.outdir/'recruitment-provenance.json').write_text(json.dumps(result,sort_keys=True,indent=2)+'\n')
     print(json.dumps(result,indent=2))
 

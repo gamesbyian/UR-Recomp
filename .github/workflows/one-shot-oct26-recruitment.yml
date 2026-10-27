@@ -32,6 +32,12 @@ jobs:
           python3 -m py_compile tools/showcase/build_targeted_recruitment_20261026.py
           python3 tools/showcase/build_targeted_recruitment_20261026.py --cards-only \
             --outdir /tmp/ur-oct26-cards-review
+      - name: Diagnose inherited black intervals
+        run: |
+          set -euo pipefail
+          ffmpeg -hide_banner -i media/showcase/2026-10-20/graphpaper-final/ur-recomp-graphpaper-action-80s-1080p.mp4 \
+            -vf 'blackdetect=d=0.35:pix_th=0.02' -an -f null - 2>&1 \
+            | grep -E 'black_start|frame=' | tail -n 25 || true
       - name: Render genuine gameplay plus audience-specific cards and inspect frames
         run: |
           set -euo pipefail

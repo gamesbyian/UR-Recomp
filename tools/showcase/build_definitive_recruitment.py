@@ -147,7 +147,7 @@ def build(args):
                   "[0:v]trim=start_frame=420:end_frame=570,setpts=PTS-STARTPTS[originalmenu];"
                   "[originaltitle][originalmenu]concat=n=2:v=1:a=0")
         elif role=="cta":
-            filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
+            filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS,scale=1920:1080:flags=lanczos"
         else:
             filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
         if role in ROLE_LABELS:

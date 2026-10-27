@@ -7,7 +7,7 @@ import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
     verify_original_guest_presentations, verify_source_driven_recovery,
-    verify_named_original_play_after_recovery)
+    verify_named_original_play_after_recovery, set_attract_override)
 
 OPEN = "UR_BALDOSA_MODERN_ROOT opened=1"
 MAIN = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1"
@@ -16,6 +16,28 @@ DEMO = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=00 race=
 
 
 class StockIdleAttractWitnessTest(unittest.TestCase):
+    def test_default_witness_removes_even_inherited_preview_opt_in(self):
+        inherited = {"UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW": "1", "SDL_VIDEODRIVER": "dummy"}
+        set_attract_override(inherited, preview_wake=True, default_attract=True)
+        self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", inherited)
+        self.assertEqual(inherited["SDL_VIDEODRIVER"], "dummy")
+
+        legacy = dict(inherited)
+        set_attract_override(legacy, preview_wake=True, default_attract=False)
+        self.assertEqual(legacy["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"], "1")
+
+        ambient = {"UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW": "1"}
+        set_attract_override(ambient, preview_wake=False, default_attract=False)
+        self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", ambient)
+
+    def test_current_windows_default_attract_pr_actually_runs_probe(self):
+        workflow = (Path(__file__).resolve().parents[2] /
+                    ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
+        self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
+        self.assertIn("default_attract_args=(--default-attract)", workflow)
+        self.assertIn("default_stock_attract_without_preview_override", workflow)
+        self.assertIn("p2_other_button_isolated=1", workflow)
+
     def test_valid_stock_source_cycle_and_no_automatic_visible_credit(self):
         self.assertEqual(
             [x["frame"] for x in verify_original_source_attract(

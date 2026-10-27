@@ -281,6 +281,18 @@ def verify_original_guest_presentations(presented: Path, modern_width: int = 342
     return retained
 
 
+def set_attract_override(env: dict[str, str], *, preview_wake: bool,
+                         default_attract: bool) -> None:
+    """Remove ambient preview opt-in; only old opt-in probes restore it.
+
+    The new default-mode witness must show authentic guest attract on a
+    real native PE even with the old preview environment variable ABSENT.
+    """
+    env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
+    if preview_wake and not default_attract:
+        env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--exe", type=Path, required=True)
@@ -293,7 +305,9 @@ def main() -> int:
     p.add_argument("--aspect", choices=("wide", "4:3"), default="wide",
                    help="actual SDL drawable shape used to choose logical 342/256")
     p.add_argument("--preview-wake", action="store_true",
-                   help="opt-in source title/demo reveal with consumed real P1 wake")
+                   help="execute native source title/demo and consumed wake probes")
+    p.add_argument("--default-attract", action="store_true",
+                   help="prove source attract with old opt-in environment absent")
     p.add_argument("--named-play", action="store_true",
                    help="mint native first profile in separate prior process, then prove real stock 1P")
     p.add_argument("--bootstrap-script", type=Path,
@@ -301,6 +315,8 @@ def main() -> int:
     p.add_argument("--recovery", action="store_true",
                    help="exercise source-admitted Play gating through genuine MAIN return")
     args = p.parse_args()
+    if args.default_attract and not args.preview_wake:
+        p.error("--default-attract requires --preview-wake")
     if args.recovery and not args.preview_wake:
         p.error("--recovery requires --preview-wake")
     if args.recovery and args.wake_route != "p1":
@@ -329,13 +345,14 @@ def main() -> int:
                     if args.aspect == "4:3" else ""), encoding="utf-8")
     env = dict(os.environ)
     env.pop("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", None)
+    set_attract_override(env, preview_wake=args.preview_wake,
+                         default_attract=args.default_attract)
     if args.preview_wake:
         env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = (
             "23" if args.named_play else
             "20" if args.recovery else
             "21" if args.wake_route == "keyboard" else
             "22" if args.wake_route == "p2" else "28")
-        env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
         presented = out / "presented"
         presented.mkdir()
     env.update({
@@ -435,6 +452,8 @@ def main() -> int:
         "diagnostic_guest_writes": False,
         "human_button_actions": 2 if args.preview_wake else 0,
         "scripted_host_preview_only": args.preview_wake,
+        "historical_preview_environment_override_used": args.preview_wake and not args.default_attract,
+        "default_stock_attract_without_preview_override": args.default_attract,
         "native_wake_route": args.wake_route if args.preview_wake else None,
         "drawable_aspect": args.aspect,
         "native_stock_demo_and_wake_presentations": presented_receipt,

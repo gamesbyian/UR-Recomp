@@ -58,16 +58,16 @@ class NativeRF084Receipt(unittest.TestCase):
         # The genuine 2026-10-27 case had 3122 opcode deltas but no
         # S9xSetWord hook entries. An actual original INC16 call-site with
         # direct post-write raw verification is a stronger bounded witness.
-        hearts = "".join(f"QA01RF083ORIG_HEART frame={f} v=0 h=0\\n"
+        hearts = "".join(f"QA01RF083ORIG_HEART frame={f} v=0 h=0\n"
                          for f in range(6069, 6080))
         def delta(seq, pc, slot):
             return (f"QA01RF083ORIG seq={seq} type=opcode_delta frame=6072 "
                     f"pc={pc} op=E6 pre_v=0 pre_h=0 post_v=0 post_h=1 "
                     f"slot={slot} old=00 new=01 setterCount=0 "
-                    f"setterAddr=FFFFFFFF setterVal=00 clock=original_cpu\\n")
+                    f"setterAddr=FFFFFFFF setterVal=00 clock=original_cpu\n")
         rows = delta(1, "8280E0", "0069") + delta(2, "828154", "0063")
         inc = ("QA01RF083ORIG_INC16 seq=1 frame=6072 pc=828154 "
-               "addr=000063 wrap=1 old=0000 supplied=0001 rawAfter=0001\\n")
+               "addr=000063 wrap=1 old=0000 supplied=0001 rawAfter=0001\n")
         result = m.audit_original((hearts + rows + inc).encode())
         self.assertEqual(result["original_word_setter_entries"], 0)
         self.assertEqual(result["original_inc16_committed_rows"], 1)
@@ -78,7 +78,7 @@ class NativeRF084Receipt(unittest.TestCase):
                     hearts + rows + inc.replace("supplied=0001", "supplied=0002"),
                     hearts + rows + inc.replace("addr=000063", "addr=000064"),
                     hearts + rows + inc.replace("seq=1", "seq=2"),
-                    hearts + rows + inc + "QA01RF083ORIG_INC16_TRUNCATED\\n"):
+                    hearts + rows + inc + "QA01RF083ORIG_INC16_TRUNCATED\n"):
             with self.subTest(bad=bad[-90:]), self.assertRaises(ValueError):
                 m.audit_original(bad.encode())
 

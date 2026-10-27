@@ -57,13 +57,15 @@ def main():
     manifests={k:verify(k,getattr(a,k),getattr(a,k+"_manifest")) for k in ("title","modern","race")}
     a.outdir.mkdir(parents=True,exist_ok=True)
     target=a.outdir/"ur-recomp-three-source-recruitment-30s-1080p.mp4"
+    plate=Path(__file__).resolve().parents[2]/"assets/promo/canonical/blueprint-16x9-logo-right.png"
+    if not plate.is_file(): raise ValueError("Required owner-approved video background absent")
     # Five seconds of genuine title frames 150..449, ten Modern frames 0..599,
     # ten original widened-world race frames 0..599, then 5s editorial card.
     graph=(
         "[0:v]trim=start_frame=150:end_frame=450,setpts=PTS-STARTPTS,format=yuv420p[v0];"
         "[1:v]trim=start_frame=0:end_frame=600,setpts=PTS-STARTPTS,format=yuv420p[v1];"
         "[2:v]trim=start_frame=0:end_frame=600,setpts=PTS-STARTPTS,format=yuv420p[v2];"
-        "[3:v]trim=start_frame=0:end_frame=300,setpts=PTS-STARTPTS,"
+        "[3:v]trim=start_frame=0:end_frame=300,setpts=PTS-STARTPTS,scale=1920:1080:flags=lanczos,"
         "drawtext=text='UNIRACERS  REBUILT':fontcolor=white:fontsize=84:"
         "x=(w-text_w)/2:y=365,"
         "drawtext=text='Research  Gameplay  Art  QA':fontcolor=white:fontsize=44:"
@@ -82,7 +84,7 @@ def main():
         module.editorial_music(music,duration=31)
         cmd=["ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
             "-i",str(a.title),"-i",str(a.modern),"-i",str(a.race),
-            "-f","lavfi","-i","color=c=black:s=1920x1080:r=60:d=5",
+            "-loop","1","-framerate","60","-i",str(plate),
             "-i",str(music),"-filter_complex",graph,"-map","[v]","-map","4:a:0",
             "-frames:v",str(FRAMES),"-c:v","libx264","-preset","veryfast","-crf","19",
             "-pix_fmt","yuv420p","-c:a","aac","-b:a","144k",

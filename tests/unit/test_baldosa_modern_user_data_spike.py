@@ -22,6 +22,15 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         result = port.patch_host_paths(host)
         self.assertEqual(port.patch_host_paths(result), result)
         self.assertIn("getenv(\"SNESRECOMP_USER_DATA_DIR\")", result)
+        # Explicit Unicode Windows root must be selected before the narrow
+        # CRT path and must remain a fail-closed genuine CWD transition.
+        self.assertIn('#include <direct.h>', result)
+        self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', result)
+        self.assertIn('_wchdir(native_root)', result)
+        self.assertIn('dir_is_writable(".")', result)
+        self.assertIn('native_root[2] == (wchar_t)92', result)
+        self.assertLess(result.index("_wgetenv("), result.index('getenv("SNESRECOMP_USER_DATA_DIR")'))
+        self.assertLess(result.index("_wchdir(native_root)"), result.index('getenv("SNESRECOMP_USER_DATA_DIR")'))
         self.assertIn("get_exe_dir(dir, sizeof(dir))", result)
         self.assertIn("if (dir[0] != '/') return 0", result)
         self.assertIn("if (!drive && !unc) return 0", result)

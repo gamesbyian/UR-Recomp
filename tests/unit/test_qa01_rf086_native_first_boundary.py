@@ -83,6 +83,9 @@ class FirstBoundaryBusCommitTests(unittest.TestCase):
         self.assertEqual(result["native_postcommit_rows"], 3)
         self.assertEqual(result["raw_after_mismatch_count"], 0)
         self.assertFalse(result["original_native_clock_registration_proven"])
+        self.assertFalse(result["source_function_attribution_proven"])
+        self.assertEqual(result["native_pointer16_commits"], 2)
+        self.assertEqual(result["native_counter8_commits"], 1)
         self.assertEqual(result["release_credit"], 0)
         lines[0] = row(1, names[0], after_override=0xB2)
         self.assertEqual(receipt.audit(("\n".join(lines) + "\n").encode())
@@ -101,7 +104,7 @@ class FirstBoundaryBusCommitTests(unittest.TestCase):
             [good[0], good[1].replace("native_master=1001",
                                      "native_master=999"), good[2]],
             [good[0].replace("scope=Snd_IncDataPtr_M0X0",
-                             "scope=unknown")] + good[1:],
+                             "scope=bad/name")] + good[1:],
         ]
         for i, rows in enumerate(mutations):
             with self.subTest(i=i), self.assertRaises(ValueError):

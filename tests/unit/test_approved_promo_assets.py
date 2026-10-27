@@ -52,6 +52,16 @@ class ApprovedPromoTests(unittest.TestCase):
         self.assertIn("blueprint-16x9-logo-right.png", three_source)
         self.assertNotIn("color=c=black", three_source)
 
+    def test_historical_trailer_entrypoints_fail_closed_or_use_canonical_art(self):
+        showcase = ROOT / "tools/showcase"
+        graphpaper = (showcase / "build_graphpaper_recruitment_20261020.py").read_text(encoding="utf-8")
+        dynamic = (showcase / "build_flagship_dynamic_course_v2.py").read_text(encoding="utf-8")
+        self.assertIn("approved_visual_assets", graphpaper)
+        self.assertIn("portrait-art", graphpaper)
+        self.assertNotIn("uniracers_graphpaper_logo.jpg", graphpaper)
+        self.assertIn("RETIRED_NONCOMPLIANT_PROMO_SOURCE", dynamic)
+        self.assertNotIn("ffmpeg", dynamic.lower())
+
     def test_portrait_only_approved_plate(self):
         self.assertEqual(promo.SOURCES["portrait"],
                          "blueprint-9x16-portrait-2160x3840.png")

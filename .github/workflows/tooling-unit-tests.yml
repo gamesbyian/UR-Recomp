@@ -191,6 +191,8 @@ jobs:
             tests.unit.test_report_ci_runtime \
             tests.unit.test_ci_select_unit_suite \
             tests.unit.test_ci_trigger_policy \
+            tests.unit.test_ci_playtest_request_guard \
+            tests.unit.test_verify_baldosa_playtest_release \
             >"$RUNNER_TEMP/unit-shard0.log" 2>&1
           rc=$?
           printf 'shard0=%s\n' "$rc" > "$RUNNER_TEMP/unit-shard-exits.txt"

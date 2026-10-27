@@ -37,6 +37,8 @@ OPS_CONTEXT_DOCS = frozenset({
     "docs/AGENT-COORDINATION.md",
     "docs/HOURLY-AGENT-LINES.md",
     "docs/WORK-QUEUE.md",
+    # Only this exact documentation marker requests an already guarded build.
+    "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
 })
 OPERATIONS_ONLY = OPERATIONS_ONLY | OPS_CONTEXT_DOCS
 FOCUSED_TEST_MODULES = (
@@ -48,6 +50,8 @@ FOCUSED_TEST_MODULES = (
     "tests.unit.test_report_ci_runtime",
     "tests.unit.test_ci_select_unit_suite",
     "tests.unit.test_ci_trigger_policy",
+    "tests.unit.test_ci_playtest_request_guard",
+    "tests.unit.test_verify_baldosa_playtest_release",
 )
 ALLOWED_STATES = frozenset({"added", "modified"})
 MAX_PAGES = 3

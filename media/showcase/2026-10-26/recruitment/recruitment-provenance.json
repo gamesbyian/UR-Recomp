@@ -1,7 +1,7 @@
 {
   "edition": "2026-10-26 targeted-contributor recruitment",
   "film": "ur-recomp-recruit-contributors-95s-1080p.mp4",
-  "sha256": "b730bafa1372f99897252de87e2bbc357f18d7164c37ca3ee7edbb774a7cd44d",
+  "sha256": "0b616efea5192da0c5658e21818e17fd621bb38c94b594425f9c1d47606512a9",
   "duration_seconds": 95,
   "fps": 60,
   "frames": 5700,
@@ -50,7 +50,7 @@
     "review-13s.png": "95dacc2c6f03ff1a3c190984c8acd9317cd09d8a2393ba20e549a05e7f8dac60",
     "review-22s.png": "8cd0df5aa0e0be32f6c7d0a53feb47d80562bfca98d582e9f527b6ee7253fa7a",
     "review-37s.png": "6b3df5157fc4e2443a19ceb1254a9165e590ef4b9b533c750305b17be35e8a1d",
-    "review-52s.png": "4daa08378f3fcfded3a98ff8dffdf37fdaa25cbda989e53607e0dfc3677cccce",
+    "review-52s.png": "4ed695bd64c653a5570bfc8903ba2dabd17f340db050f3cf5f3935e4bf98f98a",
     "review-66s.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
     "review-73s.png": "1a239bfccdae3bc6cf9997c2097c2e1d498376e17a032bc8b3c3aa1ee6493c0f",
     "review-79s.png": "727d8b11989bbb5cb58f0b1ab70ac0a5df7da2ce9412baf7f77f22ad23005a1f",
@@ -64,6 +64,7 @@
     "4x procedural racer studies are not approved for likeness.",
     "No independently admitted full USA original/native event or certified physical Windows release.",
     "Three action courses in existing film are three independent authentic 2P sessions, not one race.",
-    "New contributor cards are illustrated editorial, never synthetic gameplay."
+    "New contributor cards are illustrated editorial, never synthetic gameplay.",
+    "A visible editorial corrective label disambiguates historical art technical approval from current character-likeness rejection."
   ]
 }

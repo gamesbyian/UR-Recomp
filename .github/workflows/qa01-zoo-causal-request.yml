@@ -48,5 +48,6 @@ jobs:
       zoo_race_mesh: true
       zoo_dp_window: true
       qa01_rf084_native_sound_dp: true
+      qa01_rf088_rf089_echo: true
       baldosa_refresh_beam_rate: true
       baldosa_io_clock_order: true

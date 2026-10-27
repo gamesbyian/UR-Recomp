@@ -49,16 +49,16 @@ class NativeSnapshotCutTests(unittest.TestCase):
 
     def test_malformed_required_tag_line_rejected_even_with_valid_pair(self):
         bad_lines = (
-            b"script f=6058 dump scene-05039 failed\\n",
-            b"script f=6059 dump scene-05040 ok extra\\n",
-            b"script f=6058 dump scene-05039\\n",
-            b"script f=wrong dump scene-05039 ok\\n",
+            b"script f=6058 dump scene-05039 failed\n",
+            b"script f=6059 dump scene-05040 ok extra\n",
+            b"script f=6058 dump scene-05039\n",
+            b"script f=wrong dump scene-05039 ok\n",
         )
         for bad in bad_lines:
             with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "malformed"):
                 receipt.audit(self.root, self.log + bad)
         # Unrelated native logging must remain permissible.
-        report = receipt.audit(self.root, self.log + b"debug: unrelated noise\\n")
+        report = receipt.audit(self.root, self.log + b"debug: unrelated noise\n")
         self.assertEqual(len(report["native_cut_rows"]), 2)
 
     def test_metadata_and_raw_wram_fail_closed(self):

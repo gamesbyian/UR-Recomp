@@ -29,7 +29,8 @@ static unsigned rf083_word_rows;
 static unsigned rf083_inc16_rows;
 /* RF089: optional original opcode/branch witness for the last Zoo seek to
  * first sound-data increment. No extra APU bus reads, guest writes or ticks.
- * CMP live Z comes from ICPU._Zero, not the lazily packed Registers.PL.\n * Live Z plus the following BNE next PC reveal echo retry outcomes,
+ * CMP live Z comes from ICPU._Zero, not the lazily packed Registers.PL.
+ * Live Z plus the following BNE next PC reveal echo retry outcomes,
  * but do not disclose the actual returned SPC port byte. */
 static unsigned rf089_rows, rf089_a0, rf089_p0, rf089_z0;
 static int rf089_target;

@@ -55,16 +55,20 @@ class OptionsProbeTests(unittest.TestCase):
             self.assertTrue(any(ord(ch) > 255 for ch in root.name))
             root.mkdir()
             options = root / "options-v1.txt"
-            saved = b"UR-HOST-STATE/6\ndisplay_mode=borderless\nvsync=on\n"
+            saved = b"UR-HOST-STATE/6\ndisplay_mode=borderless\nvsync=adaptive\n"
             damaged = b"UR-HOST-STATE/6\ninvalid options\n"
             options.write_bytes(saved)
             quarantine = Path(str(options) + ".damaged")
             quarantine.write_bytes(damaged)
             log = ("UR_BALDOSA_MODERN_ROOT options_boot row=DISPLAY "
-                   "display=BORDERLESS vsync=ON volume=100 "
+                   "display=BORDERLESS vsync=ADAPTIVE volume=100 "
                    "status=NONE help=0 load=loaded\n")
             probe.verify_post_quarantine_cold_reopen(
                 log, options, saved, damaged)
+            with self.assertRaisesRegex(ValueError, "Missing native Options"):
+                probe.verify_post_quarantine_cold_reopen(
+                    log.replace("vsync=ADAPTIVE", "vsync=ON"),
+                    options, saved, damaged)
             options.write_bytes(saved + b"changed")
             with self.assertRaisesRegex(ValueError, "fresh saved bytes"):
                 probe.verify_post_quarantine_cold_reopen(

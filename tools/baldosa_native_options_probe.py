@@ -87,7 +87,7 @@ def options_probe_user_root(out: Path) -> Path:
 def verify_post_quarantine_cold_reopen(
         log: str, options: Path, saved: bytes, damaged_bytes: bytes) -> None:
     """A second process must reload the fresh state without touching either file."""
-    require(log, "options_boot", display="BORDERLESS", vsync="ON",
+    require(log, "options_boot", display="BORDERLESS", vsync="ADAPTIVE",
             volume="100", load="loaded")
     if not options.is_file() or options.read_bytes() != saved:
         raise ValueError("Cold Options reopen altered fresh saved bytes")
@@ -180,8 +180,9 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
             status="OLD FILE KEPT .damaged", load="loaded")
     if (user / "options-v1.txt.damaged").read_bytes() != damaged_bytes:
         raise ValueError("Damaged Options bytes were not preserved")
-    if settings_of(options).get("display_mode") != "borderless":
-        raise ValueError("Fresh Options file not written after quarantine")
+    if (settings_of(options).get("display_mode"),
+            settings_of(options).get("vsync")) != ("borderless", "adaptive"):
+        raise ValueError("Fresh Options file did not preserve pad-adjusted state after quarantine")
     receipt("after_game4_damaged_quarantine")
 
     # Game 4b: cold boot the same non-ACP root. A second process must load

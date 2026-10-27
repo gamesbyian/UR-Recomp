@@ -149,7 +149,7 @@ bool g_title_painted_reported = false;
 unsigned g_title_guest_frame = 0;
 bool g_title_intro_captured = false;
 bool g_title_root_captured = false;
-// Strictly opt-in preview, not yet the default stock-attract player path.
+// The default idle Modern title reveals the source-observed stock attract.
 bool g_original_attract_seen_main = false;
 bool g_original_attract_visible = false;
 bool g_original_attract_woken = false;
@@ -1365,6 +1365,10 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         if (!pressed) g_original_attract_p2_release_button = -1;
         return 1;
     }
+    // While the Modern title/root is visible, unjoined P2 cannot send
+    // unrelated buttons into the hidden stock demo, even after a P2 wake.
+    if (player == 1 && g_visible && !g_two_seat_join.open())
+        return 1;
     if (player == 1 && g_visible && g_two_seat_join.open()) {
         int action = 0;
         std::size_t physical = 0;
@@ -1374,7 +1378,7 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         case kGamepadBtn_A: physical = 2; action = 2; break;
         case kGamepadBtn_Start: physical = 3; action = 2; break;
         case kGamepadBtn_B: physical = 4; action = 3; break;
-        default: return 0;
+        default: return 1; // host-owned join; no hidden guest P2 input
         }
         const bool edge = g_p2_join_edges.p1_gamepad(physical, pressed != 0);
         if (!edge) return 1;
@@ -2069,7 +2073,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         }
     }
     // The original guest's *observed* MAIN D7 -> TITLE 84 transition,
-    // not a guessed 503-frame timeout, gates experimental guest display.
+    // not a guessed 503-frame timeout, gates the default idle attract.
     // Guest inputs/WRAM are never synthesized; focus remains host-owned.
     if (g_visible && g_stock_target == -1 &&
         g_title.phase == ur::product::ModernTitlePhase::Intro) {
@@ -2077,10 +2081,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         const bool guest_in_race = g_ram[0x0313u] == 1u;
         if (!guest_in_race && source_menu == 0xd7u)
             g_original_attract_seen_main = true;
-        const char* preview = std::getenv("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW");
         if (g_original_attract_seen_main && !guest_in_race &&
-            source_menu == 0x84u && preview &&
-            std::strcmp(preview, "1") == 0) {
+            source_menu == 0x84u) {
             g_original_attract_visible = true;
             g_visible = false;
             std::fprintf(stderr,
@@ -2501,6 +2503,14 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             if (!g_visible || !ur::product::modern_title_active(g_title) ||
                 g_stock_target != -1 || g_two_seat_join.open())
                 std::abort();
+        } else if (frame == 1642) {
+            // Different P2 button after wake must also remain host-owned.
+            if (!ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 1) ||
+                !ur_baldosa_modern_root_gamepad(1, kGamepadBtn_B, 0) ||
+                !g_visible || g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=%u\n", frame);
         } else if (frame == 1660) {
             if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
                 !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))

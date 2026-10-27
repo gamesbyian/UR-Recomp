@@ -75,7 +75,9 @@ def render(clip: Path, existing: Path, soundtrack: Path, dest: Path,
     if vertical:
         first = (
             "[0:v]trim=start_frame=0:end_frame=600,setpts=PTS-STARTPTS,"
-            "scale=720:405:flags=neighbor,pad=720:1280:0:437:black,"
+            "scale=720:405:flags=neighbor,format=rgba[game];"
+            "[3:v]scale=720:1280:flags=lanczos[approved];"
+            "[approved][game]overlay=x=0:y=437:shortest=1,"
             "drawtext=text='REAL NATIVE GAMEPLAY':fontsize=37:"
             "fontcolor=white:x=(w-text_w)/2:y=255,"
             "drawtext=text='2P ORIGINAL WIDESCREEN':fontsize=29:"
@@ -98,9 +100,15 @@ def render(clip: Path, existing: Path, soundtrack: Path, dest: Path,
         )
         total = 41
     graph = first + second + "[v0][v1]concat=n=2:v=1:a=0[v]"
+    approved = Path(__file__).resolve().parents[2] / "assets/promo/canonical/blueprint-9x16-portrait-2160x3840.png"
+    if vertical and not approved.is_file():
+        raise ValueError("Exclusive owner-approved portrait background is missing")
+    inputs = ["-i",str(clip),"-i",str(existing),"-i",str(soundtrack)]
+    if vertical:
+        inputs += ["-loop","1","-framerate","60","-i",str(approved)]
     subprocess.run([
         "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
-        "-i", str(clip), "-i", str(existing), "-i", str(soundtrack),
+        *inputs,
         "-filter_complex", graph, "-map", "[v]", "-map", "2:a:0",
         "-t", str(total), "-c:v", "libx264", "-preset", "veryfast",
         "-crf", "19", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "112k",
@@ -123,6 +131,15 @@ def main() -> None:
     a.add_argument("--outdir", type=Path, required=True)
     args = a.parse_args()
     source = source_contract(args.clip, args.provenance)
+    teaser_receipt = args.vertical.parent / "recruitment-provenance.json"
+    if not teaser_receipt.is_file():
+        raise ValueError("Portrait source lacks approved-art provenance; regenerate teaser with current renderer")
+    visuals = json.loads(teaser_receipt.read_text(encoding="utf-8"))
+    if (visuals.get("approved_visual_assets", {}).get("portrait") !=
+            "blueprint-9x16-portrait-2160x3840.png"
+            or visuals.get("outputs", {}).get(args.vertical.name, {}).get("sha256") != sha256(args.vertical)
+            or visuals.get("outputs", {}).get(args.teaser.name, {}).get("sha256") != sha256(args.teaser)):
+        raise ValueError("Historical teaser lacks matching approved-art receipt; refuse retired card imagery")
     args.outdir.mkdir(parents=True, exist_ok=True)
     horizontal = args.outdir / "ur-recomp-recruitment-continuous-20261010.mp4"
     short = args.outdir / "ur-recomp-recruitment-continuous-vertical-20261010.mp4"

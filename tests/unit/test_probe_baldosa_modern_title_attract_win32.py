@@ -1,4 +1,8 @@
 """Negative tests for observed, not fabricated, first original idle attract cycle."""
+import csv
+import hashlib
+from pathlib import Path
+import tempfile
 import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
@@ -174,6 +178,40 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         ):
             with self.subTest(bad=bad[-130:]), self.assertRaises(ValueError):
                 verify_named_original_play_after_recovery(bad)
+
+    def test_original_demo_motion_is_retained_as_two_independent_hashed_p6_frames(self):
+        # Synthetic P6 is a unit fixture only. The actual Windows run must
+        # supply source-observed frames, and the workflow retains their index.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            frames = [*range(1500, 1526), 1568, 1584, 1616, 1696]
+            with (root / "presents.csv").open("w", newline="", encoding="utf-8") as fd:
+                writer = csv.DictWriter(fd, fieldnames=["present", "frame"])
+                writer.writeheader()
+                for index, frame in enumerate(frames):
+                    writer.writerow({"present": index, "frame": frame})
+                    width = 342 if frame in (1616, 1696) else 256
+                    payload = bytes([index % 251]) * (width * 224 * 3)
+                    (root / f"present_{index:06d}.ppm").write_bytes(
+                        f"P6\\n{width} 224\\n255\\n".encode("ascii") + payload)
+            retained = verify_original_guest_presentations(root)
+            self.assertEqual(
+                [(item["stage"], item["guest_frame"]) for item in retained],
+                [("original-demo-before", 1568), ("original-demo", 1584),
+                 ("restored-title", 1616), ("root", 1696)])
+            for item in retained:
+                self.assertEqual(
+                    hashlib.sha256((root / item["file"]).read_bytes()).hexdigest(),
+                    item["sha256"])
+            self.assertNotEqual(
+                (root / "native-original-demo-before.ppm").read_bytes(),
+                (root / "native-original-demo.ppm").read_bytes())
+            self.assertTrue((root / "presents.csv").is_file())
+            # The existing verifier must reject a frozen original demo.
+            (root / "present_000027.ppm").write_bytes(
+                (root / "present_000026.ppm").read_bytes())
+            with self.assertRaisesRegex(ValueError, "did not advance"):
+                verify_original_guest_presentations(root)
 
     def test_reject_forged_guest_events(self):
         good = "\n".join((OPEN, MAIN, TITLE, DEMO))

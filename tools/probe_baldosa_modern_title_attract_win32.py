@@ -266,7 +266,8 @@ def verify_original_guest_presentations(presented: Path, modern_width: int = 342
     if photos[1568][1] == photos[1584][1]:
         raise ValueError("original two-player demo image did not advance")
     retained = []
-    for stage, frame in (("original-demo", 1584),
+    for stage, frame in (("original-demo-before", 1568),
+                         ("original-demo", 1584),
                          ("restored-title", 1616),
                          ("root", 1696)):
         width, raw = photos[frame]
@@ -437,6 +438,9 @@ def main() -> int:
         "native_wake_route": args.wake_route if args.preview_wake else None,
         "drawable_aspect": args.aspect,
         "native_stock_demo_and_wake_presentations": presented_receipt,
+        "native_stock_demo_index_sha256": (
+            hashlib.sha256((presented / "presents.csv").read_bytes()).hexdigest()
+            if args.preview_wake else None),
         "original_visual_demo_first_frame_reference": 1531,
         "native_post_frame_race_flag_first_observed": 1532,
         "modern_host_title_remained_visible": not args.preview_wake,

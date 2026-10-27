@@ -673,6 +673,25 @@ jobs:
               receipt = json.loads((folder / "native-attract-receipt.json").read_text(encoding="utf-8"))
               if receipt["candidate_executable_sha256"] != expected:
                   raise SystemExit(f"{route}: mismatched Windows PE")
+              index = folder / "presented/presents.csv"
+              if hashlib.sha256(index.read_bytes()).hexdigest() != receipt["native_stock_demo_index_sha256"]:
+                  raise SystemExit(f"{route}: native frame index hash mismatch")
+              stages = {item["stage"]: item for item in receipt["native_stock_demo_and_wake_presentations"]}
+              expected_frames = {"original-demo-before": 1568, "original-demo": 1584,
+                                 "restored-title": 1616, "root": 1696}
+              if set(stages) != set(expected_frames):
+                  raise SystemExit(f"{route}: incomplete native presentation witness")
+              images = {}
+              for stage, frame in expected_frames.items():
+                  entry = stages[stage]
+                  if entry["guest_frame"] != frame:
+                      raise SystemExit(f"{route}: wrong frame for {stage}")
+                  raw = (folder / "presented" / entry["file"]).read_bytes()
+                  if hashlib.sha256(raw).hexdigest() != entry["sha256"]:
+                      raise SystemExit(f"{route}: native {stage} bytes mismatch")
+                  images[stage] = raw
+              if images["original-demo-before"] == images["original-demo"]:
+                  raise SystemExit(f"{route}: no independently retained demo motion")
               if not receipt["original_attract_displayed_on_native_P6"]:
                   raise SystemExit(f"{route}: no native source demo reveal")
               if hashlib.sha256((folder / "native-attract.log").read_bytes()).hexdigest() != receipt["log_sha256"]:
@@ -700,6 +719,7 @@ jobs:
             ${{ runner.temp }}/ur-stock-attract-*/native-attract.log
             ${{ runner.temp }}/ur-stock-attract-*/native-profile-bootstrap.log
             ${{ runner.temp }}/ur-stock-attract-*/presented/native-*.ppm
+            ${{ runner.temp }}/ur-stock-attract-*/presented/presents.csv
 
       # Same exact PE on the pinned 2P race route in Modern: unplugging the
       # seated pad, then minimizing the real window, must each pause through

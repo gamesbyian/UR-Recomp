@@ -633,6 +633,109 @@ jobs:
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/source.urrun.urmatch
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/manifest.json
 
+      # One-shot MENU-10 qualification on the EXISTING compiled Windows PE.
+      # Restores the first-party original-stock source/wake witness from the
+      # old controller draft without a second build or any guest-memory writes.
+      - name: Observe genuine original idle attract and distinct native wake routes
+        if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' || github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026') }}
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract.script"
+          # PR #2658 must prove DEFAULT reveal, without the historic opt-in flag.
+          # The old #2657 probe branch remains an explicit opt-in control.
+          default_attract_args=()
+          if [ "$GITHUB_HEAD_REF" = 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' ]; then
+            default_attract_args=(--default-attract)
+          fi
+          for route in p1 keyboard p2; do
+            aspect=()
+            [ "$route" = keyboard ] && aspect=(--aspect 4:3)
+            python tools/probe_baldosa_modern_title_attract_win32.py \
+              --exe "$EXE" --rom "$ROM" --script "$SCRIPT" \
+              --out "$RUNNER_TEMP/ur-stock-attract-$route" \
+              --preview-wake "${default_attract_args[@]}" --wake-route "$route" "${aspect[@]}" --timeout 140
+          done
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$EXE" --rom "$ROM" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-recovery.script" \
+            --out "$RUNNER_TEMP/ur-stock-attract-recovery" \
+            --preview-wake "${default_attract_args[@]}" --recovery --timeout 140
+          python tools/probe_baldosa_modern_title_attract_win32.py \
+            --exe "$EXE" --rom "$ROM" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-original-attract-named-play.script" \
+            --bootstrap-script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-first-profile-bootstrap.script" \
+            --out "$RUNNER_TEMP/ur-stock-attract-named-play" \
+            --preview-wake "${default_attract_args[@]}" --recovery --named-play --timeout 140
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"])
+          exe = Path(os.environ["GITHUB_WORKSPACE"]) / "baldosa/build-ur-win/UniracersSNESRecomp.exe"
+          expected = hashlib.sha256(exe.read_bytes()).hexdigest()
+          for route in ("p1", "keyboard", "p2", "recovery", "named-play"):
+              folder = root / ("ur-stock-attract-" + route)
+              receipt = json.loads((folder / "native-attract-receipt.json").read_text(encoding="utf-8"))
+              if receipt["candidate_executable_sha256"] != expected:
+                  raise SystemExit(f"{route}: mismatched Windows PE")
+              index = folder / "presented/presents.csv"
+              if hashlib.sha256(index.read_bytes()).hexdigest() != receipt["native_stock_demo_index_sha256"]:
+                  raise SystemExit(f"{route}: native frame index hash mismatch")
+              stages = {item["stage"]: item for item in receipt["native_stock_demo_and_wake_presentations"]}
+              expected_frames = {"original-demo-before": 1568, "original-demo": 1584,
+                                 "restored-title": 1616, "root": 1696}
+              if set(stages) != set(expected_frames):
+                  raise SystemExit(f"{route}: incomplete native presentation witness")
+              images = {}
+              for stage, frame in expected_frames.items():
+                  entry = stages[stage]
+                  if entry["guest_frame"] != frame:
+                      raise SystemExit(f"{route}: wrong frame for {stage}")
+                  raw = (folder / "presented" / entry["file"]).read_bytes()
+                  if hashlib.sha256(raw).hexdigest() != entry["sha256"]:
+                      raise SystemExit(f"{route}: native {stage} bytes mismatch")
+                  images[stage] = raw
+              if images["original-demo-before"] == images["original-demo"]:
+                  raise SystemExit(f"{route}: no independently retained demo motion")
+              if not receipt["original_attract_displayed_on_native_P6"]:
+                  raise SystemExit(f"{route}: no native source demo reveal")
+              if hashlib.sha256((folder / "native-attract.log").read_bytes()).hexdigest() != receipt["log_sha256"]:
+                  raise SystemExit(f"{route}: log bytes mismatch")
+              if route in ("p1", "keyboard", "p2") and receipt["native_wake_route"] != route:
+                  raise SystemExit(f"{route}: wake input ownership mismatch")
+              if route in ("recovery", "named-play") and not receipt["real_guest_main_recovery_verified"]:
+                  raise SystemExit(f"{route}: no real guest MAIN recovery")
+              if route == "named-play" and not receipt["named_source_play_verified"]:
+                  raise SystemExit("named P1 Play not source-admitted")
+              if os.environ.get("GITHUB_HEAD_REF") == "agent1/ur-ui-nav-default-stock-attract-p2-20261026":
+                  if receipt.get("default_stock_attract_without_preview_override") is not True:
+                      raise SystemExit(f"{route}: default source attract was not probed without opt-in")
+                  if receipt.get("historical_preview_environment_override_used") is not False:
+                      raise SystemExit(f"{route}: old opt-in environment leaked into default witness")
+                  if receipt.get("scripted_host_preview_only") is not True:
+                      raise SystemExit(f"{route}: scripted hosted probe improperly labelled physical")
+                  if route == "p2" and b"p2_other_button_isolated=1" not in (folder / "native-attract.log").read_bytes():
+                      raise SystemExit("P2: unrelated post-wake B was not consumed by the host")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"MENU-10 hosted Win32 original idle/demo P6, P1/keyboard/P2 wake, MAIN recovery and named P1 source admission. PE SHA256 {expected}. Physical SDL/display/release acceptance remains independent.\n")
+          print("UR_MENU10_NATIVE_STOCK_ATTRACT_WITNESSES_OK", expected)
+          PY
+
+      - name: Retain original idle/demo native source and wake evidence
+        if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' || github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-menu10-stock-attract-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/ur-stock-attract-*/native-attract-receipt.json
+            ${{ runner.temp }}/ur-stock-attract-*/native-attract.log
+            ${{ runner.temp }}/ur-stock-attract-*/native-profile-bootstrap.log
+            ${{ runner.temp }}/ur-stock-attract-*/presented/native-*.ppm
+            ${{ runner.temp }}/ur-stock-attract-*/presented/presents.csv
+
       # Same exact PE on the pinned 2P race route in Modern: unplugging the
       # seated pad, then minimizing the real window, must each pause through
       # the ordinary session, hold the guest frozen, and resume.

@@ -2,7 +2,43 @@
 
 **Status: provisioning mechanism, not a shipped or QA-accepted release.** This guide is a player-facing wrapper around the already-established genuine Windows native Baldosa route; it does not create another product, game oracle, save layer or release quality gate. The [methodology audit](PROJECT-METHODOLOGY-AUDIT-20261015.md) identifies missing human hardware feedback as a P0 concern.
 
-## Use the already-verified owner playtest ZIP (no new build needed)
+## Current integrated Windows build: first choice for the upcoming physical playtest
+
+**Use a new build from the latest stable `main`, rather than the archived October 15 package.** The archived package below is useful for a strictly historical regression comparison, but predates the merged title/root and 1P/2P controller integration (PRs #2640 and #2655) and later source changes. A current playtest must carry its *own* build, executable, and portable-ZIP hashes. Do not transfer old results or nominate an unmerged PR/test-merge executable as current `main`.
+
+**Preparation by the release/integration agent:** First reconcile the [shared integration workboard](HOURLY-AGENT-LINES.md) against live `main` and [current title follow-up #2658](https://github.com/gamesbyian/UR-Recomp/pull/2658). Use the newest tested, successfully integrated `main`; if a P0 title/Options change is still pending, state that limitation explicitly rather than silently treating the preview as finished. Dispatch the existing [Manual ROM-free Windows technical playtest workflow](https://github.com/gamesbyian/UR-Recomp/actions/workflows/manual-romfree-windows-playtest.yml) on **main**, with **`mode=verify_only`**. This rebuilds and tests a source-identical executable; it is not a release nomination or physical acceptance. The **`publish_provisional_preview`** choice is a separate opt-in publication action, unnecessary for a private test. Never dispatch redundant builds merely to make a progress chart move.
+
+**Obtain the playable bytes:** After a successful workflow run, download its `verified-romfree-windows-playtest` Actions artifact. Unpack the *outer* GitHub artifact archive to obtain the four actual files: `UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip`, the adjacent `.sha256`, `PLAYTEST-PROVENANCE.json`, and `RELEASE-NOTES.md`. **Extract the inner ROM-free ZIP** into a new game folder. The outer Actions archive is not the playable package and must never supply the nominated portable-ZIP SHA. Record the 40-character `source_commit`, `zip_sha256`, and `tested_and_packaged_executable_sha256` from the provenance receipt, then independently compare actual local bytes:
+
+```powershell
+# Windows PowerShell 5.1, from the folder with the four downloaded files:
+Get-FileHash -Algorithm SHA256 .\UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+# From inside the extracted ROM-free game folder:
+Get-FileHash -Algorithm SHA256 .\UniracersSNESRecomp.exe
+```
+
+If either digest disagrees with `PLAYTEST-PROVENANCE.json`, stop; preserve the mismatching hashes and report an artifact-identity failure. The generated `RELEASE-NOTES.md` contains source-specific instructions and a shortlist of hardware/player checks. Supply the operator's own legitimately held exact USA ROM locally only. Launch `run-baldosa-modern.cmd` using File Explorer or ordinary `cmd.exe`; a PowerShell 7-inherited `PSModulePath` has previously caused a separate pre-game launcher failure. Never bypass the ROM checker to get past a startup failure. For meaningful save/recovery testing use a **new disposable** `UR_RECOMP_USER_DATA_ROOT` outside the extracted ZIP, not an irreplaceable profile.
+
+### One candidate, one set of observations, several independently adjudicated criteria
+
+Use these checks as a **single ordered human session**. Record each as pass, fail, blocked or not run, with what was actually *seen/heard/done*. A passing script or virtual SDL pad is not a physical witness.
+
+| Short test | Real action and failure discriminator | Candidate progress v2 or release relevance |
+| --- | --- | --- |
+| **H01 Cold start** | From a clean extraction, launch by packaged CMD with no special fixture and without developer runtimes; create player, exit process, relaunch; note any startup dependencies | `QA-02`, `QA-01` provenance prerequisite |
+| **H02 Native title** | Leave the title idle for genuine stock attract, wake with P1/keyboard/P2 separately; operate one *actual pad* to visit Play, Practice, Multiplayer, Records and Options and navigate Back/modals | `MENU-10`, `MENU-01`, `QA-03` |
+| **H03 Earned 1P** | Enter a real race without guest cheats, finish, read scored result, move to Records/Next Event, quit, and cold-reopen to inspect progression | `ONE-03`, `QA-03`, `QA-10` |
+| **H04 Two seats** | Connect two distinct real pads, enter stock 2P GO, complete race and return to separate player results/Records; optionally repeat keyboard+pad and test seat churn/disconnect | `QA-04`, `TWO-05`, `UX-04` |
+| **H05 User files** | Use a new non-ASCII user-data test root; create a fresh named player, save/reopen profile/Records/replay and Options (including damaged settings only on expendable copies) | `DATA-05`, `QA-07` where relevant |
+| **H06 Real output** | Listen to real speaker/headphones, examine actual display/window/fullscreen and original 7:6 presentation; record *actual* 3840×2160 mode if available, not desktop upscaling alone | `QA-05`, `WIDE-03`, `WIDE-06`, `QA-06` |
+| **H07 Restart/storage** | Quit/restart from clean state, observe the player-owned R/T/S/Q fault paths **only if this candidate actually implements them**; use disposable copies for NTFS denial/corruption, never a valuable save | `RECOVERY-09`, `RECOVERY-10`, `QA-07` |
+
+**Reporting:** Keep all tests tied to the *same* source/inner-ZIP/PE SHA triple and report which checks were skipped. For each failure capture **Hxx**, input device, Windows/GPU/display/audio environment, exact repro steps, expected vs observed behavior, whether data changed, and a scrubbed screenshot/log when useful. Report results to the current [Windows release QA issue #970](https://github.com/gamesbyian/UR-Recomp/issues/970) with private links for any sensitive evidence; do not upload ROM, SRAM, private profiles, secrets or identifying system information. Before/after ZIP and PE hashes should still agree; never edit the game binary after the initial audit.
+
+For official **QA-04**, one short owner session is only a start: [the private physical witness contract](QA04-PRIVATE-PHYSICAL-WINDOWS-WITNESS-PACKETS-20261019.md) requires three dissimilar setups including two physical PCs and a separate independent reviewer. Physical testing may support multiple criteria, but **each full criterion and each of the 12 release gates must be adjudicated independently**, and original/native USA event parity remains separately at 0/45 unless the accepted genuine-event witness changes. Do not inflate product progress from anecdotal play, failed tests or a merely downloaded ZIP.
+
+## Historical archived owner playtest (October 15 candidate; comparison only)
+
 
 The first independently source-pinned Windows owner preview already exists. **Prefer its retained, byte-verified artifact** when evaluating that historical candidate, rather than dispatching a new Windows runner job on today's `main`. New `main` is *not* the tested source revision of this nominated ZIP.
 

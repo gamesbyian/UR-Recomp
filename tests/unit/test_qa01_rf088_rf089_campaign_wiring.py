@@ -8,6 +8,8 @@ from pathlib import Path
 
 WORKFLOW = (Path(__file__).resolve().parents[2] /
             ".github/workflows/qa01-event-campaign.yml")
+WRAPPER = (Path(__file__).resolve().parents[2] /
+           ".github/workflows/qa01-zoo-causal-request.yml")
 
 
 class PairedEchoWiring(unittest.TestCase):
@@ -44,6 +46,15 @@ class PairedEchoWiring(unittest.TestCase):
         self.assertIn("export UR_QA01_RF089_ORIGINAL_ECHO=1", block)
         self.assertNotIn("=0", block)
         self.assertLess(end, s.index("python3 tools/probe_original_event_complete.py"))
+
+    def test_existing_one_file_guarded_request_passes_echo_opt_in(self):
+        wrapper = WRAPPER.read_text(encoding="utf-8")
+        self.assertIn('      qa01_rf084_native_sound_dp: true', wrapper)
+        self.assertIn('      qa01_rf088_rf089_echo: true', wrapper)
+        self.assertIn('docs/qa01/REQUEST-ZOO-CAUSAL.md', wrapper)
+        self.assertIn('tools/ci_playtest_request_guard.py', wrapper)
+        self.assertIn('cancel-in-progress: false', wrapper)
+        self.assertNotIn('schedule:', wrapper)
 
     def test_executed_rows_and_overflow_fail_closed(self):
         s = self.source

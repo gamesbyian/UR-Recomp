@@ -24,7 +24,7 @@ ORIG_ROW = re.compile(
     r"pc=([0-9A-F]{6}) op=([0-9A-F]{2}) pre_v=(\d+) pre_h=(-?\d+) "
     r"post_v=(\d+) post_h=(-?\d+) slot=([0-9A-F]{4}) "
     r"old=([0-9A-F]{2}) new=([0-9A-F]{2}) setterCount=(\d+) "
-    r"setterAddr=([0-9A-F]{6}) setterVal=([0-9A-F]{2}) clock=original_cpu$"
+    r"setterAddr=([0-9A-F]{6,8}) setterVal=([0-9A-F]{2}) clock=original_cpu$"
 )
 ORIG_HEART = re.compile(r"^QA01RF083ORIG_HEART frame=(\d+) v=(\d+) h=(-?\d+)$")
 

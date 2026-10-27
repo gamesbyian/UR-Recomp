@@ -103,6 +103,46 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertEqual(result["prs"]["unchanged_48h_count"], 1)
         self.assertTrue(result["qa"]["source_exact_main"])
 
+    def test_recent_same_work_id_heads_are_discovery_hints_not_locks(self):
+        work_id = self.board["work"][0]["work_id"]
+        def fake(path):
+            if "/pulls?state=open&" in path:
+                return [
+                    {"number": 501, "draft": False, "body": "Work ID: `" + work_id + "`",
+                     "title": "Source repair", "updated_at": "2026-10-21T11:40:00Z"},
+                    {"number": 502, "draft": True, "body": "**Work ID:** **" + work_id + "**",
+                     "title": "Independent tester", "updated_at": "2026-10-21T11:30:00Z"},
+                    {"number": 503, "draft": False, "body": "Work ID: `" + work_id + "`",
+                     "title": "Expired historical patch", "updated_at": "2026-10-19T01:00:00Z"},
+                    {"number": 504, "draft": False, "body": "Unassigned exploratory PR",
+                     "updated_at": "2026-10-21T11:30:00Z"},
+                ]
+            return self.request(path)
+        report = self.report(get=fake)
+        hints = report["prs"]["recent_same_work_id_hints"]
+        self.assertEqual(len(hints), 1)
+        self.assertEqual(hints[0]["work_id"], work_id)
+        self.assertEqual([p["pr"] for p in hints[0]["prs"]], [501, 502])
+        self.assertEqual([p["draft"] for p in hints[0]["prs"]], [False, True])
+        self.assertIn("NOT a lock", markdown(report))
+        self.assertIn("exact changed paths", markdown(report))
+
+    def test_unknown_or_single_pr_never_claims_no_collision(self):
+        def fake(path):
+            if "/pulls?state=open&" in path:
+                return [
+                    {"number": 501, "body": "Work ID: `UR-NOT-IN-BOARD-20261021`",
+                     "updated_at": "2026-10-21T11:30:00Z"},
+                    {"number": 502, "body": "Work ID: `UR-NOT-IN-BOARD-20261021`",
+                     "updated_at": "2026-10-21T11:30:00Z"},
+                    {"number": 503, "body": "Work ID: `" + self.board["work"][0]["work_id"] + "`",
+                     "updated_at": "malformed"},
+                ]
+            return self.request(path)
+        report = self.report(get=fake)
+        self.assertEqual(report["prs"]["recent_same_work_id_hints"], [])
+        self.assertNotIn("REVIEW possible same-work-ID PR overlap", markdown(report))
+
     def test_latest_actions_is_not_day_or_full_billing(self):
         result = self.report()
         self.assertEqual(result["actions"]["outcomes"]["cancelled"], 1)

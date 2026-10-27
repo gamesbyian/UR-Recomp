@@ -9,6 +9,7 @@ import argparse
 import json
 import re
 from collections import Counter
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -103,6 +104,61 @@ def extract_board(markdown):
             "selection": "ranked_shared_pool_top_five",
             "agents": [agents[n] for n in sorted(agents)],
             "work": [jobs[n] for n in sorted(jobs)]}
+
+
+
+def recommend_work(board, agent_number, cycle_date=None, busy_work_ids=()):
+    """Advisory, distinct first choices for five interchangeable workers.
+
+    All workers still review the same five ranked eligible jobs. Each UTC day,
+    their *first* candidate is a different member of that five-job cohort.
+    Rotation prevents a permanent agent specialty; existing active PR ownership
+    and observed source collisions always outrank this offline suggestion.
+
+    A busy primary falls back outside the other four workers' first choices.
+    Never treat this calculation as a lock, active-lease read, or release proof.
+    """
+    if type(agent_number) is not int or agent_number not in range(1, 6):
+        raise ValueError("agent number must be 1..5")
+    if cycle_date is None:
+        cycle_date = datetime.now(timezone.utc).date()
+    elif isinstance(cycle_date, str):
+        cycle_date = date.fromisoformat(cycle_date)
+    if not isinstance(cycle_date, date) or isinstance(cycle_date, datetime):
+        raise ValueError("cycle_date must be a calendar date")
+    eligible = [job for job in board["work"]
+                if job["state"] in {"ready", "in_review"}]
+    if len(eligible) < 5:
+        raise ValueError("five eligible jobs required for shared-pool recommendation")
+    busy_work_ids = set(busy_work_ids)
+    if not busy_work_ids.issubset({job["work_id"] for job in eligible}):
+        raise ValueError("busy work ID is not an eligible current board job")
+
+    cohort = eligible[:5]
+    slot = (cycle_date.toordinal() + agent_number - 1) % len(cohort)
+    primary = cohort[slot]
+    # A busy work ID is an *externally confirmed active writer*, not merely a
+    # historical branch, open PR, or pending independent acceptance.
+    # Do not borrow another agent's first-choice slot by default.
+    outside = [job for job in eligible[5:]
+               if job["work_id"] not in busy_work_ids]
+    fallback = (outside[(cycle_date.toordinal() + agent_number - 1) %
+                        len(outside)] if outside else None)
+    proposed = (primary if primary["work_id"] not in busy_work_ids
+                else fallback)
+    return {
+        "cycle_utc_date": cycle_date.isoformat(),
+        "candidate_jobs": cohort,
+        "first_choice": primary,
+        "recommended_job": proposed,
+        "outside_cohort_fallbacks": outside,
+        "busy_work_ids_supplied": sorted(busy_work_ids),
+        "selection_advisory": (
+            "NOT a lease, lock or assigned specialty. Confirm main, PR heads, "
+            "actual active file writes, prerequisite and highest-value closure. "
+            "Continue qualifying in-flight work rather than abandon it for "
+            "the rotating first choice. Do not self-award QA or fidelity.")
+    }
 
 
 def validate_registry(registry, board):
@@ -206,6 +262,10 @@ def main():
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
     parser.add_argument("--agent", type=int, choices=range(1, 6),
                         help="show shared top-five candidate jobs for the specified agent")
+    parser.add_argument("--cohort-date", type=str,
+                        help="UTC YYYY-MM-DD date for reproducible agent cohort; defaults to today")
+    parser.add_argument("--busy-work-id", action="append", default=[],
+                        help="eligible job with confirmed live conflicting writer; repeatable")
     parser.add_argument("--check", action="store_true", help="validate without displaying report")
     args = parser.parse_args()
     board = extract_board(args.board.read_text(encoding="utf-8"))
@@ -216,7 +276,8 @@ def main():
               f"{checked['candidates']} curated recovery candidates")
     elif args.agent is not None:
         selected = board["agents"][args.agent - 1]
-        selected["candidate_jobs"] = [job for job in board["work"] if job["state"] in {"ready", "in_review"}][:5]
+        selected.update(recommend_work(board, args.agent, args.cohort_date,
+                                       args.busy_work_id))
         print(json.dumps(selected, indent=2, ensure_ascii=False))
     elif args.format == "json":
         print(json.dumps({"board": board, "registry": registry, "validation": checked},

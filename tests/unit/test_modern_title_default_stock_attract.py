@@ -67,6 +67,7 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertIn("!p1_pad || !p2_pad", region)
         self.assertIn("p2_sdl_event_submitted=1", region)
         self.assertIn("p2_sdl_release_submitted=1", region)
+        self.assertIn("p2_sdl_callback_received=1", self.source)
         self.assertIn("p2_other_button_isolated=1", region)
 
 

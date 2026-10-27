@@ -1367,6 +1367,15 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     }
     // While the Modern title/root is visible, unjoined P2 cannot send
     // unrelated buttons into the hidden stock demo, even after a P2 wake.
+    // Diagnostic-only receipt of the SDL virtual seat-2 callback, distinct
+    // from successful event submission and the read-only guest word.
+    if (player == 1 && button == kGamepadBtn_B && g_visible &&
+        !g_two_seat_join.open() &&
+        std::getenv("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS")) {
+        std::fprintf(stderr,
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_callback_received=1 pressed=%d seat2_source=%d\n",
+            pressed != 0, snesrecomp_desktop_product_seat_source(1));
+    }
     if (player == 1 && g_visible && !g_two_seat_join.open())
         return 1;
     if (player == 1 && g_visible && g_two_seat_join.open()) {
@@ -2485,6 +2494,19 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // CI-only mode 22: unjoined P2 can wake true original demo, but does
     // not own P1 selection. A distinct P1 A remains required for root entry.
     if (std::strcmp(opt, "22") == 0) {
+        // Read-only original guest P2 word ($030F/$0310), not a host
+        // event-consumption claim. Probe after wake, release and an
+        // unrelated P2 B press, without changing guest or input state.
+        if (frame == 1599 || frame == 1601 || frame == 1603 || frame == 1643) {
+            const char* stage = frame == 1599 ? "baseline" :
+                frame == 1601 ? "after_wake" :
+                frame == 1603 ? "after_release" : "after_other";
+            const unsigned word = static_cast<unsigned>(g_ram[0x030fu]) |
+                (static_cast<unsigned>(g_ram[0x0310u]) << 8);
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=%s frame=%u value=%04x source=wr030f-0310\n",
+                stage, frame, word);
+        }
         // The historical direct-callback wake remains a control. In the
         // opt-in mapped-word witness, a *different* B arrives through a real
         // SDL3 virtual seat-2 device and the ordinary event pump.

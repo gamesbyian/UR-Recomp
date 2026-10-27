@@ -17,30 +17,45 @@ DEMO = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=00 race=
 
 
 class StockIdleAttractWitnessTest(unittest.TestCase):
-
     def test_actual_mapped_p2_word_must_remain_zero_after_sdl_b(self):
         sent = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_event_submitted=1 frame=1642"
-        release = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=1644"
+        down = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_callback_received=1 pressed=1 seat2_source=2"
+        released = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=1644"
+        up = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_callback_received=1 pressed=0 seat2_source=2"
         isolated = "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1645"
-        def sample(frame, incoming="c0000000", guest="c0000000", queued="0000"):
-            return (f"UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample={frame} "
+
+        def sample(index, incoming="c0000000", guest="c0000000",
+                   queued="0000", frame=None, owned=1):
+            if frame is None:
+                frame = index - 1
+            return (f"UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample={index} "
                     f"frame={frame} incoming={incoming} guest={guest} "
-                    f"queued={queued} host_owns=1")
-        good = "\n".join((sent, sample(1643), sample(1644), release,
-                          sample(1645), isolated))
+                    f"queued={queued} host_owns={owned}")
+
+        good = "\n".join((sent, down, sample(1643), sample(1644),
+                          released, up, sample(1645), isolated))
         self.assertTrue(verify_native_p2_mapped_input_isolation(good))
-        for bad in (
+        bad_cases = (
             good.replace(sample(1643), ""),
             good.replace(sample(1643), sample(1643, incoming="c0001000")),
             good.replace(sample(1644), sample(1644, guest="c0001000")),
             good.replace(sample(1645), sample(1645, queued="0001")),
+            good.replace(sample(1644), sample(1644, frame=1644)),
+            good.replace(sample(1644), sample(1644, owned=0)),
             good.replace(sample(1643), sample(1643) + "\n" + sample(1643)),
-            good.replace("host_owns=1", "host_owns=0"),
+            good + "\n" + sample(1644, owned=0),
             good.replace(sent, ""),
-            good.replace(release, ""),
+            good.replace(released, ""),
             good.replace(isolated, ""),
-            good.replace("frame=1644", "frame=1646"),
-        ):
+            good.replace(down, ""),
+            good.replace(up, ""),
+            good.replace(down, down + "\n" + down),
+            good.replace("seat2_source=2", "seat2_source=-1"),
+            good.replace(up, up.replace("seat2_source=2", "seat2_source=3")),
+            good.replace(down, "__DOWN__").replace(up, down).replace("__DOWN__", up),
+            good.replace(sample(1644), sample(1645)),
+        )
+        for bad in bad_cases:
             with self.subTest(bad=bad[-110:]), self.assertRaises(ValueError):
                 verify_native_p2_mapped_input_isolation(bad)
 
@@ -62,6 +77,8 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         workflow = (Path(__file__).resolve().parents[2] /
                     ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
         self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
+        self.assertIn("agent4/ur-ui-nav-p2-guest-word-20261026", workflow)
+        self.assertIn("agent3/ur-ui-nav-p2-sdl-word-20261026", workflow)
         self.assertIn("default_attract_args=(--default-attract)", workflow)
         self.assertIn("default_stock_attract_without_preview_override", workflow)
         self.assertIn("p2_other_button_isolated=1", workflow)
@@ -119,10 +136,20 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
              "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_consumed=1 frame=1600",
              "UR_MODERN_TITLE_STOCK_ATTRACT p2_then_p1_confirm=1 frame=1660"),
         ):
-            release = (
-                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
+            baseline = (
+                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=baseline frame=1599 value=0000 source=wr030f-0310",)
                 if route == "p2" else ())
-            good = "\n".join((*common, first, *release, confirm, *end))
+            release = (
+                (
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_wake frame=1601 value=0000 source=wr030f-0310",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_release frame=1603 value=0000 source=wr030f-0310",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1642",
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_other frame=1643 value=0000 source=wr030f-0310",
+                )
+                if route == "p2" else ())
+            good = "\n".join((*common[:-1], *baseline, common[-1],
+                              first, *release, confirm, *end))
             with self.subTest(route=route):
                 self.assertEqual(len(verify_source_driven_preview(
                     good, wake_route=route)), 3)
@@ -138,6 +165,24 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                         verify_source_driven_preview(good.replace(
                             "p2_wake_release_consumed=1",
                             "p2_wake_release_consumed=0"), wake_route="p2")
+                    # Host-consumed events are insufficient: independently
+                    # require unchanged actual guest P2 input bytes.
+                    for marker in (*baseline, *(line for line in release
+                                                 if "p2_guest_word" in line)):
+                        with self.subTest(marker=marker), self.assertRaisesRegex(
+                                ValueError, "wake"):
+                            verify_source_driven_preview(
+                                good.replace(marker, marker.replace(
+                                    "value=0000", "value=0001")),
+                                wake_route="p2")
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(
+                            good.replace(baseline[0], baseline[0] + "\n" + baseline[0]),
+                            wake_route="p2")
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(
+                            good + "\n" + baseline[0].replace("value=0000", "value=0001"),
+                            wake_route="p2")
         with self.assertRaisesRegex(ValueError, "unsupported"):
             verify_source_driven_preview("\n".join(common), wake_route="unknown")
 

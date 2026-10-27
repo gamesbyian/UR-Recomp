@@ -72,7 +72,8 @@ def verify_original_source_attract(log: str) -> list[dict[str, int | str]]:
 
 # The source did not change; only the host briefly revealed original
 # 256px game pixels, and consumed a P1 wake before accepting a later A.
-def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[str, int | str]]:
+def verify_source_driven_preview(log: str, wake_route: str = "p1",
+                                 mapped_p2: bool = False) -> list[dict[str, int | str]]:
     if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
         raise ValueError("preview missing real native game")
     markers = [
@@ -103,16 +104,36 @@ def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943",
         "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0",
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
+        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=baseline frame=1599 value=0000 source=wr030f-0310",)
+           if wake_route == "p2" else ())),
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
         wake,
-        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
-           if wake_route == "p2" else ())),
+        *(((
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_wake frame=1601 value=0000 source=wr030f-0310",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_release frame=1603 value=0000 source=wr030f-0310",
+            *((
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_other frame=1643 value=0000 source=wr030f-0310",
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1645",
+            ) if mapped_p2 else (
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1642",
+                "UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word stage=after_other frame=1643 value=0000 source=wr030f-0310",
+            )),
+        ) if wake_route == "p2" else ())),
         *((("UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=1640 root_unselected=1",)
            if wake_route == "p1" else ())),
         confirm,
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
         "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=1690 no_stock_route=1",
     )
+    if wake_route == "p2":
+        # An additional malformed/contradictory guest-word line must not
+        # hide behind four individually valid markers.
+        guest_words = re.findall(
+            r"^UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word[^\r\n]*",
+            log, re.MULTILINE)
+        if len(guest_words) != 4:
+            raise ValueError("missing, duplicate or extra P2 guest-word wake receipt")
     before = -1
     for line in required:
         if log.count(line) != 1 or log.find(line, before + 1) < 0:
@@ -127,42 +148,57 @@ P2_MAPPED_INPUT = re.compile(
     r"frame=(\d+) incoming=([0-9a-f]{8}) guest=([0-9a-f]{8}) "
     r"queued=([0-9a-f]{4}) host_owns=1$", re.MULTILINE
 )
+P2_CALLBACK = re.compile(
+    r"^UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_callback_received=1 "
+    r"pressed=([01]) seat2_source=(-?\d+)$", re.MULTILINE
+)
 
 
 def verify_native_p2_mapped_input_isolation(log: str) -> bool:
-    """Require real SDL P2 B submission AND mapped guest-word non-leakage.
+    """Require SDL seat-2 down/up callbacks and zero mapped guest input.
 
-    Host callback return values alone cannot prove this. The existing
-    human-word filter logs actual input BEFORE script/debug merge. A
-    zero P2 mask in both incoming and guest at 1643..1645 proves the
-    event did not reach the mapped guest input, not physical hardware QA.
+    Native sample=N precedes frame=N by one. The original source WRAM
+    check remains an independent witness in verify_source_driven_preview.
     """
     sent = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_event_submitted=1 frame=1642"
     released = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=1644"
     isolated = "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1645"
     if (log.count(sent) != 1 or log.count(released) != 1 or
-            log.count(isolated) != 1 or
-            not (log.index(sent) < log.index(released) < log.index(isolated))):
-        raise ValueError("missing or unordered real SDL P2 follow-up")
+            log.count(isolated) != 1):
+        raise ValueError("missing or duplicated SDL P2 submission/isolation")
+    callbacks = list(P2_CALLBACK.finditer(log))
+    if (len(callbacks) != 2 or [m[1] for m in callbacks] != ["1", "0"] or
+            int(callbacks[0][2]) < 0 or callbacks[0][2] != callbacks[1][2]):
+        raise ValueError("missing, duplicate or invalid SDL P2 B callbacks")
+    expected = {1643, 1644, 1645}
+    raw = re.findall(
+        r"^UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=(\d+)[^\r\n]*",
+        log, re.MULTILINE)
+    observed = [int(x) for x in raw if int(x) in expected]
+    if len(observed) != 3 or set(observed) != expected:
+        raise ValueError("missing, duplicate or malformed P2 mapped samples")
     samples = {}
     for match in P2_MAPPED_INPUT.finditer(log):
-        frame = int(match[2])
-        if frame not in (1643, 1644, 1645):
+        index, frame = int(match[1]), int(match[2])
+        if index not in expected:
             continue
-        if frame in samples:
-            raise ValueError("duplicate P2 mapped-input frame")
+        if frame != index - 1:
+            raise ValueError("P2 mapped sample/frame mismatch")
         incoming, guest, queued = (int(match[3], 16),
                                    int(match[4], 16), int(match[5], 16))
         if incoming & 0x00fff000 or guest & 0x00fff000 or queued:
-            raise ValueError("P2 input reached mapped word or stock queue")
+            raise ValueError("P2 input leaked to mapped word or stock queue")
         if guest & 0x00ffffff:
             raise ValueError("hidden guest received host-owned input")
-        samples[frame] = match.start()
-    if set(samples) != {1643, 1644, 1645}:
-        raise ValueError("missing mapped P2 guest-word witness")
-    if not (log.index(sent) < samples[1643] < log.index(released) <
-            samples[1645] < log.index(isolated)):
-        raise ValueError("mapped P2 guest-word witness not bound to SDL edge")
+        samples[index] = match.start()
+    if set(samples) != expected:
+        raise ValueError("mapped P2 samples failed strict ownership parse")
+    down, up = callbacks
+    if not (log.index(sent) < down.start() < samples[1644] <
+            log.index(released) < up.start() < samples[1645] <
+            log.index(isolated) and
+            log.index(sent) < samples[1643] < samples[1644]):
+        raise ValueError("SDL P2 callback/sample chronology mismatch")
     return True
 
 
@@ -448,8 +484,7 @@ def main() -> int:
                 "inspect retained native-profile-bootstrap.log")
         env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
         env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
-    # Ambient diagnostics must never silently turn a legacy P2 control
-    # into the SDL mapped-word witness.
+    # The historical P2 control must not inherit ambient diagnostic flags.
     env.pop("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", None)
     if args.preview_wake and args.default_attract and args.wake_route == "p2":
         env["UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS"] = "1"
@@ -484,7 +519,9 @@ def main() -> int:
     observed = (
         verify_named_original_play_after_recovery(log) if args.named_play
         else verify_source_driven_recovery(log) if args.recovery
-        else verify_source_driven_preview(log, wake_route=args.wake_route) if args.preview_wake
+        else verify_source_driven_preview(
+            log, wake_route=args.wake_route,
+            mapped_p2=args.default_attract and args.wake_route == "p2") if args.preview_wake
         else verify_original_source_attract(log))
     p2_mapped_verified = (
         verify_native_p2_mapped_input_isolation(log)

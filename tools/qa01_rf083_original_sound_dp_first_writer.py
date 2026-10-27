@@ -27,6 +27,12 @@ static unsigned long long rf083_early_seq;
 static unsigned long long rf083_seq;
 static unsigned rf083_word_rows;
 static unsigned rf083_inc16_rows;
+/* RF089: optional original opcode/branch witness for the last Zoo seek to
+ * first sound-data increment. No extra APU bus reads, guest writes or ticks.
+ * A CMP's P/Z and the following BNE's next PC reveal echo retry outcomes,
+ * but do not disclose the actual returned SPC port byte. */
+static unsigned rf089_rows, rf089_a0, rf089_p0;
+static int rf089_target;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){
     unsigned *rows=rf083_early ? &rf083_early_rows : &rf083_rows;
@@ -67,6 +73,17 @@ static void rf083_pre(uint8 opcode){
     rf083_frame=(unsigned)ICPU.Frame;
     rf083_pc=((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw;
     rf083_op=opcode;
+    const char *rf089_flag=getenv("UR_QA01_RF089_ORIGINAL_ECHO");
+    rf089_target=rf083_early && frame>=6055u && frame<=6056u &&
+        rf089_flag && rf089_flag[0]=='1' && rf089_flag[1]=='\0' &&
+        Memory.RAM[0x63u]==0xB0u && Memory.RAM[0x64u]==0xC6u &&
+        (rf083_pc==0x0282A9u || rf083_pc==0x0282F2u ||
+         rf083_pc==0x0282F6u || rf083_pc==0x028301u ||
+         rf083_pc==0x028304u);
+    if(rf089_target){
+        rf089_a0=(unsigned)Registers.A.W;
+        rf089_p0=(unsigned)Registers.PL;
+    }
     rf083_v=(unsigned)CPU.V_Counter;
     rf083_h=(int)CPU.Cycles;
     rf083_seen=0u;
@@ -144,6 +161,23 @@ void rf083_setbyte_entry(uint8 value,uint32 address){
 }
 static void rf083_post(void){
     if(!rf083_active) return;
+    if(rf089_target){
+        if(++rf089_rows<=32768u){
+            fprintf(stderr,
+              "QA01RF089ORIG seq=%u frame=%u pc=%06X op=%02X"
+              " pre_v=%u pre_h=%d post_v=%u post_h=%d"
+              " a0=%04X a1=%04X p0=%02X p1=%02X"
+              " next=%06X ptr=%02X%02X clock=original_cpu\n",
+              rf089_rows,rf083_frame,rf083_pc,rf083_op,
+              rf083_v,rf083_h,(unsigned)CPU.V_Counter,(int)CPU.Cycles,
+              rf089_a0,(unsigned)Registers.A.W,
+              rf089_p0,(unsigned)Registers.PL,
+              ((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw,
+              (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
+        } else if(rf089_rows==32769u){
+            fprintf(stderr,"QA01RF089ORIG_TRUNCATED\\n");
+        }
+    }
     for(unsigned i=0;i<4u;++i){
         unsigned value=(unsigned)Memory.RAM[rf083_slots[i]];
         if(value!=rf083_before[i])

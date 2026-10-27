@@ -98,6 +98,7 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
             self.assertIn("one physical controller", notes)
             self.assertIn("TWO distinct controllers", notes)
             self.assertIn("Do not send ROMs, SRAM", notes)
+            self.assertIn("WINDOWS-PLAYTEST-RESULTS-TEMPLATE.md", notes)
             self.assertFalse(any(line.startswith(r"\\n") for line in notes.splitlines()))
             data = json.loads(
                 (root / "playtest-output/PLAYTEST-PROVENANCE.json").read_text()

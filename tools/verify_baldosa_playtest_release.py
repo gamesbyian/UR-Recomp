@@ -169,6 +169,9 @@ def prepare(*, exported: Path, candidate: Path, binding_root: Path,
         "Full current-build instructions and criterion mapping: "
         "https://github.com/gamesbyian/UR-Recomp/blob/main/docs/"
         "WINDOWS-PLAYTEST-INSTRUCTIONS.md\n\n"
+        "Copy the single-candidate H01-H07 results sheet before the session: "
+        "https://github.com/gamesbyian/UR-Recomp/blob/main/docs/"
+        "WINDOWS-PLAYTEST-RESULTS-TEMPLATE.md\n\n"
         "This provisional preview does not independently certify any of the "
         "12 formal release gates or 45 original/native event matches.\n",
         encoding="utf-8",

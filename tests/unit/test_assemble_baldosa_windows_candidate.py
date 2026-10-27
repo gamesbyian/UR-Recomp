@@ -238,6 +238,46 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         # This check is an early fail-closed diagnostic, not evidence of
         # full-volume short-write or electrical-outage resilience.
 
+    def test_launcher_isolates_windows_powershell_from_pwsh7_module_paths(self):
+        script = candidate.launcher().decode("utf-8")
+        # The child process must use the Windows PowerShell 5.1 default
+        # module path, not a PowerShell 7-only inherited PSModulePath.
+        self.assertEqual(script.count('set "PSModulePath="'), 1)
+        self.assertLess(script.index("setlocal DisableDelayedExpansion"),
+                        script.index('set "PSModulePath="'))
+        self.assertLess(script.index('set "PSModulePath="'),
+                        script.index("powershell.exe -NoProfile"))
+        self.assertLess(script.index('set "PSModulePath="'),
+                        script.index("Get-FileHash"))
+        self.assertIn("Get-FileHash", script)
+        self.assertIn("UR-BALDOSA-STARTUP-ROM-INVALID", script)
+        self.assertIn("UR-BALDOSA-STARTUP-PREFLIGHT", script)
+
+    @unittest.skipUnless(os.name == "nt", "requires Windows PowerShell 5.1")
+    def test_win32_pwsh7_inherited_module_path_still_rejects_bad_rom(self):
+        # A deliberately invalid ROM stops before any guest executable runs.
+        # Its exit must be ROM-INVALID (2), never module-import/PREFLIGHT (3).
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "game package"
+            package.mkdir()
+            launcher = package / candidate.LAUNCHER
+            launcher.write_bytes(candidate.launcher())
+            (package / candidate.ROM).write_bytes(b"invalid USA ROM fixture")
+            user_root = root / "user state"
+            env = os.environ.copy()
+            env["PSModulePath"] = str(root / "PowerShell-7-only" / "Modules")
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_root)
+            env["UR_BALDOSA_NO_HOLD"] = "1"
+            result = subprocess.run(
+                f'"{launcher}"', shell=True, cwd=package, env=env,
+                text=True, capture_output=True, timeout=40)
+            output = result.stdout + result.stderr
+            self.assertEqual(result.returncode, 2, output)
+            self.assertIn("UR-BALDOSA-STARTUP-ROM-INVALID", output)
+            self.assertNotIn("UR-BALDOSA-STARTUP-PREFLIGHT", output)
+            self.assertFalse(user_root.exists())
+
     @unittest.skipUnless(os.name == "nt", "requires real Windows ACLs")
     def test_win32_acl_denies_staging_before_guest_launch(self):
         # The repository's private ROM remains local to the Windows runner.

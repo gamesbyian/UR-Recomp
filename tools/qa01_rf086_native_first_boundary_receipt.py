@@ -36,6 +36,7 @@ def audit(raw: bytes) -> dict:
         raise ValueError("RF086 native post-commit stream truncated")
     rows = []
     counts = {1: 0, 2: 0}
+    boundary_counts = {1: 0, 2: 0}  # Native host frame 6058 only.
     labels = {}
     first = None
     mismatches = 0
@@ -56,15 +57,18 @@ def audit(raw: bytes) -> dict:
         if rows and (frame < rows[-1]["frame"] or
                      (frame == rows[-1]["frame"] and master < rows[-1]["master"])):
             raise ValueError("RF086 native master/frame chronology reversed")
-        if first is None and frame == 6058:
-            first = {"seq": seq, "scope_label_advisory": scope, "width": width,
-                     "old": old, "supplied": supplied, "raw_after": after,
-                     "native_master": master}
+        if frame == 6058:
+            boundary_counts[width] += 1
+            if first is None:
+                first = {"seq": seq, "scope_label_advisory": scope, "width": width,
+                         "old": old, "supplied": supplied, "raw_after": after,
+                         "native_master": master}
         mismatches += after != supplied
         counts[width] += 1
         labels[scope] = labels.get(scope, 0) + 1
         rows.append({"frame": frame, "master": master})
-    if not rows or len(rows) > 8192 or first is None or not all(counts.values()):
+    if (not rows or len(rows) > 8192 or first is None or
+            not all(boundary_counts.values())):
         raise ValueError("RF086 missing actual first-boundary pointer/counter commits")
     return {
         "schema_version": 2,
@@ -73,6 +77,8 @@ def audit(raw: bytes) -> dict:
         "native_postcommit_rows": len(rows),
         "native_pointer16_commits": counts[2],
         "native_counter8_commits": counts[1],
+        "native_first_boundary_pointer16_commits": boundary_counts[2],
+        "native_first_boundary_counter8_commits": boundary_counts[1],
         "native_scope_labels_advisory": labels,
         "source_function_attribution_proven": False,
         "native_first_boundary_postcommit": first,

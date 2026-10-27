@@ -86,10 +86,24 @@ class FirstBoundaryBusCommitTests(unittest.TestCase):
         self.assertFalse(result["source_function_attribution_proven"])
         self.assertEqual(result["native_pointer16_commits"], 2)
         self.assertEqual(result["native_counter8_commits"], 1)
+        self.assertEqual(result["native_first_boundary_pointer16_commits"], 2)
+        self.assertEqual(result["native_first_boundary_counter8_commits"], 1)
         self.assertEqual(result["release_credit"], 0)
         lines[0] = row(1, names[0], after_override=0xB2)
         self.assertEqual(receipt.audit(("\n".join(lines) + "\n").encode())
                          ["raw_after_mismatch_count"], 1)
+
+    def test_later_counter_cannot_masquerade_as_boundary_counter(self):
+        names = list(receipt.SITES)
+        rows = [
+            row(1, names[0], frame=6058, master=1000),
+            row(2, names[1], frame=6058, master=1001),
+            row(3, names[2], frame=6059, master=1002),
+        ]
+        # Both widths occur in the complete stream, but only the pointer
+        # commits at the first-divergence host frame. Must fail closed.
+        with self.assertRaisesRegex(ValueError, "first-boundary"):
+            receipt.audit(("\\n".join(rows) + "\\n").encode())
 
     def test_missing_truncated_malformed_and_reordered_fail(self):
         names = list(receipt.SITES)

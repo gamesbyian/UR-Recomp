@@ -207,17 +207,20 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "already exist"):
                 self.prepare(root)
 
-    def test_manual_workflow_has_no_automatic_builds_and_requires_explicit_publish(self):
+    def test_only_main_marker_or_manual_dispatch_and_explicit_publish(self):
         text = (ROOT / ".github/workflows/manual-romfree-windows-playtest.yml"
                 ).read_text(encoding="utf-8")
         self.assertIn("  workflow_dispatch:", text)
         self.assertNotIn("  pull_request:", text)
-        self.assertNotIn("  push:", text)
+        self.assertIn("  push:", text)
+        self.assertIn("    branches: [main]", text)
+        self.assertIn('      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"', text)
         self.assertNotIn("  schedule:", text)
         self.assertIn("export_campaign_inputs: true", text)
         self.assertIn("uses: ./.github/workflows/baldosa-windows-native-bridge.yml", text)
         self.assertIn("default: verify_only", text)
         self.assertIn("inputs.mode == 'publish_provisional_preview'", text)
+        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.mode == 'publish_provisional_preview'", text)
         self.assertIn("contents: write", text)
         self.assertIn("--prerelease --latest=false", text)
 

@@ -28,6 +28,17 @@ OPERATIONS_ONLY = frozenset({
     "tests/unit/test_validate_history_custody.py",
     "tests/unit/test_backup_main_history.py",
 })
+# These specific documents are dispatch CONTEXT, not executable product or
+# release configuration. A PR changing them alongside only the isolated ops
+# tools above needs the existing agent-control/custody regression, not all 5k+
+# product/graphics/native tests. Keep the list exact and deliberately tiny.
+# The shared board is exercised by the focused test_agent_control suite.
+OPS_CONTEXT_DOCS = frozenset({
+    "docs/AGENT-COORDINATION.md",
+    "docs/HOURLY-AGENT-LINES.md",
+    "docs/WORK-QUEUE.md",
+})
+OPERATIONS_ONLY = OPERATIONS_ONLY | OPS_CONTEXT_DOCS
 FOCUSED_TEST_MODULES = (
     "tests.unit.test_agent_control",
     "tests.unit.test_ops_live_status",

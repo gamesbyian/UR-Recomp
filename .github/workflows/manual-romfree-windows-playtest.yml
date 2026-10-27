@@ -28,8 +28,35 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  qualify_request:
+    # Zero Windows runners start before an intentional source-isolated request.
+    # Manual dispatch is still explicitly authorized; only the main-only push
+    # trigger must advance the marker sequence.
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify explicit single-file build request before Windows expense
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            git show "${GITHUB_SHA}^:docs/playtest/REQUEST-WINDOWS-PLAYTEST.md" > "$RUNNER_TEMP/previous-playtest-request.md"
+            python3 tools/ci_playtest_request_guard.py \
+              --previous "$RUNNER_TEMP/previous-playtest-request.md" \
+              --current docs/playtest/REQUEST-WINDOWS-PLAYTEST.md \
+              --source-sha "$GITHUB_SHA"
+          else
+            test "$GITHUB_EVENT_NAME" = workflow_dispatch
+            echo "PASS: explicit operator workflow_dispatch on main; no marker increment required"
+          fi
   tested_candidate:
-    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
+    needs: qualify_request
+    if: ${{ needs.qualify_request.result == 'success' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
     uses: ./.github/workflows/baldosa-windows-native-bridge.yml
     with:
       export_campaign_inputs: true

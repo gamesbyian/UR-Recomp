@@ -105,6 +105,10 @@ def audit_original(raw: bytes) -> dict:
             if kind == "opcode_delta" and key in sites:
                 if opcode != "E6":
                     raise ValueError("RF083 original sound increment opcode changed")
+                # The RF083 producer emits opcode_delta only after an actual
+                # byte change. Reject a syntactically plausible no-op receipt.
+                if rest[5] == rest[6]:
+                    raise ValueError("RF083 original opcode_delta has unchanged byte")
                 sites[key] += 1
     if hearts != list(range(6069, 6080)) or not count or not all(sites.values()):
         raise ValueError("RF083 original internal-frame/actual opcode coverage incomplete")

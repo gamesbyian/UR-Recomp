@@ -18,8 +18,8 @@ or claim a USA-event pass.
 
 ## Next research request
 
-- Request sequence: **3** (single source-bound RF083/RF084 Zoo campaign after full original-core header-dependent rebuild #2702)
-- Requested reason: Re-run exactly one original/native Zoo RF083/RF084 writer case on merged #2702, after source-exact run #40474888477 failed because patched cpumacro.h/getset.h were relinked against stale cpuops.o. The repaired workflow cleans every original core object after staging and rebuilds the instrumented cpuops.cpp; independently verify actual recompilation, real original INC16 post-write rows, native RF084 writer rows, observer-off controls and all 13 raw +5034..+5046 WRAM/SRAM pairs. Stop as producer failure if original observer rows remain absent; do not relax acceptance predicates or claim complete-event parity.
+- Request sequence: **4** (first source-bound RF085 early original Zoo boundary writer campaign after merged #2705)
+- Requested reason: Run exactly one original/native Zoo RF083/RF084 case on merged early-window observer #2705 (squash ab1d18c79c64311220c96f60f0584ac34d797683). The previous successful run #40480270697 only observed original internal frames 6069–6079, after the genuine +5039/+5040 first WRAM divergence. Capture new QA01RF085EARLY original 6051–6065 heartbeats and pre/post opcode DP deltas at original 6056/6057, compare actual earliest committed $0063/$0064/$0069 changes against native RF084 6058/6059 and 13 full-WRAM/SRAM pairs. Independently verify source/ELF identities, actual rebuilt observer, row chronology, no truncation, late RF083 regression controls and observer-off equivalence; if no early DP writer exists, preserve the complete negative and stop instead of speculating about clock timing. No release or USA event credit.
 - Requested by: Project engineering agent, under owner autonomous engineering direction
 - Evidence scope: source-bound Zoo writer-entry, 13 raw DP/WRAM pairs, original/native divergence; independent review required
 - Release gate credit: **0**

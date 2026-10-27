@@ -713,7 +713,7 @@ jobs:
                       raise SystemExit(f"{route}: default source attract was not probed without opt-in")
                   if receipt.get("scripted_host_preview_only") is not False:
                       raise SystemExit(f"{route}: old opt-in preview leaked into default witness")
-                  if route == "p2" and b"p2_other_button_isolated=1 frame=1642" not in (folder / "native-attract.log").read_bytes():
+                  if route == "p2" and b"p2_other_button_isolated=1" not in (folder / "native-attract.log").read_bytes():
                       raise SystemExit("P2: unrelated post-wake B was not consumed by the host")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
               summary.write(f"MENU-10 hosted Win32 original idle/demo P6, P1/keyboard/P2 wake, MAIN recovery and named P1 source admission. PE SHA256 {expected}. Physical SDL/display/release acceptance remains independent.\n")

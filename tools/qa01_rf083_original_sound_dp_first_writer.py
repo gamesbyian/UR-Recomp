@@ -91,14 +91,14 @@ unsigned rf083_inc16_watch(uint32 address){
 void rf083_inc16_commit(uint32 address,uint16 supplied,int wrap,unsigned before){
     if(++rf083_inc16_rows>8192u){
         if(rf083_inc16_rows==8193u)
-            fprintf(stderr,"QA01RF083ORIG_INC16_TRUNCATED\\n");
+            fprintf(stderr,"QA01RF083ORIG_INC16_TRUNCATED\n");
         return;
     }
     const unsigned after=(unsigned)Memory.RAM[0x63u] |
                          ((unsigned)Memory.RAM[0x64u]<<8);
     fprintf(stderr,
       "QA01RF083ORIG_INC16 seq=%u frame=%u pc=%06X addr=%06X"
-      " wrap=%d old=%04X supplied=%04X rawAfter=%04X\\n",
+      " wrap=%d old=%04X supplied=%04X rawAfter=%04X\n",
       rf083_inc16_rows,rf083_frame,rf083_pc,(unsigned)(address&0xffffffu),
       wrap,before,(unsigned)supplied,after);
 }
@@ -138,21 +138,21 @@ MACRO_INC16 = """static inline void INC16 (uint32 OpAddress, s9xwrap_t w)
 \tOpenBus = Work16 & 0xff;
 \tSetZN(Work16);
 }"""
-MACRO_DECL = ("extern unsigned rf083_inc16_watch(uint32);\\n"
-              "extern void rf083_inc16_commit(uint32,uint16,int,unsigned);\\n")
+MACRO_DECL = ("extern unsigned rf083_inc16_watch(uint32);\n"
+              "extern void rf083_inc16_commit(uint32,uint16,int,unsigned);\n")
 
 def patch_macro(macro: str) -> str:
     if "rf083_inc16_watch" in macro or macro.count(MACRO_INC16) != 1:
         raise ValueError("RF083 original INC16 source drift or already staged")
     changed = MACRO_INC16.replace(
         "\tAddCycles(ONE_CYCLE);",
-        "\tconst unsigned rf083_watch = rf083_inc16_watch(OpAddress);\\n"
-        "\tconst unsigned rf083_before = rf083_watch ?\\n"
-        "\t    ((unsigned)Memory.RAM[0x63u] |\\n"
-        "\t     ((unsigned)Memory.RAM[0x64u] << 8)) : 0u;\\n"
+        "\tconst unsigned rf083_watch = rf083_inc16_watch(OpAddress);\n"
+        "\tconst unsigned rf083_before = rf083_watch ?\n"
+        "\t    ((unsigned)Memory.RAM[0x63u] |\n"
+        "\t     ((unsigned)Memory.RAM[0x64u] << 8)) : 0u;\n"
         "\tAddCycles(ONE_CYCLE);").replace(
         "\tOpenBus = Work16 & 0xff;",
-        "\tif (rf083_watch) rf083_inc16_commit(OpAddress, Work16, (int)w, rf083_before);\\n"
+        "\tif (rf083_watch) rf083_inc16_commit(OpAddress, Work16, (int)w, rf083_before);\n"
         "\tOpenBus = Work16 & 0xff;")
     result = macro.replace(MACRO_INC16, MACRO_DECL + changed, 1)
     if (result.count("rf083_inc16_commit(OpAddress, Work16") != 1 or

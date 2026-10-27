@@ -41,6 +41,70 @@ ORIG_INC16 = re.compile(
 )
 
 
+
+# The original +5039/+5040 boundary precedes RF083's late INC16 window.
+# Capture it separately, retaining the existing proven late stream unchanged.
+EARLY_ROW = re.compile(ORIG_ROW.pattern.replace("QA01RF083ORIG", "QA01RF085EARLY"))
+EARLY_HEART = re.compile(
+    r"^QA01RF085EARLY_HEART frame=(\d+) v=(\d+) h=(-?\d+)$"
+)
+
+
+def audit_early(raw: bytes) -> dict:
+    lines = raw.decode("utf-8", errors="strict").splitlines()
+    if any("QA01RF085EARLY_TRUNCATED" in line for line in lines):
+        raise ValueError("original early DP stream truncated")
+    hearts = []
+    count = 0
+    changed = {f"{addr:04X}": 0 for addr in (0x63, 0x64, 0x65, 0x69)}
+    first = None
+    boundary = None
+    previous_frame = 0
+    for line in lines:
+        if line.startswith("QA01RF085EARLY_HEART"):
+            match = EARLY_HEART.fullmatch(line)
+            if not match:
+                raise ValueError("malformed early original heartbeat")
+            hearts.append(int(match.group(1)))
+        elif line.startswith("QA01RF085EARLY "):
+            match = EARLY_ROW.fullmatch(line)
+            if not match:
+                raise ValueError("malformed early original DP observation")
+            seq, kind, frame, pc, opcode, pre_v, pre_h, post_v, post_h, slot, old, new, seen, addr, val = match.groups()
+            frame = int(frame)
+            count += 1
+            if (int(seq) != count or not 6051 <= frame <= 6065 or
+                frame < previous_frame or slot not in changed):
+                raise ValueError("early original DP chronology/identity invalid")
+            previous_frame = frame
+            if kind == "opcode_delta":
+                if old == new:
+                    raise ValueError("early original DP no-op falsely marked committed")
+                changed[slot] += 1
+                event = {"frame": frame, "pc": pc, "opcode": opcode,
+                         "slot": slot, "before": old, "after": new,
+                         "pre_v": int(pre_v), "pre_h": int(pre_h),
+                         "post_v": int(post_v), "post_h": int(post_h)}
+                if first is None:
+                    first = event
+                if boundary is None and frame in (6056, 6057):
+                    boundary = event
+    if hearts != list(range(6051, 6066)) or count > 8192:
+        raise ValueError("original early boundary producer coverage incomplete")
+    return {
+        "original_early_log_sha256": hashlib.sha256(raw).hexdigest(),
+        "original_early_heartbeats": hearts,
+        "original_early_observations": count,
+        "original_early_changes_by_slot": changed,
+        "original_early_first_change": first,
+        "original_early_first_boundary_change": boundary,
+        "original_early_boundary_covered": True,
+        "original_native_clock_registration_proven": False,
+        "original_native_first_writer_parity_proven": False,
+        "release_credit": 0,
+    }
+
+
 def audit(raw: bytes) -> dict:
     text = raw.decode("utf-8", errors="strict")
     lines = text.splitlines()
@@ -174,6 +238,7 @@ def main() -> None:
         parser.error("real replay original log absent or symlinked")
     report = audit(args.native_log.read_bytes())
     report.update(audit_original(args.original_log.read_bytes()))
+    report.update(audit_early(args.original_log.read_bytes()))
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("QA01_RF084_NATIVE_WRITER_RECEIPT=" + json.dumps(report, sort_keys=True))
 

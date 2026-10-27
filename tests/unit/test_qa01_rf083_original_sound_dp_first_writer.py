@@ -66,6 +66,12 @@ class RF083Source(unittest.TestCase):
                         patched.index("rf083_inc16_commit(OpAddress, Work16", inc_start))
         self.assertIn("QA01RF083ORIG_INC16_TRUNCATED", m.C)
         self.assertIn("rawAfter=%04X", m.C)
+        self.assertIn("QA01RF085EARLY_HEART", m.C)
+        self.assertIn("QA01RF085EARLY", m.C)
+        self.assertIn("6051u", m.C)
+        self.assertIn("6065u", m.C)
+        self.assertIn("!rf083_early && rf083_pc==0x828154u", m.C)
+        self.assertIn("rf083_early ? &rf083_early_seq : &rf083_seq", m.C)
         with self.assertRaisesRegex(ValueError, "already staged"):
             m.patch_macro(patched)
         with self.assertRaisesRegex(ValueError, "drift"):

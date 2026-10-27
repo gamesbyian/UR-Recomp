@@ -17,33 +17,48 @@ OP="\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 BYTE="inline void S9xSetByte (uint8 Byte, uint32 Address)\n{\n"
 WORD="inline void S9xSetWord (uint16 Word, uint32 Address, enum s9xwrap_t w = WRAP_NONE, enum s9xwriteorder_t o = WRITE_01)\n{\n"
 C=r'''/* UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER */
-static int rf083_active;
+static int rf083_active,rf083_early;
 static unsigned rf083_pc,rf083_op,rf083_frame,rf083_v;
 static int rf083_h;
 static unsigned rf083_before[4],rf083_seen,rf083_addr,rf083_value;
 static unsigned rf083_last_frame=0xffffffffu,rf083_rows;
+static unsigned rf083_early_last_frame=0xffffffffu,rf083_early_rows;
+static unsigned long long rf083_early_seq;
 static unsigned long long rf083_seq;
 static unsigned rf083_word_rows;
 static unsigned rf083_inc16_rows;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){
-    if(++rf083_rows>8192u){
-        if(rf083_rows==8193u) fprintf(stderr,"QA01RF083ORIG_TRUNCATED\n");
+    unsigned *rows=rf083_early ? &rf083_early_rows : &rf083_rows;
+    unsigned long long *seq=rf083_early ? &rf083_early_seq : &rf083_seq;
+    const char *prefix=rf083_early ? "QA01RF085EARLY" : "QA01RF083ORIG";
+    if(++*rows>8192u){
+        if(*rows==8193u){
+            if(rf083_early)
+                fprintf(stderr,"QA01RF085EARLY_TRUNCATED\n");
+            else
+                fprintf(stderr,"QA01RF083ORIG_TRUNCATED\n");
+        }
         return;
     }
     fprintf(stderr,
-      "QA01RF083ORIG seq=%llu type=%s frame=%u pc=%06X op=%02X"
+      "%s seq=%llu type=%s frame=%u pc=%06X op=%02X"
       " pre_v=%u pre_h=%d post_v=%u post_h=%d"
       " slot=%04X old=%02X new=%02X setterCount=%u"
       " setterAddr=%06X setterVal=%02X clock=original_cpu\n",
-      ++rf083_seq,type,rf083_frame,rf083_pc,rf083_op,rf083_v,rf083_h,
+      prefix,++*seq,type,rf083_frame,rf083_pc,rf083_op,rf083_v,rf083_h,
       (unsigned)CPU.V_Counter,(int)CPU.Cycles,rf083_slots[slot],old,now,
       rf083_seen,rf083_addr,rf083_value);
 }
 static void rf083_pre(uint8 opcode){
-    rf083_active=((unsigned)ICPU.Frame>=6069u &&
-                  (unsigned)ICPU.Frame<=6079u &&
-                  getenv("UR_QA01_RF083_ZOO_DP")!=NULL);
+    const unsigned frame=(unsigned)ICPU.Frame;
+    const int in_window=(frame>=6051u && frame<=6065u) ||
+                        (frame>=6069u && frame<=6079u);
+    const int enabled=in_window && getenv("UR_QA01_RF083_ZOO_DP")!=NULL;
+    /* Original internal 6051..6065 covers Zoo +5034..+5048.
+     * Retain the existing 6069..6079 writer stream separately. */
+    rf083_early=enabled && frame>=6051u && frame<=6065u;
+    rf083_active=enabled;
     if(!rf083_active) return;
     rf083_frame=(unsigned)ICPU.Frame;
     rf083_pc=((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw;
@@ -53,7 +68,13 @@ static void rf083_pre(uint8 opcode){
     rf083_seen=0u;
     rf083_addr=0xffffffffu;
     rf083_value=0u;
-    if(rf083_last_frame!=rf083_frame){
+    if(rf083_early){
+        if(rf083_early_last_frame!=rf083_frame){
+            rf083_early_last_frame=rf083_frame;
+            fprintf(stderr,"QA01RF085EARLY_HEART frame=%u v=%u h=%d\n",
+                    rf083_frame,rf083_v,rf083_h);
+        }
+    } else if(rf083_last_frame!=rf083_frame){
         rf083_last_frame=rf083_frame;
         fprintf(stderr,"QA01RF083ORIG_HEART frame=%u v=%u h=%d\n",
                 rf083_frame,rf083_v,rf083_h);
@@ -65,7 +86,7 @@ static void rf083_pre(uint8 opcode){
  * This entry is NOT proof of commit; post-opcode raw RAM deltas are separate.
  * No additional guest bus read or write is performed. */
 void rf083_setword_entry(uint16 word,uint32 address,int wrap,int order){
-    if(!rf083_active || rf083_pc!=0x828154u ||
+    if(!rf083_active || rf083_early || rf083_pc!=0x828154u ||
        (address&0xffffu)!=0x0063u) return;
     if(++rf083_word_rows>8192u){
         if(rf083_word_rows==8193u)
@@ -86,7 +107,7 @@ void rf083_setword_entry(uint16 word,uint32 address,int wrap,int order){
  * after its existing S9xSetWord without an additional guest bus operation.
  * The call-site watch is captured before AddCycles can process H-events. */
 unsigned rf083_inc16_watch(uint32 address){
-    return rf083_active && rf083_pc==0x828154u;
+    return rf083_active && !rf083_early && rf083_pc==0x828154u;
 }
 void rf083_inc16_commit(uint32 address,uint16 supplied,int wrap,unsigned before){
     if(++rf083_inc16_rows>8192u){

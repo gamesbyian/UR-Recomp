@@ -82,6 +82,32 @@ class NativeRF084Receipt(unittest.TestCase):
             with self.subTest(bad=bad[-90:]), self.assertRaises(ValueError):
                 m.audit_original(bad.encode())
 
+    def test_early_first_divergence_window_and_strict_negative_controls(self):
+        hearts = "".join(f"QA01RF085EARLY_HEART frame={f} v=0 h=0\n"
+                         for f in range(6051, 6066))
+        def event(seq, frame, slot, old, new):
+            return (f"QA01RF085EARLY seq={seq} type=opcode_delta frame={frame} "
+                    f"pc=828154 op=E6 pre_v=100 pre_h=20 post_v=100 post_h=26 "
+                    f"slot={slot} old={old} new={new} setterCount=0 "
+                    f"setterAddr=FFFFFFFF setterVal=00 clock=original_cpu\n")
+        rows = event(1, 6056, "0063", "B0", "73") + event(2, 6057, "0069", "9F", "BE")
+        report = m.audit_early((hearts + rows).encode())
+        self.assertEqual(report["original_early_changes_by_slot"]["0063"], 1)
+        self.assertEqual(report["original_early_first_boundary_change"]["frame"], 6056)
+        self.assertFalse(report["original_native_first_writer_parity_proven"])
+        self.assertEqual(report["release_credit"], 0)
+        # Zero actual changes is allowed with 15 heartbeats: an absent writer
+        # is a negative observation, never fabricated source execution.
+        self.assertIsNone(m.audit_early(hearts.encode())["original_early_first_change"])
+        for bad in (rows, hearts.replace("frame=6065", "frame=6064") + rows,
+                    hearts + rows + "QA01RF085EARLY_TRUNCATED\n",
+                    hearts + rows.replace("seq=2", "seq=3"),
+                    hearts + rows.replace("slot=0069", "slot=00FF"),
+                    hearts + rows.replace("new=BE", "new=9F"),
+                    hearts + rows.replace("frame=6057", "frame=6066")):
+            with self.subTest(bad=bad[-90:]), self.assertRaises(ValueError):
+                m.audit_early(bad.encode())
+
     def test_manual_campaign_stages_after_regeneration_and_retains_real_log(self):
         workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text()
         self.assertEqual(workflow.count("      qa01_rf084_native_sound_dp:"), 2)

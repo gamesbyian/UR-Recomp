@@ -128,7 +128,19 @@ def encode_segment(input_path, path, frames, still=False):
     cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y"]
     if still:
         cmd += ["-loop", "1", "-framerate", str(FPS)]
-    cmd += ["-i", input_path, "-an", "-frames:v", str(frames), "-vf", "fps=60,scale=1920:1080:flags=lanczos,format=yuv420p",
+    video_filter = "fps=60,scale=1920:1080:flags=lanczos,format=yuv420p"
+    if not still:
+        # Historical source graphics sometimes call the early 4x technical
+        # prototype "approved". Likeness approval was subsequently revoked.
+        # Keep the actual source clip and state the CURRENT art verdict onscreen.
+        video_filter += (
+            ",drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+            ":text='4x TECHNICAL ART - CHARACTER LIKENESS NOT APPROVED'"
+            ":x=416:y=855:fontsize=24:fontcolor=0xAF352B"
+            ":box=1:boxcolor=0xFCFAF2@0.95:boxborderw=8"
+            ":enable='between(t,46,61)'"
+        )
+    cmd += ["-i", input_path, "-an", "-frames:v", str(frames), "-vf", video_filter,
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-g", "120", "-keyint_min", "120", "-sc_threshold", "0",
             "-r", "60", "-video_track_timescale", "15360", "-movflags", "+faststart", path]
     run(*cmd)
@@ -205,7 +217,8 @@ def render(output, plates_only=False):
             "4x procedural racer studies are not approved for likeness.",
             "No independently admitted full USA original/native event or certified physical Windows release.",
             "Three action courses in existing film are three independent authentic 2P sessions, not one race.",
-            "New contributor cards are illustrated editorial, never synthetic gameplay."
+            "New contributor cards are illustrated editorial, never synthetic gameplay.",
+            "A visible editorial corrective label disambiguates historical art technical approval from current character-likeness rejection."
         ],
     }
     (output / "recruitment-provenance.json").write_text(json.dumps(manifest, indent=2)+"\n")

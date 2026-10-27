@@ -29,9 +29,9 @@ static unsigned rf083_word_rows;
 static unsigned rf083_inc16_rows;
 /* RF089: optional original opcode/branch witness for the last Zoo seek to
  * first sound-data increment. No extra APU bus reads, guest writes or ticks.
- * A CMP's P/Z and the following BNE's next PC reveal echo retry outcomes,
+ * CMP live Z comes from ICPU._Zero, not the lazily packed Registers.PL.\n * Live Z plus the following BNE next PC reveal echo retry outcomes,
  * but do not disclose the actual returned SPC port byte. */
-static unsigned rf089_rows, rf089_a0, rf089_p0;
+static unsigned rf089_rows, rf089_a0, rf089_p0, rf089_z0;
 static int rf089_target;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){
@@ -82,7 +82,7 @@ static void rf083_pre(uint8 opcode){
          rf083_pc==0x028304u);
     if(rf089_target){
         rf089_a0=(unsigned)Registers.A.W;
-        rf089_p0=(unsigned)Registers.PL;
+        rf089_p0=(unsigned)Registers.PL; /* packed PL may be stale */\n        rf089_z0=(unsigned)(ICPU._Zero==0);
     }
     rf083_v=(unsigned)CPU.V_Counter;
     rf083_h=(int)CPU.Cycles;
@@ -166,12 +166,12 @@ static void rf083_post(void){
             fprintf(stderr,
               "QA01RF089ORIG seq=%u frame=%u pc=%06X op=%02X"
               " pre_v=%u pre_h=%d post_v=%u post_h=%d"
-              " a0=%04X a1=%04X p0=%02X p1=%02X"
+              " a0=%04X a1=%04X pl0=%02X pl1=%02X z0=%u z1=%u"
               " next=%06X ptr=%02X%02X clock=original_cpu\n",
               rf089_rows,rf083_frame,rf083_pc,rf083_op,
               rf083_v,rf083_h,(unsigned)CPU.V_Counter,(int)CPU.Cycles,
               rf089_a0,(unsigned)Registers.A.W,
-              rf089_p0,(unsigned)Registers.PL,
+              rf089_p0,(unsigned)Registers.PL,\n              rf089_z0,(unsigned)(ICPU._Zero==0),
               ((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw,
               (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
         } else if(rf089_rows==32769u){

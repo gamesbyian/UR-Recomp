@@ -106,7 +106,7 @@ class RF083Source(unittest.TestCase):
         self.assertIn("rf083_pc==0x028304u", a)
         self.assertIn("frame>=6055u && frame<=6056u", a)
         self.assertIn("next=%06X ptr=%02X%02X", a)
-        self.assertIn("p0=%02X p1=%02X", a)
+        self.assertIn("pl0=%02X pl1=%02X z0=%u z1=%u", a)\n        self.assertIn("rf089_z0=(unsigned)(ICPU._Zero==0);", a)\n        self.assertIn("rf089_z0,(unsigned)(ICPU._Zero==0)", a)\n        self.assertNotIn("S9xPackStatus(", m.C)
         self.assertIn("rf089_rows<=32768u", a)
         self.assertEqual(a.count(m.OP), 1)
         for bus in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):

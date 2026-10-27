@@ -91,15 +91,25 @@ class NativeRF084Receipt(unittest.TestCase):
                     f"slot={slot} old=00 new=01 setterCount=0 "
                     f"setterAddr=FFFFFFFF setterVal=00 clock=original_cpu\n")
         rows = original(1, "8280E0", "0069") + original(2, "828154", "0063")
-        v = m.audit_original((hearts + rows).encode())
+        word = ("QA01RF083ORIG_WORD seq=1 frame=6072 pc=828154 "
+                "addr=000063 word=0001 wrap=0 order=1 rawBefore=0000\n")
+        v = m.audit_original((hearts + word + rows).encode())
+        self.assertEqual(v["original_word_setter_entries"], 1)
+        self.assertTrue(v["original_word_entry_not_commit"])
         self.assertEqual(v["original_writer_rows"], 2)
         self.assertFalse(v["native_clock_registration_proven"])
-        for bad in (hearts + original(1, "8280E0", "0069"),
-                    hearts + rows + "QA01RF083ORIG_TRUNCATED\n",
-                    hearts.replace("frame=6079", "frame=6078") + rows,
-                    hearts + rows.replace("seq=2", "seq=3"),
-                    hearts + rows.replace("op=E6", "op=00"),
-                    hearts + rows.replace("new=01", "new=00")):
+        for bad in (hearts + rows,  # word setter is mandatory, byte setter alone insufficient
+                    hearts + word + original(1, "8280E0", "0069"),
+                    hearts + word + rows + "QA01RF083ORIG_TRUNCATED\n",
+                    hearts + word + rows + "QA01RF083ORIG_WORD_TRUNCATED\n",
+                    hearts.replace("frame=6079", "frame=6078") + word + rows,
+                    hearts + word + rows.replace("seq=2", "seq=3"),
+                    hearts + word + rows.replace("op=E6", "op=00"),
+                    hearts + word + rows.replace("new=01", "new=00"),
+                    hearts + word.replace("addr=000063", "addr=000064") + rows,
+                    hearts + word.replace("order=1", "order=2") + rows,
+                    hearts + word.replace("seq=1", "seq=2") + rows,
+                    hearts + word.replace("pc=828154", "pc=828155") + rows):
             with self.subTest(bad=bad[-60:]), self.assertRaises(ValueError):
                 m.audit_original(bad.encode())
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Fail closed before an intentional marker-triggered 27-minute Windows build.
+"""Fail closed before an intentional marker-triggered heavy Windows/QA campaign.
 
-The expensive native Windows playtest is triggered by one exact-path push on
-main. This script rejects an accidental edit, a changed source in the same
-merge, or a request that did not advance the explicit sequence by one.
-It does not handle workflow_dispatch or create any release artifacts.
+An exact-path PR-merge push to main may trigger the Windows technical playtest
+or the bounded Zoo original/native CPU-cause experiment. Reject accidental
+edits, extra source changes, and non-incremented request sequences before any
+heavy runner executes. No release publication or QA admission happens here.
 """
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKER = "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
+ZOO_MARKER = "docs/qa01/REQUEST-ZOO-CAUSAL.md"
+SUPPORTED_MARKERS = frozenset({MARKER, ZOO_MARKER})
 SEQUENCE = re.compile(r"(?m)^- Request sequence: \*\*(0|[1-9][0-9]*)\*\*")
 REASON = re.compile(r"(?m)^- Requested reason: ([^\n]+)$")
 MAX_SEQUENCE = 2**31 - 1
@@ -27,10 +29,10 @@ def field(pattern: re.Pattern[str], text: str, name: str) -> str:
     return values[0].strip()
 
 
-def validate(previous: str, current: str, changed: list[str]) -> dict:
+def validate(previous: str, current: str, changed: list[str], *, marker: str = MARKER) -> dict:
     """Accept exactly one source-unchanged, incremented, intentional request."""
-    if changed != [MARKER]:
-        raise ValueError("request merge must change only " + MARKER)
+    if marker not in SUPPORTED_MARKERS or changed != [marker]:
+        raise ValueError("request merge must change only a supported request marker")
     old = int(field(SEQUENCE, previous, "previous sequence"))
     new = int(field(SEQUENCE, current, "current sequence"))
     if old >= MAX_SEQUENCE or new != old + 1:
@@ -60,6 +62,7 @@ def main() -> int:
     parser.add_argument("--previous", type=Path, required=True)
     parser.add_argument("--current", type=Path, required=True)
     parser.add_argument("--source-sha", required=True)
+    parser.add_argument("--marker", choices=sorted(SUPPORTED_MARKERS), default=MARKER)
     args = parser.parse_args()
     if (not args.previous.is_file() or args.previous.is_symlink()
             or not args.current.is_file() or args.current.is_symlink()):
@@ -67,9 +70,9 @@ def main() -> int:
     verdict = validate(
         args.previous.read_text(encoding="utf-8"),
         args.current.read_text(encoding="utf-8"),
-        changed_files(args.source_sha),
+        changed_files(args.source_sha), marker=args.marker,
     )
-    print("PASS: explicit main-only playtest request " +
+    print("PASS: explicit main-only source-isolated request " +
           str(verdict["old"]) + " -> " + str(verdict["new"]) +
           ", only marker changed, zero release gate credit")
     return 0

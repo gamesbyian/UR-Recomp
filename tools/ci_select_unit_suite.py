@@ -34,6 +34,7 @@ OPERATIONS_ONLY = frozenset({
 # product/graphics/native tests. Keep the list exact and deliberately tiny.
 # The shared board is exercised by the focused test_agent_control suite.
 OPS_CONTEXT_DOCS = frozenset({
+    "AGENTS.md",
     "docs/AGENT-COORDINATION.md",
     "docs/HOURLY-AGENT-LINES.md",
     "docs/WORK-QUEUE.md",
@@ -41,6 +42,24 @@ OPS_CONTEXT_DOCS = frozenset({
     "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
 })
 OPERATIONS_ONLY = OPERATIONS_ONLY | OPS_CONTEXT_DOCS
+# Research workflow edits are *configuration-only*, never native/gameplay
+# source changes. Their own producer jobs and repository hygiene independently
+# validate execution/actionlint. The focused suite already includes the global
+# trigger-policy regression, and the full suite remains mandatory for any tool,
+# test, product, release workflow, or mixed-source edit.
+#
+# Exact filenames are intentionally listed; do not wildcard qa01 or accept the
+# authoritative qa01-event-campaign orchestration under this reduced scope.
+BOUNDED_RESEARCH_WORKFLOWS = frozenset({
+    ".github/workflows/qa01-rf062-evidence-factorization.yml",
+    ".github/workflows/qa01-rf062-four-zip-source-archive.yml",
+    ".github/workflows/qa01-rf066-rf062-full-raw-crosswalk.yml",
+    ".github/workflows/qa01-rf066-same-host-return-raw.yml",
+    ".github/workflows/qa01-rf066-source-controller-archive.yml",
+    ".github/workflows/qa01-rf071-getter-vs-script-dump.yml",
+    ".github/workflows/qa01-rf075-rti-source-contract.yml",
+})
+
 FOCUSED_TEST_MODULES = (
     "tests.unit.test_agent_control",
     "tests.unit.test_ops_live_status",
@@ -66,11 +85,15 @@ def classify(files: list[dict]) -> str:
         if not isinstance(item, dict):
             return "full"
         path = item.get("filename")
-        if (not isinstance(path, str) or path not in OPERATIONS_ONLY
+        if (not isinstance(path, str)
                 or path in seen or item.get("status") not in ALLOWED_STATES):
             return "full"
         seen.add(path)
-    return "ops"
+    # A mixed ops/research-workflow change may affect both execution policy
+    # and its consumer: default to the complete test population.
+    if seen.issubset(OPERATIONS_ONLY) or seen.issubset(BOUNDED_RESEARCH_WORKFLOWS):
+        return "ops"
+    return "full"
 
 
 def classify_paged(fetch_page, *, max_pages=MAX_PAGES) -> str:

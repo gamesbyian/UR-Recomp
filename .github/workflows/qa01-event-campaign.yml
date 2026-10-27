@@ -93,7 +93,7 @@ on:
         default: false
 
       qa01_rf084_native_sound_dp:
-        description: "Opt-in RF084 real native 8/16-bit sound DP writers (Zoo mesh+DP, RF015/017, no RF018)"
+        description: "Opt-in paired RF083 original + RF084 native sound DP writers (Zoo mesh+DP, RF015/017, no RF018/APU)"
         type: boolean
         required: false
         default: false
@@ -209,8 +209,9 @@ jobs:
           if [[ "$QA01_RF084" == "true" &&
                 ( "$SELECTED" != "zoom-zoo" || "$ZOO_MESH" != "true" ||
                   "$ZOO_DP_WINDOW" != "true" || "$QA01_RF015" != "true" ||
-                  "$QA01_RF017" != "true" || "$QA01_RF018" == "true" ) ]]; then
-            echo "RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF018 off" >&2
+                  "$QA01_RF017" != "true" || "$QA01_RF018" == "true" ||
+                  "$QA01_APU_PHASE" == "true" ) ]]; then
+            echo "RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF018/APU off" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&
@@ -291,6 +292,15 @@ jobs:
             libgbm-dev libasound2-dev libpulse-dev libudev-dev \
             libdbus-1-dev xvfb
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          # RF083's original opcode-boundary observer is paired with RF084
+          # on the SAME source-qualified case, not borrowed from a prior ELF.
+          # This is a disposable reference checkout and an explicit opt-in.
+          if [[ "${{ inputs.qa01_rf084_native_sound_dp }}" == "true" ]]; then
+            CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+            python3 -m unittest discover -s tests/unit -p test_qa01_rf083_original_sound_dp_first_writer.py
+            python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+            make -C "$CORE_SRC/libretro" -j2
+          fi
           # Explicitly opted-in, disposable source+native observers only.
           if [[ "${{ inputs.qa01_apu_phase }}" == "true" ]]; then
             CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
@@ -450,6 +460,11 @@ jobs:
           # Reuse the SHA256SUMS already validated against the shared binaries.
           # Retain the tiny original manifest beside this case's producer JSON.
           cp "$BIN/SHA256SUMS" "$ROOT/SHA256SUMS"
+          # RF083 checks getenv() presence, not its value: never set "0".
+          # The subprocesses inherit this only for the paired experiment.
+          if [[ "$QA01_RF084" == "true" ]]; then
+            export UR_QA01_RF083_ZOO_DP=1
+          fi
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
             python3 tools/probe_original_event_complete.py \
@@ -618,9 +633,10 @@ jobs:
           # no-observer noninterference remain independent obligations.
           if [[ "$QA01_RF084" == "true" ]]; then
             python3 tools/qa01_rf084_native_writer_receipt.py \
+              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
               --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
               --out "$ROOT/qa01-rf084-native-writer-receipt.json"
-            echo 'RF084 native 8/16-bit writer execution observed; original/native parity NOT proven, release credit 0' >> "$GITHUB_STEP_SUMMARY"
+            echo 'RF083 original + RF084 native writer executions observed on paired source; clock/semantic parity NOT proven, release credit 0' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM

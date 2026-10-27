@@ -1,0 +1,69 @@
+# Disposable RF090 pinned-source compilation; remove before merge.
+name: QA01 RF090 one-shot original Snes9x compile
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/qa01-rf090-original-compile-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-rf090-original-compile-once
+  cancel-in-progress: false
+
+jobs:
+  original-compile:
+    if: ${{ github.event.pull_request.head.ref == 'agent3/ur-cpu-cause-rf090-original-apu-return-20261027' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout immutable RF090 implementation and research submodules
+        uses: actions/checkout@v4
+        with:
+          ref: 8edb84aa7e98b71c04a99d54ebd7faa25ecff1d8
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify exact source and RF090 focused tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 8edb84aa7e98b71c04a99d54ebd7faa25ecff1d8
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf083_original_sound_dp_first_writer.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf088_rf089_campaign.py
+      - name: Compile actual pinned RF090-patched Snes9x libretro core
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends ninja-build pkg-config build-essential cmake libsdl2-dev libgl-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev libwayland-dev libxkbcommon-dev libegl-dev libgles-dev libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev libdbus-1-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          test -f "$CORE_SRC/getset.h"
+          python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+          grep -Fq 'extern void rf083_port_read(uint32,unsigned,unsigned);' "$CORE_SRC/getset.h"
+          grep -Fq 'rf083_port_read(Address,1u,(unsigned)byte);' "$CORE_SRC/getset.h"
+          grep -Fq 'rf083_port_read(Address,2u,(unsigned)word);' "$CORE_SRC/getset.h"
+          make -C "$CORE_SRC/libretro" clean
+          make -C "$CORE_SRC/libretro" -j2
+          test -s "$CORE_SRC/libretro/snes9x_libretro.so"
+          mkdir -p "$RUNNER_TEMP/rf090-compile-receipt"
+          {
+            echo 'work_id=UR-CPU-CAUSE-20261026'
+            echo 'qualification=actual patched pinned Snes9x compile/link only'
+            echo 'source_sha=8edb84aa7e98b71c04a99d54ebd7faa25ecff1d8'
+            echo 'no_original_native_replay=true'
+            echo 'no_observer_off_control=true'
+            sha256sum "$CORE_SRC/libretro/snes9x_libretro.so"
+            file "$CORE_SRC/libretro/snes9x_libretro.so"
+          } | tee "$RUNNER_TEMP/rf090-compile-receipt/receipt.txt"
+          echo 'Actual RF090-patched pinned original core linked; no original/native parity or release acceptance.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve metadata-only compile receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf090-original-pinned-compile-receipt
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/rf090-compile-receipt/receipt.txt

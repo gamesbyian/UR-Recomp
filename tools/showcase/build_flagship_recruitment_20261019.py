@@ -195,7 +195,7 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False,
           "x=(w-text_w)/2:y=450:box=1:boxcolor=black@0.62:boxborderw=14")
     else:
         width,height=1920,1080
-        visual="scale=1707:960:flags=neighbor,pad=1920:1080:106:60:0x08101f"
+        visual="scale=1920:1080:flags=neighbor"
         cap=caption.replace("'","").replace(":"," ").replace("→","TO")[:78]
         stamp=(
            ",drawtext=text='"+cap+"':fontsize=25:fontcolor=white:"
@@ -205,6 +205,26 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False,
     if src is None:
         raise ValueError("Missing source for editorial card")
     fade="fade=t=in:st=0:d=0.10,fade=t=out:st="+str(max(0,dur-0.12))+":d=0.12"
+    if vertical:
+        approved=ROOT/"assets/promo/canonical/blueprint-9x16-portrait-2160x3840.png"
+        if not approved.is_file():
+            raise ValueError("Exclusive approved portrait source missing")
+        graph=(
+            "[1:v]fps=60,scale=1080:608:flags=neighbor,format=rgba[clip];"
+            "[0:v]scale=1080:1920:flags=lanczos[design];"
+            "[design][clip]overlay=x=0:y=656:shortest=1"
+            +stamp+","+fade+",format=yuv420p[final]")
+        run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+            "-loop","1","-framerate","60","-i",approved,
+            "-ss",str(start/source_fps),"-i",src,
+            "-t",str(dur),"-filter_complex",graph,"-map","[final]",
+            "-an","-frames:v",str(round(dur*FPS)),"-r","60",
+            "-c:v","libx264","-preset","ultrafast","-crf","21",
+            "-pix_fmt","yuv420p","-video_track_timescale","60000",output)
+        o=probe(output)
+        assert (o["width"],o["height"],o["r_frame_rate"],int(o["nb_read_frames"]))==(
+            width,height,"60/1",round(dur*FPS)),(output,o)
+        return
     vf="fps=60,"+visual+stamp+","+fade+",format=yuv420p"
     if blue_frame and not vertical:
         filter_graph=(

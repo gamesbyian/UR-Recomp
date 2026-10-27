@@ -1,0 +1,6 @@
+# Canonical first racer minted by the REAL Modern root P1 gamepad
+# smoke fixture mode8 (X then A), then persisted for a fresh process.
+# No original guest menu/WRAM writes and no synthetic profile serializer.
+turbo on
+wait 900
+quit

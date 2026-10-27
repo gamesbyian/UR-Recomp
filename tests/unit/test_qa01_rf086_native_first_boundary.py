@@ -107,6 +107,32 @@ class FirstBoundaryBusCommitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "effective address"):
             receipt.audit(("\n".join(rows) + "\n").encode())
 
+    def test_pinned_interpreter_scope_names_remain_advisory_evidence(self):
+        # Pinned interp_bridge.c uses interp@$%06X, or
+        # interp@(table full) on intern-table exhaustion. The default
+        # g_last_recomp_func can also be (none). These are genuine
+        # common-store caller labels, not malformed write observations.
+        names = list(receipt.SITES)
+        scopes = ("interp@$828154", "interp@(table full)", "(none)")
+        rows = [
+            row(i + 1, names[i], master=1000 + i).replace(
+                f"scope={names[i]}", f"scope={scopes[i]}")
+            for i in range(3)
+        ]
+        report = receipt.audit(("\n".join(rows) + "\n").encode())
+        self.assertEqual(report["native_scope_labels_advisory"],
+                         {name: 1 for name in scopes})
+        self.assertFalse(report["source_function_attribution_proven"])
+        self.assertEqual(report["native_first_boundary_pointer16_commits"], 2)
+        self.assertEqual(report["native_first_boundary_counter8_commits"], 1)
+        for bad_scope in ("interp@/unsafe", "interp@\tbad"):
+            with self.subTest(bad_scope=bad_scope):
+                invalid = rows.copy()
+                invalid[0] = invalid[0].replace(
+                    "scope=interp@$828154", f"scope={bad_scope}")
+                with self.assertRaisesRegex(ValueError, "malformed"):
+                    receipt.audit(("\n".join(invalid) + "\n").encode())
+
     def test_later_counter_cannot_masquerade_as_boundary_counter(self):
         names = list(receipt.SITES)
         rows = [

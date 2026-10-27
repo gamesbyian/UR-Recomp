@@ -15,7 +15,7 @@ import re
 from pathlib import Path
 
 ROW = re.compile(
-    r"^QA01RF086NATIVE seq=(\d+) scope=([A-Za-z0-9_?]+) "
+    r"^QA01RF086NATIVE seq=(\d+) scope=([A-Za-z0-9_?@$(). -]{1,128}) "
     r"f=(\d+) width=([12]) D=([0-9A-F]{4}) addr=([0-9A-F]{4}) "
     r"old=([0-9A-F]{4}) supplied=([0-9A-F]{4}) "
     r"rawAfter=([0-9A-F]{4}) native_master=(\d+)$"

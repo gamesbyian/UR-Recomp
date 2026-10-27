@@ -5,6 +5,7 @@ on:
       - media/oct26-targeted-contributors
     paths:
       - .github/workflows/one-shot-oct26-recruitment.yml
+      - tools/showcase/build_targeted_recruitment_20261026.py
   workflow_dispatch:
 permissions:
   contents: write

@@ -22,12 +22,16 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                                    f("tests/unit/test_report_ci_runtime.py")]), "ops")
         self.assertIn("tests.unit.test_agent_control", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_trigger_policy", FOCUSED_TEST_MODULES)
+        self.assertIn("tests.unit.test_ci_playtest_request_guard", FOCUSED_TEST_MODULES)
+        self.assertIn("tests.unit.test_verify_baldosa_playtest_release", FOCUSED_TEST_MODULES)
+        self.assertEqual(classify([f("docs/playtest/REQUEST-WINDOWS-PLAYTEST.md")]), "ops")
 
     def test_exact_non_product_agent_context_docs_are_focused_with_ops(self):
         expected = {
             "docs/AGENT-COORDINATION.md",
             "docs/HOURLY-AGENT-LINES.md",
             "docs/WORK-QUEUE.md",
+            "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
         }
         self.assertEqual(OPS_CONTEXT_DOCS, expected)
         for context in expected:
@@ -52,6 +56,9 @@ class UnitSuiteSelectorTests(unittest.TestCase):
             "tools/strict_vault_manifest.py",
             ".github/workflows/tooling-unit-tests.yml",
             "docs/RELEASE-QUALITY-LEDGER.json",
+            "docs/qa01/REQUEST-ZOO-CAUSAL.md",
+            ".github/workflows/manual-romfree-windows-playtest.yml",
+            "tools/ci_playtest_request_guard.py",
             "native/product/modern_root_menu.hpp",
             "analysis/agent-context-lanes.json",
             "docs/operations/MAIN-HISTORY-BACKUP.md",
@@ -136,7 +143,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 15)
+        self.assertEqual(len(OPERATIONS_ONLY), 16)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
         self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
         self.assertTrue(all(p.startswith("docs/") and p.endswith(".md") for p in OPS_CONTEXT_DOCS))

@@ -1,0 +1,47 @@
+name: Promotional artwork encode/readback smoke
+
+on:
+  pull_request:
+    paths:
+      - "tools/showcase/**"
+      - "assets/promo/canonical/**"
+      - "tests/unit/test_approved_promo_assets.py"
+      - ".github/workflows/promo-export-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promo-export-smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  approved-plates:
+    name: Real FFmpeg compositions (16:9, 4:3, 9:16)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare isolated Pillow dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/promo-venv"
+          "$RUNNER_TEMP/promo-venv/bin/python" -m pip install "Pillow>=11,<13"
+      - name: Confirm export prerequisites
+        run: |
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          test -s assets/promo/canonical/blueprint-16x9-logo-right.png
+          test -s assets/promo/canonical/blueprint-4x3-logo-right.png
+          test -s assets/promo/canonical/blueprint-9x16-portrait-2160x3840.png
+      - name: Encode and decode three approved-background videos
+        run: |
+          "$RUNNER_TEMP/promo-venv/bin/python" tools/showcase/promo_export_smoke.py --out "$RUNNER_TEMP/promo-outputs"
+      - name: Preserve videos, preview frames and measured results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: promo-approved-background-smoke
+          path: ${{ runner.temp }}/promo-outputs/
+          if-no-files-found: warn
+          retention-days: 14

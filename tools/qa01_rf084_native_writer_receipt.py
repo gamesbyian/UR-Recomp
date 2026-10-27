@@ -27,6 +27,11 @@ ORIG_ROW = re.compile(
     r"setterAddr=([0-9A-F]{6,8}) setterVal=([0-9A-F]{2}) clock=original_cpu$"
 )
 ORIG_HEART = re.compile(r"^QA01RF083ORIG_HEART frame=(\d+) v=(\d+) h=(-?\d+)$")
+ORIG_WORD = re.compile(
+    r"^QA01RF083ORIG_WORD seq=(\d+) frame=(\d+) pc=828154 "
+    r"addr=([0-9A-F]{6}) word=([0-9A-F]{4}) wrap=(\d+) "
+    r"order=(\d+) rawBefore=([0-9A-F]{4})$"
+)
 
 
 def audit(raw: bytes) -> dict:
@@ -81,10 +86,12 @@ def audit(raw: bytes) -> dict:
 
 def audit_original(raw: bytes) -> dict:
     lines = raw.decode("utf-8", errors="strict").splitlines()
-    if any("QA01RF083ORIG_TRUNCATED" in line for line in lines):
+    if any(("QA01RF083ORIG_TRUNCATED" in line or
+            "QA01RF083ORIG_WORD_TRUNCATED" in line) for line in lines):
         raise ValueError("RF083 original writer stream truncated")
     hearts = []
     count = 0
+    word_count = 0
     sites = {"8280E0/0069": 0, "828154/0063": 0}
     for line in lines:
         if line.startswith("QA01RF083ORIG_HEART"):
@@ -92,6 +99,16 @@ def audit_original(raw: bytes) -> dict:
             if not match:
                 raise ValueError("malformed RF083 original heartbeat")
             hearts.append(int(match.group(1)))
+        elif line.startswith("QA01RF083ORIG_WORD"):
+            match = ORIG_WORD.fullmatch(line)
+            if not match:
+                raise ValueError("malformed RF083 original word-setter entry")
+            seq, frame, addr, _word, wrap, order, _before = match.groups()
+            word_count += 1
+            if (int(seq) != word_count or not 6069 <= int(frame) <= 6079 or
+                int(addr, 16) & 0xFFFF != 0x0063 or
+                int(wrap) > 2 or int(order) > 1):
+                raise ValueError("RF083 original word-setter identity/sequence invalid")
         elif line.startswith("QA01RF083ORIG "):
             match = ORIG_ROW.fullmatch(line)
             if not match:
@@ -110,10 +127,13 @@ def audit_original(raw: bytes) -> dict:
                 if rest[5] == rest[6]:
                     raise ValueError("RF083 original opcode_delta has unchanged byte")
                 sites[key] += 1
-    if hearts != list(range(6069, 6080)) or not count or not all(sites.values()):
+    if (hearts != list(range(6069, 6080)) or not count or
+        not word_count or not all(sites.values())):
         raise ValueError("RF083 original internal-frame/actual opcode coverage incomplete")
     return {"original_log_sha256": hashlib.sha256(raw).hexdigest(),
             "original_heartbeats": hearts, "original_writer_rows": count,
+            "original_word_setter_entries": word_count,
+            "original_word_entry_not_commit": True,
             "original_increment_site_counts": sites,
             "original_opcode_execution_proven": True,
             "native_clock_registration_proven": False,

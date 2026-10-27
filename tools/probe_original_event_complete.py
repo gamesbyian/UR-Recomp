@@ -1811,7 +1811,7 @@ def run_pinned_baldosa(work: Path, args, script: Path,
             SNESRECOMP_ROM=str(args.rom),
         )
         bus_log = configure_rf084_native_bus_wlog(
-            env, output, case=args.case, script_name=script.name)
+            env, output, case=getattr(args, "case", None), script_name=script.name)
         if lines:
             env["UR_QA_SCENE_INPUT_FILE"] = str(input_file)
         else:

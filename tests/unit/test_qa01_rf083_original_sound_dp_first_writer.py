@@ -10,7 +10,10 @@ def source():
       "Op = CPU.PCBase[Registers.PCw];\n"+
       "Op = S9xGetByte(Registers.PBPC);\n"+m.OP+"\n}\n")
 def setter():
-    return (m.BYTE+"  actually_map(Byte,Address);\n}\n"+
+    return (m.READ_BYTE_FUNC+m.READ_BYTE_PPU+"\n}\n"+
+            "inline uint16 S9xGetWord (uint32 Address)\n{\n"+
+            m.READ_WORD_PPU+"\n}\n"+
+            m.BYTE+"  actually_map(Byte,Address);\n}\n"+
             m.WORD+"  actually_write_word(Word,Address);\n}\n")
 
 class RF083Source(unittest.TestCase):
@@ -47,6 +50,12 @@ class RF083Source(unittest.TestCase):
         self.assertIn("rf083_setbyte_entry(Byte,Address);",edited_getset)
         self.assertIn("rf083_setword_entry(Word,Address,(int)w,(int)o);",edited_getset)
         self.assertIn("rf083_post();",edited_cpu)
+        self.assertLess(edited_getset.index(m.PORT_DECL),
+                        edited_getset.index(m.READ_BYTE_FUNC))
+        self.assertLess(edited_getset.index(m.PORT_DECL),
+                        edited_getset.index("rf083_port_read(Address,1u"))
+        self.assertLess(edited_getset.index(m.PORT_DECL),
+                        edited_getset.index("rf083_port_read(Address,2u"))
 
     def test_real_original_inc16_callsite_has_no_new_bus_operations(self):
         # This is the actual tracked pinned Snes9x macro, not a fake writer.
@@ -129,6 +138,25 @@ class RF083Source(unittest.TestCase):
             self.assertNotIn(bus, m.C, bus)
         self.assertEqual(b.count(m.BYTE), setter().count(m.BYTE))
 
+    def test_rf090_original_apu_port_read_captures_real_returned_values(self):
+        a, b = m.patch(source(), setter())
+        self.assertIn("QA01RF090ORIG seq=", a)
+        self.assertIn("QA01RF090ORIG_TRUNCATED", a)
+        self.assertIn("rf083_frame<6054u || rf083_frame>6059u", a)
+        self.assertIn('getenv("UR_QA01_RF089_ORIGINAL_ECHO")', a)
+        self.assertIn("port<0x2140u || port>0x2143u", a)
+        self.assertIn("val=%04X", a)
+        self.assertLess(b.index(m.PORT_DECL),b.index(m.READ_BYTE_FUNC))
+        self.assertIn("rf083_port_read(Address,1u,(unsigned)byte);", b)
+        self.assertIn("rf083_port_read(Address,2u,(unsigned)word);", b)
+        self.assertEqual(b.count("S9xGetPPU("), setter().count("S9xGetPPU("))
+        for name in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):
+            self.assertNotIn(name, m.C)
+        self.assertLess(b.index(m.READ_BYTE_PPU.splitlines()[0]),
+                        b.index("rf083_port_read(Address,1u"))
+        self.assertLess(b.index("S9xGetPPU((Address + 1) & 0xffff)"),
+                        b.index("rf083_port_read(Address,2u"))
+
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())
         for x,y in ((a,b),(source()+m.STAMP,setter()),
@@ -137,13 +165,15 @@ class RF083Source(unittest.TestCase):
                     (source().replace("Op = CPU.PCBase[Registers.PCw];",""),setter()),
                     (source().replace("Op = S9xGetByte(Registers.PBPC);",""),setter()),
                     (source(),setter().replace(m.BYTE,"fake_setter()")),
-                    (source(),setter().replace(m.WORD,"fake_word_setter()"))):
+                    (source(),setter().replace(m.WORD,"fake_word_setter()")),
+                    (source(),setter().replace(m.READ_BYTE_FUNC,"fake_reader()"))):
             with self.subTest(size=(len(x),len(y))):
                 with self.assertRaises(ValueError):m.patch(x,y)
 
     def test_ambiguous_callsites_refused(self):
         for x,y in ((source()+m.OP,setter()),(source(),setter()+m.BYTE),
-                    (source(),setter()+m.WORD)):
+                    (source(),setter()+m.WORD),
+                    (source(),setter()+m.READ_BYTE_FUNC)):
             with self.assertRaisesRegex(ValueError,"drift"):m.patch(x,y)
 
 if __name__=="__main__":

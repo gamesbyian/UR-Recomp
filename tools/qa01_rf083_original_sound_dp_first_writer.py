@@ -16,6 +16,9 @@ HEADER='#include "movie.h"\n'
 OP="\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 BYTE="inline void S9xSetByte (uint8 Byte, uint32 Address)\n{\n"
 WORD="inline void S9xSetWord (uint16 Word, uint32 Address, enum s9xwrap_t w = WRAP_NONE, enum s9xwriteorder_t o = WRITE_01)\n{\n"
+READ_BYTE_FUNC = "inline uint8 S9xGetByte (uint32 Address)\n{\n"
+READ_BYTE_PPU = "\t\t\tbyte = S9xGetPPU(Address & 0xffff);\n\t\t\taddCyclesInMemoryAccess;\n\t\t\treturn (byte);"
+READ_WORD_PPU = "\t\t\tword  = S9xGetPPU(Address & 0xffff);\n\t\t\taddCyclesInMemoryAccess;\n\t\t\tword |= S9xGetPPU((Address + 1) & 0xffff) << 8;\n\t\t\taddCyclesInMemoryAccess;\n\t\t\treturn (word);"
 C=r'''/* UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER */
 static int rf083_active,rf083_early;
 static unsigned rf083_pc,rf083_op,rf083_frame,rf083_v;
@@ -31,8 +34,10 @@ static unsigned rf083_inc16_rows;
  * first sound-data increment. No extra APU bus reads, guest writes or ticks.
  * CMP live Z comes from ICPU._Zero, not the lazily packed Registers.PL.
  * Live Z plus the following BNE next PC reveal echo retry outcomes,
- * but do not disclose the actual returned SPC port byte. */
+ * but RF089 alone cannot disclose the actual returned SPC port byte;
+ * RF090 below separately records actual already-returned PPU reads. */
 static unsigned rf089_rows, rf089_a0, rf089_p0, rf089_z0;
+static unsigned rf090_rows;
 static int rf089_target;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){
@@ -169,6 +174,30 @@ void rf083_setbyte_entry(uint8 value,uint32 address){
         break;
     }
 }
+/* RF090: actual returned original Snes9x APU port reads, not inferred
+ * CMP/branch values. Observe the existing PPU-mapped read *after* its
+ * real bus access and cycle charge, without an additional guest read.
+ * Original frame/PC/pointer are not cross-core clock alignment. */
+void rf083_port_read(uint32 address,unsigned width,unsigned value){
+    if(!rf083_active || !rf083_early ||
+       rf083_frame<6054u || rf083_frame>6059u) return;
+    const char *flag=getenv("UR_QA01_RF089_ORIGINAL_ECHO");
+    if(!flag || flag[0]!='1' || flag[1]!='\0') return;
+    const unsigned port=(unsigned)(address & 0xffffu);
+    if(port<0x2140u || port>0x2143u) return;
+    if(++rf090_rows>32768u){
+        if(rf090_rows==32769u)
+            fprintf(stderr,"QA01RF090ORIG_TRUNCATED\n");
+        return;
+    }
+    fprintf(stderr,
+      "QA01RF090ORIG seq=%u frame=%u pc=%06X op=%02X"
+      " addr=%04X width=%u val=%04X v=%u h=%d"
+      " ptr=%02X%02X clock=original_cpu\n",
+      rf090_rows,rf083_frame,rf083_pc,rf083_op,port,width,value,
+      (unsigned)CPU.V_Counter,(int)CPU.Cycles,
+      (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
+}
 static void rf083_post(void){
     if(!rf083_active) return;
     if(rf089_target){
@@ -199,6 +228,7 @@ static void rf083_post(void){
 '''
 DECL="extern void rf083_setbyte_entry(uint8,uint32);\n"
 WORD_DECL="extern void rf083_setword_entry(uint16,uint32,int,int);\n"
+PORT_DECL="extern void rf083_port_read(uint32,unsigned,unsigned);\n"
 
 MACRO_INC16 = """static inline void INC16 (uint32 OpAddress, s9xwrap_t w)
 {
@@ -234,7 +264,9 @@ def patch_macro(macro: str) -> str:
 def patch(executor:str,getset:str)->tuple[str,str]:
     if STAMP in executor or STAMP in getset or "rf083_setbyte_entry" in getset:
         raise ValueError("RF083 already or partly staged")
-    if executor.count(HEADER)!=1 or executor.count(OP)!=1 or getset.count(BYTE)!=1 or getset.count(WORD)!=1:
+    if (executor.count(HEADER)!=1 or executor.count(OP)!=1 or
+            getset.count(BYTE)!=1 or getset.count(WORD)!=1 or
+            getset.count(READ_BYTE_FUNC)!=1 or getset.count(READ_BYTE_PPU)!=1 or getset.count(READ_WORD_PPU)!=1):
         raise ValueError("RF083 pinned opcode or source setter drift")
     if executor.count("Op = CPU.PCBase[Registers.PCw];")!=1 or \
        executor.count("Op = S9xGetByte(Registers.PBPC);")!=1:
@@ -247,6 +279,18 @@ def patch(executor:str,getset:str)->tuple[str,str]:
     getset=getset.replace(BYTE,DECL+BYTE+"\trf083_setbyte_entry(Byte,Address);\n",1)
     getset=getset.replace(WORD,WORD_DECL+WORD+
                           "\trf083_setword_entry(Word,Address,(int)w,(int)o);\n",1)
+    # Declare the observer before both inline reader definitions. The pinned
+    # getset.h defines readers before S9xSetByte; a setter-local declaration
+    # would leave both RF090 calls undeclared under C++11.
+    getset=getset.replace(READ_BYTE_FUNC,PORT_DECL+READ_BYTE_FUNC,1)
+    # Capture the actual returned PPU byte/word after the existing bus
+    # access and cycle charge, without adding a second S9xGetPPU call.
+    getset=getset.replace(READ_BYTE_PPU, READ_BYTE_PPU.replace(
+        "\t\t\treturn (byte);",
+        "\t\t\trf083_port_read(Address,1u,(unsigned)byte);\n\t\t\treturn (byte);"),1)
+    getset=getset.replace(READ_WORD_PPU, READ_WORD_PPU.replace(
+        "\t\t\treturn (word);",
+        "\t\t\trf083_port_read(Address,2u,(unsigned)word);\n\t\t\treturn (word);"),1)
     new=[executor.count(s)+getset.count(s) for s in
          ("(*Opcodes[Op].S9xOpcode)();","Registers.PCw++;",
           "S9xGetByte(","S9xSetByte(","S9xGetWord(","S9xSetWord(")]

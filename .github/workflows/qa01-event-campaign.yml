@@ -699,7 +699,7 @@ jobs:
               fi
             done
             if ! grep -Eq '^QA01RF088NATIVE .*kind=R .*addr=2142 ' "$native"; then
-              echo 'RF088 native $2142 read not executed' >&2
+              echo 'RF088 native port 2142 read not executed' >&2
               exit 1
             fi
             echo 'RF088/RF089 executed echo rows retained; observer-off control and clock registration still required, release credit 0' >> "$GITHUB_STEP_SUMMARY"

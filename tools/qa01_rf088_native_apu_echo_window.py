@@ -40,7 +40,7 @@ static void ur_rf088_note(CpuState *cpu, uint8 bank, uint16 addr,
         enabled = flag && flag[0] == '1' && flag[1] == '\0';
     }
     /* Keep the actual port addresses narrow, but do not preselect the
-     * unproven pointer phase. RF090's first combined run produced zero
+     * unproven pointer phase. The sequence-10 combined run produced zero
      * RF088 rows; log the pointer alongside each observed port access. */
     if (!enabled || snes_frame_counter < 6055 || snes_frame_counter > 6060 ||
         (addr != 0x2142 && addr != 0x2143)) return;

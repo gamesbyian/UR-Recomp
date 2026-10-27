@@ -97,6 +97,22 @@ class RF083Source(unittest.TestCase):
         self.assertLess(workflow.index(stage), workflow.index(clean))
         self.assertLess(workflow.index(clean), workflow.index(build, workflow.index(stage)))
 
+    def test_rf089_original_echo_branch_witness_is_opt_in_and_bus_pure(self):
+        a, b = m.patch(source(), setter())
+        self.assertIn("UR_QA01_RF089_ORIGINAL_ECHO", a)
+        self.assertIn("QA01RF089ORIG seq=", a)
+        self.assertIn("QA01RF089ORIG_TRUNCATED", a)
+        self.assertIn("rf083_pc==0x028301u", a)
+        self.assertIn("rf083_pc==0x028304u", a)
+        self.assertIn("frame>=6055u && frame<=6056u", a)
+        self.assertIn("next=%06X ptr=%02X%02X", a)
+        self.assertIn("p0=%02X p1=%02X", a)
+        self.assertIn("rf089_rows<=32768u", a)
+        self.assertEqual(a.count(m.OP), 1)
+        for bus in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):
+            self.assertNotIn(bus, m.C, bus)
+        self.assertEqual(b.count(m.BYTE), setter().count(m.BYTE))
+
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())
         for x,y in ((a,b),(source()+m.STAMP,setter()),

@@ -42,7 +42,14 @@ class NativeModernTitleTest(unittest.TestCase):
         self.assertIn('std::strcmp(fixture, "27") != 0', source)
         self.assertIn('std::strcmp(opt, "27") == 0', source)
         self.assertIn('std::strcmp(fixture, "28") != 0', source)
-        self.assertIn("mode > 28", source)
+        self.assertIn("mode > 34", source)
+        # The integrated native SDL journeys 29-34 must start on the
+        # real title; legacy controller modes 15-19 remain root-only.
+        for mode in range(29, 35):
+            self.assertIn(f'std::strcmp(fixture, "{mode}") != 0', source)
+        self.assertIn('std::strcmp(opt, "29") == 0', source)
+        self.assertIn('std::strcmp(opt, "30") == 0', source)
+        self.assertIn("source_return_probe", source)
         # Controller 15-19 must not be admitted as title-only smoke modes.
         for mode in range(15, 20):
             self.assertNotIn(f'std::strcmp(fixture, "{mode}") != 0', source)

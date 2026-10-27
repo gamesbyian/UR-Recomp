@@ -201,6 +201,9 @@ on:
       - "tests/native/controller_seat_assignment_policy_test.cpp"
       - "tools/run_baldosa_controller_lifecycle_acceptance.py"
       - "tools/run_baldosa_keyboard_pad_join_acceptance.py"
+      - "tests/unit/test_baldosa_controller_only_two_pad_root.py"
+      - "tests/unit/test_baldosa_controller_only_two_pad_race.py"
+      - "tests/unit/test_baldosa_controller_earned_race_acceptance.py"
       # Focus-loss / seat-owner-disconnect pause in the native pause lifecycle.
       - "native/product/baldosa_host_lifecycle_pause.hpp"
       - "native/product/controller_hotplug_policy.hpp"
@@ -607,7 +610,28 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/ur-keyboard-pad-join" \
             --video windows --timeout 180
-          echo "PASS: Win32 Modern 2P join: two SDL virtual pads independently confirm both racers and enter original guest 0x3d; keyboard P1 plus one SDL virtual pad joins as P2 through a host seat move; a P2 whose pad leaves before P1 confirms is withdrawn and no 2P race starts; a lone P2 pad left at the root after P1's pad goes is moved to P1 and drives the menus. Virtual devices only." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: native Win32 SDL virtual-pad journey covers title, five Modern destinations, original 1P/2P GO and source-earned records; no physical-pad, original/native parity or release acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # Retain test-owned canonical 2P pair, source logs and executable receipt
+      # from the SAME Windows PE; no ROM or player profile is uploaded.
+      - name: Retain native controller journey evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-controller-journey-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/ur-keyboard-pad-join/receipt.json
+            ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_pad/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_return/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_earned_race/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_earned_return/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_root/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/source.urrun
+            ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/source.urrun.urmatch
+            ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/manifest.json
 
       # Same exact PE on the pinned 2P race route in Modern: unplugging the
       # seated pad, then minimizing the real window, must each pause through

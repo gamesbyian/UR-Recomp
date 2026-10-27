@@ -13,6 +13,7 @@
 namespace {
 ur::product::BaldosaGuestInputAuthority g_input;
 std::uint16_t g_pending_stock_menu_mask;
+unsigned g_host_owned_samples = 0;
 }
 
 // Only our existing host-owned stock-route may submit a discrete P1 input
@@ -32,12 +33,33 @@ extern "C" void ur_baldosa_product_cancel_stock_menu_input(void) {
 
 extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
     std::uint32_t word, unsigned frame) {
+    const bool host_owned = g_input.host_owns_input();
+    const std::uint32_t queued = g_pending_stock_menu_mask;
     const std::uint32_t filtered = g_input.filter(word);
     // One frame, exact original runner button bit; never leak a held menu A
     // into the first playable frame after the route releases host focus.
     const std::uint32_t accepted =
         filtered | static_cast<std::uint32_t>(g_pending_stock_menu_mask);
     g_pending_stock_menu_mask = 0;
+    // Opt-in real mapped-human-word witness. Modern-owned physical buttons
+    // must be masked while presence bits survive. Count actual filter calls.
+    if (host_owned) {
+        ++g_host_owned_samples;
+        if (std::getenv("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS") &&
+            (g_host_owned_samples % 180u == 0u ||
+             // After the 900-frame idle, sample bounded live navigation
+             // even when Modern consumes every SDL button before this seam.
+             (g_host_owned_samples > 900u &&
+              g_host_owned_samples <= 1080u &&
+              g_host_owned_samples % 30u == 0u) ||
+             (word & 0x00ffffffu) != 0u)) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=%u frame=%u "
+                "incoming=%08x guest=%08x queued=%04x host_owns=1\n",
+                g_host_owned_samples, frame, static_cast<unsigned>(word),
+                static_cast<unsigned>(accepted), static_cast<unsigned>(queued));
+        }
+    }
     if (std::getenv("UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS") &&
         (frame == 0 || frame == 119 || frame == 479)) {
         std::fprintf(stderr,
@@ -53,6 +75,7 @@ extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
 // execution hold before returning success from the product lifecycle hook.
 extern "C" void ur_baldosa_product_set_host_focus(int owned) {
     if (!owned) g_pending_stock_menu_mask = 0;
+    if (owned && !g_input.host_owns_input()) g_host_owned_samples = 0;
     g_input.host_focus(owned != 0);
 }
 

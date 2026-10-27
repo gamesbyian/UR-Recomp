@@ -24,6 +24,10 @@ on:
         required: false
         type: boolean
         default: false
+      qa01_rf088_rf089_echo:
+        required: false
+        type: boolean
+        default: false
       qa01_apu_phase:
         required: false
         type: boolean
@@ -94,6 +98,11 @@ on:
 
       qa01_rf084_native_sound_dp:
         description: "Opt-in paired RF083 original + RF084 native writers (Zoo mesh+DP, RF015/017 only; no RF016/018/019/APU)"
+        type: boolean
+        required: false
+        default: false
+      qa01_rf088_rf089_echo:
+        description: "Opt-in RF088 native APU echo + RF089 original CMP/BNE witness, requires paired RF084 Zoo case"
         type: boolean
         required: false
         default: false
@@ -176,6 +185,7 @@ jobs:
           ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
+          QA01_ECHO: ${{ inputs.qa01_rf088_rf089_echo }}
           QA01_RF015: ${{ inputs.baldosa_refresh_beam_rate }}
           QA01_RF017: ${{ inputs.baldosa_io_clock_order }}
           QA01_RF016: ${{ inputs.baldosa_spc_reference_rate }}
@@ -217,6 +227,10 @@ jobs:
                   "$QA01_RF018" == "true" || "$QA01_RF019" == "true" ||
                   "$QA01_APU_PHASE" == "true" ) ]]; then
             echo "RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF016/018/019/APU off" >&2
+            exit 1
+          fi
+          if [[ "$QA01_ECHO" == "true" && "$QA01_RF084" != "true" ]]; then
+            echo "RF088/RF089 echo requires the paired RF083/RF084 Zoo case" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&
@@ -369,6 +383,10 @@ jobs:
             python3 tools/qa01_rf084_native_sound_dp_committed_writer.py --root baldosa
             python3 -m unittest discover -s tests/unit -p test_qa01_rf086_native_first_boundary.py
             python3 tools/qa01_rf086_native_first_boundary_commit.py --root baldosa
+            if [[ "${{ inputs.qa01_rf088_rf089_echo }}" == "true" ]]; then
+              python3 -m unittest discover -s tests/unit -p test_qa01_rf088_native_apu_echo_window.py
+              python3 tools/qa01_rf088_native_apu_echo_window.py --root baldosa
+            fi
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
@@ -442,6 +460,7 @@ jobs:
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
+          QA01_ECHO: ${{ inputs.qa01_rf088_rf089_echo }}
           UR_QA01_RF084_NATIVE_SOUND_DP: ${{ inputs.qa01_rf084_native_sound_dp && '1' || '0' }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
@@ -477,6 +496,11 @@ jobs:
           # The subprocesses inherit this only for the paired experiment.
           if [[ "$QA01_RF084" == "true" ]]; then
             export UR_QA01_RF083_ZOO_DP=1
+          fi
+          # Never set the opt-in names to "0"; both observers require "1".
+          if [[ "$QA01_ECHO" == "true" ]]; then
+            export UR_QA01_RF088_NATIVE_APU_ECHO=1
+            export UR_QA01_RF089_ORIGINAL_ECHO=1
           fi
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
@@ -657,6 +681,28 @@ jobs:
               --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
               --out "$ROOT/qa01-rf087-native-snapshot-cut.json"
             echo 'RF083 original + RF084 native writer executions observed on paired source; clock/semantic parity NOT proven, release credit 0' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ "$QA01_ECHO" == "true" ]]; then
+            original="$ROOT/work/zoom-zoo/replay/reference.log"
+            native="$ROOT/work/zoom-zoo/replay/native.log"
+            # Fail closed on missing/overflowed producer evidence. These are
+            # executed rows, not proof of original/native timing equivalence.
+            if grep -Eq 'QA01RF089ORIG_TRUNCATED' "$original" ||
+               grep -Eq 'QA01RF088NATIVE_TRUNCATED' "$native"; then
+              echo "RF088/RF089 echo witness truncated" >&2
+              exit 1
+            fi
+            for pc in 028301 028304; do
+              if ! grep -Eq "^QA01RF089ORIG .*pc=$pc " "$original"; then
+                echo "RF089 original echo opcode $pc not executed" >&2
+                exit 1
+              fi
+            done
+            if ! grep -Eq '^QA01RF088NATIVE .*kind=R .*addr=2142 ' "$native"; then
+              echo 'RF088 native port 2142 read not executed' >&2
+              exit 1
+            fi
+            echo 'RF088/RF089 executed echo rows retained; observer-off control and clock registration still required, release credit 0' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM

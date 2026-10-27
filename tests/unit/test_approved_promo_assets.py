@@ -12,6 +12,24 @@ spec.loader.exec_module(promo)
 
 
 class ApprovedPromoTests(unittest.TestCase):
+    def test_importing_source_manifest_never_requires_optional_pillow(self):
+        # CI's dependency-free tooling run must be able to inspect SOURCES
+        # even on hosts without Pillow. Rendering still requires real Pillow.
+        from builtins import __import__ as real_import
+
+        def absent_pillow(name, *args, **kwargs):
+            if name == "PIL" or name.startswith("PIL."):
+                raise ModuleNotFoundError("Pillow deliberately absent in unit CI")
+            return real_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=absent_pillow):
+            isolated = importlib.util.spec_from_file_location(
+                "approved_promo_without_pillow", SCRIPT)
+            module = importlib.util.module_from_spec(isolated)
+            isolated.loader.exec_module(module)
+        self.assertEqual(module.SOURCES["portrait"],
+                         "blueprint-9x16-portrait-2160x3840.png")
+
     def test_portrait_only_approved_plate(self):
         self.assertEqual(promo.SOURCES["portrait"],
                          "blueprint-9x16-portrait-2160x3840.png")

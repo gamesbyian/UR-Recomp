@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 APPROVED = ROOT / "assets/promo/canonical"
@@ -36,6 +35,9 @@ def produce(out: Path, *, aspect: str = "16x9", logo_corner: str = "right") -> N
     source = APPROVED / SOURCES[key]
     if not source.is_file():
         raise FileNotFoundError(f"Required owner-approved promotional plate missing: {source}")
+    # Optional media dependency belongs to rendering, not module import.
+    # The dependency-free unit suite inspects this canonical asset contract.
+    from PIL import Image
     with Image.open(source) as original:
         expected = SIZE[aspect]
         # Preserve exact pixels when source output size already matches;

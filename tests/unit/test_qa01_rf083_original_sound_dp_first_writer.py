@@ -57,10 +57,13 @@ class RF083Source(unittest.TestCase):
                          original.count("S9xGetWord(OpAddress, w) + 1;"))
         self.assertEqual(patched.count("S9xSetWord(Work16, OpAddress, w, WRITE_10);"),
                          original.count("S9xSetWord(Work16, OpAddress, w, WRITE_10);"))
-        self.assertLess(patched.index("rf083_inc16_watch(OpAddress)"),
-                        patched.index("S9xSetWord(Work16, OpAddress, w, WRITE_10);"))
-        self.assertLess(patched.index("S9xSetWord(Work16, OpAddress, w, WRITE_10);"),
-                        patched.index("rf083_inc16_commit(OpAddress, Work16"))
+        # ASL16 has an earlier, identical S9xSetWord call. Compare within
+        # the instrumented INC16 body rather than against the entire header.
+        inc_start = patched.index("static inline void INC16 (uint32 OpAddress, s9xwrap_t w)")
+        self.assertLess(patched.index("rf083_inc16_watch(OpAddress)", inc_start),
+                        patched.index("S9xSetWord(Work16, OpAddress, w, WRITE_10);", inc_start))
+        self.assertLess(patched.index("S9xSetWord(Work16, OpAddress, w, WRITE_10);", inc_start),
+                        patched.index("rf083_inc16_commit(OpAddress, Work16", inc_start))
         self.assertIn("QA01RF083ORIG_INC16_TRUNCATED", m.C)
         self.assertIn("rawAfter=%04X", m.C)
         with self.assertRaisesRegex(ValueError, "already staged"):

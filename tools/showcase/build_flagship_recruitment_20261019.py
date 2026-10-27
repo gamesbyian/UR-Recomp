@@ -313,6 +313,7 @@ def main():
     outputs=[master,vertical,poster]
     manifest={
         "schema":"UR-FLAGSHIP-RECRUITMENT/1",
+        "approved_visual_assets":{"portrait":"blueprint-9x16-portrait-2160x3840.png","landscape":"blueprint-16x9-logo-right.png"},
         "build_edition":"2026-10-19",
         "source_identity":{k:{"path":str(v[0].relative_to(ROOT)),"sha256":v[1],"frames":v[2],"fps":v[3],"classification":v[4]} for k,v in SOURCES.items()},
         "poster_source":{"path":str(SOURCES["action"][0].relative_to(ROOT)),"sha256":SOURCES["action"][1],"source_ordinal":570,"actual_inverted_airborne_rider_source":True},

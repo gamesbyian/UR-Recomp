@@ -19,6 +19,14 @@ ROW = re.compile(
     r"rawAfter=([0-9A-F]{4}) native_master=(\d+)$"
 )
 SITES = {"8280E0": (1, 0x69), "828154": (2, 0x63)}
+ORIG_ROW = re.compile(
+    r"^QA01RF083ORIG seq=(\d+) type=(opcode_delta|setter_entry) frame=(\d+) "
+    r"pc=([0-9A-F]{6}) op=([0-9A-F]{2}) pre_v=(\d+) pre_h=(-?\d+) "
+    r"post_v=(\d+) post_h=(-?\d+) slot=([0-9A-F]{4}) "
+    r"old=([0-9A-F]{2}) new=([0-9A-F]{2}) setterCount=(\d+) "
+    r"setterAddr=([0-9A-F]{6}) setterVal=([0-9A-F]{2}) clock=original_cpu$"
+)
+ORIG_HEART = re.compile(r"^QA01RF083ORIG_HEART frame=(\d+) v=(\d+) h=(-?\d+)$")
 
 
 def audit(raw: bytes) -> dict:
@@ -71,14 +79,55 @@ def audit(raw: bytes) -> dict:
     }
 
 
+def audit_original(raw: bytes) -> dict:
+    lines = raw.decode("utf-8", errors="strict").splitlines()
+    if any("QA01RF083ORIG_TRUNCATED" in line for line in lines):
+        raise ValueError("RF083 original writer stream truncated")
+    hearts = []
+    count = 0
+    sites = {"8280E0/0069": 0, "828154/0063": 0}
+    for line in lines:
+        if line.startswith("QA01RF083ORIG_HEART"):
+            match = ORIG_HEART.fullmatch(line)
+            if not match:
+                raise ValueError("malformed RF083 original heartbeat")
+            hearts.append(int(match.group(1)))
+        elif line.startswith("QA01RF083ORIG "):
+            match = ORIG_ROW.fullmatch(line)
+            if not match:
+                raise ValueError("malformed RF083 original writer row")
+            seq, kind, frame, pc, opcode, *rest = match.groups()
+            count += 1
+            if int(seq) != count or not 6069 <= int(frame) <= 6079:
+                raise ValueError("RF083 original writer sequence/frame out of bounds")
+            slot = rest[4]
+            key = f"{pc}/{slot}"
+            if kind == "opcode_delta" and key in sites:
+                if opcode != "E6":
+                    raise ValueError("RF083 original sound increment opcode changed")
+                sites[key] += 1
+    if hearts != list(range(6069, 6080)) or not count or not all(sites.values()):
+        raise ValueError("RF083 original internal-frame/actual opcode coverage incomplete")
+    return {"original_log_sha256": hashlib.sha256(raw).hexdigest(),
+            "original_heartbeats": hearts, "original_writer_rows": count,
+            "original_increment_site_counts": sites,
+            "original_opcode_execution_proven": True,
+            "native_clock_registration_proven": False,
+            "release_credit": 0}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--original-log", type=Path, required=True)
     parser.add_argument("--native-log", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     if not args.native_log.is_file() or args.native_log.is_symlink():
         parser.error("real replay native log absent or symlinked")
+    if not args.original_log.is_file() or args.original_log.is_symlink():
+        parser.error("real replay original log absent or symlinked")
     report = audit(args.native_log.read_bytes())
+    report.update(audit_original(args.original_log.read_bytes()))
     args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("QA01_RF084_NATIVE_WRITER_RECEIPT=" + json.dumps(report, sort_keys=True))
 

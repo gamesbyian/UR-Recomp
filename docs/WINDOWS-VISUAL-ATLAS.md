@@ -1,6 +1,6 @@
 # Windows Visual Atlas: source-bound screenshots, coverage and mobile review
 
-**Owner request:** complete Windows product visual inventory; genuine images wherever a Windows capture exists, and unmistakable **COMING SOON** architectural/graph-paper illustrated references for missing surfaces. Browser must be comfortable on a phone and copy durable IDs/link+context for agents.
+**Owner request:** complete Windows product visual inventory; genuine images wherever a Windows capture exists, and exclusively the owner-approved October 26 **COMING SOON** PNGs for missing surfaces. Browser must be comfortable on a phone and copy durable IDs/link+context for agents.
 
 **Status (2026-10-23 initial implementation):** First reference inventory, ROM-free contract validator, capture sharder, GHA workflow and static mobile viewer are implemented on a feature PR, subject to CI, actual hosted capture and review. The inventory has **199 stable entries**: 54 curated Windows-surface IDs, 120 original UI source-anchors, 25 independent visual acceptance cases; **13 mapped to existing native semantic capture routes** in four shards. A mapped route is a *candidate*, never an observed screenshot. Nothing in this document approves a screenshot, model, art, hardware journey or release gate.
 
@@ -16,7 +16,7 @@
 | `tools/qa_modern_visual_pam_png.py` | Exactly converts authentic P7 raster bytes to PNG; no rescale or invented pixels. |
 | `.github/workflows/modern-visual-native-win32-capture.yml` | Proven Windows 2022/pinned toolchain/native staging procedure. The new campaign is manual and does not replace this independent QA workflow. |
 | `tools/showcase/graph_paper_trailer_art_direction.py` | Design vocabulary: cream drafting grid, source ink sketches, printed type, restrained red accents and footers. |
-| `media/showcase/2026-10-20/graphpaper-final/cards/*.png` | **Actual existing owner-supplied / editorial art plate family** used behind explicit missing-surface labels, without synthesizing fake product screenshots. |
+| `assets/promo/canonical/atlas-coming-soon-*.png` | **The only owner-approved atlas placeholder artwork** (16:9 and 4:3), without synthesizing fake product screenshots. Older generated card art is prohibited for new atlas builds. |
 | `docs/CI-WORKFLOW-BEST-PRACTICES.md` | Opt-in extended compute, source-bound evidence, cancellation discipline, bounded fan-out, no redundant Windows AOT builds. |
 
 The first implementation owns only `analysis/windows-visual-atlas.json`, `tools/windows_visual_atlas.py`, `tools/visual_atlas_web/*`, its small ROM-free tests and the opt-in Actions workflow. Do not edit shipping frontend, guest, PPU, save store or current visual acceptance authority to make a screenshot prettier.
@@ -84,7 +84,7 @@ EXE SHA256 <64-hex>; PNG SHA256 <64-hex>. Atlas: <hosted-url>#URV-MD-001
 
 A missing capture explicitly states that no Windows screenshot has been admitted. An `https:` URL is included **only when the site is actually hosted**; local previews copy the stable ID. Deep links remain stable when a screenshot revision changes.
 
-**COMING SOON graphic:** Reuse real approved graph-paper promotional plates as the background rather than attempting to draw the unshipped screen. A large visible status sash and the provenance pane distinguish illustration from Windows software. Later iterate with the original art-direction generator to create plate-specific illustrated mockups, carrying provenance and owner approval; never call concept art a gameplay capture.
+**COMING SOON graphic (superseded 2026-10-26):** Use only `assets/promo/canonical/atlas-coming-soon-16x9.png` or `atlas-coming-soon-4x3.png` as appropriate. Do not select old generated cards, create alternate concept placeholders, or overwrite authentic Windows captures. The provenance pane must distinguish artwork from Windows software. See `assets/promo/canonical/README.md`.
 
 ## How to run and where the output goes
 
@@ -101,7 +101,7 @@ Actual Windows capture: the atlas has **no automatic first-merge capture**. Afte
 
 ## Subsequent milestones / outstanding items
 
-- **M0, in this PR:** baseline catalog (199 = 54 curated + 120 source UI + 25 acceptance cases), 13 route mappings, GHA captured-binary sharing and nested bounded sharding, ROM-free evidence guard, original promotional backgrounds, responsive static browser and copy/deep-link controls. Must pass unit, JS syntax and exact hosted workflow validation. No live Windows screenshot claimed.
+- **M0, in this PR:** baseline catalog (199 = 54 curated + 120 source UI + 25 acceptance cases), 13 route mappings, GHA captured-binary sharing and nested bounded sharding, ROM-free evidence guard, the canonical owner-approved placeholder family, responsive static browser and copy/deep-link controls. Must pass unit, JS syntax and exact hosted workflow validation. No live Windows screenshot claimed.
 - **M1, when owner deliberately dispatches:** execute one manual hosted run, preserve run/artifact URLs, classify the 13 receipts into actual captured, failed and pending, inspect actual PNGs on a phone; correct capture driver differences on *their owning test route*, not by weakening acceptance. Publish a source-bound assembled atlas artifact, optionally configure Pages.
 - **M2, inventory completeness:** reconcile `analysis/ui-capture-manifest.json`, `analysis/modern-visual-acceptance-matrix.json`, the Modern root/destination code and current issues to add missing state/mode geometry entries. Capture authentic original menus, actual race/finish/HUD, real 1P/2P split, title and profiles from specifically reproducible true Windows processes; include state fixtures/trace identities. Record why blocked states cannot yet be captured.
 - **M3, richer inspection:** two-source comparison, blink/overlay/difference map at equivalent pixel geometry, configurable crops and ROI annotations, screenshot revision timelines, issue permalink creation, image contact sheets and filtering by open visual defects. Reuse existing QA diff helpers. Do not compare differently scaled source pixels as parity evidence.

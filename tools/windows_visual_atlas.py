@@ -25,7 +25,15 @@ from threading import Lock
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "analysis/windows-visual-atlas.json"
 WEB = ROOT / "tools/visual_atlas_web"
-ART = ROOT / "media/showcase/2026-10-20/graphpaper-final/cards"
+ART = ROOT / "assets/promo/canonical"
+ATLAS_ART = {"wide": "atlas-coming-soon-16x9", "compact": "atlas-coming-soon-4x3"}
+
+
+def placeholder_art(entry: dict) -> str:
+    """Select only owner-approved placeholder art, preserving native 4:3 geometry."""
+    display = entry.get("display", "")
+    compact = "1024 × 768" in display or "4:3" in display or "640 × 480" in display
+    return ATLAS_ART["compact" if compact else "wide"]
 ID = re.compile(r"^URV-[A-Z]{2,3}-[0-9]{3}$")
 WINDOW = re.compile(r"^([1-9][0-9]*)x([1-9][0-9]*)$")
 SHARDS = ("frontend", "interaction", "motion", "authentic")
@@ -101,8 +109,9 @@ def validate(catalog: dict, *, art_directory: Path = ART) -> list[dict]:
         art = entry["art"]
         if not re.fullmatch(r"[a-z0-9_-]+", art):
             raise ValueError(f"{key}: invalid art identifier")
-        if not (art_directory / (art + ".png")).is_file():
-            raise ValueError(f"{key}: expected authentic promo plate missing: {art}")
+        approved = placeholder_art(entry)
+        if not (art_directory / (approved + ".png")).is_file():
+            raise ValueError(f"{key}: approved coming-soon plate missing: {approved}")
         capture = entry.get("capture")
         if entry.get("kind") not in ("capturable", "planned"):
             raise ValueError(f"{key}: unknown kind")
@@ -217,7 +226,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     target.mkdir(parents=True)
     (target / "assets").mkdir()
     (target / "images").mkdir()
-    required_art = sorted({entry["art"] for entry in entries})
+    required_art = sorted({placeholder_art(entry) for entry in entries})
     for art in required_art:
         shutil.copyfile(ART / (art + ".png"), target / "assets" / (art + ".png"))
     for name in ("index.html", "atlas.css", "atlas.js", "tube-header.svg"):
@@ -237,6 +246,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     counts = {"captured": 0, "capture_failed": 0, "capture_pending": 0, "planned": 0}
     for entry in entries:
         case = dict(entry)
+        case["art"] = placeholder_art(entry)
         case["status"] = "planned" if entry["kind"] == "planned" else "capture_pending"
         if captures and entry.get("capture"):
             case_root = captures / "captures" / entry["id"]
@@ -327,7 +337,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         "exe_sha256": exe_digest,
         "counts": counts,
         "entries": published,
-        "provenance": "Only verified final SDL Windows captures are labelled captured. Other imagery is original graph-paper promotional art.",
+        "provenance": "Only verified final SDL Windows captures are labelled captured. Uncaptured entries use only the six-file owner-approved October 26 visual family, specifically the coming-soon plates.",
     }
     (target / "atlas.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     return data

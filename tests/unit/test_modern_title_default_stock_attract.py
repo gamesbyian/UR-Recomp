@@ -64,6 +64,7 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertIn("SDL_SetJoystickVirtualButton(", region)
         self.assertIn("p2_pad, SDL_GAMEPAD_BUTTON_EAST, true", region)
         self.assertIn("p2_pad, SDL_GAMEPAD_BUTTON_EAST, false", region)
+        self.assertIn("!p1_pad || !p2_pad", region)
         self.assertIn("p2_sdl_event_submitted=1", region)
         self.assertIn("p2_sdl_release_submitted=1", region)
         self.assertIn("p2_other_button_isolated=1", region)

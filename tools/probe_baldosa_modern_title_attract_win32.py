@@ -448,6 +448,9 @@ def main() -> int:
                 "inspect retained native-profile-bootstrap.log")
         env["UR_BALDOSA_MODERN_PROFILE_SELECT"] = "1"
         env["UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS"] = "1"
+    # Ambient diagnostics must never silently turn a legacy P2 control
+    # into the SDL mapped-word witness.
+    env.pop("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", None)
     if args.preview_wake and args.default_attract and args.wake_route == "p2":
         env["UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS"] = "1"
     if args.preview_wake:

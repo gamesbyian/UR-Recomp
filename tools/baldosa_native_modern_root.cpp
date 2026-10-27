@@ -2488,9 +2488,9 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         // The historical direct-callback wake remains a control. In the
         // opt-in mapped-word witness, a *different* B arrives through a real
         // SDL3 virtual seat-2 device and the ordinary event pump.
+#if SNESRECOMP_SDL3
         const bool mapped_p2_probe =
             std::getenv("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS") != nullptr;
-#if SNESRECOMP_SDL3
         static SDL_Joystick* p1_pad = nullptr;
         static SDL_Joystick* p2_pad = nullptr;
         if (mapped_p2_probe && (frame == 1570u || frame == 1572u)) {
@@ -2509,7 +2509,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             return;
         }
         if (mapped_p2_probe && frame == 1590u &&
-            (snesrecomp_desktop_product_seat_source(0) == -1 ||
+            (!p1_pad || !p2_pad ||
+             snesrecomp_desktop_product_seat_source(0) == -1 ||
              snesrecomp_desktop_product_seat_source(1) == -1))
             std::abort();
 #endif

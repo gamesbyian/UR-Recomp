@@ -66,6 +66,42 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "40-hex"):
             guard.changed_files("main")
 
+    def test_original_native_zoo_request_reuses_strict_source_isolation(self):
+        old = marker(0, "Initial causal dispatch marker installation without a run")
+        new = marker(1, "Investigate merged RF083 word-entry and RF084 native writer on Zoo")
+        self.assertEqual(
+            guard.validate(old, new, [guard.ZOO_MARKER],
+                           marker=guard.ZOO_MARKER)["new"], 1)
+        with self.assertRaisesRegex(ValueError, "supported request marker"):
+            guard.validate(old, new,
+                           [guard.ZOO_MARKER, "native/product/race.cpp"],
+                           marker=guard.ZOO_MARKER)
+        with self.assertRaisesRegex(ValueError, "supported request marker"):
+            guard.validate(old, new, [guard.ZOO_MARKER],
+                           marker="docs/anything-else.md")
+
+    def test_zoo_wrapper_requires_guard_then_calls_existing_causal_campaign(self):
+        path = ROOT / ".github/workflows/qa01-zoo-causal-request.yml"
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("    branches: [main]", text)
+        self.assertIn('      - "docs/qa01/REQUEST-ZOO-CAUSAL.md"', text)
+        self.assertNotIn("  pull_request:", text)
+        self.assertIn("needs: qualify_request", text)
+        self.assertIn("needs.qualify_request.result == 'success'", text)
+        self.assertIn("uses: ./.github/workflows/qa01-event-campaign.yml", text)
+        for required in ("selected: zoom-zoo", "zoo_race_mesh: true",
+                         "zoo_dp_window: true", "qa01_rf084_native_sound_dp: true",
+                         "baldosa_refresh_beam_rate: true",
+                         "baldosa_io_clock_order: true"):
+            self.assertIn(required, text)
+        # Explicitly exclude unsafe experimental correction mixing,
+        # event acceptance and publication.
+        for unwanted in ("baldosa_spc_reference_rate: true",
+                         "baldosa_dp_pointer_once: true",
+                         "baldosa_hdma_cpu_stall: true",
+                         "qa01_apu_phase: true", "contents: write"):
+            self.assertNotIn(unwanted, text)
+
     def test_workflow_runs_guard_before_expensive_reusable_bridge(self):
         source = (ROOT / ".github/workflows/manual-romfree-windows-playtest.yml"
                   ).read_text(encoding="utf-8")

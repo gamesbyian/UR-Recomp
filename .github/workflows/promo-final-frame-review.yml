@@ -11,7 +11,7 @@ on:
         description: "Completed source-matched full flagship export run"
         required: true
         type: string
-        default: "40463247963"
+        default: "40465519774"
 
 permissions:
   contents: read
@@ -32,7 +32,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ur-promo-owner-approved-full-flagship
-          run-id: ${{ inputs.source_run_id || '40463247963' }}
+          run-id: ${{ inputs.source_run_id || '40465519774' }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/flagship-real-output
       - name: Install actual decoding tools

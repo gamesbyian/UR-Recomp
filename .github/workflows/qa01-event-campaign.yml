@@ -687,7 +687,7 @@ jobs:
             native="$ROOT/work/zoom-zoo/replay/native.log"
             # Fail closed on missing/overflowed producer evidence. These are
             # executed rows, not proof of original/native timing equivalence.
-            if grep -Eq 'QA01RF089ORIG_TRUNCATED' "$original" ||
+            if grep -Eq 'QA01RF089ORIG_TRUNCATED|QA01RF090ORIG_TRUNCATED' "$original" ||
                grep -Eq 'QA01RF088NATIVE_TRUNCATED' "$native"; then
               echo "RF088/RF089 echo witness truncated" >&2
               exit 1
@@ -701,6 +701,13 @@ jobs:
                 exit 1
               fi
             done
+            # RF090 captures the *returned* original APU-port value from
+            # the existing Snes9x PPU bus read. Missing rows indicate
+            # producer/observer failure, not original/native parity.
+            if ! grep -Eq '^QA01RF090ORIG .*addr=2140 width=[12] ' "$original"; then
+              echo 'RF090 original Zoo port 2140 returned read not observed' >&2
+              exit 1
+            fi
             if ! grep -Eq '^QA01RF088NATIVE .*kind=R .*addr=2140 ' "$native"; then
               echo 'RF088 native Zoo port 2140 read not executed' >&2
               exit 1

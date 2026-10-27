@@ -58,7 +58,8 @@ class PairedEchoWiring(unittest.TestCase):
 
     def test_executed_rows_and_overflow_fail_closed(self):
         s = self.source
-        self.assertIn("QA01RF089ORIG_TRUNCATED", s)
+        self.assertIn("QA01RF089ORIG_TRUNCATED|QA01RF090ORIG_TRUNCATED", s)
+        self.assertIn("QA01RF090ORIG .*addr=2140 width=[12]", s)
         self.assertIn("QA01RF088NATIVE_TRUNCATED", s)
         self.assertIn("for pc in 8280DB 8280DE", s)
         self.assertIn("QA01RF088NATIVE .*kind=R .*addr=2140", s)

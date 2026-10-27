@@ -10,8 +10,8 @@ def source():
       "Op = CPU.PCBase[Registers.PCw];\n"+
       "Op = S9xGetByte(Registers.PBPC);\n"+m.OP+"\n}\n")
 def setter():
-    return (m.BYTE+"  actually_map(Byte,Address);\n}\n"+
-            m.WORD+"  actually_write_word(Word,Address);\n}\n")
+    return (m.BYTE+m.READ_BYTE_PPU+"\n  actually_map(Byte,Address);\n}\n"+
+            m.WORD+m.READ_WORD_PPU+"\n  actually_write_word(Word,Address);\n}\n")
 
 class RF083Source(unittest.TestCase):
     def test_true_fetch_and_setter_identity_with_no_extra_guest_accesses(self):
@@ -128,6 +128,24 @@ class RF083Source(unittest.TestCase):
         for bus in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):
             self.assertNotIn(bus, m.C, bus)
         self.assertEqual(b.count(m.BYTE), setter().count(m.BYTE))
+
+    def test_rf090_original_apu_port_read_captures_real_returned_values(self):
+        a, b = m.patch(source(), setter())
+        self.assertIn("QA01RF090ORIG seq=", a)
+        self.assertIn("QA01RF090ORIG_TRUNCATED", a)
+        self.assertIn("rf083_frame<6054u || rf083_frame>6059u", a)
+        self.assertIn('getenv("UR_QA01_RF089_ORIGINAL_ECHO")', a)
+        self.assertIn("port<0x2140u || port>0x2143u", a)
+        self.assertIn("val=%04X", a)
+        self.assertIn("rf083_port_read(Address,1u,(unsigned)byte);", b)
+        self.assertIn("rf083_port_read(Address,2u,(unsigned)word);", b)
+        self.assertEqual(b.count("S9xGetPPU("), setter().count("S9xGetPPU("))
+        for name in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):
+            self.assertNotIn(name, m.C)
+        self.assertLess(b.index(m.READ_BYTE_PPU.splitlines()[0]),
+                        b.index("rf083_port_read(Address,1u"))
+        self.assertLess(b.index("S9xGetPPU((Address + 1) & 0xffff)"),
+                        b.index("rf083_port_read(Address,2u"))
 
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())

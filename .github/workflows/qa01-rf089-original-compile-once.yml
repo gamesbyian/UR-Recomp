@@ -1,5 +1,5 @@
 name: RF089 original pinned compile (one shot)
-# Retry after original C compile caught literal escaped newlines in injected helper.
+# Retry with valid Python raw-string regression assertions for escaped-newline C errors.
 on:
   push:
     branches:

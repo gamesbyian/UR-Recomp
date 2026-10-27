@@ -3,11 +3,11 @@
 
 The central 1080x608 gameplay remains a complete unchanged fitted crop from
 the source-locked 27s portrait master. Only the surrounding matte is filled
-with blurred, desaturated, visibly non-gameplay imagery from the same recorded
-frames. No extra source world, interpolation or newly photographed gameplay.
+with the exclusive owner-approved 9:16 promotional background. No extra source world, interpolation or newly photographed gameplay.
 """
 import argparse,hashlib,json,subprocess
 from pathlib import Path
+PORTRAIT_PLATE = Path(__file__).resolve().parents[2] / "assets/promo/canonical/blueprint-9x16-portrait-2160x3840.png"
 SOURCE_SHA="74785eb6bef6ae7b5ee007e60fd4a421b57c1b2a2e681cca7a3e18541e9a5ade"
 SOURCE_NAME="ur-recomp-flagship-27s-vertical.mp4"
 OUTPUT_NAME="ur-recomp-flagship-27s-social-ambient.mp4"
@@ -34,28 +34,17 @@ def main():
  assert source.is_file() and sha(source)==SOURCE_SHA,"Exact original flagship portrait source hash required"
  s=probe(source)
  assert (s["width"],s["height"],s["r_frame_rate"],int(s["nb_read_frames"]))==(1080,1920,"60/1",1620)
- # The background is expressly an editorial ambiance, not playable world:
- # it is intentionally low-resolution, blurred, colour-suppressed and stretched
- # to make an obvious matte surrounding the sharp COMPLETE 2P raster.
+ assert PORTRAIT_PLATE.is_file(), "Exclusive approved portrait plate missing"
  filters=[
-  "[0:v]split=2[ambsrc][clean]",
-  "[ambsrc]crop=1080:608:0:656,scale=270:480:flags=neighbor,"
-   "boxblur=luma_radius=12:luma_power=2,"
-   "scale=1080:1920:flags=bicubic,eq=brightness=-0.26:saturation=0.45[ambient]",
-  "[clean]crop=1080:608:0:656[fullgame]",
-  "[ambient][fullgame]overlay=x=0:y=656:format=auto,"
+  "[0:v]crop=1080:608:0:656[fullgame]",
+  "[1:v]scale=1080:1920:flags=lanczos[approved]",
+  "[approved][fullgame]overlay=x=0:y=656:format=auto,"
    "drawbox=x=0:y=647:w=1080:h=7:color=0x48e8d8:t=fill,"
    "drawbox=x=0:y=1265:w=1080:h=7:color=0x48e8d8:t=fill,"
-   "drawbox=x=30:y=70:w=1020:h=260:color=black@0.75:t=fill,"
-   "drawbox=x=30:y=1410:w=1020:h=190:color=black@0.75:t=fill,"
-   "drawtext=text='UNIRACERS  /  RECOMP':fontsize=62:fontcolor=white:"
-   "x=(w-text_w)/2:y=114,"
    "drawtext=text='SOURCE-LOCKED DEVELOPMENT SHOWCASE':fontsize=26:"
    "fontcolor=0x48e8d8:x=(w-text_w)/2:y=213,"
    "drawtext=text='github.com/gamesbyian/UR-Recomp':fontsize=33:"
-   "fontcolor=white:x=(w-text_w)/2:y=1500,"
-   "drawtext=text='Editorial ambient backdrop - native game inside frame':fontsize=20:"
-   "fontcolor=white:x=(w-text_w)/2:y=1768"
+   "fontcolor=white:x=(w-text_w)/2:y=1500"
  ]
  for i,(start,end,label) in enumerate(SHOTS):
   filters.append(
@@ -63,10 +52,10 @@ def main():
     "x=(w-text_w)/2:y=1370:box=1:boxcolor=black@0.58:boxborderw=14:"
     "enable='between(t,"+str(start)+","+str(end-0.0001)+")'"
   )
- graph=";".join(filters[:3])+";"+filters[3]+","+",".join(filters[4:])+",format=yuv420p[v]"
+ graph=";".join(filters[:2])+";"+",".join(filters[2:])+",format=yuv420p[v]"
  output=a.outdir/OUTPUT_NAME
  subprocess.run(["ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
-    "-i",str(source),"-filter_complex",graph,"-map","[v]","-map","0:a:0",
+    "-i",str(source),"-loop","1","-i",str(PORTRAIT_PLATE),"-filter_complex",graph,"-map","[v]","-map","0:a:0",
     "-frames:v","1620","-t","27","-c:v","libx264","-preset","veryfast",
     "-crf","19","-pix_fmt","yuv420p","-r","60","-c:a","copy",
     "-movflags","+faststart",str(output)],check=True)
@@ -76,7 +65,9 @@ def main():
   "schema":"UR-FLAGSHIP-PORTRAIT-AMBIENCE/1",
   "source_name":SOURCE_NAME,"source_sha256":SOURCE_SHA,
   "out_name":OUTPUT_NAME,"out_sha256":sha(output),"frames":1620,
-  "editorial_blurred_matte":True,
+  "editorial_blurred_matte":False,
+  "approved_portrait_plate":str(PORTRAIT_PLATE.relative_to(Path(__file__).resolve().parents[2])),
+  "approved_portrait_sha256":sha(PORTRAIT_PLATE),
   "visible_game_source_area_xywh":[0,656,1080,608],
   "original_fitted_gameplay_geometry_preserved":True,
   "original_source_labels_removed_and_recreated_from_verified_source_ranges":True,

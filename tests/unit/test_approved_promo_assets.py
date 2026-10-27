@@ -35,12 +35,15 @@ class ApprovedPromoTests(unittest.TestCase):
         blue = (showcase / "blue_trailer_art_direction.py").read_text(encoding="utf-8")
         flagship = (showcase / "build_flagship_recruitment_20261019.py").read_text(encoding="utf-8")
         upgrade = (showcase / "upgrade_flagship_vertical_20261019.py").read_text(encoding="utf-8")
+        definitive = (showcase / "build_definitive_recruitment.py").read_text(encoding="utf-8")
         self.assertIn("graph_paper_trailer_art_direction", blue)
         self.assertNotIn("ImageDraw", blue)
         self.assertIn('aspect="portrait"', flagship)
         self.assertIn('cards["__portrait__"]', flagship)
         self.assertIn("blueprint-9x16-portrait-2160x3840.png", upgrade)
         self.assertNotIn("boxblur", upgrade)
+        self.assertIn("blueprint-9x16-portrait-2160x3840.png", definitive)
+        self.assertNotIn("color=c=0x091421", definitive)
 
     def test_portrait_only_approved_plate(self):
         self.assertEqual(promo.SOURCES["portrait"],

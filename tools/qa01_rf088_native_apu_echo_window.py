@@ -2,7 +2,7 @@
 """RF088: opt-in native APU echo read/write witness in the already-pinned CPU bus.
 
 Patch only the disposable Baldosa runner, after RF086 and before compilation.
-Capture $2142/$2143 traffic across the first Zoo seek/upload boundary,
+Capture $2140-$2143 traffic across the first Zoo seek/upload boundary,
 including the actual pointer at each access; do not assume it is C6B0. The CPU bus performs
 exactly its original ReadReg/WriteReg operations; observations follow them.
 This is native-only evidence, not an original/native clock registration.
@@ -39,11 +39,11 @@ static void ur_rf088_note(CpuState *cpu, uint8 bank, uint16 addr,
         const char *flag = getenv("UR_QA01_RF088_NATIVE_APU_ECHO");
         enabled = flag && flag[0] == '1' && flag[1] == '\0';
     }
-    /* Keep the actual port addresses narrow, but do not preselect the
+    /* Keep the actual four APU ports narrow, but do not preselect the
      * unproven pointer phase. The sequence-10 combined run produced zero
      * RF088 rows; log the pointer alongside each observed port access. */
     if (!enabled || snes_frame_counter < 6055 || snes_frame_counter > 6060 ||
-        (addr != 0x2142 && addr != 0x2143)) return;
+        (addr < 0x2140 || addr > 0x2143)) return;
     if (++ur_rf088_rows > 32768u) {
         if (ur_rf088_rows == 32769u)
             fprintf(stderr, "QA01RF088NATIVE_TRUNCATED\n");

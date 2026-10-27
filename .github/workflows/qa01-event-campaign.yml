@@ -692,14 +692,17 @@ jobs:
               echo "RF088/RF089 echo witness truncated" >&2
               exit 1
             fi
-            for pc in 028301 028304; do
+            # The genuine Zoo path uses Snd_UploadBlock 82:80DB CMP
+            # $2140 / 82:80DE BNE. The older 82:8301/8304 $2142 loop
+            # belongs to the different block-list transfer path.
+            for pc in 8280DB 8280DE; do
               if ! grep -Eq "^QA01RF089ORIG .*pc=$pc " "$original"; then
-                echo "RF089 original echo opcode $pc not executed" >&2
+                echo "RF089 original Zoo echo opcode $pc not executed" >&2
                 exit 1
               fi
             done
-            if ! grep -Eq '^QA01RF088NATIVE .*kind=R .*addr=2142 ' "$native"; then
-              echo 'RF088 native port 2142 read not executed' >&2
+            if ! grep -Eq '^QA01RF088NATIVE .*kind=R .*addr=2140 ' "$native"; then
+              echo 'RF088 native Zoo port 2140 read not executed' >&2
               exit 1
             fi
             echo 'RF088/RF089 executed echo rows retained; observer-off control and clock registration still required, release credit 0' >> "$GITHUB_STEP_SUMMARY"

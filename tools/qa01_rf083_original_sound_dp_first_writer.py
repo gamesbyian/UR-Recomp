@@ -83,9 +83,12 @@ static void rf083_pre(uint8 opcode){
     const unsigned rf089_pc_mirrored=rf083_pc & 0x7fffffu;
     rf089_target=rf083_early && frame>=6054u && frame<=6059u &&
         rf089_flag && rf089_flag[0]=='1' && rf089_flag[1]=='\0' &&
-        (rf089_pc_mirrored==0x0282A9u || rf089_pc_mirrored==0x0282F2u ||
-         rf089_pc_mirrored==0x0282F6u || rf089_pc_mirrored==0x028301u ||
-         rf089_pc_mirrored==0x028304u);
+        /* Zoo's executed Snd_UploadBlock uses 80DB CMP $2140 and
+         * 80DE BNE; 8301/8304 belong to the separate block-list path. */
+        (rf089_pc_mirrored==0x0280CEu || rf089_pc_mirrored==0x0280DBu ||
+         rf089_pc_mirrored==0x0280DEu || rf089_pc_mirrored==0x0282A9u ||
+         rf089_pc_mirrored==0x0282F2u || rf089_pc_mirrored==0x0282F6u ||
+         rf089_pc_mirrored==0x028301u || rf089_pc_mirrored==0x028304u);
     if(rf089_target){
         rf089_a0=(unsigned)Registers.A.W;
         rf089_p0=(unsigned)Registers.PL; /* packed PL may be stale */

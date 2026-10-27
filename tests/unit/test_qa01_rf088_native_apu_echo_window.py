@@ -47,6 +47,8 @@ class EchoWindowTests(unittest.TestCase):
         self.assertNotIn("cpu->ram[0x63] != 0xB0", patched)
         self.assertNotIn("cpu->ram[0x64] != 0xC6", patched)
         self.assertIn("ptr=%02X%02X", patched)
+        self.assertIn("addr < 0x2140 || addr > 0x2143", patched)
+        self.assertNotIn("addr != 0x2142 && addr != 0x2143", patched)
         self.assertIn("(unsigned)cpu->ram[0x64], (unsigned)cpu->ram[0x63]", patched)
         self.assertIn("QA01RF088NATIVE_TRUNCATED", patched)
         self.assertIn("UR_QA01_RF088_NATIVE_APU_ECHO", patched)

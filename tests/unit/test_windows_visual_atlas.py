@@ -49,11 +49,23 @@ class WindowsAtlasTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not supported"):
             atlas.validate(bad)
 
-    def test_missing_artwork_is_an_error_not_an_invented_reference(self):
+    def test_missing_owner_approved_plate_fails_closed(self):
         catalog = atlas.load_catalog()
-        catalog["entries"][0]["art"] = "no-such-original-drawing"
-        with self.assertRaisesRegex(ValueError, "missing"):
-            atlas.validate(catalog)
+        required = {atlas.placeholder_art(entry) for entry in catalog["entries"]}
+        self.assertEqual(required, set(atlas.ATLAS_ART.values()))
+        with tempfile.TemporaryDirectory() as directory:
+            art = Path(directory)
+            # A legacy per-entry art label cannot supply a substitute image.
+            catalog["entries"][0]["art"] = "no-such-original-drawing"
+            for name in sorted(required):
+                (art / (name + ".png")).write_bytes(b"test fixture")
+            self.assertEqual(len(atlas.validate(catalog, art_directory=art)),
+                             len(catalog["entries"]))
+            for name in sorted(required):
+                (art / (name + ".png")).unlink()
+                with self.assertRaisesRegex(ValueError, "approved coming-soon plate missing"):
+                    atlas.validate(catalog, art_directory=art)
+                (art / (name + ".png")).write_bytes(b"test fixture")
 
     def test_preview_site_keeps_every_expected_id_and_marks_all_uncaptured(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -62,7 +74,13 @@ class WindowsAtlasTests(unittest.TestCase):
             self.assertEqual(data["counts"]["captured"], 0)
             self.assertEqual(len(data["entries"]), len(atlas.validate(atlas.load_catalog())))
             self.assertTrue((out / "atlas.js").is_file())
-            self.assertTrue((out / "assets/modern-frame.png").is_file())
+            required = {atlas.placeholder_art(entry) for entry in data["entries"]}
+            self.assertEqual(required, set(atlas.ATLAS_ART.values()))
+            for name in required:
+                self.assertTrue((out / "assets" / (name + ".png")).is_file())
+            self.assertFalse((out / "assets/modern-frame.png").exists())
+            self.assertTrue(all(entry["art"] == atlas.placeholder_art(entry)
+                                for entry in data["entries"]))
             self.assertTrue(all(entry["status"] in ("planned", "capture_pending")
                                 for entry in data["entries"]))
             with self.assertRaisesRegex(ValueError, "overwrite"):

@@ -14,6 +14,9 @@ on:
 
 permissions:
   contents: read
+  # The reusable Windows bridge requests actions: read for source-bound
+  # artifact retrieval. A called workflow cannot elevate the caller token.
+  actions: read
 
 concurrency:
   group: manual-romless-windows-playtest-${{ github.ref }}

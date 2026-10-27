@@ -175,7 +175,7 @@ static void rf083_post(void){
               ((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw,
               (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
         } else if(rf089_rows==32769u){
-            fprintf(stderr,"QA01RF089ORIG_TRUNCATED\\n");
+            fprintf(stderr,"QA01RF089ORIG_TRUNCATED\n");
         }
     }
     for(unsigned i=0;i<4u;++i){

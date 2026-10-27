@@ -112,7 +112,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 file = Path(filename)
                 self.assertTrue(file.is_file())
                 text = file.read_text(encoding="utf-8")
-                self.assertIn("workflow_dispatch:", text)
+                self.assertIn("pull_request:", text)
                 self.assertNotIn("release-quality-ledger", text.lower())
                 self.assertNotIn("RELEASE-QUALITY-LEDGER.json", text)
 

@@ -72,6 +72,8 @@ class RF083Source(unittest.TestCase):
         self.assertIn("6065u", m.C)
         self.assertIn("!rf083_early && rf083_pc==0x828154u", m.C)
         self.assertIn("rf083_early ? &rf083_early_seq : &rf083_seq", m.C)
+        self.assertIn("rf083_early ? 16384u : 8192u", m.C)
+        self.assertIn("if(*rows==budget+1u)", m.C)
         with self.assertRaisesRegex(ValueError, "already staged"):
             m.patch_macro(patched)
         with self.assertRaisesRegex(ValueError, "drift"):

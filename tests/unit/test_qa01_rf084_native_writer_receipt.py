@@ -96,6 +96,17 @@ class NativeRF084Receipt(unittest.TestCase):
         self.assertEqual(report["original_early_first_boundary_change"]["frame"], 6056)
         self.assertFalse(report["original_native_first_writer_parity_proven"])
         self.assertEqual(report["release_credit"], 0)
+        # Actual #40487975108 had 8192 early rows and an explicit
+        # truncation marker by frame 6062. The new budget must admit
+        # >8192 while still rejecting any stream above 16384.
+        expanded = "".join(event(i, 6057, "0063", "00", "01")
+                           for i in range(1, 8194))
+        self.assertEqual(m.audit_early((hearts + expanded).encode())[
+            "original_early_observations"], 8193)
+        overflow = expanded + "".join(event(i, 6057, "0063", "00", "01")
+                                       for i in range(8194, 16386))
+        with self.assertRaisesRegex(ValueError, "coverage incomplete"):
+            m.audit_early((hearts + overflow).encode())
         # Zero actual changes is allowed with 15 heartbeats: an absent writer
         # is a negative observation, never fabricated source execution.
         self.assertIsNone(m.audit_early(hearts.encode())["original_early_first_change"])

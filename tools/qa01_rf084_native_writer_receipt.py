@@ -89,7 +89,7 @@ def audit_early(raw: bytes) -> dict:
                     first = event
                 if boundary is None and frame in (6056, 6057):
                     boundary = event
-    if hearts != list(range(6051, 6066)) or count > 8192:
+    if hearts != list(range(6051, 6066)) or count > 16384:
         raise ValueError("original early boundary producer coverage incomplete")
     return {
         "original_early_log_sha256": hashlib.sha256(raw).hexdigest(),

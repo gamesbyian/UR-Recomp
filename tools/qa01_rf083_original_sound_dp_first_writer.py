@@ -32,8 +32,12 @@ static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now
     unsigned *rows=rf083_early ? &rf083_early_rows : &rf083_rows;
     unsigned long long *seq=rf083_early ? &rf083_early_seq : &rf083_seq;
     const char *prefix=rf083_early ? "QA01RF085EARLY" : "QA01RF083ORIG";
-    if(++*rows>8192u){
-        if(*rows==8193u){
+    /* Real Zoo #40487975108 exceeded 8192 early rows by frame 6062.
+     * Keep late RF083 at its proven 8192 cap; bound the distinct early
+     * 6051..6065 source window at 16384 without dropping +5040 evidence. */
+    const unsigned budget=rf083_early ? 16384u : 8192u;
+    if(++*rows>budget){
+        if(*rows==budget+1u){
             if(rf083_early)
                 fprintf(stderr,"QA01RF085EARLY_TRUNCATED\n");
             else

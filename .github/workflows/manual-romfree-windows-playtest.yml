@@ -14,6 +14,8 @@ on:
 
 permissions:
   contents: read
+  # Called Windows bridge downloads its exact-source predecessor artifacts.
+  actions: read
 
 concurrency:
   group: manual-romless-windows-playtest-${{ github.ref }}

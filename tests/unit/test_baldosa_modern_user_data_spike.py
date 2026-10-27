@@ -50,7 +50,8 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         self.assertEqual(port.patch_host_main(bridged), bridged)
         self.assertIn("UR-STARTUP-SAVE-ROOT:", bridged)
         self.assertIn("return 7;", bridged)
-        self.assertIn("explicit_root && !snesrecomp_anchor_to_exe_dir()", bridged)
+        self.assertIn("int anchored = explicit_root", bridged)
+        self.assertIn("? 1 : snesrecomp_anchor_to_exe_dir()", bridged)
         self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', bridged)
         self.assertIn("explicit_root\\n        ? 1 : snesrecomp_anchor_to_exe_dir()", bridged)
         with self.assertRaisesRegex(ValueError, "diverged"):

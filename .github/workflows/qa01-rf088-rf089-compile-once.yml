@@ -1,0 +1,105 @@
+# Disposable qualification only. Never merge this workflow into main.
+# Compiles the exact RF088/RF089 repair head without replaying Zoo.
+name: QA01 RF088 RF089 one-shot pinned compile
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/qa01-rf088-rf089-compile-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-rf088-rf089-compile-once
+  cancel-in-progress: false
+
+jobs:
+  pinned-compile:
+    if: ${{ github.event.pull_request.head.ref == 'agent3/ur-cpu-cause-pinned-compile-once-20261027' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out immutable RF088/RF089 repair source
+        uses: actions/checkout@v4
+        with:
+          ref: f793b82594889931ab7585962ee4554316dc384e
+          submodules: recursive
+          persist-credentials: false
+      - name: Check out immutable Baldosa research guest
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify source identities and run focused tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = f793b82594889931ab7585962ee4554316dc384e
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf083_original_sound_dp_first_writer.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf084_native_sound_dp_committed_writer.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf086_native_first_boundary.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf088_native_apu_echo_window.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_rf088_rf089_campaign.py
+      - name: Compile patched pinned original and native guests
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+          make -C "$CORE_SRC/libretro" clean
+          make -C "$CORE_SRC/libretro" -j2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-snesref" -j2
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
+          python3 tools/qa01_rf084_native_sound_dp_committed_writer.py --root baldosa
+          python3 tools/qa01_rf086_native_first_boundary_commit.py --root baldosa
+          python3 tools/qa01_rf088_native_apu_echo_window.py --root baldosa
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          mkdir -p "$RUNNER_TEMP/qa01-rf088-rf089-receipt"
+          {
+            echo 'work_id=UR-CPU-CAUSE-20261026'
+            echo 'qualification=compile-only; no Zoo execution; no observer-off control'
+            echo 'source_sha=f793b82594889931ab7585962ee4554316dc384e'
+            echo 'baldosa_sha=10b864b9d14a7b7416dd909eb7b054c88faef101'
+            echo 'snesrecomp_sha=075fbe4c8e0d97b0013be541795c39cb644a9709'
+            sha256sum "$CORE_SRC/libretro/snes9x_libretro.so" \
+              "$RUNNER_TEMP/qa01-snesref/snesref" \
+              baldosa/build/UniracersSNESRecomp
+            file "$CORE_SRC/libretro/snes9x_libretro.so" \
+              "$RUNNER_TEMP/qa01-snesref/snesref" \
+              baldosa/build/UniracersSNESRecomp
+          } | tee "$RUNNER_TEMP/qa01-rf088-rf089-receipt/receipt.txt"
+          echo 'Pinned original/native compilation passed; no gameplay parity or release credit.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload metadata-only compilation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf088-rf089-pinned-compile-receipt
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa01-rf088-rf089-receipt/receipt.txt

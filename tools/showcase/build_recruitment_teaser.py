@@ -15,6 +15,7 @@ import subprocess
 import wave
 import zipfile
 from pathlib import Path
+from functools import lru_cache
 from PIL import Image, ImageDraw, ImageFont
 
 FPS = 24
@@ -54,8 +55,9 @@ def source_images(z):
     assert '002208' in evidence['retained_raw_native_image']
     return {'original':original,'wide':wide,'start':start,'late':later,'early':early},evidence
 
-def template(w,h):
-    """Composite labels/verified native captures onto exclusive approved art."""
+@lru_cache(maxsize=2)
+def approved_plate(w,h):
+    """Decode/resize an approved plate once, not once for every film frame."""
     root=Path(__file__).resolve().parents[2]/'assets/promo/canonical'
     if h>w:
         plate=root/'blueprint-9x16-portrait-2160x3840.png'
@@ -65,6 +67,11 @@ def template(w,h):
         if source.width*h != source.height*w:
             raise ValueError('Approved promotional plate aspect ratio mismatch')
         im=source.convert('RGB').resize((w,h),Image.Resampling.LANCZOS)
+    return im
+
+
+def template(w,h):
+    im=approved_plate(w,h).copy()
     return im,ImageDraw.Draw(im)
 
 def framed(im,src,xywh,border=True):

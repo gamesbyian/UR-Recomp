@@ -1246,6 +1246,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game2_restore_defaults/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game3_defaults_boot/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game4_damaged/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game4b_cold_reopen/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game5_readonly_config/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier0_never_played-*/log.txt

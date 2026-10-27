@@ -22,8 +22,14 @@ SAMPLES = (
      "blueprint-16x9-logo-right.png", (1920, 1080), "wide-call-to-action"),
     ("ur-recomp-blue-action-27s-vertical.mp4", 1.0,
      "blueprint-9x16-portrait-2160x3840.png", (1080, 1920), "portrait-title"),
+    ("ur-recomp-blue-action-27s-vertical.mp4", 23.5,
+     "blueprint-9x16-portrait-2160x3840.png", (1080, 1920), "portrait-cta-23_5s"),
+    ("ur-recomp-blue-action-27s-vertical.mp4", 24.5,
+     "blueprint-9x16-portrait-2160x3840.png", (1080, 1920), "portrait-cta-24_5s"),
     ("ur-recomp-blue-action-27s-vertical.mp4", 25.0,
-     "blueprint-9x16-portrait-2160x3840.png", (1080, 1920), "portrait-call-to-action"),
+     "blueprint-9x16-portrait-2160x3840.png", (1080, 1920), "portrait-cta-25s"),
+    ("ur-recomp-blue-action-27s-vertical.mp4", 26.0,
+     "blueprint-9x16-portrait-2160x3840.png", (1080, 1920), "portrait-cta-26s"),
 )
 
 
@@ -48,6 +54,7 @@ def check(export: Path, out: Path) -> dict:
 
     out.mkdir(parents=True, exist_ok=False)
     results = []
+    failures = []
     for filename, seconds, art, (w, h), label in SAMPLES:
         source = export / filename
         sample_path = out / (label + ".png")
@@ -75,14 +82,18 @@ def check(export: Path, out: Path) -> dict:
                 score = max(channel_means)
                 scores.append(round(score, 2))
             if max(scores) > 55:
-                raise ValueError(f"{label}: approved background absent/altered at corners: {scores}")
+                failures.append(label)
         results.append({"label": label, "timestamp_seconds": seconds,
                         "approved_background": art, "sample": sample_path.name,
                         "corner_region_mean_abs_difference": scores,
-                        "result": "approved-background-visible"})
+                        "output_mean_rgb": [round(v, 2) for v in ImageStat.Stat(actual).mean],
+                        "result": "approved-background-visible" if label not in failures else "wrong-or-missing-background"})
     verdict = {"source_export": str(export), "samples": results,
                "source_provenance_verified": True, "claim": "automated pixel-sample acceptance only"}
+    verdict["failed_samples"] = failures
     (out / "full-export-frame-review.json").write_text(json.dumps(verdict, indent=2) + "\n", encoding="utf-8")
+    if failures:
+        raise ValueError(f"Approved background mismatch in {failures}. Diagnostic frames/receipt retained.")
     return verdict
 
 

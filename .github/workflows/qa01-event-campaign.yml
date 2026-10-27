@@ -20,6 +20,10 @@ on:
         required: false
         type: boolean
         default: false
+      qa01_rf084_native_sound_dp:
+        required: false
+        type: boolean
+        default: false
       qa01_apu_phase:
         required: false
         type: boolean
@@ -88,6 +92,11 @@ on:
         required: false
         default: false
 
+      qa01_rf084_native_sound_dp:
+        description: "Opt-in paired RF083 original + RF084 native sound DP writers (Zoo mesh+DP, RF015/017, no RF018/APU)"
+        type: boolean
+        required: false
+        default: false
       qa01_apu_phase:
         description: "Opt-in read-only original/Baldosa APU port-2 and CPU-source opcode trace around Zoo result"
         type: boolean
@@ -166,6 +175,10 @@ jobs:
           ZOO_MESH: ${{ inputs.zoo_race_mesh }}
           ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
+          QA01_RF015: ${{ inputs.baldosa_refresh_beam_rate }}
+          QA01_RF017: ${{ inputs.baldosa_io_clock_order }}
+          QA01_RF018: ${{ inputs.baldosa_dp_pointer_once }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
@@ -190,6 +203,15 @@ jobs:
           fi
           if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
+            exit 1
+          fi
+          # One reproducible RF084 baseline, never a silently mixed RF018 variant.
+          if [[ "$QA01_RF084" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$ZOO_MESH" != "true" ||
+                  "$ZOO_DP_WINDOW" != "true" || "$QA01_RF015" != "true" ||
+                  "$QA01_RF017" != "true" || "$QA01_RF018" == "true" ||
+                  "$QA01_APU_PHASE" == "true" ) ]]; then
+            echo "RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF018/APU off" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&
@@ -270,6 +292,15 @@ jobs:
             libgbm-dev libasound2-dev libpulse-dev libudev-dev \
             libdbus-1-dev xvfb
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          # RF083's original opcode-boundary observer is paired with RF084
+          # on the SAME source-qualified case, not borrowed from a prior ELF.
+          # This is a disposable reference checkout and an explicit opt-in.
+          if [[ "${{ inputs.qa01_rf084_native_sound_dp }}" == "true" ]]; then
+            CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+            python3 -m unittest discover -s tests/unit -p test_qa01_rf083_original_sound_dp_first_writer.py
+            python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+            make -C "$CORE_SRC/libretro" -j2
+          fi
           # Explicitly opted-in, disposable source+native observers only.
           if [[ "${{ inputs.qa01_apu_phase }}" == "true" ]]; then
             CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
@@ -319,6 +350,12 @@ jobs:
             python3 tools/baldosa_spc_frame_clock_patch.py --game baldosa
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
+          fi
+          # RF084 patches the *final regenerated* disposable bank82, never
+          # the emitter, common bus helper, shipping game or source original.
+          if [[ "${{ inputs.qa01_rf084_native_sound_dp }}" == "true" ]]; then
+            python3 -m unittest discover -s tests/unit -p test_qa01_rf084_native_sound_dp_committed_writer.py
+            python3 tools/qa01_rf084_native_sound_dp_committed_writer.py --root baldosa
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
@@ -391,6 +428,8 @@ jobs:
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
+          QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
+          UR_QA01_RF084_NATIVE_SOUND_DP: ${{ inputs.qa01_rf084_native_sound_dp && '1' || '0' }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"
@@ -421,6 +460,11 @@ jobs:
           # Reuse the SHA256SUMS already validated against the shared binaries.
           # Retain the tiny original manifest beside this case's producer JSON.
           cp "$BIN/SHA256SUMS" "$ROOT/SHA256SUMS"
+          # RF083 checks getenv() presence, not its value: never set "0".
+          # The subprocesses inherit this only for the paired experiment.
+          if [[ "$QA01_RF084" == "true" ]]; then
+            export UR_QA01_RF083_ZOO_DP=1
+          fi
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
             python3 tools/probe_original_event_complete.py \
@@ -583,6 +627,17 @@ jobs:
               --out "$ROOT/qa01-apu-edge-report.json"
             echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
           fi
+          # The genuine native replay log is already retained by this job.
+          # Refuse absent, truncated, wrong-site or malformed executed writers.
+          # This validates native execution only; original RF083 parity and
+          # no-observer noninterference remain independent obligations.
+          if [[ "$QA01_RF084" == "true" ]]; then
+            python3 tools/qa01_rf084_native_writer_receipt.py \
+              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
+              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
+              --out "$ROOT/qa01-rf084-native-writer-receipt.json"
+            echo 'RF083 original + RF084 native writer executions observed on paired source; clock/semantic parity NOT proven, release credit 0' >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
         if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
@@ -607,6 +662,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
+            ${{ runner.temp }}/qa01-case/qa01-rf084-native-writer-receipt.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/qa01-zoo-independent-raw-audit.json
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.wram.bin

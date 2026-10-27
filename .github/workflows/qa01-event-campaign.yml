@@ -93,7 +93,7 @@ on:
         default: false
 
       qa01_rf084_native_sound_dp:
-        description: "Opt-in paired RF083 original + RF084 native sound DP writers (Zoo mesh+DP, RF015/017, no RF018/APU)"
+        description: "Opt-in paired RF083 original + RF084 native writers (Zoo mesh+DP, RF015/017 only; no RF016/018/019/APU)"
         type: boolean
         required: false
         default: false
@@ -178,7 +178,9 @@ jobs:
           QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
           QA01_RF015: ${{ inputs.baldosa_refresh_beam_rate }}
           QA01_RF017: ${{ inputs.baldosa_io_clock_order }}
+          QA01_RF016: ${{ inputs.baldosa_spc_reference_rate }}
           QA01_RF018: ${{ inputs.baldosa_dp_pointer_once }}
+          QA01_RF019: ${{ inputs.baldosa_hdma_cpu_stall }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
@@ -205,13 +207,16 @@ jobs:
             echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
             exit 1
           fi
-          # One reproducible RF084 baseline, never a silently mixed RF018 variant.
+          # One reproducible RF015+RF017 RF084 baseline. Do not silently mix
+          # SPC reference-rate (RF016), pointer-once (RF018), HDMA stall (RF019)
+          # or APU-phase instrumentation into the causal comparison.
           if [[ "$QA01_RF084" == "true" &&
                 ( "$SELECTED" != "zoom-zoo" || "$ZOO_MESH" != "true" ||
                   "$ZOO_DP_WINDOW" != "true" || "$QA01_RF015" != "true" ||
-                  "$QA01_RF017" != "true" || "$QA01_RF018" == "true" ||
+                  "$QA01_RF017" != "true" || "$QA01_RF016" == "true" ||
+                  "$QA01_RF018" == "true" || "$QA01_RF019" == "true" ||
                   "$QA01_APU_PHASE" == "true" ) ]]; then
-            echo "RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF018/APU off" >&2
+            echo "RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF016/018/019/APU off" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&

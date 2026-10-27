@@ -1,4 +1,4 @@
-"""Synthetic RF086 generated-code and receipt guards, not native Zoo admission."""
+"""Synthetic RF086 actual-WRAM-commit guards, not native Zoo admission."""
 from pathlib import Path
 import sys
 import unittest
@@ -9,15 +9,26 @@ import qa01_rf086_native_first_boundary_receipt as receipt
 
 
 def fixture():
-    source = patcher.HEADER + "/* UR_QA01_RF084_NATIVE_SOUND_DP_COMMIT */\n"
-    for name, width, offset in patcher.SITES:
-        source += (
-            f"RecompReturn {name}(CpuState *cpu) {{\n"
-            f"  L_8151_M1X0:\n  {{\n    uint16 _im = 42;\n"
-            f"    cpu_write{width * 8}_paced(cpu, 0x00, "
-            f"(uint16)(cpu->D + 0x{offset:04X}), _im);\n"
-            f"  }}\n}}\n")
-    return source + "RecompReturn NextFunc(CpuState *cpu) {\n}\n"
+    # The pinned framework's actual WRAM-store anchors, NOT invented bank82
+    # non-FastRom generated functions. The latter do not exist upstream.
+    return (
+        '#include "cpu_state.h"\n'
+        'void cpu_write8(CpuState *cpu, uint8 bank, uint16 addr, uint8 v) {\n'
+        '    int off = cpu_wram_offset(bank, addr);\n'
+        '    if (off >= 0) {\n'
+        '        uint8 old = cpu->ram[off];\n'
+        '        cpu->ram[off] = v;\n'
+        '        /* Optional title hook for game-specific stage-window tracking. */\n'
+        '        return;\n    }\n}\n'
+        'void cpu_write16(CpuState *cpu, uint8 bank, uint16 addr, uint16 v) {\n'
+        '    int off = cpu_wram_offset(bank, addr);\n'
+        '    if (off >= 0 && off + 1 < 0x20000) {\n'
+        '        uint16 old = (uint16)cpu->ram[off];\n'
+        '        cpu->ram[off]     = (uint8)(v & 0xFF);\n'
+        '        cpu->ram[off + 1] = (uint8)(v >> 8);\n'
+        '        cpu->open_bus = (uint8)(v >> 8);\n'
+        '        return;\n    }\n}\n'
+    )
 
 
 def row(seq, scope, frame=6058, master=1000, after_override=None):
@@ -30,36 +41,39 @@ def row(seq, scope, frame=6058, master=1000, after_override=None):
         f"rawAfter={after:04X} native_master={master}")
 
 
-class FirstBoundaryNonFastTests(unittest.TestCase):
-    def test_exact_postcommit_and_no_new_bus_helpers(self):
+class FirstBoundaryBusCommitTests(unittest.TestCase):
+    def test_real_wram_postcommit_hooks_and_no_extra_guest_bus(self):
         before = fixture()
         after = patcher.patch(before)
         self.assertEqual(after.count(patcher.STAMP), 1)
-        self.assertEqual(after.count('ur_rf086_after(cpu, "'), 3)
+        self.assertEqual(after.count("ur_rf086_after(cpu,"), 2)
         for call in ("cpu_read8_paced(", "cpu_read16_paced(",
                      "cpu_write8_paced(", "cpu_write16_paced("):
             self.assertEqual(before.count(call), after.count(call))
-        for name, width, offset in patcher.SITES:
-            start = after.index(f"RecompReturn {name}")
-            end = after.index("\nRecompReturn ", start)
-            body = after[start:end]
-            self.assertLess(body.index(f"cpu_write{width * 8}_paced("),
-                            body.index(f'ur_rf086_after(cpu, "{name}"'))
-            self.assertIn(f"cpu->ram[ur_rf086_addr_{offset:04x}]", body)
+        self.assertLess(after.index("cpu->ram[off] = v;"),
+                        after.index("ur_rf086_after(cpu, 1u"))
+        self.assertLess(after.index("cpu->ram[off + 1] = (uint8)(v >> 8);"),
+                        after.index("ur_rf086_after(cpu, 2u"))
         self.assertIn("cpu->master_cycles", after)
         self.assertIn("QA01RF086NATIVE_TRUNCATED", after)
         self.assertIn("flag[1] != '\\0'", after)
+        self.assertIn("g_last_recomp_func", after)
+        self.assertNotIn("RecompReturn Snd_IncDataPtr_M0X0", after)
 
     def test_source_drift_and_reapplication_refused(self):
         source = fixture()
         with self.assertRaisesRegex(ValueError, "already or partly"):
             patcher.patch(patcher.patch(source))
-        with self.assertRaisesRegex(ValueError, "missing/ambiguous"):
-            patcher.patch(source.replace("Snd_IncDataPtr_M1X0", "WrongFunc"))
-        with self.assertRaisesRegex(ValueError, "missing/ambiguous real paced"):
-            patcher.patch(source.replace("cpu_write8_paced", "cpu_write8"))
-        with self.assertRaisesRegex(ValueError, "must follow RF084"):
-            patcher.patch(source.replace("UR_QA01_RF084_NATIVE_SOUND_DP_COMMIT", "old"))
+        for anchor in (patcher.ENTRY, patcher.BYTE, patcher.WORD):
+            with self.subTest(anchor=anchor[:40]), self.assertRaisesRegex(
+                    ValueError, "missing/ambiguous"):
+                patcher.patch(source.replace(anchor, "DRIFT", 1))
+
+    def test_actual_submodule_if_checked_out(self):
+        path = Path(__file__).resolve().parents[2] / "baldosa" / patcher.FILE
+        if path.exists():
+            after = patcher.patch(path.read_text(encoding="utf-8"))
+            self.assertEqual(after.count(patcher.STAMP), 1)
 
     def test_native_postwrite_receipt_and_mismatch_are_distinct(self):
         names = list(receipt.SITES)
@@ -84,8 +98,10 @@ class FirstBoundaryNonFastTests(unittest.TestCase):
             [good[0].replace("seq=1", "seq=2")] + good[1:],
             [good[0].replace("addr=0063", "addr=0064")] + good[1:],
             [good[0].replace("f=6058", "f=6062")] + good[1:],
-            [good[0], good[1].replace("native_master=1001", "native_master=999"), good[2]],
-            [good[0].replace("scope=Snd_IncDataPtr_M0X0", "scope=unknown")] + good[1:],
+            [good[0], good[1].replace("native_master=1001",
+                                     "native_master=999"), good[2]],
+            [good[0].replace("scope=Snd_IncDataPtr_M0X0",
+                             "scope=unknown")] + good[1:],
         ]
         for i, rows in enumerate(mutations):
             with self.subTest(i=i), self.assertRaises(ValueError):
@@ -96,11 +112,13 @@ class FirstBoundaryNonFastTests(unittest.TestCase):
                     ".github/workflows/qa01-event-campaign.yml").read_text()
         self.assertLess(workflow.index(
             "tools/qa01_rf084_native_sound_dp_committed_writer.py --root baldosa"),
-            workflow.index("tools/qa01_rf086_native_first_boundary_commit.py --root baldosa"))
+            workflow.index(
+            "tools/qa01_rf086_native_first_boundary_commit.py --root baldosa"))
         self.assertLess(workflow.index(
             "tools/qa01_rf086_native_first_boundary_commit.py --root baldosa"),
             workflow.index("cmake -S baldosa -B baldosa/build"))
-        self.assertIn("tools/qa01_rf086_native_first_boundary_receipt.py", workflow)
+        self.assertIn("tools/qa01_rf086_native_first_boundary_receipt.py",
+                      workflow)
         self.assertIn("qa01-rf086-native-first-boundary.json", workflow)
 
 

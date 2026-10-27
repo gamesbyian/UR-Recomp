@@ -103,7 +103,7 @@ class FirstBoundaryBusCommitTests(unittest.TestCase):
         # Both widths occur in the complete stream, but only the pointer
         # commits at the first-divergence host frame. Must fail closed.
         with self.assertRaisesRegex(ValueError, "first-boundary"):
-            receipt.audit(("\\n".join(rows) + "\\n").encode())
+            receipt.audit(("\n".join(rows) + "\n").encode())
 
     def test_missing_truncated_malformed_and_reordered_fail(self):
         names = list(receipt.SITES)

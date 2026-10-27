@@ -72,6 +72,23 @@ class RF083Source(unittest.TestCase):
             m.patch_macro(original.replace("S9xSetWord(Work16, OpAddress, w, WRITE_10);",
                                            "wrong_guest_write(Work16);"))
 
+    def test_campaign_rebuilds_original_header_dependents(self):
+        # The genuine #40474888477 build patched cpumacro.h/getset.h but
+        # only relinked libretro: cpuops.o remained compiled from old headers.
+        # The pinned Makefile does not declare header prerequisites.
+        root = Path(__file__).resolve().parents[2]
+        makefile = (root / "third_party/src/snes9x-libretro/libretro/Makefile").read_text()
+        self.assertIn("%.o: %.cpp ", makefile)
+        self.assertIn("clean:", makefile)
+        workflow = (root / ".github/workflows/qa01-event-campaign.yml").read_text()
+        stage = 'python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"'
+        clean = 'make -C "$CORE_SRC/libretro" clean'
+        build = 'make -C "$CORE_SRC/libretro" -j2'
+        self.assertEqual(workflow.count(stage), 1)
+        self.assertEqual(workflow.count(clean), 1)
+        self.assertLess(workflow.index(stage), workflow.index(clean))
+        self.assertLess(workflow.index(clean), workflow.index(build, workflow.index(stage)))
+
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())
         for x,y in ((a,b),(source()+m.STAMP,setter()),

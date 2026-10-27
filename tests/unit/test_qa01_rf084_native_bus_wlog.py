@@ -66,5 +66,18 @@ class NativeBusWlogTransportTests(unittest.TestCase):
                 qa.verify_rf084_native_bus_wlog(p, cap=3)
 
 
+    def test_case_artifact_retains_native_bus_writer_evidence(self):
+        # A successful producer is not useful if its only causal bus log is
+        # deleted with the hosted runner. Keep it in the existing case ZIP.
+        workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text()
+        artifact = workflow.split(
+            "      - name: Always retain per-case receipt and bounded diagnostic logs",
+            1)[1].split("\n  aggregate:", 1)[0]
+        expected = ("${{ runner.temp }}/qa01-case/work/"
+                    "${{ matrix.case }}/replay/native/" + qa.RF084_BUS_WLOG_NAME)
+        self.assertIn("if: always()", artifact)
+        self.assertEqual(artifact.count(expected), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

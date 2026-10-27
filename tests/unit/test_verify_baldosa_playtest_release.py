@@ -54,6 +54,22 @@ def write_fixture(root: Path) -> tuple[Path, Path, Path, dict]:
 
 
 class ManualPlaytestSourceBinding(unittest.TestCase):
+    def test_request_marker_only_triggers_safe_exact_main_artifact(self):
+        workflow = (ROOT / ".github/workflows/manual-romfree-windows-playtest.yml").read_text(
+            encoding="utf-8")
+        request = ROOT / "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
+        self.assertTrue(request.is_file())
+        self.assertIn("  push:\\n    branches: [main]\\n    paths:\\n      - \\"docs/playtest/REQUEST-WINDOWS-PLAYTEST.md\\"", workflow)
+        self.assertIn("  workflow_dispatch:", workflow)
+        # Push is restricted to main; PRs are not an alternate path to a
+        # synthetic-merge release artifact.
+        self.assertNotIn("  pull_request:", workflow)
+        self.assertIn("github.ref == 'refs/heads/main'", workflow)
+        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.mode == 'publish_provisional_preview'", workflow)
+        self.assertIn("name: verified-romfree-windows-playtest", workflow)
+        self.assertIn("retention-days: 14", workflow)
+        self.assertIn("actions: read", workflow)
+
     def fake_audit(self, *args, **kwargs):
         return {
             "rom_bundled": False,

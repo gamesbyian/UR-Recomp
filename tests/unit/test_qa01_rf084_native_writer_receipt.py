@@ -59,7 +59,7 @@ class NativeRF084Receipt(unittest.TestCase):
         self.assertEqual(workflow.count("      qa01_rf084_native_sound_dp:"), 2)
         self.assertIn("RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF018/APU off", workflow)
         self.assertLess(
-            workflow.index("baldosa_dp_indirect_long_pointer_once_patch.py --verify-gen"),
+            workflow.index("baldosa_dp_indirect_long_pointer_once_patch.py --game baldosa --verify-gen"),
             workflow.index("qa01_rf084_native_sound_dp_committed_writer.py --root baldosa"))
         self.assertLess(
             workflow.index("qa01_rf084_native_sound_dp_committed_writer.py --root baldosa"),

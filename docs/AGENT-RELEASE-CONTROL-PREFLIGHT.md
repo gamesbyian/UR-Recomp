@@ -17,7 +17,7 @@ No guest logs, binaries, ROMs or player files are fetched. Incomplete file
 or PR listings are explicitly labelled unknown. Changed-path overlap
 is a collision hint, NOT a Git merge conflict. Passing observed checks do
 not prove that branch-protection-required checks are satisfied. Only the
-hourly board and independent Agent 5 authorize shared integration work.
+ranked hourly board authorizes work selection. **All five agents are interchangeable generalists** and may integrate a qualified PR after exact-head checks, source-owner reconciliation and independent evidence review; no Agent 5 merge monopoly exists.
 
 For reproducible offline review, add `--snapshot-out /private/observation.json`
 to a **live** command. It records the exact GitHub main SHA, observed PR
@@ -49,13 +49,24 @@ USA-event parity, or QA-04 physical controller/audio/display testing.
 The source and full private inner ZIP must be separately qualified by the
 release owner; no auto-dispatch or acceptance is performed here.
 
+**For the actual playable physical-test package**, reuse the already independently
+byte-audited, source/inner-ZIP/PE-pinned candidate in
+[WINDOWS-PLAYTEST-INSTRUCTIONS.md](WINDOWS-PLAYTEST-INSTRUCTIONS.md) before
+spending another hosted Windows run. Since #2684, agents can request a *new*
+exact-main verified temporary package by opening a narrow PR changing
+[docs/playtest/REQUEST-WINDOWS-PLAYTEST.md](playtest/REQUEST-WINDOWS-PLAYTEST.md)
+and merging to `main`. That particular `push` generates a hosted verification
+artifact, never a release, and cannot bypass original/native or physical QA.
+Ordinary source PRs do **not** auto-launch this ~27-minute manual workflow.
+This read-only preflight itself still never dispatches a build.
+
 Run source-only regression checks:
 
     python3 -m unittest tests.unit.test_agent_release_control -v
 
 The result is deliberately advisory: re-read the live hourly board and
 owning PR, identify the smallest missing witness, run only a decision-
-changing test, and route fixes to their specialist and Agent 5.
+changing test, and route fixes to the shared ranked workboard or the active source owner; any qualified independent agent may review and integrate.
 
 Alternatively, after this tool merges onto main, run the **existing** manual
 Agent control and recovery contract GitHub Actions workflow with

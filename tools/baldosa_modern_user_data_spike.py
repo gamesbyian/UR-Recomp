@@ -60,7 +60,29 @@ def patch_host_paths(source: str) -> str:
         return 0;""")
     source = once(
         source, HOST_ANCHOR,
-        """    const char *modern_root = getenv("SNESRECOMP_USER_DATA_DIR");
+        """#ifdef _WIN32
+    /* Native UTF-16 user-data boundary: the Windows narrow CRT getenv()
+     * and ANSI path APIs replace characters outside the active codepage.
+     * Establish the genuine wide directory FIRST; subsequent relative
+     * ASCII config/save names then resolve inside this Unicode CWD.
+     * A failed explicit root must never fall back beside the executable. */
+    const wchar_t *native_root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR");
+    if (native_root && *native_root) {
+        const int drive =
+            ((native_root[0] >= L'A' && native_root[0] <= L'Z') ||
+             (native_root[0] >= L'a' && native_root[0] <= L'z')) &&
+            native_root[1] == L':' &&
+            (native_root[2] == L'/' || native_root[2] == (wchar_t)92);
+        const int unc =
+            native_root[0] == (wchar_t)92 &&
+            native_root[1] == (wchar_t)92 && native_root[2] != 0;
+        if (!drive && !unc) return 0;
+        if (_wchdir(native_root) != 0) return 0;
+        if (!dir_is_writable(".")) return 0;
+        return 1;
+    }
+#endif
+    const char *modern_root = getenv("SNESRECOMP_USER_DATA_DIR");
     if (modern_root && *modern_root) {
         /* """ + MARK + """: do not silently save beside the executable. */
         if (snprintf(dir, sizeof(dir), "%s", modern_root) >= (int)sizeof(dir))
@@ -85,6 +107,12 @@ def patch_host_paths(source: str) -> str:
             return 0;
     }
     if (!dir_is_writable(dir)) {""")
+    source = """#ifdef _WIN32
+#include <direct.h>
+#include <stdlib.h>
+#include <wchar.h>
+#endif
+""" + source
     return source
 
 

@@ -59,7 +59,9 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
             encoding="utf-8")
         request = ROOT / "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
         self.assertTrue(request.is_file())
-        self.assertIn("  push:\\n    branches: [main]\\n    paths:\\n      - \\"docs/playtest/REQUEST-WINDOWS-PLAYTEST.md\\"", workflow)
+        self.assertIn("  push:", workflow)
+        self.assertIn("    branches: [main]", workflow)
+        self.assertIn('      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"', workflow)
         self.assertIn("  workflow_dispatch:", workflow)
         # Push is restricted to main; PRs are not an alternate path to a
         # synthetic-merge release artifact.

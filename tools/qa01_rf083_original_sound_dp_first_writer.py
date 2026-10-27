@@ -33,8 +33,12 @@ static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now
     unsigned long long *seq=rf083_early ? &rf083_early_seq : &rf083_seq;
     const char *prefix=rf083_early ? "QA01RF085EARLY" : "QA01RF083ORIG";
     if(++*rows>8192u){
-        if(*rows==8193u)
-            fprintf(stderr,"%s_TRUNCATED\n",prefix);
+        if(*rows==8193u){
+            if(rf083_early)
+                fprintf(stderr,"QA01RF085EARLY_TRUNCATED\n");
+            else
+                fprintf(stderr,"QA01RF083ORIG_TRUNCATED\n");
+        }
         return;
     }
     fprintf(stderr,

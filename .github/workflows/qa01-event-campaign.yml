@@ -687,6 +687,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/qa01-native-dp-bus-writes.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/complete.script
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/switcher-reference-penultimate.script
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref.input

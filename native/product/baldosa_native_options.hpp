@@ -20,6 +20,7 @@
 
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
+#include "local_tournament_utf8_path.hpp"
 
 #include <array>
 #include <cstddef>
@@ -213,7 +214,9 @@ inline void pull_live(BaldosaNativeOptions& model) {
 // the change fails closed (SaveFailed) until the player frees one.
 inline bool quarantine_damaged(const std::string& path) {
     namespace fs = std::filesystem;
-    const fs::path source(path);
+    // The options store path is UTF-8; Windows narrow path construction
+    // interprets it in the active ANSI code page and can lose user data.
+    const fs::path source = host_native_path_from_utf8(path);
     for (int index = 0; index < 16; ++index) {
         fs::path aside = source;
         aside += index == 0 ? std::string(".damaged")

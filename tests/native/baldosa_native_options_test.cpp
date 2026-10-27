@@ -382,6 +382,32 @@ int main() {
         assert(slurp(dpath + ".damaged.15") == "KEEP 15\n");
     }
 
+    // Windows ANSI code pages cannot represent this UTF-8 user-data root.
+    // Damaged Options must still be preserved and rewritten in that directory.
+#if defined(_WIN32)
+    {
+        const fs::path unicode_dir =
+            root / fs::u8path(u8"options-\u6D4B\u8BD5-\u03C0");
+        assert(fs::create_directory(unicode_dir));
+        const fs::path unicode_file = baldosa_options_path(unicode_dir);
+        {
+            std::ofstream bad(unicode_file, std::ios::binary);
+            bad << "DAMAGED UTF8 OPTIONS\\n";
+        }
+        FakeHost fake;
+        BaldosaNativeOptions model;
+        const std::string utf8_path = unicode_file.u8string();
+        baldosa_options_boot(model, utf8_path, make_host(fake));
+        assert(model.load == BaldosaOptionsLoad::Damaged);
+        baldosa_options_open(model);
+        baldosa_options_adjust(model, 1);
+        assert(model.status == BaldosaOptionsStatus::DamagedQuarantined);
+        assert(slurp(fs::u8path(utf8_path + ".damaged")) ==
+               "DAMAGED UTF8 OPTIONS\\n");
+        assert(load_host_product_state_file(utf8_path).loaded());
+    }
+#endif
+
     // Row text is truthful and bounded for the shared 8-pixel painter.
     {
         FakeHost fake;

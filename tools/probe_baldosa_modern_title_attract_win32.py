@@ -120,6 +120,14 @@ def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[
         "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=1674 input_owned=1",
         "UR_MODERN_TITLE_STOCK_ATTRACT reached_root=1 frame=1690 no_stock_route=1",
     )
+    if wake_route == "p2":
+        # An additional malformed/contradictory guest-word line must not
+        # hide behind four individually valid markers.
+        guest_words = re.findall(
+            r"^UR_MODERN_TITLE_STOCK_ATTRACT p2_guest_word[^\r\n]*",
+            log, re.MULTILINE)
+        if len(guest_words) != 4:
+            raise ValueError("missing, duplicate or extra P2 guest-word wake receipt")
     before = -1
     for line in required:
         if log.count(line) != 1 or log.find(line, before + 1) < 0:

@@ -34,6 +34,7 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         workflow = (Path(__file__).resolve().parents[2] /
                     ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
         self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
+        self.assertIn("agent4/ur-ui-nav-p2-guest-word-20261026", workflow)
         self.assertIn("default_attract_args=(--default-attract)", workflow)
         self.assertIn("default_stock_attract_without_preview_override", workflow)
         self.assertIn("p2_other_button_isolated=1", workflow)
@@ -133,6 +134,10 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "wake"):
                         verify_source_driven_preview(
                             good.replace(baseline[0], baseline[0] + "\n" + baseline[0]),
+                            wake_route="p2")
+                    with self.assertRaisesRegex(ValueError, "wake"):
+                        verify_source_driven_preview(
+                            good + "\n" + baseline[0].replace("value=0000", "value=0001"),
                             wake_route="p2")
         with self.assertRaisesRegex(ValueError, "unsupported"):
             verify_source_driven_preview("\n".join(common), wake_route="unknown")

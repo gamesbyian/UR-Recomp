@@ -55,12 +55,17 @@ def source_images(z):
     return {'original':original,'wide':wide,'start':start,'late':later,'early':early},evidence
 
 def template(w,h):
-    im=Image.new('RGB',(w,h),C['bg']);d=ImageDraw.Draw(im)
-    for x in range(0,w,48):d.line((x,0,x,h),fill='#0e1a29',width=1)
-    for y in range(0,h,48):d.line((0,y,w,y),fill='#0e1a29',width=1)
-    d.rectangle((0,0,w,8),fill=C['cyan'])
-    d.rectangle((0,h-6,w,h),fill=C['cyan'])
-    return im,d
+    """Composite labels/verified native captures onto exclusive approved art."""
+    root=Path(__file__).resolve().parents[2]/'assets/promo/canonical'
+    if h>w:
+        plate=root/'blueprint-9x16-portrait-2160x3840.png'
+    else:
+        plate=root/'blueprint-16x9-logo-right.png'
+    with Image.open(plate) as source:
+        if source.width*h != source.height*w:
+            raise ValueError('Approved promotional plate aspect ratio mismatch')
+        im=source.convert('RGB').resize((w,h),Image.Resampling.LANCZOS)
+    return im,ImageDraw.Draw(im)
 
 def framed(im,src,xywh,border=True):
     x,y,w,h=xywh;sw,sh=src.size

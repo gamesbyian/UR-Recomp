@@ -27,8 +27,13 @@ jobs:
         run: |
           python3 -m venv "$RUNNER_TEMP/promo-venv"
           "$RUNNER_TEMP/promo-venv/bin/python" -m pip install "Pillow>=11,<13"
+      - name: Install FFmpeg and FFprobe
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
       - name: Confirm export prerequisites
         run: |
+          set -euo pipefail
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
           test -s assets/promo/canonical/blueprint-16x9-logo-right.png

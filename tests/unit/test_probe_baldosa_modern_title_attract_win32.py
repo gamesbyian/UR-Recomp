@@ -30,6 +30,14 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
         set_attract_override(ambient, preview_wake=False, default_attract=False)
         self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", ambient)
 
+    def test_current_windows_default_attract_pr_actually_runs_probe(self):
+        workflow = (Path(__file__).resolve().parents[2] /
+                    ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
+        self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
+        self.assertIn("default_attract_args=(--default-attract)", workflow)
+        self.assertIn("default_stock_attract_without_preview_override", workflow)
+        self.assertIn("p2_other_button_isolated=1 frame=1642", workflow)
+
     def test_valid_stock_source_cycle_and_no_automatic_visible_credit(self):
         self.assertEqual(
             [x["frame"] for x in verify_original_source_attract(

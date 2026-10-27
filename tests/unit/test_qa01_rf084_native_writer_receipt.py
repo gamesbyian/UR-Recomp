@@ -11,8 +11,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 import qa01_rf084_native_writer_receipt as m
 
 
-def row(seq, site, width, frame, offset, *, master=10, after="0001"):
-    return (f"QA01RF084NATIVE seq={seq} site={site} width={width} variant=M1X0 "
+def row(seq, site, width, frame, offset, *, master=10, after="0001", variant="M1X0"):
+    return (f"QA01RF084NATIVE seq={seq} site={site} width={width} variant={variant} "
             f"f={frame} D=0000 addr={offset:04X} old=0000 supplied=0001 "
             f"rawAfter={after} native_master={master}")
 
@@ -30,6 +30,20 @@ class NativeRF084Receipt(unittest.TestCase):
         self.assertEqual(v["release_credit"], 0)
         self.assertFalse(v["original_native_parity_proven"])
         self.assertEqual(v["raw_after_mismatch_count"], 0)
+        self.assertEqual(v["native_boundary_writer_events"],2)
+        self.assertFalse(v["native_first_boundary_writer_parity_proven"])
+
+    def test_real_m0x0_pointer_variant_and_late_only_negative(self):
+        m0 = row(2, "828154", 2, 6059, 0x63, variant="M0X0")
+        v = m.audit((self.first + "\n" + m0 + "\n").encode())
+        self.assertEqual(v["variant_counts"], {"M0X0": 1, "M1X0": 1})
+        self.assertEqual(v["native_boundary_writer_events"], 2)
+        self.assertEqual(v["native_first_boundary_writer"]["frame"], 6058)
+        self.assertFalse(v["native_first_boundary_writer_parity_proven"])
+        late = m.audit((row(1,"8280E0",1,6066,0x69) + "\n" +
+                        row(2,"828154",2,6068,0x63,variant="M0X0") + "\n").encode())
+        self.assertEqual(late["native_boundary_writer_events"], 0)
+        self.assertIsNone(late["native_first_boundary_writer"])
 
     def test_real_mismatch_is_recorded_not_erased(self):
         v = m.audit((self.first + "\n" + self.second.replace(
@@ -45,7 +59,8 @@ class NativeRF084Receipt(unittest.TestCase):
             self.first + "\n" + self.second.replace("width=2", "width=1"),
             self.first + "\n" + self.second.replace("f=6059", "f=6069"),
             self.first + "\n" + self.second.replace("site=828154", "site=FFFFFF"),
-            self.first + "\n" + self.second.replace("variant=M1X0", "variant=M0X0"),
+            self.first + "\n" + self.second.replace("variant=M1X0", "variant=M2X0"),
+            self.first.replace("variant=M1X0", "variant=M0X0") + "\n" + self.second,
             self.first + "\n" + self.second.replace("native_master=10", "native_master=x"),
             self.first + "\n" + self.second.replace("f=6059", "f=6057"),
             self.first.replace("supplied=0001", "supplied=0101") + "\n" + self.second,

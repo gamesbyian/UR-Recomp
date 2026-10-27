@@ -75,12 +75,17 @@ static void rf083_pre(uint8 opcode){
     rf083_pc=((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw;
     rf083_op=opcode;
     const char *rf089_flag=getenv("UR_QA01_RF089_ORIGINAL_ECHO");
-    rf089_target=rf083_early && frame>=6055u && frame<=6056u &&
+    /* The genuine original log reports 82:8154, not 02:8154:
+     * FastROM bank 82 mirrors bank 02. Preserve the full logged PC,
+     * but compare the mirrored low 23 bits for echo opcode selection.
+     * Do not preselect C6B0: the failed sequence-10 run logged zero
+     * original echo rows and the true entry phase is still unknown. */
+    const unsigned rf089_pc_mirrored=rf083_pc & 0x7fffffu;
+    rf089_target=rf083_early && frame>=6054u && frame<=6059u &&
         rf089_flag && rf089_flag[0]=='1' && rf089_flag[1]=='\0' &&
-        Memory.RAM[0x63u]==0xB0u && Memory.RAM[0x64u]==0xC6u &&
-        (rf083_pc==0x0282A9u || rf083_pc==0x0282F2u ||
-         rf083_pc==0x0282F6u || rf083_pc==0x028301u ||
-         rf083_pc==0x028304u);
+        (rf089_pc_mirrored==0x0282A9u || rf089_pc_mirrored==0x0282F2u ||
+         rf089_pc_mirrored==0x0282F6u || rf089_pc_mirrored==0x028301u ||
+         rf089_pc_mirrored==0x028304u);
     if(rf089_target){
         rf089_a0=(unsigned)Registers.A.W;
         rf089_p0=(unsigned)Registers.PL; /* packed PL may be stale */

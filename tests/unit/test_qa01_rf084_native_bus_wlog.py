@@ -49,8 +49,8 @@ class NativeBusWlogTransportTests(unittest.TestCase):
     def test_nonempty_uncapped_bus_log_is_evidence_only(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / qa.RF084_BUS_WLOG_NAME
-            p.write_text("f6058 00:0063=004D w2 fn\\n"
-                         "f6059 00:0069=97 w1 fn\\n", encoding="utf-8")
+            p.write_text("f6058 00:0063=004D w2 fn\n"
+                         "f6059 00:0069=97 w1 fn\n", encoding="utf-8")
             self.assertEqual(qa.verify_rf084_native_bus_wlog(p, cap=3), 2)
 
     def test_missing_empty_and_capped_logs_fail_closed(self):
@@ -61,7 +61,7 @@ class NativeBusWlogTransportTests(unittest.TestCase):
             p.touch()
             with self.assertRaises(qa.CompleteEventError):
                 qa.verify_rf084_native_bus_wlog(p, cap=3)
-            p.write_text("a\\nb\\nc\\n", encoding="utf-8")
+            p.write_text("a\nb\nc\n", encoding="utf-8")
             with self.assertRaises(qa.CompleteEventError):
                 qa.verify_rf084_native_bus_wlog(p, cap=3)
 

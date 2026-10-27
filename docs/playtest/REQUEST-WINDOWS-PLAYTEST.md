@@ -8,8 +8,8 @@ This is a build **request**, not an acceptance claim. Do not run it for every PR
 
 ## Next build request
 
-- Request sequence: **1** (first requested integrated-main technical playtest build)
-- Requested reason: Generate the first integrated-main verified ROM-free Windows x64 candidate for upcoming physical H01–H07 sessions, now that P2 title, original attract and Unicode Options fixes are merged
+- Request sequence: **2** (post-#2688 PowerShell 7 launcher-fix physical playtest candidate)
+- Requested reason: Produce one exact-main ROM-free Windows x64 candidate incorporating the merged #2688 launcher fix for inherited PowerShell 7 PSModulePath, which was absent from the previous verified physical-playtest ZIP (source 8927e13f) and second marker candidate (source d83c228). The Windows launcher now isolates the child Windows PowerShell 5.1 module path while retaining ROM SHA-256 verification and fail-closed exit codes. Reuse the existing 13-journey Windows workflow and require verified inner ZIP/PE/source SHA-256 before nominating this corrected candidate for physical H01–H07, especially clean startup under PowerShell 7. This is a product packaging correction, not a source-timestamp rebuild; no physical or release gate credit.
 - Expected candidate: The exact `main` merge commit of **this** request PR (not the setup PR or test merge)
 - Requested by: Authorized project maintainer/agent
 - Required workflow outcome: `verify_only` equivalent, temporary Actions artifact, **zero release gate credit**

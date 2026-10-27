@@ -11,6 +11,8 @@ Real native game processes drive the production P1 semantic gamepad handler
    all three, and a further process boots the defaults.
 3. A damaged options-v1.txt is reported, not forced onto the host, kept aside
    as .damaged on the first explicit change, and the game still starts.
+4. A fifth cold process reopens the newly written file under a non-ACP Unicode
+   user root without altering the preserved damaged bytes.
 
 Semantic pad edges, not physical-controller acceptance; no release credit.
 """
@@ -77,6 +79,23 @@ def digest(path: Path):
     return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
 
 
+def options_probe_user_root(out: Path) -> Path:
+    """Exercise the real Win32 user-root seam beyond the active ANSI codepage."""
+    return out / "Fresh Options User 漢字"
+
+
+def verify_post_quarantine_cold_reopen(
+        log: str, options: Path, saved: bytes, damaged_bytes: bytes) -> None:
+    """A second process must reload the fresh state without touching either file."""
+    require(log, "options_boot", display="BORDERLESS", vsync="ADAPTIVE",
+            volume="100", load="loaded")
+    if not options.is_file() or options.read_bytes() != saved:
+        raise ValueError("Cold Options reopen altered fresh saved bytes")
+    damaged = Path(str(options) + ".damaged")
+    if not damaged.is_file() or damaged.read_bytes() != damaged_bytes:
+        raise ValueError("Cold Options reopen altered quarantined bytes")
+
+
 def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     for path in (exe, rom):
         if path.is_symlink() or not path.is_file():
@@ -84,7 +103,7 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     if sha256(rom) != USA_SHA256:
         raise ValueError("Options probe requires the pinned USA retail ROM")
     out.mkdir(parents=True, exist_ok=False)
-    user = out / "Fresh Options User"
+    user = options_probe_user_root(out)
     user.mkdir()
     options = user / "options-v1.txt"
     receipts: list[dict] = []
@@ -161,9 +180,20 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
             status="OLD FILE KEPT .damaged", load="loaded")
     if (user / "options-v1.txt.damaged").read_bytes() != damaged_bytes:
         raise ValueError("Damaged Options bytes were not preserved")
-    if settings_of(options).get("display_mode") != "borderless":
-        raise ValueError("Fresh Options file not written after quarantine")
+    if (settings_of(options).get("display_mode"),
+            settings_of(options).get("vsync")) != ("borderless", "adaptive"):
+        raise ValueError("Fresh Options file did not preserve pad-adjusted state after quarantine")
     receipt("after_game4_damaged_quarantine")
+
+    # Game 4b: cold boot the same non-ACP root. A second process must load
+    # the replacement and leave both the fresh and quarantined files intact.
+    saved_after_quarantine = options.read_bytes()
+    g4b = run_game(exe, rom, user, out / "game4b_cold_reopen", "0",
+                   IDLE, video, timeout)
+    verify_post_quarantine_cold_reopen(
+        g4b, options, saved_after_quarantine, damaged_bytes)
+    receipt("after_game4b_cold_reopen")
+
     # Game 5: a config.ini the OS will not let the game rewrite. The volume
     # change must be refused and rolled back, never shown as SAVED. Skipped
     # (and recorded) where the account can write read-only files anyway.
@@ -193,7 +223,9 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         "scope": "native-windows-options-semantic-pad-journey",
         "readonly_config_case": "enforced_and_refused" if enforced
         else "skipped_account_can_write_readonly_files",
-        "games": 4 + (1 if enforced else 0),
+        "games": 5 + (1 if enforced else 0),
+        "non_acp_unicode_root_exercised": True,
+        "post_quarantine_cold_reopen_verified": True,
         "source_binding": {
             "github_sha": os.environ.get("GITHUB_SHA"),
             "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
@@ -260,8 +292,9 @@ def main() -> int:
                  timeout=args.timeout, video=args.video)
     (args.out.resolve() / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print("PASS: native Windows Options change/restore/defaults/damaged-file "
-          "journey; physical pads and release gates remain unverified.")
+    print("PASS: native Windows Options non-ACP root, change/restore/defaults/"
+          "damaged-file quarantine and cold reopen; physical pads and "
+          "release gates remain unverified.")
     return 0
 
 

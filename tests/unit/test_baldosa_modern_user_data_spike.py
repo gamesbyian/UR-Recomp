@@ -25,6 +25,11 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         self.assertIn("get_exe_dir(dir, sizeof(dir))", result)
         self.assertIn("if (dir[0] != '/') return 0", result)
         self.assertIn("if (!drive && !unc) return 0", result)
+        self.assertIn('const wchar_t *wide_root = _wgetenv(L"SNESRECOMP_USER_DATA_DIR")', result)
+        self.assertIn("_wfopen(probe_wide, L\"wb\")", result)
+        self.assertIn("_wremove(probe_wide) != 0 || _wchdir(wide_root) != 0", result)
+        self.assertIn("if (length < 3) return 0", result)
+        self.assertIn("#include <direct.h>", result)
         self.assertIn("%s%s.snesrecomp_write_probe", result)
         self.assertNotIn('"%s.snesrecomp_write_probe",', result)
         with self.assertRaisesRegex(ValueError, "diverged"):
@@ -34,6 +39,8 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         bound = port.patch_keybinds(bind)
         self.assertEqual(port.patch_keybinds(bound), bound)
         self.assertIn("getenv(\"SNESRECOMP_USER_DATA_DIR\")", bound)
+        self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', bound)
+        self.assertIn("if (explicit_root)", bound)
         self.assertIn("if (!exe_path || !*exe_path)", bound)
         with self.assertRaisesRegex(ValueError, "diverged"):
             port.patch_keybinds(bind.replace(port.KEYBIND_ANCHOR, ""))
@@ -43,8 +50,10 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         self.assertEqual(port.patch_host_main(bridged), bridged)
         self.assertIn("UR-STARTUP-SAVE-ROOT:", bridged)
         self.assertIn("return 7;", bridged)
-        self.assertIn("!snesrecomp_anchor_to_exe_dir()", bridged)
+        self.assertIn("int anchored = explicit_root", bridged)
         self.assertIn("? 1 : snesrecomp_anchor_to_exe_dir()", bridged)
+        self.assertIn('_wgetenv(L"SNESRECOMP_USER_DATA_DIR")', bridged)
+        self.assertIn("explicit_root && !snesrecomp_anchor_to_exe_dir()", bridged)
         with self.assertRaisesRegex(ValueError, "diverged"):
             port.patch_host_main(main.replace(port.HOST_MAIN_CALL, ""))
 

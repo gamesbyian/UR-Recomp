@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -46,6 +47,45 @@ class OptionsProbeTests(unittest.TestCase):
         self.assertIn("baldosa_options_path(user_root).u8string()", root)
         self.assertNotIn("baldosa_options_path(user_root).string()", root)
         self.assertNotIn('const fs::path user_root(configured_root)', root)
+
+
+    def test_non_acp_options_root_and_byte_exact_cold_reopen(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = probe.options_probe_user_root(Path(td))
+            self.assertTrue(any(ord(ch) > 255 for ch in root.name))
+            root.mkdir()
+            options = root / "options-v1.txt"
+            saved = b"UR-HOST-STATE/6\ndisplay_mode=borderless\nvsync=adaptive\n"
+            damaged = b"UR-HOST-STATE/6\ninvalid options\n"
+            options.write_bytes(saved)
+            quarantine = Path(str(options) + ".damaged")
+            quarantine.write_bytes(damaged)
+            log = ("UR_BALDOSA_MODERN_ROOT options_boot row=DISPLAY "
+                   "display=BORDERLESS vsync=ADAPTIVE volume=100 "
+                   "status=NONE help=0 load=loaded\n")
+            probe.verify_post_quarantine_cold_reopen(
+                log, options, saved, damaged)
+            with self.assertRaisesRegex(ValueError, "Missing native Options"):
+                probe.verify_post_quarantine_cold_reopen(
+                    log.replace("vsync=ADAPTIVE", "vsync=ON"),
+                    options, saved, damaged)
+            options.write_bytes(saved + b"changed")
+            with self.assertRaisesRegex(ValueError, "fresh saved bytes"):
+                probe.verify_post_quarantine_cold_reopen(
+                    log, options, saved, damaged)
+            options.write_bytes(saved)
+            quarantine.write_bytes(damaged + b"changed")
+            with self.assertRaisesRegex(ValueError, "quarantined bytes"):
+                probe.verify_post_quarantine_cold_reopen(
+                    log, options, saved, damaged)
+            quarantine.unlink()
+            with self.assertRaisesRegex(ValueError, "quarantined bytes"):
+                probe.verify_post_quarantine_cold_reopen(
+                    log, options, saved, damaged)
+            with self.assertRaisesRegex(ValueError, "Missing native Options"):
+                probe.verify_post_quarantine_cold_reopen(
+                    log.replace("load=loaded", "load=missing"),
+                    options, saved, damaged)
 
 
 if __name__ == "__main__":

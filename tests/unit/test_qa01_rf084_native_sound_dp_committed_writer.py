@@ -14,6 +14,8 @@ def fixture():
         "  {\n    uint8 _im = 42;\n"+m.COUNTER_WRITE+"  }\n}\n"+
         m.POINTER+"\n"+m.POINTER_LABEL+
         "  {\n    uint16 _im = 42;\n"+m.POINTER_WRITE+"  }\n}\n"+
+        m.POINTER_M0+"\n"+m.POINTER_M0_LABEL+
+        "  {\n    uint16 _im = 42;\n"+m.POINTER_WRITE+"  }\n}\n"+
         "RecompReturn NextFunc(CpuState *cpu) {\n  return 0;\n}\n")
 
 class RF084GeneratedWrite(unittest.TestCase):
@@ -21,14 +23,18 @@ class RF084GeneratedWrite(unittest.TestCase):
         patched=m.patch(fixture())
         self.assertEqual(patched.count(m.STAMP),1)
         self.assertEqual(patched.count(m.COUNTER_WRITE),1)
-        self.assertEqual(patched.count(m.POINTER_WRITE),1)
+        self.assertEqual(patched.count(m.POINTER_WRITE),2)
+        self.assertEqual(patched.count("ur_rf084_after(cpu,0x828154"),2)
+        self.assertIn('ur_rf084_pre,_im,"M0X0"',patched)
+        self.assertIn('ur_rf084_pre,_im,"M1X0"',patched)
         self.assertLess(patched.index(m.COUNTER_WRITE),
                         patched.index("ur_rf084_after(cpu,0x8280E0"))
         self.assertLess(patched.index(m.POINTER_WRITE),
                         patched.index("ur_rf084_after(cpu,0x828154"))
+        self.assertEqual(patched.count("cpu_write16_paced("),2)
         self.assertIn("native_master=%llu",patched)
         self.assertIn("QA01RF084NATIVE_TRUNCATED",patched)
-        self.assertIn("variant=M1X0",patched)
+        self.assertIn("variant=%s",patched)
         self.assertIn("rawAfter=%04X",patched)
         self.assertIn('getenv("UR_QA01_RF084_NATIVE_SOUND_DP")',patched)
         for bus in ("cpu_read8(", "cpu_read16(", "cpu_write8(", "cpu_write16("):
@@ -67,9 +73,11 @@ int main(void) {
     def test_existing_native_source_callsite_drift_refused(self):
         source=fixture()
         for mutated in (source.replace(m.COUNTER_WRITE,""),
-                        source.replace(m.POINTER_WRITE,""),
+                        source.replace(m.POINTER_WRITE,"",1),
                         source.replace(m.COUNTER_LABEL,""),
                         source.replace(m.POINTER_LABEL,""),
+                        source.replace(m.POINTER_M0_LABEL,""),
+                        source.replace(m.POINTER_M0,"RecompReturn WrongMode_M0X0(CpuState *cpu) {"),
                         source.replace(m.HEADER,""),
                         source+m.COUNTER,
                         source.replace(m.POINTER,

@@ -10,6 +10,7 @@ from pathlib import Path
 
 EXEC=Path("cpuexec.cpp")
 GETSET=Path("getset.h")
+MACRO=Path("cpumacro.h")
 STAMP="UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER"
 HEADER='#include "movie.h"\n'
 OP="\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
@@ -23,6 +24,7 @@ static unsigned rf083_before[4],rf083_seen,rf083_addr,rf083_value;
 static unsigned rf083_last_frame=0xffffffffu,rf083_rows;
 static unsigned long long rf083_seq;
 static unsigned rf083_word_rows;
+static unsigned rf083_inc16_rows;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){
     if(++rf083_rows>8192u){
@@ -78,6 +80,28 @@ void rf083_setword_entry(uint16 word,uint32 address,int wrap,int order){
        rf083_word_rows,rf083_frame,rf083_pc,(unsigned)(address&0xffffffu),
        (unsigned)word,wrap,order,before);
 }
+/* Direct original INC16 opcode witness. The getset.h S9xSetWord hook
+ * produced zero entries in genuine Zoo #40468773946 despite 1,481 raw
+ * low-pointer opcode deltas. Capture the actual INC16 caller before and
+ * after its existing S9xSetWord without an additional guest bus operation.
+ * The call-site watch is captured before AddCycles can process H-events. */
+unsigned rf083_inc16_watch(uint32 address){
+    return rf083_active && rf083_pc==0x828154u;
+}
+void rf083_inc16_commit(uint32 address,uint16 supplied,int wrap,unsigned before){
+    if(++rf083_inc16_rows>8192u){
+        if(rf083_inc16_rows==8193u)
+            fprintf(stderr,"QA01RF083ORIG_INC16_TRUNCATED\\n");
+        return;
+    }
+    const unsigned after=(unsigned)Memory.RAM[0x63u] |
+                         ((unsigned)Memory.RAM[0x64u]<<8);
+    fprintf(stderr,
+      "QA01RF083ORIG_INC16 seq=%u frame=%u pc=%06X addr=%06X"
+      " wrap=%d old=%04X supplied=%04X rawAfter=%04X\\n",
+      rf083_inc16_rows,rf083_frame,rf083_pc,(unsigned)(address&0xffffffu),
+      wrap,before,(unsigned)supplied,after);
+}
 void rf083_setbyte_entry(uint8 value,uint32 address){
     if(!rf083_active) return;
     const unsigned off=(unsigned)(address&0xffffu);
@@ -105,6 +129,37 @@ static void rf083_post(void){
 '''
 DECL="extern void rf083_setbyte_entry(uint8,uint32);\n"
 WORD_DECL="extern void rf083_setword_entry(uint16,uint32,int,int);\n"
+
+MACRO_INC16 = """static inline void INC16 (uint32 OpAddress, s9xwrap_t w)
+{
+\tuint16\tWork16 = S9xGetWord(OpAddress, w) + 1;
+\tAddCycles(ONE_CYCLE);
+\tS9xSetWord(Work16, OpAddress, w, WRITE_10);
+\tOpenBus = Work16 & 0xff;
+\tSetZN(Work16);
+}"""
+MACRO_DECL = ("extern unsigned rf083_inc16_watch(uint32);\\n"
+              "extern void rf083_inc16_commit(uint32,uint16,int,unsigned);\\n")
+
+def patch_macro(macro: str) -> str:
+    if "rf083_inc16_watch" in macro or macro.count(MACRO_INC16) != 1:
+        raise ValueError("RF083 original INC16 source drift or already staged")
+    changed = MACRO_INC16.replace(
+        "\tAddCycles(ONE_CYCLE);",
+        "\tconst unsigned rf083_watch = rf083_inc16_watch(OpAddress);\\n"
+        "\tconst unsigned rf083_before = rf083_watch ?\\n"
+        "\t    ((unsigned)Memory.RAM[0x63u] |\\n"
+        "\t     ((unsigned)Memory.RAM[0x64u] << 8)) : 0u;\\n"
+        "\tAddCycles(ONE_CYCLE);").replace(
+        "\tOpenBus = Work16 & 0xff;",
+        "\tif (rf083_watch) rf083_inc16_commit(OpAddress, Work16, (int)w, rf083_before);\\n"
+        "\tOpenBus = Work16 & 0xff;")
+    result = macro.replace(MACRO_INC16, MACRO_DECL + changed, 1)
+    if (result.count("rf083_inc16_commit(OpAddress, Work16") != 1 or
+            result.count("S9xSetWord(Work16, OpAddress, w, WRITE_10);") !=
+            macro.count("S9xSetWord(Work16, OpAddress, w, WRITE_10);")):
+        raise AssertionError("RF083 INC16 must preserve the existing guest write")
+    return result
 
 def patch(executor:str,getset:str)->tuple[str,str]:
     if STAMP in executor or STAMP in getset or "rf083_setbyte_entry" in getset:
@@ -136,13 +191,16 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root",required=True,type=Path)
     a=p.parse_args()
-    x,y=a.root/EXEC,a.root/GETSET
-    if not x.is_file() or not y.is_file() or x.is_symlink() or y.is_symlink():
+    x,y,z=a.root/EXEC,a.root/GETSET,a.root/MACRO
+    if (not x.is_file() or not y.is_file() or not z.is_file() or
+            x.is_symlink() or y.is_symlink() or z.is_symlink()):
         p.error("missing authentic disposable Snes9x source files")
     xx,yy=patch(x.read_text(),y.read_text())
+    zz=patch_macro(z.read_text())
     x.write_text(xx)
     y.write_text(yy)
-    print("RF083 original real setter + opcode DP delta observer staged")
+    z.write_text(zz)
+    print("RF083 original real setter, INC16 call-site and opcode DP delta observer staged")
 
 if __name__=="__main__":
     main()

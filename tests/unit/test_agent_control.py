@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
-from agent_control import BOARD, REGISTRY, extract_board, load_json, summary, validate_registry
+from agent_control import BOARD, REGISTRY, extract_board, load_json, recommend_work, summary, validate_registry
 
 
 def replace_table_cell(markdown, row_id, column, value):
@@ -122,6 +122,61 @@ class AgentBoardControlTests(unittest.TestCase):
                 bad = replace_table_cell(bad, str(n), 3, "hold")
         with self.assertRaisesRegex(ValueError, "fewer than five selectable jobs"):
             extract_board(bad)
+
+
+    def test_five_distinct_advisory_first_choices(self):
+        """All agents assess the same five, without herding on the first."""
+        reports = [recommend_work(self.board, n, "2026-10-27")
+                   for n in range(1, 6)]
+        expected = [j["work_id"] for j in self.board["work"]
+                    if j["state"] in {"ready", "in_review"}][:5]
+        self.assertTrue(all(
+            [j["work_id"] for j in r["candidate_jobs"]] == expected
+            for r in reports))
+        self.assertEqual({r["first_choice"]["work_id"] for r in reports},
+                         set(expected))
+        self.assertTrue(all(r["recommended_job"] == r["first_choice"]
+                            for r in reports))
+        self.assertTrue(all("NOT a lease" in r["selection_advisory"]
+                            for r in reports))
+
+    def test_daily_rotation_without_permanent_specialty(self):
+        first = [recommend_work(self.board, n, "2026-10-27")["first_choice"]["work_id"]
+                 for n in range(1, 6)]
+        second = [recommend_work(self.board, n, "2026-10-28")["first_choice"]["work_id"]
+                  for n in range(1, 6)]
+        self.assertEqual(set(first), set(second))
+        self.assertTrue(all(a != b for a, b in zip(first, second)))
+
+    def test_confirmed_busy_writer_does_not_borrow_other_cohort_slot(self):
+        original = recommend_work(self.board, 3, "2026-10-27")
+        busy = original["first_choice"]["work_id"]
+        alternate = recommend_work(self.board, 3, "2026-10-27", [busy])
+        self.assertEqual(alternate["first_choice"], original["first_choice"])
+        self.assertEqual(alternate["busy_work_ids_supplied"], [busy])
+        self.assertNotIn(
+            alternate["recommended_job"]["work_id"],
+            {r["first_choice"]["work_id"] for r in
+             [recommend_work(self.board, n, "2026-10-27") for n in range(1, 6)]})
+        self.assertEqual(alternate["recommended_job"]["state"], "ready")
+
+    def test_no_safe_fallback_is_explicit(self):
+        eligible = [j["work_id"] for j in self.board["work"]
+                    if j["state"] in {"ready", "in_review"}]
+        primary = recommend_work(self.board, 1, "2026-10-27")["first_choice"]["work_id"]
+        report = recommend_work(self.board, 1, "2026-10-27",
+                                [primary, *eligible[5:]])
+        self.assertIsNone(report["recommended_job"])
+        self.assertEqual(report["outside_cohort_fallbacks"], [])
+
+    def test_occupied_unknown_and_invalid_agent_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, "eligible current board"):
+            recommend_work(self.board, 1, "2026-10-27", ["UR-UNKNOWN-20261027"])
+        for bad in (0, 6, "1", True):
+            with self.subTest(bad=bad), self.assertRaisesRegex(ValueError, "agent number"):
+                recommend_work(self.board, bad, "2026-10-27")
+        with self.assertRaises(ValueError):
+            recommend_work(self.board, 1, "not-a-date")
 
 
 class RecoveryRegistryControlTests(unittest.TestCase):

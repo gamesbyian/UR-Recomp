@@ -6,6 +6,20 @@
 
 Agent 1 starts at :00, 2 at :12, 3 at :24, 4 at :36, 5 at :48, hourly in America/Edmonton. These are staggered starts, not execution-duration caps. As of the October 26 2026 scheduler readback **all five were enabled and their prompts had been updated to the generic shared-pool contract**; preserve the installed staggered starts and validate live task state separately from this offline document. The `tools/agent_control.py --check` offline validator verifies the board minute contract and shared selection shape; it **cannot read the live scheduler**. A schedule check must explicitly inspect the actual five installed automations. No arbitrary change to minutes is required by this refactor.
 
+## Cohort-first dispatch experiment (2026-10-27)
+
+The offline `python3 tools/agent_control.py --agent N` command now reports **the same top-five eligible job census** for every worker, plus a distinct, UTC-day-rotating **first choice** for each agent. This is a low-risk anti-herding experiment, not permanent agent specialties or a scheduler with source-lock authority. Examples:
+
+```sh
+python3 tools/agent_control.py --agent 3
+python3 tools/agent_control.py --agent 3 --cohort-date 2026-10-27
+python3 tools/agent_control.py --agent 3 --busy-work-id UR-CPU-CAUSE-20261026
+```
+
+If the suggested job has a **confirmed currently active conflicting writer**, explicitly supply that eligible ID with `--busy-work-id`; the fallback avoids borrowing the other four workers' first-choice slots where alternatives exist. A historical PR, stalled branch, missing approval, or unattended release gate is **not** by itself proof of an active writer. Always read the actual source, recent PRs, held prerequisites, available evidence and most useful next closure first. Continue qualifying an in-flight branch rather than discard it just because the calendar rotated; an active reviewer may choose a different priority. If no safe suggestion exists, scan farther and record the live collision. There is no automatic GitHub lease or race-proof reservation in this pilot.
+
+**Measurement:** compare distinct same-hour work IDs actually advanced, PR file overlap and redundant CI starts, end-to-end qualified merges, and independently completed player journeys/criteria over a rolling 7-day window. Rotate or remove the suggestion if it increases handoff/context cost or fails to improve closure throughput. Keep official progress and QA credit governed by their existing evidence authorities; never inflate completion by changing work selection.
+
 Each invocation:
 1. Read the fresh [AGENTS](../AGENTS.md), [work queue](WORK-QUEUE.md), this coordination policy, the [shared board](HOURLY-AGENT-LINES.md), current `main`, open/recent PRs/issues and directly relevant last handoffs. Inspect surviving Vault evidence **only as needed for candidate conflicts or recovery**. Do not reread entire historical source/vault by quota.
 2. Assess **five highest-ranked eligible distinct jobs** or as many as exist. Inspect exact current PR/issue state, source or head, prior tests, dependencies and real concurrent edits for each; `hold`/`deferred` are not automatically implementation-ready. If a genuinely active writer occupies a target, choose another; an old branch/PR alone is not a reservation.

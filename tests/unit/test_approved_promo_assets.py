@@ -30,6 +30,18 @@ class ApprovedPromoTests(unittest.TestCase):
         self.assertEqual(module.SOURCES["portrait"],
                          "blueprint-9x16-portrait-2160x3840.png")
 
+    def test_all_known_exporters_reference_approved_sources(self):
+        showcase = ROOT / "tools/showcase"
+        blue = (showcase / "blue_trailer_art_direction.py").read_text(encoding="utf-8")
+        flagship = (showcase / "build_flagship_recruitment_20261019.py").read_text(encoding="utf-8")
+        upgrade = (showcase / "upgrade_flagship_vertical_20261019.py").read_text(encoding="utf-8")
+        self.assertIn("graph_paper_trailer_art_direction", blue)
+        self.assertNotIn("ImageDraw", blue)
+        self.assertIn('aspect="portrait"', flagship)
+        self.assertIn('cards["__portrait__"]', flagship)
+        self.assertIn("blueprint-9x16-portrait-2160x3840.png", upgrade)
+        self.assertNotIn("boxblur", upgrade)
+
     def test_portrait_only_approved_plate(self):
         self.assertEqual(promo.SOURCES["portrait"],
                          "blueprint-9x16-portrait-2160x3840.png")

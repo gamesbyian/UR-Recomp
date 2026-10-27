@@ -23,7 +23,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --user 'Pillow>=9,<12'
-          ffmpeg -version | head -n 1
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | sed -n '1p'
       - name: Validate text syntax and original media inputs
         run: |
           set -euo pipefail

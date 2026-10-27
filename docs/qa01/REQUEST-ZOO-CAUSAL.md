@@ -18,8 +18,8 @@ or claim a USA-event pass.
 
 ## Next research request
 
-- Request sequence: **2** (second source-bound RF083/RF084 Zoo writer-commit campaign requested after original INC16 observer repair)
-- Requested reason: Retry exactly one source-bound Zoo RF083/RF084 case after merged #2700 adds actual original INC16 post-write raw verification; previous run #40468773946 failed because original generic setter entries were absent, while six genuine E6 $0063 FF-to-00 carries incremented $0064; preserve RF015/RF017 baseline and independently inspect real new original/native receipts and 13 raw pairs
+- Request sequence: **3** (single source-bound RF083/RF084 Zoo campaign after full original-core header-dependent rebuild #2702)
+- Requested reason: Re-run exactly one original/native Zoo RF083/RF084 writer case on merged #2702, after source-exact run #40474888477 failed because patched cpumacro.h/getset.h were relinked against stale cpuops.o. The repaired workflow cleans every original core object after staging and rebuilds the instrumented cpuops.cpp; independently verify actual recompilation, real original INC16 post-write rows, native RF084 writer rows, observer-off controls and all 13 raw +5034..+5046 WRAM/SRAM pairs. Stop as producer failure if original observer rows remain absent; do not relax acceptance predicates or claim complete-event parity.
 - Requested by: Project engineering agent, under owner autonomous engineering direction
 - Evidence scope: source-bound Zoo writer-entry, 13 raw DP/WRAM pairs, original/native divergence; independent review required
 - Release gate credit: **0**

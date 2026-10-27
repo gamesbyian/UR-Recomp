@@ -1,11 +1,11 @@
 # October 26 contributor recruitment trailer
 
 **Film:** [95-second 1080p/60 fps cut](ur-recomp-recruit-contributors-95s-1080p.mp4)  
-**SHA-256:** `2bf5a4282564e6863dcd3ba63fdf89a84a96df4589c01bae5ef5cd58b8c29e9e`  
+**SHA-256:** `0b616efea5192da0c5658e21818e17fd621bb38c94b594425f9c1d47606512a9`  
 **Contact:** ianmakesjokes@gmail.com  
 **Repository:** https://github.com/gamesbyian/UR-Recomp
 
-This cut retains the first **4,260 genuine-source/editorial frames** of the October 20 graph-paper recruitment film and replaces its old nine-second generic invitation with four six-second illustrated recruitment cards. It is **95 seconds (5,700 frames)** with an extension of the prior original synthesized score; it does not invent or reposition game footage.
+This cut selects the first **4,260 genuine-source/editorial frames**, with a new on-screen factual correction to older art-approval terminology, of the October 20 graph-paper recruitment film and replaces its old nine-second generic invitation with four six-second illustrated recruitment cards. It is **95 seconds (5,700 frames)** with an extension of the prior original synthesized score; it does not invent or reposition game footage.
 
 ## Who this film is for
 
@@ -33,4 +33,4 @@ python3 tools/showcase/build_targeted_recruitment_20261026.py --cards-only --out
 python3 tools/showcase/build_targeted_recruitment_20261026.py
 ```
 
-The script rejects source-film or owner-artwork hash changes. The film's [provenance](recruitment-provenance.json) holds the exact SHA, source identities, segment timings and SHA-256 of eleven individually decoded witness PNGs. The one-shot render workflow is [.github/workflows/one-shot-oct26-recruitment.yml](../../../../.github/workflows/one-shot-oct26-recruitment.yml). It is not a scheduled video-encoding job. The first run failed solely because FFmpeg was not installed; the corrected run [40433932861](https://github.com/gamesbyian/UR-Recomp/actions/runs/40433932861) completed successfully and published the output. The editorial panels have been visually inspected by the authoring assistant; full independent human screening, audio listening and promotional approval remain outstanding.
+The script rejects source-film or owner-artwork hash changes. The film's [provenance](recruitment-provenance.json) holds the exact SHA, source identities, segment timings and SHA-256 of eleven individually decoded witness PNGs. The one-shot render workflow is [.github/workflows/one-shot-oct26-recruitment.yml](../../../../.github/workflows/one-shot-oct26-recruitment.yml). It is not a scheduled video-encoding job. The first run failed solely because FFmpeg was not installed. The first corrected render [40433932861](https://github.com/gamesbyian/UR-Recomp/actions/runs/40433932861) passed; the latest factual-art-label revision [40434938792](https://github.com/gamesbyian/UR-Recomp/actions/runs/40434938792) also passed and published the canonical output. The editorial panels and the corrective art label have been visually inspected by the authoring assistant; full independent human screening, audio listening and promotional approval remain outstanding.

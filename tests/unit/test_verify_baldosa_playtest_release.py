@@ -54,6 +54,24 @@ def write_fixture(root: Path) -> tuple[Path, Path, Path, dict]:
 
 
 class ManualPlaytestSourceBinding(unittest.TestCase):
+    def test_request_marker_only_triggers_safe_exact_main_artifact(self):
+        workflow = (ROOT / ".github/workflows/manual-romfree-windows-playtest.yml").read_text(
+            encoding="utf-8")
+        request = ROOT / "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
+        self.assertTrue(request.is_file())
+        self.assertIn("  push:", workflow)
+        self.assertIn("    branches: [main]", workflow)
+        self.assertIn('      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"', workflow)
+        self.assertIn("  workflow_dispatch:", workflow)
+        # Push is restricted to main; PRs are not an alternate path to a
+        # synthetic-merge release artifact.
+        self.assertNotIn("  pull_request:", workflow)
+        self.assertIn("github.ref == 'refs/heads/main'", workflow)
+        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.mode == 'publish_provisional_preview'", workflow)
+        self.assertIn("name: verified-romfree-windows-playtest", workflow)
+        self.assertIn("retention-days: 14", workflow)
+        self.assertIn("actions: read", workflow)
+
     def fake_audit(self, *args, **kwargs):
         return {
             "rom_bundled": False,
@@ -189,17 +207,20 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "already exist"):
                 self.prepare(root)
 
-    def test_manual_workflow_has_no_automatic_builds_and_requires_explicit_publish(self):
+    def test_only_main_marker_or_manual_dispatch_and_explicit_publish(self):
         text = (ROOT / ".github/workflows/manual-romfree-windows-playtest.yml"
                 ).read_text(encoding="utf-8")
         self.assertIn("  workflow_dispatch:", text)
         self.assertNotIn("  pull_request:", text)
-        self.assertNotIn("  push:", text)
+        self.assertIn("  push:", text)
+        self.assertIn("    branches: [main]", text)
+        self.assertIn('      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"', text)
         self.assertNotIn("  schedule:", text)
         self.assertIn("export_campaign_inputs: true", text)
         self.assertIn("uses: ./.github/workflows/baldosa-windows-native-bridge.yml", text)
         self.assertIn("default: verify_only", text)
         self.assertIn("inputs.mode == 'publish_provisional_preview'", text)
+        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.mode == 'publish_provisional_preview'", text)
         self.assertIn("contents: write", text)
         self.assertIn("--prerelease --latest=false", text)
 

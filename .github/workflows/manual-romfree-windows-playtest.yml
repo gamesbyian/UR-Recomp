@@ -3,6 +3,12 @@ name: Manual ROM-free Windows technical playtest
 # Dispatch explicitly on main. Reuses the original source-pinned Windows
 # process/guest acceptance rather than creating an additional scheduled build.
 on:
+  # An agent may request one exact-current-main candidate by merging a PR
+  # that updates this marker. Ordinary PRs/merges never run this Windows build.
+  push:
+    branches: [main]
+    paths:
+      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
   workflow_dispatch:
     inputs:
       mode:
@@ -23,7 +29,7 @@ concurrency:
 
 jobs:
   tested_candidate:
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
     uses: ./.github/workflows/baldosa-windows-native-bridge.yml
     with:
       export_campaign_inputs: true
@@ -81,7 +87,7 @@ jobs:
 
   publish_provisional_preview:
     needs: [tested_candidate, verify_provenance]
-    if: ${{ needs.verify_provenance.result == 'success' && github.ref == 'refs/heads/main' && inputs.mode == 'publish_provisional_preview' }}
+    if: ${{ needs.verify_provenance.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.mode == 'publish_provisional_preview' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     permissions:

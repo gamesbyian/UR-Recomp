@@ -57,7 +57,11 @@ class NativeRF084Receipt(unittest.TestCase):
     def test_manual_campaign_stages_after_regeneration_and_retains_real_log(self):
         workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text()
         self.assertEqual(workflow.count("      qa01_rf084_native_sound_dp:"), 2)
-        self.assertIn("RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF018/APU off", workflow)
+        self.assertIn("RF084 requires zoom-zoo + mesh + DP, RF015/017 on, RF016/018/019/APU off", workflow)
+        self.assertIn("QA01_RF016: ${{ inputs.baldosa_spc_reference_rate }}", workflow)
+        self.assertIn("QA01_RF019: ${{ inputs.baldosa_hdma_cpu_stall }}", workflow)
+        self.assertIn('"$QA01_RF016" == "true"', workflow)
+        self.assertIn('"$QA01_RF019" == "true"', workflow)
         self.assertLess(
             workflow.index("baldosa_dp_indirect_long_pointer_once_patch.py --game baldosa --verify-gen"),
             workflow.index("qa01_rf084_native_sound_dp_committed_writer.py --root baldosa"))
@@ -94,7 +98,8 @@ class NativeRF084Receipt(unittest.TestCase):
                     hearts + rows + "QA01RF083ORIG_TRUNCATED\n",
                     hearts.replace("frame=6079", "frame=6078") + rows,
                     hearts + rows.replace("seq=2", "seq=3"),
-                    hearts + rows.replace("op=E6", "op=00")):
+                    hearts + rows.replace("op=E6", "op=00"),
+                    hearts + rows.replace("new=01", "new=00")):
             with self.subTest(bad=bad[-60:]), self.assertRaises(ValueError):
                 m.audit_original(bad.encode())
 

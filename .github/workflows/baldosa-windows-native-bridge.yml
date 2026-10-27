@@ -684,7 +684,7 @@ jobs:
               if route == "named-play" and not receipt["named_source_play_verified"]:
                   raise SystemExit("named P1 Play not source-admitted")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-              summary.write(f"MENU-10 hosted Win32 original idle/demo P6 + P1/keyboard/P2 wake + MAIN recovery + named P1 source admission on one PE SHA256 \`{expected}\`. Physical SDL/display/release acceptance remains independent.\\n")
+              summary.write(f"MENU-10 hosted Win32 original idle/demo P6, P1/keyboard/P2 wake, MAIN recovery and named P1 source admission. PE SHA256 {expected}. Physical SDL/display/release acceptance remains independent.\n")
           print("UR_MENU10_NATIVE_STOCK_ATTRACT_WITNESSES_OK", expected)
           PY
 

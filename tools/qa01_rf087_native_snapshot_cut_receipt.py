@@ -16,6 +16,7 @@ from pathlib import Path
 
 TAG_FRAMES = (("scene-05039", 6058), ("scene-05040", 6059))
 LOG = re.compile(r"^script f=(\d+) dump ([a-z0-9-]+) (ok|partial)$")
+REQUIRED_DUMP = re.compile(r"^script\b.*\bdump\s+(?:scene-05039|scene-05040)(?=\s|$)")
 
 
 def audit(native_dir: Path, native_log: bytes) -> dict:
@@ -30,6 +31,8 @@ def audit(native_dir: Path, native_log: bytes) -> dict:
             if tag in observed:
                 raise ValueError("duplicate native snapshot log tag")
             observed[tag] = (int(m.group(1)), m.group(3))
+        elif REQUIRED_DUMP.search(line):
+            raise ValueError("malformed required native snapshot log")
     rows = []
     hashes = {}
     for tag, host in TAG_FRAMES:

@@ -12,7 +12,7 @@ from pathlib import Path
 
 FILE = Path("snesrecomp/runner/src/desktop/host_main.c")
 STAMP = "UR_QA01_RF087_NATIVE_SNAPSHOT_CUT"
-ANCHOR = '''  int rc = snes_state_dump(dir ? dir : "", tag, g_my_pixels, pitch, g_ws_extra,
+ANCHOR = r'''  int rc = snes_state_dump(dir ? dir : "", tag, g_my_pixels, pitch, g_ws_extra,
                            g_snes_height, frame);
   fprintf(stderr, "script f=%u dump %s %s\n", frame, tag, rc ? "partial" : "ok");'''
 REPLACEMENT = r'''  /* UR_QA01_RF087_NATIVE_SNAPSHOT_CUT: bracket actual scripted WRAM dump.

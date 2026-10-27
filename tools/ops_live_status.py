@@ -101,7 +101,7 @@ def timestamp(value):
 # PR bodies are already present in the bounded /pulls census; no extra API
 # requests, CI jobs or new coordination system are needed.
 PR_WORK_ID = re.compile(
-    r"(?im)^\\s*(?:\\*\\*)?work id(?:\\*\\*)?\\s*:\\s*[`*]?([A-Z][A-Z0-9-]+)"
+    r"(?im)^\s*(?:\*\*)?work id(?:\*\*)?\s*:\s*(?:\*\*|`)?(UR-[A-Z0-9-]+)"
 )
 RECENT_HEAD_HOURS = 36
 

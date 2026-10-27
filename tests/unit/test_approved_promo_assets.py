@@ -45,6 +45,8 @@ class ApprovedPromoTests(unittest.TestCase):
         self.assertIn('cards["__portrait__"]', flagship)
         self.assertIn('vis=("scale=1080:1920:flags=lanczos"', flagship)
         self.assertNotIn("scale=1080:608:flags=neighbor,pad=1080:1920:0:656:0x08101f", flagship)
+        self.assertIn("fontcolor=0x202427", flagship)
+        self.assertIn("ianmakesjokes@gmail.com", flagship)
         self.assertIn("blueprint-9x16-portrait-2160x3840.png", upgrade)
         self.assertNotIn("boxblur", upgrade)
         self.assertIn("blueprint-9x16-portrait-2160x3840.png", definitive)

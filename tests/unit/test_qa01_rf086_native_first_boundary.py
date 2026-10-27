@@ -93,6 +93,20 @@ class FirstBoundaryBusCommitTests(unittest.TestCase):
         self.assertEqual(receipt.audit(("\n".join(lines) + "\n").encode())
                          ["raw_after_mismatch_count"], 1)
 
+    def test_bus_address_is_absolute_even_when_direct_page_register_moves(self):
+        # cpu_write8/16 receive the already-resolved 16-bit bus address.
+        # The recorded D register is context, not an address to subtract.
+        names = list(receipt.SITES)
+        rows = [row(i + 1, name, master=1000 + i).replace(
+            "D=0000", "D=0100") for i, name in enumerate(names)]
+        result = receipt.audit(("\\n".join(rows) + "\\n").encode())
+        self.assertEqual(result["native_first_boundary_pointer16_commits"], 2)
+        self.assertEqual(result["native_first_boundary_counter8_commits"], 1)
+        # A nonzero D must not let a different physical bus address pass.
+        rows[0] = rows[0].replace("addr=0063", "addr=0163")
+        with self.assertRaisesRegex(ValueError, "effective address"):
+            receipt.audit(("\\n".join(rows) + "\\n").encode())
+
     def test_later_counter_cannot_masquerade_as_boundary_counter(self):
         names = list(receipt.SITES)
         rows = [

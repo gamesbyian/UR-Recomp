@@ -85,7 +85,7 @@ class NativeRF084Receipt(unittest.TestCase):
             return (f"QA01RF083ORIG seq={seq} type=opcode_delta frame=6072 "
                     f"pc={pc} op=E6 pre_v=0 pre_h=0 post_v=0 post_h=1 "
                     f"slot={slot} old=00 new=01 setterCount=0 "
-                    f"setterAddr=FFFFFF setterVal=00 clock=original_cpu\n")
+                    f"setterAddr=FFFFFFFF setterVal=00 clock=original_cpu\n")
         rows = original(1, "8280E0", "0069") + original(2, "828154", "0063")
         v = m.audit_original((hearts + rows).encode())
         self.assertEqual(v["original_writer_rows"], 2)

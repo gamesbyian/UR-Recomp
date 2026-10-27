@@ -637,7 +637,7 @@ jobs:
       # Restores the first-party original-stock source/wake witness from the
       # old controller draft without a second build or any guest-memory writes.
       - name: Observe genuine original idle attract and distinct native wake routes
-        if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' || github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' || github.head_ref == 'agent4/ur-ui-nav-p2-guest-word-20261026') }}
+        if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' || github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' || github.head_ref == 'agent4/ur-ui-nav-p2-guest-word-20261026' || github.head_ref == 'agent3/ur-ui-nav-p2-sdl-word-20261026') }}
         run: |
           set -euo pipefail
           EXE="$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe"
@@ -646,7 +646,7 @@ jobs:
           # PR #2658 must prove DEFAULT reveal, without the historic opt-in flag.
           # The old #2657 probe branch remains an explicit opt-in control.
           default_attract_args=()
-          if [ "$GITHUB_HEAD_REF" = 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' ] || [ "$GITHUB_HEAD_REF" = 'agent4/ur-ui-nav-p2-guest-word-20261026' ]; then
+          if [ "$GITHUB_HEAD_REF" = 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' ] || [ "$GITHUB_HEAD_REF" = 'agent4/ur-ui-nav-p2-guest-word-20261026' ] || [ "$GITHUB_HEAD_REF" = 'agent3/ur-ui-nav-p2-sdl-word-20261026' ]; then
             default_attract_args=(--default-attract)
           fi
           for route in p1 keyboard p2; do
@@ -708,7 +708,7 @@ jobs:
                   raise SystemExit(f"{route}: no real guest MAIN recovery")
               if route == "named-play" and not receipt["named_source_play_verified"]:
                   raise SystemExit("named P1 Play not source-admitted")
-              if os.environ.get("GITHUB_HEAD_REF") in ("agent1/ur-ui-nav-default-stock-attract-p2-20261026", "agent4/ur-ui-nav-p2-guest-word-20261026"):
+              if os.environ.get("GITHUB_HEAD_REF") in ("agent1/ur-ui-nav-default-stock-attract-p2-20261026", "agent4/ur-ui-nav-p2-guest-word-20261026", "agent3/ur-ui-nav-p2-sdl-word-20261026"):
                   if receipt.get("default_stock_attract_without_preview_override") is not True:
                       raise SystemExit(f"{route}: default source attract was not probed without opt-in")
                   if receipt.get("historical_preview_environment_override_used") is not False:
@@ -717,13 +717,16 @@ jobs:
                       raise SystemExit(f"{route}: scripted hosted probe improperly labelled physical")
                   if route == "p2" and b"p2_other_button_isolated=1" not in (folder / "native-attract.log").read_bytes():
                       raise SystemExit("P2: unrelated post-wake B was not consumed by the host")
+                  if route == "p2" and os.environ.get("GITHUB_HEAD_REF") == "agent3/ur-ui-nav-p2-sdl-word-20261026":
+                      if receipt.get("p2_mapped_input_isolation_verified") is not True:
+                          raise SystemExit("P2: no actual SDL mapped-input guest-word witness")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
               summary.write(f"MENU-10 hosted Win32 original idle/demo P6, P1/keyboard/P2 wake, MAIN recovery and named P1 source admission. PE SHA256 {expected}. Physical SDL/display/release acceptance remains independent.\n")
           print("UR_MENU10_NATIVE_STOCK_ATTRACT_WITNESSES_OK", expected)
           PY
 
       - name: Retain original idle/demo native source and wake evidence
-        if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' || github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' || github.head_ref == 'agent4/ur-ui-nav-p2-guest-word-20261026') }}
+        if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' || github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' || github.head_ref == 'agent4/ur-ui-nav-p2-guest-word-20261026' || github.head_ref == 'agent3/ur-ui-nav-p2-sdl-word-20261026') }}
         uses: actions/upload-artifact@v4
         with:
           name: ur-menu10-stock-attract-${{ github.sha }}

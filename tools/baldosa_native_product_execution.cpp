@@ -52,7 +52,11 @@ extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
              (g_host_owned_samples > 900u &&
               g_host_owned_samples <= 1080u &&
               g_host_owned_samples % 30u == 0u) ||
-             (word & 0x00ffffffu) != 0u)) {
+             (word & 0x00ffffffu) != 0u ||
+             // Read-only actual mapped-human-word sample around the
+             // stock-attract seat-2 SDL B edge, never a guest write.
+             (frame >= 1642u && frame <= 1646u &&
+              std::getenv("UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE")))) {
             std::fprintf(stderr,
                 "UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample=%u frame=%u "
                 "incoming=%08x guest=%08x queued=%04x host_owns=1\n",

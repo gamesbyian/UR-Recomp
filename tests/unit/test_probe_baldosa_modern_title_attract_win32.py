@@ -7,7 +7,8 @@ import unittest
 from tools.probe_baldosa_modern_title_attract_win32 import (
     verify_original_source_attract, verify_source_driven_preview,
     verify_original_guest_presentations, verify_source_driven_recovery,
-    verify_named_original_play_after_recovery, set_attract_override)
+    verify_named_original_play_after_recovery, set_attract_override,
+    verify_native_p2_mapped_input_isolation)
 
 OPEN = "UR_BALDOSA_MODERN_ROOT opened=1"
 MAIN = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1"
@@ -16,6 +17,48 @@ DEMO = "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=00 race=
 
 
 class StockIdleAttractWitnessTest(unittest.TestCase):
+    def test_actual_mapped_p2_word_must_remain_zero_after_sdl_b(self):
+        sent = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_event_submitted=1 frame=1642"
+        down = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_callback_received=1 pressed=1 seat2_source=2"
+        released = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_release_submitted=1 frame=1644"
+        up = "UR_MODERN_TITLE_STOCK_ATTRACT p2_sdl_callback_received=1 pressed=0 seat2_source=2"
+        isolated = "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1645"
+
+        def sample(index, incoming="c0000000", guest="c0000000",
+                   queued="0000", frame=None, owned=1):
+            if frame is None:
+                frame = index - 1
+            return (f"UR_BALDOSA_PRODUCT_INPUT_ISOLATION sample={index} "
+                    f"frame={frame} incoming={incoming} guest={guest} "
+                    f"queued={queued} host_owns={owned}")
+
+        good = "\n".join((sent, down, sample(1643), sample(1644),
+                          released, up, sample(1645), isolated))
+        self.assertTrue(verify_native_p2_mapped_input_isolation(good))
+        bad_cases = (
+            good.replace(sample(1643), ""),
+            good.replace(sample(1643), sample(1643, incoming="c0001000")),
+            good.replace(sample(1644), sample(1644, guest="c0001000")),
+            good.replace(sample(1645), sample(1645, queued="0001")),
+            good.replace(sample(1644), sample(1644, frame=1644)),
+            good.replace(sample(1644), sample(1644, owned=0)),
+            good.replace(sample(1643), sample(1643) + "\n" + sample(1643)),
+            good + "\n" + sample(1644, owned=0),
+            good.replace(sent, ""),
+            good.replace(released, ""),
+            good.replace(isolated, ""),
+            good.replace(down, ""),
+            good.replace(up, ""),
+            good.replace(down, down + "\n" + down),
+            good.replace("seat2_source=2", "seat2_source=-1"),
+            good.replace(up, up.replace("seat2_source=2", "seat2_source=3")),
+            good.replace(down, "__DOWN__").replace(up, down).replace("__DOWN__", up),
+            good.replace(sample(1644), sample(1645)),
+        )
+        for bad in bad_cases:
+            with self.subTest(bad=bad[-110:]), self.assertRaises(ValueError):
+                verify_native_p2_mapped_input_isolation(bad)
+
     def test_default_witness_removes_even_inherited_preview_opt_in(self):
         inherited = {"UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW": "1", "SDL_VIDEODRIVER": "dummy"}
         set_attract_override(inherited, preview_wake=True, default_attract=True)
@@ -35,6 +78,7 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                     ".github/workflows/baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
         self.assertIn("agent1/ur-ui-nav-default-stock-attract-p2-20261026", workflow)
         self.assertIn("agent4/ur-ui-nav-p2-guest-word-20261026", workflow)
+        self.assertIn("agent3/ur-ui-nav-p2-sdl-word-20261026", workflow)
         self.assertIn("default_attract_args=(--default-attract)", workflow)
         self.assertIn("default_stock_attract_without_preview_override", workflow)
         self.assertIn("p2_other_button_isolated=1", workflow)

@@ -20,6 +20,9 @@ ROW = re.compile(
     r"old=([0-9A-F]{4}) supplied=([0-9A-F]{4}) "
     r"rawAfter=([0-9A-F]{4}) native_master=(\d+)$"
 )
+# addr is the already resolved CPU bus address from cpu_write8/16, not
+# the pre-index direct-page operand. D is retained as register context only;
+# subtracting it here incorrectly rejects a real bank-00 WRAM commit when D!=0.
 # Historical precommit bus labels, retained for receipt fixtures/context only.
 # They are not independently established generated-code function identities.
 SITES = {
@@ -51,7 +54,7 @@ def audit(raw: bytes) -> dict:
         d, addr, old, supplied, after = (
             int(x, 16) for x in (d, addr, old, supplied, after))
         if (seq != len(rows) + 1 or not 6056 <= frame <= 6060 or
-            (addr - d) & 0xFFFF != WIDTH_ADDR[width] or
+            addr != WIDTH_ADDR[width] or
             (width == 1 and max(old, supplied, after) > 0xFF)):
             raise ValueError("RF086 sequence, width, effective address or frame invalid")
         if rows and (frame < rows[-1]["frame"] or

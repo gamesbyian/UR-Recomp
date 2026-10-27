@@ -2,8 +2,8 @@
 """RF088: opt-in native APU echo read/write witness in the already-pinned CPU bus.
 
 Patch only the disposable Baldosa runner, after RF086 and before compilation.
-Capture $2142/$2143 traffic while the *actual* WRAM sound pointer is C6B0,
-from the final Zoo seek to the first C6B1 increment. The CPU bus performs
+Capture $2142/$2143 traffic across the first Zoo seek/upload boundary,
+including the actual pointer at each access; do not assume it is C6B0. The CPU bus performs
 exactly its original ReadReg/WriteReg operations; observations follow them.
 This is native-only evidence, not an original/native clock registration.
 """
@@ -39,9 +39,11 @@ static void ur_rf088_note(CpuState *cpu, uint8 bank, uint16 addr,
         const char *flag = getenv("UR_QA01_RF088_NATIVE_APU_ECHO");
         enabled = flag && flag[0] == '1' && flag[1] == '\0';
     }
-    if (!enabled || snes_frame_counter < 6057 || snes_frame_counter > 6058 ||
-        (addr != 0x2142 && addr != 0x2143) ||
-        cpu->ram[0x63] != 0xB0 || cpu->ram[0x64] != 0xC6) return;
+    /* Keep the actual port addresses narrow, but do not preselect the
+     * unproven pointer phase. RF090's first combined run produced zero
+     * RF088 rows; log the pointer alongside each observed port access. */
+    if (!enabled || snes_frame_counter < 6055 || snes_frame_counter > 6060 ||
+        (addr != 0x2142 && addr != 0x2143)) return;
     if (++ur_rf088_rows > 32768u) {
         if (ur_rf088_rows == 32769u)
             fprintf(stderr, "QA01RF088NATIVE_TRUNCATED\n");
@@ -49,9 +51,10 @@ static void ur_rf088_note(CpuState *cpu, uint8 bank, uint16 addr,
     }
     fprintf(stderr,
         "QA01RF088NATIVE seq=%u f=%d kind=%c width=%u bank=%02X"
-        " addr=%04X val=%04X native_master=%llu scope=%s\n",
+        " addr=%04X val=%04X native_master=%llu ptr=%02X%02X scope=%s\n",
         ur_rf088_rows, snes_frame_counter, kind, width, (unsigned)bank,
         (unsigned)addr, value, (unsigned long long)cpu->master_cycles,
+        (unsigned)cpu->ram[0x64], (unsigned)cpu->ram[0x63],
         g_last_recomp_func ? g_last_recomp_func : "unknown");
 }
 '''

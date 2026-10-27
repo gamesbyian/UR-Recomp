@@ -45,6 +45,13 @@ def launcher() -> bytes:
         '  if not defined APPDATA (echo UR-BALDOSA-STARTUP-SAVE-ROOT: APPDATA is not available. 1>&2 & echo Windows did not provide a per-user data folder. Set UR_RECOMP_USER_DATA_ROOT to a folder you own outside the game folder. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         '  set "UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp"',
         ')',
+        # PowerShell 7 can export its own PSModulePath to cmd.exe. When
+        # inherited by Windows PowerShell 5.1, that can prevent the built-in
+        # Microsoft.PowerShell.Utility/Get-FileHash module from loading.
+        # This setlocal launcher clears only its child environment; Windows
+        # PowerShell reconstructs its own default module paths on startup.
+        # Do not bypass the SHA-256 ROM check or alter the caller's session.
+        'set "PSModulePath="',
         # PowerShell 5.1 is inbox on supported Windows. Use ENV VARS, not
         # interpolated paths, to avoid command injection via user paths.
         'powershell.exe -NoProfile -NonInteractive -Command '

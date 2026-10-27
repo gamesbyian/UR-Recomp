@@ -70,7 +70,8 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
              "UR_MODERN_TITLE_STOCK_ATTRACT p2_then_p1_confirm=1 frame=1660"),
         ):
             release = (
-                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
+                ("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",
+                 "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1642")
                 if route == "p2" else ())
             good = "\n".join((*common, first, *release, confirm, *end))
             with self.subTest(route=route):
@@ -84,10 +85,11 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                         good.replace(confirm, confirm.replace("=1", "=0")),
                         wake_route=route)
                 if route == "p2":
-                    with self.assertRaisesRegex(ValueError, "wake"):
-                        verify_source_driven_preview(good.replace(
-                            "p2_wake_release_consumed=1",
-                            "p2_wake_release_consumed=0"), wake_route="p2")
+                    for marker in ("p2_wake_release_consumed",
+                                   "p2_other_button_isolated"):
+                        with self.subTest(marker=marker), self.assertRaisesRegex(ValueError, "wake"):
+                            verify_source_driven_preview(good.replace(
+                                marker + "=1", marker + "=0"), wake_route="p2")
         with self.assertRaisesRegex(ValueError, "unsupported"):
             verify_source_driven_preview("\n".join(common), wake_route="unknown")
 

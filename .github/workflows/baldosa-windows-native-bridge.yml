@@ -637,7 +637,7 @@ jobs:
       # Restores the first-party original-stock source/wake witness from the
       # old controller draft without a second build or any guest-memory writes.
       - name: Observe genuine original idle attract and distinct native wake routes
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' }}
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' }}
         run: |
           set -euo pipefail
           EXE="$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe"
@@ -673,6 +673,8 @@ jobs:
               receipt = json.loads((folder / "native-attract-receipt.json").read_text(encoding="utf-8"))
               if receipt["candidate_executable_sha256"] != expected:
                   raise SystemExit(f"{route}: mismatched Windows PE")
+              if receipt["stock_attract_preview_env_present"]:
+                  raise SystemExit(f"{route}: old opt-in environment variable still set")
               index = folder / "presented/presents.csv"
               if hashlib.sha256(index.read_bytes()).hexdigest() != receipt["native_stock_demo_index_sha256"]:
                   raise SystemExit(f"{route}: native frame index hash mismatch")
@@ -708,7 +710,7 @@ jobs:
           PY
 
       - name: Retain original idle/demo native source and wake evidence
-        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'integration/ur-ui-nav-20261022-stock-attract-20261026' }}
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'agent1/ur-ui-nav-default-stock-attract-p2-20261026' }}
         uses: actions/upload-artifact@v4
         with:
           name: ur-menu10-stock-attract-${{ github.sha }}

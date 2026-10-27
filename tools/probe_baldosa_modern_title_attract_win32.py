@@ -105,7 +105,8 @@ def verify_source_driven_preview(log: str, wake_route: str = "p1") -> list[dict[
         "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532",
         "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600 guest_writes=0",
         wake,
-        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",)
+        *((("UR_MODERN_TITLE_STOCK_ATTRACT p2_wake_release_consumed=1 frame=1602",
+            "UR_MODERN_TITLE_STOCK_ATTRACT p2_other_button_isolated=1 frame=1642")
            if wake_route == "p2" else ())),
         *((("UR_MODERN_TITLE_STOCK_ATTRACT stable_title=1 frame=1640 root_unselected=1",)
            if wake_route == "p1" else ())),
@@ -329,13 +330,14 @@ def main() -> int:
                     if args.aspect == "4:3" else ""), encoding="utf-8")
     env = dict(os.environ)
     env.pop("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE", None)
+    # The production default must work without the historical opt-in switch.
+    env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
     if args.preview_wake:
         env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = (
             "23" if args.named_play else
             "20" if args.recovery else
             "21" if args.wake_route == "keyboard" else
             "22" if args.wake_route == "p2" else "28")
-        env["UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW"] = "1"
         presented = out / "presented"
         presented.mkdir()
     env.update({
@@ -435,6 +437,8 @@ def main() -> int:
         "diagnostic_guest_writes": False,
         "human_button_actions": 2 if args.preview_wake else 0,
         "scripted_host_preview_only": args.preview_wake,
+        "stock_attract_preview_env_present":
+            "UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW" in env,
         "native_wake_route": args.wake_route if args.preview_wake else None,
         "drawable_aspect": args.aspect,
         "native_stock_demo_and_wake_presentations": presented_receipt,

@@ -60,8 +60,9 @@ class PairedEchoWiring(unittest.TestCase):
         s = self.source
         self.assertIn("QA01RF089ORIG_TRUNCATED", s)
         self.assertIn("QA01RF088NATIVE_TRUNCATED", s)
-        self.assertIn("for pc in 028301 028304", s)
-        self.assertIn("QA01RF088NATIVE .*kind=R .*addr=2142", s)
+        self.assertIn("for pc in 8280DB 8280DE", s)
+        self.assertIn("QA01RF088NATIVE .*kind=R .*addr=2140", s)
+        self.assertNotIn("for pc in 028301 028304", s)
         self.assertIn("observer-off control and clock registration still required", s)
         self.assertIn("replay/reference.log", s)
         self.assertIn("replay/native.log", s)

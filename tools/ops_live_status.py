@@ -96,6 +96,47 @@ def timestamp(value):
     except (ValueError, TypeError, AttributeError):
         return None
 
+# A recently active pair of open PRs claiming the same Work ID may duplicate
+# engineering and expensive CI. This is a review hint, not a source-file lock.
+# PR bodies are already present in the bounded /pulls census; no extra API
+# requests, CI jobs or new coordination system are needed.
+PR_WORK_ID = re.compile(
+    r"(?im)^\\s*(?:\\*\\*)?work id(?:\\*\\*)?\\s*:\\s*[`*]?([A-Z][A-Z0-9-]+)"
+)
+RECENT_HEAD_HOURS = 36
+
+
+def recent_same_work_id_hints(prs, known_work_ids, now):
+    """Find overlapping *claims* in fresh open PRs, never infer file writes.
+
+    An incomplete GitHub census may prove a positive collision, but its absence
+    cannot prove no other PR is active. Drafts are included for discovery, not
+    presumed active, and old or malformed timestamps are not treated as locks.
+    """
+    groups = {}
+    for row in prs:
+        if not isinstance(row, dict):
+            continue
+        match = PR_WORK_ID.search(str(row.get("body") or ""))
+        number = row.get("number")
+        when = timestamp(row.get("updated_at"))
+        if (not match or match.group(1) not in known_work_ids
+                or type(number) is not int or number <= 0 or when is None):
+            continue
+        seconds = (now - when).total_seconds()
+        if not 0 <= seconds <= RECENT_HEAD_HOURS * 3600:
+            continue
+        entry = {"pr": number, "draft": row.get("draft") is True}
+        groups.setdefault(match.group(1), {})[number] = entry
+    return [
+        {"work_id": wid,
+         "prs": [items[num] for num in sorted(items)],
+         "classification": "REVIEW_POSSIBLE_DUPLICATE_NOT_A_WRITE_LOCK"}
+        for wid, items in sorted(groups.items())
+        if len(items) >= 2
+    ]
+
+
 def head_sha():
     try:
         return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
@@ -189,6 +230,8 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
                          "draft": sum(x.get("draft") is True for x in prs),
                          "unchanged_48h_sample": stale[:20],
                          "unchanged_48h_count": len(stale),
+                         "recent_same_work_id_hints": recent_same_work_id_hints(
+                             prs, {j["work_id"] for j in board["work"]}, now),
                          "items": [{"number": x.get("number"), "title": str(x.get("title") or "")[:100],
                                     "url": x.get("html_url"), "draft": x.get("draft"),
                                     "updated_at": x.get("updated_at")} for x in prs[:25]]}
@@ -323,6 +366,17 @@ def markdown(s):
                 (str(prs["count"]) + (" complete" if prs["census_complete"] else " PARTIAL") +
                  f", {prs['draft']} draft, {prs['unchanged_48h_count']} with >48h since last update (not proof of inactivity)"
                  if prs else "UNKNOWN"))
+    if prs and prs.get("recent_same_work_id_hints"):
+        for hint in prs["recent_same_work_id_hints"]:
+            labels = ", ".join(
+                "#" + str(p["pr"]) + (" (draft)" if p["draft"] else " (reviewable)")
+                for p in hint["prs"]
+            )
+            rows.append("- **REVIEW possible same-work-ID PR overlap:** " +
+                        hint["work_id"] + " " + labels +
+                        ". Inspect exact changed paths and live writers before "
+                        "starting a competing patch; this is NOT a lock or "
+                        "proof of duplicate source.")
     actions = s["actions"]
     rows.append("- Actions: " +
                 (f"latest {actions['sampled']} only " + repr(actions["outcomes"]) +

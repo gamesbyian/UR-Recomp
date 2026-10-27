@@ -48,6 +48,30 @@ class RF083Source(unittest.TestCase):
         self.assertIn("rf083_setword_entry(Word,Address,(int)w,(int)o);",edited_getset)
         self.assertIn("rf083_post();",edited_cpu)
 
+    def test_real_original_inc16_callsite_has_no_new_bus_operations(self):
+        # This is the actual tracked pinned Snes9x macro, not a fake writer.
+        root = Path(__file__).resolve().parents[2] / "third_party" / "src" / "snes9x-libretro"
+        original = (root / "cpumacro.h").read_text(encoding="utf-8")
+        patched = m.patch_macro(original)
+        self.assertEqual(patched.count("S9xGetWord(OpAddress, w) + 1;"),
+                         original.count("S9xGetWord(OpAddress, w) + 1;"))
+        self.assertEqual(patched.count("S9xSetWord(Work16, OpAddress, w, WRITE_10);"),
+                         original.count("S9xSetWord(Work16, OpAddress, w, WRITE_10);"))
+        # ASL16 has an earlier, identical S9xSetWord call. Compare within
+        # the instrumented INC16 body rather than against the entire header.
+        inc_start = patched.index("static inline void INC16 (uint32 OpAddress, s9xwrap_t w)")
+        self.assertLess(patched.index("rf083_inc16_watch(OpAddress)", inc_start),
+                        patched.index("S9xSetWord(Work16, OpAddress, w, WRITE_10);", inc_start))
+        self.assertLess(patched.index("S9xSetWord(Work16, OpAddress, w, WRITE_10);", inc_start),
+                        patched.index("rf083_inc16_commit(OpAddress, Work16", inc_start))
+        self.assertIn("QA01RF083ORIG_INC16_TRUNCATED", m.C)
+        self.assertIn("rawAfter=%04X", m.C)
+        with self.assertRaisesRegex(ValueError, "already staged"):
+            m.patch_macro(patched)
+        with self.assertRaisesRegex(ValueError, "drift"):
+            m.patch_macro(original.replace("S9xSetWord(Work16, OpAddress, w, WRITE_10);",
+                                           "wrong_guest_write(Work16);"))
+
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())
         for x,y in ((a,b),(source()+m.STAMP,setter()),

@@ -198,6 +198,16 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
         self.assertNotIn("  schedule:", text)
         self.assertIn("export_campaign_inputs: true", text)
         self.assertIn("uses: ./.github/workflows/baldosa-windows-native-bridge.yml", text)
+        # A reusable workflow cannot elevate GITHUB_TOKEN permissions.
+        # Without actions:read in the caller, GitHub may fail before jobs
+        # start (no runner logs or playable artifact).
+        self.assertIn(
+            "permissions:\n  contents: read\n  # The reusable Windows bridge requests actions: read",
+            text)
+        self.assertIn("  actions: read\n\nconcurrency:", text)
+        callee = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
+                  ).read_text(encoding="utf-8")
+        self.assertIn("permissions:\n  contents: read\n  actions: read", callee)
         self.assertIn("default: verify_only", text)
         self.assertIn("inputs.mode == 'publish_provisional_preview'", text)
         self.assertIn("contents: write", text)

@@ -93,6 +93,7 @@ def check(export: Path, out: Path) -> dict:
     verdict["failed_samples"] = failures
     (out / "full-export-frame-review.json").write_text(json.dumps(verdict, indent=2) + "\n", encoding="utf-8")
     if failures:
+        print(json.dumps(verdict, indent=2), flush=True)
         raise ValueError(f"Approved background mismatch in {failures}. Diagnostic frames/receipt retained.")
     return verdict
 

@@ -40,6 +40,11 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                                    f("native/product/modern_root_menu.hpp")]), "full")
         self.assertEqual(classify([f("tools/agent_control.py"),
                                    f("docs/AGENT-COORDINATION.md", "removed")]), "full")
+        for context in expected:
+            for status in ("renamed", "copied", "removed", "changed"):
+                with self.subTest(context=context, status=status):
+                    self.assertEqual(classify([f("tools/ops_live_status.py"),
+                                               f(context, status)]), "full")
 
     def test_any_mixed_or_indirect_change_uses_complete_original_suite(self):
         for path in (

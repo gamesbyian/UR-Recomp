@@ -18,8 +18,8 @@ or claim a USA-event pass.
 
 ## Next research request
 
-- Request sequence: **0** (setup only; no campaign requested)
-- Requested reason: Initial causal dispatch marker installation, without any original/native experiment yet
+- Request sequence: **1** (one source-bound RF083/RF084 Zoo writer-commit campaign requested)
+- Requested reason: Run merged original Snes9x RF083 16-bit word-entry observation and native RF084 byte/word sound pointer writer with RF015/RF017 baseline across +5034..+5046 Zoo raw pairs, to identify first causal divergence; do not assign parity credit without independent review
 - Requested by: Project engineering agent, under owner autonomous engineering direction
 - Evidence scope: source-bound Zoo writer-entry, 13 raw DP/WRAM pairs, original/native divergence; independent review required
 - Release gate credit: **0**

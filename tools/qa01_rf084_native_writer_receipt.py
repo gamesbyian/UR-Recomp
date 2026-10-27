@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROW = re.compile(
     r"^QA01RF084NATIVE seq=(\d+) site=([0-9A-F]{6}) width=([12]) "
-    r"variant=M1X0 f=(\d+) D=([0-9A-F]{4}) addr=([0-9A-F]{4}) "
+    r"variant=(M0X0|M1X0) f=(\d+) D=([0-9A-F]{4}) addr=([0-9A-F]{4}) "
     r"old=([0-9A-F]{4}) supplied=([0-9A-F]{4}) "
     r"rawAfter=([0-9A-F]{4}) native_master=(\d+)$"
 )
@@ -112,16 +112,18 @@ def audit(raw: bytes) -> dict:
         raise ValueError("RF084 native writer stream truncated")
     rows = []
     counts = {site: 0 for site in SITES}
+    variants = {"M0X0": 0, "M1X0": 0}
     for line in lines:
         if not line.startswith("QA01RF084NATIVE"):
             continue
         match = ROW.fullmatch(line)
         if not match:
             raise ValueError("malformed RF084 native writer row")
-        seq, site, width, frame, d, addr, old, supplied, after, master = match.groups()
+        seq, site, width, variant, frame, d, addr, old, supplied, after, master = match.groups()
         seq, width, frame, master = map(int, (seq, width, frame, master))
         d, addr, old, supplied, after = (int(x, 16) for x in (d, addr, old, supplied, after))
-        if site not in SITES or (width, (addr - d) & 0xFFFF) != SITES[site]:
+        if (site not in SITES or (width, (addr - d) & 0xFFFF) != SITES[site]
+            or (site == "8280E0" and variant != "M1X0")):
             raise ValueError("RF084 native writer site/width/effective DP address mismatch")
         if seq != len(rows) + 1 or not 6054 <= frame <= 6068:
             raise ValueError("RF084 native writer sequence/frame out of bounds")
@@ -130,9 +132,11 @@ def audit(raw: bytes) -> dict:
             raise ValueError("RF084 native writer chronology reversed")
         if width == 1 and (old > 0xFF or supplied > 0xFF or after > 0xFF):
             raise ValueError("RF084 8-bit native writer values exceed byte width")
-        rows.append({"seq": seq, "site": site, "width": width, "frame": frame,
+        rows.append({"seq": seq, "site": site, "variant": variant,
+                     "width": width, "frame": frame,
                      "master": master, "raw_after_matches_supplied": after == supplied})
         counts[site] += 1
+        variants[variant] += 1
     if not rows or any(not count for count in counts.values()):
         raise ValueError("RF084 actual native 8-bit AND 16-bit writer executions required")
     if len(rows) > 10000:
@@ -144,6 +148,10 @@ def audit(raw: bytes) -> dict:
         "native_log_sha256": hashlib.sha256(raw).hexdigest(),
         "native_writer_events": len(rows),
         "site_counts": counts,
+        "variant_counts": variants,
+        "native_boundary_writer_events": sum(row["frame"] in (6058, 6059) for row in rows),
+        "native_first_boundary_writer": next((row for row in rows if row["frame"] in (6058, 6059)), None),
+        "native_first_boundary_writer_parity_proven": False,
         "first_frame": rows[0]["frame"],
         "last_frame": rows[-1]["frame"],
         "first_event": rows[0],

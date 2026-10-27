@@ -99,58 +99,8 @@ def text_fit(d,point,message,size,fill=LIGHT,bold=False,width=1580):
     d.text(point,message,font=font(size,bold),fill=fill)
     return size
 
-def background():
-    im=Image.new("RGB",(1920,1080),INK)
-    d=ImageDraw.Draw(im)
-    # Precise technical diagrams, deliberately editorial rather than game assets.
-    for x in range(0,1920,80):d.line((x,0,x,1080),fill=(14,31,49),width=1)
-    for y in range(0,1080,80):d.line((0,y,1920,y),fill=(14,31,49),width=1)
-    d.rectangle((0,0,1919,8),fill=CYAN)
-    d.rectangle((110,161,118,902),fill=GOLD)
-    d.line((115,962,1806,962),fill=(53,111,129),width=3)
-    text_fit(d,(132,978),"UR-RECOMP    /    INDEPENDENT EVIDENCE • OCTOBER 2026",24,(161,185,207))
-    return im,d
-
-def make_cards(folder):
-    cards={}
-    im,d=background()
-    text_fit(d,(145,85),"NATIVE WINDOWS PRODUCT",32,CYAN,True)
-    text_fit(d,(145,200),"FROM ZERO TO A SAVED RECORD",77,LIGHT,True)
-    tasks=[("01","CREATE RACER","Named-profile native onboarding"),
-           ("02","COMPLETE NATIVE RACE","Scripted 1P / 2P result journeys"),
-           ("03","REOPEN RECORDS","Cold process restart, canonical entries")]
-    for i,(number,head,sub) in enumerate(tasks):
-        x=150+i*559
-        d.rounded_rectangle((x,385,x+529,751),radius=22,fill=(17,41,65),outline=(56,130,150),width=3)
-        text_fit(d,(x+28,405),number,62,GOLD,True)
-        text_fit(d,(x+28,530),head,35,LIGHT,True,width=480)
-        text_fit(d,(x+28,620),sub,22,(182,204,219),width=470)
-        if i<2:d.polygon([(x+529,540),(x+546,554),(x+529,568)],fill=CYAN)
-    text_fit(d,(148,832),"Verified scripted native Windows journeys. Physical controller and release QA remain open.",25,(183,206,226),width=1670)
-    cards["card_windows"]=folder/"editorial-windows-evidence.png";im.save(cards["card_windows"])
-    im,d=background()
-    text_fit(d,(145,78),"ACTUAL SDL FRAMEBUFFER • BOUNDED ORIGINAL 2P",30,CYAN,True)
-    text_fit(d,(145,205),"8,294,400",158,GOLD,True)
-    text_fit(d,(153,414),"SOURCE-CHECKED OUTPUT PIXELS",65,LIGHT,True)
-    text_fit(d,(150,574),"3840 × 2160   /   FRAME 2208   /   7:6 ORIGINAL PIXEL ASPECT",32,(183,219,226),True)
-    for i,v in enumerate(["342×224 genuine logical world","4× nearest Original compositor","Exact SDL output readback"]):
-        y=680+i*75
-        d.rounded_rectangle((152,y,1725,y+61),radius=14,fill=(17,40,61),outline=(38,93,115),width=2)
-        text_fit(d,(178,y+12),v,31,LIGHT)
-    text_fit(d,(145,924),"This card cites real output QA, NOT newly filmed 4K gameplay.",22,GOLD,True)
-    cards["card_4k"]=folder/"editorial-4k-evidence.png";im.save(cards["card_4k"])
-    im,d=background()
-    text_fit(d,(145,88),"ONE GENUINE GAME. A MUCH BIGGER PROJECT.",30,CYAN,True)
-    text_fit(d,(142,230),"UNIRACERS",125,LIGHT,True)
-    text_fit(d,(148,372),"NATIVE RECOMP",85,GOLD,True)
-    text_fit(d,(148,520),"BUILD THE NEXT VERSION",73,LIGHT,True)
-    skills=["C++ / REVERSE ENGINEERING","3D CHARACTER ART / ANIMATION","SOURCE-GROUNDED QA / TOOLING"]
-    for i,v in enumerate(skills):
-        text_fit(d,(166,656+i*64),"• "+v,32,CYAN,True)
-    d.rounded_rectangle((140,880,1782,956),radius=20,fill=(29,98,113),outline=CYAN,width=2)
-    text_fit(d,(206,896),"github.com/gamesbyian/UR-Recomp",44,LIGHT,True)
-    cards["card_cta"]=folder/"editorial-contribution-invitation.png";im.save(cards["card_cta"])
-    return cards
+# Old procedurally painted recruitment cards are retired. Approved source plates
+# are selected by blue_trailer_art_direction.produce instead.
 
 def render_score(path,seconds=85,rate=22050):
     """Newly synthesized, deterministic 132 BPM electronic score. No samples."""

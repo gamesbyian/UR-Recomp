@@ -193,7 +193,7 @@ class StockIdleAttractWitnessTest(unittest.TestCase):
                     width = 342 if frame in (1616, 1696) else 256
                     payload = bytes([index % 251]) * (width * 224 * 3)
                     (root / f"present_{index:06d}.ppm").write_bytes(
-                        f"P6\\n{width} 224\\n255\\n".encode("ascii") + payload)
+                        f"P6\n{width} 224\n255\n".encode("ascii") + payload)
             retained = verify_original_guest_presentations(root)
             self.assertEqual(
                 [(item["stage"], item["guest_frame"]) for item in retained],

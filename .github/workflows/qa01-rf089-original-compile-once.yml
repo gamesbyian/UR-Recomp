@@ -1,4 +1,5 @@
 name: RF089 original pinned compile (one shot)
+# Retry after original C compile caught literal escaped newlines in injected helper.
 on:
   push:
     branches:

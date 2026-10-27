@@ -110,6 +110,8 @@ class RF083Source(unittest.TestCase):
         self.assertIn("rf089_z0=(unsigned)(ICPU._Zero==0);", a)
         self.assertIn("rf089_z0,(unsigned)(ICPU._Zero==0)", a)
         self.assertNotIn("S9xPackStatus(", m.C)
+        self.assertNotIn("*/"+chr(92)+"\n", m.C)
+        self.assertNotIn("Registers.PL,"+chr(92)+"\n", m.C)
         self.assertIn("rf089_rows<=32768u", a)
         self.assertEqual(a.count(m.OP), 1)
         for bus in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):

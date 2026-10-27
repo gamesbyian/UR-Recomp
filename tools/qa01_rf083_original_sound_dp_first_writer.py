@@ -83,7 +83,8 @@ static void rf083_pre(uint8 opcode){
          rf083_pc==0x028304u);
     if(rf089_target){
         rf089_a0=(unsigned)Registers.A.W;
-        rf089_p0=(unsigned)Registers.PL; /* packed PL may be stale */\n        rf089_z0=(unsigned)(ICPU._Zero==0);
+        rf089_p0=(unsigned)Registers.PL; /* packed PL may be stale */
+        rf089_z0=(unsigned)(ICPU._Zero==0);
     }
     rf083_v=(unsigned)CPU.V_Counter;
     rf083_h=(int)CPU.Cycles;
@@ -172,7 +173,8 @@ static void rf083_post(void){
               rf089_rows,rf083_frame,rf083_pc,rf083_op,
               rf083_v,rf083_h,(unsigned)CPU.V_Counter,(int)CPU.Cycles,
               rf089_a0,(unsigned)Registers.A.W,
-              rf089_p0,(unsigned)Registers.PL,\n              rf089_z0,(unsigned)(ICPU._Zero==0),
+              rf089_p0,(unsigned)Registers.PL,
+              rf089_z0,(unsigned)(ICPU._Zero==0),
               ((unsigned)Registers.PB<<16)|(unsigned)Registers.PCw,
               (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
         } else if(rf089_rows==32769u){

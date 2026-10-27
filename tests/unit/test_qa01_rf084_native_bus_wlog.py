@@ -73,8 +73,8 @@ class NativeBusWlogTransportTests(unittest.TestCase):
         artifact = workflow.split(
             "      - name: Always retain per-case receipt and bounded diagnostic logs",
             1)[1].split("\n  aggregate:", 1)[0]
-        expected = ("\u0024{{ runner.temp }}/qa01-case/work/"
-                    "\u0024{{ matrix.case }}/replay/native/" + qa.RF084_BUS_WLOG_NAME)
+        expected = ("${{ runner.temp }}/qa01-case/work/"
+                    "${{ matrix.case }}/replay/native/" + qa.RF084_BUS_WLOG_NAME)
         self.assertIn("if: always()", artifact)
         self.assertEqual(artifact.count(expected), 1)
 

@@ -1,0 +1,60 @@
+name: One-shot October 26 targeted vertical recruitment and poster
+on:
+  push:
+    branches: [media/oct26-targeted-contributors]
+    paths:
+      - .github/workflows/one-shot-oct26-recruitment-social.yml
+      - tools/showcase/build_targeted_recruitment_social_20261026.py
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ur-oct26-social-recruitment
+  cancel-in-progress: false
+jobs:
+  portrait:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install image and video dependencies
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user 'Pillow>=9,<12'
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffmpeg -version | sed -n '1p'
+      - name: Verify script and encode portrait companion
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/showcase/build_targeted_recruitment_social_20261026.py
+          python3 tools/showcase/build_targeted_recruitment_social_20261026.py
+      - name: Assert delivered footage, score and poster provenance
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, hashlib
+          directory=Path("media/showcase/2026-10-26/recruitment")
+          j=json.loads((directory/"social-provenance.json").read_text())
+          assert j["frames"]==2040 and j["duration_seconds"]==34
+          assert j["dimensions"]==[1080,1920]
+          assert len(j["decoded_witnesses"])==9
+          for key,h in j["decoded_witnesses"].items():
+              assert hashlib.sha256((directory/key).read_bytes()).hexdigest()==h
+          assert hashlib.sha256((directory/j["film"]).read_bytes()).hexdigest()==j["sha256"]
+          assert hashlib.sha256((directory/j["poster"]).read_bytes()).hexdigest()==j["poster_sha256"]
+          print("OK: 34s, 2040 frames, 9 witness PNGs, poster and SHA-256")
+          PY
+      - name: Publish verified social film and posterior assets
+        run: |
+          set -euo pipefail
+          git config user.name "UR Media Render Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-26/recruitment
+          if ! git diff --cached --quiet; then
+            git commit -m "Media: publish 34s vertical recruitment and poster with evidence"
+            git push origin HEAD:media/oct26-targeted-contributors
+          fi

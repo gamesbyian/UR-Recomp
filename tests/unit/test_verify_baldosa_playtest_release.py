@@ -92,6 +92,13 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
             self.assertIn("no copyrighted game ROM", notes)
             self.assertIn("provisional technical playtest", notes)
             self.assertIn(SHA, notes)
+            self.assertIn("## Current physical test sequence", notes)
+            self.assertIn("\\n1. Record", repr(notes) if False else notes)
+            self.assertIn("Get-FileHash -Algorithm SHA256", notes)
+            self.assertIn("one physical controller", notes)
+            self.assertIn("TWO distinct controllers", notes)
+            self.assertIn("Do not send ROMs, SRAM", notes)
+            self.assertNotIn(r"\\n\\n## Current physical", notes)
             data = json.loads(
                 (root / "playtest-output/PLAYTEST-PROVENANCE.json").read_text()
             )

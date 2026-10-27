@@ -14,9 +14,16 @@
 | `tools/showcase/build_three_source_recruitment.py` | Canonical 16:9 CTA instead of generated black card |
 | `tools/showcase/build_recruitment_teaser.py` | Portrait/wide scene templates start from approved corresponding plates; emits provenance with output hashes |
 | `tools/showcase/build_continuous_recruitment_edits.py` | Uses portrait plate behind native content; refuses historical teaser inputs lacking matching approved-art receipt |
+| `tools/showcase/build_graphpaper_recruitment_20261020.py` | Legacy filename adapter delegates to current canonical exporter, blocks checkouts without approved portrait-art attestation; no original sketch JPEGs |
+| `tools/showcase/build_flagship_dynamic_course_v2.py` | Intentionally retired with explicit error: its pinned historical 85s film bakes in disallowed generated cards |
 
 Historical rendered exports **are not retroactively approved**. Re-export from current scripts and confirm resulting video bytes/frames visually. The asset source may be scaled to delivery resolution preserving its whole composition; no arbitrary crop or new background illustration. Gameplay source remains independently evidence-verified. Text/footage compositing is allowed.
 
-## Qualification limits
+## Qualification evidence and remaining limits (2026-10-27)
 
-Static unit assertions prevent obvious regression but do not prove media outputs. CI must pass at the actual PR head. Full FFmpeg export acceptance needs real source clips, their provenance receipts, original soundtrack and precise dimensions/duration/frame-count verification. Use image inspection of several frames from each emitted video, especially 9:16 initial footage, transitions and final call to action, to confirm no stale cards or blank synthetic mattes. Preserve evidence with exact source SHA and output SHA; do not declare certification on static tests alone.
+- Main integrated: [canonical exporter PR #2685](https://github.com/gamesbyian/UR-Recomp/pull/2685), [historical escape hatch retirement PR #2690](https://github.com/gamesbyian/UR-Recomp/pull/2690).
+- Actual three-format (16:9, 4:3, 9:16) FFmpeg encode/readback smoke with real approved images, 6 frames per format and background-pixel comparison passed: [Actions run 40463248002](https://github.com/gamesbyian/UR-Recomp/actions/runs/40463248002).
+- **Complete source-pinned flagship exports passed**, including source checksum preflight, 1920×1080/4,800-frame 80s and 1080×1920/1,620-frame 27s MP4s at 60 fps, outputs matched against provenance SHA-256: [Actions run 40463247963](https://github.com/gamesbyian/UR-Recomp/actions/runs/40463247963), [retained MP4s and receipt](https://github.com/gamesbyian/UR-Recomp/actions/runs/40463247963/artifacts/12715308682). This is real encoded-video evidence, not a mere source review.
+- Project tooling tests and repository hygiene passed on the complete-export PR head; the historical legacy retirement PR also passed those checks and the FFmpeg smoke.
+
+**Limits:** The 80s and 27s MP4s were encoded and mechanically checked but not personally inspected frame-by-frame in a media player. Other historical exporters have source/static regression and aspect-smoke coverage, not individual full-length release-quality exports. Source claims and gameplay parity remain governed by their independent receipts, not this aesthetic-policy audit. A future new media export needs inspection of sampled initial, transition, CTA and ending frames, preserving exact source and output hashes. Archived older MP4s do not become compliant retroactively.

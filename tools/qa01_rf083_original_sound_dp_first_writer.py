@@ -16,6 +16,7 @@ HEADER='#include "movie.h"\n'
 OP="\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 BYTE="inline void S9xSetByte (uint8 Byte, uint32 Address)\n{\n"
 WORD="inline void S9xSetWord (uint16 Word, uint32 Address, enum s9xwrap_t w = WRAP_NONE, enum s9xwriteorder_t o = WRITE_01)\n{\n"
+READ_BYTE_FUNC = "inline uint8 S9xGetByte (uint32 Address)\n{\n"
 READ_BYTE_PPU = "\t\t\tbyte = S9xGetPPU(Address & 0xffff);\n\t\t\taddCyclesInMemoryAccess;\n\t\t\treturn (byte);"
 READ_WORD_PPU = "\t\t\tword  = S9xGetPPU(Address & 0xffff);\n\t\t\taddCyclesInMemoryAccess;\n\t\t\tword |= S9xGetPPU((Address + 1) & 0xffff) << 8;\n\t\t\taddCyclesInMemoryAccess;\n\t\t\treturn (word);"
 C=r'''/* UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER */
@@ -265,7 +266,7 @@ def patch(executor:str,getset:str)->tuple[str,str]:
         raise ValueError("RF083 already or partly staged")
     if (executor.count(HEADER)!=1 or executor.count(OP)!=1 or
             getset.count(BYTE)!=1 or getset.count(WORD)!=1 or
-            getset.count(READ_BYTE_PPU)!=1 or getset.count(READ_WORD_PPU)!=1):
+            getset.count(READ_BYTE_FUNC)!=1 or getset.count(READ_BYTE_PPU)!=1 or getset.count(READ_WORD_PPU)!=1):
         raise ValueError("RF083 pinned opcode or source setter drift")
     if executor.count("Op = CPU.PCBase[Registers.PCw];")!=1 or \
        executor.count("Op = S9xGetByte(Registers.PBPC);")!=1:
@@ -278,6 +279,10 @@ def patch(executor:str,getset:str)->tuple[str,str]:
     getset=getset.replace(BYTE,DECL+BYTE+"\trf083_setbyte_entry(Byte,Address);\n",1)
     getset=getset.replace(WORD,WORD_DECL+WORD+
                           "\trf083_setword_entry(Word,Address,(int)w,(int)o);\n",1)
+    # Declare the observer before both inline reader definitions. The pinned
+    # getset.h defines readers before S9xSetByte; a setter-local declaration
+    # would leave both RF090 calls undeclared under C++11.
+    getset=getset.replace(READ_BYTE_FUNC,PORT_DECL+READ_BYTE_FUNC,1)
     # Capture the actual returned PPU byte/word after the existing bus
     # access and cycle charge, without adding a second S9xGetPPU call.
     getset=getset.replace(READ_BYTE_PPU, READ_BYTE_PPU.replace(
@@ -286,7 +291,6 @@ def patch(executor:str,getset:str)->tuple[str,str]:
     getset=getset.replace(READ_WORD_PPU, READ_WORD_PPU.replace(
         "\t\t\treturn (word);",
         "\t\t\trf083_port_read(Address,2u,(unsigned)word);\n\t\t\treturn (word);"),1)
-    getset=getset.replace(BYTE,PORT_DECL+BYTE,1)
     new=[executor.count(s)+getset.count(s) for s in
          ("(*Opcodes[Op].S9xOpcode)();","Registers.PCw++;",
           "S9xGetByte(","S9xSetByte(","S9xGetWord(","S9xSetWord(")]

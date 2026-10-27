@@ -18,8 +18,8 @@ or claim a USA-event pass.
 
 ## Next research request
 
-- Request sequence: **1** (one source-bound RF083/RF084 Zoo writer-commit campaign requested)
-- Requested reason: Run merged original Snes9x RF083 16-bit word-entry observation and native RF084 byte/word sound pointer writer with RF015/RF017 baseline across +5034..+5046 Zoo raw pairs, to identify first causal divergence; do not assign parity credit without independent review
+- Request sequence: **2** (second source-bound RF083/RF084 Zoo writer-commit campaign requested after original INC16 observer repair)
+- Requested reason: Retry exactly one source-bound Zoo RF083/RF084 case after merged #2700 adds actual original INC16 post-write raw verification; previous run #40468773946 failed because original generic setter entries were absent, while six genuine E6 $0063 FF-to-00 carries incremented $0064; preserve RF015/RF017 baseline and independently inspect real new original/native receipts and 13 raw pairs
 - Requested by: Project engineering agent, under owner autonomous engineering direction
 - Evidence scope: source-bound Zoo writer-entry, 13 raw DP/WRAM pairs, original/native divergence; independent review required
 - Release gate credit: **0**

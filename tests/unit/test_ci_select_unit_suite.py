@@ -2,7 +2,8 @@
 import unittest
 
 from tools.ci_select_unit_suite import (
-    FOCUSED_TEST_MODULES, OPERATIONS_ONLY, classify, classify_paged, github_mode,
+    FOCUSED_TEST_MODULES, OPERATIONS_ONLY, OPS_CONTEXT_DOCS,
+    classify, classify_paged, github_mode,
 )
 
 
@@ -21,6 +22,24 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                                    f("tests/unit/test_report_ci_runtime.py")]), "ops")
         self.assertIn("tests.unit.test_agent_control", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_trigger_policy", FOCUSED_TEST_MODULES)
+
+    def test_exact_non_product_agent_context_docs_are_focused_with_ops(self):
+        expected = {
+            "docs/AGENT-COORDINATION.md",
+            "docs/HOURLY-AGENT-LINES.md",
+            "docs/WORK-QUEUE.md",
+        }
+        self.assertEqual(OPS_CONTEXT_DOCS, expected)
+        for context in expected:
+            with self.subTest(context=context):
+                self.assertEqual(classify([f("tools/ops_live_status.py"),
+                                           f("tests/unit/test_ops_live_status.py"),
+                                           f(context)]), "ops")
+        self.assertEqual(classify([f("tools/agent_control.py"),
+                                   f("docs/HOURLY-AGENT-LINES.md"),
+                                   f("native/product/modern_root_menu.hpp")]), "full")
+        self.assertEqual(classify([f("tools/agent_control.py"),
+                                   f("docs/AGENT-COORDINATION.md", "removed")]), "full")
 
     def test_any_mixed_or_indirect_change_uses_complete_original_suite(self):
         for path in (
@@ -112,9 +131,10 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 12)
+        self.assertEqual(len(OPERATIONS_ONLY), 15)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
-        self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY))
+        self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
+        self.assertTrue(all(p.startswith("docs/") and p.endswith(".md") for p in OPS_CONTEXT_DOCS))
 
 
 if __name__ == "__main__":

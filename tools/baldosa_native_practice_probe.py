@@ -219,7 +219,7 @@ def run(exe: Path, rom: Path, out: Path,
     if sha256(rom) != USA_SHA256:
         raise ValueError("Practice guest must be pinned USA retail ROM")
     out.mkdir(parents=True, exist_ok=False)
-    user = out / "Fresh Practice Source Guest"
+    user = out / "Fresh Practice 漢字-🚲 Source Guest"
     user.mkdir()
     # Original stock 1P tour/racer/track/Now Playing inputs are intentionally
     # ABSENT. The existing Modern product route must supply them after the
@@ -252,7 +252,7 @@ def run(exe: Path, rom: Path, out: Path,
     # native game uses the real P1 controller handler to create Mike, second
     # game starts source Dragster Practice, and shutdown must leave the
     # canonical stock save, typed mirror, catalog and selector byte-identical.
-    named_user = out / "Named P1 Practice SRAM Integrity"
+    named_user = out / "Named P1 漢字-🚲 Practice SRAM Integrity"
     named_user.mkdir()
     created = run_game(
         exe, rom, named_user, out / "named_p1_creation", "8",
@@ -420,6 +420,7 @@ def run(exe: Path, rom: Path, out: Path,
         "original_decoded_course_observed_in_race": True,
         "source_go_timer_observed": True,
         "named_active_p1_authoritative_bytes_unchanged": True,
+        "native_unicode_practice_roots": "real_win32_non_acp_anonymous_and_named_p1_hardkill_cold_boot",
         "native_sram_restored_before_save": True,
         "practice_results_not_published": True,
         "other_44_native_courses_admitted": False,

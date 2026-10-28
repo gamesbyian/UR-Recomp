@@ -14,6 +14,9 @@ on:
       - "tools/qa01_rf064_original_post_call_pull.py"
       - "tools/qa01_rf066_original_consumed_sequence.py"
       - "tools/qa01_rf069_original_getset_binary_audit.py"
+      # RF083/RF090/RF091 original CPU/APU observer: exact original compile gate.
+      - "tools/qa01_rf083_original_sound_dp_first_writer.py"
+      - "tests/unit/test_qa01_rf083_original_sound_dp_first_writer.py"
       - "tools/qa01_rf070_original_sa1_probe_isolation.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
@@ -113,5 +116,71 @@ jobs:
         with:
           name: rf065-original-stack-source-build-receipt
           path: ${{ runner.temp }}/rf065/
+          retention-days: 14
+          if-no-files-found: warn
+
+  # The separate Zoo RF083 observer modifies genuine 2014 getset, CPU,
+  # opcode macro and PPU translation units. Python source-injection tests and
+  # an older Zoo binary do not establish that THIS patched observer links.
+  # Keep this independent of the historical RF065 stack-audit object layout.
+  original-rf083-cpu-apu-compile:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Bootstrap and pin pristine original Snes9x 2014 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.validate_island import tree_sha256
+          island=json.loads(Path("third_party/manifest.json").read_text())
+          item=next(x for x in island["components"] if x["id"]=="snes9x-libretro")
+          pin=json.loads(Path("tools/toolchain-entries/snes9x-libretro.json").read_text())
+          assert item["revision"] == pin["revision"] == "1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+          assert item["mode"] == "vendored"
+          assert item["source_sha256"] == tree_sha256(Path(item["source_path"]))
+          print("RF083 ORIGINAL_SOURCE_PIN=passed")
+          PY
+          test -s "$SRC/libretro/snes9x_libretro.so"
+      - name: Inject only source-bounded RF083 and clean-compile actual original core
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          mkdir -p "$RUNNER_TEMP/rf083"
+          python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$SRC"
+          grep -Fq 'UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER' "$SRC/cpuexec.cpp"
+          grep -Fq 'rf083_port_read(Address,1u' "$SRC/getset.h"
+          grep -Fq 'rf083_inc16_commit' "$SRC/cpumacro.h"
+          grep -Fq 'UR_QA01_RF091_ORIGINAL_APU_WRITE' "$SRC/ppu.cpp"
+          sha256sum "$SRC/cpuexec.cpp" "$SRC/getset.h" "$SRC/cpumacro.h" "$SRC/ppu.cpp" > "$RUNNER_TEMP/rf083/modified-original-source-sha256.txt"
+          # 2014 make rules do not fully invalidate every object on header
+          # changes. Rebuild all four genuine translation units in one link.
+          make -C "$SRC/libretro" clean
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf083/linked-original-core-sha256.txt"
+          {
+            echo "RF083_SOURCE_HEAD_SHA=$GITHUB_SHA"
+            echo "ORIGINAL_UPSTREAM_SHA=1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+            echo "RF083_ORIGINAL_PATCHED_SOURCE_COMPILE_LINK=passed"
+            echo "Original cpuexec.cpp, getset.h, cpumacro.h and ppu.cpp all stage and clean-link through pinned original libretro Makefile."
+            echo "No ROM execution, audio equivalence, original/native event or Windows release acceptance was performed."
+            echo "USA events 0/45; release gates 0/12."
+          } > "$RUNNER_TEMP/rf083/README.txt"
+          cat "$RUNNER_TEMP/rf083/README.txt" >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve linked original compile receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf083-original-cpu-apu-compile-receipt
+          path: ${{ runner.temp }}/rf083/
           retention-days: 14
           if-no-files-found: warn

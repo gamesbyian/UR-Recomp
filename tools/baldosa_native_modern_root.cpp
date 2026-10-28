@@ -1970,6 +1970,12 @@ void observe_practice_guest() {
     // a one-step tour/track move works, a multi-step walk strands). Give each
     // queued input a short physical-style gap before the next is considered.
     if (g_practice_input_gap > 0) {
+        // Release the prior input without queuing a second edge. Still
+        // observe original menu identity on *every* guest frame: a transient
+        // scene during this gap invalidates the saved cursor acknowledgement
+        // and 60-frame settlement before the next Practice action.
+        g_practice_launch = ur::product::quick_practice_launch_observe_source_menu(
+            g_practice_launch, g_ram[0x009f]);
         --g_practice_input_gap;
         return;
     }

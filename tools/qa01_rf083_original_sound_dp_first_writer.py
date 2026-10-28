@@ -79,12 +79,17 @@ static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now
 }
 static void rf083_pre(uint8 opcode){
     const unsigned frame=(unsigned)ICPU.Frame;
+    /* The late Zoo result/next-Bowl port edge is a distinct, source-pinned
+     * window. It must activate the CPU observer as well as the SPC observer. */
+    const int result_port_window=(frame>=6445u && frame<=6449u);
     const int in_window=(frame>=6051u && frame<=6065u) ||
-                        (frame>=6069u && frame<=6079u);
+                        (frame>=6069u && frame<=6079u) ||
+                        result_port_window;
     const int enabled=in_window && getenv("UR_QA01_RF083_ZOO_DP")!=NULL;
     /* Original internal 6051..6065 covers Zoo +5034..+5048.
      * Retain the existing 6069..6079 writer stream separately. */
-    rf083_early=enabled && frame>=6051u && frame<=6065u;
+    rf083_early=enabled && ((frame>=6051u && frame<=6065u) ||
+                            result_port_window);
     rf083_active=enabled;
     if(!rf083_active) return;
     rf083_frame=(unsigned)ICPU.Frame;
@@ -191,7 +196,8 @@ void rf083_setbyte_entry(uint8 value,uint32 address){
  * Original frame/PC/pointer are not cross-core clock alignment. */
 void rf083_port_read(uint32 address,unsigned width,unsigned value){
     if(!rf083_active || !rf083_early ||
-       rf083_frame<6054u || rf083_frame>6059u) return;
+       !((rf083_frame>=6054u && rf083_frame<=6059u) ||
+         (rf083_frame>=6445u && rf083_frame<=6449u))) return;
     const char *flag=getenv("UR_QA01_RF089_ORIGINAL_ECHO");
     if(!flag || flag[0]!='1' || flag[1]!='\0') return;
     const unsigned port=(unsigned)(address & 0xffffu);
@@ -214,7 +220,8 @@ void rf083_port_read(uint32 address,unsigned width,unsigned value){
  * No extra bus operation, no inferred cross-core clock alignment. */
 void rf083_port_write(uint32 address,unsigned value){
     if(!rf083_active || !rf083_early ||
-       rf083_frame<6054u || rf083_frame>6059u) return;
+       !((rf083_frame>=6054u && rf083_frame<=6059u) ||
+         (rf083_frame>=6445u && rf083_frame<=6449u))) return;
     const char *flag=getenv("UR_QA01_RF089_ORIGINAL_ECHO");
     if(!flag || flag[0]!='1' || flag[1]!='\0') return;
     if(++rf091_rows>4096u){

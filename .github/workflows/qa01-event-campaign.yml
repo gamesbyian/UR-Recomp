@@ -752,7 +752,7 @@ jobs:
                 exit 1
               fi
             done
-            echo 'RF088/RF089/RF090/RF092 executed CPU/SPC edges retained; separate clock axes, no release credit' >> "$GITHUB_STEP_SUMMARY"
+            echo 'RF088/RF089/RF090/RF092 executed CPU/SPC edges retained; observer-off control and clock registration still required; release credit 0' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM

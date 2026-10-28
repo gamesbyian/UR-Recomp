@@ -40,7 +40,9 @@ class StockAttractSDLPairTest(unittest.TestCase):
                      f"draw={1500+i} guest_frame={frame} output=1280x720 "
                      "source=SDL_RenderReadPixels backend=sdl3")
             log = ("UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943\n"
-                   "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532\n"
+                   "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=main_menu frame=440 menu=d7 race=00 overlay_title=1\n"
+                   "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=attract_title frame=943 menu=84 race=00 overlay_title=1\n"
+                   "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\n"
                    "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600\n"
                    "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600\n"
                    + event + "\n").encode()
@@ -93,6 +95,21 @@ class StockAttractSDLPairTest(unittest.TestCase):
         p = self.root / "stock-attract-before" / "probe_first" / "actual-sdl-drawable.pam"
         p.unlink()
         with self.assertRaisesRegex(ValueError, "missing"):
+            witness.score(self.root, SOURCE)
+
+    def test_source_lifecycle_must_be_real_and_ordered(self):
+        # A frame-labelled SDL screenshot does not prove original state.
+        log_path = (self.root / "stock-attract-before" / "probe_first" /
+                    "native-process.log")
+        raw = log_path.read_bytes()
+        changed = raw.replace(b"phase=attract_title frame=943",
+                              b"phase=attract_title frame=942")
+        log_path.write_bytes(changed)
+        receipt = dict(self.records["stock-attract-before"],
+                       native_process_log_sha256=witness.digest(changed))
+        (self.root / "stock-attract-before" / "readback-receipt.json").write_text(
+            json.dumps(receipt))
+        with self.assertRaisesRegex(ValueError, "lifecycle"):
             witness.score(self.root, SOURCE)
 
     def test_two_matching_sdl_demonstrations_fail_no_motion(self):

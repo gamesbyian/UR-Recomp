@@ -89,11 +89,21 @@ def audit_early(raw: bytes) -> dict:
                     first = event
                 if boundary is None and frame in (6056, 6057):
                     boundary = event
-    if hearts != list(range(6051, 6066)) or count > 16384:
+    # RF083/RF090/RF091's actual late Bowl-port observer also activates the
+    # shared original heartbeat at frames 6445..6449. These are NOT early
+    # DP observations; keep early 6051..6065 complete and require a precise
+    # contiguous optional late window, never silently ignore stray frames.
+    early_hearts = list(range(6051, 6066))
+    late_hearts = list(range(6445, 6450))
+    if (hearts not in (early_hearts, early_hearts + late_hearts) or
+            count > 16384):
         raise ValueError("original early boundary producer coverage incomplete")
+    observed_late = hearts[len(early_hearts):]
     return {
         "original_early_log_sha256": hashlib.sha256(raw).hexdigest(),
-        "original_early_heartbeats": hearts,
+        "original_early_heartbeats": early_hearts,
+        "original_late_port_heartbeats": observed_late,
+        "original_late_port_heartbeat_complete": observed_late == late_hearts,
         "original_early_observations": count,
         "original_early_changes_by_slot": changed,
         "original_early_first_change": first,

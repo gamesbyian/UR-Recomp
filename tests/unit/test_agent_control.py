@@ -69,7 +69,9 @@ class AgentBoardControlTests(unittest.TestCase):
         release = next(job for job in self.board["work"]
                        if job["work_id"] == "UR-RELEASE-PROGRESS-20261026")
         self.assertNotIn("especially DATA-05", release["objective"])
-        self.assertIn("DATA-05 (merged #2806", release["objective"])
+        self.assertIn("DATA-05 is closed", release["objective"])
+        self.assertIn("ONE-03", release["objective"])
+        self.assertIn("WIDE-07", release["objective"])
         self.assertIn("No repeat DATA-05", release["acceptance"])
         self.assertIn("physical H01", release["acceptance"])
 

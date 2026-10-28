@@ -22,6 +22,11 @@ REASON = re.compile(r"(?m)^- Requested reason: ([^\n]+)$")
 MAX_SEQUENCE = 2**31 - 1
 ZOO_OBSERVER_MODE = re.compile(r"(?m)^- Observer mode: \*\*(on|off)\*\*$")
 ZOO_OBSERVER_FIELDS = re.compile(r"(?m)^- Observer mode:")
+# RF094 actual DSP/F7 witness is authorized only for one reviewed sequence-20
+# source request. It cannot silently persist across future Zoo markers.
+ZOO_RF094_MODE = re.compile(r"(?m)^- RF094 DSP/F7 witness: \*\*(on|off)\*\*$")
+ZOO_RF094_FIELDS = re.compile(r"(?m)^- RF094 DSP/F7 witness:")
+RF094_EXCLUSIVE_SEQUENCE = 20
 
 
 def field(pattern: re.Pattern[str], text: str, name: str) -> str:
@@ -47,13 +52,25 @@ def validate(previous: str, current: str, changed: list[str], *, marker: str = M
     # A new Zoo request must explicitly choose its instrumentation state.
     # Older markers predate this field; only the new request is authoritative.
     observer_enabled = None
+    rf094_enabled = False
     if marker == ZOO_MARKER:
         modes = ZOO_OBSERVER_MODE.findall(current)
         if len(modes) != 1 or len(ZOO_OBSERVER_FIELDS.findall(current)) != 1:
             raise ValueError("Zoo request requires exactly one explicit observer mode")
         observer_enabled = modes[0] == "on"
+        rf094_fields = ZOO_RF094_FIELDS.findall(current)
+        rf094_modes = ZOO_RF094_MODE.findall(current)
+        if len(rf094_fields) > 1 or len(rf094_modes) != len(rf094_fields):
+            raise ValueError("RF094 DSP/F7 witness mode malformed or duplicated")
+        if new == RF094_EXCLUSIVE_SEQUENCE:
+            if not observer_enabled or rf094_modes != ["on"]:
+                raise ValueError("Zoo sequence 20 requires paired RF094 DSP/F7 witness on")
+            rf094_enabled = True
+        elif rf094_modes and rf094_modes != ["off"]:
+            raise ValueError("RF094 DSP/F7 witness on is exclusive to Zoo sequence 20")
     return {"old": old, "new": new, "changed_paths": changed,
-            "observer_enabled": observer_enabled, "release_gate_credit": 0}
+            "observer_enabled": observer_enabled, "rf094_enabled": rf094_enabled,
+            "release_gate_credit": 0}
 
 
 def changed_files(commit: str) -> list[str]:
@@ -89,6 +106,8 @@ def main() -> int:
         with args.gha_output.open("a", encoding="utf-8") as out:
             out.write("observer_enabled=" +
                       ("true" if verdict["observer_enabled"] else "false") + "\n")
+            out.write("rf094_enabled=" +
+                      ("true" if verdict["rf094_enabled"] else "false") + "\n")
     print("PASS: explicit main-only source-isolated request " +
           str(verdict["old"]) + " -> " + str(verdict["new"]) +
           ", only marker changed, zero release gate credit")

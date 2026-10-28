@@ -890,7 +890,11 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     # Run the stricter post-result journey in its own fresh canonical user
     # directory. Two source-earned races may produce identical archive names;
     # sharing the first user's directory could falsely report no new record.
-    return_user = out / "user_earned_return"
+    # Exercise a REAL Windows non-ACP user root on the full original guest
+    # P1/P2 named-profile cold boots and source-earned return-to-Records.
+    # This is isolated from the earlier ASCII acceptance journeys; no player
+    # save or test-generated score is copied between the two roots.
+    return_user = out / "user_earned_return_漢字-🚲"
     return_user.mkdir()
     run_game(exe, rom, return_user, out / "return_create_p1",
              "4", QUIET, video, timeout)
@@ -937,6 +941,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "five_destination_earned_race": "one_sdl_p1_real_original_go_source_settled_1p_record",
         "five_destination_earned_return": "one_sdl_p1_source_earned_1p_post_result_root_records",
         "earned_return_run_sha256": return_earned_sha256,
+        "earned_return_unicode_root": "real_win32_non_acp_named_p1_p2_cold_boot_source_earned_records",
         "earned_run_sha256": earned_sha256,
         "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
         "controller_only_two_pad_root": "two_sdl_pads_title_practice_multiplayer_original_2p_admission",

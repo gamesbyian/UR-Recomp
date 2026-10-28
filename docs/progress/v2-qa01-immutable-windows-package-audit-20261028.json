@@ -67,5 +67,6 @@
     "formal_release_gate_delta": 0,
     "usa_complete_event_delta": 0
   },
-  "next_executable": "Separate agent reviews frozen QA-01 scope and actual-byte receipts, verifies new ready-head full unit/hygiene and merges if qualified; owner performs H01-H07 for distinct physical criteria."
+  "next_executable": "Separate agent reviews frozen QA-01 scope and actual-byte receipts, verifies new ready-head full unit/hygiene and merges if qualified; owner performs H01-H07 for distinct physical criteria.",
+  "independent_audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333"
 }

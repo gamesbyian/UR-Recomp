@@ -298,5 +298,25 @@ class ColdGuestRecordTests(unittest.TestCase):
         self.assertFalse((guest / "saves.qa01-bowl-recovery").exists())
 
 
+    def test_campaign_retains_four_raw_cold_guest_sram_witnesses(self):
+        # This is a workflow source contract, not a cold guest execution.
+        # The 2026-10-28 sequence-17 ZIP retained only the JSON receipt,
+        # preventing independent rehash of its four fresh-boot SRAM images.
+        workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text(
+            encoding="utf-8")
+        upload = workflow.split("name: Always retain per-case receipt and bounded diagnostic logs", 1)[1]
+        upload = upload.split("\\n  aggregate:", 1)[0]
+        for side, directory in (("original", "original/ref"),
+                                ("native", "native/native")):
+            for frame in v.BOOT_FRAMES:
+                path = ("qa01-case/qa01-cold-guest-boot/" + directory
+                        + f"/cold-{frame:03d}.sram.bin")
+                with self.subTest(side=side, frame=frame):
+                    self.assertEqual(upload.count(path), 1)
+        self.assertIn("qa01-case/qa01-cold-guest-report.json", upload)
+        self.assertFalse(v.evaluate_cold(v.validate_source(self.report, self.replay),
+                                         self.boot)["native_host_disk_publish_or_hard_kill_proven"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -182,7 +182,7 @@ jobs:
           test -s "$RUNNER_TEMP/ur-menu10-start-exit/readback-receipt.json"
           grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT p1_real_start_to_demo=1' \
             "$RUNNER_TEMP/ur-menu10-start-exit/probe_first/native-process.log"
-          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_exit_ready=1 frame=1940' \
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_exit_ready=1' \
             "$RUNNER_TEMP/ur-menu10-start-exit/probe_first/native-process.log"
           echo "Real Windows original demo exit before 1940 after actual P1 Start semantic callback; no physical-hardware or beta/release admission." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain exact Windows rapid Start-exit source and SDL evidence

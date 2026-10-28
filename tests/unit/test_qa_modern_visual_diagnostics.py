@@ -58,10 +58,12 @@ def put(grid, lw, x, y, w, h, c):
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def render_fit(grid, lw, lh, out_w, out_h):
+def render_fit(grid, lw, lh, out_w, out_h, snap_x=False):
     # Nearest-neighbour fractional fit with 7:6 pixel aspect (what ships);
-    # nearest maps pixel centres.
+    # nearest maps pixel centres. The 856px SDL viewport snaps x=0.5 to 0.
     m = d.mapping(lw, lh, out_w, out_h)
+    if snap_x:
+        m.vx = round(m.vx)
     black = (0, 0, 0)
     cols = []
     for x in range(out_w):
@@ -173,6 +175,45 @@ class DiagnosticsTest(unittest.TestCase):
         det = d.detect_logical(render_fit(narrow, nw, nh, 1024, 768))
         self.assertEqual(det["consistent_widths"], [256], det)
         self.assertTrue(det["pass"])
+
+    def test_detect_856px_snapped_viewport_requires_real_sideband_content(self):
+        # Actual #2770 Windows SDL evidence has a 342x224 source, 856x480
+        # drawable, mathematical x=0.5, but nearest output snapped to x=0.
+        # This synthetic reproduction tests the pixel discriminator without
+        # treating a source log or producer receipt as width proof.
+        wide, w, h = logical_canvas(342, 224)
+        for y in range(16, 208):
+            for x in range(8, 334):
+                if (x * 17 + y * 31) % 11 < 4:
+                    wide[y * w + x] = FG if x % 2 else BAR
+        self.assertEqual(d.mapping(w, h, 856, 480).vx, 0.5)
+        frame = render_fit(wide, w, h, 856, 480, snap_x=True)
+        det = d.detect_logical(frame)
+        self.assertEqual(det["consistent_widths"], [342], det)
+        self.assertTrue(det["pass"], det)
+        self.assertEqual(det["phase_x"][342], -0.5)
+        self.assertLessEqual(det["nonuniform_fraction"][342], 0.002)
+        self.assertGreater(det["outside_viewport_nonblack"].get(256, 0), 0)
+        self.assertEqual(det["outside_viewport_nonblack"][342], 0)
+        self.assertEqual(det["release_gate_credit"], 0)
+
+        # A real 256-column source in the same 856px window must never be
+        # positively misidentified as the 342-column Modern root.
+        compact, cw, ch = logical_canvas(256, 224)
+        for y in range(16, 208):
+            for x in range(8, 248):
+                if (x * 17 + y * 31) % 11 < 4:
+                    compact[y * cw + x] = FG if x % 2 else BAR
+        narrow = d.detect_logical(render_fit(compact, cw, ch, 856, 480))
+        self.assertNotEqual(narrow["consistent_widths"], [342], narrow)
+        if narrow["pass"]:
+            self.assertEqual(narrow["consistent_widths"], [256], narrow)
+
+        # Uniform black is uninformative regardless of snapped origin.
+        black = d.detect_logical(render_fit(
+            [(0, 0, 0)] * (342 * 224), 342, 224, 856, 480, snap_x=True))
+        self.assertFalse(black["pass"], black)
+        self.assertEqual(black["consistent_widths"], [256, 342], black)
 
     def test_detect_prefers_clearly_better_width_but_flat_frames_stay_ambiguous(self):
         from unittest import mock

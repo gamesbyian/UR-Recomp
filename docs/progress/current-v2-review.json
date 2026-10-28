@@ -1,7 +1,7 @@
 {
   "schema": "ur-v2-review-pointer/1",
-  "previous": "docs/progress/v2-review-checkpoint-20261028T0525.json",
-  "interval": "docs/progress/v2-review-interval-20261028T0525.json",
-  "reviewed_main_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
-  "note": "Frozen QA-01 immutable nominated Windows source/ZIP/PE evidence: bounded 53%, audited 11%. +1pp retroactive admission, zero new engineering, physical QA or USA event credit. Three intervening merges classified."
+  "previous": "docs/progress/v2-review-checkpoint-20261028T1640.json",
+  "interval": "docs/progress/v2-review-interval-20261028T1640.json",
+  "reviewed_main_sha": "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3",
+  "note": "Frozen MENU-10 same-PE original stock attract/demo/wake bounded hosted evidence: 54% screened, 12% audited. +1pp newly earned behavior; zero release gates or USA events; physical H01-H07 held."
 }

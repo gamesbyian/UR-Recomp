@@ -33,6 +33,9 @@ class CompletedRunUnicodeColdCppTests(unittest.TestCase):
                     "completed_run_capture.cpp",
                     "completed_run_store.cpp",
                     "completed_run_replay.cpp",
+                    "output_resolution_policy.cpp",
+                    "host_product_state.cpp",
+                    "host_product_store.cpp",
                 )],
                 str(ROOT / "tests" / "native" /
                     "completed_run_unicode_cold_test.cpp"),
@@ -49,11 +52,18 @@ class CompletedRunUnicodeColdCppTests(unittest.TestCase):
                         [str(exe), str(root), mode], cwd=ROOT, check=True,
                         capture_output=True, text=True, timeout=30)
                     self.assertIn(marker, completed.stdout)
+                    options_marker = ("DATA05_UNICODE_OPTIONS_WRITE=passed"
+                                      if mode == "write" else
+                                      "DATA05_UNICODE_OPTIONS_COLD_READ=passed")
+                    self.assertIn(options_marker, completed.stdout)
             # One immutable .urrun must survive replay staging/cleanup.
             runs = list((root / "player-漢字-資料-🚲" /
                          "runs" / "mike").glob("*.urrun"))
             self.assertEqual(len(runs), 1)
             self.assertGreater(runs[0].stat().st_size, 100)
+            options = root / "player-漢字-資料-🚲" / "options-v1.txt"
+            self.assertTrue(options.is_file())
+            self.assertGreater(options.stat().st_size, 20)
 
 
 if __name__ == "__main__":

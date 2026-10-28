@@ -155,7 +155,7 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(report["negative_short_circuit_candidates"], 0)
         self.assertEqual(report["redundant_negative_oracle_calls_avoided"], 0)
         self.assertEqual(report["oracle_result_counts"]["reproduced"], 4)
-        self.assertEqual(tool.encode(runs), b"0:100:001\\n100:10:002\\n")
+        self.assertEqual(tool.encode(runs), self.fixture.read_bytes().split(b"120:")[0])
 
     def test_unexecuted_native_never_counts_as_reproduced(self):
         receipt = dict(

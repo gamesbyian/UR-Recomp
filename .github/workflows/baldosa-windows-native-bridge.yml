@@ -654,6 +654,7 @@ jobs:
             ${{ runner.temp }}/ur-keyboard-pad-join/earned_return_cold_records/earned_run/source.urrun
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_root/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/two_pad_unicode_cold_records/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/source.urrun
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/source.urrun.urmatch
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/manifest.json

@@ -40,7 +40,7 @@ class FirstNativeRacerLogTests(unittest.TestCase):
                 self.assertEqual(invoked.call_args.kwargs["encoding"], "utf-8")
                 self.assertEqual(invoked.call_args.kwargs["errors"], "replace")
             self.assertEqual(log.count(raw_path), 2)
-            self.assertNotIn("\\ufffd", log)
+            self.assertNotIn("�", log)
             self.assertEqual((root / "work" / "log.txt").read_text(encoding="utf-8"), log)
 
     def test_creation_requires_canonical_next_boot_not_live_guest_hot_swap(self):

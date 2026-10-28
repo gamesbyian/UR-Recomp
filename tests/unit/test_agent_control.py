@@ -72,7 +72,7 @@ class AgentBoardControlTests(unittest.TestCase):
         self.assertIn("DATA-05 is closed", release["objective"])
         self.assertIn("ONE-03", release["objective"])
         self.assertIn("WIDE-07", release["objective"])
-        self.assertIn("No repeat DATA-05", release["acceptance"])
+        self.assertIn("no repeat DATA-05", release["acceptance"])
         self.assertIn("physical H01", release["acceptance"])
 
     def test_fixed_lane_regression_is_rejected(self):

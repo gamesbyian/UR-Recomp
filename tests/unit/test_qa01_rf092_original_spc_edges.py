@@ -17,10 +17,13 @@ class RF092Source(unittest.TestCase):
     def test_real_pinned_smp_sources_and_one_time_patch(self):
         smp, core, memory = m.patch(*self.original)
         self.assertEqual(smp.count(m.STAMP), 1)
-        self.assertIn('#include "../../../snes9x.h"\n#include "../../../cpuexec.h"\n#include <cstdio>', smp)
+        self.assertIn('#include <cstdio>\n#include <cstdlib>\n#ifdef DEBUGGER', smp)
+        self.assertIn('extern unsigned rf083_original_frame();', smp)
+        self.assertIn('::rf083_original_frame()', smp)
         self.assertIn('if (frame < 6054u || frame > 6059u', smp)
         self.assertIn('flag[0] != \'1\' || flag[1] != \'\\0\'', smp)
         self.assertIn('QA01RF092SPC_TRUNCATED', smp)
+        self.assertNotIn('#include "../../../cpuexec.h"', smp)
         self.assertIn('spc_ticks=%llu spc_next_pc=%04X clock=original_spc', smp)
         reset = smp.index(m.SMP_RESET)
         self.assertLess(smp.index('rf092_spc_ticks = 0;', reset),

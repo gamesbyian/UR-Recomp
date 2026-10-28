@@ -46,6 +46,9 @@ static unsigned rf083_inc16_rows;
 static unsigned rf089_rows, rf089_a0, rf089_p0, rf089_z0;
 static unsigned rf090_rows;
 static unsigned rf091_rows;
+/* RF092 reads the original frame through this CPU-TU accessor. Keep the
+ * Bapu SMP translation unit independent of CPU execution/getset headers. */
+unsigned rf083_original_frame(void){ return (unsigned)ICPU.Frame; }
 static int rf089_target;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){

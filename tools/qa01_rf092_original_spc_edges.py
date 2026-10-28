@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """RF092: disposable, read-only original SPC port-consumption/ready observer.
 
-Patch the pinned Snes9x Bapu SMP implementation, never the checked-in core.
+Patch the pinned Snes9x Bapu SMP implementation after RF083, never the checked-in core.
 Count actual SMP tick units since reset, not CPU master cycles. A CPU->SPC
 receipt is an executed SMP MMIO read of $F4-$F7; an SPC->CPU ready
 publication is an executed SMP MMIO write. Neither is inferred from a
@@ -18,6 +18,7 @@ SMP_HEADER = ('#ifdef DEBUGGER\n'
               '#include "../../../snes9x.h"\n'
               '#include "../../../debug.h"\n')
 SMP_SINGLETON = "SMP smp;\n"
+SMP_NAMESPACE = "#define SMP_CPP\nnamespace SNES {\n"
 SMP_RESET = "void SMP::reset() {\n"
 CORE_SINGLE = "  clock++;\n  dsp.clock++;\n"
 CORE_MULTI = "  clock += clocks;\n  dsp.clock += clocks;\n"
@@ -43,7 +44,7 @@ static unsigned rf092_rows;
 static void rf092_spc_port(const char *kind, unsigned addr, unsigned value) {
   const char *flag = std::getenv("UR_QA01_RF092_ORIGINAL_SPC");
   if (!flag || flag[0] != '1' || flag[1] != '\0') return;
-  const unsigned frame = (unsigned)ICPU.Frame;
+  const unsigned frame = ::rf083_original_frame();
   if (frame < 6054u || frame > 6059u ||
       addr < 0xf4u || addr > 0xf7u) return;
   if (++rf092_rows > 16384u) {
@@ -65,19 +66,18 @@ def patch(smp: str, core: str, memory: str) -> tuple[str, str, str]:
            for s in (smp, core, memory)):
         raise ValueError("RF092 already or partly staged")
     required = ((smp, SMP_HEADER), (smp, SMP_SINGLETON),
+                (smp, SMP_NAMESPACE),
                 (smp, SMP_RESET), (core, CORE_SINGLE),
                 (core, CORE_MULTI), (memory, MEMORY_READ),
                 (memory, MEMORY_WRITE))
     if any(source.count(anchor) != 1 for source, anchor in required):
         raise ValueError("RF092 pinned original SMP source drift")
-    # The include is already used under DEBUGGER in the pinned SMP. Make
-    # it unconditional so ICPU.Frame is available in normal libretro builds.
-    smp = smp.replace(
-        SMP_HEADER,
-        '#include "../../../snes9x.h"\n'
-        '#include "../../../cpuexec.h"\n'
-        '#include <cstdio>\n#include <cstdlib>\n'
-        '#ifdef DEBUGGER\n#include "../../../debug.h"\n', 1)
+    # The CPU-TU RF083 accessor supplies the frame. Do not include
+    # cpuexec.h in SMP: its PPU/getset dependencies are not valid here.
+    smp = smp.replace(SMP_HEADER,
+                      '#include <cstdio>\n#include <cstdlib>\n' + SMP_HEADER, 1)
+    smp = smp.replace(SMP_NAMESPACE,
+                      'extern unsigned rf083_original_frame();\n' + SMP_NAMESPACE, 1)
     smp = smp.replace(SMP_SINGLETON, SMP_SINGLETON + HELPER, 1)
     smp = smp.replace(SMP_RESET, SMP_RESET +
                       "  rf092_spc_ticks = 0;\n  rf092_rows = 0;\n", 1)

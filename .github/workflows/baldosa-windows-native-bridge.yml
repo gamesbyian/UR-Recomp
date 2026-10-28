@@ -439,8 +439,8 @@ jobs:
             --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
-            --aspect 4:3 --out "$RUNNER_TEMP/ur-title-native-4by3" --timeout 100
-          echo "PASS: same PE native Modern title and five-destination root on 16:9 and 4:3; independent physical/controller/art/release acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
+            --aspect 4:3 --unicode-captures --out "$RUNNER_TEMP/ur-title-native-4by3" --timeout 100
+          echo "PASS: same PE native Modern title and five-destination root on 16:9 and 4:3, including non-ACP Unicode native title/root captures and UTF-8 filename receipts on 4:3; independent physical/controller/art/release acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain native title source and SDL presentation evidence
         if: ${{ always() && hashFiles('native/product/modern_title_presenter.hpp') != '' }}

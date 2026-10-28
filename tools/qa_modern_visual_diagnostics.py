@@ -257,8 +257,12 @@ def _outside_viewport_nonblack(frame: Frame, m: Mapping) -> int:
     Alpha is intentionally ignored, matching the RGB diagnostic contract.
     """
     def bounds(origin, span, limit):
-        return (max(0, min(limit, math.ceil(origin - 0.5))),
-                max(0, min(limit, math.ceil(origin + span - 0.5))))
+        # One physical pixel of slack on each edge is necessary for SDL's
+        # fractional nearest-neighbour rounding. A single fringe column
+        # must not invalidate a genuine 256px letterbox or 342px fit;
+        # substantial content deeper into the black bars still rejects it.
+        return (max(0, min(limit, math.ceil(origin - 1.5))),
+                max(0, min(limit, math.ceil(origin + span + 0.5))))
 
     left, right = bounds(m.vx, m.lw * m.sx, frame.width)
     top, bottom = bounds(m.vy, m.lh * m.sy, frame.height)

@@ -1167,6 +1167,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "33") != 0 &&
         std::strcmp(fixture, "34") != 0 &&
         std::strcmp(fixture, "35") != 0 &&
+        std::strcmp(fixture, "36") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&
@@ -1489,6 +1490,20 @@ extern "C" int ur_baldosa_modern_root_gamepad(
             }
         }
         return 1; // repeated/held physical down never launches Play
+    }
+    if (g_visible && g_original_attract_woken &&
+        ur::product::modern_title_active(g_title) &&
+        button == kGamepadBtn_Start && first_press &&
+        g_ram[0x0313u] == 1u && g_stock_target == -1) {
+        // A/B/keyboard wake remains host-only. A *new, real P1 Start*
+        // press can subsequently exit the still-running original demo,
+        // without silently retyping the first wake as guest Start.
+        // Its matching release clears the mapped held bit above.
+        ur_baldosa_product_attract_p1_start_event(1);
+        std::fprintf(stderr,
+            "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_real_start_to_demo=1 frame=%u race=01 host_confirm=0\n",
+            g_title_guest_frame);
+        return 1;
     }
     if (!g_visible)
         return button == kGamepadBtn_B && first_press &&
@@ -2212,7 +2227,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if ((!g_visible && !g_original_attract_visible &&
              !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 35) return;
+            mode < 1 || mode > 36) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2688,6 +2703,61 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=%u source_main=d7 stable=%u guest_writes=0\n",
                 frame, static_cast<unsigned>(g_original_attract_main_stable));
+        }
+        return;
+    }
+    // CI-only mode 36: first wake the original demo with P1 A (host-only),
+    // release it, then send a DISTINCT actual P1 Start down/up while the
+    // restored Modern title is visible. The original guest must recover
+    // source MAIN D7 + 60 before a third, separate A confirms Modern root.
+    // Semantic SDL callback, never a physical-device acceptance witness.
+    if (std::strcmp(opt, "36") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible || g_visible ||
+                g_ram[0x0313u] != 1u ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !g_visible || !ur::product::modern_title_active(g_title) ||
+                original_stock_attract_source_ready() || g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT a_wake_host_only=1 frame=%u race=01\n",
+                frame);
+        } else if (frame == 1602) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0) ||
+                g_ram[0x0313u] != 1u || original_stock_attract_source_ready())
+                std::abort();
+        } else if (frame == 1604) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                g_ram[0x0313u] != 1u ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 1) ||
+                g_stock_target != -1)
+                std::abort();
+        } else if (frame == 1608) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 0))
+                std::abort();
+        } else if (frame == 1940) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                !g_original_attract_main_recovered ||
+                !original_stock_attract_source_ready() ||
+                g_ram[0x009fu] != 0xd7u || g_ram[0x0313u] == 1u ||
+                g_original_attract_main_stable <
+                    ur::product::kQuickPracticeMenuSettleObservations ||
+                g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_start_exit_ready=1 frame=%u menu=d7 stable=%u host_confirm=0\n",
+                frame, static_cast<unsigned>(g_original_attract_main_stable));
+        } else if (frame == 1960) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1990) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || !original_stock_attract_source_ready())
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_start_root_ready=1 frame=%u separate_confirm=1\n",
+                frame);
         }
         return;
     }

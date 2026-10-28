@@ -2202,7 +2202,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Existing controller smoke 1..19, title/attract 20..28, native SDL journeys 29..34.
+    // Existing controller smoke 1..19, title/attract 20..28 and 35, native SDL journeys 29..34.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
@@ -2212,7 +2212,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if ((!g_visible && !g_original_attract_visible &&
              !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 34) return;
+            mode < 1 || mode > 35) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");

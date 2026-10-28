@@ -74,29 +74,43 @@ def verify_keyboard_plus_pad(log: str) -> None:
                   "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
                   "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"),
             "keyboard+pad")
+    # run_game concatenates the host's stdout before the Modern root's
+    # stderr. Offsets between UR_CONTROLLER_SEAT and UR_BALDOSA_MODERN_ROOT
+    # therefore are NOT event chronology. The root's join_pad_moved marker
+    # is emitted only after the real seat_move succeeds; the root's stock
+    # observer checks the confirmed P2 owner through the guest transition.
+    # Conservatively reject any other host ownership change in the entire
+    # capture. Post-admission teardown cannot be distinguished from earlier
+    # churn using these two independently buffered streams.
     moves = list(re.finditer(
-        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT move instance=\d+ from=0 to=1\b[^\r\n]*$", log
+        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT "
+        r"move instance=(\d+) from=0 to=1\b[^\r\n]*$", log
     ))
     if len(moves) != 1:
         raise ValueError("keyboard+pad: the host did not move the pad to seat 2 once")
-    # The host seat move must precede the root's join-moved milestone.
-    # Otherwise a late, unrelated move can satisfy the acceptance log.
     move = moves[0]
-    join_move = log.index("UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2")
-    stock_entry = log.index("UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d")
-    if move.start() >= join_move:
-        raise ValueError("keyboard+pad: host seat move followed join milestone")
-    # A moved pad must keep its seat through genuine guest 2P admission.
-    # Teardown after stock entry is outside this acceptance interval.
-    churn = re.search(
+    # One real SDL device must have owned host seat 0 before that same
+    # instance moved to seat 1. Do not mistake an arbitrary reassignment
+    # (or an absent initial seat) for a stable two-player admission.
+    initial = list(re.finditer(
         r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT "
-        r"(?:vacate|move|claim|assign)\b[^\r\n]*$",
-        log[move.end():stock_entry],
-    )
-    if churn:
+        r"assign instance=(\d+) seat=0\b[^\r\n]*$", log
+    ))
+    if (len(initial) != 1 or initial[0].start() >= move.start()
+            or initial[0].group(1) != move.group(1)):
         raise ValueError(
-            "keyboard+pad: host seat ownership changed before admission: "
-            + churn.group(0)
+            "keyboard+pad: exactly one initial SDL P1 assignment for moved pad required"
+        )
+    host_events = list(re.finditer(
+        r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT "
+        r"(?:assign|vacate|move|claim)\b[^\r\n]*$", log
+    ))
+    for event in host_events:
+        if event.start() in (move.start(), initial[0].start()):
+            continue  # Exactly the one validated initial assignment and move.
+        raise ValueError(
+            "keyboard+pad: host seat ownership changed during captured join: "
+            + event.group(0)
         )
     for forbidden in ("join_rejected", "join_seat_left", "stock_rejected=",
                       "stock_requested players=1", "stock_entered players=1"):
@@ -126,22 +140,22 @@ def verify_two_virtual_pads(log: str) -> None:
             {seat for _, seat, _ in assignments} != {0, 1} or
             len({instance for instance, _, _ in assignments}) != 2):
         raise ValueError("two virtual pads: two distinct host seats not observed")
+    # The concatenated host stdout is not synchronized with root stderr.
+    # Keep the canonical stdout-before-stderr grouping as a capture-integrity
+    # check, but never infer a guest-time seat lease from string offsets.
     if any(pos >= log.index(stages[0]) for _, _, pos in assignments):
-        raise ValueError("two virtual pads: host seating followed join opening")
-    # Two initial assignments do not establish continuing ownership. A
-    # vacated/moved/reclaimed seat before real guest admission invalidates
-    # the two-independent-pad journey even if later root milestones appear.
-    # Teardown after the guest transition is outside this admission window.
-    stock_entry = log.index(stages[-1])
-    first_assignment = min(pos for _, _, pos in assignments)
+        raise ValueError("two virtual pads: host/root log streams interleaved")
+    # A host vacate/move/claim anywhere in this capture is conservatively
+    # disqualifying: the combined log cannot establish whether it happened
+    # before or after guest stock admission. The source root also checks the
+    # P2 owner's actual seat on every frame while stock handoff is pending.
     churn = re.search(
         r"(?m)^(?:\[[^\]\r\n]+\]\s*)?UR_CONTROLLER_SEAT "
-        r"(?:vacate|move|claim)\b[^\r\n]*$",
-        log[first_assignment:stock_entry],
+        r"(?:vacate|move|claim)\b[^\r\n]*$", log,
     )
     if churn:
         raise ValueError(
-            "two virtual pads: host seat ownership changed before admission: "
+            "two virtual pads: host seat ownership changed during capture: "
             + churn.group(0)
         )
     for forbidden in ("join_pad_moved", "join_seat_left", "join_rejected",

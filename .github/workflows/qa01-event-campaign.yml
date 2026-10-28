@@ -675,12 +675,21 @@ jobs:
                       + "; exact changed addresses in case artifact; no event credit.\n")
           PY
           fi
-          # Only on actual source-qualified successful Zoo replay. Fresh
-          # subprocesses seed their own captured genuine battery images;
-          # this is guest-level recovery, NEVER a game-host durable-file pass.
+          # A scientifically valid strict divergence (producer exit 1) can
+          # still carry authentic source-earned SRAM. Collect the independent
+          # cold-guest witness without requiring full event parity. Refuse
+          # invalid producer evidence and keep release credit at zero.
           if [[ "$QA01_COLD_GUEST" == "true" && "$QA01_CASE" == "zoom-zoo" &&
-                "$QA01_SOURCE_FOLLOWTHROUGH" == "true" &&
-                "$producer_rc" -eq 0 && "$case_rc" -eq 0 ]]; then
+                "$QA01_SOURCE_FOLLOWTHROUGH" == "true" && "$case_rc" -eq 0 &&
+                ( "$producer_rc" -eq 0 || "$producer_rc" -eq 1 ) ]]; then
+            python3 - "$ROOT/case-result.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as stream:
+              row = json.load(stream)
+          if (row.get("disposition") not in ("strict_candidate", "strict_divergence")
+                  or row.get("release_credit") != 0):
+              raise SystemExit("cold guest requires valid source-classified Zoo evidence")
+          PY
             python3 tools/qa01_cold_result_record.py \
               --producer-report "$ROOT/producer-report.json" \
               --replay "$ROOT/work/zoom-zoo/replay" \

@@ -462,12 +462,12 @@ extern "C" int ur_baldosa_modern_profile_can_begin_race(void) {
     const auto typed_path = g_native_user_root / location.save_root /
                             "host-profile.txt";
     TournamentLaunchPathLock selector(
-        (g_native_user_root / "host-state-v1.txt").u8string(), true);
+        (g_native_user_root / "host-state-v1.txt"), true);
     if (!selector.acquired()) return 0;
     TournamentLaunchPathLock roster(
-        (g_native_user_root / "profiles-v1.txt").u8string(), true);
+        (g_native_user_root / "profiles-v1.txt"), true);
     if (!roster.acquired()) return 0;
-    TournamentLaunchPathLock profile(typed_path.u8string(), true);
+    TournamentLaunchPathLock profile(typed_path, true);
     if (!profile.acquired() ||
         !baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, location.save_root)) return 0;
@@ -517,12 +517,12 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, selected_root.save_root)) return 0;
     ur::product::TournamentLaunchPathLock selector(
-        (g_native_user_root / "host-state-v1.txt").u8string(), true);
+        (g_native_user_root / "host-state-v1.txt"), true);
     if (!selector.acquired()) return 0;
     ur::product::TournamentLaunchPathLock roster(
-        (g_native_user_root / "profiles-v1.txt").u8string(), true);
+        (g_native_user_root / "profiles-v1.txt"), true);
     if (!roster.acquired()) return 0;
-    ur::product::TournamentLaunchPathLock profile(profile_path.u8string(), true);
+    ur::product::TournamentLaunchPathLock profile(profile_path, true);
     if (!profile.acquired()) return 0;
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, selected_root.save_root)) return 0;
@@ -632,14 +632,14 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
             g_native_user_root, second.save_root))
         return 0;
     TournamentLaunchPathLock selector(
-        (g_native_user_root / "host-state-v1.txt").u8string(), true);
+        (g_native_user_root / "host-state-v1.txt"), true);
     if (!selector.acquired()) return 0;
     TournamentLaunchPathLock catalog(
-        (g_native_user_root / "profiles-v1.txt").u8string(), true);
+        (g_native_user_root / "profiles-v1.txt"), true);
     if (!catalog.acquired()) return 0;
-    TournamentLaunchPathLock profile1(first_state.u8string(), true);
+    TournamentLaunchPathLock profile1(first_state, true);
     if (!profile1.acquired()) return 0;
-    TournamentLaunchPathLock profile2(second_state.u8string(), true);
+    TournamentLaunchPathLock profile2(second_state, true);
     if (!profile2.acquired()) return 0;
     if (!baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, first.save_root) ||
@@ -797,8 +797,8 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, profile_root.save_root))
         return reject("save_profile_path_redirected_or_incomplete");
-    auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
-        (g_native_user_root / "host-state-v1.txt").u8string(), true);
+    // Keep native UTF-16 path identity for Win32 OS locks; passing UTF-8\n    // through the narrow path constructor uses the current ANSI code page.\n    auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
+        (g_native_user_root / "host-state-v1.txt"), true);
     if (!candidate->acquired())
         return reject("save_selector_lock_unavailable");
     // The existing selector, catalog and profile CAS writers own distinct
@@ -806,14 +806,14 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
     // all three until the raw SRAM write and typed publication have finished.
     auto catalog_candidate =
         std::make_unique<ur::product::TournamentLaunchPathLock>(
-            (g_native_user_root / "profiles-v1.txt").u8string(), true);
+            (g_native_user_root / "profiles-v1.txt"), true);
     if (!catalog_candidate->acquired())
         return reject("save_catalog_lock_unavailable");
     const auto profile_path = g_native_user_root /
         profile_root.save_root / "host-profile.txt";
     auto profile_candidate =
         std::make_unique<ur::product::TournamentLaunchPathLock>(
-            profile_path.u8string(), true);
+            profile_path, true);
     if (!profile_candidate->acquired())
         return reject("save_profile_lock_unavailable");
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(

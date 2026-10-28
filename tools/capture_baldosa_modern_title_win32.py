@@ -323,6 +323,8 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
+    parser.add_argument("--unicode-captures", action="store_true",
+                        help="write native title/root captures to a non-ACP Windows directory")
     parser.add_argument("--confirm", choices=("gamepad", "keyboard", "start", "held"),
                         default="gamepad",
                         help="exact native controller or Enter handler")
@@ -344,7 +346,8 @@ def main() -> int:
         raise ValueError("not native Windows PE executable")
     target = args.out.resolve()
     target.mkdir(parents=True, exist_ok=False)
-    captures = target / "captures"
+    captures = target / ("captures-漢字-🚲" if args.unicode_captures
+                         else "captures")
     captures.mkdir()
     presented = target / "presented"
     presented.mkdir()
@@ -381,7 +384,7 @@ def main() -> int:
                "--script", str(script), "--framedump", str(framedump), str(rom)]
     try:
         result = subprocess.run(command, cwd=target, env=environment,
-                                capture_output=True, text=True,
+                                capture_output=True, text=True, encoding="utf-8",
                                 timeout=args.timeout, errors="replace")
         log = result.stdout + "\n" + result.stderr
         (target / "native-title-run.log").write_text(log, encoding="utf-8")

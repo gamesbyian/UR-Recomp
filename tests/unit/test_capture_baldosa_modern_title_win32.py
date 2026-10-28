@@ -20,6 +20,28 @@ def pam(width: int, height: int, pixels: bytes) -> bytes:
 
 
 class ModernTitleNativeCaptureTests(unittest.TestCase):
+    def test_real_windows_unicode_atlas_capture_and_receipt_pipeline(self):
+        # The same real AOT Windows PE is executed twice: ordinary wide,
+        # then 4:3 with the native PAM-only directory outside Windows ACP.
+        # These are source guards. Only the actual Windows workflow can
+        # qualify Unicode file creation and source/presented pixel matching.
+        root = Path(__file__).resolve().parents[2]
+        capture = (root / "tools" /
+                   "capture_baldosa_modern_title_win32.py").read_text(
+                       encoding="utf-8")
+        workflow = (root / ".github" / "workflows" /
+                    "baldosa-windows-native-bridge.yml").read_text(
+                        encoding="utf-8")
+        self.assertIn('parser.add_argument("--unicode-captures"', capture)
+        self.assertIn('"captures-漢字-🚲" if args.unicode_captures', capture)
+        self.assertIn('"UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures)',
+                      capture)
+        self.assertIn('capture_output=True, text=True, encoding="utf-8"',
+                      capture)
+        self.assertIn('path=([^\\n]+)', capture)
+        self.assertIn('--aspect 4:3 --unicode-captures --out', workflow)
+        self.assertIn('tools/capture_baldosa_modern_title_win32.py', workflow)
+
     def test_real_p1_native_entry_order_depends_only_on_reduced_motion(self):
         opened = "UR_BALDOSA_MODERN_ROOT opened=1"
         pressed = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"

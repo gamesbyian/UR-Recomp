@@ -160,6 +160,7 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                 seen.append(dict(env))
                 self.assertEqual(env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "28")
                 self.assertEqual(env["UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME"], "1568")
+                self.assertEqual(env["UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE"], "1")
                 self.assertNotIn("UR_MODERN_VISUAL_SDL_CAPTURE_DRAW", env)
                 self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", env)
                 self.assertIn("wait 2200", (Path(kwargs["cwd"]) / "stock-guest.route").read_text())

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 import sys
 import zipfile
@@ -47,6 +48,31 @@ ROUTE_CASE.update({("root-quit", (1920, 1080)): "root-wide-1080",
                    ("root-quit", (3840, 2160)): "root-wide-4k-virtual",
                    ("root-quit", (640, 480)): "root-43-480"})
 
+# Historical matrix cases remain 256-wide for fixed Modern roots. An actual
+# integrated 342-wide native root is a different, source-qualified scene.
+WIDE_ROOT_CASES = frozenset({"root-wide-720", "root-wide-1080",
+                             "root-wide-4k-virtual"})
+
+
+def _require_current_root_pins(enabled, source_sha, exe_sha):
+    if not enabled:
+        return
+    if (not isinstance(source_sha, str)
+            or re.fullmatch(r"[0-9a-f]{40}", source_sha) is None
+            or not isinstance(exe_sha, str)
+            or re.fullmatch(r"[0-9a-f]{64}", exe_sha) is None):
+        raise ValueError(
+            "current native root requires independent exact source and PE SHA pins")
+
+
+def _qualified_case(case_id, matrix, source_sha, current_native_root):
+    case = matrix[case_id]
+    if not current_native_root or case_id not in WIDE_ROOT_CASES:
+        return case
+    return dict(case, id="current-native-" + case_id,
+                source_scene="native-title-root", source_sha=source_sha)
+
+
 
 def _png_member(names, capture_id):
     wanted = [n for n in names
@@ -60,12 +86,20 @@ def _png_member(names, capture_id):
 def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
             require_ring: bool = False,
             expected_source_sha: str | None = None,
-            expected_exe_sha: str | None = None) -> dict:
+            expected_exe_sha: str | None = None,
+            current_native_root: bool = False) -> dict:
+    _require_current_root_pins(current_native_root, expected_source_sha,
+                               expected_exe_sha)
     matrix = matrix if matrix is not None else cases.load_cases()
     out = []
     with zipfile.ZipFile(zip_path) as z:
         names = z.namelist()
         for cap in verified["captures"]:
+            if current_native_root and (
+                    cap["source_sha"] != expected_source_sha
+                    or cap["exe_sha256"] != expected_exe_sha):
+                raise ValueError(
+                    "current native root receipt disagrees with external source/PE pins")
             png = z.read(_png_member(names, cap["id"]))
             frame = d.Frame(png)
             if cap["png_sha256"] != frame.sha256:
@@ -82,11 +116,13 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
                                       tuple(cap["pixels"])))
             case_report = None
             if case_id:
+                case = _qualified_case(case_id, matrix, expected_source_sha,
+                                       current_native_root)
                 # A producer-controlled receipt can agree with a case SHA
                 # without proving which source/PE actually produced it.
                 # Require external pins for native-title-root; main() has
                 # archive.verify check those pins against the retained ZIP.
-                if matrix[case_id].get("source_scene") == "native-title-root":
+                if case.get("source_scene") == "native-title-root":
                     if not expected_source_sha or not expected_exe_sha:
                         raise ValueError(
                             "source-qualified archive case requires external source and PE SHA pins")
@@ -95,12 +131,13 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
                         raise ValueError(
                             "source-qualified archive case disagrees with external source/PE pins")
                 case_report = cases.evaluate(
-                    matrix[case_id], frame, require_ring,
+                    case, frame, require_ring,
                     observed_source_sha=cap["source_sha"])
                 checks += case_report["checks"]
             out.append({"capture": cap["id"], "route": cap["native_semantic_route"],
                         "pixels": cap["pixels"], "png_sha256": frame.sha256,
-                        "case": case_id, "checks": checks,
+                        "case": case_report["case"] if case_report else None,
+                        "checks": checks,
                         "pass": all(c["pass"] for c in checks)})
     return {"schema": "ur-modern-visual-archive-cases-v1",
             "artifact": Path(zip_path).name,
@@ -113,7 +150,10 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
 
 
 def analyse_dirs(dirs, matrix: dict | None = None,
-                 require_ring: bool = False) -> dict:
+                 require_ring: bool = False,
+                 expected_source_sha: str | None = None,
+                 expected_exe_sha: str | None = None,
+                 current_native_root: bool = False) -> dict:
     """Same checks on capture directories (`actual-sdl-drawable.png` +
     `readback-receipt.json`) as the capture driver leaves them on the runner.
 
@@ -122,11 +162,19 @@ def analyse_dirs(dirs, matrix: dict | None = None,
     hash and output size; the host-witnessed source width is not available
     and is replaced by "exactly one logical width explains the pixels".
     """
+    _require_current_root_pins(current_native_root, expected_source_sha,
+                               expected_exe_sha)
     matrix = matrix if matrix is not None else cases.load_cases()
     out = []
     for directory in dirs:
         directory = Path(directory)
         receipt = json.loads((directory / "readback-receipt.json").read_text())
+        if current_native_root and (
+                receipt.get("source_sha") != expected_source_sha
+                or receipt.get("exe_sha256") != expected_exe_sha):
+            raise ValueError(
+                "current native root directory disagrees with external source/PE pins: "
+                + directory.name)
         data = (directory / "actual-sdl-drawable.png").read_bytes()
         frame = d.Frame(data)
         if receipt.get("png_sha256") != frame.sha256:
@@ -144,11 +192,18 @@ def analyse_dirs(dirs, matrix: dict | None = None,
             # Nothing standard explains this frame: say what (if anything) does.
             checks[0]["detail"]["explain"] = d.explain_mapping(frame, top=3)
         case_id = ROUTE_CASE.get((route, pixels))
+        case_report = None
         if case_id:
-            checks += cases.evaluate(matrix[case_id], frame, require_ring)["checks"]
+            case = _qualified_case(case_id, matrix, expected_source_sha,
+                                   current_native_root)
+            case_report = cases.evaluate(
+                case, frame, require_ring,
+                observed_source_sha=receipt.get("source_sha"))
+            checks += case_report["checks"]
         out.append({"capture": directory.name, "route": route,
                     "pixels": list(pixels), "png_sha256": frame.sha256,
-                    "case": case_id, "checks": checks,
+                    "case": case_report["case"] if case_report else None,
+                    "checks": checks,
                     "pass": all(c["pass"] for c in checks)})
     return {"schema": "ur-modern-visual-archive-cases-v1", "artifact": "directories",
             "exe_sha256": "n/a", "source_sha": "n/a",
@@ -186,6 +241,9 @@ def main(argv=None) -> int:
     ap.add_argument("--expected-exe-sha")
     ap.add_argument("--require-ring", action="store_true",
                     help="fail focus-bar captures lacking the shared two-tone ring")
+    ap.add_argument("--current-native-root", action="store_true",
+                    help="explicitly judge 16:9 root captures as pinned 342-wide "
+                         "native-title-root, leaving frozen historical cases unchanged")
     ap.add_argument("--json", type=Path)
     ap.add_argument("--summary", type=Path)
     a = ap.parse_args(argv)
@@ -197,9 +255,14 @@ def main(argv=None) -> int:
                                       a.expected_exe_sha)
             report = analyse(a.artifact, verified, require_ring=a.require_ring,
                              expected_source_sha=a.expected_source_sha,
-                             expected_exe_sha=a.expected_exe_sha)
+                             expected_exe_sha=a.expected_exe_sha,
+                             current_native_root=a.current_native_root)
         else:
-            report = analyse_dirs(a.dir, require_ring=a.require_ring)
+            report = analyse_dirs(
+                a.dir, require_ring=a.require_ring,
+                expected_source_sha=a.expected_source_sha,
+                expected_exe_sha=a.expected_exe_sha,
+                current_native_root=a.current_native_root)
     except (archive.AuditError, ValueError, OSError, KeyError,
             zipfile.BadZipFile) as exc:
         print(f"refused: {exc}", file=sys.stderr)

@@ -216,5 +216,83 @@ class ArchiveCasesTest(unittest.TestCase):
                     "--expected-exe-sha", exe_sha]), 0)
 
 
+    def test_current_native_root_opt_in_requires_external_source_and_pe(self):
+        # The integrated root really paints 342 columns in a wide window.
+        # Frozen historical cases must still reject those pixels by default.
+        wide = frame_png(342, 1280, 720)
+        old = frame_png(256, 1024, 768)
+        source_sha, exe_sha = "b" * 40, "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            zp = self.make(tmp, {"wide": wide, "compact": old})
+            verified = {"captures": [
+                capture("wide", "root-quit", [1280, 720], wide, 342),
+                capture("compact", "root-quit", [1024, 768], old, 256)]}
+            historical = ac.analyse(zp, verified)
+            self.assertFalse(historical["pass"])
+            with self.assertRaisesRegex(ValueError, "exact source and PE"):
+                ac.analyse(zp, verified, current_native_root=True)
+            report = ac.analyse(
+                zp, verified, current_native_root=True,
+                expected_source_sha=source_sha, expected_exe_sha=exe_sha)
+            self.assertTrue(report["pass"], report)
+            self.assertEqual(report["release_gate_credit"], 0)
+            byid = {c["capture"]: c for c in report["captures"]}
+            self.assertEqual(byid["wide"]["case"], "current-native-root-wide-720")
+            self.assertTrue(any(c["check"] == "source-identity"
+                                and c["pass"] for c in byid["wide"]["checks"]))
+            self.assertEqual(byid["compact"]["case"], "root-43-768")
+            self.assertFalse(any(c["check"] == "source-identity"
+                                 for c in byid["compact"]["checks"]))
+            altered = {"captures": [dict(verified["captures"][0],
+                                         exe_sha256="c" * 64)]}
+            with self.assertRaisesRegex(ValueError, "disagrees with external"):
+                ac.analyse(zp, altered, current_native_root=True,
+                           expected_source_sha=source_sha,
+                           expected_exe_sha=exe_sha)
+            # A declared current 342-wide root cannot pass on 256-wide pixels.
+            wrong = self.make(tmp, {"wide": frame_png(256, 1280, 720)})
+            wrong_data = frame_png(256, 1280, 720)
+            wrong_report = ac.analyse(
+                wrong, {"captures": [capture(
+                    "wide", "root-quit", [1280, 720], wrong_data, 256)]},
+                current_native_root=True,
+                expected_source_sha=source_sha, expected_exe_sha=exe_sha)
+            self.assertFalse(wrong_report["pass"])
+
+    def test_current_native_root_directory_receipts_are_source_bound(self):
+        import json
+        wide = frame_png(342, 1280, 720)
+        source_sha, exe_sha = "b" * 40, "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / "root"
+            d.mkdir()
+            (d / "actual-sdl-drawable.png").write_bytes(wide)
+            receipt = {
+                "png_sha256": hashlib.sha256(wide).hexdigest(),
+                "actual_sdl_renderer_output": [1280, 720],
+                "native_semantic_route": "root-quit",
+                "source_sha": source_sha, "exe_sha256": exe_sha}
+            (d / "readback-receipt.json").write_text(json.dumps(receipt))
+            report = ac.analyse_dirs(
+                [d], current_native_root=True,
+                expected_source_sha=source_sha, expected_exe_sha=exe_sha)
+            self.assertTrue(report["pass"], report)
+            self.assertEqual(report["release_gate_credit"], 0)
+            self.assertEqual(report["captures"][0]["case"],
+                             "current-native-root-wide-720")
+            self.assertTrue(any(c["check"] == "source-identity"
+                                for c in report["captures"][0]["checks"]))
+            for bad in (dict(receipt, source_sha="c" * 40),
+                        dict(receipt, exe_sha256="d" * 64)):
+                (d / "readback-receipt.json").write_text(json.dumps(bad))
+                with self.assertRaisesRegex(ValueError, "external source/PE"):
+                    ac.analyse_dirs(
+                        [d], current_native_root=True,
+                        expected_source_sha=source_sha,
+                        expected_exe_sha=exe_sha)
+            with self.assertRaisesRegex(ValueError, "exact source and PE"):
+                ac.analyse_dirs([d], current_native_root=True)
+
+
 if __name__ == "__main__":
     unittest.main()

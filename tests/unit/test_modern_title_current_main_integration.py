@@ -29,7 +29,7 @@ class ModernTitleCurrentMainIntegration(unittest.TestCase):
     def test_native_atlas_capture_uses_unicode_windows_filesystem_io(self):
         source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
         capture = source.split("void capture_modern_title_native_frame(", 1)[1]
-        capture = capture.split("\\n}\\n", 1)[0]
+        capture = capture.split("\n}\n", 1)[0]
         # The opt-in atlas path must survive a non-ACP Windows username,
         # both on write and on failure cleanup. Receipts remain UTF-8.
         for required in (

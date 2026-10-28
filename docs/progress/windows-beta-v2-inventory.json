@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
+  "source_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -1012,12 +1012,18 @@
       "id": "QA-01",
       "area": "QA",
       "criterion": "Current nominated Windows package has immutable binary SHA receipt",
-      "status": "unverified",
-      "evidence": [],
-      "evidence_class": "none",
+      "status": "bounded_verified",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324",
+        "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333",
+        "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6459628126"
+      ],
+      "evidence_class": "independently_twice_rehashed_actual_main_produced_ROM_free_Windows_inner_ZIP_and_AMD64_PE_with_immutable_source_and_manifest",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "pending"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333",
+      "independent_review_note": "Two independent actual-byte ZIP/PE/launcher audits on source-pinned main Windows artifact; producer-to-current-main 65-commit path census finds no native/product/package/launcher source change. No physical launch, controller/audio/display, gameplay parity or release QA."
     },
     {
       "id": "QA-02",
@@ -1743,6 +1749,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source comparison of 119 integrated commits since October 24 checkpoint; criterion-level independent review of exact Windows restart log and existing art source references; other unmet criteria screened, not physically accepted.",
-  "latest_criterion_review_ref": "docs/progress/v2-two05-hosted-seat-audit-20261028.json",
-  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0455.json"
+  "latest_criterion_review_ref": "docs/progress/v2-qa01-immutable-windows-package-audit-20261028.json",
+  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0525.json"
 }

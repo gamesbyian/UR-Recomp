@@ -29,9 +29,9 @@ class ProgressIntervalV2Tests(unittest.TestCase):
                          round(r["current_product_percent"] - r["previous_product_percent"], 3))
         self.assertEqual(r["reviewed_merge_count"],self.interval["observed_merge_count"])
         self.assertEqual(sum(r["merged_work_mix"].values()),r["reviewed_merge_count"])
-        self.assertEqual(r["reviewed_merge_sample_count"], 2)
-        self.assertEqual(r["unclassified_merge_count"], 14)
-        self.assertEqual(r["merged_work_mix"]["unclassified"], 14)
+        self.assertEqual(r["reviewed_merge_sample_count"], 3)
+        self.assertEqual(r["unclassified_merge_count"], 0)
+        self.assertEqual(r["merged_work_mix"]["unclassified"], 0)
         self.assertEqual(r["current_independent_audit_percent"],
                          round(sum(c["weight_units"] for c in self.inv["criteria"]
                                    if c["audit_state"] == "independent_reviewed") * 100/4500,3))
@@ -68,7 +68,7 @@ class ProgressIntervalV2Tests(unittest.TestCase):
         self.assertEqual(r["interval_product_delta_points"],
                          self.score()["interval_product_delta_points"] + 1.0)
         self.assertIn("ONE-03", r["newly_verified"])
-        self.assertIn("TWO-05", r["newly_verified"])
+        self.assertIn("QA-01", r["newly_verified"])
     def test_positive_gate_counter_without_formal_delta_rejected(self):
         ledger=copy.deepcopy(self.ledger)
         next(x for x in ledger["gates"] if x["id"]=="QA-04")["status"]="passed"
@@ -90,7 +90,7 @@ class ProgressIntervalV2Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"Exhaustive interval"):
             self.score(interval=interval)
         interval=copy.deepcopy(self.interval)
-        interval["observed_merge_count"]=1
+        interval["observed_merge_count"]=2
         with self.assertRaisesRegex(ValueError,"Merge record count"):
             self.score(interval=interval)
 

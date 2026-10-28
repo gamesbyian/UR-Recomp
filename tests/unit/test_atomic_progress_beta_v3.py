@@ -26,16 +26,16 @@ class BetaV3Tests(unittest.TestCase):
         result = self.result()
         self.assertEqual(result["schema"], "ur-playable-windows-beta-progress/3")
         self.assertEqual(result["source_reviewed_sha"],
-                         "a581cc38a1423c061238b2c10998c5ab9c34bb82")
-        self.assertEqual(result["historical_v2_snapshot"]["bounded_percent"], 52.0)
-        self.assertEqual(result["historical_v2_snapshot"]["independently_audited_percent"], 10.0)
+                         "88056d491c77cc7bb14ef1635d81892ca0d70305")
+        self.assertEqual(result["historical_v2_snapshot"]["bounded_percent"], 53.0)
+        self.assertEqual(result["historical_v2_snapshot"]["independently_audited_percent"], 11.0)
         beta = result["beta"]
         self.assertEqual(beta["criteria"], 134)
         self.assertEqual(beta["denominator_units"], 4455)
-        self.assertEqual(beta["bounded_verified_units"], 2340)
-        self.assertEqual(beta["independently_audited_units"], 450)
-        self.assertEqual(beta["bounded_percent"], 52.525)
-        self.assertEqual(beta["independently_audited_percent"], 10.101)
+        self.assertEqual(beta["bounded_verified_units"], 2385)
+        self.assertEqual(beta["independently_audited_units"], 495)
+        self.assertEqual(beta["bounded_percent"], 53.535)
+        self.assertEqual(beta["independently_audited_percent"], 11.111)
         self.assertEqual(beta["excluded_release_only"], ["QA-09"])
         self.assertEqual(beta["by_group"]["FID"]["total"], 45)
         self.assertEqual(beta["by_group"]["QA"]["total"], 9)
@@ -130,7 +130,7 @@ class BetaV3Tests(unittest.TestCase):
 
     def test_report_explicitly_refuses_invented_progress(self):
         md = v3.markdown(self.result())
-        for fragment in ("52.525%", "52.000%", "10.101%",
+        for fragment in ("53.535%", "53.000%", "11.111%",
                          "QA-09", "No new engineering points", "0/45",
                          "0/12", "three-machine", "source-reviewed"):
             with self.subTest(fragment=fragment):

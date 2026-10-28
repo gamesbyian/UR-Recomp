@@ -1,0 +1,62 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-28",
+  "from_main_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
+  "through_main_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
+  "observed_merge_count": 3,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/a581cc38a1423c061238b2c10998c5ab9c34bb82...88056d491c77cc7bb14ef1635d81892ca0d70305",
+  "merge_records_scope": "exhaustive",
+  "merge_records_note": "All three commits classified. QA-01 actual package bytes predate this interval; one retroactive evidence point, zero new engineering.",
+  "merge_records": [
+    {
+      "pr": 2751,
+      "commit_sha": "e0fab9ea0cdc194ac1f226ea0ba86f38caf04907",
+      "effect": "release_risk_reduction",
+      "observation": "Admitted independent hosted TWO-05 evidence; reviewed 52/10.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2751"
+    },
+    {
+      "pr": 2752,
+      "commit_sha": "390b3157b034d9fbad8bcc28c3247090f2e05f72",
+      "effect": "operations",
+      "observation": "Reduced redundant authenticated negative QA01 oracle repeats; no game or acceptance change.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2752"
+    },
+    {
+      "pr": 2753,
+      "commit_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
+      "effect": "documentation",
+      "observation": "Clarified physical beta versus three-PC release-quality policy for testers.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2753"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "QA-01",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324",
+        "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333",
+        "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6459628126"
+      ],
+      "reason": "Two independent actual-byte ZIP/PE/launcher audits and 65-commit source continuity establish the immutable nominated current-product Windows package; no physical boot or release gate."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 52,
+    "current_bounded_percent": 53,
+    "gross_delta_percentage_points": 1,
+    "new_work_earned_percentage_points": 0,
+    "retroactive_identification_percentage_points": 1,
+    "previous_independent_audit_percent": 10,
+    "current_independent_audit_percent": 11
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Frozen beta QA-01 only; release-ledger QA-01, physical QA-02, USA events and release gates untouched.",
+  "source_reviewed_by": "two_independent_actual_byte_audits_plus_current_source_path_reconciliation",
+  "limitations": "This invocation inspected GitHub metadata/source comparison, not fresh bytes or physical Windows. Product source path continuity does not assert arbitrary rebuilt binary byte identity."
+}

@@ -118,7 +118,97 @@ static void prove_main_menu_cursor_returns_to_one_player() {
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitRider);
 }
 
+// Live stock menu IDs can be transient, with the menu cursor reused by
+// unrelated scenes. A route may not treat an alien menu's cursor as proof
+// its last direction was consumed or inherit the prior 60-frame settle.
+static void prove_practice_scene_interruption_requires_new_settle() {
+    {
+        auto state = begin_quick_practice_launch(
+            quick_practice_target_for_track(0));
+        auto first = settle_menu(state, {0xD7, 4, false, -1});
+        assert(first.input == QuickPracticeLaunchInput::Up);
+        assert(first.state.waiting_for_selection_change);
+        assert(first.state.menu_settled);
+        auto crossed = advance_quick_practice_launch(
+            first.state, {0x6D, 3, false, -1});
+        assert(crossed.input == QuickPracticeLaunchInput::None);
+        assert(!crossed.state.waiting_for_selection_change);
+        assert(!crossed.state.menu_settled);
+        assert(crossed.state.menu_settle_observations == 0);
+
+        state = crossed.state;
+        for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations;
+             ++i) {
+            auto step = advance_quick_practice_launch(
+                state, {0xD7, 0, false, -1});
+            assert(step.input == QuickPracticeLaunchInput::None);
+            state = step.state;
+        }
+        auto accepted = advance_quick_practice_launch(
+            state, {0xD7, 0, false, -1});
+        assert(accepted.input == QuickPracticeLaunchInput::Accept);
+        assert(accepted.state.stage == QuickPracticeLaunchStage::AwaitRider);
+    }
+
+    {
+        // A stock TRACK menu interrupted by NOW_PLAYING must settle again
+        // before confirming the selected track. Its previous Down press
+        // cannot be acknowledged by NOW_PLAYING's unrelated cursor.
+        auto state = begin_quick_practice_launch(
+            quick_practice_target_for_track(4));
+        state.stage = QuickPracticeLaunchStage::AwaitTrack;
+        auto first = settle_menu(state, {0xF6, 0, false, -1});
+        assert(first.input == QuickPracticeLaunchInput::Down);
+        auto crossed = advance_quick_practice_launch(
+            first.state, {0x16, 1, false, -1});
+        assert(crossed.input == QuickPracticeLaunchInput::None);
+        assert(!crossed.state.menu_settled);
+        assert(!crossed.state.waiting_for_selection_change);
+
+        state = crossed.state;
+        for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations;
+             ++i) {
+            auto step = advance_quick_practice_launch(
+                state, {0xF6, 4, false, -1});
+            assert(step.input == QuickPracticeLaunchInput::None);
+            state = step.state;
+        }
+        auto accepted = advance_quick_practice_launch(
+            state, {0xF6, 4, false, -1});
+        assert(accepted.input == QuickPracticeLaunchInput::Accept);
+        assert(accepted.state.stage == QuickPracticeLaunchStage::AwaitNowPlaying);
+    }
+
+    {
+        auto state = begin_quick_practice_launch(
+            quick_practice_target_for_track(0));
+        for (unsigned i = 0; i < 40; ++i) {
+            auto step = advance_quick_practice_launch(
+                state, {0xD7, 0, false, -1});
+            assert(step.input == QuickPracticeLaunchInput::None);
+            state = step.state;
+        }
+        assert(state.menu_settle_observations == 40);
+        auto interrupted = advance_quick_practice_launch(
+            state, {0x84, 0, false, -1});
+        assert(interrupted.state.menu_settle_observations == 0);
+
+        state = interrupted.state;
+        for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations;
+             ++i) {
+            auto step = advance_quick_practice_launch(
+                state, {0xD7, 0, false, -1});
+            assert(step.input == QuickPracticeLaunchInput::None);
+            state = step.state;
+        }
+        auto accepted = advance_quick_practice_launch(
+            state, {0xD7, 0, false, -1});
+        assert(accepted.input == QuickPracticeLaunchInput::Accept);
+    }
+}
+
 int main() {
+    prove_practice_scene_interruption_requires_new_settle();
     prove_main_menu_cursor_returns_to_one_player();
     QuickPracticeLaunchState ownership{};
     assert(!quick_practice_launch_owns_player_input(ownership));

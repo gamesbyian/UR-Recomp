@@ -116,3 +116,22 @@ The existing [manual CI runtime report](../.github/workflows/ci-runtime-report.y
 - [#2592](https://github.com/gamesbyian/UR-Recomp/pull/2592): no ready-transition event in the 16 returned timeline events; created **2026-10-25 22:28:14Z**, merged **2026-10-26 19:53:19Z**; **1,285.1 min** drives the product-sample p90. It is not evidence of 21 hours of continuous agent work or CI occupancy.
 
 **What this does and does not prove:** This is the requested measurable *ready-PR-to-merge* latency for a bounded real sample, **not** general creation-to-merge, time to independent release acceptance, review-only delay, agent-hours or runner billing. Readiness-to-merge includes any outstanding checks, repair, scheduled-agent handoff, manual deliberation or integration dependency, and the sample is heavily weighted toward fast infra PRs opened/merged in one session. Without a comparably sampled historical cohort and stable PR mix, neither the faster operations median nor the later product median establishes a causal acceleration effect. Preserve the raw source URLs and do not attach release-gate credit.
+
+## Measured 1000-module Python test-shard calibration (October 27 pilot)
+
+Another exact-run inspection found Python shard tests of **114.003 / 170.714 / 194.703 / 182.033 seconds** in successful [tooling run #40599282095](https://github.com/gamesbyian/UR-Recomp/actions/runs/40599282095), despite predicted scheduler loads of approximately **147 seconds each**. The current tracked `tools/unit_test_timings.json` has timings for **114 of roughly 1,000 discovered modules**. Four-way scheduling based on unmeasured 0.3s defaults is badly under-informed. Those shard durations are observational; differences may reflect host contention and suite dependencies as well as imperfect weights.
+
+The original full suite, `unit` required check, up-to-four-worker bound and fail/skip semantics stay unchanged. `tools/run_unit_shard.py` wraps the same discovered module population in a **single global unittest runner** while measuring per-module import plus executed test-suite time. Each full worker produces `unit-module-timings-shardN.json`, with source SHA, module census, diagnostic-only classification and explicit pass/fail. The canonical summary/exit receipts remain the authority for unit-test CI. A compressed timing-only diagnostic is also visible in the Actions job log. Timing data is **not** a gameplay, original/native or release oracle.
+
+After a successful full run, download the four timing sidecars from the existing `ci-tooling-unit-result` artifact. Extract them together and run:
+
+```sh
+python3 tools/rebalance_unit_test_timings.py \
+  --source PATH_TO_EXTRACTED_TIMINGS \
+  --source-sha EXACT_GITHUB_ACTIONS_CHECKOUT_SHA \
+  --shards 4 \
+  --out /tmp/unit_test_timings_candidate.json
+```
+
+The calibrator refuses missing, changed-source, failed, duplicated, unknown, nonfinite, symlinked, or partial module populations; it **never silently rewrites the tracked scheduling weights**. Review candidate weights, compare before/after shard wall times over more than one successful full-suite run, and only then replace `tools/unit_test_timings.json` in a reviewed PR. A single timing sample is not a defensible performance claim. A better split can reduce the straggler tail without deleting tests, new CI jobs, extra compilers, or wider runner usage. If timing collection changes a test outcome or is slower than the savings, revert to the original `python3 -m unittest` command; retain the original log/exit report invariant.
+

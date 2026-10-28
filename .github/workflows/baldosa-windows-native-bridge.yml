@@ -620,6 +620,17 @@ jobs:
             --video windows --timeout 180
           echo "PASS: native Win32 SDL virtual-pad journey covers title, five Modern destinations, original 1P/2P GO and source-earned records; no physical-pad, original/native parity or release acceptance." >> "$GITHUB_STEP_SUMMARY"
 
+      # Use a fresh OS process to select the ACTUAL guest-earned immutable
+      # .urrun just written by this same Windows PE under 漢字-🚲, then stage
+      # and retire the production replay input through native UTF-16 paths.
+      # This is real stored-run compatibility/data I/O, not emulated playback.
+      - name: Test source-earned Win32 Unicode replay after cold Records
+        run: |
+          set -euo pipefail
+          python tests/unit/test_completed_run_unicode_cold_cpp.py --source-earned-base \
+            "$RUNNER_TEMP/ur-keyboard-pad-join"
+          echo "PASS: same-PE source-earned Unicode .urrun cold-loaded and replay input staged/retired on Win32; guest playback/physical release unverified." >> "$GITHUB_STEP_SUMMARY"
+
       # Retain test-owned canonical 2P pair, source logs and executable receipt
       # from the SAME Windows PE; no ROM or player profile is uploaded.
       - name: Retain native controller journey evidence
@@ -640,6 +651,7 @@ jobs:
             ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_earned_race/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_earned_return/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/earned_return_cold_records/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/earned_return_cold_records/earned_run/source.urrun
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_root/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/controller_only_two_pad_race/earned_pair/source.urrun

@@ -2,6 +2,7 @@ name: Project tooling unit tests
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     paths:
       - "tools/**"
       - "tests/unit/**"
@@ -132,6 +133,10 @@ concurrency:
 
 jobs:
   unit:
+    # A draft cannot be merged; reserve the 120-200s full Python suite for
+    # ready_for_review/synchronize and explicit manual dispatch. GitHub marks
+    # this required check *skipped*, never a deceptive green full test, on drafts.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -287,3 +292,19 @@ jobs:
         with:
           path: ${{ runner.temp }}/cxx-cache
           key: ur-unit-cxx-${{ runner.os }}-${{ github.run_id }}
+
+  draft-syntax:
+    # Early editing feedback without launching full C++/Python fixture suite.
+    # Converting to ready automatically invokes the unchanged full 'unit' job.
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Draft Python and workflow syntax, not a unit-test pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q tests/unit tools
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
+          echo "DRAFT_SYNTAX_ONLY: full Python unit suite NOT executed; mark PR ready for review to require the unit check." >> "$GITHUB_STEP_SUMMARY"

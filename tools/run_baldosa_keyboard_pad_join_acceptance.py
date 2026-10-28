@@ -730,7 +730,10 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     if out.exists():
         raise ValueError("output directory must not pre-exist")
     out.mkdir(parents=True)
-    user = out / "user"
+    # The REAL Win32 P1/P2 creation, stock GO, source-earned paired result
+    # and canonical .urrun/.urmatch archive must all survive a non-ACP root.
+    # A successful Unicode 1P Records route alone does not cover 2P writes.
+    user = out / "user_2p_漢字-🚲"
     user.mkdir()
     run_game(exe, rom, user, out / "create_p1", "4", QUIET, video, timeout)
     run_game(exe, rom, user, out / "create_p2", "5", QUIET, video, timeout)
@@ -892,7 +895,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     # sharing the first user's directory could falsely report no new record.
     # Exercise a REAL Windows non-ACP user root on the full original guest
     # P1/P2 named-profile cold boots and source-earned return-to-Records.
-    # This is isolated from the earlier ASCII acceptance journeys; no player
+    # This is isolated from the earlier two-pad acceptance journeys; no player
     # save or test-generated score is copied between the two roots.
     return_user = out / "user_earned_return_漢字-🚲"
     return_user.mkdir()
@@ -992,6 +995,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "controller_only_two_pad_race": "two_sdl_pads_original_2p_go_and_source_earned_pair",
         "controller_only_two_pad_race_result": two_pad_source_result,
         "controller_only_two_pad_race_pair_sha256": two_pad_pair_sha256,
+        "primary_unicode_root": "real_win32_non_acp_p1_p2_stock_go_earned_pair",
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",

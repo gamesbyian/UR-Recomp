@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 RECORDER = ROOT / "docs/playtest/windows-h01-h07-offline.html"
 INSTRUCTIONS = ROOT / "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"
 SHEET = ROOT / "docs/WINDOWS-PLAYTEST-RESULTS-TEMPLATE.md"
+BOARD = ROOT / "docs/HOURLY-AGENT-LINES.md"
+QUEUE = ROOT / "docs/WORK-QUEUE.md"
 
 
 class _Tags(html.parser.HTMLParser):
@@ -50,6 +52,14 @@ class OfflineWindowsH01H07Tests(unittest.TestCase):
         self.assertNotIn("930f16ed4536aea83450335bd550aa9afefd98f1", self.js)
         self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2763"),
                         INSTRUCTIONS.read_text(encoding="utf-8").index("Superseded post-#2688"))
+        # A future physical candidate nomination must update both operator
+        # entry points rather than silently leaving the recorder on old bytes.
+        for authority in (BOARD, QUEUE):
+            with self.subTest(authority=authority):
+                text = authority.read_text(encoding="utf-8")
+                self.assertIn("12803447603", text)
+                self.assertIn("f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1", text)
+                self.assertIn("68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9", text)
 
     def test_all_seven_physical_journeys_and_statuses_present(self):
         for n in range(1, 8):

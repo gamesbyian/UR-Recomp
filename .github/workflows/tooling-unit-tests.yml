@@ -125,6 +125,9 @@ on:
       - "docs/RELEASE-QUALITY-LEDGER.json"
       # The single-file Zoo request is review-ready source-bound CI input.
       - "docs/qa01/REQUEST-ZOO-CAUSAL.md"
+      # A single-file current-main physical Windows request needs full
+      # ready-state tests, not only the previous product PR checks.
+      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
       - "analysis/modern-product-settings.json"
       - "analysis/agent-context-lanes.json"
       - ".github/workflows/**"

@@ -103,6 +103,42 @@ class PlaytestRequestGuardTests(unittest.TestCase):
                                    marker(13, "Measure same-source observer noninterference control") + suffix,
                                    [guard.ZOO_MARKER], marker=guard.ZOO_MARKER)
 
+    def test_rf094_sequence20_explicit_mode_is_unique_and_paired(self):
+        old = (marker(19, "Original CPU SPC case completed at Bowl boundary")
+               + "- Observer mode: **on**\n")
+        base = marker(20, "Observe DSP register writes and the late F7 response stream")
+        for mode, expected in (("on", True), ("off", False)):
+            current = (base + "- Observer mode: **on**\n"
+                       + f"- RF094 DSP follow-through: **{mode}**\n")
+            verdict = guard.validate(old, current, [guard.ZOO_MARKER],
+                                     marker=guard.ZOO_MARKER)
+            self.assertTrue(verdict["observer_enabled"])
+            self.assertIs(verdict["rf094_enabled"], expected)
+        malformed = (
+            base + "- Observer mode: **on**\n",
+            base + "- Observer mode: **on**\n- RF094 DSP follow-through: **ON**\n",
+            base + "- Observer mode: **on**\n- RF094 DSP follow-through: on\n",
+            base + "- Observer mode: **on**\n- RF094 DSP follow-through: **on**\n"
+                   + "- RF094 DSP follow-through: **off**\n",
+            base + "- Observer mode: **on**\n- RF094 DSP follow-through: **off**\n"
+                   + "- RF094 DSP follow-through: **off**\n",
+            base + "- Observer mode: **off**\n- RF094 DSP follow-through: **on**\n",
+        )
+        for current in malformed:
+            with self.subTest(current=current[-100:]), self.assertRaisesRegex(
+                    ValueError, "RF094"):
+                guard.validate(old, current, [guard.ZOO_MARKER],
+                               marker=guard.ZOO_MARKER)
+
+    def test_earlier_zoo_request_cannot_inherit_rf094(self):
+        old = marker(18, "The previous real SPC echo experiment completed")
+        now = (marker(19, "Observe next Bowl original CPU and SPC edges")
+               + "- Observer mode: **on**\n")
+        verdict = guard.validate(old, now, [guard.ZOO_MARKER],
+                                 marker=guard.ZOO_MARKER)
+        self.assertTrue(verdict["observer_enabled"])
+        self.assertFalse(verdict["rf094_enabled"])
+
     def test_zoo_cli_writes_validated_mode_to_job_output(self):
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as tmp:
@@ -119,7 +155,8 @@ class PlaytestRequestGuardTests(unittest.TestCase):
                 "--marker", guard.ZOO_MARKER, "--gha-output", str(output)]),
                   mock.patch.object(guard, "changed_files", return_value=[guard.ZOO_MARKER])):
                 self.assertEqual(guard.main(), 0)
-            self.assertEqual(output.read_text(encoding="utf-8"), "observer_enabled=false\n")
+            self.assertEqual(output.read_text(encoding="utf-8"),
+                             "observer_enabled=false\nrf094_enabled=false\n")
 
     def test_zoo_wrapper_requires_guard_then_calls_existing_causal_campaign(self):
         path = ROOT / ".github/workflows/qa01-zoo-causal-request.yml"
@@ -157,6 +194,8 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         # Both original and native observers are disabled together for control.
         expression = "${{ needs.qualify_request.outputs.observer_enabled == 'true' }}"
         self.assertIn("observer_enabled: ${{ steps.guard.outputs.observer_enabled }}", text)
+        self.assertIn("rf094_enabled: ${{ steps.guard.outputs.rf094_enabled }}", text)
+        self.assertIn("qa01_rf094_spc_dsp: ${{ needs.qualify_request.outputs.rf094_enabled == 'true' }}", text)
         self.assertIn("id: guard", text)
         self.assertIn('--gha-output "$GITHUB_OUTPUT"', text)
         self.assertIn("qa01_rf084_native_sound_dp: " + expression, text)

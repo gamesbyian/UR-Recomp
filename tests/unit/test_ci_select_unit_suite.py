@@ -24,14 +24,13 @@ class UnitSuiteSelectorTests(unittest.TestCase):
         self.assertIn("tests.unit.test_ci_trigger_policy", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_playtest_request_guard", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_verify_baldosa_playtest_release", FOCUSED_TEST_MODULES)
-        self.assertEqual(classify([f("docs/playtest/REQUEST-WINDOWS-PLAYTEST.md")]), "ops")
+        self.assertEqual(classify([f("docs/playtest/REQUEST-WINDOWS-PLAYTEST.md")]), "full")
 
     def test_exact_non_product_agent_context_docs_are_focused_with_ops(self):
         expected = {
             "docs/AGENT-COORDINATION.md",
             "docs/HOURLY-AGENT-LINES.md",
             "docs/WORK-QUEUE.md",
-            "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
         }
         expected.add("AGENTS.md")
         self.assertEqual(OPS_CONTEXT_DOCS, expected)
@@ -57,6 +56,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
             "tools/strict_vault_manifest.py",
             ".github/workflows/tooling-unit-tests.yml",
             "docs/RELEASE-QUALITY-LEDGER.json",
+            "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
             "docs/qa01/REQUEST-ZOO-CAUSAL.md",
             ".github/workflows/manual-romfree-windows-playtest.yml",
             "tools/ci_playtest_request_guard.py",
@@ -193,7 +193,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 17)
+        self.assertEqual(len(OPERATIONS_ONLY), 16)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
         self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
         self.assertTrue(all((p.startswith("docs/") or p == "AGENTS.md") and p.endswith(".md")

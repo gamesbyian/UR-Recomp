@@ -890,7 +890,11 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     # Run the stricter post-result journey in its own fresh canonical user
     # directory. Two source-earned races may produce identical archive names;
     # sharing the first user's directory could falsely report no new record.
-    return_user = out / "user_earned_return"
+    # Exercise a REAL Windows non-ACP user root on the full original guest
+    # P1/P2 named-profile cold boots and source-earned return-to-Records.
+    # This is isolated from the earlier ASCII acceptance journeys; no player
+    # save or test-generated score is copied between the two roots.
+    return_user = out / "user_earned_return_漢字-🚲"
     return_user.mkdir()
     run_game(exe, rom, return_user, out / "return_create_p1",
              "4", QUIET, video, timeout)
@@ -933,10 +937,40 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     return_earned_sha256 = hashlib.sha256(
         next(iter(return_new)).read_bytes()).hexdigest()
 
+    # Fresh OS process, same real Windows native PE, same non-ACP user root.
+    # An earned Records panel in the scoring process alone cannot prove that
+    # the archived result survives a cold boot and the full native menu path.
+    cold_log = run_game(exe, rom, return_user,
+                        out / "earned_return_cold_records", "29",
+                        POSITIVE_JOIN, video, timeout)
+    try:
+        verify_five_destination_pad_journey(cold_log)
+        visible = re.findall(
+            r"(?m)^UR_BALDOSA_MODERN_ROOT records_opened=1 "
+            r"profile=selected validated=([0-9]+) unavailable=([0-9]+)\r?$",
+            cold_log)
+        if visible != [("1", "0")]:
+            raise ValueError(
+                "cold earned Records: one source-earned record must reopen "
+                f"as validated=1 unavailable=0, got {visible!r}")
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; inspect retained earned_return_cold_records/log.txt"
+        ) from exc
+    cold_runs = (set(return_archive.glob("*.urrun"))
+                 if return_archive.is_dir() else set())
+    if cold_runs != return_after or hashlib.sha256(
+            next(iter(return_new)).read_bytes()).hexdigest() != return_earned_sha256:
+        raise ValueError(
+            "cold earned Records: the guest boot/navigation changed the "
+            "immutable source-earned run archive")
+
     receipt = {
         "five_destination_earned_race": "one_sdl_p1_real_original_go_source_settled_1p_record",
         "five_destination_earned_return": "one_sdl_p1_source_earned_1p_post_result_root_records",
         "earned_return_run_sha256": return_earned_sha256,
+        "earned_return_unicode_root": "real_win32_non_acp_named_p1_p2_cold_boot_source_earned_records",
+        "earned_return_cold_records": "fresh_native_process_unicode_root_validated_one_unchanged_urrun",
         "earned_run_sha256": earned_sha256,
         "five_destination_return": "one_sdl_p1_stock_x_back_then_main_b_reopens_painted_root",
         "controller_only_two_pad_root": "two_sdl_pads_title_practice_multiplayer_original_2p_admission",

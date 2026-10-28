@@ -86,6 +86,7 @@ int snesrecomp_desktop_product_seat_move(int from, int to);
 #include <cstring>
 #include <filesystem>
 #include <string>
+#include <system_error>
 #include <optional>
 #include <unordered_set>
 #include <vector>
@@ -1575,14 +1576,22 @@ extern "C" void ur_baldosa_modern_root_prepare_frame(
 void capture_modern_title_native_frame(
     const std::uint8_t* source, std::size_t pitch, int width, int height,
     const char* stage) {
+#if defined(_WIN32)
+    const wchar_t* directory = _wgetenv(L"UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR");
+#else
     const char* directory = std::getenv("UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR");
+#endif
     if (!directory || !*directory || !source || width < 256 || height != 224 ||
         pitch < static_cast<std::size_t>(width) * 4) return;
     const std::filesystem::path file =
         std::filesystem::path(directory) /
         (std::string("modern-native-") + stage + "-" +
          std::to_string(width) + "x224.pam");
-    std::FILE* out = std::fopen(file.string().c_str(), "wb");
+#if defined(_WIN32)
+    std::FILE* out = _wfopen(file.c_str(), L"wb");
+#else
+    std::FILE* out = std::fopen(file.c_str(), "wb");
+#endif
     if (!out) {
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE capture_error stage=%s open_failed=1\n",
@@ -1617,17 +1626,20 @@ void capture_modern_title_native_frame(
     }
     if (std::fclose(out) != 0) written = false;
     if (!written) {
-        std::remove(file.string().c_str());
+        std::error_code remove_error;
+        std::filesystem::remove(file, remove_error);
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_TITLE capture_error stage=%s write_failed=1\n",
             stage);
         return;
     }
+    // Native APIs may use UTF-16; keep receipts as UTF-8 on every host.
+    const std::string receipt_path_utf8 = file.u8string();
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=%s guest_frame=%u "
         "raster=%dx%d rgba_fnv1a64=%016llx path=%s\n",
         stage, g_title_guest_frame, width, height,
-        static_cast<unsigned long long>(hash), file.string().c_str());
+        static_cast<unsigned long long>(hash), receipt_path_utf8.c_str());
 }
 
 extern "C" int ur_baldosa_modern_root_draw_frame(

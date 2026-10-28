@@ -152,6 +152,20 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"post-merge side effects. offenders={offenders}",
         )
 
+    def test_zoo_marker_only_request_runs_full_ready_state_checks(self):
+        # The guarded one-file request must not need unrelated edits to run
+        # full unit and hygiene; draft fast hints cannot qualify its merge.
+        marker = '"docs/qa01/REQUEST-ZOO-CAUSAL.md"'
+        for filename in ("tooling-unit-tests.yml", "repo-hygiene.yml"):
+            with self.subTest(workflow=filename):
+                workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
+                pr = _block(workflow, "pull_request")
+                self.assertEqual(pr.count(marker), 1)
+                self.assertIn("ready_for_review", pr)
+        unit = (WORKFLOWS / "tooling-unit-tests.yml").read_text(encoding="utf-8")
+        self.assertIn("github.event.pull_request.draft == false", unit)
+        self.assertIn("steps.unit-scope.outputs.mode != 'ops'", unit)
+
     def test_changed_workflow_actionlint_is_required_not_advisory(self):
         hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
         block = hygiene.split("      - name: Validate changed workflow files with actionlint", 1)[1]

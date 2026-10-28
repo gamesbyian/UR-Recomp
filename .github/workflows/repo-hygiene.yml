@@ -2,7 +2,9 @@ name: Repository hygiene
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - "docs/qa01/REQUEST-ZOO-CAUSAL.md"
       - "AGENTS.md"
       - "docs/README.md"
       - "docs/SYMBOLS.md"

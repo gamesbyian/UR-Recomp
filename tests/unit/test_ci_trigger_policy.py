@@ -166,6 +166,15 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("github.event.pull_request.draft == false", unit)
         self.assertIn("steps.unit-scope.outputs.mode != 'ops'", unit)
 
+    def test_offline_physical_reporter_and_protocol_run_hygiene(self):
+        hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
+        pr = _block(hygiene, "pull_request")
+        for path in ("docs/playtest/windows-h01-h07-offline.html",
+                     "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"):
+            with self.subTest(path=path):
+                self.assertEqual(pr.count('"' + path + '"'), 1)
+        self.assertIn("ready_for_review", pr)
+
     def test_changed_workflow_actionlint_is_required_not_advisory(self):
         hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
         block = hygiene.split("      - name: Validate changed workflow files with actionlint", 1)[1]

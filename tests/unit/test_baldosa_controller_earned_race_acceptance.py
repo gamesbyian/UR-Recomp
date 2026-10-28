@@ -76,6 +76,21 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertIn("g_host_owned_samples > 900u", product_input)
         self.assertIn("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", RUNNER)
 
+    def test_real_source_earned_return_uses_non_acp_named_profile_root(self):
+        # This is a source contract, not synthetic acceptance. The existing
+        # same-PE Windows native journey actually creates two profiles in
+        # separate processes, earns a source result, then reopens Records.
+        self.assertIn('return_user = out / "user_earned_return_漢字-🚲"', RUNNER)
+        self.assertIn('run_game(exe, rom, return_user, out / "return_create_p1"',
+                      RUNNER)
+        self.assertIn('run_game(exe, rom, return_user, out / "return_create_p2"',
+                      RUNNER)
+        self.assertIn('out / "five_destination_earned_return", "32"', RUNNER)
+        self.assertIn('return_archive = return_user / "runs" / "mike"', RUNNER)
+        self.assertIn('verify_five_destination_pad_post_result(return_log)',
+                      RUNNER)
+        self.assertIn('"earned_return_unicode_root":', RUNNER)
+
     def test_earned_race_native_log_is_retained_for_independent_qa(self):
         # A summary receipt cannot independently establish the original
         # source milestones and uninterrupted SDL seat history. Keep the

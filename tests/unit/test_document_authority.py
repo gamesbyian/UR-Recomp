@@ -25,12 +25,16 @@ class CurrentDocumentationAuthoritiesTest(unittest.TestCase):
     def test_active_pages_are_bounded_and_archived_material_is_retained(self):
         budgets = {
             # Owner-approved fidelity/beta policy expanded this authority.
-            # Preserve a real 19 KiB bound, not a deleted/commented-out key.
+            # Preserve a real 19,000-character bound, not a deleted/commented-out key.
             "docs/PROJECT-PLAN.md": 19000,
             "docs/WORK-QUEUE.md": 16000,
             "docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md": 6500,
             "docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md": 10500,
         }
+        # Keep mandatory policy owners checked even if a future edit
+        # accidentally turns their dictionary entry into a comment.
+        self.assertIn("docs/PROJECT-PLAN.md", budgets)
+        self.assertEqual(budgets["docs/PROJECT-PLAN.md"], 19000)
         for rel, maximum in budgets.items():
             with self.subTest(rel=rel):
                 text = (ROOT / rel).read_text(encoding="utf-8")

@@ -80,6 +80,7 @@ ROUTES = {
     # distinct later P1 A confirming Modern root only after stable source D7.
     "stock-attract-start-exit": ("35", 2000, "UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_root_ready=1 frame=1990"),
     "stock-attract-post-wake-start-exit": ("36", 2000, "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_start_root_ready=1 frame=1990"),
+    "stock-attract-keyboard-post-wake-exit": ("37", 2000, "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_root_ready=1 frame=1990"),
 }
 
 

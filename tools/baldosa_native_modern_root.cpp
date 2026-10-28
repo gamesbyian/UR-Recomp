@@ -155,6 +155,7 @@ bool g_title_root_captured = false;
 bool g_original_attract_seen_main = false;
 bool g_original_attract_visible = false;
 bool g_original_attract_woken = false;
+bool g_post_wake_keyboard_start_held = false;
 bool g_original_attract_main_recovered = false;
 std::uint16_t g_original_attract_main_stable = 0;
 int g_original_attract_p2_release_button = -1;
@@ -1168,6 +1169,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "34") != 0 &&
         std::strcmp(fixture, "35") != 0 &&
         std::strcmp(fixture, "36") != 0 &&
+        std::strcmp(fixture, "37") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&
@@ -1180,6 +1182,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_original_attract_seen_main = false;
     g_original_attract_visible = false;
     g_original_attract_woken = false;
+    g_post_wake_keyboard_start_held = false;
     g_original_attract_main_recovered = false;
     g_original_attract_main_stable = 0;
     g_original_attract_p2_release_button = -1;
@@ -1294,6 +1297,13 @@ void wake_original_stock_attract() {
 }
 
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
+    // A keyboard Return that actually started the guest demo must also
+    // release its guest Start bit, even if Modern focus changes meanwhile.
+    // The first Return that merely woke the demo never sets this latch.
+    if (key == SDLK_RETURN && !pressed && g_post_wake_keyboard_start_held) {
+        ur_baldosa_product_attract_p1_start_event(0);
+        g_post_wake_keyboard_start_held = false;
+    }
     // Unknown keys that woke the original demo remain host-owned until
     // release, even though the wake has already restored the Modern title.
     if (g_original_attract_unknown_key_releases.count(key)) {
@@ -1338,6 +1348,21 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     if (!g_visible)
         return key == SDLK_ESCAPE && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
+    if (g_original_attract_woken && g_visible &&
+        ur::product::modern_title_active(g_title) &&
+        key == SDLK_RETURN && first_press &&
+        !g_post_wake_keyboard_start_held &&
+        g_ram[0x0313u] == 1u && g_stock_target == -1) {
+        // A new keyboard Return, distinct from the consumed wake edge,
+        // is the keyboard's genuine P1 Start. Never retype the first wake
+        // or confirm Modern while the original guest demo is still active.
+        g_post_wake_keyboard_start_held = true;
+        ur_baldosa_product_attract_p1_start_event(1);
+        std::fprintf(stderr,
+            "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_start_to_demo=1 frame=%u host_confirm=0\n",
+            g_title_guest_frame);
+        return 1;
+    }
     if (!first_press) return 1;
     if (ur::product::modern_title_active(g_title)) {
         if (action == 2) confirm_modern_native_title();
@@ -2227,7 +2252,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if ((!g_visible && !g_original_attract_visible &&
              !source_return_probe) ||
             !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 36) return;
+            mode < 1 || mode > 37) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -2703,6 +2728,64 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=%u source_main=d7 stable=%u guest_writes=0\n",
                 frame, static_cast<unsigned>(g_original_attract_main_stable));
+        }
+        return;
+    }
+    // CI-only mode 37: keyboard Return wakes the real demo host-only;
+    // a separate Return down/up exits the underlying guest via real P1 Start.
+    // Only a third Return confirms Modern after observed MAIN D7 + 60.
+    // Semantic keyboard callback, not physical-device acceptance.
+    if (std::strcmp(opt, "37") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible || g_visible ||
+                g_ram[0x0313u] != 1u ||
+                !ur_baldosa_modern_root_key(SDLK_RETURN, 1) ||
+                !g_visible || !ur::product::modern_title_active(g_title) ||
+                g_post_wake_keyboard_start_held ||
+                original_stock_attract_source_ready() || g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT keyboard_wake_host_only=1 frame=%u\n",
+                frame);
+        } else if (frame == 1602) {
+            if (!ur_baldosa_modern_root_key(SDLK_RETURN, 0) ||
+                g_post_wake_keyboard_start_held ||
+                g_ram[0x0313u] != 1u || original_stock_attract_source_ready())
+                std::abort();
+        } else if (frame == 1604) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                g_ram[0x0313u] != 1u ||
+                !ur_baldosa_modern_root_key(SDLK_RETURN, 1) ||
+                !g_post_wake_keyboard_start_held || g_stock_target != -1)
+                std::abort();
+        } else if (frame == 1608) {
+            if (!ur_baldosa_modern_root_key(SDLK_RETURN, 0) ||
+                g_post_wake_keyboard_start_held)
+                std::abort();
+        } else if (frame == 1940) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                !g_original_attract_main_recovered ||
+                !original_stock_attract_source_ready() ||
+                g_ram[0x009fu] != 0xd7u || g_ram[0x0313u] == 1u ||
+                g_original_attract_main_stable <
+                    ur::product::kQuickPracticeMenuSettleObservations ||
+                g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_exit_ready=1 frame=%u menu=d7 stable=%u host_confirm=0\n",
+                frame, static_cast<unsigned>(g_original_attract_main_stable));
+        } else if (frame == 1960) {
+            if (!ur_baldosa_modern_root_key(SDLK_RETURN, 1) ||
+                !ur_baldosa_modern_root_key(SDLK_RETURN, 0))
+                std::abort();
+        } else if (frame == 1990) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || !original_stock_attract_source_ready() ||
+                g_post_wake_keyboard_start_held)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_root_ready=1 frame=%u separate_confirm=1\n",
+                frame);
         }
         return;
     }

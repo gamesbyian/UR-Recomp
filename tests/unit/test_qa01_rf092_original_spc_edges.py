@@ -17,7 +17,7 @@ class RF092Source(unittest.TestCase):
     def test_real_pinned_smp_sources_and_one_time_patch(self):
         smp, core, memory = m.patch(*self.original)
         self.assertEqual(smp.count(m.STAMP), 1)
-        self.assertIn('#include "../../../snes9x.h"\n#include <cstdio>', smp)
+        self.assertIn('#include "../../../snes9x.h"\n#include "../../../cpuexec.h"\n#include <cstdio>', smp)
         self.assertIn('if (frame < 6054u || frame > 6059u', smp)
         self.assertIn('flag[0] != \'1\' || flag[1] != \'\\0\'', smp)
         self.assertIn('QA01RF092SPC_TRUNCATED', smp)

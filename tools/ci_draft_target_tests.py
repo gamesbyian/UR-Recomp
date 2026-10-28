@@ -141,7 +141,7 @@ def main():
                  if p.is_file() and not p.is_symlink()}
     selected = select(changed, timings, available)
     # Pure, validated Python module names. GitHub workflow uses mapfile, not eval.
-    print("\n".join(selected))
+    # An empty selection must produce ZERO lines. A lone newline makes bash\n    # mapfile create one empty module, which fails unittest with ValueError:\n    # Empty module name instead of reporting an honest no-diagnostic result.\n    if selected:\n        print("\n".join(selected))
 
 
 if __name__ == "__main__":

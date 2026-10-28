@@ -66,10 +66,10 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
             "types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]",
             workflow)
         self.assertIn("  workflow_dispatch:", workflow)
-        self.assertIn("jobs:\\n  unit:\\n", workflow)
-        unit = workflow.split("jobs:\\n  unit:\\n", 1)[1].split(
-            "\\n  draft-syntax:\\n", 1)[0]
-        draft = workflow.split("\\n  draft-syntax:\\n", 1)[1]
+        self.assertIn("jobs:\n  unit:\n", workflow)
+        unit = workflow.split("jobs:\n  unit:\n", 1)[1].split(
+            "\n  draft-syntax:\n", 1)[0]
+        draft = workflow.split("\n  draft-syntax:\n", 1)[1]
         self.assertIn(
             "if: github.event_name != 'pull_request' || "
             "github.event.pull_request.draft == false", unit)

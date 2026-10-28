@@ -164,9 +164,9 @@ class RF083Source(unittest.TestCase):
         # must also activate its opcode-scoped observer at 6445..6449.
         a, _ = m.patch(source(), setter())
         self.assertIn("const int result_port_window=(frame>=6445u && frame<=6449u);", a)
-        self.assertIn("(frame>=6069u && frame<=6079u) ||\\n"
+        self.assertIn("(frame>=6069u && frame<=6079u) ||\n"
                       "                        result_port_window;", a)
-        self.assertIn("rf083_early=enabled && ((frame>=6051u && frame<=6065u) ||\\n"
+        self.assertIn("rf083_early=enabled && ((frame>=6051u && frame<=6065u) ||\n"
                       "                            result_port_window);", a)
         guard = "(rf083_frame>=6445u && rf083_frame<=6449u)"
         self.assertEqual(a.count(guard), 2)

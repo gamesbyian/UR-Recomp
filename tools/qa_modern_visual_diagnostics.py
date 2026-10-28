@@ -256,16 +256,17 @@ def _outside_viewport_nonblack(frame: Frame, m: Mapping) -> int:
     root with visible content there cannot be explained as 256 columns.
     Alpha is intentionally ignored, matching the RGB diagnostic contract.
     """
-    def bounds(origin, span, limit):
-        # One physical pixel of slack on each edge is necessary for SDL's
-        # fractional nearest-neighbour rounding. A single fringe column
-        # must not invalidate a genuine 256px letterbox or 342px fit;
-        # substantial content deeper into the black bars still rejects it.
-        return (max(0, min(limit, math.ceil(origin - 1.5))),
-                max(0, min(limit, math.ceil(origin + span + 0.5))))
+    def bounds(origin, span, limit, pitch):
+        # Nearest sampling may extend the first logical colour one complete
+        # source-pixel pitch outside a fractional viewport. In particular,
+        # Python's int() truncates negative sample positions toward zero in
+        # historical synthetic fixtures. Ignore that bounded edge fringe,
+        # but reject actual RGB deeper inside a supposed black letterbox.
+        return (max(0, min(limit, math.ceil(origin - 0.5 - pitch))),
+                max(0, min(limit, math.ceil(origin + span - 0.5 + pitch))))
 
-    left, right = bounds(m.vx, m.lw * m.sx, frame.width)
-    top, bottom = bounds(m.vy, m.lh * m.sy, frame.height)
+    left, right = bounds(m.vx, m.lw * m.sx, frame.width, m.sx)
+    top, bottom = bounds(m.vy, m.lh * m.sy, frame.height, m.sy)
     buf, width, height = frame.rgba, frame.width, frame.height
     count = 0
     for y in range(height):

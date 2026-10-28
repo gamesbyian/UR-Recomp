@@ -320,9 +320,10 @@ def detect_logical(frame: Frame, widths=(256, 342), logical_h: int = 224,
                     scored[w] = fractions[w] = score
                     phases[w] = shift
         ok = candidates()
-        # Interior uniformity alone cannot distinguish widths that share the
-        # same physical pixel pitch (e.g. 256/342 at 856x480). Reject any
-        # candidate that requires black bars where actual RGB content exists.
+    # Even an unshifted, uniquely uniform candidate must not claim a 256px
+    # source when the supposed letterbox contains actual guest RGB content.
+    # Black/flat frames can still leave both widths ambiguous.
+    if mode == "fit":
         for w in ok:
             try:
                 m = mapping(w, logical_h, frame.width, frame.height, mode, par)

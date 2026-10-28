@@ -84,7 +84,7 @@ def validate_scope(scope: dict, criteria: list[dict]) -> list[dict]:
             and v2._fingerprint(rows) == PROJECTED_FINGERPRINT,
             "projection scope IDs/descriptions/weights have changed")
     require(sum(c["area"] == "FID" for c in rows) == 45
-            and all(x["id"] in {c["id"] for c in rows}
+            and all(x in {c["id"] for c in rows}
                     for x in ("QA-01", "QA-02", "QA-03", "QA-04",
                               "QA-05", "QA-06", "QA-07", "QA-08", "QA-10",
                               "WIDE-03", "WIDE-06", "RECOVERY-09", "UX-04")),

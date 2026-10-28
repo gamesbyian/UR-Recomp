@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 RECORDER = ROOT / "docs/playtest/windows-h01-h07-offline.html"
 INSTRUCTIONS = ROOT / "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"
 SHEET = ROOT / "docs/WINDOWS-PLAYTEST-RESULTS-TEMPLATE.md"
+BOARD = ROOT / "docs/HOURLY-AGENT-LINES.md"
+QUEUE = ROOT / "docs/WORK-QUEUE.md"
 
 
 class _Tags(html.parser.HTMLParser):
@@ -36,15 +38,28 @@ class OfflineWindowsH01H07Tests(unittest.TestCase):
 
     def test_immutable_candidate_pins_match_current_owner_instructions(self):
         for pin in (
-            "930f16ed4536aea83450335bd550aa9afefd98f1",
-            "29c0dd7d831307f87913ef74ec5b8189485aa822295a8e6cb3f92b460477ac58",
-            "74448c44ee11e948dfa965fb2b9ab760f5fd79a9e936d7b02d44fa8ee1eed38f",
+            "93d6251dc1edad80d350be46a11be715883b46a3",
+            "f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1",
+            "68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9",
         ):
             with self.subTest(pin=pin):
                 self.assertIn(pin, self.js)
                 self.assertIn(pin, INSTRUCTIONS.read_text(encoding="utf-8"))
-        self.assertIn("12734720034", self.html)
-        self.assertIn("40500741324", self.js)
+        self.assertIn("12803447603", self.html)
+        self.assertIn("40658096254", self.js)
+        self.assertIn("source-tree-equivalent", self.html)
+        self.assertIn("November 4, 2026", INSTRUCTIONS.read_text(encoding="utf-8"))
+        self.assertNotIn("930f16ed4536aea83450335bd550aa9afefd98f1", self.js)
+        self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2763"),
+                        INSTRUCTIONS.read_text(encoding="utf-8").index("Superseded post-#2688"))
+        # A future physical candidate nomination must update both operator
+        # entry points rather than silently leaving the recorder on old bytes.
+        for authority in (BOARD, QUEUE):
+            with self.subTest(authority=authority):
+                text = authority.read_text(encoding="utf-8")
+                self.assertIn("12803447603", text)
+                self.assertIn("f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1", text)
+                self.assertIn("68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9", text)
 
     def test_all_seven_physical_journeys_and_statuses_present(self):
         for n in range(1, 8):

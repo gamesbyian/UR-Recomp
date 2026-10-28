@@ -60,6 +60,30 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
         self.assertIn('wait "${pids[$i]}"; r=$?', workflow)
         self.assertIn('test "$rc" -eq 0', workflow)
 
+    def test_draft_syntax_and_ready_full_unit_are_disjoint(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn(
+            "types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]",
+            workflow)
+        self.assertIn("  workflow_dispatch:", workflow)
+        self.assertIn("jobs:\\n  unit:\\n", workflow)
+        unit = workflow.split("jobs:\\n  unit:\\n", 1)[1].split(
+            "\\n  draft-syntax:\\n", 1)[0]
+        draft = workflow.split("\\n  draft-syntax:\\n", 1)[1]
+        self.assertIn(
+            "if: github.event_name != 'pull_request' || "
+            "github.event.pull_request.draft == false", unit)
+        self.assertIn(
+            "if: github.event_name == 'pull_request' && "
+            "github.event.pull_request.draft == true", draft)
+        self.assertIn("Run full dependency-free Python unit tests", unit)
+        self.assertIn("tools/run_unit_shard.py --out", unit)
+        self.assertIn("python3 -m compileall -q tests/unit tools", draft)
+        self.assertIn("YAML.parse_file(path)", draft)
+        self.assertIn("DRAFT_SYNTAX_ONLY", draft)
+        self.assertNotIn("tools/run_unit_shard.py", draft)
+        self.assertNotIn("python3 -m unittest", draft)
+
     def test_trigger_scope_stays_narrow(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertNotIn('- "native/product/**"', workflow)

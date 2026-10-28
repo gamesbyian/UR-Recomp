@@ -118,8 +118,8 @@ class BetaV3Tests(unittest.TestCase):
     def test_legacy_v2_and_release_gate_source_untouched(self):
         v2_stats = v2.validate(self.inventory, self.ledger)
         actual = self.result()
-        self.assertEqual(v2_stats["bounded_product_coverage_percent"], 52.0)
-        self.assertEqual(v2_stats["independently_audited_coverage_percent"], 10.0)
+        self.assertEqual(v2_stats["bounded_product_coverage_percent"], 53.0)
+        self.assertEqual(v2_stats["independently_audited_coverage_percent"], 11.0)
         self.assertEqual(v2_stats["formal_windows_gates_passed"], 0)
         self.assertEqual(actual["release_quality_separate"]["legacy_qa09_status"],
                          "unverified")

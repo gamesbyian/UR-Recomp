@@ -2,7 +2,7 @@
 import unittest
 
 from tools.ci_select_unit_suite import (
-    FOCUSED_TEST_MODULES, OPERATIONS_ONLY, OPS_CONTEXT_DOCS,
+    BOUNDED_RESEARCH_WORKFLOWS, FOCUSED_TEST_MODULES, OPERATIONS_ONLY, OPS_CONTEXT_DOCS,
     classify, classify_paged, github_mode,
 )
 
@@ -33,6 +33,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
             "docs/WORK-QUEUE.md",
             "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
         }
+        expected.add("AGENTS.md")
         self.assertEqual(OPS_CONTEXT_DOCS, expected)
         for context in expected:
             with self.subTest(context=context):
@@ -66,6 +67,55 @@ class UnitSuiteSelectorTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertEqual(classify([f("tools/agent_control.py"), f(path)]),
                                  "full")
+
+
+    def test_exact_bounded_research_workflow_only_changes_are_fast(self):
+        self.assertEqual(len(BOUNDED_RESEARCH_WORKFLOWS), 7)
+        self.assertTrue(all(x.startswith(".github/workflows/qa01-rf")
+                            and x.endswith(".yml") for x in BOUNDED_RESEARCH_WORKFLOWS))
+        for path in sorted(BOUNDED_RESEARCH_WORKFLOWS):
+            with self.subTest(path=path):
+                self.assertEqual(classify([f(path)]), "ops")
+        self.assertEqual(classify([f(x) for x in sorted(BOUNDED_RESEARCH_WORKFLOWS)]),
+                         "ops")
+
+    def test_research_ci_fast_path_refuses_any_mixed_or_sensitive_change(self):
+        allowed = sorted(BOUNDED_RESEARCH_WORKFLOWS)[0]
+        for changed in (
+            "tools/agent_control.py",
+            "AGENTS.md",
+            "tests/unit/test_qa01_rf066_rf062_full_raw_crosswalk.py",
+            ".github/workflows/qa01-event-campaign.yml",
+            ".github/workflows/qa01-original-stack-producer-compile.yml",
+            ".github/workflows/tooling-unit-tests.yml",
+            ".github/workflows/repo-hygiene.yml",
+            ".github/workflows/manual-romfree-windows-playtest.yml",
+            "native/product/modern_root_menu.hpp",
+        ):
+            with self.subTest(changed=changed):
+                self.assertEqual(classify([f(allowed), f(changed)]), "full")
+        for changed in (
+            ".github/workflows/qa01-event-campaign.yml",
+            ".github/workflows/tooling-unit-tests.yml",
+            ".github/workflows/qa01-rf999-new-unreviewed.yml",
+            "tools/qa01_rf071_getter_vs_script_dump.py",
+        ):
+            self.assertEqual(classify([f(changed)]), "full")
+        for state in ("removed", "renamed", "copied", None):
+            self.assertEqual(classify([f(allowed, state)]), "full")
+        self.assertEqual(classify([f(allowed), f(allowed)]), "full")
+
+    def test_bounded_workflows_are_real_and_separate_from_release_gates(self):
+        from pathlib import Path
+        for filename in BOUNDED_RESEARCH_WORKFLOWS:
+            with self.subTest(filename=filename):
+                file = Path(filename)
+                self.assertTrue(file.is_file())
+                text = file.read_text(encoding="utf-8")
+                self.assertIn("pull_request:", text)
+                self.assertNotIn("release-quality-ledger", text.lower())
+                self.assertNotIn("RELEASE-QUALITY-LEDGER.json", text)
+
 
     def test_deleted_renamed_copied_or_unexpected_status_is_never_fast(self):
         for status in ("removed", "renamed", "copied", "changed", None, ""):
@@ -143,10 +193,11 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 16)
+        self.assertEqual(len(OPERATIONS_ONLY), 17)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
         self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
-        self.assertTrue(all(p.startswith("docs/") and p.endswith(".md") for p in OPS_CONTEXT_DOCS))
+        self.assertTrue(all((p.startswith("docs/") or p == "AGENTS.md") and p.endswith(".md")
+                            for p in OPS_CONTEXT_DOCS))
 
 
 if __name__ == "__main__":

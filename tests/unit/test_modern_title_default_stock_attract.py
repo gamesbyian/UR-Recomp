@@ -32,6 +32,26 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertNotIn("std::getenv", region)
         self.assertIn("g_stock_target == -1", region)
 
+    def test_wake_disarms_previous_main_before_source_title_exit(self):
+        # Real Start exits a racing demo through stock TITLE 84 before MAIN.
+        # Reusing the old D7 observation would immediately reveal that
+        # transient TITLE as a new attract on a just-woken Modern title.
+        wake = self.source.split("void wake_original_stock_attract() {", 1)[1].split(
+            'extern "C" int ur_baldosa_modern_root_key(', 1
+        )[0]
+        self.assertIn("g_original_attract_seen_main = false;", wake)
+        self.assertLess(
+            wake.index("g_original_attract_seen_main = false;"),
+            wake.index("g_original_attract_visible = false;"))
+        rearm = self.source.split(
+            "// The original guest's *observed* MAIN D7 -> TITLE 84 transition,", 1
+        )[1].split(
+            "if (g_visible && ur::product::modern_title_active(g_title))", 1
+        )[0]
+        self.assertIn("if (!guest_in_race && source_menu == 0xd7u)", rearm)
+        self.assertIn("g_original_attract_seen_main = true;", rearm)
+        self.assertIn("if (g_original_attract_seen_main && !guest_in_race &&", rearm)
+
     def test_p2_is_consumed_during_title_and_root_except_real_join(self):
         region = self.source.split(
             'extern "C" int ur_baldosa_modern_root_gamepad(', 1

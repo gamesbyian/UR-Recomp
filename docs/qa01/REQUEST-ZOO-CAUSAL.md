@@ -11,7 +11,7 @@ The canonical campaign and independent QA continue to own source/WRAM/SRAM seman
 
 ## Next research request
 
-- Request sequence: **17** (RF093 native SPC executed input-receipt/output-ready and queue-timing discriminator)
+- Request sequence: **17** (same-run result follow-through, Next Bowl and fresh guest ranked record)
 - Requested reason: Run one source-bound sequence-17 Zoo original/native campaign with the newly merged #2776 opt-ins for actual result follow-through, authentic next-Bowl progression and fresh original/native guest ranked-record reload in the same source epoch. Preserve the exact original USA ROM/movie/seed, the sequence-13 observer-OFF noninterference control, RF090/091/092 and RF088/093 paired CPU/SPC witnesses, 13 unmasked +5034..+5046 WRAM/SRAM pairs, original/native binary hashes and independent clock domains. Classify any strict divergence without waiver or event credit; audit whether the real result, next-Bowl and fresh-guest reports were produced, and record the first concrete missing witness or failure. Do not treat fresh guest SRAM as Windows host-disk cold-save durability or infer 1/45 event acceptance.
 - Observer mode: **on**
 - Requested by: Project engineering agent, under owner autonomous engineering direction

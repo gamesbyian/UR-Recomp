@@ -18,16 +18,55 @@ ROW = re.compile(
     r"reg=([0-9A-F]{2}) val=([0-9A-F]{2}) spc_ticks=(\d+) "
     r"spc_next_pc=([0-9A-F]{4}) clock=(original_spc|native_spc)$"
 )
+F7_ORIG = re.compile(
+    r"^QA01RF092SPC seq=(\d+) frame=(\d+) kind=SPC_TO_CPU_WRITE "
+    r"addr=00F7 val=([0-9A-F]{2}) spc_ticks=(\d+) "
+    r"spc_next_pc=([0-9A-F]{4}) clock=original_spc$"
+)
+F7_NATIVE = re.compile(
+    r"^QA01RF093NATIVE seq=(\d+) f=(\d+) kind=SPC_TO_CPU_WRITE "
+    r"addr=00F7 val=([0-9A-F]{2}) spc_ticks=(\d+) "
+    r"spc_next_pc=([0-9A-F]{4}) q=\d+ target=\d+ guest=\d+ "
+    r"clock=native_spc$"
+)
 WINDOW = {"ORIG": (6445, 6451, 6447, "original_spc"),
           "NATIVE": (6447, 6453, 6449, "native_spc")}
 
 def audit(raw: bytes, side: str) -> dict:
     start, end, entry, clock = WINDOW[side]
     text = raw.decode("utf-8", errors="strict")
-    if "QA01RF094" + side + "_TRUNCATED" in text:
+    if (("QA01RF094" + side + "_TRUNCATED") in text or
+            ("QA01RF092SPC_TRUNCATED" if side == "ORIG"
+             else "QA01RF093NATIVE_TRUNCATED") in text):
         raise ValueError("RF094 " + side + " DSP observation truncated")
     rows = []
+    f7_writes = []
+    previous_f7_seq = -1
     for line in text.splitlines():
+        if ("kind=SPC_TO_CPU_WRITE addr=00F7 " in line and
+            line.startswith("QA01RF092SPC" if side == "ORIG"
+                            else "QA01RF093NATIVE")):
+            f7 = (F7_ORIG if side == "ORIG" else F7_NATIVE).fullmatch(line)
+            if not f7:
+                raise ValueError("RF094 malformed actual SPC F7 continuation row")
+            seq, frame, value, ticks, pc = (
+                int(f7.group(i), base) for i, base in
+                ((1, 10), (2, 10), (3, 16), (4, 10), (5, 16)))
+            if frame < start:
+                # Existing independent early upload windows at ~6054.
+                if frame > 6100:
+                    raise ValueError("RF094 unexpected port observation frame")
+                continue
+            if (frame > end or seq <= previous_f7_seq or
+                (f7_writes and (frame < f7_writes[-1]["frame"] or
+                                ticks < f7_writes[-1]["spc_ticks"]))):
+                raise ValueError("RF094 F7 stream frame/sequence/order invalid")
+            previous_f7_seq = seq
+            f7_writes.append({"frame": frame, "entry_offset": frame - entry,
+                              "val": value, "spc_ticks": ticks,
+                              "spc_next_pc": pc})
+            if len(f7_writes) > 16384:
+                raise ValueError("RF094 F7 write budget exceeded")
         if not line.startswith("QA01RF094" + side):
             continue
         m = ROW.fullmatch(line)
@@ -49,7 +88,11 @@ def audit(raw: bytes, side: str) -> dict:
             "clock": clock, "entry_frame": entry, "frame_window": [start, end],
             "executed_dsp_writes": len(rows), "first": rows[0] if rows else None,
             "last": rows[-1] if rows else None, "rows": rows,
-            "no_dsp_write_observed": not rows}
+            "no_dsp_write_observed": not rows,
+            "f7_write_count": len(f7_writes),
+            "f7_bytes": [x["val"] for x in f7_writes],
+            "f7_writes": f7_writes,
+            "f7_late_observed": any(x["entry_offset"] >= 3 for x in f7_writes)}
 
 def analyze(original: bytes, native: bytes) -> dict:
     orig = audit(original, "ORIG")
@@ -59,7 +102,10 @@ def analyze(original: bytes, native: bytes) -> dict:
             "same_ordered_register_values": (
                 [(x["reg"], x["value"]) for x in orig["rows"]] ==
                 [(x["reg"], x["value"]) for x in nat["rows"]]),
+            "same_ordered_f7_bytes": (
+                orig["f7_bytes"] == nat["f7_bytes"]),
             "same_ordered_register_values_proves_audio_parity": False,
+            "same_ordered_f7_bytes_proves_audio_parity": False,
             "cross_core_clock_conversion_proven": False,
             "full_guest_event_admitted": False,
             "usa_event_credit": 0, "windows_release_gate_credit": 0}

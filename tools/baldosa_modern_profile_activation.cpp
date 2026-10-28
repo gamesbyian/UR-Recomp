@@ -797,7 +797,8 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
     if (!ur::product::baldosa_native_selected_profile_paths_are_real(
             g_native_user_root, profile_root.save_root))
         return reject("save_profile_path_redirected_or_incomplete");
-    // Keep native UTF-16 path identity for Win32 OS locks; passing UTF-8\n    // through the narrow path constructor uses the current ANSI code page.\n    auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
+    // Keep native UTF-16 paths for Win32 OS locks; narrow paths use ACP.
+    auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
         (g_native_user_root / "host-state-v1.txt"), true);
     if (!candidate->acquired())
         return reject("save_selector_lock_unavailable");

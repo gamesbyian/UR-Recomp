@@ -48,6 +48,7 @@ class OfflineWindowsH01H07Tests(unittest.TestCase):
         self.assertIn("12814450108", self.html)
         self.assertIn("40680902399", self.js)
         self.assertIn("source-tree-equivalent", self.html)
+        self.assertIn("distinct Return guest Start", self.html)
         self.assertIn("November 4, 2026 at 11:52 UTC", INSTRUCTIONS.read_text(encoding="utf-8"))
         self.assertNotIn("930f16ed4536aea83450335bd550aa9afefd98f1", self.js)
         self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2770"),

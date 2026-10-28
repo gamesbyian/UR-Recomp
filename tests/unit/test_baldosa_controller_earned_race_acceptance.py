@@ -90,6 +90,13 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertIn('verify_five_destination_pad_post_result(return_log)',
                       RUNNER)
         self.assertIn('"earned_return_unicode_root":', RUNNER)
+        # A fourth actual native process must cold-open the already earned
+        # archive through the same five-destination Modern controller path.
+        self.assertIn('out / "earned_return_cold_records", "29"', RUNNER)
+        self.assertIn('verify_five_destination_pad_journey(cold_log)', RUNNER)
+        self.assertIn('visible != [("1", "0")]', RUNNER)
+        self.assertIn('cold_runs != return_after', RUNNER)
+        self.assertIn('"earned_return_cold_records":', RUNNER)
 
     def test_earned_race_native_log_is_retained_for_independent_qa(self):
         # A summary receipt cannot independently establish the original

@@ -423,7 +423,13 @@ jobs:
               && dirs+=(--dir "$d")
           done
           test "${#dirs[@]}" -gt 0 || { echo "No Modern capture directories to measure." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          # Current native 16:9 root is 342 logical columns. Keep frozen
+          # historical 256-wide cases intact; require external checkout/PE
+          # identities before selecting the source-qualified root scene.
           python tools/qa_modern_visual_archive_cases.py "${dirs[@]}" --require-ring \
+            --current-native-root \
+            --expected-source-sha "$(git rev-parse HEAD)" \
+            --expected-exe-sha "$(sha256sum baldosa/build-ur-visual/UniracersSNESRecomp.exe | cut -d' ' -f1)" \
             --json "$RUNNER_TEMP/modern-capture-geometry.json" \
             --summary "$GITHUB_STEP_SUMMARY" \
             | tee "$RUNNER_TEMP/modern-capture-geometry.txt" \

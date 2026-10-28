@@ -46,8 +46,8 @@ class OfflinePhysicalIntakeTests(unittest.TestCase):
     def test_source_pins_match_actual_independent_candidate_in_instructions(self):
         instructions = (RECORDER.parent.parent / "WINDOWS-PLAYTEST-INSTRUCTIONS.md"
                         ).read_text(encoding="utf-8")
-        self.assertEqual(self.pins["producing_run"], 40680902399)
-        self.assertEqual(self.pins["artifact_id"], 12814450108)
+        self.assertEqual(self.pins["producing_run"], 40763949905)
+        self.assertEqual(self.pins["artifact_id"], 12850662557)
         for key in ("source_sha", "inner_zip_sha256", "executable_sha256"):
             self.assertIn(self.pins[key], instructions)
 

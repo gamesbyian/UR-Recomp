@@ -21,7 +21,7 @@ class ModernTitleCurrentMainIntegration(unittest.TestCase):
             "original_stock_attract_source_ready()",
             'std::strcmp(opt, "19")',
             'std::strcmp(opt, "24")',
-            "mode > 36",
+            "mode > 37",
         ):
             with self.subTest(required=required):
                 self.assertIn(required, source)

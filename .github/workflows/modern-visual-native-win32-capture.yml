@@ -32,7 +32,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'product/menu10-p1-start-guest-exit-20261028' || github.head_ref == 'product/menu10-post-wake-start-exit-20261028'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'product/menu10-p1-start-guest-exit-20261028' || github.head_ref == 'product/menu10-post-wake-start-exit-20261028' || github.head_ref == 'product/menu10-keyboard-demo-exit-20261028'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -228,6 +228,38 @@ jobs:
             ${{ runner.temp }}/ur-menu10-post-wake-start-exit/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-menu10-post-wake-start-exit/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-menu10-post-wake-start-exit/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+      # Keyboard-only end-to-end route: consumed Return wake, separate
+      # genuine guest Start from a later Return, and fresh Modern confirmation.
+      - name: Observe keyboard-only wake then distinct Return guest demo exit
+        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-keyboard-demo-exit-20261028'
+        run: |
+          set -euo pipefail
+          python tools/qa_modern_visual_win32_capture_driver.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --out "$RUNNER_TEMP/ur-menu10-keyboard-post-wake-exit" --video windows \
+            --timeout 130 --window-size 1280x720 \
+            --route stock-attract-keyboard-post-wake-exit
+          test -s "$RUNNER_TEMP/ur-menu10-keyboard-post-wake-exit/readback-receipt.json"
+          LOG="$RUNNER_TEMP/ur-menu10-keyboard-post-wake-exit/probe_first/native-process.log"
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT keyboard_wake_host_only=1' "$LOG"
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_start_to_demo=1' "$LOG"
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_exit_ready=1' "$LOG"
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_root_ready=1' "$LOG"
+          echo "Real hosted Win32 keyboard-only wake/Start/Modern journey; no physical or release acceptance." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain keyboard-only original-source and final SDL evidence
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-keyboard-demo-exit-20261028'
+        uses: actions/upload-artifact@v4
+        with:
+          name: menu10-keyboard-post-wake-source-exit
+          path: |
+            ${{ runner.temp }}/ur-menu10-keyboard-post-wake-exit/readback-receipt.json
+            ${{ runner.temp }}/ur-menu10-keyboard-post-wake-exit/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-menu10-keyboard-post-wake-exit/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-menu10-keyboard-post-wake-exit/probe_first/native-process.log
           if-no-files-found: warn
           retention-days: 7
       - name: Verify repaired racer identity on actual 16:9 and compact Windows SDL P7

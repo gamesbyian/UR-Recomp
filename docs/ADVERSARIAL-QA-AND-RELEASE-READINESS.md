@@ -20,12 +20,14 @@ Keep distinct:
 
 A passing unit test proves its own property; do not allow it to silently promote a whole subsystem to release-accepted. A correct fail-closed fallback can still constitute poor usability or unacceptable feature availability.
 
+**Milestone clarification (owner decision, October 27, 2026):** The three-environment QA-04 full-release matrix is **release-quality**, not a prerequisite for *beta* designation or for recognizing one genuinely observed physical-machine beta criterion. Release QA-04 retains all its original cross-machine rigor. A defect in an additional environment that exposes a real general beta fault must still be fixed before claiming that particular beta behaviour. Maintain the independent release ledger without passing QA-04 early. The historical frozen 135-criterion score still includes release-signoff QA-09 and must not be silently rescored as a beta-only tracker.
+
 ## Release decisions and entry conditions
 
 1. **Internal engineering build**: authentic main/race boot, focused regression contracts, known provenance. May have experimental UI.
 2. **Playtest alpha**: immutable candidate SHA and tested ZIP/sidecar; known issues; install/launch, clean-root and basic 1P/2P journeys; diagnostics/repro instructions; no assertion of broad fidelity or independent hardware.
-3. **External beta**: representative course/event-class and complex journeys complete, no unresolved P0 integrity/correctness issue, recovery and controller checks, repeatable Windows packaged run *on candidate*, physical Windows/audio/gamepad evidence from dissimilar machines, understood accessibility/UI limitations.
-4. **Release candidate**: whole playable-content event matrix and mode boundaries; persistent-state fault campaign; sustained play; all major visible routes and audio/visual presentation deliberately reviewed, clearly classified and owned; CI and manual gates from exact artifact; rollback/migration procedure; public ROM/legal distribution policy resolved if releasing beyond private circulation.
+3. **External beta**: representative course/event-class and complex journeys complete, no unresolved P0 integrity/correctness issue, recovery and controller checks, repeatable Windows packaged run *on candidate*, applicable **real physical** Windows/audio/gamepad/display observations for the individual beta requirements, and understood accessibility/UI limitations. **Three dissimilar setups are not a beta entry condition.** A single physical PC may qualify a scoped hardware beta claim, not cross-machine confidence.
+4. **Release candidate**: **three dissimilar Windows environments, including at least two physically separate PCs**, on the same verified source/ZIP/PE identity; whole playable-content event matrix and mode boundaries; persistent-state fault campaign; sustained play; all major visible routes and audio/visual presentation deliberately reviewed, clearly classified and owned; CI and manual gates from exact artifact; rollback/migration procedure; public ROM/legal distribution policy resolved if releasing beyond private circulation.
 5. **Public release**: a separately recorded human release decision. A green CI matrix, merge, or agent-offered ZIP never automatically grants this status.
 
 ### Candidate provenance

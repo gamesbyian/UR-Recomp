@@ -1,0 +1,81 @@
+# Disposable RF092 pinned original-core compile and control receipt. DO NOT MERGE.
+name: QA01 RF092 original pinned compile once
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/qa01-rf092-original-compile-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-rf092-original-compile-once
+  cancel-in-progress: false
+
+jobs:
+  pinned-original-compile:
+    if: ${{ github.event.pull_request.head.ref == 'agent3/ur-cpu-rf092-original-spc-20261028' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout immutable RF092 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: b40dddd7be2beb15db4789b0f9feeb9e2a9c64cb
+          submodules: recursive
+          persist-credentials: false
+      - name: Run actual current-main Agent 3 control and pinned tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = b40dddd7be2beb15db4789b0f9feeb9e2a9c64cb
+          mkdir -p "$RUNNER_TEMP/rf092-compile-receipt"
+          git fetch --depth=1 origin main
+          git worktree add --detach "$RUNNER_TEMP/rf092-main-control" FETCH_HEAD
+          (
+            cd "$RUNNER_TEMP/rf092-main-control"
+            printf 'main_sha=%s\n' "$(git rev-parse HEAD)"
+            python3 tools/agent_control.py --agent 3
+          ) | tee "$RUNNER_TEMP/rf092-compile-receipt/agent-control.txt"
+          python3 -m unittest -v tests.unit.test_qa01_rf092_original_spc_edges
+          python3 -m unittest -v tests.unit.test_qa01_rf083_original_sound_dp_first_writer
+      - name: Compile actual patched pinned original Snes9x
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+          python3 tools/qa01_rf092_original_spc_edges.py --root "$CORE_SRC"
+          grep -q UR_QA01_RF092_ORIGINAL_SPC_EDGES "$CORE_SRC/apu/bapu/smp/smp.cpp"
+          grep -q 'rf092_spc_port("CPU_TO_SPC_READ"' "$CORE_SRC/apu/bapu/smp/memory.cpp"
+          grep -q 'rf092_spc_port("SPC_TO_CPU_WRITE"' "$CORE_SRC/apu/bapu/smp/memory.cpp"
+          make -C "$CORE_SRC/libretro" clean
+          make -C "$CORE_SRC/libretro" -j2
+          test -s "$CORE_SRC/libretro/snes9x_libretro.so"
+          {
+            echo 'work_id=UR-CPU-CAUSE-20261026'
+            echo 'source_head=b40dddd7be2beb15db4789b0f9feeb9e2a9c64cb'
+            echo 'qualification=pinned-original-C++-compile-link-only'
+            echo 'staged=RF083/RF090/RF091 plus RF092 original SPC input/output'
+            echo 'not_executed=Zoo original/native replay; observer-off; original/native SPC parity'
+            sha256sum "$CORE_SRC/libretro/snes9x_libretro.so"
+            file "$CORE_SRC/libretro/snes9x_libretro.so"
+          } | tee "$RUNNER_TEMP/rf092-compile-receipt/receipt.txt"
+          echo 'RF092 original C++ compilation passed; no original/native event or release acceptance.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain metadata-only compilation and dispatch receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf092-original-compile-and-control
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/rf092-compile-receipt/

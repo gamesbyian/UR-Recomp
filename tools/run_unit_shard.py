@@ -12,9 +12,16 @@ import json
 import os
 from pathlib import Path
 import re
+import sys
 import time
 import unittest
 import zlib
+
+# A directly executed tools/*.py script has tools/ as sys.path[0], unlike
+# python -m unittest. Preserve the original root-relative test import context.
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 SCHEMA = "ur-unit-module-timings/1"
 MODULE = re.compile(r"tests\.unit\.test_[A-Za-z0-9_]+\Z")

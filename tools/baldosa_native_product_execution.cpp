@@ -12,7 +12,7 @@
 
 // Read-only source-owned race flag: only a genuine in-progress demo may
 // consume a P1 physical Start. Never write stock guest RAM.
-extern std::uint8_t g_ram[0x20000];
+extern "C" std::uint8_t g_ram[0x20000];
 
 namespace {
 ur::product::BaldosaGuestInputAuthority g_input;

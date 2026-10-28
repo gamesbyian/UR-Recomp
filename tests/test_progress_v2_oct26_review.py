@@ -73,7 +73,7 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertIn("6455893041", recovery["audit_receipt"])
         self.assertEqual(self.interval["score"]["new_work_earned_percentage_points"], 1)
         self.assertEqual(self.interval["score"]["retroactive_identification_percentage_points"], 0)
-        self.assertEqual(self.previous["at_main_sha"], "88056d491c77cc7bb14ef1635d81892ca0d70305")
+        self.assertEqual(self.previous["at_main_sha"], "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3")
 
     def test_menu10_same_pe_receipt_and_release_boundaries(self):
         audit = read("docs/progress/v2-menu10-same-pe-audit-20261028.json")

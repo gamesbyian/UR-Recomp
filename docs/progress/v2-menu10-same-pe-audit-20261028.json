@@ -1,0 +1,95 @@
+{
+  "schema": "ur-v2-criterion-independent-audit/1",
+  "reviewed_utc_date": "2026-10-28",
+  "work_id": "UR-RELEASE-PROGRESS-20261026",
+  "criterion_id": "MENU-10",
+  "criterion_text": "Title idle leads to genuine stock attract/demo and wake control",
+  "decision": "bounded_verified_independent_reviewed",
+  "classification": "new_hosted_player_behavior_proof_from_merged_product_fixes",
+  "reviewed_main_sha": "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3",
+  "producing_prs": [
+    2756,
+    2758,
+    2763,
+    2770,
+    2779
+  ],
+  "hosted_run": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40723989554",
+    "producer_synthetic_sha": "0f7c6282f9327e334c0c6b41296524db8cc9c2c7",
+    "reviewed_ready_head": "d10e8e3b71d40c99382f6ba6f2951fe4c2d0212c",
+    "executable_sha256": "910f9643182d12a13b3307f4f6f67f5f7e75f60876ed943fb3b6eb77ad03a8ef",
+    "executable_bytes": 20526080,
+    "pe_machine": "AMD64 0x8664",
+    "artifacts": [
+      {
+        "id": 12831188948,
+        "route": "unforced stock attract before/after/wake",
+        "sha256": "421e50a160648d2cc37cf14040116163eb9808420051bd0742323d90b9075606",
+        "members": 13
+      },
+      {
+        "id": 12832002568,
+        "route": "direct P1 Start",
+        "sha256": "2c87234a30dc5f2c042fbbfbaa3e247f39e72b26008f09ab803e5c195432cdad",
+        "members": 4
+      },
+      {
+        "id": 12833040555,
+        "route": "host-only A then distinct P1 Start",
+        "sha256": "806a574009ee362caa7da827378c63552ab533d6de8381cf8a873f2da8a9a9b9",
+        "members": 4
+      },
+      {
+        "id": 12830759840,
+        "route": "keyboard Return wake then distinct Return guest Start",
+        "sha256": "dc03bea6517d37cee5ddac4a00e963bd3b104789efc4b25a5d628540f844f8cd",
+        "members": 4
+      },
+      {
+        "id": 12832692427,
+        "route": "actual Windows AMD64 executable",
+        "sha256": "bd04f15801c73ae22266d5e44865d33cb3ef69a1209e17476be3eb9616774d6c",
+        "members": 1
+      }
+    ]
+  },
+  "independent_actual_byte_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6474857280",
+  "verified": [
+    "All five actual downloaded ZIP SHA256 hashes equal GitHub artifact metadata",
+    "26/26 ZIP members CRC clean",
+    "Actual PE MZ/PE32+ AMD64 machine and SHA256 verified",
+    "Six native log/P7/PNG SHA256 receipts independently verified",
+    "All six decoded 1280x720 RGBA PNG arrays exactly equal retained raw P7 pixels",
+    "Unforced original stock demo source phases MAIN D7, attract title 84 and demo race observed",
+    "Demo motion 1778 RGB changed pixels, wake 920960 RGB changed pixels",
+    "P1 Start, A then distinct Start, and keyboard Return then distinct Return recover original MAIN D7 and Modern root on the same executable",
+    "Visual inspection of authentic split-screen stock race/countdown image"
+  ],
+  "source_and_ci": {
+    "unit": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40723989355",
+    "unit_passed": 5967,
+    "unit_skipped": 48,
+    "hygiene": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40723989421",
+    "windows": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40723989554"
+  },
+  "not_checked": [
+    "Physical keyboard, pad, display, audio or two-controller H01-H07",
+    "P2-only original guest demo exit",
+    "Full original/native 45-event gameplay parity",
+    "Windows durable storage, save or hard-kill recovery",
+    "Independent source rebuild of Windows PE",
+    "Official release quality or art signoff"
+  ],
+  "score_effect": {
+    "previous_bounded_percent": 53,
+    "after_bounded_percent": 54,
+    "previous_independent_audit_percent": 11,
+    "after_independent_audit_percent": 12,
+    "new_engineering_percentage_points": 1,
+    "retroactive_evidence_percentage_points": 0,
+    "formal_release_gate_delta": 0,
+    "usa_complete_event_delta": 0
+  },
+  "next_executable": "Distinct agent reviews exact source interval and independent actual-byte receipt, waits for fresh ready-state full unit/hygiene, and merges only if all frozen MENU-10 evidence obligations qualify."
+}

@@ -66,6 +66,7 @@ class KeyboardPadJoinTests(unittest.TestCase):
         stages = (
             "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+            "[Gamepad] UR_CONTROLLER_SEAT assign instance=42 seat=0 reason=vacant",
             "UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
             "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
@@ -87,12 +88,58 @@ class KeyboardPadJoinTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     runner.verify_keyboard_plus_pad(invalid)
 
+    def test_split_stream_host_churn_before_move_cannot_pass_as_stable(self):
+        # run_game concatenates all host stdout before all product stderr.
+        # A pre-move vacate used to be invisible to the old slice beginning
+        # at the move and could falsely satisfy the stock GO seat check.
+        initial = ("[Gamepad] UR_CONTROLLER_SEAT assign instance=42 seat=0 "
+                   "reason=vacant player_index=0 key=0000000000000042")
+        move = "[Gamepad] UR_CONTROLLER_SEAT move instance=42 from=0 to=1"
+        root = "\n".join((
+            "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+            "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
+            "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+        )) + "\n"
+        runner.verify_keyboard_plus_pad(initial + "\n" + move + "\n" + root)
+        with self.assertRaisesRegex(ValueError, "initial SDL P1 assignment"):
+            runner.verify_keyboard_plus_pad(move + "\n" + root)
+        with self.assertRaisesRegex(ValueError, "initial SDL P1 assignment"):
+            runner.verify_keyboard_plus_pad(
+                initial.replace("instance=42", "instance=43") + "\n" +
+                move + "\n" + root)
+        for extra in (
+            initial,
+            initial.replace("instance=42", "instance=43"),
+            "[Gamepad] UR_CONTROLLER_SEAT assign instance=43 seat=1 reason=vacant",
+        ):
+            with self.subTest(extra=extra), self.assertRaises(ValueError):
+                runner.verify_keyboard_plus_pad(
+                    initial + "\n" + extra + "\n" + move + "\n" + root)
+        for churn in (
+            "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=0",
+            "[Gamepad] UR_CONTROLLER_SEAT claim instance=43 seat=0",
+        ):
+            with self.subTest(churn=churn), self.assertRaisesRegex(
+                    ValueError, "ownership changed"):
+                runner.verify_keyboard_plus_pad(
+                    initial + "\n" + churn + "\n" + move + "\n" + root)
+        # With independent stdout/stderr buffering, even apparent teardown
+        # after the root milestone cannot be time-ordered. Fail closed.
+        with self.assertRaisesRegex(ValueError, "ownership changed"):
+            runner.verify_keyboard_plus_pad(
+                initial + "\n" + move + "\n" +
+                "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=1\n" + root)
+
     def test_native_join_milestones_must_be_complete_lines(self):
         # Negative control: old substring matching would accept a menu
         # identifier with a longer suffix as genuine guest 0x3d admission.
         stages = (
             "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+            "[Gamepad] UR_CONTROLLER_SEAT assign instance=42 seat=0 reason=vacant",
             "[Gamepad] UR_CONTROLLER_SEAT move instance=42 from=0 to=1",
             "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2",
             "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
@@ -104,8 +151,8 @@ class KeyboardPadJoinTests(unittest.TestCase):
         for old, new in (
             (stages[-1], stages[-1] + "0"),
             (stages[-1], "prefix " + stages[-1]),
-            (stages[4], stages[4] + "0"),
-            (stages[5], stages[5] + "0"),
+            (stages[-3], stages[-3] + "0"),
+            (stages[-2], stages[-2] + "0"),
         ):
             with self.subTest(new=new):
                 with self.assertRaisesRegex(ValueError, "complete line"):

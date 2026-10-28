@@ -28,11 +28,14 @@ ENTER = "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"
 
 
 class TwoPadSeatChurnTests(unittest.TestCase):
-    def test_stable_seats_and_post_admission_teardown_are_allowed(self):
+    def test_stable_seats_pass_but_unordered_teardown_is_not_accepted(self):
         stable = "\n".join((SEAT0, SEAT1, OPEN, P1, P2, REQUEST, ENTER)) + "\n"
         verify_two_virtual_pads(stable)
-        verify_two_virtual_pads(stable +
-                                "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=1\n")
+        # Host stdout is concatenated before root stderr, so the validator
+        # cannot place a vacate on either side of stock GO in guest time.
+        with self.assertRaisesRegex(ValueError, "ownership changed"):
+            verify_two_virtual_pads(stable +
+                                    "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=1\n")
 
     def test_any_pre_admission_host_ownership_change_fails(self):
         for event, location in (

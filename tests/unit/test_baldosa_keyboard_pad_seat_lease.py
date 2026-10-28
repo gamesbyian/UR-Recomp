@@ -17,6 +17,7 @@ from run_baldosa_keyboard_pad_join_acceptance import verify_keyboard_plus_pad
 
 OPEN = "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2"
 P1 = "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1"
+INITIAL = "[Gamepad] UR_CONTROLLER_SEAT assign instance=42 seat=0 reason=vacant"
 HOST_MOVE = "[Gamepad] UR_CONTROLLER_SEAT move instance=42 from=0 to=1"
 JOIN_MOVE = "UR_BALDOSA_MODERN_ROOT join_pad_moved from=1 to=2"
 P2 = "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2"
@@ -29,18 +30,22 @@ def joined(*lines: str) -> str:
 
 
 class KeyboardPadSeatLeaseTests(unittest.TestCase):
-    def test_stable_move_and_post_admission_teardown_are_allowed(self):
-        valid = joined(OPEN, P1, HOST_MOVE, JOIN_MOVE, P2, REQUEST, ENTER)
+    def test_stable_move_passes_but_unordered_teardown_is_not_accepted(self):
+        valid = joined(INITIAL, OPEN, P1, HOST_MOVE, JOIN_MOVE, P2, REQUEST, ENTER)
         verify_keyboard_plus_pad(valid)
-        verify_keyboard_plus_pad(
-            valid + "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=1\n"
-        )
+        # A host vacate cannot be placed after guest GO by comparing
+        # concatenated stdout and stderr string offsets.
+        with self.assertRaisesRegex(ValueError, "ownership changed"):
+            verify_keyboard_plus_pad(
+                valid + "[Gamepad] UR_CONTROLLER_SEAT vacate instance=42 seat=1\n"
+            )
 
-    def test_host_move_must_precede_root_join_milestone(self):
-        # The old validator counted one move anywhere, even a late move.
-        late = joined(OPEN, P1, JOIN_MOVE, HOST_MOVE, P2, REQUEST, ENTER)
-        with self.assertRaisesRegex(ValueError, "followed join milestone"):
-            verify_keyboard_plus_pad(late)
+    def test_host_root_offsets_are_not_a_guest_clock(self):
+        # The actual runner concatenates stdout before stderr. Synthetic
+        # interleaving cannot establish whether a move preceded the root
+        # callback in guest time. The root milestone itself is source-owned.
+        late = joined(INITIAL, OPEN, P1, JOIN_MOVE, HOST_MOVE, P2, REQUEST, ENTER)
+        verify_keyboard_plus_pad(late)
 
     def test_malformed_or_embedded_host_move_cannot_count(self):
         for bad_move in (
@@ -64,7 +69,7 @@ class KeyboardPadSeatLeaseTests(unittest.TestCase):
             with self.subTest(event=event):
                 # Each of these previously passed despite losing seat-2
                 # continuity between host migration and stock admission.
-                log = joined(OPEN, P1, HOST_MOVE, JOIN_MOVE, P2,
+                log = joined(INITIAL, OPEN, P1, HOST_MOVE, JOIN_MOVE, P2,
                              REQUEST, event, ENTER)
                 with self.assertRaisesRegex(ValueError, "ownership changed"):
                     verify_keyboard_plus_pad(log)

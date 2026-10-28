@@ -237,6 +237,17 @@ jobs:
           grep -E '^(Ran [0-9]+ tests?|OK|FAILED|FAIL:|ERROR:|UR_UNIT_TIMINGS_ZLIB64=)' "$RUNNER_TEMP"/unit-shard*.log || true
           test "$rc" -eq 0
 
+      - name: Compute reviewable timing weights from all successful measured shards
+        if: success() && steps.unit-scope.outputs.mode != 'ops'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/rebalance_unit_test_timings.py \\
+            --source "$RUNNER_TEMP" \\
+            --source-sha "$GITHUB_SHA" \\
+            --shards "$(cat "$RUNNER_TEMP/unit-shard-count.txt")" \\
+            --out "$RUNNER_TEMP/unit_test_timings_candidate.json"
+
       - name: Publish bounded unit result and job summary
         if: always()
         shell: bash
@@ -256,6 +267,7 @@ jobs:
           path: |
             ${{ runner.temp }}/ci-tooling-unit-result.json
             ${{ runner.temp }}/unit-module-timings-shard*.json
+            ${{ runner.temp }}/unit_test_timings_candidate.json
           if-no-files-found: warn
           retention-days: 14
 

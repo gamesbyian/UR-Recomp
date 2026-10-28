@@ -237,7 +237,7 @@ class ArchiveCasesTest(unittest.TestCase):
             self.assertTrue(report["pass"], report)
             self.assertEqual(report["release_gate_credit"], 0)
             byid = {c["capture"]: c for c in report["captures"]}
-            self.assertEqual(byid["wide"]["case"], "root-wide-720")
+            self.assertEqual(byid["wide"]["case"], "current-native-root-wide-720")
             self.assertTrue(any(c["check"] == "source-identity"
                                 and c["pass"] for c in byid["wide"]["checks"]))
             self.assertEqual(byid["compact"]["case"], "root-43-768")
@@ -278,6 +278,8 @@ class ArchiveCasesTest(unittest.TestCase):
                 expected_source_sha=source_sha, expected_exe_sha=exe_sha)
             self.assertTrue(report["pass"], report)
             self.assertEqual(report["release_gate_credit"], 0)
+            self.assertEqual(report["captures"][0]["case"],
+                             "current-native-root-wide-720")
             self.assertTrue(any(c["check"] == "source-identity"
                                 for c in report["captures"][0]["checks"]))
             for bad in (dict(receipt, source_sha="c" * 40),

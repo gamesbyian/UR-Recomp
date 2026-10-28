@@ -136,7 +136,8 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
                 checks += case_report["checks"]
             out.append({"capture": cap["id"], "route": cap["native_semantic_route"],
                         "pixels": cap["pixels"], "png_sha256": frame.sha256,
-                        "case": case_id, "checks": checks,
+                        "case": case_report["case"] if case_report else None,
+                        "checks": checks,
                         "pass": all(c["pass"] for c in checks)})
     return {"schema": "ur-modern-visual-archive-cases-v1",
             "artifact": Path(zip_path).name,
@@ -191,15 +192,18 @@ def analyse_dirs(dirs, matrix: dict | None = None,
             # Nothing standard explains this frame: say what (if anything) does.
             checks[0]["detail"]["explain"] = d.explain_mapping(frame, top=3)
         case_id = ROUTE_CASE.get((route, pixels))
+        case_report = None
         if case_id:
             case = _qualified_case(case_id, matrix, expected_source_sha,
                                    current_native_root)
-            checks += cases.evaluate(
+            case_report = cases.evaluate(
                 case, frame, require_ring,
-                observed_source_sha=receipt.get("source_sha"))["checks"]
+                observed_source_sha=receipt.get("source_sha"))
+            checks += case_report["checks"]
         out.append({"capture": directory.name, "route": route,
                     "pixels": list(pixels), "png_sha256": frame.sha256,
-                    "case": case_id, "checks": checks,
+                    "case": case_report["case"] if case_report else None,
+                    "checks": checks,
                     "pass": all(c["pass"] for c in checks)})
     return {"schema": "ur-modern-visual-archive-cases-v1", "artifact": "directories",
             "exe_sha256": "n/a", "source_sha": "n/a",

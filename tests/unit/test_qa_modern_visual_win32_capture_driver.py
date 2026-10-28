@@ -166,8 +166,9 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                 return subprocess.CompletedProcess(argv, 0, stdout=(
                     "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\\n"
                     "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\\n"
-                    "UR_MODERN_VISUAL_SDL_CAPTURE refused=output-size draw=1510 "
-                    "observed=1280x720 requested=640x480\\n"), stderr="")
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1510 "
+                    "guest_frame=1568 output=640x480 "
+                    "source=SDL_RenderReadPixels backend=sdl3\\n"), stderr="")
             with patch.object(driver.subprocess, "run", side_effect=fake_capture):
                 value = driver.launch(root / "exe", root / "rom", root, "case",
                                       (640, 480), "windows", 4,

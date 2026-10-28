@@ -803,6 +803,11 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-report.json
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
+            # Exact 8KiB fresh-process SRAM dumps, not host disk/autosave proof.
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original/ref/cold-300.sram.bin
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original/ref/cold-420.sram.bin
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native/native/cold-300.sram.bin
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native/native/cold-420.sram.bin
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/qa01-rf084-native-writer-receipt.json
             ${{ runner.temp }}/qa01-case/qa01-rf086-native-first-boundary.json

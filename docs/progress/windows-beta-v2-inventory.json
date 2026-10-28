@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+  "source_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -333,13 +333,19 @@
       "id": "TWO-05",
       "area": "TWO",
       "criterion": "Keyboard plus pad admission rejects seat churn through stock GO",
-      "status": "unverified",
-      "evidence": [],
-      "evidence_class": "qa_oracle_hardening_only_not_product_seat_admission",
+      "status": "bounded_verified",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40630277462",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2747",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2750"
+      ],
+      "evidence_class": "independently_rehashed_hosted_Win32_virtual_SDL_keyboard_pad_positive_and_negative_stock_2p_source_logs",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "pending",
-      "withdrawn_reason": "PR #2455 changes only the acceptance runner's source-log guard; no changed product admission code proves the criterion's claimed product behavior."
+      "audit_state": "independent_reviewed",
+      "withdrawn_reason": "Historical #2455 oracle-only evidence was insufficient; later merged #2747/#2750 retain independently checked actual hosted Win32 positive and negative seat/stock product logs.",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6460996972",
+      "independent_review_note": "Actual hosted Windows x64 source-root/SDL logs: same-instance P1->P2 keyboard+pad stock GO, two distinct pads stock GO, cancelled join and P2-owner withdrawal reject GO. Fourteen-member artifact SHA/CRC and four log hashes independently checked. No cross-stream chronology; virtual pads, not physical H01-H07."
     },
     {
       "id": "TWO-06",
@@ -1737,6 +1743,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source comparison of 119 integrated commits since October 24 checkpoint; criterion-level independent review of exact Windows restart log and existing art source references; other unmet criteria screened, not physically accepted.",
-  "latest_criterion_review_ref": "docs/progress/v2-recovery10-packaged-win32-audit-20261028.json",
-  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0010.json"
+  "latest_criterion_review_ref": "docs/progress/v2-two05-hosted-seat-audit-20261028.json",
+  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0455.json"
 }

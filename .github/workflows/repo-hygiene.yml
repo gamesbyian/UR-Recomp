@@ -8,6 +8,8 @@ on:
       # Source-pinned offline physical report must receive independent hygiene.
       - "docs/playtest/windows-h01-h07-offline.html"
       - "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"
+      # Source-of-truth progress admissions must receive ready-head hygiene.
+      - "docs/progress/**"
       - "AGENTS.md"
       - "docs/README.md"
       - "docs/SYMBOLS.md"

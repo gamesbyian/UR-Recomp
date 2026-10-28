@@ -1,0 +1,87 @@
+{
+  "schema": "ur-v2-criterion-independent-audit/1",
+  "reviewed_utc_date": "2026-10-28",
+  "work_id": "UR-RELEASE-PROGRESS-20261026",
+  "criterion_id": "TWO-05",
+  "criterion_text": "Keyboard plus pad admission rejects seat churn through stock GO",
+  "decision": "bounded_verified_independent_reviewed",
+  "classification": "retroactive_existing_product_evidence_not_new_engineering",
+  "reviewed_main_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
+  "producing_prs": [
+    2747,
+    2750
+  ],
+  "hosted_run": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40630277462",
+    "artifact_id": 12791313122,
+    "source_merge_sha": "cd1457d97db7d2f3f7dae4177c59231787f0c17e",
+    "source_head_sha": "c6cd99763f1fa963110783f9844d596e8c589d31",
+    "source_base_sha": "2e9a8928c59c59808b87ee026672f51178ff5394",
+    "artifact_outer_sha256": "30085f09b8fcf14e85aefacd00c91aa7487b1c76f2ebff2cfe44aa8209fc000e",
+    "artifact_bytes": 21031,
+    "zip_members_crc_checked": 14
+  },
+  "raw_logs": [
+    {
+      "path": "keyboard_plus_pad/log.txt",
+      "sha256": "a8ca1f0f82686d12966fe368feba68ced94302b6fb812cdc926286a15cd41ffd",
+      "bytes": 3117,
+      "lines": 52,
+      "host_seat_events": 2,
+      "stock_2p_entries": 1,
+      "observation": "Same instance assigned P1 and moved to P2; root confirms both seats and stock 2P GO; no other seat changes."
+    },
+    {
+      "path": "two_virtual_pads/log.txt",
+      "sha256": "50407728df6f66804e02c93c97687fd0c056dbb4f4efee1d9b59f90469c13d12",
+      "bytes": 3174,
+      "lines": 52,
+      "host_seat_events": 2,
+      "stock_2p_entries": 1,
+      "observation": "Distinct instances assigned P1/P2; no churn; stock 2P GO."
+    },
+    {
+      "path": "join_cancelled/log.txt",
+      "sha256": "f8feb18630e2a8728108ddc34a5ca53b62c6ff48851e485dfb9779db67218576",
+      "bytes": 3410,
+      "lines": 54,
+      "host_seat_events": 3,
+      "stock_2p_entries": 0,
+      "observation": "Pad moves P1->P2->P1; root join closes; no stock 2P GO."
+    },
+    {
+      "path": "p2_owner_leaves/log.txt",
+      "sha256": "a5398c546c63c68274415504423549d54f8d4634fabeb32307ff2fced458f5da",
+      "bytes": 3478,
+      "lines": 53,
+      "host_seat_events": 3,
+      "stock_2p_entries": 0,
+      "observation": "P2 owner vacates, root clears confirmation; no stock 2P GO."
+    }
+  ],
+  "independent_audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6460996972",
+  "checked": [
+    "Actual ZIP outer SHA-256 and all 14 CRC members",
+    "Four actual UTF-8 log SHA-256 values",
+    "Complete-line seat identity and stock root markers",
+    "Two source-executed positive 2P admissions and two negative controls",
+    "No false stdout/stderr cross-stream ordering"
+  ],
+  "not_checked": [
+    "Physical Windows gamepads and H01-H07",
+    "Original/native full USA course parity",
+    "Fresh native compilation outside already green hosted CI",
+    "Formal release gate or art acceptance"
+  ],
+  "score_effect": {
+    "previous_bounded_percent": 51,
+    "after_bounded_percent": 52,
+    "previous_independent_audit_percent": 9,
+    "after_independent_audit_percent": 10,
+    "retroactive_evidence_percentage_points": 1,
+    "new_engineering_percentage_points": 0,
+    "formal_release_gate_delta": 0,
+    "usa_complete_event_delta": 0
+  },
+  "next_executable": "Independent reviewer checks exact PR head, frozen criterion and artifact hashes; require full ready-state unit and hygiene before merge. Physical Windows and first USA event remain separate."
+}

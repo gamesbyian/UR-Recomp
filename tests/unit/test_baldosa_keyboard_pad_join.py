@@ -69,7 +69,7 @@ class KeyboardPadJoinTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
                     ).read_text(encoding="utf-8")
         section = workflow.split(
-            "      - name: Retain native controller journey evidence\\n", 1
+            "      - name: Retain native controller journey evidence\n", 1
         )[1].split(
             "      - name: Observe genuine original idle attract", 1
         )[0]

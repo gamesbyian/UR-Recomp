@@ -965,10 +965,25 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
             "cold earned Records: the guest boot/navigation changed the "
             "immutable source-earned run archive")
 
+    # Retain the *actual source-earned* run bytes from the live Windows PE,
+    # not a synthetic replacement. The replay-stage verifier runs against
+    # the original Unicode path; this evidence copy is only for independent
+    # after-the-fact hash/format inspection and contains no ROM/player data.
+    earned_evidence = (out / "earned_return_cold_records" /
+                       "earned_run" / "source.urrun")
+    earned_evidence.parent.mkdir(parents=True, exist_ok=False)
+    earned_bytes = next(iter(return_new)).read_bytes()
+    if hashlib.sha256(earned_bytes).hexdigest() != return_earned_sha256:
+        raise ValueError("earned replay source changed before retention")
+    earned_evidence.write_bytes(earned_bytes)
+    if hashlib.sha256(earned_evidence.read_bytes()).hexdigest() != return_earned_sha256:
+        raise ValueError("retained source-earned replay evidence not byte-identical")
+
     receipt = {
         "five_destination_earned_race": "one_sdl_p1_real_original_go_source_settled_1p_record",
         "five_destination_earned_return": "one_sdl_p1_source_earned_1p_post_result_root_records",
         "earned_return_run_sha256": return_earned_sha256,
+        "source_earned_unicode_replay_archive_retained_sha256": return_earned_sha256,
         "earned_return_unicode_root": "real_win32_non_acp_named_p1_p2_cold_boot_source_earned_records",
         "earned_return_cold_records": "fresh_native_process_unicode_root_validated_one_unchanged_urrun",
         "earned_run_sha256": earned_sha256,

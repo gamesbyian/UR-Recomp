@@ -21,6 +21,7 @@ SEQUENCE = re.compile(r"(?m)^- Request sequence: \*\*(0|[1-9][0-9]*)\*\*")
 REASON = re.compile(r"(?m)^- Requested reason: ([^\n]+)$")
 MAX_SEQUENCE = 2**31 - 1
 ZOO_OBSERVER_MODE = re.compile(r"(?m)^- Observer mode: \*\*(on|off)\*\*$")
+ZOO_OBSERVER_FIELDS = re.compile(r"(?m)^- Observer mode:")
 
 
 def field(pattern: re.Pattern[str], text: str, name: str) -> str:
@@ -48,7 +49,7 @@ def validate(previous: str, current: str, changed: list[str], *, marker: str = M
     observer_enabled = None
     if marker == ZOO_MARKER:
         modes = ZOO_OBSERVER_MODE.findall(current)
-        if len(modes) != 1:
+        if len(modes) != 1 or len(ZOO_OBSERVER_FIELDS.findall(current)) != 1:
             raise ValueError("Zoo request requires exactly one explicit observer mode")
         observer_enabled = modes[0] == "on"
     return {"old": old, "new": new, "changed_paths": changed,

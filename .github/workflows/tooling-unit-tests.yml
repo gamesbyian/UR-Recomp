@@ -214,7 +214,7 @@ jobs:
           pids=()
           for ((i = 0; i < shards; i++)); do
             mapfile -t mods < <(python3 tools/partition_unit_tests.py --shards "$shards" --index "$i")
-            python3 -m unittest -v "${mods[@]}" >"$RUNNER_TEMP/unit-shard$i.log" 2>&1 &
+            python3 tools/run_unit_shard.py --out "$RUNNER_TEMP/unit-module-timings-shard$i.json" "${mods[@]}" >"$RUNNER_TEMP/unit-shard$i.log" 2>&1 &
             pids+=($!)
           done
 
@@ -231,7 +231,10 @@ jobs:
           # Persist per-shard results before asserting; the reporting step
           # publishes the concise diagnosis even on red.
           echo "Tooling unit shards=$shards"; cat "$RUNNER_TEMP/unit-shard-exits.txt"
-          grep -E '^(Ran [0-9]+ tests?|OK|FAILED|FAIL:|ERROR:)' "$RUNNER_TEMP"/unit-shard*.log || true
+          # Print compressed per-module wall times (no test output) for
+          # offline rebalance from the immutable source-bound Actions job log.
+          # Retain every failing module's original full stderr diagnostics.
+          grep -E '^(Ran [0-9]+ tests?|OK|FAILED|FAIL:|ERROR:|UR_UNIT_TIMINGS_ZLIB64=)' "$RUNNER_TEMP"/unit-shard*.log || true
           test "$rc" -eq 0
 
       - name: Publish bounded unit result and job summary
@@ -250,7 +253,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ci-tooling-unit-result
-          path: ${{ runner.temp }}/ci-tooling-unit-result.json
+          path: |
+            ${{ runner.temp }}/ci-tooling-unit-result.json
+            ${{ runner.temp }}/unit-module-timings-shard*.json
           if-no-files-found: warn
           retention-days: 14
 

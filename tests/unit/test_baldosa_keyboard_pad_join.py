@@ -62,6 +62,25 @@ class KeyboardPadJoinTests(unittest.TestCase):
         draw = body('extern "C" int ur_baldosa_modern_root_draw_frame(')
         self.assertIn("join_return_moved_pad();", draw)
 
+    def test_windows_artifact_retains_raw_join_and_negative_seat_logs(self):
+        # A green receipt string is insufficient to independently review TWO-05.
+        # The actual native runner already writes these logs; keep their bytes
+        # in the existing bounded, seven-day Windows artifact.
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
+                    ).read_text(encoding="utf-8")
+        section = workflow.split(
+            "      - name: Retain native controller journey evidence\n", 1
+        )[1].split(
+            "      - name: Observe genuine original idle attract", 1
+        )[0]
+        self.assertIn("if: ${{ always() }}", section)
+        self.assertIn("retention-days: 7", section)
+        for route in ("keyboard_plus_pad", "two_virtual_pads",
+                      "join_cancelled", "p2_owner_leaves"):
+            with self.subTest(route=route):
+                path = "/ur-keyboard-pad-join/" + route + "/log.txt"
+                self.assertEqual(section.count(path), 1)
+
     def test_positive_join_requires_actual_guest_2p_entry(self):
         stages = (
             "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",

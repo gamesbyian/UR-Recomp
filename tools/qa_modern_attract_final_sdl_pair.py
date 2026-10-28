@@ -58,7 +58,10 @@ def read_case(root: Path, name: str, source: str):
     header = b"P7\nWIDTH 1280\nHEIGHT 720\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"
     if not p7.startswith(header) or len(p7) != len(header) + 1280 * 720 * 4:
         raise ValueError("invalid actual SDL P7 raster: " + name)
-    text = log.decode("utf-8", errors="replace")
+    # Windows native Path.write_text can retain CRLF. Hash immutable raw
+    # bytes FIRST, then normalize line endings solely for exact regex parsing.
+    # Never rewrite the forensic artifact or weaken source/guest markers.
+    text = log.decode("utf-8", errors="replace").replace("\r\n", "\n")
     events = re.findall(
         r"(?m)^UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=(\d+) "
         r"guest_frame=(\d+) output=1280x720 "

@@ -5,6 +5,8 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "docs/qa01/REQUEST-ZOO-CAUSAL.md"
+      # Keep one-marker physical candidate dispatch independently qualified.
+      - "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md"
       # Source-pinned offline physical report must receive independent hygiene.
       - "docs/playtest/windows-h01-h07-offline.html"
       - "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"

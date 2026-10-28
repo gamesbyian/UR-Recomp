@@ -14,6 +14,8 @@
 
 **Dispatch reconciliation (October 27):** The [shared board](HOURLY-AGENT-LINES.md) now treats Windows package nomination as completed and physical H01–H07 as an external hold. After checking live PRs, generalists should prioritize the first complete genuine original/native event, its bounded CPU cause, reproduced Windows product defects, and authentic 4K racer asset work. Do not resurrect merged title/controller/Unicode donor grafts, and do not create a redundant Windows build to satisfy a source timestamp. Agent 5 has no merge monopoly.
 
+**Beta-only score display:** The [Windows beta-v3 projection](progress/WINDOWS-BETA-V3-SCORECARD.md) carries forward the historical v2 evidence while excluding final all-release-signoff QA-09 only. The altered denominator is not engineering progress; continue tracking true new implementation, source-reviewed retroactive admissions, current-source freshness and separate 12-gate release QA. All 45 events and all individual physical beta requirements still apply.
+
 ## What actually earns progress
 
 A **completed player journey** with runnable source-bound evidence, a **reproduced bug fixed and tested on its genuine integration route**, a **qualified PR merge** with the dependency closed, or a **new accepted independent gate/event**. Partial source improvements still count as implementation work, but not automatically as release clearance. A new issue, renamed task, another isolated synthetic test, ZIP moved between Vault folders, or unqualified green workflow is not product acceptance.

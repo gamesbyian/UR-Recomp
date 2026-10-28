@@ -1,0 +1,24 @@
+{
+  "schema": "ur-beta-scope/3",
+  "version": "windows-playable-beta-v3",
+  "base_inventory": "docs/progress/windows-beta-v2-inventory.json",
+  "base_inventory_schema": "ur-atomic-progress/2",
+  "base_inventory_fingerprint": "32c62b80",
+  "review_pointer": "docs/progress/current-v2-review.json",
+  "source_snapshot_policy": "read_only_projection_of_latest_independently_reviewed_v2_inventory_not_live_main",
+  "included_criterion_count": 134,
+  "excluded_criteria": [
+    {
+      "id": "QA-09",
+      "legacy_criterion": "Independent QA signs all mandatory release gates against candidate",
+      "weight_units": 45,
+      "reason": "Mandatory all-release-gate signoff belongs to the separately qualified release-quality milestone, not playable Windows beta."
+    }
+  ],
+  "excluded_criteria_policy": "exact_QA-09_only; retain all individual physical beta QA-02_through_QA-08_and_QA-10; retain all 45 original_native USA event slots",
+  "projected_fingerprint": "c231f49c",
+  "fixed_denominator_units": 4455,
+  "independent_review_policy": "Preserve each v2 recorded status/audit receipt and exact USA event to release ledger cross-check; no new admissions or mechanical promotions",
+  "release_quality_policy": "Three dissimilar Windows setups including two physical PCs and final QA-09 signoff remain independent release milestones and never beta-only shortcuts.",
+  "caution": "51 percent v2 and projected 51.515 percent v3 are DIFFERENT denominators, not a +0.515 point engineering improvement. This is a historical source-pinned screening view."
+}

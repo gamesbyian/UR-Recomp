@@ -174,7 +174,7 @@ void cold_read_source_earned_run(const fs::path& acceptance_base) {
         directory_utf8);
     require(after.size() == 1 && after[0].loaded(),
             "real source-earned archive damaged by replay staging");
-    std::cout << " DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed\\n";
+    std::cout << " DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed\n";
 }
 
 void cold_read_unicode_options(const fs::path& root) {

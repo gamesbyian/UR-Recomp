@@ -154,11 +154,21 @@ def validate(report: dict, *, pins: dict) -> dict:
     }
 
 
+def reject_duplicate_json_keys(pairs):
+    """Reject contradictory raw object members at every nesting level."""
+    result = {}
+    for key, value in pairs:
+        require(key not in result, "duplicate JSON key: " + key)
+        result[key] = value
+    return result
+
+
 def read_report(path: Path):
     require(path.is_file() and not path.is_symlink()
             and path.stat().st_size <= MAX_REPORT_BYTES, "missing, redirected or oversized report")
     try:
         return json.loads(path.read_text(encoding="utf-8"),
+                          object_pairs_hook=reject_duplicate_json_keys,
                           parse_constant=lambda c: (_ for _ in ()).throw(
                               ValueError("nonfinite JSON constant: " + c)))
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:

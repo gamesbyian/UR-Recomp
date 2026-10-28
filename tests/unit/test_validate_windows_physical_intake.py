@@ -122,6 +122,28 @@ class OfflinePhysicalIntakeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 read_report(link)
 
+    def test_duplicate_json_members_rejected_at_all_nesting_levels(self):
+        raw = json.dumps(fixture())
+        cases = {
+            "top-level authority": raw.replace(
+                '"authority": "unreviewed_tester_observations_zero_release_credit"',
+                '"authority": "release_accepted", '
+                '"authority": "unreviewed_tester_observations_zero_release_credit"', 1),
+            "nested H01 status": raw.replace(
+                '"status": "PASS"', '"status": "FAIL", "status": "PASS"', 1),
+            "nested candidate SHA": raw.replace(
+                '"source_sha": "', '"source_sha": "' + "f" * 40 +
+                '", "source_sha": "', 1),
+        }
+        with tempfile.TemporaryDirectory() as d:
+            report = Path(d) / "duplicate-keys.json"
+            for label, content in cases.items():
+                with self.subTest(label=label):
+                    self.assertNotEqual(content, raw)
+                    report.write_text(content, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "malformed JSON"):
+                        read_report(report)
+
     def test_source_pin_parser_rejects_missing_or_repeated_fields(self):
         with self.assertRaises(ValueError):
             source_pins("const candidate = {}")

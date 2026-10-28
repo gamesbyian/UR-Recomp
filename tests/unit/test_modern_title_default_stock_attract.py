@@ -85,7 +85,9 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertIn("ur_baldosa_product_attract_p1_start_event(1);", handler)
         self.assertIn("ur_baldosa_product_attract_p1_start_event(0);", handler)
         self.assertIn("host_owned && g_attract_p1_physical_start_held", bridge)
-        self.assertIn("g_ram[0x0313u] == 1u ? 0x0008u : 0u", bridge)
+        self.assertIn("g_attract_source_demo_observed ? 0x0008u : 0u", bridge)
+        self.assertIn("ur_baldosa_product_attract_source_demo_observed(g_ram[0x0313u] == 1u)", self.source)
+        self.assertIn("if (!g_attract_source_demo_observed)", bridge)
         self.assertIn("g_attract_p1_physical_start_held = false;", bridge)
         self.assertIn("filtered | static_cast<std::uint32_t>(g_pending_stock_menu_mask) |",
                       bridge)

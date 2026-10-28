@@ -12,6 +12,8 @@ on:
       - "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"
       # Source-of-truth progress admissions must receive ready-head hygiene.
       - "docs/progress/**"
+      # The live ranked board selects all five workers; run hygiene on board edits.
+      - "docs/HOURLY-AGENT-LINES.md"
       - "AGENTS.md"
       - "docs/README.md"
       - "docs/SYMBOLS.md"

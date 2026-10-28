@@ -206,7 +206,7 @@ int main(int argc, char** argv) {
         std::cout << " windows_acp=" << GetACP();
 #endif
         std::cout << " DATA05_UNICODE_OPTIONS_" <<
-            (mode == "write" ? "WRITE" : "COLD_READ") << "=passed\\n";
+            (mode == "write" ? "WRITE" : "COLD_READ") << "=passed\n";
         std::cout << " DATA05_UNICODE_COLD_" <<
             (mode == "write" ? "WRITE" : "READ") << "=passed\n";
         return 0;

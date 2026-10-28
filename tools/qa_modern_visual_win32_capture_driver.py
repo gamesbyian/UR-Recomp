@@ -149,6 +149,10 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         env.pop("UR_MODERN_VISUAL_SDL_CAPTURE_DRAW", None)
         env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
         env["UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME"] = str(capture_draw)
+        # Existing source-owned read-only observer. The first real Win32
+        # attempt captured final SDL pixels correctly, but source-phase
+        # markers cannot be audited unless this probe is enabled.
+        env["UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE"] = "1"
     else:
         env.pop("UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME", None)
     env.update(motion_phase_environment(route))

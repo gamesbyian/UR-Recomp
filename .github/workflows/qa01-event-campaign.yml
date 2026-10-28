@@ -851,6 +851,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-rf084-native-writer-receipt.json
             ${{ runner.temp }}/qa01-case/qa01-rf086-native-first-boundary.json
             ${{ runner.temp }}/qa01-case/qa01-rf087-native-snapshot-cut.json
+            ${{ runner.temp }}/qa01-case/qa01-rf094-spc-dsp-followthrough.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/qa01-zoo-independent-raw-audit.json
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.wram.bin

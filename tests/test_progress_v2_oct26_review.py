@@ -5,6 +5,7 @@ from pathlib import Path
 
 from tools.atomic_progress_v2 import validate, require_reviewed_head
 from tools.atomic_progress_delta import delta
+from tools.progress_interval_v2 import compare
 
 ROOT = Path(__file__).resolve().parents[1]
 DIR = ROOT / "docs/progress"
@@ -74,13 +75,25 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertEqual(self.interval["score"]["retroactive_identification_percentage_points"], 1)
         self.assertEqual(self.previous["at_main_sha"], "a581cc38a1423c061238b2c10998c5ab9c34bb82")
 
-    def test_delta_preserves_baseline_and_reports_only_actual_change(self):
-        report = delta(self.inv, self.baseline, self.ledger)
-        self.assertEqual(report["current_provisional_coverage_percent"], 53)
-        self.assertEqual(report["change_percentage_points"], 3)
-        for key in ("ONE-08", "ART-01", "RECOVERY-10", "TWO-05", "QA-01"):
-            self.assertIn(key, report["newly_verified_ids"])
-        self.assertGreater(len(report["regressed_or_retracted_ids"]), 0)
+    def test_historical_baseline_contract_mismatch_fails_closed(self):
+        # The October 24 baseline retains its historical ec1572b0 contract;
+        # the current frozen inventory uses 32c62b80. Do not silently
+        # rewrite the old baseline or counterfeit a cross-contract delta.
+        self.assertNotEqual(self.baseline["criterion_contract_hash"],
+                            self.inv["frozen_contract_fnv1a32"])
+        with self.assertRaisesRegex(ValueError, "incompatible/forked"):
+            delta(self.inv, self.baseline, self.ledger)
+
+    def test_source_reviewed_interval_reports_only_qa01(self):
+        report = compare(self.previous, self.inv, self.ledger,
+                         self.interval, self.pointer["reviewed_main_sha"])
+        self.assertEqual(report["previous_product_percent"], 52)
+        self.assertEqual(report["current_product_percent"], 53)
+        self.assertEqual(report["interval_product_delta_points"], 1)
+        self.assertEqual(report["newly_verified"], ["QA-01"])
+        self.assertEqual(report["current_independent_audit_percent"], 11)
+        self.assertEqual(report["accepted_USA_events"], 0)
+        self.assertEqual(report["passed_release_gates"], 0)
 
 
 if __name__ == "__main__":

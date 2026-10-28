@@ -31,7 +31,7 @@ class ProgressIntervalV2Tests(unittest.TestCase):
         self.assertEqual(sum(r["merged_work_mix"].values()),r["reviewed_merge_count"])
         self.assertEqual(r["reviewed_merge_sample_count"], 3)
         self.assertEqual(r["unclassified_merge_count"], 0)
-        self.assertEqual(r["merged_work_mix"]["unclassified"], 0)
+        self.assertEqual(r["merged_work_mix"].get("unclassified", 0), 0)
         self.assertEqual(r["current_independent_audit_percent"],
                          round(sum(c["weight_units"] for c in self.inv["criteria"]
                                    if c["audit_state"] == "independent_reviewed") * 100/4500,3))

@@ -22,14 +22,14 @@ jobs:
       - name: Checkout immutable RF092 candidate
         uses: actions/checkout@v4
         with:
-          ref: b40dddd7be2beb15db4789b0f9feeb9e2a9c64cb
+          ref: 69987c4c4ca17807988474ad5dd70aea6ce8dd01
           submodules: recursive
           persist-credentials: false
       - name: Run actual current-main Agent 3 control and pinned tests
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = b40dddd7be2beb15db4789b0f9feeb9e2a9c64cb
+          test "$(git rev-parse HEAD)" = 69987c4c4ca17807988474ad5dd70aea6ce8dd01
           mkdir -p "$RUNNER_TEMP/rf092-compile-receipt"
           git fetch --depth=1 origin main
           git worktree add --detach "$RUNNER_TEMP/rf092-main-control" FETCH_HEAD
@@ -64,7 +64,7 @@ jobs:
           test -s "$CORE_SRC/libretro/snes9x_libretro.so"
           {
             echo 'work_id=UR-CPU-CAUSE-20261026'
-            echo 'source_head=b40dddd7be2beb15db4789b0f9feeb9e2a9c64cb'
+            echo 'source_head=69987c4c4ca17807988474ad5dd70aea6ce8dd01'
             echo 'qualification=pinned-original-C++-compile-link-only'
             echo 'staged=RF083/RF090/RF091 plus RF092 original SPC input/output'
             echo 'not_executed=Zoo original/native replay; observer-off; original/native SPC parity'

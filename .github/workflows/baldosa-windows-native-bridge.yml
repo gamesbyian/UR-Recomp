@@ -55,6 +55,9 @@ on:
       - "tests/unit/test_baldosa_native_first_profile_cpp.py"
       - "tests/native/host_product_unicode_path_regression.cpp"
       - "tests/unit/test_host_product_unicode_path_cpp.py"
+      # Actual hosted Win32 two-process Unicode Options + Records/replay seam.
+      - "tests/native/completed_run_unicode_cold_test.cpp"
+      - "tests/unit/test_completed_run_unicode_cold_cpp.py"
       - "tests/unit/test_baldosa_native_first_racer_probe.py"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/unit/test_baldosa_native_2p_records_probe.py"

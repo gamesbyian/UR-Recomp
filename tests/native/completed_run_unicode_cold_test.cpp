@@ -2,6 +2,7 @@
 // Both executable invocations receive an ASCII fixture root. The real product
 // receives UTF-8 strings for a subdirectory outside ordinary Windows ACPs,
 // avoiding argv/codepage conversions in the test itself.
+#include "baldosa_native_options.hpp"
 #include "completed_run_replay.hpp"
 #include "completed_run_store.hpp"
 #include "local_tournament_utf8_path.hpp"
@@ -54,6 +55,82 @@ std::string read_all(const fs::path& file) {
             std::istreambuf_iterator<char>()};
 }
 
+
+struct OptionsHostState {
+    int fullscreen = 0;
+    int vsync = 1;
+    int volume = 100;
+    int display_applies = 0;
+};
+
+bool options_get_display(void* context, int* fullscreen, int* vsync) {
+    const auto& host = *static_cast<OptionsHostState*>(context);
+    *fullscreen = host.fullscreen;
+    *vsync = host.vsync;
+    return true;
+}
+
+bool options_apply_display(void* context, int fullscreen, int vsync) {
+    auto& host = *static_cast<OptionsHostState*>(context);
+    host.fullscreen = fullscreen;
+    host.vsync = vsync;
+    ++host.display_applies;
+    return true;
+}
+
+int options_get_volume(void* context) {
+    return static_cast<OptionsHostState*>(context)->volume;
+}
+
+int options_set_volume(void* context, int percent) {
+    auto& host = *static_cast<OptionsHostState*>(context);
+    host.volume = percent;
+    return percent;
+}
+
+BaldosaOptionsHost options_host(OptionsHostState& host) {
+    BaldosaOptionsHost result;
+    result.ctx = &host;
+    result.get_display = &options_get_display;
+    result.apply_display = &options_apply_display;
+    result.get_volume = &options_get_volume;
+    result.set_volume = &options_set_volume;
+    return result;
+}
+
+void write_unicode_options(const fs::path& root) {
+    const auto options_utf8 = baldosa_options_path(root).u8string();
+    OptionsHostState live;
+    BaldosaNativeOptions model;
+    baldosa_options_boot(model, options_utf8, options_host(live));
+    require(model.load == BaldosaOptionsLoad::Missing,
+            "Unicode Options fixture unexpectedly preexists");
+    baldosa_options_open(model);
+    baldosa_options_move(model, 1);  // VSYNC, not a synthetic file write.
+    baldosa_options_adjust(model, -1);  // ON -> OFF through product model.
+    require(model.status == BaldosaOptionsStatus::Saved &&
+                model.vsync == HostVSyncMode::Off && live.vsync == 0,
+            "production Options edit did not save or apply");
+    require(fs::is_regular_file(host_native_path_from_utf8(options_utf8)),
+            "Unicode Options file missing after product save");
+}
+
+void cold_read_unicode_options(const fs::path& root) {
+    const auto options_utf8 = baldosa_options_path(root).u8string();
+    const auto native_path = host_native_path_from_utf8(options_utf8);
+    const auto before = read_all(native_path);
+    require(!before.empty(), "Unicode Options file absent on cold reopen");
+    OptionsHostState fresh_host;  // New OS process begins with VSYNC ON.
+    BaldosaNativeOptions model;
+    baldosa_options_boot(model, options_utf8, options_host(fresh_host));
+    require(model.load == BaldosaOptionsLoad::Loaded &&
+                model.vsync == HostVSyncMode::Off &&
+                fresh_host.vsync == 0 && fresh_host.display_applies == 1,
+            "cold Options boot did not apply saved Unicode settings");
+    require(read_all(native_path) == before,
+            "cold Options boot modified saved settings");
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -88,6 +165,7 @@ int main(int argc, char** argv) {
             require(scanned && inspected.size() == 1 &&
                         inspected[0].loaded(),
                     "Unicode archive not scanned after publication");
+            write_unicode_options(root);
         } else {
             // Entirely new process: no retained in-memory run or replay path.
             const auto records = load_compatible_run_records(
@@ -122,10 +200,13 @@ int main(int argc, char** argv) {
             require(read_all(host_native_path_from_utf8(records[0].path)) ==
                         encoded,
                     "replay cleanup modified the immutable earned record");
+            cold_read_unicode_options(root);
         }
 #if defined(_WIN32)
         std::cout << " windows_acp=" << GetACP();
 #endif
+        std::cout << " DATA05_UNICODE_OPTIONS_" <<
+            (mode == "write" ? "WRITE" : "COLD_READ") << "=passed\n";
         std::cout << " DATA05_UNICODE_COLD_" <<
             (mode == "write" ? "WRITE" : "READ") << "=passed\n";
         return 0;

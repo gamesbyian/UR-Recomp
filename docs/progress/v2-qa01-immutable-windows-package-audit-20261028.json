@@ -1,0 +1,72 @@
+{
+  "schema": "ur-v2-criterion-independent-audit/1",
+  "reviewed_utc_date": "2026-10-28",
+  "work_id": "UR-RELEASE-PROGRESS-20261026",
+  "criterion_id": "QA-01",
+  "criterion_text": "Current nominated Windows package has immutable binary SHA receipt",
+  "decision": "bounded_verified_independent_reviewed",
+  "classification": "retroactive_existing_product_evidence_not_new_engineering",
+  "reviewed_main_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
+  "producing_prs": [
+    2688,
+    2711,
+    2714
+  ],
+  "hosted_run": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324",
+    "artifact_id": 12734720034,
+    "producer_main_sha": "930f16ed4536aea83450335bd550aa9afefd98f1",
+    "outer_artifact_sha256": "afe30dcfa191450937c3f361a6ffba0acbdfbbebda87cff72c08c82cccea398a",
+    "outer_bytes": 6135059,
+    "inner_playable_zip_sha256": "29c0dd7d831307f87913ef74ec5b8189485aa822295a8e6cb3f92b460477ac58",
+    "inner_playable_zip_bytes": 6140320,
+    "amd64_pe_sha256": "74448c44ee11e948dfa965fb2b9ab760f5fd79a9e936d7b02d44fa8ee1eed38f",
+    "amd64_pe_bytes": 20521984,
+    "launcher_sha256": "f8aa07a7fbc3491a473a4574a1d1be97514504014f1c4c5a3ecb8f98765999fc",
+    "artifact_expires_utc": "2026-11-10T12:28:51Z"
+  },
+  "source_continuity": {
+    "from": "930f16ed4536aea83450335bd550aa9afefd98f1",
+    "through": "88056d491c77cc7bb14ef1635d81892ca0d70305",
+    "commits_ahead": 65,
+    "commits_behind": 0,
+    "compare_url": "https://github.com/gamesbyian/UR-Recomp/compare/930f16ed4536aea83450335bd550aa9afefd98f1...88056d491c77cc7bb14ef1635d81892ca0d70305",
+    "no_changed_product_paths": [
+      "native/",
+      "tests/native/",
+      "tools/assemble_baldosa_windows_candidate.py",
+      "tools/baldosa_native_*",
+      "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
+      ".github/workflows/manual-romfree-windows-playtest.yml"
+    ]
+  },
+  "independent_actual_byte_receipts": [
+    "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333",
+    "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6459628126"
+  ],
+  "current_epoch_preflight": "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6461427693",
+  "checked": [
+    "Two independent complete ZIP/PE/launcher SHA and CRC audits",
+    "Actual immutable main-built candidate source/ZIP/PE identity",
+    "65-commit producer-to-main changed-path census",
+    "Live unexpired GitHub artifact metadata"
+  ],
+  "not_checked": [
+    "Fresh artifact bytes in this invocation",
+    "Physical Windows H01-H07",
+    "Hypothetical rebuilt PE equivalence",
+    "Full USA event or official release gate"
+  ],
+  "score_effect": {
+    "previous_bounded_percent": 52,
+    "after_bounded_percent": 53,
+    "previous_independent_audit_percent": 10,
+    "after_independent_audit_percent": 11,
+    "retroactive_evidence_percentage_points": 1,
+    "new_engineering_percentage_points": 0,
+    "formal_release_gate_delta": 0,
+    "usa_complete_event_delta": 0
+  },
+  "next_executable": "Separate agent reviews frozen QA-01 scope and actual-byte receipts, verifies new ready-head full unit/hygiene and merges if qualified; owner performs H01-H07 for distinct physical criteria.",
+  "independent_audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333"
+}

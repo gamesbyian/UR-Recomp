@@ -1,7 +1,7 @@
 {
   "schema": "ur-v2-review-pointer/1",
-  "previous": "docs/progress/v2-review-checkpoint-20261028T0010.json",
-  "interval": "docs/progress/v2-review-interval-20261028T0455.json",
-  "reviewed_main_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
-  "note": "Frozen TWO-05 independent hosted Win32 virtual SDL seat/stock evidence: bounded 52%, audited 10%. +1pp retroactive admission, zero new gameplay engineering, physical release or USA credit. 16 intervening commits, two representative merges classified."
+  "previous": "docs/progress/v2-review-checkpoint-20261028T0525.json",
+  "interval": "docs/progress/v2-review-interval-20261028T0525.json",
+  "reviewed_main_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
+  "note": "Frozen QA-01 immutable nominated Windows source/ZIP/PE evidence: bounded 53%, audited 11%. +1pp retroactive admission, zero new engineering, physical QA or USA event credit. Three intervening merges classified."
 }

@@ -7,16 +7,6 @@ from pathlib import Path
 from tools.run_unit_shard import SCHEMA, execute, make_receipt
 
 
-class _Pass(unittest.TestCase):
-    def test_pass(self):
-        self.assertTrue(True)
-
-
-class _Fail(unittest.TestCase):
-    def test_fail(self):
-        self.fail("synthetic failure must remain red")
-
-
 class _Loader:
     def __init__(self, fail=False):
         self.fail = fail
@@ -24,7 +14,15 @@ class _Loader:
 
     def loadTestsFromName(self, name):
         self.loaded.append(name)
-        klass = _Fail if self.fail and name.endswith("bad") else _Pass
+        class PassCase(unittest.TestCase):
+            def test_pass(self):
+                self.assertTrue(True)
+
+        class FailCase(unittest.TestCase):
+            def test_fail(self):
+                self.fail("synthetic failure must remain red")
+
+        klass = FailCase if self.fail and name.endswith("bad") else PassCase
         return unittest.defaultTestLoader.loadTestsFromTestCase(klass)
 
 

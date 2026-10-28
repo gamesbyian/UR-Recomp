@@ -193,9 +193,16 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertTrue(det["pass"], det)
         self.assertEqual(det["phase_x"][342], -0.5)
         self.assertLessEqual(det["nonuniform_fraction"][342], 0.002)
-        self.assertGreater(det["outside_viewport_nonblack"].get(256, 0), 0)
         self.assertEqual(det["outside_viewport_nonblack"][342], 0)
         self.assertEqual(det["release_gate_credit"], 0)
+
+        # Without SDL's snap, both widths have identical 2.5px pitch.
+        # Interior blocks alone are ambiguous; actual nonblack sidebands
+        # rule out the hypothetical 256px letterbox.
+        unsnapped = d.detect_logical(render_fit(wide, w, h, 856, 480))
+        self.assertEqual(unsnapped["consistent_widths"], [342], unsnapped)
+        self.assertGreater(unsnapped["outside_viewport_nonblack"][256], 0)
+        self.assertEqual(unsnapped["outside_viewport_nonblack"][342], 0)
 
         # A real 256-column source in the same 856px window must never be
         # positively misidentified as the 342-column Modern root.

@@ -298,13 +298,24 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
           python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
           python3 -m unittest discover -s tests/unit -p test_baldosa_interrupt_entry_cost_patch.py
+      # Reuse native-host object code across runs, not original emulator memory.
+      # ccache verifies compiler identity, preprocessed inputs and compile flags.
+      # Different guest patches/observers get different object cache keys.
+      - name: Restore QA01 native compile cache (bounded pilot)
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/qa01-native-ccache
+          key: ur-qa01-ccache-v1-ubuntu2204-baldosa10b864b9-${{ hashFiles('tools/baldosa_*_patch.py', 'tools/baldosa_qa_dense_scene_input_patch.py') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            ur-qa01-ccache-v1-ubuntu2204-baldosa10b864b9-${{ hashFiles('tools/baldosa_*_patch.py', 'tools/baldosa_qa_dense_scene_input_patch.py') }}-
       - name: Build original Snes9x/snesref and research native exactly once
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get -o Acquire::Retries=3 update
           sudo apt-get install -y --no-install-recommends \
-            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            ninja-build pkg-config build-essential cmake ccache libsdl2-dev \
             libgl-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxss-dev libwayland-dev \
             libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
@@ -388,10 +399,20 @@ jobs:
               python3 tools/qa01_rf088_native_apu_echo_window.py --root baldosa
             fi
           fi
+          # Compilation cache must not relax correctness or alter the
+          # independent reference emulator. No CCACHE_SLOPPINESS shortcuts.
+          export CCACHE_DIR="$RUNNER_TEMP/qa01-native-ccache"
+          export CCACHE_COMPILERCHECK=content
+          ccache --max-size=256M
+          ccache --zero-stats
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          echo UR_QA01_NATIVE_CCACHE_STATS_BEGIN
+          ccache --show-stats
+          echo UR_QA01_NATIVE_CCACHE_STATS_END
           OUT="$RUNNER_TEMP/qa01-binaries"
           mkdir -p "$OUT"
           install -m 755 "$RUNNER_TEMP/qa01-snesref/snesref" "$OUT/snesref"
@@ -399,6 +420,14 @@ jobs:
           cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
           (cd "$OUT" && sha256sum snesref native snes9x_libretro.so > SHA256SUMS && \
             sha256sum -c SHA256SUMS)
+      # A failed/partial cache save must never block the actual game run.
+      - name: Save reusable QA01 native compile cache (best effort)
+        if: success()
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/qa01-native-ccache
+          key: ur-qa01-ccache-v1-ubuntu2204-baldosa10b864b9-${{ hashFiles('tools/baldosa_*_patch.py', 'tools/baldosa_qa_dense_scene_input_patch.py') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Upload one immutable candidate for all case shards
         uses: actions/upload-artifact@v4
         with:

@@ -124,7 +124,7 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
     def test_rapid_exit_fixture_requires_source_d7_and_fresh_confirm(self):
         section = self.source.split('// CI-only mode 35:', 1)[1].split(
             '// CI-only mode 28:', 1)[0]
-        self.assertIn("mode < 1 || mode > 35", self.source)
+        self.assertIn("mode < 1 || mode > 36", self.source)
         self.assertIn('std::strcmp(fixture, "35") != 0', self.source)
         self.assertIn('frame == 1600', section)
         self.assertIn('kGamepadBtn_Start, 1', section)
@@ -137,6 +137,47 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertIn('rapid_start_root_ready=1', section)
         self.assertNotIn('g_ram[0x009fu] =', section)
 
+
+    def test_separate_start_after_a_wake_exits_original_demo_without_host_confirm(self):
+        handler = self.source.split(
+            'extern "C" int ur_baldosa_modern_root_gamepad(', 1
+        )[1].split(
+            'extern "C" int ur_baldosa_modern_root_window_base_width(', 1
+        )[0]
+        region = handler.split("if (g_visible && g_original_attract_woken &&", 1)[1].split(
+            "if (!g_visible)", 1
+        )[0]
+        for required in (
+            "ur::product::modern_title_active(g_title)",
+            "button == kGamepadBtn_Start && first_press",
+            "g_ram[0x0313u] == 1u && g_stock_target == -1",
+            "ur_baldosa_product_attract_p1_start_event(1);",
+            "post_wake_real_start_to_demo=1",
+        ):
+            self.assertIn(required, region)
+        self.assertNotIn("confirm_modern_native_title()", region)
+        self.assertLess(handler.index("if (player != 0) return 0;"),
+                        handler.index("if (g_visible && g_original_attract_woken &&"))
+        fixture = self.source.split("// CI-only mode 36:", 1)[1].split(
+            "// CI-only mode 35:", 1
+        )[0]
+        for required in (
+            'std::strcmp(opt, "36") == 0',
+            "frame == 1600", "kGamepadBtn_A, 1",
+            "frame == 1602", "kGamepadBtn_A, 0",
+            "frame == 1604", "kGamepadBtn_Start, 1",
+            "frame == 1608", "kGamepadBtn_Start, 0",
+            "frame == 1940", "original_stock_attract_source_ready()",
+            "kQuickPracticeMenuSettleObservations",
+            "frame == 1960", "frame == 1990",
+            "post_wake_start_root_ready=1",
+        ):
+            self.assertIn(required, fixture)
+        self.assertNotIn("g_ram[0x009fu] =", fixture)
+        driver = (ROOT / "tools/qa_modern_visual_win32_capture_driver.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"stock-attract-post-wake-start-exit": ("36", 2000,', driver)
 
 if __name__ == "__main__":
     unittest.main()

@@ -42,10 +42,11 @@ class NativeModernTitleTest(unittest.TestCase):
         self.assertIn('std::strcmp(fixture, "27") != 0', source)
         self.assertIn('std::strcmp(opt, "27") == 0', source)
         self.assertIn('std::strcmp(fixture, "28") != 0', source)
-        # Mode 35 is a bounded P1 Start exit/wake source journey, not
-        # an ordinary title control or an additional generic smoke route.
-        self.assertIn("mode > 35", source)
+        # Modes 35/36 are bounded real P1 Start demo-exit journeys, not
+        # ordinary title controls or generic smoke routes.
+        self.assertIn("mode > 36", source)
         self.assertIn('std::strcmp(fixture, "35") != 0', source)
+        self.assertIn('std::strcmp(fixture, "36") != 0', source)
         # The integrated native SDL journeys 29-34 must start on the
         # real title; legacy controller modes 15-19 remain root-only.
         for mode in range(29, 35):

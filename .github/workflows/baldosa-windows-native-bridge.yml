@@ -623,6 +623,11 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/ur-keyboard-pad-join/receipt.json
+            # Preserve positive and negative seat-ownership raw logs for independent TWO-05 review.
+            ${{ runner.temp }}/ur-keyboard-pad-join/keyboard_plus_pad/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/two_virtual_pads/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/join_cancelled/log.txt
+            ${{ runner.temp }}/ur-keyboard-pad-join/p2_owner_leaves/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_pad/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_return/log.txt
             ${{ runner.temp }}/ur-keyboard-pad-join/five_destination_earned_race/log.txt

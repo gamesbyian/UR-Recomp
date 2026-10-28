@@ -109,8 +109,42 @@ class NativeRF084Receipt(unittest.TestCase):
         report = m.audit_early((hearts + rows).encode())
         self.assertEqual(report["original_early_changes_by_slot"]["0063"], 1)
         self.assertEqual(report["original_early_first_boundary_change"]["frame"], 6056)
+        self.assertEqual(report["original_late_port_heartbeats"], [])
+        self.assertFalse(report["original_late_port_heartbeat_complete"])
         self.assertFalse(report["original_native_first_writer_parity_proven"])
         self.assertEqual(report["release_credit"], 0)
+        # Sequence 19 emits additional source-qualified RF085 heartbeat
+        # rows as a side effect of activating actual CPU RF090/RF091 reads
+        # and writes at Bowl +265..269. Admit the exact five late frames
+        # without relaxing the compulsory 15 early frames or accepting any
+        # late opcode_delta as an "early boundary" observation.
+        late_hearts = "".join(
+            f"QA01RF085EARLY_HEART frame={f} v=0 h=0\\n"
+            for f in range(6445, 6450))
+        late_result = m.audit_early((hearts + rows + late_hearts).encode())
+        self.assertEqual(
+            late_result["original_early_heartbeats"], list(range(6051, 6066)))
+        self.assertEqual(
+            late_result["original_late_port_heartbeats"], list(range(6445, 6450)))
+        self.assertTrue(late_result["original_late_port_heartbeat_complete"])
+        self.assertEqual(
+            late_result["original_early_observations"],
+            report["original_early_observations"])
+        for invalid in (
+            late_hearts,                         # missing early heartbeats
+            late_hearts + hearts,                # reversed windows
+            hearts + late_hearts.replace("frame=6447", "frame=6446"),
+            hearts + late_hearts.replace("frame=6449", "frame=6450"),
+            hearts + late_hearts.replace("frame=6445", "frame=6444"),
+            hearts + late_hearts.splitlines(keepends=True)[0],
+            hearts + late_hearts + late_hearts, # duplicate late window
+            hearts + rows + late_hearts +
+                event(3, 6449, "0063", "00", "01"),
+        ):
+            with self.subTest(invalid=invalid[-100:]), self.assertRaises(
+                ValueError):
+                m.audit_early(invalid.encode())
+
         # Actual #40487975108 had 8192 early rows and an explicit
         # truncation marker by frame 6062. The new budget must admit
         # >8192 while still rejecting any stream above 16384.

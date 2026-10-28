@@ -32,7 +32,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'product/menu10-p1-start-guest-exit-20261028' || github.head_ref == 'product/menu10-post-wake-start-exit-20261028' || github.head_ref == 'product/menu10-keyboard-demo-exit-20261028'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'product/menu10-p1-start-guest-exit-20261028' || github.head_ref == 'product/menu10-post-wake-start-exit-20261028' || github.head_ref == 'product/menu10-keyboard-demo-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -134,7 +134,7 @@ jobs:
       # checkpoints of the DEFAULT stock idle/demo and P1 wake. This may fail
       # closed; no physical/human/game-event or release credit from green CI.
       - name: Observe default stock attract motion and wake in real final SDL
-        if: github.event_name == 'pull_request' && github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028'
+        if: github.event_name == 'pull_request' && github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         run: |
           set -euo pipefail
           EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
@@ -152,7 +152,7 @@ jobs:
             --output "$ROOT/verified-source-pe-p7-stock-attract.json"
           echo "Observed three exact source and executable bound final SDL guest frames with unmasked RGB changes. Independent MENU-10 review remains pending; physical/release/USA credit zero." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain exact stock attract guest-to-final-SDL pixels and logs
-        if: always() && github.event_name == 'pull_request' && github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028'
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         uses: actions/upload-artifact@v4
         with:
           name: menu10-stock-attract-native-win32-final-sdl
@@ -169,7 +169,7 @@ jobs:
       # return. Never replace this with A, a hidden menu-state write, or a
       # self-certified MENU-10 acceptance.
       - name: Observe genuine P1 Start exit and rapid source-main recovery
-        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-p1-start-guest-exit-20261028'
+        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-p1-start-guest-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         run: |
           set -euo pipefail
           python tools/qa_modern_visual_win32_capture_driver.py \
@@ -186,7 +186,7 @@ jobs:
             "$RUNNER_TEMP/ur-menu10-start-exit/probe_first/native-process.log"
           echo "Real Windows original demo exit before 1940 after actual P1 Start semantic callback; no physical-hardware or beta/release admission." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain exact Windows rapid Start-exit source and SDL evidence
-        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-p1-start-guest-exit-20261028'
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-p1-start-guest-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         uses: actions/upload-artifact@v4
         with:
           name: menu10-real-p1-start-rapid-guest-exit
@@ -201,7 +201,7 @@ jobs:
       # injection; a later physical Start callback exits the still-running
       # original demo before a third A enters Modern root.
       - name: Observe A-wake then distinct real P1 Start source exit
-        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-post-wake-start-exit-20261028'
+        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-post-wake-start-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         run: |
           set -euo pipefail
           python tools/qa_modern_visual_win32_capture_driver.py \
@@ -219,7 +219,7 @@ jobs:
           grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT post_wake_start_root_ready=1' "$LOG"
           echo "Real hosted Win32: A wake, separate Start source exit, stable original MAIN and separate A root confirmation; no physical/criterion/release acceptance." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain A-wake then real Start original-source and final SDL evidence
-        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-post-wake-start-exit-20261028'
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-post-wake-start-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         uses: actions/upload-artifact@v4
         with:
           name: menu10-post-wake-real-start-exit
@@ -233,7 +233,7 @@ jobs:
       # Keyboard-only end-to-end route: consumed Return wake, separate
       # genuine guest Start from a later Return, and fresh Modern confirmation.
       - name: Observe keyboard-only wake then distinct Return guest demo exit
-        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-keyboard-demo-exit-20261028'
+        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-keyboard-demo-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         run: |
           set -euo pipefail
           python tools/qa_modern_visual_win32_capture_driver.py \
@@ -251,7 +251,7 @@ jobs:
           grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT post_wake_keyboard_root_ready=1' "$LOG"
           echo "Real hosted Win32 keyboard-only wake/Start/Modern journey; no physical or release acceptance." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain keyboard-only original-source and final SDL evidence
-        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-keyboard-demo-exit-20261028'
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-keyboard-demo-exit-20261028' || github.head_ref == 'qa/menu10-full-cycle-same-pe-20261028'
         uses: actions/upload-artifact@v4
         with:
           name: menu10-keyboard-post-wake-source-exit

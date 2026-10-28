@@ -95,6 +95,7 @@ class PlaytestRequestGuardTests(unittest.TestCase):
             "- Observer mode: **ON**\n",
             "- Observer mode: **on**\n- Observer mode: **off**\n",
             "- Observer mode: **off**\n- Observer mode: **off**\n",
+            "- Observer mode: **off**\n- Observer mode: **INVALID**\n",
         ):
             with self.subTest(suffix=suffix):
                 with self.assertRaisesRegex(ValueError, "observer mode"):

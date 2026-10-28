@@ -81,6 +81,11 @@ def main() -> int:
     print("Measured modules=" + str(len(weights)) +
           "; predicted shard-seconds on next same-host run=" + repr(totals) +
           ". This is a scheduling estimate, NOT a timed speedup or QA credit.")
+    # Expose an exact validated candidate for independent review even when
+    # connected artifact bytes cannot be downloaded in the reviewer session.
+    # Public module names and wall times only, never user data or test output.
+    print("UR_UNIT_TIMINGS_CANDIDATE=" +
+          json.dumps(weights, separators=(",", ":"), sort_keys=True))
     return 0
 
 

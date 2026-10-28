@@ -3,6 +3,9 @@
 import sys
 from pathlib import Path
 import unittest
+import subprocess
+import tempfile
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -10,6 +13,36 @@ import baldosa_native_first_racer_probe as probe
 
 
 class FirstNativeRacerLogTests(unittest.TestCase):
+
+    def test_real_native_subprocess_utf8_path_is_not_decoded_as_windows_acp(self):
+        # Run a real UTF-8-emitting child while intercepting the executable
+        # name only. The production run_game() still owns subprocess decoding
+        # and writing the retained log; this works on POSIX and Win32 Python.
+        raw_path = "user_earned_return_漢字-🚲"
+        program = (
+            "import sys; "
+            "sys.stdout.buffer.write('UR_NATIVE path=" + raw_path +
+            "\\n'.encode('utf-8')); "
+            "sys.stderr.buffer.write('UR_NATIVE second=" + raw_path +
+            "\\n'.encode('utf-8'))"
+        )
+        real_run = subprocess.run
+        def child(_arguments, **kwargs):
+            return real_run([sys.executable, "-c", program], **kwargs)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with mock.patch.object(probe.subprocess, "run", side_effect=child) as invoked:
+                log = probe.run_game(
+                    root / "host.exe", root / "original.sfc",
+                    root / raw_path, root / "work",
+                    "4", "turbo on\\nwait 1\\nquit\\n", "dummy", 15)
+                self.assertEqual(invoked.call_args.kwargs["encoding"], "utf-8")
+                self.assertEqual(invoked.call_args.kwargs["errors"], "replace")
+            self.assertEqual(log.count(raw_path), 2)
+            self.assertNotIn("\\ufffd", log)
+            self.assertEqual((root / "work" / "log.txt").read_text(encoding="utf-8"), log)
+
     def test_creation_requires_canonical_next_boot_not_live_guest_hot_swap(self):
         valid = (
             "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1\n"

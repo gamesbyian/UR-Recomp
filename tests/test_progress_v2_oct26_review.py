@@ -31,21 +31,21 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
     def test_review_pointer_is_pinned_to_same_source(self):
         self.assertEqual(self.pointer["reviewed_main_sha"], self.interval["through_main_sha"])
         require_reviewed_head(self.inv, self.pointer["reviewed_main_sha"])
-        self.assertEqual(self.pointer["previous"], "docs/progress/v2-review-checkpoint-20261028T0525.json")
+        self.assertEqual(self.pointer["previous"], "docs/progress/v2-review-checkpoint-20261028T1640.json")
         self.assertEqual(self.previous["at_main_sha"], self.interval["from_main_sha"])
         self.assertEqual(len(self.previous["criteria"]), 135)
         # Inventory latest-review links must match the independently reviewed pointer.
         self.assertEqual(self.inv["latest_review_interval"], self.pointer["interval"])
         audit = read(self.inv["latest_criterion_review_ref"])
-        self.assertEqual(audit["criterion_id"], "QA-01")
+        self.assertEqual(audit["criterion_id"], "MENU-10")
         self.assertEqual(audit["reviewed_main_sha"], self.pointer["reviewed_main_sha"])
         self.assertEqual(audit["independent_audit_receipt"],
-                         next(c for c in self.inv["criteria"] if c["id"] == "QA-01")["audit_receipt"])
+                         next(c for c in self.inv["criteria"] if c["id"] == "MENU-10")["audit_receipt"])
 
     def test_frozen_criterion_contract_and_release_gates_unchanged(self):
         s = validate(self.inv, self.ledger)
-        self.assertEqual(s["bounded_product_coverage_percent"], 53)
-        self.assertEqual(s["independently_audited_coverage_percent"], 11)
+        self.assertEqual(s["bounded_product_coverage_percent"], 54)
+        self.assertEqual(s["independently_audited_coverage_percent"], 12)
         self.assertEqual(s["formal_windows_gates_passed"], 0)
         self.assertEqual(s["independent_USA_complete_events"], 0)
         self.assertEqual(len(self.inv["criteria"]), 135)
@@ -63,7 +63,7 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertEqual(self.historical_oct26["score"]["retroactive_identification_percentage_points"], 1)
         self.assertEqual({x["id"] for x in self.historical_recovery["criterion_changes"]}, {"RECOVERY-10"})
         self.assertEqual({x["id"] for x in self.historical_two["criterion_changes"]}, {"TWO-05"})
-        self.assertEqual({x["id"] for x in self.interval["criterion_changes"]}, {"QA-01"})
+        self.assertEqual({x["id"] for x in self.interval["criterion_changes"]}, {"MENU-10"})
         recovery = next(x for x in self.inv["criteria"] if x["id"] == "RECOVERY-10")
         self.assertEqual(recovery["status"], "bounded_verified")
         self.assertEqual(recovery["audit_state"], "independent_reviewed")
@@ -71,9 +71,9 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertEqual((two["status"], two["audit_state"]), ("bounded_verified", "independent_reviewed"))
         self.assertIn("6460996972", two["audit_receipt"])
         self.assertIn("6455893041", recovery["audit_receipt"])
-        self.assertEqual(self.interval["score"]["new_work_earned_percentage_points"], 0)
-        self.assertEqual(self.interval["score"]["retroactive_identification_percentage_points"], 1)
-        self.assertEqual(self.previous["at_main_sha"], "a581cc38a1423c061238b2c10998c5ab9c34bb82")
+        self.assertEqual(self.interval["score"]["new_work_earned_percentage_points"], 1)
+        self.assertEqual(self.interval["score"]["retroactive_identification_percentage_points"], 0)
+        self.assertEqual(self.previous["at_main_sha"], "88056d491c77cc7bb14ef1635d81892ca0d70305")
 
     def test_historical_baseline_contract_mismatch_fails_closed(self):
         # The October 24 baseline retains its historical ec1572b0 contract;
@@ -84,14 +84,14 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "incompatible/forked"):
             delta(self.inv, self.baseline, self.ledger)
 
-    def test_source_reviewed_interval_reports_only_qa01(self):
+    def test_source_reviewed_interval_reports_only_menu10(self):
         report = compare(self.previous, self.inv, self.ledger,
                          self.interval, self.pointer["reviewed_main_sha"])
-        self.assertEqual(report["previous_product_percent"], 52)
-        self.assertEqual(report["current_product_percent"], 53)
+        self.assertEqual(report["previous_product_percent"], 53)
+        self.assertEqual(report["current_product_percent"], 54)
         self.assertEqual(report["interval_product_delta_points"], 1)
-        self.assertEqual(report["newly_verified"], ["QA-01"])
-        self.assertEqual(report["current_independent_audit_percent"], 11)
+        self.assertEqual(report["newly_verified"], ["MENU-10"])
+        self.assertEqual(report["current_independent_audit_percent"], 12)
         self.assertEqual(report["accepted_USA_events"], 0)
         self.assertEqual(report["passed_release_gates"], 0)
 

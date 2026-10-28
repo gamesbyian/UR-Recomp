@@ -866,7 +866,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
     }
     cold_pair_log = run_game(
         exe, rom, user, out / "two_pad_unicode_cold_records", "1",
-        QUIET, video, timeout
+        POSITIVE_JOIN, video, timeout
     )
     try:
         source_paired_records_reopened(cold_pair_log, selected_profile="mike")

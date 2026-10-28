@@ -22,8 +22,9 @@ class RF092Source(unittest.TestCase):
         self.assertIn('flag[0] != \'1\' || flag[1] != \'\\0\'', smp)
         self.assertIn('QA01RF092SPC_TRUNCATED', smp)
         self.assertIn('spc_ticks=%llu spc_next_pc=%04X clock=original_spc', smp)
-        self.assertLess(smp.index('rf092_spc_ticks = 0;'),
-                        smp.index('timer0.target = 0;'))
+        reset = smp.index(m.SMP_RESET)
+        self.assertLess(smp.index('rf092_spc_ticks = 0;', reset),
+                        smp.index('for(unsigned n = 0x0000', reset))
         self.assertLess(core.index('dsp.clock++;'), core.index('++rf092_spc_ticks;'))
         self.assertLess(core.index('dsp.clock += clocks;'),
                         core.index('rf092_spc_ticks += clocks;'))

@@ -74,6 +74,21 @@ class StockAttractSDLPairTest(unittest.TestCase):
         self.assertEqual(result["first_usa_event_credit"], 0)
         self.assertEqual(result["release_gate_credit"], 0)
 
+    def test_exact_windows_crlf_logs_preserve_hashes_and_parse_markers(self):
+        # Actual Windows artifacts had CRLF, while synthetic POSIX logs
+        # used LF. Parse normalized text only AFTER hashing original bytes.
+        for name in witness.FRAMES:
+            path = self.root / name / "probe_first" / "native-process.log"
+            raw = path.read_bytes().replace(b"\n", b"\r\n")
+            path.write_bytes(raw)
+            receipt = dict(self.records[name],
+                           native_process_log_sha256=witness.digest(raw))
+            (self.root / name / "readback-receipt.json").write_text(
+                json.dumps(receipt))
+        accepted = witness.score(self.root, SOURCE)
+        self.assertGreater(accepted["actual_sdl_original_demo_rgb_differing_pixels"], 0)
+        self.assertFalse(accepted["menu10_independent_criterion_admitted"])
+
     def test_tampered_raw_pixel_bytes_and_mixed_pe_fail(self):
         p = self.root / "stock-attract-after" / "probe_first" / "actual-sdl-drawable.pam"
         p.write_bytes(p.read_bytes() + b"X")

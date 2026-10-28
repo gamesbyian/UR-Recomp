@@ -65,6 +65,16 @@ class AgentBoardControlTests(unittest.TestCase):
             [job["position"] for job in board["work"]],
             list(range(1, len(board["work"]) + 1)))
 
+    def test_independently_reviewed_data05_is_not_an_unverified_target(self):
+        release = next(job for job in self.board["work"]
+                       if job["work_id"] == "UR-RELEASE-PROGRESS-20261026")
+        self.assertNotIn("especially DATA-05", release["objective"])
+        self.assertIn("DATA-05 is closed", release["objective"])
+        self.assertIn("ONE-03", release["objective"])
+        self.assertIn("WIDE-07", release["objective"])
+        self.assertIn("no repeat DATA-05", release["acceptance"])
+        self.assertIn("physical H01", release["acceptance"])
+
     def test_fixed_lane_regression_is_rejected(self):
         bad = replace_table_cell(
             self.text, "**Agent 1**", 3,

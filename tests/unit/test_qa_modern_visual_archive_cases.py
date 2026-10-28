@@ -294,5 +294,42 @@ class ArchiveCasesTest(unittest.TestCase):
                 ac.analyse_dirs([d], current_native_root=True)
 
 
+    def test_current_native_root_refuses_missing_wide_root_evidence(self):
+        """A green unrelated capture must not masquerade as 342-wide root QA."""
+        import json
+        compact = frame_png(256, 1024, 768)
+        unrelated = frame_png(342, 1280, 720)
+        source_sha, exe_sha = "b" * 40, "a" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            zp = self.make(tmp, {"compact": compact, "unrelated": unrelated})
+            verified = {"captures": [
+                capture("compact", "root-quit", [1024, 768], compact, 256),
+                capture("unrelated", "records-keyboard", [1280, 720],
+                        unrelated, 342)]}
+            self.assertTrue(ac.analyse(zp, verified)["pass"])
+            with self.assertRaisesRegex(ValueError, "without a 16:9 root"):
+                ac.analyse(zp, verified, current_native_root=True,
+                           expected_source_sha=source_sha,
+                           expected_exe_sha=exe_sha)
+
+            dirs = []
+            for item in verified["captures"]:
+                d = Path(tmp) / item["id"]
+                d.mkdir()
+                data = compact if item["id"] == "compact" else unrelated
+                (d / "actual-sdl-drawable.png").write_bytes(data)
+                (d / "readback-receipt.json").write_text(json.dumps({
+                    "png_sha256": item["png_sha256"],
+                    "actual_sdl_renderer_output": item["pixels"],
+                    "native_semantic_route": item["native_semantic_route"],
+                    "source_sha": source_sha, "exe_sha256": exe_sha}))
+                dirs.append(d)
+            self.assertTrue(ac.analyse_dirs(dirs)["pass"])
+            with self.assertRaisesRegex(ValueError, "without a 16:9 root"):
+                ac.analyse_dirs(dirs, current_native_root=True,
+                                expected_source_sha=source_sha,
+                                expected_exe_sha=exe_sha)
+
+
 if __name__ == "__main__":
     unittest.main()

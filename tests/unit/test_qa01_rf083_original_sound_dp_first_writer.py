@@ -142,7 +142,7 @@ class RF083Source(unittest.TestCase):
         a, b = m.patch(source(), setter())
         self.assertIn("QA01RF090ORIG seq=", a)
         self.assertIn("QA01RF090ORIG_TRUNCATED", a)
-        self.assertIn("rf083_frame<6054u || rf083_frame>6059u", a)
+        self.assertIn("(rf083_frame>=6445u && rf083_frame<=6449u)", a)
         self.assertIn('getenv("UR_QA01_RF089_ORIGINAL_ECHO")', a)
         self.assertIn("port<0x2140u || port>0x2143u", a)
         self.assertIn("val=%04X", a)
@@ -156,6 +156,26 @@ class RF083Source(unittest.TestCase):
                         b.index("rf083_port_read(Address,1u"))
         self.assertLess(b.index("S9xGetPPU((Address + 1) & 0xffff)"),
                         b.index("rf083_port_read(Address,2u"))
+
+    def test_result_bowl_cpu_port_observer_is_really_activated(self):
+        # Sequence-18 proved RF092 original SPC and RF088 native CPU edges,
+        # but RF090/RF091 original CPU rows were absent at result +265..269.
+        # Extending only the read/write filter is insufficient: rf083_pre
+        # must also activate its opcode-scoped observer at 6445..6449.
+        a, _ = m.patch(source(), setter())
+        self.assertIn("const int result_port_window=(frame>=6445u && frame<=6449u);", a)
+        self.assertIn("(frame>=6069u && frame<=6079u) ||\\n"
+                      "                        result_port_window;", a)
+        self.assertIn("rf083_early=enabled && ((frame>=6051u && frame<=6065u) ||\\n"
+                      "                            result_port_window);", a)
+        guard = "(rf083_frame>=6445u && rf083_frame<=6449u)"
+        self.assertEqual(a.count(guard), 2)
+        self.assertIn("(rf083_frame>=6054u && rf083_frame<=6059u)", a)
+        # RF089's upload-specific opcode filter must NOT silently start
+        # interpreting Bowl command dispatcher instructions as upload echoes.
+        self.assertIn("rf089_target=rf083_early && frame>=6054u && frame<=6059u", a)
+        self.assertIn("QA01RF090ORIG_TRUNCATED", a)
+        self.assertIn("QA01RF091ORIG_TRUNCATED", a)
 
     def test_rf091_original_apu_write_after_real_ppu_commit(self):
         root = Path(__file__).resolve().parents[2] / "third_party/src/snes9x-libretro"
@@ -171,7 +191,7 @@ class RF083Source(unittest.TestCase):
         self.assertIn('unsigned rf083_original_frame(void)', m.C)
         self.assertIn("QA01RF091ORIG_TRUNCATED", m.C)
         self.assertIn("post_apu_write=1", m.C)
-        self.assertIn("rf083_frame<6054u || rf083_frame>6059u", m.C)
+        self.assertIn("(rf083_frame>=6445u && rf083_frame<=6449u)", m.C)
         self.assertIn('getenv("UR_QA01_RF089_ORIGINAL_ECHO")', m.C)
         self.assertNotIn("S9xAPUWritePort(", m.C)
         with self.assertRaisesRegex(ValueError, "already staged"):

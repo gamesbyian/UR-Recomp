@@ -10,10 +10,15 @@
 #include <cstdio>
 #include <cstdlib>
 
+// Read-only source-owned race flag: only a genuine in-progress demo may
+// consume a P1 physical Start. Never write stock guest RAM.
+extern std::uint8_t g_ram[0x20000];
+
 namespace {
 ur::product::BaldosaGuestInputAuthority g_input;
 std::uint16_t g_pending_stock_menu_mask;
 unsigned g_host_owned_samples = 0;
+bool g_attract_p1_physical_start_held = false;
 }
 
 // Only our existing host-owned stock-route may submit a discrete P1 input
@@ -27,6 +32,17 @@ extern "C" int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask) {
     return 1;
 }
 
+// Called ONLY from the native P1 Start down/up callback. It is intentionally
+// distinct from the scripted discrete stock-menu input API: no A/keyboard/P2
+// wake may masquerade as Start. The down state follows actual held duration.
+extern "C" void ur_baldosa_product_attract_p1_start_event(int pressed) {
+    if (!pressed) {
+        g_attract_p1_physical_start_held = false;
+    } else if (g_input.host_owns_input() && g_ram[0x0313u] == 1u) {
+        g_attract_p1_physical_start_held = true;
+    }
+}
+
 extern "C" void ur_baldosa_product_cancel_stock_menu_input(void) {
     g_pending_stock_menu_mask = 0;
 }
@@ -38,8 +54,17 @@ extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
     const std::uint32_t filtered = g_input.filter(word);
     // One frame, exact original runner button bit; never leak a held menu A
     // into the first playable frame after the route releases host focus.
+    // SNES 12-bit Start is 0x0008, not 0x0100 (stock-menu Accept).
+    // The real P1 physical/SDL Start edge can reach the ORIGINAL running demo,
+    // but never its menu, another player's word or any non-host-owned state.
+    // No fixed-length synthetic press, no RAM/menu rewrites and no bypass
+    // of the existing physical release latch on subsequent focus handoff.
+    const std::uint32_t live_demo_start =
+        host_owned && g_attract_p1_physical_start_held &&
+        g_ram[0x0313u] == 1u ? 0x0008u : 0u;
     const std::uint32_t accepted =
-        filtered | static_cast<std::uint32_t>(g_pending_stock_menu_mask);
+        filtered | static_cast<std::uint32_t>(g_pending_stock_menu_mask) |
+        live_demo_start;
     g_pending_stock_menu_mask = 0;
     // Opt-in real mapped-human-word witness. Modern-owned physical buttons
     // must be masked while presence bits survive. Count actual filter calls.
@@ -78,7 +103,10 @@ extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
 // does not pause emulation. Pausing requires the framework's genuine host
 // execution hold before returning success from the product lifecycle hook.
 extern "C" void ur_baldosa_product_set_host_focus(int owned) {
-    if (!owned) g_pending_stock_menu_mask = 0;
+    if (!owned) {
+        g_pending_stock_menu_mask = 0;
+        g_attract_p1_physical_start_held = false;
+    }
     if (owned && !g_input.host_owns_input()) g_host_owned_samples = 0;
     g_input.host_focus(owned != 0);
 }
@@ -90,5 +118,6 @@ extern "C" void ur_baldosa_product_guest_restarted(void) {
     const bool was_host_owned = g_input.host_owns_input();
     g_input.reset();
     g_pending_stock_menu_mask = 0;
+    g_attract_p1_physical_start_held = false;
     if (was_host_owned) g_input.host_focus(true);
 }

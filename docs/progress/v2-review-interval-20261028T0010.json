@@ -1,0 +1,97 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-28",
+  "from_main_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "through_main_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+  "observed_merge_count": 118,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/82fd7d2aa758b5f42c769f737422cdf22d3e05f4...afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+  "merge_records_scope": "representative_verified_sample",
+  "merge_records_note": "GitHub comparison reports 118 integrated commits. The eight source-bound examples are explicitly representative, NOT an exhaustive 118-item commit-effect classification. The unclassified 110 must never be imputed to product progress or agent labor.",
+  "merge_records": [
+    {
+      "pr": 2711,
+      "commit_sha": "930f16ed4536aea83450335bd550aa9afefd98f1",
+      "effect": "enabling_infrastructure",
+      "observation": "Source-pinned ROM-free Windows playtest request after merged PS7 launcher repair; actual package and recovery witnesses run on this source.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2711"
+    },
+    {
+      "pr": 2717,
+      "commit_sha": "8439d17c7a9142888b1cf015c68efbaaa1b30722",
+      "effect": "deferred_or_research",
+      "observation": "CPU first-boundary native observation and snapshot cuts; no full USA-event admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2717"
+    },
+    {
+      "pr": 2723,
+      "commit_sha": "1c28db890aaa0728cc6ca89bf9120cab718af230",
+      "effect": "deferred_or_research",
+      "observation": "Original/native Zoo APU echo observer wiring; source parity still open.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2723"
+    },
+    {
+      "pr": 2729,
+      "commit_sha": "197a2052f4dedcb1d7161f26c0a22b44cf42a203",
+      "effect": "deferred_or_research",
+      "observation": "Original $2140 returned-value observer; not a Windows gameplay fix.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2729"
+    },
+    {
+      "pr": 2731,
+      "commit_sha": "c96c947aeab543a86dc2521a68a417f24f30987e",
+      "effect": "operations",
+      "observation": "Ranks independent frozen-criterion review among top-five agent choices.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2731"
+    },
+    {
+      "pr": 2732,
+      "commit_sha": "09c7c6dbe7a4b71810dc9a56d6255a0a522b6589",
+      "effect": "deferred_or_research",
+      "observation": "Guarded RF090 Zoo sequence-12 dispatch, later completed and audited; no full-event acceptance.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2732"
+    },
+    {
+      "pr": 2735,
+      "commit_sha": "0b7f9d0ddde1a3aef574608faed42981a1c5dbdf",
+      "effect": "operations",
+      "observation": "Independent board reconciliation of completed sequence-12 campaign; no product source edits.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2735"
+    },
+    {
+      "pr": 2734,
+      "commit_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+      "effect": "operations",
+      "observation": "Measured full-unit shard timing and calibration, preserving tests; not a new player criterion.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2734"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "RECOVERY-10",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324",
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6455893041",
+        "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333"
+      ],
+      "reason": "Retroactive, separately audited actual-byte hosted Win32 R/T/S/Q journeys through exact packaged CMD on source 930f16ed; 95 archive CRC and 71 member digest/length checks; Q no mutation, R/T/S correct distinct changes and two cold boots. No Windows product source changes in producer→reviewed-main 46-commit compare. This qualifies the complete narrow hosted criterion, not physical Windows or electrical power-cut RECOVERY-09."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 50,
+    "current_bounded_percent": 51,
+    "gross_delta_percentage_points": 1,
+    "new_work_earned_percentage_points": 0,
+    "retroactive_identification_percentage_points": 1,
+    "previous_independent_audit_percent": 8,
+    "current_independent_audit_percent": 9
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Criterion-level source/evidence audit for RECOVERY-10 only. 118 commits counted by GitHub compare; eight representative commits classified, 110 unclassified. No claim of exhaustive new-feature audit or new product code in this progress PR. Existing other criterion statuses unchanged.",
+  "source_reviewed_by": "independent_windows_recovery_artifact_audit_with_source_epoch_comparison",
+  "limitations": "Prior independently downloaded actual bytes are referenced, not redownloaded in this run. Hosted Win32 key execution and cold boots do not qualify human hardware, actual power cut, RECOVERY-09, complete USA events or 12 release gates."
+}

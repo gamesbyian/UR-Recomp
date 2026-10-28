@@ -29,6 +29,9 @@ class ProgressIntervalV2Tests(unittest.TestCase):
                          round(r["current_product_percent"] - r["previous_product_percent"], 3))
         self.assertEqual(r["reviewed_merge_count"],self.interval["observed_merge_count"])
         self.assertEqual(sum(r["merged_work_mix"].values()),r["reviewed_merge_count"])
+        self.assertEqual(r["reviewed_merge_sample_count"], 8)
+        self.assertEqual(r["unclassified_merge_count"], 110)
+        self.assertEqual(r["merged_work_mix"]["unclassified"], 110)
         self.assertEqual(r["current_independent_audit_percent"],
                          round(sum(c["weight_units"] for c in self.inv["criteria"]
                                    if c["audit_state"] == "independent_reviewed") * 100/4500,3))
@@ -62,8 +65,10 @@ class ProgressIntervalV2Tests(unittest.TestCase):
             "evidence":["https://github.com/gamesbyian/UR-Recomp/pull/2494"],
             "reason":"Positive fixture: verified hypothetical complete requirement, not a production claim"})
         r=self.score(inventory=inv, interval=interval)
-        self.assertEqual(r["interval_product_delta_points"],1.0)
-        self.assertEqual(r["newly_verified"],["ONE-03"])
+        self.assertEqual(r["interval_product_delta_points"],
+                         self.score()["interval_product_delta_points"] + 1.0)
+        self.assertIn("ONE-03", r["newly_verified"])
+        self.assertIn("RECOVERY-10", r["newly_verified"])
     def test_positive_gate_counter_without_formal_delta_rejected(self):
         ledger=copy.deepcopy(self.ledger)
         next(x for x in ledger["gates"] if x["id"]=="QA-04")["status"]="passed"
@@ -75,6 +80,20 @@ class ProgressIntervalV2Tests(unittest.TestCase):
         interval["observed_merge_count"] += 1
         with self.assertRaisesRegex(ValueError,"Duplicate"):
             self.score(interval=interval)
+    def test_representative_count_must_be_source_bound(self):
+        interval=copy.deepcopy(self.interval)
+        interval["merge_count_evidence"]="https://github.com/gamesbyian/UR-Recomp/pull/1"
+        with self.assertRaisesRegex(ValueError,"Representative interval"):
+            self.score(interval=interval)
+        interval=copy.deepcopy(self.interval)
+        interval["merge_records_scope"]="exhaustive"
+        with self.assertRaisesRegex(ValueError,"Exhaustive interval"):
+            self.score(interval=interval)
+        interval=copy.deepcopy(self.interval)
+        interval["observed_merge_count"]=7
+        with self.assertRaisesRegex(ValueError,"Merge record count"):
+            self.score(interval=interval)
+
     def test_interval_gap_rejected(self):
         interval=copy.deepcopy(self.interval)
         interval["from_main_sha"]="f"*40

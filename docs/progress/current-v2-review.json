@@ -1,7 +1,7 @@
 {
   "schema": "ur-v2-review-pointer/1",
-  "previous": "docs/progress/v2-review-interval-20261024T2010.json",
-  "interval": "docs/progress/v2-review-interval-20261026T2253.json",
-  "reviewed_main_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
-  "note": "Source-screened exact 119-commit interval. Candidate v2 50%, independent bounded audit 8%. Recent outcome +1pp ONE-08, historical omission correction +1pp ART-01. Physical QA gates and 45 USA events remain zero; review does not assert full live binary physical acceptance."
+  "previous": "docs/progress/v2-review-checkpoint-20261026T2253.json",
+  "interval": "docs/progress/v2-review-interval-20261028T0010.json",
+  "reviewed_main_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+  "note": "Reviewed source-bound criterion interval: bounded Windows beta 51%, independently audited bounded 9%. RECOVERY-10 retroactive hosted Windows packaged R/T/S/Q byte audit +1pp; zero new engineering points, no physical release QA or USA event acceptance. 118 intervening commits counted by GitHub compare; eight representative classified examples, 110 unclassified."
 }

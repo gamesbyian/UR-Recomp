@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
+  "source_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -752,12 +752,19 @@
       "id": "RECOVERY-10",
       "area": "RECOVERY",
       "criterion": "Exact-current packaged Windows R/T/S/Q journey independently accepted",
-      "status": "unverified",
-      "evidence": [],
-      "evidence_class": "none",
+      "status": "bounded_verified",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324",
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6455893041",
+        "https://github.com/gamesbyian/UR-Recomp/issues/970#issuecomment-6442129333"
+      ],
+      "evidence_class": "source_pinned_packaged_win32_actual_key_recovery_and_two_cold_boots",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "pending"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6455893041",
+      "independent_review_note": "Source 930f16ed packaged CMD/PE/ZIP independently audited; Q leaves all canonical bytes unchanged, R and T archive/repair distinct state and survive two fresh cold boots, S switches only healthy selector while preserving other racer data. Actual original Win32 console key execution and 95 ZIP CRC/71 source-member hash checks. No human physical session, power cut, RECOVERY-09, USA event or QA gate.",
+      "independent_review_basis": "Prior Agent-2 independent downloaded-byte audit, original Win32 job log read, exact producer-to-reviewed-main 46-commit no-Windows-product-path comparison, review receipt docs/progress/v2-recovery10-packaged-win32-audit-20261028.json."
     },
     {
       "id": "WIDE-01",
@@ -1730,6 +1737,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source comparison of 119 integrated commits since October 24 checkpoint; criterion-level independent review of exact Windows restart log and existing art source references; other unmet criteria screened, not physically accepted.",
-  "latest_criterion_review_ref": "docs/progress/v2-review-20261026-earned-delta.json",
-  "latest_review_interval": "docs/progress/v2-review-interval-20261026T2253.json"
+  "latest_criterion_review_ref": "docs/progress/v2-recovery10-packaged-win32-audit-20261028.json",
+  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0010.json"
 }

@@ -38,28 +38,29 @@ class OfflineWindowsH01H07Tests(unittest.TestCase):
 
     def test_immutable_candidate_pins_match_current_owner_instructions(self):
         for pin in (
-            "93d6251dc1edad80d350be46a11be715883b46a3",
-            "f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1",
-            "68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9",
+            "e1c6bf3b2811a63d406c3bf99a67821a9f8be4b4",
+            "7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf",
+            "8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2",
         ):
             with self.subTest(pin=pin):
                 self.assertIn(pin, self.js)
                 self.assertIn(pin, INSTRUCTIONS.read_text(encoding="utf-8"))
-        self.assertIn("12803447603", self.html)
-        self.assertIn("40658096254", self.js)
+        self.assertIn("12814450108", self.html)
+        self.assertIn("40680902399", self.js)
         self.assertIn("source-tree-equivalent", self.html)
-        self.assertIn("November 4, 2026", INSTRUCTIONS.read_text(encoding="utf-8"))
+        self.assertIn("distinct Return guest Start", self.html)
+        self.assertIn("November 4, 2026 at 11:52 UTC", INSTRUCTIONS.read_text(encoding="utf-8"))
         self.assertNotIn("930f16ed4536aea83450335bd550aa9afefd98f1", self.js)
-        self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2763"),
+        self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2770"),
                         INSTRUCTIONS.read_text(encoding="utf-8").index("Superseded post-#2688"))
         # A future physical candidate nomination must update both operator
         # entry points rather than silently leaving the recorder on old bytes.
         for authority in (BOARD, QUEUE):
             with self.subTest(authority=authority):
                 text = authority.read_text(encoding="utf-8")
-                self.assertIn("12803447603", text)
-                self.assertIn("f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1", text)
-                self.assertIn("68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9", text)
+                self.assertIn("12814450108", text)
+                self.assertIn("7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf", text)
+                self.assertIn("8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2", text)
 
     def test_all_seven_physical_journeys_and_statuses_present(self):
         for n in range(1, 8):

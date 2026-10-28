@@ -59,8 +59,8 @@ footer { margin-top: 22px; }
 <div><strong>Source revision</strong><div class="pin" id="source-pin"></div></div>
 <div><strong>Inner playable ZIP SHA-256</strong><div class="pin" id="zip-pin"></div></div>
 <div><strong>Extracted Windows EXE SHA-256</strong><div class="pin" id="exe-pin"></div></div>
-<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40658096254/artifacts/12803447603">Independently byte-audited ROM-free Windows artifact</a></p>
-<p class="sub">The source pin is the packaged synthetic validation-merge revision, source-tree-equivalent to merged product main 639d0800ac34cea7f3428874a5328dacf1ccd4c4. This is not a physical QA acceptance. Artifact expires November 4, 2026.</p>
+<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40680902399/artifacts/12814450108">Independently byte-audited ROM-free Windows artifact</a></p>
+<p class="sub">The source pin is the packaged synthetic validation-merge revision, source-tree-equivalent to merged product main 69896f52faf36d9dba1c2c9ff02b6f6bf08606e9. This is not a physical QA acceptance. Artifact expires November 4, 2026.</p>
 <label for="hashCheck">Did you independently compare your local inner ZIP and EXE against both hashes above?</label>
 <select id="hashCheck"><option value="not_checked">Not checked yet</option><option value="yes">Both matched</option><option value="no">Mismatch or unverifiable (no candidate acceptance)</option></select>
 </section>
@@ -113,14 +113,14 @@ footer { margin-top: 22px; }
 "use strict";
 (function () {
   const candidate = Object.freeze({
-    producing_run: 40658096254, artifact_id: 12803447603,
-    source_sha: "93d6251dc1edad80d350be46a11be715883b46a3",
-    inner_zip_sha256: "f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1",
-    executable_sha256: "68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9"
+    producing_run: 40680902399, artifact_id: 12814450108,
+    source_sha: "e1c6bf3b2811a63d406c3bf99a67821a9f8be4b4",
+    inner_zip_sha256: "7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf",
+    executable_sha256: "8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2"
   });
   const cases = [
     ["H01","Cold start","Fresh extraction and packaged CMD, first player, actual process exit, clean cold restart. Record missing dependencies and shell provenance.","QA-02, QA-01 prerequisite"],
-    ["H02","Stock title and five destinations","Idle until genuine stock attract/demo, independently wake with P1/keyboard/P2. Use a real P1 pad to visit Play, Practice, Multiplayer, Records, Options and Back/modal.","MENU-10, MENU-01, QA-03"],
+    ["H02","Stock title and five destinations","Idle until genuine stock attract/demo. Keyboard: Return wake, release, distinct Return guest Start, wait for original MAIN, third Return confirms Modern. Separately test pad A wake then Start and P2 wake. Use real P1 pad for Play, Practice, Multiplayer, Records, Options and Back/modal.","MENU-10, MENU-01, QA-03"],
     ["H03","Earned single-player race","Enter and genuinely finish 1P race, inspect time/result, Records and Next Event. Fully exit and cold-reopen to inspect persisted progression.","ONE-03, QA-03, QA-10"],
     ["H04","Two independent seats","Two different real pads, stock 2P GO, race result, separate Records. Report keyboard+pad, disconnect or seat churn only if actually exercised.","QA-04, TWO-05, UX-04"],
     ["H05","Non-ASCII user files","Use a disposable non-ASCII data root, create named profile, save/reopen Records, replay and Options after cold exit. Corrupt only expendable copies.","DATA-05, QA-07 as applicable"],

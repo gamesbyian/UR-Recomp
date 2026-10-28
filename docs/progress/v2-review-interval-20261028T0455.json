@@ -1,0 +1,55 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-28",
+  "from_main_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+  "through_main_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
+  "observed_merge_count": 16,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/afbf60fdb670e561b8ea2a2f882cd7277973b29b...a581cc38a1423c061238b2c10998c5ab9c34bb82",
+  "merge_records_scope": "representative_verified_sample",
+  "merge_records_note": "GitHub comparison reports 16 integrated commits. Two independently inspected relevant Windows source/evidence merges are representative, not exhaustive; the other fourteen commits are unclassified.",
+  "merge_records": [
+    {
+      "pr": 2747,
+      "commit_sha": "2e9a8928c59c59808b87ee026672f51178ff5394",
+      "effect": "release_risk_reduction",
+      "observation": "Repaired hosted Win32 keyboard+pad and two-pad seat-churn acceptance oracle; exact ready-head unit/hygiene/native Windows passed.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2747"
+    },
+    {
+      "pr": 2750,
+      "commit_sha": "a581cc38a1423c061238b2c10998c5ab9c34bb82",
+      "effect": "release_risk_reduction",
+      "observation": "Retained four source-bound hosted Win32 positive/negative controller seat logs for independent bounded TWO-05 review.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2750"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "TWO-05",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40630277462",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2747",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2750"
+      ],
+      "reason": "Independently rehashed real 14-member Win32 artifact #12791313122 and four raw SDL/root logs: keyboard+pad same-instance seat move then actual stock 2P; two pads enter stock 2P; cancelled join and P2 vacate never enter stock 2P. Hosted virtual pad behavior, not physical release evidence."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 51,
+    "current_bounded_percent": 52,
+    "gross_delta_percentage_points": 1,
+    "new_work_earned_percentage_points": 0,
+    "retroactive_identification_percentage_points": 1,
+    "previous_independent_audit_percent": 9,
+    "current_independent_audit_percent": 10
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Frozen TWO-05 only. Retroactive hosted Win32 product evidence admission, not a new gameplay feature; fourteen other commits unclassified.",
+  "source_reviewed_by": "independent_downloaded_win32_virtual_sdl_seat_stock_log_byte_audit",
+  "limitations": "No physical gamepads/H01-H07, no complete original/native USA event, no official release gate; no stdout/stderr cross-stream chronology."
+}

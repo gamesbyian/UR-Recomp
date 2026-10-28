@@ -24,18 +24,19 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         cls.interval = read(cls.pointer["interval"])
         cls.previous = read(cls.pointer["previous"])
         cls.historical_oct26 = read("docs/progress/v2-review-interval-20261026T2253.json")
+        cls.historical_recovery = read("docs/progress/v2-review-interval-20261028T0010.json")
 
     def test_review_pointer_is_pinned_to_same_source(self):
         self.assertEqual(self.pointer["reviewed_main_sha"], self.interval["through_main_sha"])
         require_reviewed_head(self.inv, self.pointer["reviewed_main_sha"])
-        self.assertEqual(self.pointer["previous"], "docs/progress/v2-review-checkpoint-20261026T2253.json")
+        self.assertEqual(self.pointer["previous"], "docs/progress/v2-review-checkpoint-20261028T0010.json")
         self.assertEqual(self.previous["at_main_sha"], self.interval["from_main_sha"])
         self.assertEqual(len(self.previous["criteria"]), 135)
 
     def test_frozen_criterion_contract_and_release_gates_unchanged(self):
         s = validate(self.inv, self.ledger)
-        self.assertEqual(s["bounded_product_coverage_percent"], 51)
-        self.assertEqual(s["independently_audited_coverage_percent"], 9)
+        self.assertEqual(s["bounded_product_coverage_percent"], 52)
+        self.assertEqual(s["independently_audited_coverage_percent"], 10)
         self.assertEqual(s["formal_windows_gates_passed"], 0)
         self.assertEqual(s["independent_USA_complete_events"], 0)
         self.assertEqual(len(self.inv["criteria"]), 135)
@@ -51,20 +52,24 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertIn("HD-RACER-CHARACTER-RECONSTRUCTION.md", art["audit_receipt"])
         self.assertEqual(self.historical_oct26["score"]["new_work_earned_percentage_points"], 1)
         self.assertEqual(self.historical_oct26["score"]["retroactive_identification_percentage_points"], 1)
-        self.assertEqual({x["id"] for x in self.interval["criterion_changes"]}, {"RECOVERY-10"})
+        self.assertEqual({x["id"] for x in self.historical_recovery["criterion_changes"]}, {"RECOVERY-10"})
+        self.assertEqual({x["id"] for x in self.interval["criterion_changes"]}, {"TWO-05"})
         recovery = next(x for x in self.inv["criteria"] if x["id"] == "RECOVERY-10")
         self.assertEqual(recovery["status"], "bounded_verified")
         self.assertEqual(recovery["audit_state"], "independent_reviewed")
+        two = next(x for x in self.inv["criteria"] if x["id"] == "TWO-05")
+        self.assertEqual((two["status"], two["audit_state"]), ("bounded_verified", "independent_reviewed"))
+        self.assertIn("6460996972", two["audit_receipt"])
         self.assertIn("6455893041", recovery["audit_receipt"])
         self.assertEqual(self.interval["score"]["new_work_earned_percentage_points"], 0)
         self.assertEqual(self.interval["score"]["retroactive_identification_percentage_points"], 1)
-        self.assertEqual(self.previous["at_main_sha"], "82fd7d2aa758b5f42c769f737422cdf22d3e05f4")
+        self.assertEqual(self.previous["at_main_sha"], "afbf60fdb670e561b8ea2a2f882cd7277973b29b")
 
     def test_delta_preserves_baseline_and_reports_only_actual_change(self):
         report = delta(self.inv, self.baseline, self.ledger)
-        self.assertEqual(report["current_provisional_coverage_percent"], 51)
-        self.assertEqual(report["change_percentage_points"], 1)
-        for key in ("ONE-08", "ART-01", "RECOVERY-10"):
+        self.assertEqual(report["current_provisional_coverage_percent"], 52)
+        self.assertEqual(report["change_percentage_points"], 2)
+        for key in ("ONE-08", "ART-01", "RECOVERY-10", "TWO-05"):
             self.assertIn(key, report["newly_verified_ids"])
         self.assertGreater(len(report["regressed_or_retracted_ids"]), 0)
 

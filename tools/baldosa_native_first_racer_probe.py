@@ -51,7 +51,10 @@ def run_game(exe: Path, rom: Path, user: Path, work: Path, smoke: str,
         [str(exe), "--no-launcher", "--config", str(ini),
          "--script", str(route), str(rom)],
         cwd=work, env=env, capture_output=True,
-        text=True, errors="replace", timeout=timeout)
+        # Native path receipts are emitted as UTF-8 bytes on every host.
+        # Windows' default text codec is its ANSI codepage, which previously
+        # mangled genuine non-ACP 漢字/🚲 saved-run path diagnostics.
+        text=True, encoding="utf-8", errors="replace", timeout=timeout)
     log = proc.stdout + "\n" + proc.stderr
     (work / "log.txt").write_text(log, encoding="utf-8")
     if proc.returncode != 0:

@@ -148,7 +148,9 @@ def run_guest(exe: Path, rom: Path, work: Path, user: Path,
     process = subprocess.run(
         [str(exe), "--no-launcher", "--config", str(cfg), "--script",
          str(route), str(rom)], cwd=work, env=env, capture_output=True,
-        text=True, errors="replace", timeout=timeout)
+        # Native path diagnostics are UTF-8 even when Win32 Python defaults
+        # to an ANSI codepage. Preserve non-ACP guest Records path receipts.
+        text=True, encoding="utf-8", errors="replace", timeout=timeout)
     log = process.stdout + "\n" + process.stderr
     (work / "log.txt").write_text(log, encoding="utf-8")
     if process.returncode:

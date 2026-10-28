@@ -33,7 +33,13 @@ static void UrQaModernReadDrawable(void) {
   static int completed = 0;
   ++present_calls;
   if (completed) return;
-  const char *target = getenv("UR_MODERN_VISUAL_SDL_CAPTURE_DRAW");
+  const char *target_draw = getenv("UR_MODERN_VISUAL_SDL_CAPTURE_DRAW");
+  const char *target_guest = getenv("UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME");
+  const int by_guest = target_guest && *target_guest;
+  const int by_draw = target_draw && *target_draw;
+  /* Exactly one explicit clock axis: no host-draw/guest-frame aliasing. */
+  if (by_guest == by_draw) return;
+  const char *target = by_guest ? target_guest : target_draw;
   const char *output = getenv("UR_MODERN_VISUAL_SDL_CAPTURE_FILE");
   const char *width_env = getenv("UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH");
   const char *height_env = getenv("UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT");
@@ -51,7 +57,7 @@ static void UrQaModernReadDrawable(void) {
       expected_w < 320 || expected_w > 3840 ||
       expected_h < 224 || expected_h > 2160)
     return;
-  if (present_calls != frame) return;
+  if ((by_guest ? (unsigned long)g_present_frame : present_calls) != frame) return;
   completed = 1;
   int w = 0, h = 0;
   if (!snesrecomp_sdl_get_render_output_size(g_renderer, &w, &h) ||

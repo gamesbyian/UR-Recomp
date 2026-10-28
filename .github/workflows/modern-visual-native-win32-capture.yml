@@ -19,6 +19,8 @@ on:
       # with the existing independent QA driver, not a parallel test runtime.
       - "native/product/modern_native_destination_presenter.hpp"
       - "tools/baldosa_native_modern_root.cpp"
+      - "tools/baldosa_native_product_execution.cpp"
+      - "tests/unit/test_modern_title_default_stock_attract.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -30,7 +32,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028' || github.head_ref == 'product/menu10-p1-start-guest-exit-20261028'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -56,6 +58,7 @@ jobs:
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
             tests.unit.test_qa_modern_attract_final_sdl_pair \
+            tests.unit.test_modern_title_default_stock_attract \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
             tests.unit.test_qa_modern_identity_strip_p7 \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
@@ -159,6 +162,39 @@ jobs:
             ${{ runner.temp }}/ur-menu10-final-sdl/*/readback-receipt.json
             ${{ runner.temp }}/ur-menu10-final-sdl/*/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-menu10-final-sdl/*/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
+      # Distinct source-authenticated product discriminator: a real P1 Start
+      # callback alone may reach the demo and terminate it before natural
+      # return. Never replace this with A, a hidden menu-state write, or a
+      # self-certified MENU-10 acceptance.
+      - name: Observe genuine P1 Start exit and rapid source-main recovery
+        if: github.event_name == 'pull_request' && github.head_ref == 'product/menu10-p1-start-guest-exit-20261028'
+        run: |
+          set -euo pipefail
+          python tools/qa_modern_visual_win32_capture_driver.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --out "$RUNNER_TEMP/ur-menu10-start-exit" --video windows \
+            --timeout 130 --window-size 1280x720 \
+            --route stock-attract-start-exit
+          test -s "$RUNNER_TEMP/ur-menu10-start-exit/readback-receipt.json"
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT p1_real_start_to_demo=1' \
+            "$RUNNER_TEMP/ur-menu10-start-exit/probe_first/native-process.log"
+          grep -Fq 'UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_exit_ready=1' \
+            "$RUNNER_TEMP/ur-menu10-start-exit/probe_first/native-process.log"
+          echo "Real Windows original demo exit before 1940 after actual P1 Start semantic callback; no physical-hardware or beta/release admission." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain exact Windows rapid Start-exit source and SDL evidence
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'product/menu10-p1-start-guest-exit-20261028'
+        uses: actions/upload-artifact@v4
+        with:
+          name: menu10-real-p1-start-rapid-guest-exit
+          path: |
+            ${{ runner.temp }}/ur-menu10-start-exit/readback-receipt.json
+            ${{ runner.temp }}/ur-menu10-start-exit/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-menu10-start-exit/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-menu10-start-exit/probe_first/native-process.log
           if-no-files-found: warn
           retention-days: 7
       - name: Verify repaired racer identity on actual 16:9 and compact Windows SDL P7

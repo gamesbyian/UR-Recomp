@@ -32,6 +32,26 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertNotIn("std::getenv", region)
         self.assertIn("g_stock_target == -1", region)
 
+    def test_wake_disarms_previous_main_before_source_title_exit(self):
+        # Real Start exits a racing demo through stock TITLE 84 before MAIN.
+        # Reusing the old D7 observation would immediately reveal that
+        # transient TITLE as a new attract on a just-woken Modern title.
+        wake = self.source.split("void wake_original_stock_attract() {", 1)[1].split(
+            'extern "C" int ur_baldosa_modern_root_key(', 1
+        )[0]
+        self.assertIn("g_original_attract_seen_main = false;", wake)
+        self.assertLess(
+            wake.index("g_original_attract_seen_main = false;"),
+            wake.index("g_original_attract_visible = false;"))
+        rearm = self.source.split(
+            "// The original guest's *observed* MAIN D7 -> TITLE 84 transition,", 1
+        )[1].split(
+            "if (g_visible && ur::product::modern_title_active(g_title))", 1
+        )[0]
+        self.assertIn("if (!guest_in_race && source_menu == 0xd7u)", rearm)
+        self.assertIn("g_original_attract_seen_main = true;", rearm)
+        self.assertIn("if (g_original_attract_seen_main && !guest_in_race &&", rearm)
+
     def test_p2_is_consumed_during_title_and_root_except_real_join(self):
         region = self.source.split(
             'extern "C" int ur_baldosa_modern_root_gamepad(', 1
@@ -69,6 +89,53 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertIn("p2_sdl_release_submitted=1", region)
         self.assertIn("p2_sdl_callback_received=1", self.source)
         self.assertIn("p2_other_button_isolated=1", region)
+
+    def test_real_p1_start_is_the_only_guest_demo_exit_bridge(self):
+        bridge = (ROOT / "tools/baldosa_native_product_execution.cpp").read_text(
+            encoding="utf-8")
+        handler = self.source.split(
+            'extern "C" int ur_baldosa_modern_root_gamepad(', 1
+        )[1].split(
+            'extern "C" int ur_baldosa_modern_root_window_base_width(', 1
+        )[0]
+        self.assertIn("button == kGamepadBtn_Start && !pressed", handler)
+        self.assertIn("button == kGamepadBtn_Start && g_ram[0x0313u] == 1u",
+                      handler)
+        self.assertIn("if (genuine_p1_start_in_demo)", handler)
+        self.assertIn("ur_baldosa_product_attract_p1_start_event(1);", handler)
+        self.assertIn("ur_baldosa_product_attract_p1_start_event(0);", handler)
+        self.assertIn("host_owned && g_attract_p1_physical_start_held", bridge)
+        self.assertIn("g_attract_source_demo_observed ? 0x0008u : 0u", bridge)
+        self.assertIn("ur_baldosa_product_attract_source_demo_observed(g_ram[0x0313u] == 1u)", self.source)
+        self.assertIn("if (!g_attract_source_demo_observed)", bridge)
+        self.assertIn("g_attract_p1_physical_start_held = false;", bridge)
+        self.assertIn("filtered | static_cast<std::uint32_t>(g_pending_stock_menu_mask) |",
+                      bridge)
+        self.assertIn("live_demo_start;", bridge)
+        self.assertIn("quick_practice_runner_mask_is_discrete_menu_input(mask)",
+                      bridge)
+        # Original real-start bridge does not widen the scripted Accept
+        # vocabulary or treat P2 as P1. No automatic criterion promotion.
+        self.assertNotIn("quick_practice_runner_mask_is_discrete_menu_input(mask) ||",
+                         bridge)
+        self.assertLess(handler.index("if (player != 0) return 0;"),
+                        handler.index("if (genuine_p1_start_in_demo)"))
+
+    def test_rapid_exit_fixture_requires_source_d7_and_fresh_confirm(self):
+        section = self.source.split('// CI-only mode 35:', 1)[1].split(
+            '// CI-only mode 28:', 1)[0]
+        self.assertIn("mode < 1 || mode > 35", self.source)
+        self.assertIn('std::strcmp(fixture, "35") != 0', self.source)
+        self.assertIn('frame == 1600', section)
+        self.assertIn('kGamepadBtn_Start, 1', section)
+        self.assertIn('kGamepadBtn_Start, 0', section)
+        self.assertIn('original_stock_attract_source_ready()', section)
+        self.assertIn('kQuickPracticeMenuSettleObservations', section)
+        self.assertIn('frame == 1940', section)
+        self.assertIn('frame == 1960', section)
+        self.assertIn('kGamepadBtn_A, 1', section)
+        self.assertIn('rapid_start_root_ready=1', section)
+        self.assertNotIn('g_ram[0x009fu] =', section)
 
 
 if __name__ == "__main__":

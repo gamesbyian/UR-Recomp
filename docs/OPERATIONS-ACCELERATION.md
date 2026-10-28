@@ -234,3 +234,10 @@ Iterating a draft research/engineering PR may trigger the full `Project tooling 
 
 Measure reduced **cancelled full-unit runner seconds**, unchanged ready-for-review full gate reliability and the number of accidental extra synchronization cycles. If ready-for-review events or branch protection don't reliably require the full test verdict, revert rather than leaving a misleading green check. A draft's `unit` check must visibly display **skipped**, not pass.
 
+## Draft unit feedback improvement (October 28)
+
+Draft PRs now run cheap, **diagnostic-only unit tests for directly changed Python test modules, exact same-named `tools/*.py` companions, and the existing workflow-trigger policy when workflow YAML is modified**, in addition to mandatory Python/YAML syntax checks. This is a feedback improvement, not a change to release or review acceptance.
+
+The fail-closed selector `tools/ci_draft_target_tests.py` uses a complete bounded GitHub PR-files census, exact validated test module names, actual tracked timing hints, a cap of six modules, 12 estimated module-seconds and a 45-second process timeout. Missing API access, renames/deletions, unexpected statuses and ambiguous pagination produce **syntax-only draft validation**. Absent a mapped fast test, there is no claim the changed source was tested. Source-to-test mappings are intentionally direct and incomplete; imports, dependencies and C++ tests are only covered by the full required suite.
+
+The original `unit` job is **skipped on drafts** and **runs fully on ready-for-review / subsequent ready synchronization**, regardless of any draft-targeted outcome. Green draft diagnostics are never used to merge or grant gameplay/QA/release credit. Review live draft run duration and detected mistakes against prior syntax-only drafts. If targeted tests exceed their latency budget or lead to misleading statements about coverage, reduce the selection population or revert, never waive the ready-state full suite.

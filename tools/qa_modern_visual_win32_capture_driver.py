@@ -76,6 +76,9 @@ ROUTES = {
     "stock-attract-before": ("28", 1568, "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532"),
     "stock-attract-after": ("28", 1584, "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532"),
     "stock-attract-woken": ("28", 1616, "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600"),
+    # Genuine guest Start input after actual P1 Start callback, with a
+    # distinct later P1 A confirming Modern root only after stable source D7.
+    "stock-attract-start-exit": ("35", 2000, "UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_root_ready=1 frame=1990"),
 }
 
 

@@ -308,3 +308,21 @@ jobs:
           python3 -m compileall -q tests/unit tools
           ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
           echo "DRAFT_SYNTAX_ONLY: full Python unit suite NOT executed; mark PR ready for review to require the unit check." >> "$GITHUB_STEP_SUMMARY"
+      - name: Run only directly changed, cheap Python tests (draft diagnostic)
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          python3 tools/ci_draft_target_tests.py > "$RUNNER_TEMP/draft-modules.txt"
+          mapfile -t mods < "$RUNNER_TEMP/draft-modules.txt"
+          if (( ${#mods[@]} > 0 )); then
+            echo "DRAFT_TARGETED_DIAGNOSTIC_ONLY: ${#mods[@]} directly related modules. NOT the full unit suite." >> "$GITHUB_STEP_SUMMARY"
+            printf '  - %s\n' "${mods[@]}" >> "$GITHUB_STEP_SUMMARY"
+            # This bounded draft check is never accepted instead of the
+            # unchanged full required 'unit' check after ready_for_review.
+            timeout 45s python3 -m unittest -v "${mods[@]}"
+          else
+            echo "DRAFT_TARGETED_DIAGNOSTIC_ONLY: no cheap directly mapped tests or PR file census unavailable; only syntax completed." >> "$GITHUB_STEP_SUMMARY"
+          fi

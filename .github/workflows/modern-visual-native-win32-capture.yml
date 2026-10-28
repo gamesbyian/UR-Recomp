@@ -93,7 +93,8 @@ jobs:
           set -euo pipefail
           source "$TOOLCHAIN_DIR/env.sh"
           clang --version | head -n1 | grep -F "22.1.8"
-          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          export SOURCE_DATE_EPOCH
           cmake -S baldosa -B baldosa/build-ur-visual -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
           cmake --build baldosa/build-ur-visual --target UniracersSNESRecomp -j 3

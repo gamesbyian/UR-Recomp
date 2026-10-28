@@ -45,7 +45,10 @@ static void rf092_spc_port(const char *kind, unsigned addr, unsigned value) {
   const char *flag = std::getenv("UR_QA01_RF092_ORIGINAL_SPC");
   if (!flag || flag[0] != '1' || flag[1] != '\0') return;
   const unsigned frame = ::rf083_original_frame();
-  if (frame < 6054u || frame > 6059u ||
+  /* Sequence-17 original result +265..+269 is frame 6445..6449.
+   * Keep the earlier upload observer window unchanged. */
+  if (!((frame >= 6054u && frame <= 6059u) ||
+        (frame >= 6445u && frame <= 6449u)) ||
       addr < 0xf4u || addr > 0xf7u) return;
   if (++rf092_rows > 16384u) {
     if (rf092_rows == 16385u)

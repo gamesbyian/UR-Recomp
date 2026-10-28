@@ -42,7 +42,11 @@ static void ur_rf088_note(CpuState *cpu, uint8 bank, uint16 addr,
     /* Keep the actual four APU ports narrow, but do not preselect the
      * unproven pointer phase. The sequence-10 combined run produced zero
      * RF088 rows; log the pointer alongside each observed port access. */
-    if (!enabled || snes_frame_counter < 6055 || snes_frame_counter > 6060 ||
+    /* Sequence-17 result +265..+269 is native frame 6447..6451.
+     * Preserve the original upload-window control at 6055..6060. */
+    if (!enabled ||
+        !((snes_frame_counter >= 6055 && snes_frame_counter <= 6060) ||
+          (snes_frame_counter >= 6447 && snes_frame_counter <= 6451)) ||
         (addr < 0x2140 || addr > 0x2143)) return;
     if (++ur_rf088_rows > 32768u) {
         if (ur_rf088_rows == 32769u)

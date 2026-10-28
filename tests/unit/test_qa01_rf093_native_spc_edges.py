@@ -44,8 +44,9 @@ class NativeSpcEdgesTest(unittest.TestCase):
         self.assertIn("clock=native_spc", result)
         self.assertIn("QA01RF093NATIVE_TRUNCATED", result)
         self.assertIn("apu->portClock", result)
-        self.assertIn("snes_frame_counter < 6054", result)
-        self.assertIn("snes_frame_counter > 6059", result)
+        self.assertIn("snes_frame_counter >= 6054 && snes_frame_counter <= 6059", result)
+        self.assertIn("snes_frame_counter >= 6447 && snes_frame_counter <= 6451", result)
+        self.assertIn("!((snes_frame_counter >= 6054", result)
 
     def test_repeat_and_partial_stage_rejected(self):
         result = rf093.patch(fixture())

@@ -132,9 +132,28 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         self.assertIn("uses: ./.github/workflows/qa01-event-campaign.yml", text)
         for required in ("selected: zoom-zoo", "zoo_race_mesh: true",
                          "zoo_dp_window: true",
+                         "source_followthrough: true", "zoo_next_bowl: true",
+                         "qa01_cold_guest_reload: true",
                          "baldosa_refresh_beam_rate: true",
                          "baldosa_io_clock_order: true"):
             self.assertIn(required, text)
+        # These three opt-ins must travel together on the exact same Zoo case:
+        # authentic result follow-through, genuine next-event progression and
+        # independent fresh-guest earned SRAM reload. Never enable a broad
+        # all-case campaign or a second unguarded producer.
+        self.assertEqual(text.count("source_followthrough: true"), 1)
+        self.assertEqual(text.count("zoo_next_bowl: true"), 1)
+        self.assertEqual(text.count("qa01_cold_guest_reload: true"), 1)
+        owning = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text(
+            encoding="utf-8")
+        for declared in ("source_followthrough:", "zoo_next_bowl:",
+                         "qa01_cold_guest_reload:"):
+            self.assertIn(declared, owning)
+        self.assertIn('row.get("disposition") not in ("strict_candidate", "strict_divergence")', owning)
+        self.assertIn('row.get("release_credit") != 0', owning)
+        # A real strict divergence may still carry source-earned cold-guest
+        # evidence, but no release admission is made by this wrapper.
+        self.assertIn('"$producer_rc" -eq 0 || "$producer_rc" -eq 1', owning)
         # Both original and native observers are disabled together for control.
         expression = "${{ needs.qualify_request.outputs.observer_enabled == 'true' }}"
         self.assertIn("observer_enabled: ${{ steps.guard.outputs.observer_enabled }}", text)

@@ -48,7 +48,15 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
         # test_partition_unit_tests.py), and the workflow must fail if any
         # shard fails.
         self.assertIn("tools/partition_unit_tests.py", workflow)
-        self.assertIn('python3 -m unittest -v "${mods[@]}"', workflow)
+        self.assertIn('python3 tools/run_unit_shard.py --out', workflow)
+        self.assertIn('"${mods[@]}" >"$RUNNER_TEMP/unit-shard$i.log" 2>&1 &', workflow)
+        self.assertIn('unit-module-timings-shard$i.json', workflow)
+        # The new runner must retain one global unittest exit/verdict and
+        # never substitute a timing receipt for actual test-suite completion.
+        runner = (ROOT / "tools" / "run_unit_shard.py").read_text(encoding="utf-8")
+        self.assertIn("unittest.TextTestRunner(verbosity=2)", runner)
+        self.assertIn("result.wasSuccessful()", runner)
+        self.assertIn("result, measured = execute(args.modules)", runner)
         self.assertIn('wait "${pids[$i]}"; r=$?', workflow)
         self.assertIn('test "$rc" -eq 0', workflow)
 

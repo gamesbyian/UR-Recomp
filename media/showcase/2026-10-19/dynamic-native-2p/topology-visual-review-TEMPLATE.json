@@ -1,0 +1,45 @@
+{
+  "schema": "UR-DYNAMIC-TOPOLOGY-VISUAL-REVIEW/1",
+  "review_method": "PENDING_ACTUAL_VIDEO_REVIEW",
+  "reviewer": "PENDING",
+  "asserts_source_sessions_are_distinct": true,
+  "notes": "TEMPLATE ONLY: do not mark any shot observed without inspecting its exact source MP4, checked against dynamic-racing-provenance.json. All three source courses must actually be playable and visible.",
+  "shots": [
+    {
+      "route": "looper-p1-leads",
+      "source_sha256": "PENDING",
+      "observed_feature": "loop",
+      "first_source_ordinal": null,
+      "frame_count": null,
+      "source_gameplay_visually_observed": false,
+      "full_two_player_raster_visible": false,
+      "two_racers_visibly_separated": false,
+      "source_video_guest_state_modified": false,
+      "observation": "PENDING visual proof of real loop, two riders and actual rolling movement (minimum 48 characters when accepted)."
+    },
+    {
+      "route": "megajump-p2-leads",
+      "source_sha256": "PENDING",
+      "observed_feature": "ramp",
+      "first_source_ordinal": null,
+      "frame_count": null,
+      "source_gameplay_visually_observed": false,
+      "full_two_player_raster_visible": false,
+      "two_racers_visibly_separated": false,
+      "source_video_guest_state_modified": false,
+      "observation": "PENDING visual proof of actual game-authored ramp, takeoff and separately moving racers."
+    },
+    {
+      "route": "hill-climb-p2-leads",
+      "source_sha256": "PENDING",
+      "observed_feature": "hill",
+      "first_source_ordinal": null,
+      "frame_count": null,
+      "source_gameplay_visually_observed": false,
+      "full_two_player_raster_visible": false,
+      "two_racers_visibly_separated": false,
+      "source_video_guest_state_modified": false,
+      "observation": "PENDING visual proof of actual sustained original source-game slope and independent rider track progress."
+    }
+  ]
+}

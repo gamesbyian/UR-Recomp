@@ -39,7 +39,7 @@ class BetaV3Tests(unittest.TestCase):
         self.assertEqual(beta["excluded_release_only"], ["QA-09"])
         self.assertEqual(beta["by_group"]["FID"]["total"], 45)
         self.assertEqual(beta["by_group"]["QA"]["total"], 9)
-        self.assertEqual(beta["original_native_events"], {"accepted": 0, "required": 45})
+        self.assertEqual(result["original_native_events"], {"accepted": 0, "required": 45})
         self.assertEqual(result["release_quality_separate"]["formal_release_gates_passed"], 0)
         self.assertFalse(result["new_engineering_work_claimed"])
         self.assertEqual(result["newly_admitted_criteria_claimed"], 0)

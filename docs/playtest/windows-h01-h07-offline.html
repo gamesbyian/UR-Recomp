@@ -139,8 +139,9 @@ footer { margin-top: 22px; }
     row.notes = safe($("notes").value,1200);
     row.evidence = safe($("evidence").value,240);
   }
-  function show(i) {
-    capture();
+  function show(i, preserveImported = false) {
+    const moving = i !== index;
+    if (!preserveImported) capture();
     index = Math.max(0,Math.min(cases.length-1,i));
     const [id,title,description,criteria] = cases[index], row = results[id];
     $("step-count").textContent = "Journey " + (index+1) + " of " + cases.length;
@@ -157,6 +158,7 @@ footer { margin-top: 22px; }
     $("previous").disabled = index===0;
     $("next").disabled = index===cases.length-1;
     $("feedback").textContent = "";
+    if (moving) $("journey-title").scrollIntoView({block:"start",behavior:"auto"});
   }
   for (let i=0;i<cases.length;i++) {
     const b=document.createElement("button");
@@ -261,9 +263,12 @@ footer { margin-top: 22px; }
       for(const id of fieldIds) {
         if(typeof input.environment[id]!=="string")throw new Error("Invalid environment");
       }
+      if(!["yes","no","not_checked"].includes(input.environment.hashCheck)
+         ||!["physical_pc","virtual_machine","hosted_runner","unspecified"].includes(input.environment.platform))
+        throw new Error("Unsupported environment selection");
       results=next;
       for(const id of fieldIds) $(id).value=safe(input.environment[id],120);
-      show(index);
+      show(index, true);
       $("feedback").textContent="Matching report imported. Recheck observations before exporting.";
     }catch(err){$("feedback").textContent="Import refused: "+err.message;}
     e.target.value="";

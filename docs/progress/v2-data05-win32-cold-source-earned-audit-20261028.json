@@ -1,0 +1,76 @@
+{
+  "schema": "ur-v2-criterion-independent-audit/1",
+  "reviewed_utc_date": "2026-10-28",
+  "work_id": "UR-RELEASE-PROGRESS-20261026",
+  "criterion_id": "DATA-05",
+  "criterion_text": "Native profile and replay file paths preserve UTF-8 Windows names",
+  "decision": "bounded_verified_independent_reviewed",
+  "reviewed_main_sha": "ed562fd45d954949f285ec142d3440eac75032cb",
+  "producing_prs": [
+    2781,
+    2789,
+    2790,
+    2799,
+    2800,
+    2801,
+    2802,
+    2803
+  ],
+  "classification": "genuine_hosted_win32_source_earned_native_utf8_path_product_fix_and_integration_proof",
+  "hosted_run": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40781950929",
+    "reviewed_ready_head": "337aa25940af4f04ae02655737d547030210b45d",
+    "producer_synthetic_sha": "a82d0d89fc00a35b5dc82b2d818f3cedebab899c",
+    "identical_complete_tree_sha": "7b8e40b5b5e2cc036035e466b63a2ae6b5a7c8e7",
+    "native_amd64_pe_sha256": "23dc567f9e48cfb3c5c5954ecbb412ea2ab9a8af047b4e089e57b624426ad7de",
+    "unit": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40781950834",
+    "unit_observed": 5981,
+    "unit_skipped": 48,
+    "hygiene": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40781950836",
+    "artifacts": [
+      {
+        "id": 12859100588,
+        "size_bytes": 1251,
+        "sha256": "f861e04b9f2552c5cbb7e185a194fe35475af7f047bd8c8333e2667d77c1a40d",
+        "members": 1,
+        "crc_ok": true
+      },
+      {
+        "id": 12859205762,
+        "size_bytes": 15146,
+        "sha256": "15ac7b12895a126e5b9eb3cd4cae734c465c04622a6cfbcfdf7fe70a03fa8b2c",
+        "members": 11,
+        "crc_ok": true
+      }
+    ]
+  },
+  "verified": [
+    "13/13 authentic original-guest hosted Win32 journeys exit 0 on same PE; independent real ZIP byte and SHA checks",
+    "Native Unicode profile save locks use native Windows filesystem path/CreateFileW after reproducible narrow ACP failure",
+    "Source-earned named 2P .urrun/.urmatch archive under non-ACP user_2p_漢字-🚲, fresh Windows native Records for both players",
+    "Production 1P replay file inspection, compatibility, input staging/retirement of actual source-earned Unicode .urrun after cold Records: DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed",
+    "Production 2P Records cold-read after source-earned Unicode match: DATA05_UNICODE_SOURCE_EARNED_2P_RECORDS_COLD=passed",
+    "Native Options four-process save/restore/default/quarantine/cold reopen under Fresh Options User 漢字",
+    "Original Dragster Quick Practice under 漢字-🚲, real TerminateProcess hard kill while alive, fresh native cold boot; no fake record",
+    "Independent real Practice 11/11 ZIP member CRC and hard-kill receipt audit"
+  ],
+  "independent_actual_byte_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6483152463",
+  "not_checked": [
+    "Actual full guest replay playback beyond cold read and input staging",
+    "Physical human H01-H07, real pads, display/audio and owner GPU",
+    "True electrical power cut, physical NTFS defects",
+    "Any complete USA original/native event of 45, full ONE-03 Tour Next Event, signed 4K racer art",
+    "Any of twelve formal Windows release-quality gates"
+  ],
+  "score_effect": {
+    "previous_bounded_percent": 54,
+    "after_bounded_percent": 55,
+    "previous_independent_audit_percent": 12,
+    "after_independent_audit_percent": 13,
+    "new_engineering_percentage_points": 1,
+    "retroactive_evidence_percentage_points": 0,
+    "formal_release_gate_delta": 0,
+    "usa_complete_event_delta": 0
+  },
+  "next_executable": "Distinct PR reviewer verifies 23-main-commit interval and full ready-head unit/hygiene before SHA-guard merge; preserve independent physical and release holds."
+}

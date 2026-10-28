@@ -6,6 +6,9 @@ These fixture strings test the observer only. They are NOT real match evidence.
 from pathlib import Path
 import sys
 import unittest
+import subprocess
+import tempfile
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -48,6 +51,37 @@ def records_log() -> str:
 
 
 class NativeTwoPlayerRecordsProbe(unittest.TestCase):
+
+    def test_native_two_player_cold_records_log_preserves_unicode_paths(self):
+        # The production run_guest decoder must handle actual raw UTF-8
+        # bytes from the Windows game, not cp1252-decoded mojibake.
+        name = "user_2p_漢字-🚲"
+        source = (
+            "import sys; "
+            "sys.stdout.buffer.write('2P record=" + name +
+            "\\n'.encode('utf-8')); "
+            "sys.stderr.buffer.write('2P archive=" + name +
+            "\\n'.encode('utf-8'))"
+        )
+        real_run = subprocess.run
+        def emit(_args, **kwargs):
+            return real_run([sys.executable, "-c", source], **kwargs)
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with mock.patch.object(probe.subprocess, "run", side_effect=emit) as invoked:
+                log = probe.run_guest(
+                    root / "native.exe", root / "original.sfc",
+                    root / "cold", root / name,
+                    script="turbo on\\nwait 1\\nquit\\n",
+                    smoke="1", timeout=15, video="dummy")
+                self.assertEqual(invoked.call_args.kwargs["encoding"], "utf-8")
+                self.assertEqual(invoked.call_args.kwargs["errors"], "replace")
+            self.assertEqual(log.count(name), 2)
+            self.assertNotIn("�", log)
+            self.assertEqual(
+                (root / "cold" / "log.txt").read_text(encoding="utf-8"), log)
+
     def test_reuses_stock_two_player_go_and_pinned_drive(self):
         from baldosa_windows_native_pause_route import (
             native_modern_race_entry_script,

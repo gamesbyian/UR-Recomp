@@ -124,6 +124,8 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
     def test_rapid_exit_fixture_requires_source_d7_and_fresh_confirm(self):
         section = self.source.split('// CI-only mode 35:', 1)[1].split(
             '// CI-only mode 28:', 1)[0]
+        self.assertIn("mode < 1 || mode > 35", self.source)
+        self.assertIn('std::strcmp(fixture, "35") != 0', self.source)
         self.assertIn('frame == 1600', section)
         self.assertIn('kGamepadBtn_Start, 1', section)
         self.assertIn('kGamepadBtn_Start, 0', section)

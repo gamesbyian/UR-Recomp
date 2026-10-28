@@ -68,7 +68,9 @@ class ReducerTests(unittest.TestCase):
         runs, evidence = self.run_case(max_calls=4)
         self.assertTrue(evidence["budget_exhausted"])
         self.assertEqual(len(runs), 4)
-        self.assertEqual(evidence["oracle_calls"], 4)
+        self.assertEqual(evidence["oracle_calls"], 3)
+        self.assertEqual(evidence["negative_short_circuit_candidates"], 1)
+        self.assertEqual(evidence["redundant_negative_oracle_calls_avoided"], 1)
 
     def test_exact_observation_horizon_verifies_late_tail_first(self):
         runs, receipt = tool.reduce(
@@ -82,6 +84,8 @@ class ReducerTests(unittest.TestCase):
         self.assertEqual(receipt["post_observation_removed_runs"], 2)
         self.assertEqual(receipt["observation_frame"], 110)
         self.assertEqual(receipt["oracle_calls"], 4)
+        self.assertEqual(receipt["negative_short_circuit_candidates"], 0)
+        self.assertEqual(receipt["redundant_negative_oracle_calls_avoided"], 0)
         self.assertEqual(receipt["removed_runs"], 2)
         self.assertTrue(receipt["budget_exhausted"])
 
@@ -96,6 +100,10 @@ class ReducerTests(unittest.TestCase):
         self.assertTrue(receipt["post_observation_trial"])
         self.assertEqual(receipt["post_observation_removed_runs"], 0)
         self.assertTrue(receipt["budget_exhausted"])
+        # This failed horizon trial cannot satisfy all repeat checks.
+        self.assertEqual(receipt["oracle_calls"], 3)
+        self.assertEqual(receipt["negative_short_circuit_candidates"], 1)
+        self.assertEqual(receipt["redundant_negative_oracle_calls_avoided"], 1)
 
     def test_observation_boundary_and_legacy_mode(self):
         with self.assertRaisesRegex(ValueError, "authenticated original"):
@@ -122,6 +130,32 @@ class ReducerTests(unittest.TestCase):
         self.assertIsNone(legacy["observation_frame"])
         self.assertFalse(legacy["post_observation_trial"])
         self.assertEqual(legacy["post_observation_removed_runs"], 0)
+
+    def test_rejected_subset_saves_one_real_oracle_execution(self):
+        # A failed subset is definitive when ALL repeats must reproduce.
+        _, report = self.run_case(max_calls=4)
+        self.assertEqual(report["oracle_calls"], 3)
+        self.assertEqual(report["candidates_tested"], 2)
+        self.assertEqual(report["negative_short_circuit_candidates"], 1)
+        self.assertEqual(report["redundant_negative_oracle_calls_avoided"], 1)
+        self.assertEqual(report["oracle_result_counts"]["not_reproduced"], 1)
+        self.assertEqual(report["oracle_result_counts"]["reproduced"], 2)
+        self.assertEqual(sum(report["oracle_result_counts"].values()), 3)
+        self.assertFalse(report["release_gate_accepted"])
+
+    def test_repeated_positive_still_requires_all_original_native_runs(self):
+        # Both positively qualified candidates require two real calls each.
+        runs, report = tool.reduce(
+            controller_input.load_controller_runs(self.fixture),
+            hashlib.sha256(self.fixture.read_bytes()).hexdigest(),
+            100, [sys.executable, str(self.oracle)],
+            max_calls=4, repeats=2, observation_frame=110,
+        )
+        self.assertEqual(report["oracle_calls"], 4)
+        self.assertEqual(report["negative_short_circuit_candidates"], 0)
+        self.assertEqual(report["redundant_negative_oracle_calls_avoided"], 0)
+        self.assertEqual(report["oracle_result_counts"]["reproduced"], 4)
+        self.assertEqual(tool.encode(runs), self.fixture.read_bytes().split(b"120:")[0])
 
     def test_unexecuted_native_never_counts_as_reproduced(self):
         receipt = dict(

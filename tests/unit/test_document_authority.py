@@ -24,7 +24,9 @@ LANES = ROOT / "analysis/agent-context-lanes.json"
 class CurrentDocumentationAuthoritiesTest(unittest.TestCase):
     def test_active_pages_are_bounded_and_archived_material_is_retained(self):
         budgets = {
-            "docs/PROJECT-PLAN.md": 16000,
+            # Owner-approved fidelity/beta policy expanded this authority.
+            # Preserve a real 19 KiB bound, not a deleted/commented-out key.
+            "docs/PROJECT-PLAN.md": 19000,
             "docs/WORK-QUEUE.md": 16000,
             "docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md": 6500,
             "docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md": 10500,

@@ -1271,6 +1271,10 @@ void confirm_modern_native_title() {
 }
 
 void wake_original_stock_attract() {
+    // The observed MAIN D7 that armed the previous cycle is no longer
+    // authority to reveal an intermediate title 84 during rapid source
+    // Start exit. A fresh original MAIN must occur before a new idle cycle.
+    g_original_attract_seen_main = false;
     // A wake is host-only. Keep the original demo running underneath;
     // never forward, retype, rewind or modify the guest input/WRAM.
     g_original_attract_visible = false;

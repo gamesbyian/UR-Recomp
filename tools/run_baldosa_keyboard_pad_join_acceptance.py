@@ -31,6 +31,7 @@ import re
 from pathlib import Path
 
 from baldosa_native_first_racer_probe import run_game
+from baldosa_native_2p_records_probe import source_paired_records_reopened
 
 QUIET = "turbo on\nwait 900\nquit\n"
 JOIN = "wait 400\nquit\n"  # Negative controls retain their short bounded window.
@@ -854,6 +855,41 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         new_pairs, new_runs[0], out
     )
 
+    # Independent fourth real process on the SAME non-ACP P1/P2 user root:
+    # actually navigate 1P -> 2P Records -> 1P, require the source-earned
+    # historical match to render, and reject all archive mutation/republication.
+    # No copy of the pair is installed: the existing on-disk native writer is
+    # the only authority for the files the new process reads.
+    pair_sha_before_cold = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in after_pairs
+    }
+    cold_pair_log = run_game(
+        exe, rom, user, out / "two_pad_unicode_cold_records", "1",
+        QUIET, video, timeout
+    )
+    try:
+        source_paired_records_reopened(cold_pair_log, selected_profile="mike")
+        if len(re.findall(
+            r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p="
+            r".+ source=historical_paired_archive\\r?$", cold_pair_log
+        )) != 1:
+            raise ValueError(
+                "cold 2P Records did not display exactly one historical source match"
+            )
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; inspect retained two_pad_unicode_cold_records/log.txt"
+        ) from exc
+    if not pair_archive.is_dir() or set(pair_archive.iterdir()) != after_pairs:
+        raise ValueError("cold 2P Records added, removed or renamed an earned pair")
+    pair_sha_after_cold = {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in pair_archive.iterdir()
+    }
+    if pair_sha_after_cold != pair_sha_before_cold:
+        raise ValueError("cold 2P Records rewrote the source-earned pair")
+
     # Separate CI-only mode 30 uses the same SDL virtual-pad route and
     # probes original X backtrack followed by physical B reentry at MAIN D7.
     # Keep mode 29's previously qualified admission receipt independently.
@@ -996,6 +1032,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         "controller_only_two_pad_race_result": two_pad_source_result,
         "controller_only_two_pad_race_pair_sha256": two_pad_pair_sha256,
         "primary_unicode_root": "real_win32_non_acp_p1_p2_stock_go_earned_pair",
+        "primary_unicode_2p_cold_records": "fresh_win32_process_historical_pair_readonly_sha_unchanged",
         "lone_p2_pad": "remaining_p2_pad_promoted_to_p1_and_drives_root",
         "five_destination_pad": "one_sdl_p1_title_practice_multiplayer_records_options_play_stock_1p",
         "keyboard_plus_pad": "pad_moved_to_p2_and_stock_2p_entered",

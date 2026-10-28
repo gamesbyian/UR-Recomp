@@ -12,6 +12,8 @@ import json
 from pathlib import Path
 import re
 
+from tools.probe_baldosa_modern_title_attract_win32 import MARKER
+
 FRAMES = {"stock-attract-before": 1568,
           "stock-attract-after": 1584,
           "stock-attract-woken": 1616}
@@ -63,6 +65,17 @@ def read_case(root: Path, name: str, source: str):
             d.get("SDL_driver") != "windows" or
             "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943" not in text):
         raise ValueError("actual guest-frame and SDL producer events not independently observed")
+    original = [(m[1], int(m[2]), m[3], m[4], int(m[5]))
+                for m in MARKER.finditer(text)]
+    if (len(original) != 3 or
+            [(m[0], m[1]) for m in original] != [
+                ("main_menu", 440), ("attract_title", 943),
+                ("demo_race", 1532)] or
+            [m[4] for m in original] != [1, 1, 0] or
+            original[0][2] != "d7" or original[0][3] == "01" or
+            original[1][2] != "84" or original[1][3] == "01" or
+            original[2][3] != "01"):
+        raise ValueError("real original source MAIN-title-demo lifecycle not established")
     if name == "stock-attract-woken":
         if ("UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600" not in text
                 or "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600" not in text):

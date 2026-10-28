@@ -28,6 +28,10 @@ on:
         required: false
         type: boolean
         default: false
+      qa01_rf094_spc_dsp:
+        required: false
+        type: boolean
+        default: false
       qa01_apu_phase:
         required: false
         type: boolean
@@ -103,6 +107,11 @@ on:
         default: false
       qa01_rf088_rf089_echo:
         description: "Opt-in RF088 native APU echo + RF089 original CMP/BNE witness, requires paired RF084 Zoo case"
+        type: boolean
+        required: false
+        default: false
+      qa01_rf094_spc_dsp:
+        description: "Opt-in RF094 original/native DSP F3 commits and Bowl-entry+4 F7 continuation; requires RF084+RF088/089"
         type: boolean
         required: false
         default: false
@@ -186,6 +195,7 @@ jobs:
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
           QA01_ECHO: ${{ inputs.qa01_rf088_rf089_echo }}
+          QA01_RF094: ${{ inputs.qa01_rf094_spc_dsp }}
           QA01_RF015: ${{ inputs.baldosa_refresh_beam_rate }}
           QA01_RF017: ${{ inputs.baldosa_io_clock_order }}
           QA01_RF016: ${{ inputs.baldosa_spc_reference_rate }}
@@ -231,6 +241,12 @@ jobs:
           fi
           if [[ "$QA01_ECHO" == "true" && "$QA01_RF084" != "true" ]]; then
             echo "RF088/RF089 echo requires the paired RF083/RF084 Zoo case" >&2
+            exit 1
+          fi
+          if [[ "$QA01_RF094" == "true" &&
+                ( "$QA01_ECHO" != "true" || "$QA01_RF084" != "true" ||
+                  "$SELECTED" != "zoom-zoo" ) ]]; then
+            echo "RF094 requires paired RF084/echo source and selected Zoo" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&
@@ -331,6 +347,9 @@ jobs:
             python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
             python3 -m unittest discover -s tests/unit -p test_qa01_rf092_original_spc_edges.py
             python3 tools/qa01_rf092_original_spc_edges.py --root "$CORE_SRC"
+            if [[ "${{ inputs.qa01_rf094_spc_dsp }}" == "true" ]]; then
+              python3 tools/qa01_rf094_spc_dsp_followthrough.py --original "$CORE_SRC"
+            fi
             # The pinned libretro Makefile compiles %.o from %.cpp without
             # header prerequisites. Re-linking alone leaves cpuops.o using the
             # OLD cpumacro.h/getset.h even though the patched headers exist.
@@ -401,6 +420,9 @@ jobs:
               python3 tools/qa01_rf088_native_apu_echo_window.py --root baldosa
               python3 -m unittest discover -s tests/unit -p test_qa01_rf093_native_spc_edges.py
               python3 tools/qa01_rf093_native_spc_edges.py --root baldosa
+              if [[ "${{ inputs.qa01_rf094_spc_dsp }}" == "true" ]]; then
+                python3 tools/qa01_rf094_spc_dsp_followthrough.py --native baldosa
+              fi
             fi
           fi
           # Compilation cache must not relax correctness or alter the
@@ -494,6 +516,7 @@ jobs:
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_RF084: ${{ inputs.qa01_rf084_native_sound_dp }}
           QA01_ECHO: ${{ inputs.qa01_rf088_rf089_echo }}
+          QA01_RF094: ${{ inputs.qa01_rf094_spc_dsp }}
           UR_QA01_RF084_NATIVE_SOUND_DP: ${{ inputs.qa01_rf084_native_sound_dp && '1' || '0' }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
@@ -536,6 +559,9 @@ jobs:
             export UR_QA01_RF089_ORIGINAL_ECHO=1
             export UR_QA01_RF092_ORIGINAL_SPC=1
             export UR_QA01_RF093_NATIVE_SPC=1
+          fi
+          if [[ "$QA01_RF094" == "true" ]]; then
+            export UR_QA01_RF094_SPC_DSP=1
           fi
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
@@ -725,6 +751,19 @@ jobs:
               --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
               --out "$ROOT/qa01-rf087-native-snapshot-cut.json"
             echo 'RF083 original + RF084 native writer executions observed on paired source; clock/semantic parity NOT proven, release credit 0' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ "$QA01_RF094" == "true" ]]; then
+            original="$ROOT/work/zoom-zoo/replay/reference.log"
+            native="$ROOT/work/zoom-zoo/replay/native.log"
+            if grep -Fq QA01RF094ORIG_TRUNCATED "$original" ||
+               grep -Fq QA01RF094NATIVE_TRUNCATED "$native"; then
+              echo "RF094 actual DSP/SPC stream truncated" >&2
+              exit 1
+            fi
+            python3 tools/qa01_rf094_spc_dsp_report.py \
+              --original-log "$original" --native-log "$native" \
+              --out "$ROOT/qa01-rf094-spc-dsp-followthrough.json"
+            echo "RF094 actual DSP writes retained with event-relative port continuation; PCM/event parity NOT proven" >> "$GITHUB_STEP_SUMMARY"
           fi
           if [[ "$QA01_ECHO" == "true" ]]; then
             original="$ROOT/work/zoom-zoo/replay/reference.log"

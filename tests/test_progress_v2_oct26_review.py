@@ -32,6 +32,13 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertEqual(self.pointer["previous"], "docs/progress/v2-review-checkpoint-20261028T0010.json")
         self.assertEqual(self.previous["at_main_sha"], self.interval["from_main_sha"])
         self.assertEqual(len(self.previous["criteria"]), 135)
+        # Inventory latest-review links must match the independently reviewed pointer.
+        self.assertEqual(self.inv["latest_review_interval"], self.pointer["interval"])
+        audit = read(self.inv["latest_criterion_review_ref"])
+        self.assertEqual(audit["criterion_id"], "TWO-05")
+        self.assertEqual(audit["reviewed_main_sha"], self.pointer["reviewed_main_sha"])
+        self.assertEqual(audit["independent_audit_receipt"],
+                         next(c for c in self.inv["criteria"] if c["id"] == "TWO-05")["audit_receipt"])
 
     def test_frozen_criterion_contract_and_release_gates_unchanged(self):
         s = validate(self.inv, self.ledger)

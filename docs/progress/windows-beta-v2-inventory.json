@@ -1743,6 +1743,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source comparison of 119 integrated commits since October 24 checkpoint; criterion-level independent review of exact Windows restart log and existing art source references; other unmet criteria screened, not physically accepted.",
-  "latest_criterion_review_ref": "docs/progress/v2-recovery10-packaged-win32-audit-20261028.json",
-  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0010.json"
+  "latest_criterion_review_ref": "docs/progress/v2-two05-hosted-seat-audit-20261028.json",
+  "latest_review_interval": "docs/progress/v2-review-interval-20261028T0455.json"
 }

@@ -38,29 +38,30 @@ class OfflineWindowsH01H07Tests(unittest.TestCase):
 
     def test_immutable_candidate_pins_match_current_owner_instructions(self):
         for pin in (
-            "e1c6bf3b2811a63d406c3bf99a67821a9f8be4b4",
-            "7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf",
-            "8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2",
+            "250e0803a1791d9deda7a715614d49f4752cd374",
+            "586c32e344af30cfeb61152c475838fbc6aeab7c64d239e560ecd8c4a6bd7616",
+            "c9f51257fb84aaddec54c728a64b5c5738393d62932956b6855c1413ba82f3e0",
         ):
             with self.subTest(pin=pin):
                 self.assertIn(pin, self.js)
                 self.assertIn(pin, INSTRUCTIONS.read_text(encoding="utf-8"))
-        self.assertIn("12814450108", self.html)
-        self.assertIn("40680902399", self.js)
-        self.assertIn("source-tree-equivalent", self.html)
+        self.assertIn("12850662557", self.html)
+        self.assertIn("40763949905", self.js)
+        self.assertIn("exact merged main", self.html)
         self.assertIn("distinct Return guest Start", self.html)
-        self.assertIn("November 4, 2026 at 11:52 UTC", INSTRUCTIONS.read_text(encoding="utf-8"))
-        self.assertNotIn("930f16ed4536aea83450335bd550aa9afefd98f1", self.js)
-        self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2770"),
+        self.assertIn("November 11, 2026 at 20:54 UTC", INSTRUCTIONS.read_text(encoding="utf-8"))
+        self.assertNotIn("7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf", self.js)
+        self.assertNotIn("8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2", self.js)
+        self.assertLess(INSTRUCTIONS.read_text(encoding="utf-8").index("Preferred #2792"),
                         INSTRUCTIONS.read_text(encoding="utf-8").index("Superseded post-#2688"))
         # A future physical candidate nomination must update both operator
         # entry points rather than silently leaving the recorder on old bytes.
         for authority in (BOARD, QUEUE):
             with self.subTest(authority=authority):
                 text = authority.read_text(encoding="utf-8")
-                self.assertIn("12814450108", text)
-                self.assertIn("7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf", text)
-                self.assertIn("8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2", text)
+                self.assertIn("12850662557", text)
+                self.assertIn("586c32e344af30cfeb61152c475838fbc6aeab7c64d239e560ecd8c4a6bd7616", text)
+                self.assertIn("c9f51257fb84aaddec54c728a64b5c5738393d62932956b6855c1413ba82f3e0", text)
 
     def test_all_seven_physical_journeys_and_statuses_present(self):
         for n in range(1, 8):

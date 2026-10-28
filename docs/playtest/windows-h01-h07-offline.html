@@ -59,8 +59,8 @@ footer { margin-top: 22px; }
 <div><strong>Source revision</strong><div class="pin" id="source-pin"></div></div>
 <div><strong>Inner playable ZIP SHA-256</strong><div class="pin" id="zip-pin"></div></div>
 <div><strong>Extracted Windows EXE SHA-256</strong><div class="pin" id="exe-pin"></div></div>
-<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40680902399/artifacts/12814450108">Independently byte-audited ROM-free Windows artifact</a></p>
-<p class="sub">The source pin is the packaged synthetic validation-merge revision, source-tree-equivalent to merged product main 69896f52faf36d9dba1c2c9ff02b6f6bf08606e9. This is not a physical QA acceptance. Artifact expires November 4, 2026.</p>
+<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40763949905/artifacts/12850662557">Independently byte-audited ROM-free Windows artifact</a></p>
+<p class="sub">The source pin is exact merged main 250e0803a1791d9deda7a715614d49f4752cd374, with independently audited tested/packaged executable bytes. Subsequent #2793 changed only Python RF084 diagnostics. This is not physical QA acceptance. Artifact expires November 11, 2026 at 20:54 UTC.</p>
 <label for="hashCheck">Did you independently compare your local inner ZIP and EXE against both hashes above?</label>
 <select id="hashCheck"><option value="not_checked">Not checked yet</option><option value="yes">Both matched</option><option value="no">Mismatch or unverifiable (no candidate acceptance)</option></select>
 </section>
@@ -113,10 +113,10 @@ footer { margin-top: 22px; }
 "use strict";
 (function () {
   const candidate = Object.freeze({
-    producing_run: 40680902399, artifact_id: 12814450108,
-    source_sha: "e1c6bf3b2811a63d406c3bf99a67821a9f8be4b4",
-    inner_zip_sha256: "7cad82adcac82dad1b13cb386c89b2f740162efcffa1b4e72b3e4b57b5006fbf",
-    executable_sha256: "8d7cf72c7e5ad7a394438337c9496bcbd1de306a140cc2959fa0d0a7998c40a2"
+    producing_run: 40763949905, artifact_id: 12850662557,
+    source_sha: "250e0803a1791d9deda7a715614d49f4752cd374",
+    inner_zip_sha256: "586c32e344af30cfeb61152c475838fbc6aeab7c64d239e560ecd8c4a6bd7616",
+    executable_sha256: "c9f51257fb84aaddec54c728a64b5c5738393d62932956b6855c1413ba82f3e0"
   });
   const cases = [
     ["H01","Cold start","Fresh extraction and packaged CMD, first player, actual process exit, clean cold restart. Record missing dependencies and shell provenance.","QA-02, QA-01 prerequisite"],

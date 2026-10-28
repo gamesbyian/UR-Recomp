@@ -92,6 +92,9 @@ int main() {
     assert(ur_baldosa_product_filter_human_frame_inputs(
                ports | held, 19) == ports);
     assert(ur_baldosa_product_queue_stock_menu_input(0x0020u));
+    // The prior stock-menu route left a one-frame Down edge queued on
+    // purpose; the independent Start test starts with that route canceled.
+    ur_baldosa_product_cancel_stock_menu_input();
     // Actual guest-frame observation is required before transport: the
     // stand-alone bridge must never guess demo state, borrow menu Accept or
     // accidentally forward seat 2. The P1 Start press remains held only as

@@ -75,6 +75,7 @@ def patch(smp: str, core: str, memory: str) -> tuple[str, str, str]:
     smp = smp.replace(
         SMP_HEADER,
         '#include "../../../snes9x.h"\n'
+        '#include "../../../cpuexec.h"\n'
         '#include <cstdio>\n#include <cstdlib>\n'
         '#ifdef DEBUGGER\n#include "../../../debug.h"\n', 1)
     smp = smp.replace(SMP_SINGLETON, SMP_SINGLETON + HELPER, 1)

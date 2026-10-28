@@ -157,6 +157,29 @@ class RF083Source(unittest.TestCase):
         self.assertLess(b.index("S9xGetPPU((Address + 1) & 0xffff)"),
                         b.index("rf083_port_read(Address,2u"))
 
+    def test_rf091_original_apu_write_after_real_ppu_commit(self):
+        root = Path(__file__).resolve().parents[2] / "third_party/src/snes9x-libretro"
+        original = (root / "ppu.cpp").read_text(encoding="utf-8")
+        patched = m.patch_ppu(original)
+        self.assertEqual(patched.count(m.PPU_STAMP), 1)
+        self.assertEqual(patched.count("S9xAPUWritePort("),
+                         original.count("S9xAPUWritePort("))
+        self.assertLess(patched.index(m.PPU_DECL), patched.index(m.PPU_ENTRY))
+        self.assertLess(patched.index("S9xAPUWritePort(Address & 3, Byte);"),
+                        patched.index("rf083_port_write(Address, (unsigned)Byte);"))
+        self.assertIn("QA01RF091ORIG seq=", m.C)
+        self.assertIn("QA01RF091ORIG_TRUNCATED", m.C)
+        self.assertIn("post_apu_write=1", m.C)
+        self.assertIn("rf083_frame<6054u || rf083_frame>6059u", m.C)
+        self.assertIn('getenv("UR_QA01_RF089_ORIGINAL_ECHO")', m.C)
+        self.assertNotIn("S9xAPUWritePort(", m.C)
+        with self.assertRaisesRegex(ValueError, "already staged"):
+            m.patch_ppu(patched)
+        with self.assertRaisesRegex(ValueError, "drift"):
+            m.patch_ppu(original.replace(m.PPU_APU, "wrong_apu_writer();"))
+        with self.assertRaisesRegex(ValueError, "drift"):
+            m.patch_ppu(original + m.PPU_APU)
+
     def test_source_drift_and_partial_patch_refused(self):
         a,b=m.patch(source(),setter())
         for x,y in ((a,b),(source()+m.STAMP,setter()),

@@ -11,6 +11,7 @@ from pathlib import Path
 EXEC=Path("cpuexec.cpp")
 GETSET=Path("getset.h")
 MACRO=Path("cpumacro.h")
+PPU=Path("ppu.cpp")
 STAMP="UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER"
 HEADER='#include "movie.h"\n'
 OP="\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
@@ -19,6 +20,12 @@ WORD="inline void S9xSetWord (uint16 Word, uint32 Address, enum s9xwrap_t w = WR
 READ_BYTE_FUNC = "inline uint8 S9xGetByte (uint32 Address)\n{\n"
 READ_BYTE_PPU = "\t\t\tbyte = S9xGetPPU(Address & 0xffff);\n\t\t\taddCyclesInMemoryAccess;\n\t\t\treturn (byte);"
 READ_WORD_PPU = "\t\t\tword  = S9xGetPPU(Address & 0xffff);\n\t\t\taddCyclesInMemoryAccess;\n\t\t\tword |= S9xGetPPU((Address + 1) & 0xffff) << 8;\n\t\t\taddCyclesInMemoryAccess;\n\t\t\treturn (word);"
+PPU_ENTRY = "void S9xSetPPU (uint8 Byte, uint16 Address)\n{\n"
+PPU_APU = ("\tif ((Address & 0xffc0) == 0x2140) // APUIO0, APUIO1, APUIO2, APUIO3\n"
+           "\t\t// write_port will run the APU until given clock before writing value\n"
+           "\t\tS9xAPUWritePort(Address & 3, Byte);")
+PPU_DECL = "extern void rf083_port_write(uint32,unsigned);\n"
+PPU_STAMP = "UR_QA01_RF091_ORIGINAL_APU_WRITE"
 C=r'''/* UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER */
 static int rf083_active,rf083_early;
 static unsigned rf083_pc,rf083_op,rf083_frame,rf083_v;
@@ -38,6 +45,7 @@ static unsigned rf083_inc16_rows;
  * RF090 below separately records actual already-returned PPU reads. */
 static unsigned rf089_rows, rf089_a0, rf089_p0, rf089_z0;
 static unsigned rf090_rows;
+static unsigned rf091_rows;
 static int rf089_target;
 static const unsigned rf083_slots[4]={0x63u,0x64u,0x65u,0x69u};
 static void rf083_print(const char *type,unsigned slot,unsigned old,unsigned now){
@@ -198,6 +206,28 @@ void rf083_port_read(uint32 address,unsigned width,unsigned value){
       (unsigned)CPU.V_Counter,(int)CPU.Cycles,
       (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
 }
+/* RF091: observe the actual original CPU-to-APU command write after the
+ * existing S9xAPUWritePort synchronizes the SPC and writes its port.
+ * No extra bus operation, no inferred cross-core clock alignment. */
+void rf083_port_write(uint32 address,unsigned value){
+    if(!rf083_active || !rf083_early ||
+       rf083_frame<6054u || rf083_frame>6059u) return;
+    const char *flag=getenv("UR_QA01_RF089_ORIGINAL_ECHO");
+    if(!flag || flag[0]!='1' || flag[1]!='\0') return;
+    if(++rf091_rows>4096u){
+        if(rf091_rows==4097u)
+            fprintf(stderr,"QA01RF091ORIG_TRUNCATED\n");
+        return;
+    }
+    fprintf(stderr,
+      "QA01RF091ORIG seq=%u frame=%u pc=%06X op=%02X"
+      " addr=%04X val=%02X v=%u h=%d ptr=%02X%02X"
+      " clock=original_cpu post_apu_write=1\n",
+      rf091_rows,rf083_frame,rf083_pc,rf083_op,
+      0x2140u | (unsigned)(address & 3u),value & 0xffu,
+      (unsigned)CPU.V_Counter,(int)CPU.Cycles,
+      (unsigned)Memory.RAM[0x64u],(unsigned)Memory.RAM[0x63u]);
+}
 static void rf083_post(void){
     if(!rf083_active) return;
     if(rf089_target){
@@ -301,20 +331,41 @@ def patch(executor:str,getset:str)->tuple[str,str]:
         raise AssertionError("RF083 source injection count")
     return executor,getset
 
+def patch_ppu(ppu: str) -> str:
+    """Observe actual original $2140-$2143 writes in disposable PPU source."""
+    if PPU_STAMP in ppu or "rf083_port_write(" in ppu:
+        raise ValueError("RF091 original PPU observer already staged")
+    if ppu.count(PPU_ENTRY) != 1 or ppu.count(PPU_APU) != 1:
+        raise ValueError("RF091 pinned original PPU port writer drift")
+    changed = PPU_APU.replace(
+        "\t\tS9xAPUWritePort(Address & 3, Byte);",
+        "\t{\n\t\tS9xAPUWritePort(Address & 3, Byte);\n"
+        "\t\trf083_port_write(Address, (unsigned)Byte);\n\t}")
+    result = ppu.replace(PPU_ENTRY, PPU_DECL + PPU_ENTRY, 1)
+    result = result.replace(PPU_APU, changed + " // " + PPU_STAMP, 1)
+    if (result.count("S9xAPUWritePort(") != ppu.count("S9xAPUWritePort(") or
+            result.count("rf083_port_write(Address, (unsigned)Byte);") != 1 or
+            result.index(PPU_DECL) > result.index(PPU_ENTRY)):
+        raise AssertionError("RF091 must preserve original PPU/APU write count")
+    return result
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root",required=True,type=Path)
     a=p.parse_args()
-    x,y,z=a.root/EXEC,a.root/GETSET,a.root/MACRO
-    if (not x.is_file() or not y.is_file() or not z.is_file() or
-            x.is_symlink() or y.is_symlink() or z.is_symlink()):
+    x,y,z,ppu_path=a.root/EXEC,a.root/GETSET,a.root/MACRO,a.root/PPU
+    if (not x.is_file() or not y.is_file() or not z.is_file() or not ppu_path.is_file() or
+            x.is_symlink() or y.is_symlink() or z.is_symlink() or ppu_path.is_symlink()):
         p.error("missing authentic disposable Snes9x source files")
     xx,yy=patch(x.read_text(),y.read_text())
     zz=patch_macro(z.read_text())
+    pp=patch_ppu(ppu_path.read_text())
     x.write_text(xx)
     y.write_text(yy)
     z.write_text(zz)
-    print("RF083 original real setter, INC16 call-site and opcode DP delta observer staged")
+    ppu_path.write_text(pp)
+    print("RF083/RF090/RF091 original setter, returned port reads and committed APU writes staged")
 
 if __name__=="__main__":
     main()

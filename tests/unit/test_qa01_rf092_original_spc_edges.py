@@ -72,8 +72,8 @@ class RF092Source(unittest.TestCase):
         self.assertLess(workflow.index(new), workflow.index(clean))
         self.assertIn('export UR_QA01_RF092_ORIGINAL_SPC=1', workflow)
         self.assertIn('QA01RF092SPC_TRUNCATED', workflow)
-        self.assertIn('kind=CPU_TO_SPC_READ addr=00F4', workflow)
-        self.assertIn('kind=SPC_TO_CPU_WRITE addr=00F4', workflow)
+        self.assertIn('for kind in CPU_TO_SPC_READ SPC_TO_CPU_WRITE; do', workflow)
+        self.assertIn('kind=$kind addr=00F4', workflow)
 
 if __name__ == "__main__":
     unittest.main()

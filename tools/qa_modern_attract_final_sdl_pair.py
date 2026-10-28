@@ -12,7 +12,10 @@ import json
 from pathlib import Path
 import re
 
-from tools.probe_baldosa_modern_title_attract_win32 import MARKER
+try:
+    from tools.probe_baldosa_modern_title_attract_win32 import MARKER
+except ModuleNotFoundError:
+    from probe_baldosa_modern_title_attract_win32 import MARKER
 
 FRAMES = {"stock-attract-before": 1568,
           "stock-attract-after": 1584,

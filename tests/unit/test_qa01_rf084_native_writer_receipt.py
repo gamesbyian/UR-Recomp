@@ -119,7 +119,7 @@ class NativeRF084Receipt(unittest.TestCase):
         # without relaxing the compulsory 15 early frames or accepting any
         # late opcode_delta as an "early boundary" observation.
         late_hearts = "".join(
-            f"QA01RF085EARLY_HEART frame={f} v=0 h=0\\n"
+            f"QA01RF085EARLY_HEART frame={f} v=0 h=0\n"
             for f in range(6445, 6450))
         late_result = m.audit_early((hearts + rows + late_hearts).encode())
         self.assertEqual(

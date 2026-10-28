@@ -216,13 +216,6 @@ constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
         return out;
     }
 
-    if (state.waiting_for_selection_change) {
-        if (observation.selected_option == state.selection_before_input) {
-            return out;
-        }
-        out.state.waiting_for_selection_change = false;
-    }
-
     // Stock exposes menu-state bytes before the newly visible menu is
     // guaranteed to accept an input edge. The native deterministic route has
     // proven a 60-frame settle window at each frontend surface. Encode that
@@ -238,6 +231,25 @@ constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     case QuickPracticeLaunchStage::Active:
     case QuickPracticeLaunchStage::Idle:
         break;
+    }
+
+
+    // A stock loading/scratch/other menu can expose a different cursor byte
+    // while our last direction is pending. That byte cannot acknowledge the
+    // previous press, and a scene's earlier 60-frame settle is invalid once
+    // another menu appears. Require 60 fresh observations after it returns.
+    if (expected_menu != 0 && observation.menu_id != expected_menu) {
+        out.state.menu_settled = false;
+        out.state.menu_settle_observations = 0;
+        out.state.waiting_for_selection_change = false;
+        return out;
+    }
+
+    if (state.waiting_for_selection_change) {
+        if (observation.selected_option == state.selection_before_input) {
+            return out;
+        }
+        out.state.waiting_for_selection_change = false;
     }
 
     if (expected_menu != 0 && !out.state.menu_settled) {

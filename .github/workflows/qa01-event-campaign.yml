@@ -399,6 +399,8 @@ jobs:
             if [[ "${{ inputs.qa01_rf088_rf089_echo }}" == "true" ]]; then
               python3 -m unittest discover -s tests/unit -p test_qa01_rf088_native_apu_echo_window.py
               python3 tools/qa01_rf088_native_apu_echo_window.py --root baldosa
+              python3 -m unittest discover -s tests/unit -p test_qa01_rf093_native_spc_edges.py
+              python3 tools/qa01_rf093_native_spc_edges.py --root baldosa
             fi
           fi
           # Compilation cache must not relax correctness or alter the
@@ -533,6 +535,7 @@ jobs:
             export UR_QA01_RF088_NATIVE_APU_ECHO=1
             export UR_QA01_RF089_ORIGINAL_ECHO=1
             export UR_QA01_RF092_ORIGINAL_SPC=1
+            export UR_QA01_RF093_NATIVE_SPC=1
           fi
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
@@ -720,7 +723,7 @@ jobs:
             # Fail closed on missing/overflowed producer evidence. These are
             # executed rows, not proof of original/native timing equivalence.
             if grep -Eq 'QA01RF089ORIG_TRUNCATED|QA01RF090ORIG_TRUNCATED|QA01RF092SPC_TRUNCATED' "$original" ||
-               grep -Eq 'QA01RF088NATIVE_TRUNCATED' "$native"; then
+               grep -Eq 'QA01RF088NATIVE_TRUNCATED|QA01RF093NATIVE_TRUNCATED' "$native"; then
               echo "RF088/RF089/RF090 echo witness truncated" >&2
               exit 1
             fi
@@ -752,7 +755,21 @@ jobs:
                 exit 1
               fi
             done
-            echo 'RF088/RF089/RF090/RF092 executed CPU/SPC edges retained; observer-off control and clock registration still required; release credit 0' >> "$GITHUB_STEP_SUMMARY"
+            # RF093 must come from actual native SPC MMIO, not CPU-side
+            # $2140 polling. Queue timestamps and portClock remain distinct
+            # from native CPU master and original SPC ticks.
+            for kind in CPU_TO_SPC_READ SPC_TO_CPU_WRITE; do
+              if ! grep -Eq "^QA01RF093NATIVE .*kind=$kind addr=00F4 " "$native"; then
+                echo "RF093 native SPC port F4 $kind missing" >&2
+                exit 1
+              fi
+            done
+            if ! grep -Eq '^QA01RF093NATIVE .*kind=QUEUE_SCHEDULE ' "$native" ||
+               ! grep -Eq '^QA01RF093NATIVE .*kind=QUEUE_APPLY ' "$native"; then
+              echo "RF093 native CPU->SPC queue schedule/apply missing" >&2
+              exit 1
+            fi
+            echo 'RF088/RF089/RF090/RF092/RF093 executed CPU/SPC and queue edges retained; clocks uncalibrated; release credit 0' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM

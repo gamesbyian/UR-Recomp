@@ -207,7 +207,41 @@ static void prove_practice_scene_interruption_requires_new_settle() {
     }
 }
 
+// The production Windows host waits 20 frames after an injected menu edge.
+// Scene identity must still be sampled while the state machine is not driven,
+// otherwise a one-frame alien menu during that gap escapes the 60-frame gate.
+static void prove_release_gap_observes_intermediate_stock_scene() {
+    auto state = begin_quick_practice_launch(
+        quick_practice_target_for_track(0));
+    auto first = settle_menu(state, {0xD7, 4, false, -1});
+    assert(first.input == QuickPracticeLaunchInput::Up);
+    assert(first.state.menu_settled);
+    assert(first.state.waiting_for_selection_change);
+    state = first.state;
+
+    // Exactly the Windows host's release-gap path, with no input emitted.
+    for (unsigned frame = 0; frame < 20; ++frame) {
+        state = quick_practice_launch_observe_source_menu(
+            state, frame == 3 ? 0x6Du : 0xD7u);
+    }
+    assert(!state.menu_settled);
+    assert(!state.waiting_for_selection_change);
+    assert(state.menu_settle_observations == 0);
+
+    for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations; ++i) {
+        auto step = advance_quick_practice_launch(
+            state, {0xD7, 0, false, -1});
+        assert(step.input == QuickPracticeLaunchInput::None);
+        state = step.state;
+    }
+    auto accepted = advance_quick_practice_launch(
+        state, {0xD7, 0, false, -1});
+    assert(accepted.input == QuickPracticeLaunchInput::Accept);
+    assert(accepted.state.stage == QuickPracticeLaunchStage::AwaitRider);
+}
+
 int main() {
+    prove_release_gap_observes_intermediate_stock_scene();
     prove_practice_scene_interruption_requires_new_settle();
     prove_main_menu_cursor_returns_to_one_player();
     QuickPracticeLaunchState ownership{};

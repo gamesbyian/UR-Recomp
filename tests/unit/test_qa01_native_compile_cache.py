@@ -46,7 +46,8 @@ class QA01NativeCompileCacheContract(unittest.TestCase):
         text = self.workflow
         self.assertIn("uses: actions/cache/restore@v4", text)
         self.assertIn("uses: actions/cache/save@v4", text)
-        self.assertEqual(text.count("continue-on-error: true"), 2)
+        self.assertRegex(text, r"(?s)name: Restore QA01 native compile cache.*?continue-on-error: true")
+        self.assertRegex(text, r"(?s)name: Save reusable QA01 native compile cache.*?continue-on-error: true")
         self.assertRegex(text, r"(?s)name: Save reusable QA01 native compile cache.*?if: success\(\)")
         self.assertLess(text.index("Save reusable QA01 native compile cache"),
                         text.index("Upload one immutable candidate for all case shards"))

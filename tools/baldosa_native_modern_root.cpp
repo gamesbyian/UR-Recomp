@@ -50,6 +50,7 @@ extern int g_sram_size;
 void ur_baldosa_product_set_host_focus(int);
 int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
 void ur_baldosa_product_attract_p1_start_event(int pressed);
+void ur_baldosa_product_attract_source_demo_observed(int active);
 void ur_baldosa_product_cancel_stock_menu_input(void);
 extern std::uint8_t g_ram[0x20000];
 const char* ur_baldosa_modern_profile_records_directory(void);
@@ -2078,6 +2079,9 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 frame, menu, (g_visible && ur::product::modern_title_active(g_title)) ? 1 : 0);
         }
     }
+    // Original guest, not the host input shim, owns the actual demo flag.
+    // Report each observed frame and fail closed on any non-demo phase.
+    ur_baldosa_product_attract_source_demo_observed(g_ram[0x0313u] == 1u);
     ur_baldosa_modern_root_stock_observe_guest();
     // The stock menu ID is also used as scratch during scene loads.
     // Require the SAME 60 consecutive MAIN observations as the already

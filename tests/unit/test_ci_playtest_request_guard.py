@@ -103,6 +103,39 @@ class PlaytestRequestGuardTests(unittest.TestCase):
                                    marker(13, "Measure same-source observer noninterference control") + suffix,
                                    [guard.ZOO_MARKER], marker=guard.ZOO_MARKER)
 
+    def test_rf094_dsp_one_shot_requires_exact_sequence_20_and_observer_on(self):
+        old = marker(19, "Earlier CPU-to-SPC boundary observed on both cores")
+        reason = "Execute one post-DSP original-native F7 follow-through case"
+        current = (marker(20, reason) + "- Observer mode: **on**\n"
+                   + "- RF094 DSP/F7 witness: **on**\n")
+        result = guard.validate(old, current, [guard.ZOO_MARKER],
+                                marker=guard.ZOO_MARKER)
+        self.assertTrue(result["observer_enabled"])
+        self.assertTrue(result["rf094_enabled"])
+        for invalid in (
+            marker(20, reason) + "- Observer mode: **on**\n",
+            marker(20, reason) + "- Observer mode: **off**\n"
+                + "- RF094 DSP/F7 witness: **on**\n",
+            marker(20, reason) + "- Observer mode: **on**\n"
+                + "- RF094 DSP/F7 witness: **off**\n",
+            current + "- RF094 DSP/F7 witness: **on**\n",
+            current.replace("DSP/F7 witness: **on**",
+                            "DSP/F7 witness: **AUTO**"),
+        ):
+            with self.subTest(invalid=invalid[-110:]), self.assertRaises(ValueError):
+                guard.validate(old, invalid, [guard.ZOO_MARKER],
+                               marker=guard.ZOO_MARKER)
+        future = marker(21, "After RF094 run another separately reviewed case")
+        self.assertFalse(guard.validate(
+            current, future + "- Observer mode: **on**\n"
+            + "- RF094 DSP/F7 witness: **off**\n",
+            [guard.ZOO_MARKER], marker=guard.ZOO_MARKER)["rf094_enabled"])
+        with self.assertRaisesRegex(ValueError, "exclusive"):
+            guard.validate(
+                current, future + "- Observer mode: **on**\n"
+                + "- RF094 DSP/F7 witness: **on**\n",
+                [guard.ZOO_MARKER], marker=guard.ZOO_MARKER)
+
     def test_zoo_cli_writes_validated_mode_to_job_output(self):
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as tmp:
@@ -119,7 +152,7 @@ class PlaytestRequestGuardTests(unittest.TestCase):
                 "--marker", guard.ZOO_MARKER, "--gha-output", str(output)]),
                   mock.patch.object(guard, "changed_files", return_value=[guard.ZOO_MARKER])):
                 self.assertEqual(guard.main(), 0)
-            self.assertEqual(output.read_text(encoding="utf-8"), "observer_enabled=false\n")
+            self.assertEqual(output.read_text(encoding="utf-8"), "observer_enabled=false\nrf094_enabled=false\n")
 
     def test_zoo_wrapper_requires_guard_then_calls_existing_causal_campaign(self):
         path = ROOT / ".github/workflows/qa01-zoo-causal-request.yml"
@@ -161,6 +194,8 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         self.assertIn('--gha-output "$GITHUB_OUTPUT"', text)
         self.assertIn("qa01_rf084_native_sound_dp: " + expression, text)
         self.assertIn("qa01_rf088_rf089_echo: " + expression, text)
+        self.assertIn("rf094_enabled: ${{ steps.guard.outputs.rf094_enabled }}", text)
+        self.assertIn("qa01_rf094_spc_dsp: ${{ needs.qualify_request.outputs.rf094_enabled == 'true' }}", text)
         # Explicitly exclude unsafe experimental correction mixing,
         # event acceptance and publication.
         for unwanted in ("baldosa_spc_reference_rate: true",

@@ -76,6 +76,22 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertIn("g_host_owned_samples > 900u", product_input)
         self.assertIn("UR_BALDOSA_PRODUCT_INPUT_ISOLATION_DIAGNOSTICS", RUNNER)
 
+    def test_real_two_pad_source_scored_pair_uses_non_acp_user_root(self):
+        # Source contract only: the real Win32 AOT PE and SDL virtual pads
+        # must create both named racers under non-ACP paths, admit stock GO,
+        # earn a genuine two-player result and write the canonical pair there.
+        # The separate Unicode 1P Records cold-boot case is not a substitute.
+        self.assertIn('user = out / "user_2p_漢字-🚲"', RUNNER)
+        self.assertIn('run_game(exe, rom, user, out / "create_p1"', RUNNER)
+        self.assertIn('run_game(exe, rom, user, out / "create_p2"', RUNNER)
+        self.assertIn('pair_archive = user / "multiplayer-runs"', RUNNER)
+        self.assertIn('out / "controller_only_two_pad_race", "34"', RUNNER)
+        self.assertIn('verify_controller_only_two_pad_race(log)', RUNNER)
+        self.assertIn('new_pairs = after_pairs - prior_pairs', RUNNER)
+        self.assertIn('two_pad_pair_sha256 = retain_two_pad_ci_pair(', RUNNER)
+        self.assertIn('"primary_unicode_root": "real_win32_non_acp_p1_p2_stock_go_earned_pair"', RUNNER)
+        self.assertIn('return_user = out / "user_earned_return_漢字-🚲"', RUNNER)
+
     def test_real_source_earned_return_uses_non_acp_named_profile_root(self):
         # This is a source contract, not synthetic acceptance. The existing
         # same-PE Windows native journey actually creates two profiles in

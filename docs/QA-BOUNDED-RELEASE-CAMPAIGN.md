@@ -113,7 +113,7 @@ Prioritize: **reproduced critical defect > blocked core journey > high-informati
 ## Release decision and escalation
 
 - **Private playtest**: documented exact candidate, reproducible core 1P and 2P starts/results, known limitations, basic recovery and no known P0 corruption. May explicitly ship Original/Upscaled while HD remains experimental.
-- **External beta**: QA programme's existing P0 and representative P1 criteria remain authoritative; a documented waiver may narrow *optional* feature exposure, not excuse loss of valid saves or false results.
+- **External beta**: QA programme's existing P0 and representative P1 criteria remain authoritative; independently observed physical hardware is still mandatory for the applicable *individual* beta claims. Three dissimilar Windows environments with at least two physical PCs are a **separate release-quality milestone**, not a prerequisite to a playable external beta. A documented waiver may narrow *optional* feature exposure, not excuse loss of valid saves or false results.
 - **Release candidate/public release**: preserve the stricter gate ledger and human decision. This 300-hour campaign cannot automatically certify it.
 
 At each 100-hour checkpoint, independently answer: new reproduced defects and severity; previously blocked journeys now usable; distinct course families/full completions; moving-scene fallback/false-draw improvements; real packaged systems observed; unclosed P0s; and marginal yield. If the work is dominated by speculative test infrastructure, **stop and rescope**. If major systemic failures emerge, re-estimate publicly with concrete evidence and a fresh budget rather than quietly extending the campaign.

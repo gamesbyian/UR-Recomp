@@ -26,16 +26,16 @@ class BetaV3Tests(unittest.TestCase):
         result = self.result()
         self.assertEqual(result["schema"], "ur-playable-windows-beta-progress/3")
         self.assertEqual(result["source_reviewed_sha"],
-                         "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3")
-        self.assertEqual(result["historical_v2_snapshot"]["bounded_percent"], 54.0)
-        self.assertEqual(result["historical_v2_snapshot"]["independently_audited_percent"], 12.0)
+                         "ed562fd45d954949f285ec142d3440eac75032cb")
+        self.assertEqual(result["historical_v2_snapshot"]["bounded_percent"], 55.0)
+        self.assertEqual(result["historical_v2_snapshot"]["independently_audited_percent"], 13.0)
         beta = result["beta"]
         self.assertEqual(beta["criteria"], 134)
         self.assertEqual(beta["denominator_units"], 4455)
-        self.assertEqual(beta["bounded_verified_units"], 2430)
-        self.assertEqual(beta["independently_audited_units"], 540)
-        self.assertEqual(beta["bounded_percent"], 54.545)
-        self.assertEqual(beta["independently_audited_percent"], 12.121)
+        self.assertEqual(beta["bounded_verified_units"], 2475)
+        self.assertEqual(beta["independently_audited_units"], 585)
+        self.assertEqual(beta["bounded_percent"], 55.556)
+        self.assertEqual(beta["independently_audited_percent"], 13.131)
         self.assertEqual(beta["excluded_release_only"], ["QA-09"])
         self.assertEqual(beta["by_group"]["FID"]["total"], 45)
         self.assertEqual(beta["by_group"]["QA"]["total"], 9)
@@ -118,8 +118,8 @@ class BetaV3Tests(unittest.TestCase):
     def test_legacy_v2_and_release_gate_source_untouched(self):
         v2_stats = v2.validate(self.inventory, self.ledger)
         actual = self.result()
-        self.assertEqual(v2_stats["bounded_product_coverage_percent"], 54.0)
-        self.assertEqual(v2_stats["independently_audited_coverage_percent"], 12.0)
+        self.assertEqual(v2_stats["bounded_product_coverage_percent"], 55.0)
+        self.assertEqual(v2_stats["independently_audited_coverage_percent"], 13.0)
         self.assertEqual(v2_stats["formal_windows_gates_passed"], 0)
         self.assertEqual(actual["release_quality_separate"]["legacy_qa09_status"],
                          "unverified")
@@ -130,7 +130,7 @@ class BetaV3Tests(unittest.TestCase):
 
     def test_report_explicitly_refuses_invented_progress(self):
         md = v3.markdown(self.result())
-        for fragment in ("54.545%", "54.000%", "12.121%",
+        for fragment in ("55.556%", "55.000%", "13.131%",
                          "QA-09", "No new engineering points", "0/45",
                          "0/12", "three-machine", "source-reviewed"):
             with self.subTest(fragment=fragment):

@@ -1,0 +1,208 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-28",
+  "from_main_sha": "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3",
+  "through_main_sha": "ed562fd45d954949f285ec142d3440eac75032cb",
+  "observed_merge_count": 23,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3...ed562fd45d954949f285ec142d3440eac75032cb",
+  "merge_records_scope": "exhaustive",
+  "merge_records_note": "All 23 actual intervening merges classified with source and CI review; only frozen DATA-05 gains bounded credit, not diagnostic/physical sources.",
+  "merge_records": [
+    {
+      "pr": 2780,
+      "commit_sha": "d08d321d0ea908262872e1ee340751ae87c91fe0",
+      "effect": "documentation",
+      "observation": "UR-RELEASE-PROGRESS: independently admit bounded MENU-10 hosted Windows evidence (#2780); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2780"
+    },
+    {
+      "pr": 2781,
+      "commit_sha": "9f161187a58d53536142b3b68872048e91547bf4",
+      "effect": "release_risk_reduction",
+      "observation": "UR-RELEASE-PROGRESS: Win32 Unicode Options cold boot beside Records/replay (#2781); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2781"
+    },
+    {
+      "pr": 2782,
+      "commit_sha": "bd855d4bc7f65d0ff37147f73b8a4e76a9ee99f7",
+      "effect": "deferred_or_research",
+      "observation": "UR-CPU-CAUSE: capture real Zoo-to-Bowl SPC port boundary (#2782); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2782"
+    },
+    {
+      "pr": 2784,
+      "commit_sha": "84ac4185a71be8d1114b6fc70d0eb929da4394d7",
+      "effect": "operations",
+      "observation": "Shared board: retire admitted MENU-10 from unverified targets (#2784); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2784"
+    },
+    {
+      "pr": 2783,
+      "commit_sha": "6dc329597ffea4b1583131abe3eb829bbb2dc6ab",
+      "effect": "direct_product",
+      "observation": "ONE-03: preserve source Tour cursor release gaps and full-unit trigger; evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2783"
+    },
+    {
+      "pr": 2785,
+      "commit_sha": "0295f6837be2f8660d452810e8cf57cb39776165",
+      "effect": "deferred_or_research",
+      "observation": "QA01: request sequence-18 executed SPC boundary witness; evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2785"
+    },
+    {
+      "pr": 2787,
+      "commit_sha": "ba80d5525846e47109dfb4d7514a83348ad1609e",
+      "effect": "direct_product",
+      "observation": "ONE-03: require fresh stock-menu settlement after scene interruptions (#2787); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2787"
+    },
+    {
+      "pr": 2788,
+      "commit_sha": "ff5cd711be0a6838888423592c1b4d0f2e650899",
+      "effect": "direct_product",
+      "observation": "Windows Quick Practice: invalidate stale stock-menu settlement (#2788); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2788"
+    },
+    {
+      "pr": 2786,
+      "commit_sha": "54bb228666ed9083ff0a644f9b320ccf2ed3736a",
+      "effect": "deferred_or_research",
+      "observation": "QA01: clean-compile original Zoo CPU/APU port observers (#2786); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2786"
+    },
+    {
+      "pr": 2790,
+      "commit_sha": "f3c2983a6e7c7a399d24ce2c575d4aed737ba0da",
+      "effect": "direct_product",
+      "observation": "DATA-05: retain native Unicode paths across Win32 save leases (#2790); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2790"
+    },
+    {
+      "pr": 2791,
+      "commit_sha": "732c93b37a6f1e0282e576acf97a4a5bec62ae7c",
+      "effect": "deferred_or_research",
+      "observation": "QA01: request original CPU-to-SPC Zoo sequence 19 (#2791); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2791"
+    },
+    {
+      "pr": 2789,
+      "commit_sha": "952aa5685904e3cb5b73554ac7f83d072b44f255",
+      "effect": "release_risk_reduction",
+      "observation": "Win32 Unicode: native atlas capture and cold source-earned Records (#2789); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2789"
+    },
+    {
+      "pr": 2794,
+      "commit_sha": "ce6be9c4b515499b37ec4d0fcfb5d8447b192765",
+      "effect": "enabling_infrastructure",
+      "observation": "CI: run full ready-state checks for physical Windows request marker (#2794); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2794"
+    },
+    {
+      "pr": 2795,
+      "commit_sha": "2aecdd359b83149ce96ecf5529fab39c54200685",
+      "effect": "enabling_infrastructure",
+      "observation": "CI: require complete unit suite for physical Windows request marker (#2795); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2795"
+    },
+    {
+      "pr": 2792,
+      "commit_sha": "250e0803a1791d9deda7a715614d49f4752cd374",
+      "effect": "operations",
+      "observation": "Stage conditional source-current physical Windows playtest request after Unicode integration (#2792); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2792"
+    },
+    {
+      "pr": 2793,
+      "commit_sha": "2454335f9ab7d3befba22c5b7fcf43c67816d294",
+      "effect": "deferred_or_research",
+      "observation": "QA01: accept exact late Bowl heartbeat window in RF084 receipt (#2793); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2793"
+    },
+    {
+      "pr": 2798,
+      "commit_sha": "8f8e5aa8e00199400eb03373fafbb81e1995fafb",
+      "effect": "operations",
+      "observation": "Shared dispatch: current Windows H01–H07 package and sequence-19 evidence; evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2798"
+    },
+    {
+      "pr": 2796,
+      "commit_sha": "be88b2ee994ab3a745778c72147e0d77bcbb0a5b",
+      "effect": "documentation",
+      "observation": "Windows physical QA: pin independently audited current playable (#2796); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2796"
+    },
+    {
+      "pr": 2800,
+      "commit_sha": "ba9ed9477625e9448ce47e446fea3a264e3a185f",
+      "effect": "release_risk_reduction",
+      "observation": "DATA-05: source-earned Unicode replay cold-load on real Win32 (#2800); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2800"
+    },
+    {
+      "pr": 2799,
+      "commit_sha": "697f867219f7364933f2b6813e296b0a298faaf5",
+      "effect": "release_risk_reduction",
+      "observation": "DATA-05: prove source-earned 2P Windows archive under Unicode root (#2799); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2799"
+    },
+    {
+      "pr": 2802,
+      "commit_sha": "93751f83dfa3d6d425c3cafa39c9d21645b317fd",
+      "effect": "release_risk_reduction",
+      "observation": "DATA-05: cold-open real Unicode two-player Records after source-earned Win32 match (#2802); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2802"
+    },
+    {
+      "pr": 2801,
+      "commit_sha": "85f2c029c6b198383a0ff52ead970a74172ee171",
+      "effect": "release_risk_reduction",
+      "observation": "DATA-05: cold-reopen source-earned Unicode 2P Records on Win32 (#2801); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2801"
+    },
+    {
+      "pr": 2803,
+      "commit_sha": "ed562fd45d954949f285ec142d3440eac75032cb",
+      "effect": "release_risk_reduction",
+      "observation": "DATA-05: validate native Unicode Quick Practice and hard-kill cold recovery (#2803); evidence alone does not admit a second criterion or release gate.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2803"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "DATA-05",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6483152463",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40781950929",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2789",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2790",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2799",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2800",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2801",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2802",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2803"
+      ],
+      "reason": "Genuine same-PE native Win32 source-earned non-ACP profile/save/Records, 1P replay input cold load, 2P cold Records, Options and Quick Practice hard-kill cycles; direct actual-byte audit."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 54,
+    "current_bounded_percent": 55,
+    "gross_delta_percentage_points": 1,
+    "new_work_earned_percentage_points": 1,
+    "retroactive_identification_percentage_points": 0,
+    "previous_independent_audit_percent": 12,
+    "current_independent_audit_percent": 13
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Frozen DATA-05 only; no human H01–H07, original/native 45-event parity, actual replay guest playback or formal release signoff.",
+  "source_reviewed_by": "independent reviewer, distinct from original #2790/#2799..#2803 author",
+  "limitations": "Only hosted real Windows same-PE and immutable source-earned path behavior. No source change means no physical or original/native event acceptance."
+}

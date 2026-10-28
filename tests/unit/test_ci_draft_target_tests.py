@@ -120,6 +120,22 @@ class DraftTargetTests(unittest.TestCase):
                 main()
         self.assertEqual(output.getvalue(), "")
 
+    def test_nonempty_draft_selection_still_prints_modules(self):
+        import contextlib
+        import io
+        from unittest.mock import patch
+        from tools.ci_draft_target_tests import main
+
+        output = io.StringIO()
+        with patch("tools.ci_draft_target_tests.select",
+                   return_value=["tests.unit.test_ci_draft_target_tests"]):
+            with patch.dict("os.environ", {"GITHUB_TOKEN": "",
+                                           "GH_PR_NUMBER": ""}):
+                with contextlib.redirect_stdout(output):
+                    main()
+        self.assertEqual(output.getvalue(),
+                         "tests.unit.test_ci_draft_target_tests\n")
+
     def test_workflow_retains_ready_full_suite_and_draft_label(self):
         from pathlib import Path
         text = Path(".github/workflows/tooling-unit-tests.yml").read_text()

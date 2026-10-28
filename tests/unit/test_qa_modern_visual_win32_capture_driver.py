@@ -164,11 +164,11 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                 self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", env)
                 self.assertIn("wait 2200", (Path(kwargs["cwd"]) / "stock-guest.route").read_text())
                 return subprocess.CompletedProcess(argv, 0, stdout=(
-                    "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\\n"
-                    "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\\n"
+                    "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\n"
+                    "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\n"
                     "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1510 "
                     "guest_frame=1568 output=640x480 "
-                    "source=SDL_RenderReadPixels backend=sdl3\\n"), stderr="")
+                    "source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
             with patch.object(driver.subprocess, "run", side_effect=fake_capture):
                 value = driver.launch(root / "exe", root / "rom", root, "case",
                                       (640, 480), "windows", 4,
@@ -182,10 +182,10 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
             root = Path(tmp)
             def fake_capture(argv, **kwargs):
                 return subprocess.CompletedProcess(argv, 0, stdout=(
-                    "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\\n"
-                    "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\\n"
+                    "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\n"
+                    "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\n"
                     "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1550 "
-                    "guest_frame=1584 output=1280x720 source=SDL_RenderReadPixels backend=sdl3\\n"), stderr="")
+                    "guest_frame=1584 output=1280x720 source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
             with patch.object(driver.subprocess, "run", side_effect=fake_capture):
                 with self.assertRaisesRegex(RuntimeError, "guest frame"):
                     driver.launch(root / "exe", root / "rom", root, "case",

@@ -6,6 +6,8 @@ on:
       - ".github/workflows/modern-visual-native-win32-capture.yml"
       - "tools/qa_modern_visual_sdl_capture.py"
       - "tools/qa_modern_visual_win32_capture_driver.py"
+      - "tools/qa_modern_attract_final_sdl_pair.py"
+      - "tests/unit/test_qa_modern_attract_final_sdl_pair.py"
       - "tools/qa_modern_visual_archive_cases.py"
       - "tools/qa_modern_visual_case_checks.py"
       - "tools/qa_modern_visual_diagnostics.py"
@@ -28,7 +30,7 @@ jobs:
     # Independent QA #2041, merged destination owner #2040 or its narrow
     # source-bound follow-up #2117 may trigger genuine Windows SDL captures.
     # These jobs do not grant artwork, controller or release acceptance.
-    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024'
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041 || github.event.pull_request.number == 2040 || github.event.pull_request.number == 2117 || github.head_ref == 'qa/modern-motion-final-sdl-pair-20261020' || github.head_ref == 'qa/agent3-identity-p7-20261024' || github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028'
     runs-on: windows-2022
     timeout-minutes: 35
     defaults:
@@ -53,6 +55,7 @@ jobs:
           python -m unittest \
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
+            tests.unit.test_qa_modern_attract_final_sdl_pair \
             tests.unit.test_qa_modern_motion_final_sdl_pair \
             tests.unit.test_qa_modern_identity_strip_p7 \
             tests.unit.test_qa_modern_visual_authentic_rgb_parity \
@@ -90,7 +93,8 @@ jobs:
           set -euo pipefail
           source "$TOOLCHAIN_DIR/env.sh"
           clang --version | head -n1 | grep -F "22.1.8"
-          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          export SOURCE_DATE_EPOCH
           cmake -S baldosa -B baldosa/build-ur-visual -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
           cmake --build baldosa/build-ur-visual --target UniracersSNESRecomp -j 3
@@ -123,6 +127,40 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
           done
           echo "Actual final-drawable Windows Modern engineering baseline 1280x720 and 1024x768; same PE, separate clean runs; no redesign or physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+      # Existing Modern SDL observer, same exact Windows PE, three real guest
+      # checkpoints of the DEFAULT stock idle/demo and P1 wake. This may fail
+      # closed; no physical/human/game-event or release credit from green CI.
+      - name: Observe default stock attract motion and wake in real final SDL
+        if: github.event_name == 'pull_request' && github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028'
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ROOT="$RUNNER_TEMP/ur-menu10-final-sdl"
+          mkdir -p "$ROOT"
+          for route in stock-attract-before stock-attract-after stock-attract-woken; do
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$ROOT/$route" --video windows --timeout 130 \
+              --window-size 1280x720 --route "$route"
+          done
+          python tools/qa_modern_attract_final_sdl_pair.py \
+            --root "$ROOT" --source-sha "$(git rev-parse HEAD)" \
+            --output "$ROOT/verified-source-pe-p7-stock-attract.json"
+          echo "Observed three exact source and executable bound final SDL guest frames with unmasked RGB changes. Independent MENU-10 review remains pending; physical/release/USA credit zero." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain exact stock attract guest-to-final-SDL pixels and logs
+        if: always() && github.event_name == 'pull_request' && github.head_ref == 'qa/menu10-native-final-sdl-witness-20261028'
+        uses: actions/upload-artifact@v4
+        with:
+          name: menu10-stock-attract-native-win32-final-sdl
+          path: |
+            ${{ runner.temp }}/ur-menu10-final-sdl/verified-source-pe-p7-stock-attract.json
+            ${{ runner.temp }}/ur-menu10-final-sdl/*/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-menu10-final-sdl/*/readback-receipt.json
+            ${{ runner.temp }}/ur-menu10-final-sdl/*/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-menu10-final-sdl/*/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Verify repaired racer identity on actual 16:9 and compact Windows SDL P7
         if: github.head_ref == 'qa/agent3-identity-p7-20261024'
         run: |

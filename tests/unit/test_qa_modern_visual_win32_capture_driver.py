@@ -147,8 +147,51 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
         self.assertTrue(all(40 <= entry[1] < 100 for name, entry
-                            in driver.ROUTES.items() if name != "authentic-stock"))
+                            in driver.ROUTES.items() if name != "authentic-stock"
+                            and not name.startswith("stock-attract-")))
         self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)
+
+    def test_stock_attract_guest_clock_is_not_sdl_draw_ordinal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            seen = []
+            def fake_capture(argv, **kwargs):
+                env = kwargs["env"]
+                seen.append(dict(env))
+                self.assertEqual(env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "28")
+                self.assertEqual(env["UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME"], "1568")
+                self.assertEqual(env["UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE"], "1")
+                self.assertNotIn("UR_MODERN_VISUAL_SDL_CAPTURE_DRAW", env)
+                self.assertNotIn("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", env)
+                self.assertIn("wait 2200", (Path(kwargs["cwd"]) / "stock-guest.route").read_text())
+                return subprocess.CompletedProcess(argv, 0, stdout=(
+                    "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\n"
+                    "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1510 "
+                    "guest_frame=1568 output=640x480 "
+                    "source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_capture):
+                value = driver.launch(root / "exe", root / "rom", root, "case",
+                                      (640, 480), "windows", 4,
+                                      route="stock-attract-before")
+            self.assertEqual(value["capture_guest_frame"], 1568)
+            self.assertEqual(value["capture_draw"], 1510)
+            self.assertEqual(len(seen), 1)
+
+    def test_stock_attract_forged_clock_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            def fake_capture(argv, **kwargs):
+                return subprocess.CompletedProcess(argv, 0, stdout=(
+                    "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943 menu=84 focus=host guest_writes=0\n"
+                    "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532 menu=84 race=01 overlay_title=0\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1550 "
+                    "guest_frame=1584 output=1280x720 source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_capture):
+                with self.assertRaisesRegex(RuntimeError, "guest frame"):
+                    driver.launch(root / "exe", root / "rom", root, "case",
+                                  (1280, 720), "windows", 4,
+                                  route="stock-attract-before")
 
     def test_native_destination_route_requires_actual_source_event(self):
         with tempfile.TemporaryDirectory() as tmp:

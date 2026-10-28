@@ -25,6 +25,10 @@ except ModuleNotFoundError:  # direct python tools/... command
     from qa_modern_visual_pam_png import convert
     from baldosa_windows_native_pause_route import USA_SHA256
 
+GUEST_READBACK = re.compile(
+    r"^UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=(\d+) "
+    r"guest_frame=(\d+) output=(\d+)x(\d+) "
+    r"source=SDL_RenderReadPixels backend=(sdl2|sdl3)$", re.MULTILINE)
 READBACK = re.compile(
     r"UR_MODERN_VISUAL_SDL_CAPTURE (?:status=saved draw=\d+ guest_frame=\d+ output="
     r"|refused=output-size draw=\d+ observed=)([0-9]+)x([0-9]+)")
@@ -67,6 +71,11 @@ ROUTES = {
     "profile-first-p1": ("8", 66, "UR_BALDOSA_MODERN_ROOT first_racer_opened=1"),
     # Boot-black at guest frame 40 is not visual parity evidence. Sample later.
     "authentic-stock": ("0", 240, ""),
+    # 28 drives the actual no-env, stock source idle/demo/P1 wake route.
+    # Values are original guest frames, not SDL presentation ordinals.
+    "stock-attract-before": ("28", 1568, "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532"),
+    "stock-attract-after": ("28", 1584, "UR_MODERN_TITLE_ORIGINAL_SOURCE phase=demo_race frame=1532"),
+    "stock-attract-woken": ("28", 1616, "UR_MODERN_TITLE_STOCK_ATTRACT p1_wake_consumed=1 frame=1600"),
 }
 
 
@@ -114,7 +123,9 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     # Capture host PRESENT 40, not guest frame 40. Turbo can simulate 62
     # guest frames in ~60ms while SDL draws only three frames, making that
     # ordinal unreachable. Use the normal native 60Hz presentation clock.
-    script.write_text("wait 480\nquit\n", encoding="ascii")
+    is_stock_attract = route.startswith("stock-attract-")
+    script.write_text("wait 2200\nquit\n" if is_stock_attract else
+                      "wait 480\nquit\n", encoding="ascii")
     capture = stage / "actual-sdl-drawable.pam"
     smoke, capture_draw, stage_marker = ROUTES[route]
     execution_mode = "authentic" if route == "authentic-stock" else "modern"
@@ -133,6 +144,17 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH": str(expected[0]),
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(expected[1]),
     })
+    if is_stock_attract:
+        # Explicit guest-axis observation, not a guessed SDL draw ordinal.
+        env.pop("UR_MODERN_VISUAL_SDL_CAPTURE_DRAW", None)
+        env.pop("UR_MODERN_TITLE_STOCK_ATTRACT_PREVIEW", None)
+        env["UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME"] = str(capture_draw)
+        # Existing source-owned read-only observer. The first real Win32
+        # attempt captured final SDL pixels correctly, but source-phase
+        # markers cannot be audited unless this probe is enabled.
+        env["UR_BALDOSA_MODERN_TITLE_ATTRACT_PROBE"] = "1"
+    else:
+        env.pop("UR_MODERN_VISUAL_SDL_CAPTURE_GUEST_FRAME", None)
     env.update(motion_phase_environment(route))
     if execution_mode == "authentic":
         # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
@@ -165,8 +187,20 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
             raise RuntimeError("Modern frontend leaked into Authentic execution")
         if "[snes_load]" not in log:
             raise RuntimeError("Authentic guest ROM load was not observed")
-    elif not root_opened:
+    elif not root_opened and not is_stock_attract:
         raise RuntimeError("Actual native Modern root not observed")
+    if is_stock_attract:
+        # Guest state alone is NOT proof of final pixels. Match exact real
+        # SDL_RenderReadPixels event to the separately observed guest frame.
+        records = GUEST_READBACK.findall(log)
+        if len(records) != 1 or int(records[0][1]) != capture_draw or (
+                int(records[0][2]), int(records[0][3])) != found:
+            raise RuntimeError("Stock attract final SDL readback not tied to authentic guest frame")
+        if "UR_MODERN_TITLE_STOCK_ATTRACT source_revealed=1 frame=943" not in log:
+            raise RuntimeError("Stock attract never entered default source presentation")
+        if route == "stock-attract-woken" and (
+                "UR_MODERN_TITLE_STOCK_ATTRACT restored_title=1 frame=1600" not in log):
+            raise RuntimeError("Stock attract wake did not restore the Modern title")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
     if route.startswith("root-motion-") and (
@@ -224,7 +258,8 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "expected": expected,
         "route": route,
         "execution_mode": execution_mode,
-        "capture_draw": capture_draw,
+        "capture_draw": int(records[0][0]) if is_stock_attract else capture_draw,
+        "capture_guest_frame": capture_draw if is_stock_attract else None,
         "observed": found,
         "readback_saved": (
             f"output={found[0]}x{found[1]} source=SDL_RenderReadPixels" in log
@@ -283,6 +318,7 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
         "native_process_exit": 0,
         "actual_sdl_renderer_output": list(selected["observed"]),
         "observed_in_draw": selected["capture_draw"],
+        "observed_guest_frame": selected["capture_guest_frame"],
         "native_semantic_route": route,
         "execution_mode": selected["execution_mode"],
         "native_route_marker_observed": bool(ROUTES[route][2]),

@@ -68,7 +68,8 @@ class PlaytestRequestGuardTests(unittest.TestCase):
 
     def test_original_native_zoo_request_reuses_strict_source_isolation(self):
         old = marker(0, "Initial causal dispatch marker installation without a run")
-        new = marker(1, "Investigate merged RF083 word-entry and RF084 native writer on Zoo")
+        new = (marker(1, "Investigate merged RF083 word-entry and RF084 native writer on Zoo")
+               + "- Observer mode: **on**\n")
         self.assertEqual(
             guard.validate(old, new, [guard.ZOO_MARKER],
                            marker=guard.ZOO_MARKER)["new"], 1)
@@ -80,6 +81,46 @@ class PlaytestRequestGuardTests(unittest.TestCase):
             guard.validate(old, new, [guard.ZOO_MARKER],
                            marker="docs/anything-else.md")
 
+    def test_zoo_observer_mode_is_explicit_unique_and_fail_closed(self):
+        old = marker(12, "Original and native echo returned values were measured")
+        for mode, enabled in (("on", True), ("off", False)):
+            current = (marker(13, "Measure same-source observer noninterference control")
+                       + f"- Observer mode: **{mode}**\n")
+            verdict = guard.validate(old, current, [guard.ZOO_MARKER],
+                                     marker=guard.ZOO_MARKER)
+            self.assertIs(verdict["observer_enabled"], enabled)
+        for suffix in (
+            "",
+            "- Observer mode: **disabled**\n",
+            "- Observer mode: **ON**\n",
+            "- Observer mode: **on**\n- Observer mode: **off**\n",
+            "- Observer mode: **off**\n- Observer mode: **off**\n",
+            "- Observer mode: **off**\n- Observer mode: **INVALID**\n",
+        ):
+            with self.subTest(suffix=suffix):
+                with self.assertRaisesRegex(ValueError, "observer mode"):
+                    guard.validate(old,
+                                   marker(13, "Measure same-source observer noninterference control") + suffix,
+                                   [guard.ZOO_MARKER], marker=guard.ZOO_MARKER)
+
+    def test_zoo_cli_writes_validated_mode_to_job_output(self):
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as tmp:
+            previous = Path(tmp) / "previous.md"
+            current = Path(tmp) / "current.md"
+            output = Path(tmp) / "gha-output.txt"
+            previous.write_text(marker(12, "Prior source-matched paired echo case"), encoding="utf-8")
+            current.write_text(
+                marker(13, "Run one original/native observer-off control case")
+                + "- Observer mode: **off**\n", encoding="utf-8")
+            with (mock.patch.object(sys, "argv", [
+                "ci_playtest_request_guard.py", "--previous", str(previous),
+                "--current", str(current), "--source-sha", "a" * 40,
+                "--marker", guard.ZOO_MARKER, "--gha-output", str(output)]),
+                  mock.patch.object(guard, "changed_files", return_value=[guard.ZOO_MARKER])):
+                self.assertEqual(guard.main(), 0)
+            self.assertEqual(output.read_text(encoding="utf-8"), "observer_enabled=false\n")
+
     def test_zoo_wrapper_requires_guard_then_calls_existing_causal_campaign(self):
         path = ROOT / ".github/workflows/qa01-zoo-causal-request.yml"
         text = path.read_text(encoding="utf-8")
@@ -90,10 +131,17 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         self.assertIn("needs.qualify_request.result == 'success'", text)
         self.assertIn("uses: ./.github/workflows/qa01-event-campaign.yml", text)
         for required in ("selected: zoom-zoo", "zoo_race_mesh: true",
-                         "zoo_dp_window: true", "qa01_rf084_native_sound_dp: true",
+                         "zoo_dp_window: true",
                          "baldosa_refresh_beam_rate: true",
                          "baldosa_io_clock_order: true"):
             self.assertIn(required, text)
+        # Both original and native observers are disabled together for control.
+        expression = "${{ needs.qualify_request.outputs.observer_enabled == 'true' }}"
+        self.assertIn("observer_enabled: ${{ steps.guard.outputs.observer_enabled }}", text)
+        self.assertIn("id: guard", text)
+        self.assertIn('--gha-output "$GITHUB_OUTPUT"', text)
+        self.assertIn("qa01_rf084_native_sound_dp: " + expression, text)
+        self.assertIn("qa01_rf088_rf089_echo: " + expression, text)
         # Explicitly exclude unsafe experimental correction mixing,
         # event acceptance and publication.
         for unwanted in ("baldosa_spc_reference_rate: true",

@@ -49,8 +49,11 @@ class PairedEchoWiring(unittest.TestCase):
 
     def test_existing_one_file_guarded_request_passes_echo_opt_in(self):
         wrapper = WRAPPER.read_text(encoding="utf-8")
-        self.assertIn('      qa01_rf084_native_sound_dp: true', wrapper)
-        self.assertIn('      qa01_rf088_rf089_echo: true', wrapper)
+        mode = "${{ needs.qualify_request.outputs.observer_enabled == 'true' }}"
+        self.assertIn("observer_enabled: ${{ steps.guard.outputs.observer_enabled }}", wrapper)
+        self.assertIn('      qa01_rf084_native_sound_dp: ' + mode, wrapper)
+        self.assertIn('      qa01_rf088_rf089_echo: ' + mode, wrapper)
+        self.assertNotIn('      qa01_rf088_rf089_echo: true', wrapper)
         self.assertIn('docs/qa01/REQUEST-ZOO-CAUSAL.md', wrapper)
         self.assertIn('tools/ci_playtest_request_guard.py', wrapper)
         self.assertIn('cancel-in-progress: false', wrapper)

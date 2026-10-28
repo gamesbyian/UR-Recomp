@@ -20,6 +20,8 @@ concurrency:
 jobs:
   qualify_request:
     runs-on: ubuntu-22.04
+    outputs:
+      observer_enabled: ${{ steps.guard.outputs.observer_enabled }}
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +29,7 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
       - name: Reject unrelated source edits or unincremented campaign requests
+        id: guard
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +39,8 @@ jobs:
             --previous "$RUNNER_TEMP/previous-zoo-request.md" \
             --current docs/qa01/REQUEST-ZOO-CAUSAL.md \
             --source-sha "$GITHUB_SHA" \
-            --marker docs/qa01/REQUEST-ZOO-CAUSAL.md
+            --marker docs/qa01/REQUEST-ZOO-CAUSAL.md \
+            --gha-output "$GITHUB_OUTPUT"
           echo "Authorized source-bound Zoo observer campaign; no automatic USA event or release credit." >> "$GITHUB_STEP_SUMMARY"
 
   original_native_zoo_causal:
@@ -47,7 +51,9 @@ jobs:
       selected: zoom-zoo
       zoo_race_mesh: true
       zoo_dp_window: true
-      qa01_rf084_native_sound_dp: true
-      qa01_rf088_rf089_echo: true
+      # One validated request mode controls both instrumented cores together.
+      # `off` keeps RF015/RF017 and the raw mesh while disabling all RF083-090 hooks.
+      qa01_rf084_native_sound_dp: ${{ needs.qualify_request.outputs.observer_enabled == 'true' }}
+      qa01_rf088_rf089_echo: ${{ needs.qualify_request.outputs.observer_enabled == 'true' }}
       baldosa_refresh_beam_rate: true
       baldosa_io_clock_order: true

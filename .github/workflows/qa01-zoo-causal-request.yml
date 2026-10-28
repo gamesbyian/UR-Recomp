@@ -51,6 +51,14 @@ jobs:
       selected: zoom-zoo
       zoo_race_mesh: true
       zoo_dp_window: true
+      # Collect real result follow-through, next-Bowl progression and a fresh
+      # original/native guest ranked-record reload on the SAME source epoch.
+      # The owning campaign admits cold-guest collection only after successful
+      # source classification (including genuine strict divergence); it never
+      # awards event credit or proves Windows disk persistence.
+      source_followthrough: true
+      zoo_next_bowl: true
+      qa01_cold_guest_reload: true
       # One validated request mode controls both instrumented cores together.
       # `off` keeps RF015/RF017 and the raw mesh while disabling all RF083-090 hooks.
       qa01_rf084_native_sound_dp: ${{ needs.qualify_request.outputs.observer_enabled == 'true' }}

@@ -740,6 +740,36 @@ class QA01CampaignTest(unittest.TestCase):
         invalid=c.classify("switcher",2,file,p)
         self.assertEqual(invalid["disposition"],"producer_error")
 
+    def test_source_result_can_match_while_unmasked_strict_state_diverges(self):
+        # This is a synthetic classification fixture, never a cold-guest
+        # execution or proof that the real Zoo event is equivalent.
+        report = producer("zoom-zoo", matched=True)
+        report["comparison"]["first_sample_disagreement"] = {
+            "relative_frame": 5040, "address": "7E:0063"}
+        report["comparison"]["paired_event_candidate"] = False
+        path = self.root / "zoo-unmasked-divergence.json"
+        c.write_json(path, report)
+        row = c.classify("zoom-zoo", 1, path, self.plan("zoom-zoo"))
+        self.assertEqual(row["disposition"], "strict_divergence")
+        self.assertTrue(row["terminal_frame_matched"] if "terminal_frame_matched" in row
+                        else row["evidence"]["terminal_frame_matched"])
+        self.assertEqual(row["release_credit"], 0)
+        self.assertEqual(row["evidence"]["first_sample_disagreement"]["relative_frame"], 5040)
+
+    def test_cold_guest_opt_in_allows_classified_divergence_without_qa_credit(self):
+        workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text()
+        start = workflow.index('if [[ "$QA01_COLD_GUEST" == "true" && "$QA01_CASE"')
+        end = workflow.index("python3 tools/qa01_cold_result_record.py", start)
+        gate = workflow[start:end]
+        self.assertIn('"$QA01_SOURCE_FOLLOWTHROUGH" == "true"', gate)
+        self.assertIn('"$case_rc" -eq 0', gate)
+        self.assertIn('"$producer_rc" -eq 0 || "$producer_rc" -eq 1', gate)
+        self.assertIn('("strict_candidate", "strict_divergence")', gate)
+        self.assertIn('row.get("release_credit") != 0', gate)
+        self.assertIn('raise SystemExit("cold guest requires valid source-classified Zoo evidence")', gate)
+        self.assertNotIn('"$producer_rc" -eq 0 && "$case_rc" -eq 0', gate)
+        self.assertIn("host disk durability NOT proven; zero event credit", workflow)
+
     def test_workflow_stays_manual_small_and_one_build(self):
         workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
         header = workflow.split("\njobs:", 1)[0]

@@ -82,7 +82,13 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
         self.assertIn("YAML.parse_file(path)", draft)
         self.assertIn("DRAFT_SYNTAX_ONLY", draft)
         self.assertNotIn("tools/run_unit_shard.py", draft)
-        self.assertNotIn("python3 -m unittest", draft)
+        # Draft may run direct, small Python test modules; it may not
+        # pretend that discovery, all-unit sharding or full coverage happened.
+        self.assertIn("DRAFT_TARGETED_DIAGNOSTIC_ONLY", draft)
+        self.assertIn("tools/ci_draft_target_tests.py", draft)
+        self.assertIn('timeout 45s python3 -m unittest -v "${mods[@]}"', draft)
+        self.assertNotIn("tools/partition_unit_tests.py", draft)
+        self.assertNotIn("tools/run_unit_shard.py", draft)
 
     def test_trigger_scope_stays_narrow(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

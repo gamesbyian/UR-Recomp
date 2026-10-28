@@ -36,8 +36,11 @@ static void ur_rf093_note(Apu *apu, const char *kind, unsigned port,
                           unsigned value, uint64_t target, uint64_t guest) {
   const char *flag = getenv("UR_QA01_RF093_NATIVE_SPC");
   if (!flag || flag[0] != '1' || flag[1] != '\0') return;
-  if (snes_frame_counter < 6054 || snes_frame_counter > 6059 || port > 3u)
-    return;
+  /* Native result +265..+269 is frame 6447..6451 in sequence 17.
+   * Keep the earlier 6054..6059 control window. */
+  if (!((snes_frame_counter >= 6054 && snes_frame_counter <= 6059) ||
+        (snes_frame_counter >= 6447 && snes_frame_counter <= 6451)) ||
+      port > 3u) return;
   if (++ur_rf093_rows > 32768u) {
     if (ur_rf093_rows == 32769u)
       fprintf(stderr, "QA01RF093NATIVE_TRUNCATED\n");

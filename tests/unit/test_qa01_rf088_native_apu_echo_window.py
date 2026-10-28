@@ -42,8 +42,9 @@ class EchoWindowTests(unittest.TestCase):
                         patched.index("ur_rf088_note(cpu, bank, addr, 2u, v, 'W');"))
         # The failed first combined case had zero RF088 rows. Do not
         # preselect an assumed pointer phase before measuring real reads.
-        self.assertIn("snes_frame_counter < 6055", patched)
-        self.assertIn("snes_frame_counter > 6060", patched)
+        self.assertIn("snes_frame_counter >= 6055 && snes_frame_counter <= 6060", patched)
+        self.assertIn("snes_frame_counter >= 6447 && snes_frame_counter <= 6451", patched)
+        self.assertIn("!((snes_frame_counter >= 6055", patched)
         self.assertNotIn("cpu->ram[0x63] != 0xB0", patched)
         self.assertNotIn("cpu->ram[0x64] != 0xC6", patched)
         self.assertIn("ptr=%02X%02X", patched)

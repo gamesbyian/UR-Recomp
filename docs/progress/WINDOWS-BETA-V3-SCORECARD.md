@@ -10,22 +10,22 @@ The frozen [135-criterion v2 inventory](windows-beta-v2-inventory.json) contains
 |---|---:|---:|
 | Total criteria | 135 | 134 |
 | Denominator (evidence units) | 4,500 | 4,455 |
-| Provisionally bounded, as reviewed through `88056d49…` | 2,385 (53.000%) | 2,385 (53.535%) |
-| Independently audited, same review | 495 (11.000%) | 495 (11.111%) |
+| Provisionally bounded, as reviewed through `57bbfb8a…` | 2,430 (54.000%) | 2,430 (54.545%) |
+| Independently audited, same review | 540 (12.000%) | 540 (12.121%) |
 | Accepted complete USA events | 0/45 | 0/45 |
 | Formal release quality gates | 0/12 | still tracked independently: 0/12 |
 
-**The 0.535 percentage-point change is entirely a denominator reclassification, not newly built functionality, independent evidence or earned engineering progress.** These percentages **must not be compared as sequential day-over-day performance**. For time-series progress, compare snapshots under the same version and denominator, and distinguish newly engineered features from retroactive evidence admission.
+**The 0.545 percentage-point change is entirely a denominator reclassification, not newly built functionality, independent evidence or earned engineering progress.** These percentages **must not be compared as sequential day-over-day performance**. For time-series progress, compare snapshots under the same version and denominator, and distinguish newly engineered features from retroactive evidence admission.
 
-The prior independent TWO-05 hosted Win32 virtual-pad evidence added +1.000pp to frozen v2 (51%→52%). The immutable QA-01 Windows package nomination adds a separate retroactive +1.000pp (52%→53%), with zero new gameplay engineering or physical-release credit. The beta-v3 percentage difference below remains purely the QA-09 denominator reclassification.
+The prior independent TWO-05 hosted Win32 virtual-pad evidence added +1.000pp to frozen v2 (51%→52%). The immutable QA-01 Windows package nomination added a separate retroactive +1.000pp (52%→53%). The new source-bound same-PE MENU-10 Windows SDL demo/wake proof adds +1.000pp of newly verified hosted player behavior (53%→54%), separately from the beta-v3 denominator reclassification. Physical H01–H07 and official release acceptance remain pending. The beta-v3 percentage difference below remains purely the QA-09 denominator reclassification.
 
-The review authority for this projection remains [`current-v2-review.json`](current-v2-review.json), whose recorded source is `88056d491c77cc7bb14ef1635d81892ca0d70305`. Later merged source commits, including these process changes, **are not automatically reviewed product evidence**. To project a later accepted inventory snapshot, update the existing v2 inventory/review pointer through its independent evidence process, then rerun this **read-only** v3 calculator. Never simply stamp today's `main` SHA onto the older evidence.
+The review authority for this projection remains [`current-v2-review.json`](current-v2-review.json), whose recorded source is `57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3`. Later merged source commits, including these process changes, **are not automatically reviewed product evidence**. To project a later accepted inventory snapshot, update the existing v2 inventory/review pointer through its independent evidence process, then rerun this **read-only** v3 calculator. Never simply stamp today's `main` SHA onto the older evidence.
 
 ```sh
 python3 tools/atomic_progress_beta_v3.py
 python3 tools/atomic_progress_beta_v3.py --format json
 # Strict source-epoch check when a specific independently reviewed SHA is known:
-python3 tools/atomic_progress_beta_v3.py --reviewed-head 88056d491c77cc7bb14ef1635d81892ca0d70305
+python3 tools/atomic_progress_beta_v3.py --reviewed-head 57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3
 ```
 
 The calculator fails closed for changes to the original v2's 135 IDs/text/weights, to the 45-event ledger cross-check, to the reviewed source epoch, to the v3 projection fingerprint, to the 134/4,455 denominator, or to the explicit **single QA-09 exclusion**. It never writes an acceptance, reclassifies a physical test or changes a gate. See `tests/unit/test_atomic_progress_beta_v3.py`.

@@ -10,6 +10,8 @@ extern "C" void ur_baldosa_product_set_host_focus(int owned);
 extern "C" int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
 extern "C" void ur_baldosa_product_cancel_stock_menu_input(void);
 extern "C" void ur_baldosa_product_guest_restarted(void);
+extern "C" void ur_baldosa_product_attract_source_demo_observed(int active);
+extern "C" void ur_baldosa_product_attract_p1_start_event(int pressed);
 
 namespace {
 bool reject;
@@ -90,6 +92,44 @@ int main() {
     assert(ur_baldosa_product_filter_human_frame_inputs(
                ports | held, 19) == ports);
     assert(ur_baldosa_product_queue_stock_menu_input(0x0020u));
+    // Actual guest-frame observation is required before transport: the
+    // stand-alone bridge must never guess demo state, borrow menu Accept or
+    // accidentally forward seat 2. The P1 Start press remains held only as
+    // long as its real physical callback AND original guest demo agree.
+    ur_baldosa_product_attract_p1_start_event(1);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 20) == ports);
+    ur_baldosa_product_attract_p1_start_event(0);
+    ur_baldosa_product_attract_source_demo_observed(1);
+    ur_baldosa_product_attract_p1_start_event(1);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports | p2_start, 21)
+           == (ports | start));
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 22)
+           == (ports | start));
+    ur_baldosa_product_attract_p1_start_event(0);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 23) == ports);
+    // A source transition to title/main stops input even while still held,
+    // and a new in-demo observation alone cannot resurrect that old press.
+    ur_baldosa_product_attract_p1_start_event(1);
+    ur_baldosa_product_attract_source_demo_observed(0);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 24) == ports);
+    ur_baldosa_product_attract_source_demo_observed(1);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 25) == ports);
+    ur_baldosa_product_attract_p1_start_event(0);
+    ur_baldosa_product_attract_p1_start_event(1);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 26)
+           == (ports | start));
+    ur_baldosa_product_set_host_focus(0);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 27) == ports);
+    ur_baldosa_product_set_host_focus(1);
+    ur_baldosa_product_attract_p1_start_event(1);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 28) == ports);
+    ur_baldosa_product_attract_p1_start_event(0);
+    ur_baldosa_product_attract_source_demo_observed(1);
+    ur_baldosa_product_attract_p1_start_event(1);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 29)
+           == (ports | start));
+    ur_baldosa_product_guest_restarted();
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 30) == ports);
     ur_baldosa_product_set_host_focus(0);
     assert(!ur_baldosa_product_queue_stock_menu_input(0x0100u));
     assert(ur_baldosa_product_filter_human_frame_inputs(

@@ -466,7 +466,7 @@ jobs:
           # user directory. Two separate native processes, one test binary;
           # no second Windows build, guest race or physical controller claim.
           python -m unittest -v tests.unit.test_completed_run_unicode_cold_cpp
-          echo "PASS: Unicode host state and two-process earned-run/replay file I/O (hosted Win32 only); full DATA-05 native GUI journey and physical acceptance remain unverified." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Unicode host state and two-process synthetic-fixture .urrun/replay file I/O (hosted Win32 only); full DATA-05 native GUI journey and physical acceptance remain unverified." >> "$GITHUB_STEP_SUMMARY"
 
       # Compile the first/second racer fixture against native Win32 paths.
       - name: Verify Unicode first/second named-profile creation on Win32

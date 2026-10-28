@@ -33,13 +33,13 @@ OPERATIONS_ONLY = frozenset({
 # tools above needs the existing agent-control/custody regression, not all 5k+
 # product/graphics/native tests. Keep the list exact and deliberately tiny.
 # The shared board is exercised by the focused test_agent_control suite.
+# The Windows physical candidate marker is deliberately excluded: a ready
+# request must receive the complete unit suite before main-only dispatch.
 OPS_CONTEXT_DOCS = frozenset({
     "AGENTS.md",
     "docs/AGENT-COORDINATION.md",
     "docs/HOURLY-AGENT-LINES.md",
     "docs/WORK-QUEUE.md",
-    # Only this exact documentation marker requests an already guarded build.
-    "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
 })
 OPERATIONS_ONLY = OPERATIONS_ONLY | OPS_CONTEXT_DOCS
 # Research workflow edits are *configuration-only*, never native/gameplay

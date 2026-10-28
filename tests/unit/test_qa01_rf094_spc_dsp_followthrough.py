@@ -124,6 +124,8 @@ class RF094Receipt(unittest.TestCase):
         d = report.analyze(b"no dsp rows\n", b"no dsp rows\n")
         self.assertTrue(d["original"]["no_dsp_write_observed"])
         self.assertEqual(d["native"]["executed_dsp_writes"], 0)
+        self.assertFalse(d["same_ordered_register_values"])
+        self.assertFalse(d["same_ordered_f7_bytes"])
         self.assertFalse(d["full_guest_event_admitted"])
 
     def test_strict_frame_reg_sequence_clock_and_truncation(self):

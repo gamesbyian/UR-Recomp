@@ -100,9 +100,11 @@ def analyze(original: bytes, native: bytes) -> dict:
     return {"schema": "ur-qa01-rf094-spc-dsp-followthrough/1",
             "original": orig, "native": nat,
             "same_ordered_register_values": (
+                bool(orig["rows"]) and bool(nat["rows"]) and
                 [(x["reg"], x["value"]) for x in orig["rows"]] ==
                 [(x["reg"], x["value"]) for x in nat["rows"]]),
             "same_ordered_f7_bytes": (
+                bool(orig["f7_bytes"]) and bool(nat["f7_bytes"]) and
                 orig["f7_bytes"] == nat["f7_bytes"]),
             "same_ordered_register_values_proves_audio_parity": False,
             "same_ordered_f7_bytes_proves_audio_parity": False,

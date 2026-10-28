@@ -22,6 +22,9 @@ REASON = re.compile(r"(?m)^- Requested reason: ([^\n]+)$")
 MAX_SEQUENCE = 2**31 - 1
 ZOO_OBSERVER_MODE = re.compile(r"(?m)^- Observer mode: \*\*(on|off)\*\*$")
 ZOO_OBSERVER_FIELDS = re.compile(r"(?m)^- Observer mode:")
+# Legacy marker requests through sequence 19 cannot silently enable RF094.
+ZOO_RF094_MODE = re.compile(r"(?m)^- RF094 DSP follow-through: \*\*(on|off)\*\*$")
+ZOO_RF094_FIELDS = re.compile(r"(?m)^- RF094 DSP follow-through:")
 
 
 def field(pattern: re.Pattern[str], text: str, name: str) -> str:
@@ -47,13 +50,27 @@ def validate(previous: str, current: str, changed: list[str], *, marker: str = M
     # A new Zoo request must explicitly choose its instrumentation state.
     # Older markers predate this field; only the new request is authoritative.
     observer_enabled = None
+    rf094_enabled = None
     if marker == ZOO_MARKER:
         modes = ZOO_OBSERVER_MODE.findall(current)
         if len(modes) != 1 or len(ZOO_OBSERVER_FIELDS.findall(current)) != 1:
             raise ValueError("Zoo request requires exactly one explicit observer mode")
         observer_enabled = modes[0] == "on"
+        # Legacy requests through sequence 19 predate the DSP observer.
+        # From sequence 20, require one valid, intentional RF094 mode.
+        rf094_fields = ZOO_RF094_FIELDS.findall(current)
+        rf094_modes = ZOO_RF094_MODE.findall(current)
+        if new >= 20 or rf094_fields:
+            if len(rf094_fields) != 1 or len(rf094_modes) != 1:
+                raise ValueError("Zoo RF094 request requires one explicit on/off selector")
+            rf094_enabled = rf094_modes[0] == "on"
+        else:
+            rf094_enabled = False
+        if rf094_enabled and not observer_enabled:
+            raise ValueError("Zoo RF094 requires paired original/native observer on")
     return {"old": old, "new": new, "changed_paths": changed,
-            "observer_enabled": observer_enabled, "release_gate_credit": 0}
+            "observer_enabled": observer_enabled,
+            "rf094_enabled": rf094_enabled, "release_gate_credit": 0}
 
 
 def changed_files(commit: str) -> list[str]:
@@ -73,7 +90,7 @@ def main() -> int:
     parser.add_argument("--current", type=Path, required=True)
     parser.add_argument("--source-sha", required=True)
     parser.add_argument("--marker", choices=sorted(SUPPORTED_MARKERS), default=MARKER)
-    parser.add_argument("--gha-output", type=Path, help="write validated Zoo observer mode to GitHub job outputs")
+    parser.add_argument("--gha-output", type=Path, help="write validated Zoo observer and RF094 choices to GitHub job outputs")
     args = parser.parse_args()
     if (not args.previous.is_file() or args.previous.is_symlink()
             or not args.current.is_file() or args.current.is_symlink()):
@@ -89,6 +106,8 @@ def main() -> int:
         with args.gha_output.open("a", encoding="utf-8") as out:
             out.write("observer_enabled=" +
                       ("true" if verdict["observer_enabled"] else "false") + "\n")
+            out.write("rf094_enabled=" +
+                      ("true" if verdict["rf094_enabled"] else "false") + "\n")
     print("PASS: explicit main-only source-isolated request " +
           str(verdict["old"]) + " -> " + str(verdict["new"]) +
           ", only marker changed, zero release gate credit")

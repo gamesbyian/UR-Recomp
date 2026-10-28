@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       observer_enabled: ${{ steps.guard.outputs.observer_enabled }}
+      rf094_enabled: ${{ steps.guard.outputs.rf094_enabled }}
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
@@ -63,5 +64,7 @@ jobs:
       # `off` keeps RF015/RF017 and the raw mesh while disabling all RF083-090 hooks.
       qa01_rf084_native_sound_dp: ${{ needs.qualify_request.outputs.observer_enabled == 'true' }}
       qa01_rf088_rf089_echo: ${{ needs.qualify_request.outputs.observer_enabled == 'true' }}
+      # An explicit sequence-20+ source request controls RF094; old cases stay OFF.
+      qa01_rf094_spc_dsp: ${{ needs.qualify_request.outputs.rf094_enabled == 'true' }}
       baldosa_refresh_beam_rate: true
       baldosa_io_clock_order: true

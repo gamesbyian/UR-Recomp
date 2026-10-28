@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>UR-Recomp | Offline Windows Playtest Recorder</title>
+<style>
+:root { color-scheme: light dark; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: light-dark(#f4f5f7,#111823); color: light-dark(#172234,#f4f6fa); line-height: 1.48; }
+main { max-width: 860px; margin: auto; padding: 16px 16px 100px; }
+header { background: light-dark(#ffffff,#1d2938); border-bottom: 1px solid light-dark(#c8ced6,#44566e); }
+header .inner { max-width: 860px; margin: auto; padding: 14px 16px; }
+h1 { font-size: clamp(1.25rem,5vw,1.8rem); margin: 0 0 4px; letter-spacing: -.02em; }
+h2 { font-size: 1.16rem; margin: 0 0 8px; }
+p { margin: 8px 0; }
+.sub { color: light-dark(#4c596c,#b1c0d2); font-size: .92rem; }
+small { color: light-dark(#4c596c,#b1c0d2); }
+.panel { padding: 16px; margin: 14px 0; border: 1px solid light-dark(#cfd5dc,#4b5d74); border-radius: 14px; background: light-dark(white,#1d2938); }
+.pin { overflow-wrap: anywhere; font-size: .83rem; font-family: ui-monospace, Consolas, monospace; margin: 5px 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button, input[type="text"], select { min-height: 44px; }
+button { background: light-dark(#e7ecf3,#29394e); border: 1px solid light-dark(#aebccd,#56708d); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+button:hover { filter: brightness(.95); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #438ee9; outline-offset: 2px; }
+button.primary { background: #225fbb; color: #fff; border-color: #225fbb; font-weight: 650; }
+label { display: block; font-weight: 600; margin: 9px 0 3px; }
+input[type="text"], textarea, select { display: block; width: 100%; border-radius: 9px; background: light-dark(#fafbfd,#142131); border: 1px solid light-dark(#9caec3,#6a809a); padding: 10px; }
+textarea { min-height: 96px; resize: vertical; }
+fieldset { border: 0; padding: 0; margin: 16px 0; }
+legend { font-weight: 700; margin-bottom: 7px; }
+.statuses { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.statuses label { display: flex; align-items: center; gap: 8px; min-height: 48px; margin: 0; border: 1px solid light-dark(#9caec3,#6a809a); border-radius: 9px; padding: 8px; cursor: pointer; font-weight: 550; }
+.statuses label:has(input:checked) { border: 2px solid #2b7ed0; background: light-dark(#e6f2ff,#234467); }
+.statuses input { width: 22px; height: 22px; flex: none; accent-color: #2b7ed0; }
+nav { display: flex; gap: 8px; flex-wrap: wrap; }
+nav button { flex: 1 1 44px; font-size: .91rem; padding: 7px; }
+nav button.active { background: #225fbb; color: #fff; }
+.controls { display: flex; justify-content: space-between; gap: 10px; }
+.controls button { flex: 1; }
+#feedback { min-height: 24px; font-weight: 600; }
+a { color: light-dark(#1455a6,#a1ceff); }
+code { overflow-wrap: anywhere; }
+footer { margin-top: 22px; }
+@media (min-width: 600px) { .statuses { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<header><div class="inner">
+<h1>Uniracers | Physical Windows playtest</h1>
+<div class="sub">Offline, one candidate, seven real journeys. A record of observations, not independent QA acceptance.</div>
+</div></header>
+<main>
+<section class="panel" aria-labelledby="candidate-title">
+<h2 id="candidate-title">Pinned candidate</h2>
+<p class="sub">Use only the independently audited October 27 Windows ROM-free package below. If your ZIP or EXE differs, do not use this preset or mix evidence.</p>
+<div><strong>Source revision</strong><div class="pin" id="source-pin"></div></div>
+<div><strong>Inner playable ZIP SHA-256</strong><div class="pin" id="zip-pin"></div></div>
+<div><strong>Extracted Windows EXE SHA-256</strong><div class="pin" id="exe-pin"></div></div>
+<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324/artifacts/12734720034">Original verified ROM-free Windows artifact</a></p>
+<label for="hashCheck">Did you independently compare your local inner ZIP and EXE against both hashes above?</label>
+<select id="hashCheck"><option value="not_checked">Not checked yet</option><option value="yes">Both matched</option><option value="no">Mismatch or unverifiable (no candidate acceptance)</option></select>
+</section>
+<section class="panel" aria-labelledby="environment-title">
+<h2 id="environment-title">Setup (no identifying details)</h2>
+<p class="sub">Do not type a ROM filename/path, saved game, personal username, device serial, hardware identifier or unredacted system log. Use an anonymous label such as PC-A.</p>
+<label for="setup">Anonymous setup label</label><input id="setup" type="text" maxlength="32" placeholder="PC-A" autocomplete="off">
+<label for="platform">Test environment</label><select id="platform"><option value="physical_pc">Physical Windows PC</option><option value="virtual_machine">Virtual machine</option><option value="hosted_runner">Hosted CI runner</option><option value="unspecified">Not specified</option></select>
+<label for="windows">Windows version/build (general only)</label><input id="windows" type="text" maxlength="100" placeholder="Windows 11, build ...">
+<label for="gpu">GPU family (no serial number)</label><input id="gpu" type="text" maxlength="100" placeholder="Radeon / GeForce / Intel ...">
+<label for="monitor">Actually observed display mode</label><input id="monitor" type="text" maxlength="100" placeholder="1920×1080 60Hz; 4K if truly measured">
+<label for="controllers">Physical P1/P2 controller models, or none</label><input id="controllers" type="text" maxlength="120" placeholder="P1 wired Xbox pad; P2 ...">
+<label for="audio">Actual audible output (if tested)</label><input id="audio" type="text" maxlength="100" placeholder="Headphones, speakers, or no output">
+<label for="launcher">Launch shell/environment</label><input id="launcher" type="text" maxlength="90" placeholder="Explorer, cmd.exe, PowerShell 7 ...">
+</section>
+<section class="panel" aria-labelledby="journeys-title">
+<h2 id="journeys-title">H01–H07 observations</h2>
+<p class="sub" id="step-count" aria-live="polite"></p>
+<nav id="step-nav" aria-label="Select playtest journey"></nav>
+<div id="journey" aria-live="polite">
+<h2 id="journey-title"></h2>
+<p id="journey-description"></p>
+<p class="sub" id="journey-criteria"></p>
+<fieldset><legend>What actually happened on this machine?</legend>
+<div class="statuses">
+<label><input type="radio" name="status" value="PASS"> PASS</label>
+<label><input type="radio" name="status" value="FAIL"> FAIL</label>
+<label><input type="radio" name="status" value="BLOCKED"> BLOCKED</label>
+<label><input type="radio" name="status" value="NOT_RUN" checked> NOT RUN</label>
+</div></fieldset>
+<label for="notes">Observed facts / repro steps, expected vs actual (not personal data)</label>
+<textarea id="notes" maxlength="1200" placeholder="What was seen, heard, or reproduced? Leave blank when not run."></textarea>
+<label for="evidence">Optional redacted photo / video / trace labels (names only)</label>
+<input id="evidence" type="text" maxlength="240" placeholder="e.g. H04-pad2-20261028.mp4 (not the file itself)">
+</div>
+<div class="controls" style="margin-top: 15px"><button type="button" id="previous">Previous</button><button type="button" id="next" class="primary">Next journey</button></div>
+</section>
+<section class="panel">
+<h2>Export for independent review</h2>
+<p class="sub">Review every Hxx outcome first. JSON retains exact candidate pins and observations. Markdown is suitable for a sanitized issue comment. Nothing is uploaded by this page, and no session information is stored in a browser database.</p>
+<div class="controls"><button type="button" id="save-json" class="primary">Save JSON</button><button type="button" id="save-md">Save Markdown</button></div>
+<div class="controls" style="margin-top: 8px"><button type="button" id="copy-md">Copy Markdown</button><button type="button" id="import">Resume from JSON</button><input type="file" id="file" hidden accept=".json,application/json"></div>
+<p id="feedback" role="status" aria-live="polite"></p>
+<p class="sub">A tester-selected PASS is not accepted evidence. Separate reviewers must verify full criteria and actual hardware. QA-04 still needs three dissimilar Windows setups, including two physical PCs. Official release gates and USA event census remain independent.</p>
+</section>
+<footer class="sub">Protocol: <a href="../WINDOWS-PLAYTEST-INSTRUCTIONS.md">Windows H01–H07 instructions</a> · <a href="../WINDOWS-PLAYTEST-RESULTS-TEMPLATE.md">Printable results sheet</a>. Do not upload ROMs, SRAM, private profiles, credentials or raw personal logs.</footer>
+</main>
+<script>
+"use strict";
+(function () {
+  const candidate = Object.freeze({
+    producing_run: 40500741324, artifact_id: 12734720034,
+    source_sha: "930f16ed4536aea83450335bd550aa9afefd98f1",
+    inner_zip_sha256: "29c0dd7d831307f87913ef74ec5b8189485aa822295a8e6cb3f92b460477ac58",
+    executable_sha256: "74448c44ee11e948dfa965fb2b9ab760f5fd79a9e936d7b02d44fa8ee1eed38f"
+  });
+  const cases = [
+    ["H01","Cold start","Fresh extraction and packaged CMD, first player, actual process exit, clean cold restart. Record missing dependencies and shell provenance.","QA-02, QA-01 prerequisite"],
+    ["H02","Stock title and five destinations","Idle until genuine stock attract/demo, independently wake with P1/keyboard/P2. Use a real P1 pad to visit Play, Practice, Multiplayer, Records, Options and Back/modal.","MENU-10, MENU-01, QA-03"],
+    ["H03","Earned single-player race","Enter and genuinely finish 1P race, inspect time/result, Records and Next Event. Fully exit and cold-reopen to inspect persisted progression.","ONE-03, QA-03, QA-10"],
+    ["H04","Two independent seats","Two different real pads, stock 2P GO, race result, separate Records. Report keyboard+pad, disconnect or seat churn only if actually exercised.","QA-04, TWO-05, UX-04"],
+    ["H05","Non-ASCII user files","Use a disposable non-ASCII data root, create named profile, save/reopen Records, replay and Options after cold exit. Corrupt only expendable copies.","DATA-05, QA-07 as applicable"],
+    ["H06","Real output and widescreen","Listen on physical output; compare window/fullscreen, 7:6 Original mode and 16:9; note actual observed 3840×2160 if available, not just scaled desktop.","QA-05, WIDE-03, WIDE-06, QA-06"],
+    ["H07","Recovery and second restart","Clean quit/restart, then disposable interrupted-write, Q/R/T/S and NTFS denial cases only if supported on this exact package. Inspect second cold boot.","RECOVERY-09, RECOVERY-10, QA-07"]
+  ];
+  const $ = id => document.getElementById(id);
+  $("source-pin").textContent = candidate.source_sha;
+  $("zip-pin").textContent = candidate.inner_zip_sha256;
+  $("exe-pin").textContent = candidate.executable_sha256;
+  let index = 0;
+  let results = Object.fromEntries(cases.map(c => [c[0], {status:"NOT_RUN", notes:"", evidence:""}]));
+  const safe = (value, max) => String(value || "").slice(0, max).replace(/[\u0000-\u001f\u007f]/g," ").trim();
+  const fieldIds = ["setup","platform","windows","gpu","monitor","controllers","audio","launcher","hashCheck"];
+  function capture() {
+    const row = results[cases[index][0]];
+    row.status = document.querySelector('input[name="status"]:checked').value;
+    row.notes = safe($("notes").value,1200);
+    row.evidence = safe($("evidence").value,240);
+  }
+  function show(i) {
+    capture();
+    index = Math.max(0,Math.min(cases.length-1,i));
+    const [id,title,description,criteria] = cases[index], row = results[id];
+    $("step-count").textContent = "Journey " + (index+1) + " of " + cases.length;
+    $("journey-title").textContent = id + " | " + title;
+    $("journey-description").textContent = description;
+    $("journey-criteria").textContent = "Relevant criteria (not automatically accepted): " + criteria;
+    document.querySelector('input[name="status"][value="' + row.status + '"]').checked = true;
+    $("notes").value = row.notes;
+    $("evidence").value = row.evidence;
+    for (const [pos,btn] of Array.from($("step-nav").children).entries()) {
+      btn.classList.toggle("active",pos===index);
+      btn.setAttribute("aria-current",pos===index ? "step" : "false");
+    }
+    $("previous").disabled = index===0;
+    $("next").disabled = index===cases.length-1;
+    $("feedback").textContent = "";
+  }
+  for (let i=0;i<cases.length;i++) {
+    const b=document.createElement("button");
+    b.type="button"; b.textContent=cases[i][0]; b.title=cases[i][1];
+    b.addEventListener("click",()=>show(i));
+    $("step-nav").appendChild(b);
+  }
+  $("previous").addEventListener("click",()=>show(index-1));
+  $("next").addEventListener("click",()=>show(index+1));
+  function snapshot() {
+    capture();
+    const environment = {};
+    for (const id of fieldIds) environment[id] = safe($(id).value,id==="controllers"?120:100);
+    return {
+      schema: "ur-recomp-offline-physical-playtest-h01-h07/1",
+      authority: "unreviewed_tester_observations_zero_release_credit",
+      candidate: {...candidate},
+      observed_at_utc: new Date().toISOString(),
+      environment,
+      results: cases.map(c => ({id:c[0],title:c[1],criteria_label:c[3],...results[c[0]]})),
+      independent_qa_review: "PENDING",
+      official_release_gates_accepted_by_this_report: 0,
+      complete_usa_events_accepted_by_this_report: 0,
+      warning: "Reporter is not an independent QA authority. Do not publish ROM, SRAM, private paths, secrets or unredacted logs."
+    };
+  }
+  const cleaned = value => safe(value,1200).replace(/\|/g,"\\|");
+  function markdown(record) {
+    const env = record.environment;
+    const out=[
+      "# Uniracers Windows H01–H07 | unreviewed physical observations",
+      "",
+      "Source: `"+record.candidate.source_sha+"`",
+      "Inner ROM-free ZIP SHA-256: `"+record.candidate.inner_zip_sha256+"`",
+      "Actual PE SHA-256: `"+record.candidate.executable_sha256+"`",
+      "Actions run / artifact: "+record.candidate.producing_run+" / "+record.candidate.artifact_id,
+      "Captured UTC: "+record.observed_at_utc,
+      "Local ZIP and EXE hash verification: **"+env.hashCheck+"**",
+      "",
+      "Setup: "+cleaned(env.setup)+" ("+env.platform+"), "+cleaned(env.windows),
+      "GPU: "+cleaned(env.gpu)+"; observed display: "+cleaned(env.monitor),
+      "Controllers: "+cleaned(env.controllers)+"; audible output: "+cleaned(env.audio),
+      "Launcher: "+cleaned(env.launcher),
+      "",
+      "| Journey | Tester result | Actual observations | Redacted evidence labels |",
+      "|---|---|---|---|"
+    ];
+    for (const row of record.results) {
+      out.push("| "+row.id+" | "+row.status+" | "+cleaned(row.notes)+" | "+cleaned(row.evidence)+" |");
+    }
+    out.push("","**Independent QA: PENDING. This report grants zero release gates, zero original/native USA events, and no automatic v2 criterion credit.**");
+    return out.join("\n")+"\n";
+  }
+  function download(name,body,type) {
+    const blob=new Blob([body],{type});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  const filename = suffix => "uniracers-h01-h07-"+safe($("setup").value,20).replace(/[^A-Za-z0-9_-]/g,"-").replace(/^-+|-+$/g,"").toLowerCase()+"."+suffix;
+  $("save-json").addEventListener("click",()=>{
+    download(filename("json"),JSON.stringify(snapshot(),null,2)+"\n","application/json");
+    $("feedback").textContent="JSON saved locally. Independent QA still pending.";
+  });
+  $("save-md").addEventListener("click",()=>{
+    download(filename("md"),markdown(snapshot()),"text/markdown");
+    $("feedback").textContent="Markdown saved locally. Check it for private data before sharing.";
+  });
+  $("copy-md").addEventListener("click",async()=>{
+    const content=markdown(snapshot());
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("No clipboard permission");
+      await navigator.clipboard.writeText(content);
+      $("feedback").textContent="Markdown copied. Check privacy before posting.";
+    } catch (_) {
+      $("feedback").textContent="Clipboard unavailable here; use Save Markdown instead.";
+    }
+  });
+  $("import").addEventListener("click",()=>$("file").click());
+  $("file").addEventListener("change",async e=>{
+    const file=e.target.files && e.target.files[0];if(!file)return;
+    try {
+      if(file.size>65536)throw new Error("Report exceeds 64 KiB");
+      const input=JSON.parse(await file.text());
+      const c=input.candidate;
+      if(input.schema!=="ur-recomp-offline-physical-playtest-h01-h07/1"
+         ||!c||Object.keys(candidate).some(k=>candidate[k]!==c[k])
+         ||!Array.isArray(input.results)||input.results.length!==7)
+        throw new Error("Wrong candidate/schema or incomplete H01-H07");
+      const next={};
+      for(let i=0;i<cases.length;i++){
+        const q=input.results[i];
+        if(!q||q.id!==cases[i][0]||!["PASS","FAIL","BLOCKED","NOT_RUN"].includes(q.status)
+           ||typeof q.notes!=="string"||typeof q.evidence!=="string"
+           ||q.notes.length>1200||q.evidence.length>240)
+          throw new Error("Invalid observed journey");
+        next[q.id]={status:q.status,notes:safe(q.notes,1200),evidence:safe(q.evidence,240)};
+      }
+      if(!input.environment||typeof input.environment!=="object")
+        throw new Error("Missing environment");
+      for(const id of fieldIds) {
+        if(typeof input.environment[id]!=="string")throw new Error("Invalid environment");
+      }
+      results=next;
+      for(const id of fieldIds) $(id).value=safe(input.environment[id],120);
+      show(index);
+      $("feedback").textContent="Matching report imported. Recheck observations before exporting.";
+    }catch(err){$("feedback").textContent="Import refused: "+err.message;}
+    e.target.value="";
+  });
+  show(0);
+}());
+</script>
+</body>
+</html>

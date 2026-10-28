@@ -172,6 +172,40 @@ constexpr QuickPracticeRematchStep advance_quick_practice_rematch_route(
     return step;
 }
 
+// Observe source-menu continuity even when the Windows host is within its
+// 20-frame input-release gap. A transient alien scene must invalidate its
+// earlier settled menu and cursor acknowledgement; otherwise a route can emit
+// an edge immediately when the intended menu returns.
+constexpr std::uint8_t quick_practice_expected_source_menu(
+    QuickPracticeLaunchStage stage
+) noexcept {
+    switch (stage) {
+    case QuickPracticeLaunchStage::AwaitMain: return 0xD7;
+    case QuickPracticeLaunchStage::AwaitRider: return 0x3C;
+    case QuickPracticeLaunchStage::AwaitTour: return 0x6D;
+    case QuickPracticeLaunchStage::AwaitTrack: return 0xF6;
+    case QuickPracticeLaunchStage::AwaitNowPlaying: return 0x16;
+    case QuickPracticeLaunchStage::AwaitRace:
+    case QuickPracticeLaunchStage::Active:
+    case QuickPracticeLaunchStage::Idle:
+        return 0;
+    }
+    return 0;
+}
+
+constexpr QuickPracticeLaunchState quick_practice_launch_observe_source_menu(
+    QuickPracticeLaunchState state,
+    std::uint8_t observed_menu
+) noexcept {
+    const auto expected = quick_practice_expected_source_menu(state.stage);
+    if (expected != 0 && observed_menu != expected) {
+        state.menu_settled = false;
+        state.menu_settle_observations = 0;
+        state.waiting_for_selection_change = false;
+    }
+    return state;
+}
+
 constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     QuickPracticeLaunchState state,
     QuickPracticeLaunchObservation observation
@@ -216,28 +250,21 @@ constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
         return out;
     }
 
+    // Menu identity belongs to the original guest, never to a cursor in an
+    // unrelated loading/scratch menu. Reobserve during host release gaps too.
+    const auto expected_menu =
+        quick_practice_expected_source_menu(out.state.stage);
+    if (expected_menu != 0 && observation.menu_id != expected_menu) {
+        out.state = quick_practice_launch_observe_source_menu(
+            out.state, observation.menu_id);
+        return out;
+    }
+
     if (state.waiting_for_selection_change) {
         if (observation.selected_option == state.selection_before_input) {
             return out;
         }
         out.state.waiting_for_selection_change = false;
-    }
-
-    // Stock exposes menu-state bytes before the newly visible menu is
-    // guaranteed to accept an input edge. The native deterministic route has
-    // proven a 60-frame settle window at each frontend surface. Encode that
-    // evidence here instead of racing first visibility.
-    std::uint8_t expected_menu = 0;
-    switch (out.state.stage) {
-    case QuickPracticeLaunchStage::AwaitMain: expected_menu = 0xD7; break;
-    case QuickPracticeLaunchStage::AwaitRider: expected_menu = 0x3C; break;
-    case QuickPracticeLaunchStage::AwaitTour: expected_menu = 0x6D; break;
-    case QuickPracticeLaunchStage::AwaitTrack: expected_menu = 0xF6; break;
-    case QuickPracticeLaunchStage::AwaitNowPlaying: expected_menu = 0x16; break;
-    case QuickPracticeLaunchStage::AwaitRace:
-    case QuickPracticeLaunchStage::Active:
-    case QuickPracticeLaunchStage::Idle:
-        break;
     }
 
     if (expected_menu != 0 && !out.state.menu_settled) {

@@ -16,6 +16,19 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 class CompletedRunUnicodeColdCppTests(unittest.TestCase):
+
+    def test_windows_bridge_invalidates_on_unicode_fixture_changes(self):
+        workflow = (ROOT / ".github" / "workflows" /
+                    "baldosa-windows-native-bridge.yml").read_text(
+                        encoding="utf-8")
+        trigger = workflow[:workflow.index("  workflow_dispatch:")]
+        for path in ("tests/native/completed_run_unicode_cold_test.cpp",
+                     "tests/unit/test_completed_run_unicode_cold_cpp.py"):
+            self.assertIn(f'      - "{path}"', trigger)
+        self.assertIn(
+            "python -m unittest -v tests.unit.test_completed_run_unicode_cold_cpp",
+            workflow)
+
     def test_unicode_archive_to_replay_across_cold_process(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if not compiler:

@@ -25,7 +25,9 @@ class RF094DSPSource(unittest.TestCase):
         archive = ROOT / "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
         with tarfile.open(archive, "r:gz") as tf:
             entries = [m for m in tf.getmembers()
-                       if m.name.endswith("/runner/src/snes/apu.c") and m.isfile()]
+                       if (m.name == "runner/src/snes/apu.c" or
+                           m.name.endswith("/runner/src/snes/apu.c"))
+                       and m.isfile()]
             if len(entries) != 1:
                 raise AssertionError("exact pinned native APU source missing")
             cls.stock_native = tf.extractfile(entries[0]).read().decode("utf-8")

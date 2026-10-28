@@ -168,6 +168,7 @@ class RF083Source(unittest.TestCase):
         self.assertLess(patched.index("S9xAPUWritePort(Address & 3, Byte);"),
                         patched.index("rf083_port_write(Address, (unsigned)Byte);"))
         self.assertIn("QA01RF091ORIG seq=", m.C)
+        self.assertIn('unsigned rf083_original_frame(void)', m.C)
         self.assertIn("QA01RF091ORIG_TRUNCATED", m.C)
         self.assertIn("post_apu_write=1", m.C)
         self.assertIn("rf083_frame<6054u || rf083_frame>6059u", m.C)

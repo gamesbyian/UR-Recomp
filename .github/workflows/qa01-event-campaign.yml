@@ -329,6 +329,8 @@ jobs:
             CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
             python3 -m unittest discover -s tests/unit -p test_qa01_rf083_original_sound_dp_first_writer.py
             python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+            python3 -m unittest discover -s tests/unit -p test_qa01_rf092_original_spc_edges.py
+            python3 tools/qa01_rf092_original_spc_edges.py --root "$CORE_SRC"
             # The pinned libretro Makefile compiles %.o from %.cpp without
             # header prerequisites. Re-linking alone leaves cpuops.o using the
             # OLD cpumacro.h/getset.h even though the patched headers exist.
@@ -530,6 +532,7 @@ jobs:
           if [[ "$QA01_ECHO" == "true" ]]; then
             export UR_QA01_RF088_NATIVE_APU_ECHO=1
             export UR_QA01_RF089_ORIGINAL_ECHO=1
+            export UR_QA01_RF092_ORIGINAL_SPC=1
           fi
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
@@ -716,7 +719,7 @@ jobs:
             native="$ROOT/work/zoom-zoo/replay/native.log"
             # Fail closed on missing/overflowed producer evidence. These are
             # executed rows, not proof of original/native timing equivalence.
-            if grep -Eq 'QA01RF089ORIG_TRUNCATED|QA01RF090ORIG_TRUNCATED' "$original" ||
+            if grep -Eq 'QA01RF089ORIG_TRUNCATED|QA01RF090ORIG_TRUNCATED|QA01RF092SPC_TRUNCATED' "$original" ||
                grep -Eq 'QA01RF088NATIVE_TRUNCATED' "$native"; then
               echo "RF088/RF089/RF090 echo witness truncated" >&2
               exit 1
@@ -741,7 +744,15 @@ jobs:
               echo 'RF088 native Zoo port 2140 read not executed' >&2
               exit 1
             fi
-            echo 'RF088/RF089 executed echo rows retained; observer-off control and clock registration still required, release credit 0' >> "$GITHUB_STEP_SUMMARY"
+            # RF092 captures actual executed SPC input reads and ready writes,
+            # with a separate monotonic SPC tick axis (not CPU master cycles).
+            for kind in CPU_TO_SPC_READ SPC_TO_CPU_WRITE; do
+              if ! grep -Eq "^QA01RF092SPC .*kind=$kind addr=00F4 " "$original"; then
+                echo "RF092 original SPC port F4 $kind missing" >&2
+                exit 1
+              fi
+            done
+            echo 'RF088/RF089/RF090/RF092 executed CPU/SPC edges retained; observer-off control and clock registration still required; release credit 0' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM

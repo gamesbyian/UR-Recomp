@@ -58,8 +58,23 @@ def compare(previous, inventory, ledger, interval, reviewed_head):
     if interval.get("schema") != "ur-v2-reviewed-interval/1":
         raise ValueError("Invalid interval schema")
     merges = interval.get("merge_records")
-    if not isinstance(merges, list) or not merges or len(merges) != interval.get("observed_merge_count"):
+    observed_count = interval.get("observed_merge_count")
+    scope = interval.get("merge_records_scope", "exhaustive")
+    if (not isinstance(merges, list) or not merges or type(observed_count) is not int
+            or observed_count < len(merges)):
         raise ValueError("Merge record count does not match reviewed interval")
+    if scope == "exhaustive":
+        if len(merges) != observed_count:
+            raise ValueError("Exhaustive interval requires every observed merge")
+    elif scope == "representative_verified_sample":
+        expected_compare = ("https://github.com/gamesbyian/UR-Recomp/compare/"
+                            + interval["from_main_sha"] + "..." + reviewed_head)
+        if (len(merges) >= observed_count or
+                interval.get("merge_count_evidence") != expected_compare or
+                not str(interval.get("merge_records_note", "")).strip()):
+            raise ValueError("Representative interval requires complete count provenance and scope note")
+    else:
+        raise ValueError("Unknown merge-record scope")
     seen_pr, seen_commit = set(), set()
     for m in merges:
         sha, n = m.get("commit_sha"), m.get("pr")
@@ -106,7 +121,11 @@ def compare(previous, inventory, ledger, interval, reviewed_head):
         ("USA", previous.get("formal_events"), current_events, interval.get("formal_events_delta"))]:
         if type(old_count) is not int or type(declared) is not int or current_count - old_count != declared:
             raise ValueError("Unsubstantiated " + name + " acceptance delta")
-    mix = dict(sorted(Counter(m["effect"] for m in merges).items()))
+    mix = Counter(m["effect"] for m in merges)
+    unclassified_count = observed_count - len(merges)
+    if unclassified_count:
+        mix["unclassified"] = unclassified_count
+    mix = dict(sorted(mix.items()))
     return {
         "from_reviewed_main": previous["at_main_sha"],
         "through_reviewed_main": reviewed_head,
@@ -122,9 +141,11 @@ def compare(previous, inventory, ledger, interval, reviewed_head):
         "accepted_USA_delta":interval["formal_events_delta"],
         "passed_release_gates":current_qa,
         "release_gate_delta":interval["formal_release_gates_delta"],
-        "reviewed_merge_count":len(merges),
+        "reviewed_merge_count":observed_count,
+        "reviewed_merge_sample_count":len(merges),
+        "unclassified_merge_count":unclassified_count,
         "merged_work_mix":mix,
-        "interpretation":"This interval's merged work mix is not a completion score or labor-hour productivity measure. QA ledger and event census remain authoritative."
+        "interpretation":"Representative merge samples do not classify the unexamined commits. No commit mix is a completion score or labor-hour productivity measure. QA ledger and event census remain authoritative."
     }
 
 def markdown(r):

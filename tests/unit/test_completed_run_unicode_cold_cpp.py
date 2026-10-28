@@ -23,6 +23,7 @@ def compile_native_runner(exe: pathlib.Path) -> None:
         compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
         "-pedantic", "-pthread", "-I",
         str(ROOT / "native" / "product"),
+        "-I", str(ROOT / "native" / "title"),
         *[str(ROOT / "native" / "product" / name) for name in (
             "completed_run_record.cpp",
             "completed_run_capture.cpp",
@@ -31,6 +32,15 @@ def compile_native_runner(exe: pathlib.Path) -> None:
             "output_resolution_policy.cpp",
             "host_product_state.cpp",
             "host_product_store.cpp",
+            # Cold-read the actual same-PE source-earned two-player pair through
+            # the same shipping catalog and Records summary as Modern mode.
+            "multiplayer_match_record.cpp",
+            "multiplayer_match_catalog.cpp",
+            "multiplayer_match_summary.cpp",
+            "baldosa_native_multiplayer_records_summary.cpp",
+            "local_multiplayer_match_binding.cpp",
+            "host_profile_runtime.cpp",
+            "modern_racer_identity.cpp",
         )],
         str(ROOT / "tests" / "native" /
             "completed_run_unicode_cold_test.cpp"),
@@ -73,6 +83,13 @@ class CompletedRunUnicodeColdCppTests(unittest.TestCase):
         self.assertIn("reload_matching_completed_run_replay_record(", source)
         self.assertIn("stage_completed_run_replay_input_file(", source)
         self.assertIn("DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed", source)
+        self.assertIn(
+            'fs::u8path(u8"user_2p_漢字-🚲")', source)
+        self.assertIn("inspect_multiplayer_match_artifacts(", source)
+        self.assertIn("inspect_baldosa_native_two_player_records_archive(", source)
+        self.assertIn("DATA05_UNICODE_SOURCE_EARNED_2P_RECORDS_COLD=passed", source)
+        self.assertIn("cold_read_source_earned_two_player_pair(acceptance_base);",
+                      source)
 
     def test_unicode_archive_to_replay_across_cold_process(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
@@ -126,6 +143,9 @@ if __name__ == "__main__":
             marker = "DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed"
             if marker not in outcome.stdout:
                 raise SystemExit("actual source-earned replay witness absent")
+            pair_marker = "DATA05_UNICODE_SOURCE_EARNED_2P_RECORDS_COLD=passed"
+            if pair_marker not in outcome.stdout:
+                raise SystemExit("actual source-earned Unicode 2P Records cold witness absent")
             print(outcome.stdout.strip())
     else:
         unittest.main()

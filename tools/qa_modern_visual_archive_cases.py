@@ -74,6 +74,22 @@ def _qualified_case(case_id, matrix, source_sha, current_native_root):
 
 
 
+
+def _require_current_root_capture(enabled, captures):
+    """Do not report a green current-root diagnostic when its root is absent.
+
+    Unrelated routes and compact 4:3 roots can have valid pixels and receipts.
+    Neither is evidence that a 342-column current native root was captured.
+    """
+    if enabled and not any(
+            c["case"] in {"current-native-root-wide-720",
+                          "current-native-root-wide-1080",
+                          "current-native-root-wide-4k-virtual"}
+            for c in captures):
+        raise ValueError(
+            "current native root requested without a 16:9 root capture")
+
+
 def _png_member(names, capture_id):
     wanted = [n for n in names
               if n.rsplit("/", 2)[-2:] == [capture_id, "actual-sdl-drawable.png"]
@@ -139,6 +155,7 @@ def analyse(zip_path: Path, verified: dict, matrix: dict | None = None,
                         "case": case_report["case"] if case_report else None,
                         "checks": checks,
                         "pass": all(c["pass"] for c in checks)})
+    _require_current_root_capture(current_native_root, out)
     return {"schema": "ur-modern-visual-archive-cases-v1",
             "artifact": Path(zip_path).name,
             "exe_sha256": verified["captures"][0]["exe_sha256"],
@@ -205,6 +222,7 @@ def analyse_dirs(dirs, matrix: dict | None = None,
                     "case": case_report["case"] if case_report else None,
                     "checks": checks,
                     "pass": all(c["pass"] for c in checks)})
+    _require_current_root_capture(current_native_root, out)
     return {"schema": "ur-modern-visual-archive-cases-v1", "artifact": "directories",
             "exe_sha256": "n/a", "source_sha": "n/a",
             "captures": out, "pass": bool(out) and all(c["pass"] for c in out),

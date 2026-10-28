@@ -70,6 +70,49 @@ class DefaultStockAttractSourceContract(unittest.TestCase):
         self.assertIn("p2_sdl_callback_received=1", self.source)
         self.assertIn("p2_other_button_isolated=1", region)
 
+    def test_real_p1_start_is_the_only_guest_demo_exit_bridge(self):
+        bridge = (ROOT / "tools/baldosa_native_product_execution.cpp").read_text(
+            encoding="utf-8")
+        handler = self.source.split(
+            'extern "C" int ur_baldosa_modern_root_gamepad(', 1
+        )[1].split(
+            'extern "C" int ur_baldosa_modern_root_window_base_width(', 1
+        )[0]
+        self.assertIn("button == kGamepadBtn_Start && !pressed", handler)
+        self.assertIn("button == kGamepadBtn_Start && g_ram[0x0313u] == 1u",
+                      handler)
+        self.assertIn("if (genuine_p1_start_in_demo)", handler)
+        self.assertIn("ur_baldosa_product_attract_p1_start_event(1);", handler)
+        self.assertIn("ur_baldosa_product_attract_p1_start_event(0);", handler)
+        self.assertIn("host_owned && g_attract_p1_physical_start_held", bridge)
+        self.assertIn("g_ram[0x0313u] == 1u ? 0x0008u : 0u", bridge)
+        self.assertIn("g_attract_p1_physical_start_held = false;", bridge)
+        self.assertIn("filtered | static_cast<std::uint32_t>(g_pending_stock_menu_mask) |",
+                      bridge)
+        self.assertIn("live_demo_start;", bridge)
+        self.assertIn("quick_practice_runner_mask_is_discrete_menu_input(mask)",
+                      bridge)
+        # Original real-start bridge does not widen the scripted Accept
+        # vocabulary or treat P2 as P1. No automatic criterion promotion.
+        self.assertNotIn("quick_practice_runner_mask_is_discrete_menu_input(mask) ||",
+                         bridge)
+        self.assertLess(handler.index("if (player != 0) return 0;"),
+                        handler.index("if (genuine_p1_start_in_demo)"))
+
+    def test_rapid_exit_fixture_requires_source_d7_and_fresh_confirm(self):
+        section = self.source.split('// CI-only mode 35:', 1)[1].split(
+            '// CI-only mode 28:', 1)[0]
+        self.assertIn('frame == 1600', section)
+        self.assertIn('kGamepadBtn_Start, 1', section)
+        self.assertIn('kGamepadBtn_Start, 0', section)
+        self.assertIn('original_stock_attract_source_ready()', section)
+        self.assertIn('kQuickPracticeMenuSettleObservations', section)
+        self.assertIn('frame == 1940', section)
+        self.assertIn('frame == 1960', section)
+        self.assertIn('kGamepadBtn_A, 1', section)
+        self.assertIn('rapid_start_root_ready=1', section)
+        self.assertNotIn('g_ram[0x009fu] =', section)
+
 
 if __name__ == "__main__":
     unittest.main()

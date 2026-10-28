@@ -751,8 +751,7 @@ class QA01CampaignTest(unittest.TestCase):
         c.write_json(path, report)
         row = c.classify("zoom-zoo", 1, path, self.plan("zoom-zoo"))
         self.assertEqual(row["disposition"], "strict_divergence")
-        self.assertTrue(row["terminal_frame_matched"] if "terminal_frame_matched" in row
-                        else row["evidence"]["terminal_frame_matched"])
+        self.assertTrue(row["evidence"]["terminal_frame_matched"])
         self.assertEqual(row["release_credit"], 0)
         self.assertEqual(row["evidence"]["first_sample_disagreement"]["relative_frame"], 5040)
 

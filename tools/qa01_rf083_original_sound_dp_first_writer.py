@@ -354,17 +354,17 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root",required=True,type=Path)
     a=p.parse_args()
-    x,y,z,p=a.root/EXEC,a.root/GETSET,a.root/MACRO,a.root/PPU
-    if (not x.is_file() or not y.is_file() or not z.is_file() or not p.is_file() or
-            x.is_symlink() or y.is_symlink() or z.is_symlink() or p.is_symlink()):
+    x,y,z,ppu_path=a.root/EXEC,a.root/GETSET,a.root/MACRO,a.root/PPU
+    if (not x.is_file() or not y.is_file() or not z.is_file() or not ppu_path.is_file() or
+            x.is_symlink() or y.is_symlink() or z.is_symlink() or ppu_path.is_symlink()):
         p.error("missing authentic disposable Snes9x source files")
     xx,yy=patch(x.read_text(),y.read_text())
     zz=patch_macro(z.read_text())
-    pp=patch_ppu(p.read_text())
+    pp=patch_ppu(ppu_path.read_text())
     x.write_text(xx)
     y.write_text(yy)
     z.write_text(zz)
-    p.write_text(pp)
+    ppu_path.write_text(pp)
     print("RF083/RF090/RF091 original setter, returned port reads and committed APU writes staged")
 
 if __name__=="__main__":

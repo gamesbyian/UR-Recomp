@@ -92,6 +92,24 @@ class EarnedControllerJourney(unittest.TestCase):
         self.assertIn('"primary_unicode_root": "real_win32_non_acp_p1_p2_stock_go_earned_pair"', RUNNER)
         self.assertIn('return_user = out / "user_earned_return_漢字-🚲"', RUNNER)
 
+    def test_real_source_earned_unicode_2p_pair_cold_reopens_readonly(self):
+        # Runtime admission is by the exact Win32 same-PE workflow, not
+        # these Python source guards. The producer must be a real scored
+        # two-player pair, then the fresh game reads the very same archive.
+        self.assertIn('from baldosa_native_2p_records_probe import source_paired_records_reopened', RUNNER)
+        self.assertIn('out / "two_pad_unicode_cold_records", "1"', RUNNER)
+        self.assertIn('source_paired_records_reopened(cold_pair_log, selected_profile="mike")', RUNNER)
+        self.assertIn('source=historical_paired_archive', RUNNER)
+        self.assertIn('pair_sha_after_cold != pair_sha_before_cold', RUNNER)
+        self.assertIn('set(pair_archive.iterdir()) != after_pairs', RUNNER)
+        self.assertIn('"primary_unicode_2p_cold_records":', RUNNER)
+        workflow = (ROOT / ".github" / "workflows" /
+                    "baldosa-windows-native-bridge.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            "${{ runner.temp }}/ur-keyboard-pad-join/two_pad_unicode_cold_records/log.txt",
+            workflow,
+        )
+
     def test_real_source_earned_return_uses_non_acp_named_profile_root(self):
         # This is a source contract, not synthetic acceptance. The existing
         # same-PE Windows native journey actually creates two profiles in

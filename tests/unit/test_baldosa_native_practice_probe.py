@@ -102,7 +102,9 @@ class NativePracticeProbeTests(unittest.TestCase):
         self.assertLess(restore, save_guard)
         probe = (ROOT / "tools/baldosa_native_practice_probe.py").read_text()
         for token in (
-            '"Named P1 Practice SRAM Integrity"',
+            '"Named P1 漢字-🚲 Practice SRAM Integrity"',
+            '"Fresh Practice 漢字-🚲 Source Guest"',
+            '"native_unicode_practice_roots"',
             '"practice-session"',
             '"saves/profile-mike/save.srm"',
             '"saves/profile-mike/host-profile.txt"',

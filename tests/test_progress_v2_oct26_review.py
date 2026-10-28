@@ -75,6 +75,30 @@ class ReviewedProgressCheckpointTests(unittest.TestCase):
         self.assertEqual(self.interval["score"]["retroactive_identification_percentage_points"], 0)
         self.assertEqual(self.previous["at_main_sha"], "88056d491c77cc7bb14ef1635d81892ca0d70305")
 
+    def test_menu10_same_pe_receipt_and_release_boundaries(self):
+        audit = read(self.inv["latest_criterion_review_ref"])
+        self.assertEqual(audit["schema"], "ur-v2-criterion-independent-audit/1")
+        self.assertEqual(audit["criterion_id"], "MENU-10")
+        self.assertEqual(audit["reviewed_main_sha"], self.pointer["reviewed_main_sha"])
+        self.assertEqual(audit["decision"], "bounded_verified_independent_reviewed")
+        hosted = audit["hosted_run"]
+        self.assertEqual(hosted["executable_sha256"],
+                         "910f9643182d12a13b3307f4f6f67f5f7e75f60876ed943fb3b6eb77ad03a8ef")
+        self.assertEqual(hosted["executable_bytes"], 20526080)
+        self.assertEqual(len(hosted["artifacts"]), 5)
+        self.assertEqual(sum(x["members"] for x in hosted["artifacts"]), 26)
+        self.assertEqual({x["route"] for x in hosted["artifacts"]}, {
+            "unforced stock attract before/after/wake", "direct P1 Start",
+            "host-only A then distinct P1 Start",
+            "keyboard Return wake then distinct Return guest Start",
+            "actual Windows AMD64 executable",
+        })
+        self.assertEqual(audit["score_effect"]["formal_release_gate_delta"], 0)
+        self.assertEqual(audit["score_effect"]["usa_complete_event_delta"], 0)
+        self.assertTrue(any("Physical" in x for x in audit["not_checked"]))
+        self.assertTrue(any("P2-only" in x for x in audit["not_checked"]))
+        self.assertEqual(self.ledger["gates"][0]["coverage"]["complete_event_passes"], 0)
+
     def test_historical_baseline_contract_mismatch_fails_closed(self):
         # The October 24 baseline retains its historical ec1572b0 contract;
         # the current frozen inventory uses 32c62b80. Do not silently

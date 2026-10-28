@@ -22,10 +22,15 @@ enum class ModernTourContinueStage {
 };
 
 constexpr std::uint32_t kModernTourContinueMaxObservations = 3600;
-// Each routed menu press is held for two frames. After the stock cursor has
-// moved, wait long enough for that press to be released before the next
-// directional edge so consecutive presses can never merge into one hold.
-constexpr std::uint8_t kModernTourNextEventReleaseObservations = 4;
+// Stock menu input scripts hold a press for two frames. A new same-direction
+// event on the cursor-change frame can overwrite the still-active edge;
+// native Quick Practice has already observed multi-step routes stranding
+// without a 20-guest-observation inter-press gap. Apply the gap to MAIN,
+// TOUR and TRACK (including Next Event), without bypassing stock cursor
+// change, source menu settling or the route's global timeout.
+constexpr std::uint8_t kModernTourMenuReleaseObservations = 20;
+constexpr std::uint8_t kModernTourNextEventReleaseObservations =
+    kModernTourMenuReleaseObservations;
 
 struct ModernTourContinueState {
     ModernTourContinueStage stage = ModernTourContinueStage::Idle;
@@ -38,7 +43,7 @@ struct ModernTourContinueState {
     // Results navigation reuses this router but may intentionally stop on the
     // settled stock TOUR_SELECT surface instead of choosing a tour.
     bool stop_at_tour_select = false;
-    std::uint8_t release_observations = 0;
+    std::uint8_t release_observations = kModernTourMenuReleaseObservations;
     bool waiting_for_selection_change = false;
     std::uint8_t selection_before_input = 0;
     bool menu_settled = false;
@@ -176,6 +181,14 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
         }
         out.state.waiting_for_selection_change = false;
         out.state.release_observations = 0;
+        // The first observation of the moved cursor is NOT a second edge.
+        // The previous two-frame synthetic press must finish and release.
+        return out;
+    }
+    if (out.state.release_observations <
+        kModernTourMenuReleaseObservations) {
+        ++out.state.release_observations;
+        return out;
     }
 
     // Stock exposes frontend menu bytes before those surfaces are guaranteed
@@ -219,6 +232,7 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
             desired != QuickPracticeMenuInput::Accept) {
             step.state.waiting_for_selection_change = true;
             step.state.selection_before_input = observation.selected_option;
+            step.state.release_observations = 0;
         }
         return step;
     };

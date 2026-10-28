@@ -258,7 +258,12 @@ static void prove_next_event_selects_derived_slot_then_confirms() {
             assert(step.input == QuickPracticeMenuInput::None);
             state = step.state;
             ++observation.selected_option;
-            // Then leave the two-frame press released before the next edge.
+            // The first observed cursor movement consumes an observation;
+            // a new direction cannot be queued on that same guest frame.
+            step = advance_modern_tour_continue(state, observation);
+            assert(step.input == QuickPracticeMenuInput::None);
+            state = step.state;
+            // Then wait for the entire physical-style release interval.
             for (std::uint8_t gap = 0;
                  gap < kModernTourNextEventReleaseObservations;
                  ++gap) {
@@ -319,6 +324,30 @@ static void prove_next_event_selects_derived_slot_then_confirms() {
 
 // A resumable tour may be entered while the stock MAIN_MENU cursor rests on
 // another row; the route must return it to 1P before confirming.
+static void prove_main_cursor_does_not_duplicate_held_up() {
+    // A multi-step stock MAIN cursor route must not re-arm UP on the
+    // frame that reports the first movement. The real original UI's
+    // 2-frame press plus inter-edge gap is independent of tour unlocks.
+    auto state = begin_modern_tour_continue(0);
+    auto step = advance_until_action(state, {0xD7, 4, false});
+    assert(step.input == QuickPracticeMenuInput::Up);
+    assert(step.state.waiting_for_selection_change);
+    step = advance_modern_tour_continue(step.state, {0xD7, 4, false});
+    assert(step.input == QuickPracticeMenuInput::None);
+    step = advance_modern_tour_continue(step.state, {0xD7, 3, false});
+    assert(step.input == QuickPracticeMenuInput::None);
+    assert(!step.state.waiting_for_selection_change);
+    for (unsigned release = 0;
+         release < kModernTourMenuReleaseObservations; ++release) {
+        step = advance_modern_tour_continue(step.state, {0xD7, 3, false});
+        assert(step.input == QuickPracticeMenuInput::None);
+    }
+    step = advance_modern_tour_continue(step.state, {0xD7, 3, false});
+    assert(step.input == QuickPracticeMenuInput::Up);
+}
+
+// A resumable tour may be entered while the stock MAIN_MENU cursor rests on
+// another row; the route must return it to 1P before confirming.
 static void prove_main_menu_cursor_returns_to_one_player() {
     auto state = begin_modern_tour_continue(0);
     ModernTourContinueObservation observation{};
@@ -338,6 +367,7 @@ static void prove_main_menu_cursor_returns_to_one_player() {
 }
 
 int main() {
+    prove_main_cursor_does_not_duplicate_held_up();
     prove_main_menu_cursor_returns_to_one_player();
     prove_all_tours_reach_track_select();
     prove_restart_uses_same_stock_route_without_restore();
@@ -391,8 +421,18 @@ int main() {
         assert(held.input == QuickPracticeMenuInput::None);
         assert(held.state.waiting_for_selection_change);
 
-        const auto advanced = advance_modern_tour_continue(
+        auto advanced = advance_modern_tour_continue(
             held.state, {0x6D, 2, false});
+        assert(advanced.input == QuickPracticeMenuInput::None);
+        assert(!advanced.state.waiting_for_selection_change);
+        for (unsigned release = 0;
+             release < kModernTourMenuReleaseObservations; ++release) {
+            advanced = advance_modern_tour_continue(
+                advanced.state, {0x6D, 2, false});
+            assert(advanced.input == QuickPracticeMenuInput::None);
+        }
+        advanced = advance_modern_tour_continue(
+            advanced.state, {0x6D, 2, false});
         assert(advanced.input == QuickPracticeMenuInput::Down);
     }
 

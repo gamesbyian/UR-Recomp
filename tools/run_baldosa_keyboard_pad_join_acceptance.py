@@ -947,7 +947,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         verify_five_destination_pad_journey(cold_log)
         visible = re.findall(
             r"(?m)^UR_BALDOSA_MODERN_ROOT records_opened=1 "
-            r"profile=selected validated=([0-9]+) unavailable=([0-9]+)\\r?$",
+            r"profile=selected validated=([0-9]+) unavailable=([0-9]+)\r?$",
             cold_log)
         if visible != [("1", "0")]:
             raise ValueError(

@@ -139,6 +139,29 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         self.assertTrue(verdict["observer_enabled"])
         self.assertFalse(verdict["rf094_enabled"])
 
+    def test_rf094_on_reaches_real_guard_gha_output(self):
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as tmp:
+            previous = Path(tmp) / "previous.md"
+            current = Path(tmp) / "current.md"
+            output = Path(tmp) / "gha-output.txt"
+            previous.write_text(
+                marker(19, "Last real native and original F7 port case completed")
+                + "- Observer mode: **on**\n", encoding="utf-8")
+            current.write_text(
+                marker(20, "Observe post DSP commits and the late F7 payloads")
+                + "- Observer mode: **on**\n"
+                + "- RF094 DSP follow-through: **on**\n", encoding="utf-8")
+            with (mock.patch.object(sys, "argv", [
+                "ci_playtest_request_guard.py", "--previous", str(previous),
+                "--current", str(current), "--source-sha", "b" * 40,
+                "--marker", guard.ZOO_MARKER, "--gha-output", str(output)]),
+                  mock.patch.object(guard, "changed_files",
+                                    return_value=[guard.ZOO_MARKER])):
+                self.assertEqual(guard.main(), 0)
+            self.assertEqual(output.read_text(encoding="utf-8"),
+                             "observer_enabled=true\nrf094_enabled=true\n")
+
     def test_zoo_cli_writes_validated_mode_to_job_output(self):
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as tmp:

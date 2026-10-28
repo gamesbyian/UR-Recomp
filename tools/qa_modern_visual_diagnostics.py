@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import struct
 import sys
@@ -206,7 +207,8 @@ def _sample(frame, m, lx, ly, a, b):
 
 
 def extract_logical(frame: Frame, logical_w: int, logical_h: int,
-                    mode: str = "fit", par: float = PAR_DEFAULT) -> dict:
+                    mode: str = "fit", par: float = PAR_DEFAULT,
+                    phase_x: float = 0.0) -> dict:
     """Undo the output mapping; report blocks whose interior is not uniform.
 
     Each logical pixel is read at its centre; its block interior (25%-75%)
@@ -216,6 +218,9 @@ def extract_logical(frame: Frame, logical_w: int, logical_h: int,
     not part of the contract.
     """
     m = mapping(logical_w, logical_h, frame.width, frame.height, mode, par)
+    # SDL can snap a fractional horizontal viewport origin to an integer.
+    # Phase is a bounded diagnostic correction, never a renderer change.
+    m.vx += phase_x
     W, H, buf = frame.width, frame.height, frame.rgba
     clampx = lambda v: min(W - 1, max(0, int(v)))
     clampy = lambda v: min(H - 1, max(0, int(v)))
@@ -243,28 +248,100 @@ def extract_logical(frame: Frame, logical_w: int, logical_h: int,
             "nonuniform_fraction": bad / total}
 
 
+def _outside_viewport_nonblack(frame: Frame, m: Mapping) -> int:
+    """Count RGB content outside a candidate nearest-neighbour viewport.
+
+    Sampling at output pixel centres matches the production fit contract.
+    A 256-column fit in an 856px window has 108px sidebars; a real 342-wide
+    root with visible content there cannot be explained as 256 columns.
+    Alpha is intentionally ignored, matching the RGB diagnostic contract.
+    """
+    def bounds(origin, span, limit, pitch):
+        # Nearest sampling may extend the first logical colour one complete
+        # source-pixel pitch outside a fractional viewport. In particular,
+        # Python's int() truncates negative sample positions toward zero in
+        # historical synthetic fixtures. Ignore that bounded edge fringe,
+        # but reject actual RGB deeper inside a supposed black letterbox.
+        return (max(0, min(limit, math.ceil(origin - 0.5 - pitch))),
+                max(0, min(limit, math.ceil(origin + span - 0.5 + pitch))))
+
+    left, right = bounds(m.vx, m.lw * m.sx, frame.width, m.sx)
+    top, bottom = bounds(m.vy, m.lh * m.sy, frame.height, m.sy)
+    buf, width, height = frame.rgba, frame.width, frame.height
+    count = 0
+    for y in range(height):
+        spans = ((0, left), (right, width)) if top <= y < bottom else ((0, width),)
+        for x0, x1 in spans:
+            for p in range((y * width + x0) * 4, (y * width + x1) * 4, 4):
+                if buf[p] or buf[p + 1] or buf[p + 2]:
+                    count += 1
+    return count
+
+
 def detect_logical(frame: Frame, widths=(256, 342), logical_h: int = 224,
                    mode: str = "fit", par: float = PAR_DEFAULT,
                    tolerance: float = 0.002, margin: float = 0.0005) -> dict:
-    """Which native logical width explains this frame? Distinguishes a
-    genuine 342-wide (16:9) source from a 256-wide (4:3) one."""
+    """Find a uniquely supported source width without trusting a host marker.
+
+    At fractional fit origins SDL may snap the viewport by <=1 output pixel.
+    Only if the ordinary diagnostic is inconclusive do we test those integer
+    snaps. A phase match must ALSO have black pixels outside its predicted
+    viewport. Widths with identical pixel pitch and no distinguishing edge
+    content remain ambiguous rather than earning a false acceptance.
+    """
     fractions = {}
+    phases = {}
     for w in widths:
         try:
             fractions[w] = extract_logical(frame, w, logical_h, mode, par)[
                 "nonuniform_fraction"]
+            phases[w] = 0.0
         except ValueError:
             fractions[w] = None
     scored = {w: v for w, v in fractions.items() if v is not None}
-    best = min(scored.values()) if scored else None
-    # The best-fitting width must be within tolerance; another width stays a
-    # candidate only if it is not measurably worse (flat frames, where every
-    # width fits equally, remain ambiguous and fail "exactly one").
-    ok = [w for w, v in scored.items()
-          if v <= tolerance and v <= best + margin]
+
+    def candidates():
+        best = min(scored.values()) if scored else None
+        return ([w for w, v in scored.items()
+                 if v <= tolerance and v <= best + margin] if best is not None
+                else [])
+
+    ok = candidates()
+    outside = {}
+    if len(ok) != 1 and mode == "fit":
+        for w in scored:
+            try:
+                m = mapping(w, logical_h, frame.width, frame.height, mode, par)
+            except ValueError:
+                continue
+            # Consider both integer snaps, never arbitrary phase fitting.
+            shifts = {math.floor(m.vx) - m.vx, math.ceil(m.vx) - m.vx}
+            for shift in sorted(shifts):
+                if abs(shift) < 1e-9:
+                    continue
+                score = extract_logical(frame, w, logical_h, mode, par,
+                                        phase_x=shift)["nonuniform_fraction"]
+                if score < scored[w]:
+                    scored[w] = fractions[w] = score
+                    phases[w] = shift
+        ok = candidates()
+    # Even an unshifted, uniquely uniform candidate must not claim a 256px
+    # source when the supposed letterbox contains actual guest RGB content.
+    # Black/flat frames can still leave both widths ambiguous.
+    if mode == "fit":
+        for w in ok:
+            try:
+                m = mapping(w, logical_h, frame.width, frame.height, mode, par)
+            except ValueError:
+                continue
+            m.vx += phases[w]
+            outside[w] = _outside_viewport_nonblack(frame, m)
+        ok = [w for w in ok if outside.get(w, 0) == 0]
     return {"schema": SCHEMA, "check": "detect", "input_sha256": frame.sha256,
             "output": [frame.width, frame.height], "mode": mode,
-            "nonuniform_fraction": fractions, "consistent_widths": ok,
+            "nonuniform_fraction": fractions, "phase_x": phases,
+            "outside_viewport_nonblack": outside,
+            "consistent_widths": ok,
             "pass": len(ok) == 1, **DISCLAIMER}
 
 

@@ -242,10 +242,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/rebalance_unit_test_timings.py \\
-            --source "$RUNNER_TEMP" \\
-            --source-sha "$GITHUB_SHA" \\
-            --shards "$(cat "$RUNNER_TEMP/unit-shard-count.txt")" \\
+          python3 tools/rebalance_unit_test_timings.py \
+            --source "$RUNNER_TEMP" \
+            --source-sha "$GITHUB_SHA" \
+            --shards "$(cat "$RUNNER_TEMP/unit-shard-count.txt")" \
             --out "$RUNNER_TEMP/unit_test_timings_candidate.json"
 
       - name: Publish bounded unit result and job summary

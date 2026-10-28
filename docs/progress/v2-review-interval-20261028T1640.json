@@ -1,0 +1,209 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-28",
+  "from_main_sha": "88056d491c77cc7bb14ef1635d81892ca0d70305",
+  "through_main_sha": "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3",
+  "observed_merge_count": 24,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/88056d491c77cc7bb14ef1635d81892ca0d70305...57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3",
+  "merge_records_scope": "exhaustive",
+  "merge_records_note": "All 24 intervening main commits classified from live commit census and changed-path comparison; MENU-10 independently byte/visually audited; other source/QA work does not gain criterion credit.",
+  "merge_records": [
+    {
+      "pr": 2754,
+      "commit_sha": "128836a6d18ad00330352db366c478dd16d9c74f",
+      "effect": "operations",
+      "observation": "Dispatch: stop re-reviewing already qualified TWO-05 and RECOVERY-10 (#2754); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2754"
+    },
+    {
+      "pr": 2755,
+      "commit_sha": "c78b9e8f1b9b830535a832766b6407790c577a9c",
+      "effect": "release_risk_reduction",
+      "observation": "Progress: independently qualify immutable Windows QA-01 package evidence (#2755); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2755"
+    },
+    {
+      "pr": 2756,
+      "commit_sha": "723bf142f079b9ee5fa1c656d20c44bf011f9f80",
+      "effect": "release_risk_reduction",
+      "observation": "MENU-10: capture genuine stock demo motion and wake on final Windows SDL pixels (#2756); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2756"
+    },
+    {
+      "pr": 2757,
+      "commit_sha": "c634e99b80f73f56319743d24698feee2355ab22",
+      "effect": "enabling_infrastructure",
+      "observation": "RF091: observe original committed APU port writes for Zoo CPU causality (#2757); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2757"
+    },
+    {
+      "pr": 2761,
+      "commit_sha": "7678a61fcec74f0db5b1e357692eab9b2e5d66ea",
+      "effect": "operations",
+      "observation": "UR-CPU-CAUSE: request RF091 original/native Zoo sequence 14; classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2761"
+    },
+    {
+      "pr": 2758,
+      "commit_sha": "325997f0172aff5c17d18615979208f80bcec4d9",
+      "effect": "direct_product",
+      "observation": "MENU-10: forward genuine P1 Start to stock demo and verify rapid exit; classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2758"
+    },
+    {
+      "pr": 2759,
+      "commit_sha": "847048168caa4abe44518aa953bbceac4ac63640",
+      "effect": "release_risk_reduction",
+      "observation": "DATA-05: verify Unicode Records-to-replay across two Win32 processes; classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2759"
+    },
+    {
+      "pr": 2763,
+      "commit_sha": "639d0800ac34cea7f3428874a5328dacf1ccd4c4",
+      "effect": "direct_product",
+      "observation": "MENU-10: let a separate real P1 Start exit demo after host-only A wake (#2763); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2763"
+    },
+    {
+      "pr": 2764,
+      "commit_sha": "79355a99b7ec06f03f314d3b0d5eb3fdd73b0763",
+      "effect": "release_risk_reduction",
+      "observation": "UR-WIN-BOOT: nominate current-tree Windows package for H01–H07 (#2764); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2764"
+    },
+    {
+      "pr": 2765,
+      "commit_sha": "283cf858e2c2b35ea9731b4a092d1c87a27e40fa",
+      "effect": "enabling_infrastructure",
+      "observation": "UR-CPU-CAUSE RF092: original SPC receipt and ready clock observer (#2765); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2765"
+    },
+    {
+      "pr": 2766,
+      "commit_sha": "8a9aca7c74b787d18c463d6d2162a3d311d17acb",
+      "effect": "operations",
+      "observation": "UR-CPU-CAUSE: run one guarded RF092 original/native Zoo sequence 15; classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2766"
+    },
+    {
+      "pr": 2767,
+      "commit_sha": "1d66b17405be72451135137007c2e1ed90bc7377",
+      "effect": "documentation",
+      "observation": "UR-RELEASE-PROGRESS: pin physical H01–H07 recorder to current Windows candidate (#2767); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2767"
+    },
+    {
+      "pr": 2768,
+      "commit_sha": "5183fcc68cdc8491c8e4cc0899df058b3e12840e",
+      "effect": "enabling_infrastructure",
+      "observation": "UR-CPU-CAUSE RF093: observe executed native SPC and queue timing (#2768); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2768"
+    },
+    {
+      "pr": 2769,
+      "commit_sha": "4b356c96ec1ca17e2ff7d7cc9cc2864378da45c6",
+      "effect": "operations",
+      "observation": "qa01(UR-CPU-CAUSE): request one RF093 native-SPC Zoo sequence-16 control (#2769); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2769"
+    },
+    {
+      "pr": 2770,
+      "commit_sha": "69896f52faf36d9dba1c2c9ff02b6f6bf08606e9",
+      "effect": "direct_product",
+      "observation": "MENU-10: let a distinct keyboard Return exit the underlying stock demo (#2770); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2770"
+    },
+    {
+      "pr": 2771,
+      "commit_sha": "8da50c35d55197952584fdb7f0924310abe1ace6",
+      "effect": "documentation",
+      "observation": "UR-RELEASE-PROGRESS: pin H01–H07 to #2770 Windows candidate (#2771); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2771"
+    },
+    {
+      "pr": 2772,
+      "commit_sha": "f72a6f79f7a90bc7597257c37d4fd832d0804968",
+      "effect": "release_risk_reduction",
+      "observation": "UR-RELEASE-PROGRESS: source-pin current 342-wide Modern root geometry (#2772); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2772"
+    },
+    {
+      "pr": 2773,
+      "commit_sha": "0c578713c0fa72fcfa6400c0906b39833d89683c",
+      "effect": "release_risk_reduction",
+      "observation": "UR-RELEASE-PROGRESS: require an actual 16:9 root in current-native geometry QA (#2773); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2773"
+    },
+    {
+      "pr": 2774,
+      "commit_sha": "51e4defb6c86a7fbec5357915d82608d1f49efaa",
+      "effect": "release_risk_reduction",
+      "observation": "UR-QA01-EVENT: preserve cold-guest evidence on strict divergence (#2774); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2774"
+    },
+    {
+      "pr": 2775,
+      "commit_sha": "2b62b7a5a1b12c0606534047706e43c06aa805ca",
+      "effect": "release_risk_reduction",
+      "observation": "UR-WIN-DISPLAY: phase-aware 856px source-width diagnostic with viewport guard (#2775); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2775"
+    },
+    {
+      "pr": 2776,
+      "commit_sha": "cac13c0598398b1b591d55c164dbddfe6be212c6",
+      "effect": "release_risk_reduction",
+      "observation": "UR-QA01-EVENT: enable same-run Zoo progression and fresh-guest record evidence (#2776); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2776"
+    },
+    {
+      "pr": 2777,
+      "commit_sha": "3863216b66cbf5f2e86e00df1b35b7187805f95b",
+      "effect": "operations",
+      "observation": "qa01: request guarded Zoo sequence-17 full-event witness; classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2777"
+    },
+    {
+      "pr": 2778,
+      "commit_sha": "d20e0335a4002ed984c6d136da645e3b2e88a36e",
+      "effect": "release_risk_reduction",
+      "observation": "UR-QA01-EVENT: retain four cold-guest SRAM witnesses (#2778); classified for interval; no automatic physical, original/native event or release gate admission.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2778"
+    },
+    {
+      "pr": 2779,
+      "commit_sha": "57bbfb8ab6ffe9285fd2ee002f2aa57213a8c4e3",
+      "effect": "release_risk_reduction",
+      "observation": "UR-RELEASE-PROGRESS: same-PE MENU-10 hosted witness integration (#2779); independent five-archive same-PE Windows audit supports bounded MENU-10 only.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2779"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "MENU-10",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/40723989554",
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6474857280",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2779"
+      ],
+      "reason": "One exact hosted Windows PE, original stock guest demo source phase, six final SDL raw P7/PNG receipts and three independently tested Start/wake paths; no physical/audio/release credit."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 53,
+    "current_bounded_percent": 54,
+    "gross_delta_percentage_points": 1,
+    "new_work_earned_percentage_points": 1,
+    "retroactive_identification_percentage_points": 0,
+    "previous_independent_audit_percent": 11,
+    "current_independent_audit_percent": 12
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Frozen beta MENU-10 only; physical H01-H07, P2-only exit, USA parity, host disk durability and official 12 release gates unchanged.",
+  "source_reviewed_by": "Agent4 independent actual artifact byte/visual audit and complete 24-merge GitHub census",
+  "limitations": "No physical Windows, human audio or 4K/art test; SDL capture is actual hosted Windows source-reported final drawable, not independently rebuilt executable."
+}

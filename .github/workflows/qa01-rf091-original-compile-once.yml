@@ -1,0 +1,73 @@
+# Disposable RF091 pinned original-core compilation only. DO NOT MERGE.
+name: QA01 RF091 original pinned compile once
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/qa01-rf091-original-compile-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-rf091-original-compile-once
+  cancel-in-progress: false
+
+jobs:
+  pinned-original-compile:
+    if: ${{ github.event.pull_request.head.ref == 'agent3/ur-cpu-rf091-original-compile-once-20261028' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable canonical RF091 source
+        uses: actions/checkout@v4
+        with:
+          ref: 63486e867e6d1601d0e6b43ec431b922f86527cf
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify pinned source and directly related tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 63486e867e6d1601d0e6b43ec431b922f86527cf
+          python3 -m unittest -v tests.unit.test_qa01_rf083_original_sound_dp_first_writer
+      - name: Compile actual patched pinned original Snes9x
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          test -f "$CORE_SRC/ppu.cpp"
+          python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$CORE_SRC"
+          grep -q UR_QA01_RF091_ORIGINAL_APU_WRITE "$CORE_SRC/ppu.cpp"
+          grep -q 'rf083_port_write(Address, (unsigned)Byte);' "$CORE_SRC/ppu.cpp"
+          make -C "$CORE_SRC/libretro" clean
+          make -C "$CORE_SRC/libretro" -j2
+          test -s "$CORE_SRC/libretro/snes9x_libretro.so"
+          mkdir -p "$RUNNER_TEMP/rf091-compile-receipt"
+          {
+            echo 'work_id=UR-CPU-CAUSE-20261026'
+            echo 'canonical_pr=2757'
+            echo 'canonical_head=63486e867e6d1601d0e6b43ec431b922f86527cf'
+            echo 'qualification=pinned-original-C++-compile-link-only'
+            echo 'staged_files=cpuexec.cpp,getset.h,cpumacro.h,ppu.cpp'
+            echo 'not_executed=Zoo original/native replay; SPC receipt/ready; observer-off control'
+            sha256sum "$CORE_SRC/libretro/snes9x_libretro.so"
+            file "$CORE_SRC/libretro/snes9x_libretro.so"
+          } | tee "$RUNNER_TEMP/rf091-compile-receipt/receipt.txt"
+          echo 'RF091 pinned original C++ compilation passed; no CPU/SPC parity or release acceptance.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain metadata-only original compilation receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf091-pinned-original-compile-receipt
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/rf091-compile-receipt/receipt.txt

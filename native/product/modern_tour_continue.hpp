@@ -175,22 +175,6 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
         return out;
     }
 
-    if (state.waiting_for_selection_change) {
-        if (observation.selected_option == state.selection_before_input) {
-            return out;
-        }
-        out.state.waiting_for_selection_change = false;
-        out.state.release_observations = 0;
-        // The first observation of the moved cursor is NOT a second edge.
-        // The previous two-frame synthetic press must finish and release.
-        return out;
-    }
-    if (out.state.release_observations <
-        kModernTourMenuReleaseObservations) {
-        ++out.state.release_observations;
-        return out;
-    }
-
     // Stock exposes frontend menu bytes before those surfaces are guaranteed
     // to accept a confirm edge. Reuse the same 60-frame settle contract proven
     // by Quick Practice instead of racing first visibility.
@@ -208,6 +192,34 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
     case ModernTourContinueStage::Ready:
     case ModernTourContinueStage::Idle:
         break;
+    }
+
+    // A transient stock/scratch menu invalidates the earlier scene's
+    // 60-frame settle and cursor-change observation. Its cursor byte cannot
+    // acknowledge our last directional press. On return, demand 60 fresh,
+    // consecutive matching guest observations before sending another edge.
+    if (expected_menu != 0 && observation.menu_id != expected_menu) {
+        out.state.menu_settled = false;
+        out.state.menu_settle_observations = 0;
+        out.state.waiting_for_selection_change = false;
+        out.state.release_observations = kModernTourMenuReleaseObservations;
+        return out;
+    }
+
+    if (state.waiting_for_selection_change) {
+        if (observation.selected_option == state.selection_before_input) {
+            return out;
+        }
+        out.state.waiting_for_selection_change = false;
+        out.state.release_observations = 0;
+        // The first observation of the moved cursor is NOT a second edge.
+        // The previous two-frame synthetic press must finish and release.
+        return out;
+    }
+    if (out.state.release_observations <
+        kModernTourMenuReleaseObservations) {
+        ++out.state.release_observations;
+        return out;
     }
 
     if (expected_menu != 0 && !out.state.menu_settled) {

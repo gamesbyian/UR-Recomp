@@ -366,7 +366,104 @@ static void prove_main_menu_cursor_returns_to_one_player() {
     assert(step.state.stage == ModernTourContinueStage::AwaitRider);
 }
 
+// The stock menu byte is scratch during scene transitions. Its cursor can
+// differ without acknowledging a queued direction. Reappearing MAIN or TRACK
+// must settle for 60 new source frames, not inherit the earlier settled flag.
+static void prove_unexpected_stock_scene_forces_fresh_settle() {
+    {
+        auto state = begin_modern_tour_continue(0);
+        auto first = advance_until_action(state, {0xD7, 4, false});
+        assert(first.input == QuickPracticeMenuInput::Up);
+        assert(first.state.menu_settled);
+        assert(first.state.waiting_for_selection_change);
+
+        // A different menu's cursor value must not be interpreted as
+        // a successful UP movement in MAIN.
+        auto crossed = advance_modern_tour_continue(
+            first.state, {0x6D, 3, false});
+        assert(crossed.input == QuickPracticeMenuInput::None);
+        assert(!crossed.state.menu_settled);
+        assert(!crossed.state.waiting_for_selection_change);
+        assert(crossed.state.menu_settle_observations == 0);
+
+        state = crossed.state;
+        for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations;
+             ++i) {
+            auto settling = advance_modern_tour_continue(
+                state, {0xD7, 0, false});
+            assert(settling.input == QuickPracticeMenuInput::None);
+            state = settling.state;
+        }
+        auto ready = advance_modern_tour_continue(
+            state, {0xD7, 0, false});
+        assert(ready.input == QuickPracticeMenuInput::Accept);
+        assert(ready.state.stage == ModernTourContinueStage::AwaitRider);
+    }
+
+    {
+        ModernTourEntryContext context{
+            ExecutionMode::Modern, true, true, true, true
+        };
+        const auto decision = resolve_modern_tour_entry(
+            context, ModernTourEntryIntent::NextEvent);
+        auto state = begin_modern_tour_next_event(1, decision, 2);
+        state.stage = ModernTourContinueStage::Ready;
+        state = enter_modern_tour_next_event_selection(state);
+        assert(state.menu_settled);
+
+        // A non-TRACK menu cannot lend its cursor or prior settled state to
+        // the pending Next Event course selection.
+        auto crossed = advance_modern_tour_continue(
+            state, {0x16, 2, false});
+        assert(crossed.input == QuickPracticeMenuInput::None);
+        assert(!crossed.state.menu_settled);
+        assert(crossed.state.menu_settle_observations == 0);
+
+        state = crossed.state;
+        for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations;
+             ++i) {
+            auto settling = advance_modern_tour_continue(
+                state, {0xF6, 0, false});
+            assert(settling.input == QuickPracticeMenuInput::None);
+            state = settling.state;
+        }
+        auto ready = advance_modern_tour_continue(
+            state, {0xF6, 0, false});
+        assert(ready.input == QuickPracticeMenuInput::Down);
+        assert(ready.state.stage ==
+               ModernTourContinueStage::SelectNextEvent);
+    }
+
+    // A single mismatched source observation interrupts even a partially
+    // completed settle. It cannot be accumulated across an alien scene.
+    {
+        auto state = begin_modern_tour_continue(0);
+        for (unsigned i = 0; i < 40; ++i) {
+            auto step = advance_modern_tour_continue(
+                state, {0xD7, 0, false});
+            assert(step.input == QuickPracticeMenuInput::None);
+            state = step.state;
+        }
+        assert(state.menu_settle_observations == 40);
+        auto crossed = advance_modern_tour_continue(
+            state, {0x84, 0, false});
+        assert(crossed.state.menu_settle_observations == 0);
+        state = crossed.state;
+        for (unsigned i = 0; i + 1 < kQuickPracticeMenuSettleObservations;
+             ++i) {
+            auto step = advance_modern_tour_continue(
+                state, {0xD7, 0, false});
+            assert(step.input == QuickPracticeMenuInput::None);
+            state = step.state;
+        }
+        auto ready = advance_modern_tour_continue(
+            state, {0xD7, 0, false});
+        assert(ready.input == QuickPracticeMenuInput::Accept);
+    }
+}
+
 int main() {
+    prove_unexpected_stock_scene_forces_fresh_settle();
     prove_main_cursor_does_not_duplicate_held_up();
     prove_main_menu_cursor_returns_to_one_player();
     prove_all_tours_reach_track_select();

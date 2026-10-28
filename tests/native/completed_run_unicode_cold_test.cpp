@@ -3,6 +3,9 @@
 // receives UTF-8 strings for a subdirectory outside ordinary Windows ACPs,
 // avoiding argv/codepage conversions in the test itself.
 #include "baldosa_native_options.hpp"
+#include "baldosa_native_multiplayer_records_summary.hpp"
+#include "multiplayer_match_catalog.hpp"
+#include "multiplayer_match_record.hpp"
 #include "completed_run_replay.hpp"
 #include "completed_run_store.hpp"
 #include "local_tournament_utf8_path.hpp"
@@ -177,6 +180,67 @@ void cold_read_source_earned_run(const fs::path& acceptance_base) {
     std::cout << " DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed\n";
 }
 
+// Read the *same* authentic Win32 source-earned two-pad pair written under the
+// non-ACP parent by the previous GAME process. Neither sample fixture scores
+// nor a replay of another test's ASCII archive may qualify this Records read.
+void cold_read_source_earned_two_player_pair(const fs::path& acceptance_base) {
+    const fs::path root = acceptance_base /
+        fs::u8path(u8"user_2p_漢字-🚲");
+    const fs::path archive = root / "multiplayer-runs";
+    std::error_code ec;
+    require(fs::is_directory(archive, ec) && !ec,
+            "actual source-earned Unicode 2P archive absent");
+    const std::string archive_utf8 = archive.u8string();
+    bool scanned = false;
+    const auto inspected =
+        inspect_multiplayer_match_artifacts(archive_utf8, &scanned);
+    require(scanned && inspected.size() == 1 && inspected[0].loaded(),
+            "one checksum-validated Unicode source-earned 2P pair required");
+    const StoredMultiplayerMatch& pair = *inspected[0].stored;
+    const auto& source = pair.match.context.match;
+    require(pair.run.provenance.game_id == "uniracers-usa" &&
+                pair.run.provenance.mode == "race-2p" &&
+                pair.run.elapsed_ticks60 > 0 && pair.run.frame_count > 0 &&
+                source.player1.profile_id == "mike" &&
+                source.player2.profile_id == "andrew" &&
+                source.result.outcome ==
+                    ur::title::OrdinaryTwoPlayerRaceOutcome::Player2Win,
+            "Unicode 2P pair is not the real named-player earned race");
+    const fs::path run_path = host_native_path_from_utf8(pair.run_path);
+    const fs::path match_path = host_native_path_from_utf8(
+        multiplayer_match_record_path_for_run(pair.run_path));
+    const std::string before_run = read_all(run_path);
+    const std::string before_match = read_all(match_path);
+    require(before_run == encode_completed_run_record(pair.run) &&
+                before_match == encode_multiplayer_match_record(pair.match),
+            "source-earned Unicode 2P pair bytes not canonical");
+
+    // Run the actual shipping read-only two-player Records adapter for BOTH
+    // participants in this fresh OS process, including filtered win/loss.
+    const auto p1 = inspect_baldosa_native_two_player_records_archive(
+        archive_utf8, "mike");
+    const auto p2 = inspect_baldosa_native_two_player_records_archive(
+        archive_utf8, "andrew");
+    require(p1.directory_available && p2.directory_available &&
+                p1.validated_pairs == 1 && p2.validated_pairs == 1 &&
+                p1.unavailable_pairs == 0 && p2.unavailable_pairs == 0 &&
+                p1.selected_profile_matches == 1 &&
+                p2.selected_profile_matches == 1 &&
+                p1.wins == 0 && p1.losses == 1 &&
+                p2.wins == 1 && p2.losses == 0 &&
+                p1.latest_match_line.find("LOSS") != std::string::npos &&
+                p2.latest_match_line.find("WIN") != std::string::npos,
+            "source-earned Unicode 2P cold Records miscounted player results");
+    const auto loaded = load_valid_multiplayer_matches(archive_utf8);
+    require(loaded.size() == 1 &&
+                loaded[0].run_path == pair.run_path,
+            "fresh product catalog lost real Unicode 2P match identity");
+    require(read_all(run_path) == before_run &&
+                read_all(match_path) == before_match,
+            "cold 2P Records mutated immutable earned run/match bytes");
+    std::cout << " DATA05_UNICODE_SOURCE_EARNED_2P_RECORDS_COLD=passed\n";
+}
+
 void cold_read_unicode_options(const fs::path& root) {
     const auto options_utf8 = baldosa_options_path(root).u8string();
     const auto native_path = host_native_path_from_utf8(options_utf8);
@@ -203,7 +267,9 @@ int main(int argc, char** argv) {
         require(mode == "write" || mode == "cold-read" ||
                     mode == "source-earned-cold-read", "unknown test mode");
         if (mode == "source-earned-cold-read") {
-            cold_read_source_earned_run(fs::path(argv[1]));
+            const fs::path acceptance_base(argv[1]);
+            cold_read_source_earned_run(acceptance_base);
+            cold_read_source_earned_two_player_pair(acceptance_base);
             return 0;
         }
         // The Unicode part is built from a wide/native filesystem path. On

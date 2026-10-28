@@ -59,7 +59,8 @@ footer { margin-top: 22px; }
 <div><strong>Source revision</strong><div class="pin" id="source-pin"></div></div>
 <div><strong>Inner playable ZIP SHA-256</strong><div class="pin" id="zip-pin"></div></div>
 <div><strong>Extracted Windows EXE SHA-256</strong><div class="pin" id="exe-pin"></div></div>
-<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324/artifacts/12734720034">Original verified ROM-free Windows artifact</a></p>
+<p><a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/40658096254/artifacts/12803447603">Independently byte-audited ROM-free Windows artifact</a></p>
+<p class="sub">The source pin is the packaged synthetic validation-merge revision, source-tree-equivalent to merged product main 639d0800ac34cea7f3428874a5328dacf1ccd4c4. This is not a physical QA acceptance. Artifact expires November 4, 2026.</p>
 <label for="hashCheck">Did you independently compare your local inner ZIP and EXE against both hashes above?</label>
 <select id="hashCheck"><option value="not_checked">Not checked yet</option><option value="yes">Both matched</option><option value="no">Mismatch or unverifiable (no candidate acceptance)</option></select>
 </section>
@@ -112,10 +113,10 @@ footer { margin-top: 22px; }
 "use strict";
 (function () {
   const candidate = Object.freeze({
-    producing_run: 40500741324, artifact_id: 12734720034,
-    source_sha: "930f16ed4536aea83450335bd550aa9afefd98f1",
-    inner_zip_sha256: "29c0dd7d831307f87913ef74ec5b8189485aa822295a8e6cb3f92b460477ac58",
-    executable_sha256: "74448c44ee11e948dfa965fb2b9ab760f5fd79a9e936d7b02d44fa8ee1eed38f"
+    producing_run: 40658096254, artifact_id: 12803447603,
+    source_sha: "93d6251dc1edad80d350be46a11be715883b46a3",
+    inner_zip_sha256: "f52e39b1059ebf0047a2cd81eb3c84e179db9bdda51f0323e4065e2bf4e312a1",
+    executable_sha256: "68a80457a321aa318c182c7eb8cf49fb7587b13bfbcf32c4190d057fdea3d8a9"
   });
   const cases = [
     ["H01","Cold start","Fresh extraction and packaged CMD, first player, actual process exit, clean cold restart. Record missing dependencies and shell provenance.","QA-02, QA-01 prerequisite"],

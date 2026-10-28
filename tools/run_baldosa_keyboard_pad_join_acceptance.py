@@ -872,7 +872,7 @@ def run(exe: Path, rom: Path, out: Path, video: str, timeout: int) -> dict:
         source_paired_records_reopened(cold_pair_log, selected_profile="mike")
         if len(re.findall(
             r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p="
-            r".+ source=historical_paired_archive\\r?$", cold_pair_log
+            r".+ source=historical_paired_archive\r?$", cold_pair_log
         )) != 1:
             raise ValueError(
                 "cold 2P Records did not display exactly one historical source match"

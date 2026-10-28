@@ -23,6 +23,7 @@ def compile_native_runner(exe: pathlib.Path) -> None:
         compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
         "-pedantic", "-pthread", "-I",
         str(ROOT / "native" / "product"),
+        "-I", str(ROOT / "native" / "title"),
         *[str(ROOT / "native" / "product" / name) for name in (
             "completed_run_record.cpp",
             "completed_run_capture.cpp",

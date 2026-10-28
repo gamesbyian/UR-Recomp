@@ -77,6 +77,7 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
     mutable = [r for r in runs if r.start >= protected_before_frame]
     base_identity = None
     calls = tests = native_skips = 0
+    negative_short_circuits = saved_negative_repeats = 0
     observed_results = {"reproduced": 0, "not_reproduced": 0, "invalid_route": 0}
     observed_skip_reasons = {"original_stage_invalid": 0, "original_target_changed": 0}
     cache = {}
@@ -86,6 +87,7 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
 
         def check(sequence):
             nonlocal base_identity, calls, tests, native_skips
+            nonlocal negative_short_circuits, saved_negative_repeats
             raw = encode(sequence)
             hashed = digest(raw)
             if hashed in cache:
@@ -94,7 +96,7 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
                 raise StopIteration
             tests += 1
             valid = True
-            for _ in range(repeats):
+            for repetition in range(repeats):
                 candidate.write_bytes(raw)
                 receipt_path.unlink(missing_ok=True)
                 try:
@@ -131,7 +133,18 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
                     raise ValueError("oracle provenance/semantic identity changed")
                 if not (receipt["result"] == "reproduced" and
                         receipt["original_valid"] and receipt["native_valid"]):
+                    # A candidate is admissible ONLY when *every* repetition
+                    # independently reproduces the source discrepancy. Once
+                    # one execution rejects it, later positive repeats cannot
+                    # reverse that decision. Stop spending expensive paired
+                    # engine runs on an already disproved candidate; strict
+                    # positive admission still requires all `repeats` runs.
                     valid = False
+                    remaining = repeats - repetition - 1
+                    if remaining:
+                        negative_short_circuits += 1
+                        saved_negative_repeats += remaining
+                    break
             cache[hashed] = valid
             return valid
 
@@ -194,6 +207,8 @@ def reduce(runs, source_hash, protected_before_frame, oracle,
         "reduced_runs": len(final),
         "removed_runs": len(runs) - len(final),
         "oracle_calls": calls,
+        "negative_short_circuit_candidates": negative_short_circuits,
+        "redundant_negative_oracle_calls_avoided": saved_negative_repeats,
         "native_skipped_oracle_calls": native_skips,
         "oracle_result_counts": observed_results,
         "native_skip_reason_counts": observed_skip_reasons,

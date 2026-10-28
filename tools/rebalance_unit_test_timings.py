@@ -14,7 +14,11 @@ import math
 from pathlib import Path
 import re
 
-from partition_unit_tests import discover, partition
+try:
+    from tools.partition_unit_tests import discover, partition
+except ModuleNotFoundError:
+    # Direct invocation via python3 tools/rebalance_unit_test_timings.py.
+    from partition_unit_tests import discover, partition
 
 SCHEMA = "ur-unit-module-timings/1"
 SHA = re.compile(r"[0-9a-f]{40}\Z")

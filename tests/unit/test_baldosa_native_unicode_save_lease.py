@@ -16,8 +16,8 @@ ACTIVATION = ROOT / "tools" / "baldosa_modern_profile_activation.cpp"
 LOCK = ROOT / "native" / "product" / "local_tournament_launch_path_lock.hpp"
 
 LOCK_CONSTRUCTION = re.compile(
-    r"(?:std::make_unique<ur::product::TournamentLaunchPathLock>\\s*\\("
-    r"|(?:ur::product::)?TournamentLaunchPathLock\\s+\\w+\\s*\\()"
+    r"(?:std::make_unique<ur::product::TournamentLaunchPathLock>\s*\("
+    r"|(?:ur::product::)?TournamentLaunchPathLock\s+\w+\s*\()"
 )
 
 

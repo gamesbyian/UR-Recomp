@@ -15,6 +15,30 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
+def compile_native_runner(exe: pathlib.Path) -> None:
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if not compiler:
+        raise RuntimeError("a C++17 compiler is required for the native replay witness")
+    cmd = [
+        compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+        "-pedantic", "-pthread", "-I",
+        str(ROOT / "native" / "product"),
+        *[str(ROOT / "native" / "product" / name) for name in (
+            "completed_run_record.cpp",
+            "completed_run_capture.cpp",
+            "completed_run_store.cpp",
+            "completed_run_replay.cpp",
+            "output_resolution_policy.cpp",
+            "host_product_state.cpp",
+            "host_product_store.cpp",
+        )],
+        str(ROOT / "tests" / "native" /
+            "completed_run_unicode_cold_test.cpp"),
+        "-o", str(exe),
+    ]
+    subprocess.run(cmd, cwd=ROOT, check=True, timeout=120)
+
+
 class CompletedRunUnicodeColdCppTests(unittest.TestCase):
 
     def test_windows_bridge_invalidates_on_unicode_fixture_changes(self):
@@ -29,6 +53,27 @@ class CompletedRunUnicodeColdCppTests(unittest.TestCase):
             "python -m unittest -v tests.unit.test_completed_run_unicode_cold_cpp",
             workflow)
 
+    def test_source_earned_unicode_replay_runs_after_real_windows_journey(self):
+        workflow = (ROOT / ".github" / "workflows" /
+                    "baldosa-windows-native-bridge.yml").read_text(
+                        encoding="utf-8")
+        self.assertIn(
+            "tests/unit/test_completed_run_unicode_cold_cpp.py --source-earned-base",
+            workflow)
+        self.assertLess(
+            workflow.index("Exercise the keyboard plus one pad 2P join on Win32"),
+            workflow.index("Test source-earned Win32 Unicode replay after cold Records"))
+        self.assertIn(
+            "ur-keyboard-pad-join/earned_return_cold_records/earned_run/source.urrun",
+            workflow)
+        source = (ROOT / "tests" / "native" /
+                  "completed_run_unicode_cold_test.cpp").read_text(
+                      encoding="utf-8")
+        self.assertIn("source-earned-cold-read", source)
+        self.assertIn("reload_matching_completed_run_replay_record(", source)
+        self.assertIn("stage_completed_run_replay_input_file(", source)
+        self.assertIn("DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed", source)
+
     def test_unicode_archive_to_replay_across_cold_process(self):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if not compiler:
@@ -37,24 +82,7 @@ class CompletedRunUnicodeColdCppTests(unittest.TestCase):
             base = pathlib.Path(temporary)
             exe = base / ("unicode-run-replay.exe" if sys.platform == "win32"
                           else "unicode-run-replay")
-            cmd = [
-                compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
-                "-pedantic", "-pthread", "-I",
-                str(ROOT / "native" / "product"),
-                *[str(ROOT / "native" / "product" / name) for name in (
-                    "completed_run_record.cpp",
-                    "completed_run_capture.cpp",
-                    "completed_run_store.cpp",
-                    "completed_run_replay.cpp",
-                    "output_resolution_policy.cpp",
-                    "host_product_state.cpp",
-                    "host_product_store.cpp",
-                )],
-                str(ROOT / "tests" / "native" /
-                    "completed_run_unicode_cold_test.cpp"),
-                "-o", str(exe),
-            ]
-            subprocess.run(cmd, cwd=ROOT, check=True, timeout=120)
+            compile_native_runner(exe)
             root = base / "cold-root"
             for mode, marker in (
                 ("write", "DATA05_UNICODE_COLD_WRITE=passed"),
@@ -79,5 +107,25 @@ class CompletedRunUnicodeColdCppTests(unittest.TestCase):
             self.assertGreater(options.stat().st_size, 20)
 
 
+
 if __name__ == "__main__":
-    unittest.main()
+    if len(sys.argv) == 3 and sys.argv[1] == "--source-earned-base":
+        base = pathlib.Path(sys.argv[2]).resolve()
+        if not base.is_dir():
+            raise SystemExit("actual native source-earned acceptance directory missing")
+        with tempfile.TemporaryDirectory(prefix="ur-data05-earned-") as temporary:
+            exe = pathlib.Path(temporary) / (
+                "unicode-earned-replay.exe" if sys.platform == "win32"
+                else "unicode-earned-replay")
+            compile_native_runner(exe)
+            outcome = subprocess.run(
+                [str(exe), str(base), "source-earned-cold-read"],
+                cwd=ROOT, check=True, capture_output=True,
+                text=True, timeout=30,
+            )
+            marker = "DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed"
+            if marker not in outcome.stdout:
+                raise SystemExit("actual source-earned replay witness absent")
+            print(outcome.stdout.strip())
+    else:
+        unittest.main()

@@ -131,6 +131,12 @@ class EarnedControllerJourney(unittest.TestCase):
             "${{ runner.temp }}/ur-keyboard-pad-join/receipt.json",
             workflow,
         )
+        self.assertIn(
+            "${{ runner.temp }}/ur-keyboard-pad-join/earned_return_cold_records/earned_run/source.urrun",
+            workflow,
+        )
+        self.assertIn('earned_evidence.write_bytes(earned_bytes)', RUNNER)
+        self.assertIn('source_earned_unicode_replay_archive_retained_sha256', RUNNER)
 
     def test_post_result_source_return_and_adversarial_cases(self):
         post = [

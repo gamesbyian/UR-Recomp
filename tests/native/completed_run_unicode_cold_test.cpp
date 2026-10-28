@@ -115,6 +115,68 @@ void write_unicode_options(const fs::path& root) {
             "Unicode Options file missing after product save");
 }
 
+// Consume a genuinely source-earned run from the prior SAME-PE Windows
+// controller journey, not this test's synthetic record. The Unicode root
+// suffix is built natively inside the test, avoiding argv/ACP reconstruction.
+void cold_read_source_earned_run(const fs::path& acceptance_base) {
+    const fs::path root = acceptance_base /
+        fs::u8path(u8"user_earned_return_漢字-🚲");
+    const fs::path archive = root / "runs" / "mike";
+    std::error_code ec;
+    require(fs::is_directory(archive, ec) && !ec,
+            "real earned Unicode archive absent");
+    const auto directory_utf8 = archive.u8string();
+    bool scanned = false;
+    const auto inspected =
+        inspect_completed_run_record_artifacts(directory_utf8, &scanned);
+    require(scanned && inspected.size() == 1 && inspected[0].loaded(),
+            "expected exactly one valid source-earned Unicode run");
+    const CompletedRunRecord& earned = *inspected[0].record;
+    require(earned.provenance.game_id == "uniracers-usa" &&
+                earned.provenance.mode == "race-1p" &&
+                earned.elapsed_ticks60 > 0 && earned.frame_count > 0,
+            "source-earned record identity/content invalid");
+    const std::string encoded = encode_completed_run_record(earned);
+    require(!encoded.empty(), "real earned run cannot be encoded");
+    const fs::path source_path = host_native_path_from_utf8(inspected[0].path);
+    const std::string source_before = read_all(source_path);
+    require(source_before == encoded,
+            "source-earned record canonical bytes do not match");
+    const auto target = target_for(earned);
+    const auto compatible = load_compatible_run_records(
+        directory_utf8, target);
+    require(compatible.size() == 1,
+            "production replay selection lost real Unicode run");
+    const auto reloaded = reload_matching_completed_run_replay_record(
+        compatible[0].path, earned, target);
+    require(reloaded && encode_completed_run_record(*reloaded) == encoded,
+            "real Unicode replay cold reload changed earned record");
+    CompletedRunReplayInputStage stage;
+    require(stage.reserve(root.u8string()),
+            "cannot reserve real Unicode replay input namespace");
+    const std::string staged_path_utf8 = stage.input_path();
+    require(!staged_path_utf8.empty(), "no real replay staging path");
+    std::string detail;
+    require(stage_completed_run_replay_input_file(
+                staged_path_utf8, *reloaded, &detail),
+            "production staging refused real earned replay");
+    const fs::path staged_path =
+        host_native_path_from_utf8(staged_path_utf8);
+    require(read_all(staged_path) ==
+                encode_completed_run_input_file(earned),
+            "real source-earned replay input bytes changed in staging");
+    stage.clear();
+    require(!fs::exists(staged_path),
+            "real replay temporary input survived cleanup");
+    require(read_all(source_path) == source_before,
+            "real source-earned immutable run changed during replay");
+    const auto after = inspect_completed_run_record_artifacts(
+        directory_utf8);
+    require(after.size() == 1 && after[0].loaded(),
+            "real source-earned archive damaged by replay staging");
+    std::cout << " DATA05_UNICODE_SOURCE_EARNED_REPLAY_COLD=passed\n";
+}
+
 void cold_read_unicode_options(const fs::path& root) {
     const auto options_utf8 = baldosa_options_path(root).u8string();
     const auto native_path = host_native_path_from_utf8(options_utf8);
@@ -135,9 +197,15 @@ void cold_read_unicode_options(const fs::path& root) {
 
 int main(int argc, char** argv) {
     try {
-        require(argc == 3, "usage: test ASCII_ROOT write|cold-read");
+        require(argc == 3,
+                "usage: test ASCII_ROOT write|cold-read|source-earned-cold-read");
         const std::string mode = argv[2];
-        require(mode == "write" || mode == "cold-read", "unknown test mode");
+        require(mode == "write" || mode == "cold-read" ||
+                    mode == "source-earned-cold-read", "unknown test mode");
+        if (mode == "source-earned-cold-read") {
+            cold_read_source_earned_run(fs::path(argv[1]));
+            return 0;
+        }
         // The Unicode part is built from a wide/native filesystem path. On
         // Windows, argv[1] alone is ordinary ASCII; no ACP-decorated argument
         // is used to supply or validate the production UTF-8 pathname.

@@ -82,11 +82,13 @@ class ProgressIntervalV2Tests(unittest.TestCase):
             self.score(interval=interval)
     def test_representative_count_must_be_source_bound(self):
         interval=copy.deepcopy(self.interval)
+        interval["merge_records_scope"]="representative_verified_sample"
+        interval["merge_records"]=interval["merge_records"][:2]
         interval["merge_count_evidence"]="https://github.com/gamesbyian/UR-Recomp/pull/1"
         with self.assertRaisesRegex(ValueError,"Representative interval"):
             self.score(interval=interval)
         interval=copy.deepcopy(self.interval)
-        interval["merge_records_scope"]="exhaustive"
+        interval["merge_records"]=interval["merge_records"][:2]
         with self.assertRaisesRegex(ValueError,"Exhaustive interval"):
             self.score(interval=interval)
         interval=copy.deepcopy(self.interval)

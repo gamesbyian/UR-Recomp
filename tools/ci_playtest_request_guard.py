@@ -20,6 +20,7 @@ SUPPORTED_MARKERS = frozenset({MARKER, ZOO_MARKER})
 SEQUENCE = re.compile(r"(?m)^- Request sequence: \*\*(0|[1-9][0-9]*)\*\*")
 REASON = re.compile(r"(?m)^- Requested reason: ([^\n]+)$")
 MAX_SEQUENCE = 2**31 - 1
+ZOO_OBSERVER_MODE = re.compile(r"(?m)^- Observer mode: \*\*(on|off)\*\*$")
 
 
 def field(pattern: re.Pattern[str], text: str, name: str) -> str:
@@ -42,8 +43,16 @@ def validate(previous: str, current: str, changed: list[str], *, marker: str = M
     if (len(new_reason) < 24 or new_reason == old_reason
             or new_reason.casefold().startswith("initial dispatch")):
         raise ValueError("request requires a fresh concrete reason")
+    # A new Zoo request must explicitly choose its instrumentation state.
+    # Older markers predate this field; only the new request is authoritative.
+    observer_enabled = None
+    if marker == ZOO_MARKER:
+        modes = ZOO_OBSERVER_MODE.findall(current)
+        if len(modes) != 1:
+            raise ValueError("Zoo request requires exactly one explicit observer mode")
+        observer_enabled = modes[0] == "on"
     return {"old": old, "new": new, "changed_paths": changed,
-            "release_gate_credit": 0}
+            "observer_enabled": observer_enabled, "release_gate_credit": 0}
 
 
 def changed_files(commit: str) -> list[str]:
@@ -63,6 +72,7 @@ def main() -> int:
     parser.add_argument("--current", type=Path, required=True)
     parser.add_argument("--source-sha", required=True)
     parser.add_argument("--marker", choices=sorted(SUPPORTED_MARKERS), default=MARKER)
+    parser.add_argument("--gha-output", type=Path, help="write validated Zoo observer mode to GitHub job outputs")
     args = parser.parse_args()
     if (not args.previous.is_file() or args.previous.is_symlink()
             or not args.current.is_file() or args.current.is_symlink()):
@@ -72,6 +82,12 @@ def main() -> int:
         args.current.read_text(encoding="utf-8"),
         changed_files(args.source_sha), marker=args.marker,
     )
+    if args.gha_output is not None:
+        if args.marker != ZOO_MARKER:
+            raise ValueError("observer mode output is only supported for Zoo requests")
+        with args.gha_output.open("a", encoding="utf-8") as out:
+            out.write("observer_enabled=" +
+                      ("true" if verdict["observer_enabled"] else "false") + "\n")
     print("PASS: explicit main-only source-isolated request " +
           str(verdict["old"]) + " -> " + str(verdict["new"]) +
           ", only marker changed, zero release gate credit")

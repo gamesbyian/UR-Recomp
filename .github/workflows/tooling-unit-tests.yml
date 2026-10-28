@@ -118,6 +118,8 @@ on:
       # The release ledger is executable QA configuration, unlike planning docs.
       # Its source-contract validator must run before any ledger PR is merged.
       - "docs/RELEASE-QUALITY-LEDGER.json"
+      # The single-file Zoo request is review-ready source-bound CI input.
+      - "docs/qa01/REQUEST-ZOO-CAUSAL.md"
       - "analysis/modern-product-settings.json"
       - "analysis/agent-context-lanes.json"
       - ".github/workflows/**"

@@ -17,6 +17,11 @@ on:
       # RF083/RF090/RF091 original CPU/APU observer: exact original compile gate.
       - "tools/qa01_rf083_original_sound_dp_first_writer.py"
       - "tests/unit/test_qa01_rf083_original_sound_dp_first_writer.py"
+      # RF094 optional post-DSP and late-F7 source compile qualification.
+      - "tools/qa01_rf094_spc_dsp_followthrough.py"
+      - "tools/qa01_rf094_spc_dsp_report.py"
+      - "tests/unit/test_qa01_rf094_spc_dsp_followthrough.py"
+      - "tests/unit/test_qa01_rf094_f7_report.py"
       - "tools/qa01_rf070_original_sa1_probe_isolation.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
@@ -156,11 +161,17 @@ jobs:
           SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
           mkdir -p "$RUNNER_TEMP/rf083"
           python3 tools/qa01_rf083_original_sound_dp_first_writer.py --root "$SRC"
+          # Actual pinned original source: the CPU RF083 frame anchor, SMP
+          # RF092 tick/ports and new RF094 post-DSP observer share one ELF.
+          python3 tools/qa01_rf092_original_spc_edges.py --root "$SRC"
+          python3 tools/qa01_rf094_spc_dsp_followthrough.py --original "$SRC"
+          grep -Fq 'UR_QA01_RF094_ORIGINAL_DSP_FOLLOWTHROUGH' "$SRC/apu/bapu/smp/smp.cpp"
+          grep -Fq 'rf094_original_dsp_write(status.dsp_addr, data)' "$SRC/apu/bapu/smp/memory.cpp"
           grep -Fq 'UR_QA01_RF083_ZOO_SOUND_DP_FIRST_WRITER' "$SRC/cpuexec.cpp"
           grep -Fq 'rf083_port_read(Address,1u' "$SRC/getset.h"
           grep -Fq 'rf083_inc16_commit' "$SRC/cpumacro.h"
           grep -Fq 'UR_QA01_RF091_ORIGINAL_APU_WRITE' "$SRC/ppu.cpp"
-          sha256sum "$SRC/cpuexec.cpp" "$SRC/getset.h" "$SRC/cpumacro.h" "$SRC/ppu.cpp" > "$RUNNER_TEMP/rf083/modified-original-source-sha256.txt"
+          sha256sum "$SRC/cpuexec.cpp" "$SRC/getset.h" "$SRC/cpumacro.h" "$SRC/ppu.cpp" "$SRC/apu/bapu/smp/smp.cpp" "$SRC/apu/bapu/smp/core.cpp" "$SRC/apu/bapu/smp/memory.cpp" > "$RUNNER_TEMP/rf083/modified-original-source-sha256.txt"
           # 2014 make rules do not fully invalidate every object on header
           # changes. Rebuild all four genuine translation units in one link.
           make -C "$SRC/libretro" clean
@@ -171,7 +182,8 @@ jobs:
             echo "RF083_SOURCE_HEAD_SHA=$GITHUB_SHA"
             echo "ORIGINAL_UPSTREAM_SHA=1bcc369e89f08243e0a462882fb1f3e42e51de3a"
             echo "RF083_ORIGINAL_PATCHED_SOURCE_COMPILE_LINK=passed"
-            echo "Original cpuexec.cpp, getset.h, cpumacro.h and ppu.cpp all stage and clean-link through pinned original libretro Makefile."
+            echo "RF094_ORIGINAL_PATCHED_DSP_WRITE_COMPILE_LINK=passed"
+            echo "Actual RF083 CPU and RF092/RF094 SPC MMIO/DSP observers share one clean-linked pinned 2014 Snes9x ELF, with original DSP post-write and late port capture opt-in only."
             echo "No ROM execution, audio equivalence, original/native event or Windows release acceptance was performed."
             echo "USA events 0/45; release gates 0/12."
           } > "$RUNNER_TEMP/rf083/README.txt"

@@ -85,16 +85,16 @@ class PlaytestRequestGuardTests(unittest.TestCase):
         old = marker(12, "Original and native echo returned values were measured")
         for mode, enabled in (("on", True), ("off", False)):
             current = (marker(13, "Measure same-source observer noninterference control")
-                       + f"- Observer mode: **{mode}**\\n")
+                       + f"- Observer mode: **{mode}**\n")
             verdict = guard.validate(old, current, [guard.ZOO_MARKER],
                                      marker=guard.ZOO_MARKER)
             self.assertIs(verdict["observer_enabled"], enabled)
         for suffix in (
             "",
-            "- Observer mode: **disabled**\\n",
-            "- Observer mode: **ON**\\n",
-            "- Observer mode: **on**\\n- Observer mode: **off**\\n",
-            "- Observer mode: **off**\\n- Observer mode: **off**\\n",
+            "- Observer mode: **disabled**\n",
+            "- Observer mode: **ON**\n",
+            "- Observer mode: **on**\n- Observer mode: **off**\n",
+            "- Observer mode: **off**\n- Observer mode: **off**\n",
         ):
             with self.subTest(suffix=suffix):
                 with self.assertRaisesRegex(ValueError, "observer mode"):
@@ -111,14 +111,14 @@ class PlaytestRequestGuardTests(unittest.TestCase):
             previous.write_text(marker(12, "Prior source-matched paired echo case"), encoding="utf-8")
             current.write_text(
                 marker(13, "Run one original/native observer-off control case")
-                + "- Observer mode: **off**\\n", encoding="utf-8")
+                + "- Observer mode: **off**\n", encoding="utf-8")
             with (mock.patch.object(sys, "argv", [
                 "ci_playtest_request_guard.py", "--previous", str(previous),
                 "--current", str(current), "--source-sha", "a" * 40,
                 "--marker", guard.ZOO_MARKER, "--gha-output", str(output)]),
                   mock.patch.object(guard, "changed_files", return_value=[guard.ZOO_MARKER])):
                 self.assertEqual(guard.main(), 0)
-            self.assertEqual(output.read_text(encoding="utf-8"), "observer_enabled=false\\n")
+            self.assertEqual(output.read_text(encoding="utf-8"), "observer_enabled=false\n")
 
     def test_zoo_wrapper_requires_guard_then_calls_existing_causal_campaign(self):
         path = ROOT / ".github/workflows/qa01-zoo-causal-request.yml"

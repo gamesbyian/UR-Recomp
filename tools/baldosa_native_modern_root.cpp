@@ -49,6 +49,7 @@ extern unsigned char* g_sram;
 extern int g_sram_size;
 void ur_baldosa_product_set_host_focus(int);
 int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
+void ur_baldosa_product_attract_p1_start_event(int pressed);
 void ur_baldosa_product_cancel_stock_menu_input(void);
 extern std::uint8_t g_ram[0x20000];
 const char* ur_baldosa_modern_profile_records_directory(void);
@@ -1164,6 +1165,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         std::strcmp(fixture, "32") != 0 &&
         std::strcmp(fixture, "33") != 0 &&
         std::strcmp(fixture, "34") != 0 &&
+        std::strcmp(fixture, "35") != 0 &&
         std::strcmp(fixture, "20") != 0 &&
         std::strcmp(fixture, "21") != 0 &&
         std::strcmp(fixture, "22") != 0 &&
@@ -1413,6 +1415,10 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         return reopen_on_observed_stock_main() ? 1 : 0;
     }
     if (player != 0) return 0;
+    // Release the original physical Start even after its wake returned focus
+    // to Modern. Never substitute A, Return, P2 or scripted stock-menu input.
+    if (button == kGamepadBtn_Start && !pressed)
+        ur_baldosa_product_attract_p1_start_event(0);
     // A P1 button unsupported by the root can still wake the original demo.
     // Consume its later release, but not unrelated buttons on the title.
     if (g_original_attract_unknown_pad_releases.count(button)) {
@@ -1462,7 +1468,21 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     const bool first_press =
         g_navigation_edges.p1_gamepad(physical, pressed != 0);
     if (g_original_attract_visible) {
-        if (first_press) wake_original_stock_attract();
+        if (first_press) {
+            const bool genuine_p1_start_in_demo =
+                button == kGamepadBtn_Start && g_ram[0x0313u] == 1u;
+            wake_original_stock_attract();
+            // Only an actual P1 Start-down during the real guest demo gets
+            // transported to that demo; its matching up terminates the input.
+            // The host still consumes this wake edge and blocks Play until
+            // the unchanged 60-source-frame MAIN D7 admission.
+            if (genuine_p1_start_in_demo) {
+                ur_baldosa_product_attract_p1_start_event(1);
+                std::fprintf(stderr,
+                    "UR_MODERN_TITLE_STOCK_ATTRACT p1_real_start_to_demo=1 frame=%u race=01 host_confirm=0\n",
+                    g_title_guest_frame);
+            }
+        }
         return 1; // repeated/held physical down never launches Play
     }
     if (!g_visible)
@@ -2660,6 +2680,55 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::fprintf(stderr,
                 "UR_MODERN_TITLE_STOCK_ATTRACT play_rearmed=1 frame=%u source_main=d7 stable=%u guest_writes=0\n",
                 frame, static_cast<unsigned>(g_original_attract_main_stable));
+        }
+        return;
+    }
+    // CI-only mode 35: an actual P1 Start semantic down/up goes through
+    // the production callback and mapped-guest seam, preserving exactly its
+    // held duration. The reference original shows Start can exit a live demo.
+    // We demand MAIN D7 + 60 independently observed settles BEFORE Play.
+    // This is a source-bound semantic callback, not physical-device evidence.
+    if (std::strcmp(opt, "35") == 0) {
+        if (frame == 1600) {
+            if (!g_original_attract_visible || g_visible ||
+                g_ram[0x0313u] != 1u ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 1) ||
+                !g_visible || !ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT real_start_wake_consumed=1 frame=%u\n",
+                frame);
+        } else if (frame == 1604) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_Start, 0))
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT real_start_released=1 frame=%u\n",
+                frame);
+        } else if (frame == 1940) {
+            if (!g_visible || !ur::product::modern_title_active(g_title) ||
+                !g_original_attract_main_recovered ||
+                !original_stock_attract_source_ready() ||
+                g_ram[0x009fu] != 0xd7u ||
+                g_ram[0x0313u] == 1u ||
+                g_original_attract_main_stable <
+                    ur::product::kQuickPracticeMenuSettleObservations ||
+                g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_exit_ready=1 frame=%u menu=d7 stable=%u host_confirm=0\n",
+                frame, static_cast<unsigned>(g_original_attract_main_stable));
+        } else if (frame == 1960) {
+            if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+                !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+                std::abort();
+        } else if (frame == 1990) {
+            if (!g_visible || ur::product::modern_title_active(g_title) ||
+                g_stock_target != -1 || !original_stock_attract_source_ready())
+                std::abort();
+            std::fprintf(stderr,
+                "UR_MODERN_TITLE_STOCK_ATTRACT rapid_start_root_ready=1 frame=%u separate_confirm=1\n",
+                frame);
         }
         return;
     }

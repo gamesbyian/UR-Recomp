@@ -13,6 +13,11 @@ on:
       - "native/product/widescreen_output_composition.hpp"
       - "tests/native/widescreen_output_composition_test.cpp"
       - "tests/native/modern_pause_menu_test.cpp"
+      # Tour Continue/Next Event navigation is a compiled C++ state machine;
+      # changes must run the ROM-free full-suite wrapper, not only a
+      # heavyweight Modern guest build.
+      - "native/product/modern_tour_continue.hpp"
+      - "tests/native/modern_tour_continue_test.cpp"
       - "tests/native/modern_pause_input_test.cpp"
       # Options rollback refusal is an executable native C++ regression.
       - "native/product/baldosa_native_options.hpp"

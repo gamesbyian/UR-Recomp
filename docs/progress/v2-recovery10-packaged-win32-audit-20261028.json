@@ -1,0 +1,83 @@
+{
+  "schema": "ur-v2-criterion-independent-audit/1",
+  "reviewed_utc_date": "2026-10-28",
+  "work_id": "UR-RELEASE-PROGRESS-20261026",
+  "criterion_id": "RECOVERY-10",
+  "criterion_text": "Exact-current packaged Windows R/T/S/Q journey independently accepted",
+  "decision": "bounded_verified_independent_reviewed",
+  "classification": "retroactive_source_and_hosted_windows_evidence_admission_not_new_gameplay_engineering",
+  "reviewed_main_sha": "afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+  "product_producer_sha": "930f16ed4536aea83450335bd550aa9afefd98f1",
+  "product_source_compare": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/compare/930f16ed4536aea83450335bd550aa9afefd98f1...afbf60fdb670e561b8ea2a2f882cd7277973b29b",
+    "ahead_by": 46,
+    "behind_by": 0,
+    "changed_paths": 32,
+    "conclusion": "No changes to native/, tools/assemble_baldosa_windows_candidate.py, tools/baldosa_native_*, tests/native/, the Windows build request marker or the ROM-free playtest workflow. This is a source-path comparison, not a claim of identical hypothetical later rebuild bytes."
+  },
+  "hosted_run": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/40500741324",
+    "native_job_id": 122177630453,
+    "source_commit": "930f16ed4536aea83450335bd550aa9afefd98f1",
+    "native_conclusion": "success",
+    "provenance_conclusion": "success"
+  },
+  "packaged_candidate": {
+    "artifact_id": 12734720034,
+    "outer_sha256": "afe30dcfa191450937c3f361a6ffba0acbdfbbebda87cff72c08c82cccea398a",
+    "inner_zip_sha256": "29c0dd7d831307f87913ef74ec5b8189485aa822295a8e6cb3f92b460477ac58",
+    "pe_sha256": "74448c44ee11e948dfa965fb2b9ab760f5fd79a9e936d7b02d44fa8ee1eed38f",
+    "packaged_launcher_sha256": "f8aa07a7fbc3491a473a4574a1d1be97514504014f1c4c5a3ecb8f98765999fc",
+    "expires_at_utc": "2026-11-10T12:28:51Z"
+  },
+  "independent_original_byte_audit": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6455893041",
+    "description": "Earlier independent downloaded-byte verification by Agent 2, separate from the Windows product authors; this progress integration reuses that immutable audit rather than claiming a second fresh download.",
+    "total_zip_members_crc_checked": 95,
+    "referenced_member_hash_and_size_checks": 71,
+    "artifacts": [
+      {
+        "choice": "Q",
+        "id": 12734510348,
+        "sha256": "416d60e7780b3132270ae66ecc5c689c6424fc7172af28a7d5419aa64dfeb80a",
+        "observed": "Win32 console Q exits 7 with no second guest; catalog, raw SRAM, selector and typed state remain byte-identical; no archive."
+      },
+      {
+        "choice": "R/T",
+        "id": 12734590181,
+        "sha256": "71f8134b54a1e9f532737c79e8bc1b182e96908ed2f200d9099e9d862dd09131",
+        "observed": "Win32 R and T keys each perform one committed recovery and archive; R retains raw SRAM/catalog/selector while replacing typed data; T restores committed 8192-byte raw SRAM and preserves typed/catalog/selector; each state survives two fresh cold boots."
+      },
+      {
+        "choice": "S",
+        "id": 12733399192,
+        "sha256": "6a461be073776888cbfdea5c81f3f701561783532ec7c80d77f339564b1f7263",
+        "observed": "Win32 S chooses registered healthy racer; only selector changes; other profiles and catalog remain byte-identical through two cold boots."
+      }
+    ]
+  },
+  "additional_this_run_checks": [
+    "Queried live run #40500741324 jobs: native Windows and verify_provenance completed successfully; preview correctly skipped.",
+    "Read original hosted native Windows job log; recovery evidence artifacts uploaded successfully.",
+    "Queried live artifact metadata, matching original audit digests and noting Nov 3 early-expiring supporting wrappers.",
+    "Compared exact producer to reviewed main: 46 commits, no changed Windows launcher/native product source paths."
+  ],
+  "limits": [
+    "Bounded hosted Windows original packaged CMD and source-specific recovery controls, not a physical-human recovery session.",
+    "No electrical power-cut, arbitrary corruption repair, physical controllers/audio/4K, original/native full event or formal release QA gate established.",
+    "No new source build or raw archive re-download in this review; underlying byte-audit provenance is the separately linked prior immutable receipt.",
+    "Criterion RECOVERY-09 explicitly requires actual power-cut and remains unverified.",
+    "No legal rights to distribute third-party ROM; tested candidate is ROM-free."
+  ],
+  "score_effect": {
+    "before_bounded_percent": 50,
+    "after_bounded_percent": 51,
+    "before_independent_audited_percent": 8,
+    "after_independent_audited_percent": 9,
+    "retroactive_evidence_percentage_points": 1,
+    "new_engineering_percentage_points": 0,
+    "formal_release_gate_delta": 0,
+    "usa_complete_event_delta": 0
+  },
+  "next_executable": "Separate reviewer checks exact PR head, source-compare scope and previous byte audit; merge if qualified. Human operator performs H01–H07 on retained exact ZIP/PE, then independent QA reviewer adjudicates physical gates. Preserve artifacts before expiry."
+}

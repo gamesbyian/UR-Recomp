@@ -304,8 +304,9 @@ class ColdGuestRecordTests(unittest.TestCase):
         # preventing independent rehash of its four fresh-boot SRAM images.
         workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text(
             encoding="utf-8")
-        upload = workflow.split("name: Always retain per-case receipt and bounded diagnostic logs", 1)[1]
-        upload = upload.split("\\n  aggregate:", 1)[0]
+        upload = workflow.split(
+            "name: Always retain per-case receipt and bounded diagnostic logs", 1)[1]
+        upload = upload.split("\n  aggregate:", 1)[0]
         for side, directory in (("original", "original/ref"),
                                 ("native", "native/native")):
             for frame in v.BOOT_FRAMES:
@@ -314,8 +315,9 @@ class ColdGuestRecordTests(unittest.TestCase):
                 with self.subTest(side=side, frame=frame):
                     self.assertEqual(upload.count(path), 1)
         self.assertIn("qa01-case/qa01-cold-guest-report.json", upload)
-        self.assertFalse(v.evaluate_cold(v.validate_source(self.report, self.replay),
-                                         self.boot)["native_host_disk_publish_or_hard_kill_proven"])
+        result = v.evaluate_cold(v.validate_source(self.report, self.replay),
+                                 self.boot)
+        self.assertFalse(result["native_host_disk_publish_or_hard_kill_proven"])
 
 
 if __name__ == "__main__":

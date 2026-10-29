@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Run ROM-free native C++ and Windows regression benchmark
-        shell: pwsh
+        shell: powershell
         run: python tools/devnode_benchmark.py --target hp
       - name: Save diagnostic JSON even on test failure
         if: always()
@@ -42,7 +42,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Run identical ROM-free native C++ and Windows regression benchmark
-        shell: pwsh
+        shell: powershell
         run: python tools/devnode_benchmark.py --target hosted
       - name: Save diagnostic JSON even on test failure
         if: always()

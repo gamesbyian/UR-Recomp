@@ -24,6 +24,7 @@ esac
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SCRIPT="$REPO/tests/input/modern-results-navigation.script"
 EARNED_SCRIPT="$REPO/tests/input/modern-results-next-earned.script"
+EARNED_MOVIE_SCRIPT="$REPO/tests/input/modern-results-next-earned-original-movie.script"
 COLD_SCRIPT="$REPO/tests/input/modern-results-cold-reopen.script"
 AUTH_SCRIPT="$REPO/tests/input/modern-results-navigation-authentic.script"
 PRACTICE_SCRIPT="$REPO/tests/input/modern-practice-repeat-results.script"
@@ -108,9 +109,14 @@ run_case() {
   local log="$WORK/$name.log"
 
   make_fixture "$root" "$initial_flags"
+  local movie_env=()
+  if [ "$mode" = "next-earned-movie" ]; then
+    movie_env+=("UR_RESULTS_NEXT_MOVIE_INPUT=$WORK/dragster-2014-relative.input")
+  fi
   rm -rf "$dumps"
   mkdir -p "$dumps"
 
+  env "${movie_env[@]}" \
   SDL_AUDIODRIVER=dummy \
   XDG_DATA_HOME="$PREF_ROOT" \
   UR_PRODUCT_DIAGNOSTICS=1 \
@@ -203,7 +209,25 @@ if [ "$SHARD" = "earned" ]; then
 # Additional opt-in complete-product negative discriminator, not a rewrite of
 # the established route pass: start from an explicitly seeded four-of-five
 # row, ENTER a real derived Next Event, then PLAY the second stock race.
-run_case next-earned 01111 next-earned "$EARNED_SCRIPT"
+if [ "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" = "1" ]; then
+  # Exact original 2014 source movie controls from the independently known
+  # Dragster race-entry frame 794, replayed relative to the NEXT stock race.
+  ORIGINAL_MOVIE="$REPO/reference/imported/tas-bots/dessyreqt-4250-submission.smv"
+  MOVIE_SHA="$(sha256sum "$ORIGINAL_MOVIE" | cut -d" " -f1)"
+  test "$MOVIE_SHA" = "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442"
+  python3 "$REPO/tools/extract_historical_smv_scene_window.py" \
+    --movie "$ORIGINAL_MOVIE" \
+    --meta "$REPO/analysis/generated/historical-2014-smv-metadata.json" \
+    --first-movie-frame 794 --frames 2200 --race-entry-frame 0 \
+    --input-out "$WORK/dragster-2014-relative.input" \
+    --json-out "$WORK/dragster-2014-relative.json"
+  run_case next-earned 01111 next-earned-movie "$EARNED_MOVIE_SCRIPT"
+  grep -q "UR_RESULTS_NAV NEXT_MOVIE_SOURCE_INPUT_BOUND" "$WORK/next-earned.log"
+else
+  # The existing 28.56s repeated-jump input is a proven nonqualifying
+  # result; it remains a reproducible negative until a source win exists.
+  run_case next-earned 01111 next-earned "$EARNED_SCRIPT"
+fi
 cat "$WORK/next-earned.log"
 grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/next-earned.log"
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next-earned.log"

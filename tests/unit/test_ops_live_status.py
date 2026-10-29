@@ -170,6 +170,40 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertIn("Counts are NOT lost runner minutes", markdown(report))
         self.assertIn("latest_100_only", report["actions"]["scope"])
 
+    def test_cancelled_branch_churn_requires_distinct_pr_heads_and_is_bounded(self):
+        def event(branch, sha, event_name="pull_request", conclusion="cancelled"):
+            return {"head_branch": branch, "head_sha": sha,
+                    "event": event_name, "conclusion": conclusion,
+                    "created_at": "2026-10-21T06:00:00Z", "name": "Tooling"}
+
+        def fake(path):
+            if "/actions/runs?" in path:
+                return {"workflow_runs": [
+                    event("agent/high-churn", "a" * 40),
+                    event("agent/high-churn", "b" * 40),
+                    event("agent/high-churn", "b" * 40),
+                    event("agent/two-heads", "c" * 40),
+                    event("agent/two-heads", "d" * 40),
+                    event("agent/same-head-only", "e" * 40),
+                    event("agent/same-head-only", "e" * 40),
+                    event("agent/unsafe|markdown", "f" * 40),
+                    event("agent/push-not-pr", "1" * 40, "push"),
+                    event("agent/push-not-pr", "2" * 40, "push"),
+                    event("agent/green", "3" * 40, conclusion="success"),
+                ]}
+            return self.request(path)
+
+        report = self.report(get=fake)
+        self.assertEqual(report["actions"]["cancelled_branch_churn_hints"], [
+            {"branch": "agent/high-churn", "cancelled_runs": 3, "distinct_heads": 2},
+            {"branch": "agent/two-heads", "cancelled_runs": 2, "distinct_heads": 2},
+        ])
+        narrative = markdown(report)
+        self.assertIn("Review PR head churn", narrative)
+        self.assertIn("NOT proof of wasted runner time", narrative)
+        self.assertNotIn("unsafe|markdown", narrative)
+        self.assertNotIn("same-head-only", narrative)
+
     def test_workflow_names_without_cancellations_are_not_inferred_as_waste(self):
         def all_green(path):
             if "/actions/runs?" in path:

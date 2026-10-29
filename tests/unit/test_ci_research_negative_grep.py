@@ -13,10 +13,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 CASES = (
-    ("qa-cumulative-native-metrics.yml", "not found", "native-metrics-ldd.txt"),
-    ("qa08-original-2p-hdma-table-writers.yml", "UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW", "original.log"),
-    ("qa08-original-2p-hdma-table-writers.yml", "UR_QA08_INIDISP_TABLE_WRITER_OVERFLOW", "original.log"),
-    ("qa08-original-hdma-writer-opcodes.yml", "UR_QA08_ORIGINAL_HDMA_OPCODE_OVERFLOW", "qa08-original-opcode.log"),
+    ("qa-cumulative-native-metrics.yml", "not found", "native-metrics-ldd.txt", "q"),
+    ("qa08-original-2p-hdma-table-writers.yml", "UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW", "original.log", "q"),
+    ("qa08-original-2p-hdma-table-writers.yml", "UR_QA08_INIDISP_TABLE_WRITER_OVERFLOW", "original.log", "q"),
+    ("qa08-original-hdma-writer-opcodes.yml", "UR_QA08_ORIGINAL_HDMA_OPCODE_OVERFLOW", "qa08-original-opcode.log", "q"),
+    ("qa-adaptive-frontier.yml", "not found", "frontier-native-ldd.log", "q"),
+    ("two-player-reference.yml", "not found|version .+ not found", "native-ldd.log", "qE"),
 )
 
 
@@ -24,13 +26,13 @@ CASES = (
 class ResearchNegativeMarkerGuards(unittest.TestCase):
     def test_actual_workflow_guards_reject_forbidden_and_unreadable_logs(self):
         sources = {}
-        for name, marker, log_name in CASES:
+        for name, marker, log_name, flags in CASES:
             if name not in sources:
                 source = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
                 self.assertNotRegex(source, r"(?m)^\s*!\s+grep\s", name)
                 sources[name] = source
             lines = sources[name].splitlines()
-            expected = "if grep -q '" + marker + "' "
+            expected = "if grep -" + flags + " '" + marker + "' "
             positions = [i for i, line in enumerate(lines)
                          if line.lstrip().startswith(expected)]
             self.assertEqual(len(positions), 1, (name, marker))
@@ -55,7 +57,7 @@ class ResearchNegativeMarkerGuards(unittest.TestCase):
                                  else "diagnostic: " + marker + "\n"),
                                 encoding="utf-8",
                             )
-                        env = dict(os.environ, RUNNER_TEMP=temp, stem=temp)
+                        env = dict(os.environ, RUNNER_TEMP=temp, stem=temp, ROOT=temp)
                         result = subprocess.run(
                             ["bash", "-c", script], cwd=ROOT, env=env,
                             capture_output=True, text=True, timeout=10,

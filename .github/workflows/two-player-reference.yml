@@ -386,7 +386,16 @@ jobs:
           ), "native candidate changed: do not compare an unrelated executable"
           PY
           ldd "$EXE" > "$ROOT/native-ldd.log"
-          ! grep -E 'not found|version .+ not found' "$ROOT/native-ldd.log"
+          if grep -qE 'not found|version .+ not found' "$ROOT/native-ldd.log"; then
+            echo "::error::Exact dual-air native witness has unresolved or incompatible shared libraries" >&2
+            exit 1
+          else
+            grep_rc=$?
+            if [ "$grep_rc" -ne 1 ]; then
+              echo "::error::Cannot inspect dual-air native dependency report (grep=$grep_rc)" >&2
+              exit 1
+            fi
+          fi
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
             SNESREF_INPUT_FILE="$ROOT/case.input" \
             SNESREF_SCRIPT="$ROOT/case.script" \

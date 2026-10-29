@@ -34,7 +34,7 @@ def sha256(blob: bytes) -> str:
 def launcher() -> bytes:
     commands = [
         "@echo off",
-        "setlocal DisableDelayedExpansion",
+        "setlocal EnableExtensions DisableDelayedExpansion",
         'set "UR_BALDOSA_RECOVERY_ACTION="',
         'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
         'set "UR_BALDOSA_RECOVERY_ATTEMPTED=0"',
@@ -115,7 +115,11 @@ def launcher() -> bytes:
         'set "UR_BALDOSA_MODERN_ROOT=1"',
         'set "UR_BALDOSA_MODERN_INPUT=1"',
         'set "UR_BALDOSA_MODERN_PROFILE_SELECT=1"',
-        'cd /d "%UR_RECOMP_USER_DATA_ROOT%"',
+        # cmd.exe cannot CD to a UNC share. PUSHD temporarily maps a drive
+        # for UNC roots (with command extensions enabled), and also works
+        # for ordinary local paths. Every post-launch exit must POPD, so a
+        # caller's current directory and mapped drive are never leaked.
+        'pushd "%UR_RECOMP_USER_DATA_ROOT%"',
         'if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Cannot enter user folder. 1>&2 & echo The save folder exists but could not be opened. Check its permissions. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         # First-time controller-based profile creation completes only while
         # an anonymous game runs. Never rebind that live cartridge; relaunch
@@ -135,9 +139,10 @@ def launcher() -> bytes:
         'if "%ERRORLEVEL%"=="9" goto UR-BALDOSA-SWITCH-FAILURE',
         # Preserve the independent release-auditor's existing exact
         # nonzero exit propagation marker; IF does not alter errorlevel.
-        'if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%',
+        'if not "%ERRORLEVEL%"=="0" (set "UR_BALDOSA_EXIT_CODE=%ERRORLEVEL%" & goto UR-BALDOSA-CLEANUP)',
         'if "%UR_BALDOSA_FIRST_RACER_RELAUNCH%"=="1" if exist "%UR_RECOMP_USER_DATA_ROOT%\\host-state-v1.txt" goto UR-BALDOSA-REBOOT-FIRST-RACER',
-        'exit /b 0',
+        'set "UR_BALDOSA_EXIT_CODE=0"',
+        'goto UR-BALDOSA-CLEANUP',
         ':UR-BALDOSA-REBOOT-FIRST-RACER',
         # The already-existing named-profile after_config must validate its
         # canonical typed/catalog/raw SRAM and will fail closed on exit 7.
@@ -153,21 +158,22 @@ def launcher() -> bytes:
         # reruns the SAME original executable with one-shot environment
         # arguments; no fixture or competing save UI ships in the ZIP.
         ':UR-BALDOSA-RECOVERY-MENU',
-        'if "%UR_BALDOSA_RECOVERY_ATTEMPTED%"=="1" (echo UR-BALDOSA-RECOVERY-RETRY-FAILED: Explicit recovery completed, but the new game still refused to start. Keep the archived snapshots. No second repair is offered. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
+        'if "%UR_BALDOSA_RECOVERY_ATTEMPTED%"=="1" (echo UR-BALDOSA-RECOVERY-RETRY-FAILED: Explicit recovery completed, but the new game still refused to start. Keep the archived snapshots. No second repair is offered. 1>&2 & call :UR-BALDOSA-HOLD & set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)',
         'echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer rejected. Preserve both the raw save and Modern profile files. 1>&2',
         'echo Back up your entire save directory before considering recovery. 1>&2',
-        'if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)',
-        'if defined UR_BALDOSA_NO_HOLD exit /b 7',
+        'if not "%~1"=="" (call :UR-BALDOSA-HOLD & set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)',
+        'if defined UR_BALDOSA_NO_HOLD (set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)',
         'echo R: Keep guest SRAM. May include newer progress; archive old typed data.',
         'echo T: Restore last committed SRAM. May lose recent progress; archive raw data.',
         'echo S: Switch to a verified healthy racer. Damaged racer remains untouched.',
         'echo Q: Exit without changing any saved data. Safest if uncertain.',
         'choice.exe /c RTSQ /n /m "Explicit recovery choice [R/T/S/Q]: "',
-        'if errorlevel 4 exit /b 7',
+        'if errorlevel 4 (set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)',
         'if errorlevel 3 goto UR-BALDOSA-RECOVERY-HEALTHY',
         'if errorlevel 2 goto UR-BALDOSA-RECOVERY-TYPED',
         'if errorlevel 1 goto UR-BALDOSA-RECOVERY-RAW',
-        'exit /b 7',
+        'set "UR_BALDOSA_EXIT_CODE=7"',
+        'goto UR-BALDOSA-CLEANUP',
         ':UR-BALDOSA-RECOVERY-RAW',
         'set "UR_BALDOSA_RECOVERY_ACTION=raw"',
         'goto UR-BALDOSA-RECOVERY-EXECUTE',
@@ -186,7 +192,7 @@ def launcher() -> bytes:
         ':UR-BALDOSA-RECOVERY-EXECUTE',
         'echo Executing one explicit recovery choice before any guest frame.',
         f'"%UR_BALDOSA_PACKAGE_DIR%{EXE}" --no-launcher "%UR_BALDOSA_ROM%"',
-        'if not "%ERRORLEVEL%"=="89" (echo UR-BALDOSA-RECOVERY-REFUSED: Recovery did not complete; no safe relaunch was authorized. 1>&2 & echo Some files may already have been archived or restored. Preserve the complete save folder before further action. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
+        'if not "%ERRORLEVEL%"=="89" (echo UR-BALDOSA-RECOVERY-REFUSED: Recovery did not complete; no safe relaunch was authorized. 1>&2 & echo Some files may already have been archived or restored. Preserve the complete save folder before further action. 1>&2 & call :UR-BALDOSA-HOLD & set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)',
         'set "UR_BALDOSA_RECOVERY_ACTION="',
         'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
         'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
@@ -199,22 +205,29 @@ def launcher() -> bytes:
         'echo UR-BALDOSA-SWITCH-FAILED: The current racer was saved, but the requested next racer was not selected. 1>&2',
         'echo Your saved progress is intact. Another process may have changed the active racer or Windows refused the selector update. 1>&2',
         'echo Do not replace a healthy racer. Restart and make a fresh selection after checking your saved data. 1>&2',
-        'if not "%~1"=="" exit /b 9',
+        'if not "%~1"=="" (set "UR_BALDOSA_EXIT_CODE=9" & goto UR-BALDOSA-CLEANUP)',
         'call :UR-BALDOSA-HOLD',
-        'exit /b 9',
+        'set "UR_BALDOSA_EXIT_CODE=9"',
+        'goto UR-BALDOSA-CLEANUP',
         ':UR-BALDOSA-SAVE-FAILURE',
         'echo UR-BALDOSA-SAVE-FAILED: This game session could not finish saving. 1>&2',
         'echo Some recent progress may not have been committed. Preserve your entire user-data folder. 1>&2',
         'echo Do not delete a racer or overwrite its save. Relaunch to inspect recovery, or preserve a backup. 1>&2',
-        'if not "%~1"=="" exit /b 8',
+        'if not "%~1"=="" (set "UR_BALDOSA_EXIT_CODE=8" & goto UR-BALDOSA-CLEANUP)',
         'call :UR-BALDOSA-HOLD',
-        'exit /b 8',
+        'set "UR_BALDOSA_EXIT_CODE=8"',
+        'goto UR-BALDOSA-CLEANUP',
         ':UR-BALDOSA-HOLD',
         'if defined UR_BALDOSA_NO_HOLD exit /b 0',
         'echo. 1>&2',
         'echo Press any key to close this window, or wait. 1>&2',
         'timeout /t 60 >nul 2>nul',
         'exit /b 0',
+        # PUSHD on a UNC root allocates a temporary drive letter. Restore it
+        # for every successful, refused, recovery and save-error exit.
+        ':UR-BALDOSA-CLEANUP',
+        'popd',
+        'exit /b %UR_BALDOSA_EXIT_CODE%',
     ]
     return ("\r\n".join(commands) + "\r\n").encode("utf-8")
 

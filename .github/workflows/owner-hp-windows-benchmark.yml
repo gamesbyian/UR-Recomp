@@ -29,7 +29,8 @@ jobs:
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
       - name: Confirm execution policy inherited by service
         shell: cmd
-        run: powershell.exe -NoProfile -Command "Write-Output ('Effective PowerShell policy: ' + (Get-ExecutionPolicy))"
+        run: |
+          powershell.exe -NoProfile -Command "Get-ExecutionPolicy"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

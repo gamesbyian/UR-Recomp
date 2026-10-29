@@ -17,12 +17,12 @@ class ManualEarnedWorkflowContract(unittest.TestCase):
             r"(?s)workflow_dispatch:\s+inputs:\s+results_shard:.*?"
             r"default: all\s+options:\s+- all\s+- earned",
         )
-        self.assertIn("\${{ inputs.results_shard || 'all' }}", self.workflow)
+        self.assertIn("${{ inputs.results_shard || 'all' }}", self.workflow)
 
     def test_2014_movie_is_opt_in_only_for_earned_shard(self):
         self.assertIn(
             "UR_ONE03_USE_2014_SOURCE_INPUT: "
-            "\${{ inputs.results_shard == 'earned' && '1' || '0' }}",
+            "${{ inputs.results_shard == 'earned' && '1' || '0' }}",
             self.workflow,
         )
         self.assertRegex(

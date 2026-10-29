@@ -137,6 +137,38 @@ def recent_same_work_id_hints(prs, known_work_ids, now):
     ]
 
 
+def cancelled_branch_churn_hints(runs, limit=3):
+    """Show repeated superseded PR *heads* already in the latest Actions page.
+
+    This uses the same bounded run census; no additional API calls. A cancelled
+    run is not evidence of consumed runner time, a defect, or bad agent work.
+    Requiring multiple distinct head SHAs avoids treating repeated events on
+    one head as a burst of editing.
+    """
+    groups = {}
+    for run in runs:
+        if (not isinstance(run, dict) or run.get("event") != "pull_request"
+                or run.get("conclusion") != "cancelled"):
+            continue
+        branch, sha = run.get("head_branch"), run.get("head_sha")
+        if (not isinstance(branch, str)
+                or not re.fullmatch(r"[A-Za-z0-9._/-]{1,120}", branch)
+                or not isinstance(sha, str)
+                or not re.fullmatch(r"[0-9a-f]{40}", sha)):
+            continue
+        row = groups.setdefault(branch, {"cancelled_runs": 0, "head_shas": set()})
+        row["cancelled_runs"] += 1
+        row["head_shas"].add(sha)
+    leads = [
+        {"branch": branch, "cancelled_runs": row["cancelled_runs"],
+         "distinct_heads": len(row["head_shas"])}
+        for branch, row in groups.items()
+        if row["cancelled_runs"] >= 2 and len(row["head_shas"]) >= 2
+    ]
+    leads.sort(key=lambda x: (-x["cancelled_runs"], -x["distinct_heads"], x["branch"]))
+    return leads[:limit]
+
+
 def head_sha():
     try:
         return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT,
@@ -293,6 +325,7 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         result["actions"] = {
             "scope": "latest_100_only_not_a_day_or_billing_measure",
             "cancelled_runner_job_sample": sample_cancelled_jobs(get, base, latest),
+            "cancelled_branch_churn_hints": cancelled_branch_churn_hints(latest),
             "cancelled_by_workflow": [
                 {"workflow": name[:120], "count": count}
                 for name, count in sorted(cancel_groups.items(), key=lambda pair: (-pair[1], pair[0]))[:5]
@@ -404,6 +437,15 @@ def markdown(s):
             if observed.get("latest_intake_url"):
                 row += f"; awaiting review after {observed['latest_intake_url']}"
             rows.append(row + "; latest 30 workflow runs only, not a full history.")
+    if actions and actions.get("cancelled_branch_churn_hints"):
+        for lead in actions["cancelled_branch_churn_hints"]:
+            rows.append(
+                "- **Review PR head churn:** `" + lead["branch"] + "` had " +
+                f"{lead['cancelled_runs']} cancelled runs across " +
+                f"{lead['distinct_heads']} distinct PR head SHAs in the latest sample. " +
+                "Consider coalescing the next coherent source/test push or using a "
+                "draft while iterating. This is NOT proof of wasted runner time, "
+                "fault, or active file ownership.")
     if actions and actions["cancelled_by_workflow"]:
         rows.append("- Cancellation leads (same latest sample only): " +
                     "; ".join(f"{x['workflow']}: {x['count']}" for x in actions["cancelled_by_workflow"]) +

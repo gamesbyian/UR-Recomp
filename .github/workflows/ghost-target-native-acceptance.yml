@@ -107,7 +107,9 @@ jobs:
           drive_ghost_row() {
             local log="$1"
             local dumps="$2"
-            timeout 75s xvfb-run -a bash -c '
+            # Nested child Bash is intentionally quoted for the parent shell.
+          # shellcheck disable=SC2016
+          timeout 75s xvfb-run -a bash -c '
               set -euo pipefail
               export SDL_AUDIODRIVER=dummy
               export UR_PRODUCT_DIAGNOSTICS=1
@@ -157,7 +159,13 @@ jobs:
             exit "$AUTH_STATUS"
           fi
           cmp "$ROOT/profile-before-authentic.txt" "$PROFILE_STATE"
-          ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"
+          if grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           echo "UR_GHOST_TARGET_PROFILE_RESULT=previous_then_personal_best_persisted_and_authentic_inert"
 
       - name: Upload targeted diagnostics

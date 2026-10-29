@@ -160,7 +160,12 @@ class CiTriggerPolicyTest(unittest.TestCase):
             with self.subTest(workflow=filename):
                 workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
                 pr = _block(workflow, "pull_request")
-                self.assertEqual(pr.count(marker), 1)
+                if filename == "repo-hygiene.yml":
+                    # Cheap hygiene is deliberately unfiltered for native/test-only PRs.
+                    self.assertNotIn("    paths:\n", pr)
+                    self.assertNotIn("    paths-ignore:\n", pr)
+                else:
+                    self.assertEqual(pr.count(marker), 1)
                 self.assertIn("ready_for_review", pr)
         unit = (WORKFLOWS / "tooling-unit-tests.yml").read_text(encoding="utf-8")
         self.assertIn("github.event.pull_request.draft == false", unit)
@@ -175,7 +180,12 @@ class CiTriggerPolicyTest(unittest.TestCase):
             with self.subTest(workflow=filename):
                 workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
                 pr = _block(workflow, "pull_request")
-                self.assertEqual(pr.count(marker), 1)
+                if filename == "repo-hygiene.yml":
+                    # Cheap hygiene is deliberately unfiltered for native/test-only PRs.
+                    self.assertNotIn("    paths:\n", pr)
+                    self.assertNotIn("    paths-ignore:\n", pr)
+                else:
+                    self.assertEqual(pr.count(marker), 1)
                 self.assertIn("ready_for_review", pr)
         unit = (WORKFLOWS / "tooling-unit-tests.yml").read_text(encoding="utf-8")
         self.assertIn("github.event.pull_request.draft == false", unit)
@@ -188,10 +198,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
     def test_offline_physical_reporter_and_protocol_run_hygiene(self):
         hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
         pr = _block(hygiene, "pull_request")
-        for path in ("docs/playtest/windows-h01-h07-offline.html",
-                     "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md"):
-            with self.subTest(path=path):
-                self.assertEqual(pr.count('"' + path + '"'), 1)
+        # Hygiene now runs on every PR head, including offline reporter edits.
+        self.assertNotIn("    paths:\n", pr)
+        self.assertNotIn("    paths-ignore:\n", pr)
         self.assertIn("ready_for_review", pr)
 
     def test_changed_workflow_actionlint_is_required_not_advisory(self):
@@ -222,17 +231,18 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("github.event_name != 'pull_request'", install)
         self.assertIn("gdown==6.4.2", install)
 
-    def test_pull_requests_are_path_scoped(self):
+    def test_pull_requests_are_path_scoped_except_lightweight_hygiene(self):
         offenders = []
         for path in _workflow_paths():
             text = path.read_text()
             pull_request = _block(text, "pull_request")
-            if pull_request and "    paths:\n" not in pull_request:
+            if (pull_request and "    paths:\n" not in pull_request
+                    and path.name != "repo-hygiene.yml"):
                 offenders.append(path.name)
         self.assertEqual(
             offenders,
             [],
-            f"automatic pull requests must be path-scoped: {offenders}",
+            f"automatic pull requests except bounded hygiene must be path-scoped: {offenders}",
         )
 
     def test_main_pushes_are_path_scoped(self):

@@ -827,11 +827,35 @@ jobs:
           test -f "$MIGRATED/config.ini"
           test -f "$MIGRATED/keybinds.ini"
           test -f "$MIGRATED/mod-state.toml"
-          ! grep -Fq "legacy-source-must-not-remigrate-config" "$MIGRATED/config.ini"
-          ! grep -Fq "legacy-source-must-not-remigrate-keybinds" "$MIGRATED/keybinds.ini"
+          if grep -Fq "legacy-source-must-not-remigrate-config" "$MIGRATED/config.ini"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
+          if grep -Fq "legacy-source-must-not-remigrate-keybinds" "$MIGRATED/keybinds.ini"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           grep -Fq "destination-wins" "$MIGRATED/saves/legacy-marker.srm"
-          ! grep -Fq "legacy-source-must-not-remigrate-save" "$MIGRATED/saves/legacy-marker.srm"
-          ! grep -Fq "legacy-source-must-not-remigrate-mod" "$MIGRATED/mod-state.toml"
+          if grep -Fq "legacy-source-must-not-remigrate-save" "$MIGRATED/saves/legacy-marker.srm"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
+          if grep -Fq "legacy-source-must-not-remigrate-mod" "$MIGRATED/mod-state.toml"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           test ! -e "$MIGRATED/.ur-recomp-saves.migrate.tmp"
           test ! -e "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
           test ! -e "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"

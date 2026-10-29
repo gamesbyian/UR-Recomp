@@ -176,7 +176,13 @@ jobs:
 
           cat "$SECOND"
           grep -q "UR_ONBOARDING HIDDEN first_run=0" "$SECOND"
-          ! grep -q "UR_ONBOARDING SHOWN" "$SECOND"
+          if grep -q "UR_ONBOARDING SHOWN" "$SECOND"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
 
       - name: Prove Quick Practice routing can cancel safely
         if: matrix.shard == 'practice'
@@ -212,8 +218,20 @@ jobs:
           grep -q "UR_PRACTICE ROUTE_CANCELLED" "$LOG"
           grep -q "UR_PRACTICE RESTORED" "$LOG"
           grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
-          ! grep -q "UR_PRACTICE RACE_READY" "$LOG"
-          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+          if grep -q "UR_PRACTICE RACE_READY" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
+          if grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
 
           START_DIGEST="$(grep 'UR_PRACTICE STARTED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
           RESTORE_DIGEST="$(grep 'UR_PRACTICE RESTORED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
@@ -308,12 +326,36 @@ jobs:
           grep -q "UR_PRACTICE RESTORED" "$LOG"
           grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_STARTED" "$LOG"
           grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_RACE_READY" "$LOG"
-          ! grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_FAILED" "$LOG"
-          ! grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_TIMEOUT" "$LOG"
-          ! grep -q "UR_PRACTICE COURSE_MISMATCH" "$LOG"
+          if grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_FAILED" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
+          if grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_TIMEOUT" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
+          if grep -q "UR_PRACTICE COURSE_MISMATCH" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           grep -q "script .* dump practice-repeat-results ok" "$LOG"
           grep -q "script .* dump practice-repeat-second-race ok" "$LOG"
-          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+          if grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
 
           python3 - \
             "$DUMPS/practice-repeat-first-race.wram.bin" \
@@ -373,7 +415,13 @@ jobs:
           test -n "$OBSERVED_TRACK"
           test "$OBSERVED_TRACK" = "$LAUNCHED_TRACK"
           test "$OBSERVED_TRACK" = "$PRACTICE_TRACK"
-          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+          if grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
 
           python3 - \
             "$DUMPS/recent-source-race.wram.bin" \
@@ -436,7 +484,13 @@ jobs:
           cat "$AUTHENTIC_LOG"
           grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTHENTIC_LOG"
           grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=0 modern=0" "$AUTHENTIC_LOG"
-          ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
+          if grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
 
       - name: Prove authoritative quick practice and SRAM restoration
         if: matrix.shard == 'practice'
@@ -469,7 +523,13 @@ jobs:
           RESTORE_DIGEST="$(grep 'UR_PRACTICE RESTORED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
           test -n "$START_DIGEST"
           test "$START_DIGEST" = "$RESTORE_DIGEST"
-          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+          if grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           test ! -e "$PRACTICE_RUN"
           test ! -e "$PRACTICE_RUN.input"
           test ! -e "$PRACTICE_RUN.urghost"
@@ -488,8 +548,20 @@ jobs:
 
           cat "$LOG"
           grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$LOG"
-          ! grep -q "UR_ONBOARDING SHOWN" "$LOG"
-          ! grep -q "UR_PRACTICE STARTED" "$LOG"
+          if grep -q "UR_ONBOARDING SHOWN" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
+          if grep -q "UR_PRACTICE STARTED" "$LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
 
       - name: Upload acceptance logs
         if: always()

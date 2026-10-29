@@ -151,9 +151,9 @@ jobs:
       - name: Ghost target profile persistence acceptance
         shell: bash
         run: |
+          # shellcheck disable=SC2016,SC2251
           # The pre-existing inline here-docs intentionally contain literal data
           # and shell `!` probes; don't rewrite their working behavior.
-          # shellcheck disable=SC2016,SC2251
           set -euo pipefail
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
@@ -278,9 +278,9 @@ jobs:
       - name: Profile panel acceptance
         shell: bash
         run: |
+          # shellcheck disable=SC2016,SC2251
           # The pre-existing inline here-docs intentionally contain literal data
           # and shell `!` probes; don't rewrite their working behavior.
-          # shellcheck disable=SC2016,SC2251
           set -euo pipefail
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"

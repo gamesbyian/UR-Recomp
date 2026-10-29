@@ -277,12 +277,29 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             valid = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertEqual(valid.returncode, 0, valid.stderr)
             self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", valid.stdout)
-            # Cold guest and exit save agree with each other, but their
-            # medal is no longer the earned second-result medal.
-            changed = bytearray(second)
+            # A fresh boot may change unrelated transient SRAM bytes. The
+            # typed profile, saved file and guest dump must agree with their
+            # *own cold epoch*, not byte-match the earlier RESULTS snapshot.
+            cold = bytearray(second)
+            cold[0x0050] ^= 1
+            for index in (4, 6):
+                paths[index].write_bytes(cold)
+            paths[5].write_text("stock_sram=" + cold.hex() + newline)
+            transient = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(transient.returncode, 0, transient.stderr)
+            self.assertIn("progression_persisted=1", transient.stdout)
+            # A stale typed profile cannot masquerade as an atomic cold save.
+            paths[5].write_text("stock_sram=" + second.hex() + newline)
+            stale = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(stale.returncode, 0)
+            self.assertIn("typed SRAM/save mismatch", stale.stderr)
+            # Even with a consistent cold profile, losing the earned medal
+            # must fail the independent progression-preservation check.
+            changed = bytearray(cold)
             changed[0x069C] = 0
             paths[4].write_bytes(changed)
             paths[6].write_bytes(changed)
+            paths[5].write_text("stock_sram=" + changed.hex() + newline)
             rejected = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("tour/medal not preserved", rejected.stderr)

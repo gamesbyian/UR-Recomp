@@ -324,8 +324,11 @@ if not source_earned_tour_awarded(first_raw, second_raw):
 # then require the persisted progress and typed result survive unchanged.
 if cold_raw != after_cold:
     raise SystemExit("ONE-03 next earned: fresh process SRAM/save mismatch")
-if typed_snapshot(post_profile) != second_raw:
-    raise SystemExit("ONE-03 next earned: cold process replaced typed earned result")
+# The cold process may legitimately advance volatile SRAM after RESULTS.
+# Require the *same cold epoch* in typed profile, disk save and guest dump;
+# the earned medal/row is independently compared against second_raw below.
+if typed_snapshot(post_profile) != after_cold:
+    raise SystemExit("ONE-03 next earned: cold process typed SRAM/save mismatch")
 # The predicate's final_row/final_medal are function locals, so compare
 # against the source-earned second result directly in this outer scope.
 if (cold_raw[0x1075:0x107A] != second_raw[0x1075:0x107A] or

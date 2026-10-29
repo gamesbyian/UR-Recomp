@@ -1,6 +1,8 @@
 """ROM-free negative controls for genuine 37-frame native/original 2P pixel comparison."""
 import unittest
+from unittest import mock
 
+from tools import qa08_compare_original_moving_source_window as cmp
 from tools.qa08_compare_original_moving_source_window import (
     compare, check_crc, NATIVE_FRAMES, KINDS, WINDOW,
 )
@@ -30,6 +32,34 @@ class OriginalMovingSourceWindowTests(unittest.TestCase):
         self.assertFalse(report["native_production_renderer_fix_authorized"])
         self.assertEqual(report["new_actual_native_original_results"][0][
             "four_real_source_dispositions"]["global"]["prespecified_wrong_RGB5_pixels"], 0)
+
+    def test_duplicate_exact_sources_reuse_scores_without_weakening_controls(self):
+        o, n, c = fixtures()
+        # All synthetic callback/native frames are byte-identical. One exact
+        # byte-pair suffices even when it occurs in the authentic control,
+        # all 37 callbacks, four kinds and both candidate frames.
+        matcher = cmp.rgb5_match
+        with mock.patch.object(cmp, "rgb5_match", wraps=matcher) as actual:
+            report = compare(o, n, c, strict_original=False)
+        self.assertEqual(actual.call_count, 1)
+        for item in report["new_actual_native_original_results"]:
+            for disposition in item["four_real_source_dispositions"].values():
+                self.assertEqual(disposition["prespecified_wrong_RGB5_pixels"], 0)
+                self.assertTrue(disposition["prespecified_pair_has_pixel_parity"])
+
+        # One changed exact frame must not inherit the cached score from a
+        # previous input; even this single RGB5 pixel mismatch stays visible.
+        o, n, c = fixtures()
+        changed = bytearray(BLACK)
+        changed[4 * (130 * W + 27)] = 8
+        n["channel7"][2224] = HEADER + bytes(changed)
+        with mock.patch.object(cmp, "rgb5_match", wraps=matcher) as actual:
+            report = compare(o, n, c, strict_original=False)
+        self.assertEqual(actual.call_count, 2)
+        channel7 = report["new_actual_native_original_results"][1][
+            "four_real_source_dispositions"]["channel7"]
+        self.assertEqual(channel7["prespecified_wrong_RGB5_pixels"], 1)
+        self.assertFalse(channel7["prespecified_pair_has_pixel_parity"])
 
     def test_native_pixel_mismatch_is_reported_not_masked(self):
         o, n, c = fixtures()

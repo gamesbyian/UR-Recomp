@@ -69,6 +69,55 @@ class ArticulatedBlockoutContract(unittest.TestCase):
         with self.assertRaises(ValueError):
             module.part_translation("fake", mount)
 
+    def test_five_named_poses_derive_controls_and_transforms_from_source(self):
+        source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
+        expected = {"upright": (18, 0), "pedal": (88, -5),
+                    "wheelie": (44, 12), "stunt": (120, -9),
+                    "bank": (150, 4)}
+        for name, (phase, lean) in expected.items():
+            with self.subTest(name=name):
+                p, l, transform = module.pose_recipe(source, name)
+                self.assertEqual((p, l), (phase, lean))
+                self.assertEqual(transform[3], (0., 0., 0., 1.))
+                self.assertTrue(all(math.isfinite(v) for row in transform for v in row))
+                self.assertTrue(module.component_source(source, "pedals", pedal_phase=p)
+                                .endswith(f"pedals({phase});\n"))
+                self.assertTrue(module.component_source(source, "saddle", saddle_lean=l)
+                                .endswith(f"saddle({lean});\n"))
+        self.assertEqual(module.pose_recipe(source, "upright")[2], module._identity())
+        self.assertEqual(module.pose_recipe(source, "pedal")[2], module._identity())
+        wheelie = module.pose_recipe(source, "wheelie")[2]
+        self.assertAlmostEqual(wheelie[2][3], 0.16)
+        self.assertAlmostEqual(wheelie[0][2], -math.sin(math.radians(28)))
+        stunt = module.pose_recipe(source, "stunt")[2]
+        self.assertAlmostEqual(stunt[0][3], 1.8 * math.sin(math.radians(130)))
+        self.assertAlmostEqual(stunt[2][3], 1.8 * (1 - math.cos(math.radians(130))))
+        bank = module.pose_recipe(source, "bank")[2]
+        self.assertAlmostEqual(bank[2][1], math.sin(math.radians(11)))
+        self.assertAlmostEqual(bank[1][0], -math.sin(math.radians(8)))
+
+    def test_named_pose_parser_rejects_changed_or_ambiguous_source(self):
+        source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
+        for name in ("fake", "ride", "stunt_cycle"):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                module.pose_recipe(source, name)
+        for broken in (
+            source.replace('else if(p=="wheelie")', 'else if(p=="wheelie") scale([1,2,3])'),
+            source.replace('else if(p=="wheelie")', 'else if(p=="wheelie") shared_rig(pedal=1,seat_lean=1); else if(p=="wheelie")'),
+            source.replace('shared_rig(pedal=44,seat_lean=12);', 'shared_rig(pedal=44,seat_lean=12); extra();'),
+        ):
+            with self.subTest(broken=broken[:70]), self.assertRaises(ValueError):
+                module.pose_recipe(broken, "wheelie")
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            scad = root / "source.scad"
+            scad.write_text(source)
+            with self.assertRaisesRegex(ValueError, "named source pose cannot override"):
+                module.export(scad, root / "out", rig_pose="wheelie", pedal_phase=90)
+            status = json.loads((root / "out" / "articulated_blockout_last_attempt.json").read_text())
+            self.assertEqual(status["status"], "failed")
+            self.assertFalse(status["current_output_usable"])
+
     def test_failed_rerun_does_not_publish_stale_asset_as_current(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

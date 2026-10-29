@@ -31,6 +31,80 @@ END_MARKER = "rig(rig_pose);"
 # The saddle mounting translation is owned by the actual OpenSCAD source.
 # Reject ambiguous/changed structure rather than silently exporting a
 # misleading pivot when the model is refitted.
+POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
+_NUMBER = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)"
+_VECTOR = re.compile(r"(translate|rotate)\s*\(\s*\[\s*(" + _NUMBER +
+                     r")\s*,\s*(" + _NUMBER + r")\s*,\s*(" + _NUMBER +
+                     r")\s*\]\s*\)")
+_RIG_BRANCH = re.compile(r'(?:^|\s)(?:else\s+)?if\s*\(\s*p\s*==\s*"([a-z_]+)"\s*\)', re.M)
+_RIG_CALL = re.compile(r"shared_rig\s*\(\s*pedal\s*=\s*(" + _NUMBER +
+                       r")\s*,\s*seat_lean\s*=\s*(" + _NUMBER + r")\s*\)\s*;\s*\Z")
+
+
+def _matmul(a, b):
+    return tuple(tuple(sum(a[i][k] * b[k][j] for k in range(4))
+                       for j in range(4)) for i in range(4))
+
+
+def _identity():
+    return ((1., 0., 0., 0.), (0., 1., 0., 0.),
+            (0., 0., 1., 0.), (0., 0., 0., 1.))
+
+
+def _transform(kind, xyz):
+    x, y, z = xyz
+    if kind == "translate":
+        m = [list(row) for row in _identity()]
+        for i, value in enumerate(xyz):
+            m[i][3] = value
+        return tuple(tuple(row) for row in m)
+    # OpenSCAD's vector Euler form applies X, then Y, then Z rotations.
+    def axis(which, degrees):
+        c, s = math.cos(math.radians(degrees)), math.sin(math.radians(degrees))
+        if which == "x":
+            return ((1,0,0,0),(0,c,-s,0),(0,s,c,0),(0,0,0,1))
+        if which == "y":
+            return ((c,0,s,0),(0,1,0,0),(-s,0,c,0),(0,0,0,1))
+        return ((c,-s,0,0),(s,c,0,0),(0,0,1,0),(0,0,0,1))
+    return _matmul(_matmul(axis("z", z), axis("y", y)), axis("x", x))
+
+
+def pose_recipe(source: str, name: str):
+    """Read named blockout pose from SCAD, fail closed on changed syntax.
+
+    These are *source-owned blockout* transforms, not registered 1994 poses.
+    Every numeric control and outer transform is extracted, not duplicated.
+    """
+    if name not in POSES:
+        raise ValueError("unknown source blockout pose")
+    matches = list(_RIG_BRANCH.finditer(source))
+    found = [i for i, match in enumerate(matches) if match.group(1) == name]
+    if len(found) != 1:
+        raise ValueError("expected one source-owned pose branch")
+    i = found[0]
+    start = matches[i].end()
+    end = matches[i+1].start() if i + 1 < len(matches) else source.find("}", start)
+    if end < 0:
+        raise ValueError("unterminated source-owned pose branch")
+    body = source[start:end].strip()
+    call = _RIG_CALL.search(body)
+    if call is None:
+        raise ValueError("source-owned pose must end in one shared_rig call")
+    phase, lean = map(float, call.groups())
+    validate_pose_controls(phase, lean)
+    prefix = body[:call.start()]
+    matrix = _identity()
+    pos = 0
+    for op in _VECTOR.finditer(prefix):
+        if prefix[pos:op.start()].strip():
+            raise ValueError("unsupported source-owned pose transform")
+        matrix = _matmul(matrix, _transform(op.group(1), tuple(map(float, op.groups()[1:]))))
+        pos = op.end()
+    if prefix[pos:].strip():
+        raise ValueError("unsupported source-owned pose transform")
+    return phase, lean, matrix
+
+
 SADDLE_TRANSLATE = re.compile(
     r"module\s+saddle\s*\(\s*lean\s*=\s*0\s*\)\s*\{\s*"
     r"translate\s*\(\s*\[\s*([+-]?\d+(?:\.\d+)?)\s*,\s*"
@@ -98,7 +172,8 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
 
 
 def export(source: Path, out_dir: Path, *, timeout: int = 90,
-           pedal_phase: float = 18, saddle_lean: float = 0) -> dict:
+           pedal_phase: float | None = None, saddle_lean: float | None = None,
+           rig_pose: str = "custom") -> dict:
     source_bytes = source.read_bytes()
     base = source_bytes.decode("utf-8")
     source_digest = sha256_bytes(source_bytes)
@@ -114,8 +189,16 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
              "current_output_usable": False}
     _write_json_atomic(last_attempt, state)
     try:
-        validate_pose_controls(pedal_phase, saddle_lean)
         source_without_entrypoint(base)
+        if rig_pose == "custom":
+            pedal_phase = 18.0 if pedal_phase is None else pedal_phase
+            saddle_lean = 0.0 if saddle_lean is None else saddle_lean
+            validate_pose_controls(pedal_phase, saddle_lean)
+            pose_matrix = _identity()
+        else:
+            if pedal_phase is not None or saddle_lean is not None:
+                raise ValueError("named source pose cannot override its authored controls")
+            pedal_phase, saddle_lean, pose_matrix = pose_recipe(base, rig_pose)
         saddle_mount = saddle_mount_from_source(base)
         openscad = shutil.which("openscad")
         if not openscad:
@@ -126,6 +209,8 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
         report = {"schema": "ur-art4k-articulated-blockout/1",
                   "attempt_id": attempt_id, "source_sha256": source_digest,
                   "source_saddle_mount": list(saddle_mount),
+                  "rig_pose": rig_pose,
+                  "source_pose_transform": [list(row) for row in pose_matrix],
                   "pose_controls": {"pedal_phase_degrees": pedal_phase,
                                     "saddle_lean_degrees": saddle_lean},
                   "pose_source_registered_to_original_game": False,
@@ -157,12 +242,14 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                 mesh.visual.vertex_colors = np.array(rgba, dtype=np.uint8)
                 transform = np.eye(4)
                 transform[:3, 3] = part_translation(name, saddle_mount)
+                node_transform = np.array(pose_matrix) @ transform
                 scene.add_geometry(mesh, node_name=name, geom_name=name,
-                                   transform=transform)
+                                   transform=node_transform)
                 report["components"].append({"name": name,
                     "triangles": int(len(mesh.faces)),
                     "watertight": bool(mesh.is_watertight),
                     "pivot_translation": list(part_translation(name, saddle_mount)),
+                    "world_pivot_translation": [float(v) for v in node_transform[:3, 3]],
                     "editable_node": True})
             stage = work / "published"
             stage.mkdir()
@@ -180,6 +267,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
             os.rename(stage, destination)
         pointer = {"schema": "ur-art4k-export-current/1",
                    "attempt_id": attempt_id, "source_sha256": source_digest,
+                   "rig_pose": rig_pose,
                    "pose_controls": report["pose_controls"],
                    "glb_path": f"attempts/{attempt_id}/unicycle_articulated_blockout.glb",
                    "receipt_path": f"attempts/{attempt_id}/articulated_blockout_receipt.json",
@@ -205,15 +293,18 @@ def main() -> None:
     parser.add_argument("source", type=Path)
     parser.add_argument("out_dir", type=Path)
     parser.add_argument("--timeout", type=int, default=90)
-    parser.add_argument("--pedal-phase", type=float, default=18,
+    parser.add_argument("--rig-pose", choices=("custom",) + POSES, default="custom",
+                        help="source-owned BLOCKOUT pose, never original-game cadence")
+    parser.add_argument("--pedal-phase", type=float, default=None,
                         help="blockout crank phase in degrees (-360..360), not original cadence")
-    parser.add_argument("--saddle-lean", type=float, default=0,
+    parser.add_argument("--saddle-lean", type=float, default=None,
                         help="blockout saddle pitch in degrees (-30..30), not original motion")
     args = parser.parse_args()
     if args.timeout < 1 or args.timeout > 600:
         parser.error("timeout must be 1..600 seconds")
     print(json.dumps(export(args.source, args.out_dir, timeout=args.timeout,
-                            pedal_phase=args.pedal_phase, saddle_lean=args.saddle_lean),
+                            pedal_phase=args.pedal_phase, saddle_lean=args.saddle_lean,
+                            rig_pose=args.rig_pose),
                      indent=2))
 
 

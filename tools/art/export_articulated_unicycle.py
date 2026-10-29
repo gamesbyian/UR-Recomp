@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import uuid
@@ -52,10 +53,25 @@ def source_without_entrypoint(source: str) -> str:
     return stripped[:-len(END_MARKER)].rstrip() + "\n"
 
 
-def component_source(base: str, name: str) -> str:
+def validate_pose_controls(pedal_phase: float, saddle_lean: float) -> None:
+    """Limit experimental pose probes to the existing blockout's local axes."""
+    if not math.isfinite(pedal_phase) or not -360 <= pedal_phase <= 360:
+        raise ValueError("pedal phase must be finite and within -360..360 degrees")
+    if not math.isfinite(saddle_lean) or not -30 <= saddle_lean <= 30:
+        raise ValueError("saddle lean must be finite and within -30..30 degrees")
+
+
+def component_source(base: str, name: str, *, pedal_phase: float = 18,
+                     saddle_lean: float = 0) -> str:
     if name not in PARTS:
         raise ValueError("unknown component")
-    return source_without_entrypoint(base) + "\n" + PARTS[name][0] + "\n"
+    validate_pose_controls(pedal_phase, saddle_lean)
+    call = PARTS[name][0]
+    if name == "pedals":
+        call = f"pedals({pedal_phase:g});"
+    elif name == "saddle":
+        call = f"saddle({saddle_lean:g});"
+    return source_without_entrypoint(base) + "\n" + call + "\n"
 
 
 def part_translation(name: str, saddle_mount: tuple[float, float, float]) -> tuple[float, float, float]:
@@ -81,7 +97,8 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def export(source: Path, out_dir: Path, *, timeout: int = 90) -> dict:
+def export(source: Path, out_dir: Path, *, timeout: int = 90,
+           pedal_phase: float = 18, saddle_lean: float = 0) -> dict:
     source_bytes = source.read_bytes()
     base = source_bytes.decode("utf-8")
     source_digest = sha256_bytes(source_bytes)
@@ -97,6 +114,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90) -> dict:
              "current_output_usable": False}
     _write_json_atomic(last_attempt, state)
     try:
+        validate_pose_controls(pedal_phase, saddle_lean)
         source_without_entrypoint(base)
         saddle_mount = saddle_mount_from_source(base)
         openscad = shutil.which("openscad")
@@ -108,6 +126,9 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90) -> dict:
         report = {"schema": "ur-art4k-articulated-blockout/1",
                   "attempt_id": attempt_id, "source_sha256": source_digest,
                   "source_saddle_mount": list(saddle_mount),
+                  "pose_controls": {"pedal_phase_degrees": pedal_phase,
+                                    "saddle_lean_degrees": saddle_lean},
+                  "pose_source_registered_to_original_game": False,
                   "original_character_likeness_approved": False,
                   "shipping_art_approved": False,
                   "animation_cadence_source_registered": False,
@@ -119,7 +140,8 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90) -> dict:
             for name, (_, rgba) in PARTS.items():
                 scad = work / f"{name}.scad"
                 stl = work / f"{name}.stl"
-                scad.write_text(component_source(base, name), encoding="utf-8")
+                scad.write_text(component_source(base, name, pedal_phase=pedal_phase,
+                                                 saddle_lean=saddle_lean), encoding="utf-8")
                 run = subprocess.run([openscad, "-o", str(stl), str(scad)],
                                      capture_output=True, text=True,
                                      timeout=timeout, check=False)
@@ -158,6 +180,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90) -> dict:
             os.rename(stage, destination)
         pointer = {"schema": "ur-art4k-export-current/1",
                    "attempt_id": attempt_id, "source_sha256": source_digest,
+                   "pose_controls": report["pose_controls"],
                    "glb_path": f"attempts/{attempt_id}/unicycle_articulated_blockout.glb",
                    "receipt_path": f"attempts/{attempt_id}/articulated_blockout_receipt.json",
                    "glb_sha256": report["glb_sha256"],
@@ -182,10 +205,15 @@ def main() -> None:
     parser.add_argument("source", type=Path)
     parser.add_argument("out_dir", type=Path)
     parser.add_argument("--timeout", type=int, default=90)
+    parser.add_argument("--pedal-phase", type=float, default=18,
+                        help="blockout crank phase in degrees (-360..360), not original cadence")
+    parser.add_argument("--saddle-lean", type=float, default=0,
+                        help="blockout saddle pitch in degrees (-30..30), not original motion")
     args = parser.parse_args()
     if args.timeout < 1 or args.timeout > 600:
         parser.error("timeout must be 1..600 seconds")
-    print(json.dumps(export(args.source, args.out_dir, timeout=args.timeout),
+    print(json.dumps(export(args.source, args.out_dir, timeout=args.timeout,
+                            pedal_phase=args.pedal_phase, saddle_lean=args.saddle_lean),
                      indent=2))
 
 

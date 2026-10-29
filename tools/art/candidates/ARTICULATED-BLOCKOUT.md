@@ -11,6 +11,14 @@ python3 tools/art/export_articulated_unicycle.py tools/art/candidates/unicycle_s
 python3 -m unittest discover -s tests/unit -p 'test_export_articulated_unicycle.py'
 ```
 
+**Two actual source-module pose studies:** The exporter now permits bounded, explicitly experimental `--pedal-phase` (−360..360 degrees, default 18) and `--saddle-lean` (−30..30 degrees, default 0). For the existing blockout's named `pedal` pose, use a separate output directory and the **same** OpenSCAD source:
+
+```sh
+python3 tools/art/export_articulated_unicycle.py tools/art/candidates/unicycle_shared_rig.scad /tmp/ur-art4k-pedal --pedal-phase 88 --saddle-lean -5
+```
+
+These values are copied from the recovered blockout's `rig("pedal")` branch, **not from a measured original game pose**. Each GLB independently evaluates the OpenSCAD `pedals(phase)` and `saddle(lean)` modules, preserving the pedal platforms' unrotated orientation. Rotating the entire fused pedals node in a GLB would be incorrect: the cranks move with phase, while the pedal bodies remain level in the source module. The other three components retain the same source geometry. The output receipt and atomic success pointer record both control values; both outputs remain explicitly unapproved. These are separate static poses, not glTF animation channels, original source cadence, a physically rigged crank/pedal hierarchy, or a replacement for registered native gameplay.
+
 **Publication contract:** Every invocation writes `articulated_blockout_last_attempt.json` with `running`, `failed` or `succeeded` status and the exact source SHA-256. Successful exports stage the GLB and receipt privately, then publish both together into a **unique immutable** `attempts/<id>/` directory. `articulated_blockout_current.json` is atomically replaced only after both files are complete and identifies their relative paths and SHA-256 digests. A failed or interrupted rerun leaves an earlier successful attempt and pointer intact, **but does not represent that earlier asset as the current run**. Inspect `last_attempt.status` and its `attempt_id` against `current.attempt_id` before trusting the latest command's result. Do not infer success from the existence of an old GLB or receipt. A failed run intentionally leaves the previous good files available for recovery; no automatic deletion occurs. Filesystem atomic rename is scoped to one local filesystem, not networked/SMB transactional durability.
 
 The exporter rejects empty/nonfinite/nonwatertight component meshes and emits source/GLB SHA-256, part pivots and explicitly false likeness, cadence and shipping approval. OpenSCAD and Trimesh are **optional offline authoring dependencies**, never runtime or CI prerequisites.

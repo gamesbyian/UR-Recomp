@@ -1,6 +1,7 @@
 """Pure contract tests for the optional ART-4K articulated WIP exporter."""
 import importlib.util
 import json
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -29,6 +30,26 @@ class ArticulatedBlockoutContract(unittest.TestCase):
                 self.assertTrue(text.rstrip().endswith(module.PARTS[name][0]))
         with self.assertRaises(ValueError):
             module.component_source(source, "unknown")
+
+    def test_two_pose_controls_change_only_the_owned_components(self):
+        source = "module rig(x) {}\nrig(rig_pose);\n"
+        for name in ("tire", "rim_and_hub", "fork_and_frame"):
+            self.assertEqual(module.component_source(source, name),
+                             module.component_source(source, name, pedal_phase=88,
+                                                     saddle_lean=-5))
+        self.assertTrue(module.component_source(source, "pedals").endswith("pedals(18);\n"))
+        self.assertTrue(module.component_source(source, "saddle").endswith("saddle(0);\n"))
+        self.assertTrue(module.component_source(source, "pedals", pedal_phase=88).endswith(
+            "pedals(88);\n"))
+        self.assertTrue(module.component_source(source, "saddle", saddle_lean=-5).endswith(
+            "saddle(-5);\n"))
+        for phase, lean in ((math.nan, 0), (math.inf, 0), (-361, 0),
+                            (361, 0), (18, math.nan), (18, math.inf),
+                            (18, -31), (18, 31)):
+            with self.subTest(phase=phase, lean=lean):
+                with self.assertRaises(ValueError):
+                    module.component_source(source, "saddle", pedal_phase=phase,
+                                            saddle_lean=lean)
 
     def test_saddle_pivot_comes_from_geometry_source(self):
         source = "module saddle(lean=0) { translate([0.04,0,2.27])rotate([0,lean,0]) {} }"

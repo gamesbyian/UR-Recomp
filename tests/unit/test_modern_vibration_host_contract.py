@@ -52,8 +52,8 @@ class ModernVibrationHostContractTests(unittest.TestCase):
             "UR_VIBRATION SELECTED enabled=0",
             "'^vibration_enabled=0$'",
             "vibration changed the authoritative race outcome",
-            '! grep -q "UR_HAPTIC PULSE" "$WORK/off.log"',
-            '! grep -q "UR_HAPTIC PULSE" "$WORK/authentic.log"',
+            'assert_absent_grep -q "UR_HAPTIC PULSE" "$WORK/off.log" || exit 1',
+            'assert_absent_grep -q "UR_HAPTIC PULSE" "$WORK/authentic.log" || exit 1',
         ):
             self.assertIn(marker, harness)
         workflow = WORKFLOW.read_text(encoding="utf-8")

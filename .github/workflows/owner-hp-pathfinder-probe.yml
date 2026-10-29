@@ -40,12 +40,15 @@ jobs:
         working-directory: pathfinder
         run: |
           node --version
-          npm --version
-          npm ci --no-audit --no-fund
+          call npm --version
+          call npm ci --include=dev --no-audit --no-fund
+          if errorlevel 1 exit /b 1
+          if not exist node_modules\esbuild\package.json exit /b 7
       - name: Run bounded real Pathfinder solver work
         shell: cmd
         working-directory: pathfinder
         run: |
+          if not exist "%RUNNER_TEMP%\hp-pathfinder" mkdir "%RUNNER_TEMP%\hp-pathfinder"
           node scripts/run-bundled.mjs scripts/solver-speed-probe.mjs --corpus=published --count=16 --work-budget=250000 --budget-ms=10000 --out="%RUNNER_TEMP%\hp-pathfinder\speed.json"
           if errorlevel 1 exit /b 1
           git rev-parse HEAD > "%RUNNER_TEMP%\hp-pathfinder\source-sha.txt"

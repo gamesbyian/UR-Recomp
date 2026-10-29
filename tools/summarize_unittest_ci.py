@@ -30,7 +30,7 @@ def summarize(root: Path, metadata: dict[str, str]) -> dict:
     expected = None
     if manifest.is_file() and not manifest.is_symlink():
         raw_count = manifest.read_text(encoding="utf-8").strip()
-        if re.fullmatch(r"[2-4]", raw_count):
+        if re.fullmatch(r"[1-4]", raw_count):
             expected = int(raw_count)
     shards = []
     found = set(exits) | {m.group(1) for f in root.glob("unit-shard*.log")

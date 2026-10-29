@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Archive consumer: injected verified report + synthetic retained ZIP."""
 import hashlib
+from functools import lru_cache
 from pathlib import Path
 import tempfile
 import unittest
@@ -12,7 +13,13 @@ from tests.unit.test_qa_modern_visual_diagnostics import (
 from tools import qa_modern_visual_archive_cases as ac
 
 
+@lru_cache(maxsize=8)
 def frame_png(lw, out_w, out_h, focus=True):
+    """Immutable deterministic PNG fixture; reusing it changes no pixels.
+
+    The full unit suite repeatedly renders identical 1280x720 and 1024x768
+    fixtures. Cache only fixture bytes, never analysis results or source pins.
+    """
     grid, h = busy(lw)
     if focus:
         put(grid, lw, 12, 60, 3, 16, BAR)
@@ -40,6 +47,9 @@ class ArchiveCasesTest(unittest.TestCase):
         wide = frame_png(256, 1280, 720)
         compact = frame_png(256, 1024, 768)
         other = frame_png(342, 1280, 720, focus=False)
+        # Identity proves repeated requests reuse the exact immutable bytes.
+        self.assertIs(wide, frame_png(256, 1280, 720))
+        self.assertIs(compact, frame_png(256, 1024, 768))
         with tempfile.TemporaryDirectory() as tmp:
             zp = self.make(tmp, {"visual-1280x720": wide, "visual-1024x768": compact,
                                  "records": other})

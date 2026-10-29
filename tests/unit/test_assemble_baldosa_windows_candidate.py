@@ -158,18 +158,18 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn('if "%ERRORLEVEL%"=="8" goto UR-BALDOSA-SAVE-FAILURE', script)
         self.assertIn('if "%ERRORLEVEL%"=="9" goto UR-BALDOSA-SWITCH-FAILURE', script)
         self.assertIn("UR-BALDOSA-SWITCH-FAILED: The current racer was saved", script)
-        self.assertIn("exit /b 9", script)
+        self.assertIn('set "UR_BALDOSA_EXIT_CODE=9"', script)
         self.assertIn(':UR-BALDOSA-SAVE-FAILURE', script)
         self.assertIn("UR-BALDOSA-SAVE-FAILED: This game session", script)
-        self.assertIn("exit /b 8", script)
+        self.assertIn('set "UR_BALDOSA_EXIT_CODE=8"', script)
         self.assertLess(script.index('if "%ERRORLEVEL%"=="8"'),
-                        script.index("exit /b %ERRORLEVEL%"))
+                        script.index('set "UR_BALDOSA_EXIT_CODE=%ERRORLEVEL%"'))
         self.assertIn("UR-BALDOSA-STARTUP-PROFILE-REJECTED", script)
         self.assertIn("Preserve both the raw save and Modern profile files", script)
-        self.assertIn("exit /b 7", script)
+        self.assertIn('set "UR_BALDOSA_EXIT_CODE=7"', script)
         self.assertLess(script.index('if "%ERRORLEVEL%"=="7"'),
-                        script.index("exit /b %ERRORLEVEL%"))
-        self.assertEqual(script.count("exit /b %ERRORLEVEL%"), 1)
+                        script.index('set "UR_BALDOSA_EXIT_CODE=%ERRORLEVEL%"'))
+        self.assertEqual(script.count("exit /b %UR_BALDOSA_EXIT_CODE%"), 1)
         self.assertIn('set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"', script)
         self.assertIn(':UR-BALDOSA-NATIVE-START', script)
         self.assertIn('goto UR-BALDOSA-REBOOT-FIRST-RACER', script)
@@ -198,8 +198,8 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                         script.rindex("goto UR-BALDOSA-NATIVE-START"))
         self.assertIn('type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"', script)
         self.assertIn('Only the named target is validated', script)
-        self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)', script)
-        self.assertIn('if defined UR_BALDOSA_NO_HOLD exit /b 7', script)
+        self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)', script)
+        self.assertIn('if defined UR_BALDOSA_NO_HOLD (set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)', script)
         self.assertIn('if not "%ERRORLEVEL%"=="89"', script)
         # R may fail before any archive, but T can write raw before journal
         # removal fails. A refusal cannot promise that no bytes changed.
@@ -219,7 +219,7 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
 
     def test_launcher_checks_real_staging_writability_before_guest(self):
         script = candidate.launcher().decode("utf-8")
-        # Existing directory existence and cd /d are not write permission
+        # Existing directory existence and pushd are not write permission
         # checks. A refused new-file write must fail before any guest frames.
         self.assertIn("[IO.FileMode]::CreateNew", script)
         self.assertIn("[IO.FileAccess]::Write", script)
@@ -238,12 +238,95 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         # This check is an early fail-closed diagnostic, not evidence of
         # full-volume short-write or electrical-outage resilience.
 
+    def test_launcher_pushd_and_single_cleanup_preserve_all_exit_classes(self):
+        script = candidate.launcher().decode("utf-8")
+        # CD /D rejects UNC roots even though the preflight accepts them.
+        # PUSHD maps an accessible UNC share to a temporary drive; POPD
+        # must release that mapping on every post-launch exit, including
+        # profile recovery and save/switch refusal.
+        self.assertIn("setlocal EnableExtensions DisableDelayedExpansion", script)
+        self.assertIn('pushd "%UR_RECOMP_USER_DATA_ROOT%"', script)
+        self.assertNotIn('cd /d "%UR_RECOMP_USER_DATA_ROOT%"', script)
+        self.assertLess(script.index('pushd "%UR_RECOMP_USER_DATA_ROOT%"'),
+                        script.index(':UR-BALDOSA-NATIVE-START'))
+        self.assertEqual(script.splitlines().count(':UR-BALDOSA-CLEANUP'), 1)
+        self.assertEqual(script.count('popd\r\n'), 1)
+        self.assertIn('popd\r\nexit /b %UR_BALDOSA_EXIT_CODE%', script)
+        post_pushd = script.split('pushd "%UR_RECOMP_USER_DATA_ROOT%"', 1)[1]
+        # After successful PUSHD only the HOLD subroutine and final cleanup
+        # may use EXIT /B. All session branches must first pass through POPD.
+        exits = [line.strip() for line in post_pushd.splitlines()
+                 if line.strip().startswith("exit /b")]
+        self.assertEqual(exits, ["exit /b 0",
+                                 "exit /b %UR_BALDOSA_EXIT_CODE%"])
+        for code in (0, 7, 8, 9):
+            self.assertIn(f'set "UR_BALDOSA_EXIT_CODE={code}"', post_pushd)
+        self.assertIn('set "UR_BALDOSA_EXIT_CODE=%ERRORLEVEL%"', post_pushd)
+        self.assertIn('if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Cannot enter user folder.', script)
+
+    @unittest.skipUnless(os.name == "nt", "requires Windows cmd.exe and PowerShell")
+    def test_win32_launcher_restores_callers_cwd_for_all_native_exit_classes(self):
+        # Real CMD/PUSHD/POPD test with the canonical local ROM and a tiny
+        # disposable managed executable. No game frames or save files run.
+        rom = (Path(__file__).resolve().parents[2] / "reference" /
+               "roms" / "retail" / candidate.ROM)
+        if not rom.is_file():
+            self.skipTest("canonical ROM unavailable in this checkout")
+        self.assertEqual(candidate.sha256(rom.read_bytes()), candidate.USA_SHA256)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            package = root / "package with spaces"
+            package.mkdir()
+            user_root = root / "user data"
+            user_root.mkdir()
+            start = root / "caller cwd"
+            start.mkdir()
+            (package / candidate.LAUNCHER).write_bytes(candidate.launcher())
+            shutil.copyfile(rom, package / candidate.ROM)
+            cs = package / "stub.cs"
+            cs.write_text(
+                'using System; public class Program { '
+                'public static int Main(string[] args) { '
+                'return int.Parse(Environment.GetEnvironmentVariable("UR_FAKE_GAME_EXIT") ?? "0"); }}',
+                encoding="utf-8")
+            env = os.environ.copy()
+            env["UR_TEST_CSHARP_SOURCE"] = str(cs)
+            env["UR_TEST_CSHARP_EXE"] = str(package / candidate.EXE)
+            compiled = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+                 "Add-Type -Path $env:UR_TEST_CSHARP_SOURCE "
+                 "-OutputAssembly $env:UR_TEST_CSHARP_EXE "
+                 "-OutputType ConsoleApplication"],
+                env=env, capture_output=True, text=True, timeout=60)
+            self.assertEqual(compiled.returncode, 0,
+                             compiled.stdout + compiled.stderr)
+            wrapper = root / "caller.cmd"
+            wrapper.write_bytes((
+                "@echo off\r\n"
+                f'call "{package / candidate.LAUNCHER}"\r\n'
+                'set "UR_TEST_NATIVE_EXIT=%ERRORLEVEL%"\r\n'
+                "echo UR_TEST_AFTER_CWD=%CD%\r\n"
+                "exit /b %UR_TEST_NATIVE_EXIT%\r\n"
+            ).encode("utf-8"))
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_root)
+            env["UR_BALDOSA_NO_HOLD"] = "1"
+            for code in (0, 7, 8, 9, 23):
+                with self.subTest(code=code):
+                    env["UR_FAKE_GAME_EXIT"] = str(code)
+                    result = subprocess.run(
+                        ["cmd.exe", "/d", "/c", str(wrapper)],
+                        cwd=start, env=env, capture_output=True, text=True,
+                        timeout=45)
+                    output = result.stdout + result.stderr
+                    self.assertEqual(result.returncode, code, output)
+                    self.assertIn("UR_TEST_AFTER_CWD=" + str(start), output)
+
     def test_launcher_isolates_windows_powershell_from_pwsh7_module_paths(self):
         script = candidate.launcher().decode("utf-8")
         # The child process must use the Windows PowerShell 5.1 default
         # module path, not a PowerShell 7-only inherited PSModulePath.
         self.assertEqual(script.count('set "PSModulePath="'), 1)
-        self.assertLess(script.index("setlocal DisableDelayedExpansion"),
+        self.assertLess(script.index("setlocal EnableExtensions DisableDelayedExpansion"),
                         script.index('set "PSModulePath="'))
         self.assertLess(script.index('set "PSModulePath="'),
                         script.index("powershell.exe -NoProfile"))

@@ -498,8 +498,8 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             archive, source, digest = self.make(Path(tmp))
             def change(name, value):
                 if name.endswith(producer.LAUNCHER):
-                    return value.replace(b"setlocal DisableDelayedExpansion",
-                                         b"setlocal EnableDelayedExpansion")
+                    return value.replace(b"DisableDelayedExpansion",
+                                         b"EnableDelayedExpansion")
                 return value
             resigned(archive, change)
             revised = qa.file_digest(archive)
@@ -513,8 +513,8 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             with zipfile.ZipFile(archive) as z:
                 original = {name: z.read(name) for name in z.namelist()}
             mutated = producer.launcher().replace(
-                b"setlocal DisableDelayedExpansion",
-                b"setlocal EnableDelayedExpansion")
+                b"DisableDelayedExpansion",
+                b"EnableDelayedExpansion")
             manifest = json.loads(original[producer.PREFIX + producer.MANIFEST])
             for entry in manifest["immutable_files"]:
                 if entry["path"] == producer.LAUNCHER:
@@ -530,6 +530,71 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             resigned(archive, change)
             with self.assertRaisesRegex(ValueError, "noncanonical CMD encoding or entry"):
                 qa.audit(archive, source, qa.file_digest(archive))
+
+    def test_mapped_launcher_cleanup_is_an_independent_zip_safety_boundary(self):
+        # The independent audit must not accept a rehashed ZIP whose mapped
+        # launcher omits POPD or silently discards the native exit status.
+        launcher = producer.launcher()
+        self.assertTrue(qa.check_launcher_policy(launcher))
+        for before, after in (
+            (b"\r\npopd\r\n", b"\r\nrem popd missing\r\n"),
+            (b"exit /b %UR_BALDOSA_EXIT_CODE%", b"exit /b 0"),
+            (b'pushd "%UR_RECOMP_USER_DATA_ROOT%"',
+             b'cd /d "%UR_RECOMP_USER_DATA_ROOT%"'),
+        ):
+            with self.subTest(before=before):
+                self.assertIn(before, launcher)
+                with self.assertRaisesRegex(
+                        ValueError, "canonical safety boundary"):
+                    qa.check_launcher_policy(launcher.replace(before, after))
+
+    def test_mapped_launcher_rehashed_failure_exit_cannot_bypass_popd(self):
+        # A valid manifest and fresh ZIP digest must not authorize a branch
+        # that exits directly after a successful PUSHD, leaking UNC mapping
+        # and changing the invoking CMD session's working directory.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive, source, _ = self.make(root)
+            with zipfile.ZipFile(archive) as z:
+                originals = {n: z.read(n) for n in z.namelist()}
+            old = (b'if not "%~1"=="" (set "UR_BALDOSA_EXIT_CODE=9" '
+                   b'& goto UR-BALDOSA-CLEANUP)')
+            new = b'if not "%~1"=="" exit /b 9'
+            launcher = originals[producer.PREFIX + producer.LAUNCHER]
+            self.assertEqual(launcher.count(old), 1)
+            malicious = launcher.replace(old, new)
+            with self.assertRaisesRegex(ValueError, "bypasses mapped cleanup"):
+                qa.check_launcher_policy(malicious)
+            manifest = json.loads(originals[producer.PREFIX + producer.MANIFEST])
+            for item in manifest["immutable_files"]:
+                if item["path"] == producer.LAUNCHER:
+                    item["bytes"] = len(malicious)
+                    item["sha256"] = hashlib.sha256(malicious).hexdigest()
+            revised_manifest = (json.dumps(manifest, sort_keys=True, indent=2)
+                                + "\n").encode()
+            def revise(name, data):
+                if name.endswith(producer.LAUNCHER):
+                    return malicious
+                if name.endswith(producer.MANIFEST):
+                    return revised_manifest
+                return data
+            resigned(archive, revise)
+            with self.assertRaisesRegex(ValueError, "bypasses mapped cleanup"):
+                qa.audit(archive, source, qa.file_digest(archive))
+
+    def test_mapped_launcher_cannot_downgrade_to_legacy_exit_contract(self):
+        launcher = producer.launcher()
+        mapped = b"setlocal EnableExtensions DisableDelayedExpansion"
+        legacy = b"setlocal DisableDelayedExpansion"
+        final = b"exit /b %UR_BALDOSA_EXIT_CODE%"
+        self.assertEqual(launcher.count(mapped), 1)
+        self.assertEqual(launcher.count(final), 1)
+        # Retaining PUSHD but forging the old entry and exit markers used
+        # to bypass the independent consumer's mapped-path branch.
+        downgraded = launcher.replace(mapped, legacy).replace(
+            final, b"exit /b %ERRORLEVEL%")
+        with self.assertRaisesRegex(ValueError, "canonical safety boundary"):
+            qa.check_launcher_policy(downgraded)
 
     def test_evolving_safe_product_launcher_is_not_rejected_by_old_qa_template(self):
         with tempfile.TemporaryDirectory() as tmp:

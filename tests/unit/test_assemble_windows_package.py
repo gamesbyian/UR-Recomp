@@ -47,6 +47,78 @@ class WindowsPackageTests(unittest.TestCase):
             check=check,
         )
 
+    def test_launcher_unc_pushd_has_one_cleanup_for_every_exit(self):
+        launcher = package_tool.launcher_text("unc-cleanup-contract")
+        self.assertIn('pushd "%~dp0" 2>nul', launcher)
+        self.assertNotIn('cd /d "%~dp0"', launcher)
+        # 24 guarded refusals plus the normal native-process exit.
+        self.assertEqual(launcher.count("goto launcher_cleanup"), 25)
+        self.assertEqual(launcher.count("exit /b "), 3)
+        self.assertIn(
+            ":launcher_cleanup\r\npopd\r\nexit /b %UR_GAME_RC%\r\n",
+            launcher,
+        )
+        self.assertIn(
+            "if errorlevel 1 (echo UR-STARTUP-RUNTIME-DATA: "
+            "cannot enter the extracted package directory.",
+            launcher,
+        )
+
+    def test_windows_launcher_restores_caller_cwd_on_success_and_refusal(self):
+        # Real CMD process: a mapped UNC drive must be POPD-ed just as a
+        # local PUSHD must restore the caller's original working directory.
+        # This exercises both exit classes without requiring an SMB share.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "portable & game! (source)"
+            payload.mkdir()
+            caller = base / "caller & shell!"
+            caller.mkdir()
+            user_data = base / "user & save!"
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            launcher = payload / package_tool.LAUNCHER_NAME
+            package_tool.write_launcher(launcher, "cwd-restore-test")
+            env = os.environ.copy()
+            for case in ("success", "missing-rom", "root-inside-package"):
+                with self.subTest(case=case):
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(
+                        payload / "forbidden" if case == "root-inside-package"
+                        else user_data
+                    )
+                    if case == "missing-rom":
+                        (payload / package_tool.ROM_NAME).unlink()
+                    command = f'call "{launcher}" & cd'
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", command],
+                        cwd=caller, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertTrue(proc.stdout.splitlines(), proc.stderr)
+                    self.assertEqual(
+                        proc.stdout.splitlines()[-1].casefold(),
+                        str(caller).casefold(),
+                        proc.stdout + proc.stderr,
+                    )
+                    if case == "missing-rom":
+                        self.assertIn("UR-STARTUP-ROM-MISSING", proc.stderr)
+                    elif case == "root-inside-package":
+                        self.assertIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+                    else:
+                        self.assertIn(
+                            "process_exit=0",
+                            (user_data / "diagnostics" / "startup.log").read_text(
+                                encoding="utf-8"
+                            ),
+                        )
+
     def test_windows_launcher_retains_metacharacter_paths_in_startup_log(self):
         # Real CMD parsing, not a string-only policy assertion. Only the
         # hosted Windows package gate runs this; Linux tooling skips it.

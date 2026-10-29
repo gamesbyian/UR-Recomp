@@ -25,9 +25,9 @@ jobs:
       - name: Expose machine CMake to Windows runner service
         shell: cmd
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
-      - name: Allow Windows runner service to execute PowerShell scripts
+      - name: Enable PowerShell scripts for the runner service account
         shell: cmd
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -Scope LocalMachine -ExecutionPolicy RemoteSigned -Force"
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

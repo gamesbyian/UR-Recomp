@@ -102,6 +102,20 @@ class RF094DSPSource(unittest.TestCase):
         self.assertIn("QA01RF094NATIVE_TRUNCATED", flow)
         self.assertNotIn("schedule:\n", flow)
 
+    def test_campaign_artifact_retains_actual_rf094_json_and_raw_logs(self):
+        flow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text()
+        block = flow.split(
+            "      - name: Always retain per-case receipt and bounded diagnostic logs\n", 1
+        )[1].split("\n  aggregate:", 1)[0]
+        self.assertIn("uses: actions/upload-artifact@v4", block)
+        for suffix in (
+            "qa01-rf094-spc-dsp-followthrough.json",
+            "work/${{ matrix.case }}/replay/reference.log",
+            "work/${{ matrix.case }}/replay/native.log",
+        ):
+            with self.subTest(suffix=suffix):
+                self.assertIn("            ${{ runner.temp }}/qa01-case/" + suffix, block)
+
 
 class RF094Receipt(unittest.TestCase):
     @staticmethod

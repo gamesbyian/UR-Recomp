@@ -75,6 +75,19 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
             {"shared": False, "onboarding": False, "ui": True},
         )
 
+    def test_shared_negative_assertion_helper_selects_actual_onboarding_consumer(self):
+        helper = "tests/native/assert_absent_grep.sh"
+        self.assertEqual(
+            classifier.classify_paths([helper]),
+            {"shared": False, "onboarding": True, "ui": False},
+        )
+        self.assertEqual(
+            classifier.load_patterns(MANIFESTS["onboarding"]).count(helper), 1
+        )
+        source = MIGRATED["onboarding"].read_text()
+        self.assertIn('bash "$GITHUB_WORKSPACE/tests/native/$script"', source)
+        self.assertIn('run_modern_next_event_acceptance.sh', source)
+
     def test_concrete_host_change_matches_overlapping_globs(self):
         result = classifier.classify_paths(
             ["native/product/uniracers_modern_host.cpp"]

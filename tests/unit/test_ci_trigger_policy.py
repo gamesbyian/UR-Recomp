@@ -203,6 +203,34 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("    paths-ignore:\n", pr)
         self.assertIn("ready_for_review", pr)
 
+    def test_shared_native_negative_assertion_helper_invalidates_real_consumers(self):
+        # This helper can change on its own. A green previous-head acceptance
+        # run must not qualify different Bash assertion behavior.
+        helper = '"tests/native/assert_absent_grep.sh"'
+        for filename in ("tooling-unit-tests.yml", "modern-native-heavy-router.yml"):
+            with self.subTest(workflow=filename):
+                workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
+                pr = _block(workflow, "pull_request")
+                self.assertEqual(pr.count(helper), 1)
+                self.assertIn("ready_for_review", pr)
+        # The packaged Windows tournament harness uses the same helper, but
+        # it is a MAIN-only independently nominated manual acceptance, not a
+        # PR-executable QA05/09 consumer. Do not trigger a costly misleading
+        # Windows build for helper-only PR changes.
+        qa05 = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text(
+            encoding="utf-8")
+        self.assertNotIn(helper, qa05)
+        self.assertNotIn("run_tournament_acceptance: true", qa05)
+        windows = (WORKFLOWS / "windows-native-smoke.yml").read_text(
+            encoding="utf-8")
+        self.assertIn("default: false", windows)
+        self.assertIn("if: inputs.run_tournament_acceptance", windows)
+        self.assertIn("Tournament candidate must be dispatched on main", windows)
+        self.assertIn("tests/native/run_windows_local_tournament_package_acceptance.sh", windows)
+        package = Path("tests/native/run_windows_local_tournament_package_acceptance.sh").read_text(
+            encoding="utf-8")
+        self.assertIn('source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"', package)
+
     def test_changed_workflow_actionlint_is_required_not_advisory(self):
         hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
         block = hygiene.split("      - name: Validate changed workflow files with actionlint", 1)[1]

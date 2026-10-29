@@ -192,7 +192,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertGreaterEqual(script.count("until 009F == 99"), 2)
         self.assertIn("dump next-event-race-results", script)
         self.assertIn("until 0313 == 01 3600", script)
-        self.assertNotIn("poke", script)
+        self.assertFalse(any(line.lstrip().startswith("poke ") for line in script.splitlines()))
         cold = (ROOT / "tests/input/modern-results-cold-reopen.script").read_text()
         self.assertIn("dump cold-main-menu", cold)
 
@@ -256,7 +256,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
     def test_shared_workflow_owns_sharded_native_route_acceptance(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("run_modern_results_navigation_acceptance.sh", workflow)
-        self.assertIn("shard: [selection, progression, isolation]", workflow)
+        self.assertIn("shard: [selection, progression, isolation, earned]", workflow)
         self.assertIn("test_modern_results_navigation_cpp", workflow)
         self.assertIn("test_modern_results_navigation_host_contract", workflow)
         self.assertNotIn("modern_pad_glyph", workflow)

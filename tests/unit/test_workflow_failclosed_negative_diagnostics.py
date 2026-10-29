@@ -16,6 +16,7 @@ WORKFLOWS = {
     "modern-shared-native-acceptance.yml": 1,
     "modern-race-restart-acceptance.yml": 2,
     "windows-native-smoke.yml": 4,
+    "ghost-target-native-acceptance.yml": 1,
 }
 NEGATIVE = re.compile(
     r'^if grep -(?:Fq|q) "(?P<marker>[^\"]+)" '
@@ -25,7 +26,7 @@ NEGATIVE = re.compile(
 
 @unittest.skipUnless(shutil.which("bash"), "native acceptance requires Bash")
 class WorkflowNegativeDiagnosticTests(unittest.TestCase):
-    def test_all_19_checks_fail_closed_in_real_bash(self):
+    def test_all_20_checks_fail_closed_in_real_bash(self):
         for name, count in WORKFLOWS.items():
             source = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
             self.assertNotRegex(source, r"(?m)^\s*!\s+grep\s")

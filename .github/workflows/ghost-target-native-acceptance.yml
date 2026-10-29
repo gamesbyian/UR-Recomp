@@ -157,7 +157,13 @@ jobs:
             exit "$AUTH_STATUS"
           fi
           cmp "$ROOT/profile-before-authentic.txt" "$PROFILE_STATE"
-          ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"
+          if grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           echo "UR_GHOST_TARGET_PROFILE_RESULT=previous_then_personal_best_persisted_and_authentic_inert"
 
       - name: Upload targeted diagnostics

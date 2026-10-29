@@ -212,13 +212,16 @@ if [ "$SHARD" = "earned" ]; then
 if [ "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" = "1" ]; then
   # Exact original 2014 source movie controls from the independently known
   # Dragster race-entry frame 794, replayed relative to the NEXT stock race.
+  # Original RESULTS begins at movie frame 2874 (and exits at 2894).
+  # Stop at 2873: no source post-result menu buttons may be replayed during
+  # the native 90-frame RESULTS observation. This remains an opt-in hypothesis.
   ORIGINAL_MOVIE="$REPO/reference/imported/tas-bots/dessyreqt-4250-submission.smv"
   MOVIE_SHA="$(sha256sum "$ORIGINAL_MOVIE" | cut -d" " -f1)"
   test "$MOVIE_SHA" = "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442"
   python3 "$REPO/tools/extract_historical_smv_scene_window.py" \
     --movie "$ORIGINAL_MOVIE" \
     --meta "$REPO/analysis/generated/historical-2014-smv-metadata.json" \
-    --first-movie-frame 794 --frames 2200 --race-entry-frame 0 \
+    --first-movie-frame 794 --frames 2080 --race-entry-frame 0 \
     --input-out "$WORK/dragster-2014-relative.input" \
     --json-out "$WORK/dragster-2014-relative.json"
   run_case next-earned 01111 next-earned-movie "$EARNED_MOVIE_SCRIPT"

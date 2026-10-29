@@ -194,7 +194,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("if initial_row == final_row and initial_medal == final_medal:", harness)
         self.assertIn("next-earned-pre-cold.srm", harness)
         self.assertIn("UR_ONE03_USE_2014_SOURCE_INPUT", harness)
-        self.assertIn("--first-movie-frame 794 --frames 2200", harness)
+        self.assertIn("--first-movie-frame 794 --frames 2080", harness)
         self.assertIn("dragster-2014-relative.input", harness)
         script = (ROOT / "tests/input/modern-results-next-earned.script").read_text()
         self.assertGreaterEqual(script.count("until 009F == 99"), 2)
@@ -227,14 +227,17 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
                 sys.executable, str(ROOT / "tools/extract_historical_smv_scene_window.py"),
                 "--movie", str(movie), "--meta",
                 str(ROOT / "analysis/generated/historical-2014-smv-metadata.json"),
-                "--first-movie-frame", "794", "--frames", "2200",
+                "--first-movie-frame", "794", "--frames", "2080",
                 "--race-entry-frame", "0",
                 "--input-out", str(input_path),
                 "--json-out", str(report_path),
             ], cwd=ROOT, check=True, capture_output=True, text=True)
             report = json.loads(report_path.read_text(encoding="utf-8"))
-            self.assertEqual(report["movie_frame_range"], [794, 2993])
-            self.assertEqual(report["frames"], 2200)
+            self.assertEqual(report["movie_frame_range"], [794, 2873])
+            self.assertEqual(report["frames"], 2080)
+            # Independently observed original RESULTS starts at 2874;
+            # never include the original post-result menu presses at 2894+.
+            self.assertLess(report["movie_frame_range"][1], 2874)
             self.assertGreater(len(report["relative_input_segments"]), 0)
             self.assertGreater(input_path.stat().st_size, 0)
             self.assertFalse(any(line.startswith("poke ") for line in

@@ -243,6 +243,50 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertFalse(check(first, sram([0, 0, 0, 0, 0], 1, p1=2856)))
         self.assertFalse(check(first, sram([0, 0, 0, 0, 0], 0)))
 
+
+    def test_earned_cold_reopen_executes_full_post_award_block(self):
+        # A valid award previously passed the inner predicate but raised
+        # NameError on function-local final_row/final_medal in the outer scope.
+        import sys
+        import tempfile
+
+        harness = HARNESS.read_text(encoding="utf-8")
+        marker = '           "$COLD_DUMPS/cold-main-menu.sram.bin"'
+        newline = chr(10)
+        start_marker = "<<'PY'" + newline
+        start = harness.index(start_marker, harness.index(marker)) + len(start_marker)
+        script = harness[start:harness.index(newline + "PY" + newline, start)]
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            paths = [root / name for name in (
+                "first.bin", "second.bin", "pre-save.srm", "pre-profile.txt",
+                "post-save.srm", "post-profile.txt", "cold.bin")]
+            first = bytearray(8192)
+            first[0x1075:0x107A] = bytes((0, 1, 1, 1, 1))
+            second = bytearray(first)
+            second[0x1075:0x107A] = bytes(5)
+            second[0x069C] = 1
+            second[0x0769:0x076B] = (2508).to_bytes(2, "little")
+            second[0x07D3:0x07D5] = (2798).to_bytes(2, "little")
+            paths[0].write_bytes(first)
+            for index in (1, 2, 4, 6):
+                paths[index].write_bytes(second)
+            for index in (3, 5):
+                paths[index].write_text("stock_sram=" + second.hex() + newline)
+            command = [sys.executable, "-c", script, *map(str, paths)]
+            valid = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(valid.returncode, 0, valid.stderr)
+            self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", valid.stdout)
+            # Cold guest and exit save agree with each other, but their
+            # medal is no longer the earned second-result medal.
+            changed = bytearray(second)
+            changed[0x069C] = 0
+            paths[4].write_bytes(changed)
+            paths[6].write_bytes(changed)
+            rejected = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("tour/medal not preserved", rejected.stderr)
+
     def test_2014_dragster_movie_source_exports_real_relative_controller_masks(self):
         # Actual archived source controller bytes, not a synthetic winning
         # race or a verified tour flag. The runtime test remains opt-in.

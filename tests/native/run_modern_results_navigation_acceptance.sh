@@ -326,8 +326,10 @@ if cold_raw != after_cold:
     raise SystemExit("ONE-03 next earned: fresh process SRAM/save mismatch")
 if typed_snapshot(post_profile) != second_raw:
     raise SystemExit("ONE-03 next earned: cold process replaced typed earned result")
-if (cold_raw[0x1075:0x107A] != final_row or
-        cold_raw[0x069C] != final_medal):
+# The predicate's final_row/final_medal are function locals, so compare
+# against the source-earned second result directly in this outer scope.
+if (cold_raw[0x1075:0x107A] != second_raw[0x1075:0x107A] or
+        cold_raw[0x069C] != second_raw[0x069C]):
     raise SystemExit("ONE-03 next earned: tour/medal not preserved on cold boot")
 volatile_diffs = [f"{i:04X}" for i, (a, b) in
                   enumerate(zip(before_cold, after_cold)) if a != b]

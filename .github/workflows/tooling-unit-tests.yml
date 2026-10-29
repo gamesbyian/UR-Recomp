@@ -203,7 +203,7 @@ jobs:
           set -uo pipefail
           # Focused operations regression is intentionally ONE complete shard.
           # Without this manifest the always-run summary falsely says incomplete.
-          printf '1\\n' > "$RUNNER_TEMP/unit-shard-count.txt"
+          printf '1\n' > "$RUNNER_TEMP/unit-shard-count.txt"
           python3 -m unittest -v \
             tests.unit.test_agent_control \
             tests.unit.test_ops_live_status \

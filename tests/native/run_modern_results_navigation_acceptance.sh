@@ -241,6 +241,18 @@ if first_raw[0x1075:0x107A] != bytes((0, 1, 1, 1, 1)):
     raise SystemExit("ONE-03 next earned: initial four-of-five row changed")
 if second_raw == first_raw:
     raise SystemExit("ONE-03 next earned: follow-on result earned no SRAM change")
+# Changed lap/record metadata alone is not tour progression. A genuinely
+# qualifying fifth event must advance the selected tour bit or the awarded
+# medal; completing a tour may legitimately reset all five bits.
+initial_row = first_raw[0x1075:0x107A]
+final_row = second_raw[0x1075:0x107A]
+initial_medal = first_raw[0x069C]
+final_medal = second_raw[0x069C]
+if initial_row == final_row and initial_medal == final_medal:
+    raise SystemExit("ONE-03 next earned: source race produced no tour progression or medal")
+if initial_medal == final_medal and any(
+        a == 1 and b != 1 for a, b in zip(initial_row, final_row)):
+    raise SystemExit("ONE-03 next earned: prior completed tour flags were lost")
 if saved_raw != cold_raw:
     raise SystemExit("ONE-03 next earned: fresh process did not reload saved SRAM")
 fields = dict(line.split("=", 1) for line in profile.read_text().splitlines()

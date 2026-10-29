@@ -17,46 +17,15 @@ concurrency:
 
 jobs:
   build:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    # The router has already built the canonical executable. Avoid a second
+    # runner whose only work was extracting, renaming and repacking its tarball.
+    if: ${{ inputs.canonical_candidate != true && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     name: build-ui-candidate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-
-      - name: Download canonical Modern native candidate
-        if: ${{ inputs.canonical_candidate == true }}
-        uses: actions/download-artifact@v4
-        with:
-          name: modern-native-canonical-candidate
-          path: ${{ runner.temp }}/modern-native-canonical-artifact
-
-      - name: Bridge canonical candidate into Native UI artifact contract
-        if: ${{ inputs.canonical_candidate == true }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          tar -xzf "$RUNNER_TEMP/modern-native-canonical-artifact/modern-native-canonical.tar.gz" -C "$RUNNER_TEMP"
-          ROOT="$RUNNER_TEMP/modern-native-canonical/UniracersSNESRecomp"
-          test -x "$ROOT/build/UniracersSNESRecomp"
-          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
-          grep -q "ur_uniracers_product_system_key_down" "$ROOT/src/main.c"
-          grep -q "ur_uniracers_product_system_gamepad_button" "$ROOT/src/main.c"
-          grep -q "ur_uniracers_product_system_overlay" "$ROOT/src/main.c"
-          grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
-          rm -rf "$RUNNER_TEMP/ur-recomp-build"
-          mv "$RUNNER_TEMP/modern-native-canonical" "$RUNNER_TEMP/ur-recomp-build"
-          tar -czf "$RUNNER_TEMP/native-ui-build.tar.gz" -C "$RUNNER_TEMP" ur-recomp-build
-
-      - name: Upload bridged native UI candidate
-        if: ${{ inputs.canonical_candidate == true }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-ui-build-candidate
-          path: ${{ runner.temp }}/native-ui-build.tar.gz
-          if-no-files-found: error
-          retention-days: 1
 
       - name: Install desktop build dependencies
         if: ${{ inputs.canonical_candidate != true }}
@@ -164,6 +133,9 @@ jobs:
   capture:
     name: capture-${{ matrix.shard }}
     needs: build
+    # A skipped local build is expected only for an explicitly canonical
+    # caller; drafts and failed standalone builds must never run captures.
+    if: ${{ always() && (needs.build.result == 'success' || (inputs.canonical_candidate == true && needs.build.result == 'skipped' && (github.event_name != 'pull_request' || github.event.pull_request.draft == false))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 16
     strategy:
@@ -184,12 +156,21 @@ jobs:
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Download native UI candidate
+        if: ${{ inputs.canonical_candidate != true }}
         uses: actions/download-artifact@v4
         with:
           name: native-ui-build-candidate
           path: ${{ runner.temp }}/native-ui-build-artifact
 
+      - name: Download already-built canonical Modern candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/download-artifact@v4
+        with:
+          name: modern-native-canonical-candidate
+          path: ${{ runner.temp }}/modern-native-canonical-artifact
+
       - name: Restore native UI candidate
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -197,6 +178,22 @@ jobs:
             -C "$RUNNER_TEMP"
           EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
           test -x "$EXE"
+
+      - name: Restore canonical candidate directly without repackaging
+        if: ${{ inputs.canonical_candidate == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e "$RUNNER_TEMP/ur-recomp-build"
+          tar -xzf "$RUNNER_TEMP/modern-native-canonical-artifact/modern-native-canonical.tar.gz" -C "$RUNNER_TEMP"
+          ROOT="$RUNNER_TEMP/modern-native-canonical/UniracersSNESRecomp"
+          test -x "$ROOT/build/UniracersSNESRecomp"
+          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_key_down" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_gamepad_button" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_overlay" "$ROOT/src/main.c"
+          grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
+          mv "$RUNNER_TEMP/modern-native-canonical" "$RUNNER_TEMP/ur-recomp-build"
 
       - name: Run UI evidence shard
         shell: bash
@@ -673,7 +670,8 @@ jobs:
   aggregate:
     name: aggregate-ui-evidence
     needs: [build, capture]
-    if: ${{ needs.build.result == 'success' && needs.capture.result == 'success' }}
+    # Keep all six exact-source capture shards mandatory in both modes.
+    if: ${{ always() && needs.capture.result == 'success' && (needs.build.result == 'success' || (inputs.canonical_candidate == true && needs.build.result == 'skipped')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 13
     steps:

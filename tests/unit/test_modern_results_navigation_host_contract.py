@@ -258,7 +258,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
     def test_shared_workflow_owns_sharded_native_route_acceptance(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("run_modern_results_navigation_acceptance.sh", workflow)
-        self.assertIn("shard: [selection, progression, isolation, earned]", workflow)
+        self.assertIn("shard: [selection, progression, isolation]", workflow)
         self.assertIn("test_modern_results_navigation_cpp", workflow)
         self.assertIn("test_modern_results_navigation_host_contract", workflow)
         self.assertNotIn("modern_pad_glyph", workflow)

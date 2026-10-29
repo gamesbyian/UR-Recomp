@@ -1,6 +1,24 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Negative diagnostics must reject matches AND grep read errors. Keep this
+# self-contained while the shared native helper is qualified separately (#2821).
+assert_absent_grep() {
+  local grep_status
+  if grep "$@"; then
+    echo "::error::ONE-03 acceptance observed a forbidden diagnostic marker" >&2
+    return 1
+  else
+    grep_status=$?
+  fi
+  if [ "$grep_status" -ne 1 ]; then
+    echo "::error::ONE-03 acceptance could not inspect a diagnostic log (grep=$grep_status)" >&2
+    return 1
+  fi
+  return 0
+}
+
+
 # Native Modern results-navigation acceptance. Every case reaches a real stock
 # results surface first. The host then drives the real keyboard handler, which
 # hands Track/Tour/Next Event to the existing stock-menu transport.
@@ -134,7 +152,7 @@ if [ "$SHARD" = "all" ] || [ "$SHARD" = "selection" ]; then
 run_case ambiguous 01000 inspect
 cat "$WORK/ambiguous.log"
 grep -q "UR_RESULTS_NAV MENU .*next=0 track=1 tour=1 .*records=1 practice=0" "$WORK/ambiguous.log"
-! grep -q "UR_RESULTS_NAV NEXT_EVENT_STARTED" "$WORK/ambiguous.log"
+assert_absent_grep -q "UR_RESULTS_NAV NEXT_EVENT_STARTED" "$WORK/ambiguous.log" || exit 1
 
 # Track Select uses the same reboot + rider/tour route as Resume, then the
 # existing continuation authority restores the result row before releasing.
@@ -145,7 +163,7 @@ grep -q "UR_RESULTS_NAV TRACK_SELECT_STARTED" "$WORK/track.log"
 grep -q "UR_TOUR_RESUME APPLIED" "$WORK/track.log"
 grep -q "UR_RESULTS_NAV TRACK_SELECT_READY" "$WORK/track.log"
 grep -q "UR_RESULTS_NAV ACCEPT_TRACK_READY" "$WORK/track.log"
-! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/track.log"
+assert_absent_grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/track.log" || exit 1
 
 fi
 
@@ -160,7 +178,7 @@ grep -q "UR_RESULTS_NAV TOUR_SELECT_STARTED" "$WORK/tour.log"
 grep -q "UR_TOUR_CONTINUE ROLLED_BACK_PROFILE_SNAPSHOT" "$WORK/tour.log"
 grep -q "UR_RESULTS_NAV TOUR_SELECT_READY" "$WORK/tour.log"
 grep -q "UR_RESULTS_NAV ACCEPT_TOUR_READY" "$WORK/tour.log"
-! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/tour.log"
+assert_absent_grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/tour.log" || exit 1
 
 python3 - "$WORK/tour-profile/save.srm" "$WORK/tour-profile/host-profile.txt" <<'PY'
 from pathlib import Path
@@ -201,7 +219,7 @@ grep -q "UR_NEXT_EVENT SELECTING track=0 slot=0" "$WORK/next.log"
 grep -q "UR_NEXT_EVENT RACE_ENTERED" "$WORK/next.log"
 grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next.log"
-! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/next.log"
+assert_absent_grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/next.log" || exit 1
 
 fi
 
@@ -334,8 +352,8 @@ SNESRECOMP_DUMP_DIR="$PRACTICE_DUMPS" \
     >"$PRACTICE_LOG" 2>&1
 cat "$PRACTICE_LOG"
 grep -q "UR_RESULTS_NAV MENU .*next=0 track=0 tour=0 repeat=1 records=1 practice=1" "$PRACTICE_LOG"
-! grep -q "UR_RESULTS_NAV .*_STARTED" "$PRACTICE_LOG"
-! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$PRACTICE_LOG"
+assert_absent_grep -q "UR_RESULTS_NAV .*_STARTED" "$PRACTICE_LOG" || exit 1
+assert_absent_grep -q "UR_PROFILE_AUTOSAVE RESULT" "$PRACTICE_LOG" || exit 1
 
 # The player-facing results rematch must restore disposable Practice state,
 # reboot to stock MAIN, and use the original target-aware Quick Practice
@@ -360,9 +378,9 @@ grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_REQUESTED" "$REMATCH_LOG"
 grep -q "UR_PRACTICE RESTORED" "$REMATCH_LOG"
 grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_STARTED" "$REMATCH_LOG"
 grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_RACE_READY" "$REMATCH_LOG"
-! grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_FAILED" "$REMATCH_LOG"
-! grep -q "UR_PRACTICE COURSE_MISMATCH" "$REMATCH_LOG"
-! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$REMATCH_LOG"
+assert_absent_grep -q "UR_FAST_NAV REPEAT_PRACTICE_ROUTER_FAILED" "$REMATCH_LOG" || exit 1
+assert_absent_grep -q "UR_PRACTICE COURSE_MISMATCH" "$REMATCH_LOG" || exit 1
+assert_absent_grep -q "UR_PROFILE_AUTOSAVE RESULT" "$REMATCH_LOG" || exit 1
 
 # Authentic mode never acquires the results-navigation surface.
 AUTH_ROOT="$WORK/authentic-profile"
@@ -379,8 +397,8 @@ UR_PROFILE_SAVE_ROOT="$AUTH_ROOT" \
     >"$AUTH_LOG" 2>&1
 cat "$AUTH_LOG"
 grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTH_LOG"
-! grep -q "UR_RESULTS_NAV MENU" "$AUTH_LOG"
-! grep -q "UR_RESULTS_NAV .*_STARTED" "$AUTH_LOG"
+assert_absent_grep -q "UR_RESULTS_NAV MENU" "$AUTH_LOG" || exit 1
+assert_absent_grep -q "UR_RESULTS_NAV .*_STARTED" "$AUTH_LOG" || exit 1
 
 fi
 

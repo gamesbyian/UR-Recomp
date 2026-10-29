@@ -298,7 +298,14 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("UR_RESULTS_NAV_ACCEPTANCE=practice", harness)
         self.assertIn("UR_EXECUTION_MODE=authentic", harness)
         self.assertIn("next=0 track=0 tour=0 repeat=1", harness)
-        self.assertIn("! grep -q \"UR_RESULTS_NAV MENU\"", harness)
+        self.assertIn('assert_absent_grep -q "UR_RESULTS_NAV MENU"', harness)
+
+    def test_negative_diagnostics_fail_closed_without_changing_patterns(self):
+        harness = HARNESS.read_text(encoding="utf-8")
+        self.assertNotRegex(harness, r"(?m)^\\s*!\\s+grep\\s")
+        self.assertEqual(harness.count("assert_absent_grep -q "), 11)
+        self.assertIn('if grep "$@"; then', harness)
+        self.assertIn('if [ "$grep_status" -ne 1 ]; then', harness)
 
     def test_shared_workflow_owns_sharded_native_route_acceptance(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

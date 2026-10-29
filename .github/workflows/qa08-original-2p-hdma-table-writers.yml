@@ -111,8 +111,26 @@ jobs:
             test -s "$stem/go.wram.bin"
             test -s "$stem/t480.wram.bin"
             grep -q '^script f=2473 quit' "$stem/original.log"
-            ! grep -q 'UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW' "$stem/original.log"
-            ! grep -q 'UR_QA08_INIDISP_TABLE_WRITER_OVERFLOW' "$stem/original.log"
+            if grep -q 'UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW' "$stem/original.log"; then
+              echo "::error::Original colour-table writer overflow" >&2
+              exit 1
+            else
+              grep_rc=$?
+              if [ "$grep_rc" -ne 1 ]; then
+                echo "::error::Cannot inspect colour-table writer log (grep=$grep_rc)" >&2
+                exit 1
+              fi
+            fi
+            if grep -q 'UR_QA08_INIDISP_TABLE_WRITER_OVERFLOW' "$stem/original.log"; then
+              echo "::error::Original INIDISP writer overflow" >&2
+              exit 1
+            else
+              grep_rc=$?
+              if [ "$grep_rc" -ne 1 ]; then
+                echo "::error::Cannot inspect INIDISP writer log (grep=$grep_rc)" >&2
+                exit 1
+              fi
+            fi
             count=$(grep -c '^UR_QA08_COLDATA_TABLE_WRITER frame=' "$stem/original.log" || true)
             # Append in numeric frame order, never lexical glob order.
             grep '^UR_QA08_COLDATA_TABLE_WRITER frame=' "$stem/original.log" \

@@ -59,44 +59,27 @@ class NativeNegativeDiagnosticTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("could not inspect", result.stderr)
 
-    def nested_execute(self, positional_index, log_path, marker):
-        # Reproduce the real xvfb-run/bash -c boundary, not a function sourced
-        # in the same interpreter as the test. No X server is needed here.
-        arguments = ["unused"] * (positional_index - 1)
-        arguments += [str(HELPER)]
+    def nested_execute(self, positional_index, log_path):
+        # Real child-shell function scope; the helper is not exported by the parent.
         command = (
-            'set -Eeuo pipefail; source "
-        for name in COVERED:
-            with self.subTest(name=name):
-                source = (ROOT / "tests/native" / name).read_text(
-                    encoding="utf-8")
-                self.assertIn('assert_absent_grep.sh', source)
-                self.assertRegex(source, r"(?m)^\s*assert_absent_grep -q .+ \|\| exit 1$")
-                self.assertNotRegex(source, r"(?m)^\s*!\s+grep\s")
-        # ONE-03 has an active draft PR. Its owner is repairing that route,
-        # so this batch does not touch or override that file.
-        self.assertNotIn("run_modern_results_navigation_acceptance.sh", COVERED)
-
-
-if __name__ == "__main__":
-    unittest.main()
- + str(positional_index) +
-            '"; assert_absent_grep -q "$1" "$2" || exit 1'
-        )
-        # Use independent positions for the marker/log and the absolute path.
-        arguments[0:0] = [marker, str(log_path)]
-        # Positional shift caused by the marker/log arguments is deliberate:
-        # child source is still the same numbered slot used by its real caller.
-        arguments = [marker, str(log_path)] + (
-            ["unused"] * (positional_index - 3)) + [str(HELPER)]
+            'set -Eeuo pipefail; source "$%d"; '
+            'assert_absent_grep -q "$1" "$2" || exit 1'
+        ) % positional_index
+        args = ["FORBIDDEN_MARKER", str(log_path)]
+        args.extend(["unused"] * (positional_index - 3))
+        args.append(str(HELPER))
         return subprocess.run(
-            ["bash", "-c", command, "_", *arguments],
+            ["bash", "-c", command, "_", *args],
             capture_output=True, text=True, timeout=10, check=False,
         )
 
     def test_nested_bash_child_sources_helper_and_fails_closed(self):
-        regional = (ROOT / "tests/native/run_modern_regional_secret_acceptance.sh").read_text()
-        tour = (ROOT / "tests/native/run_modern_tour_entry_acceptance.sh").read_text()
+        regional = (
+            ROOT / "tests/native/run_modern_regional_secret_acceptance.sh"
+        ).read_text(encoding="utf-8")
+        tour = (
+            ROOT / "tests/native/run_modern_tour_entry_acceptance.sh"
+        ).read_text(encoding="utf-8")
         self.assertEqual(regional.count('  source "$7"'), 2)
         self.assertIn('  source "$8"', tour)
         self.assertIn('"$MAIN_MENU_DUMPS" "$ASSERT_ABSENT_HELPER"', regional)
@@ -104,21 +87,18 @@ if __name__ == "__main__":
         self.assertIn('"$root" "$ASSERT_ABSENT_HELPER"', tour)
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            good = root / "good log.txt"
-            bad = root / "bad log.txt"
-            good.write_text("NORMAL RESULT\n")
-            bad.write_text("FORBIDDEN_MARKER\n")
-            for position in (7, 8):
-                with self.subTest(position=position):
-                    self.assertEqual(
-                        self.nested_execute(position, good, "FORBIDDEN_MARKER").returncode,
-                        0,
-                    )
-                    for filename in (bad, root / "unreadable-missing.txt"):
-                        result = self.nested_execute(
-                            position, filename, "FORBIDDEN_MARKER")
-                        self.assertNotEqual(result.returncode, 0)
-                        self.assertIn("::error::", result.stderr)
+            clean = root / "clean log.txt"
+            forbidden = root / "forbidden log.txt"
+            clean.write_text("NORMAL RESULT\n", encoding="utf-8")
+            forbidden.write_text("FORBIDDEN_MARKER\n", encoding="utf-8")
+            for slot in (7, 8):
+                with self.subTest(child_source_positional_arg=slot):
+                    ok = self.nested_execute(slot, clean)
+                    self.assertEqual(ok.returncode, 0, ok.stderr)
+                    for bad_path in (forbidden, root / "missing.txt"):
+                        bad = self.nested_execute(slot, bad_path)
+                        self.assertNotEqual(bad.returncode, 0)
+                        self.assertIn("::error::", bad.stderr)
 
     def test_all_non_owned_native_routes_require_explicit_failure(self):
         for name in COVERED:

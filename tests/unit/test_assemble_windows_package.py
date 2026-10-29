@@ -51,8 +51,8 @@ class WindowsPackageTests(unittest.TestCase):
         launcher = package_tool.launcher_text("unc-cleanup-contract")
         self.assertIn('pushd "%~dp0" 2>nul', launcher)
         self.assertNotIn('cd /d "%~dp0"', launcher)
-        # 24 guarded refusals plus the normal native-process exit.
-        self.assertEqual(launcher.count("goto launcher_cleanup"), 25)
+        # 28 guarded refusals plus the normal native-process exit.
+        self.assertEqual(launcher.count("goto launcher_cleanup"), 29)
         self.assertEqual(launcher.count("exit /b "), 3)
         self.assertIn(
             ":launcher_cleanup\r\npopd\r\nexit /b %UR_GAME_RC%\r\n",
@@ -75,6 +75,13 @@ class WindowsPackageTests(unittest.TestCase):
             with self.subTest(stage=stage):
                 self.assertIn(
                     f'else ({command} "%{stage}%" >nul 2>&1 & '
+                    f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
+                    f'"Could not commit legacy {description} migration."',
+                    launcher,
+                )
+
+                self.assertIn(
+                    f'  if errorlevel 1 ({command} "%{stage}%" >nul 2>&1 & '
                     f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
                     f'"Could not commit legacy {description} migration."',
                     launcher,
@@ -186,6 +193,75 @@ class WindowsPackageTests(unittest.TestCase):
                     self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
                     self.assertIn("Could not commit legacy", proc.stderr)
                     self.assertFalse((user_data / destination).exists())
+                    self.assertEqual(list(user_data.glob(".ur-recomp-*.migrate.tmp")), [])
+                    self.assertTrue(legacy_path.exists())
+
+        # The hosted Windows consumer selects this existing test explicitly.
+        # Exercise the competing-destination race on the same real CMD path.
+        self._assert_windows_legacy_migration_collision_rejects_other_writer()
+
+    def _assert_windows_legacy_migration_collision_rejects_other_writer(self):
+        # A second launcher creates the final name after our initial absent
+        # check but before the staged rename. A failed rename must not be
+        # mistaken for this process having committed its own migration.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        cases = (
+            ("UR_MIGRATE_CONFIG", "config.ini", "config.ini"),
+            ("UR_MIGRATE_KEYS", "keybinds.ini", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "saves", "saves"),
+            ("UR_MIGRATE_MOD", "mod-state.toml", "mods/preloaded/state.toml"),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            for stage, destination, legacy in cases:
+                with self.subTest(stage=stage):
+                    payload = base / stage / "portable"
+                    payload.mkdir(parents=True)
+                    user_data = base / stage / "persistent"
+                    shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+                    (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+                    (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+                    catalog = payload / "mods" / "preloaded" / "packages"
+                    catalog.mkdir(parents=True)
+                    (catalog / ".gitkeep").touch()
+                    legacy_path = payload.joinpath(*legacy.split("/"))
+                    if legacy == "saves":
+                        legacy_path.mkdir()
+                        (legacy_path / "original.srm").write_bytes(b"original")
+                    else:
+                        legacy_path.parent.mkdir(parents=True, exist_ok=True)
+                        legacy_path.write_bytes(b"original")
+                    generated = package_tool.launcher_text("rename-collision-fixture")
+                    needle = f'  ren "%{stage}%" "{destination}" >nul 2>&1\r\n'
+                    self.assertEqual(generated.count(needle), 1)
+                    if destination == "saves":
+                        injection = (
+                            '  mkdir "%UR_RECOMP_USER_DATA_ROOT%\\saves" >nul 2>&1\r\n'
+                            '  > "%UR_RECOMP_USER_DATA_ROOT%\\saves\\concurrent.srm" echo other-writer\r\n'
+                        )
+                    else:
+                        injection = (
+                            f'  > "%UR_RECOMP_USER_DATA_ROOT%\\{destination}" echo other-writer\r\n'
+                        )
+                    injection += '  cmd.exe /d /c exit /b 1\r\n'
+                    generated = generated.replace(needle, injection)
+                    launcher = payload / package_tool.LAUNCHER_NAME
+                    launcher.write_bytes(generated.encode("utf-8"))
+                    env = os.environ.copy()
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                        cwd=payload, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+                    self.assertIn("Could not commit legacy", proc.stderr)
+                    target = user_data / destination
+                    self.assertTrue(target.exists())
+                    competing = target / "concurrent.srm" if destination == "saves" else target
+                    self.assertEqual(competing.read_text().strip(), "other-writer")
                     self.assertEqual(list(user_data.glob(".ur-recomp-*.migrate.tmp")), [])
                     self.assertTrue(legacy_path.exists())
 

@@ -17,7 +17,7 @@ class RepositoryHygieneTriggerTests(unittest.TestCase):
         )[0]
         self.assertIn("synchronize", trigger)
         self.assertIn("ready_for_review", trigger)
-        self.assertNotRegex(trigger, r"(?m)^\\s+paths(?:-ignore)?:")
+        self.assertNotRegex(trigger, r"(?m)^\s+paths(?:-ignore)?:")
 
     def test_hygiene_still_checks_tracked_boundaries(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

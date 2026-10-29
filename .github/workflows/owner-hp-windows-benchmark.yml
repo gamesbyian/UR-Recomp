@@ -1,14 +1,7 @@
 name: Owner HP Windows runner benchmark (isolated)
 # Diagnostic only. Does not modify or replace release-gate workflows.
+# Manual-only in main; never consumes hosted or personal runner minutes on PRs.
 on:
-  push:
-    branches: [ops/hp-windows-runner-benchmark-20261029]
-    paths:
-      - .github/workflows/owner-hp-windows-benchmark.yml
-      - tools/devnode_benchmark.py
-      - tools/devnode_benchmark/CMakeLists.txt
-      - tools/devnode_benchmark/prepare_python.ps1
-      - tests/unit/test_assemble_baldosa_windows_candidate.py
   workflow_dispatch:
 permissions:
   contents: read
@@ -48,8 +41,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   hosted:
-    # Hosted baseline is already recorded; avoid rebuilding on every HP-only fix.
-    if: github.event_name == 'workflow_dispatch'
     name: Hosted Windows 2022 reference
     runs-on: windows-2022
     timeout-minutes: 25

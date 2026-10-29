@@ -24,20 +24,20 @@ class SummarizeUnittestCiTests(unittest.TestCase):
     def test_focused_one_shard_receipt_is_complete_and_truthful(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            (root / "unit-shard-count.txt").write_text("1\\n")
-            (root / "unit-shard-exits.txt").write_text("shard0=0\\n")
+            (root / "unit-shard-count.txt").write_text("1\n")
+            (root / "unit-shard-exits.txt").write_text("shard0=0\n")
             (root / "unit-shard0.log").write_text(
-                "Ran 174 tests in 1.09s\\n\\nOK\\n")
+                "Ran 174 tests in 1.09s\n\nOK\n")
             result = summarize(root, {})
             self.assertEqual(result["outcome"], "pass")
             self.assertEqual(result["expected_shards"], 1)
             self.assertEqual(result["observed_shards"], 1)
             self.assertEqual(result["missing_evidence"], [])
             self.assertIn("**Outcome:** pass", markdown(result))
-            (root / "unit-shard-exits.txt").write_text("shard0=1\\n")
+            (root / "unit-shard-exits.txt").write_text("shard0=1\n")
             (root / "unit-shard0.log").write_text(
-                "FAIL: test_dispatch (unit.Control)\\n"
-                "Ran 174 tests in 1.09s\\nFAILED (failures=1)\\n")
+                "FAIL: test_dispatch (unit.Control)\n"
+                "Ran 174 tests in 1.09s\nFAILED (failures=1)\n")
             result = summarize(root, {})
             self.assertEqual(result["outcome"], "fail")
             self.assertIn("test_dispatch", markdown(result))

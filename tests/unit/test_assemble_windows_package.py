@@ -912,7 +912,8 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertNotIn(
                 '.ur-recomp-saves.migrate.tmp',
                 launcher,
-            )            self.assertNotIn(
+            )
+            self.assertNotIn(
                 '.ur-recomp-keybinds.ini.migrate.tmp',
                 launcher,
             )

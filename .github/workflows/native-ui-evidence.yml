@@ -201,6 +201,8 @@ jobs:
       - name: Run UI evidence shard
         shell: bash
         run: |
+          # shellcheck disable=SC2030,SC2031
+          # Per-route unpaced save-root exports are scoped to their child shells.
           set -uo pipefail
           EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
@@ -263,6 +265,7 @@ jobs:
               # Thirty-three dumps across three Pause checkpoints were byte-identical
               # to the original capture after cloning the preceding mutable state.
               (
+                # shellcheck disable=SC2030,SC2031
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-pause-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
@@ -283,6 +286,7 @@ jobs:
               # Pre-route mutable-state clone proved 198/198 bytes identical to
               # the existing shared-root capture (paced and unpaced).
               (
+                # shellcheck disable=SC2030,SC2031
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
@@ -310,6 +314,7 @@ jobs:
               # execution improvement. Isolate save/config state so previous
               # routes cannot perturb the new required reference evidence.
               (
+                # shellcheck disable=SC2030,SC2031
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -339,6 +344,7 @@ jobs:
               # Controlled seeded-root proof: 132/132 dumps identical to
               # original shared-root capture across 12 checkpoints.
               (
+                # shellcheck disable=SC2030,SC2031
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
@@ -363,6 +369,7 @@ jobs:
               # 132 full dump files at byte level (about 73 s vs 20 s).
               # Bind the required shipping capture to its verified root.
               (
+                # shellcheck disable=SC2030,SC2031
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-records-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -380,6 +387,7 @@ jobs:
             profiles)
               # Paired pristine-root evidence: 121 identical files, five sequences.
               (
+                # shellcheck disable=SC2030,SC2031
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -413,6 +421,8 @@ jobs:
         if: matrix.shard == 'records'
         shell: bash
         run: |
+          # shellcheck disable=SC2016
+          # Parent/child path injection deliberately uses nested single-quoted bash.
           set -euo pipefail
           EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
@@ -426,6 +436,8 @@ jobs:
           rm -f "$STATE" "$PAUSED_OVERLAY"
           mkdir -p "$DUMPS"
 
+          # shellcheck disable=SC2016
+          # Child bash expands the injected path fragments, not this parent.
           timeout 90s xvfb-run -a bash -c '
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
@@ -551,12 +563,20 @@ jobs:
           timeout 12s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
 
           grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTH_LOG"
-          ! grep -q "UR_HOST_STATE LOADED" "$AUTH_LOG"
-          ! grep -q "UR_DISPLAY_MODE APPLIED" "$AUTH_LOG"
-          ! grep -q "UR_VSYNC APPLIED" "$AUTH_LOG"
-          ! grep -q "UR_PRESENTATION_FPS APPLIED" "$AUTH_LOG"
-          ! grep -q "UR_OUTPUT_RESOLUTION" "$AUTH_LOG"
-          ! grep -q "UR_WIDESCREEN" "$AUTH_LOG"
+          # Standalone ! grep ignores errexit; fail explicitly on any
+          # Modern-only marker observed during an Authentic-mode launch.
+          for marker in \
+            "UR_HOST_STATE LOADED" \
+            "UR_DISPLAY_MODE APPLIED" \
+            "UR_VSYNC APPLIED" \
+            "UR_PRESENTATION_FPS APPLIED" \
+            "UR_OUTPUT_RESOLUTION" \
+            "UR_WIDESCREEN"; do
+            if grep -q "$marker" "$AUTH_LOG"; then
+              echo "::error::Authentic mode applied Modern-only policy: $marker" >&2
+              exit 1
+            fi
+          done
           if grep -q "UR_RENDER_SCALE" "$AUTH_LOG"; then
             echo "::error::Authentic mode touched modern Internal Render Scale policy"
             exit 1
@@ -748,12 +768,13 @@ jobs:
             ui-rename-editor-explore:ui-rename-editor-dumps; do
             script="tests/input/${pair%%:*}.script"
             dir="$RUNNER_TEMP/${pair##*:}"
-            for tag in $(awk '$1 == "dump" {print $2}' "$script"); do
+            test -f "$script"
+            while IFS= read -r tag; do
               if [ ! -f "$dir/$tag.wram.bin" ]; then
                 echo "missing native capture: ${pair%%:*}/$tag"
                 missing=1
               fi
-            done
+            done < <(awk '$1 == "dump" {print $2}' "$script")
           done
           exit "$missing"
 

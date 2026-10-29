@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native proof of the PLAYER-FACING Local Tournament route: real SDL join
 # overlay confirms two profiles on stock 2P select -> F4 panel -> START
@@ -30,17 +32,17 @@ grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1" "$L
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 2 expected=1 visible=1 page=2 cursor=0 fixture=0" "$LOG"
 # Turbo presents only some frames; require that the panel itself rendered.
 grep -q "UR_LOCAL_TOURNAMENT PRESENT page=" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG" || exit 1
 grep -q "UR_LOCAL_TOURNAMENT ARMED fixture=0 course=course:01" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=create step=2 armed=1 fixture=0 visible=0" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT STRIP rows=EVENT: RACE DRAGSTER F4/LB" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=.* text=CHAMPION: MIKE" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT ACCEPTANCE_ARMED" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT CAPTURE_NOT_ADMITTED" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT UNFINISHED_ROUTE_CANCELLED" "$LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT ACCEPTANCE_ARMED" "$LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT CAPTURE_NOT_ADMITTED" "$LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT UNFINISHED_ROUTE_CANCELLED" "$LOG" || exit 1
 
 CHECK="$WORK/check-local-tournament"
 g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
@@ -91,6 +93,6 @@ grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 1 expected=1 visible=1 page=1 .* history=1" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 2 expected=1 visible=1 page=3 .* history=1" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0" "$REOPEN_LOG"
-! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$REOPEN_LOG"
-! grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$REOPEN_LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG" || exit 1
 echo "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=panel_created_minted_event stock_2p_fixture_persisted fresh_standings relaunch_panel_history"

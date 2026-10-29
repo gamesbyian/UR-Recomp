@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 if [ "$#" -ne 3 ]; then
   echo "usage: $0 <native-exe> <retail-rom> <work-dir>" >&2
@@ -132,7 +134,7 @@ wait_for_ui_case='
         sleep 0.02
       done
       grep -q "UR_TOUR_ENTRY CANCELLED" "$LOG"
-      ! grep -q "UR_TOUR_CONTINUE STARTED" "$LOG"
+      assert_absent_grep -q "UR_TOUR_CONTINUE STARTED" "$LOG" || exit 1
       kill "$PID" 2>/dev/null || true
       wait "$PID" 2>/dev/null || true
       ;;
@@ -164,7 +166,7 @@ wait_for_ui_case='
         sleep 0.02
       done
       grep -q "UR_TOUR_CONTINUE INPUT_FAILED" "$LOG"
-      ! grep -q "UR_TOUR_CONTINUE ROLLED_BACK_PROFILE_SNAPSHOT" "$LOG"
+      assert_absent_grep -q "UR_TOUR_CONTINUE ROLLED_BACK_PROFILE_SNAPSHOT" "$LOG" || exit 1
       kill "$PID" 2>/dev/null || true
       wait "$PID" 2>/dev/null || true
       ;;
@@ -267,7 +269,7 @@ CONFIRM_CANCEL_ROOT="$WORK/restart-confirm-cancel-profile"
 CONFIRM_CANCEL_LOG="$WORK/restart-confirm-cancel.log"
 cat "$CONFIRM_CANCEL_LOG"
 grep -q "UR_TOUR_ENTRY CANCELLED" "$CONFIRM_CANCEL_LOG"
-! grep -q "UR_TOUR_CONTINUE STARTED" "$CONFIRM_CANCEL_LOG"
+assert_absent_grep -q "UR_TOUR_CONTINUE STARTED" "$CONFIRM_CANCEL_LOG" || exit 1
 grep -q '^tour_resume=0:0:0:11000$' "$CONFIRM_CANCEL_ROOT/host-profile.txt"
 python3 - "$CONFIRM_CANCEL_ROOT/save.srm" <<'PY'
 from pathlib import Path
@@ -296,7 +298,7 @@ if row != bytes((1, 1, 0, 0, 0)):
     raise SystemExit(f"cancel rollback did not restore tour row: {list(row)}")
 print("UR_TOUR_CANCEL_NATIVE=post_wipe rollback_restored=1")
 PY
-! grep -q "UR_TOUR_RESTART RETIRED" "$CANCEL_LOG"
+assert_absent_grep -q "UR_TOUR_RESTART RETIRED" "$CANCEL_LOG" || exit 1
 
 # Deterministic input-transport failure must preserve both metadata and SRAM.
 run_ui_case failure failure
@@ -313,7 +315,7 @@ if row != bytes((1, 1, 0, 0, 0)):
     raise SystemExit(f"routing failure changed tour row: {list(row)}")
 print("UR_TOUR_ROUTE_FAILURE_NATIVE=pre_wipe_preserved_without_full_rollback=1")
 PY
-! grep -q "UR_TOUR_RESTART RETIRED" "$FAILURE_LOG"
+assert_absent_grep -q "UR_TOUR_RESTART RETIRED" "$FAILURE_LOG" || exit 1
 
 # Confirmed Restart: same route, no restore, delayed retirement.
 run_ui_case restart restart
@@ -325,7 +327,7 @@ grep -q "UR_TOUR_CONTINUE STARTED intent=restart rider=0 tour=0 completed=2 tier
 grep -q "UR_TOUR_CONTINUE READY intent=restart tour=0 menu=F6" "$RESTART_LOG"
 grep -q "UR_TOUR_RESTART STOCK_RESET_PROVEN" "$RESTART_LOG"
 grep -q "UR_TOUR_RESTART RETIRED" "$RESTART_LOG"
-! grep -q "UR_TOUR_RESUME APPLIED" "$RESTART_LOG"
+assert_absent_grep -q "UR_TOUR_RESUME APPLIED" "$RESTART_LOG" || exit 1
 test -s "$RESTART_DUMPS/tour-continue-track-ready.wram.bin"
 
 python3 - "$RESTART_LOG" "$RESTART_ROOT/host-profile.txt" \
@@ -366,7 +368,7 @@ RESTART_FAIL_ROOT="$WORK/restart-persist-fail-profile"
 RESTART_FAIL_LOG="$WORK/restart-persist-fail.log"
 cat "$RESTART_FAIL_LOG"
 grep -q "UR_TOUR_RESTART PROFILE_SAVE_FAILED" "$RESTART_FAIL_LOG"
-! grep -q "UR_TOUR_RESTART RETIRED" "$RESTART_FAIL_LOG"
+assert_absent_grep -q "UR_TOUR_RESTART RETIRED" "$RESTART_FAIL_LOG" || exit 1
 grep -q '^tour_resume=0:0:0:11000$' "$RESTART_FAIL_ROOT/host-profile.txt"
 python3 - "$RESTART_FAIL_ROOT/save.srm" <<'PY'
 from pathlib import Path
@@ -414,8 +416,8 @@ timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$STALE_SCRIPT" \
 
 cat "$STALE_LOG"
 grep -Eq "UR_TOUR_CONTINUE REJECTED .*profile=1 writable=1 continuation=1 snapshot=1 persisted_source=0 live_source=0" "$STALE_LOG"
-! grep -q "UR_TOUR_CONTINUE STARTED" "$STALE_LOG"
-! grep -q "UR_TOUR_RESUME APPLIED" "$STALE_LOG"
+assert_absent_grep -q "UR_TOUR_CONTINUE STARTED" "$STALE_LOG" || exit 1
+assert_absent_grep -q "UR_TOUR_RESUME APPLIED" "$STALE_LOG" || exit 1
 
 # Authentic mode must never expose or route Modern continuation.
 AUTH_ROOT="$WORK/authentic-profile"
@@ -437,8 +439,8 @@ timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$AUTH_SCRIPT" \
   >"$AUTH_LOG" 2>&1
 
 cat "$AUTH_LOG"
-! grep -q "UR_TOUR_ENTRY MENU_OPENED" "$AUTH_LOG"
-! grep -q "UR_TOUR_CONTINUE STARTED" "$AUTH_LOG"
-! grep -q "UR_TOUR_RESUME APPLIED" "$AUTH_LOG"
+assert_absent_grep -q "UR_TOUR_ENTRY MENU_OPENED" "$AUTH_LOG" || exit 1
+assert_absent_grep -q "UR_TOUR_CONTINUE STARTED" "$AUTH_LOG" || exit 1
+assert_absent_grep -q "UR_TOUR_RESUME APPLIED" "$AUTH_LOG" || exit 1
 
 echo "UR_TOUR_ENTRY_ACCEPTANCE_RESULT=resume_restart_confirm_cancel_route_cancel_route_failure_retirement_failure_timing_stale_authentic"

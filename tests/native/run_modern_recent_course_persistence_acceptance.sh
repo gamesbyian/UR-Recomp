@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native durable Recent Course acceptance. Recent Course is profile navigation
 # metadata (profile codec v5 recent_track): it must be written without
@@ -130,8 +132,8 @@ run_native "$A_ROOT" "$WORK/persist-dumps" "$A_LOG" "$PERSIST_SCRIPT"
 cat "$A_LOG"
 grep -q "UR_FAST_NAV RECENT_OBSERVED track=0 profile_context=named" "$A_LOG"
 grep -q "UR_FAST_NAV RECENT_PERSISTED track=0 generation=1" "$A_LOG"
-! grep -q "UR_FAST_NAV RECENT_RESTORED" "$A_LOG"
-! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$A_LOG"
+assert_absent_grep -q "UR_FAST_NAV RECENT_RESTORED" "$A_LOG" || exit 1
+assert_absent_grep -q "UR_PROFILE_AUTOSAVE RESULT" "$A_LOG" || exit 1
 python3 - "$WORK/persist-before.txt" "$A_ROOT/host-profile.txt" <<'PY'
 from pathlib import Path
 import sys
@@ -168,7 +170,7 @@ grep -q "UR_FAST_NAV RECENT_RESTORED track=4" "$B_LOG"
 grep -q "UR_FAST_NAV RECENT_PRACTICE track=4" "$B_LOG"
 grep -q "UR_PRACTICE STARTED .* track=4" "$B_LOG"
 grep -q "UR_PRACTICE RACE_READY" "$B_LOG"
-! grep -q "UR_FAST_NAV RECENT_PERSISTED" "$B_LOG"
+assert_absent_grep -q "UR_FAST_NAV RECENT_PERSISTED" "$B_LOG" || exit 1
 cmp "$WORK/restore-before.txt" "$B_ROOT/host-profile.txt"
 echo "UR_RECENT_RESTORE_NATIVE=fresh_process track=4 practice_isolated=1 profile_unchanged=1"
 
@@ -188,7 +190,7 @@ grep -q "UR_MAIN_MENU_STRIP rows=2 | F3/Y NEXT EVENT Monster | F6/R RECENT Bowl"
 grep -q "UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED" "$E_LOG"
 grep -q "UR_FAST_NAV RECENT_PRACTICE track=2" "$E_LOG"
 grep -q "UR_PRACTICE RACE_READY" "$E_LOG"
-! grep -q "UR_TOUR_ENTRY MENU_OPENED" "$E_LOG"
+assert_absent_grep -q "UR_TOUR_ENTRY MENU_OPENED" "$E_LOG" || exit 1
 cmp "$WORK/pad-r-before.txt" "$E_ROOT/host-profile.txt"
 echo "UR_RECENT_PAD_R_NATIVE=strip_rows=2 launched=recent tour_opened=0"
 
@@ -204,8 +206,8 @@ cat "$F_LOG"
 grep -q "UR_MAIN_MENU_STRIP rows=2 | F3/Y NEXT EVENT Monster | F6/R RECENT Bowl" "$F_LOG"
 grep -q "UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED" "$F_LOG"
 grep -q "UR_TOUR_ENTRY MENU_OPENED" "$F_LOG"
-! grep -q "UR_FAST_NAV RECENT_PRACTICE" "$F_LOG"
-! grep -q "UR_PRACTICE STARTED" "$F_LOG"
+assert_absent_grep -q "UR_FAST_NAV RECENT_PRACTICE" "$F_LOG" || exit 1
+assert_absent_grep -q "UR_PRACTICE STARTED" "$F_LOG" || exit 1
 cmp "$WORK/pad-y-before.txt" "$F_ROOT/host-profile.txt"
 echo "UR_TOUR_PAD_Y_NATIVE=strip_rows=2 tour_opened=1 recent_launched=0"
 
@@ -218,7 +220,7 @@ cp "$C_ROOT/host-profile.txt" "$WORK/malformed-before.txt"
 run_native "$C_ROOT" "$WORK/malformed-dumps" "$C_LOG" "$MAIN_SCRIPT"
 cat "$C_LOG"
 grep -q "UR_PROFILE_STATE MALFORMED_READ_ONLY" "$C_LOG"
-! grep -q "UR_FAST_NAV RECENT_RESTORED" "$C_LOG"
+assert_absent_grep -q "UR_FAST_NAV RECENT_RESTORED" "$C_LOG" || exit 1
 cmp "$WORK/malformed-before.txt" "$C_ROOT/host-profile.txt"
 echo "UR_RECENT_MALFORMED_NATIVE=fail_closed restored=0 rewritten=0"
 
@@ -233,8 +235,8 @@ run_native "$G_ROOT" "$WORK/attract-dumps" "$G_LOG" "$ATTRACT_SCRIPT"
 cat "$G_LOG"
 grep -q "UR_FAST_NAV RECENT_RESTORED track=4" "$G_LOG"
 grep -q "UR_FAST_NAV RECENT_IGNORED_ATTRACT" "$G_LOG"
-! grep -q "UR_FAST_NAV RECENT_OBSERVED" "$G_LOG"
-! grep -q "UR_FAST_NAV RECENT_PERSISTED" "$G_LOG"
+assert_absent_grep -q "UR_FAST_NAV RECENT_OBSERVED" "$G_LOG" || exit 1
+assert_absent_grep -q "UR_FAST_NAV RECENT_PERSISTED" "$G_LOG" || exit 1
 cmp "$WORK/attract-before.txt" "$G_ROOT/host-profile.txt"
 echo "UR_RECENT_ATTRACT_NATIVE=demo_race_ignored recent_track=4 profile_unchanged=1"
 
@@ -247,7 +249,7 @@ run_native "$D_ROOT" "$WORK/authentic-dumps" "$D_LOG" "$MAIN_SCRIPT" \
   UR_EXECUTION_MODE=authentic
 cat "$D_LOG"
 grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$D_LOG"
-! grep -q "UR_FAST_NAV RECENT_RESTORED" "$D_LOG"
+assert_absent_grep -q "UR_FAST_NAV RECENT_RESTORED" "$D_LOG" || exit 1
 cmp "$WORK/authentic-before.txt" "$D_ROOT/host-profile.txt"
 
 echo "UR_RECENT_COURSE_PERSISTENCE_ACCEPTANCE_RESULT=metadata_only_persist_fresh_restore_pad_r_strip_pad_y_tour_malformed_fail_closed_authentic_inert"

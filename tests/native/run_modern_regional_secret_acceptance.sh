@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 if [ "$#" -ne 4 ]; then
   echo "usage: $0 <exe> <rom> <title-script> <temp-root>" >&2
@@ -246,11 +248,11 @@ timeout 90s xvfb-run -a bash -c '
   xdotool windowfocus "$WIN"
   xdotool key --delay 40 p a l
   sleep 1
-  ! grep -q "UR_REGIONAL SWITCH" "$LOG"
+  assert_absent_grep -q "UR_REGIONAL SWITCH" "$LOG" || exit 1
   kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
 ' _ "$EXE" "$ROM" "$MAIN_MENU_SCRIPT" "$STATE" "$MAIN_MENU_LOG" "$MAIN_MENU_DUMPS"
-! grep -q "UR_REGIONAL SWITCH" "$MAIN_MENU_LOG"
+assert_absent_grep -q "UR_REGIONAL SWITCH" "$MAIN_MENU_LOG" || exit 1
 grep -q "^regional_presentation=north_america$" "$STATE"
 
 # Authentic mode must ignore the stored Modern regional state and all secrets.
@@ -278,12 +280,12 @@ timeout 90s xvfb-run -a bash -c '
   xdotool windowfocus "$WIN"
   xdotool key --delay 40 p a l
   sleep 1
-  ! grep -q "UR_REGIONAL SWITCH" "$LOG"
+  assert_absent_grep -q "UR_REGIONAL SWITCH" "$LOG" || exit 1
   kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
 ' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$AUTHENTIC_LOG" "$AUTHENTIC_DUMPS"
 grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTHENTIC_LOG"
-! grep -q "UR_REGIONAL SWITCH" "$AUTHENTIC_LOG"
+assert_absent_grep -q "UR_REGIONAL SWITCH" "$AUTHENTIC_LOG" || exit 1
 grep -q "^regional_presentation=north_america$" "$STATE"
 
 SDL_AUDIODRIVER=dummy \

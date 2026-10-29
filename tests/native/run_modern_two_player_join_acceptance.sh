@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native Modern 2P join acceptance. The ordinary stock route reaches the 2P
 # select surface (0x3D), where Modern opens the local multiplayer join
@@ -80,14 +82,14 @@ DUP=$(grep -n "UR_LOCAL_MULTIPLAYER PROFILE_DUPLICATE" "$LOG" | head -n 1 | cut 
 READY=$(grep -n "UR_LOCAL_MULTIPLAYER SESSION_READY" "$LOG" | head -n 1 | cut -d: -f1)
 test "$DUP" -lt "$READY"
 grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE DONE ready=1 overlay=0 p1=join.alpha p2=join.bravo" "$LOG"
-! grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE JOIN_NOT_OPENED" "$LOG"
+assert_absent_grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE JOIN_NOT_OPENED" "$LOG" || exit 1
 echo "UR_TWO_PLAYER_JOIN_NATIVE=devices_named duplicate_refused ready p1=join.alpha p2=join.bravo"
 
 # 2. Authentic: the same pads and route never open the Modern join surface.
 run_native authentic UR_EXECUTION_MODE=authentic
 grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE JOIN_NOT_OPENED" "$WORK/authentic.log"
-! grep -q "UR_LOCAL_MULTIPLAYER JOIN_OPENED" "$WORK/authentic.log"
-! grep -q "UR_LOCAL_MULTIPLAYER SEAT " "$WORK/authentic.log"
+assert_absent_grep -q "UR_LOCAL_MULTIPLAYER JOIN_OPENED" "$WORK/authentic.log" || exit 1
+assert_absent_grep -q "UR_LOCAL_MULTIPLAYER SEAT " "$WORK/authentic.log" || exit 1
 echo "UR_TWO_PLAYER_JOIN_AUTHENTIC=inert"
 
 # 3. Unplugging P2's joined pad blocks the session and shows the seat as

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native Volume acceptance. Volume is the framework's own [Sound] Volume
 # (config.ini, keypad +/-, OSD bar); the Modern Options VOLUME row only steps
@@ -55,7 +57,7 @@ percent_of() {
 run_native adjust UR_VOLUME_OPTIONS_ACCEPTANCE=adjust
 grep -v '^script ' "$WORK/adjust.log" || true
 grep -q "UR_PAUSE_OPTIONS OPENED" "$WORK/adjust.log"
-! grep -q "UR_VOLUME_ACCEPTANCE ROW_NOT_REACHED" "$WORK/adjust.log"
+assert_absent_grep -q "UR_VOLUME_ACCEPTANCE ROW_NOT_REACHED" "$WORK/adjust.log" || exit 1
 START=$(percent_of "$WORK/adjust.log" "UR_VOLUME_ACCEPTANCE START")
 test -n "$START"
 test "$START" -ge 10
@@ -72,7 +74,7 @@ cmp -s "$STATE" "$WORK/host-state-before.txt"
 run_native verify UR_VOLUME_OPTIONS_ACCEPTANCE=verify
 LOADED=$(percent_of "$WORK/verify.log" "UR_VOLUME_ACCEPTANCE START")
 test "$LOADED" -eq "$EXPECTED"
-! grep -q "^UR_VOLUME SELECTED" "$WORK/verify.log"
+assert_absent_grep -q "^UR_VOLUME SELECTED" "$WORK/verify.log" || exit 1
 echo "UR_VOLUME_PERSIST_NATIVE=fresh_process loaded=$LOADED"
 
 echo "UR_VOLUME_ACCEPTANCE_RESULT=options_row_steps_framework_volume_persisted_fresh_process_no_host_state_copy"

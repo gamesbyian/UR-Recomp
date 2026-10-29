@@ -3,6 +3,8 @@
 # The first repeat is the existing one-shot acceptance hook. The second uses
 # the actual R keyboard shortcut, observed by the shipping host.
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 if [ "${1:-}" = "--inside" ]; then
   shift
@@ -61,9 +63,9 @@ cat "$LOG"
 [ "$(grep -c 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_STARTED' "$LOG")" -eq 2 ]
 [ "$(grep -c 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_RACE_READY' "$LOG")" -eq 2 ]
 [ "$(grep -c 'UR_PRACTICE RESTORED' "$LOG")" -eq 2 ]
-! grep -q 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_\(FAILED\|TIMEOUT\)' "$LOG"
-! grep -q 'UR_PRACTICE COURSE_MISMATCH' "$LOG"
-! grep -q 'UR_PROFILE_AUTOSAVE RESULT' "$LOG"
+assert_absent_grep -q 'UR_FAST_NAV REPEAT_PRACTICE_ROUTER_\(FAILED\|TIMEOUT\)' "$LOG" || exit 1
+assert_absent_grep -q 'UR_PRACTICE COURSE_MISMATCH' "$LOG" || exit 1
+assert_absent_grep -q 'UR_PROFILE_AUTOSAVE RESULT' "$LOG" || exit 1
 test ! -e "$RUN"
 test ! -e "$RUN.input"
 test ! -e "$RUN.urghost"

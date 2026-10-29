@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Windows-package proof of the player-facing Local Tournament route, run on
 # the EXTRACTED portable package through its own launcher (run-uniracers.cmd)
@@ -90,8 +92,8 @@ grep -q "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED" "$LOG"
 grep -q "UR_MULTIPLAYER_MATCH CAPTURED .*course=course:01 p1=join.alpha p2=join.bravo outcome=1" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=F9 text=CHAMPION: MIKE" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG" || exit 1
 test "$(find "$USER_DATA/local-tournaments" -type f -name '*.urfixture' | wc -l)" -eq 1
 
 # Inspect real files, not only a success log emitted before durable I/O.
@@ -120,7 +122,7 @@ grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORED" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0" "$REOPEN_LOG"
-! grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG" || exit 1
 # This transcript does not exist until after the second process exits.
 reopen_log_hash="$(sha256sum "$REOPEN_LOG" | cut -d ' ' -f 1)"
 test "$(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urrun' | wc -l)" -eq 1

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native Next Event acceptance. A named Modern profile with an unfinished
 # Crawler tour (four of five events qualified) opens the real Tour surface,
@@ -119,7 +121,7 @@ run_case ambiguous 11000 inspect
 AMBIGUOUS_LOG="$WORK/ambiguous.log"
 cat "$AMBIGUOUS_LOG"
 grep -q "UR_TOUR_ENTRY MENU_OPENED rider=0 tour=0 tier=BRONZE next_event=0" "$AMBIGUOUS_LOG"
-! grep -q "UR_TOUR_CONTINUE STARTED" "$AMBIGUOUS_LOG"
+assert_absent_grep -q "UR_TOUR_CONTINUE STARTED" "$AMBIGUOUS_LOG" || exit 1
 
 # Unique four-of-five row: one confirm reaches the remaining event's race.
 run_case next-event 11110 confirm
@@ -134,8 +136,8 @@ grep -q "UR_TOUR_RESUME APPLIED" "$NEXT_LOG"
 grep -q "UR_NEXT_EVENT SELECTING track=4 slot=4" "$NEXT_LOG"
 grep -q "UR_NEXT_EVENT RACE_ENTERED" "$NEXT_LOG"
 grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=4 actual=4 course_equal=1" "$NEXT_LOG"
-! grep -q "UR_TOUR_CONTINUE ABORTED" "$NEXT_LOG"
-! grep -q "UR_TOUR_CONTINUE ROLLED_BACK_PROFILE_SNAPSHOT" "$NEXT_LOG"
+assert_absent_grep -q "UR_TOUR_CONTINUE ABORTED" "$NEXT_LOG" || exit 1
+assert_absent_grep -q "UR_TOUR_CONTINUE ROLLED_BACK_PROFILE_SNAPSHOT" "$NEXT_LOG" || exit 1
 
 python3 - "$NEXT_LOG" "$NEXT_DUMPS/next-event-track-select.wram.bin" \
   "$NEXT_DUMPS/next-event-race-entered.wram.bin" <<'PY'
@@ -171,7 +173,7 @@ CANCEL_LOG="$WORK/cancel.log"
 cat "$CANCEL_LOG"
 grep -q "UR_NEXT_EVENT SELECTING track=4 slot=4" "$CANCEL_LOG"
 grep -q "UR_TOUR_CONTINUE CANCELLED" "$CANCEL_LOG"
-! grep -q "UR_NEXT_EVENT RACE_ENTERED" "$CANCEL_LOG"
+assert_absent_grep -q "UR_NEXT_EVENT RACE_ENTERED" "$CANCEL_LOG" || exit 1
 grep -q '^tour_resume=0:0:0:11110$' "$CANCEL_ROOT/host-profile.txt"
 python3 - "$CANCEL_ROOT/save.srm" <<'PY'
 from pathlib import Path

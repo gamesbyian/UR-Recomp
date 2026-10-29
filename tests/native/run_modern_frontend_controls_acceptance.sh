@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Real desktop Modern frontend Controls entry, binding, return and Authentic inertness.
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 if [ "${1:-}" = "--inside" ]; then
   shift
   EXE="$1"; ROM="$2"; SCRIPT="$3"; LOG="$4"; DUMPS="$5"; MODE="$6"
@@ -27,8 +29,8 @@ if [ "${1:-}" = "--inside" ]; then
 
   if [ "$MODE" = "authentic" ]; then
     sleep 0.15
-    ! grep -q "UR_FRONTEND_CONTROLS OPENED" "$LOG"
-    ! grep -q "UR_FRONTEND_CONTROLS PRESENT" "$LOG"
+    assert_absent_grep -q "UR_FRONTEND_CONTROLS OPENED" "$LOG" || exit 1
+    assert_absent_grep -q "UR_FRONTEND_CONTROLS PRESENT" "$LOG" || exit 1
     kill "$PID" 2>/dev/null || true
     wait "$PID" 2>/dev/null || true
     exit 0
@@ -74,8 +76,8 @@ if [ "${1:-}" = "--inside" ]; then
     sleep 0.02
   done
   grep -q "UR_FRONTEND_OPTIONS CLOSED" "$LOG"
-  ! grep -q "UR_PRACTICE STARTED" "$LOG"
-  ! grep -q "UR_TOUR_CONTINUE STARTED" "$LOG"
+  assert_absent_grep -q "UR_PRACTICE STARTED" "$LOG" || exit 1
+  assert_absent_grep -q "UR_TOUR_CONTINUE STARTED" "$LOG" || exit 1
   kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
   exit 0

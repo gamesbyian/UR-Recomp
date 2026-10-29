@@ -2,6 +2,8 @@
 # Fresh-process Windows-product host route on the SDL desktop adapter.
 # Real keyboard events exercise the shipping modal and canonical stock route.
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 if [ "${1:-}" = "--inside" ]; then
   shift
@@ -29,8 +31,8 @@ if [ "${1:-}" = "--inside" ]; then
 
   if [ "$ACTION" = "authentic" ]; then
     sleep 0.15
-    ! grep -q "UR_PRACTICE_PICKER OPENED" "$LOG"
-    ! grep -q "UR_PRACTICE STARTED" "$LOG"
+    assert_absent_grep -q "UR_PRACTICE_PICKER OPENED" "$LOG" || exit 1
+    assert_absent_grep -q "UR_PRACTICE STARTED" "$LOG" || exit 1
     kill "$PID" 2>/dev/null || true
     wait "$PID" 2>/dev/null || true
     exit 0
@@ -62,7 +64,7 @@ if [ "${1:-}" = "--inside" ]; then
       sleep 0.02
     done
     grep -q "UR_PRACTICE_PICKER CANCELLED" "$LOG"
-    ! grep -q "UR_PRACTICE STARTED" "$LOG"
+    assert_absent_grep -q "UR_PRACTICE STARTED" "$LOG" || exit 1
     kill "$PID" 2>/dev/null || true
     wait "$PID" 2>/dev/null || true
     exit 0
@@ -125,7 +127,7 @@ run_case() {
     grep -q "UR_PRACTICE RACE_READY" "$log"
     grep -q "UR_PRACTICE RESTORED" "$log"
     grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$log"
-    ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$log"
+    assert_absent_grep -q "UR_PROFILE_AUTOSAVE RESULT" "$log" || exit 1
     test ! -e "$run"
     test ! -e "$run.input"
     test ! -e "$run.urghost"

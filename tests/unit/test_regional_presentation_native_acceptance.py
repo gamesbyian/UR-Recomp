@@ -35,7 +35,7 @@ class RegionalPresentationNativeAcceptanceContractTests(unittest.TestCase):
         self.assertIn("regional-europe-save-root", source)
         self.assertIn("regional-na-save-root", source)
         self.assertGreaterEqual(source.count('kill "$PID" 2>/dev/null || true'), 2)
-        self.assertGreaterEqual(source.count('! grep -q "UR_REGIONAL SWITCH" "$LOG"'), 2)
+        self.assertGreaterEqual(source.count('assert_absent_grep -q "UR_REGIONAL SWITCH" "$LOG" || exit 1'), 2)
         self.assertIn("cmp \"$EUROPE_VISUAL_DUMPS/boot-300.$suffix\" \"$NA_VISUAL_DUMPS/boot-300.$suffix\"", source)
         self.assertIn(
             "UR_REGIONAL_RESULT="

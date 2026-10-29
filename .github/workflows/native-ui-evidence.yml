@@ -266,7 +266,7 @@ jobs:
               # to the original capture after cloning the preceding mutable state.
               (
                 # shellcheck disable=SC2030,SC2031
-          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-pause-unpaced-shipping"
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-pause-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
                   src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
@@ -287,7 +287,7 @@ jobs:
               # the existing shared-root capture (paced and unpaced).
               (
                 # shellcheck disable=SC2030,SC2031
-          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-unpaced-shipping"
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
                   src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
@@ -315,7 +315,7 @@ jobs:
               # routes cannot perturb the new required reference evidence.
               (
                 # shellcheck disable=SC2030,SC2031
-          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -345,7 +345,7 @@ jobs:
               # original shared-root capture across 12 checkpoints.
               (
                 # shellcheck disable=SC2030,SC2031
-          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-unpaced-shipping"
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
                   src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
@@ -370,7 +370,7 @@ jobs:
               # Bind the required shipping capture to its verified root.
               (
                 # shellcheck disable=SC2030,SC2031
-          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-records-unpaced-user-data"
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-records-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -388,7 +388,7 @@ jobs:
               # Paired pristine-root evidence: 121 identical files, five sequences.
               (
                 # shellcheck disable=SC2030,SC2031
-          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-unpaced-user-data"
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?

@@ -8,6 +8,7 @@ import json
 import os
 import re
 from pathlib import Path
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 COMMAND = re.compile(r"/ur-ci run (tooling-unit-tests\.yml|ghost-target-native-acceptance\.yml) ([0-9a-f]{40})\Z")
@@ -56,14 +57,41 @@ def exact_head(pr, number, repo, sha):
     return branch
 
 
-def process(event, repo, owner, get_pr, dispatch):
+ACTIVE = frozenset({"queued", "in_progress", "waiting", "pending", "requested"})
+
+
+def active_run_id(reply, ref, sha):
+    """An incomplete or malformed run census must never greenlight a retry."""
+    if not isinstance(reply, dict):
+        raise ValueError("Cannot inspect existing dispatches")
+    runs, count = reply.get("workflow_runs"), reply.get("total_count")
+    if (not isinstance(runs, list) or type(count) is not int
+            or count < len(runs) or count > len(runs) or len(runs) > 100):
+        raise ValueError("Incomplete workflow dispatch census: no retry")
+    for row in runs:
+        if not isinstance(row, dict):
+            raise ValueError("Malformed workflow dispatch census")
+        if (row.get("head_branch") == ref and row.get("head_sha") == sha
+                and row.get("event") == "workflow_dispatch"
+                and row.get("status") in ACTIVE):
+            run_id = row.get("id")
+            if type(run_id) is not int or run_id <= 0:
+                raise ValueError("Ambiguous active workflow run")
+            return run_id
+    return None
+
+
+def process(event, repo, owner, get_pr, get_runs, dispatch):
     request = intent(event, repo, owner)
     if request is None:
         return None
     number, workflow, sha = request
     ref = exact_head(get_pr(number), number, repo, sha)
+    active = active_run_id(get_runs(workflow, ref), ref, sha)
+    if active is not None:
+        return (number, workflow, sha, ref, active)
     dispatch(workflow, ref)
-    return (number, workflow, sha, ref)
+    return (number, workflow, sha, ref, None)
 
 
 def api(repo, token, method, path, payload=None):
@@ -88,13 +116,22 @@ def main():
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf8"))
     result = process(event, repo, owner,
         lambda number: api(repo, token, "GET", "/pulls/" + str(number)),
+        lambda name, ref: api(repo, token, "GET",
+            "/actions/workflows/" + name + "/runs?" +
+            urlencode({"branch": ref, "event": "workflow_dispatch", "per_page": 100})),
         lambda name, ref: api(repo, token, "POST",
             "/actions/workflows/" + name + "/dispatches", {"ref": ref}))
     if result is not None:
-        number, workflow, sha, ref = result
-        message = ("Requested " + workflow + " for PR #" + str(number) +
-                   " at branch " + ref + " (expected source " + sha +
-                   "). Dispatch only, NOT test qualification. Verify checkout SHA.")
+        number, workflow, sha, ref, existing_id = result
+        if existing_id is None:
+            message = ("Requested " + workflow + " for PR #" + str(number) +
+                       " at branch " + ref + " (expected source " + sha +
+                       "). Dispatch only, NOT test qualification. Verify checkout SHA.")
+        else:
+            message = ("SKIPPED duplicate dispatch for PR #" + str(number) +
+                       ": existing in-flight workflow " + workflow +
+                       " run #" + str(existing_id) + " already targets " + sha +
+                       ". Verify that run; do not restart it.")
         print(message)
         if os.environ.get("GITHUB_STEP_SUMMARY"):
             with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf8") as out:

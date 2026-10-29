@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
-from ci_owner_comment_dispatch import intent, exact_head, process
+from ci_owner_comment_dispatch import intent, exact_head, process, active_run_id
 
 REPO = "gamesbyian/UR-Recomp"
 SHA = "a" * 40
@@ -29,9 +29,14 @@ class OwnerCommentDispatchTests(unittest.TestCase):
                 calls = []
                 outcome = process(event(name), REPO, "gamesbyian",
                     lambda n: (calls.append(("get", n)), pr())[1],
+                    lambda w, ref: (calls.append(("census", w, ref)),
+                                    {"workflow_runs": [], "total_count": 0})[1],
                     lambda w, ref: calls.append(("dispatch", w, ref)))
-                self.assertEqual(calls, [("get", 2837), ("dispatch", name, "ops/test-ref")])
+                self.assertEqual(calls, [("get", 2837),
+                                         ("census", name, "ops/test-ref"),
+                                         ("dispatch", name, "ops/test-ref")])
                 self.assertEqual(outcome[2], SHA)
+                self.assertIsNone(outcome[4])
 
     def test_noncommands_and_edited_or_nonpr_comments_never_hit_api(self):
         for body in ("just a normal comment", "/ur-ci run arbitrary.yml " + SHA,
@@ -39,6 +44,7 @@ class OwnerCommentDispatchTests(unittest.TestCase):
                      "/ur-ci run tooling-unit-tests.yml " + SHA + " extra"):
             self.assertIsNone(process(event(text=body), REPO, "gamesbyian",
                 lambda _: self.fail("queried PR on noncommand"),
+                lambda *args: self.fail("read runs on noncommand"),
                 lambda *args: self.fail("dispatched noncommand")))
         e = event()
         e["action"] = "edited"
@@ -55,6 +61,7 @@ class OwnerCommentDispatchTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 process(e, REPO, "gamesbyian",
                     lambda _: self.fail("queried untrusted PR"),
+                    lambda *args: self.fail("read runs on untrusted PR"),
                     lambda *args: self.fail("dispatched untrusted"))
         e = event()
         e["repository"]["full_name"] = "other/repo"
@@ -69,12 +76,50 @@ class OwnerCommentDispatchTests(unittest.TestCase):
             p["head"][field] = value
             with self.subTest(field=field), self.assertRaises(ValueError):
                 process(event(), REPO, "gamesbyian",
-                    lambda _: p, lambda *args: self.fail("dispatched invalid PR"))
+                    lambda _: p,
+                    lambda *args: self.fail("read runs on invalid PR"),
+                    lambda *args: self.fail("dispatched invalid PR"))
         for field, value in (("state", "closed"), ("draft", True)):
             p = pr()
             p[field] = value
             with self.subTest(field=field), self.assertRaises(ValueError):
                 exact_head(p, 2837, REPO, SHA)
+
+    def test_preexisting_unchanged_inflight_qualification_is_not_restarted(self):
+        for state in ("queued", "in_progress", "pending", "waiting", "requested"):
+            with self.subTest(state=state):
+                seen = []
+                def census(w, ref):
+                    seen.append((w, ref))
+                    return {"total_count": 1, "workflow_runs": [{
+                        "id": 12345, "event": "workflow_dispatch",
+                        "head_branch": "ops/test-ref", "head_sha": SHA,
+                        "status": state}]}
+                outcome = process(event(), REPO, "gamesbyian", lambda _: pr(),
+                                  census, lambda *args: self.fail("duplicate dispatch"))
+                self.assertEqual(outcome[4], 12345)
+                self.assertEqual(seen, [("tooling-unit-tests.yml", "ops/test-ref")])
+
+    def test_completed_or_other_source_only_may_dispatch(self):
+        for status, sha in (("completed", SHA), ("in_progress", "b" * 40)):
+            sent = []
+            outcome = process(event(), REPO, "gamesbyian", lambda _: pr(),
+                 lambda w, r: {"total_count": 1, "workflow_runs": [{
+                     "id": 12345, "event": "workflow_dispatch",
+                     "head_branch": "ops/test-ref", "head_sha": sha,
+                     "status": status}]},
+                 lambda w, r: sent.append((w, r)))
+            self.assertIsNone(outcome[4])
+            self.assertEqual(sent, [("tooling-unit-tests.yml", "ops/test-ref")])
+
+    def test_missing_or_partial_workflow_census_fails_closed(self):
+        for reply in (None, {}, {"workflow_runs": [], "total_count": 1},
+                      {"workflow_runs": [{"id": 1}], "total_count": 2},
+                      {"workflow_runs": [{}], "total_count": 1.5}):
+            with self.subTest(reply=reply), self.assertRaises(ValueError):
+                process(event(), REPO, "gamesbyian", lambda _: pr(),
+                        lambda w, r: reply,
+                        lambda *args: self.fail("dispatched without trustworthy census"))
 
     def test_only_default_branch_trusted_source_and_existing_dispatch_targets(self):
         wf = Path(".github/workflows/owner-comment-ci-dispatch.yml").read_text()

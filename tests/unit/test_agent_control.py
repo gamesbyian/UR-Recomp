@@ -51,6 +51,26 @@ class AgentBoardControlTests(unittest.TestCase):
         cls.text = BOARD.read_text(encoding="utf-8")
         cls.board = extract_board(cls.text)
 
+    def test_busy_primary_without_outside_jobs_uses_free_cohort(self):
+        # Only the five selectable jobs remain; a busy primary must not
+        # fabricate an idle result when another eligible job is available.
+        from datetime import date
+        board = copy.deepcopy(self.board)
+        eligible = [job for job in board["work"]
+                    if job["state"] in {"ready", "in_review"}]
+        keep = {job["work_id"] for job in eligible[:5]}
+        for job in board["work"]:
+            if job["work_id"] not in keep:
+                job["state"] = "hold"
+        first = recommend_work(board, 1, date(2026, 10, 28))
+        busy = first["first_choice"]["work_id"]
+        result = recommend_work(board, 1, date(2026, 10, 28), [busy])
+        self.assertIsNotNone(result["recommended_job"])
+        self.assertIn(result["recommended_job"], result["candidate_jobs"])
+        self.assertNotEqual(result["recommended_job"]["work_id"], busy)
+        all_busy = [job["work_id"] for job in result["candidate_jobs"]]
+        self.assertIsNone(recommend_work(board, 1, date(2026, 10, 28), all_busy)["recommended_job"])
+
     def test_shared_pool_and_staggered_schedule(self):
         board = self.board
         self.assertEqual(board["schema"], "ur-agent-control/2")

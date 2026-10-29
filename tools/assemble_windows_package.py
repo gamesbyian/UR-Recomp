@@ -338,10 +338,19 @@ def launcher_text(source_revision: str) -> str:
         ":user_root_outside_package\r\n"
         "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\\" mkdir \"%UR_RECOMP_USER_DATA_ROOT%\" 2>nul\r\n"
         "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\\" (echo UR-STARTUP-SAVE-ROOT: cannot create the configured user data directory. Choose a writable absolute location and retry. 1>&2 & set \"UR_GAME_RC=3\" & goto launcher_cleanup)\r\n"
-        "set \"UR_WRITE_PROBE=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-write-probe-%RANDOM%-%RANDOM%.tmp\"\r\n"
-        "> \"%UR_WRITE_PROBE%\" echo writable\r\n"
+        # Create an exclusive directory first: a colliding RANDOM-derived
+        # filename must never be opened with CMD's truncating > redirect.
+        # Only remove our own known probe file and empty directory; never
+        # recursively delete an unexpectedly populated directory.
+        "set \"UR_WRITE_PROBE_DIR=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-write-probe-%RANDOM%-%RANDOM%.tmp\"\r\n"
+        "mkdir \"%UR_WRITE_PROBE_DIR%\" >nul 2>&1\r\n"
         "if errorlevel 1 (echo UR-STARTUP-SAVE-ROOT: the configured user data directory is not writable. Check permissions or choose another absolute location. 1>&2 & set \"UR_GAME_RC=3\" & goto launcher_cleanup)\r\n"
-        "del /q \"%UR_WRITE_PROBE%\" >nul 2>&1\r\n"
+        "> \"%UR_WRITE_PROBE_DIR%\\probe.tmp\" echo writable\r\n"
+        "if errorlevel 1 (del /q \"%UR_WRITE_PROBE_DIR%\\probe.tmp\" >nul 2>&1 & rmdir \"%UR_WRITE_PROBE_DIR%\" >nul 2>&1 & echo UR-STARTUP-SAVE-ROOT: the configured user data directory is not writable. Check permissions or choose another absolute location. 1>&2 & set \"UR_GAME_RC=3\" & goto launcher_cleanup)\r\n"
+        "del /q \"%UR_WRITE_PROBE_DIR%\\probe.tmp\" >nul 2>&1\r\n"
+        "if errorlevel 1 (echo UR-STARTUP-SAVE-ROOT: the configured user data directory cannot remove temporary files. Check permissions or choose another absolute location. 1>&2 & set \"UR_GAME_RC=3\" & goto launcher_cleanup)\r\n"
+        "rmdir \"%UR_WRITE_PROBE_DIR%\" >nul 2>&1\r\n"
+        "if errorlevel 1 (echo UR-STARTUP-SAVE-ROOT: the configured user data directory cannot remove temporary directories. Check permissions or choose another absolute location. 1>&2 & set \"UR_GAME_RC=3\" & goto launcher_cleanup)\r\n"
         "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\\" mkdir \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\" 2>nul\r\n"
         # ur-startup-log-v1 seeds seven bootstrap lines here. A host-side
         # classified failure may append four more, including one safe path,

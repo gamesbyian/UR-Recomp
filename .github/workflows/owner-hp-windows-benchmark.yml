@@ -22,6 +22,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Expose machine CMake to Windows runner service
+        shell: cmd
+        run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Run ROM-free native C++ and Windows regression benchmark
         shell: cmd
         run: python tools/devnode_benchmark.py --target hp
@@ -41,6 +47,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Run identical ROM-free native C++ and Windows regression benchmark
         shell: cmd
         run: python tools/devnode_benchmark.py --target hosted

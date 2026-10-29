@@ -51,7 +51,7 @@ class WindowsPackageTests(unittest.TestCase):
         launcher = package_tool.launcher_text("unc-cleanup-contract")
         self.assertIn('pushd "%~dp0" 2>nul', launcher)
         self.assertNotIn('cd /d "%~dp0"', launcher)
-        # 24 guarded refusals plus the normal native-process exit.
+        # 28 guarded refusals plus the normal native-process exit.
         self.assertEqual(launcher.count("goto launcher_cleanup"), 29)
         self.assertEqual(launcher.count("exit /b "), 3)
         self.assertIn(
@@ -75,6 +75,13 @@ class WindowsPackageTests(unittest.TestCase):
             with self.subTest(stage=stage):
                 self.assertIn(
                     f'else ({command} "%{stage}%" >nul 2>&1 & '
+                    f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
+                    f'"Could not commit legacy {description} migration."',
+                    launcher,
+                )
+
+                self.assertIn(
+                    f'  if errorlevel 1 ({command} "%{stage}%" >nul 2>&1 & '
                     f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
                     f'"Could not commit legacy {description} migration."',
                     launcher,
@@ -189,7 +196,11 @@ class WindowsPackageTests(unittest.TestCase):
                     self.assertEqual(list(user_data.glob(".ur-recomp-*.migrate.tmp")), [])
                     self.assertTrue(legacy_path.exists())
 
-    def test_windows_legacy_migration_collision_rejects_other_writer(self):
+        # The hosted Windows consumer selects this existing test explicitly.
+        # Exercise the competing-destination race on the same real CMD path.
+        self._assert_windows_legacy_migration_collision_rejects_other_writer()
+
+    def _assert_windows_legacy_migration_collision_rejects_other_writer(self):
         # A second launcher creates the final name after our initial absent
         # check but before the staged rename. A failed rename must not be
         # mistaken for this process having committed its own migration.

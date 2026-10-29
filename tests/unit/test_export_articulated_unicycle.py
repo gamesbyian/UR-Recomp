@@ -3,7 +3,7 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-SCRIPT = Path(__file__).with_name("export_articulated_unicycle.py")
+SCRIPT = Path(__file__).resolve().parents[2] / "tools" / "art" / "export_articulated_unicycle.py"
 spec = importlib.util.spec_from_file_location("export_articulated_unicycle", SCRIPT)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

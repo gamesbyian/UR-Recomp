@@ -18,6 +18,10 @@ on:
       # heavyweight Modern guest build.
       - "native/product/modern_tour_continue.hpp"
       - "tests/native/modern_tour_continue_test.cpp"
+      # A stale Tour row can otherwise confirm Next Event from row zero;
+      # compile the actual C++ Tour action state machine when it changes.
+      - "native/product/modern_tour_action_menu.hpp"
+      - "tests/native/modern_tour_action_menu_test.cpp"
       - "tests/native/modern_pause_input_test.cpp"
       # Options rollback refusal is an executable native C++ regression.
       - "native/product/baldosa_native_options.hpp"

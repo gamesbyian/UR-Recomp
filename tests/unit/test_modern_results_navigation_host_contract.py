@@ -169,6 +169,33 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("!g_next_event_verify_track", acceptance)
         self.assertNotIn("activate_results_navigation_action(", acceptance)
 
+
+    def test_opt_in_second_race_and_cold_process_never_accept_route_only(self):
+        source = HOST.read_text(encoding="utf-8")
+        acceptance = _body(
+            source, "void run_results_navigation_acceptance() {",
+            'extern "C" void ur_uniracers_modern_after_run_frame(')
+        self.assertIn('std::strcmp(mode, "next-earned") == 0', acceptance)
+        self.assertIn("g_results_navigation_acceptance_stage = 2;", acceptance)
+        self.assertIn("g_run_finish_ticks60.has_value()", acceptance)
+        self.assertIn("g_results_navigation_acceptance_first_sram", acceptance)
+        self.assertIn("g_profile_state->autosave_generation >", acceptance)
+        self.assertIn("NEXT_EARNED_RESULT observed=1", acceptance)
+        harness = HARNESS.read_text(encoding="utf-8")
+        subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
+        self.assertIn('run_case next-earned 01111 next-earned "$EARNED_SCRIPT"', harness)
+        self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", harness)
+        self.assertIn("if second_raw == first_raw:", harness)
+        self.assertIn("if saved_raw != cold_raw:", harness)
+        self.assertIn('fields["stock_sram"]', harness)
+        script = (ROOT / "tests/input/modern-results-next-earned.script").read_text()
+        self.assertGreaterEqual(script.count("until 009F == 99"), 2)
+        self.assertIn("dump next-event-race-results", script)
+        self.assertIn("until 0313 == 01 3600", script)
+        self.assertNotIn("poke", script)
+        cold = (ROOT / "tests/input/modern-results-cold-reopen.script").read_text()
+        self.assertIn("dump cold-main-menu", cold)
+
     def test_repeat_rejects_stale_practice_identity_before_guest_restart(self):
         source = HOST.read_text(encoding="utf-8")
         repeat = _body(

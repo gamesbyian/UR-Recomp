@@ -237,6 +237,8 @@ int g_next_event_acceptance_stage;
 unsigned g_next_event_acceptance_frames;
 int g_results_navigation_acceptance_stage;
 unsigned g_results_navigation_acceptance_frames;
+std::uint32_t g_results_navigation_acceptance_first_sram;
+std::uint64_t g_results_navigation_acceptance_first_generation;
 unsigned g_pause_open_acceptance_frames;
 bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
@@ -7500,6 +7502,15 @@ void run_results_navigation_acceptance() {
             std::fflush(stderr);
         }
 
+        if (std::strcmp(mode, "next-earned") == 0) {
+            // Frozen acceptance source: the first result's real SRAM and
+            // generation are read, never seeded or adjusted by the host.
+            g_results_navigation_acceptance_first_sram =
+                current_sram_digest();
+            g_results_navigation_acceptance_first_generation =
+                g_profile_state
+                    ? g_profile_state->autosave_generation : 0;
+        }
         if (std::strcmp(mode, "inspect") == 0 ||
             std::strcmp(mode, "practice") == 0) {
             g_results_navigation_acceptance_stage = -1;
@@ -7513,7 +7524,8 @@ void run_results_navigation_acceptance() {
             target = ur::product::ModernResultsAction::TrackSelect;
         } else if (std::strcmp(mode, "tour") == 0) {
             target = ur::product::ModernResultsAction::TourSelect;
-        } else if (std::strcmp(mode, "next") == 0) {
+        } else if (std::strcmp(mode, "next") == 0 ||
+                   std::strcmp(mode, "next-earned") == 0) {
             target = ur::product::ModernResultsAction::NextEvent;
         }
         if (target == ur::product::ModernResultsAction::None) {
@@ -7560,15 +7572,51 @@ void run_results_navigation_acceptance() {
                    route_idle && g_ram[0x0313] != 0x01 &&
                    g_ram[0x009F] == 0x6D) {
             product_diagnostic("UR_RESULTS_NAV ACCEPT_TOUR_READY");
-        } else if (std::strcmp(mode, "next") == 0 &&
+        } else if ((std::strcmp(mode, "next") == 0 ||
+                    std::strcmp(mode, "next-earned") == 0) &&
                    g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
                    !g_next_event_verify_track) {
-            // Do not let acceptance quit on the first ACTIVE_RACE frame.
-            // The route's authoritative course identity may not be readable
-            // until a later frame; require that verifier to finish first.
+            // Both paths require the genuine stock route and observed course.
+            // The earned path must NOT quit here: finish and save the second
+            // source-owned race, then cold-reopen its actual files.
             product_diagnostic("UR_RESULTS_NAV ACCEPT_NEXT_RACE");
+            if (std::strcmp(mode, "next-earned") == 0) {
+                g_results_navigation_acceptance_frames = 0;
+                g_results_navigation_acceptance_stage = 2;
+                return;
+            }
         } else {
             return;
+        }
+        g_results_navigation_acceptance_stage = -1;
+        (void)request_desktop_quit();
+    }
+
+    if (g_results_navigation_acceptance_stage == 2) {
+        // Only a second *actual stock results* surface, reached after the
+        // verified Next Event ACTIVE_RACE, can close this optional QA path.
+        if (g_surface != UR_UNIRACERS_RESTART_RESULTS || paused()) {
+            g_results_navigation_acceptance_frames = 0;
+            return;
+        }
+        if (++g_results_navigation_acceptance_frames < 90u) return;
+        const bool earned_finish = g_run_finish_ticks60.has_value();
+        const bool persisted = g_profile_state &&
+            g_profile_state->autosave_generation >
+                g_results_navigation_acceptance_first_generation;
+        const bool changed =
+            current_sram_digest() != g_results_navigation_acceptance_first_sram;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr,
+                "UR_RESULTS_NAV NEXT_EARNED_RESULT observed=1 "
+                "source_finish=%d persisted=%d sram_changed=%d "
+                "generation_before=%llu generation_after=%llu\n",
+                earned_finish ? 1 : 0, persisted ? 1 : 0, changed ? 1 : 0,
+                static_cast<unsigned long long>(
+                    g_results_navigation_acceptance_first_generation),
+                static_cast<unsigned long long>(
+                    g_profile_state ? g_profile_state->autosave_generation : 0));
+            std::fflush(stderr);
         }
         g_results_navigation_acceptance_stage = -1;
         (void)request_desktop_quit();

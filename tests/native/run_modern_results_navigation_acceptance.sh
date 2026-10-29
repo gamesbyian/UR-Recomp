@@ -6,7 +6,7 @@ set -Eeuo pipefail
 # hands Track/Tour/Next Event to the existing stock-menu transport.
 
 if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
-  echo "usage: $0 <native-exe> <retail-rom> <work-dir> [selection|progression|isolation|all]" >&2
+  echo "usage: $0 <native-exe> <retail-rom> <work-dir> [selection|progression|isolation|earned|all]" >&2
   exit 2
 fi
 
@@ -15,7 +15,7 @@ ROM="$2"
 WORK="$3"
 SHARD="${4:-all}"
 case "$SHARD" in
-  selection|progression|isolation|all) ;;
+  selection|progression|isolation|earned|all) ;;
   *)
     echo "unknown results-navigation shard: $SHARD" >&2
     exit 2
@@ -23,6 +23,8 @@ case "$SHARD" in
 esac
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SCRIPT="$REPO/tests/input/modern-results-navigation.script"
+EARNED_SCRIPT="$REPO/tests/input/modern-results-next-earned.script"
+COLD_SCRIPT="$REPO/tests/input/modern-results-cold-reopen.script"
 AUTH_SCRIPT="$REPO/tests/input/modern-results-navigation-authentic.script"
 PRACTICE_SCRIPT="$REPO/tests/input/modern-practice-repeat-results.script"
 CLEAN="$REPO/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm"
@@ -100,6 +102,7 @@ run_case() {
   local name="$1"
   local initial_flags="$2"
   local mode="$3"
+  local input_script="${4:-$SCRIPT}"
   local root="$WORK/$name-profile"
   local dumps="$WORK/$name-dumps"
   local log="$WORK/$name.log"
@@ -115,7 +118,7 @@ run_case() {
   UR_HOST_STATE_PATH="$STATE" \
   UR_PROFILE_SAVE_ROOT="$root" \
   SNESRECOMP_DUMP_DIR="$dumps" \
-    timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+    timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$input_script" \
       >"$log" 2>&1
 }
 
@@ -194,6 +197,58 @@ grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next.log"
 ! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/next.log"
 
+fi
+
+if [ "$SHARD" = "earned" ]; then
+# Additional opt-in complete-product negative discriminator, not a rewrite of
+# the established route pass: start from an explicitly seeded four-of-five
+# row, ENTER a real derived Next Event, then PLAY the second stock race.
+run_case next-earned 01111 next-earned "$EARNED_SCRIPT"
+cat "$WORK/next-earned.log"
+grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/next-earned.log"
+grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next-earned.log"
+grep -q "UR_RESULTS_NAV NEXT_EARNED_RESULT observed=1 source_finish=1 persisted=1 sram_changed=1" "$WORK/next-earned.log"
+
+# A new process must actually reload the product's committed SRAM. The
+# pre-seeded fixture is NOT a source-earned event and never earns ONE-03.
+COLD_ROOT="$WORK/next-earned-profile"
+COLD_DUMPS="$WORK/next-earned-cold-dumps"
+COLD_LOG="$WORK/next-earned-cold.log"
+mkdir -p "$COLD_DUMPS"
+SDL_AUDIODRIVER=dummy \
+XDG_DATA_HOME="$PREF_ROOT" \
+UR_PRODUCT_DIAGNOSTICS=1 \
+UR_PROFILE_SRAM_DIAGNOSTICS=1 \
+UR_HOST_STATE_PATH="$STATE" \
+UR_PROFILE_SAVE_ROOT="$COLD_ROOT" \
+SNESRECOMP_DUMP_DIR="$COLD_DUMPS" \
+  timeout 70s xvfb-run -a "$EXE" "$ROM" --script "$COLD_SCRIPT" \
+    >"$COLD_LOG" 2>&1
+grep -q "UR_PROFILE_SRAM LOADED" "$COLD_LOG"
+python3 - "$WORK/next-earned-dumps/race-results.sram.bin" \
+          "$WORK/next-earned-dumps/next-event-race-results.sram.bin" \
+          "$COLD_ROOT/save.srm" "$COLD_ROOT/host-profile.txt" \
+          "$COLD_DUMPS/cold-main-menu.sram.bin" <<'PY'
+from pathlib import Path
+import sys
+first, second, saved, profile, reopened = map(Path, sys.argv[1:])
+first_raw, second_raw = first.read_bytes(), second.read_bytes()
+saved_raw, cold_raw = saved.read_bytes(), reopened.read_bytes()
+if any(len(value) != 8192 for value in
+       (first_raw, second_raw, saved_raw, cold_raw)):
+    raise SystemExit("ONE-03 next earned: invalid actual SRAM image size")
+if first_raw[0x1075:0x107A] != bytes((0, 1, 1, 1, 1)):
+    raise SystemExit("ONE-03 next earned: initial four-of-five row changed")
+if second_raw == first_raw:
+    raise SystemExit("ONE-03 next earned: follow-on result earned no SRAM change")
+if saved_raw != cold_raw:
+    raise SystemExit("ONE-03 next earned: fresh process did not reload saved SRAM")
+fields = dict(line.split("=", 1) for line in profile.read_text().splitlines()
+              if "=" in line)
+if bytes.fromhex(fields["stock_sram"]) != saved_raw:
+    raise SystemExit("ONE-03 next earned: typed profile and SRAM diverged")
+print("UR_RESULTS_NAV NEXT_EARNED_COLD_REOPEN=source_second_result=1 byte_equal=1")
+PY
 fi
 
 if [ "$SHARD" = "all" ] || [ "$SHARD" = "isolation" ]; then

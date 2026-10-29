@@ -1,0 +1,6 @@
+# Physical product cold restart: no artificial SRAM writes or score data.
+# Actual installed profile and stock save.srm must already exist.
+until 009F == D7 3600
+wait 90
+dump cold-main-menu
+quit

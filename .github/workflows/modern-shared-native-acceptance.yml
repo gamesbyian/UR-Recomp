@@ -427,7 +427,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [selection, progression, isolation]
+        shard: [selection, progression, isolation, earned]
     steps:
       - name: Check out project
         uses: actions/checkout@v4

@@ -209,6 +209,37 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertTrue(all(not line.startswith("press ")
                             for line in movie.split("dump race-results", 1)[1].splitlines()))
 
+    def test_2014_dragster_movie_source_exports_real_relative_controller_masks(self):
+        # Actual archived source controller bytes, not a synthetic winning
+        # race or a verified tour flag. The runtime test remains opt-in.
+        import hashlib
+        import json
+        import sys
+        import tempfile
+        movie = ROOT / "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
+        self.assertEqual(
+            hashlib.sha256(movie.read_bytes()).hexdigest(),
+            "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442")
+        with tempfile.TemporaryDirectory() as d:
+            input_path = pathlib.Path(d) / "original-relative.input"
+            report_path = pathlib.Path(d) / "source.json"
+            subprocess.run([
+                sys.executable, str(ROOT / "tools/extract_historical_smv_scene_window.py"),
+                "--movie", str(movie), "--meta",
+                str(ROOT / "analysis/generated/historical-2014-smv-metadata.json"),
+                "--first-movie-frame", "794", "--frames", "2200",
+                "--race-entry-frame", "0",
+                "--input-out", str(input_path),
+                "--json-out", str(report_path),
+            ], cwd=ROOT, check=True, capture_output=True, text=True)
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report["movie_frame_range"], [794, 2993])
+            self.assertEqual(report["frames"], 2200)
+            self.assertGreater(len(report["relative_input_segments"]), 0)
+            self.assertGreater(input_path.stat().st_size, 0)
+            self.assertFalse(any(line.startswith("poke ") for line in
+                                 input_path.read_text().splitlines()))
+
     def test_repeat_rejects_stale_practice_identity_before_guest_restart(self):
         source = HOST.read_text(encoding="utf-8")
         repeat = _body(

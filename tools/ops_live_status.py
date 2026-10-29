@@ -137,13 +137,15 @@ def recent_same_work_id_hints(prs, known_work_ids, now):
     ]
 
 
-def cancelled_branch_churn_hints(runs, limit=3):
+def cancelled_branch_churn_hints(runs, limit=3, *, open_branches=None):
     """Show repeated superseded PR *heads* already in the latest Actions page.
 
     This uses the same bounded run census; no additional API calls. A cancelled
     run is not evidence of consumed runner time, a defect, or bad agent work.
     Requiring multiple distinct head SHAs avoids treating repeated events on
-    one head as a burst of editing.
+    one head as a burst of editing. When a complete, well-formed open-PR
+    census is available, suppress historical branches no longer open in this
+    repository. Otherwise preserve the original bounded, unfiltered hints.
     """
     groups = {}
     for run in runs:
@@ -151,6 +153,8 @@ def cancelled_branch_churn_hints(runs, limit=3):
                 or run.get("conclusion") != "cancelled"):
             continue
         branch, sha = run.get("head_branch"), run.get("head_sha")
+        if open_branches is not None and branch not in open_branches:
+            continue
         if (not isinstance(branch, str)
                 or not re.fullmatch(r"[A-Za-z0-9._/-]{1,120}", branch)
                 or not isinstance(sha, str)
@@ -249,10 +253,24 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
             result["errors"]["backup"] = "invalid custody receipt: " + str(err)
     else:
         result["errors"]["backup"] = "no historical backup receipt available"
+    # Only a complete, structurally trustworthy open-PR census may suppress
+    # historical churn hints. Partial/malformed data cannot prove closure.
+    open_branches = None
     try:
         prs, complete = paged(get, base + "/pulls?state=open")
         if not all(isinstance(x, dict) for x in prs):
             raise ValueError("invalid PR")
+        if complete and all(
+            isinstance(row.get("head"), dict)
+            and isinstance(row["head"].get("repo"), dict)
+            and isinstance(row["head"]["repo"].get("full_name"), str)
+            and isinstance(row["head"].get("ref"), str)
+            for row in prs
+        ):
+            open_branches = {
+                row["head"]["ref"] for row in prs
+                if row["head"]["repo"]["full_name"] == repo
+            }
         stale = [{"number": x.get("number"), "hours_since_update":
                   int((now - timestamp(x.get("updated_at"))).total_seconds() // 3600)}
                  for x in prs if timestamp(x.get("updated_at"))
@@ -325,7 +343,11 @@ def snapshot(get, *, board, registry, ledger, local_head=None, now=None, repo=RE
         result["actions"] = {
             "scope": "latest_100_only_not_a_day_or_billing_measure",
             "cancelled_runner_job_sample": sample_cancelled_jobs(get, base, latest),
-            "cancelled_branch_churn_hints": cancelled_branch_churn_hints(latest),
+            "cancelled_branch_churn_hints": cancelled_branch_churn_hints(
+                latest, open_branches=open_branches),
+            "cancelled_branch_scope": ("complete_open_same_repo_pr_census"
+                                       if open_branches is not None
+                                       else "latest_runs_only_open_pr_census_unavailable"),
             "cancelled_by_workflow": [
                 {"workflow": name[:120], "count": count}
                 for name, count in sorted(cancel_groups.items(), key=lambda pair: (-pair[1], pair[0]))[:5]

@@ -1,0 +1,36 @@
+name: Owner-authorized PR comment CI dispatch
+# No runner for unrelated comments. Runs on trusted default-branch source.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: owner-comment-dispatch-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == github.repository_owner &&
+      github.event.comment.author_association == 'OWNER' &&
+      startsWith(github.event.comment.body, '/ur-ci run ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      # Never checkout PR code with a privileged token.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate current PR source and dispatch existing workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 tools/ci_owner_comment_dispatch.py

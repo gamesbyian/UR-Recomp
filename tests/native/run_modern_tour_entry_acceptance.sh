@@ -2,6 +2,7 @@
 set -Eeuo pipefail
 # Explicit negative diagnostics, never inverted-grep under Bash errexit.
 source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
+ASSERT_ABSENT_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/assert_absent_grep.sh"
 
 if [ "$#" -ne 3 ]; then
   echo "usage: $0 <native-exe> <retail-rom> <work-dir>" >&2
@@ -93,6 +94,8 @@ PY
 
 wait_for_ui_case='
   set -euo pipefail
+  # This block is evaluated by a distinct bash -c; source for that process.
+  source "$8"
   EXE="$1"; ROM="$2"; SCRIPT="$3"; LOG="$4"; DUMPS="$5"; ACTION="$6"; ROOT="$7"
   "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1 &
   PID=$!
@@ -218,7 +221,7 @@ run_ui_case() {
     UR_PROFILE_SAVE_ROOT="$root" \
     SNESRECOMP_DUMP_DIR="$dumps" \
     timeout 100s xvfb-run -a bash -c "$wait_for_ui_case" \
-      bash "$EXE" "$ROM" "$ROUTE_SCRIPT" "$log" "$dumps" "$action" "$root"
+      bash "$EXE" "$ROM" "$ROUTE_SCRIPT" "$log" "$dumps" "$action" "$root" "$ASSERT_ABSENT_HELPER"
 }
 
 # Fresh-process player-facing Resume.

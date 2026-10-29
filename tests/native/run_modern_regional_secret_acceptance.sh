@@ -2,6 +2,7 @@
 set -euo pipefail
 # Explicit negative diagnostics, never inverted-grep under Bash errexit.
 source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
+ASSERT_ABSENT_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/assert_absent_grep.sh"
 
 if [ "$#" -ne 4 ]; then
   echo "usage: $0 <exe> <rom> <title-script> <temp-root>" >&2
@@ -227,6 +228,8 @@ done
 # Navigable main menu (0xD7) is explicitly not an admission surface.
 timeout 90s xvfb-run -a bash -c '
   set -euo pipefail
+  # Child bash has a separate function table; source the trusted helper here.
+  source "$7"
   EXE="$1"; ROM="$2"; SCRIPT="$3"; STATE="$4"; LOG="$5"; DUMPS="$6"
   export SDL_AUDIODRIVER=dummy UR_PRODUCT_DIAGNOSTICS=1
   export UR_HOST_STATE_PATH="$STATE" SNESRECOMP_DUMP_DIR="$DUMPS"
@@ -251,13 +254,15 @@ timeout 90s xvfb-run -a bash -c '
   assert_absent_grep -q "UR_REGIONAL SWITCH" "$LOG" || exit 1
   kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
-' _ "$EXE" "$ROM" "$MAIN_MENU_SCRIPT" "$STATE" "$MAIN_MENU_LOG" "$MAIN_MENU_DUMPS"
+' _ "$EXE" "$ROM" "$MAIN_MENU_SCRIPT" "$STATE" "$MAIN_MENU_LOG" "$MAIN_MENU_DUMPS" "$ASSERT_ABSENT_HELPER"
 assert_absent_grep -q "UR_REGIONAL SWITCH" "$MAIN_MENU_LOG" || exit 1
 grep -q "^regional_presentation=north_america$" "$STATE"
 
 # Authentic mode must ignore the stored Modern regional state and all secrets.
 timeout 90s xvfb-run -a bash -c '
   set -euo pipefail
+  # Child bash has a separate function table; source the trusted helper here.
+  source "$7"
   EXE="$1"; ROM="$2"; SCRIPT="$3"; STATE="$4"; LOG="$5"; DUMPS="$6"
   export SDL_AUDIODRIVER=dummy UR_PRODUCT_DIAGNOSTICS=1
   export UR_EXECUTION_MODE=authentic
@@ -283,7 +288,7 @@ timeout 90s xvfb-run -a bash -c '
   assert_absent_grep -q "UR_REGIONAL SWITCH" "$LOG" || exit 1
   kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
-' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$AUTHENTIC_LOG" "$AUTHENTIC_DUMPS"
+' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$AUTHENTIC_LOG" "$AUTHENTIC_DUMPS" "$ASSERT_ABSENT_HELPER"
 grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTHENTIC_LOG"
 assert_absent_grep -q "UR_REGIONAL SWITCH" "$AUTHENTIC_LOG" || exit 1
 grep -q "^regional_presentation=north_america$" "$STATE"

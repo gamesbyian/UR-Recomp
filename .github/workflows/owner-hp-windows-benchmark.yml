@@ -25,15 +25,16 @@ jobs:
       - name: Expose machine CMake to Windows runner service
         shell: cmd
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
-      - name: Verify installed Python and CMake in service environment
+      - name: Find existing Python 3.12 for Windows service
         shell: cmd
         run: |
-          where python
+          if exist "C:\Program Files\Python312\python.exe" echo C:\Program Files\Python312>>"%GITHUB_PATH%"
+          for /d %%D in ("C:\Users\*") do if exist "%%~fD\AppData\Local\Programs\Python\Python312\python.exe" echo %%~fD\AppData\Local\Programs\Python\Python312>>"%GITHUB_PATH%"
+      - name: Verify native tools in service environment
+        shell: cmd
+        run: |
           python --version
-          where cmake
           cmake --version
-          where ninja
-          ninja --version
       - name: Run ROM-free native C++ and Windows regression benchmark
         shell: cmd
         run: python tools/devnode_benchmark.py --target hp

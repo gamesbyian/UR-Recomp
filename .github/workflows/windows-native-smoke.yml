@@ -145,6 +145,8 @@ jobs:
 
       - name: Configure and build (Visual Studio, ClangCL, SDL3)
         run: |
+          # Some quoted source is deliberately interpreted by a downstream tool.
+          # shellcheck disable=SC2016
           set -euo pipefail
           # CMake embeds these paths in generated scripts; backslashes in
           # D:\a\... would be parsed as escapes, so pass mixed (C:/...) form.
@@ -220,9 +222,11 @@ jobs:
           python tools/assemble_windows_package.py verify-archive-checksum \
             --archive "$ARCHIVE" \
             --checksum "$CHECKSUM"
-          echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
-          echo "PACKAGE_ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
-          echo "PACKAGE_ARCHIVE_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
+          {
+            echo "PACKAGE=$PACKAGE"
+            echo "PACKAGE_ARCHIVE=$ARCHIVE"
+            echo "PACKAGE_ARCHIVE_CHECKSUM=$CHECKSUM"
+          } >> "$GITHUB_ENV"
           test -f "$PACKAGE/UniracersSNESRecomp.exe"
           test -f "$PACKAGE/Uniracers_USA.sfc"
           test -f "$PACKAGE/rom.cfg"
@@ -263,6 +267,8 @@ jobs:
 
       - name: Clean-package boot and per-user state anchoring
         run: |
+          # PowerShell source remains literal until executed by PowerShell.
+          # shellcheck disable=SC2016
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/package-boot-dumps"
           CALLER="$RUNNER_TEMP/package launch caller"
@@ -383,6 +389,8 @@ jobs:
 
       - name: Read-only portable directory and Unicode user-data cold boots
         run: |
+          # Quoted PowerShell source is intentionally literal at the Bash boundary.
+          # shellcheck disable=SC2016
           set -euo pipefail
           # Exercise the actual extracted shipping launcher twice. Deny NTFS
           # writes to the disposable install tree, not merely its file attributes;
@@ -395,9 +403,11 @@ jobs:
           test ! -e "$RO_USER"
           mkdir -p "$(dirname "$RO_PACKAGE")" "$RO_CALLER" "$RO_DUMPS"
           cp -R "$TEST_PACKAGE" "$RO_PACKAGE"
-          export RO_PACKAGE_WIN="$(cygpath -w "$RO_PACKAGE")"
+          RO_PACKAGE_WIN="$(cygpath -w "$RO_PACKAGE")"
+          export RO_PACKAGE_WIN
           RO_USER_WIN="$(cygpath -w "$RO_USER")"
-          export RO_SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          RO_SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          export RO_SCRIPT_WIN
           RO_DUMPS_WIN="$(cygpath -w "$RO_DUMPS")"
 
           cleanup_readonly() {
@@ -652,6 +662,8 @@ jobs:
 
       - name: Package refresh preserves user data
         run: |
+          # Quoted PowerShell strings are intentionally passed without Bash expansion.
+          # shellcheck disable=SC2016
           set -euo pipefail
           test -f "$PACKAGE_USER_DATA/config.ini"
           test -f "$PACKAGE_USER_DATA/keybinds.ini"

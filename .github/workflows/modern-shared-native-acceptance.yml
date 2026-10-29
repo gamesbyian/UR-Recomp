@@ -151,6 +151,8 @@ jobs:
       - name: Ghost target profile persistence acceptance
         shell: bash
         run: |
+          # PowerShell and child-shell snippets are intentionally single-quoted literals.
+          # shellcheck disable=SC2016
           set -euo pipefail
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
@@ -281,6 +283,8 @@ jobs:
       - name: Profile panel acceptance
         shell: bash
         run: |
+          # The embedded snippets intentionally pass unexpanded source to their interpreter.
+          # shellcheck disable=SC2016
           set -euo pipefail
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"

@@ -196,8 +196,10 @@ class AgentBoardControlTests(unittest.TestCase):
         primary = recommend_work(self.board, 1, "2026-10-27")["first_choice"]["work_id"]
         report = recommend_work(self.board, 1, "2026-10-27",
                                 [primary, *eligible[5:]])
-        self.assertIsNone(report["recommended_job"])
         self.assertEqual(report["outside_cohort_fallbacks"], [])
+        self.assertIsNotNone(report["recommended_job"])
+        self.assertIn(report["recommended_job"], report["candidate_jobs"])
+        self.assertNotEqual(report["recommended_job"]["work_id"], primary)
 
     def test_occupied_unknown_and_invalid_agent_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "eligible current board"):

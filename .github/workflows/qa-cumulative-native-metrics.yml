@@ -75,7 +75,16 @@ jobs:
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           test -x "$EXE"
           ldd "$EXE" 2>&1 | tee "$RUNNER_TEMP/native-metrics-ldd.txt"
-          ! grep -q 'not found' "$RUNNER_TEMP/native-metrics-ldd.txt"
+          if grep -q 'not found' "$RUNNER_TEMP/native-metrics-ldd.txt"; then
+            echo "::error::Native candidate has an unresolved shared library" >&2
+            exit 1
+          else
+            grep_rc=$?
+            if [ "$grep_rc" -ne 1 ]; then
+              echo "::error::Could not inspect native dependency report (grep=$grep_rc)" >&2
+              exit 1
+            fi
+          fi
           python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
       - name: Exercise varied native P1/P2 frame consistency or single-PID resource endurance
         shell: bash

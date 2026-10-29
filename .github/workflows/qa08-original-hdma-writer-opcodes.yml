@@ -86,7 +86,16 @@ jobs:
           test -s "$RUNNER_TEMP/qa08-original-opcode-dumps/go.wram.bin"
           test -s "$RUNNER_TEMP/qa08-original-opcode-dumps/t480.wram.bin"
           grep -q '^script f=2473 quit' "$RUNNER_TEMP/qa08-original-opcode.log"
-          ! grep -q 'UR_QA08_ORIGINAL_HDMA_OPCODE_OVERFLOW' "$RUNNER_TEMP/qa08-original-opcode.log"
+          if grep -q 'UR_QA08_ORIGINAL_HDMA_OPCODE_OVERFLOW' "$RUNNER_TEMP/qa08-original-opcode.log"; then
+            echo "::error::Original HDMA opcode witness overflow" >&2
+            exit 1
+          else
+            grep_rc=$?
+            if [ "$grep_rc" -ne 1 ]; then
+              echo "::error::Cannot inspect original HDMA opcode log (grep=$grep_rc)" >&2
+              exit 1
+            fi
+          fi
           python3 tools/check_qa08_original_hdma_opcode_context.py \
             --log "$RUNNER_TEMP/qa08-original-opcode.log" \
             --original-writer-census analysis/data/qa08-original-snes9x-2p-channel5-eighteen-writer-PCs.json \

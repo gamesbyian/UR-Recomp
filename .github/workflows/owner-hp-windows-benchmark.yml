@@ -8,6 +8,7 @@ on:
       - tools/devnode_benchmark.py
       - tools/devnode_benchmark/CMakeLists.txt
       - tools/devnode_benchmark/prepare_python.ps1
+      - tests/unit/test_assemble_baldosa_windows_candidate.py
   workflow_dispatch:
 permissions:
   contents: read

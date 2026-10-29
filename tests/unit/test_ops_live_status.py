@@ -204,6 +204,52 @@ class LiveOperationsTests(unittest.TestCase):
         self.assertNotIn("unsafe|markdown", narrative)
         self.assertNotIn("same-head-only", narrative)
 
+    def test_churn_hints_ignore_closed_and_fork_branches_only_with_complete_open_census(self):
+        def event(branch, sha):
+            return {"head_branch": branch, "head_sha": sha,
+                    "event": "pull_request", "conclusion": "cancelled",
+                    "created_at": "2026-10-21T06:00:00Z", "name": "Tooling"}
+
+        def pr(branch, repo="gamesbyian/UR-Recomp"):
+            return {"number": 501, "draft": False,
+                    "title": "Tracked branch", "updated_at": "2026-10-21T11:30:00Z",
+                    "head": {"ref": branch, "repo": {"full_name": repo}}}
+
+        def fake(path):
+            if "/pulls?state=open&" in path:
+                return [pr("agent/still-open"), pr("agent/fork", "other/UR-Recomp")]
+            if "/actions/runs?" in path:
+                return {"workflow_runs": [
+                    event("agent/still-open", "a" * 40),
+                    event("agent/still-open", "b" * 40),
+                    event("agent/merged", "c" * 40),
+                    event("agent/merged", "d" * 40),
+                    event("agent/fork", "e" * 40),
+                    event("agent/fork", "f" * 40),
+                ]}
+            return self.request(path)
+
+        report = self.report(get=fake)
+        self.assertEqual(report["actions"]["cancelled_branch_scope"],
+                         "complete_open_same_repo_pr_census")
+        self.assertEqual(report["actions"]["cancelled_branch_churn_hints"], [
+            {"branch": "agent/still-open", "cancelled_runs": 2, "distinct_heads": 2},
+        ])
+        self.assertNotIn("agent/merged", markdown(report))
+        self.assertNotIn("agent/fork", markdown(report))
+
+        # The live API may return an incomplete/malformed open-PR census.
+        # Never infer that a historical branch closed from absent evidence.
+        def incomplete(path):
+            if "/pulls?state=open&" in path:
+                return [dict(number=501, title="Partial", updated_at="2026-10-21T11:30:00Z")]
+            return fake(path)
+        report = self.report(get=incomplete)
+        self.assertEqual(report["actions"]["cancelled_branch_scope"],
+                         "latest_runs_only_open_pr_census_unavailable")
+        self.assertEqual({x["branch"] for x in report["actions"]["cancelled_branch_churn_hints"]},
+                         {"agent/still-open", "agent/merged", "agent/fork"})
+
     def test_workflow_names_without_cancellations_are_not_inferred_as_waste(self):
         def all_green(path):
             if "/actions/runs?" in path:

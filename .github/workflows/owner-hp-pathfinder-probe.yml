@@ -24,7 +24,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: gamesbyian/Pathfinder-Game
-          ref: main
+          # Temporary test branch, to be replaced by main after upstream fix merges.
+          ref: ops/windows-solver-cli-portability-20261029
           path: pathfinder
           persist-credentials: false
           filter: blob:none
@@ -50,6 +51,9 @@ jobs:
         run: |
           if not exist "%RUNNER_TEMP%\hp-pathfinder" mkdir "%RUNNER_TEMP%\hp-pathfinder"
           node scripts/run-bundled.mjs scripts/solver-speed-probe.mjs --corpus=published --count=16 --work-budget=250000 --budget-ms=10000 --out="%RUNNER_TEMP%\hp-pathfinder\speed.json"
+          if errorlevel 1 exit /b 1
+          if not exist "%RUNNER_TEMP%\hp-pathfinder\speed.json" exit /b 9
+          node -e "const f=require('fs'); const a=JSON.parse(f.readFileSync(process.argv[1],'utf8')); if (!Array.isArray(a.rows) || a.rows.length!==16 || !Number.isFinite(a.totalMs)) process.exit(10)" "%RUNNER_TEMP%\hp-pathfinder\speed.json"
           if errorlevel 1 exit /b 1
           git rev-parse HEAD > "%RUNNER_TEMP%\hp-pathfinder\source-sha.txt"
       - name: Retain source-bound throughput data

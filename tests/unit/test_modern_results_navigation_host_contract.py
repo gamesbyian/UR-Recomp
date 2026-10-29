@@ -277,10 +277,37 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             valid = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertEqual(valid.returncode, 0, valid.stderr)
             self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", valid.stdout)
-            # A fresh boot may change unrelated transient SRAM bytes. The
-            # typed profile, saved file and guest dump must agree with their
-            # *own cold epoch*, not byte-match the earlier RESULTS snapshot.
-            cold = bytearray(second)
+            # The first process continues for 180 frames after the
+            # RESULTS dump. Its post-save typed profile and disk image must
+            # agree at shutdown; unrelated bytes may change in that epoch.
+            pre_exit = bytearray(second)
+            pre_exit[0x10AD] ^= 1
+            paths[2].write_bytes(pre_exit)
+            paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            pre_transient = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(pre_transient.returncode, 0, pre_transient.stderr)
+            self.assertIn("result_to_exit_changed_offsets=10AD", pre_transient.stdout)
+            # Reject a stale typed snapshot even when its original RESULTS
+            # bytes happen to match the earlier dump.
+            paths[3].write_text("stock_sram=" + second.hex() + newline)
+            pre_stale = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(pre_stale.returncode, 0)
+            self.assertIn("pre-cold typed SRAM/save mismatch", pre_stale.stderr)
+            paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            # Reject a lost medal before reboot, even if the pre-cold typed
+            # profile and on-disk save are mutually consistent.
+            pre_lost = bytearray(pre_exit)
+            pre_lost[0x069C] = 0
+            paths[2].write_bytes(pre_lost)
+            paths[3].write_text("stock_sram=" + pre_lost.hex() + newline)
+            pre_rejected = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(pre_rejected.returncode, 0)
+            self.assertIn("second-result tour/medal not persisted", pre_rejected.stderr)
+            paths[2].write_bytes(pre_exit)
+            paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            # A fresh boot may also change unrelated bytes. The cold typed
+            # profile, saved file and guest dump must match their own epoch.
+            cold = bytearray(pre_exit)
             cold[0x0050] ^= 1
             for index in (4, 6):
                 paths[index].write_bytes(cold)

@@ -60,7 +60,9 @@ class ControllerHotplugHostContractTests(unittest.TestCase):
         self.assertIn("UR_CONTROLLER_HOTPLUG_ACCEPTANCE=1", text)
         self.assertIn("after=000 seat_connected=0 paused=1 modern=1", text)
         self.assertIn("after=000 seat_connected=0 paused=0 modern=0", text)
-        self.assertIn('! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"', text)
+        self.assertIn('if grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"; then', text)
+        self.assertIn('echo "::error::Forbidden acceptance diagnostic"', text)
+        self.assertIn('elif [ "$?" -ne 1 ]; then', text)
 
 
 if __name__ == "__main__":

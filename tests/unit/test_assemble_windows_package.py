@@ -47,6 +47,399 @@ class WindowsPackageTests(unittest.TestCase):
             check=check,
         )
 
+    def test_launcher_unc_pushd_has_one_cleanup_for_every_exit(self):
+        launcher = package_tool.launcher_text("unc-cleanup-contract")
+        self.assertIn('pushd "%~dp0" 2>nul', launcher)
+        self.assertNotIn('cd /d "%~dp0"', launcher)
+        # 31 guarded refusals plus the normal native-process exit.
+        self.assertEqual(launcher.count("goto launcher_cleanup"), 35)
+        self.assertEqual(launcher.count("exit /b "), 3)
+        self.assertIn(
+            ":launcher_cleanup\r\npopd\r\nexit /b %UR_GAME_RC%\r\n",
+            launcher,
+        )
+        self.assertIn(
+            "if errorlevel 1 (echo UR-STARTUP-RUNTIME-DATA: "
+            "cannot enter the extracted package directory.",
+            launcher,
+        )
+
+    def test_write_probe_uses_exclusive_directory_and_nonrecursive_cleanup(self):
+        launcher = package_tool.launcher_text("exclusive-write-probe")
+        self.assertIn('mkdir "%UR_WRITE_PROBE_DIR%" >nul 2>&1', launcher)
+        self.assertIn('> "%UR_WRITE_PROBE_DIR%\\probe.tmp" echo writable', launcher)
+        self.assertIn('rmdir "%UR_WRITE_PROBE_DIR%" >nul 2>&1', launcher)
+        self.assertNotIn('> "%UR_WRITE_PROBE%" echo writable', launcher)
+        self.assertNotIn('rmdir /s /q "%UR_WRITE_PROBE_DIR%"', launcher)
+
+
+    def test_legacy_migration_refuses_occupied_staging_paths(self):
+        launcher = package_tool.launcher_text("migration-stage-collision")
+        for stage, source in (
+            ("UR_MIGRATE_CONFIG", "config.ini"),
+            ("UR_MIGRATE_KEYS", "keybinds.ini"),
+            ("UR_MIGRATE_MOD", "mods\\preloaded\\state.toml"),
+        ):
+            with self.subTest(stage=stage):
+                guard = f'if exist "%{stage}%" (call :startup_fail'
+                copy = f'copy /b /y "{source}" "%{stage}%"'
+                self.assertIn(guard, launcher)
+                self.assertIn(copy, launcher)
+                self.assertLess(launcher.index(guard), launcher.index(copy))
+        self.assertIn(
+            'mkdir "%UR_MIGRATE_SAVES%" >nul 2>&1\r\n'
+            '  if errorlevel 1 (call :startup_fail',
+            launcher,
+        )
+
+    def test_failed_legacy_migration_commit_cleans_exact_staging_path(self):
+        launcher = package_tool.launcher_text("migration-cleanup")
+        for stage, command, description in (
+            ("UR_MIGRATE_CONFIG", "del /q", "config.ini"),
+            ("UR_MIGRATE_KEYS", "del /q", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "rmdir /s /q", "saves"),
+            ("UR_MIGRATE_MOD", "del /q", "mod-state"),
+        ):
+            with self.subTest(stage=stage):
+                self.assertIn(
+                    f'else ({command} "%{stage}%" >nul 2>&1 & '
+                    f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
+                    f'"Could not commit legacy {description} migration."',
+                    launcher,
+                )
+
+                self.assertIn(
+                    f'  if errorlevel 1 ({command} "%{stage}%" >nul 2>&1 & '
+                    f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
+                    f'"Could not commit legacy {description} migration."',
+                    launcher,
+                )
+
+    def test_windows_launcher_restores_caller_cwd_on_success_and_refusal(self):
+        # Real CMD process: a mapped UNC drive must be POPD-ed just as a
+        # local PUSHD must restore the caller's original working directory.
+        # This exercises both exit classes without requiring an SMB share.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "portable & game! (source)"
+            payload.mkdir()
+            caller = base / "caller & shell!"
+            caller.mkdir()
+            user_data = base / "user & save!"
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            launcher = payload / package_tool.LAUNCHER_NAME
+            package_tool.write_launcher(launcher, "cwd-restore-test")
+            env = os.environ.copy()
+            for case in ("success", "missing-rom", "root-inside-package"):
+                with self.subTest(case=case):
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(
+                        payload / "forbidden" if case == "root-inside-package"
+                        else user_data
+                    )
+                    if case == "missing-rom":
+                        (payload / package_tool.ROM_NAME).unlink()
+                    # Separate tokens avoid cmd.exe /C outer-quote removal
+                    # for batch paths containing spaces and metacharacters.
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", "call", str(launcher), "&", "cd"],
+                        cwd=caller, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertTrue(proc.stdout.splitlines(), proc.stderr)
+                    self.assertEqual(
+                        proc.stdout.splitlines()[-1].casefold(),
+                        str(caller).casefold(),
+                        proc.stdout + proc.stderr,
+                    )
+                    if case == "missing-rom":
+                        self.assertIn("UR-STARTUP-ROM-MISSING", proc.stderr)
+                    elif case == "root-inside-package":
+                        self.assertIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+                    else:
+                        self.assertIn(
+                            "process_exit=0",
+                            (user_data / "diagnostics" / "startup.log").read_text(
+                                encoding="utf-8"
+                            ),
+                        )
+
+    def test_windows_legacy_migration_rename_failure_removes_current_stage(self):
+        # Exercise the real generated CMD control flow, injecting a failed
+        # rename after successful staging. This is not an ACL integration test.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        cases = (
+            ("UR_MIGRATE_CONFIG", "config.ini", "config.ini"),
+            ("UR_MIGRATE_KEYS", "keybinds.ini", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "saves", "saves"),
+            ("UR_MIGRATE_MOD", "mod-state.toml", "mods/preloaded/state.toml"),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            for stage, destination, legacy in cases:
+                with self.subTest(stage=stage):
+                    payload = base / stage / "portable"
+                    payload.mkdir(parents=True)
+                    user_data = base / stage / "persistent"
+                    shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+                    (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+                    (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+                    catalog = payload / "mods" / "preloaded" / "packages"
+                    catalog.mkdir(parents=True)
+                    (catalog / ".gitkeep").touch()
+                    legacy_path = payload.joinpath(*legacy.split("/"))
+                    if legacy == "saves":
+                        legacy_path.mkdir()
+                        (legacy_path / "original.srm").write_bytes(b"original")
+                    else:
+                        legacy_path.parent.mkdir(parents=True, exist_ok=True)
+                        legacy_path.write_bytes(b"original")
+                    generated = package_tool.launcher_text("rename-failure-fixture")
+                    needle = f'  ren "%{stage}%" "{destination}" >nul 2>&1\r\n'
+                    self.assertEqual(generated.count(needle), 1)
+                    generated = generated.replace(
+                        needle, "  rem injected rename failure after staging\r\n"
+                    )
+                    launcher = payload / package_tool.LAUNCHER_NAME
+                    launcher.write_bytes(generated.encode("utf-8"))
+                    env = os.environ.copy()
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                        cwd=payload, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+                    self.assertIn("Could not commit legacy", proc.stderr)
+                    self.assertFalse((user_data / destination).exists())
+                    self.assertEqual(list(user_data.glob(".ur-recomp-*.migrate.tmp")), [])
+                    self.assertTrue(legacy_path.exists())
+
+        # The hosted Windows consumer selects this existing test explicitly.
+        # Exercise the competing-destination race on the same real CMD path.
+        self._assert_windows_legacy_migration_collision_rejects_other_writer()
+        self._assert_windows_probe_collision_never_clobbers_user_file()
+        self._assert_windows_preexisting_legacy_stage_survives()
+        self._assert_windows_legacy_fixed_stage_sentinels_survive()
+
+
+    def _assert_windows_legacy_fixed_stage_sentinels_survive(self):
+        # Older fixed-name leftovers are unowned. A successful startup must
+        # never delete them, especially the recursive saves directory.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "portable"
+            payload.mkdir()
+            user_data = base / "persistent"
+            user_data.mkdir()
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            sentinels = (
+                ".ur-recomp-config.ini.migrate.tmp",
+                ".ur-recomp-keybinds.ini.migrate.tmp",
+                ".ur-recomp-mod-state.toml.migrate.tmp",
+            )
+            for name in sentinels:
+                (user_data / name).write_bytes(b"foreign fixed-name stage")
+            old_saves = user_data / ".ur-recomp-saves.migrate.tmp"
+            old_saves.mkdir()
+            (old_saves / "do-not-delete.srm").write_bytes(b"foreign save")
+            launcher = payload / package_tool.LAUNCHER_NAME
+            package_tool.write_launcher(launcher, "fixed-stage-preservation")
+            env = os.environ.copy()
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+            proc = subprocess.run(
+                ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                cwd=payload, env=env, capture_output=True, text=True,
+                errors="replace", timeout=30, check=False,
+            )
+            self.assertNotIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+            for name in sentinels:
+                self.assertEqual(
+                    (user_data / name).read_bytes(), b"foreign fixed-name stage"
+                )
+            self.assertEqual(
+                (old_saves / "do-not-delete.srm").read_bytes(), b"foreign save"
+            )
+
+
+    def _assert_windows_preexisting_legacy_stage_survives(self):
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        cases = (
+            ("config.ini", "config.ini", "config.ini", False),
+            ("keybinds.ini", "keybinds.ini", "keybinds.ini", False),
+            ("saves", "saves", "saves", True),
+            ("mod-state.toml", "mods/preloaded/state.toml", "mod-state.toml", False),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            for stage, legacy, destination, is_directory in cases:
+                with self.subTest(stage=stage):
+                    payload = base / stage / "portable"
+                    payload.mkdir(parents=True)
+                    user_data = base / stage / "persistent"
+                    user_data.mkdir()
+                    shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+                    (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+                    (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+                    catalog = payload / "mods" / "preloaded" / "packages"
+                    catalog.mkdir(parents=True)
+                    (catalog / ".gitkeep").touch()
+                    legacy_path = payload.joinpath(*legacy.split("/"))
+                    legacy_path.parent.mkdir(parents=True, exist_ok=True)
+                    if legacy == "saves":
+                        legacy_path.mkdir()
+                        (legacy_path / "original.srm").write_bytes(b"original")
+                    else:
+                        legacy_path.write_bytes(b"original")
+                    token = "27182"
+                    foreign = user_data / f".ur-recomp-{stage}.{token}-{token}.migrate.tmp"
+                    sentinel = b"foreign stage must survive"
+                    if is_directory:
+                        foreign.mkdir()
+                        (foreign / "sentinel.bin").write_bytes(sentinel)
+                    else:
+                        foreign.write_bytes(sentinel)
+                    launcher = payload / package_tool.LAUNCHER_NAME
+                    package_tool.write_launcher(launcher, "stage-collision-fixture")
+                    env = os.environ.copy()
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+                    env["RANDOM"] = token
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                        cwd=payload, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+                    self.assertIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+                    if is_directory:
+                        self.assertEqual((foreign / "sentinel.bin").read_bytes(), sentinel)
+                        self.assertEqual((legacy_path / "original.srm").read_bytes(), b"original")
+                    else:
+                        self.assertEqual(foreign.read_bytes(), sentinel)
+                        self.assertEqual(legacy_path.read_bytes(), b"original")
+                    self.assertFalse((user_data / destination).exists())
+
+    def _assert_windows_probe_collision_never_clobbers_user_file(self):
+        # The real CMD regression uses an explicit RANDOM environment value.
+        # An existing user file with the same probe name must not be truncated.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "portable"
+            payload.mkdir()
+            user_data = base / "persistent"
+            user_data.mkdir()
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            launcher = payload / package_tool.LAUNCHER_NAME
+            package_tool.write_launcher(launcher, "write-probe-collision-fixture")
+            token = "27182"
+            preexisting = user_data / f".ur-recomp-write-probe-{token}-{token}.tmp"
+            sentinel = b"PREEXISTING USER DATA MUST SURVIVE\\r\\n"
+            preexisting.write_bytes(sentinel)
+            env = os.environ.copy()
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+            env["RANDOM"] = token
+            proc = subprocess.run(
+                ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                cwd=payload, env=env, capture_output=True, text=True,
+                errors="replace", timeout=30, check=False,
+            )
+            self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+            self.assertIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+            self.assertEqual(preexisting.read_bytes(), sentinel)
+            self.assertFalse((user_data / "diagnostics").exists())
+
+    def _assert_windows_legacy_migration_collision_rejects_other_writer(self):
+        # A second launcher creates the final name after our initial absent
+        # check but before the staged rename. A failed rename must not be
+        # mistaken for this process having committed its own migration.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        cases = (
+            ("UR_MIGRATE_CONFIG", "config.ini", "config.ini"),
+            ("UR_MIGRATE_KEYS", "keybinds.ini", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "saves", "saves"),
+            ("UR_MIGRATE_MOD", "mod-state.toml", "mods/preloaded/state.toml"),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            for stage, destination, legacy in cases:
+                with self.subTest(stage=stage):
+                    payload = base / stage / "portable"
+                    payload.mkdir(parents=True)
+                    user_data = base / stage / "persistent"
+                    shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+                    (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+                    (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+                    catalog = payload / "mods" / "preloaded" / "packages"
+                    catalog.mkdir(parents=True)
+                    (catalog / ".gitkeep").touch()
+                    legacy_path = payload.joinpath(*legacy.split("/"))
+                    if legacy == "saves":
+                        legacy_path.mkdir()
+                        (legacy_path / "original.srm").write_bytes(b"original")
+                    else:
+                        legacy_path.parent.mkdir(parents=True, exist_ok=True)
+                        legacy_path.write_bytes(b"original")
+                    generated = package_tool.launcher_text("rename-collision-fixture")
+                    needle = f'  ren "%{stage}%" "{destination}" >nul 2>&1\r\n'
+                    self.assertEqual(generated.count(needle), 1)
+                    if destination == "saves":
+                        injection = (
+                            '  mkdir "%UR_RECOMP_USER_DATA_ROOT%\\saves" >nul 2>&1\r\n'
+                            '  > "%UR_RECOMP_USER_DATA_ROOT%\\saves\\concurrent.srm" echo other-writer\r\n'
+                        )
+                    else:
+                        injection = (
+                            f'  > "%UR_RECOMP_USER_DATA_ROOT%\\{destination}" echo other-writer\r\n'
+                        )
+                    injection += '  cmd.exe /d /c exit /b 1\r\n'
+                    generated = generated.replace(needle, injection)
+                    launcher = payload / package_tool.LAUNCHER_NAME
+                    launcher.write_bytes(generated.encode("utf-8"))
+                    env = os.environ.copy()
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                        cwd=payload, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+                    self.assertIn("Could not commit legacy", proc.stderr)
+                    target = user_data / destination
+                    self.assertTrue(target.exists())
+                    competing = target / "concurrent.srm" if destination == "saves" else target
+                    self.assertEqual(competing.read_text().strip(), "other-writer")
+                    self.assertEqual(list(user_data.glob(".ur-recomp-*.migrate.tmp")), [])
+                    self.assertTrue(legacy_path.exists())
+
     def test_windows_launcher_retains_metacharacter_paths_in_startup_log(self):
         # Real CMD parsing, not a string-only policy assertion. Only the
         # hosted Windows package gate runs this; Linux tooling skips it.
@@ -512,12 +905,20 @@ class WindowsPackageTests(unittest.TestCase):
                 'ren "%UR_MIGRATE_CONFIG%" "config.ini"',
                 launcher,
             )
-            self.assertIn(
+            self.assertNotIn(
                 '.ur-recomp-config.ini.migrate.tmp',
                 launcher,
             )
-            self.assertIn(
+            self.assertNotIn(
                 '.ur-recomp-saves.migrate.tmp',
+                launcher,
+            )
+            self.assertNotIn(
+                '.ur-recomp-keybinds.ini.migrate.tmp',
+                launcher,
+            )
+            self.assertNotIn(
+                '.ur-recomp-mod-state.toml.migrate.tmp',
                 launcher,
             )
             self.assertNotIn(

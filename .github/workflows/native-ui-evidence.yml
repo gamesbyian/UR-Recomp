@@ -263,7 +263,8 @@ jobs:
               # Thirty-three dumps across three Pause checkpoints were byte-identical
               # to the original capture after cloning the preceding mutable state.
               (
-                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-pause-unpaced-shipping"
+                # shellcheck disable=SC2030,SC2031
+          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-pause-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
                   src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
@@ -283,7 +284,8 @@ jobs:
               # Pre-route mutable-state clone proved 198/198 bytes identical to
               # the existing shared-root capture (paced and unpaced).
               (
-                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-unpaced-shipping"
+                # shellcheck disable=SC2030,SC2031
+          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
                   src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
@@ -310,7 +312,8 @@ jobs:
               # execution improvement. Isolate save/config state so previous
               # routes cannot perturb the new required reference evidence.
               (
-                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
+                # shellcheck disable=SC2030,SC2031
+          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -339,7 +342,8 @@ jobs:
               # Controlled seeded-root proof: 132/132 dumps identical to
               # original shared-root capture across 12 checkpoints.
               (
-                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-unpaced-shipping"
+                # shellcheck disable=SC2030,SC2031
+          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-unpaced-shipping"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
                 for state in config.ini keybinds.ini saves/save.srm; do
                   src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
@@ -363,7 +367,8 @@ jobs:
               # 132 full dump files at byte level (about 73 s vs 20 s).
               # Bind the required shipping capture to its verified root.
               (
-                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-records-unpaced-user-data"
+                # shellcheck disable=SC2030,SC2031
+          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-records-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -380,7 +385,8 @@ jobs:
             profiles)
               # Paired pristine-root evidence: 121 identical files, five sequences.
               (
-                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-unpaced-user-data"
+                # shellcheck disable=SC2030,SC2031
+          export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-unpaced-user-data"
                 mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
@@ -429,6 +435,8 @@ jobs:
           rm -f "$STATE" "$PAUSED_OVERLAY"
           mkdir -p "$DUMPS"
 
+          # shellcheck disable=SC2016
+          # The script body deliberately expands variables in its child bash.
           timeout 90s xvfb-run -a bash -c '
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy

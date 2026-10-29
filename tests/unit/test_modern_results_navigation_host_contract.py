@@ -302,7 +302,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
 
     def test_negative_diagnostics_fail_closed_without_changing_patterns(self):
         harness = HARNESS.read_text(encoding="utf-8")
-        self.assertNotRegex(harness, r"(?m)^\\s*!\\s+grep\\s")
+        self.assertNotIn("! grep -q", harness)
         self.assertEqual(harness.count("assert_absent_grep -q "), 11)
         self.assertIn('if grep "$@"; then', harness)
         self.assertIn('if [ "$grep_status" -ne 1 ]; then', harness)

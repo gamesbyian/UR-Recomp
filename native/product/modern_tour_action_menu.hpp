@@ -14,6 +14,8 @@ enum class ModernTourActionRow : std::uint8_t {
     RestartTour = 1,
     Back = 2,
     NextEvent = 3,
+    // Sentinel for a malformed or expired selection; never a rendered row.
+    None = 4,
 };
 
 struct ModernTourActionMenu {
@@ -44,14 +46,19 @@ constexpr ModernTourActionMenu make_modern_tour_action_menu(
 
 constexpr ModernTourActionRow selected_modern_tour_action(
     const ModernTourActionMenu& menu) noexcept {
-    return menu.rows[
-        menu.selected < menu.row_count ? menu.selected : 0u];
+    // Row zero can be Next Event. A stale/invalid index must NEVER
+    // silently turn a player's Confirm into an unintended guest route.
+    if (menu.row_count == 0 || menu.row_count > menu.rows.size() ||
+        menu.selected >= menu.row_count) {
+        return ModernTourActionRow::None;
+    }
+    return menu.rows[menu.selected];
 }
 
 inline ModernTourActionMenu navigate_modern_tour_action_menu(
     ModernTourActionMenu menu,
     UrModernHostNavigationAction action) noexcept {
-    if (menu.row_count == 0) return menu;
+    if (menu.row_count == 0 || menu.row_count > menu.rows.size()) return menu;
 
     if (menu.confirming_restart) {
         if (ur_modern_host_navigation_is_back(action)) {
@@ -61,6 +68,13 @@ inline ModernTourActionMenu navigate_modern_tour_action_menu(
     }
 
     const int delta = ur_modern_host_navigation_vertical_delta(action);
+    // After the list changes, only an explicit directional edge may
+    // re-establish focus. Confirm never guesses the first available row.
+    if (menu.selected >= menu.row_count) {
+        if (delta < 0) menu.selected = menu.row_count - 1;
+        else if (delta > 0) menu.selected = 0;
+        return menu;
+    }
     if (delta < 0) {
         menu.selected =
             menu.selected == 0 ? menu.row_count - 1 : menu.selected - 1;
@@ -108,7 +122,18 @@ inline ModernTourActionMenuResult activate_modern_tour_action_menu(
         return out;
     }
     if (!ur_modern_host_navigation_is_confirm(action) ||
-        menu.row_count == 0) {
+        menu.row_count == 0 || menu.row_count > menu.rows.size() ||
+        menu.selected >= menu.row_count) {
+        return out;
+    }
+
+    // The source qualification row can change while a Tour panel is open.
+    // Require the selected action to still occupy the same visible row in
+    // the *current* authoritative context. In particular, losing/gaining
+    // Next Event shifts every other row; never confirm the replacement.
+    const auto current = make_modern_tour_action_menu(context);
+    if (menu.selected >= current.row_count ||
+        menu.rows[menu.selected] != current.rows[menu.selected]) {
         return out;
     }
 
@@ -136,6 +161,8 @@ inline ModernTourActionMenuResult activate_modern_tour_action_menu(
         break;
     case ModernTourActionRow::Back:
         out.close_menu = true;
+        break;
+    case ModernTourActionRow::None:
         break;
     }
     return out;

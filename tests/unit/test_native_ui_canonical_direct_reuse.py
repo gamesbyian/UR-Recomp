@@ -58,6 +58,29 @@ class NativeUiCanonicalReuseTests(unittest.TestCase):
         self.assertIn("inputs.canonical_candidate != true", self.capture)
         self.assertIn("native-ui-build.tar.gz", self.capture)
 
+    def test_authentic_inertness_refuses_forbidden_markers(self):
+        # A bare negated grep under errexit would silently continue even when
+        # the marker was present; explicit if + exit must own the failure.
+        self.assertNotIn("! grep -q", self.capture)
+        self.assertIn('if grep -q "$marker" "$AUTH_LOG"; then', self.capture)
+        self.assertIn("exit 1", self.capture)
+        for marker in (
+            "UR_HOST_STATE LOADED",
+            "UR_DISPLAY_MODE APPLIED",
+            "UR_VSYNC APPLIED",
+            "UR_PRESENTATION_FPS APPLIED",
+            "UR_OUTPUT_RESOLUTION",
+            "UR_WIDESCREEN",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn('"' + marker + '"', self.capture)
+
+    def test_reset_dump_names_read_without_shell_word_splitting(self):
+        self.assertIn('test -f "$script"', self.aggregate)
+        self.assertIn('while IFS= read -r tag; do', self.aggregate)
+        self.assertIn('done < <(awk', self.aggregate)
+        self.assertIn('exit "$missing"', self.aggregate)
+
     def test_all_six_capture_shards_and_aggregate_still_required(self):
         self.assertIn("shard: [core, navigation, results-a, results-b, records, profiles]", self.capture)
         self.assertIn("if: ${{ always() && needs.capture.result == 'success'", self.aggregate)

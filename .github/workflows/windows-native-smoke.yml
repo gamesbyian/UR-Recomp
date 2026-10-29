@@ -441,12 +441,12 @@ jobs:
             set +e
             (
               cd "$RO_CALLER"
+              # PowerShell $env references remain literal until the child command.
+              # shellcheck disable=SC2016
               SDL_VIDEODRIVER=offscreen \
               SDL_AUDIODRIVER=dummy \
               SNESRECOMP_DUMP_DIR="$RO_DUMPS_WIN" \
               UR_RECOMP_USER_DATA_ROOT="$RO_USER_WIN" \
-                # PowerShell $env variables remain literal until this subprocess runs.
-                # shellcheck disable=SC2016
                 timeout 300 powershell.exe -NoProfile -NonInteractive -Command \
                   '& (Join-Path $env:RO_PACKAGE_WIN "run-uniracers.cmd") --script $env:RO_SCRIPT_WIN; exit $LASTEXITCODE' \
                   >"$RUNNER_TEMP/read-only-unicode-boot-$boot.log" 2>&1

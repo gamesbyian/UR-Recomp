@@ -553,7 +553,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
         match = re.search(r"shard:\s*\[([^\]]+)\]", block)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
-        self.assertEqual(shards, ["selection", "progression", "isolation"])
+        self.assertEqual(shards, ["selection", "progression", "isolation", "earned"])
         self.assertIn("needs: build", block)
         self.assertNotIn("cmake --build", block)
 

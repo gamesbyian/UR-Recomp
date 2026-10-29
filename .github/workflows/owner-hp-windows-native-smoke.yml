@@ -5,8 +5,6 @@ on:
     paths:
       - ".github/workflows/owner-hp-windows-native-smoke.yml"
   workflow_dispatch:
-permissions:
-  contents: read
 
 concurrency:
   # Direct smoke and the QA-05/09 reusable caller may run for the same PR.
@@ -21,11 +19,14 @@ jobs:
   windows:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: ${{ inputs.run_tournament_acceptance && 45 || 20 }}
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
     steps:
+      - name: Expose Git Bash to the service account
+        shell: cmd
+        run: echo C:\Program Files\Git\bin>>"%GITHUB_PATH%"
       # Project patches are hash-pinned; Windows Git's autocrlf would rewrite them.
       - name: Keep checkout bytes exact
         run: git config --global core.autocrlf false

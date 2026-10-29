@@ -25,9 +25,11 @@ jobs:
       - name: Expose machine CMake to Windows runner service
         shell: cmd
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Expose existing Python 3.12 installation to runner service
+        shell: cmd
+        run: |
+          if exist "C:\Program Files\Python312\python.exe" echo C:\Program Files\Python312>>"%GITHUB_PATH%"
+          for /d %%U in ("C:\Users\*") do if exist "%%~fU\AppData\Local\Programs\Python\Python312\python.exe" echo %%~fU\AppData\Local\Programs\Python\Python312>>"%GITHUB_PATH%"
       - name: Run ROM-free native C++ and Windows regression benchmark
         shell: cmd
         run: python tools/devnode_benchmark.py --target hp

@@ -207,7 +207,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
         # This helper can change on its own. A green previous-head acceptance
         # run must not qualify different Bash assertion behavior.
         helper = '"tests/native/assert_absent_grep.sh"'
-        for filename in ("tooling-unit-tests.yml", "qa05-qa09-windows-candidate.yml"):
+        for filename in ("tooling-unit-tests.yml", "qa05-qa09-windows-candidate.yml",
+                         "modern-native-heavy-router.yml"):
             with self.subTest(workflow=filename):
                 workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
                 pr = _block(workflow, "pull_request")

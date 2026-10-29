@@ -116,6 +116,8 @@ on:
       - "tests/input/ui-startup-timeline.script"
       - "tests/input/ui-stunt-entry-route.script"
       - "tests/input/ui-stunt-result-route.script"
+      # Indirectly sourced by the Modern onboarding native acceptance scripts.
+      - "tests/native/assert_absent_grep.sh"
       - "tests/native/completed_run_browser_test.cpp"
       - "tests/native/completed_run_catalog_test.cpp"
       - "tests/native/completed_run_ghost_frame_test.cpp"

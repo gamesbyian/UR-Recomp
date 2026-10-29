@@ -151,6 +151,7 @@ jobs:
       - name: Ghost target profile persistence acceptance
         shell: bash
         run: |
+          # PowerShell and child-shell snippets are intentionally single-quoted literals.
           set -euo pipefail
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
@@ -186,7 +187,9 @@ jobs:
           drive_ghost_row() {
             local log="$1"
             local dumps="$2"
-            timeout 75s xvfb-run -a bash -c '
+            # Child-Bash variables intentionally remain literal until handoff.
+          # shellcheck disable=SC2016
+          timeout 75s xvfb-run -a bash -c '
               set -euo pipefail
               export SDL_AUDIODRIVER=dummy
               export UR_PRODUCT_DIAGNOSTICS=1
@@ -236,7 +239,13 @@ jobs:
             exit "$AUTH_STATUS"
           fi
           cmp "$ROOT/profile-before-authentic.txt" "$PROFILE_STATE"
-          ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"
+          if grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"; then
+            echo "::error::Forbidden acceptance diagnostic" >&2
+            exit 1
+          elif [ "$?" -ne 1 ]; then
+            echo "::error::Could not inspect acceptance diagnostic" >&2
+            exit 1
+          fi
           echo "UR_GHOST_TARGET_PROFILE_RESULT=previous_then_personal_best_persisted_and_authentic_inert"
 
       - name: Upload targeted diagnostics
@@ -275,6 +284,7 @@ jobs:
       - name: Profile panel acceptance
         shell: bash
         run: |
+          # The embedded snippets intentionally pass unexpanded source to their interpreter.
           set -euo pipefail
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
@@ -295,6 +305,8 @@ jobs:
           EOF
 
           set +e
+          # Child-Bash variables intentionally remain literal until handoff.
+          # shellcheck disable=SC2016
           timeout 90s xvfb-run -a bash -c '
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy

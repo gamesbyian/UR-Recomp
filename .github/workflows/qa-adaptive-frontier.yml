@@ -124,7 +124,16 @@ jobs:
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           test -x "$EXE"
           ldd "$EXE" 2>&1 | tee "$RUNNER_TEMP/frontier-native-ldd.log"
-          ! grep -q 'not found' "$RUNNER_TEMP/frontier-native-ldd.log"
+          if grep -q 'not found' "$RUNNER_TEMP/frontier-native-ldd.log"; then
+            echo "::error::Frontier native candidate has unresolved shared-library dependencies" >&2
+            exit 1
+          else
+            grep_rc=$?
+            if [ "$grep_rc" -ne 1 ]; then
+              echo "::error::Could not inspect frontier dependency report (grep=$grep_rc)" >&2
+              exit 1
+            fi
+          fi
           python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
       - name: Run allocated real two-seat native state-space experiments
         shell: bash

@@ -582,6 +582,20 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "bypasses mapped cleanup"):
                 qa.audit(archive, source, qa.file_digest(archive))
 
+    def test_mapped_launcher_cannot_downgrade_to_legacy_exit_contract(self):
+        launcher = producer.launcher()
+        mapped = b"setlocal EnableExtensions DisableDelayedExpansion"
+        legacy = b"setlocal DisableDelayedExpansion"
+        final = b"exit /b %UR_BALDOSA_EXIT_CODE%"
+        self.assertEqual(launcher.count(mapped), 1)
+        self.assertEqual(launcher.count(final), 1)
+        # Retaining PUSHD but forging the old entry and exit markers used
+        # to bypass the independent consumer's mapped-path branch.
+        downgraded = launcher.replace(mapped, legacy).replace(
+            final, b"exit /b %ERRORLEVEL%")
+        with self.assertRaisesRegex(ValueError, "canonical safety boundary"):
+            qa.check_launcher_policy(downgraded)
+
     def test_evolving_safe_product_launcher_is_not_rejected_by_old_qa_template(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

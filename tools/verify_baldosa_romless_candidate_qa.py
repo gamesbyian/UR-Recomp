@@ -136,6 +136,14 @@ def check_launcher_policy(payload: bytes) -> bool:
             or value.index('pushd "%UR_RECOMP_USER_DATA_ROOT%"') >
                value.index('--no-launcher "%UR_BALDOSA_ROM%" %*')):
         raise ValueError("Baldosa launcher missing canonical safety boundary")
+    # Historical direct-exit packages never allocate a temporary drive.
+    # A rehashed ZIP must not evade mapped-path cleanup checks by changing
+    # only SETLOCAL and the final EXIT marker back to legacy spellings.
+    if entry == legacy_entry and (
+            'pushd "%UR_RECOMP_USER_DATA_ROOT%"' in value
+            or ':UR-BALDOSA-CLEANUP' in value
+            or re.search(r"(?im)^popd$", value)):
+        raise ValueError("Baldosa launcher missing canonical safety boundary")
     if entry == mapped_entry:
         # A rehashed, independently built archive can retain the POPD
         # marker while inserting an early EXIT /B on a failure branch.

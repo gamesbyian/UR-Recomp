@@ -144,8 +144,13 @@ def recommend_work(board, agent_number, cycle_date=None, busy_work_ids=()):
                if job["work_id"] not in busy_work_ids]
     fallback = (outside[(cycle_date.toordinal() + agent_number - 1) %
                         len(outside)] if outside else None)
+    # Prefer a distinct outside-cohort job, but never advertise no work while
+    # another eligible top-five candidate is demonstrably free. If multiple
+    # candidates are busy, preserve ranked order for the remaining cohort.
+    spare_cohort = next((job for job in cohort
+                         if job["work_id"] not in busy_work_ids), None)
     proposed = (primary if primary["work_id"] not in busy_work_ids
-                else fallback)
+                else (fallback or spare_cohort))
     return {
         "cycle_utc_date": cycle_date.isoformat(),
         "candidate_jobs": cohort,

@@ -7502,7 +7502,8 @@ void run_results_navigation_acceptance() {
             std::fflush(stderr);
         }
 
-        if (std::strcmp(mode, "next-earned") == 0) {
+        if (std::strcmp(mode, "next-earned") == 0 ||
+            std::strcmp(mode, "next-earned-movie") == 0) {
             // Frozen acceptance source: the first result's real SRAM and
             // generation are read, never seeded or adjusted by the host.
             g_results_navigation_acceptance_first_sram =
@@ -7525,7 +7526,8 @@ void run_results_navigation_acceptance() {
         } else if (std::strcmp(mode, "tour") == 0) {
             target = ur::product::ModernResultsAction::TourSelect;
         } else if (std::strcmp(mode, "next") == 0 ||
-                   std::strcmp(mode, "next-earned") == 0) {
+                   std::strcmp(mode, "next-earned") == 0 ||
+                   std::strcmp(mode, "next-earned-movie") == 0) {
             target = ur::product::ModernResultsAction::NextEvent;
         }
         if (target == ur::product::ModernResultsAction::None) {
@@ -7554,6 +7556,20 @@ void run_results_navigation_acceptance() {
                 results_navigation_action_name(target));
             std::fflush(stderr);
         }
+        // Research only: replay genuine original TAS P1 input on the second
+        // stock race. The existing relative input loader is armed by the
+        // production race-start path, not by a fabricated guest state.
+        if (std::strcmp(mode, "next-earned-movie") == 0) {
+            const char* source = std::getenv("UR_RESULTS_NEXT_MOVIE_INPUT");
+            if (!source || !*source ||
+                !snesrecomp_desktop_load_relative_input_file(source)) {
+                product_diagnostic("UR_RESULTS_NAV NEXT_MOVIE_LOAD_FAILED");
+                g_results_navigation_acceptance_stage = -1;
+                (void)request_desktop_quit();
+                return;
+            }
+            product_diagnostic("UR_RESULTS_NAV NEXT_MOVIE_SOURCE_INPUT_BOUND");
+        }
         (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
         g_results_navigation_acceptance_stage = 1;
         return;
@@ -7573,14 +7589,16 @@ void run_results_navigation_acceptance() {
                    g_ram[0x009F] == 0x6D) {
             product_diagnostic("UR_RESULTS_NAV ACCEPT_TOUR_READY");
         } else if ((std::strcmp(mode, "next") == 0 ||
-                    std::strcmp(mode, "next-earned") == 0) &&
+                    std::strcmp(mode, "next-earned") == 0 ||
+                    std::strcmp(mode, "next-earned-movie") == 0) &&
                    g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
                    !g_next_event_verify_track) {
             // Both paths require the genuine stock route and observed course.
             // The earned path must NOT quit here: finish and save the second
             // source-owned race, then cold-reopen its actual files.
             product_diagnostic("UR_RESULTS_NAV ACCEPT_NEXT_RACE");
-            if (std::strcmp(mode, "next-earned") == 0) {
+            if (std::strcmp(mode, "next-earned") == 0 ||
+            std::strcmp(mode, "next-earned-movie") == 0) {
                 g_results_navigation_acceptance_frames = 0;
                 g_results_navigation_acceptance_stage = 2;
                 return;

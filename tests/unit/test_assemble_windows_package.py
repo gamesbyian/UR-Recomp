@@ -95,9 +95,10 @@ class WindowsPackageTests(unittest.TestCase):
                     )
                     if case == "missing-rom":
                         (payload / package_tool.ROM_NAME).unlink()
-                    command = f'call "{launcher}" & cd'
+                    # Separate tokens avoid cmd.exe /C outer-quote removal
+                    # for batch paths containing spaces and metacharacters.
                     proc = subprocess.run(
-                        ["cmd.exe", "/d", "/c", command],
+                        ["cmd.exe", "/d", "/c", "call", str(launcher), "&", "cd"],
                         cwd=caller, env=env, capture_output=True, text=True,
                         errors="replace", timeout=30, check=False,
                     )

@@ -204,9 +204,11 @@ jobs:
             --original-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
             --candidate-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
             --out "$RUNNER_TEMP/qa08-counterfactual/original-snes9x-exact-RGB5.json"
-          cat "$RUNNER_TEMP/qa08-counterfactual/real-native-raster.json" >> "$GITHUB_STEP_SUMMARY"
-          cat "$RUNNER_TEMP/qa08-counterfactual/original-snes9x-exact-RGB5.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "Observation only, even if the hypothesis fails; not an original-emulator equality or shipping verdict." >> "$GITHUB_STEP_SUMMARY"
+          {
+            cat "$RUNNER_TEMP/qa08-counterfactual/real-native-raster.json"
+            cat "$RUNNER_TEMP/qa08-counterfactual/original-snes9x-exact-RGB5.json"
+            echo "Observation only, even if the hypothesis fails; not an original-emulator equality or shipping verdict."
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Restore original pinned first-line behavior and apply ONLY channel-7 prime in disposable framework
         shell: bash
         run: |

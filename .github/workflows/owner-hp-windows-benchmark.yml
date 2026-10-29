@@ -17,8 +17,6 @@ jobs:
   hp:
     name: Owner HP Windows 10
     runs-on: [self-hosted, Windows, X64]
-    env:
-      PSExecutionPolicyPreference: Bypass
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -27,13 +25,16 @@ jobs:
       - name: Expose machine CMake to Windows runner service
         shell: cmd
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
-      - name: Confirm execution policy inherited by service
+      - name: Locate existing Python 3.12 for the runner service
         shell: cmd
         run: |
-          powershell.exe -NoProfile -Command "Get-ExecutionPolicy"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$profileDirs = Get-ChildItem -LiteralPath 'C:\Users' -Directory -Force -ErrorAction SilentlyContinue; $paths = @('C:\Program Files\Python312'); foreach ($dir in $profileDirs) { $paths += (Join-Path $dir.FullName 'AppData\Local\Programs\Python\Python312') }; $found = $paths | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'python.exe') } | Select-Object -First 1; if (-not $found) { throw 'Installed Python 3.12 unavailable to runner service' }; Add-Content -LiteralPath $env:GITHUB_PATH -Value $found; Write-Output 'Existing Python 3.12 found and added to job PATH'"
+      - name: Confirm native tool availability
+        shell: cmd
+        run: |
+          where python
+          python --version
+          cmake --version
       - name: Run ROM-free native C++ and Windows regression benchmark
         shell: cmd
         run: python tools/devnode_benchmark.py --target hp

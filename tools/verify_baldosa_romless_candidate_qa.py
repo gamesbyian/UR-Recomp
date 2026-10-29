@@ -136,6 +136,46 @@ def check_launcher_policy(payload: bytes) -> bool:
             or value.index('pushd "%UR_RECOMP_USER_DATA_ROOT%"') >
                value.index('--no-launcher "%UR_BALDOSA_ROM%" %*')):
         raise ValueError("Baldosa launcher missing canonical safety boundary")
+    if entry == mapped_entry:
+        # A rehashed, independently built archive can retain the POPD
+        # marker while inserting an early EXIT /B on a failure branch.
+        # Inspect every executable exit after PUSHD, not merely the
+        # presence of the cleanup label. HOLD's two returns are subroutine
+        # returns; all other post-PUSHD exits must pass through POPD.
+        lines = value.splitlines()
+        push_at = lines.index('pushd "%UR_RECOMP_USER_DATA_ROOT%"')
+        hold_at = lines.index(':UR-BALDOSA-HOLD')
+        cleanup_at = lines.index(':UR-BALDOSA-CLEANUP')
+        if not push_at < hold_at < cleanup_at:
+            raise ValueError("Baldosa launcher missing canonical safety boundary")
+        allowed_exits = 0
+        for index in range(push_at + 1, len(lines)):
+            line = lines[index]
+            for match in re.finditer(r"(?i)\bexit\s+/b\s+(%[^%]+%|[0-9]+)", line):
+                status = match.group(1)
+                pushd_failed = (
+                    index == push_at + 1 and status == "3"
+                    and line.startswith("if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT:")
+                )
+                hold_return = (
+                    hold_at < index < cleanup_at and status == "0"
+                    and line.strip() in (
+                        "if defined UR_BALDOSA_NO_HOLD exit /b 0",
+                        "exit /b 0",
+                    )
+                )
+                cleanup_return = (
+                    index == cleanup_at + 2
+                    and status == "%UR_BALDOSA_EXIT_CODE%"
+                    and line == "exit /b %UR_BALDOSA_EXIT_CODE%"
+                )
+                if not (pushd_failed or hold_return or cleanup_return):
+                    raise ValueError("Baldosa launcher bypasses mapped cleanup")
+                allowed_exits += 1
+        if (allowed_exits != 4
+                or value.count("goto UR-BALDOSA-CLEANUP") < 12
+                or "goto UR-BALDOSA-HOLD" in value):
+            raise ValueError("Baldosa launcher missing canonical safety boundary")
     # Existing older source revisions do not have a reparse walk. Report
     # their limitation without incorrectly asserting current-source identity.
     reparse = "[IO.FileAttributes]::ReparsePoint" in value

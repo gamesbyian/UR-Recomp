@@ -548,6 +548,40 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                         ValueError, "canonical safety boundary"):
                     qa.check_launcher_policy(launcher.replace(before, after))
 
+    def test_mapped_launcher_rehashed_failure_exit_cannot_bypass_popd(self):
+        # A valid manifest and fresh ZIP digest must not authorize a branch
+        # that exits directly after a successful PUSHD, leaking UNC mapping
+        # and changing the invoking CMD session's working directory.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive, source, _ = self.make(root)
+            with zipfile.ZipFile(archive) as z:
+                originals = {n: z.read(n) for n in z.namelist()}
+            old = (b'if not "%~1"=="" (set "UR_BALDOSA_EXIT_CODE=9" '
+                   b'& goto UR-BALDOSA-CLEANUP)')
+            new = b'if not "%~1"=="" exit /b 9'
+            launcher = originals[producer.PREFIX + producer.LAUNCHER]
+            self.assertEqual(launcher.count(old), 1)
+            malicious = launcher.replace(old, new)
+            with self.assertRaisesRegex(ValueError, "bypasses mapped cleanup"):
+                qa.check_launcher_policy(malicious)
+            manifest = json.loads(originals[producer.PREFIX + producer.MANIFEST])
+            for item in manifest["immutable_files"]:
+                if item["path"] == producer.LAUNCHER:
+                    item["bytes"] = len(malicious)
+                    item["sha256"] = hashlib.sha256(malicious).hexdigest()
+            revised_manifest = (json.dumps(manifest, sort_keys=True, indent=2)
+                                + "\n").encode()
+            def revise(name, data):
+                if name.endswith(producer.LAUNCHER):
+                    return malicious
+                if name.endswith(producer.MANIFEST):
+                    return revised_manifest
+                return data
+            resigned(archive, revise)
+            with self.assertRaisesRegex(ValueError, "bypasses mapped cleanup"):
+                qa.audit(archive, source, qa.file_digest(archive))
+
     def test_evolving_safe_product_launcher_is_not_rejected_by_old_qa_template(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

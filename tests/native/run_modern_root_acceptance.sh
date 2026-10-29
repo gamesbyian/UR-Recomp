@@ -4,6 +4,8 @@
 # Run against an already-built native game and the verified USA retail ROM.
 # Controller-only and audible packaged Windows acceptance remain separate.
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 if [[ ${1:-} == --inside ]]; then
   shift
@@ -47,7 +49,7 @@ if [[ ${1:-} == --inside ]]; then
     wait_line 'UR_PRACTICE_PICKER OPENED'
     wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=b step=4'
     wait_line 'UR_PRACTICE_PICKER CANCELLED'
-    ! grep -q 'UR_PRACTICE STARTED' "$LOG"
+    assert_absent_grep -q 'UR_PRACTICE STARTED' "$LOG" || exit 1
   elif [[ "$MODE" == root-actions ]]; then
     # Practice is row 1. Back returns to identical root selection.
     xdotool key Down Return

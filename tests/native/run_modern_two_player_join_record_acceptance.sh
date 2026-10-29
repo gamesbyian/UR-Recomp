@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Reuses an already-built native desktop product and the established stock 2P
 # capture acceptance route. Unlike the original capture test, the two
@@ -70,7 +72,7 @@ grep -q "UR_MULTIPLAYER_MATCH CAPTURE_STARTED" "$LOG"
 grep -q "UR_MULTIPLAYER_MATCH CAPTURED" "$LOG"
 grep -q "UR_MULTIPLAYER_MATCH REAL_JOIN_CAPTURE_COMPLETE" "$LOG"
 grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE" "$LOG"
-! grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED" "$LOG"
+assert_absent_grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED" "$LOG" || exit 1
 test "$(find "$MATCHES" -maxdepth 1 -type f -name '*.urrun' | wc -l)" -eq 1
 test "$(find "$MATCHES" -maxdepth 1 -type f -name '*.urrun.urmatch' | wc -l)" -eq 1
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native Vibration acceptance. The stock title has no rumble; Modern sends a
 # short pulse at each authoritative checkpoint split and a firmer one at the
@@ -68,7 +70,7 @@ run_native toggle "$PAUSE_SCRIPT" \
 grep -v '^script ' "$WORK/toggle.log" || true
 grep -q "UR_PAUSE_OPTIONS OPENED" "$WORK/toggle.log"
 grep -q "UR_VIBRATION SELECTED enabled=0" "$WORK/toggle.log"
-! grep -q "UR_VIBRATION_ACCEPTANCE ROW_NOT_REACHED" "$WORK/toggle.log"
+assert_absent_grep -q "UR_VIBRATION_ACCEPTANCE ROW_NOT_REACHED" "$WORK/toggle.log" || exit 1
 grep -q '^vibration_enabled=0$' "$STATE"
 # The A/B states differ only in the vibration flag.
 sed 's/^vibration_enabled=0$/vibration_enabled=1/' "$STATE" >"$WORK/host-state-on.txt"
@@ -101,8 +103,8 @@ run_native off "$RACE_SCRIPT" \
   UR_RUN_RECORD_CAPTURE_PATH="$WORK/off.urrun"
 grep -q "UR_HAPTIC_ACCEPTANCE PAD_ATTACHED" "$WORK/off.log"
 grep -q "script .* dump race-results ok" "$WORK/off.log"
-! grep -q "UR_HAPTIC PULSE" "$WORK/off.log"
-! grep -q "UR_HAPTIC_ACCEPTANCE DEVICE_RUMBLE" "$WORK/off.log"
+assert_absent_grep -q "UR_HAPTIC PULSE" "$WORK/off.log" || exit 1
+assert_absent_grep -q "UR_HAPTIC_ACCEPTANCE DEVICE_RUMBLE" "$WORK/off.log" || exit 1
 # Compare the authoritative race outcome: course, mode, elapsed time, every
 # split and the race-relative controller stream. Two fields are excluded
 # because they also absorb occasional cross-process phase jitter around the
@@ -136,8 +138,8 @@ run_native authentic "$RACE_SCRIPT" \
   UR_HAPTIC_ACCEPTANCE=1
 grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$WORK/authentic.log"
 grep -q "script .* dump race-results ok" "$WORK/authentic.log"
-! grep -q "UR_HAPTIC PULSE" "$WORK/authentic.log"
-! grep -q "UR_HAPTIC_ACCEPTANCE DEVICE_RUMBLE" "$WORK/authentic.log"
+assert_absent_grep -q "UR_HAPTIC PULSE" "$WORK/authentic.log" || exit 1
+assert_absent_grep -q "UR_HAPTIC_ACCEPTANCE DEVICE_RUMBLE" "$WORK/authentic.log" || exit 1
 fi
 
 echo "UR_VIBRATION_ACCEPTANCE_RESULT=$MODE"

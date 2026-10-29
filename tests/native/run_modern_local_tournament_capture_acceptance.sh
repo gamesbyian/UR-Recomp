@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native proof: real independent SDL join-overlay confirmation -> genuine
 # guest ordinary 2P result -> normal run+match pair -> captured pre-race
@@ -26,8 +28,8 @@ LOG="$WORK/real-joined-capture.log"
 grep -q "UR_LOCAL_TOURNAMENT ACCEPTANCE_ARMED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT CAPTURE_NOT_ADMITTED" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT CAPTURE_NOT_ADMITTED" "$LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG" || exit 1
 
 CHECK="$WORK/check-local-tournament"
 g++ -std=c++17 -Wall -Wextra -Werror -pedantic \

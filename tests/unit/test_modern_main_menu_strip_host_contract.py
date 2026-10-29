@@ -37,7 +37,7 @@ class ModernMainMenuStripHostContractTests(unittest.TestCase):
         harness = HARNESS.read_text(encoding="utf-8")
         self.assertIn("UR_MAIN_MENU_PAD_ACCEPTANCE=r", harness)
         self.assertIn("F3/Y NEXT EVENT Monster | F6/R RECENT Bowl", harness)
-        self.assertIn('! grep -q "UR_TOUR_ENTRY MENU_OPENED" "$E_LOG"', harness)
+        self.assertIn('assert_absent_grep -q "UR_TOUR_ENTRY MENU_OPENED" "$E_LOG" || exit 1', harness)
 
 
 if __name__ == "__main__":

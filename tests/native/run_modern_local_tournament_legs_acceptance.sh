@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Explicit negative diagnostics, never inverted-grep under Bash errexit.
+source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"
 
 # Native proof that a multi-leg event continues from the 2P RESULTS screen:
 # real join -> F4 -> MEET EACH 2X -> START (OS-minted, 2 fixtures) -> arm
@@ -62,6 +64,6 @@ grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 7 expected=1 visible=1 page=1
 grep -q "UR_LOCAL_TOURNAMENT END_CONFIRMED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE ENDED_AND_REPLACED pending=0 fixtures=1 legs=1" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG"
-! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG" || exit 1
+assert_absent_grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG" || exit 1
 echo "UR_LOCAL_TOURNAMENT_LEGS_ACCEPTANCE=two_leg_event leg1_credited leg2_armed_from_results end_event_replaced"

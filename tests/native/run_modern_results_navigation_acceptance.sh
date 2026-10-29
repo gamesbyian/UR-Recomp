@@ -215,6 +215,11 @@ COLD_ROOT="$WORK/next-earned-profile"
 COLD_DUMPS="$WORK/next-earned-cold-dumps"
 COLD_LOG="$WORK/next-earned-cold.log"
 mkdir -p "$COLD_DUMPS"
+# Preserve the *exact* SRAM and typed profile at second-result shutdown.
+# The original stock guest may legitimately mutate transient SRAM bytes
+# while subsequently booting and returning to MAIN in a fresh process.
+cp "$COLD_ROOT/save.srm" "$WORK/next-earned-pre-cold.srm"
+cp "$COLD_ROOT/host-profile.txt" "$WORK/next-earned-pre-cold-profile.txt"
 SDL_AUDIODRIVER=dummy \
 XDG_DATA_HOME="$PREF_ROOT" \
 UR_PRODUCT_DIAGNOSTICS=1 \
@@ -227,39 +232,58 @@ SNESRECOMP_DUMP_DIR="$COLD_DUMPS" \
 grep -q "UR_PROFILE_SRAM LOADED" "$COLD_LOG"
 python3 - "$WORK/next-earned-dumps/race-results.sram.bin" \
           "$WORK/next-earned-dumps/next-event-race-results.sram.bin" \
+          "$WORK/next-earned-pre-cold.srm" \
+          "$WORK/next-earned-pre-cold-profile.txt" \
           "$COLD_ROOT/save.srm" "$COLD_ROOT/host-profile.txt" \
           "$COLD_DUMPS/cold-main-menu.sram.bin" <<'PY'
 from pathlib import Path
 import sys
-first, second, saved, profile, reopened = map(Path, sys.argv[1:])
+(first, second, pre_save, pre_profile, post_save, post_profile,
+ cold_dump) = map(Path, sys.argv[1:])
 first_raw, second_raw = first.read_bytes(), second.read_bytes()
-saved_raw, cold_raw = saved.read_bytes(), reopened.read_bytes()
-if any(len(value) != 8192 for value in
-       (first_raw, second_raw, saved_raw, cold_raw)):
+before_cold = pre_save.read_bytes()
+after_cold = post_save.read_bytes()
+cold_raw = cold_dump.read_bytes()
+if any(len(raw) != 8192 for raw in
+       (first_raw, second_raw, before_cold, after_cold, cold_raw)):
     raise SystemExit("ONE-03 next earned: invalid actual SRAM image size")
 if first_raw[0x1075:0x107A] != bytes((0, 1, 1, 1, 1)):
     raise SystemExit("ONE-03 next earned: initial four-of-five row changed")
 if second_raw == first_raw:
     raise SystemExit("ONE-03 next earned: follow-on result earned no SRAM change")
-# Changed lap/record metadata alone is not tour progression. A genuinely
-# qualifying fifth event must advance the selected tour bit or the awarded
-# medal; completing a tour may legitimately reset all five bits.
-initial_row = first_raw[0x1075:0x107A]
-final_row = second_raw[0x1075:0x107A]
-initial_medal = first_raw[0x069C]
-final_medal = second_raw[0x069C]
+def typed_snapshot(path):
+    fields = dict(line.split("=", 1) for line in path.read_text().splitlines()
+                  if "=" in line)
+    return bytes.fromhex(fields["stock_sram"])
+# Require actual *second-result* disk+typed publication BEFORE cold boot
+# normalizes live guest flags or overwrites the ordinary save.srm.
+if before_cold != second_raw or typed_snapshot(pre_profile) != second_raw:
+    raise SystemExit("ONE-03 next earned: second-result publication not atomic")
+# Race record changes alone do not qualify a fifth tour event. Source must
+# advance the selected tour row or award the tour medal. A completed tour
+# may legitimately clear its five individual row flags.
+initial_row, final_row = (x[0x1075:0x107A] for x in (first_raw, second_raw))
+initial_medal, final_medal = first_raw[0x069C], second_raw[0x069C]
 if initial_row == final_row and initial_medal == final_medal:
     raise SystemExit("ONE-03 next earned: source race produced no tour progression or medal")
 if initial_medal == final_medal and any(
-        a == 1 and b != 1 for a, b in zip(initial_row, final_row)):
-    raise SystemExit("ONE-03 next earned: prior completed tour flags were lost")
-if saved_raw != cold_raw:
-    raise SystemExit("ONE-03 next earned: fresh process did not reload saved SRAM")
-fields = dict(line.split("=", 1) for line in profile.read_text().splitlines()
-              if "=" in line)
-if bytes.fromhex(fields["stock_sram"]) != saved_raw:
-    raise SystemExit("ONE-03 next earned: typed profile and SRAM diverged")
-print("UR_RESULTS_NAV NEXT_EARNED_COLD_REOPEN=source_second_result=1 byte_equal=1")
+        old == 1 and new != 1 for old, new in zip(initial_row, final_row)):
+    raise SystemExit("ONE-03 next earned: previously completed tour flags lost")
+# Cold boot is a *different time*: compare cold live SRAM to its exit save,
+# then require the persisted progress and typed result survive unchanged.
+if cold_raw != after_cold:
+    raise SystemExit("ONE-03 next earned: fresh process SRAM/save mismatch")
+if typed_snapshot(post_profile) != second_raw:
+    raise SystemExit("ONE-03 next earned: cold process replaced typed earned result")
+if (cold_raw[0x1075:0x107A] != final_row or
+        cold_raw[0x069C] != final_medal):
+    raise SystemExit("ONE-03 next earned: tour/medal not preserved on cold boot")
+volatile_diffs = [f"{i:04X}" for i, (a, b) in
+                  enumerate(zip(before_cold, after_cold)) if a != b]
+print("UR_RESULTS_NAV NEXT_EARNED_COLD_REOPEN=source_second_result=1 "
+      "progression_persisted=1 cold_boot_sram_changed_offsets=" +
+      ",".join(volatile_diffs))
+
 PY
 fi
 

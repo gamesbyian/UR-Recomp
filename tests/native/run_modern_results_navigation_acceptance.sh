@@ -307,13 +307,19 @@ if before_cold != second_raw or typed_snapshot(pre_profile) != second_raw:
 # Race record changes alone do not qualify a fifth tour event. Source must
 # advance the selected tour row or award the tour medal. A completed tour
 # may legitimately clear its five individual row flags.
-initial_row, final_row = (x[0x1075:0x107A] for x in (first_raw, second_raw))
-initial_medal, final_medal = first_raw[0x069C], second_raw[0x069C]
-if initial_row == final_row and initial_medal == final_medal:
-    raise SystemExit("ONE-03 next earned: source race produced no tour progression or medal")
-if initial_medal == final_medal and any(
-        old == 1 and new != 1 for old, new in zip(initial_row, final_row)):
-    raise SystemExit("ONE-03 next earned: previously completed tour flags lost")
+def source_earned_tour_awarded(first_raw, second_raw):
+    initial_medal, final_medal = first_raw[0x069C], second_raw[0x069C]
+    final_row = second_raw[0x1075:0x107A]
+    p1_cs = int.from_bytes(second_raw[0x0769:0x076B], "little")
+    cpu_cs = int.from_bytes(second_raw[0x07D3:0x07D5], "little")
+    # Original 83:88D3 qualifies only a winning P1 result. Original
+    # 83:87F5 writes literal checkmarks; 83:895B clears all five when
+    # 83:881B awards the completed tour. A changed byte is not an award.
+    return (0 < p1_cs < cpu_cs and
+            final_medal > initial_medal and
+            final_row == bytes(5))
+if not source_earned_tour_awarded(first_raw, second_raw):
+    raise SystemExit("ONE-03 next earned: no source-qualified win and completed tour award")
 # Cold boot is a *different time*: compare cold live SRAM to its exit save,
 # then require the persisted progress and typed result survive unchanged.
 if cold_raw != after_cold:

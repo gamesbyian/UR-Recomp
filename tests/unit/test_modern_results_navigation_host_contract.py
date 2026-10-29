@@ -191,7 +191,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("if second_raw == first_raw:", harness)
         self.assertIn("if cold_raw != after_cold:", harness)
         self.assertIn('fields["stock_sram"]', harness)
-        self.assertIn("if initial_row == final_row and initial_medal == final_medal:", harness)
+        self.assertIn("if not source_earned_tour_awarded(first_raw, second_raw):", harness)
         self.assertIn("next-earned-pre-cold.srm", harness)
         self.assertIn("UR_ONE03_USE_2014_SOURCE_INPUT", harness)
         self.assertIn("--first-movie-frame 794 --frames 2080", harness)
@@ -208,6 +208,40 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("until 009F == 99 4800", movie)
         self.assertTrue(all(not line.startswith("press ")
                             for line in movie.split("dump race-results", 1)[1].splitlines()))
+
+    def test_earned_tour_award_requires_real_win_and_completed_clear(self):
+        # Execute the same Python predicate embedded in the acceptance
+        # heredoc, rather than a second approximation of its conditions.
+        import ast
+        harness = HARNESS.read_text(encoding="utf-8")
+        marker = "def source_earned_tour_awarded(first_raw, second_raw):"
+        self.assertIn(marker, harness)
+        body = _body(harness, marker, "if not source_earned_tour_awarded(")
+        parsed = ast.parse(body)
+        self.assertEqual(len(parsed.body), 1)
+        namespace = {}
+        exec(compile(ast.Module(body=parsed.body, type_ignores=[]),
+                     str(HARNESS), "exec"), namespace)
+        check = namespace["source_earned_tour_awarded"]
+
+        def sram(row, medal, p1=2508, cpu=2798):
+            raw = bytearray(8192)
+            raw[0x1075:0x107A] = bytes(row)
+            raw[0x069C] = medal
+            raw[0x0769:0x076B] = p1.to_bytes(2, "little")
+            raw[0x07D3:0x07D5] = cpu.to_bytes(2, "little")
+            return bytes(raw)
+
+        first = sram([0, 1, 1, 1, 1], 0, p1=2856)
+        self.assertTrue(check(first, sram([0, 0, 0, 0, 0], 1)))
+        # A malformed fifth byte, a medal without the source-mandated
+        # row clear, and a fifth flag without award are not completed tours.
+        self.assertFalse(check(first, sram([2, 1, 1, 1, 1], 0)))
+        self.assertFalse(check(first, sram([0, 1, 1, 1, 1], 1)))
+        self.assertFalse(check(first, sram([1, 1, 1, 1, 1], 0)))
+        # Even a plausible cleared row and new medal cannot certify a loss.
+        self.assertFalse(check(first, sram([0, 0, 0, 0, 0], 1, p1=2856)))
+        self.assertFalse(check(first, sram([0, 0, 0, 0, 0], 0)))
 
     def test_2014_dragster_movie_source_exports_real_relative_controller_masks(self):
         # Actual archived source controller bytes, not a synthetic winning

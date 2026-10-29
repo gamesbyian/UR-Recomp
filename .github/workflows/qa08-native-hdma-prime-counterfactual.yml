@@ -1,27 +1,11 @@
 name: QA-08 one-shot native HDMA prime raster experiment
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-native-hdma-prime-counterfactual.yml"
-      - "tools/qa08_compare_native_hdma_prime_trial.py"
-      - "tools/qa08_compare_native_prime_multiframe.py"
-      - "tests/unit/test_qa08_compare_native_prime_multiframe.py"
-      - "tests/unit/test_qa08_compare_native_hdma_prime_trial.py"
-      - "tools/qa08_patch_hdma_prime_counterfactual.py"
-      - "tools/qa08_patch_channel7_only_prime_counterfactual.py"
-      - "tools/qa08_compare_channel7_native_prime.py"
-      - "tests/unit/test_qa08_compare_channel7_native_prime.py"
-      - "tools/qa08_patch_channel57_prime_counterfactual.py"
-      - "tools/qa08_compare_channel57_native_prime.py"
-      - "tests/unit/test_qa08_patch_channel57_prime_counterfactual.py"
-      - "tests/unit/test_qa08_compare_channel57_native_prime.py"
-      - "tools/qa08_patch_extra_original_source_capture.py"
-      - "tests/unit/test_qa08_patch_extra_original_source_capture.py"
-      - "tools/qa08_compare_original_moving_source_window.py"
-      - "tests/unit/test_qa08_compare_original_moving_source_window.py"
-      - "tools/qa08_patch_hdma_all_channels_source.py"
-      - "tests/unit/test_qa08_patch_hdma_all_channels_source.py"
+  # Bounded original/native research, not an automatic merge gate.
+  # Its pinned original Snes9x artifact IDs 11884155561 and 11925517895
+  # are no longer retrievable (HTTP 410 observed in run #40971901768).
+  # Keep the full real experiment available for manual replay only after
+  # independently restoring both original source archives by exact digest.
   workflow_dispatch:
 
 permissions:

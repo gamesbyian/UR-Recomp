@@ -146,7 +146,6 @@ jobs:
       - name: Configure and build (Visual Studio, ClangCL, SDL3)
         run: |
           # Some quoted source is deliberately interpreted by a downstream tool.
-          # shellcheck disable=SC2016
           set -euo pipefail
           # CMake embeds these paths in generated scripts; backslashes in
           # D:\a\... would be parsed as escapes, so pass mixed (C:/...) form.
@@ -169,6 +168,8 @@ jobs:
           # not require a separately installed Visual C++ Redistributable.
           EXE_WIN="$(cygpath -w "$EXE")"
           export EXE_WIN
+          # PowerShell $ variables are literal source in the outer Bash process.
+          # shellcheck disable=SC2016
           powershell.exe -NoProfile -Command '
             $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
             $vs = & $vswhere -latest -property installationPath
@@ -268,7 +269,6 @@ jobs:
       - name: Clean-package boot and per-user state anchoring
         run: |
           # PowerShell source remains literal until executed by PowerShell.
-          # shellcheck disable=SC2016
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/package-boot-dumps"
           CALLER="$RUNNER_TEMP/package launch caller"
@@ -280,6 +280,8 @@ jobs:
           # Use Windows' native archive reader for actual ZIP distribution.
           PACKAGE_ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
           EXTRACT_WIN="$(cygpath -w "$EXTRACT")"
+          # PowerShell expands the literal $env variables after handoff.
+          # shellcheck disable=SC2016
           PACKAGE_ARCHIVE_WIN="$PACKAGE_ARCHIVE_WIN" EXTRACT_WIN="$EXTRACT_WIN" \
             powershell.exe -NoProfile -NonInteractive -Command \
               '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PACKAGE_ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'
@@ -390,7 +392,6 @@ jobs:
       - name: Read-only portable directory and Unicode user-data cold boots
         run: |
           # Quoted PowerShell source is intentionally literal at the Bash boundary.
-          # shellcheck disable=SC2016
           set -euo pipefail
           # Exercise the actual extracted shipping launcher twice. Deny NTFS
           # writes to the disposable install tree, not merely its file attributes;
@@ -411,13 +412,17 @@ jobs:
           RO_DUMPS_WIN="$(cygpath -w "$RO_DUMPS")"
 
           cleanup_readonly() {
-            powershell.exe -NoProfile -NonInteractive -Command '
+            # PowerShell $ variables are literal source in the outer Bash process.
+          # shellcheck disable=SC2016
+          powershell.exe -NoProfile -NonInteractive -Command '
               $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
               & icacls.exe $env:RO_PACKAGE_WIN /remove:d ("*" + $sid) /T | Out-Null
               exit $LASTEXITCODE
             ' || true
           }
           trap cleanup_readonly EXIT
+          # PowerShell $ variables are literal source in the outer Bash process.
+          # shellcheck disable=SC2016
           powershell.exe -NoProfile -NonInteractive -Command '
             $ErrorActionPreference = "Stop"
             $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
@@ -440,6 +445,8 @@ jobs:
               SDL_AUDIODRIVER=dummy \
               SNESRECOMP_DUMP_DIR="$RO_DUMPS_WIN" \
               UR_RECOMP_USER_DATA_ROOT="$RO_USER_WIN" \
+                # PowerShell $env variables remain literal until this subprocess runs.
+                # shellcheck disable=SC2016
                 timeout 300 powershell.exe -NoProfile -NonInteractive -Command \
                   '& (Join-Path $env:RO_PACKAGE_WIN "run-uniracers.cmd") --script $env:RO_SCRIPT_WIN; exit $LASTEXITCODE' \
                   >"$RUNNER_TEMP/read-only-unicode-boot-$boot.log" 2>&1
@@ -663,7 +670,6 @@ jobs:
       - name: Package refresh preserves user data
         run: |
           # Quoted PowerShell strings are intentionally passed without Bash expansion.
-          # shellcheck disable=SC2016
           set -euo pipefail
           test -f "$PACKAGE_USER_DATA/config.ini"
           test -f "$PACKAGE_USER_DATA/keybinds.ini"
@@ -692,6 +698,8 @@ jobs:
           # Package replacement must use the same Windows extraction path.
           PACKAGE_ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
           EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"
+          # PowerShell expands the literal $env variables after handoff.
+          # shellcheck disable=SC2016
           PACKAGE_ARCHIVE_WIN="$PACKAGE_ARCHIVE_WIN" EXTRACT_WIN="$EXTRACT_WIN" \
             powershell.exe -NoProfile -NonInteractive -Command \
               '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PACKAGE_ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'

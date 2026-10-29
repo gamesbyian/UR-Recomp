@@ -137,8 +137,8 @@ def launcher() -> bytes:
         'if "%ERRORLEVEL%"=="7" goto UR-BALDOSA-RECOVERY-MENU',
         'if "%ERRORLEVEL%"=="8" goto UR-BALDOSA-SAVE-FAILURE',
         'if "%ERRORLEVEL%"=="9" goto UR-BALDOSA-SWITCH-FAILURE',
-        # Preserve the independent release-auditor's existing exact
-        # nonzero exit propagation marker; IF does not alter errorlevel.
+        # Capture the native exit code before POPD changes ERRORLEVEL;
+        # the cleanup trampoline returns the original status unchanged.
         'if not "%ERRORLEVEL%"=="0" (set "UR_BALDOSA_EXIT_CODE=%ERRORLEVEL%" & goto UR-BALDOSA-CLEANUP)',
         'if "%UR_BALDOSA_FIRST_RACER_RELAUNCH%"=="1" if exist "%UR_RECOMP_USER_DATA_ROOT%\\host-state-v1.txt" goto UR-BALDOSA-REBOOT-FIRST-RACER',
         'set "UR_BALDOSA_EXIT_CODE=0"',

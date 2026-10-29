@@ -498,8 +498,8 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             archive, source, digest = self.make(Path(tmp))
             def change(name, value):
                 if name.endswith(producer.LAUNCHER):
-                    return value.replace(b"setlocal DisableDelayedExpansion",
-                                         b"setlocal EnableDelayedExpansion")
+                    return value.replace(b"DisableDelayedExpansion",
+                                         b"EnableDelayedExpansion")
                 return value
             resigned(archive, change)
             revised = qa.file_digest(archive)
@@ -513,8 +513,8 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             with zipfile.ZipFile(archive) as z:
                 original = {name: z.read(name) for name in z.namelist()}
             mutated = producer.launcher().replace(
-                b"setlocal DisableDelayedExpansion",
-                b"setlocal EnableDelayedExpansion")
+                b"DisableDelayedExpansion",
+                b"EnableDelayedExpansion")
             manifest = json.loads(original[producer.PREFIX + producer.MANIFEST])
             for entry in manifest["immutable_files"]:
                 if entry["path"] == producer.LAUNCHER:
@@ -530,6 +530,23 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             resigned(archive, change)
             with self.assertRaisesRegex(ValueError, "noncanonical CMD encoding or entry"):
                 qa.audit(archive, source, qa.file_digest(archive))
+
+    def test_mapped_launcher_cleanup_is_an_independent_zip_safety_boundary(self):
+        # The independent audit must not accept a rehashed ZIP whose mapped
+        # launcher omits POPD or silently discards the native exit status.
+        launcher = producer.launcher()
+        self.assertTrue(qa.check_launcher_policy(launcher))
+        for before, after in (
+            (b"\r\npopd\r\n", b"\r\nrem popd missing\r\n"),
+            (b"exit /b %UR_BALDOSA_EXIT_CODE%", b"exit /b 0"),
+            (b'pushd "%UR_RECOMP_USER_DATA_ROOT%"',
+             b'cd /d "%UR_RECOMP_USER_DATA_ROOT%"'),
+        ):
+            with self.subTest(before=before):
+                self.assertIn(before, launcher)
+                with self.assertRaisesRegex(
+                        ValueError, "canonical safety boundary"):
+                    qa.check_launcher_policy(launcher.replace(before, after))
 
     def test_evolving_safe_product_launcher_is_not_rejected_by_old_qa_template(self):
         with tempfile.TemporaryDirectory() as tmp:

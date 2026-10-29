@@ -87,10 +87,17 @@ def check_pe_header(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> None:
 
 def check_launcher_policy(payload: bytes) -> bool:
     """Check invariant safety boundaries, not the evolving producer's byte template."""
-    if (not payload.startswith(b"@echo off\r\nsetlocal DisableDelayedExpansion\r\n")
+    if (not payload.startswith(b"@echo off\r\n")
             or not payload.endswith(b"\r\n")
             or payload.replace(b"\r\n", b"").find(b"\n") != -1
             or b"\0" in payload):
+        raise ValueError("Baldosa launcher has noncanonical CMD encoding or entry")
+    # Older immutable packages have the original safe SETLOCAL entry;
+    # current packages enable CMD extensions for UNC PUSHD mapping.
+    entry = payload.split(b"\r\n", 2)[1]
+    legacy_entry = b"setlocal DisableDelayedExpansion"
+    mapped_entry = b"setlocal EnableExtensions DisableDelayedExpansion"
+    if entry not in (legacy_entry, mapped_entry):
         raise ValueError("Baldosa launcher has noncanonical CMD encoding or entry")
     value = payload.decode("utf-8")
     critical = (
@@ -108,10 +115,26 @@ def check_launcher_policy(payload: bytes) -> bool:
         'set "UR_BALDOSA_MODERN_PROFILE_SELECT=1"',
         '--no-launcher "%UR_BALDOSA_ROM%" %*',
         'if "%ERRORLEVEL%"=="7"',
-        "exit /b %ERRORLEVEL%",
     )
     if (any(value.count(marker) != 1 for marker in critical)
             or "UR-BALDOSA-STARTUP-SAVE-ROOT" not in value):
+        raise ValueError("Baldosa launcher missing canonical safety boundary")
+    # Verify the exit contract, not a stale exact launcher template. Older
+    # immutable packages exit directly with the native code. A mapped UNC
+    # launcher must restore its temporary drive and preserve that code.
+    legacy_exit = value.count("exit /b %ERRORLEVEL%") == 1
+    mapped_exit = all(value.count(marker) == 1 for marker in (
+        'pushd "%UR_RECOMP_USER_DATA_ROOT%"',
+        ':UR-BALDOSA-CLEANUP\r\npopd\r\nexit /b %UR_BALDOSA_EXIT_CODE%',
+        'set "UR_BALDOSA_EXIT_CODE=%ERRORLEVEL%"',
+    ))
+    if ((entry == legacy_entry and not legacy_exit)
+            or (entry == mapped_entry and not mapped_exit)):
+        raise ValueError("Baldosa launcher missing canonical safety boundary")
+    if mapped_exit and (
+            value.count("popd\r\n") != 1
+            or value.index('pushd "%UR_RECOMP_USER_DATA_ROOT%"') >
+               value.index('--no-launcher "%UR_BALDOSA_ROM%" %*')):
         raise ValueError("Baldosa launcher missing canonical safety boundary")
     # Existing older source revisions do not have a reparse walk. Report
     # their limitation without incorrectly asserting current-source identity.

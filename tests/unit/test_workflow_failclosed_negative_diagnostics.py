@@ -31,7 +31,10 @@ class WorkflowNegativeDiagnosticTests(unittest.TestCase):
             self.assertNotRegex(source, r"(?m)^\s*!\s+grep\s")
             lines = source.splitlines()
             candidates = [i for i, line in enumerate(lines)
-                          if NEGATIVE.fullmatch(line.strip())]
+                          if NEGATIVE.fullmatch(line.strip())
+                          and i + 1 < len(lines)
+                          and 'echo "::error::Forbidden acceptance diagnostic"'
+                          in lines[i + 1]]
             self.assertEqual(len(candidates), count, name)
             for index in candidates:
                 match = NEGATIVE.fullmatch(lines[index].strip())

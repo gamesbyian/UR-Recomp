@@ -32,8 +32,8 @@ def probe(name, command, timeout):
             "status": "passed" if completed.returncode == 0 else "failed",
             "exitCode": completed.returncode,
             "outputTail": "\n".join(
-                (completed.stdout + "\n" + completed.stderr).splitlines()[-12:]
-            )[:2400]
+                (completed.stdout + "\n" + completed.stderr).splitlines()[-180:]
+            )[:24000]
         }
     except Exception as exc:
         return {

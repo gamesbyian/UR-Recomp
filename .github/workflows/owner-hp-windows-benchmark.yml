@@ -47,6 +47,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   hosted:
+    # Hosted baseline is already recorded; avoid rebuilding on every HP-only fix.
+    if: github.event_name == 'workflow_dispatch'
     name: Hosted Windows 2022 reference
     runs-on: windows-2022
     timeout-minutes: 25

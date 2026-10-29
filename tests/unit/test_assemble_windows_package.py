@@ -64,6 +64,22 @@ class WindowsPackageTests(unittest.TestCase):
             launcher,
         )
 
+    def test_failed_legacy_migration_commit_cleans_exact_staging_path(self):
+        launcher = package_tool.launcher_text("migration-cleanup")
+        for stage, command, description in (
+            ("UR_MIGRATE_CONFIG", "del /q", "config.ini"),
+            ("UR_MIGRATE_KEYS", "del /q", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "rmdir /s /q", "saves"),
+            ("UR_MIGRATE_MOD", "del /q", "mod-state"),
+        ):
+            with self.subTest(stage=stage):
+                self.assertIn(
+                    f'else ({command} "%{stage}%" >nul 2>&1 & '
+                    f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
+                    f'"Could not commit legacy {description} migration."',
+                    launcher,
+                )
+
     def test_windows_launcher_restores_caller_cwd_on_success_and_refusal(self):
         # Real CMD process: a mapped UNC drive must be POPD-ed just as a
         # local PUSHD must restore the caller's original working directory.

@@ -251,7 +251,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         import tempfile
 
         harness = HARNESS.read_text(encoding="utf-8")
-        marker = '           "$COLD_DUMPS/cold-main-menu.sram.bin"'
+        marker = '"$COLD_DUMPS/cold-main-menu.sram.bin"'
         newline = chr(10)
         start_marker = "<<'PY'" + newline
         start = harness.index(start_marker, harness.index(marker)) + len(start_marker)

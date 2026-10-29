@@ -64,6 +64,22 @@ class WindowsPackageTests(unittest.TestCase):
             launcher,
         )
 
+    def test_failed_legacy_migration_commit_cleans_exact_staging_path(self):
+        launcher = package_tool.launcher_text("migration-cleanup")
+        for stage, command, description in (
+            ("UR_MIGRATE_CONFIG", "del /q", "config.ini"),
+            ("UR_MIGRATE_KEYS", "del /q", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "rmdir /s /q", "saves"),
+            ("UR_MIGRATE_MOD", "del /q", "mod-state"),
+        ):
+            with self.subTest(stage=stage):
+                self.assertIn(
+                    f'else ({command} "%{stage}%" >nul 2>&1 & '
+                    f'call :startup_fail "UR-STARTUP-SAVE-ROOT" "save-root" '
+                    f'"Could not commit legacy {description} migration."',
+                    launcher,
+                )
+
     def test_windows_launcher_restores_caller_cwd_on_success_and_refusal(self):
         # Real CMD process: a mapped UNC drive must be POPD-ed just as a
         # local PUSHD must restore the caller's original working directory.
@@ -119,6 +135,59 @@ class WindowsPackageTests(unittest.TestCase):
                                 encoding="utf-8"
                             ),
                         )
+
+    def test_windows_legacy_migration_rename_failure_removes_current_stage(self):
+        # Exercise the real generated CMD control flow, injecting a failed
+        # rename after successful staging. This is not an ACL integration test.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        cases = (
+            ("UR_MIGRATE_CONFIG", "config.ini", "config.ini"),
+            ("UR_MIGRATE_KEYS", "keybinds.ini", "keybinds.ini"),
+            ("UR_MIGRATE_SAVES", "saves", "saves"),
+            ("UR_MIGRATE_MOD", "mod-state.toml", "mods/preloaded/state.toml"),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            for stage, destination, legacy in cases:
+                with self.subTest(stage=stage):
+                    payload = base / stage / "portable"
+                    payload.mkdir(parents=True)
+                    user_data = base / stage / "persistent"
+                    shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+                    (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+                    (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+                    catalog = payload / "mods" / "preloaded" / "packages"
+                    catalog.mkdir(parents=True)
+                    (catalog / ".gitkeep").touch()
+                    legacy_path = payload.joinpath(*legacy.split("/"))
+                    if legacy == "saves":
+                        legacy_path.mkdir()
+                        (legacy_path / "original.srm").write_bytes(b"original")
+                    else:
+                        legacy_path.parent.mkdir(parents=True, exist_ok=True)
+                        legacy_path.write_bytes(b"original")
+                    generated = package_tool.launcher_text("rename-failure-fixture")
+                    needle = f'  ren "%{stage}%" "{destination}" >nul 2>&1\r\n'
+                    self.assertEqual(generated.count(needle), 1)
+                    generated = generated.replace(
+                        needle, "  rem injected rename failure after staging\r\n"
+                    )
+                    launcher = payload / package_tool.LAUNCHER_NAME
+                    launcher.write_bytes(generated.encode("utf-8"))
+                    env = os.environ.copy()
+                    env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+                    proc = subprocess.run(
+                        ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                        cwd=payload, env=env, capture_output=True, text=True,
+                        errors="replace", timeout=30, check=False,
+                    )
+                    self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+                    self.assertIn("Could not commit legacy", proc.stderr)
+                    self.assertFalse((user_data / destination).exists())
+                    self.assertEqual(list(user_data.glob(".ur-recomp-*.migrate.tmp")), [])
+                    self.assertTrue(legacy_path.exists())
 
     def test_windows_launcher_retains_metacharacter_paths_in_startup_log(self):
         # Real CMD parsing, not a string-only policy assertion. Only the

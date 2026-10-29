@@ -34,4 +34,4 @@ jobs:
       - name: Verify real generic CMD launcher caller-CWD restoration on success and refusal
         shell: pwsh
         run: |
-          python -m unittest -v tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_launcher_restores_caller_cwd_on_success_and_refusal tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_launcher_retains_metacharacter_paths_in_startup_log
+          python -m unittest -v tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_launcher_restores_caller_cwd_on_success_and_refusal tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_launcher_retains_metacharacter_paths_in_startup_log tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_legacy_migration_rename_failure_removes_current_stage

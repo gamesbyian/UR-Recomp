@@ -51,8 +51,8 @@ class WindowsPackageTests(unittest.TestCase):
         launcher = package_tool.launcher_text("unc-cleanup-contract")
         self.assertIn('pushd "%~dp0" 2>nul', launcher)
         self.assertNotIn('cd /d "%~dp0"', launcher)
-        # 28 guarded refusals plus the normal native-process exit.
-        self.assertEqual(launcher.count("goto launcher_cleanup"), 29)
+        # 31 guarded refusals plus the normal native-process exit.
+        self.assertEqual(launcher.count("goto launcher_cleanup"), 32)
         self.assertEqual(launcher.count("exit /b "), 3)
         self.assertIn(
             ":launcher_cleanup\r\npopd\r\nexit /b %UR_GAME_RC%\r\n",
@@ -63,6 +63,14 @@ class WindowsPackageTests(unittest.TestCase):
             "cannot enter the extracted package directory.",
             launcher,
         )
+
+    def test_write_probe_uses_exclusive_directory_and_nonrecursive_cleanup(self):
+        launcher = package_tool.launcher_text("exclusive-write-probe")
+        self.assertIn('mkdir "%UR_WRITE_PROBE_DIR%" >nul 2>&1', launcher)
+        self.assertIn('> "%UR_WRITE_PROBE_DIR%\\probe.tmp" echo writable', launcher)
+        self.assertIn('rmdir "%UR_WRITE_PROBE_DIR%" >nul 2>&1', launcher)
+        self.assertNotIn('> "%UR_WRITE_PROBE%" echo writable', launcher)
+        self.assertNotIn('rmdir /s /q "%UR_WRITE_PROBE_DIR%"', launcher)
 
     def test_failed_legacy_migration_commit_cleans_exact_staging_path(self):
         launcher = package_tool.launcher_text("migration-cleanup")
@@ -199,6 +207,44 @@ class WindowsPackageTests(unittest.TestCase):
         # The hosted Windows consumer selects this existing test explicitly.
         # Exercise the competing-destination race on the same real CMD path.
         self._assert_windows_legacy_migration_collision_rejects_other_writer()
+        self._assert_windows_probe_collision_never_clobbers_user_file()
+
+    def _assert_windows_probe_collision_never_clobbers_user_file(self):
+        # The real CMD regression uses an explicit RANDOM environment value.
+        # An existing user file with the same probe name must not be truncated.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "portable"
+            payload.mkdir()
+            user_data = base / "persistent"
+            user_data.mkdir()
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            launcher = payload / package_tool.LAUNCHER_NAME
+            package_tool.write_launcher(launcher, "write-probe-collision-fixture")
+            token = "27182"
+            preexisting = user_data / f".ur-recomp-write-probe-{token}-{token}.tmp"
+            sentinel = b"PREEXISTING USER DATA MUST SURVIVE\\r\\n"
+            preexisting.write_bytes(sentinel)
+            env = os.environ.copy()
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+            env["RANDOM"] = token
+            proc = subprocess.run(
+                ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                cwd=payload, env=env, capture_output=True, text=True,
+                errors="replace", timeout=30, check=False,
+            )
+            self.assertEqual(proc.returncode, 3, proc.stdout + proc.stderr)
+            self.assertIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+            self.assertEqual(preexisting.read_bytes(), sentinel)
+            self.assertFalse((user_data / "diagnostics").exists())
 
     def _assert_windows_legacy_migration_collision_rejects_other_writer(self):
         # A second launcher creates the final name after our initial absent

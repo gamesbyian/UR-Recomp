@@ -176,6 +176,9 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             source, "void run_results_navigation_acceptance() {",
             'extern "C" void ur_uniracers_modern_after_run_frame(')
         self.assertIn('std::strcmp(mode, "next-earned") == 0', acceptance)
+        self.assertIn('std::strcmp(mode, "next-earned-movie") == 0', acceptance)
+        self.assertIn("snesrecomp_desktop_load_relative_input_file(source)", acceptance)
+        self.assertIn("NEXT_MOVIE_SOURCE_INPUT_BOUND", acceptance)
         self.assertIn("g_results_navigation_acceptance_stage = 2;", acceptance)
         self.assertIn("g_run_finish_ticks60.has_value()", acceptance)
         self.assertIn("g_results_navigation_acceptance_first_sram", acceptance)
@@ -190,6 +193,9 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn('fields["stock_sram"]', harness)
         self.assertIn("if initial_row == final_row and initial_medal == final_medal:", harness)
         self.assertIn("next-earned-pre-cold.srm", harness)
+        self.assertIn("UR_ONE03_USE_2014_SOURCE_INPUT", harness)
+        self.assertIn("--first-movie-frame 794 --frames 2200", harness)
+        self.assertIn("dragster-2014-relative.input", harness)
         script = (ROOT / "tests/input/modern-results-next-earned.script").read_text()
         self.assertGreaterEqual(script.count("until 009F == 99"), 2)
         self.assertIn("dump next-event-race-results", script)
@@ -197,6 +203,11 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertFalse(any(line.lstrip().startswith("poke ") for line in script.splitlines()))
         cold = (ROOT / "tests/input/modern-results-cold-reopen.script").read_text()
         self.assertIn("dump cold-main-menu", cold)
+        movie = (ROOT / "tests/input/modern-results-next-earned-original-movie.script").read_text()
+        self.assertIn("until 0313 == 01 3600", movie)
+        self.assertIn("until 009F == 99 4800", movie)
+        self.assertTrue(all(not line.startswith("press ")
+                            for line in movie.split("dump race-results", 1)[1].splitlines()))
 
     def test_repeat_rejects_stale_practice_identity_before_guest_restart(self):
         source = HOST.read_text(encoding="utf-8")

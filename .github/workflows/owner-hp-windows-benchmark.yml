@@ -7,6 +7,7 @@ on:
       - .github/workflows/owner-hp-windows-benchmark.yml
       - tools/devnode_benchmark.py
       - tools/devnode_benchmark/CMakeLists.txt
+      - tools/devnode_benchmark/prepare_python.ps1
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,10 +26,9 @@ jobs:
       - name: Expose machine CMake to Windows runner service
         shell: cmd
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
-      - name: Locate existing Python 3.12 for the runner service
+      - name: Provision persistent Python in runner workspace
         shell: cmd
-        run: |
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$profileDirs = Get-ChildItem -LiteralPath 'C:\Users' -Directory -Force -ErrorAction SilentlyContinue; $paths = @('C:\Program Files\Python312'); foreach ($dir in $profileDirs) { $paths += (Join-Path $dir.FullName 'AppData\Local\Programs\Python\Python312') }; $found = $paths | Where-Object { Test-Path -LiteralPath (Join-Path $_ 'python.exe') } | Select-Object -First 1; if (-not $found) { throw 'Installed Python 3.12 unavailable to runner service' }; Add-Content -LiteralPath $env:GITHUB_PATH -Value $found; Write-Output 'Existing Python 3.12 found and added to job PATH'"
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_python.ps1
       - name: Confirm native tool availability
         shell: cmd
         run: |

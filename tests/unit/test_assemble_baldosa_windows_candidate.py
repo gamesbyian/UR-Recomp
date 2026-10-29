@@ -199,7 +199,7 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn('type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"', script)
         self.assertIn('Only the named target is validated', script)
         self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)', script)
-        self.assertIn('if defined UR_BALDOSA_NO_HOLD exit /b 7', script)
+        self.assertIn('if defined UR_BALDOSA_NO_HOLD (set "UR_BALDOSA_EXIT_CODE=7" & goto UR-BALDOSA-CLEANUP)', script)
         self.assertIn('if not "%ERRORLEVEL%"=="89"', script)
         # R may fail before any archive, but T can write raw before journal
         # removal fails. A refusal cannot promise that no bytes changed.

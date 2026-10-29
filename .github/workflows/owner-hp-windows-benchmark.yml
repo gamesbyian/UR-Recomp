@@ -25,12 +25,15 @@ jobs:
       - name: Expose machine CMake to Windows runner service
         shell: cmd
         run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
-      - name: Enable PowerShell scripts for the runner service account
+      - name: Verify installed Python and CMake in service environment
         shell: cmd
-        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+        run: |
+          where python
+          python --version
+          where cmake
+          cmake --version
+          where ninja
+          ninja --version
       - name: Run ROM-free native C++ and Windows regression benchmark
         shell: cmd
         run: python tools/devnode_benchmark.py --target hp

@@ -203,6 +203,23 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("    paths-ignore:\n", pr)
         self.assertIn("ready_for_review", pr)
 
+    def test_shared_native_negative_assertion_helper_invalidates_real_consumers(self):
+        # This helper can change on its own. A green previous-head acceptance
+        # run must not qualify different Bash assertion behavior.
+        helper = '"tests/native/assert_absent_grep.sh"'
+        for filename in ("tooling-unit-tests.yml", "qa05-qa09-windows-candidate.yml"):
+            with self.subTest(workflow=filename):
+                workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
+                pr = _block(workflow, "pull_request")
+                self.assertEqual(pr.count(helper), 1)
+                self.assertIn("ready_for_review", pr)
+        windows = (WORKFLOWS / "windows-native-smoke.yml").read_text(
+            encoding="utf-8")
+        self.assertIn("tests/native/run_windows_local_tournament_package_acceptance.sh", windows)
+        package = Path("tests/native/run_windows_local_tournament_package_acceptance.sh").read_text(
+            encoding="utf-8")
+        self.assertIn('source "$(dirname "${BASH_SOURCE[0]}")/assert_absent_grep.sh"', package)
+
     def test_changed_workflow_actionlint_is_required_not_advisory(self):
         hygiene = (WORKFLOWS / "repo-hygiene.yml").read_text(encoding="utf-8")
         block = hygiene.split("      - name: Validate changed workflow files with actionlint", 1)[1]

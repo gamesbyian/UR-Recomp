@@ -14,6 +14,8 @@ on:
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"
       - "tests/native/run_modern_root_acceptance.sh"
+      # Packaged Windows tournament acceptance sources this shared helper.
+      - "tests/native/assert_absent_grep.sh"
   workflow_dispatch:
 
 concurrency:

@@ -7,6 +7,8 @@ on:
       - "tools/**"
       - "tests/unit/**"
       - "tests/native/**/*.c"
+      # The native negative-assertion helper is executable QA logic.
+      - "tests/native/assert_absent_grep.sh"
       # QA-10 Original 7:6/PAR and UHD viewport source+fixture must run
       # the actual compiled C++ policy regression, not just native smoke.
       - "native/product/widescreen_output_composition.cpp"

@@ -120,5 +120,94 @@ int main() {
                ModernTourActionRow::Back);
     }
 
+
+    // A source qualification update can add or remove Next Event while
+    // focus is held. Confirm must never silently activate a different row.
+    {
+        ModernTourEntryContext next = valid;
+        next.next_event_unique = true;
+        auto four = make_modern_tour_action_menu(next);
+        auto three = make_modern_tour_action_menu(valid);
+
+        // Selected Resume at row 1 becomes Restart when Next Event vanishes.
+        four.selected = 1;
+        auto ignored = activate_modern_tour_action_menu(
+            four, valid, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+        assert(!ignored.menu.confirming_restart);
+
+        // Selected Resume at row 0 becomes Next Event when it appears.
+        three.selected = 0;
+        ignored = activate_modern_tour_action_menu(
+            three, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+        assert(!ignored.menu.confirming_restart);
+
+        // A formerly selected Back must not start a Restart confirmation.
+        three.selected = 2;
+        ignored = activate_modern_tour_action_menu(
+            three, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+        assert(!ignored.menu.confirming_restart);
+
+        // A removed continuation leaves only Back, not an implicit Resume.
+        three.selected = 0;
+        ignored = activate_modern_tour_action_menu(
+            three, absent, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+
+        // A malformed menu cannot trick either selector or Confirm into
+        // routing Next Event, even when the current context qualifies it.
+        auto invalid = make_modern_tour_action_menu(next);
+        invalid.selected = 99;
+        assert(selected_modern_tour_action(invalid) ==
+               ModernTourActionRow::None);
+        ignored = activate_modern_tour_action_menu(
+            invalid, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+        invalid = navigate_modern_tour_action_menu(
+            invalid, UR_MODERN_HOST_NAV_UP);
+        assert(selected_modern_tour_action(invalid) ==
+               ModernTourActionRow::Back);
+        invalid.selected = 99;
+        invalid = navigate_modern_tour_action_menu(
+            invalid, UR_MODERN_HOST_NAV_DOWN);
+        assert(selected_modern_tour_action(invalid) ==
+               ModernTourActionRow::NextEvent);
+
+        invalid.row_count = invalid.rows.size() + 1;
+        assert(selected_modern_tour_action(invalid) ==
+               ModernTourActionRow::None);
+        ignored = activate_modern_tour_action_menu(
+            invalid, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+        invalid.row_count = 0;
+        assert(selected_modern_tour_action(invalid) ==
+               ModernTourActionRow::None);
+        ignored = activate_modern_tour_action_menu(
+            invalid, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(ignored.intent == ModernTourEntryIntent::None);
+        assert(!ignored.close_menu);
+
+        // Legitimate current Next Event still routes, and explicit Back
+        // remains available even when source authority is withdrawn.
+        auto fresh = make_modern_tour_action_menu(next);
+        auto chosen = activate_modern_tour_action_menu(
+            fresh, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(chosen.intent == ModernTourEntryIntent::NextEvent);
+        assert(chosen.close_menu);
+        auto backing = make_modern_tour_action_menu(absent);
+        chosen = activate_modern_tour_action_menu(
+            backing, absent, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(chosen.intent == ModernTourEntryIntent::None);
+        assert(chosen.close_menu);
+    }
+
     return 0;
 }

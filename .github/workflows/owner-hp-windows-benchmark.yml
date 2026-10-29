@@ -13,7 +13,7 @@ permissions:
   contents: read
 concurrency:
   group: owner-hp-windows-benchmark-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   hp:
     name: Owner HP Windows 10

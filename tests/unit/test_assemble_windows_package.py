@@ -229,6 +229,54 @@ class WindowsPackageTests(unittest.TestCase):
         self._assert_windows_legacy_migration_collision_rejects_other_writer()
         self._assert_windows_probe_collision_never_clobbers_user_file()
         self._assert_windows_preexisting_legacy_stage_survives()
+        self._assert_windows_legacy_fixed_stage_sentinels_survive()
+
+
+    def _assert_windows_legacy_fixed_stage_sentinels_survive(self):
+        # Older fixed-name leftovers are unowned. A successful startup must
+        # never delete them, especially the recursive saves directory.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "portable"
+            payload.mkdir()
+            user_data = base / "persistent"
+            user_data.mkdir()
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            sentinels = (
+                ".ur-recomp-config.ini.migrate.tmp",
+                ".ur-recomp-keybinds.ini.migrate.tmp",
+                ".ur-recomp-mod-state.toml.migrate.tmp",
+            )
+            for name in sentinels:
+                (user_data / name).write_bytes(b"foreign fixed-name stage")
+            old_saves = user_data / ".ur-recomp-saves.migrate.tmp"
+            old_saves.mkdir()
+            (old_saves / "do-not-delete.srm").write_bytes(b"foreign save")
+            launcher = payload / package_tool.LAUNCHER_NAME
+            package_tool.write_launcher(launcher, "fixed-stage-preservation")
+            env = os.environ.copy()
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+            proc = subprocess.run(
+                ["cmd.exe", "/d", "/c", "call", str(launcher)],
+                cwd=payload, env=env, capture_output=True, text=True,
+                errors="replace", timeout=30, check=False,
+            )
+            self.assertNotIn("UR-STARTUP-SAVE-ROOT", proc.stderr)
+            for name in sentinels:
+                self.assertEqual(
+                    (user_data / name).read_bytes(), b"foreign fixed-name stage"
+                )
+            self.assertEqual(
+                (old_saves / "do-not-delete.srm").read_bytes(), b"foreign save"
+            )
 
 
     def _assert_windows_preexisting_legacy_stage_survives(self):
@@ -857,12 +905,19 @@ class WindowsPackageTests(unittest.TestCase):
                 'ren "%UR_MIGRATE_CONFIG%" "config.ini"',
                 launcher,
             )
-            self.assertIn(
+            self.assertNotIn(
                 '.ur-recomp-config.ini.migrate.tmp',
                 launcher,
             )
-            self.assertIn(
+            self.assertNotIn(
                 '.ur-recomp-saves.migrate.tmp',
+                launcher,
+            )            self.assertNotIn(
+                '.ur-recomp-keybinds.ini.migrate.tmp',
+                launcher,
+            )
+            self.assertNotIn(
+                '.ur-recomp-mod-state.toml.migrate.tmp',
                 launcher,
             )
             self.assertNotIn(

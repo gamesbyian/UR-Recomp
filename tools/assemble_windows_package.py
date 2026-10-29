@@ -427,10 +427,8 @@ def launcher_text(source_revision: str) -> str:
         "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" attrib -R \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" >nul 2>&1\r\n"
         "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" (del /q \"%UR_MIGRATE_MOD%\" >nul 2>&1) else (del /q \"%UR_MIGRATE_MOD%\" >nul 2>&1 & call :startup_fail \"UR-STARTUP-SAVE-ROOT\" \"save-root\" \"Could not commit legacy mod-state migration.\" & set \"UR_GAME_RC=3\" & goto launcher_cleanup)\r\n"
         ")\r\n"
-        "del /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.migrate.tmp\" >nul 2>&1\r\n"
-        "del /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-keybinds.ini.migrate.tmp\" >nul 2>&1\r\n"
-        "del /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-mod-state.toml.migrate.tmp\" >nul 2>&1\r\n"
-        "rmdir /s /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp\" >nul 2>&1\r\n"
+        # Fixed-name migration leftovers predate this invocation and may
+        # contain recoverable user data. Only clean our token-owned stages.
         "set \"SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%\"\r\n"
         "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"\r\n"
         f"\"%~dp0{EXE_NAME}\" \"%~dp0{ROM_NAME}\" %*\r\n"

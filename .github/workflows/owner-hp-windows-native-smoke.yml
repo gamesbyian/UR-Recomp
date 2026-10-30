@@ -71,6 +71,30 @@ jobs:
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
           python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
 
+      - name: Compare pinned Cargo lock bytes before framework staging
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          import tarfile
+          archive = Path("third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz")
+          closure = Path("third_party/cargo/snesrecomp-analyzer/Cargo.lock").read_bytes()
+          with tarfile.open(archive, "r:gz") as tf:
+              matches = [m for m in tf.getmembers() if m.name.endswith("recompiler-rs/Cargo.lock")]
+              if len(matches) != 1:
+                  raise SystemExit(f"Expected one pinned Cargo.lock member; found {len(matches)}")
+              staged = tf.extractfile(matches[0]).read()
+          for label, value in (("closure", closure), ("archive", staged)):
+              print(label, "bytes", len(value), "sha256", hashlib.sha256(value).hexdigest(),
+                    "CRLF", value.count(bytes((13,10))),
+                    "LF", value.count(bytes((10,))))
+          print("raw_equal", closure == staged)
+          print("newline_normalized_equal", closure.replace(bytes((13,10)), bytes((10,)) ==
+                staged.replace(bytes((13,10)), bytes((10,))))
+          PY
+          git config --show-origin --get core.autocrlf || true
+          git check-attr -a -- third_party/cargo/snesrecomp-analyzer/Cargo.lock
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail

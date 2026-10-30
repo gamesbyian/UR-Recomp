@@ -1,7 +1,7 @@
 name: Owner HP native Windows full smoke (manual experiment)
 on:
   push:
-    branches: [ops/hp-windows-runner-benchmark-20261029]
+    branches: [ops/hp-windows-native-smoke-experiment-20261029]
     paths:
       - ".github/workflows/owner-hp-windows-native-smoke.yml"
   workflow_dispatch:
@@ -19,11 +19,18 @@ jobs:
   windows:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64]
-    timeout-minutes: 30
+    timeout-minutes: 45
     defaults:
       run:
         shell: bash
     steps:
+      - name: Require known HP physical runner
+        shell: cmd
+        run: |
+          if /I not "%RUNNER_NAME%"=="hpmini-ur-recomp" (
+            echo This isolated test requires the owner's HP, not a generic self-hosted Windows runner.
+            exit /b 7
+          )
       - name: Expose Git Bash to the service account
         shell: cmd
         run: echo C:\Program Files\Git\bin>>"%GITHUB_PATH%"
@@ -45,6 +52,7 @@ jobs:
           cmake -S tools/devnode_benchmark -B "%RUNNER_TEMP%\ur-clangcl-preflight" -G "Visual Studio 17 2022" -A x64 -T ClangCL
           if errorlevel 1 exit /b 1
           cmake --build "%RUNNER_TEMP%\ur-clangcl-preflight" --config Debug --parallel 4
+          if errorlevel 1 exit /b 1
 
 
       - name: Validate independently nominated same-source tournament candidate

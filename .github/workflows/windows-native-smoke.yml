@@ -44,6 +44,7 @@ on:
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-title-input-filter.patch"
       - "tools/patches/snesrecomp-source-gamepad-hook.patch"
@@ -278,6 +279,29 @@ jobs:
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
 
+      # Static SDL3 accounts for roughly 88 seconds of the recent 220s
+      # HP build. A source/toolchain-keyed local install can be reused; the
+      # hosted HP-profile job proves this actual package/link route on PRs.
+      # No personal runner is assigned to PRs. HP provisioning failures fall
+      # back to the existing per-candidate source build.
+      - name: Prepare source-pinned static SDL3 cache (HP and hosted canary)
+        if: ${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cache_root="$RUNNER_TEMP/ur-sdl3-canary-cache"
+          mode=(--required)
+          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
+            cache_root="$RUNNER_WORKSPACE/../.ur-recomp-hp-sdl3-cache"
+            mode=(--hp)
+          fi
+          python tools/devnode_benchmark/prepare_sdl3_cache.py \
+            --source "$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+            --archive "$GITHUB_WORKSPACE/third_party/archives/SDL3-3.4.10.tar.gz" \
+            --cache-root "$cache_root" \
+            --github-env "$GITHUB_ENV" \
+            --jobs 6 "${mode[@]}"
+
       - name: Prepare pinned Rust/Cargo for owner HP
         if: inputs.run_on_hp
         shell: cmd
@@ -321,10 +345,19 @@ jobs:
           WS="$(cygpath -m "$GITHUB_WORKSPACE")"
           FRAMEWORK="$WS/.tools/src/snesrecomp"
           ROOT="$(cygpath -m "$RUNNER_TEMP")/ur-recomp-build/UniracersSNESRecomp"
+          # A manifest-verified static package must resolve via
+          # find_package; otherwise retain the canonical source-FetchContent.
+          SDL3_ARGS=(-DSNESRECOMP_SDL3_FETCH=ON)
+          if [[ -n "${UR_SDL3_PREBUILT_DIR:-}" ]]; then
+            SDL3_ARGS=(-DSNESRECOMP_SDL3_FETCH=OFF "-DSDL3_DIR=$UR_SDL3_PREBUILT_DIR")
+            echo "HP_SDL3_PACKAGE=verified_static_install"
+          else
+            echo "HP_SDL3_PACKAGE=canonical_source_build"
+          fi
           cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL3 \
-            -DSNESRECOMP_SDL3_FETCH=ON \
+            "${SDL3_ARGS[@]}" \
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
           # The hosted PR candidate intentionally compiles using the SAME

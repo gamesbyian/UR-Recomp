@@ -41,6 +41,7 @@ on:
       - "tests/unit/test_windows_clean_machine_verifier_policy.py"
       - "tests/unit/test_windows_portable_binary.py"
       - "tools/bootstrap_toolchain.py"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
       - "tools/devnode_benchmark/**"
       - "tools/patches/**"
       - "tools/toolchain-entries/snesrecomp.json"

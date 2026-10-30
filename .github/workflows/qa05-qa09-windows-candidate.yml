@@ -10,6 +10,7 @@ on:
     paths:
       - ".github/workflows/qa05-qa09-windows-candidate.yml"
       - ".github/workflows/windows-native-smoke.yml"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"

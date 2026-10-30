@@ -109,6 +109,35 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("Get-Process", script)
         self.assertNotIn("Get-Counter", script)
 
+    def test_optional_cpu_window_counter_averages_full_sampling_intervals(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        # Preserve the historical coarse WMI percentage alongside a
+        # ten-second time-integrated host-wide counter, not process activity.
+        self.assertIn("cpu_load_pct_est,logical_processors,cpu_pct_window_avg", source)
+        self.assertIn("[System.Diagnostics.PerformanceCounter]::new(", source)
+        self.assertIn("'Processor', '% Processor Time', '_Total'", source)
+        self.assertIn("[void]$cpuWindowCounter.NextValue()", source)
+        self.assertIn("$cpuWindowWarmup = $true", source)
+        self.assertIn("$cpuWindowWarmup = $false", source)
+        self.assertIn("No interval has elapsed at the initial sample", source)
+        self.assertIn("ToString('F1', [System.Globalization.CultureInfo]::InvariantCulture)", source)
+        self.assertIn("cpu_pct_window_avg -match '^(100(\\.0)?|[0-9]{1,2}(\\.[0-9])?)$'", source)
+        self.assertIn("HP_CPU_WINDOW_SUMMARY", source)
+        self.assertIn("HP_COMPILE_CPU_WINDOW_SUMMARY", source)
+        self.assertIn("unavailable=no_valid_interval_samples", source)
+        self.assertIn("missing legacy WMI must not hide valid 10s CPU", source)
+        # Interval aggregation follows the legacy WMI if/else block,
+        # instead of hiding inside the WMI-success-only branch.
+        self.assertLess(source.index("unavailable=no_valid_cpu_samples"),
+                        source.index("$compileWindowRows = @($cpuWindowRows"))
+        self.assertIn("if ($null -ne $cpuWindowCounter)", source)
+        self.assertIn("$cpuWindowCounter = $null", source)
+        self.assertIn("Get-CimInstance Win32_Processor", source)
+        self.assertNotIn("Get-Counter", source)
+        self.assertNotIn("Get-Process", source)
+        self.assertNotRegex(source, r"\bWin32_Process\b")
+        self.assertNotIn("Stop-Process", source)
+
     def test_sampler_does_not_expose_local_user_activity(self):
         script = SCRIPT.read_text(encoding="utf-8")
         for expected in (

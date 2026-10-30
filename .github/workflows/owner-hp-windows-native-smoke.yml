@@ -41,6 +41,14 @@ jobs:
 
       - name: Check out project
         uses: actions/checkout@v4
+        # actions/checkout temporarily substitutes HOME on Windows. An earlier
+        # global core.autocrlf=false does not reach its git.exe subprocesses.
+        # These Git-supported process-local config variables preserve original
+        # blob bytes for pinned Cargo locks and patch/hash contracts.
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
 
       - name: Install service-accessible Python and expose CMake
         shell: cmd

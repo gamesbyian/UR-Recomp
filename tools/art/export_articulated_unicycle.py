@@ -19,6 +19,12 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+# Support both repo-root unit imports and direct offline script execution.
+try:
+    from tools.art.scad_materials import materials_for_part, material_pass_source
+except ModuleNotFoundError:
+    from scad_materials import materials_for_part, material_pass_source
+
 PARTS = {
     "tire": ("tire();", (27, 29, 31, 255)),
     "rim_and_hub": ("rim_and_hub();", (173, 190, 204, 255)),
@@ -329,35 +335,51 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
         # exposed via the success pointer; never publish half of a GLB/receipt.
         with tempfile.TemporaryDirectory(prefix=".ur-art4k-staging-", dir=out_dir) as tmp:
             work = Path(tmp)
-            for name, (_, rgba) in PARTS.items():
-                scad = work / f"{name}.scad"
-                stl = work / f"{name}.stl"
-                scad.write_text(component_source(base, name, pedal_phase=pedal_phase,
-                                                 saddle_lean=saddle_lean), encoding="utf-8")
-                run = subprocess.run([openscad, "-o", str(stl), str(scad)],
-                                     capture_output=True, text=True,
-                                     timeout=timeout, check=False)
-                if run.returncode != 0 or not stl.is_file():
-                    raise RuntimeError(f"OpenSCAD failed for {name}: {run.stderr[-1000:]}")
-                mesh = trimesh.load_mesh(stl, file_type="stl", process=True)
-                if not isinstance(mesh, trimesh.Trimesh) or mesh.is_empty:
-                    raise ValueError(f"invalid empty mesh for {name}")
-                if not np.isfinite(mesh.vertices).all() or not mesh.is_watertight:
-                    raise ValueError(f"nonfinite/nonwatertight component: {name}")
-                if name == "saddle":
-                    mesh.apply_translation(-np.array(saddle_mount))
-                mesh.visual.vertex_colors = np.array(rgba, dtype=np.uint8)
+            for name in PARTS:
+                # Keep the same five independently editable part pivots. The
+                # authored colors now survive as child material meshes rather
+                # than being flattened into one STL color per entire part.
                 transform = np.eye(4)
                 transform[:3, 3] = part_translation(name, saddle_mount)
                 node_transform = np.array(pose_matrix) @ transform
-                scene.add_geometry(mesh, node_name=name, geom_name=name,
-                                   transform=node_transform)
+                scene.graph.update(frame_to=name, frame_from=scene.graph.base_frame,
+                                   matrix=node_transform)
+                part_source = component_source(base, name, pedal_phase=pedal_phase,
+                                               saddle_lean=saddle_lean)
+                materials = materials_for_part(base, name)
+                material_rows = []
+                for index, rgba in enumerate(materials):
+                    scad = work / f"{name}-{index}.scad"
+                    stl = work / f"{name}-{index}.stl"
+                    scad.write_text(material_pass_source(part_source, rgba),
+                                    encoding="utf-8")
+                    run = subprocess.run([openscad, "-o", str(stl), str(scad)],
+                                         capture_output=True, text=True,
+                                         timeout=timeout, check=False)
+                    if run.returncode != 0 or not stl.is_file():
+                        raise RuntimeError(
+                            f"OpenSCAD failed for {name} material {index}: {run.stderr[-1000:]}")
+                    mesh = trimesh.load_mesh(stl, file_type="stl", process=True)
+                    if not isinstance(mesh, trimesh.Trimesh) or mesh.is_empty:
+                        raise ValueError(f"invalid empty mesh for {name} material {index}")
+                    if not np.isfinite(mesh.vertices).all() or not mesh.is_watertight:
+                        raise ValueError(f"nonfinite/nonwatertight: {name} material {index}")
+                    if name == "saddle":
+                        mesh.apply_translation(-np.array(saddle_mount))
+                    mesh.visual.vertex_colors = np.array(rgba, dtype=np.uint8)
+                    child = f"{name}__material_{index}"
+                    scene.add_geometry(mesh, node_name=child, geom_name=child,
+                                       parent_node_name=name)
+                    material_rows.append({"node": child, "rgba": list(rgba),
+                                          "triangles": int(len(mesh.faces)),
+                                          "watertight": bool(mesh.is_watertight)})
                 report["components"].append({"name": name,
-                    "triangles": int(len(mesh.faces)),
-                    "watertight": bool(mesh.is_watertight),
+                    "triangles": sum(row["triangles"] for row in material_rows),
+                    "watertight": all(row["watertight"] for row in material_rows),
                     "pivot_translation": list(part_translation(name, saddle_mount)),
                     "world_pivot_translation": [float(v) for v in node_transform[:3, 3]],
-                    "editable_node": True})
+                    "editable_node": True, "material_count": len(material_rows),
+                    "materials": material_rows})
             stage = work / "published"
             stage.mkdir()
             glb = stage / "unicycle_articulated_blockout.glb"

@@ -46,9 +46,11 @@ jobs:
           Get-CimInstance Win32_PageFileUsage | ForEach-Object {
             Write-Output "HP_PAGEFILE name=$($_.Name) allocated_mb=$($_.AllocatedBaseSize) used_mb=$($_.CurrentUsage) peak_mb=$($_.PeakUsage)"
           }
-          Get-Process | Sort-Object -Property PrivateMemorySize64 -Descending |
-            Select-Object -First 8 ProcessName, Id, @{Name='PrivateMB';Expression={[math]::Round($_.PrivateMemorySize64 / 1MB)}} |
-            Format-Table | Out-String | Write-Output
+          # The owner's HP is a personal computer. Never publish process names.
+          $processes = @(Get-Process)
+          $top = @($processes | Sort-Object -Property PrivateMemorySize64 -Descending | Select-Object -First 8)
+          $topBytes = ($top | Measure-Object -Property PrivateMemorySize64 -Sum).Sum
+          Write-Output ("HP_PROCESS_PRESSURE process_count={0} largest_8_private_mb={1}" -f $processes.Count, [math]::Round($topBytes / 1MB))
           Get-CimInstance Win32_ComputerSystem | ForEach-Object {
             Write-Output "HP_SYSTEM total_physical_mb=$([math]::Round($_.TotalPhysicalMemory / 1MB)) automatic_pagefile=$($_.AutomaticManagedPagefile)"
           }
@@ -260,9 +262,11 @@ jobs:
           foreach ($pagefile in $pagefiles) {
             Write-Output ("HP_PAGEFILE name={0} allocated_mb={1} current_mb={2} peak_mb={3}" -f $pagefile.Name, $pagefile.AllocatedBaseSize, $pagefile.CurrentUsage, $pagefile.PeakUsage)
           }
-          Get-Process | Sort-Object -Property PagedMemorySize64 -Descending |
-            Select-Object -First 8 ProcessName, Id, @{Name='PrivateMB';Expression={[math]::Round($_.PagedMemorySize64 / 1MB)}} |
-            Format-Table | Out-String | Write-Output
+          # No user application names, paths, or process IDs in public CI logs.
+          $processes = @(Get-Process)
+          $top = @($processes | Sort-Object -Property PrivateMemorySize64 -Descending | Select-Object -First 8)
+          $topBytes = ($top | Measure-Object -Property PrivateMemorySize64 -Sum).Sum
+          Write-Output ("HP_PROCESS_PRESSURE process_count={0} largest_8_private_mb={1}" -f $processes.Count, [math]::Round($topBytes / 1MB))
           # Windows ERROR_COMMITMENT_LIMIT (1455) previously prevented even
           # git apply and the artifact uploader from allocating memory. Leave
           # legitimate pagefile configuration to the HP owner, fail early and

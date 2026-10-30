@@ -10,6 +10,10 @@ on:
       - "tests/unit/test_hp_powershell_parse_policy.py"
   workflow_dispatch:
 
+concurrency:
+  group: hp-powershell-parse-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

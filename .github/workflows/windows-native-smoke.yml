@@ -330,22 +330,7 @@ jobs:
             printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"
           fi
-          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
-            # Six-project MSBuild scheduling alone did not speed up the HP:
-            # 231s CMake+build versus 229-235s with four project workers.
-            # Opt into Microsoft's documented per-translation-unit scheduler.
-            # A global 10-compiler budget avoids a 6 x 12 process explosion.
-            # Environment properties are read by MSBuild during this command
-            # only; no owner-level settings or hosted QA behavior change.
-            echo "HP_COMPILE_SCHEDULER mode=MultiToolTask project_workers=$HP_BUILD_JOBS max_compilers=10"
-            UseMultiToolTask=true \
-            EnforceProcessCountAcrossBuilds=true \
-            CL_MPCount=10 \
-            MultiProcMaxCount=10 \
-              cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
-          else
-            cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
-          fi
+          cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
           if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
             printf 'build_end,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_end"

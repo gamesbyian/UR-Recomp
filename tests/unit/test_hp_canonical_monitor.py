@@ -25,33 +25,6 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("HP_MEMORY_RECENT_EXHAUSTION", source)
         self.assertNotIn("HP_MEMORY_COMMIT_INSUFFICIENT", source)
 
-    def test_multitooltask_is_hp_only_and_globally_bounded(self):
-        source = WORKFLOW.read_text(encoding="utf-8")
-        marker = "HP_COMPILE_SCHEDULER mode=MultiToolTask"
-        self.assertEqual(source.count(marker), 1)
-        start = source.index('if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then',
-                             source.index("HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"))
-        end = source.index('          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then',
-                           source.index(marker))
-        block = source[start:end]
-        self.assertIn('if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then', block)
-        self.assertIn("UseMultiToolTask=true", block)
-        self.assertIn("EnforceProcessCountAcrossBuilds=true", block)
-        self.assertIn("CL_MPCount=10", block)
-        self.assertIn("MultiProcMaxCount=10", block)
-        self.assertIn("max_compilers=10", block)
-        self.assertEqual(block.count("UseMultiToolTask=true"), 1)
-        self.assertEqual(block.count('cmake --build "$ROOT/build"'), 2)
-        self.assertIn("          else\n"
-                      '            cmake --build "$ROOT/build" --config Release '
-                      '--parallel "$HP_BUILD_JOBS"\n'
-                      '          fi', block)
-        self.assertLess(block.index("UseMultiToolTask=true"), block.index("          else"))
-        # Build subprocess environment, not machine/user settings or hard
-        # failures based on a weak sampled host CPU estimate.
-        self.assertNotIn("setx", block)
-        self.assertNotIn("HP_MEMORY_RECENT_EXHAUSTION", block)
-
     def test_start_and_cleanup_are_hp_only_and_bound_to_artifact(self):
         source = WORKFLOW.read_text(encoding="utf-8")
         monitor = "tools/devnode_benchmark/monitor_hp_commit.ps1"

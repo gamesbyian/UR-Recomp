@@ -5555,7 +5555,9 @@ void observe_run_finish_line() {
 }
 
 void observe_run_record_split() {
-    if (!g_run_capture.capturing()) return;
+    // Shared race time can continue after P1 crosses; later checkpoints
+    // belong to the remaining racers, not P1's completed run.
+    if (!g_run_capture.capturing() || g_run_finish_ticks60) return;
     const uint16_t checkpoint = read_run_word(0x1199u);
     if (checkpoint == g_run_capture_checkpoint) return;
 
@@ -5766,8 +5768,15 @@ void complete_run_record_capture() {
     }
     const int64_t ticks60 = static_cast<int64_t>(*g_run_finish_ticks60);
 
-    (void)g_run_capture.observe_split(
-        "finish", static_cast<uint64_t>(ticks60));
+    if (!g_run_capture.observe_split(
+            "finish", static_cast<uint64_t>(ticks60))) {
+        // Never silently discard an invalid terminal split or weaken the
+        // strict record validator to hide an overrun.
+        product_diagnostic("UR_RUN_RECORD FINISH_SPLIT_REJECTED");
+        g_run_capture.abort_attempt();
+        g_run_ghost_trace_capture.abort_attempt();
+        return;
+    }
     const auto record =
         g_run_capture.complete(static_cast<uint64_t>(ticks60));
     if (!record) {
@@ -7995,8 +8004,10 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         (void)begin_multiplayer_run_record_capture(stats->frame);
     }
     if (run_active && g_run_capture.capturing()) {
-        observe_run_record_split();
+        // A checkpoint and P1 finish can occur on the same guest frame.
+        // Observe the authoritative finish before any shared timer split.
         observe_run_finish_line();
+        observe_run_record_split();
     }
     if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
         g_run_capture.capturing()) {

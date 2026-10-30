@@ -64,6 +64,22 @@ int main() {
     assert(replacement && replacement->inputs.size() == 1);
     assert(replacement->inputs[0].p1_mask == 0x100);
 
+    // P1-valid finish succeeds; a post-finish shared-timer checkpoint must
+    // instead fail strict record validation rather than being truncated.
+    assert(capture.begin_attempt(dragster()));
+    assert(capture.observe_split("checkpoint-2", 1300));
+    assert(capture.observe_split("finish", 1505));
+    const auto p1_finished = capture.complete(1505);
+    assert(p1_finished && p1_finished->splits.size() == 2);
+    assert(p1_finished->splits.back().ticks60 == 1505);
+
+    assert(capture.begin_attempt(dragster()));
+    assert(capture.observe_split("checkpoint-2", 1300));
+    assert(capture.observe_split("late-shared-checkpoint", 1510));
+    assert(!capture.observe_split("finish", 1505));
+    assert(!capture.complete(1505));
+    assert(!capture.capturing());
+
     std::vector<CompletedRunRecord> records;
     auto slower = *replacement;
     slower.elapsed_ticks60 = 1800;

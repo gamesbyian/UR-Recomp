@@ -43,9 +43,16 @@ def artifact_paths(source: str) -> list[str]:
             raise ValueError("unsupported multiline or aliased uses scalar")
     collected: list[str] = []
     uploaders = 0
+    # Any literal uploader mention missed by the recognised step parser is
+    # a potential false-green (quoted/spaced YAML keys, complex mapping keys).
+    raw_uploader_refs = sum(
+        row.lower().count("actions/upload-artifact@")
+        for row in lines if not row.lstrip().startswith("#")
+    )
     step_start = re.compile(r"^(\s*)-\s+(?:name|uses|id|if|run|env|with):")
     uses_action = re.compile(
-        r"^(\s*)(?:-\s+)?uses:\s*['\"]?(actions/upload-artifact@[^\s'\"#]+)"
+        r"^(\s*)(?:-\s+)?uses:\s*['\"]?(actions/upload-artifact@[^\s'\"#]+)",
+        re.IGNORECASE,
     )
     for index, line in enumerate(lines):
         action = uses_action.match(line)
@@ -112,6 +119,8 @@ def artifact_paths(source: str) -> list[str]:
         if not entries:
             raise ValueError("upload-artifact path block is empty")
         collected.extend(entries)
+    if uploaders != raw_uploader_refs:
+        raise ValueError("unrecognized upload-artifact action reference")
     if uploaders == 0:
         raise ValueError("audio workflow has no upload-artifact step")
     return collected
@@ -270,6 +279,45 @@ class AudioRomfreeUploadPolicy(unittest.TestCase):
 """.replace("STEP", step)
                 with self.assertRaisesRegex(ValueError, "unsupported YAML"):
                     artifact_paths(workflow)
+
+    def test_spaced_quoted_and_escaped_uses_keys_cannot_hide_zip(self):
+        variants = (
+            "uses : actions/upload-artifact@v4",
+            "'uses': actions/upload-artifact@v4",
+            '"uses": actions/upload-artifact@v4',
+            r'"\u0075ses": actions/upload-artifact@v4',
+            "? uses\n        : actions/upload-artifact@v4",
+        )
+        for declaration in variants:
+            with self.subTest(declaration=declaration):
+                workflow = """jobs:
+  audio:
+    steps:
+      - name: unsafe uploader
+        DECLARATION
+        with:
+          path: |
+            ${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            ${{ runner.temp }}/safe-report.json
+""".replace("DECLARATION", declaration)
+                with self.assertRaisesRegex(ValueError, "unrecognized upload-artifact"):
+                    artifact_paths(workflow)
+
+    def test_case_variant_upload_artifact_is_inspected(self):
+        workflow = """jobs:
+  audio:
+    steps:
+      - uses: Actions/Upload-Artifact@v4
+        with:
+          path: |
+            ${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip
+"""
+        self.assertEqual(artifact_paths(workflow), [
+            "${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip"
+        ])
 
     def test_quoted_literal_action_refs_remain_supported(self):
         for action in ("'actions/upload-artifact@v4'", '"actions/upload-artifact@v4"'):

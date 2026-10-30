@@ -21,14 +21,19 @@ SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 
 
 def kon_candidates(events: list[dict]) -> list[int]:
-    """Native sample indices of actual DSP voice-7 key-on writes ($4C=$80)."""
+    """Native sample indices of every DSP write setting voice-7 KON bit."""
     found = []
     for e in events:
-        if e.get("t") == "reg" and e.get("adr") == "0x4c" and e.get("val") == "0x80":
-            index = e.get("s")
-            if type(index) is not int or index < 0:
-                raise ValueError("malformed native KON sample index")
-            found.append(index)
+        if e.get("t") == "reg" and e.get("adr") == "0x4c":
+            value = e.get("val")
+            if type(value) is not str or not re.fullmatch(r"0x[0-9a-f]{2}", value):
+                raise ValueError("malformed native KON register value")
+            # DSP $4C is a voice bitmask. $81 and $FF also key voice 7.
+            if int(value, 16) & 0x80:
+                index = e.get("s")
+                if type(index) is not int or index < 0:
+                    raise ValueError("malformed native KON sample index")
+                found.append(index)
     return found
 
 
@@ -47,11 +52,16 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
     if not 1 <= before <= 64000 or not 1 <= after <= 64000:
         raise ValueError("bounded pre/post KON sample windows required")
     candidates = kon_candidates(events)
+    # The RF094 target is the literal $4C=$80 write. A combined bitmask
+    # cannot substitute for it, but must invalidate a single-KON window.
+    exact = [e.get("s") for e in events if e.get("t") == "reg"
+             and e.get("adr") == "0x4c" and e.get("val") == "0x80"]
     start = kon_sample_index - before
     count = before + after
     # A distinct voice-7 key-on inside the WAV slice makes this an ambiguous
     # single-KON witness even if the selected sample index occurs only once.
-    if (candidates.count(kon_sample_index) != 1 or
+    if (exact.count(kon_sample_index) != 1 or
+            candidates.count(kon_sample_index) != 1 or
             any(start <= sample < start + count and sample != kon_sample_index
                 for sample in candidates)):
         raise ValueError("selected $4C=$80 KON missing or ambiguous in actual event ring")

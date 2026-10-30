@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 
 from capture_audio_events import command, connect
-from qa01_native_pcm_at_kon import capture_kon_pcm, validate_output_separation, SHA40
+from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, validate_output_separation, SHA40
 
 
 def _nonnegative_int(value, label: str) -> int:
@@ -58,12 +58,15 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
         for event in events:
             if not isinstance(event, dict):
                 raise ValueError("malformed DSP register event")
-            if (event.get("t") == "reg" and event.get("adr") == "0x4c"
-                    and event.get("val") == "0x80"):
-                sample = _nonnegative_int(event.get("s"), "KON sample index")
-                if candidate is not None:
-                    raise ValueError("multiple voice-7 KON events since live arm")
-                candidate = {"s": sample, "t": "reg", "adr": "0x4c", "val": "0x80"}
+            if event.get("t") == "reg" and event.get("adr") == "0x4c":
+                voice7 = kon_candidates([event])
+                if voice7:
+                    if event.get("val") != "0x80":
+                        raise ValueError("combined voice-7 KON cannot identify exact $4C=$80 target")
+                    sample = voice7[0]
+                    if candidate is not None:
+                        raise ValueError("multiple voice-7 KON events since live arm")
+                    candidate = {"s": sample, "t": "reg", "adr": "0x4c", "val": "0x80"}
         cursor += scanned
         stats = command_fn("audio_stats 0")
         produced = _nonnegative_int(stats.get("produced"), "produced samples")
@@ -118,10 +121,12 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                     for event in events:
                         if not isinstance(event, dict):
                             raise ValueError("malformed post-WAV DSP register event")
-                        if (event.get("t") == "reg" and event.get("adr") == "0x4c"
-                                and event.get("val") == "0x80"):
-                            _nonnegative_int(event.get("s"), "KON sample index")
-                            raise ValueError("multiple voice-7 KON events since live arm")
+                        if event.get("t") == "reg" and event.get("adr") == "0x4c":
+                            voice7 = kon_candidates([event])
+                            if voice7:
+                                if event.get("val") != "0x80":
+                                    raise ValueError("combined voice-7 KON cannot identify exact $4C=$80 target")
+                                raise ValueError("multiple voice-7 KON events since live arm")
                     cursor += scanned
                 result.update({
                     "selection": "first_voice7_kon_after_live_arm_unverified_route",

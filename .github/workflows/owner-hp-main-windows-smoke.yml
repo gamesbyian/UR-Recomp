@@ -1,0 +1,39 @@
+name: HP current-source native Windows smoke
+
+# Reuse the canonical Windows smoke rather than maintaining a second product
+# build script. The owner explicitly prefers using HP capacity continuously.
+# Main updates coalesce to the newest pending candidate without cancelling
+# the build already running on the physical machine.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/windows-native-smoke.yml"
+      - "native/**"
+      - "tests/input/**"
+      - "tests/native/**"
+      - "tools/patch_modern_product_host.py"
+      - "tools/assemble_windows_package.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/devnode_benchmark/**"
+      - "tools/patches/**"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/archives/**"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hp-native-current-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  canonical-hp-windows:
+    uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      run_on_hp: true

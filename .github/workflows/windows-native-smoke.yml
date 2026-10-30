@@ -17,6 +17,11 @@ on:
   workflow_dispatch:
   workflow_call:
     inputs:
+      run_on_hp:
+        description: "Run the canonical smoke on the owner's HP Windows x64 runner"
+        type: boolean
+        required: false
+        default: false
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -65,7 +70,9 @@ concurrency:
   # Direct smoke and the QA-05/09 reusable caller may run for the same PR.
   # Distinguish their cancellation scopes by caller workflow.
   group: windows-native-smoke-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve full HP compile/evidence runs during rapid main integration;
+  # hosted PR/main checks retain their existing stale-run cancellation.
+  cancel-in-progress: ${{ !inputs.run_on_hp }}
 
 permissions:
   contents: read
@@ -73,22 +80,64 @@ permissions:
 jobs:
   windows:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: windows-2022
-    timeout-minutes: ${{ inputs.run_tournament_acceptance && 45 || 20 }}
+    runs-on: ${{ inputs.run_on_hp && fromJSON('["self-hosted","Windows","X64"]') || 'windows-2022' }}
+    timeout-minutes: ${{ inputs.run_on_hp && 45 || inputs.run_tournament_acceptance && 45 || 20 }}
+    env:
+      CARGO_BUILD_JOBS: '4'
+      CMAKE_BUILD_PARALLEL_LEVEL: '4'
     defaults:
       run:
         shell: bash
     steps:
+      - name: Require known owner HP for self-hosted smoke
+        if: inputs.run_on_hp
+        shell: cmd
+        run: |
+          if /I not "%RUNNER_NAME%"=="hpmini-ur-recomp" exit /b 7
+
+      - name: Expose Git Bash for HP runner service
+        if: inputs.run_on_hp
+        shell: cmd
+        run: echo C:\Program Files\Git\bin>>"%GITHUB_PATH%"
+
       # Project patches are hash-pinned; Windows Git's autocrlf would rewrite them.
       - name: Keep checkout bytes exact
         run: git config --global core.autocrlf false
 
       - name: Check out project
         uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+
+      - name: Restore canonical tracked Git bytes on HP
+        if: inputs.run_on_hp
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -c core.autocrlf=false -c core.eol=lf checkout-index --force --all
 
       - uses: actions/setup-python@v5
+        if: ${{ !inputs.run_on_hp }}
         with:
           python-version: "3.12"
+
+      - name: Prepare service-safe Python and CMake on owner HP
+        if: inputs.run_on_hp
+        shell: cmd
+        run: |
+          echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_python.ps1
+
+      - name: Verify owner HP ClangCL toolset
+        if: inputs.run_on_hp
+        shell: cmd
+        run: |
+          cmake -S tools/devnode_benchmark -B "%RUNNER_TEMP%\ur-clangcl-preflight" -G "Visual Studio 17 2022" -A x64 -T ClangCL
+          if errorlevel 1 exit /b 1
+          cmake --build "%RUNNER_TEMP%\ur-clangcl-preflight" --config Debug --parallel 4
+          if errorlevel 1 exit /b 1
 
       - name: Validate independently nominated same-source tournament candidate
         if: inputs.run_tournament_acceptance
@@ -105,6 +154,96 @@ jobs:
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
           python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
 
+      - name: Restore pinned toolchain text directly from Git object bytes
+        if: inputs.run_on_hp
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import subprocess
+          import tarfile
+
+          def from_index(rel):
+              return subprocess.check_output(["git", "cat-file", "blob", "HEAD:" + rel])
+
+          lock_rel = "third_party/cargo/snesrecomp-analyzer/Cargo.lock"
+          archive = Path("third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz")
+          with tarfile.open(archive, "r:gz") as tar:
+              matches = [m for m in tar.getmembers() if m.name.endswith("recompiler-rs/Cargo.lock")]
+              if len(matches) != 1:
+                  raise SystemExit("Pinned archive must contain exactly one recompiler-rs/Cargo.lock")
+              expected_lock = tar.extractfile(matches[0]).read()
+
+          actual_lock = from_index(lock_rel)
+          if actual_lock != expected_lock:
+              raise SystemExit("Git object Cargo.lock differs from upstream pinned archive")
+          entries = [lock_rel]
+          for tool in ("snesrecomp", "sdl3"):
+              manifest = json.loads(Path("tools/toolchain-entries", tool + ".json").read_text())
+              for patch in manifest.get("patches", []):
+                  rel = patch["path"]
+                  original = from_index(rel)
+                  if hashlib.sha256(original).hexdigest() != patch["sha256"]:
+                      raise SystemExit("Git blob does not match hash-pinned patch: " + rel)
+                  entries.append(rel)
+          repaired = []
+          for rel in sorted(set(entries)):
+              path = Path(rel)
+              canonical = from_index(rel)
+              if path.read_bytes() != canonical:
+                  path.write_bytes(canonical)
+                  repaired.append(rel)
+          if Path(lock_rel).read_bytes() != expected_lock:
+              raise SystemExit("Cargo.lock was not restored byte-exactly")
+
+          # Git for Windows can CRLF-transform files in vendored Rust crates,
+          # invalidating Cargo's own .cargo-checksum.json SHA-256 inventory.
+          # Restore the *exact committed Git objects* via git archive, which
+          # streams blobs without working-tree newline conversion.
+          import tempfile
+          vendor_prefix = "third_party/cargo/snesrecomp-analyzer/vendor/"
+          vendor_count = 0
+          vendor_fixed = 0
+          with tempfile.TemporaryFile() as snapshot:
+              subprocess.run(
+                  ["git", "archive", "--format=tar", "HEAD", vendor_prefix.rstrip("/")],
+                  stdout=snapshot, check=True,
+              )
+              snapshot.seek(0)
+              with tarfile.open(fileobj=snapshot, mode="r:") as vendor_archive:
+                  for member in vendor_archive:
+                      rel = member.name.replace(chr(92), "/")
+                      if not rel.startswith(vendor_prefix):
+                          # git archive includes ancestor directory headers,
+                          # e.g. third_party/ and third_party/cargo/.
+                          if member.isdir() and vendor_prefix.startswith(rel.rstrip("/") + "/"):
+                              continue
+                          raise SystemExit("Unexpected path in committed Cargo vendor snapshot: " + rel)
+                      if member.isdir():
+                          continue
+                      if not member.isfile():
+                          raise SystemExit("Unsupported non-file in pinned Cargo vendor snapshot: " + rel)
+                      dest = Path(rel)
+                      if ".." in dest.parts:
+                          raise SystemExit("Invalid traversal in pinned Cargo vendor snapshot")
+                      if not dest.is_file():
+                          raise SystemExit("Vendored source file absent after checkout: " + rel)
+                      contents = vendor_archive.extractfile(member).read()
+                      vendor_count += 1
+                      if dest.read_bytes() != contents:
+                          dest.write_bytes(contents)
+                          vendor_fixed += 1
+          if not vendor_count:
+              raise SystemExit("Pinned Cargo vendor snapshot was empty")
+          print("Pinned Git bytes verified; corrected", len(repaired), "lock/patch assets.")
+          print("Cargo vendor files verified:", vendor_count,
+                "checkout-transformed files restored:", vendor_fixed)
+          for rel in repaired:
+              print("checkout bytes restored:", rel)
+          PY
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail
@@ -113,6 +252,11 @@ jobs:
           test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
+
+      - name: Prepare pinned Rust/Cargo for owner HP
+        if: inputs.run_on_hp
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_rust.ps1
 
       - name: Scaffold and generate
         run: |
@@ -172,8 +316,17 @@ jobs:
           # shellcheck disable=SC2016
           powershell.exe -NoProfile -Command '
             $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-            $vs = & $vswhere -latest -property installationPath
-            if (-not $vs) { throw "Visual Studio installation not found" }
+            $vs = & $vswhere -latest -products '*' -property installationPath
+            # vswhere defaults exclude standalone Build Tools products.
+            # Also cover service accounts where explicit BuildTools detection
+            # works but product discovery does not.
+            if (-not $vs) {
+              $buildTools = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\2022\BuildTools"
+              if (Test-Path -LiteralPath (Join-Path $buildTools "VC\Tools\MSVC")) {
+                $vs = $buildTools
+              }
+            }
+            if (-not $vs) { throw "Visual Studio Build Tools installation not found" }
             $toolsRoot = Join-Path $vs "VC\Tools\MSVC"
             $tools = Get-ChildItem -LiteralPath $toolsRoot -Directory |
               Sort-Object Name -Descending | Select-Object -First 1
@@ -626,6 +779,12 @@ jobs:
           echo "WINDOWS_QA09_ROOT_PACKAGE=passed"
 
       - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
+        # A service desktop may create an actual SDL window without making
+        # it visible. Only HP's diagnostic may then post real Win32 events to
+        # the unique owned titled HWND; release-quality visible-window
+        # acceptance is kept separate.
+        env:
+          UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
         run: |
           set -euo pipefail
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"
@@ -635,8 +794,15 @@ jobs:
             LOG="$RUNNER_TEMP/qa05-restart-$attempt.log"
             PCM="$RUNNER_TEMP/qa05-restart-$attempt.raw"
             JSON="$RUNNER_TEMP/qa05-restart-$attempt.json"
+            # The service desktop can report no foreground focus. That
+            # otherwise freezes the guest before QA-05's scripted pause;
+            # isolate focus handling per attempt without changing player defaults.
+            rm -rf "$ROOT"
             mkdir -p "$ROOT"
+            printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' > "$ROOT/host-state-v1.txt"
+            printf 'seen-v1\n' > "$ROOT/qa05-onboarding.seen"
             ROOT_WIN="$(cygpath -w "$ROOT")"
+            ONBOARDING_WIN="$(cygpath -w "$ROOT/qa05-onboarding.seen")"
             LOG_WIN="$(cygpath -w "$LOG")"
             PCM_WIN="$(cygpath -w "$PCM")"
             JSON_WIN="$(cygpath -w "$JSON")"
@@ -650,6 +816,7 @@ jobs:
             UR_EXECUTION_MODE=modern \
             UR_PRODUCT_DIAGNOSTICS=1 \
             UR_PAUSE_OPEN_ACCEPTANCE=1 \
+            UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
             UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
               python -m tools.capture_modern_restart_audio \
                 "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
@@ -662,6 +829,12 @@ jobs:
             # Inspect all twelve post-Restart guest samples, even if the
             # release latch incorrectly disarms before the final sample.
             python -m tools.qa05_restart_input_guard "$LOG"
+            grep -Eq 'UR_HOST_STATE LOADED .*pause_on_focus_loss=0 ' "$LOG"
+            grep -Fq 'UR_ONBOARDING HIDDEN first_run=0' "$LOG"
+            if grep -Fq 'UR_FOCUS_PAUSE APPLIED' "$LOG"; then
+              echo "Unexpected focus-loss auto-pause in QA-05" >&2
+              exit 1
+            fi
             rm -f "$PCM"
             echo "UR_QA05_RESTART_AUDIBLE_ATTEMPT=$attempt/5 passed"
           done

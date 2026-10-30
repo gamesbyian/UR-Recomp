@@ -45,6 +45,10 @@ jobs:
           call npm ci --include=dev --no-audit --no-fund
           if errorlevel 1 exit /b 1
           if not exist node_modules\esbuild\package.json exit /b 7
+      - name: Verify cross-platform bundled CLI smoke regression
+        shell: cmd
+        working-directory: pathfinder
+        run: call npm run test:run-bundled-cli
       - name: Run bounded real Pathfinder solver work
         shell: cmd
         working-directory: pathfinder

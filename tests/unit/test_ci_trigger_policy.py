@@ -581,8 +581,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "github.event.pull_request.draft == false", wrapper,
         )
         self.assertIn("  workflow_call:\n", text)
+        self.assertIn("(github.event_name != 'pull_request' ||", text)
         self.assertIn(
-            "(github.event_name != 'pull_request' || "
             "github.event.pull_request.head.repo.full_name == github.repository)",
             text,
         )

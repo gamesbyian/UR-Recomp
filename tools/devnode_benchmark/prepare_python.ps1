@@ -29,7 +29,7 @@ if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
   Remove-Item -LiteralPath $zip -Force
 }
 $pth = Join-Path $target 'python312._pth'
-@('python312.zip', '.', $env:GITHUB_WORKSPACE, 'import site') |
+@('python312.zip', '.', $env:GITHUB_WORKSPACE, (Join-Path $env:GITHUB_WORKSPACE 'tools'), 'import site') |
   Set-Content -LiteralPath $pth -Encoding ASCII
 & $exe -c "import sys, unittest, subprocess; assert sys.version_info[:3] == (3, 12, 10), sys.version"
 if ($LASTEXITCODE -ne 0) { throw 'Python runtime self-check failed.' }

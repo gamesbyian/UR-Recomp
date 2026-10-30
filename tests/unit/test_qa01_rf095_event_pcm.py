@@ -24,6 +24,10 @@ receipt = module('qa01_rf095_pcm_receipt')
 REF = (patch.REF_WAV_INDEX + '\n'
        'static void something() {}\n'
        'void run() {\n' + patch.REF_RUN + patch.REF_CLOSE + '}\n')
+COMMON = ('bool RtlRunFrame(uint32 inputs) {\n'
+          '  if (!g_rtl_speculative_frame)\n'
+          '    rtl_sync_apu_frame_boundary();\n'
+          '}\n')
 NATIVE = ('#include <stdio.h>\n#include <stdint.h>\n#include <stdlib.h>\n'
           + patch.NATIVE_ENTRY +
           '  dsp_handleEcho(dsp, &totalL, &totalR);\n' +
@@ -45,6 +49,41 @@ class RF095Tests(unittest.TestCase):
                         updated.index('ur_rf095_native_stereo_sample((int16_t)totalL'))
         self.assertIn('QA01RF095NATIVE_TRUNCATED', updated)
         with self.assertRaises(ValueError): patch.patch_native(updated)
+
+    def test_native_map_uses_completed_frame_sync_not_first_dsp_sample(self):
+        patched = patch.patch_native_boundary(COMMON)
+        self.assertIn('rtl_sync_apu_frame_boundary();\n'
+                      '    ur_rf095_native_frame_boundary(snes_frame_counter);',
+                      patched)
+        self.assertIn('if (!g_rtl_speculative_frame) {', patched)
+        self.assertEqual(patched.count('rtl_sync_apu_frame_boundary();'), 1)
+        dsp = patch.patch_native(NATIVE)
+        self.assertIn('if (ur_rf095_native_state != 1) return;', dsp)
+        self.assertIn('void ur_rf095_native_frame_boundary(int frame)', dsp)
+        self.assertIn('if (frame == 6457) ur_rf095_native_state = 2;', dsp)
+        self.assertNotIn('const int frame = snes_frame_counter;', dsp)
+        with self.assertRaises(ValueError):
+            patch.patch_native_boundary(patched)
+        with self.assertRaises(ValueError):
+            patch.patch_native_boundary(COMMON + patch.NATIVE_FRAME_SYNC)
+
+    def test_native_staging_rejects_common_source_drift_without_partial_dsp_write(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d) / 'snesrecomp' / 'runner' / 'src'
+            dsp = root / 'snes' / 'dsp.c'
+            common = root / 'common_rtl.c'
+            dsp.parent.mkdir(parents=True)
+            dsp.write_text(NATIVE)
+            common.write_text('bool RtlRunFrame(uint32 inputs) {}\n')
+            with mock.patch('sys.argv', ['rf095', '--root', d, '--side', 'native']):
+                with self.assertRaises(ValueError):
+                    patch.main()
+            self.assertEqual(dsp.read_text(), NATIVE)
+            common.write_text(COMMON)
+            with mock.patch('sys.argv', ['rf095', '--root', d, '--side', 'native']):
+                patch.main()
+            self.assertIn('ur_rf095_native_frame_boundary', common.read_text())
+            self.assertIn('ur_rf095_native_stereo_sample', dsp.read_text())
 
     def test_ambiguous_source_anchor_rejected(self):
         for text in (REF + patch.REF_RUN, REF.replace(patch.REF_RUN, '')):

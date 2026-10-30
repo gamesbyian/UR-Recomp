@@ -16,12 +16,16 @@ from pathlib import Path
 
 REFERENCE = Path('snesrecomp/tools/snesref/frontend.cpp')
 NATIVE = Path('snesrecomp/runner/src/snes/dsp.c')
+NATIVE_BOUNDARY = Path('snesrecomp/runner/src/common_rtl.c')
 REFERENCE_STAMP = 'UR_QA01_RF095_REFERENCE_PCM_FRAME_MAP'
 NATIVE_STAMP = 'UR_QA01_RF095_NATIVE_STEREO_PCM'
 REF_WAV_INDEX = 'static uint64_t g_wav_sample_frames; // stereo frames written\n'
 REF_RUN = '        p_retro_run();\n        g_frame++;\n'
 REF_CLOSE = '    wav_close();\n'
 NATIVE_ENTRY = 'void dsp_cycle(Dsp* dsp) {\n'
+NATIVE_FRAME_ENTRY = 'bool RtlRunFrame(uint32 inputs) {\n'
+NATIVE_FRAME_SYNC = ('  if (!g_rtl_speculative_frame)\n'
+                     '    rtl_sync_apu_frame_boundary();\n')
 NATIVE_SAMPLE = ('  audio_trace_on_sample((int16_t)totalL, (int16_t)totalR, dropped,\n'
                  '                        dropped ? fill : fill + 1);\n')
 
@@ -95,7 +99,22 @@ static void ur_rf095_native_flush(void) {
   if (failed) fprintf(stderr, "QA01RF095NATIVE_WRITE_FAILED\n");
 }
 static void ur_rf095_native_stereo_sample(int16_t left, int16_t right) {
-  const int frame = snes_frame_counter;
+  /* The APU may advance during a guest frame AND at its final sync.
+   * Sample-time snes_frame_counter is not a completed-frame boundary.
+   * Only the explicit post-sync hook below assigns frame/sample rows. */
+  if (ur_rf095_native_state != 1) return;
+  if (ur_rf095_native_samples >= UR_RF095_MAX_SAMPLES) {
+    fprintf(stderr, "QA01RF095NATIVE_TRUNCATED\n");
+    ur_rf095_native_state = 3;
+    return;
+  }
+  ur_rf095_native_buffer[ur_rf095_native_samples][0] = left;
+  ur_rf095_native_buffer[ur_rf095_native_samples][1] = right;
+  ++ur_rf095_native_samples;
+}
+void ur_rf095_native_frame_boundary(int frame) {
+  /* Called only after RtlRunFrame's real guest-frame APU sync, outside
+   * RtlApuLock. Frame 6447 is the zero-index boundary; 6457 closes it. */
   if (ur_rf095_native_state >= 2 || frame < 6447) return;
   if (ur_rf095_native_state == 0) {
     const char *pcm = getenv("UR_QA01_RF095_NATIVE_PCM");
@@ -111,40 +130,17 @@ static void ur_rf095_native_stereo_sample(int16_t left, int16_t right) {
     }
     ur_rf095_native_state = 1;
   }
-  if (frame > 6456) {
-    if (frame != 6457 || ur_rf095_native_row_count >= UR_RF095_MAX_ROWS) {
-      fprintf(stderr, "QA01RF095NATIVE_FRAME_FAILED\n");
-      ur_rf095_native_state = 3;
-      return;
-    }
-    ur_rf095_native_rows[ur_rf095_native_row_count].frame = frame;
-    ur_rf095_native_rows[ur_rf095_native_row_count].samples = ur_rf095_native_samples;
-    ++ur_rf095_native_row_count;
-    ur_rf095_native_previous_frame = frame;
-    ur_rf095_native_state = 2;
-    return;
-  }
-  if (frame != ur_rf095_native_previous_frame) {
-    if ((ur_rf095_native_previous_frame >= 0 &&
-         frame != ur_rf095_native_previous_frame + 1) ||
-        ur_rf095_native_row_count >= UR_RF095_MAX_ROWS) {
-      fprintf(stderr, "QA01RF095NATIVE_FRAME_FAILED\n");
-      ur_rf095_native_state = 3;
-      return;
-    }
-    ur_rf095_native_rows[ur_rf095_native_row_count].frame = frame;
-    ur_rf095_native_rows[ur_rf095_native_row_count].samples = ur_rf095_native_samples;
-    ++ur_rf095_native_row_count;
-    ur_rf095_native_previous_frame = frame;
-  }
-  if (ur_rf095_native_samples >= UR_RF095_MAX_SAMPLES) {
-    fprintf(stderr, "QA01RF095NATIVE_TRUNCATED\n");
+  if (frame != 6447 + (int)ur_rf095_native_row_count ||
+      ur_rf095_native_row_count >= UR_RF095_MAX_ROWS) {
+    fprintf(stderr, "QA01RF095NATIVE_FRAME_FAILED\n");
     ur_rf095_native_state = 3;
     return;
   }
-  ur_rf095_native_buffer[ur_rf095_native_samples][0] = left;
-  ur_rf095_native_buffer[ur_rf095_native_samples][1] = right;
-  ++ur_rf095_native_samples;
+  ur_rf095_native_rows[ur_rf095_native_row_count].frame = frame;
+  ur_rf095_native_rows[ur_rf095_native_row_count].samples = ur_rf095_native_samples;
+  ++ur_rf095_native_row_count;
+  ur_rf095_native_previous_frame = frame;
+  if (frame == 6457) ur_rf095_native_state = 2;
 }
 '''
 
@@ -195,6 +191,26 @@ def patch_native(source: str) -> str:
     return source
 
 
+def patch_native_boundary(source: str) -> str:
+    """Record completed guest-frame audio boundaries after the actual APU sync."""
+    if 'ur_rf095_native_frame_boundary' in source:
+        raise ValueError('RF095 native boundary already/partially patched')
+    for anchor in (NATIVE_FRAME_ENTRY, NATIVE_FRAME_SYNC):
+        if source.count(anchor) != 1:
+            raise ValueError('RF095 pinned native frame-boundary source drift')
+    source = once(source, NATIVE_FRAME_ENTRY,
+                  'extern void ur_rf095_native_frame_boundary(int);\n' +
+                  NATIVE_FRAME_ENTRY, 'native real-frame entry')
+    source = once(
+        source, NATIVE_FRAME_SYNC,
+        '  if (!g_rtl_speculative_frame) {\n'
+        '    rtl_sync_apu_frame_boundary();\n'
+        '    ur_rf095_native_frame_boundary(snes_frame_counter);\n'
+        '  }\n',
+        'native completed-frame APU sync')
+    return source
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, required=True,
@@ -205,9 +221,20 @@ def main() -> None:
     if not path.is_file() or path.is_symlink():
         parser.error('missing/nonregular/symlinked pinned RF095 source')
     old = path.read_text(encoding='utf-8')
-    patched = patch_reference(old) if args.side == 'original' else patch_native(old)
-    path.write_text(patched, encoding='utf-8')
-    print('RF095 staged ' + args.side + ' frame-indexed actual stereo PCM')
+    if args.side == 'original':
+        patched = patch_reference(old)
+        path.write_text(patched, encoding='utf-8')
+    else:
+        boundary = args.root / NATIVE_BOUNDARY
+        if not boundary.is_file() or boundary.is_symlink():
+            parser.error('missing/nonregular/symlinked pinned native frame source')
+        old_boundary = boundary.read_text(encoding='utf-8')
+        # Validate BOTH pinned anchors before modifying either source file.
+        patched = patch_native(old)
+        patched_boundary = patch_native_boundary(old_boundary)
+        path.write_text(patched, encoding='utf-8')
+        boundary.write_text(patched_boundary, encoding='utf-8')
+    print('RF095 staged ' + args.side + ' completed-frame-indexed stereo PCM')
 
 
 if __name__ == '__main__':

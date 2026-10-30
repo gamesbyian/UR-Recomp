@@ -822,8 +822,12 @@ jobs:
             RACE_PID="$!"
             hp_race_cleanup() {
               if [[ -n "$RACE_PID" ]]; then
-                kill "$RACE_PID" 2>/dev/null || true
-                wait "$RACE_PID" 2>/dev/null || true
+                # Never SIGTERM only the Bash parent: it could orphan the
+                # 600-second timeout/PowerShell/SDL descendant and permit
+                # post-failure writes to authoritative result evidence.
+                # Join the bounded race script even after an early QA-05
+                # failure. The original step exit status remains nonzero.
+                wait "$RACE_PID" || true
               fi
             }
             trap hp_race_cleanup EXIT

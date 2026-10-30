@@ -15,7 +15,7 @@ $rustup = Join-Path $bin 'rustup.exe'
 $toolchain = '1.97.1-x86_64-pc-windows-msvc'
 if (-not (Test-Path -LiteralPath $rustup -PathType Leaf)) {
   $base = 'https://static.rust-lang.org/rustup/archive/1.29.0/x86_64-pc-windows-msvc/rustup-init.exe'
-  $exe = Join-Path $env:RUNNER_TEMP 'ur-rustup-init-1.29.0.exe'
+  $exe = Join-Path $env:RUNNER_TEMP 'rustup-init.exe'
   $sum = $exe + '.sha256'
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   Write-Output 'Downloading official pinned rustup 1.29.0 installer and its SHA-256 manifest.'

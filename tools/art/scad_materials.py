@@ -16,6 +16,9 @@ _NUMBER = re.compile(r'\A\s*(?:\d+(?:\.\d*)?|\.\d+)\s*\Z')
 _RIG_DEFAULT = re.compile(
     r'\brig_color\s*=\s*is_undef\s*\(\s*rig_color\s*\)\s*\?\s*'
     r'(\[[^\[\]()]+\])\s*:\s*rig_color\s*;')
+# Subtractive CSG does not distribute across separately rendered color passes.
+# Until whole-part equivalence is checked, reject it in reachable modules.
+_UNSUPPORTED_CSG = re.compile(r'\b(?:difference|intersection|intersection_for)\s*\(')
 
 
 def _mask_comments(source: str) -> str:
@@ -133,6 +136,8 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
             return
         visited.add(name)
         body = modules[name]
+        if _UNSUPPORTED_CSG.search(body):
+            raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
         matches = list(_COLOR.finditer(body))
         if len(matches) != len(_ANY_COLOR.findall(body)):
             raise ValueError('unsupported OpenSCAD color() in '+name)

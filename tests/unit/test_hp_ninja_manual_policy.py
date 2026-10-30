@@ -55,6 +55,16 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
                 self.assertIn(part, s)
         self.assertNotIn("-DSNESRECOMP_SDL3_FETCH=ON", s)
 
+    def test_cmake_selects_exact_receipt_verified_owner_ninja(self):
+        source = CMD.read_text(encoding="utf-8")
+        self.assertIn('set "OWNER_NINJA_ARG="', source)
+        self.assertIn('set "OWNER_NINJA_ARG=-DCMAKE_MAKE_PROGRAM=%UR_HP_NINJA_DIR%/ninja.exe"',
+                      source)
+        self.assertIn('"%UR_HP_NINJA_CANARY%"=="1"', source)
+        self.assertIn('%OWNER_NINJA_ARG%', source)
+        self.assertEqual(source.count("set \"OWNER_NINJA_ARG=-DCMAKE_MAKE_PROGRAM="), 1)
+        self.assertIn('if not exist "%UR_HP_NINJA_DIR%\\ninja.exe" exit /b 34', source)
+
     def test_installed_binary_receipt_only(self):
         with tempfile.TemporaryDirectory() as tmp:
             d = Path(tmp)

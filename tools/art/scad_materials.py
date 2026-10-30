@@ -163,3 +163,25 @@ def material_pass_source(source: str, rgba: tuple[int, int, int, int]) -> str:
         offset = match.end()
     result.append(source[offset:])
     return ''.join(result)
+
+
+# The sentinel makes an empty-color geometry probe render a real STL on every
+# supported OpenSCAD version. It is deliberately far outside this bounded rig.
+UNCOLORED_PROBE_MIN = 100.0
+
+
+def uncolored_probe_source(source: str) -> str:
+    """Suppress every colored child and retain only accidentally uncolored geometry.
+
+    A sole 1x1x1 sentinel at [100,100,100] is the expected output. Any other
+    geometry would otherwise leak into *every* material export pass.
+    """
+    _, matches, _ = _color_data(source)
+    result = []
+    offset = 0
+    for match in matches:
+        result.append(source[offset:match.start()])
+        result.append('if (false)')
+        offset = match.end()
+    result.append(source[offset:])
+    return ''.join(result) + '\ntranslate([100,100,100]) cube([1,1,1]);\n'

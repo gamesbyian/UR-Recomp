@@ -12,6 +12,7 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 materials_for_part = module.materials_for_part
 material_pass_source = module.material_pass_source
+uncolored_probe_source = module.uncolored_probe_source
 
 SOURCE = '''
 $fn=24;
@@ -57,6 +58,42 @@ class MaterialContract(unittest.TestCase):
         self.assertIn('/* color([0,0,1])', filtered)
         self.assertEqual(filtered.count('if (true)'), 1)
         self.assertEqual(filtered.count('if (false)'), 3)
+
+
+    def test_uncolored_probe_filters_all_colored_children(self):
+        probe = uncolored_probe_source(SOURCE)
+        self.assertEqual(probe.count('if (false)'), 4)
+        self.assertIn('translate([100,100,100]) cube([1,1,1]);', probe)
+        self.assertIn('// color([1,0,0])', probe)
+
+    @unittest.skipUnless(shutil.which('openscad'), 'optional OpenSCAD not installed')
+    def test_real_openscad_uncolored_geometry_probe(self):
+        try:
+            import trimesh
+        except ImportError:
+            self.skipTest('optional trimesh not installed')
+        clean = SOURCE.replace('shared_rig();', 'fork_and_frame();')
+        leaked = clean.replace('helper(); }',
+                               'helper(); translate([4,0,0]) cube(1); }')
+        self.assertNotEqual(clean, leaked)
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            for label, source in [('clean', clean), ('leaked', leaked)]:
+                scad = root / (label + '.scad')
+                stl = root / (label + '.stl')
+                scad.write_text(uncolored_probe_source(source))
+                run = subprocess.run(['openscad', '-o', str(stl), str(scad)],
+                                     capture_output=True, text=True, timeout=30)
+                self.assertEqual(run.returncode, 0, run.stderr)
+                mesh = trimesh.load_mesh(stl, file_type='stl', process=True)
+                clean_bounds = [[100, 100, 100], [101, 101, 101]]
+                if label == 'clean':
+                    self.assertEqual(mesh.bounds.tolist(), clean_bounds)
+                    self.assertAlmostEqual(mesh.volume, 1.0)
+                    self.assertEqual(len(mesh.faces), 12)
+                else:
+                    self.assertNotEqual(mesh.bounds.tolist(), clean_bounds)
+                    self.assertGreater(mesh.volume, 1.0)
 
     def test_ambiguous_color_source_fails_closed(self):
         for broken in (SOURCE.replace('color(rig_color)', 'color(variable_color)'),

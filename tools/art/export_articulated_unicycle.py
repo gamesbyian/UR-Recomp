@@ -21,9 +21,9 @@ from pathlib import Path
 
 # Support both repo-root unit imports and direct offline script execution.
 try:
-    from tools.art.scad_materials import materials_for_part, material_pass_source
+    from tools.art.scad_materials import materials_for_part, material_pass_source, uncolored_probe_source, UNCOLORED_PROBE_MIN
 except ModuleNotFoundError:
-    from scad_materials import materials_for_part, material_pass_source
+    from scad_materials import materials_for_part, material_pass_source, uncolored_probe_source, UNCOLORED_PROBE_MIN
 
 PARTS = {
     "tire": ("tire();", (27, 29, 31, 255)),
@@ -347,6 +347,30 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                 part_source = component_source(base, name, pedal_phase=pedal_phase,
                                                saddle_lean=saddle_lean)
                 materials = materials_for_part(base, name)
+                # A source refit can add geometry outside color(). That geometry
+                # survives EVERY material pass and silently duplicates in GLB.
+                # Render the uncolored remainder with one remote sentinel cube;
+                # only that exact cube may survive. Fail before publishing.
+                probe_scad = work / f"{name}-uncolored-probe.scad"
+                probe_stl = work / f"{name}-uncolored-probe.stl"
+                probe_scad.write_text(uncolored_probe_source(part_source), encoding="utf-8")
+                probe_run = subprocess.run([openscad, "-o", str(probe_stl), str(probe_scad)],
+                                           capture_output=True, text=True,
+                                           timeout=timeout, check=False)
+                if probe_run.returncode != 0 or not probe_stl.is_file():
+                    raise RuntimeError(f"OpenSCAD uncolored probe failed for {name}: "
+                                       + probe_run.stderr[-1000:])
+                probe_mesh = trimesh.load_mesh(probe_stl, file_type="stl", process=True)
+                expected_bounds = np.array([[UNCOLORED_PROBE_MIN] * 3,
+                                            [UNCOLORED_PROBE_MIN + 1] * 3])
+                if (not isinstance(probe_mesh, trimesh.Trimesh) or probe_mesh.is_empty
+                        or not np.isfinite(probe_mesh.vertices).all()
+                        or not np.allclose(probe_mesh.bounds, expected_bounds,
+                                           rtol=0, atol=1e-4)
+                        or not probe_mesh.is_watertight
+                        or abs(probe_mesh.volume - 1.0) > 1e-4
+                        or len(probe_mesh.faces) != 12):
+                    raise ValueError(f"uncolored geometry leaks into material passes: {name}")
                 material_rows = []
                 for index, rgba in enumerate(materials):
                     scad = work / f"{name}-{index}.scad"

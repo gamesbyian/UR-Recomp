@@ -42,6 +42,7 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
     armed = command_fn("audio_stats 0")
     cursor = _nonnegative_int(armed.get("event_count"), "event_count")
     arm_cursor = cursor
+    arm_produced = _nonnegative_int(armed.get("produced"), "arm produced samples")
     deadline = clock() + timeout
     candidate = None
     while clock() < deadline:
@@ -73,6 +74,11 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
             start = candidate["s"] - before
             if start < 0:
                 raise ValueError("KON lacks requested pre-event PCM")
+            # Events before the arm cursor are intentionally not scanned. If
+            # the pre-KON PCM slice predates arming, an earlier voice-7 KON
+            # could be inside it without appearing in the selected event set.
+            if start < arm_produced:
+                raise ValueError("pre-KON PCM window predates live arm; earlier KON not excluded")
             if produced - start > capacity:
                 raise ValueError("live PCM ring retention window already expired")
             if produced >= candidate["s"] + after:
@@ -117,6 +123,7 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                 result.update({
                     "selection": "first_voice7_kon_after_live_arm_unverified_route",
                     "arm_event_count": arm_cursor,
+                    "arm_produced_samples": arm_produced,
                     "last_scanned_event_count": cursor,
                     "post_wav_event_count": post_head,
                     "post_wav_produced_samples": post_produced,

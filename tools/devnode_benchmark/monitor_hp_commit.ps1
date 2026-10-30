@@ -24,7 +24,19 @@ if ($Mode -eq 'Sample') {
         throw 'HP_MONITOR_INVALID_SAMPLE_TARGET'
     }
     $deadline = (Get-Date).AddMinutes(50)
-    'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors' | Set-Content -LiteralPath $csv -Encoding ASCII
+    # WMI LoadPercentage is a one-second snapshot; taking it every ten
+    # seconds can miss short compiler bursts. Independently sample the
+    # Windows host-wide Processor(_Total) performance counter: NextValue()
+    # averages CPU busy time since its preceding call. No process names,
+    # process inventory or user activity are accessed.
+    $cpuWindowCounter = $null
+    try {
+        $cpuWindowCounter = [System.Diagnostics.PerformanceCounter]::new('Processor', '% Processor Time', '_Total')
+        [void]$cpuWindowCounter.NextValue() # Prime; never report this first value.
+    } catch {
+        $cpuWindowCounter = $null # Optional counter; retain memory and WMI.
+    }
+    'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors,cpu_pct_window_avg' | Set-Content -LiteralPath $csv -Encoding ASCII
     while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $stop)) {
         try {
             $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
@@ -52,7 +64,21 @@ if ($Mode -eq 'Sample') {
             } catch {
                 # Sampling errors must not reveal process activity or paths.
             }
-            ('{0},{1},{2},{3},{4},{5}' -f $utc, [math]::Round($os.FreeVirtualMemory / 1024), [math]::Round($os.TotalVirtualMemorySize / 1024), [math]::Round($os.FreePhysicalMemory / 1024), $cpuLoadPct, $logicalProcessors) | Add-Content -LiteralPath $csv -Encoding ASCII
+            # Interval mean (not a 1-second point estimate). A failed
+            # performance counter is optional and never blocks the build.
+            $cpuWindowPct = '-1'
+            if ($null -ne $cpuWindowCounter) {
+                try {
+                    $observedPct = [double]$cpuWindowCounter.NextValue()
+                    if (-not [double]::IsNaN($observedPct) -and -not [double]::IsInfinity($observedPct)) {
+                        $boundedPct = [math]::Max(0.0, [math]::Min(100.0, $observedPct))
+                        $cpuWindowPct = $boundedPct.ToString('F1', [System.Globalization.CultureInfo]::InvariantCulture)
+                    }
+                } catch {
+                    $cpuWindowCounter = $null
+                }
+            }
+            ('{0},{1},{2},{3},{4},{5},{6}' -f $utc, [math]::Round($os.FreeVirtualMemory / 1024), [math]::Round($os.TotalVirtualMemorySize / 1024), [math]::Round($os.FreePhysicalMemory / 1024), $cpuLoadPct, $logicalProcessors, $cpuWindowPct) | Add-Content -LiteralPath $csv -Encoding ASCII
         } catch {
             # Sampling errors must not interfere with a useful native build.
             # Avoid leaking paths or user applications from exception messages.
@@ -141,6 +167,17 @@ if ($Mode -eq 'Stop') {
             } else {
                 Write-Output ('HP_CPU_SUMMARY run={0} samples=0 unavailable' -f $stem)
             }
+            # Independently report the ten-second integrated CPU load.
+            # Older memory/WMI-only CSVs have no such column and stay valid.
+            $cpuWindowRows = @($rows | Where-Object {
+                $_.cpu_pct_window_avg -match '^(100(\\.0)?|[0-9]{1,2}(\\.[0-9])?)$'
+            })
+            if ($cpuWindowRows.Count -gt 0) {
+                $windowStats = $cpuWindowRows | Measure-Object -Property cpu_pct_window_avg -Maximum -Average
+                Write-Output ('HP_CPU_WINDOW_SUMMARY run={0} samples={1} mean_host_cpu_pct_10s={2} peak_host_cpu_pct_10s={3}' -f $stem, $cpuWindowRows.Count, [math]::Round($windowStats.Average, 1), $windowStats.Maximum)
+            } else {
+                Write-Output ('HP_CPU_WINDOW_SUMMARY run={0} samples=0 unavailable' -f $stem)
+            }
             # The build stage writes private, per-job phase timestamps. Only
             # aggregate CPU/memory samples inside the exact compile window
             # count toward the concurrency comparison. On incomplete or
@@ -172,6 +209,18 @@ if ($Mode -eq 'Stop') {
                                 $compileMinVirtual = ($compileRows | Measure-Object -Property free_virtual_mb -Minimum).Minimum
                                 $elapsedSeconds = [math]::Round(($endUtc - $beginUtc).TotalSeconds)
                                 Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} elapsed_seconds={1} samples={2} mean_host_cpu_pct_est={3} peak_host_cpu_pct_est={4} min_free_virtual_mb={5}' -f $stem, $elapsedSeconds, $compileRows.Count, [math]::Round($cpuStats.Average, 1), $cpuStats.Maximum, $compileMinVirtual)
+                                $compileWindowRows = @($cpuWindowRows | Where-Object {
+                                    try {
+                                        $observed = [datetimeoffset]::Parse($_.timestamp_utc)
+                                        $observed -ge $beginUtc -and $observed -le $endUtc
+                                    } catch { $false }
+                                })
+                                if ($compileWindowRows.Count -gt 0) {
+                                    $compileWindowStats = $compileWindowRows | Measure-Object -Property cpu_pct_window_avg -Average -Maximum
+                                    Write-Output ('HP_COMPILE_CPU_WINDOW_SUMMARY run={0} elapsed_seconds={1} samples={2} mean_host_cpu_pct_10s={3} peak_host_cpu_pct_10s={4}' -f $stem, $elapsedSeconds, $compileWindowRows.Count, [math]::Round($compileWindowStats.Average, 1), $compileWindowStats.Maximum)
+                                } else {
+                                    Write-Output ('HP_COMPILE_CPU_WINDOW_SUMMARY run={0} unavailable=no_valid_interval_samples' -f $stem)
+                                }
                             } else {
                                 Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} unavailable=no_valid_cpu_samples' -f $stem)
                             }

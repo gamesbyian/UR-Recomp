@@ -88,6 +88,9 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_full_smoke == true }}
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 45
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CMAKE_BUILD_PARALLEL_LEVEL: '2'
     defaults:
       run:
         shell: bash
@@ -264,8 +267,29 @@ jobs:
           # git apply and the artifact uploader from allocating memory. Leave
           # legitimate pagefile configuration to the HP owner, fail early and
           # explicitly rather than starting an unqualified native build.
-          if ($os.FreeVirtualMemory -lt 2097152) {
-            throw "HP_MEMORY_COMMIT_INSUFFICIENT: less than 2048 MiB virtual commit headroom; skip native build (previous WinError 1455)."
+          # A 2 GiB buffer was insufficient on this 16 GiB HP: WinError 1455
+          # and Event 2004 occurred before a hard freeze. Be conservative.
+          if ($os.FreeVirtualMemory -lt 6291456) {
+            throw "HP_MEMORY_COMMIT_INSUFFICIENT: less than 6144 MiB virtual commit headroom; skip native build."
+          }
+          # A quiet period is needed after event ID 2004 even when memory has
+          # recovered after reboot. Never alter the owner's pagefile here.
+          try {
+            $recent = @(Get-WinEvent -FilterHashtable @{
+              LogName='System'; StartTime=(Get-Date).AddHours(-1); Id=2004
+            } -ErrorAction Stop | Where-Object {
+              $_.ProviderName -eq 'Microsoft-Windows-Resource-Exhaustion-Detector'
+            })
+            if ($recent.Count -gt 0) {
+              throw "HP_MEMORY_RECENT_EXHAUSTION: Windows recorded Event 2004 in the past hour; defer the native build."
+            }
+          } catch {
+            if ($_.Exception.Message -match '^HP_MEMORY_RECENT_EXHAUSTION:') { throw }
+            # Get-WinEvent throws for zero matches. Other failures should not
+            # silently authorize expensive work.
+            if ($_.Exception.Message -notmatch 'No events were found') {
+              throw "HP_MEMORY_EVENT_CHECK_UNAVAILABLE: $($_.Exception.GetType().Name)"
+            }
           }
 
       - name: Start bounded memory telemetry during native work
@@ -357,7 +381,9 @@ jobs:
             -DSNESRECOMP_SDL3_FETCH=ON \
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
-          cmake --build "$ROOT/build" --config Release --parallel 4
+          # Cap concurrent compiler processes after Windows logged three
+          # resource-exhaustion events and an unexpected reboot.
+          cmake --build "$ROOT/build" --config Release --parallel 2
           EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
           test -n "$EXE"
           echo "EXE=$EXE" >> "$GITHUB_ENV"

@@ -103,6 +103,27 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 mod.verify(link, run_version=False)
 
+    def test_redirected_parent_with_valid_receipt_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            real_root = base / "real" / "Ninja" / "v1.13.2"
+            real_root.mkdir(parents=True)
+            binary = real_root / "ninja.exe"
+            binary.write_bytes(b"owned real binary")
+            receipt = {"installer_id": mod.INSTALLER_ID, "version": mod.VERSION,
+                       "archive_sha256": mod.ARCHIVE_SHA256,
+                       "binary_sha256": mod.file_hash(binary)}
+            (real_root / "ur-recomp-ninja-install.json").write_text(json.dumps(receipt))
+            self.assertEqual(mod.verify(real_root, run_version=False), str(binary))
+            redirect = base / "runner-tools"
+            try:
+                redirect.symlink_to(base / "real", target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlink")
+            with self.assertRaisesRegex(ValueError, "redirected owner Ninja"):
+                mod.verify(redirect / "Ninja" / "v1.13.2", run_version=False)
+            self.assertEqual(binary.read_bytes(), b"owned real binary")
+
     def test_exact_helper_trigger_paths(self):
         for file in (SMOKE, HP):
             source = file.read_text(encoding="utf-8")

@@ -38,8 +38,16 @@ def has_reparse_point(path: Path) -> bool:
 
 def verify(root: Path, *, run_version: bool = True) -> str:
     """Return a validated executable path; any ambiguity must fail closed."""
-    if has_reparse_point(root) or not root.is_dir():
-        raise ValueError("missing or redirected owner Ninja installation")
+    # Path.is_dir() follows redirected *ancestors*. Checking only the final
+    # v1.13.2 component is insufficient when runner-tools or Ninja is a
+    # Windows junction / symbolic link. Walk lexically, never resolve first.
+    # Keep the synthetic tests portable: verify() checks any supplied root,
+    # while main() separately enforces the immutable owner HP install path.
+    for component in (root, *root.parents):
+        if has_reparse_point(component):
+            raise ValueError("redirected owner Ninja installation or ancestor")
+    if not root.is_dir():
+        raise ValueError("missing owner Ninja installation")
     receipt = root / "ur-recomp-ninja-install.json"
     exe = root / "ninja.exe"
     if any(has_reparse_point(p) or not p.is_file() for p in (receipt, exe)):

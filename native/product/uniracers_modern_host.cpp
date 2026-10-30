@@ -239,6 +239,7 @@ int g_results_navigation_acceptance_stage;
 unsigned g_results_navigation_acceptance_frames;
 std::uint32_t g_results_navigation_acceptance_first_sram;
 std::uint64_t g_results_navigation_acceptance_first_generation;
+bool g_results_navigation_movie_pending_arm = false;
 unsigned g_pause_open_acceptance_frames;
 bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
@@ -3885,6 +3886,38 @@ void advance_tour_continue_route(uint64_t next_frame) {
     if (step.next_event_race_entered) {
         // The stock NOW_PLAYING confirm started an ordinary tour race. That
         // race owns progression from here; never roll SRAM back under it.
+        // Stock navigation reloads relative input files; a source movie loaded
+        // at RESULTS would already have been replaced by those menu inputs.
+        if (const char* mode = std::getenv("UR_RESULTS_NAV_ACCEPTANCE");
+            mode && std::strcmp(mode, "next-earned-movie") == 0) {
+            const bool first_race_edge =
+                g_results_navigation_acceptance_stage == 1 &&
+                !g_run_capture_previous_active &&
+                g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
+                !paused() && modern_mode() && !g_practice_active &&
+                g_widescreen_scene_state.race_mode ==
+                    ur::product::HostRacePresentationMode::OnePlayer;
+            if (!first_race_edge) {
+                product_diagnostic(
+                    "UR_RESULTS_NAV NEXT_MOVIE_RACE_EDGE_INVALID");
+                g_results_navigation_acceptance_stage = -1;
+                (void)request_desktop_quit();
+                cancel_tour_continue("UR_NEXT_EVENT RACE_ENTERED");
+                return;
+            }
+            const char* source = std::getenv("UR_RESULTS_NEXT_MOVIE_INPUT");
+            if (!source || !*source ||
+                !snesrecomp_desktop_load_relative_input_file(source)) {
+                product_diagnostic("UR_RESULTS_NAV NEXT_MOVIE_LOAD_FAILED");
+                g_results_navigation_acceptance_stage = -1;
+                (void)request_desktop_quit();
+                cancel_tour_continue("UR_NEXT_EVENT RACE_ENTERED");
+                return;
+            }
+            g_results_navigation_movie_pending_arm = true;
+            product_diagnostic(
+                "UR_RESULTS_NAV NEXT_MOVIE_SOURCE_INPUT_BOUND");
+        }
         g_next_event_verify_track = g_next_event_target_track;
         cancel_tour_continue("UR_NEXT_EVENT RACE_ENTERED");
         return;
@@ -5289,6 +5322,11 @@ bool begin_run_record_capture(uint64_t host_frame) {
     if (!run_record_capture_enabled()) return false;
 
     snesrecomp_desktop_arm_relative_input(host_frame);
+    if (g_results_navigation_movie_pending_arm) {
+        g_results_navigation_movie_pending_arm = false;
+        product_diagnostic(
+            "UR_RESULTS_NAV NEXT_MOVIE_ARMED_AT_RACE_ENTRY");
+    }
 
     const UrUniracersCourseIdentity course =
         ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
@@ -7555,20 +7593,6 @@ void run_results_navigation_acceptance() {
                 "UR_RESULTS_NAV ACCEPT target=%s\n",
                 results_navigation_action_name(target));
             std::fflush(stderr);
-        }
-        // Research only: replay genuine original TAS P1 input on the second
-        // stock race. The existing relative input loader is armed by the
-        // production race-start path, not by a fabricated guest state.
-        if (std::strcmp(mode, "next-earned-movie") == 0) {
-            const char* source = std::getenv("UR_RESULTS_NEXT_MOVIE_INPUT");
-            if (!source || !*source ||
-                !snesrecomp_desktop_load_relative_input_file(source)) {
-                product_diagnostic("UR_RESULTS_NAV NEXT_MOVIE_LOAD_FAILED");
-                g_results_navigation_acceptance_stage = -1;
-                (void)request_desktop_quit();
-                return;
-            }
-            product_diagnostic("UR_RESULTS_NAV NEXT_MOVIE_SOURCE_INPUT_BOUND");
         }
         (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
         g_results_navigation_acceptance_stage = 1;

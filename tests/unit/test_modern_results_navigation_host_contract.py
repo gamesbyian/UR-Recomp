@@ -177,8 +177,29 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             'extern "C" void ur_uniracers_modern_after_run_frame(')
         self.assertIn('std::strcmp(mode, "next-earned") == 0', acceptance)
         self.assertIn('std::strcmp(mode, "next-earned-movie") == 0', acceptance)
-        self.assertIn("snesrecomp_desktop_load_relative_input_file(source)", acceptance)
-        self.assertIn("NEXT_MOVIE_SOURCE_INPUT_BOUND", acceptance)
+        # Stock Next Event menu input reloads must finish before the 2014
+        # source movie is loaded; the same rising race edge then arms it.
+        route = _body(
+            source, "void advance_tour_continue_route(uint64_t next_frame) {",
+            "if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle)")
+        capture = _body(
+            source, "bool begin_run_record_capture(uint64_t host_frame) {",
+            "const UrUniracersCourseIdentity course =")
+        self.assertNotIn("snesrecomp_desktop_load_relative_input_file(source)", acceptance)
+        self.assertIn("snesrecomp_desktop_load_relative_input_file(source)", route)
+        self.assertIn("NEXT_MOVIE_SOURCE_INPUT_BOUND", route)
+        self.assertIn("NEXT_MOVIE_RACE_EDGE_INVALID", route)
+        self.assertIn("g_results_navigation_acceptance_stage == 1", route)
+        self.assertIn("!g_run_capture_previous_active", route)
+        self.assertIn("g_results_navigation_movie_pending_arm = true", route)
+        self.assertLess(
+            route.index("snesrecomp_desktop_load_relative_input_file(source)"),
+            route.index('cancel_tour_continue("UR_NEXT_EVENT RACE_ENTERED");', route.index("g_results_navigation_movie_pending_arm = true")))
+        self.assertIn("snesrecomp_desktop_arm_relative_input(host_frame)", capture)
+        self.assertIn("NEXT_MOVIE_ARMED_AT_RACE_ENTRY", capture)
+        self.assertLess(
+            capture.index("snesrecomp_desktop_arm_relative_input(host_frame)"),
+            capture.index("NEXT_MOVIE_ARMED_AT_RACE_ENTRY"))
         self.assertIn("g_results_navigation_acceptance_stage = 2;", acceptance)
         self.assertIn("g_run_finish_ticks60.has_value()", acceptance)
         self.assertIn("g_results_navigation_acceptance_first_sram", acceptance)
@@ -188,6 +209,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
         self.assertIn('run_case next-earned 01111 next-earned "$EARNED_SCRIPT"', harness)
         self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", harness)
+        self.assertIn("NEXT_MOVIE_ARMED_AT_RACE_ENTRY", harness)
         self.assertIn("if second_raw == first_raw:", harness)
         self.assertIn("if cold_raw != after_cold:", harness)
         self.assertIn('fields["stock_sram"]', harness)

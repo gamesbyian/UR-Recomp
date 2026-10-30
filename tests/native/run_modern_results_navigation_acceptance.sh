@@ -244,6 +244,7 @@ if [ "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" = "1" ]; then
     --json-out "$WORK/dragster-2014-relative.json"
   run_case next-earned 01111 next-earned-movie "$EARNED_MOVIE_SCRIPT"
   grep -q "UR_RESULTS_NAV NEXT_MOVIE_SOURCE_INPUT_BOUND" "$WORK/next-earned.log"
+  grep -q "UR_RESULTS_NAV NEXT_MOVIE_ARMED_AT_RACE_ENTRY" "$WORK/next-earned.log"
 else
   # The existing 28.56s repeated-jump input is a proven nonqualifying
   # result; it remains a reproducible negative until a source win exists.

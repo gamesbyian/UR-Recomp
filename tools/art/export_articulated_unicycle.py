@@ -130,11 +130,60 @@ def saddle_mount_from_source(source: str) -> tuple[float, float, float]:
     return tuple(float(v) for v in matches[0])
 
 
+def assert_no_extra_top_level_geometry(source: str) -> None:
+    """Reject extra top-level geometry in a part-only OpenSCAD export.
+
+    A second top-level module call would otherwise be rendered into *every*
+    exported STL, even after the canonical rig(rig_pose) call is stripped.
+    This conservative scanner permits module declarations, functions,
+    assignments and asserts; unsupported source grammar fails closed.
+    """
+    code = SCAD_COMMENTS.sub("", source)
+    depth = 0
+    start = 0
+    in_string = False
+    escaped = False
+    for i, char in enumerate(code):
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            if depth == 0:
+                header = code[start:i].strip()
+                if not re.fullmatch(r"module\s+[A-Za-z_]\w*\s*\(.*\)", header, re.S):
+                    raise ValueError("unexpected top-level geometry block")
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth < 0:
+                raise ValueError("unbalanced OpenSCAD braces")
+            if depth == 0:
+                start = i + 1
+        elif char == ";" and depth == 0:
+            statement = code[start:i].strip()
+            if statement and not re.match(
+                    r"^(?:[$A-Za-z_]\w*\s*=|function\s+[A-Za-z_]\w*\s*\(|assert\s*\()",
+                    statement):
+                raise ValueError("unexpected top-level geometry call")
+            start = i + 1
+    if depth or in_string or code[start:].strip():
+        raise ValueError("unterminated top-level OpenSCAD statement")
+
+
 def source_without_entrypoint(source: str) -> str:
     stripped = source.rstrip()
     if not stripped.endswith(END_MARKER) or stripped.count(END_MARKER) != 1:
         raise ValueError("source must end with exactly one canonical rig entrypoint")
-    return stripped[:-len(END_MARKER)].rstrip() + "\n"
+    body = stripped[:-len(END_MARKER)].rstrip() + "\n"
+    assert_no_extra_top_level_geometry(body)
+    return body
 
 
 def validate_pose_controls(pedal_phase: float, saddle_lean: float) -> None:

@@ -7,6 +7,7 @@ animation reconstruction. Requires OpenSCAD and the optional trimesh package.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import hashlib
 import json
 import math
@@ -118,6 +119,24 @@ SADDLE_TRANSLATE = re.compile(
 # definition and could publish a pivot for the wrong OpenSCAD module.
 SADDLE_DECLARATION = re.compile(r"\bmodule\s+saddle\s*\(")
 SCAD_COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+MODULE_DECLARATION = re.compile(r"\bmodule\s+([A-Za-z_]\w*)\s*\(")
+
+
+def assert_unique_module_declarations(source: str) -> None:
+    """Reject silently overridden OpenSCAD modules before part-only export.
+
+    OpenSCAD accepts duplicate module definitions and renders the later one.
+    A refit could therefore replace a tire/frame/helper without invalidating
+    the saddle mount or the five-component GLB shape contract.
+    """
+    names = MODULE_DECLARATION.findall(SCAD_COMMENTS.sub("", source))
+    duplicates = sorted(name for name, count in Counter(names).items() if count > 1)
+    if "saddle" in duplicates:
+        raise ValueError("expected one source-owned saddle module declaration")
+    if duplicates:
+        raise ValueError("duplicate OpenSCAD module declaration: " + ", ".join(duplicates))
+
+
 
 
 def saddle_mount_from_source(source: str) -> tuple[float, float, float]:
@@ -210,6 +229,7 @@ def source_without_entrypoint(source: str) -> str:
     if not stripped.endswith(END_MARKER) or stripped.count(END_MARKER) != 1:
         raise ValueError("source must end with exactly one canonical rig entrypoint")
     body = stripped[:-len(END_MARKER)].rstrip() + "\n"
+    assert_unique_module_declarations(body)
     assert_no_extra_top_level_geometry(body)
     return body
 

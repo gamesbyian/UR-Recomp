@@ -59,6 +59,34 @@ class ArticulatedBlockoutContract(unittest.TestCase):
             self.assertFalse(status["current_output_usable"])
             self.assertEqual(pointer.read_text(encoding="utf-8"), old_pointer)
 
+    def test_duplicate_openscad_module_overrides_fail_closed(self):
+        # OpenSCAD accepts two declarations of the same module and uses the
+        # later definition. This would silently change a part/helper mesh.
+        source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
+        module.source_without_entrypoint(source)
+        harmless = source.replace("rig(rig_pose);",
+                                  "// module tire() {}\n/* module member() {} */\nrig(rig_pose);")
+        module.source_without_entrypoint(harmless)
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            out = root / "out"
+            out.mkdir()
+            pointer = out / "articulated_blockout_current.json"
+            previous = '{"attempt_id":"previous-success"}\n'
+            pointer.write_text(previous, encoding="utf-8")
+            scad = root / "duplicate.scad"
+            for name in ("tire", "rim_and_hub", "fork_and_frame", "pedals", "member"):
+                changed = source.replace("rig(rig_pose);",
+                    f"module {name}() {{ translate([100,0,0]) sphere(r=2); }}\nrig(rig_pose);")
+                with self.subTest(name=name):
+                    scad.write_text(changed, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "duplicate OpenSCAD module declaration"):
+                        module.export(scad, out)
+                    self.assertEqual(pointer.read_text(encoding="utf-8"), previous)
+                    status = json.loads((out / "articulated_blockout_last_attempt.json").read_text())
+                    self.assertEqual(status["status"], "failed")
+                    self.assertFalse(status["current_output_usable"])
+
     def test_two_pose_controls_change_only_the_owned_components(self):
         source = "module rig(x) {}\nrig(rig_pose);\n"
         for name in ("tire", "rim_and_hub", "fork_and_frame"):

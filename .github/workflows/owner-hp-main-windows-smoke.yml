@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - main
-      - ops/continuous-hp-main-smoke-20261029
     paths:
       - ".github/workflows/windows-native-smoke.yml"
       - "native/**"

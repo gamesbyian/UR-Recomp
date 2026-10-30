@@ -968,7 +968,13 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "group: windows-native-smoke-${{ github.workflow }}-${{ github.ref }}",
             text,
         )
-        self.assertIn("cancel-in-progress: true", text)
+        # Hosted smoke still cancels obsolete PR work. HP-native builds keep
+        # running to produce complete, resource-accounted release evidence.
+        self.assertIn("cancel-in-progress: ${{ !inputs.run_on_hp }}", text)
+        hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
+        self.assertIn("cancel-in-progress: false", hp)
+        self.assertIn("run_on_hp: true", hp)
+        self.assertIn("uses: ./.github/workflows/windows-native-smoke.yml", hp)
 
 
 if __name__ == "__main__":

@@ -244,7 +244,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         # heredoc, rather than a second approximation of its conditions.
         import ast
         harness = HARNESS.read_text(encoding="utf-8")
-        marker = "def source_earned_tour_awarded(first_raw, second_raw):"
+        marker = "def source_earned_tour_awarded(first_raw, second_raw, award_raw):"
         self.assertIn(marker, harness)
         body = _body(harness, marker, "if not source_earned_tour_awarded(")
         parsed = ast.parse(body)
@@ -311,6 +311,11 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
                 paths[index].write_bytes(second)
             for index in (3, 5):
                 paths[index].write_text("stock_sram=" + second.hex() + newline)
+            # The post-confirm dump must be a distinct source epoch, even
+            # when only a non-award SRAM byte changed at the transition.
+            post_award = bytearray(second)
+            post_award[0x0050] ^= 1
+            paths[7].write_bytes(post_award)
             command = [sys.executable, "-c", script, *map(str, paths)]
             valid = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertEqual(valid.returncode, 0, valid.stderr)

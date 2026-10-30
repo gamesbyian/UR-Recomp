@@ -14,6 +14,7 @@ import unittest
 
 EXPECTED_PATHS = (
     "${{ runner.temp }}/*.log",
+    "${{ runner.temp }}/hp-commit-pressure.csv",
     "${{ runner.temp }}/boot-dumps/",
     "${{ runner.temp }}/race-result-dumps/race-results.*",
     "${{ runner.temp }}/package-boot-dumps/",
@@ -96,6 +97,19 @@ class PolicyNegatives(unittest.TestCase):
             "            !${{ runner.temp }}/**/*.sram.bin\n", "")
         with self.assertRaisesRegex(ValueError, "allowlist"):
             check_workflow(fixture)
+
+    def test_allows_only_exact_numeric_hp_sample_csv(self):
+        check_workflow(self.valid_source())
+        for unsafe in (
+            "${{ runner.temp }}/hp-commit-pressure.raw",
+            "${{ runner.temp }}/hp-commit-pressure.*",
+            "${{ runner.workspace }}/.ur-recomp-hp-native-monitor/",
+        ):
+            with self.subTest(unsafe=unsafe):
+                modified = self.valid_source().replace(
+                    "${{ runner.temp }}/hp-commit-pressure.csv", unsafe)
+                with self.assertRaisesRegex(ValueError, "allowlist"):
+                    check_workflow(modified)
 
     def test_disallows_internal_zip(self):
         fixture = self.valid_source().replace(

@@ -134,8 +134,14 @@ def verify(log: Path, root: Path, source_movie: bool,
         value = ((value ^ byte) * 1099511628211) & 0xffffffffffffffff
     if f'{value:016x}'.encode('ascii') != match.group(1):
         raise ValueError('ONE-03 run-record checksum mismatch')
+    # The native decoder uses std::getline(...), which recognizes LF only.
+    # Python str.splitlines() also treats VT/FF/CR/record separators as line
+    # boundaries and can falsely accept bytes that native decoding rejects.
+    # The source-owned encoder always terminates each row with LF.
+    if not body.endswith(b'\n'):
+        raise ValueError('ONE-03 unterminated native run-record row')
     try:
-        lines = body.decode('ascii').splitlines()
+        lines = body.decode('ascii').split('\n')[:-1]
     except UnicodeDecodeError as exc:
         raise ValueError('ONE-03 non-ASCII run record') from exc
     if not lines or lines[0] != 'URRUN 1' or lines[-1] != 'END' or lines.count('END') != 1:

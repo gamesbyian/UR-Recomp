@@ -130,6 +130,19 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
         self.assert_reject_mutation(b'terminal_digest -\n',
                                     b'terminal_digest not-a-hash\n')
 
+    def test_non_lf_ascii_separators_rejected(self):
+        # Python splitlines() treats these as row separators; C++ std::getline
+        # only splits on LF, so none may create a second valid native row.
+        original = b'frame_count 2090\nterminal_digest -\n'
+        for separator in (b'\x0b', b'\x0c', b'\x1c', b'\x1d', b'\x1e', b'\r'):
+            body = record().split(b'checksum ', 1)[0]
+            self.assertIn(original, body)
+            body = body.replace(original,
+                                b'frame_count 2090' + separator + b'terminal_digest -\n', 1)
+            self.path.write_bytes(signed_body(body))
+            with self.subTest(separator=separator), self.assertRaises(ValueError):
+                mod.verify(self.log, self.root, True)
+
     def test_native_valid_multiple_splits_and_inputs(self):
         body = record().split(b'checksum ', 1)[0]
         body = body.replace(b'split finish 1505\n', b'split early 500\nsplit finish 1505\n')

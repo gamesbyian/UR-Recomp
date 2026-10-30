@@ -84,10 +84,42 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                 result = capture_fn(command_fn, events=[candidate], produced=produced,
                                     kon_sample_index=candidate["s"], wav_path=wav_path,
                                     before=before, after=after)
+                # audio_wav is a separate server command. The producer can
+                # advance between the pre-WAV stats and its PCM snapshot.
+                # Drain the post-WAV event high-water mark before accepting a
+                # single-KON receipt, including events that arrived *during*
+                # the WAV request. A rejected attempt may leave a WAV, but no
+                # successful JSON receipt is published by main().
+                post = command_fn("audio_stats 0")
+                post_head = _nonnegative_int(post.get("event_count"), "event_count")
+                post_produced = _nonnegative_int(post.get("produced"), "produced samples")
+                if post_head < cursor or post_produced < produced:
+                    raise ValueError("post-WAV native audio counters regressed")
+                while cursor < post_head:
+                    limit = min(8000, post_head - cursor)
+                    page = command_fn(f"audio_events {cursor} {limit} 1")
+                    oldest = _nonnegative_int(page.get("oldest"), "event oldest")
+                    first = _nonnegative_int(page.get("first"), "event first")
+                    scanned = _nonnegative_int(page.get("scanned"), "event scanned")
+                    if oldest > cursor or first != cursor or not 1 <= scanned <= limit:
+                        raise ValueError("post-WAV DSP event ring overrun or discontinuous page")
+                    events = page.get("events")
+                    if not isinstance(events, list):
+                        raise ValueError("malformed post-WAV DSP event page")
+                    for event in events:
+                        if not isinstance(event, dict):
+                            raise ValueError("malformed post-WAV DSP register event")
+                        if (event.get("t") == "reg" and event.get("adr") == "0x4c"
+                                and event.get("val") == "0x80"):
+                            _nonnegative_int(event.get("s"), "KON sample index")
+                            raise ValueError("multiple voice-7 KON events since live arm")
+                    cursor += scanned
                 result.update({
                     "selection": "first_voice7_kon_after_live_arm_unverified_route",
                     "arm_event_count": arm_cursor,
                     "last_scanned_event_count": cursor,
+                    "post_wav_event_count": post_head,
+                    "post_wav_produced_samples": post_produced,
                     "assumed_pcm_ring_capacity": capacity,
                     "produced_samples_before_wav_request": produced,
                     "retention_margin_frames_before_wav_request": capacity - (produced - start),

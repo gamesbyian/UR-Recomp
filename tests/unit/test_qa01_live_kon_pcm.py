@@ -21,6 +21,7 @@ class Script:
         self.first = True
         self.calls = []
         self.head = 100
+        self.last_produced = 0
 
     def __call__(self, line):
         self.calls.append(line)
@@ -28,7 +29,11 @@ class Script:
             if self.first:
                 self.first = False
                 return {"event_count": 100, "produced": 0}
-            return {"produced": next(self.produced), "event_count": self.head}
+            try:
+                self.last_produced = next(self.produced)
+            except StopIteration:
+                pass  # Producer may be stationary during post-WAV verification.
+            return {"produced": self.last_produced, "event_count": self.head}
         if line.startswith("audio_events "):
             result = next(self.pages)
             self.head = result["first"] + result["scanned"]
@@ -82,6 +87,25 @@ class LiveKONTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "multiple"):
             self.run_watch(script)
         self.assertIn("audio_events 101 8000 1", script.calls)
+
+    def test_second_kon_during_wav_request_invalidates_receipt(self):
+        # The first stats snapshot is clean; the producer records another KON
+        # while audio_wav is being serviced. No successful receipt is allowed.
+        script = Script([page(100, 1, [event(45000)]),
+                         page(101, 1, [event(46000)])], [47000, 47000])
+
+        def wav_request(*_args, **_kwargs):
+            script.head = 102
+            return {"kon_sample_index": 45000, "sample_frames": 2500}
+
+        capture = Mock(side_effect=wav_request)
+        with self.assertRaisesRegex(ValueError, "multiple voice-7 KON"):
+            live.watch_first_kon(
+                script, wav_path=Path("/tmp/never-written.wav"), before=500,
+                after=2000, capacity=65536, timeout=2, interval=.01,
+                clock=lambda: 0, sleep=lambda _: None, capture_fn=capture)
+        self.assertEqual(capture.call_count, 1)
+        self.assertIn("audio_events 101 1 1", script.calls)
 
     def test_event_count_regression_or_malformed_snapshot_fails_closed(self):
         for value in (100, None, "101"):

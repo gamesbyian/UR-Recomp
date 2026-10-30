@@ -113,8 +113,18 @@ SADDLE_TRANSLATE = re.compile(
 )
 
 
+# Count all saddle module declarations, including those with changed bodies.
+# The mount regex alone would silently accept a second, differently formed
+# definition and could publish a pivot for the wrong OpenSCAD module.
+SADDLE_DECLARATION = re.compile(r"\bmodule\s+saddle\s*\(")
+SCAD_COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+
+
 def saddle_mount_from_source(source: str) -> tuple[float, float, float]:
-    matches = SADDLE_TRANSLATE.findall(source)
+    code = SCAD_COMMENTS.sub("", source)
+    if len(SADDLE_DECLARATION.findall(code)) != 1:
+        raise ValueError("expected one source-owned saddle module declaration")
+    matches = SADDLE_TRANSLATE.findall(code)
     if len(matches) != 1:
         raise ValueError("expected one source-owned saddle mount translation")
     return tuple(float(v) for v in matches[0])

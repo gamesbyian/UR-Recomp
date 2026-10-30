@@ -61,6 +61,13 @@ class ArticulatedBlockoutContract(unittest.TestCase):
         moved = source.replace("2.27", "2.91").replace("0.04", "-0.13")
         self.assertEqual(module.part_translation("saddle", module.saddle_mount_from_source(moved)),
                          (-0.13, 0.0, 3.91))
+        # Commented-out declarations must not invalidate a real source module.
+        comments = source + "\n// module saddle(lean=0) {}\n/* module saddle(lean=0) {} */"
+        self.assertEqual(module.saddle_mount_from_source(comments), mount)
+        differently_formed = (source +
+            "\nmodule saddle(lean=0) {translate([0.5,0,2.5]) scale([1,1,1]) {}}")
+        with self.assertRaisesRegex(ValueError, "saddle module declaration"):
+            module.saddle_mount_from_source(differently_formed)
         for invalid in ("module saddle(lean=0) {translate([0,0,0])}",
                         source + source, "module saddle(lean=0) { rotate([0,0,0]) {} }"):
             with self.subTest(invalid=invalid):
@@ -68,6 +75,27 @@ class ArticulatedBlockoutContract(unittest.TestCase):
                     module.saddle_mount_from_source(invalid)
         with self.assertRaises(ValueError):
             module.part_translation("fake", mount)
+
+    def test_ambiguous_saddle_export_preserves_previous_success_pointer(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            out = root / "out"
+            out.mkdir()
+            pointer = out / "articulated_blockout_current.json"
+            old_pointer = '{"attempt_id":"previous-success","status":"succeeded"}\n'
+            pointer.write_text(old_pointer, encoding="utf-8")
+            source = root / "ambiguous.scad"
+            source.write_text(
+                "module rig(p) {}\n"
+                "module saddle(lean=0) { translate([0.04,0,2.27]) rotate([0,lean,0]) {} }\n"
+                "module saddle(lean=0) { translate([0.5,0,2.5]) scale([1,1,1]) {} }\n"
+                "rig(rig_pose);\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "saddle module declaration"):
+                module.export(source, out)
+            status = json.loads((out / "articulated_blockout_last_attempt.json").read_text())
+            self.assertEqual(status["status"], "failed")
+            self.assertFalse(status["current_output_usable"])
+            self.assertEqual(pointer.read_text(encoding="utf-8"), old_pointer)
 
     def test_five_named_poses_derive_controls_and_transforms_from_source(self):
         source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()

@@ -36,6 +36,7 @@ if ($Mode -eq 'Sample') {
     } catch {
         $cpuWindowCounter = $null # Optional counter; retain memory and WMI.
     }
+    $cpuWindowWarmup = $true
     'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors,cpu_pct_window_avg' | Set-Content -LiteralPath $csv -Encoding ASCII
     while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $stop)) {
         try {
@@ -69,10 +70,18 @@ if ($Mode -eq 'Sample') {
             $cpuWindowPct = '-1'
             if ($null -ne $cpuWindowCounter) {
                 try {
-                    $observedPct = [double]$cpuWindowCounter.NextValue()
-                    if (-not [double]::IsNaN($observedPct) -and -not [double]::IsInfinity($observedPct)) {
-                        $boundedPct = [math]::Max(0.0, [math]::Min(100.0, $observedPct))
-                        $cpuWindowPct = $boundedPct.ToString('F1', [System.Globalization.CultureInfo]::InvariantCulture)
+                    if ($cpuWindowWarmup) {
+                        # No interval has elapsed at the initial sample.
+                        # Discard rather than blend a near-zero window into
+                        # the mean of ten-second compile samples.
+                        [void]$cpuWindowCounter.NextValue()
+                        $cpuWindowWarmup = $false
+                    } else {
+                        $observedPct = [double]$cpuWindowCounter.NextValue()
+                        if (-not [double]::IsNaN($observedPct) -and -not [double]::IsInfinity($observedPct)) {
+                            $boundedPct = [math]::Max(0.0, [math]::Min(100.0, $observedPct))
+                            $cpuWindowPct = $boundedPct.ToString('F1', [System.Globalization.CultureInfo]::InvariantCulture)
+                        }
                     }
                 } catch {
                     $cpuWindowCounter = $null
@@ -170,7 +179,7 @@ if ($Mode -eq 'Stop') {
             # Independently report the ten-second integrated CPU load.
             # Older memory/WMI-only CSVs have no such column and stay valid.
             $cpuWindowRows = @($rows | Where-Object {
-                $_.cpu_pct_window_avg -match '^(100(\\.0)?|[0-9]{1,2}(\\.[0-9])?)$'
+                $_.cpu_pct_window_avg -match '^(100(\.0)?|[0-9]{1,2}(\.[0-9])?)$'
             })
             if ($cpuWindowRows.Count -gt 0) {
                 $windowStats = $cpuWindowRows | Measure-Object -Property cpu_pct_window_avg -Maximum -Average

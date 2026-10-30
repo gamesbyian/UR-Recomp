@@ -320,7 +320,21 @@ jobs:
             -DSNESRECOMP_SDL3_FETCH=ON \
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
-          cmake --build "$ROOT/build" --config Release --parallel 4
+          # Six physical CPU cores on the HP: test six native MSBuild workers
+          # against previously measured four-worker runtime. The hosted
+          # candidate remains four-way and all QA is otherwise identical.
+          HP_BUILD_JOBS=4
+          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
+            HP_BUILD_JOBS=6
+            printf 'phase,timestamp_utc\n' > "$RUNNER_TEMP/hp-compile-phase.csv"
+            printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
+            echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"
+          fi
+          cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
+            printf 'build_end,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
+            echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_end"
+          fi
           EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
           test -n "$EXE"
           echo "EXE=$EXE" >> "$GITHUB_ENV"

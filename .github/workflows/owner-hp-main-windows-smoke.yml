@@ -28,6 +28,9 @@ on:
       - "tools/ci/qa05_restart_attempt.sh"
       - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/capture_modern_resume_audio.py"
+      # These two helpers are also imported by the real QA-05 capture.
+      - "tools/capture_modern_paused_audio.py"
+      - "tools/analyze_sdl_audio_envelope.py"
       - "tools/ci/stage_windows_smoke_romfree_exe.py"
       - "tools/ci/check_windows_smoke_upload_policy.py"
       - "tests/unit/test_stage_windows_smoke_romfree_exe.py"

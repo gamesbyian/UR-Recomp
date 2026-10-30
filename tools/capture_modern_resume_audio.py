@@ -108,6 +108,28 @@ def verify_resume_audio(log: str, paused: dict, resumed: dict) -> dict:
     }
 
 
+
+def select_game_window(
+    visible_titled: list[int], hidden_titled: list[int], *,
+    allow_hidden: bool = False,
+) -> int:
+    """Select only a uniquely owned, titled game HWND for native Win32 input.
+
+    Ordinary runs require visibility. An explicitly isolated Windows-service
+    QA probe may target one hidden HWND via real WM_KEY messages, but must
+    distinguish that environment from visible, interactive Windows QA.
+    """
+    if len(visible_titled) == 1:
+        return visible_titled[0]
+    if not visible_titled and allow_hidden and len(hidden_titled) == 1:
+        return hidden_titled[0]
+    raise RuntimeError(
+        "expected exactly one visible Uniracers window in launch tree; "
+        f"visible_titled={len(visible_titled)} hidden_titled={len(hidden_titled)} "
+        f"allow_hidden={int(allow_hidden)}"
+    )
+
+
 def _find_game_window(root_pid: int) -> int:
     # Launcher is PowerShell -> .cmd -> shipping EXE; never inject other apps.
     command = ("Get-CimInstance Win32_Process | "
@@ -139,6 +161,8 @@ def _find_game_window(root_pid: int) -> int:
         )
     user32 = ctypes.WinDLL("user32", use_last_error=True)
     candidates = []
+    hidden_candidates = []
+    owned_windows = [0]
     callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
     # HWND is pointer-sized on Win64. Bare ctypes calls default to 32-bit
     # integers and can silently truncate handles, defeating real input.
@@ -159,18 +183,34 @@ def _find_game_window(root_pid: int) -> int:
     def visit(hwnd, _):
         pid = wintypes.DWORD()
         user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-        if pid.value in game_pids and user32.IsWindowVisible(hwnd):
+        if pid.value in game_pids:
+            owned_windows[0] += 1
             # A zero-title helper window is not the primary game window.
             if user32.GetWindowTextLengthW(hwnd) > 0:
-                candidates.append(int(hwnd))
+                if user32.IsWindowVisible(hwnd):
+                    candidates.append(int(hwnd))
+                else:
+                    hidden_candidates.append(int(hwnd))
         return True
 
     user32.EnumWindows(visit, 0)
-    if len(candidates) != 1:
-        raise RuntimeError(
-            f"expected exactly one visible Uniracers window in launch tree; got {len(candidates)}"
+    allow_hidden = os.environ.get("UR_QA05_ALLOW_HIDDEN_WINDOW") == "1"
+    try:
+        hwnd = select_game_window(
+            candidates, hidden_candidates, allow_hidden=allow_hidden
         )
-    return candidates[0]
+    except RuntimeError as exc:
+        raise RuntimeError(
+            f"{exc}; owned_hwnds={owned_windows[0]} "
+            "(Win32 EnumWindows observes only the caller's desktop)"
+        ) from exc
+    if hwnd in hidden_candidates:
+        print(
+            "UR_QA05_NONVISIBLE_HWND_TARGET: exact game PID and unique titled "
+            "HWND; real Win32 messages, but not interactive-window evidence",
+            flush=True,
+        )
+    return hwnd
 
 
 def _press_resume(hwnd: int) -> None:

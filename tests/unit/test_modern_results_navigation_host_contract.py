@@ -237,6 +237,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             [line for line in post.splitlines() if line.startswith("press ")],
             ["press a 1"] + ["press a 2"] * 5)
         self.assertIn("dump next-event-post-confirm", post)
+        self.assertNotIn("until 009F != 99", post)
         self.assertIn('if (std::strcmp(mode, "next-earned-movie") != 0)', acceptance)
 
     def test_earned_tour_award_requires_real_win_and_completed_clear(self):

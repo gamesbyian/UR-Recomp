@@ -145,8 +145,8 @@ wait 2
 press a 2
 wait 2
 press a 2
-# A stock guest screen transition, not a fabricated SRAM award.
-until 009F != 99 240
+# The original guest may commit the medal while still displaying 0x99.
+# Observe the actual SRAM after the A cadence; do not require a screen exit.
 wait 60
 dump next-event-post-confirm
 wait 120

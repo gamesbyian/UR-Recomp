@@ -79,7 +79,22 @@ class RF095Tests(unittest.TestCase):
             self.assertEqual(r['original']['peak'], [100, 50])
             self.assertEqual(r['native']['peak'], [75, 25])
             self.assertFalse(r['audible_parity_proven'])
+            self.assertFalse(r['producer_identity_independently_verified'])
             self.assertEqual(r['usa_event_credit'], 0)
+
+    def test_invalid_native_cannot_leave_plausible_original_window(self):
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            output = pathlib.Path(d) / 'original-window.pcm'
+            files[2].write_bytes(files[2].read_bytes()[:-2])
+            with self.assertRaisesRegex(ValueError, 'length mismatch'):
+                receipt.analyze(*files, original_window_out=output)
+            self.assertFalse(output.exists())
+            files = self.fixture(d)
+            receipt.analyze(*files, original_window_out=output)
+            self.assertEqual(output.read_bytes(), struct.pack('<hh', 100, -50) * 7)
+            with self.assertRaisesRegex(ValueError, 'stale original PCM'):
+                receipt.analyze(*files, original_window_out=output)
 
     def test_missing_frame_or_regression_rejected(self):
         with tempfile.TemporaryDirectory() as d:

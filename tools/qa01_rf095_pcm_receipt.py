@@ -111,18 +111,21 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         rate = wav.getframerate()
     if len(original) != (ref[ORIGINAL_END] - ref[ORIGINAL_START]) * 4:
         raise ValueError('RF095 original short WAV slice')
-    if original_window_out is not None:
-        original_window_out.parent.mkdir(parents=True, exist_ok=True)
-        original_window_out.write_bytes(original)
     if native_pcm.stat().st_size != nat[NATIVE_END] * 4:
         raise ValueError('RF095 native raw sample/map length mismatch')
     if nat[NATIVE_START] != 0 or nat[NATIVE_END] > 8192:
         raise ValueError('RF095 native sample capture not bounded to source window')
     with native_pcm.open('rb') as src:
         native = src.read()
+    if original_window_out is not None:
+        if original_window_out.exists() or original_window_out.is_symlink():
+            raise ValueError('RF095 refusing stale original PCM window')
+        original_window_out.parent.mkdir(parents=True, exist_ok=True)
+        original_window_out.write_bytes(original)
     return {
         'schema': 'ur-qa01-rf095-source-registered-pcm/1',
-        'source_proof': 'actual libretro callback and native post-echo DSP output',
+        'claimed_output_stages': 'libretro callback and native post-echo DSP output',
+        'producer_identity_independently_verified': False,
         'original': {'guest_frames': [ORIGINAL_START, ORIGINAL_END],
                      'sample_rate': rate, 'wav_sha256': sha256(original_wav),
                      'map_sha256': sha256(original_map),

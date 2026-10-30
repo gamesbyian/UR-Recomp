@@ -55,6 +55,32 @@ jobs:
           if ($os.FreeVirtualMemory -lt 2097152) {
             throw 'HP_HEALTH_COMMIT_LIMIT: under 2048 MiB of free virtual memory; do not attempt full build'
           }
+          # Inspect only System event metadata, not sensitive event messages.
+          Write-Output ("HP_LAST_BOOT_UTC " + $os.LastBootUpTime.ToUniversalTime().ToString('o'))
+          try {
+            $events = @(Get-WinEvent -FilterHashtable @{LogName='System'; StartTime=(Get-Date).AddHours(-48); Id=@(41,6008,1001,6005,6006,2004,18,19,17,7,51,55)} -MaxEvents 250 -ErrorAction Stop |
+              Where-Object {
+                $_.ProviderName -match '^(Microsoft-Windows-Kernel-Power|EventLog|Microsoft-Windows-WER-SystemErrorReporting|Microsoft-Windows-Resource-Exhaustion-Detector|Microsoft-Windows-WHEA-Logger|disk|Ntfs)$'
+              } | Select-Object -First 20)
+            foreach ($ev in $events) {
+              Write-Output ("HP_EVENT timestamp_utc={0} id={1} provider={2}" -f $ev.TimeCreated.ToUniversalTime().ToString('o'), $ev.Id, $ev.ProviderName)
+            }
+            if ($events.Count -eq 0) { Write-Output 'HP_EVENT no matching System events in inspected range' }
+          } catch {
+            Write-Output ("HP_EVENT_UNAVAILABLE " + $_.Exception.GetType().Name)
+          }
+          # Review only project-specific memory samples from previous runs.
+          $history = Join-Path $env:RUNNER_WORKSPACE '.ur-recomp-hp-native-monitor'
+          if (Test-Path -LiteralPath $history) {
+            Get-ChildItem -LiteralPath $history -Filter '*.csv' -File |
+              Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 3 | ForEach-Object {
+                $samples = @(Import-Csv -LiteralPath $_.FullName)
+                $min = if ($samples.Count -gt 0) { ($samples | Measure-Object -Property free_commit_mb -Minimum).Minimum } else { 'none' }
+                $stopFile = [IO.Path]::ChangeExtension($_.FullName, '.stop')
+                $state = if (Test-Path -LiteralPath $stopFile) { 'stopped' } else { 'incomplete_or_interrupted' }
+                Write-Output ("HP_PREVIOUS_MONITOR file={0} samples={1} minimum_free_commit_mb={2} state={3}" -f $_.Name, $samples.Count, $min, $state)
+              }
+          }
           Write-Output 'HP_HEALTH PASS (read-only, no compiler invoked)'
 
   windows:

@@ -156,6 +156,14 @@ class RF094Receipt(unittest.TestCase):
         with self.assertRaises(ValueError):
             report.audit(native.replace("frame=6456", "frame=6457").encode(),
                          "NATIVE")
+        f7 = ("QA01RF093NATIVE seq=1 f=6456 kind=SPC_TO_CPU_WRITE "
+              "addr=00F7 val=10 spc_ticks=109900001 spc_next_pc=1234 "
+              "q=0 target=0 guest=0 clock=native_spc\n")
+        self.assertEqual(report.audit((native + f7).encode(), "NATIVE")
+                         ["f7_bytes"], [0x10])
+        with self.assertRaises(ValueError):
+            report.audit((native + f7.replace("f=6456", "f=6457"))
+                         .encode(), "NATIVE")
         with self.assertRaises(ValueError):
             report.audit(self.row("ORIG", 1, 6452, 109900000).encode(), "ORIG")
 

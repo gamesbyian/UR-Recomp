@@ -10,7 +10,6 @@ on:
       - main
       - ops/continuous-hp-main-smoke-20261029
     paths:
-      - ".github/workflows/owner-hp-main-windows-smoke.yml"
       - ".github/workflows/windows-native-smoke.yml"
       - "native/**"
       - "tests/input/**"
@@ -20,7 +19,8 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/devnode_benchmark/**"
       - "tools/patches/**"
-      - "tools/toolchain-entries/**"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/archives/**"
       - "reference/roms/retail/Uniracers_USA.sfc"

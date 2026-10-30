@@ -11,6 +11,8 @@ on:
       - "tests/unit/test_capture_unpaused_race_audio_control.py"
       - "tools/capture_modern_paused_audio.py"
       - "tests/unit/test_capture_modern_restart_audio.py"
+      - "tools/ci/check_windows_audio_source_binding.py"
+      - "tests/unit/test_windows_audio_source_binding.py"
       - "tests/input/audio-modern-restart.script"
       - "docs/AUDIO-MODERN-RESTART-PROBE.md"
   workflow_dispatch:
@@ -103,6 +105,11 @@ jobs:
           python -m zipfile -e "$ARCHIVE" "$EXTRACT"
           PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          # The archive/package verifier checks internal consistency; also
+          # bind its manifest to the selected GitHub producer run.
+          python tools/ci/check_windows_audio_source_binding.py \
+            --manifest "$PACKAGE/PACKAGE-MANIFEST.json" \
+            --expected-source-sha "${{ steps.source-package.outputs.source_sha }}"
           test -f "$PACKAGE/run-uniracers.cmd"
           echo "WINDOWS_AUDIO_SOURCE_PACKAGE_VERIFIED run_id=${{ steps.source-package.outputs.run_id }}"
 

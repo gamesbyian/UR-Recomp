@@ -949,6 +949,33 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read[ \t]*$")
         self.assertNotRegex(text, r"(?m)^  contents: write[ \t]*$")
 
+    def test_hp_source_current_smoke_covers_exact_executed_windows_consumers(self):
+        # A change in the actual packaging, renderer, QA or evidence tools
+        # invalidates the HP's existing Windows result, even without native
+        # changes. Use exact paths, not broad tools/** or every unit test.
+        hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
+        for path in (
+            "tools/Test-URRecompPortable.ps1",
+            "tools/check_windows_portable_binary.py",
+            "tools/check_result_screen_time.py",
+            "tools/verify_rom.py",
+            "tools/qa09_windows_root_pad_probe.py",
+            "tools/qa05_restart_input_guard.py",
+            "tools/capture_modern_restart_audio.py",
+            "tools/capture_modern_resume_audio.py",
+            "tools/ci/stage_windows_smoke_romfree_exe.py",
+            "tools/ci/check_windows_smoke_upload_policy.py",
+            "tests/unit/test_stage_windows_smoke_romfree_exe.py",
+            "tests/unit/test_assemble_windows_package.py",
+            "tests/unit/test_windows_package_streaming_bounds.py",
+            "tests/unit/test_windows_clean_machine_verifier_policy.py",
+            "tests/unit/test_windows_portable_binary.py",
+        ):
+            with self.subTest(path=path):
+                self.assertIn(f'      - "{path}"', hp)
+        self.assertNotIn('      - "tools/**"', hp)
+        self.assertNotIn('      - "tests/unit/**"', hp)
+
     def test_windows_reusable_callers_do_not_cancel_one_another(self):
         # Only the QA wrapper now triggers when smoke YAML changes on a
         # ready, same-repo PR. The called workflow still has its own

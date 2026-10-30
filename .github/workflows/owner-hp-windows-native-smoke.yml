@@ -4,6 +4,7 @@ on:
     branches: [ops/hp-windows-native-smoke-experiment-20261029]
     paths:
       - ".github/workflows/owner-hp-windows-native-smoke.yml"
+      - "tests/unit/test_assemble_windows_package.py"
   workflow_dispatch:
 
 concurrency:

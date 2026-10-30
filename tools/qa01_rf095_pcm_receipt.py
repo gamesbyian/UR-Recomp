@@ -93,6 +93,12 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
                for suffix in ('_TRUNCATED', '_OPEN_FAILED', '_WRITE_FAILED',
                               '_FRAME_FAILED', '_INCOMPLETE')):
             raise ValueError('RF095 ' + side + ' producer error/truncation')
+        # The pinned native boundary hook runs immediately after this APU
+        # synchronization. A timeout makes its sample index incomplete even
+        # when the frame map and PCM byte counts look self-consistent.
+        if (side == 'NATIVE' and
+                '[apu] frame-boundary guest-clock sync timed out' in text):
+            raise ValueError('RF095 native APU frame-boundary sync timed out')
     ref = frame_map(original_map, start=ORIGINAL_START,
                     end=ORIGINAL_END, contiguous_from_zero=True)
     nat = frame_map(native_map, start=NATIVE_START,
@@ -114,6 +120,11 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         wav.setpos(wav.getnframes() - 1)
         if len(wav.readframes(1)) != 4:
             raise ValueError('RF095 original WAV truncated after observed window')
+        # Pinned snesref/frontend.cpp writes a fixed 44-byte PCM WAV header
+        # and exactly four bytes per callback stereo frame, no extra chunks.
+        # Reject appended bytes that wave.getnframes() silently ignores.
+        if original_wav.stat().st_size != 44 + 4 * wav.getnframes():
+            raise ValueError('RF095 unexpected original WAV length')
         wav.setpos(ref[ORIGINAL_START])
         original = wav.readframes(ref[ORIGINAL_END] - ref[ORIGINAL_START])
         rate = wav.getframerate()

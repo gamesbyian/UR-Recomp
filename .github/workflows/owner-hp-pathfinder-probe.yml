@@ -20,7 +20,7 @@ jobs:
         run: |
           echo C:\Program Files\nodejs>>"%GITHUB_PATH%"
           echo C:\Program Files\Git\cmd>>"%GITHUB_PATH%"
-      - name: Partial checkout of Pathfinder current main
+      - name: Checkout Pathfinder Windows CLI fix for validation
         uses: actions/checkout@v4
         with:
           repository: gamesbyian/Pathfinder-Game
@@ -53,7 +53,7 @@ jobs:
           node scripts/run-bundled.mjs scripts/solver-speed-probe.mjs --corpus=published --count=16 --work-budget=250000 --budget-ms=10000 --out="%RUNNER_TEMP%\hp-pathfinder\speed.json"
           if errorlevel 1 exit /b 1
           if not exist "%RUNNER_TEMP%\hp-pathfinder\speed.json" exit /b 9
-          node -e "const f=require('fs'); const a=JSON.parse(f.readFileSync(process.argv[1],'utf8')); if (!Array.isArray(a.rows) || a.rows.length!==16 || !Number.isFinite(a.totalMs)) process.exit(10)" "%RUNNER_TEMP%\hp-pathfinder\speed.json"
+          node -e "const f=require('fs'); const a=JSON.parse(f.readFileSync(process.argv[1],'utf8')); if (!Array.isArray(a.rows) || a.rows.length!==16 || a.errorCount!==0 || !Number.isFinite(a.totalMs) || a.totalMs<=0) process.exit(10)" "%RUNNER_TEMP%\hp-pathfinder\speed.json"
           if errorlevel 1 exit /b 1
           git rev-parse HEAD > "%RUNNER_TEMP%\hp-pathfinder\source-sha.txt"
       - name: Retain source-bound throughput data

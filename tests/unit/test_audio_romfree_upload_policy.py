@@ -21,6 +21,26 @@ def artifact_paths(source: str) -> list[str]:
     than an excuse to search forward into a different step's harmless paths.
     """
     lines = source.splitlines()
+    # An unrecognised `uses` scalar can hide an uploader from a line scanner.
+    # These four guarded workflows currently use only literal action refs.
+    # Reject YAML aliases, anchors, folded scalars and flow-style steps rather
+    # than silently treating a real upload-artifact step as another action.
+    uses_line = re.compile(r"^\s*(?:-\s+)?uses:\s*(.*?)\s*$")
+    literal_ref = re.compile(
+        r"^(?:[A-Za-z0-9_./:@-]+|'[A-Za-z0-9_./:@-]+'|"
+        r'"[A-Za-z0-9_./:@-]+")\s*(?:#.*)?$'
+    )
+    yaml_anchor = re.compile(
+        r"^\s*(?:-\s*)?(?:[A-Za-z_][\w-]*:\s*)?[&*][A-Za-z_][\w-]*"
+    )
+    for row in lines:
+        if not row.strip() or row.lstrip().startswith("#"):
+            continue
+        if yaml_anchor.match(row) or re.match(r"^\s*-\s*\{", row):
+            raise ValueError("unsupported YAML anchor, alias or flow-style step")
+        declaration = uses_line.match(row)
+        if declaration is not None and not literal_ref.fullmatch(declaration.group(1)):
+            raise ValueError("unsupported multiline or aliased uses scalar")
     collected: list[str] = []
     uploaders = 0
     step_start = re.compile(r"^(\s*)-\s+(?:name|uses|id|if|run|env|with):")
@@ -192,6 +212,78 @@ class AudioRomfreeUploadPolicy(unittest.TestCase):
             artifact_paths(duplicate)
         with self.assertRaisesRegex(ValueError, "path block is empty"):
             artifact_paths(empty)
+
+    def test_folded_and_literal_multiline_uses_cannot_hide_zip(self):
+        for indicator in (">-", "|", "|-", ">+"):
+            with self.subTest(indicator=indicator):
+                workflow = """jobs:
+  audio:
+    steps:
+      - name: unsafe folded uploader
+        uses: INDICATOR
+          actions/upload-artifact@v4
+        with:
+          path: |
+            ${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            ${{ runner.temp }}/safe-report.json
+""".replace("INDICATOR", indicator)
+                with self.assertRaisesRegex(ValueError, "unsupported multiline"):
+                    artifact_paths(workflow)
+
+    def test_aliased_uploaders_and_step_aliases_fail_closed(self):
+        variants = (
+            "uses: &uploader actions/upload-artifact@v4",
+            "uses: *uploader",
+            "uses: !!str actions/upload-artifact@v4",
+        )
+        for declaration in variants:
+            with self.subTest(declaration=declaration):
+                workflow = """jobs:
+  audio:
+    steps:
+      - name: unsafe uploader
+        DECLARATION
+        with:
+          path: |
+            ${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            ${{ runner.temp }}/safe-report.json
+""".replace("DECLARATION", declaration)
+                with self.assertRaises(ValueError):
+                    artifact_paths(workflow)
+        for step in ("- *uploader", "- &uploader uses: actions/upload-artifact@v4",
+                     "- {uses: actions/upload-artifact@v4}"):
+            with self.subTest(step=step):
+                workflow = """jobs:
+  audio:
+    steps:
+      STEP
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            ${{ runner.temp }}/safe-report.json
+""".replace("STEP", step)
+                with self.assertRaisesRegex(ValueError, "unsupported YAML"):
+                    artifact_paths(workflow)
+
+    def test_quoted_literal_action_refs_remain_supported(self):
+        for action in ("'actions/upload-artifact@v4'", '"actions/upload-artifact@v4"'):
+            workflow = """jobs:
+  audio:
+    steps:
+      - uses: ACTION
+        with:
+          path: |
+            ${{ runner.temp }}/safe-report.json
+""".replace("ACTION", action)
+            self.assertEqual(artifact_paths(workflow), [
+                "${{ runner.temp }}/safe-report.json"
+            ])
 
     def test_source_hash_contract_is_checked_before_audio_execution(self):
         source = (

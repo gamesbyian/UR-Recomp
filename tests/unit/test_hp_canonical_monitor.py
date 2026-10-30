@@ -135,7 +135,7 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertIn("Get-CimInstance Win32_Processor", source)
         self.assertNotIn("Get-Counter", source)
         self.assertNotIn("Get-Process", source)
-        self.assertNotIn("Win32_Process", source)
+        self.assertNotRegex(source, r"\bWin32_Process\b")
         self.assertNotIn("Stop-Process", source)
 
     def test_sampler_does_not_expose_local_user_activity(self):

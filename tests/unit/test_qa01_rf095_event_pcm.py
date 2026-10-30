@@ -108,6 +108,22 @@ class RF095Tests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'missing or unordered'):
                 receipt.analyze(*files)
 
+    def test_native_frame_map_rejects_extra_pre_and_post_rows(self):
+        with tempfile.TemporaryDirectory() as d:
+            for extra in ('before', 'after'):
+                files = self.fixture(d)
+                native_map = files[3]
+                canonical = native_map.read_text()
+                if extra == 'before':
+                    contaminated = canonical.replace('frame,samples\n',
+                                                     'frame,samples\n6446,0\n', 1)
+                else:
+                    contaminated = canonical + '6458,10\n'
+                native_map.write_text(contaminated)
+                with self.subTest(extra=extra), self.assertRaisesRegex(
+                        ValueError, 'native frame-map population'):
+                    receipt.analyze(*files)
+
     def test_truncated_or_mismatched_audio_rejected(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)

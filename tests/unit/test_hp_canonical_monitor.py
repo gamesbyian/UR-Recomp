@@ -33,6 +33,31 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertIn("${{ runner.temp }}/hp-commit-pressure.csv", source)
         check_workflow(source)
 
+    def test_cpu_observer_is_aggregate_numeric_optional_and_backward_compatible(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+        # No workload throttling, process enumeration or arbitrary uploads.
+        self.assertIn(
+            "timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,"
+            "cpu_load_pct_est,logical_processors", script)
+        self.assertIn("Get-CimInstance Win32_Processor", script)
+        self.assertIn("NumberOfLogicalProcessors", script)
+        self.assertIn("LoadPercentage", script)
+        self.assertIn("$logicalTotal += $count", script)
+        self.assertIn("$weightedLoad += $load * $count", script)
+        self.assertIn("$cpuLoadPct = -1", script)
+        self.assertIn("$logicalProcessors = -1", script)
+        self.assertIn("HP_CPU_SUMMARY", script)
+        self.assertIn("HP_PREVIOUS_CPU", script)
+        # Existing crash logs contain only the original four CSV columns;
+        # optional CPU properties must not break old recovery.
+        self.assertIn("HP_PREVIOUS_MONITOR", script)
+        self.assertIn("cpu_load_pct_est -match", script)
+        self.assertIn("if ($cpuRows.Count -gt 0)", script)
+        self.assertNotIn("Stop-Process", script)
+        self.assertNotIn("Win32_Process", script)
+        self.assertNotIn("Get-Process", script)
+        self.assertNotIn("Get-Counter", script)
+
     def test_sampler_does_not_expose_local_user_activity(self):
         script = SCRIPT.read_text(encoding="utf-8")
         for expected in (

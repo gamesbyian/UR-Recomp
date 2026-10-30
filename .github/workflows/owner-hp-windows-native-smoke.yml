@@ -179,6 +179,30 @@ jobs:
           for rel in repaired:
               print("checkout bytes restored:", rel)
           PY
+      - name: Diagnose HP Windows memory-commit capacity before native work
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $os = Get-CimInstance -ClassName Win32_OperatingSystem
+          $pagefiles = @(Get-CimInstance -ClassName Win32_PageFileUsage)
+          $totalMB = [math]::Round($os.TotalVirtualMemorySize / 1024)
+          $freeMB = [math]::Round($os.FreeVirtualMemory / 1024)
+          $physicalMB = [math]::Round($os.FreePhysicalMemory / 1024)
+          Write-Output "HP_MEMORY_COMMIT total_mb=$totalMB free_mb=$freeMB free_physical_mb=$physicalMB"
+          foreach ($pagefile in $pagefiles) {
+            Write-Output ("HP_PAGEFILE name={0} allocated_mb={1} current_mb={2} peak_mb={3}" -f $pagefile.Name, $pagefile.AllocatedBaseSize, $pagefile.CurrentUsage, $pagefile.PeakUsage)
+          }
+          Get-Process | Sort-Object -Property PagedMemorySize64 -Descending |
+            Select-Object -First 8 ProcessName, Id, @{Name='PrivateMB';Expression={[math]::Round($_.PagedMemorySize64 / 1MB)}} |
+            Format-Table | Out-String | Write-Output
+          # Windows ERROR_COMMITMENT_LIMIT (1455) previously prevented even
+          # git apply and the artifact uploader from allocating memory. Leave
+          # legitimate pagefile configuration to the HP owner, fail early and
+          # explicitly rather than starting an unqualified native build.
+          if ($os.FreeVirtualMemory -lt 2097152) {
+            throw "HP_MEMORY_COMMIT_INSUFFICIENT: less than 2048 MiB virtual commit headroom; skip native build (previous WinError 1455)."
+          }
+
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail

@@ -43,6 +43,31 @@ def validate_output_separation(wav_path: Path, json_path: Path) -> None:
         raise ValueError("WAV and JSON output paths must be distinct")
 
 
+def validate_event_ring_coverage(report: dict) -> None:
+    """Offline KON uniqueness needs the entire pre-capture DSP event history.
+
+    The generic event collector can silently begin at the ring's `oldest`
+    index after overwrite. A retained single KON is then not evidence that
+    another KON was absent from the requested PCM window.
+    """
+    if not isinstance(report, dict) or not isinstance(report.get('stats'), dict):
+        raise ValueError('malformed native DSP event-ring snapshot')
+    oldest = report.get('oldest_available')
+    head = report.get('event_head')
+    stats_head = report['stats'].get('event_count')
+    if (type(oldest) is not int or type(head) is not int or
+            type(stats_head) is not int or oldest < 0 or head < 0 or
+            stats_head != head):
+        raise ValueError('malformed native DSP event-ring counters')
+    if oldest != 0:
+        raise ValueError('native DSP event-ring history overwritten; use live armed capture')
+    events = report.get('events')
+    if (not isinstance(events, list) or
+            type(report.get('events_returned')) is not int or
+            report['events_returned'] != len(events)):
+        raise ValueError('malformed native DSP event-ring census')
+
+
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
                     kon_sample_index: int, wav_path: Path,
                     before: int = 4096, after: int = 32768) -> dict:
@@ -138,6 +163,7 @@ def main() -> int:
     sock.settimeout(45)
     try:
         report = capture(lambda line: command(sock, reader, line), event_filter=1)
+        validate_event_ring_coverage(report)
         result = capture_kon_pcm(
             lambda line: command(sock, reader, line),
             events=report["events"], produced=report["stats"]["produced"],

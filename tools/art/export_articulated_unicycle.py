@@ -136,8 +136,35 @@ def assert_no_extra_top_level_geometry(source: str) -> None:
     A second top-level module call would otherwise be rendered into *every*
     exported STL, even after the canonical rig(rig_pose) call is stripped.
     This conservative scanner permits module declarations, functions,
-    assignments and asserts; unsupported source grammar fails closed.
+    assignments and plain asserts; unsupported source grammar fails closed.
     """
+    def plain_assert(statement: str) -> bool:
+        m = re.match(r"assert\s*\(", statement)
+        if m is None:
+            return False
+        parens = 1
+        quote = False
+        escape = False
+        for i in range(m.end(), len(statement)):
+            c = statement[i]
+            if quote:
+                if escape:
+                    escape = False
+                elif c == '\\':
+                    escape = True
+                elif c == '"':
+                    quote = False
+                continue
+            if c == '"':
+                quote = True
+            elif c == "(":
+                parens += 1
+            elif c == ")":
+                parens -= 1
+                if parens == 0:
+                    return not statement[i+1:].strip()
+        return False
+
     code = SCAD_COMMENTS.sub("", source)
     depth = 0
     start = 0
@@ -147,7 +174,7 @@ def assert_no_extra_top_level_geometry(source: str) -> None:
         if in_string:
             if escaped:
                 escaped = False
-            elif char == "\\":
+            elif char == '\\':
                 escaped = True
             elif char == '"':
                 in_string = False
@@ -168,9 +195,10 @@ def assert_no_extra_top_level_geometry(source: str) -> None:
                 start = i + 1
         elif char == ";" and depth == 0:
             statement = code[start:i].strip()
-            if statement and not re.match(
-                    r"^(?:[$A-Za-z_]\w*\s*=|function\s+[A-Za-z_]\w*\s*\(|assert\s*\()",
-                    statement):
+            if statement and not (
+                    re.match(r"^[$A-Za-z_]\w*\s*=", statement)
+                    or re.match(r"^function\s+[A-Za-z_]\w*\s*\(", statement)
+                    or plain_assert(statement)):
                 raise ValueError("unexpected top-level geometry call")
             start = i + 1
     if depth or in_string or code[start:].strip():

@@ -35,7 +35,8 @@ class ArticulatedBlockoutContract(unittest.TestCase):
         source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
         self.assertTrue(module.component_source(source, "saddle").endswith("saddle(0);\n"))
         for injected in ("tire();",
-                         "translate([0,0,0]) { tire(); }"):
+                         "translate([0,0,0]) { tire(); }",
+                         "assert(true) tire();"):
             changed = source.replace("rig(rig_pose);",
                                      injected + "\nrig(rig_pose);")
             with self.subTest(injected=injected):

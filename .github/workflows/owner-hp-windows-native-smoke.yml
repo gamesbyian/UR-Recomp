@@ -319,7 +319,10 @@ jobs:
             Start-Sleep -Seconds 10
           }
           '@ | Set-Content -LiteralPath $script -Encoding UTF8
-          $p = Start-Process powershell.exe -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',$script,'-OutputPath',$telemetry,'-StopPath',$stop) -WindowStyle Hidden -PassThru
+          # Start-Process joins argument arrays without reliably quoting paths.
+          # The HP runner work directory may contain spaces.
+          $arguments = "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$script`" -OutputPath `"$telemetry`" -StopPath `"$stop`""
+          $p = Start-Process powershell.exe -ArgumentList $arguments -WindowStyle Hidden -PassThru
           Write-Output "HP_TELEMETRY_STARTED pid=$($p.Id) interval_seconds=10 max_minutes=35"
 
       - name: Stage repository-owned SNESRecomp framework
@@ -1454,6 +1457,11 @@ jobs:
           New-Item -Path $stop -ItemType File -Force | Out-Null
           $csv = Join-Path $root "$stem.csv"
           if (Test-Path -LiteralPath $csv) {
+            # Upload an isolated copy; the durable original survives job cleanup.
+            Copy-Item -LiteralPath $csv -Destination (Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv') -Force
+            if (Test-Path -LiteralPath ($csv + '.errors')) {
+              Copy-Item -LiteralPath ($csv + '.errors') -Destination (Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv.errors') -Force
+            }
             $samples = @(Import-Csv -LiteralPath $csv)
             if ($samples.Count -gt 0) {
               $minimum = ($samples | Measure-Object -Property free_commit_mb -Minimum).Minimum
@@ -1479,8 +1487,8 @@ jobs:
           name: windows-native-smoke
           path: |
             ${{ runner.temp }}/*.log
-            ${{ runner.workspace }}/.ur-recomp-hp-native-monitor/${{ github.run_id }}-${{ github.run_attempt }}.csv
-            ${{ runner.workspace }}/.ur-recomp-hp-native-monitor/${{ github.run_id }}-${{ github.run_attempt }}.csv.errors
+            ${{ runner.temp }}/hp-commit-pressure.csv
+            ${{ runner.temp }}/hp-commit-pressure.csv.errors
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/

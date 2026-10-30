@@ -213,7 +213,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("if second_raw == first_raw:", harness)
         self.assertIn("if cold_raw != after_cold:", harness)
         self.assertIn('fields["stock_sram"]', harness)
-        self.assertIn("if not source_earned_tour_awarded(first_raw, second_raw):", harness)
+        self.assertIn("if not source_earned_tour_awarded(first_raw, second_raw, award_raw):", harness)
         self.assertIn("next-earned-pre-cold.srm", harness)
         self.assertIn("UR_ONE03_USE_2014_SOURCE_INPUT", harness)
         self.assertIn("--first-movie-frame 794 --frames 2080", harness)
@@ -228,8 +228,16 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         movie = (ROOT / "tests/input/modern-results-next-earned-original-movie.script").read_text()
         self.assertIn("until 0313 == 01 3600", movie)
         self.assertIn("until 009F == 99 4800", movie)
-        self.assertTrue(all(not line.startswith("press ")
-                            for line in movie.split("dump race-results", 1)[1].splitlines()))
+        before_second = movie.split("dump race-results", 1)[1].split(
+            "dump next-event-race-results", 1)[0]
+        self.assertFalse(any(line.startswith("press ")
+                             for line in before_second.splitlines()))
+        post = movie.split("dump next-event-pre-confirm", 1)[1]
+        self.assertEqual(
+            [line for line in post.splitlines() if line.startswith("press ")],
+            ["press a 1"] + ["press a 2"] * 5)
+        self.assertIn("dump next-event-post-confirm", post)
+        self.assertIn('if (std::strcmp(mode, "next-earned-movie") != 0)', acceptance)
 
     def test_earned_tour_award_requires_real_win_and_completed_clear(self):
         # Execute the same Python predicate embedded in the acceptance
@@ -244,7 +252,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         namespace = {}
         exec(compile(ast.Module(body=parsed.body, type_ignores=[]),
                      str(HARNESS), "exec"), namespace)
-        check = namespace["source_earned_tour_awarded"]
+        check_award = namespace["source_earned_tour_awarded"]
 
         def sram(row, medal, p1=2508, cpu=2798):
             raw = bytearray(8192)
@@ -254,8 +262,15 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             raw[0x07D3:0x07D5] = cpu.to_bytes(2, "little")
             return bytes(raw)
 
+        def check(first, award):
+            return check_award(first, award, award)
+
         first = sram([0, 1, 1, 1, 1], 0, p1=2856)
         self.assertTrue(check(first, sram([0, 0, 0, 0, 0], 1)))
+        # The real winning RESULTS may precede the source's stock A-confirm.
+        self.assertTrue(check_award(
+            first, sram([0, 1, 1, 1, 1], 0, p1=2508, cpu=2581),
+            sram([0, 0, 0, 0, 0], 1, p1=0, cpu=0)))
         # A malformed fifth byte, a medal without the source-mandated
         # row clear, and a fifth flag without award are not completed tours.
         self.assertFalse(check(first, sram([2, 1, 1, 1, 1], 0)))
@@ -282,7 +297,8 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             root = pathlib.Path(directory)
             paths = [root / name for name in (
                 "first.bin", "second.bin", "pre-save.srm", "pre-profile.txt",
-                "post-save.srm", "post-profile.txt", "cold.bin")]
+                "post-save.srm", "post-profile.txt", "cold.bin",
+                "post-award.bin", "no-confirm.bin")]
             first = bytearray(8192)
             first[0x1075:0x107A] = bytes((0, 1, 1, 1, 1))
             second = bytearray(first)
@@ -291,7 +307,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             second[0x0769:0x076B] = (2508).to_bytes(2, "little")
             second[0x07D3:0x07D5] = (2798).to_bytes(2, "little")
             paths[0].write_bytes(first)
-            for index in (1, 2, 4, 6):
+            for index in (1, 2, 4, 6, 7, 8):
                 paths[index].write_bytes(second)
             for index in (3, 5):
                 paths[index].write_text("stock_sram=" + second.hex() + newline)

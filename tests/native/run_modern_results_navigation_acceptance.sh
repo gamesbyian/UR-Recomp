@@ -251,6 +251,16 @@ else
   run_case next-earned 01111 next-earned "$EARNED_SCRIPT"
 fi
 cat "$WORK/next-earned.log"
+EARNED_AWARD_DUMP="$WORK/next-earned-dumps/next-event-race-results.sram.bin"
+EARNED_CONTROL_DUMP="$EARNED_AWARD_DUMP"
+if [ "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" = "1" ]; then
+  # Genuine second RESULTS remains the winning-race oracle. The 110-frame
+  # no-button control and subsequent original A cadence are distinct epochs.
+  EARNED_CONTROL_DUMP="$WORK/next-earned-dumps/next-event-pre-confirm.sram.bin"
+  EARNED_AWARD_DUMP="$WORK/next-earned-dumps/next-event-post-confirm.sram.bin"
+  test -f "$EARNED_CONTROL_DUMP"
+  test -f "$EARNED_AWARD_DUMP"
+fi
 grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/next-earned.log"
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next-earned.log"
 grep -q "UR_RESULTS_NAV NEXT_EARNED_RESULT observed=1 source_finish=1 persisted=1 sram_changed=1" "$WORK/next-earned.log"
@@ -281,22 +291,30 @@ python3 - "$WORK/next-earned-dumps/race-results.sram.bin" \
           "$WORK/next-earned-pre-cold.srm" \
           "$WORK/next-earned-pre-cold-profile.txt" \
           "$COLD_ROOT/save.srm" "$COLD_ROOT/host-profile.txt" \
-          "$COLD_DUMPS/cold-main-menu.sram.bin" <<'PY'
+          "$COLD_DUMPS/cold-main-menu.sram.bin" \
+          "$EARNED_AWARD_DUMP" "$EARNED_CONTROL_DUMP" <<'PY'
 from pathlib import Path
 import sys
 (first, second, pre_save, pre_profile, post_save, post_profile,
- cold_dump) = map(Path, sys.argv[1:])
+ cold_dump, award_dump, control_dump) = map(Path, sys.argv[1:])
 first_raw, second_raw = first.read_bytes(), second.read_bytes()
+award_raw, control_raw = award_dump.read_bytes(), control_dump.read_bytes()
 before_cold = pre_save.read_bytes()
 after_cold = post_save.read_bytes()
 cold_raw = cold_dump.read_bytes()
 if any(len(raw) != 8192 for raw in
-       (first_raw, second_raw, before_cold, after_cold, cold_raw)):
+       (first_raw, second_raw, award_raw, control_raw,
+        before_cold, after_cold, cold_raw)):
     raise SystemExit("ONE-03 next earned: invalid actual SRAM image size")
 if first_raw[0x1075:0x107A] != bytes((0, 1, 1, 1, 1)):
     raise SystemExit("ONE-03 next earned: initial four-of-five row changed")
 if second_raw == first_raw:
     raise SystemExit("ONE-03 next earned: follow-on result earned no SRAM change")
+if (control_raw[0x1075:0x107A] != second_raw[0x1075:0x107A] or
+        control_raw[0x069C] != second_raw[0x069C]):
+    raise SystemExit("ONE-03 next earned: no-confirm control altered tour/medal")
+if award_dump != second and award_raw == second_raw:
+    raise SystemExit("ONE-03 next earned: post-confirm produced no source SRAM change")
 def typed_snapshot(path):
     fields = dict(line.split("=", 1) for line in path.read_text().splitlines()
                   if "=" in line)
@@ -308,15 +326,15 @@ def typed_snapshot(path):
 # requiring source-earned Tour/medal bytes to survive the first process.
 if typed_snapshot(pre_profile) != before_cold:
     raise SystemExit("ONE-03 next earned: pre-cold typed SRAM/save mismatch")
-if (before_cold[0x1075:0x107A] != second_raw[0x1075:0x107A] or
-        before_cold[0x069C] != second_raw[0x069C]):
+if (before_cold[0x1075:0x107A] != award_raw[0x1075:0x107A] or
+        before_cold[0x069C] != award_raw[0x069C]):
     raise SystemExit("ONE-03 next earned: second-result tour/medal not persisted before cold boot")
 # Race record changes alone do not qualify a fifth tour event. Source must
 # advance the selected tour row or award the tour medal. A completed tour
 # may legitimately clear its five individual row flags.
-def source_earned_tour_awarded(first_raw, second_raw):
-    initial_medal, final_medal = first_raw[0x069C], second_raw[0x069C]
-    final_row = second_raw[0x1075:0x107A]
+def source_earned_tour_awarded(first_raw, second_raw, award_raw):
+    initial_medal, final_medal = first_raw[0x069C], award_raw[0x069C]
+    final_row = award_raw[0x1075:0x107A]
     p1_cs = int.from_bytes(second_raw[0x0769:0x076B], "little")
     cpu_cs = int.from_bytes(second_raw[0x07D3:0x07D5], "little")
     # Original 83:88D3 qualifies only a winning P1 result. Original
@@ -325,7 +343,7 @@ def source_earned_tour_awarded(first_raw, second_raw):
     return (0 < p1_cs < cpu_cs and
             final_medal > initial_medal and
             final_row == bytes(5))
-if not source_earned_tour_awarded(first_raw, second_raw):
+if not source_earned_tour_awarded(first_raw, second_raw, award_raw):
     raise SystemExit("ONE-03 next earned: no source-qualified win and completed tour award")
 # Cold boot is a *different time*: compare cold live SRAM to its exit save,
 # then require the persisted progress and typed result survive unchanged.
@@ -338,8 +356,8 @@ if typed_snapshot(post_profile) != after_cold:
     raise SystemExit("ONE-03 next earned: cold process typed SRAM/save mismatch")
 # The predicate's final_row/final_medal are function locals, so compare
 # against the source-earned second result directly in this outer scope.
-if (cold_raw[0x1075:0x107A] != second_raw[0x1075:0x107A] or
-        cold_raw[0x069C] != second_raw[0x069C]):
+if (cold_raw[0x1075:0x107A] != award_raw[0x1075:0x107A] or
+        cold_raw[0x069C] != award_raw[0x069C]):
     raise SystemExit("ONE-03 next earned: tour/medal not preserved on cold boot")
 result_to_exit_diffs = [f"{i:04X}" for i, (a, b) in
                         enumerate(zip(second_raw, before_cold)) if a != b]

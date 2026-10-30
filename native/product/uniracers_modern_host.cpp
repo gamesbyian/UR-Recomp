@@ -7661,7 +7661,11 @@ void run_results_navigation_acceptance() {
             std::fflush(stderr);
         }
         g_results_navigation_acceptance_stage = -1;
-        (void)request_desktop_quit();
+        // Leave the second real RESULTS under guest control for the
+        // original post-result A cadence. Other modes still quit here.
+        if (std::strcmp(mode, "next-earned-movie") != 0) {
+            (void)request_desktop_quit();
+        }
     }
 }
 

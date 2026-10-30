@@ -129,5 +129,25 @@ wait 10
 dump next-event-race-entered
 until 009F == 99 4800
 dump next-event-race-results
-wait 180
+# No-confirm control: wait beyond the host's 90-frame RESULTS witness.
+wait 110
+dump next-event-pre-confirm
+# Original 2014 SMV P1 A cadence at movie frames 2874, 2877-78,
+# 2881-82, 2885-86, 2889-90, 2893-94, rebased to the real second RESULTS.
+press a 1
+wait 2
+press a 2
+wait 2
+press a 2
+wait 2
+press a 2
+wait 2
+press a 2
+wait 2
+press a 2
+# A stock guest screen transition, not a fabricated SRAM award.
+until 009F != 99 240
+wait 60
+dump next-event-post-confirm
+wait 120
 quit

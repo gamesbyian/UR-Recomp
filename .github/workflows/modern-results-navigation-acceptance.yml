@@ -120,6 +120,7 @@ jobs:
             ${{ runner.temp }}/results-navigation/*-profile.txt
             ${{ runner.temp }}/results-navigation/*.input
             ${{ runner.temp }}/results-navigation/*.json
+            ${{ runner.temp }}/results-navigation/next-earned-record.urrun
             ${{ runner.temp }}/results-navigation/source-and-binary.txt
           if-no-files-found: warn
           retention-days: 7

@@ -281,6 +281,17 @@ grep -q "UR_RESULTS_NAV NEXT_EARNED_RESULT observed=1 source_finish=1 persisted=
 # The first race already has a valid course:01 record; demand course:00 here.
 assert_second_earned_run_record "$WORK/next-earned.log" "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}"
 
+# The native CAPTURED log is printed after the save API returns, but cannot
+# prove that the file still exists or is independently decodable on disk.
+# The real archive lives under XDG_DATA_HOME, not UR_PROFILE_SAVE_ROOT.
+ONE03_RUNS_ROOT="$PREF_ROOT/gamesbyian/UR-Recomp/runs/results.alpha"
+python3 "$REPO/tools/verify_one03_saved_run.py" \
+  --log "$WORK/next-earned.log" \
+  --runs-root "$ONE03_RUNS_ROOT" \
+  --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
+  --receipt-out "$WORK/next-earned-run-record.json" \
+  --evidence-out "$WORK/next-earned-record.urrun"
+
 # A new process must actually reload the product's committed SRAM. The
 # pre-seeded fixture is NOT a source-earned event and never earns ONE-03.
 COLD_ROOT="$WORK/next-earned-profile"
@@ -392,6 +403,13 @@ print("UR_RESULTS_NAV NEXT_EARNED_COLD_REOPEN=source_second_result=1 "
       ",".join(volatile_diffs))
 
 PY
+# Reopen the same actual .urrun after the separate cold process and require
+# byte identity with the first producer-exit receipt.
+python3 "$REPO/tools/verify_one03_saved_run.py" \
+  --log "$WORK/next-earned.log" \
+  --runs-root "$ONE03_RUNS_ROOT" \
+  --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
+  --expected-receipt "$WORK/next-earned-run-record.json"
 fi
 
 if [ "$SHARD" = "all" ] || [ "$SHARD" = "isolation" ]; then

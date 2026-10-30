@@ -47,10 +47,14 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
     if not 1 <= before <= 64000 or not 1 <= after <= 64000:
         raise ValueError("bounded pre/post KON sample windows required")
     candidates = kon_candidates(events)
-    if candidates.count(kon_sample_index) != 1:
-        raise ValueError("selected $4C=$80 KON missing or ambiguous in actual event ring")
     start = kon_sample_index - before
     count = before + after
+    # A distinct voice-7 key-on inside the WAV slice makes this an ambiguous
+    # single-KON witness even if the selected sample index occurs only once.
+    if (candidates.count(kon_sample_index) != 1 or
+            any(start <= sample < start + count and sample != kon_sample_index
+                for sample in candidates)):
+        raise ValueError("selected $4C=$80 KON missing or ambiguous in actual event ring")
     if start < 0 or produced < start + count:
         raise ValueError("KON PCM window not yet fully produced")
     if not wav_path.is_absolute() or any(c.isspace() for c in str(wav_path)):

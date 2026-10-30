@@ -962,6 +962,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "tools/qa09_windows_root_pad_probe.py",
             "tools/qa05_restart_input_guard.py",
             "tools/capture_modern_restart_audio.py",
+            "tools/ci/qa05_restart_attempt.sh",
+            "tests/unit/test_hp_qa05_parallel_policy.py",
             "tools/capture_modern_resume_audio.py",
             "tools/ci/stage_windows_smoke_romfree_exe.py",
             "tools/ci/check_windows_smoke_upload_policy.py",

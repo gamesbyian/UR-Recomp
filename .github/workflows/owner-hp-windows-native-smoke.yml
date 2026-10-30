@@ -729,8 +729,8 @@ jobs:
             # their default pause-on-focus-loss behavior.
             rm -rf "$ROOT"
             mkdir -p "$ROOT"
-            printf 'UR-HOST-STATE/6\\nprofile=\\npause_on_focus_loss=0\\nvibration_enabled=1\\n' > "$ROOT/host-state-v1.txt"
-            printf 'seen-v1\\n' > "$ROOT/qa05-onboarding.seen"
+            printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' > "$ROOT/host-state-v1.txt"
+            printf 'seen-v1\n' > "$ROOT/qa05-onboarding.seen"
             ROOT_WIN="$(cygpath -w "$ROOT")"
             ONBOARDING_WIN="$(cygpath -w "$ROOT/qa05-onboarding.seen")"
             LOG_WIN="$(cygpath -w "$LOG")"

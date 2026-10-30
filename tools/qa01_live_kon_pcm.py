@@ -66,6 +66,9 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
         cursor += scanned
         stats = command_fn("audio_stats 0")
         produced = _nonnegative_int(stats.get("produced"), "produced samples")
+        observed_head = _nonnegative_int(stats.get("event_count"), "event_count")
+        if observed_head < cursor:
+            raise ValueError("live DSP event count regressed behind scanned cursor")
         if candidate is not None:
             start = candidate["s"] - before
             if start < 0:
@@ -73,6 +76,11 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
             if produced - start > capacity:
                 raise ValueError("live PCM ring retention window already expired")
             if produced >= candidate["s"] + after:
+                # A later KON may have arrived between audio_events and stats.
+                # Drain every event through the observed stats high-water mark
+                # before accepting the completed PCM window.
+                if observed_head > cursor:
+                    continue
                 result = capture_fn(command_fn, events=[candidate], produced=produced,
                                     kon_sample_index=candidate["s"], wav_path=wav_path,
                                     before=before, after=after)

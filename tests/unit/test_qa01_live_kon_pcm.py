@@ -20,6 +20,7 @@ class Script:
         self.produced = iter(produced)
         self.first = True
         self.calls = []
+        self.head = 100
 
     def __call__(self, line):
         self.calls.append(line)
@@ -27,9 +28,11 @@ class Script:
             if self.first:
                 self.first = False
                 return {"event_count": 100, "produced": 0}
-            return {"produced": next(self.produced)}
+            return {"produced": next(self.produced), "event_count": self.head}
         if line.startswith("audio_events "):
-            return next(self.pages)
+            result = next(self.pages)
+            self.head = result["first"] + result["scanned"]
+            return result
         raise AssertionError(line)
 
 
@@ -66,6 +69,30 @@ class LiveKONTests(unittest.TestCase):
         script = Script([page(100, 2, [event(45000), event(45001)])], [])
         with self.assertRaisesRegex(ValueError, "multiple"):
             self.run_watch(script)
+
+    def test_kon_arriving_between_event_page_and_stats_fails_closed(self):
+        class RacyScript(Script):
+            def __call__(self, line):
+                result = super().__call__(line)
+                if line == "audio_stats 0" and not self.first and self.head == 101:
+                    result["event_count"] = 102
+                return result
+        script = RacyScript([page(100, 1, [event(45000)]),
+                             page(101, 1, [event(46500)])], [47000, 47000])
+        with self.assertRaisesRegex(ValueError, "multiple"):
+            self.run_watch(script)
+        self.assertIn("audio_events 101 8000 1", script.calls)
+
+    def test_event_count_regression_or_malformed_snapshot_fails_closed(self):
+        for value in (100, None, "101"):
+            class BadStats(Script):
+                def __call__(self, line):
+                    result = super().__call__(line)
+                    if line == "audio_stats 0" and not self.first:
+                        result["event_count"] = value
+                    return result
+            with self.subTest(value=value), self.assertRaisesRegex(ValueError, "event_count|regressed"):
+                self.run_watch(BadStats([page(100, 1, [event(45000)])], [47000]))
 
     def test_retention_expired_fails_before_wav(self):
         script = Script([page(100, 1, [event(45000)])], [110536])

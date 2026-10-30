@@ -132,7 +132,47 @@ jobs:
                   repaired.append(rel)
           if Path(lock_rel).read_bytes() != expected_lock:
               raise SystemExit("Cargo.lock was not restored byte-exactly")
-          print("Pinned Git bytes verified; corrected", len(repaired), "checkout-transformed assets.")
+
+          # Git for Windows can CRLF-transform files in vendored Rust crates,
+          # invalidating Cargo's own .cargo-checksum.json SHA-256 inventory.
+          # Restore the *exact committed Git objects* via git archive, which
+          # streams blobs without working-tree newline conversion.
+          import tempfile
+          vendor_prefix = "third_party/cargo/snesrecomp-analyzer/vendor/"
+          vendor_count = 0
+          vendor_fixed = 0
+          with tempfile.TemporaryFile() as snapshot:
+              subprocess.run(
+                  ["git", "archive", "--format=tar", "HEAD", vendor_prefix.rstrip("/")],
+                  stdout=snapshot, check=True,
+              )
+              snapshot.seek(0)
+              with tarfile.open(fileobj=snapshot, mode="r:") as vendor_archive:
+                  for member in vendor_archive:
+                      rel = member.name.replace(chr(92), "/")
+                      if not rel.startswith(vendor_prefix):
+                          if member.isdir() and rel.rstrip("/") == vendor_prefix.rstrip("/"):
+                              continue
+                          raise SystemExit("Unexpected path in committed Cargo vendor snapshot: " + rel)
+                      if member.isdir():
+                          continue
+                      if not member.isfile():
+                          raise SystemExit("Unsupported non-file in pinned Cargo vendor snapshot: " + rel)
+                      dest = Path(rel)
+                      if ".." in dest.parts:
+                          raise SystemExit("Invalid traversal in pinned Cargo vendor snapshot")
+                      if not dest.is_file():
+                          raise SystemExit("Vendored source file absent after checkout: " + rel)
+                      contents = vendor_archive.extractfile(member).read()
+                      vendor_count += 1
+                      if dest.read_bytes() != contents:
+                          dest.write_bytes(contents)
+                          vendor_fixed += 1
+          if not vendor_count:
+              raise SystemExit("Pinned Cargo vendor snapshot was empty")
+          print("Pinned Git bytes verified; corrected", len(repaired), "lock/patch assets.")
+          print("Cargo vendor files verified:", vendor_count,
+                "checkout-transformed files restored:", vendor_fixed)
           for rel in repaired:
               print("checkout bytes restored:", rel)
           PY
@@ -174,6 +214,9 @@ jobs:
             "$ROOT/src/main.c" \
             --game-rtl "$ROOT/src/game_rtl.c" \
             --cmake "$ROOT/CMakeLists.txt"
+          # setup_project.sh can warn on a failed generator and still return 0.
+          # A green source-generation stage must include real generated files.
+          test -n "$(find "$ROOT/src/gen" -type f -print -quit)"
           grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
           grep -q "hardware_reset = &GameHardwareReset" "$ROOT/src/game_rtl.c"
 

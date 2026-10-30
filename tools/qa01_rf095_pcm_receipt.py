@@ -108,6 +108,12 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
             raise ValueError('RF095 unexpected original libretro sample rate')
         if ref[max(ref)] != wav.getnframes():
             raise ValueError('RF095 original callback count/WAV frame mismatch')
+        # A valid observed event slice does not prove the remainder of the
+        # WAV exists: wave.getnframes() trusts the header's declared length.
+        # Seek to the final declared sample to reject a truncated tail.
+        wav.setpos(wav.getnframes() - 1)
+        if len(wav.readframes(1)) != 4:
+            raise ValueError('RF095 original WAV truncated after observed window')
         wav.setpos(ref[ORIGINAL_START])
         original = wav.readframes(ref[ORIGINAL_END] - ref[ORIGINAL_START])
         rate = wav.getframerate()

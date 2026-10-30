@@ -139,6 +139,16 @@ class RF095Tests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'truncation'):
                 receipt.analyze(*files)
 
+    def test_original_wav_truncated_after_event_window_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            original_wav = files[0]
+            original_wav.write_bytes(original_wav.read_bytes()[:-4])
+            # The bounded 6445..6452 sample window remains present, while
+            # the WAV header still claims the missing final stereo frame.
+            with self.assertRaisesRegex(ValueError, 'original WAV truncated'):
+                receipt.analyze(*files)
+
     def test_original_frame_zero_counter_cannot_be_forged(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)

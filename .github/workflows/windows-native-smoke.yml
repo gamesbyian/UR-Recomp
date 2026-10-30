@@ -770,6 +770,12 @@ jobs:
           echo "WINDOWS_QA09_ROOT_PACKAGE=passed"
 
       - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
+        # A service desktop may create an actual SDL window without making
+        # it visible. Only HP's diagnostic may then post real Win32 events to
+        # the unique owned titled HWND; release-quality visible-window
+        # acceptance is kept separate.
+        env:
+          UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
         run: |
           set -euo pipefail
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"

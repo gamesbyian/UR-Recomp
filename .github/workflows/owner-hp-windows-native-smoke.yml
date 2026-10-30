@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/owner-hp-windows-native-smoke.yml"
       - "tests/unit/test_assemble_windows_package.py"
+      - "tools/devnode_benchmark/prepare_rust.ps1"
   workflow_dispatch:
 
 concurrency:

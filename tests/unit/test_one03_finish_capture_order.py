@@ -45,6 +45,8 @@ class One03FinishCaptureOrder(unittest.TestCase):
 
     def test_post_award_visual_continuation_is_source_observed(self):
         script = (ROOT / "tests/input/modern-results-next-earned-original-movie.script").read_text(encoding="utf-8")
+        # Documentation comments must not alter the actual input/dump order.
+        script = "\n".join(line for line in script.splitlines() if not line.startswith("#"))
         self.assertIn(
             "wait 60\ndump next-event-post-confirm\n"
             "wait 120\ndump next-event-post-confirm-plus-120\n"

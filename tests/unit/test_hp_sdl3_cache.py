@@ -202,6 +202,60 @@ class HPSDL3CacheTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "redirected SDK or toolchain"):
                 cache.linker_relevant_identity(vs, kit)
 
+    def test_source_tree_rejects_untracked_directory_redirect(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source"
+            source.mkdir()
+            (source / "CMakeLists.txt").write_text("pinned source", encoding="utf-8")
+            baseline = cache.tree_digest(source)
+            outside = root / "user-data"
+            outside.mkdir()
+            (outside / "secret.txt").write_text("never hash or mutate", encoding="utf-8")
+            redirect = source / "untracked"
+            try:
+                redirect.symlink_to(outside, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlinks")
+            with self.assertRaisesRegex(ValueError, "redirected source/install"):
+                cache.tree_digest(source)
+            redirect.unlink()
+            self.assertEqual(cache.tree_digest(source), baseline)
+            self.assertEqual((outside / "secret.txt").read_text("utf-8"), "never hash or mutate")
+
+    def test_install_manifest_rejects_untracked_directory_redirect(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            stage = root / "stage"
+            (stage / "include").mkdir(parents=True)
+            (stage / "include" / "SDL.h").write_bytes(b"static owned")
+            baseline = cache.manifest_for_stage(stage)
+            outside = root / "unrelated"
+            outside.mkdir()
+            (outside / "private.txt").write_text("private", encoding="utf-8")
+            try:
+                (stage / "extra").symlink_to(outside, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlinks")
+            with self.assertRaisesRegex(ValueError, "redirected source/install"):
+                cache.manifest_for_stage(stage)
+            self.assertEqual((outside / "private.txt").read_text("utf-8"), "private")
+            (stage / "extra").unlink()
+            self.assertEqual(cache.manifest_for_stage(stage), baseline)
+
+    def test_install_manifest_rejects_redirected_tree_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            real = root / "genuine"
+            real.mkdir()
+            (real / "SDL3-static.lib").write_bytes(b"owned")
+            try:
+                (root / "stage").symlink_to(real, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlinks")
+            with self.assertRaisesRegex(ValueError, "redirected source/install"):
+                cache.manifest_for_stage(root / "stage")
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

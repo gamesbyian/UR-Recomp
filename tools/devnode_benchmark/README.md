@@ -95,3 +95,20 @@ Repeated same-version sentinel changes must cause independent cache
 misses. Avoid adding unbounded filesystem walking or whole-SDK hashing
 that would spend the measured warm-cache savings on provenance overhead.
 
+### No reparse-point directory traversal
+
+Source-tree fingerprinting and cache-install manifest verification now walk each
+directory explicitly and reject every symbolic link and Windows junction before
+descent, including unexpected extra directories and redirected ancestors. The
+former `rglob("*") if is_file()` filter could omit an added directory link,
+leaving it outside the source fingerprint or installed-file manifest even
+though the cache directory had changed.
+
+The safer iterator produces the same sorted regular-file paths and SHA-256
+identity for an unchanged legitimate source/install tree; no recipe or toolchain
+fingerprint version bump is required. A redirected tree fails closed before
+any package is exported. On the trusted HP, cache provisioning can still use
+the existing canonical source-build fallback, subject to the same unchanged
+portable package/QA acceptance rules. Directory-link negative tests run on
+environments with symlink permission, while real Windows junction semantics
+are guarded by `Path.is_junction()` where available.

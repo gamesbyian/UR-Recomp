@@ -36,11 +36,39 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def regular_tree_files(root: Path) -> list[Path]:
+    """Walk source/install trees without following untracked reparse points.
+
+    An rglob filtered to is_file() silently omits added directory symlinks
+    and Windows junctions. Inspect every entry *before* deciding to descend,
+    so a redirected subtree cannot add mutable/unhashed inputs or escape
+    the owner-local build-cache boundary.
+    """
+    for component in (root, *root.parents):
+        if component.is_symlink() or getattr(component, "is_junction", lambda: False)():
+            raise ValueError("redirected source/install tree or parent directory")
+    if not root.is_dir():
+        raise ValueError("source/install tree directory missing")
+    files = []
+    pending = [root]
+    while pending:
+        for path in pending.pop().iterdir():
+            if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
+                raise ValueError("redirected source/install tree entry")
+            if path.is_dir():
+                pending.append(path)
+            elif path.is_file():
+                files.append(path)
+            else:
+                raise ValueError("unsupported source/install filesystem entry")
+    return sorted(files)
+
+
 def tree_digest(root: Path) -> str:
     """Content, not modification times, identifies the staged source tree."""
-    files = sorted(p for p in root.rglob("*") if p.is_file())
-    if not files or any(p.is_symlink() for p in files):
-        raise ValueError("missing source files or unsupported source symlink")
+    files = regular_tree_files(root)
+    if not files:
+        raise ValueError("missing staged source files")
     digest = hashlib.sha256()
     for p in files:
         digest.update(p.relative_to(root).as_posix().encode("utf-8") + b"\0")
@@ -49,9 +77,7 @@ def tree_digest(root: Path) -> str:
 
 
 def manifest_for_stage(stage: Path) -> dict[str, str]:
-    files = sorted(p for p in stage.rglob("*") if p.is_file())
-    if any(p.is_symlink() for p in files):
-        raise ValueError("symlink in cache stage")
+    files = regular_tree_files(stage)
     return {p.relative_to(stage).as_posix(): sha256(p) for p in files}
 
 

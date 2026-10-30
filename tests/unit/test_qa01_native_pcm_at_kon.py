@@ -88,6 +88,22 @@ class NativeKonPCMTests(unittest.TestCase):
                                         kon_sample_index=40000, wav_path=path,
                                         before=500, after=2000)
 
+    def test_appended_wav_bytes_rejected_despite_valid_decoded_pcm(self):
+        # Pinned audio_trace_dump_wav writes exactly 44 + 4*count bytes.
+        # wave.open() silently ignores a trailer beyond the declared data.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kon.wav"
+            def contaminated(line):
+                reply = self.command(path)(line)
+                with path.open("ab") as out:
+                    out.write(b"UNRELATED_TRAILER")
+                return reply
+            with self.assertRaisesRegex(ValueError, "unexpected native WAV length"):
+                pcm.capture_kon_pcm(contaminated, events=self.events(),
+                                    produced=45000, kon_sample_index=40000,
+                                    wav_path=path, before=500, after=2000)
+            self.assertEqual(path.stat().st_size, 44 + 4 * 2500 + 17)
+
     def test_existing_file_and_whitespace_path_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"

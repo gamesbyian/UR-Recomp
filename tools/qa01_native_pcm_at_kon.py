@@ -76,6 +76,10 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         pcm = wav.readframes(count)
     if len(pcm) != count * 4:
         raise ValueError("short decoded native stereo PCM")
+    # Pinned audio_trace_dump_wav emits a fixed 44-byte RIFF header and
+    # exactly four bytes per stereo frame. wave.open() ignores appended data.
+    if wav_path.stat().st_size != 44 + count * 4:
+        raise ValueError("unexpected native WAV length")
     return {
         "schema": "ur-qa01-native-kon-pcm/1",
         "authority": "native DSP producer audio_trace ring; not host SDL device",

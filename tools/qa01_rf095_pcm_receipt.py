@@ -91,7 +91,7 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         text = log.read_text(encoding='utf-8', errors='replace')
         if any('QA01RF095' + side + suffix in text
                for suffix in ('_TRUNCATED', '_OPEN_FAILED', '_WRITE_FAILED',
-                              '_FRAME_FAILED')):
+                              '_FRAME_FAILED', '_INCOMPLETE')):
             raise ValueError('RF095 ' + side + ' producer error/truncation')
     ref = frame_map(original_map, start=ORIGINAL_START,
                     end=ORIGINAL_END, contiguous_from_zero=True)

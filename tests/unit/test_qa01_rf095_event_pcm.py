@@ -118,6 +118,10 @@ class RF095Tests(unittest.TestCase):
             files[5].write_text('QA01RF095NATIVE_TRUNCATED\n')
             with self.assertRaisesRegex(ValueError, 'truncation'):
                 receipt.analyze(*files)
+            files = self.fixture(d)
+            files[5].write_text('QA01RF095NATIVE_INCOMPLETE\n')
+            with self.assertRaisesRegex(ValueError, 'truncation'):
+                receipt.analyze(*files)
 
     def test_original_frame_zero_counter_cannot_be_forged(self):
         with tempfile.TemporaryDirectory() as d:

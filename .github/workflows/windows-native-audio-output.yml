@@ -18,6 +18,8 @@ on:
       - "tools/analyze_sdl_audio_envelope.py"
       - "tools/summarize_sdl_pause_envelopes.py"
       - "tools/analyze_windows_volume_output.py"
+      - "tools/ci/rehydrate_windows_romfree_package.py"
+      - "tests/unit/test_audio_romfree_upload_policy.py"
       - "tools/capture_modern_paused_audio.py"
       - "tools/check_modern_host_pause_audio.py"
       - "tools/check_native_audio_device_rate.py"

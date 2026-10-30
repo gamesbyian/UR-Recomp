@@ -125,7 +125,7 @@ jobs:
         run: git config --global core.autocrlf false
 
       - name: Check out project
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         env:
           GIT_CONFIG_COUNT: '1'
           GIT_CONFIG_KEY_0: core.autocrlf
@@ -138,7 +138,7 @@ jobs:
           set -euo pipefail
           git -c core.autocrlf=false -c core.eol=lf checkout-index --force --all
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         if: ${{ !inputs.run_on_hp }}
         with:
           python-version: "3.12"
@@ -1464,7 +1464,7 @@ jobs:
 
       - name: Upload Windows evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: windows-native-smoke
           path: |

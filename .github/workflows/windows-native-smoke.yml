@@ -795,65 +795,54 @@ jobs:
           echo "WINDOWS_QA09_ROOT_PACKAGE=passed"
 
       - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
-        # A service desktop may create an actual SDL window without making
-        # it visible. Only HP's diagnostic may then post real Win32 events to
-        # the unique owned titled HWND; release-quality visible-window
-        # acceptance is kept separate.
+        # An HP service desktop can have uniquely PID-owned, non-visible SDL
+        # windows. Only its isolated diagnostic uses real Win32 messages there.
+        # Hosted/visible UI acceptance stays strictly serial and unchanged.
         env:
           UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
+          UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}
         run: |
           set -euo pipefail
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
-          for attempt in 1 2 3 4 5; do
-            ROOT="$RUNNER_TEMP/qa05-restart-user-$attempt"
-            LOG="$RUNNER_TEMP/qa05-restart-$attempt.log"
-            PCM="$RUNNER_TEMP/qa05-restart-$attempt.raw"
-            JSON="$RUNNER_TEMP/qa05-restart-$attempt.json"
-            # The service desktop can report no foreground focus. That
-            # otherwise freezes the guest before QA-05's scripted pause;
-            # isolate focus handling per attempt without changing player defaults.
-            rm -rf "$ROOT"
-            mkdir -p "$ROOT"
-            printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' > "$ROOT/host-state-v1.txt"
-            printf 'seen-v1\n' > "$ROOT/qa05-onboarding.seen"
-            ROOT_WIN="$(cygpath -w "$ROOT")"
-            ONBOARDING_WIN="$(cygpath -w "$ROOT/qa05-onboarding.seen")"
-            LOG_WIN="$(cygpath -w "$LOG")"
-            PCM_WIN="$(cygpath -w "$PCM")"
-            JSON_WIN="$(cygpath -w "$JSON")"
-            SDL_VIDEODRIVER=windows \
-            SDL_AUDIO_DRIVER=disk \
-            SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
-            SDL_AUDIO_FORMAT=S16LE \
-            SDL_AUDIO_CHANNELS=2 \
-            SDL_AUDIO_FREQUENCY=44100 \
-            SDL_AUDIO_DISK_TIMESCALE=1.0 \
-            UR_EXECUTION_MODE=modern \
-            UR_PRODUCT_DIAGNOSTICS=1 \
-            UR_PAUSE_OPEN_ACCEPTANCE=1 \
-            UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
-            UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
-              python -m tools.capture_modern_restart_audio \
-                "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
-                --json-out "$JSON_WIN"
-            python - "$JSON" <<'PY'
-          import json, pathlib, sys
-          evidence = json.loads(pathlib.Path(sys.argv[1]).read_text())
-          assert evidence.get("recovery_confirmed") is True
-          PY
-            # Inspect all twelve post-Restart guest samples, even if the
-            # release latch incorrectly disarms before the final sample.
-            python -m tools.qa05_restart_input_guard "$LOG"
-            grep -Eq 'UR_HOST_STATE LOADED .*pause_on_focus_loss=0 ' "$LOG"
-            grep -Fq 'UR_ONBOARDING HIDDEN first_run=0' "$LOG"
-            if grep -Fq 'UR_FOCUS_PAUSE APPLIED' "$LOG"; then
-              echo "Unexpected focus-loss auto-pause in QA-05" >&2
-              exit 1
+          WORKER="tools/ci/qa05_restart_attempt.sh"
+          if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' ]]; then
+            # Each child has separate Win32 PID/HWND ownership, SDL PCM,
+            # user-data root, report and guest capture. Share only the
+            # immutable verified package. Finish/wait for ALL children before
+            # processing results; an async failure must never be hidden.
+            pids=()
+            for attempt in 1 2 3 4 5; do
+              bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN" \
+                >"$RUNNER_TEMP/qa05-parallel-$attempt.log" 2>&1 &
+              pids+=("$!")
+            done
+            parallel_failed=0
+            for idx in "${!pids[@]}"; do
+              if ! wait "${pids[$idx]}"; then
+                parallel_failed=1
+              fi
+              attempt=$((idx + 1))
+              cat "$RUNNER_TEMP/qa05-parallel-$attempt.log"
+            done
+            if [[ "$parallel_failed" -ne 0 ]]; then
+              # Keep release QA truthful: a failed parallel experiment earns
+              # no concurrent 5/5 claim. Reestablish the historical 5/5
+              # serial proof on independent fresh process/user-data roots.
+              echo "HP_QA05_PARALLEL_PILOT=failed; serial fallback required"
+              echo "HP QA-05 concurrent pilot failed; retrying the authoritative serial 5/5 acceptance." >> "$GITHUB_STEP_SUMMARY"
+              for attempt in 1 2 3 4 5; do
+                bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"
+              done
+              echo "HP_QA05_PARALLEL_FALLBACK=serial_5_of_5"
+            else
+              echo "HP_QA05_PARALLEL_PILOT=passed 5/5"
             fi
-            rm -f "$PCM"
-            echo "UR_QA05_RESTART_AUDIBLE_ATTEMPT=$attempt/5 passed"
-          done
+          else
+            for attempt in 1 2 3 4 5; do
+              bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"
+            done
+          fi
           echo "WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5"
 
       - name: Package refresh preserves user data

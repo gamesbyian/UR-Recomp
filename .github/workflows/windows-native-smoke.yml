@@ -57,6 +57,8 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/ci/qa05_restart_attempt.sh"
+      - "tools/ci/windows_package_race_result.sh"
+      - "tests/unit/test_hp_race_overlap_policy.py"
       - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/assemble_windows_package.py"
       - "tools/Test-URRecompPortable.ps1"

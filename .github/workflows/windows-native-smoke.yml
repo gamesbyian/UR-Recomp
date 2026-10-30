@@ -1434,6 +1434,7 @@ jobs:
           WS="$(cygpath -m "$GITHUB_WORKSPACE")"
           ROOT="$(cygpath -m "$RUNNER_TEMP")/ur-recomp-build/UniracersSNESRecomp"
           BUILD="$ROOT/build-ninja-pilot"
+          NINJA_DEPS="$(cygpath -m "$RUNNER_TEMP")/ninja-pilot-runtime-dependencies.log"
           VSROOT="$(powershell.exe -NoProfile -Command '$v=Join-Path ([Environment]::GetEnvironmentVariable("ProgramFiles(x86)")) "Microsoft Visual Studio\Installer\vswhere.exe"; & $v -latest -products "*" -property installationPath' | tr -d '\r' | head -n1)"
           test -n "$VSROOT"
           VSCMD="$VSROOT\Common7\Tools\VsDevCmd.bat"
@@ -1448,7 +1449,7 @@ jobs:
           if errorlevel 1 exit /b 13
           cmake --build "$BUILD" --config Release --parallel 6
           if errorlevel 1 exit /b 14
-          dumpbin.exe /dependents "$BUILD/Release/UniracersSNESRecomp.exe" >"$RUNNER_TEMP/ninja-pilot-runtime-dependencies.log"
+          dumpbin.exe /dependents "$BUILD/Release/UniracersSNESRecomp.exe" >"$NINJA_DEPS"
           if errorlevel 1 exit /b 15
           BATCH
           started="$(date +%s)"

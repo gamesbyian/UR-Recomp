@@ -33,7 +33,8 @@ module torus(r,t) {
 }
 module tire() {
   color([0.075,0.083,0.09])torus(0.85,0.15);
-  color([0.14,0.16,0.16])torus(0.80,0.028);
+  // Expose the light stripe on the near sidewall, not inside opaque rubber.
+  translate([0,-0.15,0])color([0.14,0.16,0.16])torus(0.80,0.028);
 }
 module rim_and_hub() {
   color([0.68,0.76,0.81])torus(0.715,0.055);

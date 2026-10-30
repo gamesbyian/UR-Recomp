@@ -896,6 +896,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-rf094-spc-dsp-followthrough.json
             ${{ runner.temp }}/qa01-case/qa01-rf095-pcm-receipt.json
             ${{ runner.temp }}/qa01-case/qa01-rf095-original-window.pcm
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/snesref_audio.wav
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/rf095-original-map.csv
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/rf095-native-map.csv
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/rf095-native.pcm

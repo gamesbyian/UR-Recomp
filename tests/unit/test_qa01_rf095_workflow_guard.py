@@ -39,6 +39,27 @@ class RF095WorkflowPrerequisites(unittest.TestCase):
             with self.subTest(missing=name):
                 check({**complete, name: value}, 1)
 
+    def test_retains_raw_original_wav_for_independent_pcm_audit(self):
+        source = WORKFLOW.read_text(encoding='utf-8')
+        anchor = '      - name: Always retain per-case receipt and bounded diagnostic logs\n'
+        self.assertEqual(source.count(anchor), 1)
+        block = source.split(anchor, 1)[1].split('\n  aggregate:', 1)[0]
+        self.assertIn('          path: |\n', block)
+        paths = [line.strip() for line in
+                 block.split('          path: |\n', 1)[1].splitlines()
+                 if line.strip() and not line.lstrip().startswith('#')]
+        root = '${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/'
+        for required in (root + 'snesref_audio.wav',
+                         root + 'rf095-original-map.csv',
+                         root + 'rf095-native-map.csv',
+                         root + 'rf095-native.pcm',
+                         root + 'reference.log',
+                         root + 'native.log',
+                         '${{ runner.temp }}/qa01-case/qa01-rf095-pcm-receipt.json'):
+            with self.subTest(evidence=required):
+                self.assertEqual(paths.count(required), 1,
+                                 'missing or duplicated immutable RF095 producer evidence')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -151,8 +151,15 @@ int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
     for (;;) {
         const uint8_t lines = wram[scroll_at];
         const uint8_t sc_lines = wram[sc_at];
-        if (lines == 0 || sc_lines == 0 || line >= 224)
+        if (line >= 224)
             break;
+        /* The scroll and BG1SC HDMA streams must terminate together.
+         * A one-sided early terminator must not silently turn 2P into 1P. */
+        if (lines == 0 || sc_lines == 0) {
+            if (lines != sc_lines)
+                return 0;
+            break;
+        }
         if ((lines & 0x80) || lines != sc_lines)
             return 0; /* repeat-mode or misaligned tables: fail closed */
         const uint16_t h = (uint16_t)(read16(wram, scroll_at + 1) & 0x3FF);

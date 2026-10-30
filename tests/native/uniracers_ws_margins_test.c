@@ -164,6 +164,17 @@ int main(void) {
         t[UR_WS_BG1_SC_TABLE + 2] = 0x02; /* misaligned line counts */
         assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
         t[UR_WS_BG1_SC_TABLE + 2] = 0x01;
+
+        /* If only one HDMA stream ends, reject the incomplete band
+         * instead of accepting the preceding band as a false 1P view. */
+        t[UR_WS_BG1_SC_TABLE + 2] = 0x00;
+        assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+        t[UR_WS_BG1_SC_TABLE + 2] = 0x01;
+        t[UR_WS_BG1_SCROLL_TABLE + 5] = 0x00;
+        assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+        t[UR_WS_BG1_SCROLL_TABLE + 5] = 0x01;
+        assert(ur_ws_parse_bg1_bands(t, bands, 2) == 2);
+
         t[UR_WS_BG1_SCROLL_TABLE] = 0xF0; /* repeat mode */
         t[UR_WS_BG1_SC_TABLE] = 0xF0;
         assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);

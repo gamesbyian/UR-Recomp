@@ -88,31 +88,53 @@ jobs:
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
           python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
 
-      - name: Compare pinned Cargo lock bytes before framework staging
+      - name: Restore pinned toolchain text directly from Git object bytes
         shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
           import hashlib
+          import json
           from pathlib import Path
+          import subprocess
           import tarfile
+
+          def from_index(rel):
+              return subprocess.check_output(["git", "cat-file", "blob", "HEAD:" + rel])
+
+          lock_rel = "third_party/cargo/snesrecomp-analyzer/Cargo.lock"
           archive = Path("third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz")
-          closure = Path("third_party/cargo/snesrecomp-analyzer/Cargo.lock").read_bytes()
-          with tarfile.open(archive, "r:gz") as tf:
-              matches = [m for m in tf.getmembers() if m.name.endswith("recompiler-rs/Cargo.lock")]
+          with tarfile.open(archive, "r:gz") as tar:
+              matches = [m for m in tar.getmembers() if m.name.endswith("recompiler-rs/Cargo.lock")]
               if len(matches) != 1:
-                  raise SystemExit(f"Expected one pinned Cargo.lock member; found {len(matches)}")
-              staged = tf.extractfile(matches[0]).read()
-          for label, value in (("closure", closure), ("archive", staged)):
-              print(label, "bytes", len(value), "sha256", hashlib.sha256(value).hexdigest(),
-                    "CRLF", value.count(bytes((13,10))),
-                    "LF", value.count(bytes((10,))))
-          print("raw_equal", closure == staged)
-          print("newline_normalized_equal",
-                closure.replace(bytes((13,10)), bytes((10,))) ==
-                staged.replace(bytes((13,10)), bytes((10,))))
+                  raise SystemExit("Pinned archive must contain exactly one recompiler-rs/Cargo.lock")
+              expected_lock = tar.extractfile(matches[0]).read()
+
+          actual_lock = from_index(lock_rel)
+          if actual_lock != expected_lock:
+              raise SystemExit("Git object Cargo.lock differs from upstream pinned archive")
+          entries = [lock_rel]
+          for tool in ("snesrecomp", "sdl3"):
+              manifest = json.loads(Path("tools/toolchain-entries", tool + ".json").read_text())
+              for patch in manifest.get("patches", []):
+                  rel = patch["path"]
+                  original = from_index(rel)
+                  if hashlib.sha256(original).hexdigest() != patch["sha256"]:
+                      raise SystemExit("Git blob does not match hash-pinned patch: " + rel)
+                  entries.append(rel)
+          repaired = []
+          for rel in sorted(set(entries)):
+              path = Path(rel)
+              canonical = from_index(rel)
+              if path.read_bytes() != canonical:
+                  path.write_bytes(canonical)
+                  repaired.append(rel)
+          if Path(lock_rel).read_bytes() != expected_lock:
+              raise SystemExit("Cargo.lock was not restored byte-exactly")
+          print("Pinned Git bytes verified; corrected", len(repaired), "checkout-transformed assets.")
+          for rel in repaired:
+              print("checkout bytes restored:", rel)
           PY
-          git config --show-origin --get core.autocrlf || true
-          git check-attr -a -- third_party/cargo/snesrecomp-analyzer/Cargo.lock
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail

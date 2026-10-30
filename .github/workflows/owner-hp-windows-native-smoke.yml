@@ -722,8 +722,17 @@ jobs:
             LOG="$RUNNER_TEMP/qa05-restart-$attempt.log"
             PCM="$RUNNER_TEMP/qa05-restart-$attempt.raw"
             JSON="$RUNNER_TEMP/qa05-restart-$attempt.json"
+            # The self-hosted runner's service desktop does not guarantee a
+            # foreground keyboard focus. A legitimate focus-loss auto-pause
+            # would freeze the guest before the scripted race checkpoint.
+            # This test owns its per-attempt settings; regular players retain
+            # their default pause-on-focus-loss behavior.
+            rm -rf "$ROOT"
             mkdir -p "$ROOT"
+            printf 'UR-HOST-STATE/6\\nprofile=\\npause_on_focus_loss=0\\nvibration_enabled=1\\n' > "$ROOT/host-state-v1.txt"
+            printf 'seen-v1\\n' > "$ROOT/qa05-onboarding.seen"
             ROOT_WIN="$(cygpath -w "$ROOT")"
+            ONBOARDING_WIN="$(cygpath -w "$ROOT/qa05-onboarding.seen")"
             LOG_WIN="$(cygpath -w "$LOG")"
             PCM_WIN="$(cygpath -w "$PCM")"
             JSON_WIN="$(cygpath -w "$JSON")"
@@ -737,6 +746,7 @@ jobs:
             UR_EXECUTION_MODE=modern \
             UR_PRODUCT_DIAGNOSTICS=1 \
             UR_PAUSE_OPEN_ACCEPTANCE=1 \
+            UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
             UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
               python -m tools.capture_modern_restart_audio \
                 "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
@@ -749,6 +759,12 @@ jobs:
             # Inspect all twelve post-Restart guest samples, even if the
             # release latch incorrectly disarms before the final sample.
             python -m tools.qa05_restart_input_guard "$LOG"
+            grep -Eq 'UR_HOST_STATE LOADED .*pause_on_focus_loss=0 ' "$LOG"
+            grep -Fq 'UR_ONBOARDING HIDDEN first_run=0' "$LOG"
+            if grep -Fq 'UR_FOCUS_PAUSE APPLIED' "$LOG"; then
+              echo "Unexpected focus-loss auto-pause in QA-05" >&2
+              exit 1
+            fi
             rm -f "$PCM"
             echo "UR_QA05_RESTART_AUDIBLE_ATTEMPT=$attempt/5 passed"
           done

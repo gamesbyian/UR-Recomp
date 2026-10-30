@@ -45,11 +45,14 @@ class LatePortFollowthrough(unittest.TestCase):
     def test_truncation_bad_order_malformed_and_wrong_window_fail_closed(self):
         valid = row("NATIVE", 100, 6451, 0x0A, 1000)
         self.assertEqual(m.audit(valid.encode(), "NATIVE")["f7_bytes"], [10])
+        # The fourth-command tail is valid through native frame 6456.
+        self.assertEqual(m.audit(row("NATIVE", 100, 6456, 0x0A, 1000).encode(),
+                                 "NATIVE")["f7_bytes"], [10])
         invalid = [
             valid + "QA01RF093NATIVE_TRUNCATED\n",
             valid.replace("q=0", "q=X"),
             valid.replace("spc_next_pc=0684", "spc_next_pc=X684"),
-            valid.replace("f=6451", "f=6454"),
+            valid.replace("f=6451", "f=6457"),
             valid.replace("f=6451", "f=6446"),
             valid + row("NATIVE", 99, 6452, 0x0B, 2000),
             valid + row("NATIVE", 101, 6452, 0x0B, 999),

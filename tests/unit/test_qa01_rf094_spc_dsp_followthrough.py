@@ -55,9 +55,9 @@ class RF094DSPSource(unittest.TestCase):
     def test_native_dsp_post_commit_and_source_continuation(self):
         source = obs.patch_native(self.staged_native)
         self.assertIn("QA01RF094NATIVE_TRUNCATED", source)
-        self.assertIn("snes_frame_counter >= 6447 && snes_frame_counter <= 6453",
+        self.assertIn("snes_frame_counter >= 6447 && snes_frame_counter <= 6456",
                       source)
-        self.assertIn("snes_frame_counter < 6447 || snes_frame_counter > 6453",
+        self.assertIn("snes_frame_counter < 6447 || snes_frame_counter > 6456",
                       source)
         self.assertIn("dsp_write(apu->dsp, apu->dspAdr, val);\n"
                       "        ur_rf094_native_dsp_write(apu, apu->dspAdr, val);",
@@ -70,6 +70,18 @@ class RF094DSPSource(unittest.TestCase):
                          self.staged_native.count("apu->outPorts[adr - 0xf4] = val;"))
         with self.assertRaisesRegex(ValueError, "pristine RF093"):
             obs.patch_native(source)
+
+    def test_fourth_command_cpu_to_spc_dsp_tail_is_source_bounded(self):
+        # RF088's source-owned fourth-command CPU observer ends at 6455.
+        # RF094 must observe the following SPC/DSP frame as well, without
+        # changing guest bus calls or silently granting PCM/event credit.
+        cpu = (ROOT / "tools/qa01_rf088_native_apu_echo_window.py").read_text()
+        self.assertIn("snes_frame_counter <= 6455", cpu)
+        self.assertEqual(report.WINDOW["NATIVE"], (6447, 6456, 6449, "native_spc"))
+        self.assertEqual(report.WINDOW["ORIG"], (6445, 6451, 6447, "original_spc"))
+        staged = obs.patch_native(self.staged_native)
+        self.assertIn("snes_frame_counter <= 6456", staged)
+        self.assertIn("snes_frame_counter > 6456", staged)
 
     def test_untouched_sources_and_ambiguous_calls_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "RF092"):
@@ -135,6 +147,25 @@ class RF094Receipt(unittest.TestCase):
         self.assertFalse(d["cross_core_clock_conversion_proven"])
         self.assertEqual(d["usa_event_credit"], 0)
         self.assertEqual(d["windows_release_gate_credit"], 0)
+
+    def test_late_native_dsp_tail_is_admitted_but_next_frame_rejected(self):
+        native = self.row("NATIVE", 1, 6456, 109900000)
+        observed = report.audit(native.encode(), "NATIVE")
+        self.assertEqual(observed["last"]["entry_offset"], 7)
+        self.assertEqual(observed["frame_window"], [6447, 6456])
+        with self.assertRaises(ValueError):
+            report.audit(native.replace("frame=6456", "frame=6457").encode(),
+                         "NATIVE")
+        f7 = ("QA01RF093NATIVE seq=1 f=6456 kind=SPC_TO_CPU_WRITE "
+              "addr=00F7 val=10 spc_ticks=109900001 spc_next_pc=1234 "
+              "q=0 target=0 guest=0 clock=native_spc\n")
+        self.assertEqual(report.audit((native + f7).encode(), "NATIVE")
+                         ["f7_bytes"], [0x10])
+        with self.assertRaises(ValueError):
+            report.audit((native + f7.replace("f=6456", "f=6457"))
+                         .encode(), "NATIVE")
+        with self.assertRaises(ValueError):
+            report.audit(self.row("ORIG", 1, 6452, 109900000).encode(), "ORIG")
 
     def test_empty_stream_is_explicit_negative_not_false_success(self):
         d = report.analyze(b"no dsp rows\n", b"no dsp rows\n")

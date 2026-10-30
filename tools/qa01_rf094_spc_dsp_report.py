@@ -30,7 +30,7 @@ F7_NATIVE = re.compile(
     r"clock=native_spc$"
 )
 WINDOW = {"ORIG": (6445, 6451, 6447, "original_spc"),
-          "NATIVE": (6447, 6453, 6449, "native_spc")}
+          "NATIVE": (6447, 6456, 6449, "native_spc")}
 
 def audit(raw: bytes, side: str) -> dict:
     start, end, entry, clock = WINDOW[side]

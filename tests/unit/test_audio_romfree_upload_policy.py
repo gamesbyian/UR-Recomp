@@ -123,7 +123,8 @@ class AudioRomfreeUploadPolicy(unittest.TestCase):
         workflow = """jobs:
   audio:
     steps:
-      - uses: actions/upload-artifact@v4
+      - name: dangerous uploader
+        uses: actions/upload-artifact@v4
         with:
           path: ${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip
       - name: unrelated
@@ -143,7 +144,8 @@ class AudioRomfreeUploadPolicy(unittest.TestCase):
         with:
           path: |
             ${{ runner.temp }}/audio-source/UR-Recomp-Windows-x64.zip
-      - uses: actions/upload-artifact@v4
+      - name: safe uploader
+        uses: actions/upload-artifact@v4
         with:
           path: |
             ${{ runner.temp }}/safe-report.json

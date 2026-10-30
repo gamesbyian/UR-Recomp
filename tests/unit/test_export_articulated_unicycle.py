@@ -33,11 +33,11 @@ class ArticulatedBlockoutContract(unittest.TestCase):
 
     def test_extra_top_level_geometry_fails_closed_without_clobbering_pointer(self):
         source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
-        self.assertTrue(module.component_source(source, "saddle").endswith("saddle(0);\\n"))
+        self.assertTrue(module.component_source(source, "saddle").endswith("saddle(0);\n"))
         for injected in ("tire();",
                          "translate([0,0,0]) { tire(); }"):
             changed = source.replace("rig(rig_pose);",
-                                     injected + "\\nrig(rig_pose);")
+                                     injected + "\nrig(rig_pose);")
             with self.subTest(injected=injected):
                 with self.assertRaisesRegex(ValueError, "top-level geometry"):
                     module.component_source(changed, "saddle")
@@ -46,11 +46,11 @@ class ArticulatedBlockoutContract(unittest.TestCase):
             out = root / "out"
             out.mkdir()
             pointer = out / "articulated_blockout_current.json"
-            old_pointer = '{"attempt_id":"previous-success","status":"succeeded"}\\n'
+            old_pointer = '{"attempt_id":"previous-success","status":"succeeded"}\n'
             pointer.write_text(old_pointer, encoding="utf-8")
             scad = root / "extra-call.scad"
             scad.write_text(source.replace("rig(rig_pose);",
-                                           "tire();\\nrig(rig_pose);"), encoding="utf-8")
+                                           "tire();\nrig(rig_pose);"), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "top-level geometry"):
                 module.export(scad, out)
             status = json.loads((out / "articulated_blockout_last_attempt.json").read_text())

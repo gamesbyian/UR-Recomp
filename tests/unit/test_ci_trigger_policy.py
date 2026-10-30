@@ -978,6 +978,28 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('      - "tools/**"', hp)
         self.assertNotIn('      - "tests/unit/**"', hp)
 
+    def test_qa05_hosted_pr_and_hp_watch_the_actual_capture_code(self):
+        hosted = (WORKFLOWS / "qa05-qa09-windows-candidate.yml").read_text()
+        hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
+        for path in (
+            "tools/ci/qa05_restart_attempt.sh",
+            "tools/capture_modern_restart_audio.py",
+            "tools/capture_modern_resume_audio.py",
+            "tools/capture_modern_paused_audio.py",
+            "tools/analyze_sdl_audio_envelope.py",
+            "tools/qa05_restart_input_guard.py",
+        ):
+            with self.subTest(path=path):
+                entry = f'      - "{path}"'
+                self.assertIn(entry, hosted)
+                self.assertIn(entry, hp)
+        # HP already watches all scripted input, but hosted PR routing is
+        # deliberately narrow so the required audio script is named.
+        self.assertIn('      - "tests/input/audio-modern-restart.script"', hosted)
+        self.assertIn('      - "tests/input/**"', hp)
+        self.assertNotIn('      - "tools/**"', hosted)
+        self.assertNotIn('      - "tools/**"', hp)
+
     def test_windows_reusable_callers_do_not_cancel_one_another(self):
         # Only the QA wrapper now triggers when smoke YAML changes on a
         # ready, same-repo PR. The called workflow still has its own

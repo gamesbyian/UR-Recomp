@@ -1,0 +1,7 @@
+# These inputs participate in byte-for-byte source/dependency verification.
+# Git for Windows must not convert pinned LF Git blobs to CRLF. On a fresh
+# Windows checkout, converted Cargo vendor source fails .cargo-checksum.json
+# validation and the framework Cargo.lock differs from the upstream archive.
+third_party/cargo/snesrecomp-analyzer/Cargo.lock -text
+third_party/cargo/snesrecomp-analyzer/vendor/** -text
+tools/patches/*.patch -text

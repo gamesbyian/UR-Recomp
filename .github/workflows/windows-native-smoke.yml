@@ -1445,7 +1445,8 @@ jobs:
           if errorlevel 1 exit /b 11
           where ninja.exe
           if errorlevel 1 exit /b 12
-          cmake -S "$ROOT" -B "$BUILD" -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DSNESRECOMP_ROOT="$WS/.tools/src/snesrecomp" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          if not exist "$VSROOT\VC\Tools\Llvm\x64\bin\clang-cl.exe" exit /b 16
+          cmake -S "$ROOT" -B "$BUILD" -G "Ninja Multi-Config" -DCMAKE_C_COMPILER="$VSROOT/VC/Tools/Llvm/x64/bin/clang-cl.exe" -DCMAKE_CXX_COMPILER="$VSROOT/VC/Tools/Llvm/x64/bin/clang-cl.exe" -DSNESRECOMP_ROOT="$WS/.tools/src/snesrecomp" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
           if errorlevel 1 exit /b 13
           cmake --build "$BUILD" --config Release --parallel 6
           if errorlevel 1 exit /b 14

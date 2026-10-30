@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -72,6 +73,47 @@ class HpRaceOverlapPolicyTests(unittest.TestCase):
         bash = shutil.which("bash")
         if bash:
             subprocess.run([bash, "-n", str(RACE)], check=True)
+
+    @unittest.skipIf(os.name == "nt", "POSIX descendant-process harness")
+    def test_abnormal_qa_exit_joins_race_descendants_before_returning(self):
+        bash = shutil.which("bash")
+        if bash is None:
+            self.skipTest("bash missing")
+        smoke = SMOKE.read_text()
+        i = smoke.index("            hp_race_cleanup() {")
+        j = smoke.index("            trap hp_race_cleanup EXIT", i)
+        # Execute the actual source-owned cleanup function, not a synthetic
+        # imitation. A fake race Bash wrapper starts a real sleep child,
+        # then writes its evidence marker. Early QA failure must not return
+        # before that descendant has exited and the wrapper has joined.
+        cleanup = "\n".join(
+            line[12:] for line in smoke[i:j].splitlines()
+            if line.startswith("            ")
+        ) + "\n"
+        self.assertIn('wait "$RACE_PID" || true', cleanup)
+        self.assertNotIn('kill "$RACE_PID"', cleanup)
+        with tempfile.TemporaryDirectory() as d:
+            marker = Path(d) / "race-completed"
+            env = dict(os.environ, OWNED_MARKER=str(marker))
+            source = (
+                "set -euo pipefail\n"
+                "RACE_PID=''\n"
+                "bash -c 'sleep 0.3; printf complete > \"$OWNED_MARKER\"' &\n"
+                'RACE_PID="$!"\n'
+                + cleanup +
+                "trap hp_race_cleanup EXIT\n"
+                "false\n"
+            )
+            start = time.monotonic()
+            run = subprocess.run(
+                [bash, "-c", source], env=env, capture_output=True,
+                text=True, timeout=8,
+            )
+            elapsed = time.monotonic() - start
+            self.assertNotEqual(run.returncode, 0)
+            self.assertTrue(marker.exists(), run.stdout + run.stderr)
+            self.assertEqual(marker.read_text(), "complete")
+            self.assertGreaterEqual(elapsed, 0.2)
 
     @unittest.skipIf(os.name == "nt", "POSIX stub harness; real Windows checks remain separate")
     def test_no_stale_success_on_failure_or_missing_checkpoint(self):

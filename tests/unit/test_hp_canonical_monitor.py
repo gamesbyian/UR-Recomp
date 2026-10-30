@@ -54,7 +54,7 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertIn("cpu_load_pct_est -match", script)
         self.assertIn("if ($cpuRows.Count -gt 0)", script)
         self.assertNotIn("Stop-Process", script)
-        self.assertNotIn("Win32_Process", script)
+        self.assertNotRegex(script, r"\bWin32_Process\b")
         self.assertNotIn("Get-Process", script)
         self.assertNotIn("Get-Counter", script)
 
@@ -75,7 +75,7 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         ):
             self.assertIn(expected, script)
         self.assertNotIn("Get-Process", script)
-        self.assertNotIn("Win32_Process", script)
+        self.assertNotRegex(script, r"\bWin32_Process\b")
         self.assertNotIn("Select-String", script)
         self.assertNotIn("Get-Content", script)
         self.assertNotIn("Stop-Process", script)

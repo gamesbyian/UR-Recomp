@@ -32,6 +32,22 @@ RESUMED = re.compile(r"(?m)^UR_PAUSE_STATE paused=0 surface=(\d+)\s*$")
 GUEST_RESTARTED = re.compile(
     r"(?m)^script f=(\d+) dump audio-restart-guest ok\s*$")
 FRAME_BYTES = 4
+FOCUS_AUTO_PAUSE = "UR_FOCUS_PAUSE APPLIED focus=0 setting=1 modern=1"
+
+
+def reject_unexpected_pre_pause_focus(log: str) -> None:
+    """Fail quickly when window focus freezes the guest before scripted Pause.
+
+    This is a QA harness/setup failure, not evidence of broken Restart/audio.
+    A later authentic pause marker must never mask an earlier auto-pause.
+    """
+    focused_at = log.find(FOCUS_AUTO_PAUSE)
+    opened_at = log.find(PAUSE_OPEN)
+    if focused_at >= 0 and (opened_at < 0 or focused_at < opened_at):
+        raise RuntimeError(
+            "unintended focus-loss auto-pause before QA-05 scripted host Pause; "
+            "check the isolated test user-data host-state pause_on_focus_loss=0"
+        )
 
 
 def verify_restart_log(log: str) -> dict:
@@ -137,6 +153,7 @@ def capture(launcher: Path, script: Path, log: Path, pcm: Path, *,
                 if proc.poll() is not None:
                     raise RuntimeError("game exited before real host Pause")
                 current = log.read_text(encoding="utf-8", errors="replace")
+                reject_unexpected_pre_pause_focus(current)
                 if PAUSE_OPEN in current:
                     verify_modern_pause_log(current)
                     break

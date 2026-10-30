@@ -12,7 +12,15 @@ SCRIPT = ROOT / "tools" / "devnode_benchmark" / "monitor_hp_commit.ps1"
 class CanonicalHpMonitorTests(unittest.TestCase):
     def test_source_current_windows_build_is_not_throttled_or_cancelled(self):
         source = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn('cmake --build "$ROOT/build" --config Release --parallel 4', source)
+        self.assertIn('cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"', source)
+        self.assertIn("HP_BUILD_JOBS=4", source)
+        self.assertIn("HP_BUILD_JOBS=6", source)
+        self.assertIn('if [[ "${{ inputs.run_on_hp }}" == "true" ]]', source)
+        self.assertIn("HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start", source)
+        self.assertIn("HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_end", source)
+        self.assertIn("build_start,%s", source)
+        self.assertIn("build_end,%s", source)
+        self.assertNotIn('cmake --build "$ROOT/build" --config Release --parallel 12', source)
         self.assertIn("cancel-in-progress: ${{ !inputs.run_on_hp }}", source)
         self.assertNotIn("HP_MEMORY_RECENT_EXHAUSTION", source)
         self.assertNotIn("HP_MEMORY_COMMIT_INSUFFICIENT", source)
@@ -32,6 +40,28 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertIn("if: ${{ always() && inputs.run_on_hp }}", source[stop:upload])
         self.assertIn("${{ runner.temp }}/hp-commit-pressure.csv", source)
         check_workflow(source)
+
+    def test_hp_compile_phase_reports_bounded_observed_load(self):
+        source = WORKFLOW.read_text(encoding="utf-8")
+        script = SCRIPT.read_text(encoding="utf-8")
+        build = source.index("      - name: Configure and build")
+        preserve = source.index("      - name: Preserve HP resource telemetry")
+        self.assertLess(build, preserve)
+        self.assertEqual(source.count("hp-compile-phase.csv"), 3)
+        self.assertIn("phase,timestamp_utc", source)
+        self.assertIn("HP_COMPILE_CPU_SUMMARY", script)
+        self.assertIn("hp-compile-phase.csv", script)
+        self.assertIn("Import-Csv -LiteralPath $phaseFile", script)
+        self.assertIn("if ($begins.Count -eq 1 -and $ends.Count -eq 1)", script)
+        self.assertIn("if ($endUtc -le $beginUtc)", script)
+        self.assertIn("$observed -ge $beginUtc -and $observed -le $endUtc", script)
+        self.assertIn("unavailable=incomplete_phase_markers", script)
+        self.assertIn("unavailable=no_valid_cpu_samples", script)
+        self.assertNotIn("Get-Process", script)
+        self.assertNotIn("Stop-Process", script)
+        # Phase markers are private temporary files. The only telemetry
+        # artifact remains the existing allowlisted numeric resource CSV.
+        self.assertNotIn("${{ runner.temp }}/hp-compile-phase.csv", source)
 
     def test_cpu_observer_is_aggregate_numeric_optional_and_backward_compatible(self):
         script = SCRIPT.read_text(encoding="utf-8")

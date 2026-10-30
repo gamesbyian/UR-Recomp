@@ -1,0 +1,57 @@
+name: HP PowerShell source syntax
+
+# A fast hosted-Windows parse guard for scripts executed only on the owner's
+# self-hosted machine. Parsing, unlike running, does not touch HP OS settings.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/hp-powershell-parse.yml"
+      - "tools/devnode_benchmark/*.ps1"
+      - "tests/unit/test_hp_powershell_parse_policy.py"
+  workflow_dispatch:
+
+concurrency:
+  group: hp-powershell-parse-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  powershell-source-parse:
+    # Never reserve or execute on the owner's personal self-hosted runner.
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - name: Check out source without retained credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Parse HP maintenance PowerShell (do not execute)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:GITHUB_WORKSPACE 'tools/devnode_benchmark'
+          $files = @(Get-ChildItem -LiteralPath $dir -Filter '*.ps1' -File)
+          $names = @($files | ForEach-Object { $_.Name })
+          foreach ($required in @('monitor_hp_commit.ps1', 'prepare_python.ps1', 'prepare_rust.ps1')) {
+            if ($names -notcontains $required) {
+              throw ('Missing required HP maintenance script: ' + $required)
+            }
+          }
+          foreach ($file in $files) {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $file.FullName, [ref]$tokens, [ref]$parseErrors
+            ) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+              foreach ($errorItem in $parseErrors) {
+                Write-Output ('HP_POWERSHELL_PARSE_ERROR file={0} line={1} message={2}' -f
+                  $file.Name, $errorItem.Extent.StartLineNumber, $errorItem.Message)
+              }
+              throw ('HP_POWERSHELL_PARSE_FAILED: ' + $file.Name)
+            }
+            Write-Output ('HP_POWERSHELL_PARSE_OK file={0}' -f $file.Name)
+          }

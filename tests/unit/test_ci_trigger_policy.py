@@ -29,6 +29,8 @@ EXPENSIVE_PR_WORKFLOWS = {
 }
 
 DORMANT_MANUAL_ONLY = {
+    # Expired original-source artifact HTTP 410: run manually only once recovered.
+    "qa08-native-hdma-prime-counterfactual.yml",
     "regional-retail-static-analysis.yml",
     "regional-retail-frontend-comparison.yml",
     "regional-retail-course-payloads.yml",

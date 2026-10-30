@@ -44,6 +44,7 @@ on:
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-title-input-filter.patch"
       - "tools/patches/snesrecomp-source-gamepad-hook.patch"

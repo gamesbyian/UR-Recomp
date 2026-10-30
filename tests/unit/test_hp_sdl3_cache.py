@@ -44,6 +44,15 @@ class HPSDL3CacheTests(unittest.TestCase):
             (stage / "SDL3.dll").write_bytes(b"bad shared library")
             self.assertIsNone(cache.validate_stage(root, identity))
 
+    def test_cache_helper_changes_trigger_all_windows_routes(self):
+        workflow_dir = MODULE.parents[2] / ".github/workflows"
+        required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'
+        for name in ("windows-native-smoke.yml",
+                     "owner-hp-main-windows-smoke.yml",
+                     "qa05-qa09-windows-candidate.yml"):
+            with self.subTest(workflow=name):
+                self.assertIn(required, (workflow_dir / name).read_text("utf-8"))
+
     def test_missing_or_incomplete_install_cannot_be_used(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -242,6 +242,32 @@ jobs:
             throw "HP_MEMORY_COMMIT_INSUFFICIENT: less than 2048 MiB virtual commit headroom; skip native build (previous WinError 1455)."
           }
 
+      - name: Start bounded memory telemetry during native work
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $telemetry = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv'
+          $stop = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.stop'
+          Remove-Item -LiteralPath $telemetry, $stop -ErrorAction SilentlyContinue
+          $script = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure-monitor.ps1'
+          @'
+          param([string]$OutputPath, [string]$StopPath)
+          $deadline = (Get-Date).AddMinutes(35)
+          'timestamp_utc,free_commit_mb,total_commit_mb,free_physical_mb' | Set-Content -LiteralPath $OutputPath -Encoding ASCII
+          while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $StopPath)) {
+            try {
+              $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+              $stamp = (Get-Date).ToUniversalTime().ToString('o')
+              '{0},{1},{2},{3}' -f $stamp, [math]::Round($os.FreeVirtualMemory / 1024), [math]::Round($os.TotalVirtualMemorySize / 1024), [math]::Round($os.FreePhysicalMemory / 1024) | Add-Content -LiteralPath $OutputPath -Encoding ASCII
+            } catch {
+              ('HP_TELEMETRY_ERROR ' + $_.Exception.Message) | Add-Content -LiteralPath ($OutputPath + '.errors')
+            }
+            Start-Sleep -Seconds 10
+          }
+          '@ | Set-Content -LiteralPath $script -Encoding UTF8
+          $p = Start-Process powershell.exe -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',$script,'-OutputPath',$telemetry,'-StopPath',$stop) -WindowStyle Hidden -PassThru
+          Write-Output "HP_TELEMETRY_STARTED pid=$($p.Id) interval_seconds=10 max_minutes=35"
+
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail
@@ -1358,6 +1384,25 @@ jobs:
           python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
 
       # ROM-bearing packages are verified internally, never uploaded.
+      - name: Stop and summarize bounded memory telemetry
+        if: always()
+        shell: powershell
+        run: |
+          $stop = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.stop'
+          New-Item -Path $stop -ItemType File -Force | Out-Null
+          $csv = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv'
+          if (Test-Path -LiteralPath $csv) {
+            $samples = @(Import-Csv -LiteralPath $csv)
+            if ($samples.Count -gt 0) {
+              $minimum = ($samples | Measure-Object -Property free_commit_mb -Minimum).Minimum
+              Write-Output "HP_TELEMETRY samples=$($samples.Count) minimum_free_commit_mb=$minimum"
+            } else {
+              Write-Output 'HP_TELEMETRY EMPTY'
+            }
+          } else {
+            Write-Output 'HP_TELEMETRY MISSING (earlier job interruption possible)'
+          }
+
       - name: Verify archive-free Windows artifact upload policy
         if: always()
         shell: bash
@@ -1372,6 +1417,8 @@ jobs:
           name: windows-native-smoke
           path: |
             ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/hp-commit-pressure.csv
+            ${{ runner.temp }}/hp-commit-pressure.csv.errors
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/

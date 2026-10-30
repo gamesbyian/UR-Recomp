@@ -1422,6 +1422,42 @@ jobs:
           powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tools/devnode_benchmark/monitor_hp_commit.ps1 -Mode Stop
 
       # ROM-bearing packages are verified internally, never uploaded.
+      - name: EXPERIMENT ONLY - hosted Ninja Multi-Config ClangCL compile benchmark
+        # Disposable unmerged feasibility PR. The normal Visual Studio build
+        # and its complete packaged Windows QA already ran above. This extra
+        # compiler candidate must NOT be treated as HP release acceptance.
+        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          echo "NINJA_PILOT=experimental_hosted_only"
+          WS="$(cygpath -m "$GITHUB_WORKSPACE")"
+          ROOT="$(cygpath -m "$RUNNER_TEMP")/ur-recomp-build/UniracersSNESRecomp"
+          BUILD="$ROOT/build-ninja-pilot"
+          VSROOT="$(powershell.exe -NoProfile -Command '$v=Join-Path ([Environment]::GetEnvironmentVariable("ProgramFiles(x86)")) "Microsoft Visual Studio\Installer\vswhere.exe"; & $v -latest -products "*" -property installationPath' | tr -d '\r' | head -n1)"
+          test -n "$VSROOT"
+          VSCMD="$VSROOT\Common7\Tools\VsDevCmd.bat"
+          NINJA_BATCH="$RUNNER_TEMP/ur-ninja-pilot.cmd"
+          cat > "$NINJA_BATCH" <<BATCH
+          @echo off
+          call "$VSCMD" -arch=x64 -host_arch=x64 >NUL
+          if errorlevel 1 exit /b 11
+          where ninja.exe
+          if errorlevel 1 exit /b 12
+          cmake -S "$ROOT" -B "$BUILD" -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DSNESRECOMP_ROOT="$WS/.tools/src/snesrecomp" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          if errorlevel 1 exit /b 13
+          cmake --build "$BUILD" --config Release --parallel 6
+          if errorlevel 1 exit /b 14
+          BATCH
+          started="$(date +%s)"
+          MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd.exe /d /c "$(cygpath -w "$NINJA_BATCH")"
+          elapsed=$(( $(date +%s) - started ))
+          EXE_NINJA="$(find "$BUILD" -name 'UniracersSNESRecomp.exe' -path '*Release*' -type f | head -n1)"
+          test -n "$EXE_NINJA"
+          python tools/check_windows_portable_binary.py --exe "$EXE_NINJA"
+          echo "NINJA_PILOT=compile_and_portable_pe_passed elapsed_seconds=$elapsed"
+          sha256sum "$EXE_NINJA"
+
       - name: Verify archive-free Windows artifact upload policy
         if: always()
         shell: bash

@@ -1,5 +1,6 @@
 # Read-only resource telemetry for the owner's Windows x64 GitHub runner.
-# Only aggregate memory numbers and relevant System event metadata are emitted.
+# Only aggregate memory/CPU numbers and relevant System event metadata are emitted.
+# CPU estimates are host-wide, never per-application attribution.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)]
@@ -23,12 +24,35 @@ if ($Mode -eq 'Sample') {
         throw 'HP_MONITOR_INVALID_SAMPLE_TARGET'
     }
     $deadline = (Get-Date).AddMinutes(50)
-    'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb' | Set-Content -LiteralPath $csv -Encoding ASCII
+    'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors' | Set-Content -LiteralPath $csv -Encoding ASCII
     while ((Get-Date) -lt $deadline -and -not (Test-Path -LiteralPath $stop)) {
         try {
             $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
             $utc = (Get-Date).ToUniversalTime().ToString('o')
-            ('{0},{1},{2},{3}' -f $utc, [math]::Round($os.FreeVirtualMemory / 1024), [math]::Round($os.TotalVirtualMemorySize / 1024), [math]::Round($os.FreePhysicalMemory / 1024)) | Add-Content -LiteralPath $csv -Encoding ASCII
+            # Coarse host-wide CPU estimate, weighted by logical processors.
+            # -1 denotes unavailable. Never discard valid memory samples.
+            $cpuLoadPct = -1
+            $logicalProcessors = -1
+            try {
+                $cpus = @(Get-CimInstance Win32_Processor -ErrorAction Stop)
+                $logicalTotal = 0
+                $weightedLoad = 0.0
+                foreach ($cpu in $cpus) {
+                    $count = [int]$cpu.NumberOfLogicalProcessors
+                    if ($count -le 0 -or $null -eq $cpu.LoadPercentage) { continue }
+                    $load = [int]$cpu.LoadPercentage
+                    if ($load -lt 0 -or $load -gt 100) { continue }
+                    $logicalTotal += $count
+                    $weightedLoad += $load * $count
+                }
+                if ($logicalTotal -gt 0) {
+                    $cpuLoadPct = [int][math]::Round($weightedLoad / $logicalTotal)
+                    $logicalProcessors = $logicalTotal
+                }
+            } catch {
+                # Sampling errors must not reveal process activity or paths.
+            }
+            ('{0},{1},{2},{3},{4},{5}' -f $utc, [math]::Round($os.FreeVirtualMemory / 1024), [math]::Round($os.TotalVirtualMemorySize / 1024), [math]::Round($os.FreePhysicalMemory / 1024), $cpuLoadPct, $logicalProcessors) | Add-Content -LiteralPath $csv -Encoding ASCII
         } catch {
             # Sampling errors must not interfere with a useful native build.
             # Avoid leaking paths or user applications from exception messages.
@@ -50,6 +74,14 @@ if ($Mode -eq 'Start') {
                 $stopFile = [IO.Path]::ChangeExtension($_.FullName, '.stop')
                 $state = if (Test-Path -LiteralPath $stopFile) { 'stopped' } else { 'interrupted_or_incomplete' }
                 Write-Output ('HP_PREVIOUS_MONITOR run={0} samples={1} minimum_free_virtual_mb={2} state={3}' -f $_.BaseName, $rows.Count, $minimum, $state)
+                # Memory-only legacy runs remain valid; CPU is optional.
+                $cpuRows = @($rows | Where-Object {
+                    $_.cpu_load_pct_est -match '^(100|[0-9]{1,2})$'
+                })
+                if ($cpuRows.Count -gt 0) {
+                    $peak = ($cpuRows | Measure-Object -Property cpu_load_pct_est -Maximum).Maximum
+                    Write-Output ('HP_PREVIOUS_CPU run={0} samples={1} peak_host_cpu_pct_est={2}' -f $_.BaseName, $cpuRows.Count, $peak)
+                }
             } catch {
                 Write-Output ('HP_PREVIOUS_MONITOR run={0} parse=unavailable' -f $_.BaseName)
             }
@@ -99,6 +131,16 @@ if ($Mode -eq 'Stop') {
             $minimum = ($rows | Measure-Object -Property free_virtual_mb -Minimum).Minimum
             $minPhysical = ($rows | Measure-Object -Property free_physical_mb -Minimum).Minimum
             Write-Output ('HP_MONITOR_SUMMARY run={0} samples={1} min_free_virtual_mb={2} min_free_physical_mb={3}' -f $stem, $rows.Count, $minimum, $minPhysical)
+            $cpuRows = @($rows | Where-Object {
+                $_.cpu_load_pct_est -match '^(100|[0-9]{1,2})$'
+            })
+            if ($cpuRows.Count -gt 0) {
+                $load = $cpuRows | Measure-Object -Property cpu_load_pct_est -Maximum -Average
+                $logical = ($cpuRows | Select-Object -Last 1).logical_processors
+                Write-Output ('HP_CPU_SUMMARY run={0} samples={1} peak_host_cpu_pct_est={2} mean_host_cpu_pct_est={3} logical_processors={4}' -f $stem, $cpuRows.Count, $load.Maximum, [math]::Round($load.Average, 1), $logical)
+            } else {
+                Write-Output ('HP_CPU_SUMMARY run={0} samples=0 unavailable' -f $stem)
+            }
         } else {
             Write-Output 'HP_MONITOR_SUMMARY no_complete_samples'
         }

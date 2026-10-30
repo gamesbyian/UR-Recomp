@@ -13,6 +13,15 @@ on:
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"
+      # Real Win32/SDL QA-05 acceptance changes must exercise their own
+      # hosted Windows route before merge, not just a Linux source test.
+      - "tools/ci/qa05_restart_attempt.sh"
+      - "tools/capture_modern_restart_audio.py"
+      - "tools/capture_modern_resume_audio.py"
+      - "tools/capture_modern_paused_audio.py"
+      - "tools/analyze_sdl_audio_envelope.py"
+      - "tools/qa05_restart_input_guard.py"
+      - "tests/input/audio-modern-restart.script"
       - "tests/native/run_modern_root_acceptance.sh"
   workflow_dispatch:
 

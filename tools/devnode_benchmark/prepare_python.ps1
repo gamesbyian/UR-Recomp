@@ -31,7 +31,7 @@ if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
 $pth = Join-Path $target 'python312._pth'
 @('python312.zip', '.', $env:GITHUB_WORKSPACE, (Join-Path $env:GITHUB_WORKSPACE 'tools'), 'import site') |
   Set-Content -LiteralPath $pth -Encoding ASCII
-& $exe -c "import sys, unittest, subprocess; assert sys.version_info[:3] == (3, 12, 10), sys.version"
+& $exe -c "import sys, unittest, subprocess, extract_menu_visual_language, probe_tier_opponents; assert sys.version_info[:3] == (3, 12, 10), sys.version"
 if ($LASTEXITCODE -ne 0) { throw 'Python runtime self-check failed.' }
 Add-Content -LiteralPath $env:GITHUB_PATH -Value $target
 Write-Output 'Portable Python 3.12.10 ready in persistent runner cache.'

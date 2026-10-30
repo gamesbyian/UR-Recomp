@@ -17,6 +17,19 @@ assert_absent_grep() {
   fi
   return 0
 }
+assert_second_earned_run_record() {
+  local log="$1"
+  local source_movie="$2"
+  local expected='UR_RUN_RECORD CAPTURED .*course=course:00 elapsed_ticks60=[1-9][0-9]*( |$)'
+  if [ "$source_movie" = "1" ]; then
+    expected='UR_RUN_RECORD CAPTURED .*course=course:00 elapsed_ticks60=1505( |$)'
+  fi
+  if ! grep -Eq "$expected" "$log"; then
+    echo "::error::ONE-03 second earned course:00 run record absent or wrong finish" >&2
+    return 1
+  fi
+  assert_absent_grep -Eq 'UR_RUN_RECORD (FINISH_LINE_MISSING|FINISH_SPLIT_REJECTED|FINALIZE_REJECTED|SAVE_FAILED)' "$log"
+}
 
 
 # Native Modern results-navigation acceptance. Every case reaches a real stock
@@ -264,6 +277,9 @@ fi
 grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/next-earned.log"
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next-earned.log"
 grep -q "UR_RESULTS_NAV NEXT_EARNED_RESULT observed=1 source_finish=1 persisted=1 sram_changed=1" "$WORK/next-earned.log"
+# A Tour medal and cold SRAM can succeed while the second run record fails.
+# The first race already has a valid course:01 record; demand course:00 here.
+assert_second_earned_run_record "$WORK/next-earned.log" "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}"
 
 # A new process must actually reload the product's committed SRAM. The
 # pre-seeded fixture is NOT a source-earned event and never earns ONE-03.

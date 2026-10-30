@@ -4,8 +4,8 @@
 Patch only pinned, disposable Baldosa snesrecomp sources before compiling the
 QA01 original/native experiment. The reference WAV is already emitted by
 snesref; RF095 adds an exact retro_run-frame -> callback-sample index map.
-The native DSP emits its already-computed post-echo stereo samples to a bounded
-raw file and a guest-frame -> local-sample index map. No synthesis, input,
+The native DSP buffers its already-computed post-echo stereo samples and guest
+frame boundaries, then flushes them on normal process exit outside the APU lock. No synthesis, input,
 clock, register, queue, or guest state is modified. Different clocks and output
 pipelines remain explicitly non-equated; RF095 alone cannot admit an event.
 """
@@ -52,78 +52,98 @@ static void ur_rf095_reference_pcm_map_row() {
 '''
 
 NATIVE_DECL = r'''/* UR_QA01_RF095_NATIVE_STEREO_PCM
- * Actual DSP output after echo/mute, before host playback/ring consumption.
- * Bounded 6447..6456 source-owned guest frames; never infer sample-clock
- * equivalence with the original libretro output callback. The guest frame
- * index is only a registration label, not an SPC or CPU cycle timestamp. */
+ * Buffered post-echo samples; no synchronous file I/O in the DSP/APU lock.
+ * At normal process exit, atexit flushes after the lock has been released.
+ * An abnormal termination produces no successful receipt. */
 extern int snes_frame_counter;
-static FILE *ur_rf095_native_pcm;
-static FILE *ur_rf095_native_map;
+#define UR_RF095_MAX_SAMPLES 8192u
+#define UR_RF095_MAX_ROWS 12u
+static int16_t ur_rf095_native_buffer[UR_RF095_MAX_SAMPLES][2];
+static struct { int frame; unsigned samples; } ur_rf095_native_rows[UR_RF095_MAX_ROWS];
 static unsigned ur_rf095_native_samples;
+static unsigned ur_rf095_native_row_count;
 static int ur_rf095_native_previous_frame = -1;
-static int ur_rf095_native_state; /* 0 unopened, 1 active, 2 closed, 3 failed */
-static void ur_rf095_native_close(void) {
-  if (ur_rf095_native_pcm) fclose(ur_rf095_native_pcm);
-  if (ur_rf095_native_map) fclose(ur_rf095_native_map);
-  ur_rf095_native_pcm = NULL;
-  ur_rf095_native_map = NULL;
+static int ur_rf095_native_state; /* 0 unopened, 1 collecting, 2 complete, 3 failed */
+static void ur_rf095_native_flush(void) {
+  if (ur_rf095_native_state != 2 || ur_rf095_native_row_count != 11u ||
+      ur_rf095_native_previous_frame != 6457) {
+    fprintf(stderr, "QA01RF095NATIVE_INCOMPLETE\n");
+    return;
+  }
+  const char *pcm = getenv("UR_QA01_RF095_NATIVE_PCM");
+  const char *map = getenv("UR_QA01_RF095_NATIVE_MAP");
+  if (!pcm || !pcm[0] || !map || !map[0]) {
+    fprintf(stderr, "QA01RF095NATIVE_OPEN_FAILED\n");
+    return;
+  }
+  FILE *fp = fopen(pcm, "wb");
+  FILE *mp = fopen(map, "w");
+  if (!fp || !mp) {
+    fprintf(stderr, "QA01RF095NATIVE_OPEN_FAILED\n");
+    if (fp) fclose(fp);
+    if (mp) fclose(mp);
+    return;
+  }
+  int failed = fprintf(mp, "frame,samples\n") < 0;
+  for (unsigned i = 0; i < ur_rf095_native_row_count; ++i)
+    if (fprintf(mp, "%d,%u\n", ur_rf095_native_rows[i].frame,
+                ur_rf095_native_rows[i].samples) < 0) failed = 1;
+  if (fwrite(ur_rf095_native_buffer, sizeof(ur_rf095_native_buffer[0]),
+             ur_rf095_native_samples, fp) != ur_rf095_native_samples) failed = 1;
+  if (fclose(fp) != 0) failed = 1;
+  if (fclose(mp) != 0) failed = 1;
+  if (failed) fprintf(stderr, "QA01RF095NATIVE_WRITE_FAILED\n");
 }
 static void ur_rf095_native_stereo_sample(int16_t left, int16_t right) {
   const int frame = snes_frame_counter;
-  if (ur_rf095_native_state >= 2) return;
-  if (frame < 6447) return;
-  if (frame > 6456) {
-    if (ur_rf095_native_state == 1) {
-      if (fprintf(ur_rf095_native_map, "%d,%u\n", frame,
-                  ur_rf095_native_samples) < 0)
-        fprintf(stderr, "QA01RF095NATIVE_WRITE_FAILED\n");
-      ur_rf095_native_close();
-      ur_rf095_native_state = 2;
-    }
-    return;
-  }
+  if (ur_rf095_native_state >= 2 || frame < 6447) return;
   if (ur_rf095_native_state == 0) {
     const char *pcm = getenv("UR_QA01_RF095_NATIVE_PCM");
     const char *map = getenv("UR_QA01_RF095_NATIVE_MAP");
     if (!pcm || !pcm[0] || !map || !map[0]) {
-      ur_rf095_native_state = 3; /* observer not enabled */
+      ur_rf095_native_state = 3;
       return;
     }
-    ur_rf095_native_pcm = fopen(pcm, "wb");
-    ur_rf095_native_map = fopen(map, "w");
-    if (!ur_rf095_native_pcm || !ur_rf095_native_map ||
-        fprintf(ur_rf095_native_map, "frame,samples\n") < 0) {
+    if (atexit(ur_rf095_native_flush) != 0) {
       fprintf(stderr, "QA01RF095NATIVE_OPEN_FAILED\n");
-      ur_rf095_native_close();
       ur_rf095_native_state = 3;
       return;
     }
     ur_rf095_native_state = 1;
   }
-  if (frame != ur_rf095_native_previous_frame) {
-    if (frame < ur_rf095_native_previous_frame ||
-        fprintf(ur_rf095_native_map, "%d,%u\n", frame,
-                ur_rf095_native_samples) < 0) {
+  if (frame > 6456) {
+    if (frame != 6457 || ur_rf095_native_row_count >= UR_RF095_MAX_ROWS) {
       fprintf(stderr, "QA01RF095NATIVE_FRAME_FAILED\n");
-      ur_rf095_native_close();
       ur_rf095_native_state = 3;
       return;
     }
+    ur_rf095_native_rows[ur_rf095_native_row_count].frame = frame;
+    ur_rf095_native_rows[ur_rf095_native_row_count].samples = ur_rf095_native_samples;
+    ++ur_rf095_native_row_count;
+    ur_rf095_native_previous_frame = frame;
+    ur_rf095_native_state = 2;
+    return;
+  }
+  if (frame != ur_rf095_native_previous_frame) {
+    if ((ur_rf095_native_previous_frame >= 0 &&
+         frame != ur_rf095_native_previous_frame + 1) ||
+        ur_rf095_native_row_count >= UR_RF095_MAX_ROWS) {
+      fprintf(stderr, "QA01RF095NATIVE_FRAME_FAILED\n");
+      ur_rf095_native_state = 3;
+      return;
+    }
+    ur_rf095_native_rows[ur_rf095_native_row_count].frame = frame;
+    ur_rf095_native_rows[ur_rf095_native_row_count].samples = ur_rf095_native_samples;
+    ++ur_rf095_native_row_count;
     ur_rf095_native_previous_frame = frame;
   }
-  if (ur_rf095_native_samples >= 8192u) {
+  if (ur_rf095_native_samples >= UR_RF095_MAX_SAMPLES) {
     fprintf(stderr, "QA01RF095NATIVE_TRUNCATED\n");
-    ur_rf095_native_close();
     ur_rf095_native_state = 3;
     return;
   }
-  const int16_t stereo[2] = {left, right};
-  if (fwrite(stereo, sizeof(stereo), 1, ur_rf095_native_pcm) != 1) {
-    fprintf(stderr, "QA01RF095NATIVE_WRITE_FAILED\n");
-    ur_rf095_native_close();
-    ur_rf095_native_state = 3;
-    return;
-  }
+  ur_rf095_native_buffer[ur_rf095_native_samples][0] = left;
+  ur_rf095_native_buffer[ur_rf095_native_samples][1] = right;
   ++ur_rf095_native_samples;
 }
 '''

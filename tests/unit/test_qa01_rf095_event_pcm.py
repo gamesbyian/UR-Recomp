@@ -7,6 +7,7 @@ import pathlib
 import struct
 import tempfile
 import unittest
+from unittest import mock
 import wave
 
 ROOT = pathlib.Path(__file__).resolve().parents[2] / "tools"
@@ -131,6 +132,49 @@ class RF095Tests(unittest.TestCase):
             files[1].write_text(files[1].read_text().replace('6454,6454', '6454,6453'))
             with self.assertRaisesRegex(ValueError, 'count/WAV frame mismatch'):
                 receipt.analyze(*files)
+
+    def test_native_hot_path_buffers_without_synchronous_disk_io(self):
+        updated = patch.patch_native(NATIVE)
+        hot_path = updated.split('static void ur_rf095_native_stereo_sample(', 1)[1].split(
+            'void dsp_cycle(', 1)[0]
+        self.assertNotIn('fopen(', hot_path)
+        self.assertNotIn('fwrite(', hot_path)
+        self.assertNotIn('fprintf(ur_rf095_native_map', hot_path)
+        self.assertIn('atexit(ur_rf095_native_flush)', hot_path)
+        self.assertIn('ur_rf095_native_buffer[ur_rf095_native_samples]', hot_path)
+        self.assertIn('QA01RF095NATIVE_INCOMPLETE', updated)
+        self.assertIn('ur_rf095_native_previous_frame != 6457', updated)
+
+    def test_cli_rejects_aliased_and_stale_outputs_without_mutation(self):
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            before = [path.read_bytes() for path in files]
+            absent = pathlib.Path(d) / 'window.pcm'
+            names = ('original-wav', 'original-map', 'native-pcm', 'native-map',
+                     'original-log', 'native-log')
+            prefix = ['qa01_rf095_pcm_receipt.py']
+            for name, path in zip(names, files):
+                prefix.extend(('--' + name, str(path)))
+            for out, window, error in (
+                (absent, absent, 'aliases'),
+                (files[2], absent, 'aliases'),
+                (files[0], absent, 'aliases'),
+            ):
+                argv = prefix + ['--out', str(out), '--original-window-out', str(window)]
+                with self.subTest(out=out), mock.patch('sys.argv', argv):
+                    with self.assertRaisesRegex(ValueError, error):
+                        receipt.main()
+                self.assertFalse(absent.exists())
+                self.assertEqual([path.read_bytes() for path in files], before)
+            stale = pathlib.Path(d) / 'stale.json'
+            stale.write_bytes(b'previous receipt')
+            argv = prefix + ['--out', str(stale), '--original-window-out', str(absent)]
+            with mock.patch('sys.argv', argv):
+                with self.assertRaisesRegex(ValueError, 'stale receipt'):
+                    receipt.main()
+            self.assertEqual(stale.read_bytes(), b'previous receipt')
+            self.assertFalse(absent.exists())
+            self.assertEqual([path.read_bytes() for path in files], before)
 
 if __name__ == '__main__':
     unittest.main()

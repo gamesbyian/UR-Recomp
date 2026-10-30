@@ -121,7 +121,8 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         if original_window_out.exists() or original_window_out.is_symlink():
             raise ValueError('RF095 refusing stale original PCM window')
         original_window_out.parent.mkdir(parents=True, exist_ok=True)
-        original_window_out.write_bytes(original)
+        with original_window_out.open('xb') as output:
+            output.write(original)
     return {
         'schema': 'ur-qa01-rf095-source-registered-pcm/1',
         'claimed_output_stages': 'libretro callback and native post-echo DSP output',
@@ -149,6 +150,19 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
     }
 
 
+def validate_output_paths(inputs: tuple[Path, ...], out: Path,
+                          original_window_out: Path | None) -> None:
+    """Reject aliased or stale outputs before reading or modifying evidence."""
+    outputs = (out,) if original_window_out is None else (out, original_window_out)
+    source_paths = {path.resolve(strict=False) for path in inputs}
+    destination_paths = [path.resolve(strict=False) for path in outputs]
+    if (len(set(destination_paths)) != len(destination_paths) or
+            any(path in source_paths for path in destination_paths)):
+        raise ValueError('RF095 output path aliases input or another output')
+    if out.exists() or out.is_symlink():
+        raise ValueError('RF095 refusing stale receipt output')
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     for name in ('original_wav', 'original_map', 'native_pcm', 'native_map',
@@ -157,13 +171,17 @@ def main() -> None:
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--original-window-out', type=Path)
     args = p.parse_args()
+    inputs = tuple(getattr(args, name) for name in
+                   ('original_wav', 'original_map', 'native_pcm', 'native_map',
+                    'original_log', 'native_log'))
+    validate_output_paths(inputs, args.out, args.original_window_out)
     receipt = analyze(*(getattr(args, name) for name in
                         ('original_wav', 'original_map', 'native_pcm', 'native_map',
                          'original_log', 'native_log')),
                       original_window_out=args.original_window_out)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n',
-                        encoding='utf-8')
+    with args.out.open('x', encoding='utf-8') as output:
+        output.write(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
     print('RF095_SOURCE_REGISTERED_PCM PASS '
           f"original={receipt['original']['frames']} "
           f"native={receipt['native']['frames']} "

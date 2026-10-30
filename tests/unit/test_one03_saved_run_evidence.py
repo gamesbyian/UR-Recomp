@@ -25,6 +25,14 @@ def record(*, course='course:00', ticks=1505):
     return body + f'checksum {value:016x}\n'.encode('ascii')
 
 
+def signed_body(body: bytes) -> bytes:
+    value = 14695981039346656037
+    for byte in body:
+        value = ((value ^ byte) * 1099511628211) & 0xffffffffffffffff
+    return body + f'checksum {value:016x}\n'.encode('ascii')
+
+
+
 class One03SavedRunEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -80,6 +88,56 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
                              'elapsed_ticks60=1505\n') * 2)
         with self.assertRaisesRegex(ValueError, 'exactly one'):
             mod.verify(self.log, self.root, True)
+
+    def assert_reject_mutation(self, old: bytes, new: bytes):
+        body = record().split(b'checksum ', 1)[0]
+        self.assertIn(old, body)
+        self.path.write_bytes(signed_body(body.replace(old, new, 1)))
+        with self.assertRaises(ValueError):
+            mod.verify(self.log, self.root, True)
+
+    def test_unknown_checksum_valid_scalar_rejected(self):
+        self.assert_reject_mutation(b'END\n', b'rogue foo\nEND\n')
+
+    def test_malformed_checksum_valid_input_rejected(self):
+        self.assert_reject_mutation(b'input 0 1 100 0\n', b'input nonsense\n')
+
+    def test_malformed_checksum_valid_split_rejected(self):
+        self.assert_reject_mutation(b'split finish 1505\n', b'split finish nope\n')
+
+    def test_missing_or_duplicate_required_scalar_rejected(self):
+        self.assert_reject_mutation(b'frame_count 2090\n', b'')
+        self.assert_reject_mutation(b'frame_count 2090\n', b'frame_count 2090\nframe_count 2090\n')
+
+    def test_input_native_range_and_overlap_rejected(self):
+        for bad in (b'input 0 0 100 0\n', b'input 0 1 1000 0\n',
+                    b'input 2090 1 100 0\n',
+                    b'input 0 1 100 0\ninput 0 1 100 0\n',
+                    b'input 18446744073709551616 1 100 0\n'):
+            self.assert_reject_mutation(b'input 0 1 100 0\n', bad)
+
+    def test_split_order_and_bounds_rejected(self):
+        for bad in (b'split finish 1506\n', b'split finish -1\n',
+                    b'split finish 1505\nsplit later 1499\n',
+                    b'split finish 18446744073709551616\n'):
+            self.assert_reject_mutation(b'split finish 1505\n', bad)
+
+    def test_invalid_native_tokens_and_u64_rejected(self):
+        self.assert_reject_mutation(b'build_compat source-pinned\n',
+                                    b'build_compat not/allowed\n')
+        self.assert_reject_mutation(b'frame_count 2090\n',
+                                    b'frame_count 18446744073709551616\n')
+        self.assert_reject_mutation(b'terminal_digest -\n',
+                                    b'terminal_digest not-a-hash\n')
+
+    def test_native_valid_multiple_splits_and_inputs(self):
+        body = record().split(b'checksum ', 1)[0]
+        body = body.replace(b'split finish 1505\n', b'split early 500\nsplit finish 1505\n')
+        body = body.replace(b'input 0 1 100 0\n',
+                            b'input 0 1 100 0\ninput 10 2 0 A00\n')
+        self.path.write_bytes(signed_body(body))
+        receipt, raw = mod.verify(self.log, self.root, True)
+        self.assertEqual(receipt['sha256'], __import__('hashlib').sha256(raw).hexdigest())
 
     def test_symlink_record_rejected(self):
         real = self.root / 'real.urrun'

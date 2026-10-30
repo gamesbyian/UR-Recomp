@@ -22,6 +22,11 @@ on:
         type: boolean
         required: false
         default: false
+      test_hp_compiler_profile:
+        description: "On hosted Windows, compile using HP project settings without reserving owner runner"
+        type: boolean
+        required: false
+        default: false
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -320,12 +325,18 @@ jobs:
             -DSNESRECOMP_SDL3_FETCH=ON \
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
-          # Six physical CPU cores on the HP: test six native MSBuild workers
-          # against previously measured four-worker runtime. The hosted
-          # candidate remains four-way and all QA is otherwise identical.
+          # The hosted PR candidate intentionally compiles using the SAME
+          # build settings as the owner HP. Otherwise an HP-only compiler
+          # experiment can pass hosted tests but fail after merge (MTT/PCH
+          # incident #2875). The runner itself always stays hosted on PRs.
+          # Keep any future HP compiler properties gated by this combined
+          # expression, while HP telemetry remains strictly HP-runner-only.
           HP_BUILD_JOBS=4
-          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
+          if [[ "${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}" == "true" ]]; then
             HP_BUILD_JOBS=6
+          fi
+          echo "UR_COMPILER_PROFILE jobs=$HP_BUILD_JOBS hosted_hp_profile=${{ inputs.test_hp_compiler_profile }}"
+          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
             printf 'phase,timestamp_utc\n' > "$RUNNER_TEMP/hp-compile-phase.csv"
             printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"

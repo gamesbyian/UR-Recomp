@@ -47,16 +47,41 @@ jobs:
               owner, repo, workflow_id: "windows-native-smoke.yml",
               branch: "main", status: "success", per_page: 10
             });
-            const source = data.workflow_runs.find(run =>
+            // A successful build run does NOT imply any particular artifact
+            // was uploaded. ROM-bearing Windows portable ZIPs are forbidden
+            // by current windows-native-smoke upload policy (issue #2852).
+            const candidates = data.workflow_runs.filter(run =>
               run.conclusion === "success" &&
               run.head_branch === "main" &&
-              run.head_repository?.full_name === owner + "/" + repo
+              run.head_repository?.full_name === owner + "/" + repo &&
+              /^[0-9a-f]{40}$/.test(run.head_sha || "")
             );
+            let source = null;
+            for (const run of candidates) {
+              const { data: retained } = await github.rest.actions.listWorkflowRunArtifacts({
+                owner, repo, run_id: run.id, per_page: 100
+              });
+              const available = retained.artifacts.some(a =>
+                a.name === "ur-recomp-windows-x64-portable" &&
+                !a.expired && a.size_in_bytes > 0
+              );
+              if (available) {
+                source = run;
+                break;
+              }
+            }
             if (!source) {
-              core.setFailed("No successful first-party main Windows source package");
+              core.setFailed(
+                "No first-party main Windows smoke run retains the expected " +
+                "ur-recomp-windows-x64-portable artifact. Current policy " +
+                "forbids uploading ROM-bearing packages; see issue #2852. " +
+                "Do not substitute the ROM-free diagnostics archive."
+              );
             } else {
               core.setOutput("run_id", String(source.id));
-              core.info("Using verified main package from " + source.id);
+              core.setOutput("source_sha", source.head_sha);
+              core.info("Using retained portable package from run " +
+                source.id + " source_sha=" + source.head_sha);
             }
 
       - name: Download verified portable package; no game recompilation
@@ -68,7 +93,8 @@ jobs:
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
 
-      - name: Prove packaged real Win32 Down/Enter Restart restores stereo
+      - name: Verify and extract the exact selected portable package
+        id: package-ready
         run: |
           set -euo pipefail
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
@@ -77,7 +103,13 @@ jobs:
           python -m zipfile -e "$ARCHIVE" "$EXTRACT"
           PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          test -f "$PACKAGE/run-uniracers.cmd"
+          echo "WINDOWS_AUDIO_SOURCE_PACKAGE_VERIFIED run_id=${{ steps.source-package.outputs.run_id }}"
 
+      - name: Prove packaged real Win32 Down/Enter Restart restores stereo
+        run: |
+          set -euo pipefail
+          PACKAGE="$RUNNER_TEMP/audio-restart-package/UR-Recomp-Windows-x64"
           LOG="$RUNNER_TEMP/audio-modern-restart-native.log"
           PCM="$RUNNER_TEMP/audio-modern-restart-device.raw"
           ROOT="$RUNNER_TEMP/audio-modern-restart-user"
@@ -130,7 +162,7 @@ jobs:
           rm -f "$PCM"
 
       - name: Capture independent uninterrupted 1P race audio control
-        if: always()
+        if: always() && steps.package-ready.outcome == 'success'
         run: |
           set -euo pipefail
           # The failed Restart test itself deliberately remains red. Keep
@@ -168,7 +200,7 @@ jobs:
           rm -f "$PCM"
 
       - name: Diagnose possible stock guest Start key leakage after Modern Restart
-        if: always()
+        if: always() && steps.package-ready.outcome == 'success'
         run: |
           set -euo pipefail
           # Hypothesis: Return is the framework's default guest SNES Start

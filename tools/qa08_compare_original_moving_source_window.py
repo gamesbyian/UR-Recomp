@@ -106,9 +106,22 @@ def compare(original: dict[int, bytes], native: dict[str, dict[int, bytes]],
 
     decoded = {k: {f: decode_p7(raw) for f, raw in frames.items()}
                for k, frames in native.items()}
+    # Pixel scoring is pure in its two exact RGB byte streams. Synthetic and
+    # real captures may repeat identical frames across callbacks/processes.
+    # Avoid recomputing 256*224 pixel conversions for a byte-identical pair;
+    # this is local to one comparison, cannot bridge separate source epochs,
+    # and never substitutes for the independent input/CRC/geometry validation.
+    scores = {}
+
+    def scored(original_bytes: bytes, native_bytes: bytes) -> dict:
+        key = (original_bytes, native_bytes)
+        if key not in scores:
+            scores[key] = rgb5_match(original_bytes, native_bytes)
+        return scores[key]
+
     # The already accepted post-GO global first-line-prime control must
     # still be exact, or the source correlation in this window is invalid.
-    control = rgb5_match(original[2207], decoded["global"][2208])
+    control = scored(original[2207], decoded["global"][2208])
     if control["different_pixels"]:
         raise ValueError("original/native accepted global-prime postGO source control changed")
 
@@ -120,7 +133,7 @@ def compare(original: dict[int, bytes], native: dict[str, dict[int, bytes]],
             source = decoded[kind][guest]
             samples = []
             for callback in WINDOW:
-                score = rgb5_match(original[callback], source)
+                score = scored(original[callback], source)
                 samples.append({
                     "original_callback": callback,
                     "same_RGB5_pixels": score["identical_RGB5_expanded_pixels"],

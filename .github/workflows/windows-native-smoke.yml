@@ -27,6 +27,11 @@ on:
         type: boolean
         required: false
         default: false
+      hp_ninja_canary:
+        description: "Manual trusted-main HP-only Ninja generator trial; default remains VS 2022"
+        type: boolean
+        required: false
+        default: false
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -45,6 +50,9 @@ on:
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
       - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      - "tools/devnode_benchmark/verify_hp_ninja.py"
+      - "tools/ci/ninja_package_canary.cmd"
+      - "tests/unit/test_hp_ninja_manual_policy.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-title-input-filter.patch"
       - "tools/patches/snesrecomp-source-gamepad-hook.patch"
@@ -99,7 +107,12 @@ jobs:
       (!inputs.run_on_hp ||
        (github.repository == 'gamesbyian/UR-Recomp' &&
         github.ref == 'refs/heads/main' &&
-        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')))
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))) &&
+      (!inputs.hp_ninja_canary ||
+       (inputs.run_on_hp &&
+        github.repository == 'gamesbyian/UR-Recomp' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'workflow_dispatch'))
     runs-on: ${{ inputs.run_on_hp && fromJSON('["self-hosted","Windows","X64"]') || 'windows-2022' }}
     timeout-minutes: ${{ inputs.run_on_hp && 45 || inputs.run_tournament_acceptance && 45 || 20 }}
     env:
@@ -354,12 +367,21 @@ jobs:
           else
             echo "HP_SDL3_PACKAGE=canonical_source_build"
           fi
-          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
-            -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL3 \
-            "${SDL3_ARGS[@]}" \
-            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-            -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          if [[ "${{ inputs.hp_ninja_canary }}" == "true" ]]; then
+            [[ "${{ inputs.run_on_hp }}" == "true" ]] || { echo "HP_NINJA_CANARY=refused_not_hp" >&2; exit 2; }
+            [[ -n "${UR_SDL3_PREBUILT_DIR:-}" ]] || { echo "HP_NINJA_CANARY=no_verified_sdl3" >&2; exit 2; }
+            python tools/devnode_benchmark/verify_hp_ninja.py
+            export UR_NINJA_ROOT="$ROOT" UR_NINJA_FRAMEWORK="$FRAMEWORK" UR_NINJA_WS="$WS"
+            export UR_HP_NINJA_CANARY=1 UR_HP_NINJA_DIR="C:/DevNode/runner-tools/Ninja/v1.13.2"
+            echo "HP_NINJA_CANARY=trusted_main_manual_source_bound"
+          else
+            cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
+              -DSNESRECOMP_ROOT="$FRAMEWORK" \
+              -DSNESRECOMP_SDL_BACKEND=SDL3 \
+              "${SDL3_ARGS[@]}" \
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
+              -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          fi
           # The hosted PR candidate intentionally compiles using the SAME
           # build settings as the owner HP. Otherwise an HP-only compiler
           # experiment can pass hosted tests but fail after merge (MTT/PCH
@@ -376,7 +398,13 @@ jobs:
             printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"
           fi
-          cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          if [[ "${{ inputs.hp_ninja_canary }}" == "true" ]]; then
+            # Include Ninja configure and compile within a single measured phase.
+            echo "HP_NINJA_COMPILE_WINDOW=configure_plus_build"
+            MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd.exe /d /c "$(cygpath -w "$GITHUB_WORKSPACE/tools/ci/ninja_package_canary.cmd")"
+          else
+            cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          fi
           if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
             printf 'build_end,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_end"

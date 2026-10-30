@@ -42,6 +42,9 @@ on:
       - "tests/unit/test_windows_portable_binary.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      - "tools/devnode_benchmark/verify_hp_ninja.py"
+      - "tools/ci/ninja_package_canary.cmd"
+      - "tests/unit/test_hp_ninja_manual_policy.py"
       - "tools/devnode_benchmark/**"
       - "tools/patches/**"
       - "tools/toolchain-entries/snesrecomp.json"
@@ -50,6 +53,12 @@ on:
       - "third_party/archives/**"
       - "reference/roms/retail/Uniracers_USA.sfc"
   workflow_dispatch:
+    inputs:
+      ninja_trial:
+        description: "Explicit main-only HP Ninja full-package trial; requires one-click verified tool installation"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -63,3 +72,4 @@ jobs:
     uses: ./.github/workflows/windows-native-smoke.yml
     with:
       run_on_hp: true
+      hp_ninja_canary: ${{ github.event_name == 'workflow_dispatch' && inputs.ninja_trial }}

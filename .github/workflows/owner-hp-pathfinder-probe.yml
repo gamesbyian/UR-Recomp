@@ -24,8 +24,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: gamesbyian/Pathfinder-Game
-          # Temporary test branch, to be replaced by main after upstream fix merges.
-          ref: ops/windows-solver-cli-portability-20261029
+          # Exact Windows-tested Pathfinder PR head, for reproducible benchmark evidence.
+          ref: 0421ac2fb60cb7ebfb5b4cbcddfb360a11c04aa8
           path: pathfinder
           persist-credentials: false
           filter: blob:none

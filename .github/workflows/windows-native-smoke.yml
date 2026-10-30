@@ -244,6 +244,12 @@ jobs:
           for rel in repaired:
               print("checkout bytes restored:", rel)
           PY
+      - name: Start durable HP memory and reboot telemetry
+        if: inputs.run_on_hp
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tools/devnode_benchmark/monitor_hp_commit.ps1 -Mode Start
+
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail
@@ -1364,6 +1370,14 @@ jobs:
             | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
           python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
 
+      # Stop the observer on success *or* failure. The numeric CSV remains in
+      # the runner workspace even when Windows freezes before artifact upload.
+      - name: Preserve HP resource telemetry
+        if: ${{ always() && inputs.run_on_hp }}
+        shell: powershell
+        run: |
+          powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tools/devnode_benchmark/monitor_hp_commit.ps1 -Mode Stop
+
       # ROM-bearing packages are verified internally, never uploaded.
       - name: Verify archive-free Windows artifact upload policy
         if: always()
@@ -1379,6 +1393,7 @@ jobs:
           name: windows-native-smoke
           path: |
             ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/hp-commit-pressure.csv
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/

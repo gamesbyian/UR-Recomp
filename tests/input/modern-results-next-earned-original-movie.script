@@ -149,5 +149,10 @@ press a 2
 # Observe the actual SRAM after the A cadence; do not require a screen exit.
 wait 60
 dump next-event-post-confirm
+# Observe whether the awarded medal exits the source's forced-blank frame
+# without inventing a host menu transition or extra controller input.
 wait 120
+dump next-event-post-confirm-plus-120
+wait 120
+dump next-event-post-confirm-plus-240
 quit

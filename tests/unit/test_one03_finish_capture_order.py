@@ -43,6 +43,15 @@ class One03FinishCaptureOrder(unittest.TestCase):
         )
         self.assertIn('g_run_capture.observe_split(', split)
 
+    def test_post_award_visual_continuation_is_source_observed(self):
+        script = (ROOT / "tests/input/modern-results-next-earned-original-movie.script").read_text(encoding="utf-8")
+        self.assertIn(
+            "wait 60\ndump next-event-post-confirm\n"
+            "wait 120\ndump next-event-post-confirm-plus-120\n"
+            "wait 120\ndump next-event-post-confirm-plus-240\nquit",
+            script,
+        )
+
     def test_failed_finish_split_is_not_silently_ignored(self):
         finalize = body(
             self.source,

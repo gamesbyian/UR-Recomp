@@ -44,6 +44,64 @@ class HPSDL3CacheTests(unittest.TestCase):
             (stage / "SDL3.dll").write_bytes(b"bad shared library")
             self.assertIsNone(cache.validate_stage(root, identity))
 
+    def test_corrupt_derived_cache_recovers_without_touching_neighbour(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            entry = root / ("a" * 24)
+            (entry / "stage").mkdir(parents=True)
+            (entry / "stage" / "broken.lib").write_bytes(b"tampered")
+            neighbour = root / ("b" * 24)
+            neighbour.mkdir()
+            (neighbour / "keep.txt").write_text("untouched", encoding="utf-8")
+            self.assertIsNone(cache.validate_stage(entry, {"identity": "expected"}))
+            cache.discard_invalid_entry(entry)
+            self.assertFalse(entry.exists())
+            self.assertEqual((neighbour / "keep.txt").read_text("utf-8"), "untouched")
+            self.assertFalse(list(root.glob(".invalid-*")))
+
+    def test_corrupt_cache_refuses_arbitrary_path_and_non_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            outside = root / "user_data"
+            outside.mkdir()
+            (outside / "keep.txt").write_text("private", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                cache.discard_invalid_entry(outside)
+            invalid_file = root / ("d" * 24)
+            invalid_file.write_text("not a derived directory", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                cache.discard_invalid_entry(invalid_file)
+            self.assertEqual((outside / "keep.txt").read_text("utf-8"), "private")
+            self.assertTrue(invalid_file.is_file())
+
+    def test_corrupt_cache_refuses_symlink_to_other_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            user = root / "user"
+            user.mkdir()
+            entry = root / ("e" * 24)
+            try:
+                entry.symlink_to(user, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner account cannot create Windows symlinks")
+            with self.assertRaises(ValueError):
+                cache.discard_invalid_entry(entry)
+            self.assertTrue(user.is_dir())
+
+    def test_interrupted_quarantine_remains_fail_closed_and_key_reusable(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            entry = root / ("f" * 24)
+            entry.mkdir()
+            with patch.object(cache.shutil, "rmtree", side_effect=OSError("locked")):
+                with self.assertRaises(OSError):
+                    cache.discard_invalid_entry(entry)
+            self.assertFalse(entry.exists())
+            self.assertEqual(len(list(root.glob(".invalid-" + entry.name + "-*"))), 1)
+            entry.mkdir()  # subsequent run is able to reconstruct the key
+            self.assertTrue(entry.is_dir())
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

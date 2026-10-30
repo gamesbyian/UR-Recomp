@@ -121,6 +121,35 @@ def cache_key(identity: dict) -> str:
     return hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:24]
 
 
+
+def discard_invalid_entry(entry: Path) -> None:
+    """Recover one invalid, private, derived cache entry without touching peers.
+
+    The cache is deliberately a direct hex-key child of a private directory.
+    Never delete a symlink/junction (including a nested Windows reparse point),
+    an arbitrary caller-provided path, or any non-directory cache occupant.
+    An atomic move frees the key before deletion; if cleanup is interrupted,
+    the next attempt can still rebuild, and the orphan remains visibly named.
+    """
+    import re
+    import uuid
+
+    if not re.fullmatch(r"[0-9a-f]{24}", entry.name):
+        raise ValueError("invalid SDL3 cache entry key")
+    if entry.parent.is_symlink() or getattr(entry.parent, "is_junction", lambda: False)():
+        raise ValueError("refuse cache repair through a reparse-point root")
+    if not entry.is_dir() or entry.is_symlink() or getattr(entry, "is_junction", lambda: False)():
+        raise ValueError("refuse cache repair on non-directory or reparse point")
+    for child in entry.rglob("*"):
+        if child.is_symlink() or getattr(child, "is_junction", lambda: False)():
+            raise ValueError("refuse cache repair with nested reparse points")
+    quarantine = entry.with_name(".invalid-" + entry.name + "-" + uuid.uuid4().hex)
+    entry.rename(quarantine)
+    # The only recursively deleted tree is the exact private derived entry
+    # just renamed inside the same cache root, never a user-controlled target.
+    shutil.rmtree(quarantine)
+
+
 def build_stage(entry: Path, source: Path, identity: dict, jobs: int) -> Path:
     """Publish only a finished, byte-manifested, standalone install."""
     entry.parent.mkdir(parents=True, exist_ok=True)
@@ -178,6 +207,9 @@ def main() -> int:
         package_dir = validate_stage(entry, identity)
         state = "hit" if package_dir else "miss"
         if package_dir is None:
+            if entry.exists() or entry.is_symlink():
+                discard_invalid_entry(entry)
+                state = "recovered"
             package_dir = build_stage(entry, args.source, identity, args.jobs)
         # GITHUB_ENV is appended only after successful complete validation.
         with args.github_env.open("a", encoding="utf-8") as f:

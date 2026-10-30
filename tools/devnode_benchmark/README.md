@@ -49,3 +49,24 @@ package and QA checks, compare wall time/CPU/memory to #41122361691, and only
 then claim a measured saving. The first cache cold build costs work and disk
 space; unchanged product acceptance rules and the separate 4K/physical
 release checks remain in force.
+
+### Recovering a corrupt local SDL3 cache safely
+
+A cache entry is a derived private build product, addressed by one 24-hex
+source/toolchain fingerprint. A corrupted entry previously forced all subsequent
+HP builds onto the slower source fallback. The recovery helper now atomically
+moves **only that direct-key private directory** to a uniquely named quarantine
+sibling, deletes that derived copy, and builds a new exact-source install.
+It refuses arbitrary path names, files, symbolic links and Windows directory
+junctions, including nested reparse points.
+
+If a rename/deletion is blocked, the current HP build uses the existing
+source fallback. The next run can reconstruct the now-free key. An interrupted
+deletion can leave an `.invalid-KEY-NONCE` sibling as diagnostic evidence;
+quarantines never count as valid caches.
+
+`HP_SDL3_CACHE=recovered` indicates recovery plus completed fresh static
+install; this is a cache **miss**, not an instantaneous hit or release gate.
+The helper never changes user folders, global installs, runner registration,
+Windows pagefile/power policy, or any source/build acceptance rule.
+

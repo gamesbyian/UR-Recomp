@@ -11,6 +11,8 @@ on:
       - ".github/workflows/qa05-qa09-windows-candidate.yml"
       - ".github/workflows/windows-native-smoke.yml"
       - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      - "tools/ci/ninja_package_canary.cmd"
+      - "tests/unit/test_hp_ninja_package_policy.py"
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"
@@ -44,3 +46,4 @@ jobs:
       # The reusable run_on_hp input stays false: no PR can reach the
       # personal runner or run HP-only setup/telemetry steps.
       test_hp_compiler_profile: true
+      test_ninja_generator_profile: true

@@ -27,6 +27,11 @@ on:
         type: boolean
         required: false
         default: false
+      test_ninja_generator_profile:
+        description: "Hosted PR-only Ninja Multi-Config package/QA pilot; never owner HP"
+        type: boolean
+        required: false
+        default: false
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -99,7 +104,10 @@ jobs:
       (!inputs.run_on_hp ||
        (github.repository == 'gamesbyian/UR-Recomp' &&
         github.ref == 'refs/heads/main' &&
-        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')))
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))) &&
+      (!inputs.test_ninja_generator_profile ||
+       (!inputs.run_on_hp && inputs.test_hp_compiler_profile &&
+        github.event_name == 'pull_request'))
     runs-on: ${{ inputs.run_on_hp && fromJSON('["self-hosted","Windows","X64"]') || 'windows-2022' }}
     timeout-minutes: ${{ inputs.run_on_hp && 45 || inputs.run_tournament_acceptance && 45 || 20 }}
     env:
@@ -354,12 +362,20 @@ jobs:
           else
             echo "HP_SDL3_PACKAGE=canonical_source_build"
           fi
-          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
-            -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL3 \
-            "${SDL3_ARGS[@]}" \
-            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-            -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          if [[ "${{ inputs.test_ninja_generator_profile }}" == "true" ]]; then
+            [[ -n "${UR_SDL3_PREBUILT_DIR:-}" ]] || { echo "NINJA_FULL_PACKAGE=no_verified_sdl3" >&2; exit 2; }
+            export UR_NINJA_ROOT="$ROOT" UR_NINJA_FRAMEWORK="$FRAMEWORK" UR_NINJA_WS="$WS"
+            started="$(date +%s)"
+            MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd.exe /d /c "$(cygpath -w "$GITHUB_WORKSPACE/tools/ci/ninja_package_canary.cmd")"
+            echo "NINJA_FULL_PACKAGE=compiled_and_linked elapsed_seconds=$(( $(date +%s) - started ))"
+          else
+            cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
+              -DSNESRECOMP_ROOT="$FRAMEWORK" \
+              -DSNESRECOMP_SDL_BACKEND=SDL3 \
+              "${SDL3_ARGS[@]}" \
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
+              -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          fi
           # The hosted PR candidate intentionally compiles using the SAME
           # build settings as the owner HP. Otherwise an HP-only compiler
           # experiment can pass hosted tests but fail after merge (MTT/PCH
@@ -376,7 +392,9 @@ jobs:
             printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"
           fi
-          cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          if [[ "${{ inputs.test_ninja_generator_profile }}" != "true" ]]; then
+            cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          fi
           if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
             printf 'build_end,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_end"

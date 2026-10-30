@@ -45,10 +45,19 @@ class ArmBoundaryTests(unittest.TestCase):
             watcher()
         capture.assert_not_called()
 
-    def test_exact_start_at_arm_is_allowed(self):
+    def test_exact_start_at_arm_is_rejected(self):
+        # Pre-arm event #99 can be voice-7 KON at sample index 44500.
+        # It is skipped by the arm event cursor but its first PCM sample
+        # lies in the selected [44500, 47000) window.
         watcher, capture = self.run_case(44500)
+        with self.assertRaisesRegex(ValueError, 'touches its sample boundary'):
+            watcher()
+        capture.assert_not_called()
+
+    def test_strictly_after_arm_is_allowed(self):
+        watcher, capture = self.run_case(44499)
         result = watcher()
-        self.assertEqual(result['arm_produced_samples'], 44500)
+        self.assertEqual(result['arm_produced_samples'], 44499)
         self.assertEqual(result['kon_sample_index'], 45000)
         capture.assert_called_once()
 

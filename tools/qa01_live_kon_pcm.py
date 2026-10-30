@@ -77,8 +77,11 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
             # Events before the arm cursor are intentionally not scanned. If
             # the pre-KON PCM slice predates arming, an earlier voice-7 KON
             # could be inside it without appearing in the selected event set.
-            if start < arm_produced:
-                raise ValueError("pre-KON PCM window predates live arm; earlier KON not excluded")
+            # A pre-arm KON can share the arm snapshot's produced sample
+            # index: register events are stamped before the next PCM sample.
+            # Equality therefore does not exclude an unobserved earlier KON.
+            if start <= arm_produced:
+                raise ValueError("pre-KON PCM window predates live arm or touches its sample boundary; earlier KON not excluded")
             if produced - start > capacity:
                 raise ValueError("live PCM ring retention window already expired")
             if produced >= candidate["s"] + after:

@@ -6,6 +6,7 @@ import unittest
 import wave
 from pathlib import Path
 import sys
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -103,6 +104,28 @@ class NativeKonPCMTests(unittest.TestCase):
     def test_invalid_sample_index_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "malformed native KON"):
             pcm.kon_candidates([{"s": "40000", "t": "reg", "adr": "0x4c", "val": "0x80"}])
+
+    def test_output_alias_rejected_before_debug_server_connect(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            native = root / "native.exe"
+            native.write_bytes(b"fake test executable")
+            aliased_dir = root / "alias"
+            aliased_dir.symlink_to(root, target_is_directory=True)
+            for wav_path, json_path in (
+                (root / "same.wav", root / "same.wav"),
+                (root / "same.wav", aliased_dir / "same.wav"),
+                (root / "same.wav", root / "other" / ".." / "same.wav"),
+            ):
+                with self.subTest(wav=wav_path, json=json_path):
+                    with mock.patch.object(sys, "argv", ["pcm", "--kon-sample-index", "40000",
+                         "--wav-out", str(wav_path), "--json-out", str(json_path),
+                         "--source-sha", "a" * 40, "--native-executable", str(native)]), \
+                         mock.patch.object(pcm, "connect", side_effect=AssertionError("must not connect")), \
+                         self.assertRaises(SystemExit) as error:
+                        pcm.main()
+                    self.assertEqual(error.exception.code, 2)
+                    self.assertFalse(wav_path.exists())
 
 
 if __name__ == "__main__":

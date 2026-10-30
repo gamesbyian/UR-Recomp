@@ -32,6 +32,12 @@ def kon_candidates(events: list[dict]) -> list[int]:
     return found
 
 
+def validate_output_separation(wav_path: Path, json_path: Path) -> None:
+    """Reject equivalent paths before connecting or producing either artifact."""
+    if wav_path.resolve(strict=False) == json_path.resolve(strict=False):
+        raise ValueError("WAV and JSON output paths must be distinct")
+
+
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
                     kon_sample_index: int, wav_path: Path,
                     before: int = 4096, after: int = 32768) -> dict:
@@ -104,6 +110,10 @@ def main() -> int:
         ap.error("--source-sha must be a 40-digit lowercase Git SHA")
     if not args.native_executable.is_file() or args.native_executable.is_symlink():
         ap.error("real native executable required for binary provenance")
+    try:
+        validate_output_separation(args.wav_out, args.json_out)
+    except ValueError as exc:
+        ap.error(str(exc))
     if args.json_out.exists() or args.json_out.is_symlink():
         ap.error("refusing to overwrite existing evidence JSON")
     sock, reader = connect(args.host, args.port, 20)
@@ -125,7 +135,8 @@ def main() -> int:
     result["kon_candidates_in_retained_event_ring"] = kon_candidates(report["events"])
     result["producer_sample_count_before_capture"] = report["stats"]["produced"]
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
-    args.json_out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    with args.json_out.open("x", encoding="utf-8") as receipt_file:
+        receipt_file.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(f"QA01 native DSP KON PCM captured: {result['sample_frames']} samples, "
           f"KON at +{result['kon_offset_frames']}, WAV sha256={result['wav_sha256']}")
     return 0

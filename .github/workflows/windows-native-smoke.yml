@@ -1448,13 +1448,17 @@ jobs:
           if errorlevel 1 exit /b 13
           cmake --build "$BUILD" --config Release --parallel 6
           if errorlevel 1 exit /b 14
+          dumpbin.exe /dependents "$BUILD/Release/UniracersSNESRecomp.exe" >"$RUNNER_TEMP/ninja-pilot-runtime-dependencies.log"
+          if errorlevel 1 exit /b 15
           BATCH
           started="$(date +%s)"
           MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd.exe /d /c "$(cygpath -w "$NINJA_BATCH")"
           elapsed=$(( $(date +%s) - started ))
           EXE_NINJA="$(find "$BUILD" -name 'UniracersSNESRecomp.exe' -path '*Release*' -type f | head -n1)"
           test -n "$EXE_NINJA"
-          python tools/check_windows_portable_binary.py --exe "$EXE_NINJA"
+          python tools/check_windows_portable_binary.py \
+            --exe "$EXE_NINJA" \
+            --dependencies "$RUNNER_TEMP/ninja-pilot-runtime-dependencies.log"
           echo "NINJA_PILOT=compile_and_portable_pe_passed elapsed_seconds=$elapsed"
           sha256sum "$EXE_NINJA"
 

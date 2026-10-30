@@ -21,10 +21,10 @@ class ModernRestartAudioTests(unittest.TestCase):
     )
 
     def test_focus_loss_before_intended_host_pause_fails_fast(self):
-        auto_pause = "UR_FOCUS_PAUSE APPLIED focus=0 setting=1 modern=1\\n"
+        auto_pause = "UR_FOCUS_PAUSE APPLIED focus=0 setting=1 modern=1\n"
         with self.assertRaisesRegex(RuntimeError, "focus-loss auto-pause"):
             reject_unexpected_pre_pause_focus(
-                "script f=829 dump now-playing-ready ok\\n" + auto_pause)
+                "script f=829 dump now-playing-ready ok\n" + auto_pause)
         with self.assertRaisesRegex(RuntimeError, "focus-loss auto-pause"):
             reject_unexpected_pre_pause_focus(auto_pause + self.LOG)
 
@@ -32,7 +32,7 @@ class ModernRestartAudioTests(unittest.TestCase):
         # pre-empt normal Restart audio or post-acceptance focus diagnostics.
         reject_unexpected_pre_pause_focus(self.LOG)
         reject_unexpected_pre_pause_focus(self.LOG + auto_pause)
-        reject_unexpected_pre_pause_focus("script f=829 dump now-playing-ready ok\\n")
+        reject_unexpected_pre_pause_focus("script f=829 dump now-playing-ready ok\n")
 
     def test_real_restart_requires_available_selection_unpause_and_guest_advance(self):
         evidence = verify_restart_log(self.LOG)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dispatch only two existing manual CI workflows, via owner PR comments.
+"""Dispatch narrowly allowlisted CI workflows via repository-owner PR comments.
 
 A successful dispatch is NOT a successful test: inspect the target run's
 actual checkout SHA and full evidence before using it for PR qualification.
@@ -11,7 +11,9 @@ from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-COMMAND = re.compile(r"/ur-ci run (tooling-unit-tests\.yml|ghost-target-native-acceptance\.yml) ([0-9a-f]{40})\Z")
+COMMAND = re.compile(
+    r"/ur-ci run (tooling-unit-tests\.yml|ghost-target-native-acceptance\.yml|modern-results-navigation-acceptance\.yml) ([0-9a-f]{40})(?: (earned))?\Z"
+)
 REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 REF = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,119}\Z")
 
@@ -26,6 +28,11 @@ def intent(event, repo, owner):
     match = COMMAND.fullmatch(body.strip()) if isinstance(body, str) else None
     if not match:
         return None
+    workflow, sha, shard = match.groups()
+    # The native earned route is deliberately draft-only and fixed-input.
+    # Existing ready-state qualification commands cannot acquire inputs.
+    if (workflow == "modern-results-navigation-acceptance.yml") != (shard == "earned"):
+        return None
     user = comment.get("user")
     record = event.get("repository")
     if (not isinstance(repo, str) or not REPO.fullmatch(repo)
@@ -38,14 +45,14 @@ def intent(event, repo, owner):
     number = issue.get("number")
     if type(number) is not int or number < 1 or number > 999999999:
         raise ValueError("Invalid pull request number")
-    return number, match.group(1), match.group(2)
+    return number, workflow, sha, shard
 
 
-def exact_head(pr, number, repo, sha):
+def exact_head(pr, number, repo, sha, *, require_draft=False):
     if (not isinstance(pr, dict) or pr.get("number") != number
-            or pr.get("state") != "open" or pr.get("draft") is not False
+            or pr.get("state") != "open" or pr.get("draft") is not require_draft
             or not isinstance(pr.get("head"), dict)):
-        raise ValueError("PR is not open/ready with an actual head")
+        raise ValueError("PR has wrong open/draft state or no actual head")
     head = pr["head"]
     origin, branch = head.get("repo"), head.get("ref")
     if (not isinstance(origin, dict) or origin.get("full_name") != repo
@@ -85,12 +92,15 @@ def process(event, repo, owner, get_pr, get_runs, dispatch):
     request = intent(event, repo, owner)
     if request is None:
         return None
-    number, workflow, sha = request
-    ref = exact_head(get_pr(number), number, repo, sha)
+    number, workflow, sha, shard = request
+    ref = exact_head(get_pr(number), number, repo, sha, require_draft=(shard == "earned"))
     active = active_run_id(get_runs(workflow, ref), ref, sha)
     if active is not None:
         return (number, workflow, sha, ref, active)
-    dispatch(workflow, ref)
+    if shard == "earned":
+        dispatch(workflow, ref, {"results_shard": "earned"})
+    else:
+        dispatch(workflow, ref)
     return (number, workflow, sha, ref, None)
 
 
@@ -119,17 +129,19 @@ def main():
         lambda name, ref: api(repo, token, "GET",
             "/actions/workflows/" + name + "/runs?" +
             urlencode({"branch": ref, "event": "workflow_dispatch", "per_page": 100})),
-        lambda name, ref: api(repo, token, "POST",
-            "/actions/workflows/" + name + "/dispatches", {"ref": ref}))
+        lambda name, ref, inputs=None: api(repo, token, "POST",
+            "/actions/workflows/" + name + "/dispatches",
+            {"ref": ref, **({"inputs": inputs} if inputs is not None else {})}))
     if result is not None:
         number, workflow, sha, ref, existing_id = result
+        qualifier = " (results_shard=earned)" if workflow == "modern-results-navigation-acceptance.yml" else ""
         if existing_id is None:
-            message = ("Requested " + workflow + " for PR #" + str(number) +
+            message = ("Requested " + workflow + qualifier + " for PR #" + str(number) +
                        " at branch " + ref + " (expected source " + sha +
                        "). Dispatch only, NOT test qualification. Verify checkout SHA.")
         else:
             message = ("SKIPPED duplicate dispatch for PR #" + str(number) +
-                       ": existing in-flight workflow " + workflow +
+                       ": existing in-flight workflow " + workflow + qualifier +
                        " run #" + str(existing_id) + " already targets " + sha +
                        ". Verify that run; do not restart it.")
         print(message)

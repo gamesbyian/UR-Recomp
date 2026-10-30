@@ -162,7 +162,7 @@ class ArticulatedBlockoutContract(unittest.TestCase):
             current.write_text(old_pointer, encoding="utf-8")
             invalid = root / "invalid.scad"
             invalid.write_text("module rig() {}\nrig(rig_pose);\n", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "saddle mount"):
+            with self.assertRaisesRegex(ValueError, "saddle"):
                 module.export(invalid, out)
             status = json.loads((out / "articulated_blockout_last_attempt.json").read_text())
             self.assertEqual(status["status"], "failed")

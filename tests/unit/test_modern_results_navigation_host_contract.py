@@ -169,6 +169,266 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("!g_next_event_verify_track", acceptance)
         self.assertNotIn("activate_results_navigation_action(", acceptance)
 
+
+    def test_opt_in_second_race_and_cold_process_never_accept_route_only(self):
+        source = HOST.read_text(encoding="utf-8")
+        acceptance = _body(
+            source, "void run_results_navigation_acceptance() {",
+            'extern "C" void ur_uniracers_modern_after_run_frame(')
+        self.assertIn('std::strcmp(mode, "next-earned") == 0', acceptance)
+        self.assertIn('std::strcmp(mode, "next-earned-movie") == 0', acceptance)
+        # Stock Next Event menu input reloads must finish before the 2014
+        # source movie is loaded; the same rising race edge then arms it.
+        route = _body(
+            source, "void advance_tour_continue_route(uint64_t next_frame) {",
+            "if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle)")
+        capture = _body(
+            source, "bool begin_run_record_capture(uint64_t host_frame) {",
+            "const UrUniracersCourseIdentity course =")
+        self.assertNotIn("snesrecomp_desktop_load_relative_input_file(source)", acceptance)
+        self.assertIn("snesrecomp_desktop_load_relative_input_file(source)", route)
+        self.assertIn("NEXT_MOVIE_SOURCE_INPUT_BOUND", route)
+        self.assertIn("NEXT_MOVIE_RACE_EDGE_INVALID", route)
+        self.assertIn("g_results_navigation_acceptance_stage == 1", route)
+        self.assertIn("!g_run_capture_previous_active", route)
+        self.assertIn("g_results_navigation_movie_pending_arm = true", route)
+        self.assertLess(
+            route.index("snesrecomp_desktop_load_relative_input_file(source)"),
+            route.index('cancel_tour_continue("UR_NEXT_EVENT RACE_ENTERED");', route.index("g_results_navigation_movie_pending_arm = true")))
+        self.assertIn("snesrecomp_desktop_arm_relative_input(host_frame)", capture)
+        self.assertIn("NEXT_MOVIE_ARMED_AT_RACE_ENTRY", capture)
+        self.assertLess(
+            capture.index("snesrecomp_desktop_arm_relative_input(host_frame)"),
+            capture.index("NEXT_MOVIE_ARMED_AT_RACE_ENTRY"))
+        self.assertIn("g_results_navigation_acceptance_stage = 2;", acceptance)
+        self.assertIn("g_run_finish_ticks60.has_value()", acceptance)
+        self.assertIn("g_results_navigation_acceptance_first_sram", acceptance)
+        self.assertIn("g_profile_state->autosave_generation >", acceptance)
+        self.assertIn("NEXT_EARNED_RESULT observed=1", acceptance)
+        harness = HARNESS.read_text(encoding="utf-8")
+        subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
+        self.assertIn('run_case next-earned 01111 next-earned "$EARNED_SCRIPT"', harness)
+        self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", harness)
+        self.assertIn("NEXT_MOVIE_ARMED_AT_RACE_ENTRY", harness)
+        self.assertIn("if second_raw == first_raw:", harness)
+        self.assertIn("if cold_raw != after_cold:", harness)
+        self.assertIn('fields["stock_sram"]', harness)
+        self.assertIn("if not source_earned_tour_awarded(first_raw, second_raw, award_raw):", harness)
+        self.assertIn("next-earned-pre-cold.srm", harness)
+        self.assertIn("UR_ONE03_USE_2014_SOURCE_INPUT", harness)
+        self.assertIn("--first-movie-frame 794 --frames 2080", harness)
+        self.assertIn("dragster-2014-relative.input", harness)
+        script = (ROOT / "tests/input/modern-results-next-earned.script").read_text()
+        self.assertGreaterEqual(script.count("until 009F == 99"), 2)
+        self.assertIn("dump next-event-race-results", script)
+        self.assertIn("until 0313 == 01 3600", script)
+        self.assertFalse(any(line.lstrip().startswith("poke ") for line in script.splitlines()))
+        cold = (ROOT / "tests/input/modern-results-cold-reopen.script").read_text()
+        self.assertIn("dump cold-main-menu", cold)
+        movie = (ROOT / "tests/input/modern-results-next-earned-original-movie.script").read_text()
+        self.assertIn("until 0313 == 01 3600", movie)
+        self.assertIn("until 009F == 99 4800", movie)
+        before_second = movie.split("dump race-results", 1)[1].split(
+            "dump next-event-race-results", 1)[0]
+        self.assertFalse(any(line.startswith("press ")
+                             for line in before_second.splitlines()))
+        post = movie.split("dump next-event-pre-confirm", 1)[1]
+        self.assertEqual(
+            [line for line in post.splitlines() if line.startswith("press ")],
+            ["press a 1"] + ["press a 2"] * 5)
+        self.assertIn("dump next-event-post-confirm", post)
+        self.assertNotIn("until 009F != 99", post)
+        self.assertIn('if (std::strcmp(mode, "next-earned-movie") != 0)', acceptance)
+
+    def test_earned_tour_award_requires_real_win_and_completed_clear(self):
+        # Execute the same Python predicate embedded in the acceptance
+        # heredoc, rather than a second approximation of its conditions.
+        import ast
+        harness = HARNESS.read_text(encoding="utf-8")
+        marker = "def source_earned_tour_awarded(first_raw, second_raw, award_raw):"
+        self.assertIn(marker, harness)
+        body = _body(harness, marker, "if not source_earned_tour_awarded(")
+        parsed = ast.parse(body)
+        self.assertEqual(len(parsed.body), 1)
+        namespace = {}
+        exec(compile(ast.Module(body=parsed.body, type_ignores=[]),
+                     str(HARNESS), "exec"), namespace)
+        check_award = namespace["source_earned_tour_awarded"]
+
+        def sram(row, medal, p1=2508, cpu=2798):
+            raw = bytearray(8192)
+            raw[0x1075:0x107A] = bytes(row)
+            raw[0x069C] = medal
+            raw[0x0769:0x076B] = p1.to_bytes(2, "little")
+            raw[0x07D3:0x07D5] = cpu.to_bytes(2, "little")
+            return bytes(raw)
+
+        def check(first, award):
+            return check_award(first, award, award)
+
+        first = sram([0, 1, 1, 1, 1], 0, p1=2856)
+        self.assertTrue(check(first, sram([0, 0, 0, 0, 0], 1)))
+        # The real winning RESULTS may precede the source's stock A-confirm.
+        self.assertTrue(check_award(
+            first, sram([0, 1, 1, 1, 1], 0, p1=2508, cpu=2581),
+            sram([0, 0, 0, 0, 0], 1, p1=0, cpu=0)))
+        # A malformed fifth byte, a medal without the source-mandated
+        # row clear, and a fifth flag without award are not completed tours.
+        self.assertFalse(check(first, sram([2, 1, 1, 1, 1], 0)))
+        self.assertFalse(check(first, sram([0, 1, 1, 1, 1], 1)))
+        self.assertFalse(check(first, sram([1, 1, 1, 1, 1], 0)))
+        # Even a plausible cleared row and new medal cannot certify a loss.
+        self.assertFalse(check(first, sram([0, 0, 0, 0, 0], 1, p1=2856)))
+        self.assertFalse(check(first, sram([0, 0, 0, 0, 0], 0)))
+
+
+    def test_earned_cold_reopen_executes_full_post_award_block(self):
+        # A valid award previously passed the inner predicate but raised
+        # NameError on function-local final_row/final_medal in the outer scope.
+        import sys
+        import tempfile
+
+        harness = HARNESS.read_text(encoding="utf-8")
+        marker = '"$COLD_DUMPS/cold-main-menu.sram.bin"'
+        newline = chr(10)
+        start_marker = "<<'PY'" + newline
+        start = harness.index(start_marker, harness.index(marker)) + len(start_marker)
+        script = harness[start:harness.index(newline + "PY" + newline, start)]
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            paths = [root / name for name in (
+                "first.bin", "second.bin", "pre-save.srm", "pre-profile.txt",
+                "post-save.srm", "post-profile.txt", "cold.bin",
+                "post-award.bin", "no-confirm.bin")]
+            first = bytearray(8192)
+            first[0x1075:0x107A] = bytes((0, 1, 1, 1, 1))
+            second = bytearray(first)
+            second[0x1075:0x107A] = bytes(5)
+            second[0x069C] = 1
+            second[0x0769:0x076B] = (2508).to_bytes(2, "little")
+            second[0x07D3:0x07D5] = (2798).to_bytes(2, "little")
+            paths[0].write_bytes(first)
+            for index in (1, 2, 4, 6, 7, 8):
+                paths[index].write_bytes(second)
+            for index in (3, 5):
+                paths[index].write_text("stock_sram=" + second.hex() + newline)
+            # The post-confirm dump must be a distinct source epoch, even
+            # when only a non-award SRAM byte changed at the transition.
+            post_award = bytearray(second)
+            post_award[0x0050] ^= 1
+            paths[7].write_bytes(post_award)
+            command = [sys.executable, "-c", script, *map(str, paths)]
+            valid = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(valid.returncode, 0, valid.stderr)
+            self.assertIn("NEXT_EARNED_COLD_REOPEN=source_second_result=1", valid.stdout)
+            # The first process continues for 180 frames after the
+            # RESULTS dump. Its post-save typed profile and disk image must
+            # agree at shutdown; unrelated bytes may change in that epoch.
+            pre_exit = bytearray(second)
+            pre_exit[0x10AD] ^= 1
+            paths[2].write_bytes(pre_exit)
+            paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            paths[5].write_text("stock_sram=" + pre_exit.hex() + newline)
+            pre_transient = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(pre_transient.returncode, 0, pre_transient.stderr)
+            self.assertIn("result_to_exit_changed_offsets=10AD", pre_transient.stdout)
+            # Reject a stale typed snapshot even when its original RESULTS
+            # bytes happen to match the earlier dump.
+            paths[3].write_text("stock_sram=" + second.hex() + newline)
+            pre_stale = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(pre_stale.returncode, 0)
+            self.assertIn("pre-cold typed SRAM/save mismatch", pre_stale.stderr)
+            paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            # Reject a lost medal before reboot, even if the pre-cold typed
+            # profile and on-disk save are mutually consistent.
+            pre_lost = bytearray(pre_exit)
+            pre_lost[0x069C] = 0
+            paths[2].write_bytes(pre_lost)
+            paths[3].write_text("stock_sram=" + pre_lost.hex() + newline)
+            pre_rejected = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(pre_rejected.returncode, 0)
+            self.assertIn("second-result tour/medal not persisted", pre_rejected.stderr)
+            paths[2].write_bytes(pre_exit)
+            paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            # The raw cold guest/disk may change only the three source-
+            # observed boot-state bytes; the typed profile remains the
+            # exact pre-cold committed result snapshot.
+            cold = bytearray(pre_exit)
+            cold[0x0742] ^= 2
+            cold[0x0743] ^= 4
+            cold[0x10AD] ^= 1
+            for index in (4, 6):
+                paths[index].write_bytes(cold)
+            paths[5].write_text("stock_sram=" + pre_exit.hex() + newline)
+            transient = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(transient.returncode, 0, transient.stderr)
+            self.assertIn("progression_persisted=1", transient.stdout)
+            self.assertIn("cold_boot_sram_changed_offsets=0742,0743,10AD",
+                          transient.stdout)
+            # No general-purpose SRAM masking: an unreviewed cold byte
+            # change is rejected even if the medal remains intact.
+            unrelated = bytearray(cold)
+            unrelated[0x0050] ^= 1
+            for index in (4, 6):
+                paths[index].write_bytes(unrelated)
+            rejected_unknown = subprocess.run(
+                command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(rejected_unknown.returncode, 0)
+            self.assertIn("cold boot changed unreviewed SRAM offsets",
+                          rejected_unknown.stderr)
+            for index in (4, 6):
+                paths[index].write_bytes(cold)
+            # The typed profile cannot silently lose the committed result.
+            paths[5].write_text("stock_sram=" + second.hex() + newline)
+            stale = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(stale.returncode, 0)
+            self.assertIn("cold typed profile diverged from committed result",
+                          stale.stderr)
+            paths[5].write_text("stock_sram=" + pre_exit.hex() + newline)
+            # Even with an intact typed result, a cold disk/guest medal loss
+            # must fail the independent progression-preservation check.
+            changed = bytearray(cold)
+            changed[0x069C] = 0
+            for index in (4, 6):
+                paths[index].write_bytes(changed)
+            rejected = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("tour/medal not preserved", rejected.stderr)
+
+    def test_2014_dragster_movie_source_exports_real_relative_controller_masks(self):
+        # Actual archived source controller bytes, not a synthetic winning
+        # race or a verified tour flag. The runtime test remains opt-in.
+        import hashlib
+        import json
+        import sys
+        import tempfile
+        movie = ROOT / "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
+        self.assertEqual(
+            hashlib.sha256(movie.read_bytes()).hexdigest(),
+            "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442")
+        with tempfile.TemporaryDirectory() as d:
+            input_path = pathlib.Path(d) / "original-relative.input"
+            report_path = pathlib.Path(d) / "source.json"
+            subprocess.run([
+                sys.executable, str(ROOT / "tools/extract_historical_smv_scene_window.py"),
+                "--movie", str(movie), "--meta",
+                str(ROOT / "analysis/generated/historical-2014-smv-metadata.json"),
+                "--first-movie-frame", "794", "--frames", "2080",
+                "--race-entry-frame", "0",
+                "--input-out", str(input_path),
+                "--json-out", str(report_path),
+            ], cwd=ROOT, check=True, capture_output=True, text=True)
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            self.assertEqual(report["movie_frame_range"], [794, 2873])
+            self.assertEqual(report["frames"], 2080)
+            # Independently observed original RESULTS starts at 2874;
+            # never include the original post-result menu presses at 2894+.
+            self.assertLess(report["movie_frame_range"][1], 2874)
+            self.assertGreater(len(report["relative_input_segments"]), 0)
+            self.assertGreater(input_path.stat().st_size, 0)
+            self.assertFalse(any(line.startswith("poke ") for line in
+                                 input_path.read_text().splitlines()))
+
     def test_repeat_rejects_stale_practice_identity_before_guest_restart(self):
         source = HOST.read_text(encoding="utf-8")
         repeat = _body(
@@ -224,7 +484,14 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("UR_RESULTS_NAV_ACCEPTANCE=practice", harness)
         self.assertIn("UR_EXECUTION_MODE=authentic", harness)
         self.assertIn("next=0 track=0 tour=0 repeat=1", harness)
-        self.assertIn("! grep -q \"UR_RESULTS_NAV MENU\"", harness)
+        self.assertIn('assert_absent_grep -q "UR_RESULTS_NAV MENU"', harness)
+
+    def test_negative_diagnostics_fail_closed_without_changing_patterns(self):
+        harness = HARNESS.read_text(encoding="utf-8")
+        self.assertNotIn("! grep -q", harness)
+        self.assertEqual(harness.count("assert_absent_grep -q "), 11)
+        self.assertIn('if grep "$@"; then', harness)
+        self.assertIn('if [ "$grep_status" -ne 1 ]; then', harness)
 
     def test_shared_workflow_owns_sharded_native_route_acceptance(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

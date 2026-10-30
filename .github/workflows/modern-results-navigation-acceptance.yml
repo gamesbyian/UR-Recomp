@@ -2,6 +2,15 @@ name: Modern results navigation acceptance
 
 on:
   workflow_dispatch:
+    inputs:
+      results_shard:
+        description: "Standard routes or opt-in source-movie earned second race"
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - earned
 
 concurrency:
   group: modern-results-navigation-${{ github.ref }}
@@ -82,13 +91,21 @@ jobs:
 
       - name: Prove real Modern results routes
         shell: bash
+        env:
+          UR_ONE03_USE_2014_SOURCE_INPUT: ${{ inputs.results_shard == 'earned' && '1' || '0' }}
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/ur-results-navigation/UniracersSNESRecomp"
+          mkdir -p "$RUNNER_TEMP/results-navigation"
+          printf "source_sha=%s\n" "$GITHUB_SHA" >"$RUNNER_TEMP/results-navigation/source-and-binary.txt"
+          sha256sum "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            >>"$RUNNER_TEMP/results-navigation/source-and-binary.txt"
           bash "$GITHUB_WORKSPACE/tests/native/run_modern_results_navigation_acceptance.sh" \
             "$ROOT/build/UniracersSNESRecomp" \
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/results-navigation"
+            "$RUNNER_TEMP/results-navigation" \
+            "${{ inputs.results_shard || 'all' }}"
 
       - name: Upload acceptance evidence
         if: always()
@@ -99,5 +116,10 @@ jobs:
             ${{ runner.temp }}/results-navigation/*.log
             ${{ runner.temp }}/results-navigation/*-dumps/
             ${{ runner.temp }}/results-navigation/*-profile/
+            ${{ runner.temp }}/results-navigation/*.srm
+            ${{ runner.temp }}/results-navigation/*-profile.txt
+            ${{ runner.temp }}/results-navigation/*.input
+            ${{ runner.temp }}/results-navigation/*.json
+            ${{ runner.temp }}/results-navigation/source-and-binary.txt
           if-no-files-found: warn
           retention-days: 7

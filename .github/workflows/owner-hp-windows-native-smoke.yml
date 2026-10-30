@@ -272,8 +272,12 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $telemetry = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv'
-          $stop = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.stop'
+          # Persist outside RUNNER_TEMP, which may be erased on runner restart.
+          $root = Join-Path $env:RUNNER_WORKSPACE '.ur-recomp-hp-native-monitor'
+          New-Item -Path $root -ItemType Directory -Force | Out-Null
+          $stem = "$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $telemetry = Join-Path $root "$stem.csv"
+          $stop = Join-Path $root "$stem.stop"
           Remove-Item -LiteralPath $telemetry, $stop -ErrorAction SilentlyContinue
           $script = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure-monitor.ps1'
           @'
@@ -1414,9 +1418,15 @@ jobs:
         if: always()
         shell: powershell
         run: |
-          $stop = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.stop'
+          $root = Join-Path $env:RUNNER_WORKSPACE '.ur-recomp-hp-native-monitor'
+          if (-not (Test-Path -LiteralPath $root)) {
+            Write-Output 'HP_TELEMETRY MISSING (monitor not started)'
+            exit 0
+          }
+          $stem = "$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+          $stop = Join-Path $root "$stem.stop"
           New-Item -Path $stop -ItemType File -Force | Out-Null
-          $csv = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv'
+          $csv = Join-Path $root "$stem.csv"
           if (Test-Path -LiteralPath $csv) {
             $samples = @(Import-Csv -LiteralPath $csv)
             if ($samples.Count -gt 0) {
@@ -1443,8 +1453,8 @@ jobs:
           name: windows-native-smoke
           path: |
             ${{ runner.temp }}/*.log
-            ${{ runner.temp }}/hp-commit-pressure.csv
-            ${{ runner.temp }}/hp-commit-pressure.csv.errors
+            ${{ runner.workspace }}/.ur-recomp-hp-native-monitor/${{ github.run_id }}-${{ github.run_attempt }}.csv
+            ${{ runner.workspace }}/.ur-recomp-hp-native-monitor/${{ github.run_id }}-${{ github.run_attempt }}.csv.errors
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/

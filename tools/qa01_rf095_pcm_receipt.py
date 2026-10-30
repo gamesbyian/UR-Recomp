@@ -97,6 +97,8 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
                     end=ORIGINAL_END, contiguous_from_zero=True)
     nat = frame_map(native_map, start=NATIVE_START,
                     end=NATIVE_END, contiguous_from_zero=False)
+    if ref[0] != 0:
+        raise ValueError('RF095 original frame-zero callback count must be zero')
     with wave.open(str(original_wav), 'rb') as wav:
         if (wav.getnchannels(), wav.getsampwidth(), wav.getcomptype()) != (2, 2, 'NONE'):
             raise ValueError('RF095 original WAV must be uncompressed stereo int16')

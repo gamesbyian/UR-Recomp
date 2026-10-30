@@ -103,6 +103,13 @@ class RF095Tests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'truncation'):
                 receipt.analyze(*files)
 
+    def test_original_frame_zero_counter_cannot_be_forged(self):
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            files[1].write_text(files[1].read_text().replace('0,0\n', '0,1\n', 1))
+            with self.assertRaisesRegex(ValueError, 'frame-zero'):
+                receipt.analyze(*files)
+
     def test_no_silent_wav_map_false_positive(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)

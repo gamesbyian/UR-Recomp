@@ -20,7 +20,7 @@ import tempfile
 from pathlib import Path
 
 SDL_ARCHIVE_SHA = "12b34280415ec8418c864408b93d008a20a6530687ee613d60bfbd20411f2785"
-RECIPE = "sdl3-3.4.10-clangcl-static-crt-release-install-v1"
+RECIPE = "sdl3-3.4.10-clangcl-static-crt-release-install-v2-link-sentinels"
 OPTIONS = (
     "-DSDL_SHARED=OFF", "-DSDL_STATIC=ON", "-DSDL_TEST_LIBRARY=OFF",
     "-DSDL_TESTS=OFF", "-DSDL_EXAMPLES=OFF", "-DSDL_INSTALL=ON",
@@ -89,6 +89,67 @@ def visual_studio_root() -> Path:
     return root
 
 
+def refuse_redirected_path(path: Path) -> None:
+    """Reject a symlink/junction anywhere in a sentinel's lexical parent chain.
+
+    Inspect BEFORE is_dir()/is_file()/hashing, which otherwise follow a
+    redirected version directory and read bytes outside the pinned toolset.
+    A missing leaf is allowed (and fingerprinted as absent), but a redirected
+    parent is never allowed, including an unpopulated junction.
+    """
+    for component in (path, *path.parents):
+        if component.is_symlink() or getattr(component, "is_junction", lambda: False)():
+            raise ValueError("redirected SDK or toolchain parent/sentinel")
+
+
+def linker_relevant_identity(vs: Path, kit: Path) -> dict[str, str]:
+    """Bind common selected linker/CRT/SDK byte surfaces, including in-place updates.
+
+    CMake can choose among side-by-side toolset/SDK installations. Hash the
+    bounded versions rather than guessing one environment-specific winner.
+    This is a *targeted sentinel set*, not a blanket claim that every installed
+    SDK byte is checked. Missing files are explicit and also key-changing.
+    """
+    msvc_root = vs / "VC/Tools/MSVC"
+    include_root = kit / "Include"
+    refuse_redirected_path(msvc_root)
+    refuse_redirected_path(include_root)
+    if not msvc_root.is_dir() or not include_root.is_dir():
+        raise ValueError("MSVC/Windows SDK include roots absent")
+    # Reject redirected version entries before is_dir() can follow them.
+    toolset_dirs = sorted(msvc_root.iterdir(), key=lambda p: p.name)
+    sdk_dirs = sorted(include_root.iterdir(), key=lambda p: p.name)
+    for candidate in (*toolset_dirs, *sdk_dirs):
+        refuse_redirected_path(candidate)
+    toolsets = [p.name for p in toolset_dirs if p.is_dir()]
+    sdks = [p.name for p in sdk_dirs if p.is_dir()]
+    if not toolsets or not sdks or len(toolsets) > 16 or len(sdks) > 16:
+        raise ValueError("unsupported MSVC/Windows SDK toolset inventory")
+    files = {}
+    for version in toolsets:
+        base = msvc_root / version
+        for rel in ("include/vcruntime.h", "include/yvals_core.h",
+                    "lib/x64/libcmt.lib", "lib/x64/libcpmt.lib",
+                    "bin/Hostx64/x64/link.exe", "bin/Hostx64/x64/lib.exe"):
+            files["MSVC/" + version + "/" + rel] = base / rel
+    for version in sdks:
+        for rel in ("Include/" + version + "/ucrt/stdlib.h",
+                    "Include/" + version + "/um/Windows.h",
+                    "Lib/" + version + "/ucrt/x64/ucrt.lib",
+                    "Lib/" + version + "/um/x64/kernel32.lib",
+                    "Lib/" + version + "/um/x64/user32.lib",
+                    "Lib/" + version + "/um/x64/gdi32.lib"):
+            files["Kit/" + rel] = kit / rel
+    for rel in ("VC/Tools/Llvm/x64/bin/lld-link.exe",
+                "VC/Tools/Llvm/bin/lld-link.exe"):
+        files["VS/" + rel] = vs / rel
+    result = {}
+    for key, path in sorted(files.items()):
+        refuse_redirected_path(path)
+        result[key] = sha256(path) if path.is_file() else "absent"
+    return result
+
+
 def fingerprint(source: Path, archive: Path, vs: Path) -> dict:
     if sha256(archive) != SDL_ARCHIVE_SHA:
         raise ValueError("pinned SDL3 source archive SHA-256 mismatch")
@@ -113,6 +174,7 @@ def fingerprint(source: Path, archive: Path, vs: Path) -> dict:
         "msbuild_sha256": sha256(msbuild),
         "cmake_sha256": sha256(Path(cmake)),
         "windows_sdk_include_versions": sdk_dirs,
+        "linker_relevant_file_sha256": linker_relevant_identity(vs, sdk.parent),
         "cmake_options": list(OPTIONS),
     }
 

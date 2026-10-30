@@ -102,6 +102,106 @@ class HPSDL3CacheTests(unittest.TestCase):
             entry.mkdir()  # subsequent run is able to reconstruct the key
             self.assertTrue(entry.is_dir())
 
+    def test_linker_sdk_same_version_byte_mutation_invalidates_key(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs = root / "VS"
+            kit = root / "Windows Kits/10"
+            msvc = vs / "VC/Tools/MSVC/14.44.35207"
+            sdk = kit / "Include/10.0.26100.0/ucrt"
+            msvc.mkdir(parents=True)
+            sdk.mkdir(parents=True)
+            header = msvc / "include/vcruntime.h"
+            header.parent.mkdir(parents=True)
+            header.write_bytes(b"v1")
+            ucrt = sdk / "stdlib.h"
+            ucrt.write_bytes(b"SDK-v1")
+            a = cache.linker_relevant_identity(vs, kit)
+            self.assertIn("MSVC/14.44.35207/include/vcruntime.h", a)
+            self.assertIn("Kit/Include/10.0.26100.0/ucrt/stdlib.h", a)
+            header.write_bytes(b"v2")
+            b = cache.linker_relevant_identity(vs, kit)
+            self.assertNotEqual(cache.cache_key(a), cache.cache_key(b))
+            ucrt.write_bytes(b"SDK-v2")
+            c = cache.linker_relevant_identity(vs, kit)
+            self.assertNotEqual(cache.cache_key(b), cache.cache_key(c))
+
+    def test_linker_sdk_sentinel_appearance_changes_key(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs = root / "VS"
+            kit = root / "Kit"
+            (vs / "VC/Tools/MSVC/14.44.35207").mkdir(parents=True)
+            (kit / "Include/10.0.26100.0").mkdir(parents=True)
+            a = cache.linker_relevant_identity(vs, kit)
+            lib = kit / "Lib/10.0.26100.0/um/x64/kernel32.lib"
+            lib.parent.mkdir(parents=True)
+            lib.write_bytes(b"library")
+            b = cache.linker_relevant_identity(vs, kit)
+            self.assertEqual(a["Kit/Lib/10.0.26100.0/um/x64/kernel32.lib"], "absent")
+            self.assertNotEqual(cache.cache_key(a), cache.cache_key(b))
+
+    def test_linker_sdk_inventory_is_bounded_and_redirects_denied(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs = root / "VS"
+            kit = root / "Kit"
+            msvc = vs / "VC/Tools/MSVC"
+            msvc.mkdir(parents=True)
+            (kit / "Include/10.0.26100.0").mkdir(parents=True)
+            for i in range(17):
+                (msvc / str(i)).mkdir()
+            with self.assertRaises(ValueError):
+                cache.linker_relevant_identity(vs, kit)
+            for i in range(1, 17):
+                (msvc / str(i)).rmdir()
+            redir = msvc / "0/include/vcruntime.h"
+            redir.parent.mkdir(parents=True)
+            actual = root / "actual.h"
+            actual.write_bytes(b"content")
+            try:
+                redir.symlink_to(actual)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot make a symlink")
+            with self.assertRaises(ValueError):
+                cache.linker_relevant_identity(vs, kit)
+
+    def test_redirected_msvc_version_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs, kit = root / "VS", root / "Kit"
+            versions = vs / "VC/Tools/MSVC"
+            versions.mkdir(parents=True)
+            (kit / "Include/10.0.26100.0").mkdir(parents=True)
+            target = root / "outside" / "14.44.35207"
+            (target / "include").mkdir(parents=True)
+            (target / "include/vcruntime.h").write_bytes(b"outside")
+            redirect = versions / "14.44.35207"
+            try:
+                redirect.symlink_to(target, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlink")
+            with self.assertRaisesRegex(ValueError, "redirected SDK or toolchain"):
+                cache.linker_relevant_identity(vs, kit)
+            self.assertEqual((target / "include/vcruntime.h").read_bytes(), b"outside")
+
+    def test_redirected_sdk_parent_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs, kit = root / "VS", root / "Kit"
+            (vs / "VC/Tools/MSVC/14.44.35207").mkdir(parents=True)
+            (kit / "Include").mkdir(parents=True)
+            outside = root / "redirect-target"
+            (outside / "ucrt").mkdir(parents=True)
+            (outside / "ucrt/stdlib.h").write_bytes(b"SDK")
+            link = kit / "Include/10.0.26100.0"
+            try:
+                link.symlink_to(outside, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlink")
+            with self.assertRaisesRegex(ValueError, "redirected SDK or toolchain"):
+                cache.linker_relevant_identity(vs, kit)
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

@@ -70,3 +70,28 @@ install; this is a cache **miss**, not an instantaneous hit or release gate.
 The helper never changes user folders, global installs, runner registration,
 Windows pagefile/power policy, or any source/build acceptance rule.
 
+### Linker/SDK content-sentinel fingerprint (v2 opt-in rollout)
+
+The original v1 cache identity included staged SDL3 bytes, ClangCL, MSBuild,
+CMake, build recipe and Windows SDK version names. It did not detect an
+**in-place change of bytes under an unchanged MSVC/SDK version folder**.
+
+The v2 cache identity adds a bounded SHA-256 inventory of link-relevant
+MSVC/CRT and Windows SDK paths across all installed SDK/toolset version
+directories: vcruntime/yvals headers, static libcmt/libcpmt, link/lib
+utilities, ucrt/Windows headers, core ucrt/kernel/user/gdi libraries,
+and VS LLVM lld-link where present. Missing candidates are explicit
+`absent` sentinels, and a missing/changed/redirected selected byte changes
+the cache key or fails closed. This is a high-sensitivity **sentinel** set,
+not a claim of hashing every SDK header or library. It does not change
+the compiler, static CRT, CMake options, original game binary, or QA.
+
+The new recipe version **deliberately invalidates all v1 cache hits**
+once. The first trusted HP main run recompiles the pinned static SDL3
+library and validates the same complete PE/package/gameplay tests; a
+subsequent same-key run is expected to hit. Do not compare that cold
+install cost to a v1 warm run as evidence of a speed regression.
+Repeated same-version sentinel changes must cause independent cache
+misses. Avoid adding unbounded filesystem walking or whole-SDK hashing
+that would spend the measured warm-cache savings on provenance overhead.
+

@@ -16,7 +16,8 @@ class HpPowerShellParsePolicyTests(unittest.TestCase):
         self.assertIn('      - ".github/workflows/hp-powershell-parse.yml"', src)
         self.assertIn("runs-on: windows-2022", src)
         self.assertIn("timeout-minutes: 5", src)
-        self.assertNotIn("self-hosted\",\"Windows", src)
+        self.assertNotIn("fromJSON", src)
+        self.assertNotIn('["self-hosted"', src)
         self.assertNotIn("runs-on: self-hosted", src)
         self.assertIn("persist-credentials: false", src)
 

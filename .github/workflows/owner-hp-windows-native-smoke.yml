@@ -6,6 +6,7 @@ on:
       - ".github/workflows/owner-hp-windows-native-smoke.yml"
       - "tests/unit/test_assemble_windows_package.py"
       - "tools/devnode_benchmark/prepare_rust.ps1"
+      - "tools/devnode_benchmark/prepare_python.ps1"
   workflow_dispatch:
 
 concurrency:

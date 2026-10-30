@@ -251,8 +251,15 @@ jobs:
           # shellcheck disable=SC2016
           powershell.exe -NoProfile -Command '
             $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-            $vs = & $vswhere -latest -property installationPath
-            if (-not $vs) { throw "Visual Studio installation not found" }
+            $vs = & $vswhere -latest -products '*' -property installationPath
+            # Include standalone BuildTools, which vswhere excludes by default.
+            if (-not $vs) {
+              $buildTools = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\2022\BuildTools"
+              if (Test-Path -LiteralPath (Join-Path $buildTools "VC\Tools\MSVC")) {
+                $vs = $buildTools
+              }
+            }
+            if (-not $vs) { throw "Visual Studio Build Tools installation not found" }
             $toolsRoot = Join-Path $vs "VC\Tools\MSVC"
             $tools = Get-ChildItem -LiteralPath $toolsRoot -Directory |
               Sort-Object Name -Descending | Select-Object -First 1

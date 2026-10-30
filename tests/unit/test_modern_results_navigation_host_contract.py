@@ -328,6 +328,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             pre_exit[0x10AD] ^= 1
             paths[2].write_bytes(pre_exit)
             paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
+            paths[5].write_text("stock_sram=" + pre_exit.hex() + newline)
             pre_transient = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertEqual(pre_transient.returncode, 0, pre_transient.stderr)
             self.assertIn("result_to_exit_changed_offsets=10AD", pre_transient.stdout)
@@ -349,28 +350,47 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             self.assertIn("second-result tour/medal not persisted", pre_rejected.stderr)
             paths[2].write_bytes(pre_exit)
             paths[3].write_text("stock_sram=" + pre_exit.hex() + newline)
-            # A fresh boot may also change unrelated bytes. The cold typed
-            # profile, saved file and guest dump must match their own epoch.
+            # The raw cold guest/disk may change only the three source-
+            # observed boot-state bytes; the typed profile remains the
+            # exact pre-cold committed result snapshot.
             cold = bytearray(pre_exit)
-            cold[0x0050] ^= 1
+            cold[0x0742] ^= 2
+            cold[0x0743] ^= 4
+            cold[0x10AD] ^= 1
             for index in (4, 6):
                 paths[index].write_bytes(cold)
-            paths[5].write_text("stock_sram=" + cold.hex() + newline)
+            paths[5].write_text("stock_sram=" + pre_exit.hex() + newline)
             transient = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertEqual(transient.returncode, 0, transient.stderr)
             self.assertIn("progression_persisted=1", transient.stdout)
-            # A stale typed profile cannot masquerade as an atomic cold save.
+            self.assertIn("cold_boot_sram_changed_offsets=0742,0743,10AD",
+                          transient.stdout)
+            # No general-purpose SRAM masking: an unreviewed cold byte
+            # change is rejected even if the medal remains intact.
+            unrelated = bytearray(cold)
+            unrelated[0x0050] ^= 1
+            for index in (4, 6):
+                paths[index].write_bytes(unrelated)
+            rejected_unknown = subprocess.run(
+                command, capture_output=True, text=True, check=False)
+            self.assertNotEqual(rejected_unknown.returncode, 0)
+            self.assertIn("cold boot changed unreviewed SRAM offsets",
+                          rejected_unknown.stderr)
+            for index in (4, 6):
+                paths[index].write_bytes(cold)
+            # The typed profile cannot silently lose the committed result.
             paths[5].write_text("stock_sram=" + second.hex() + newline)
             stale = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertNotEqual(stale.returncode, 0)
-            self.assertIn("typed SRAM/save mismatch", stale.stderr)
-            # Even with a consistent cold profile, losing the earned medal
+            self.assertIn("cold typed profile diverged from committed result",
+                          stale.stderr)
+            paths[5].write_text("stock_sram=" + pre_exit.hex() + newline)
+            # Even with an intact typed result, a cold disk/guest medal loss
             # must fail the independent progression-preservation check.
             changed = bytearray(cold)
             changed[0x069C] = 0
-            paths[4].write_bytes(changed)
-            paths[6].write_bytes(changed)
-            paths[5].write_text("stock_sram=" + changed.hex() + newline)
+            for index in (4, 6):
+                paths[index].write_bytes(changed)
             rejected = subprocess.run(command, capture_output=True, text=True, check=False)
             self.assertNotEqual(rejected.returncode, 0)
             self.assertIn("tour/medal not preserved", rejected.stderr)

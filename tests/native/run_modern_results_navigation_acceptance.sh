@@ -345,20 +345,27 @@ def source_earned_tour_awarded(first_raw, second_raw, award_raw):
             final_row == bytes(5))
 if not source_earned_tour_awarded(first_raw, second_raw, award_raw):
     raise SystemExit("ONE-03 next earned: no source-qualified win and completed tour award")
-# Cold boot is a *different time*: compare cold live SRAM to its exit save,
-# then require the persisted progress and typed result survive unchanged.
+# Cold boot is a distinct guest epoch. Raw SRAM is written at shutdown,
+# while the typed profile remains the last *committed result* checkpoint
+# unless another profile transaction occurs. Do not require the old typed
+# snapshot to equal boot-mutated raw SRAM. Preserve both full byte images.
 if cold_raw != after_cold:
     raise SystemExit("ONE-03 next earned: fresh process SRAM/save mismatch")
-# The cold process may legitimately advance volatile SRAM after RESULTS.
-# Require the *same cold epoch* in typed profile, disk save and guest dump;
-# the earned medal/row is independently compared against second_raw below.
-if typed_snapshot(post_profile) != after_cold:
-    raise SystemExit("ONE-03 next earned: cold process typed SRAM/save mismatch")
-# The predicate's final_row/final_medal are function locals, so compare
-# against the source-earned second result directly in this outer scope.
 if (cold_raw[0x1075:0x107A] != award_raw[0x1075:0x107A] or
         cold_raw[0x069C] != award_raw[0x069C]):
     raise SystemExit("ONE-03 next earned: tour/medal not preserved on cold boot")
+if typed_snapshot(post_profile) != before_cold:
+    raise SystemExit("ONE-03 next earned: cold typed profile diverged from committed result")
+# This exact source/fixture has three independently observed boot-state
+# changes (result-control word 0742/0743, initialization marker 10AD).
+# Fail closed on ANY other raw/typed difference, including record/progress
+# bytes. This is a bounded acceptance witness, not a generic SRAM mask.
+boot_diffs = {i for i, (a, b) in enumerate(zip(before_cold, after_cold))
+              if a != b}
+allowed_boot_diffs = {0x0742, 0x0743, 0x10AD}
+if not boot_diffs.issubset(allowed_boot_diffs):
+    raise SystemExit("ONE-03 next earned: cold boot changed unreviewed SRAM offsets: " +
+                     ",".join(f"{i:04X}" for i in sorted(boot_diffs - allowed_boot_diffs)))
 result_to_exit_diffs = [f"{i:04X}" for i, (a, b) in
                         enumerate(zip(second_raw, before_cold)) if a != b]
 volatile_diffs = [f"{i:04X}" for i, (a, b) in

@@ -777,8 +777,15 @@ jobs:
             LOG="$RUNNER_TEMP/qa05-restart-$attempt.log"
             PCM="$RUNNER_TEMP/qa05-restart-$attempt.raw"
             JSON="$RUNNER_TEMP/qa05-restart-$attempt.json"
+            # The service desktop can report no foreground focus. That
+            # otherwise freezes the guest before QA-05's scripted pause;
+            # isolate focus handling per attempt without changing player defaults.
+            rm -rf "$ROOT"
             mkdir -p "$ROOT"
+            printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' > "$ROOT/host-state-v1.txt"
+            printf 'seen-v1\n' > "$ROOT/qa05-onboarding.seen"
             ROOT_WIN="$(cygpath -w "$ROOT")"
+            ONBOARDING_WIN="$(cygpath -w "$ROOT/qa05-onboarding.seen")"
             LOG_WIN="$(cygpath -w "$LOG")"
             PCM_WIN="$(cygpath -w "$PCM")"
             JSON_WIN="$(cygpath -w "$JSON")"
@@ -792,6 +799,7 @@ jobs:
             UR_EXECUTION_MODE=modern \
             UR_PRODUCT_DIAGNOSTICS=1 \
             UR_PAUSE_OPEN_ACCEPTANCE=1 \
+            UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
             UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
               python -m tools.capture_modern_restart_audio \
                 "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
@@ -804,6 +812,12 @@ jobs:
             # Inspect all twelve post-Restart guest samples, even if the
             # release latch incorrectly disarms before the final sample.
             python -m tools.qa05_restart_input_guard "$LOG"
+            grep -Eq 'UR_HOST_STATE LOADED .*pause_on_focus_loss=0 ' "$LOG"
+            grep -Fq 'UR_ONBOARDING HIDDEN first_run=0' "$LOG"
+            if grep -Fq 'UR_FOCUS_PAUSE APPLIED' "$LOG"; then
+              echo "Unexpected focus-loss auto-pause in QA-05" >&2
+              exit 1
+            fi
             rm -f "$PCM"
             echo "UR_QA05_RESTART_AUDIBLE_ATTEMPT=$attempt/5 passed"
           done

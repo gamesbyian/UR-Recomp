@@ -213,25 +213,28 @@ if ($Mode -eq 'Stop') {
                                     $false
                                 }
                             })
+                            $elapsedSeconds = [math]::Round(($endUtc - $beginUtc).TotalSeconds)
                             if ($compileRows.Count -gt 0) {
                                 $cpuStats = $compileRows | Measure-Object -Property cpu_load_pct_est -Average -Maximum
                                 $compileMinVirtual = ($compileRows | Measure-Object -Property free_virtual_mb -Minimum).Minimum
-                                $elapsedSeconds = [math]::Round(($endUtc - $beginUtc).TotalSeconds)
                                 Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} elapsed_seconds={1} samples={2} mean_host_cpu_pct_est={3} peak_host_cpu_pct_est={4} min_free_virtual_mb={5}' -f $stem, $elapsedSeconds, $compileRows.Count, [math]::Round($cpuStats.Average, 1), $cpuStats.Maximum, $compileMinVirtual)
-                                $compileWindowRows = @($cpuWindowRows | Where-Object {
-                                    try {
-                                        $observed = [datetimeoffset]::Parse($_.timestamp_utc)
-                                        $observed -ge $beginUtc -and $observed -le $endUtc
-                                    } catch { $false }
-                                })
-                                if ($compileWindowRows.Count -gt 0) {
-                                    $compileWindowStats = $compileWindowRows | Measure-Object -Property cpu_pct_window_avg -Average -Maximum
-                                    Write-Output ('HP_COMPILE_CPU_WINDOW_SUMMARY run={0} elapsed_seconds={1} samples={2} mean_host_cpu_pct_10s={3} peak_host_cpu_pct_10s={4}' -f $stem, $elapsedSeconds, $compileWindowRows.Count, [math]::Round($compileWindowStats.Average, 1), $compileWindowStats.Maximum)
-                                } else {
-                                    Write-Output ('HP_COMPILE_CPU_WINDOW_SUMMARY run={0} unavailable=no_valid_interval_samples' -f $stem)
-                                }
                             } else {
                                 Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} unavailable=no_valid_cpu_samples' -f $stem)
+                            }
+                            # The interval counter is independently optional:
+                            # missing legacy WMI must not hide valid 10s CPU
+                            # readings from the exact same compile window.
+                            $compileWindowRows = @($cpuWindowRows | Where-Object {
+                                try {
+                                    $observed = [datetimeoffset]::Parse($_.timestamp_utc)
+                                    $observed -ge $beginUtc -and $observed -le $endUtc
+                                } catch { $false }
+                            })
+                            if ($compileWindowRows.Count -gt 0) {
+                                $compileWindowStats = $compileWindowRows | Measure-Object -Property cpu_pct_window_avg -Average -Maximum
+                                Write-Output ('HP_COMPILE_CPU_WINDOW_SUMMARY run={0} elapsed_seconds={1} samples={2} mean_host_cpu_pct_10s={3} peak_host_cpu_pct_10s={4}' -f $stem, $elapsedSeconds, $compileWindowRows.Count, [math]::Round($compileWindowStats.Average, 1), $compileWindowStats.Maximum)
+                            } else {
+                                Write-Output ('HP_COMPILE_CPU_WINDOW_SUMMARY run={0} unavailable=no_valid_interval_samples' -f $stem)
                             }
                         } else {
                             Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} unavailable=incomplete_phase_markers' -f $stem)

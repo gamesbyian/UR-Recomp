@@ -3,7 +3,9 @@
 
 Run only on disposable, already RF092/RF093-staged original/native sources.
 The actual DSP F3 write is observed *after* its existing hardware call; no
-new guest I/O, dispatch, audio state, timestamps or emulation cycles. Existing
+new guest I/O, dispatch, audio state, timestamps or emulation cycles.
+Native RF094 continues one frame beyond the merged RF088 fourth-command CPU
+port window (through 6456 versus 6455) to retain subsequent SPC/DSP writes. Existing
 F4-F7 port logs are extended by two Bowl-entry-relative host frames.
 This instrumentation is diagnostic, not an audio equivalence or event verdict.
 """
@@ -57,7 +59,7 @@ static unsigned ur_rf094_native_rows;
 static void ur_rf094_native_dsp_write(Apu *apu, unsigned reg, unsigned value) {
   const char *flag = getenv("UR_QA01_RF094_SPC_DSP");
   if (!flag || flag[0] != '1' || flag[1] != '\0') return;
-  if (snes_frame_counter < 6447 || snes_frame_counter > 6453 ||
+  if (snes_frame_counter < 6447 || snes_frame_counter > 6456 ||
       reg >= 0x80u) return;
   if (++ur_rf094_native_rows > 16384u) {
     if (ur_rf094_native_rows == 16385u)
@@ -104,7 +106,7 @@ def patch_native(source: str) -> str:
             "ur_rf094_native_dsp_write" in source):
         raise ValueError("RF094 requires pristine RF093-staged native APU")
     source = replace_one(source, NATIVE_FRAME_OLD,
-                         "snes_frame_counter >= 6447 && snes_frame_counter <= 6453",
+                         "snes_frame_counter >= 6447 && snes_frame_counter <= 6456",
                          "native F7 window")
     source = replace_one(source, NATIVE_ENTRY,
                          NATIVE_HELPER + "\n" + NATIVE_ENTRY, "native helper")

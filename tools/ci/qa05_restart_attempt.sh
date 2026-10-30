@@ -15,6 +15,9 @@ ROOT="$RUNNER_TEMP/qa05-restart-user-$attempt"
 LOG="$RUNNER_TEMP/qa05-restart-$attempt.log"
 PCM="$RUNNER_TEMP/qa05-restart-$attempt.raw"
 JSON="$RUNNER_TEMP/qa05-restart-$attempt.json"
+# A parallel failure followed by serial fallback reuses this attempt number.
+# Never allow its previous log, PCM or receipt to satisfy a new capture.
+rm -f -- "$LOG" "$PCM" "$JSON"
 # The service desktop can report no foreground focus. Isolate this setting
 # per attempt without changing player defaults or other test instances.
 rm -rf "$ROOT"
@@ -41,6 +44,8 @@ UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
   python -m tools.capture_modern_restart_audio \
     "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
     --json-out "$JSON_WIN"
+# Require fresh, nonempty outputs before parsing any acceptance evidence.
+test -s "$LOG" && test -s "$PCM" && test -s "$JSON"
 python - "$JSON" <<'PY'
 import json, pathlib, sys
 evidence = json.loads(pathlib.Path(sys.argv[1]).read_text())

@@ -36,3 +36,8 @@ jobs:
   windows-candidate:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      # Exercise owner HP compiler properties on a hosted Windows VM.
+      # The reusable run_on_hp input stays false: no PR can reach the
+      # personal runner or run HP-only setup/telemetry steps.
+      test_hp_compiler_profile: true

@@ -474,13 +474,23 @@ class WindowsPackageTests(unittest.TestCase):
             startup = (user_data / "diagnostics" / "startup.log").read_text(
                 encoding="utf-8"
             ).splitlines()
+            # Windows may report a different casing for its system root
+            # (e.g. C:\\Windows vs C:\\WINDOWS) under service accounts.
+            # Normalize only filesystem casing; preserve the exact path
+            # contents, metacharacters and one-line cardinality contract.
             self.assertEqual(
-                [line for line in startup if line.startswith("package_root=")],
-                ["package_root=" + str(payload)],
+                [
+                    os.path.normcase(line)
+                    for line in startup if line.startswith("package_root=")
+                ],
+                [os.path.normcase("package_root=" + str(payload))],
             )
             self.assertEqual(
-                [line for line in startup if line.startswith("user_data_root=")],
-                ["user_data_root=" + str(user_data)],
+                [
+                    os.path.normcase(line)
+                    for line in startup if line.startswith("user_data_root=")
+                ],
+                [os.path.normcase("user_data_root=" + str(user_data))],
             )
             self.assertIn("process_exit=0", startup)
             self.assertEqual(startup.count("result=startup-begin"), 1)

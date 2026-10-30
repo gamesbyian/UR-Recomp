@@ -125,6 +125,11 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertIn("HP_CPU_WINDOW_SUMMARY", source)
         self.assertIn("HP_COMPILE_CPU_WINDOW_SUMMARY", source)
         self.assertIn("unavailable=no_valid_interval_samples", source)
+        self.assertIn("missing legacy WMI must not hide valid 10s CPU", source)
+        # Interval aggregation follows the legacy WMI if/else block,
+        # instead of hiding inside the WMI-success-only branch.
+        self.assertLess(source.index("unavailable=no_valid_cpu_samples"),
+                        source.index("$compileWindowRows = @($cpuWindowRows"))
         self.assertIn("if ($null -ne $cpuWindowCounter)", source)
         self.assertIn("$cpuWindowCounter = $null", source)
         self.assertIn("Get-CimInstance Win32_Processor", source)

@@ -50,6 +50,15 @@ jobs:
           GIT_CONFIG_KEY_0: core.autocrlf
           GIT_CONFIG_VALUE_0: 'false'
 
+      - name: Rehydrate tracked source bytes from Git's canonical index
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The persistent Windows worktree can retain CRLF files from a
+          # previous checkout even when this job explicitly sets autocrlf=false.
+          # Force the tracked files back to their pinned Git blob form.
+          git -c core.autocrlf=false -c core.eol=lf checkout-index --force --all
+          git status --short
       - name: Install service-accessible Python and expose CMake
         shell: cmd
         run: |

@@ -51,6 +51,8 @@ on:
       - "tools/patches/snesrecomp-host-frame-hold.patch"
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
+      - "tools/ci/qa05_restart_attempt.sh"
+      - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/assemble_windows_package.py"
       - "tools/Test-URRecompPortable.ps1"
       - "tools/check_windows_portable_binary.py"

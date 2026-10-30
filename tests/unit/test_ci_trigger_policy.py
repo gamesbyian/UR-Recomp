@@ -581,9 +581,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "github.event.pull_request.draft == false", wrapper,
         )
         self.assertIn("  workflow_call:\n", text)
+        self.assertIn("(github.event_name != 'pull_request' ||", text)
         self.assertIn(
-            "if: github.event_name != 'pull_request' || "
-            "github.event.pull_request.head.repo.full_name == github.repository",
+            "github.event.pull_request.head.repo.full_name == github.repository)",
             text,
         )
 
@@ -971,6 +971,15 @@ class CiTriggerPolicyTest(unittest.TestCase):
         # Hosted smoke still cancels obsolete PR work. HP-native builds keep
         # running to produce complete, resource-accounted release evidence.
         self.assertIn("cancel-in-progress: ${{ !inputs.run_on_hp }}", text)
+        # Reusable workflows can be invoked from PR-controlled callers.
+        # Only trusted main events may select the owner's personal HP runner.
+        self.assertIn("(!inputs.run_on_hp ||", text)
+        self.assertIn("github.repository == 'gamesbyian/UR-Recomp'", text)
+        self.assertIn("github.ref == 'refs/heads/main'", text)
+        self.assertIn(
+            "(github.event_name == 'push' || github.event_name == 'workflow_dispatch')",
+            text,
+        )
         hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
         self.assertIn("cancel-in-progress: false", hp)
         self.assertIn("run_on_hp: true", hp)

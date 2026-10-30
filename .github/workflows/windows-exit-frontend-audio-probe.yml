@@ -44,26 +44,57 @@ jobs:
               owner, repo, workflow_id: "windows-native-smoke.yml",
               branch: "main", status: "success", per_page: 10
             });
-            const source = data.workflow_runs.find(run =>
+            // The canonical Windows producer retains only ROM-free diagnostics.
+            // Never infer availability from a green run or request a forbidden ROM ZIP.
+            const candidates = data.workflow_runs.filter(run =>
               run.conclusion === "success" &&
               run.head_branch === "main" &&
-              run.head_repository?.full_name === owner + "/" + repo
+              run.head_repository?.full_name === owner + "/" + repo &&
+              /^[0-9a-f]{40}$/.test(run.head_sha || "")
             );
+            let source = null;
+            for (const run of candidates) {
+              const { data: kept } = await github.rest.actions.listWorkflowRunArtifacts({
+                owner, repo, run_id: run.id, per_page: 100
+              });
+              if (kept.artifacts.some(a =>
+                a.name === "windows-native-smoke" && !a.expired &&
+                a.size_in_bytes > 0
+              )) {
+                source = run;
+                break;
+              }
+            }
             if (!source) {
-              core.setFailed("No successful first-party main Windows source package");
+              core.setFailed(
+                "No successful first-party main Windows smoke run retains " +
+                "ROM-free source evidence suitable for exact local reconstruction."
+              );
             } else {
               core.setOutput("run_id", String(source.id));
-              core.info("Using verified main package from " + source.id);
+              core.setOutput("source_sha", source.head_sha);
+              core.info("Using exact first-party ROM-free source from run " +
+                source.id + " SHA=" + source.head_sha);
             }
 
-      - name: Download verified portable package; no game recompilation
+      - name: Download first-party ROM-free PE and original package hashes
         uses: actions/download-artifact@v4
         with:
-          name: ur-recomp-windows-x64-portable
+          name: windows-native-smoke
           repository: ${{ github.repository }}
           run-id: ${{ steps.source-package.outputs.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
+
+      - name: Reconstruct exact original ZIP locally from ROM-free evidence
+        run: |
+          set -euo pipefail
+          python tools/verify_rom.py "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python -m tools.ci.rehydrate_windows_romfree_package \
+            --artifact-root "$RUNNER_TEMP/audio-source" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --archive "$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip" \
+            --expected-source "${{ steps.source-package.outputs.source_sha }}"
 
       - name: Prove packaged race Exit-to-Frontend restores audible 44.1k SDL stereo
         run: |

@@ -62,7 +62,7 @@ jobs:
                 owner, repo, run_id: run.id, per_page: 100
               });
               const available = retained.artifacts.some(a =>
-                a.name === "ur-recomp-windows-x64-portable" &&
+                a.name === "windows-native-smoke" &&
                 !a.expired && a.size_in_bytes > 0
               );
               if (available) {
@@ -72,26 +72,36 @@ jobs:
             }
             if (!source) {
               core.setFailed(
-                "No first-party main Windows smoke run retains the expected " +
-                "ur-recomp-windows-x64-portable artifact. Current policy " +
-                "forbids uploading ROM-bearing packages; see issue #2852. " +
-                "Do not substitute the ROM-free diagnostics archive."
+                "No successful first-party main smoke retains the verified " +
+                "windows-native-smoke ROM-free evidence artifact. " +
+                "An original ZIP can only be locally rehydrated from " +
+                "its source-bound PE and original manifest; see issue #2852."
               );
             } else {
               core.setOutput("run_id", String(source.id));
               core.setOutput("source_sha", source.head_sha);
-              core.info("Using retained portable package from run " +
+              core.info("Using retained ROM-free evidence from run " +
                 source.id + " source_sha=" + source.head_sha);
             }
 
-      - name: Download verified portable package; no game recompilation
+      - name: Download first-party ROM-free evidence; never transfer packaged ROM
         uses: actions/download-artifact@v4
         with:
-          name: ur-recomp-windows-x64-portable
+          name: windows-native-smoke
           repository: ${{ github.repository }}
           run-id: ${{ steps.source-package.outputs.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
+
+      - name: Reconstruct byte-identical original ZIP within trusted Windows runner
+        run: |
+          set -euo pipefail
+          python tools/verify_rom.py "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python -m tools.ci.rehydrate_windows_romfree_package \
+            --artifact-root "$RUNNER_TEMP/audio-source" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --archive "$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip" \
+            --expected-source "${{ steps.source-package.outputs.source_sha }}"
 
       - name: Verify and extract the exact selected portable package
         id: package-ready

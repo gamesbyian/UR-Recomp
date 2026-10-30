@@ -1,0 +1,64 @@
+name: Owner HP Windows runner benchmark (isolated)
+# Diagnostic only. Does not modify or replace release-gate workflows.
+# Manual-only in main; never consumes hosted or personal runner minutes on PRs.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: owner-hp-windows-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  hp:
+    name: Owner HP Windows 10
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Expose machine CMake to Windows runner service
+        shell: cmd
+        run: echo C:\Program Files\CMake\bin>>"%GITHUB_PATH%"
+      - name: Provision persistent Python in runner workspace
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_python.ps1
+      - name: Confirm native tool availability
+        shell: cmd
+        run: |
+          where python
+          python --version
+          cmake --version
+      - name: Run ROM-free native C++ and Windows regression benchmark
+        shell: cmd
+        run: python tools/devnode_benchmark.py --target hp
+      - name: Save diagnostic JSON even on test failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-devnode-benchmark-hp
+          path: ${{ runner.temp }}/ur-devnode-benchmark/report.json
+          if-no-files-found: warn
+          retention-days: 7
+  hosted:
+    name: Hosted Windows 2022 reference
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run identical ROM-free native C++ and Windows regression benchmark
+        shell: cmd
+        run: python tools/devnode_benchmark.py --target hosted
+      - name: Save diagnostic JSON even on test failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-devnode-benchmark-hosted
+          path: ${{ runner.temp }}/ur-devnode-benchmark/report.json
+          if-no-files-found: warn
+          retention-days: 7

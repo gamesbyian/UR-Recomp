@@ -131,8 +131,23 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
             bad_name.write_bytes(exe.read_bytes())
             with self.assertRaisesRegex(ValueError, "non-symlink"):
                 candidate.payloads(bad_name, "main")
-            exe.unlink()
-            exe.symlink_to(bad_name)
+
+
+    def test_package_refuses_symlinked_executable_when_supported(self):
+        # Ordinary Windows service accounts cannot necessarily create symlinks.
+        # A missing OS privilege must not suppress the independent archive
+        # filename, revision and PE validation checks in the preceding test.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            exe = root / candidate.EXE
+            bad_name = root / "unexpected.exe"
+            fake_x64_pe(bad_name)
+            try:
+                exe.symlink_to(bad_name)
+            except OSError as error:
+                if os.name == "nt" and getattr(error, "winerror", None) == 1314:
+                    self.skipTest("symlink creation privilege unavailable in Windows service")
+                raise
             with self.assertRaisesRegex(ValueError, "non-symlink"):
                 candidate.payloads(exe, "main")
 
@@ -319,7 +334,13 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                         timeout=45)
                     output = result.stdout + result.stderr
                     self.assertEqual(result.returncode, code, output)
-                    self.assertIn("UR_TEST_AFTER_CWD=" + str(start), output)
+                    # Windows preserves spelling/case from different path APIs.
+                    # Compare normalized paths while still asserting the exact
+                    # caller directory and every native exit class.
+                    self.assertIn(
+                        os.path.normcase("UR_TEST_AFTER_CWD=" + str(start)),
+                        os.path.normcase(output),
+                    )
 
     def test_launcher_isolates_windows_powershell_from_pwsh7_module_paths(self):
         script = candidate.launcher().decode("utf-8")

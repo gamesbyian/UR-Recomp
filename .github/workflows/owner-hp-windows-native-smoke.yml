@@ -151,7 +151,9 @@ jobs:
                   for member in vendor_archive:
                       rel = member.name.replace(chr(92), "/")
                       if not rel.startswith(vendor_prefix):
-                          if member.isdir() and rel.rstrip("/") == vendor_prefix.rstrip("/"):
+                          # git archive includes ancestor directory headers,
+                          # e.g. third_party/ and third_party/cargo/.
+                          if member.isdir() and vendor_prefix.startswith(rel.rstrip("/") + "/"):
                               continue
                           raise SystemExit("Unexpected path in committed Cargo vendor snapshot: " + rel)
                       if member.isdir():

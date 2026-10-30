@@ -89,6 +89,19 @@ def visual_studio_root() -> Path:
     return root
 
 
+def refuse_redirected_path(path: Path) -> None:
+    """Reject a symlink/junction anywhere in a sentinel's lexical parent chain.
+
+    Inspect BEFORE is_dir()/is_file()/hashing, which otherwise follow a
+    redirected version directory and read bytes outside the pinned toolset.
+    A missing leaf is allowed (and fingerprinted as absent), but a redirected
+    parent is never allowed, including an unpopulated junction.
+    """
+    for component in (path, *path.parents):
+        if component.is_symlink() or getattr(component, "is_junction", lambda: False)():
+            raise ValueError("redirected SDK or toolchain parent/sentinel")
+
+
 def linker_relevant_identity(vs: Path, kit: Path) -> dict[str, str]:
     """Bind common selected linker/CRT/SDK byte surfaces, including in-place updates.
 
@@ -99,10 +112,17 @@ def linker_relevant_identity(vs: Path, kit: Path) -> dict[str, str]:
     """
     msvc_root = vs / "VC/Tools/MSVC"
     include_root = kit / "Include"
+    refuse_redirected_path(msvc_root)
+    refuse_redirected_path(include_root)
     if not msvc_root.is_dir() or not include_root.is_dir():
         raise ValueError("MSVC/Windows SDK include roots absent")
-    toolsets = sorted(p.name for p in msvc_root.iterdir() if p.is_dir())
-    sdks = sorted(p.name for p in include_root.iterdir() if p.is_dir())
+    # Reject redirected version entries before is_dir() can follow them.
+    toolset_dirs = sorted(msvc_root.iterdir(), key=lambda p: p.name)
+    sdk_dirs = sorted(include_root.iterdir(), key=lambda p: p.name)
+    for candidate in (*toolset_dirs, *sdk_dirs):
+        refuse_redirected_path(candidate)
+    toolsets = [p.name for p in toolset_dirs if p.is_dir()]
+    sdks = [p.name for p in sdk_dirs if p.is_dir()]
     if not toolsets or not sdks or len(toolsets) > 16 or len(sdks) > 16:
         raise ValueError("unsupported MSVC/Windows SDK toolset inventory")
     files = {}
@@ -125,8 +145,7 @@ def linker_relevant_identity(vs: Path, kit: Path) -> dict[str, str]:
         files["VS/" + rel] = vs / rel
     result = {}
     for key, path in sorted(files.items()):
-        if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
-            raise ValueError("link sentinel is a redirected file/directory")
+        refuse_redirected_path(path)
         result[key] = sha256(path) if path.is_file() else "absent"
     return result
 

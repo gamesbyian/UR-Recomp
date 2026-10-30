@@ -166,6 +166,42 @@ class HPSDL3CacheTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 cache.linker_relevant_identity(vs, kit)
 
+    def test_redirected_msvc_version_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs, kit = root / "VS", root / "Kit"
+            versions = vs / "VC/Tools/MSVC"
+            versions.mkdir(parents=True)
+            (kit / "Include/10.0.26100.0").mkdir(parents=True)
+            target = root / "outside" / "14.44.35207"
+            (target / "include").mkdir(parents=True)
+            (target / "include/vcruntime.h").write_bytes(b"outside")
+            redirect = versions / "14.44.35207"
+            try:
+                redirect.symlink_to(target, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlink")
+            with self.assertRaisesRegex(ValueError, "redirected SDK or toolchain"):
+                cache.linker_relevant_identity(vs, kit)
+            self.assertEqual((target / "include/vcruntime.h").read_bytes(), b"outside")
+
+    def test_redirected_sdk_parent_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vs, kit = root / "VS", root / "Kit"
+            (vs / "VC/Tools/MSVC/14.44.35207").mkdir(parents=True)
+            (kit / "Include").mkdir(parents=True)
+            outside = root / "redirect-target"
+            (outside / "ucrt").mkdir(parents=True)
+            (outside / "ucrt/stdlib.h").write_bytes(b"SDK")
+            link = kit / "Include/10.0.26100.0"
+            try:
+                link.symlink_to(outside, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("runner cannot create directory symlink")
+            with self.assertRaisesRegex(ValueError, "redirected SDK or toolchain"):
+                cache.linker_relevant_identity(vs, kit)
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

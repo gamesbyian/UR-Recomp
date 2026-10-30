@@ -17,7 +17,8 @@ class NativeRingCoverageTests(unittest.TestCase):
         events = [{'t': 'reg', 'adr': '0x4c', 'val': '0x80', 's': 40000}]
         return {'oldest_available': oldest, 'event_head': head,
                 'stats': {'event_count': stats_head, 'produced': 45000},
-                'events': events, 'events_returned': len(events)}
+                'events': events, 'events_returned': len(events),
+                'last_scanned_event_index': head, 'event_pages_contiguous': True}
 
     def test_complete_ring_census_is_allowed(self):
         pcm.validate_event_ring_coverage(self.report())
@@ -37,6 +38,16 @@ class NativeRingCoverageTests(unittest.TestCase):
         report['events_returned'] = 0
         with self.assertRaisesRegex(ValueError, 'census'):
             pcm.validate_event_ring_coverage(report)
+
+    def test_partial_or_discontinuous_scan_rejected(self):
+        for changes in ({'last_scanned_event_index': 1},
+                        {'event_pages_contiguous': False},
+                        {'last_scanned_event_index': None}):
+            with self.subTest(changes=changes):
+                report = self.report(head=100, stats_head=100)
+                report.update(changes)
+                with self.assertRaisesRegex(ValueError, 'incomplete or discontinuous'):
+                    pcm.validate_event_ring_coverage(report)
 
     def test_cli_refuses_overwritten_ring_before_wav(self):
         with tempfile.TemporaryDirectory() as tmp:

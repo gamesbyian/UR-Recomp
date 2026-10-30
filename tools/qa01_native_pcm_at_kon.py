@@ -61,6 +61,10 @@ def validate_event_ring_coverage(report: dict) -> None:
         raise ValueError('malformed native DSP event-ring counters')
     if oldest != 0:
         raise ValueError('native DSP event-ring history overwritten; use live armed capture')
+    scan_end = report.get('last_scanned_event_index')
+    if (report.get('event_pages_contiguous') is not True or
+            type(scan_end) is not int or scan_end < head):
+        raise ValueError('incomplete or discontinuous native DSP event-ring scan')
     events = report.get('events')
     if (not isinstance(events, list) or
             type(report.get('events_returned')) is not int or

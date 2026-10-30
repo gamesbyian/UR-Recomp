@@ -34,6 +34,18 @@ class AudioEventCaptureTests(unittest.TestCase):
             ["audio_events 0 2 0", "audio_events 2 2 0"],
         )
         self.assertEqual(meta["oldest"], 0)
+        self.assertEqual(meta["_client_scan_end"], 3)
+        self.assertTrue(meta["_client_contiguous"])
+
+    def test_noncontiguous_page_is_flagged_for_strict_consumers(self) -> None:
+        def command(line: str) -> dict:
+            self.assertEqual(line, 'audio_events 0 8 1')
+            return {'events': [{'t': 'reg'}], 'scanned': 1,
+                    'first': 3, 'oldest': 3}
+
+        _, meta = cap.page_events(command, first=0, page_size=8, event_filter=1)
+        self.assertFalse(meta['_client_contiguous'])
+        self.assertEqual(meta['_client_scan_end'], 4)
 
     def test_capture_includes_stats_and_ring_metadata(self) -> None:
         responses = {
@@ -54,6 +66,8 @@ class AudioEventCaptureTests(unittest.TestCase):
         self.assertEqual(report["events_returned"], 1)
         self.assertEqual(report["event_filter"], 2)
         self.assertEqual(report["stats"]["cpu_port_writes"], 1)
+        self.assertEqual(report["last_scanned_event_index"], 1)
+        self.assertTrue(report["event_pages_contiguous"])
 
 
 if __name__ == "__main__":

@@ -16,6 +16,8 @@ on:
       # Real Win32/SDL QA-05 acceptance changes must exercise their own
       # hosted Windows route before merge, not just a Linux source test.
       - "tools/ci/qa05_restart_attempt.sh"
+      - "tools/ci/windows_package_race_result.sh"
+      - "tests/unit/test_hp_race_overlap_policy.py"
       - "tools/capture_modern_restart_audio.py"
       - "tools/capture_modern_resume_audio.py"
       - "tools/capture_modern_paused_audio.py"

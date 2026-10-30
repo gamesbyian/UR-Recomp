@@ -57,6 +57,8 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/ci/qa05_restart_attempt.sh"
+      - "tools/ci/windows_package_race_result.sh"
+      - "tests/unit/test_hp_race_overlap_policy.py"
       - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/assemble_windows_package.py"
       - "tools/Test-URRecompPortable.ps1"
@@ -729,34 +731,11 @@ jobs:
           echo "WINDOWS_PACKAGE_DEFAULT_APPDATA_ROOT ok"
 
       - name: Extracted-package race-result acceptance
-        run: |
-          set -euo pipefail
-          DUMPS="$RUNNER_TEMP/package-race-result-dumps"
-          mkdir -p "$DUMPS"
-          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
-          USER_DATA_WIN="$(cygpath -w "$PACKAGE_USER_DATA")"
-          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script")"
-          DUMPS_WIN="$(cygpath -w "$DUMPS")"
-
-          set +e
-          SDL_VIDEODRIVER=offscreen \
-          SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-          UR_RECOMP_USER_DATA_ROOT="$USER_DATA_WIN" \
-            timeout 600 powershell.exe -NoProfile -Command \
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
-              >"$RUNNER_TEMP/package-race-result.log" 2>&1
-          RC=$?
-          set -e
-          tail -n 50 "$RUNNER_TEMP/package-race-result.log"
-          test "$RC" -eq 0
-          python tools/check_result_screen_time.py \
-            --dump-dir "$DUMPS" \
-            --checkpoint race-results
-          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-race-result.log"
-          grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-race-result.log"
-          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
-          echo "WINDOWS_PACKAGE_RACE_RESULT ok"
+        # On HP this exact witness runs concurrently with isolated QA-05
+        # within a single owned step, then joins before package refresh.
+        # Hosted serial acceptance is otherwise unchanged.
+        if: ${{ !inputs.run_on_hp }}
+        run: bash tools/ci/windows_package_race_result.sh
 
       - name: Extracted-package Win32 window and default renderer smoke
         run: |
@@ -833,6 +812,27 @@ jobs:
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
           WORKER="tools/ci/qa05_restart_attempt.sh"
+          RACE_PID=''
+          if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' ]]; then
+            # Both jobs consume the already-verified immutable package.
+            # Race uses offscreen SDL/dummy audio and PACKAGE_USER_DATA;
+            # QA-05 owns separate per-attempt user roots, PCM and HWNDs.
+            bash tools/ci/windows_package_race_result.sh \
+              >"$RUNNER_TEMP/hp-race-overlap.log" 2>&1 &
+            RACE_PID="$!"
+            hp_race_cleanup() {
+              if [[ -n "$RACE_PID" ]]; then
+                # Never SIGTERM only the Bash parent: it could orphan the
+                # 600-second timeout/PowerShell/SDL descendant and permit
+                # post-failure writes to authoritative result evidence.
+                # Join the bounded race script even after an early QA-05
+                # failure. The original step exit status remains nonzero.
+                wait "$RACE_PID" || true
+              fi
+            }
+            trap hp_race_cleanup EXIT
+            echo "HP_RACE_OVERLAP=started"
+          fi
           if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' ]]; then
             # Each child has separate Win32 PID/HWND ownership, SDL PCM,
             # user-data root, report and guest capture. Share only the
@@ -852,6 +852,23 @@ jobs:
               attempt=$((idx + 1))
               cat "$RUNNER_TEMP/qa05-parallel-$attempt.log"
             done
+            # Wait for the independent offscreen race witness before ANY
+            # serial fallback, package refresh or subsequent QA stage.
+            # Failure cannot silently earn a concurrency acceptance marker:
+            # redo the original race contract serially on cleared evidence.
+            race_rc=0
+            wait "$RACE_PID" || race_rc=$?
+            RACE_PID=''
+            trap - EXIT
+            cat "$RUNNER_TEMP/hp-race-overlap.log"
+            if [[ "$race_rc" -ne 0 ]]; then
+              echo "HP_RACE_OVERLAP=failed; serial fallback required"
+              echo "HP concurrent race witness failed; retrying authoritative serial race-result acceptance." >> "$GITHUB_STEP_SUMMARY"
+              bash tools/ci/windows_package_race_result.sh
+              echo "HP_RACE_OVERLAP=serial_fallback_passed"
+            else
+              echo "HP_RACE_OVERLAP=passed"
+            fi
             if [[ "$parallel_failed" -ne 0 ]]; then
               # Keep release QA truthful: a failed parallel experiment earns
               # no concurrent 5/5 claim. Reestablish the historical 5/5

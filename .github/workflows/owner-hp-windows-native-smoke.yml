@@ -144,6 +144,9 @@ jobs:
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
 
+      - name: Prepare pinned Windows Rust and Cargo for native analyzer
+        shell: cmd
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_rust.ps1
       - name: Scaffold and generate
         run: |
           set -euo pipefail

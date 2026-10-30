@@ -25,6 +25,27 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("HP_MEMORY_RECENT_EXHAUSTION", source)
         self.assertNotIn("HP_MEMORY_COMMIT_INSUFFICIENT", source)
 
+    def test_hosted_candidate_validates_hp_compiler_profile_without_hp_access(self):
+        source = WORKFLOW.read_text(encoding="utf-8")
+        caller = (ROOT / ".github" / "workflows"
+                  / "qa05-qa09-windows-candidate.yml").read_text(encoding="utf-8")
+        # One existing hosted package build exercises owner-specific compiler
+        # options. No second job or access to the owner's machine is created.
+        self.assertIn("test_hp_compiler_profile: true", caller)
+        self.assertIn("uses: ./.github/workflows/windows-native-smoke.yml", caller)
+        self.assertNotIn("run_on_hp: true", caller)
+        self.assertIn("      test_hp_compiler_profile:", source)
+        self.assertIn("        default: false", source.split("      test_hp_compiler_profile:", 1)[1].split("      run_tournament_acceptance:", 1)[0])
+        self.assertIn('if [[ "${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}" == "true" ]]; then',
+                      source)
+        self.assertIn("UR_COMPILER_PROFILE jobs=$HP_BUILD_JOBS", source)
+        self.assertIn('if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then\n'
+                      '            printf \'phase,timestamp_utc', source)
+        self.assertIn("runs-on: ${{ inputs.run_on_hp &&", source)
+        self.assertIn("github.ref == 'refs/heads/main'", source)
+        self.assertIn("github.event_name == 'push' || github.event_name == 'workflow_dispatch'", source)
+        self.assertNotIn("self-hosted", caller)
+
     def test_start_and_cleanup_are_hp_only_and_bound_to_artifact(self):
         source = WORKFLOW.read_text(encoding="utf-8")
         monitor = "tools/devnode_benchmark/monitor_hp_commit.ps1"

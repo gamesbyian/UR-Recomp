@@ -60,6 +60,13 @@ class ProducerIntegrityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'APU frame-boundary sync timed out'):
             self.analyze()
 
+    def test_native_watchdog_abandoned_frame_rejected(self):
+        # Pinned common_cpu_infra.c emits this marker before longjmp;
+        # common_rtl.c still advances the frame counter afterward.
+        self.native_log.write_text('\\n=== WATCHDOG: Frame 6450 exceeded 5.1s ===\\n')
+        with self.assertRaisesRegex(ValueError, 'watchdog abandoned'):
+            self.analyze()
+
     def test_reference_wav_truncated_tail_preserves_specific_rejection(self):
         self.wav.write_bytes(self.wav.read_bytes()[:-4])
         with self.assertRaisesRegex(ValueError, 'original WAV truncated'):

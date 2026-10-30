@@ -99,6 +99,11 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         if (side == 'NATIVE' and
                 '[apu] frame-boundary guest-clock sync timed out' in text):
             raise ValueError('RF095 native APU frame-boundary sync timed out')
+        # The pinned guest watchdog longjmps out of an unfinished frame,
+        # yet RtlRunFrame still increments its frame counter and synchronizes
+        # the APU. A plausible PCM/map pair cannot certify that frame.
+        if side == 'NATIVE' and '=== WATCHDOG: Frame ' in text:
+            raise ValueError('RF095 native watchdog abandoned a guest frame')
     ref = frame_map(original_map, start=ORIGINAL_START,
                     end=ORIGINAL_END, contiguous_from_zero=True)
     nat = frame_map(native_map, start=NATIVE_START,

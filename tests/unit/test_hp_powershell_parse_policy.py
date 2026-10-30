@@ -23,6 +23,8 @@ class HpPowerShellParsePolicyTests(unittest.TestCase):
         self.assertNotIn('["self-hosted"', src)
         self.assertNotIn("runs-on: self-hosted", src)
         self.assertIn("persist-credentials: false", src)
+        self.assertIn("actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683", src)
+        self.assertNotIn("actions/checkout@v4", src)
 
     def test_parser_only_never_executes_owner_maintenance(self):
         src = WORKFLOW.read_text(encoding="utf-8")
@@ -31,6 +33,10 @@ class HpPowerShellParsePolicyTests(unittest.TestCase):
         self.assertIn("if ($parseErrors.Count -gt 0)", src)
         self.assertIn("HP_POWERSHELL_PARSE_FAILED", src)
         self.assertIn("HP_POWERSHELL_PARSE_OK", src)
+        for name in ("monitor_hp_commit.ps1", "prepare_python.ps1", "prepare_rust.ps1"):
+            self.assertIn(name, src)
+        self.assertIn("if ($names -notcontains $required)", src)
+        self.assertIn("Missing required HP maintenance script", src)
         for forbidden in (
             "Invoke-Expression", "Start-Process", "Stop-Process",
             "pwsh -File", "powershell.exe -File",

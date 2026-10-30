@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from tools.capture_modern_restart_audio import (
     verify_restart_log, validate_restart_audio, read_stereo_after_native_exit,
+    reject_unexpected_pre_pause_focus,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +19,20 @@ class ModernRestartAudioTests(unittest.TestCase):
         "UR_PAUSE_STATE paused=0 surface=0\n"
         "script f=220 dump audio-restart-guest ok\n"
     )
+
+    def test_focus_loss_before_intended_host_pause_fails_fast(self):
+        auto_pause = "UR_FOCUS_PAUSE APPLIED focus=0 setting=1 modern=1\n"
+        with self.assertRaisesRegex(RuntimeError, "focus-loss auto-pause"):
+            reject_unexpected_pre_pause_focus(
+                "script f=829 dump now-playing-ready ok\n" + auto_pause)
+        with self.assertRaisesRegex(RuntimeError, "focus-loss auto-pause"):
+            reject_unexpected_pre_pause_focus(auto_pause + self.LOG)
+
+        # Ordinary host pause acceptance remains valid; this check does not
+        # pre-empt normal Restart audio or post-acceptance focus diagnostics.
+        reject_unexpected_pre_pause_focus(self.LOG)
+        reject_unexpected_pre_pause_focus(self.LOG + auto_pause)
+        reject_unexpected_pre_pause_focus("script f=829 dump now-playing-ready ok\n")
 
     def test_real_restart_requires_available_selection_unpause_and_guest_advance(self):
         evidence = verify_restart_log(self.LOG)

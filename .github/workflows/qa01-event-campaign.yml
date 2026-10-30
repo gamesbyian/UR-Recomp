@@ -260,8 +260,9 @@ jobs:
             exit 1
           fi
           if [[ "$QA01_RF095" == "true" &&
-                ( "$QA01_RF094" != "true" || "$SELECTED" != "zoom-zoo" ) ]]; then
-            echo "RF095 source-registered PCM requires RF094 paired Zoo" >&2
+                ( "$QA01_RF094" != "true" || "$SELECTED" != "zoom-zoo" ||
+                  "$QA01_NEXT_BOWL" != "true" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
+            echo "RF095 requires RF094 paired Zoo + source_followthrough + zoo_next_bowl" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&

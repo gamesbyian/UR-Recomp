@@ -141,6 +141,48 @@ if ($Mode -eq 'Stop') {
             } else {
                 Write-Output ('HP_CPU_SUMMARY run={0} samples=0 unavailable' -f $stem)
             }
+            # The build stage writes private, per-job phase timestamps. Only
+            # aggregate CPU/memory samples inside the exact compile window
+            # count toward the concurrency comparison. On incomplete or
+            # interrupted builds, report unavailable rather than making up a
+            # phase result. No new artifact or personal process data is stored.
+            if ($env:RUNNER_TEMP) {
+                $phaseFile = Join-Path $env:RUNNER_TEMP 'hp-compile-phase.csv'
+                if (Test-Path -LiteralPath $phaseFile) {
+                    try {
+                        $marks = @(Import-Csv -LiteralPath $phaseFile)
+                        $begins = @($marks | Where-Object { $_.phase -eq 'build_start' })
+                        $ends = @($marks | Where-Object { $_.phase -eq 'build_end' })
+                        if ($begins.Count -eq 1 -and $ends.Count -eq 1) {
+                            $beginUtc = [datetimeoffset]::Parse($begins[0].timestamp_utc)
+                            $endUtc = [datetimeoffset]::Parse($ends[0].timestamp_utc)
+                            if ($endUtc -le $beginUtc) {
+                                throw 'invalid_build_phase_order'
+                            }
+                            $compileRows = @($cpuRows | Where-Object {
+                                try {
+                                    $observed = [datetimeoffset]::Parse($_.timestamp_utc)
+                                    $observed -ge $beginUtc -and $observed -le $endUtc
+                                } catch {
+                                    $false
+                                }
+                            })
+                            if ($compileRows.Count -gt 0) {
+                                $cpuStats = $compileRows | Measure-Object -Property cpu_load_pct_est -Average -Maximum
+                                $compileMinVirtual = ($compileRows | Measure-Object -Property free_virtual_mb -Minimum).Minimum
+                                $elapsedSeconds = [math]::Round(($endUtc - $beginUtc).TotalSeconds)
+                                Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} elapsed_seconds={1} samples={2} mean_host_cpu_pct_est={3} peak_host_cpu_pct_est={4} min_free_virtual_mb={5}' -f $stem, $elapsedSeconds, $compileRows.Count, [math]::Round($cpuStats.Average, 1), $cpuStats.Maximum, $compileMinVirtual)
+                            } else {
+                                Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} unavailable=no_valid_cpu_samples' -f $stem)
+                            }
+                        } else {
+                            Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} unavailable=incomplete_phase_markers' -f $stem)
+                        }
+                    } catch {
+                        Write-Output ('HP_COMPILE_CPU_SUMMARY run={0} unavailable=invalid_phase_data' -f $stem)
+                    }
+                }
+            }
         } else {
             Write-Output 'HP_MONITOR_SUMMARY no_complete_samples'
         }

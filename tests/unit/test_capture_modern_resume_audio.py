@@ -5,6 +5,7 @@ from pathlib import Path
 
 from tools.capture_modern_resume_audio import (
     read_stereo_window, verify_resume_audio, verify_resume_log,
+    select_game_window,
 )
 
 
@@ -86,6 +87,20 @@ class ModernResumeAudioTests(unittest.TestCase):
             self.assertEqual(resumed["channel_rms"], [2500.0, 1700.0])
             self.assertEqual(verify_resume_audio(
                 self.LOG, paused, resumed)["resume_count"], 1)
+
+    def test_win32_window_selection_requires_visible_unique_game_by_default(self):
+        self.assertEqual(select_game_window([111], [222]), 111)
+        self.assertEqual(select_game_window([111], [222], allow_hidden=True), 111)
+        for visible, hidden in (([], [222]), ([], []), ([111, 112], [])):
+            with self.subTest(visible=visible, hidden=hidden), self.assertRaisesRegex(
+                RuntimeError, "expected exactly one visible"
+            ):
+                select_game_window(visible, hidden)
+
+    def test_explicit_service_diagnostic_can_target_one_hidden_game_hwnd(self):
+        self.assertEqual(select_game_window([], [222], allow_hidden=True), 222)
+        with self.assertRaisesRegex(RuntimeError, "hidden_titled=2"):
+            select_game_window([], [222, 333], allow_hidden=True)
 
     def test_probe_leaves_guest_and_audio_runtime_untouched(self):
         tool = (Path(__file__).resolve().parents[2] / "tools" /

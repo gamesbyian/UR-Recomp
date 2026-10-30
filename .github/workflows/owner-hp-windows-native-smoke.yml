@@ -8,6 +8,12 @@ on:
       - "tools/devnode_benchmark/prepare_rust.ps1"
       - "tools/devnode_benchmark/prepare_python.ps1"
   workflow_dispatch:
+    inputs:
+      run_full_smoke:
+        description: "Explicitly authorize the expensive native build after HP health passes"
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   # Direct smoke and the QA-05/09 reusable caller may run for the same PR.
@@ -19,7 +25,41 @@ permissions:
   contents: read
 
 jobs:
+  hp-health:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Read-only runner health and Windows commit limit
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RUNNER_NAME -ine 'hpmini-ur-recomp') { throw 'Unexpected self-hosted runner identity' }
+          $os = Get-CimInstance Win32_OperatingSystem
+          $freeVirtualMB = [math]::Round($os.FreeVirtualMemory / 1024)
+          $totalVirtualMB = [math]::Round($os.TotalVirtualMemorySize / 1024)
+          $freePhysicalMB = [math]::Round($os.FreePhysicalMemory / 1024)
+          Write-Output "HP_HEALTH runner=$env:RUNNER_NAME commit_free_mb=$freeVirtualMB commit_total_mb=$totalVirtualMB physical_free_mb=$freePhysicalMB"
+          Get-CimInstance Win32_PageFileUsage | ForEach-Object {
+            Write-Output "HP_PAGEFILE name=$($_.Name) allocated_mb=$($_.AllocatedBaseSize) used_mb=$($_.CurrentUsage) peak_mb=$($_.PeakUsage)"
+          }
+          Get-Process | Sort-Object -Property PrivateMemorySize64 -Descending |
+            Select-Object -First 8 ProcessName, Id, @{Name='PrivateMB';Expression={[math]::Round($_.PrivateMemorySize64 / 1MB)}} |
+            Format-Table | Out-String | Write-Output
+          Get-CimInstance Win32_ComputerSystem | ForEach-Object {
+            Write-Output "HP_SYSTEM total_physical_mb=$([math]::Round($_.TotalPhysicalMemory / 1MB)) automatic_pagefile=$($_.AutomaticManagedPagefile)"
+          }
+          if ($os.FreeVirtualMemory -lt 2097152) {
+            throw 'HP_HEALTH_COMMIT_LIMIT: under 2048 MiB of free virtual memory; do not attempt full build'
+          }
+          Write-Output 'HP_HEALTH PASS (read-only, no compiler invoked)'
+
   windows:
+    needs: hp-health
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_full_smoke == true }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 45

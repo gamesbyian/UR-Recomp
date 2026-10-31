@@ -12,6 +12,7 @@ import argparse
 from datetime import datetime, timezone
 import json
 import os
+import re
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -22,6 +23,44 @@ WORKFLOWS = {
 }
 OVERDUE_HOURS = 8
 MAX_RUNS = 30
+SHA1 = re.compile(r"[0-9a-f]{40}\Z")
+# #2895 entered main at 02:22 UTC on October 31; its first cron is 03:17.
+# An indefinitely empty Actions history must eventually raise an alert.
+FIRST_ELIGIBLE_2P_UTC = datetime(2026, 10, 31, 3, 17, tzinfo=timezone.utc)
+RUN_STATUSES = frozenset({"queued", "in_progress", "completed",
+                          "requested", "waiting", "pending"})
+RUN_CONCLUSIONS = frozenset({"success", "failure", "cancelled", "skipped",
+                             "timed_out", "action_required", "neutral",
+                             "stale", "startup_failure"})
+
+
+def validate_run(row: dict, now: datetime) -> datetime:
+    """Refuse malformed Actions evidence before filtering events/branches."""
+    if not isinstance(row, dict):
+        raise ValueError("invalid Actions run record")
+    if type(row.get("id")) is not int or row["id"] <= 0:
+        raise ValueError("invalid Actions run ID")
+    if row.get("event") not in ("push", "schedule", "workflow_dispatch"):
+        raise ValueError("invalid Actions event")
+    branch = row.get("head_branch")
+    if (not isinstance(branch, str) or not branch
+            or branch != branch.strip() or any(c.isspace() for c in branch)):
+        raise ValueError("invalid Actions branch")
+    sha = row.get("head_sha")
+    if not isinstance(sha, str) or not SHA1.fullmatch(sha):
+        raise ValueError("invalid Actions source SHA")
+    when = timestamp(row.get("created_at"))
+    if when > now:
+        raise ValueError("future Actions event")
+    state, conclusion = row.get("status"), row.get("conclusion")
+    if state not in RUN_STATUSES:
+        raise ValueError("invalid Actions run status")
+    if state == "completed":
+        if conclusion not in RUN_CONCLUSIONS:
+            raise ValueError("completed Actions run without valid conclusion")
+    elif conclusion is not None:
+        raise ValueError("unfinished Actions run with conclusion")
+    return when
 
 
 def timestamp(value: str) -> datetime:
@@ -40,22 +79,23 @@ def observe(lane: str, runs: list[dict], now: datetime) -> dict:
     eligible = []
     manual = 0
     for row in runs[:MAX_RUNS]:
-        if not isinstance(row, dict) or row.get("head_branch") != "main":
+        when = validate_run(row, now)
+        if row["head_branch"] != "main":
             continue
-        event = row.get("event")
+        event = row["event"]
         # Manual trials are counted, never treated as proof that an
         # automatic push build or recurring research cron is healthy.
         if event == "workflow_dispatch":
             manual += 1
         if event not in allowed:
             continue
-        when = timestamp(row.get("created_at"))
-        if when > now:
-            raise ValueError("future Actions event")
         eligible.append((when, row))
     eligible.sort(key=lambda item: item[0], reverse=True)
     if not eligible:
-        return {"status": "NOT_YET_OBSERVED", "last_run_id": None,
+        missing_cron = (lane == "unattended_2p" and
+                        (now - FIRST_ELIGIBLE_2P_UTC).total_seconds() > OVERDUE_HOURS * 3600)
+        return {"status": "SCHEDULE_OVERDUE" if missing_cron else "NOT_YET_OBSERVED",
+                "last_run_id": None,
                 "age_hours": None, "sampled_runs": min(len(runs), MAX_RUNS),
                 "recent_manual_trials": manual, "last_conclusion": None}
     when, run = eligible[0]
@@ -87,7 +127,7 @@ def observe(lane: str, runs: list[dict], now: datetime) -> dict:
 
 def fetch_runs(workflow: str, token: str) -> list[dict]:
     url = (f"https://api.github.com/repos/{REPOSITORY}/actions/workflows/"
-           f"{workflow}/runs?per_page={MAX_RUNS}")
+           f"{workflow}/runs?branch=main&per_page={MAX_RUNS}")
     request = Request(url, headers={
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -114,7 +154,9 @@ def render(report: dict) -> str:
                if run else "none")
         lines.append(f"| {lane} | **{row['status']}** | {url} | "
                      f"{row.get('age_hours', 'n/a')} | {row.get('completed_24h', 'n/a')} |")
-    lines += ["", "An observed manual research trial does not establish that "
+    lines += ["", "A research schedule with no observed cron run becomes overdue "
+              "after its first eligible slot plus an eight-hour grace period.",
+              "An observed manual research trial does not establish that "
               "GitHub's recurring cron actually fired.",
               "An old product build alone is not a failure: that lane is triggered "
               "by source changes, not a timer. Manual builds cannot conceal "

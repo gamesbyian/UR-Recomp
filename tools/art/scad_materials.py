@@ -142,23 +142,50 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
                 found.update(nested_colors(subbody, seen | {called}))
         return found
 
-    def guard_additive_csg(body: str, name: str) -> None:
+    def enclosing_colors(body: str, offset: int) -> set[tuple[int, int, int, int]]:
+        """Find material decorators that still enclose an operator or module call.
+
+        A color can wrap a braced child or a single unbraced transform/CSG
+        chain. Reject mixed effective colors before separate STL passes lose
+        the geometry connecting differently colored CSG operands.
+        """
+        active = set()
+        for match in _COLOR.finditer(body[:offset]):
+            start = match.end()
+            while start < offset and body[start].isspace():
+                start += 1
+            if start > offset:
+                continue
+            brace = body.find('{', start, offset)
+            semicolon = body.find(';', start, offset)
+            if brace >= 0 and (semicolon < 0 or brace < semicolon):
+                if _body_end(body, brace) > offset:
+                    active.add(_rgba(match.group(1), defaults))
+            elif semicolon < 0 and '}' not in body[start:offset]:
+                active.add(_rgba(match.group(1), defaults))
+        return active
+
+    def guard_additive_csg(body: str, name: str,
+                           inherited: frozenset[tuple[int, int, int, int]]) -> None:
         for operator in _ADDITIVE_CSG.finditer(body):
             if not operator.group(1):
                 raise ValueError('unsupported unbraced OpenSCAD additive CSG: ' + name)
             # _body_end expects the opening brace, included in the regex match.
             child = body[operator.end():_body_end(body, operator.end()-1)]
-            if len(nested_colors(child, frozenset())) > 1:
+            effective = (nested_colors(child, frozenset()) |
+                         enclosing_colors(body, operator.start()) | inherited)
+            if len(effective) > 1:
                 raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
 
-    def visit(name):
-        if name in visited:
+    def visit(name, inherited=frozenset()):
+        key = (name, inherited)
+        if key in visited:
             return
-        visited.add(name)
+        visited.add(key)
         body = modules[name]
         if _UNSUPPORTED_CSG.search(body):
             raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
-        guard_additive_csg(body, name)
+        guard_additive_csg(body, name, inherited)
         matches = list(_COLOR.finditer(body))
         if len(matches) != len(_ANY_COLOR.findall(body)):
             raise ValueError('unsupported OpenSCAD color() in '+name)
@@ -166,8 +193,8 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
             rgba = _rgba(match.group(1), defaults)
             colors[rgba] = None
         for called in modules:
-            if re.search(r'\b'+re.escape(called)+r'\s*\(', body):
-                visit(called)
+            for call in re.finditer(r'\b'+re.escape(called)+r'\s*\(', body):
+                visit(called, inherited | frozenset(enclosing_colors(body, call.start())))
     visit(part)
     if not colors:
         raise ValueError('source part has no material colors: '+part)

@@ -60,6 +60,70 @@ class CsgSafety(unittest.TestCase):
         source = SOURCE + '\nmodule unused(){ hull(){ color(rig_color) cube(1); color([0.9,0.1,0.1]) sphere(1); } }\n'
         self.assertEqual(module.materials_for_part(source, 'tire'), [(26,26,26,255)])
 
+    def test_outer_color_with_inner_mixed_hull_rejected(self):
+        # Both exported material passes would be nonempty, but the bridge is lost.
+        bad = SOURCE + """
+module bad() {
+  color([1,0,0]) hull() {
+    sphere(r=1,$fn=48);
+    color([0,0,1]) translate([5,0,0]) sphere(r=1,$fn=48);
+  }
+  color([0,0,1]) translate([0,3,0]) cube(1);
+}
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_outer_color_with_inner_mixed_minkowski_rejected(self):
+        bad = SOURCE + """
+module bad() {
+  color([1,0,0]) minkowski() {
+    cube(2);
+    color([0,0,1]) sphere(1);
+  }
+}
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_braced_outer_color_with_inner_mixed_hull_rejected(self):
+        bad = SOURCE + """
+module bad() {
+  color([1,0,0]) {
+    cube(1);
+    hull() { sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); }
+  }
+}
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_outer_color_propagates_to_called_helper_csg(self):
+        bad = SOURCE + """
+module bridge() { hull() { sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); } }
+module bad() { color([1,0,0]) bridge(); }
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_same_color_enclosing_hull_still_supported(self):
+        good = SOURCE + """
+module good() {
+  color([1,0,0]) hull() { sphere(1); color([1,0,0]) translate([3,0,0]) sphere(1); }
+}
+"""
+        self.assertEqual(module.materials_for_part(good, 'good'), [(255,0,0,255)])
+
+    def test_finished_sibling_color_does_not_enclose_hull(self):
+        good = SOURCE + """
+module good() {
+  color([1,0,0]) cube(1);
+  hull() { color([0,0,1]) sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); }
+}
+"""
+        self.assertEqual(set(module.materials_for_part(good, 'good')),
+                         {(255,0,0,255), (0,0,255,255)})
+
     def test_real_openscad_cross_color_csg_loses_volume_when_split(self):
         if not shutil.which('openscad'):
             self.skipTest('OpenSCAD unavailable')

@@ -138,6 +138,58 @@ class HpScheduledResearchTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         hp.authorize(altered)
 
+    def test_existing_research_work_root_cannot_be_reused_or_destroyed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            env = _env(root)
+            exe, rom = root / "game.exe", root / "retail.sfc"
+            exe.write_bytes(b"synthetic Windows executable")
+            rom.write_bytes(b"synthetic stock ROM")
+            private = root / (
+                f"hp-seeded-2p-{env['GITHUB_RUN_ID']}-{env['GITHUB_RUN_ATTEMPT']}")
+            private.mkdir()
+            marker = private / "historical-evidence.txt"
+            marker.write_text("must not be replaced", encoding="utf-8")
+            receipt = root / "new-receipt.json"
+            with patch.object(hp.native, "run_shard") as guest:
+                with self.assertRaisesRegex(ValueError, "already exists"):
+                    hp.run(exe, rom, env, receipt)
+                guest.assert_not_called()
+            self.assertEqual(marker.read_text(encoding="utf-8"),
+                             "must not be replaced")
+            self.assertFalse(receipt.exists())
+
+    def test_redirected_executable_and_stock_rom_refused_before_guest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            env = _env(root)
+            exe, rom = root / "game.exe", root / "retail.sfc"
+            exe.write_bytes(b"synthetic Windows executable")
+            rom.write_bytes(b"synthetic stock ROM")
+            redirected_exe = root / "redirected.exe"
+            redirected_rom = root / "redirected.sfc"
+            try:
+                redirected_exe.symlink_to(exe.name)
+                redirected_rom.symlink_to(rom.name)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"fixture symlinks unavailable: {type(exc).__name__}")
+            self.assertTrue(redirected_exe.is_file())
+            self.assertTrue(redirected_rom.is_file())
+            receipt = root / "new-receipt.json"
+            work = root / (
+                f"hp-seeded-2p-{env['GITHUB_RUN_ID']}-{env['GITHUB_RUN_ATTEMPT']}")
+            with patch.object(hp.native, "run_shard") as guest:
+                for target_exe, target_rom in (
+                    (redirected_exe, rom), (exe, redirected_rom),
+                ):
+                    with self.subTest(exe=target_exe.name, rom=target_rom.name):
+                        with self.assertRaisesRegex(
+                                ValueError, "missing/redirected exact game"):
+                            hp.run(target_exe, target_rom, env, receipt)
+                guest.assert_not_called()
+            self.assertFalse(work.exists())
+            self.assertFalse(receipt.exists())
+
     def test_eight_workers_fit_unique_bounded_source_owned_namespaces(self):
         self.assertEqual(hp.WORKERS, 8)
         source = (ROOT / "tools/hp_seeded_2p_research.py").read_text()

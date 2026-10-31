@@ -145,9 +145,7 @@ class HostedIsolatedBootFanoutTests(unittest.TestCase):
         source = HOSTED_FANOUT.read_text(encoding="utf-8")
         for marker in (
             'GITHUB_EVENT_NAME', 'pull_request', 'GITHUB_REF',
-            '^refs/pull/[0-9]+/merge
-    unittest.main()
-, 'GITHUB_REPOSITORY',
+            '^refs/pull/[0-9]+/merge$', 'GITHUB_REPOSITORY',
             'gamesbyian/UR-Recomp', 'RUNNER_OS', 'Windows',
             'RUNNER_NAME', 'hpmini-ur-recomp', 'TEST_PACKAGE',
             'PACKAGE_USER_DATA', 'trap join_all EXIT', 'wait "$pid" || true',

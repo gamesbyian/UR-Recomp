@@ -38,7 +38,10 @@ class SerializedNormalBufferTests(unittest.TestCase):
     def write(self):
         payload = json.dumps(self.gltf, separators=(",", ":")).encode("utf-8")
         payload += b" " * ((-len(payload)) % 4)
-        binary = b"\0" * 72
+        binary = bytearray(b"\0" * self.gltf["buffers"][0]["byteLength"])
+        if len(binary) >= 88:
+            struct.pack_into("<H", binary, 72, 0)
+            struct.pack_into("<3f", binary, 76, -1.0, 0.0, 0.0)
         total = 20 + len(payload) + 8 + len(binary)
         self.path.write_bytes(
             struct.pack("<4sIIII", b"glTF", 2, total, len(payload), 0x4E4F534A)
@@ -82,6 +85,32 @@ class SerializedNormalBufferTests(unittest.TestCase):
         self.path.write_bytes(raw)
         with self.assertRaisesRegex(ValueError, "BIN chunk"):
             module.require_explicit_glb_normals(self.path, {"tire__material_0"})
+
+    def add_valid_sparse_override(self, accessor_index):
+        # A real in-bounds sparse index/value pair. Its glTF semantics
+        # override the dense accessor even if a loader ignores the override.
+        self.gltf["buffers"][0]["byteLength"] = 88
+        self.gltf["bufferViews"].extend([
+            {"buffer": 0, "byteOffset": 72, "byteLength": 2},
+            {"buffer": 0, "byteOffset": 76, "byteLength": 12},
+        ])
+        self.gltf["accessors"][accessor_index]["sparse"] = {
+            "count": 1,
+            "indices": {"bufferView": 2, "componentType": 5123},
+            "values": {"bufferView": 3},
+        }
+
+    def test_sparse_normal_override_rejected(self):
+        self.add_valid_sparse_override(1)
+        self.assert_rejected()
+
+    def test_sparse_position_override_rejected(self):
+        self.add_valid_sparse_override(0)
+        self.assert_rejected()
+
+    def test_unreferenced_sparse_accessor_rejected(self):
+        self.gltf["accessors"].append({"sparse": {"count": 1}})
+        self.assert_rejected()
 
 
 if __name__ == "__main__":

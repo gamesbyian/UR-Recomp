@@ -121,6 +121,13 @@ def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
                 or not isinstance(views, list) or not isinstance(buffers, list)
                 or len(buffers) != 1):
             raise ValueError("invalid mesh/accessor/buffer arrays")
+        # This exporter emits dense accessors only. Sparse overrides change
+        # the glTF-defined vertex data, but Trimesh currently reads the base
+        # buffer values and can silently accept a source-different GLB.
+        # Reject every sparse accessor before trusting imported signatures.
+        if any(not isinstance(accessor, dict) or "sparse" in accessor
+               for accessor in accessors):
+            raise ValueError("GLB sparse accessor unsupported")
         buffer_bytes = buffers[0]["byteLength"]
         if type(buffer_bytes) is not int or buffer_bytes <= 0 or buffer_bytes > bin_length:
             raise ValueError("GLB normal buffer exceeds BIN chunk")

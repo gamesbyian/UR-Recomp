@@ -751,7 +751,9 @@ jobs:
         # On HP this exact witness runs concurrently with isolated QA-05
         # within a single owned step, then joins before package refresh.
         # Hosted serial acceptance is otherwise unchanged.
-        if: ${{ !inputs.run_on_hp }}
+        # Hosted candidate PR canary overlaps offscreen race with five SERIAL
+        # visible-window QA-05 checks. Ordinary hosted retains the serial step.
+        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
         run: bash tools/ci/windows_package_race_result.sh
 
       - name: Extracted-package Win32 window and default renderer smoke
@@ -824,6 +826,7 @@ jobs:
         env:
           UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
           UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}
+          UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '1' || '0' }}
           # Source-owned trial ONLY for hosted PR compiler-profile acceptance.
           # Default main/owner-HP original 4+4-second audio holds unchanged.
           # Real Win32 Down/Enter, PCM silence/audibility, Start 12-word
@@ -835,7 +838,7 @@ jobs:
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
           WORKER="tools/ci/qa05_restart_attempt.sh"
           RACE_PID=''
-          if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' ]]; then
+          if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' || "$UR_QA05_HOSTED_RACE_OVERLAP_PILOT" == '1' ]]; then
             # Both jobs consume the already-verified immutable package.
             # Race uses offscreen SDL/dummy audio and PACKAGE_USER_DATA;
             # QA-05 owns separate per-attempt user roots, PCM and HWNDs.
@@ -908,6 +911,23 @@ jobs:
             for attempt in 1 2 3 4 5; do
               bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"
             done
+            if [[ "$UR_QA05_HOSTED_RACE_OVERLAP_PILOT" == '1' ]]; then
+              # The real visible HWND and audio attempts stayed serial.
+              # Join the separate offscreen race before package refresh.
+              race_rc=0
+              wait "$RACE_PID" || race_rc=$?
+              RACE_PID=''
+              trap - EXIT
+              cat "$RUNNER_TEMP/hp-race-overlap.log"
+              if [[ "$race_rc" -ne 0 ]]; then
+                echo "HOSTED_RACE_OVERLAP=failed; serial fallback required"
+                echo "Hosted race overlap failed; rerunning original race-result acceptance serially." >> "$GITHUB_STEP_SUMMARY"
+                bash tools/ci/windows_package_race_result.sh
+                echo "HOSTED_RACE_OVERLAP=serial_fallback_passed"
+              else
+                echo "HOSTED_RACE_OVERLAP=passed"
+              fi
+            fi
           fi
           echo "WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5"
 

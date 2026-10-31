@@ -162,6 +162,21 @@ class NativeWavWirePathTests(unittest.TestCase):
         self.assertEqual(pcm.wav_command_path(Path("/tmp/voice7.wav")),
                          "/tmp/voice7.wav")
 
+    def test_server_path_token_byte_limit(self):
+        # Pinned debug_server.c uses sscanf("%511s %lld %llu"). A 512-byte
+        # token truncates the filename before the server opens it with wb.
+        self.assertEqual(pcm.wav_command_path(Path("/" + "a" * 510)),
+                         "/" + "a" * 510)
+        with self.assertRaisesRegex(ValueError, "511-byte"):
+            pcm.wav_command_path(Path("/" + "a" * 511))
+
+    def test_server_path_token_utf8_byte_limit(self):
+        # Non-ASCII UTF-8 consumes more wire bytes than Python characters.
+        self.assertEqual(pcm.wav_command_path(Path("/" + "a" * 508 + "é")),
+                         "/" + "a" * 508 + "é")
+        with self.assertRaisesRegex(ValueError, "511-byte"):
+            pcm.wav_command_path(Path("/" + "a" * 509 + "é"))
+
     def test_unsafe_posix_paths_fail_before_wav_request(self):
         for name in ("/tmp/has\\backslash.wav", '/tmp/has"quote.wav',
                      "/tmp/has\x00nul.wav"):

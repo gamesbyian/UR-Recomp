@@ -84,6 +84,16 @@ def wav_command_path(wav_path: Path) -> str:
         path = path.replace("\\", "/")
     if ('"' in path or "\\" in path or any(ord(c) < 32 for c in path)):
         raise ValueError("audio_wav destination cannot be represented safely in native JSON")
+    # The pinned server parses audio_wav with sscanf("%511s ..."). A longer
+    # token is truncated BEFORE it opens the path with "wb", potentially
+    # overwriting a foreign file sharing that prefix. Bound encoded bytes,
+    # not Unicode code points, before any command can reach the server.
+    try:
+        encoded = path.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError("audio_wav destination cannot be encoded as UTF-8") from exc
+    if len(encoded) > 511:
+        raise ValueError("audio_wav destination exceeds server's 511-byte path token")
     return path
 
 

@@ -43,7 +43,7 @@ static void ur_rf095_reference_pcm_map_init() {
     ur_rf095_ref_map_initialized = true;
     const char *path = getenv("SNESREF_PCM_FRAME_MAP");
     if (!path || !path[0]) return;
-    ur_rf095_ref_map = fopen(path, "w");
+    ur_rf095_ref_map = fopen(path, "wx");
     if (!ur_rf095_ref_map ||
         fprintf(ur_rf095_ref_map, "frame,samples\n0,0\n") < 0) {
         fprintf(stderr, "QA01RF095ORIG_OPEN_FAILED\n");
@@ -84,8 +84,8 @@ static void ur_rf095_native_flush(void) {
     fprintf(stderr, "QA01RF095NATIVE_OPEN_FAILED\n");
     return;
   }
-  FILE *fp = fopen(pcm, "wb");
-  FILE *mp = fopen(map, "w");
+  FILE *fp = fopen(pcm, "wbx");
+  FILE *mp = fopen(map, "wx");
   if (!fp || !mp) {
     fprintf(stderr, "QA01RF095NATIVE_OPEN_FAILED\n");
     if (fp) fclose(fp);

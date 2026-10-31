@@ -37,12 +37,12 @@ class HpRaceOverlapPolicyTests(unittest.TestCase):
         k = source.index("      - name: QA-05 packaged", j)
         finish = source.index("      - name: Package refresh", k)
         serial = source[i:j]
-        self.assertIn("if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}", serial)
+        self.assertIn("if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}", serial)
         self.assertIn("run: bash tools/ci/windows_package_race_result.sh", serial)
         work = source[k:finish]
         for marker in (
             "UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}",
-            "UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '1' || '0' }}",
+            "UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ !inputs.run_on_hp && ((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) && '1' || '0' }}",
             'HOSTED_RACE_OVERLAP=passed',
             'HOSTED_RACE_OVERLAP=serial_fallback_passed',
             'RACE_PID="$!"', "trap hp_race_cleanup EXIT",
@@ -66,6 +66,12 @@ class HpRaceOverlapPolicyTests(unittest.TestCase):
         hosted = work.split("          else\n            for attempt in 1 2 3 4 5; do", 1)[1]
         self.assertIn("HOSTED_RACE_OVERLAP=passed", hosted)
         self.assertIn("HOSTED_RACE_OVERLAP=serial_fallback_passed", hosted)
+        # Main-push and PR routes share one source-owned race/oracle, while
+        # hosted manual dispatch/HP retain their previous serial/HP routes.
+        self.assertIn("github.event_name == 'push'", source)
+        self.assertIn("github.ref == 'refs/heads/main'", source)
+        self.assertIn("!inputs.run_on_hp", source)
+        self.assertIn("!inputs.test_hp_compiler_profile", source)
         self.assertIn('wait "$RACE_PID" || race_rc=$?', hosted)
         self.assertLess(hosted.index('wait "$RACE_PID" || race_rc=$?'),
                         hosted.index("HOSTED_RACE_OVERLAP=passed"))

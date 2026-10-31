@@ -191,7 +191,7 @@ class HpScheduledResearchTests(unittest.TestCase):
                          "unverifiable source-owned failure")
         self.assertNotIn("seed", mismatch["issues"][0])
 
-       def test_recomputed_negative_receipts_cannot_publish_foreign_provenance(self):
+    def test_recomputed_negative_receipts_cannot_publish_foreign_provenance(self):
         source, run_id = "a" * 40, 12345
         def rows():
             results = []

@@ -77,6 +77,65 @@ def normal_signature(mesh, *, source: bool = False) -> str:
     return hashlib.sha256(faces.tobytes()).hexdigest()
 
 
+
+def bind_source_normals(mesh) -> None:
+    """Emit the float32-derived normals that the source receipt signs."""
+    import numpy as np
+    import trimesh
+    normalized = trimesh.Trimesh(
+        vertices=np.asarray(mesh.vertices, dtype="<f4"),
+        faces=mesh.faces, process=False)
+    mesh.vertex_normals = normalized.vertex_normals
+
+
+def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
+    """Reject absent glTF NORMAL accessors before Trimesh synthesizes them."""
+    import json
+    import struct
+
+    with path.open("rb") as handle:
+        header = handle.read(20)
+        if len(header) != 20:
+            raise ValueError("GLB normal accessor header missing")
+        magic, version, total, json_size, chunk_type = struct.unpack("<4sIIII", header)
+        if (magic != b"glTF" or version != 2 or total != path.stat().st_size
+                or chunk_type != 0x4E4F534A or json_size <= 0
+                or json_size > total - 20):
+            raise ValueError("GLB normal accessor header invalid")
+        payload = handle.read(json_size)
+        if len(payload) != json_size:
+            raise ValueError("GLB normal accessor JSON truncated")
+    try:
+        gltf = json.loads(payload)
+        meshes = gltf["meshes"]
+        accessors = gltf["accessors"]
+        if not isinstance(meshes, list) or not isinstance(accessors, list):
+            raise ValueError("invalid mesh/accessor arrays")
+        found = set()
+        for mesh in meshes:
+            name = mesh["name"]
+            primitives = mesh["primitives"]
+            if (not isinstance(name, str) or name in found
+                    or not isinstance(primitives, list) or len(primitives) != 1):
+                raise ValueError("invalid mesh identity/primitives")
+            found.add(name)
+            attributes = primitives[0]["attributes"]
+            normal_index, position_index = attributes["NORMAL"], attributes["POSITION"]
+            if (type(normal_index) is not int or type(position_index) is not int
+                    or normal_index < 0 or normal_index >= len(accessors)
+                    or position_index < 0 or position_index >= len(accessors)):
+                raise ValueError("invalid NORMAL/POSITION indices")
+            normal, position = accessors[normal_index], accessors[position_index]
+            if (normal.get("type") != "VEC3" or normal.get("componentType") != 5126
+                    or type(normal.get("count")) is not int
+                    or normal["count"] <= 0 or normal["count"] != position.get("count")):
+                raise ValueError("invalid NORMAL accessor format/count")
+        if found != set(expected_nodes):
+            raise ValueError("GLB normal accessor mesh identities differ from receipt")
+    except (KeyError, TypeError, IndexError, ValueError) as exc:
+        raise ValueError("GLB material NORMAL accessor missing or invalid") from exc
+
+
 def validate_glb_roundtrip(path: Path, report: dict) -> dict:
     """Reopen a staged GLB and reject missing, altered or detached part meshes."""
     import numpy as np
@@ -99,6 +158,7 @@ def validate_glb_roundtrip(path: Path, report: dict) -> dict:
             if node in expected_children or node in names:
                 raise ValueError("GLB receipt has duplicate material nodes")
             expected_children[node] = (part["name"], child)
+    require_explicit_glb_normals(path, expected_children)
     expected_nodes = {scene.graph.base_frame, *names, *expected_children}
     if set(scene.graph.nodes) != expected_nodes:
         raise ValueError("GLB scene node set differs from receipt")

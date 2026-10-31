@@ -37,6 +37,7 @@ class SourceNormalIntegrityTests(unittest.TestCase):
             rgba = [20 + i, 40 + i, 60 + i, 255]
             mesh.visual.vertex_colors = np.asarray(rgba, dtype=np.uint8)
             child = name + "__material_0"
+            module.bind_source_normals(mesh)
             self.scene.add_geometry(mesh, node_name=child, geom_name=child,
                                     parent_node_name=name)
             self.report["components"].append({
@@ -72,6 +73,15 @@ class SourceNormalIntegrityTests(unittest.TestCase):
         mesh.vertex_normals = normals[:, [1, 2, 0]]
         self.write_scene()
         with self.assertRaisesRegex(ValueError, "normal digest changed"):
+            module.validate_glb_roundtrip(self.path, self.report)
+
+    def test_missing_serialized_normal_accessor_rejected(self):
+        # Trimesh can synthesize normals when glTF omits NORMAL; the receipt
+        # must inspect actual GLB attributes, not this reconstructed fallback.
+        mesh = self.scene.geometry["tire__material_0"]
+        mesh._cache.clear()
+        self.write_scene()
+        with self.assertRaisesRegex(ValueError, "NORMAL accessor"):
             module.validate_glb_roundtrip(self.path, self.report)
 
     def test_missing_normal_signature_fails_closed(self):

@@ -20,9 +20,9 @@ import tempfile
 from pathlib import Path
 
 try:
-    from tools.art.glb_roundtrip_guard import validate_glb_roundtrip, geometry_signature, normal_signature
+    from tools.art.glb_roundtrip_guard import validate_glb_roundtrip, geometry_signature, normal_signature, bind_source_normals
 except ModuleNotFoundError:
-    from glb_roundtrip_guard import validate_glb_roundtrip, geometry_signature, normal_signature
+    from glb_roundtrip_guard import validate_glb_roundtrip, geometry_signature, normal_signature, bind_source_normals
 
 # Support both repo-root unit imports and direct offline script execution.
 try:
@@ -397,6 +397,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                         mesh.apply_translation(-np.array(saddle_mount))
                     mesh.visual.vertex_colors = np.array(rgba, dtype=np.uint8)
                     child = f"{name}__material_{index}"
+                    bind_source_normals(mesh)
                     scene.add_geometry(mesh, node_name=child, geom_name=child,
                                        parent_node_name=name)
                     material_rows.append({"node": child, "rgba": list(rgba),

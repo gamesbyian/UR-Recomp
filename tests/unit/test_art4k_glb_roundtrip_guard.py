@@ -37,6 +37,7 @@ class GlbRoundtripGuardTests(unittest.TestCase):
             rgba = [20 + i, 40 + i, 60 + i, 255]
             mesh.visual.vertex_colors = np.array(rgba, dtype=np.uint8)
             child = name + "__material_0"
+            module.bind_source_normals(mesh)
             self.scene.add_geometry(mesh, node_name=child, geom_name=child,
                                     parent_node_name=name)
             self.report["components"].append({"name": name, "pivot_translation": [0, 0, i + 1],

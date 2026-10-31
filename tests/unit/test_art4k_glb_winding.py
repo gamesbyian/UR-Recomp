@@ -54,6 +54,7 @@ class OrientedMaterialDigestTests(unittest.TestCase):
                 rgba = [40 + i, 80 + i, 120 + i, 255]
                 mesh.visual.vertex_colors = np.array(rgba, dtype=np.uint8)
                 child = f"{name}__material_0"
+                module.bind_source_normals(mesh)
                 scene.add_geometry(mesh, node_name=child, geom_name=child,
                                    parent_node_name=name)
                 report["components"].append({

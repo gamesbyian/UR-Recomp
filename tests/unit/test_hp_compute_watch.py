@@ -117,6 +117,33 @@ class HpComputeWatchTests(unittest.TestCase):
         self.assertEqual(watch.observe("product_windows",
                          [row(main=False)], NOW)["status"], "NOT_YET_OBSERVED")
 
+    def test_fetch_main_branch_query_prevents_foreign_runs_crowding_page(self):
+        # GitHub paginates before local filtering. A burst of manual or
+        # foreign-branch runs must not hide an older main cron/push.
+        from unittest.mock import patch
+
+        class Reply:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self, *args):
+                return b'{"workflow_runs": []}'
+
+        def check(request, timeout):
+            self.assertTrue(request.full_url.endswith(
+                f"/runs?branch=main&per_page={watch.MAX_RUNS}"))
+            self.assertEqual(timeout, 15)
+            return Reply()
+
+        with patch.object(watch, "urlopen", check):
+            self.assertEqual(watch.fetch_runs(
+                "owner-hp-seeded-2p-research.yml", "test"), [])
+            self.assertEqual(watch.fetch_runs(
+                "owner-hp-main-windows-smoke.yml", "test"), [])
+
     def test_report_is_compact_and_links_exact_run(self):
         result = {"schema": "ur-hp-compute-watch/1", "lanes": {
             "unattended_2p": watch.observe("unattended_2p", [row()], NOW),

@@ -127,7 +127,7 @@ def observe(lane: str, runs: list[dict], now: datetime) -> dict:
 
 def fetch_runs(workflow: str, token: str) -> list[dict]:
     url = (f"https://api.github.com/repos/{REPOSITORY}/actions/workflows/"
-           f"{workflow}/runs?per_page={MAX_RUNS}")
+           f"{workflow}/runs?branch=main&per_page={MAX_RUNS}")
     request = Request(url, headers={
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",

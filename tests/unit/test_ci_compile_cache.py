@@ -126,8 +126,14 @@ class ShimBehaviourTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(
                     subprocess.run([str(root / f"app{index}")]).returncode, 0)
-            # Every published receipt must describe the actual final object,
-            # even if same-key workers interleave their atomic publications.
+            # Same-key writers may interleave the final object and receipt
+            # replaces; a subsequent consumer must detect any mismatch,
+            # recompile from source and leave verifiably consistent entries.
+            result = self.run_shim(cache, "-std=c++17", "a.cpp", "b.cpp",
+                                   "-o", "app-verified", cwd=root)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(subprocess.run(
+                [str(root / "app-verified")]).returncode, 0)
             for obj in cache.glob("*.o"):
                 receipt = cache / (obj.stem + ".receipt.json")
                 self.assertTrue(receipt.is_file())

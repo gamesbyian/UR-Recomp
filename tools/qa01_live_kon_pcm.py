@@ -67,7 +67,13 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                         raise ValueError("combined voice-7 KON cannot identify exact $4C=$80 target")
                     sample = voice7[0]
                     if candidate is not None:
-                        raise ValueError("multiple voice-7 KON events since live arm")
+                        # The selected PCM slice ends at candidate+after,
+                        # exclusively. A later KON at/after that boundary
+                        # cannot change any captured sample; still reject
+                        # another KON within the retained window.
+                        if sample < candidate["s"] + after:
+                            raise ValueError("multiple voice-7 KON events inside PCM window")
+                        continue
                     candidate = {"s": sample, "t": "reg", "adr": "0x4c", "val": "0x80"}
         cursor += scanned
         stats = command_fn("audio_stats 0")
@@ -130,7 +136,13 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                             if voice7:
                                 if event.get("val") != "0x80":
                                     raise ValueError("combined voice-7 KON cannot identify exact $4C=$80 target")
-                                raise ValueError("multiple voice-7 KON events since live arm")
+                                # Events recorded during WAV I/O are relevant
+                                # only if their sample lies before the WAV's
+                                # exclusive end. Preserve strict inside-window
+                                # ambiguity rejection without discarding a
+                                # valid earlier slice for subsequent gameplay.
+                                if voice7[0] < candidate["s"] + after:
+                                    raise ValueError("multiple voice-7 KON events inside PCM window")
                     cursor += scanned
                 result.update({
                     "selection": "first_voice7_kon_after_live_arm_unverified_route",

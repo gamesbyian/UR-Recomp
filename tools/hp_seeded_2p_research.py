@@ -56,7 +56,10 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int) -> list[d
             or not isinstance(proof, dict) or proof.get("source_commit") != source
             or not isinstance(failures, list)
             or not 1 <= len(failures) <= 2
-            or sealed.get("failed_cases") != len(failures)):
+            or sealed.get("failed_cases") != len(failures)
+            or sealed.get("shard") != worker % 2
+            or type(sealed.get("base_seed")) is not int
+            or not 0 <= sealed["base_seed"] <= 100000000):
         return []
     notes = []
     for failure in failures:
@@ -66,6 +69,7 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int) -> list[d
                                    failure.get("trial_index"), failure.get("kind"))
         if (type(seed) is not int or not 0 <= seed <= 100000000
                 or type(trial_index) is not int or not 0 <= trial_index < MAX_CASES
+                or seed != sealed["base_seed"] + (worker % 2) * 1000003 + trial_index
                 or not isinstance(kind, str)
                 or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", kind)):
             return []
@@ -88,7 +92,14 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             raise ValueError("wrong worker order or index")
         report = row.get("report")
         if not isinstance(report, dict):
-            issues.append({"worker": index, "reason": str(row.get("error", "no report"))[:240]})
+            kind = row.get("error_type")
+            kind = kind if isinstance(kind, str) and re.fullmatch(
+                r"[A-Za-z][A-Za-z0-9_]{0,63}", kind) else "Unknown"
+            note = {"worker": index, "reason": "worker exception", "kind": kind}
+            seed = row.get("base_seed")
+            if type(seed) is int and 0 <= seed <= 100000000:
+                note["base_seed"] = seed
+            issues.append(note)
             continue
         sealed = dict(report)
         sig = sealed.pop("receipt_sha256", None)
@@ -185,7 +196,8 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
             # Keep the exact failure class in the negative receipt. A single
             # malformed test input or unexpected guest error must not erase
             # other concurrently completed independent workers' evidence.
-            return {"worker": i, "error": f"{type(exc).__name__}: {exc}"[:240]}
+            return {"worker": i, "error_type": type(exc).__name__,
+                    "base_seed": seeds[i]}
 
     rows = [None] * WORKERS
     # Threads only coordinate; independent real Windows game processes own

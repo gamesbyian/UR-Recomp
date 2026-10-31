@@ -179,6 +179,15 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertEqual(unbound["issues"][0]["reason"],
                          "unverifiable source-owned failure")
         self.assertNotIn("seed", unbound["issues"][0])
+        # A checksum-valid but wrongly attributed seed is not replay evidence.
+        report["identity"]["source_commit"] = source
+        report["failures"][0]["seed"] += 1
+        report.pop("receipt_sha256")
+        report["receipt_sha256"] = native.hash_object(report)
+        mismatch = hp.collect(rows, source, 123456, 1.0)
+        self.assertEqual(mismatch["issues"][0]["reason"],
+                         "unverifiable source-owned failure")
+        self.assertNotIn("seed", mismatch["issues"][0])
 
     def test_worker_failure_is_rejected_after_all_join_without_fabricated_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -191,14 +200,18 @@ class HpScheduledResearchTests(unittest.TestCase):
                 i = int(kwargs["work"].name.rsplit("-", 1)[-1])
                 seen.append(i)
                 if i == 2:
-                    raise ValueError("intentional source guest failure")
+                    raise ValueError("C:/Users/secret/roms/retail.sfc")
                 return _report(kwargs["work"], kwargs["source_sha"],
                                kwargs["base_seed"], kwargs["shard"])
             with patch.object(hp.native, "run_shard", side_effect=fail_one):
                 row = hp.run(exe, rom, _env(root), root / "partial.json")
             self.assertEqual(sorted(seen), list(range(4)))
             self.assertEqual(row["status"], "research_failure")
-            self.assertIn("intentional source guest failure", row["issues"][0]["reason"])
+            self.assertEqual(row["issues"][0]["reason"], "worker exception")
+            self.assertEqual(row["issues"][0]["kind"], "ValueError")
+            self.assertIn("base_seed", row["issues"][0])
+            self.assertNotIn("secret", json.dumps(row))
+            self.assertNotIn("retail.sfc", json.dumps(row))
             self.assertEqual(row["release_gate_credit"], 0)
 
 

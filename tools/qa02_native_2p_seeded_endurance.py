@@ -38,6 +38,16 @@ FIRST_PROBE = "endurance-1740"
 MASKS = (0x080, 0x040, 0x100, 0x180, 0x140, 0x080, 0x040)
 
 
+class GuestProcessError(RuntimeError):
+    """Typed guest failure, captured before potentially private output is sliced."""
+
+    def __init__(self, category: str, message: str):
+        if category not in {"guest_timeout", "guest_nonzero_exit"}:
+            raise ValueError("invalid guest failure category")
+        super().__init__(message)
+        self.failure_category = category
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -195,7 +205,7 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
         done = subprocess.run(cmd, cwd=root, env=env, capture_output=True,
                               text=True, errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"real guest process timeout ({timeout}s)") from exc
+        raise GuestProcessError("guest_timeout", f"real guest process timeout ({timeout}s)") from exc
     # Optional source/oracle diagnostic. The original shared endurance
     # producer's return value and behaviour remain unchanged when omitted.
     # Persist the raw script f=N completion receipts even on guest failure.
@@ -204,8 +214,8 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
             raise ValueError("refuse to overwrite prior native runtime transcript")
         runtime_log.write_text(done.stdout + "\n" + done.stderr, encoding="utf-8")
     if done.returncode != 0:
-        raise RuntimeError(f"guest exited {done.returncode}; "
-                           f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")
+        raise GuestProcessError("guest_nonzero_exit", f"guest exited {done.returncode}; "
+                                f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")
     # Callers with their own dump schedule verify their own checkpoints.
     return observe(root / "dumps") if observe_result else {}
 
@@ -302,8 +312,13 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
             successes.append(row)
             shutil.rmtree(path)
         except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
+            # Preserve the producer-owned enum before the private diagnostic
+            # tail is truncated. The enum never includes stdout/stderr paths.
+            category = (exc.failure_category if isinstance(exc, GuestProcessError)
+                        else "unclassified")
             failures.append({"trial_index": trial_index, "seed": seed,
-                             "kind": type(exc).__name__, "error": str(exc)[-700:]})
+                             "kind": type(exc).__name__, "error": str(exc)[-700:],
+                             "failure_category": category})
             if len(failures) >= 2:
                 break
     elapsed = round(time.monotonic() - start, 3)

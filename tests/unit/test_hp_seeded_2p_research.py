@@ -250,6 +250,44 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertEqual(hp.collect(rows, source, run_id, 1.0)["status"],
                          "research_failure")
 
+    def test_negative_replay_requires_exact_prior_success_input_and_script(self):
+        source, run_id = "a" * 40, 12345
+
+        def rows():
+            results = []
+            for worker in range(hp.WORKERS):
+                base = run_id % 10000000 + (worker // 2) * 25000000
+                report = _report(Path("unused"), source, base, worker % 2)
+                if worker == 2:
+                    report.update(disposition="invariant_violation",
+                                  attempted_cases=2, passed_cases=1,
+                                  failed_cases=1, total_real_native_processes=4,
+                                  stop_reason="invariant_failure",
+                                  failures=[{"trial_index": 1, "seed": base + 1,
+                                             "kind": "RuntimeError",
+                                             "error": "bounded synthetic failure"}])
+                report["receipt_sha256"] = native.hash_object({
+                    k: v for k, v in report.items() if k != "receipt_sha256"})
+                results.append({"worker": worker, "report": report})
+            return results
+
+        good = hp.collect(rows(), source, run_id, 1.0)
+        self.assertEqual(good["status"], "research_failure")
+        self.assertEqual(good["issues"][0]["seed"], 25012346)
+        self.assertEqual(good["issues"][0]["trial_index"], 1)
+        for field in ("input_sha256", "script_sha256"):
+            with self.subTest(field=field):
+                forged = rows()
+                report = forged[2]["report"]
+                report["case_results"][0][field] = "0" * 64
+                report["receipt_sha256"] = native.hash_object({
+                    k: v for k, v in report.items() if k != "receipt_sha256"})
+                outcome = hp.collect(forged, source, run_id, 1.0)
+                self.assertEqual(outcome["status"], "research_failure")
+                self.assertEqual(outcome["issues"][0]["reason"],
+                                 "unverifiable source-owned failure")
+                self.assertNotIn("seed", outcome["issues"][0])
+
     def test_authentic_failure_receipt_retains_seed_without_local_path(self):
         source = "a" * 40
         rows = []

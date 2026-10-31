@@ -94,6 +94,12 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int,
     if not isinstance(cases, list) or len(cases) != passed:
         return []
     origin = expected_base + shard * 1000003
+    # A negative replay seed is credible only if preceding successful trials
+    # used the actual source-owned treatment and route-script bytes.
+    stock_input = script_digest = None
+    if cases:
+        stock_input, stock_script = native.base_source()
+        script_digest = expected_script_digest(stock_script)
     seen = set()
     for case in cases:
         if not isinstance(case, dict):
@@ -101,6 +107,8 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int,
         seed, digest = case.get("seed"), case.get("input_sha256")
         if (type(seed) is not int or not 0 <= seed - origin < attempted
                 or not isinstance(digest, str) or not native.SHA256.fullmatch(digest)
+                or digest != expected_treatment_digest(stock_input, seed)
+                or case.get("script_sha256") != script_digest
                 or case.get("real_native_processes") != 4
                 or case.get("two_seats_observably_active") is not True
                 or case.get("bit_exact_replay") is not True

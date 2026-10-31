@@ -45,12 +45,25 @@ def page_events(command_fn, *, first: int, page_size: int, event_filter: int) ->
     events: list[dict] = []
     cursor = first
     last_meta: dict = {}
+    contiguous = True
     while True:
         result = command_fn(f"audio_events {cursor} {page_size} {event_filter}")
-        last_meta = result
+        last_meta = dict(result)
         page = result.get("events", [])
         scanned = int(result.get("scanned", len(page)))
         returned_first = int(result.get("first", cursor))
+        # The native server emits integer scanned/first/oldest fields. Keep
+        # generic best-effort collection, but never certify a coerced or
+        # missing counter as complete source-owned ring coverage.
+        if (type(result.get("scanned")) is not int or
+                type(result.get("first")) is not int or
+                type(result.get("oldest")) is not int):
+            contiguous = False
+        # Preserve the generic collector's historic best-effort behavior,
+        # but expose absolute scan coverage for strict KON evidence consumers.
+        if (returned_first != cursor or scanned < 0 or scanned > page_size
+                or not isinstance(page, list) or len(page) > scanned):
+            contiguous = False
         if page:
             events.extend(page)
         if scanned <= 0:
@@ -58,6 +71,8 @@ def page_events(command_fn, *, first: int, page_size: int, event_filter: int) ->
         cursor = max(cursor, returned_first) + scanned
         if scanned < page_size:
             break
+    last_meta["_client_scan_end"] = cursor
+    last_meta["_client_contiguous"] = contiguous
     return events, last_meta
 
 
@@ -76,6 +91,8 @@ def capture(command_fn, *, page_size: int = 8000, event_filter: int = 0) -> dict
         "event_filter": event_filter,
         "event_head": head,
         "oldest_available": oldest,
+        "last_scanned_event_index": meta.get("_client_scan_end", 0),
+        "event_pages_contiguous": meta.get("_client_contiguous", False),
         "events_returned": len(events),
         "stats": stats,
         "events": events,

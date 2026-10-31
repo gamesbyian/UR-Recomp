@@ -54,6 +54,29 @@ def main():
         parser.error("Reviewed source is not an ancestor of this checkout; reconcile before reporting")
     n = int(git("rev-list","--count",f"{reviewed}..{head}"))
     summary = summarize(inv,ledger,reviewed,head,n)
+    changes = git("log", "--format=%H%x09%s", f"{reviewed}..{head}").splitlines() if n else []
+    patterns = {
+        "ONE": ("one-", "tour", "practice", "result", "race"),
+        "TWO": ("two-", "2p", "multiplayer", "seat", "tournament"),
+        "MENU": ("menu", "title", "attract", "controller", "root"),
+        "DATA": ("data-", "profile", "record", "unicode", "replay", "ghost"),
+        "RECOVERY": ("recovery", "win-boot", "migration", "save", "ntfs"),
+        "WIDE": ("wide-", "hdma", "raster", "4k", "viewport", "graphics"),
+        "ART": ("art-", "racer art", "model", "rig", "sprite"),
+        "FID": ("qa01", "spc", "apu", "cpu", "zoo", "parity", "fidelity"),
+        "QA": ("qa-", "physical", "release", "package"),
+    }
+    open_prefixes = {c["area"] for c in inv["criteria"] if c["status"] != "bounded_verified"}
+    candidates = []
+    for line in changes:
+        sha, _, subject = line.partition("\t")
+        match = sorted(k for k, keys in patterns.items()
+                       if k in open_prefixes and any(word in subject.lower() for word in keys))
+        if match:
+            candidates.append({"sha": sha, "title": subject, "possible_areas": match})
+    summary["unreviewed_candidate_commits"] = candidates
+    summary["unreviewed_candidate_count"] = len(candidates)
+    summary["candidate_warning"] = "Subject-based discovery only; NOT verification or earned completion credit"
     from tools.remaining_work_forecast import calculate
     prior = json.loads((ROOT/"docs/progress/remaining-work-prior-v1.json").read_text())
     adjust = json.loads((ROOT/"docs/progress/remaining-work-adjustments.json").read_text())
@@ -69,6 +92,9 @@ def main():
               (summary["verified_bounded_coverage_percent"],
                summary["independently_reviewed_bounded_percent"]))
         print("Unreviewed commits:",n,"| unverified criteria at accepted checkpoint:",len(summary["unverified_criteria"]))
+        print("Unreviewed candidate commits for evidence triage:",len(candidates))
+        for item in candidates[:10]:
+            print(" ", item["sha"][:10], "/".join(item["possible_areas"]), item["title"])
         print("Logical completion envelope:",summary["possible_current_coverage_interval_percent"],
               "(not a probabilistic estimate)")
         print("Remaining relative-work prior:",effort["expected_relative_work_units"],

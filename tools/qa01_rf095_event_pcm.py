@@ -26,6 +26,10 @@ NATIVE_ENTRY = 'void dsp_cycle(Dsp* dsp) {\n'
 NATIVE_FRAME_ENTRY = 'bool RtlRunFrame(uint32 inputs) {\n'
 NATIVE_FRAME_SYNC = ('  if (!g_rtl_speculative_frame)\n'
                      '    rtl_sync_apu_frame_boundary();\n')
+NATIVE_LOCKED_SYNC = ('  audio_trace_set_producer(AUDIO_TRACE_PRODUCER_UNKNOWN);\n'
+                      '  if (!synced)\n'
+                      '    fprintf(stderr, "[apu] frame-boundary guest-clock sync timed out\\n");\n'
+                      '  RtlApuUnlock();\n')
 NATIVE_SAMPLE = ('  audio_trace_on_sample((int16_t)totalL, (int16_t)totalR, dropped,\n'
                  '                        dropped ? fill : fill + 1);\n')
 
@@ -113,8 +117,9 @@ static void ur_rf095_native_stereo_sample(int16_t left, int16_t right) {
   ++ur_rf095_native_samples;
 }
 void ur_rf095_native_frame_boundary(int frame) {
-  /* Called only after RtlRunFrame's real guest-frame APU sync, outside
-   * RtlApuLock. Frame 6447 is the zero-index boundary; 6457 closes it. */
+  /* Called after the real guest-frame APU sync while RtlApuLock is held.
+   * This serializes the map with DSP sample writes from the audio callback.
+   * Frame 6447 is the zero-index boundary; 6457 closes it. */
   if (ur_rf095_native_state >= 2 || frame < 6447) return;
   if (ur_rf095_native_state == 0) {
     const char *pcm = getenv("UR_QA01_RF095_NATIVE_PCM");
@@ -192,24 +197,28 @@ def patch_native(source: str) -> str:
 
 
 def patch_native_boundary(source: str) -> str:
-    """Record completed guest-frame audio boundaries after the actual APU sync."""
+    """Record the completed frame atomically with DSP sample production."""
     if 'ur_rf095_native_frame_boundary' in source:
         raise ValueError('RF095 native boundary already/partially patched')
-    for anchor in (NATIVE_FRAME_ENTRY, NATIVE_FRAME_SYNC):
+    for anchor in (NATIVE_FRAME_ENTRY, NATIVE_FRAME_SYNC, NATIVE_LOCKED_SYNC,
+                   'static void rtl_sync_apu_frame_boundary(void) {\n'):
         if source.count(anchor) != 1:
             raise ValueError('RF095 pinned native frame-boundary source drift')
     source = once(source, NATIVE_FRAME_ENTRY,
                   'extern void ur_rf095_native_frame_boundary(int);\n' +
                   NATIVE_FRAME_ENTRY, 'native real-frame entry')
+    # The original RtlRunFrame speculative guard remains unchanged. Recording
+    # after rtl_sync_apu_frame_boundary() returns would race the SDL audio
+    # callback, which produces DSP samples under this same APU mutex.
     source = once(
-        source, NATIVE_FRAME_SYNC,
-        '  if (!g_rtl_speculative_frame) {\n'
-        '    rtl_sync_apu_frame_boundary();\n'
-        '    ur_rf095_native_frame_boundary(snes_frame_counter);\n'
-        '  }\n',
-        'native completed-frame APU sync')
+        source, NATIVE_LOCKED_SYNC,
+        NATIVE_LOCKED_SYNC.replace(
+            '  RtlApuUnlock();\n',
+            '  if (synced)\n'
+            '    ur_rf095_native_frame_boundary(snes_frame_counter);\n'
+            '  RtlApuUnlock();\n'),
+        'native locked completed-frame APU sync')
     return source
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)

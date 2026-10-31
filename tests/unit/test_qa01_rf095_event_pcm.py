@@ -27,7 +27,11 @@ REF = (patch.REF_WAV_INDEX + '\n'
 COMMON = ('bool RtlRunFrame(uint32 inputs) {\n'
           '  if (!g_rtl_speculative_frame)\n'
           '    rtl_sync_apu_frame_boundary();\n'
-          '}\n')
+          '}\n'
+          'static void rtl_sync_apu_frame_boundary(void) {\n'
+          '  RtlApuLock();\n'
+          '  bool synced = true;\n'
+          + patch.NATIVE_LOCKED_SYNC + '}\n')
 NATIVE = ('#include <stdio.h>\n#include <stdint.h>\n#include <stdlib.h>\n'
           + patch.NATIVE_ENTRY +
           '  dsp_handleEcho(dsp, &totalL, &totalR);\n' +
@@ -52,10 +56,15 @@ class RF095Tests(unittest.TestCase):
 
     def test_native_map_uses_completed_frame_sync_not_first_dsp_sample(self):
         patched = patch.patch_native_boundary(COMMON)
-        self.assertIn('rtl_sync_apu_frame_boundary();\n'
-                      '    ur_rf095_native_frame_boundary(snes_frame_counter);',
+        self.assertIn(patch.NATIVE_FRAME_SYNC, patched)
+        locked_call = '    ur_rf095_native_frame_boundary(snes_frame_counter);'
+        self.assertIn('if (synced)\n' + locked_call + '\n  RtlApuUnlock();',
                       patched)
-        self.assertIn('if (!g_rtl_speculative_frame) {', patched)
+        self.assertLess(patched.index('  RtlApuLock();'),
+                        patched.index(locked_call))
+        self.assertLess(patched.index(locked_call),
+                        patched.index('  RtlApuUnlock();'))
+        self.assertEqual(patched.count(locked_call), 1)
         self.assertEqual(patched.count('rtl_sync_apu_frame_boundary();'), 1)
         dsp = patch.patch_native(NATIVE)
         self.assertIn('if (ur_rf095_native_state != 1) return;', dsp)
@@ -66,6 +75,23 @@ class RF095Tests(unittest.TestCase):
             patch.patch_native_boundary(patched)
         with self.assertRaises(ValueError):
             patch.patch_native_boundary(COMMON + patch.NATIVE_FRAME_SYNC)
+
+    def test_native_boundary_rejects_unlocked_gap_and_drift(self):
+        # A post-unlock sample-map write races RtlRenderAudio's APU lock.
+        unlocked = COMMON.replace(
+            '  if (!synced)\n', '  RtlApuUnlock();\n  if (!synced)\n'
+        ).replace('  RtlApuUnlock();\n}\n', '}\n')
+        with self.assertRaisesRegex(ValueError, 'source drift'):
+            patch.patch_native_boundary(unlocked)
+        with self.assertRaisesRegex(ValueError, 'source drift'):
+            patch.patch_native_boundary(COMMON + patch.NATIVE_LOCKED_SYNC)
+        # Failed guest-clock sync must not create a plausible PCM boundary.
+        patched = patch.patch_native_boundary(COMMON)
+        self.assertIn('if (synced)\n'
+                      '    ur_rf095_native_frame_boundary(snes_frame_counter);',
+                      patched)
+        self.assertNotIn('rtl_sync_apu_frame_boundary();\n'
+                         '    ur_rf095_native_frame_boundary(', patched)
 
     def test_native_staging_rejects_common_source_drift_without_partial_dsp_write(self):
         with tempfile.TemporaryDirectory() as d:

@@ -270,7 +270,9 @@ class HPSDL3CacheTests(unittest.TestCase):
         self.assertEqual(workflow.count("id: hosted-sdl3-cache"), 1)
         self.assertEqual(workflow.count(
             "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}"), 1)
-        self.assertIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'miss'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'recovered'", workflow)
+        self.assertNotIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
         # Reuse cannot turn untrusted PR code into a self-hosted HP job.
         host_only = "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile"
         for name in ("Restore hosted Windows verified SDL3 candidate",

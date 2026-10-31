@@ -1,4 +1,7 @@
+import hashlib
+import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 import shutil
 import subprocess
 import tempfile
@@ -59,6 +62,78 @@ class ShimBehaviourTests(unittest.TestCase):
             r = self.run_shim(cache, "-std=c++17", "a.cpp", "b.cpp", "-o", "app2", cwd=d)
             self.assertNotEqual(r.returncode, 0)
             self.assertEqual(len(list(cache.glob("*.o"))), before)
+
+
+    def test_corrupted_object_stderr_receipt_and_interrupted_save_recompile(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "a.cpp").write_text(
+                "int helper(); int main(){return helper()==7?0:1;}\\n")
+            (root / "b.cpp").write_text("int helper(){return 7;}\\n")
+            cache = root / "cache"
+            def check():
+                r = self.run_shim(cache, "-std=c++17", "a.cpp", "b.cpp",
+                                  "-o", "app", cwd=root)
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertEqual(subprocess.run([str(root / "app")]).returncode, 0)
+                return r
+            check()
+            objs = sorted(cache.glob("*.o"))
+            self.assertEqual(len(objs), 2)
+            obj = objs[0]
+            receipt = cache / (obj.stem + ".receipt.json")
+            err = cache / (obj.stem + ".err")
+            self.assertTrue(receipt.is_file())
+            self.assertEqual(json.loads(receipt.read_text())["object_sha256"],
+                             hashlib.sha256(obj.read_bytes()).hexdigest())
+            # Merely retaining the content-addressed filename is insufficient.
+            obj.write_bytes(b"invalid native object")
+            check()
+            self.assertNotEqual(obj.read_bytes(), b"invalid native object")
+            self.assertEqual(json.loads(receipt.read_text())["object_sha256"],
+                             hashlib.sha256(obj.read_bytes()).hexdigest())
+            # Damaged compiler diagnostics are not replayed as a valid hit.
+            err.write_bytes(b"forged compiler diagnostics")
+            self.assertNotIn("forged compiler diagnostics", check().stderr)
+            self.assertNotEqual(err.read_bytes(), b"forged compiler diagnostics")
+            # A manifest corruption and an interrupted save each force
+            # source recompilation without accepting a partially written .o.
+            receipt.write_text('{"schema":"untrusted"}')
+            check()
+            receipt.unlink()
+            obj.write_bytes(b"truncated")
+            check()
+            self.assertEqual(json.loads(receipt.read_text())["object_sha256"],
+                             hashlib.sha256(obj.read_bytes()).hexdigest())
+
+    def test_simultaneous_writers_never_share_staging_filenames(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "a.cpp").write_text(
+                "int helper(); int main(){return helper()==7?0:1;}\\n")
+            (root / "b.cpp").write_text("int helper(){return 7;}\\n")
+            # Pre-create shim to eliminate an unrelated symlink creation race.
+            shim = root / "shim"
+            shim.mkdir()
+            (shim / "g++").symlink_to(ROOT / "tools/ci_compile_cache.py")
+            cache = root / "cache"
+            def compile_one(index):
+                return self.run_shim(cache, "-std=c++17", "a.cpp", "b.cpp",
+                                     "-o", f"app{index}", cwd=root)
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results = list(pool.map(compile_one, range(2)))
+            for index, result in enumerate(results):
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(
+                    subprocess.run([str(root / f"app{index}")]).returncode, 0)
+            # Every published receipt must describe the actual final object,
+            # even if same-key workers interleave their atomic publications.
+            for obj in cache.glob("*.o"):
+                receipt = cache / (obj.stem + ".receipt.json")
+                self.assertTrue(receipt.is_file())
+                observed = json.loads(receipt.read_text())
+                self.assertEqual(observed["object_sha256"],
+                                 hashlib.sha256(obj.read_bytes()).hexdigest())
 
 
 if __name__ == "__main__":

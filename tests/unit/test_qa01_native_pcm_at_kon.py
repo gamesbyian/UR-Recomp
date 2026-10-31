@@ -225,32 +225,35 @@ class NativeWavWirePathTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "511-byte"):
             pcm.wav_command_path(Path("/" + "a" * 509 + "é"))
 
-    def test_unicode_path_rejected_before_shared_ascii_transport(self):
-        # Exercise the capture call site with the actual shared transport
-        # attached. No server command or file write may be attempted.
+    def test_unicode_basename_publishes_via_ascii_staging(self):
+        # A Unicode final basename need not enter the ASCII debug protocol.
+        # This exercises a POSIX ASCII parent; Windows Unicode parents still
+        # need an independently verified native staging location.
         import io
         from capture_audio_events import command as shared_command
 
         class NoWriteSocket:
             def sendall(self, payload):
-                raise AssertionError("Unicode path must not reach the server")
+                raise AssertionError("raw Unicode path must not reach the server")
 
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "José.wav"
             calls = []
             def transport(line):
                 calls.append(line)
-                return shared_command(NoWriteSocket(), io.StringIO('{"ok":true}\n'), line)
+                self.assertTrue(line.isascii())
+                return NativeKonPCMTests.command(path)(line)
 
-            with self.assertRaisesRegex(ValueError, "ASCII"):
-                pcm.capture_kon_pcm(transport, events=NativeKonPCMTests.events(),
-                                    produced=45000, kon_sample_index=40000,
-                                    wav_path=path, before=500, after=2000)
-            self.assertEqual(calls, [])
-            self.assertFalse(path.exists())
-            # The existing shared transport itself rejects non-ASCII lines.
+            result = pcm.capture_kon_pcm(
+                transport, events=NativeKonPCMTests.events(),
+                produced=45000, kon_sample_index=40000,
+                wav_path=path, before=500, after=2000)
+            self.assertEqual(len(calls), 1)
+            self.assertTrue(path.is_file())
+            self.assertEqual(result["wav_bytes"], path.stat().st_size)
+            # Direct Unicode transmission remains unsupported by the producer.
             with self.assertRaises(UnicodeEncodeError):
-                shared_command(NoWriteSocket(), io.StringIO('{"ok":true}\n'),
+                shared_command(NoWriteSocket(), io.StringIO('{"ok":true}\\n'),
                                f"audio_wav {path} 39500 2500")
 
     def test_windows_unicode_parent_rejected_before_transport(self):

@@ -23,13 +23,16 @@ class KonWindowIsolationTests(unittest.TestCase):
 
             def command(line):
                 calls.append(line)
-                self.assertEqual(line, f"audio_wav {path} 39500 2500")
-                with wave.open(str(path), "wb") as wav:
+                parts = line.split(" ")
+                self.assertEqual((parts[0], parts[2:]), ("audio_wav", ["39500", "2500"]))
+                staged_path = Path(parts[1])
+                self.assertNotEqual(staged_path, path)
+                with wave.open(str(staged_path), "wb") as wav:
                     wav.setnchannels(2)
                     wav.setsampwidth(2)
                     wav.setframerate(32040)
                     wav.writeframes(b"\x00\x00\x00\x00" * 2500)
-                return {"ok": True, "path": str(path), "start": 39500, "count": 2500}
+                return {"ok": True, "path": parts[1], "start": 39500, "count": 2500}
 
             try:
                 result = pcm.capture_kon_pcm(

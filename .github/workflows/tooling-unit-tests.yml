@@ -157,13 +157,20 @@ jobs:
     # A draft cannot be merged; reserve the 120-200s full Python suite for
     # ready_for_review/synchronize and explicit manual dispatch. GitHub marks
     # this required check *skipped*, never a deceptive green full test, on drafts.
-    if: >-
-      (github.event_name != 'pull_request' || github.event.pull_request.draft == false) &&
-      (github.event_name != 'schedule' ||
-       (github.repository == 'gamesbyian/UR-Recomp' && github.ref == 'refs/heads/main'))
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Preserve the exact established ready-PR job condition. Check the
+      # extra schedule trust boundary before any repo code or cache executes.
+      - name: Require trusted main for scheduled Linux cache seed
+        if: github.event_name == 'schedule'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "gamesbyian/UR-Recomp"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_EVENT_NAME" = "schedule"
       - uses: actions/checkout@v4
       # Preserve the existing required 'unit' check; use a focused suite only
       # for a fully enumerated, exact allowlist of non-product operations files.

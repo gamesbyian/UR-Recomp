@@ -145,7 +145,7 @@ class HostedIsolatedBootFanoutTests(unittest.TestCase):
         source = HOSTED_FANOUT.read_text(encoding="utf-8")
         for marker in (
             'GITHUB_EVENT_NAME', 'pull_request', 'GITHUB_REF',
-            '^refs/pull/[0-9]+/merge
+            '^refs/pull/[0-9]+/merge$', 'refs/heads/main', 'GITHUB_REPOSITORY',
             'gamesbyian/UR-Recomp', 'RUNNER_OS', 'Windows',
             'RUNNER_NAME', 'hpmini-ur-recomp', 'TEST_PACKAGE',
             'PACKAGE_USER_DATA', 'trap join_all EXIT', 'wait "$pid" || true',
@@ -196,75 +196,8 @@ class HostedIsolatedBootFanoutTests(unittest.TestCase):
                 expected = ("HOSTED_BOOT_FANOUT=passed count=3" if failure is None
                             else "HOSTED_BOOT_FANOUT=failed")
                 self.assertIn(expected, run.stdout + run.stderr)
-            for key, invalid in (
-                ("GITHUB_EVENT_NAME", "push"),
-                ("GITHUB_REF", "refs/heads/main"),
-                ("RUNNER_NAME", "hpmini-ur-recomp"),
-                ("RUNNER_OS", "Linux"),
-                ("GITHUB_REPOSITORY", "another/repo"),
-            ):
-                (scratch / "joined").unlink(missing_ok=True)
-                run = subprocess.run([bash, "-c", source],
-                                     env=dict(env, **{key: invalid}), cwd=root,
-                                     capture_output=True, text=True, timeout=8)
-                self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
-                self.assertFalse((scratch / "joined").exists())
-
-if __name__ == "__main__":
-    unittest.main()
-, 'refs/heads/main', 'GITHUB_REPOSITORY',
-            'gamesbyian/UR-Recomp', 'RUNNER_OS', 'Windows',
-            'RUNNER_NAME', 'hpmini-ur-recomp', 'TEST_PACKAGE',
-            'PACKAGE_USER_DATA', 'trap join_all EXIT', 'wait "$pid" || true',
-            'wait "${pids[$i]}" || rc=$?', 'HOSTED_BOOT_FANOUT=passed count=3',
-            'HOSTED_BOOT_FANOUT=check_failed', 'HOSTED_BOOT_FANOUT=failed',
-        ):
-            with self.subTest(marker=marker):
-                self.assertIn(marker, source)
-        for filename, _ in SCRIPTS.values():
-            self.assertIn('"tools/ci/' + filename + '"', source)
-        self.assertNotIn('taskkill', source)
-        self.assertNotIn('kill -9', source)
-        self.assertEqual(source.count('pids+=("$!")'), 1)
-
-    @unittest.skipIf(os.name == "nt", "POSIX synthetic harness; real Win32 QA separately required")
-    def test_hosted_success_failures_and_refusals_join_all_children(self):
-        bash = shutil.which("bash")
-        if not bash:
-            self.skipTest("Bash unavailable")
-        source = HOSTED_FANOUT.read_text(encoding="utf-8")
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            scripts = root / "tools" / "ci"
-            scripts.mkdir(parents=True)
-            scratch = root / "scratch"
-            scratch.mkdir()
-            env = {**os.environ,
-                   "RUNNER_TEMP": str(scratch), "GITHUB_WORKSPACE": str(root),
-                   "TEST_PACKAGE": str(root / "package"),
-                   "PACKAGE_USER_DATA": str(root / "user"),
-                   "RUNNER_NAME": "Hosted Actions VM", "RUNNER_OS": "Windows",
-                   "GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",
-                   "GITHUB_EVENT_NAME": "pull_request",
-                   "GITHUB_REF": "refs/pull/2914/merge"}
-            for failure in (None, "special", "readonly", "appdata"):
-                for label, (filename, _) in SCRIPTS.items():
-                    code = ('#!/usr/bin/env bash\n'
-                            'sleep 0.12\n'
-                            'echo ' + label + ' >> "$RUNNER_TEMP/joined"\n'
-                            + ('exit 9\n' if label == failure else 'exit 0\n'))
-                    (scripts / filename).write_text(code, encoding="utf-8")
-                (scratch / "joined").unlink(missing_ok=True)
-                run = subprocess.run([bash, "-c", source], env=env, cwd=root,
-                                     capture_output=True, text=True, timeout=8)
-                observed = sorted((scratch / "joined").read_text().splitlines())
-                self.assertEqual(observed, sorted(SCRIPTS.keys()), run.stdout + run.stderr)
-                self.assertEqual(run.returncode == 0, failure is None, run.stdout + run.stderr)
-                expected = ("HOSTED_BOOT_FANOUT=passed count=3" if failure is None
-                            else "HOSTED_BOOT_FANOUT=failed")
-                self.assertIn(expected, run.stdout + run.stderr)
-            # The same three original scripts must execute and join on
-            # the explicitly trusted hosted-main push (never on the HP).
+            # Validate the trusted hosted-main push with all three real
+            # acceptance scripts, not an inert branch-only source assertion.
             main_env = dict(env, GITHUB_EVENT_NAME="push",
                             GITHUB_REF="refs/heads/main")
             (scratch / "joined").unlink(missing_ok=True)
@@ -274,7 +207,6 @@ if __name__ == "__main__":
             self.assertEqual(sorted((scratch / "joined").read_text().splitlines()),
                              sorted(SCRIPTS.keys()))
             self.assertIn("HOSTED_BOOT_FANOUT=passed count=3", run.stdout)
-            # Reject unrelated event/ref pairs, fork repositories and HP.
             for changed in (
                 {"GITHUB_EVENT_NAME": "workflow_dispatch"},
                 {"GITHUB_REF": "refs/heads/main"},

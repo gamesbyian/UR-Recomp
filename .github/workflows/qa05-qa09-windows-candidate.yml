@@ -28,6 +28,7 @@ on:
       - "tests/unit/test_hp_seeded_2p_research.py"
       - ".github/workflows/owner-hp-seeded-2p-research.yml"
       - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      - "tools/ci/hosted_windows_isolated_boot_fanout.sh"
       - "tools/ci/windows_package_special_path.sh"
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"

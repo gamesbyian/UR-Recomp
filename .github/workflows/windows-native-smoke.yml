@@ -63,6 +63,7 @@ on:
       - "tools/devnode_benchmark/verify_hp_ninja.py"
       - "tools/ci/ninja_package_canary.cmd"
       - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      - "tools/ci/hosted_windows_isolated_boot_fanout.sh"
       - "tools/hp_seeded_2p_research.py"
       - "tools/qa02_native_2p_seeded_endurance.py"
       - "tests/unit/test_hp_seeded_2p_research.py"
@@ -738,14 +739,20 @@ jobs:
         if: ${{ inputs.run_on_hp }}
         run: bash tools/ci/hp_windows_isolated_boot_fanout.sh
 
+      - name: Hosted PR bounded independent offscreen package boot canary
+        # Actual same-source acceptance scripts, isolated roots and strict join.
+        # The HP remains main-only, and ordinary hosted main stays serial.
+        if: ${{ !inputs.run_on_hp && github.event_name == 'pull_request' && inputs.test_hp_compiler_profile }}
+        run: bash tools/ci/hosted_windows_isolated_boot_fanout.sh
+
       - name: Real packaged game under CMD-special paths
-        if: ${{ !inputs.run_on_hp }}
+        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
         run: bash tools/ci/windows_package_special_path.sh
       - name: Read-only portable directory and Unicode user-data cold boots
-        if: ${{ !inputs.run_on_hp }}
+        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
         run: bash tools/ci/windows_package_readonly_unicode.sh
       - name: Normal Windows APPDATA clean-user launch
-        if: ${{ !inputs.run_on_hp }}
+        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
         run: bash tools/ci/windows_package_default_appdata.sh
       - name: Extracted-package race-result acceptance
         # On HP this exact witness runs concurrently with isolated QA-05

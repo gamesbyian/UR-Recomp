@@ -1,6 +1,19 @@
 {
   "schema": "ur-effort-adjustments/1",
   "baseline_sha": "82fd7d2aa758b5f42c769f737422cdf22d3e05f4",
-  "changes": [],
-  "guidance": "Only evidence-supported remaining-work revisions. One latest revision per active ID, [optimistic,likely,pessimistic], reason, source URL. Revised cost is not earned-value completion. Preserve old revisions in Git history."
+  "changes": [
+    {
+      "id": "ONE-03",
+      "range": [
+        3,
+        9,
+        30
+      ],
+      "reason": "Actual native Next Event run reached the second RESULT yet rejected the saved course:00 .urrun record; fixing a demonstrated multi-stage product persistence failure remains, not merely obtaining the existing missing acceptance receipt. Increase from original moderate [1,3,9] to provisional large [3,9,30]. Expert effort hypothesis, not logged agent-hours.",
+      "evidence": "https://github.com/gamesbyian/UR-Recomp/pull/2878"
+    }
+  ],
+  "guidance": "Only evidence-supported remaining-work revisions. One latest revision per active ID, [optimistic,likely,pessimistic], reason, source URL. Revised cost is not earned-value completion. Preserve old revisions in Git history.",
+  "as_of_main_sha": "ce4d49cd41ab7c294d9eaf34ae2f64ab46ca50bf",
+  "review_scope": "Evidence-backed ONE-03 upward revision only. Other 79 unfinished criteria, independent review debt and four shared dependencies retain original prior; merge activity alone does not reduce work units."
 }

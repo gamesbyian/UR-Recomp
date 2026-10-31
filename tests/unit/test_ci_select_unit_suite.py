@@ -20,11 +20,36 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                                    f("tests/unit/test_agent_control.py")]), "ops")
         self.assertEqual(classify([f("tools/report_ci_runtime.py"),
                                    f("tests/unit/test_report_ci_runtime.py")]), "ops")
+        self.assertEqual(classify([f("tools/hp_compute_watch.py"),
+                                   f("tests/unit/test_hp_compute_watch.py")]), "ops")
+        self.assertIn("tests.unit.test_hp_compute_watch", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_agent_control", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_trigger_policy", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_playtest_request_guard", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_verify_baldosa_playtest_release", FOCUSED_TEST_MODULES)
         self.assertEqual(classify([f("docs/playtest/REQUEST-WINDOWS-PLAYTEST.md")]), "full")
+
+    def test_hp_watch_isolated_but_product_or_workflow_changes_remain_full(self):
+        watcher = f("tools/hp_compute_watch.py")
+        test = f("tests/unit/test_hp_compute_watch.py")
+        self.assertEqual(classify([watcher]), "ops")
+        self.assertEqual(classify([test]), "ops")
+        self.assertEqual(classify([watcher, test]), "ops")
+        for sensitive in (
+            "tools/hp_seeded_2p_research.py",
+            "tools/qa02_native_2p_seeded_endurance.py",
+            ".github/workflows/owner-hp-seeded-2p-research.yml",
+            ".github/workflows/ops-live-snapshot.yml",
+            ".github/workflows/tooling-unit-tests.yml",
+            "tests/unit/test_hp_seeded_2p_research.py",
+            "native/product/uniracers_modern_host.cpp",
+        ):
+            with self.subTest(sensitive=sensitive):
+                self.assertEqual(classify([watcher, f(sensitive)]), "full")
+        for status in ("removed", "renamed", "copied"):
+            with self.subTest(status=status):
+                self.assertEqual(classify([test, f("tools/hp_compute_watch.py", status)]),
+                                 "full")
 
     def test_exact_non_product_agent_context_docs_are_focused_with_ops(self):
         expected = {
@@ -54,6 +79,10 @@ class UnitSuiteSelectorTests(unittest.TestCase):
         for path in (
             "tools/ci_select_unit_suite.py",
             "tools/strict_vault_manifest.py",
+            "tools/hp_seeded_2p_research.py",
+            "tools/qa02_native_2p_seeded_endurance.py",
+            ".github/workflows/owner-hp-seeded-2p-research.yml",
+            ".github/workflows/ops-live-snapshot.yml",
             ".github/workflows/tooling-unit-tests.yml",
             "docs/RELEASE-QUALITY-LEDGER.json",
             "docs/playtest/REQUEST-WINDOWS-PLAYTEST.md",
@@ -193,7 +222,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 16)
+        self.assertEqual(len(OPERATIONS_ONLY), 18)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
         self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
         self.assertTrue(all((p.startswith("docs/") or p == "AGENTS.md") and p.endswith(".md")

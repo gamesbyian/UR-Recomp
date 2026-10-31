@@ -17,12 +17,14 @@ from urllib.request import Request, urlopen
 OPERATIONS_ONLY = frozenset({
     "tools/agent_control.py",
     "tools/ops_live_status.py",
+    "tools/hp_compute_watch.py",
     "tools/ci_cancelled_job_sample.py",
     "tools/report_ci_runtime.py",
     "tools/validate_history_custody.py",
     "tools/backup_main_history.py",
     "tests/unit/test_agent_control.py",
     "tests/unit/test_ops_live_status.py",
+    "tests/unit/test_hp_compute_watch.py",
     "tests/unit/test_ci_cancelled_job_sample.py",
     "tests/unit/test_report_ci_runtime.py",
     "tests/unit/test_validate_history_custody.py",
@@ -33,6 +35,10 @@ OPERATIONS_ONLY = frozenset({
 # tools above needs the existing agent-control/custody regression, not all 5k+
 # product/graphics/native tests. Keep the list exact and deliberately tiny.
 # The shared board is exercised by the focused test_agent_control suite.
+# The HP cadence watcher is read-only GitHub API reporting with pure stdlib
+# tests: it cannot alter game builds, source parity or product acceptance.
+# Its isolated source + regression changes run the exact watcher tests here;
+# any edit to the Windows producer, research harness or workflow stays FULL.
 # The Windows physical candidate marker is deliberately excluded: a ready
 # request must receive the complete unit suite before main-only dispatch.
 OPS_CONTEXT_DOCS = frozenset({
@@ -63,6 +69,7 @@ BOUNDED_RESEARCH_WORKFLOWS = frozenset({
 FOCUSED_TEST_MODULES = (
     "tests.unit.test_agent_control",
     "tests.unit.test_ops_live_status",
+    "tests.unit.test_hp_compute_watch",
     "tests.unit.test_ci_cancelled_job_sample",
     "tests.unit.test_validate_history_custody",
     "tests.unit.test_backup_main_history",

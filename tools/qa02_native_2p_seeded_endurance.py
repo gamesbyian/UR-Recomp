@@ -289,10 +289,20 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
     start = time.monotonic()
     successes, failures = [], []
     seen_inputs = set()
+    successful_case_durations = []
     attempted = 0
     while attempted < max_cases and (attempted == 0 or time.monotonic() < deadline):
         remaining = deadline - time.monotonic()
         if wall_seconds is not None and attempted > 0 and remaining < 60:
+            break
+        # Do not start another four-process case when the remaining horizon
+        # is already shorter than 125% of the slowest completed case. The
+        # first scheduled HP run completed two healthy-looking cases, then
+        # shortened the next guest deadline below its observed runtime and
+        # recorded budget censoring as a possible gameplay invariant failure.
+        # This guard is advisory: unforeseen slowdowns still fail closed.
+        if (wall_seconds is not None and successful_case_durations
+                and remaining < max(60, 1.25 * max(successful_case_durations))):
             break
         # Only a shortened unattended budget changes timeout allocation.
         # A case runs four actual guests, so bound each one by the
@@ -304,12 +314,14 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
         seed = base_seed + shard * 1000003 + trial_index
         path = work / f"trial-{trial_index:04d}"
         attempted += 1
+        case_started = time.monotonic()
         try:
             row = trial(exe, rom, prefix, generated_script, path, seed, case_timeout)
             if row["input_sha256"] in seen_inputs:
                 raise ValueError("campaign created duplicate input stream")
             seen_inputs.add(row["input_sha256"])
             successes.append(row)
+            successful_case_durations.append(time.monotonic() - case_started)
             shutil.rmtree(path)
         except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
             # Preserve the producer-owned enum before the private diagnostic

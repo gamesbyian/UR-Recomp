@@ -101,11 +101,13 @@ class GlbRoundtripGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "geometry digest changed"):
             module.validate_glb_roundtrip(self.path, receipt)
 
-    def test_face_order_and_winding_do_not_change_signature(self):
+    def test_face_order_invariant_but_winding_changes_signature(self):
         mesh = self.scene.geometry["tire__material_0"].copy()
         original = module.geometry_signature(mesh)
-        mesh.faces = mesh.faces[::-1, ::-1]
+        mesh.faces = mesh.faces[::-1]
         self.assertEqual(module.geometry_signature(mesh), original)
+        mesh.faces = mesh.faces[:, ::-1]
+        self.assertNotEqual(module.geometry_signature(mesh), original)
 
     def test_duplicate_receipt_node_rejected(self):
         receipt = copy.deepcopy(self.report)

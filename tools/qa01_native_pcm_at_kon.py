@@ -13,7 +13,7 @@ import hashlib
 import json
 import re
 import wave
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from capture_audio_events import capture, command, connect
 
@@ -72,6 +72,21 @@ def validate_event_ring_coverage(report: dict) -> None:
         raise ValueError('malformed native DSP event-ring census')
 
 
+def wav_command_path(wav_path: Path) -> str:
+    """Return a JSON-safe server path without changing the local file target.
+
+    The pinned debug server interpolates its path into JSON without escaping.
+    Native WindowsPath uses backslashes, so send Windows-compatible forward
+    slashes; do not rewrite a legitimate POSIX backslash filename silently.
+    """
+    path = str(wav_path)
+    if isinstance(wav_path, PureWindowsPath):
+        path = path.replace("\\", "/")
+    if ('"' in path or "\\" in path or any(ord(c) < 32 for c in path)):
+        raise ValueError("audio_wav destination cannot be represented safely in native JSON")
+    return path
+
+
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
                     kon_sample_index: int, wav_path: Path,
                     before: int = 4096, after: int = 32768) -> dict:
@@ -102,9 +117,10 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         raise ValueError("refusing to reuse or overwrite an existing WAV")
     if not wav_path.parent.is_dir() or wav_path.parent.is_symlink():
         raise ValueError("WAV destination parent must be an existing real directory")
-    response = command_fn(f"audio_wav {wav_path} {start} {count}")
+    wire_path = wav_command_path(wav_path)
+    response = command_fn(f"audio_wav {wire_path} {start} {count}")
     if (response.get("ok") is not True or response.get("start") != start or
-            response.get("count") != count or response.get("path") != str(wav_path)):
+            response.get("count") != count or response.get("path") != wire_path):
         raise ValueError("audio_wav returned clamped/mismatched native PCM slice")
     if not wav_path.is_file() or wav_path.is_symlink():
         raise ValueError("audio_wav did not create a real local WAV")

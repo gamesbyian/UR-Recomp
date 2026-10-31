@@ -196,6 +196,14 @@ class HostedIsolatedBootFanoutTests(unittest.TestCase):
                 expected = ("HOSTED_BOOT_FANOUT=passed count=3" if failure is None
                             else "HOSTED_BOOT_FANOUT=failed")
                 self.assertIn(expected, run.stdout + run.stderr)
+            # Recreate *passing* fixtures: the preceding negative cycle
+            # intentionally left appdata failing with exit=9.
+            for label, (filename, _) in SCRIPTS.items():
+                code = ('#!/usr/bin/env bash\\n'
+                        'sleep 0.12\\n'
+                        'echo ' + label + ' >> "$RUNNER_TEMP/joined"\\n'
+                        'exit 0\\n')
+                (scripts / filename).write_text(code, encoding="utf-8")
             # Validate the trusted hosted-main push with all three real
             # acceptance scripts, not an inert branch-only source assertion.
             main_env = dict(env, GITHUB_EVENT_NAME="push",

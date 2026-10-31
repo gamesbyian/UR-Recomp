@@ -32,7 +32,17 @@ def frame_map(path: Path, *, start: int, end: int,
               contiguous_from_zero: bool) -> dict[int, int]:
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 750000:
         raise ValueError('RF095 missing, symlinked or unbounded frame map')
-    lines = path.read_text(encoding='ascii').splitlines()
+    # The producers emit LF-terminated rows. Python splitlines() also accepts
+    # VT/FF/ASCII record separators as line breaks, allowing impossible maps.
+    # Read raw bytes so universal-newline translation cannot hide bare CR.
+    raw = path.read_bytes().decode('ascii').replace('\r\n', '\n')
+    if '\r' in raw:
+        raise ValueError('RF095 malformed frame-map line ending')
+    lines = raw.split('\n')
+    if lines[-1] == '':
+        lines.pop()
+    if any(not line for line in lines):
+        raise ValueError('RF095 malformed frame-map row')
     if not lines or lines[0] != 'frame,samples':
         raise ValueError('RF095 malformed frame-map header')
     rows: dict[int, int] = {}

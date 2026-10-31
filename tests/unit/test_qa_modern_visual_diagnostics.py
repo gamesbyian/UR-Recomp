@@ -300,14 +300,14 @@ class DiagnosticsTest(unittest.TestCase):
         ))
         width, height = 3, 2
         rows = b"".join(
-            b"\\x00" + rgba[i * width * 4:(i + 1) * width * 4]
+            b"\x00" + rgba[i * width * 4:(i + 1) * width * 4]
             for i in range(height)
         )
 
         def chunk(tag, body):
             return (struct.pack(">I", len(body)) + tag + body
                     + struct.pack(">I", zlib.crc32(tag + body)))
-        data = (b"\\x89PNG\\r\\n\\x1a\\n"
+        data = (b"\x89PNG\r\n\x1a\n"
                 + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height,
                                              8, 6, 0, 0, 0))
                 + chunk(b"IDAT", zlib.compress(rows))

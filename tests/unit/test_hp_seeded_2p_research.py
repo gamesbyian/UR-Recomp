@@ -285,7 +285,7 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertTrue(all("seed" not in issue for issue in result["issues"]))
         self.assertNotIn("private", json.dumps(result))
 
- def test_worker_failure_is_rejected_after_all_join_without_fabricated_pass(self):
+    def test_worker_failure_is_rejected_after_all_join_without_fabricated_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             exe, rom = root / "game.exe", root / "rom.sfc"

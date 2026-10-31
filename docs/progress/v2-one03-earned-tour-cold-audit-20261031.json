@@ -1,0 +1,73 @@
+{
+  "schema": "ur-v2-criterion-independent-audit/1",
+  "reviewed_utc_date": "2026-10-31",
+  "work_id": "UR-RELEASE-PROGRESS-20261026",
+  "criterion_id": "ONE-03",
+  "criterion_text": "Tour Next Event preserves completed results and progression",
+  "decision": "bounded_verified_independent_reviewed",
+  "classification": "retroactive_native_source_earned_tour_next_event_cold_progression_evidence",
+  "reviewed_main_sha": "82111a8cbc690d729a16355d35fc35b3621200f3",
+  "product_producer_sha": "39120bf875a1e8189e8043095987c57f00251c29",
+  "producing_prs": [
+    2878,
+    2890
+  ],
+  "source_equivalence": "Separate source audit found the four relevant ONE-03 workflow/script/native cold consumer/Python verifier Git blobs identical between producer and reviewed main; other paths and full Windows product equivalence are not claimed.",
+  "hosted_run": {
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41181847744",
+    "status": "success",
+    "source_sha": "39120bf875a1e8189e8043095987c57f00251c29",
+    "artifact_id": 13035427423,
+    "outer_zip_sha256": "196e614ea78ba069db477ad70308d5239f3c488d9a19034402e4f46cc67b695d",
+    "zip_members": 268,
+    "all_member_crc_ok": true,
+    "artifact_expires_utc": "2026-11-07T07:50:40Z",
+    "native_executable_sha256": "fe138f713516cc6342619a618680d56cdf7bb4754a208305f62d3a9f7f7ccc19",
+    "stock_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+  },
+  "observed_native_product": {
+    "first_earned_result_ticks60": 1714,
+    "second_earned_result_ticks60": 1505,
+    "next_event_started": true,
+    "previous_result_ghost_bound": true,
+    "second_saved_urrun": {
+      "bytes": 4847,
+      "sha256": "912c17f7fc10bae9b5435994520800122126fdb1613a12b6c73d245c20690f24",
+      "split_count": 3,
+      "input_rows": 249,
+      "staged_replay_bytes": 2996,
+      "native_cold_consumer": "PASS"
+    },
+    "saved_and_cold_sram": {
+      "bytes": 8192,
+      "identical": true,
+      "sha256": "c4fdcea60d3c73d3efe1e8eabfe9dd33a7bcc4aceea126cc71ceedfdbb592da0",
+      "changed_from_precold_offsets_hex": [
+        "0742",
+        "0743",
+        "10AD"
+      ]
+    },
+    "tour_award_assertions": "Actual winning P1 vs CPU guest centiseconds; Tour medal increases, five row flags clear and award survives distinct cold game process and disk reload."
+  },
+  "independent_audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6541372787",
+  "additional_independent_byte_review": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6540969757",
+  "not_checked": [
+    "Four prior Tour progress slots were deliberately seeded; not an unseeded zero-to-five Tour.",
+    "Cold game boots to main; separate native C++ consumer reopens .urrun. No Local Runs UI browse/playback.",
+    "No full USA original/native event parity or accepted QA01 course event.",
+    "No physical Windows H01-H07, two real controllers, 4K/audio human witness or formal Windows release gate."
+  ],
+  "score_effect": {
+    "before_bounded_percent": 55,
+    "after_bounded_percent": 56,
+    "before_independent_audited_percent": 13,
+    "after_independent_audited_percent": 14,
+    "retroactive_evidence_percentage_points": 1,
+    "new_engineering_percentage_points": 0,
+    "formal_release_gate_delta": 0,
+    "usa_complete_event_delta": 0
+  },
+  "review_boundary": "Proposed independent bounded admission, pending different agent's source review and full unchanged-head unit/hygiene qualification before merge. This PR branch alone is not accepted score.",
+  "next_executable": "Distinct reviewer confirms frozen ONE-03 bounded scope and exact artifact/source receipts; dispatch existing full four-shard tooling workflow on unchanged ready PR head if automatic unit is focused/skipped; merge only after complete green qualification."
+}

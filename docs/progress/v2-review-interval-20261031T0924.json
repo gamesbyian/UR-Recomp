@@ -1,0 +1,77 @@
+{
+  "schema": "ur-v2-reviewed-interval/1",
+  "review_date_utc": "2026-10-31",
+  "from_main_sha": "ed562fd45d954949f285ec142d3440eac75032cb",
+  "through_main_sha": "82111a8cbc690d729a16355d35fc35b3621200f3",
+  "observed_merge_count": 90,
+  "merge_count_evidence": "https://github.com/gamesbyian/UR-Recomp/compare/ed562fd45d954949f285ec142d3440eac75032cb...82111a8cbc690d729a16355d35fc35b3621200f3",
+  "merge_records_scope": "representative_verified_sample",
+  "merge_records_note": "Exactly five source-identified representative merges of 90; remaining 85 commits explicitly unclassified. Only ONE-03 is independently assessed for criterion transition; no exhaustive current-main QA or fidelity signoff.",
+  "merge_records": [
+    {
+      "pr": 2878,
+      "commit_sha": "84d411d64ad69ac22f9ebf603d1e176ae8583ae3",
+      "effect": "direct_product",
+      "observation": "Source-earned second-race run capture foundation; not independently sufficient for ONE-03.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2878"
+    },
+    {
+      "pr": 2894,
+      "commit_sha": "2e650c536b667228dfd7f5aa54a9700699829637",
+      "effect": "operations",
+      "observation": "Incremental progress reporting without automatic criterion credit.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2894"
+    },
+    {
+      "pr": 2906,
+      "commit_sha": "db19b2ded5d09387c60c1fc2752e1157db8972f1",
+      "effect": "release_risk_reduction",
+      "observation": "HP seeded research integrity, no ONE-03 criterion credit.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2906"
+    },
+    {
+      "pr": 2890,
+      "commit_sha": "968bf56bde0bed668a6865a8b9d6e8892e348511",
+      "effect": "direct_product",
+      "observation": "Native second earned Tour result, persisted run and cold-process consumer; evidence assessed separately.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2890"
+    },
+    {
+      "pr": 2907,
+      "commit_sha": "82111a8cbc690d729a16355d35fc35b3621200f3",
+      "effect": "release_risk_reduction",
+      "observation": "HP negative replay seed provenance, no ONE-03 criterion credit.",
+      "pr_url": "https://github.com/gamesbyian/UR-Recomp/pull/2907"
+    }
+  ],
+  "criterion_changes": [
+    {
+      "id": "ONE-03",
+      "before": "unverified",
+      "after": "bounded_verified",
+      "audit_before": "pending",
+      "audit_after": "independent_reviewed",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6541372787",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/41181847744",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2890",
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6540969757"
+      ],
+      "reason": "Retroactive independent actual-byte audit of source-earned Next Event results and native cold progress/record consumption; four earlier Tour slots seeded and no physical/original-native release acceptance."
+    }
+  ],
+  "score": {
+    "previous_bounded_percent": 55,
+    "current_bounded_percent": 56,
+    "gross_delta_percentage_points": 1,
+    "new_work_earned_percentage_points": 0,
+    "retroactive_identification_percentage_points": 1,
+    "previous_independent_audit_percent": 13,
+    "current_independent_audit_percent": 14
+  },
+  "formal_events_delta": 0,
+  "formal_release_gates_delta": 0,
+  "scope_review": "Frozen ONE-03 only, representative source interval; 85 unclassified merges, no physical H01-H07, original/native USA event or release gate.",
+  "source_reviewed_by": "independent issue #2491 actual-byte reviewer; final PR admission reviewer still required",
+  "limitations": "No full 90-merge source review, no clean five-event Tour, no Local Runs UI playback, no Windows physical signoff."
+}

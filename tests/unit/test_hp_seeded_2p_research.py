@@ -29,7 +29,8 @@ def _env(root: Path, event: str = "schedule") -> dict[str, str]:
 
 def _report(work: Path, source: str, seed: int, shard: int) -> dict:
     row = {"schema": native.SCHEMA, "shard": shard, "minutes_budget": hp.MINUTES,
-           "max_unique_cases": hp.MAX_CASES, "base_seed": seed,
+           "max_unique_cases": hp.MAX_CASES, "wall_seconds_budget": hp.WALL_SECONDS,
+           "base_seed": seed,
            "identity": {
                "source_commit": source,
                "native_executable_sha256": "b" * 64,

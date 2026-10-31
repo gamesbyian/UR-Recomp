@@ -73,6 +73,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
                 or sealed.get("failed_cases") != 0
                 or sealed.get("shard") != index % 2
                 or sealed.get("minutes_budget") != MINUTES
+                or sealed.get("wall_seconds_budget") != WALL_SECONDS
                 or sealed.get("max_unique_cases") != MAX_CASES
                 or sealed.get("attempted_cases") != sealed.get("passed_cases")
                 or sealed.get("total_real_native_processes") != 4 * sealed.get("passed_cases", -1)):
@@ -146,7 +147,10 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
                 timeout=PROCESS_TIMEOUT, wall_seconds=WALL_SECONDS,
                 work=private / f"worker-{i}")
             return {"worker": i, "report": row}
-        except (ValueError, RuntimeError, OSError, TimeoutError) as exc:
+        except Exception as exc:
+            # Keep the exact failure class in the negative receipt. A single
+            # malformed test input or unexpected guest error must not erase
+            # other concurrently completed independent workers' evidence.
             return {"worker": i, "error": f"{type(exc).__name__}: {exc}"[:240]}
 
     rows = [None] * WORKERS

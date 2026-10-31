@@ -281,12 +281,21 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
     seen_inputs = set()
     attempted = 0
     while attempted < max_cases and (attempted == 0 or time.monotonic() < deadline):
+        remaining = deadline - time.monotonic()
+        if wall_seconds is not None and attempted > 0 and remaining < 60:
+            break
+        # Only a shortened unattended budget changes timeout allocation.
+        # A case runs four actual guests, so bound each one by the
+        # remaining research horizon / 4. Linux's historical caller keeps
+        # its identical fixed timeout and exact original fixture semantics.
+        case_timeout = (timeout if wall_seconds is None else
+                        max(10, min(timeout, int(max(0, remaining) / 4))))
         trial_index = attempted
         seed = base_seed + shard * 1000003 + trial_index
         path = work / f"trial-{trial_index:04d}"
         attempted += 1
         try:
-            row = trial(exe, rom, prefix, generated_script, path, seed, timeout)
+            row = trial(exe, rom, prefix, generated_script, path, seed, case_timeout)
             if row["input_sha256"] in seen_inputs:
                 raise ValueError("campaign created duplicate input stream")
             seen_inputs.add(row["input_sha256"])
@@ -315,6 +324,8 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
                   "guest WRAM determinism/control ablation. Not original/native "
                   "parity, a real pad, finished course or Windows shipping build."),
     }
+    if wall_seconds is not None:
+        record["wall_seconds_budget"] = wall_seconds
     record["receipt_sha256"] = hash_object(record)
     return record
 

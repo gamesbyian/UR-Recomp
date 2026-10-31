@@ -32,6 +32,7 @@ on:
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"
       - "tests/unit/test_hp_isolated_boot_fanout.py"
+      - "tests/unit/test_windows_native_smoke_policy.py"
       - "tests/unit/test_hp_race_overlap_policy.py"
       - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/capture_modern_resume_audio.py"

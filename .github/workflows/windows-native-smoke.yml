@@ -62,6 +62,7 @@ on:
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"
       - "tests/unit/test_hp_isolated_boot_fanout.py"
+      - "tests/unit/test_windows_native_smoke_policy.py"
       - "tests/unit/test_hp_ninja_manual_policy.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-title-input-filter.patch"

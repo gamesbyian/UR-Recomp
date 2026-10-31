@@ -22,19 +22,18 @@ def summarize(inventory, ledger, reviewed, head, commits):
     from tools.remaining_work_forecast import calculate
     progress = validate(inventory, ledger)
     outstanding = [c for c in inventory["criteria"] if c["status"] != "bounded_verified"]
-    # This is a mathematically safe UNCERTAINTY ENVELOPE, not a prediction:
-    # unreviewed work may have completed nothing, some or all outstanding criteria.
-    # Never assign the optimistic edge as a scored outcome.
+    # No current numeric estimate can be inferred from unreviewed commit counts.
+    # Retain the verified floor and expose the live candidate queue separately.
     lower = progress["bounded_product_coverage_percent"]
-    upper = 100.0 if commits else lower
     return {
         "current_main_sha": head,
         "last_criterion_reviewed_sha": reviewed,
         "review_covers_current_head": head == reviewed,
         "unreviewed_commits": commits,
         "verified_bounded_coverage_percent": lower,
-        "possible_current_coverage_interval_percent": [lower, upper],
-        "interval_interpretation": "logical bounds, NOT calibrated probability or estimated completion",
+        "current_completion_estimate_percent": lower if not commits else None,
+        "current_estimate_status": "source-reviewed" if not commits else "unreviewed changes require criterion-level assessment",
+        "verified_floor_is_not_current_estimate": bool(commits),
         "unverified_criteria": [c["id"] for c in outstanding],
         "unverified_criteria_count": len(outstanding),
         "independently_reviewed_bounded_percent": progress["independently_audited_coverage_percent"],
@@ -98,8 +97,8 @@ def main():
         print("Unreviewed candidate commits for evidence triage:",len(candidates))
         for item in candidates[:10]:
             print(" ", item["sha"][:10], "/".join(item["possible_areas"]), item["title"])
-        print("Logical completion envelope:",summary["possible_current_coverage_interval_percent"],
-              "(not a probabilistic estimate)")
+        print("Current estimate:", summary["current_completion_estimate_percent"],
+              "|", summary["current_estimate_status"])
         print("Remaining relative-work prior:",effort["expected_relative_work_units"],
               "(excludes possible unreviewed closures)")
         print("USA:",summary["accepted_USA_events"],"/45 | QA gates:",

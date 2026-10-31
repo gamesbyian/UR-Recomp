@@ -949,6 +949,40 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read[ \t]*$")
         self.assertNotRegex(text, r"(?m)^  contents: write[ \t]*$")
 
+    def test_hp_seeded_research_edits_only_invalidate_actual_science(self):
+        # Negative route census: a normal hosted Windows PR candidate or
+        # product main-push smoke never enables the HP-only science input.
+        # Rebuilding the unchanged Windows game cannot test these scripts.
+        research_only = (
+            "tools/hp_seeded_2p_research.py",
+            "tools/qa02_native_2p_seeded_endurance.py",
+            "tests/unit/test_hp_seeded_2p_research.py",
+            ".github/workflows/owner-hp-seeded-2p-research.yml",
+        )
+        for filename, marker, end in (
+            ("owner-hp-main-windows-smoke.yml", "  push:\\n", "\\n  workflow_dispatch:"),
+            ("windows-native-smoke.yml", "  push:\\n", "\\nconcurrency:"),
+            ("qa05-qa09-windows-candidate.yml", "  pull_request:\\n", "\\n  workflow_dispatch:"),
+        ):
+            source = (WORKFLOWS / filename).read_text(encoding="utf-8")
+            segment = source.split(marker, 1)[1].split(end, 1)[0]
+            for path in research_only:
+                with self.subTest(workflow=filename, path=path):
+                    self.assertNotIn(f'      - "{path}"', segment)
+            # Product packaging and original source acceptance must remain.
+            self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', segment) if filename != "owner-hp-main-windows-smoke.yml" else None
+
+        science = (WORKFLOWS / "owner-hp-seeded-2p-research.yml").read_text()
+        self.assertIn("cron: '17 * * * *'", science)
+        self.assertIn("hp_seeded_2p: true", science)
+        self.assertIn("run_on_hp: true", science)
+        self.assertIn("github.ref == 'refs/heads/main'", science)
+        full = (WORKFLOWS / "tooling-unit-tests.yml").read_text()
+        for path in ('"tools/**"', '"tests/unit/**"', '".github/workflows/**"'):
+            self.assertIn(path, full)
+        self.assertIn("      - name: Verify canonical ROM and package contracts",
+                      (WORKFLOWS / "windows-native-smoke.yml").read_text())
+
     def test_hp_source_current_smoke_covers_exact_executed_windows_consumers(self):
         # A change in the actual packaging, renderer, QA or evidence tools
         # invalidates the HP's existing Windows result, even without native

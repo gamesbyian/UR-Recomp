@@ -7,9 +7,14 @@ set -euo pipefail
 [[ "${RUNNER_NAME:-}" == "hpmini-ur-recomp" ]] || { echo "HP_BOOT_FANOUT=refused_runner" >&2; exit 2; }
 [[ "${GITHUB_REPOSITORY:-}" == "gamesbyian/UR-Recomp" ]] || { echo "HP_BOOT_FANOUT=refused_repo" >&2; exit 2; }
 [[ "${GITHUB_REF:-}" == "refs/heads/main" ]] || { echo "HP_BOOT_FANOUT=refused_ref" >&2; exit 2; }
-[[ "${GITHUB_EVENT_NAME:-}" == "push" || "${GITHUB_EVENT_NAME:-}" == "workflow_dispatch" || "${GITHUB_EVENT_NAME:-}" == "schedule" ]] || {
-  echo "HP_BOOT_FANOUT=refused_event" >&2; exit 2;
-}
+# Reusable workflows may expose workflow_call to the shell even when the
+# top-level Actions run is a trusted main-branch schedule/dispatch. The job's
+# run_on_hp/seeded-input guards still run before this script. Keep the exact
+# runner, repository and main-ref checks above, and never allow PR events.
+case "${GITHUB_EVENT_NAME:-}" in
+  push|workflow_dispatch|schedule|workflow_call) ;;
+  *) printf 'HP_BOOT_FANOUT=refused_event name=%q\n' "${GITHUB_EVENT_NAME:-unset}" >&2; exit 2 ;;
+esac
 # The checkout is the Actions Bash working directory on Windows. The
 # GITHUB_WORKSPACE environment value can contain backslashes that Bash
 # cannot use as a script path, so keep the same relative paths as hosted CI.

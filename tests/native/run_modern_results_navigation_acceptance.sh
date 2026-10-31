@@ -20,12 +20,12 @@ assert_absent_grep() {
 assert_second_earned_run_record() {
   local log="$1"
   local source_movie="$2"
-  local expected='UR_RUN_RECORD CAPTURED .*course=course:00 elapsed_ticks60=[1-9][0-9]*( |$)'
+  local expected='UR_RUN_RECORD CAPTURED .*course=course:01 elapsed_ticks60=[1-9][0-9]*( |$)'
   if [ "$source_movie" = "1" ]; then
-    expected='UR_RUN_RECORD CAPTURED .*course=course:00 elapsed_ticks60=1505( |$)'
+    expected='UR_RUN_RECORD CAPTURED .*course=course:01 elapsed_ticks60=1505( |$)'
   fi
   if ! grep -Eq "$expected" "$log"; then
-    echo "::error::ONE-03 second earned course:00 run record absent or wrong finish" >&2
+    echo "::error::ONE-03 second earned course:01 run record absent or wrong finish" >&2
     return 1
   fi
   assert_absent_grep -Eq 'UR_RUN_RECORD (FINISH_LINE_MISSING|FINISH_SPLIT_REJECTED|FINALIZE_REJECTED|SAVE_FAILED)' "$log"
@@ -278,8 +278,20 @@ grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next-earned.log"
 grep -q "UR_RESULTS_NAV NEXT_EARNED_RESULT observed=1 source_finish=1 persisted=1 sram_changed=1" "$WORK/next-earned.log"
 # A Tour medal and cold SRAM can succeed while the second run record fails.
-# The first race already has a valid course:01 record; demand course:00 here.
+# Both source-owned races use 1-based course:01. The verifier selects the
+# distinct second capture by producer order and increasing origin frame.
 assert_second_earned_run_record "$WORK/next-earned.log" "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}"
+
+# The native CAPTURED log is printed after the save API returns, but cannot
+# prove that the file still exists or is independently decodable on disk.
+# The real archive lives under XDG_DATA_HOME, not UR_PROFILE_SAVE_ROOT.
+ONE03_RUNS_ROOT="$PREF_ROOT/gamesbyian/UR-Recomp/runs/results.alpha"
+python3 "$REPO/tools/verify_one03_saved_run.py" \
+  --log "$WORK/next-earned.log" \
+  --runs-root "$ONE03_RUNS_ROOT" \
+  --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
+  --receipt-out "$WORK/next-earned-run-record.json" \
+  --evidence-out "$WORK/next-earned-record.urrun"
 
 # A new process must actually reload the product's committed SRAM. The
 # pre-seeded fixture is NOT a source-earned event and never earns ONE-03.
@@ -392,6 +404,42 @@ print("UR_RESULTS_NAV NEXT_EARNED_COLD_REOPEN=source_second_result=1 "
       ",".join(volatile_diffs))
 
 PY
+# Reopen the same actual .urrun after the separate cold process and require
+# byte identity with the first producer-exit receipt.
+python3 "$REPO/tools/verify_one03_saved_run.py" \
+  --log "$WORK/next-earned.log" \
+  --runs-root "$ONE03_RUNS_ROOT" \
+  --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
+  --expected-receipt "$WORK/next-earned-run-record.json"
+# Native product consumer must independently decode the saved artifact and
+# stage its actual controller stream in a fresh process after game cold boot.
+ONE03_COLD_CONSUMER="$WORK/one03-native-cold-consumer"
+c++ -std=c++17 -O2 -Wall -Wextra \
+  -I"$REPO/native/product" \
+  "$REPO/tests/native/one03_saved_run_native_cold_consumer.cpp" \
+  "$REPO/native/product/completed_run_record.cpp" \
+  "$REPO/native/product/completed_run_replay.cpp" \
+  -o "$ONE03_COLD_CONSUMER"
+ONE03_RECORD_NAME="$(python3 - "$WORK/next-earned-run-record.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+name = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))['filename']
+if Path(name).name != name or not name.endswith('.urrun'):
+    raise SystemExit('ONE-03 invalid saved record filename')
+print(name)
+PY
+)"
+"$ONE03_COLD_CONSUMER" \
+  "$ONE03_RUNS_ROOT/$ONE03_RECORD_NAME" \
+  "$WORK/next-earned-native-cold-replay.input" \
+  | tee "$WORK/next-earned-native-cold-replay.log"
+# Revalidate the producer-exit receipt after the native consumer returns.
+python3 "$REPO/tools/verify_one03_saved_run.py" \
+  --log "$WORK/next-earned.log" \
+  --runs-root "$ONE03_RUNS_ROOT" \
+  --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
+  --expected-receipt "$WORK/next-earned-run-record.json"
 fi
 
 if [ "$SHARD" = "all" ] || [ "$SHARD" = "isolation" ]; then

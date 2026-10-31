@@ -42,9 +42,9 @@ class One03EarnedRecordGuardTests(unittest.TestCase):
             return subprocess.run(['bash', '-c', self.guard, '--', str(log), movie],
                                   capture_output=True, text=True, check=False)
 
-    def test_second_course_record_passes(self):
+    def test_second_source_capture_passes(self):
         log = ('UR_RUN_RECORD CAPTURED path=first course=course:01 elapsed_ticks60=1714 origin_frame=981\n'
-               'UR_RUN_RECORD CAPTURED path=second course=course:00 elapsed_ticks60=1505 origin_frame=2090\n')
+               'UR_RUN_RECORD CAPTURED path=second course=course:01 elapsed_ticks60=1505 origin_frame=2090\n')
         self.assertEqual(self.run_guard(log).returncode, 0)
         self.assertEqual(self.run_guard(log, movie='0').returncode, 0)
 
@@ -54,17 +54,18 @@ class One03EarnedRecordGuardTests(unittest.TestCase):
 
     def test_wrong_course_or_source_movie_finish_rejected(self):
         for line in (
-            'UR_RUN_RECORD CAPTURED path=second course=course:01 elapsed_ticks60=1505\n',
-            'UR_RUN_RECORD CAPTURED path=second course=course:00 elapsed_ticks60=1506\n',
+            'UR_RUN_RECORD CAPTURED path=second course=course:00 elapsed_ticks60=1505\n',
+            'UR_RUN_RECORD CAPTURED path=second course=course:02 elapsed_ticks60=1505\n',
+            'UR_RUN_RECORD CAPTURED path=second course=course:01 elapsed_ticks60=1506\n',
         ):
             with self.subTest(line=line):
                 self.assertNotEqual(self.run_guard(line).returncode, 0)
         self.assertEqual(self.run_guard(
-            'UR_RUN_RECORD CAPTURED path=second course=course:00 elapsed_ticks60=1506\n',
+            'UR_RUN_RECORD CAPTURED path=second course=course:01 elapsed_ticks60=1506\n',
             movie='0').returncode, 0)
 
     def test_failure_marker_rejects_even_with_second_record(self):
-        good = 'UR_RUN_RECORD CAPTURED path=second course=course:00 elapsed_ticks60=1505\n'
+        good = 'UR_RUN_RECORD CAPTURED path=second course=course:01 elapsed_ticks60=1505\n'
         for failure in ('FINISH_LINE_MISSING', 'FINISH_SPLIT_REJECTED',
                         'FINALIZE_REJECTED', 'SAVE_FAILED'):
             with self.subTest(failure=failure):

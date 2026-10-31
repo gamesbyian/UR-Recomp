@@ -143,6 +143,43 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertEqual(result["release_gate_credit"], 0)
             self.assertFalse(result["physical_gamepads_tested"])
 
+    def test_authentic_failure_receipt_retains_seed_without_local_path(self):
+        source = "a" * 40
+        rows = []
+        for index in range(4):
+            seed = 12345 + (index // 2) * 25000000
+            report = _report(Path("unused"), source, seed, index % 2)
+            if index == 2:
+                case_seed = seed
+                report.update(disposition="invariant_violation",
+                              attempted_cases=1, passed_cases=0,
+                              failed_cases=1, total_real_native_processes=0,
+                              case_results=[],
+                              failures=[{"seed": case_seed, "trial_index": 0,
+                                         "kind": "TimeoutExpired",
+                                         "error": "C:/Users/secret/roms/retail.sfc"}])
+                report.pop("receipt_sha256")
+                report["receipt_sha256"] = native.hash_object(report)
+            rows.append({"worker": index, "report": report})
+        result = hp.collect(rows, source, 123456, 1.0)
+        self.assertEqual(result["status"], "research_failure")
+        self.assertEqual(result["release_gate_credit"], 0)
+        self.assertEqual(result["issues"][0]["worker"], 2)
+        self.assertEqual(result["issues"][0]["seed"], 25012345)
+        self.assertEqual(result["issues"][0]["trial_index"], 0)
+        self.assertEqual(result["issues"][0]["kind"], "TimeoutExpired")
+        self.assertNotIn("secret", json.dumps(result))
+        self.assertNotIn("retail.sfc", json.dumps(result))
+        # Missing original source identity must not publish even the seed.
+        report = rows[2]["report"]
+        report["identity"]["source_commit"] = "f" * 40
+        report.pop("receipt_sha256")
+        report["receipt_sha256"] = native.hash_object(report)
+        unbound = hp.collect(rows, source, 123456, 1.0)
+        self.assertEqual(unbound["issues"][0]["reason"],
+                         "unverifiable source-owned failure")
+        self.assertNotIn("seed", unbound["issues"][0])
+
     def test_worker_failure_is_rejected_after_all_join_without_fabricated_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

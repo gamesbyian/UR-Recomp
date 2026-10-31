@@ -45,6 +45,35 @@ def authorize(env: dict[str, str]) -> tuple[int, str]:
     return int(run_id), sha
 
 
+def source_owned_failure_notes(sealed: dict, source: str, worker: int) -> list[dict]:
+    """Preserve bounded replay coordinates, never arbitrary path/error text."""
+    proof = sealed.get("identity")
+    failures = sealed.get("failures")
+    if (sealed.get("schema") != native.SCHEMA
+            or sealed.get("disposition") != "invariant_violation"
+            or sealed.get("release_gate_credit") != 0
+            or sealed.get("source_commit") is not None
+            or not isinstance(proof, dict) or proof.get("source_commit") != source
+            or not isinstance(failures, list)
+            or not 1 <= len(failures) <= 2
+            or sealed.get("failed_cases") != len(failures)):
+        return []
+    notes = []
+    for failure in failures:
+        if not isinstance(failure, dict):
+            return []
+        seed, trial_index, kind = (failure.get("seed"),
+                                   failure.get("trial_index"), failure.get("kind"))
+        if (type(seed) is not int or not 0 <= seed <= 100000000
+                or type(trial_index) is not int or not 0 <= trial_index < MAX_CASES
+                or not isinstance(kind, str)
+                or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", kind)):
+            return []
+        notes.append({"worker": worker, "reason": "source-owned trial invariant failure",
+                      "seed": seed, "trial_index": trial_index, "kind": kind})
+    return notes
+
+
 def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     if len(rows) != WORKERS:
         raise ValueError("missing worker result")
@@ -65,6 +94,11 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
         sig = sealed.pop("receipt_sha256", None)
         if not isinstance(sig, str) or native.hash_object(sealed) != sig:
             issues.append({"worker": index, "reason": "invalid source-owned research receipt"})
+            continue
+        if sealed.get("disposition") == "invariant_violation":
+            notes = source_owned_failure_notes(sealed, source, index)
+            issues.extend(notes or [{"worker": index,
+                                     "reason": "unverifiable source-owned failure"}])
             continue
         if (sealed.get("schema") != native.SCHEMA
                 or sealed.get("disposition") != "completed_positive"

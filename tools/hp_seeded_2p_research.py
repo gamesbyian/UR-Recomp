@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -45,38 +46,82 @@ def authorize(env: dict[str, str]) -> tuple[int, str]:
     return int(run_id), sha
 
 
-def source_owned_failure_notes(sealed: dict, source: str, worker: int) -> list[dict]:
-    """Preserve bounded replay coordinates, never arbitrary path/error text."""
-    proof = sealed.get("identity")
-    failures = sealed.get("failures")
+def authentic_candidate(proof: object, source: str) -> bool:
+    """Check original ROM, source, stock script/input and exact PE hash identity."""
+    keys = {"source_commit", "native_executable_sha256", "rom_sha256",
+            "stock_input_sha256", "stock_script_sha256"}
+    if not isinstance(proof, dict) or set(proof) != keys:
+        return False
+    if proof["source_commit"] != source or proof["rom_sha256"] != native.ROM_SHA:
+        return False
+    if any(not isinstance(proof[k], str) or not native.SHA256.fullmatch(proof[k])
+           for k in keys - {"source_commit"}):
+        return False
+    stock_input, stock_script = native.base_source()
+    return (proof["stock_input_sha256"] ==
+            hashlib.sha256(stock_input.encode()).hexdigest()
+            and proof["stock_script_sha256"] ==
+            hashlib.sha256(stock_script.encode()).hexdigest())
+
+
+def source_owned_failure_notes(sealed: dict, source: str, worker: int,
+                               run_id: int) -> list[dict]:
+    """Only authentic, bounded attempt records earn replay coordinates."""
+    proof, failures = sealed.get("identity"), sealed.get("failures")
+    shard = worker % 2
+    expected_base = run_id % 10000000 + (worker // 2) * 25000000
+    attempted, passed = sealed.get("attempted_cases"), sealed.get("passed_cases")
     if (sealed.get("schema") != native.SCHEMA
             or sealed.get("disposition") != "invariant_violation"
             or sealed.get("release_gate_credit") != 0
             or sealed.get("source_commit") is not None
-            or not isinstance(proof, dict) or proof.get("source_commit") != source
-            or not isinstance(failures, list)
-            or not 1 <= len(failures) <= 2
+            or not authentic_candidate(proof, source)
+            or sealed.get("shard") != shard
+            or sealed.get("base_seed") != expected_base
+            or sealed.get("minutes_budget") != MINUTES
+            or sealed.get("wall_seconds_budget") != WALL_SECONDS
+            or sealed.get("max_unique_cases") != MAX_CASES
+            or sealed.get("stop_reason") != "invariant_failure"
+            or not isinstance(failures, list) or not 1 <= len(failures) <= 2
             or sealed.get("failed_cases") != len(failures)
-            or sealed.get("shard") != worker % 2
-            or type(sealed.get("base_seed")) is not int
-            or not 0 <= sealed["base_seed"] <= 100000000):
+            or type(attempted) is not int or not 1 <= attempted <= MAX_CASES
+            or type(passed) is not int or passed < 0
+            or attempted != passed + len(failures)
+            or sealed.get("total_real_native_processes") != 4 * passed):
         return []
+    cases = sealed.get("case_results")
+    if not isinstance(cases, list) or len(cases) != passed:
+        return []
+    origin = expected_base + shard * 1000003
+    seen = set()
+    for case in cases:
+        if not isinstance(case, dict):
+            return []
+        seed, digest = case.get("seed"), case.get("input_sha256")
+        if (type(seed) is not int or not 0 <= seed - origin < attempted
+                or not isinstance(digest, str) or not native.SHA256.fullmatch(digest)
+                or case.get("real_native_processes") != 4
+                or case.get("two_seats_observably_active") is not True
+                or case.get("bit_exact_replay") is not True
+                or seed - origin in seen):
+            return []
+        seen.add(seed - origin)
     notes = []
     for failure in failures:
         if not isinstance(failure, dict):
             return []
         seed, trial_index, kind = (failure.get("seed"),
                                    failure.get("trial_index"), failure.get("kind"))
-        if (type(seed) is not int or not 0 <= seed <= 100000000
-                or type(trial_index) is not int or not 0 <= trial_index < MAX_CASES
-                or seed != sealed["base_seed"] + (worker % 2) * 1000003 + trial_index
+        if (type(seed) is not int or type(trial_index) is not int
+                or not 0 <= trial_index < attempted
+                or seed != origin + trial_index or trial_index in seen
                 or not isinstance(kind, str)
                 or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", kind)):
             return []
+        seen.add(trial_index)
         notes.append({"worker": worker, "reason": "source-owned trial invariant failure",
                       "seed": seed, "trial_index": trial_index, "kind": kind})
-    return notes
-
+    return notes if seen == set(range(attempted)) else []
 
 def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     if len(rows) != WORKERS:
@@ -87,6 +132,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     issues: list[dict[str, str | int]] = []
     attempts = successes = native_processes = 0
     summaries = []
+    pending_failures = []
+    candidate_proofs = []
     for index, row in enumerate(rows):
         if row.get("worker") != index:
             raise ValueError("wrong worker order or index")
@@ -107,9 +154,12 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             issues.append({"worker": index, "reason": "invalid source-owned research receipt"})
             continue
         if sealed.get("disposition") == "invariant_violation":
-            notes = source_owned_failure_notes(sealed, source, index)
-            issues.extend(notes or [{"worker": index,
-                                     "reason": "unverifiable source-owned failure"}])
+            notes = source_owned_failure_notes(sealed, source, index, run_id)
+            if notes:
+                pending_failures.append((index, notes))
+                candidate_proofs.append(sealed["identity"])
+            else:
+                issues.append({"worker": index, "reason": "unverifiable source-owned failure"})
             continue
         if (sealed.get("schema") != native.SCHEMA
                 or sealed.get("disposition") != "completed_positive"
@@ -125,9 +175,10 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             issues.append({"worker": index, "reason": "incomplete or nonpositive source-owned result"})
             continue
         proof = sealed.get("identity")
-        if not isinstance(proof, dict) or proof.get("source_commit") != source:
-            issues.append({"worker": index, "reason": "source mismatch"})
+        if not authentic_candidate(proof, source):
+            issues.append({"worker": index, "reason": "source or stock fixture mismatch"})
             continue
+        candidate_proofs.append(proof)
         if identity is None:
             identity = proof
         elif proof != identity:
@@ -155,6 +206,18 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             summaries.append({"worker": index, "shard": index % 2,
                               "case_count": len(cases), "seed_first": cases[0]["seed"]
                               if cases else None, "elapsed_seconds": sealed.get("elapsed_seconds")})
+    if pending_failures:
+        # A single checksum-vouched foreign PE cannot borrow the source
+        # credentials of another worker. ALL four producers must agree
+        # before even one negative seed is published for replay.
+        consistent = (not issues and len(candidate_proofs) == WORKERS
+                      and all(proof == candidate_proofs[0]
+                              for proof in candidate_proofs))
+        if consistent:
+            identity = candidate_proofs[0]
+        for index, notes in pending_failures:
+            issues.extend(notes if consistent else
+                          [{"worker": index, "reason": "unverifiable source-owned failure"}])
     valid = not issues and identity is not None and attempts == successes and successes >= WORKERS
     result = {
         "schema": SCHEMA, "source_sha": source, "run_id": run_id,

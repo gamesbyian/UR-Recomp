@@ -209,6 +209,7 @@ jobs:
           python3 -m unittest -v \
             tests.unit.test_agent_control \
             tests.unit.test_ops_live_status \
+            tests.unit.test_hp_compute_watch \
             tests.unit.test_ci_cancelled_job_sample \
             tests.unit.test_validate_history_custody \
             tests.unit.test_backup_main_history \

@@ -4,9 +4,13 @@ name: HP unattended seeded 2P gameplay research
 # source-bound controller populations with a 4-way guest determinism oracle.
 # Reuse canonical Windows Ninja build and full game acceptance before science.
 # No PR/fork can reach the personal Windows runner through this caller.
+# The first source-bound scheduled science run #41244390541 completed 8
+# distinct seeded 2P cases / 32 real guest processes in 289s research time.
+# Hourly pilot reuses this same one-worker workflow, with no parallel
+# HP jobs, new GHA runner, weaker package QA or extra task agent.
 on:
   schedule:
-    - cron: '17 */3 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:

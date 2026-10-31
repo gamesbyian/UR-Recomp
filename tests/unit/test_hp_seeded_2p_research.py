@@ -144,6 +144,40 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertEqual(result["release_gate_credit"], 0)
             self.assertFalse(result["physical_gamepads_tested"])
 
+    def test_positive_receipts_reject_wrong_seed_namespace_and_digest(self):
+        source, run_id = "a" * 40, 41151999999
+
+        def rows():
+            result = []
+            for worker in range(hp.WORKERS):
+                base = run_id % 10000000 + (worker // 2) * 25000000
+                result.append({"worker": worker, "report": _report(
+                    Path("unused"), source, base, worker % 2)})
+            return result
+
+        self.assertEqual(hp.collect(rows(), source, run_id, 1.0)["status"],
+                         "completed_positive")
+        for mutation in ("base", "seed", "digest", "stop", "bool_attempts"):
+            with self.subTest(mutation=mutation):
+                candidate = rows()
+                report = candidate[2]["report"]
+                if mutation == "base":
+                    report["base_seed"] += 1
+                elif mutation == "seed":
+                    report["case_results"][0]["seed"] += 1
+                elif mutation == "digest":
+                    report["case_results"][0]["input_sha256"] = "not-a-sha"
+                elif mutation == "stop":
+                    report["stop_reason"] = "invariant_failure"
+                else:
+                    report["attempted_cases"] = True
+                report["receipt_sha256"] = native.hash_object({
+                    k: v for k, v in report.items() if k != "receipt_sha256"})
+                outcome = hp.collect(candidate, source, run_id, 1.0)
+                self.assertEqual(outcome["status"], "research_failure")
+                self.assertTrue(any(row.get("worker") == 2
+                                    for row in outcome["issues"]))
+
     def test_authentic_failure_receipt_retains_seed_without_local_path(self):
         source = "a" * 40
         rows = []

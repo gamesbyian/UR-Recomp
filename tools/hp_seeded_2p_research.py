@@ -161,12 +161,18 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             else:
                 issues.append({"worker": index, "reason": "unverifiable source-owned failure"})
             continue
+        expected_base = run_id % 10000000 + (index // 2) * 25000000
         if (sealed.get("schema") != native.SCHEMA
                 or sealed.get("disposition") != "completed_positive"
                 or sealed.get("release_gate_credit") != 0
                 or sealed.get("source_commit") is not None
                 or sealed.get("failed_cases") != 0
                 or sealed.get("shard") != index % 2
+                or sealed.get("base_seed") != expected_base
+                or sealed.get("stop_reason") not in {"case_cap", "wall_budget"}
+                or type(sealed.get("attempted_cases")) is not int
+                or not 1 <= sealed["attempted_cases"] <= MAX_CASES
+                or type(sealed.get("passed_cases")) is not int
                 or sealed.get("minutes_budget") != MINUTES
                 or sealed.get("wall_seconds_budget") != WALL_SECONDS
                 or sealed.get("max_unique_cases") != MAX_CASES
@@ -188,9 +194,14 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
         if not isinstance(cases, list) or len(cases) != sealed["passed_cases"]:
             issues.append({"worker": index, "reason": "missing cases"})
             continue
-        for case in cases:
+        for trial_index, case in enumerate(cases):
+            if not isinstance(case, dict):
+                issues.append({"worker": index, "reason": "malformed controller case"})
+                break
             seed, digest = case.get("seed"), case.get("input_sha256")
-            if (not isinstance(seed, int) or not isinstance(digest, str)
+            expected_seed = expected_base + (index % 2) * 1000003 + trial_index
+            if (type(seed) is not int or seed != expected_seed
+                    or not isinstance(digest, str) or not native.SHA256.fullmatch(digest)
                     or seed in seeds or digest in inputs
                     or case.get("real_native_processes") != 4
                     or case.get("two_seats_observably_active") is not True

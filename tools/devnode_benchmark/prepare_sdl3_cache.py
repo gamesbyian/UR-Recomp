@@ -287,7 +287,8 @@ def main() -> int:
         parser.error("unexpected repository")
     if args.hp and (os.environ.get("RUNNER_NAME") != "hpmini-ur-recomp"
                     or os.environ.get("GITHUB_REF") != "refs/heads/main"
-                    or os.environ.get("GITHUB_EVENT_NAME") not in ("push", "workflow_dispatch")):
+                    or os.environ.get("GITHUB_EVENT_NAME") not in
+                    ("push", "workflow_dispatch", "schedule")):
         parser.error("HP static cache requires trusted main and exact owner runner")
     # Host canary is explicitly hosted-only on same-repo PRs. It never
     # authorizes a PR checkout on the personal runner.

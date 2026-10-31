@@ -373,6 +373,45 @@ class HPSDL3CacheTests(unittest.TestCase):
             self.assertFalse(output.exists())
             self.assertFalse(env_file.exists())
 
+    def test_scheduled_hp_cache_allows_only_trusted_main_and_owner_runner(self):
+        # The existing owner-only 2P cron calls the SAME SDL3 helper with
+        # --hp; rejecting schedule before the actual Windows build would
+        # strand every unattended science run. PR/fork/foreign runners still
+        # cannot invoke this trusted-machine path.
+        workflow = (MODULE.parents[2] /
+                    ".github/workflows/owner-hp-seeded-2p-research.yml").read_text()
+        self.assertIn("github.event_name == 'schedule'", workflow)
+        self.assertIn("run_on_hp: true", workflow)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            args = ["prepare_sdl3_cache.py", "--source", str(root / "source"),
+                    "--archive", str(root / "source.tar.gz"),
+                    "--cache-root", str(root / "cache"), "--github-env",
+                    str(root / "private.env"), "--hp"]
+            trusted = {"GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",
+                       "GITHUB_REF": "refs/heads/main",
+                       "GITHUB_EVENT_NAME": "schedule",
+                       "RUNNER_NAME": "hpmini-ur-recomp"}
+            with patch.object(sys, "argv", args), patch.dict(os.environ, trusted):
+                with patch.object(cache, "visual_studio_root", return_value=root), \
+                     patch.object(cache, "fingerprint", return_value={"known": True}), \
+                     patch.object(cache, "cache_key", return_value="a" * 24), \
+                     patch.object(cache, "validate_stage", return_value=root / "verified"), \
+                     patch.object(cache, "build_stage") as build:
+                    self.assertEqual(cache.main(), 0)
+                    build.assert_not_called()
+            self.assertIn("UR_SDL3_PREBUILT_DIR=", (root / "private.env").read_text())
+            for key, value in (("GITHUB_EVENT_NAME", "pull_request"),
+                               ("GITHUB_REF", "refs/heads/foreign"),
+                               ("RUNNER_NAME", "github-hosted"),
+                               ("GITHUB_REPOSITORY", "foreign/repo")):
+                with self.subTest(field=key):
+                    denied = dict(trusted, **{key: value})
+                    with patch.object(sys, "argv", args), \
+                         patch.dict(os.environ, denied):
+                        with self.assertRaises(SystemExit):
+                            cache.main()
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

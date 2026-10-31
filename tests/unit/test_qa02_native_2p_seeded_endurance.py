@@ -120,6 +120,9 @@ class SeededNativeInputContractTests(unittest.TestCase):
         deadlines = []
 
         def fake_trial(exe, rom, source_input, script, root, seed, timeout):
+            # The real producer creates the case root before returning; the
+            # mock must preserve cleanup semantics to avoid false OSError.
+            root.mkdir(parents=True)
             deadlines.append(timeout)
             clock.now += 132.0
             return {"seed": seed, "input_sha256": f"{seed:064x}"}

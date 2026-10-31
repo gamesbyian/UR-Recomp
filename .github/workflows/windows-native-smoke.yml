@@ -344,6 +344,8 @@ jobs:
       - name: Restore hosted main-branch SDL3 seed
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile }}
         id: main-sdl3-cache
+        # Cache transport failure is not a shipping-build failure.
+        continue-on-error: true
         uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: ${{ runner.temp }}/ur-sdl3-canary-cache
@@ -371,6 +373,7 @@ jobs:
 
       - name: Save verified hosted main-branch SDL3 seed
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile && steps.main-sdl3-prepared.outcome == 'success' && (steps.main-sdl3-prepared.outputs.cache-state == 'miss' || steps.main-sdl3-prepared.outputs.cache-state == 'recovered') }}
+        continue-on-error: true
         uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: ${{ runner.temp }}/ur-sdl3-canary-cache

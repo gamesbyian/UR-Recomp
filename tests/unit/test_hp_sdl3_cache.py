@@ -308,6 +308,7 @@ class HPSDL3CacheTests(unittest.TestCase):
                      "Validate isolated hosted main SDL3 seed",
                      "Save verified hosted main-branch SDL3 seed"):
             block = workflow.split("- name: " + name, 1)[1].split("- name:", 1)[0]
+            self.assertIn("continue-on-error: true", block)
             self.assertIn("github.event_name == 'push'", block)
             self.assertIn("github.ref == 'refs/heads/main'", block)
             self.assertIn("!inputs.run_on_hp", block)

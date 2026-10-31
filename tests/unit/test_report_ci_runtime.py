@@ -101,6 +101,11 @@ class CiRuntimeReportTest(unittest.TestCase):
                          "execution")
         self.assertEqual(step_bucket("Prove deterministic route acceptance"),
                          "execution")
+        # Previous substring detection for "apt" wrongly matched cAPTure,
+        # causing a genuine capture/execution to be charged to dependencies.
+        self.assertEqual(step_bucket("Capture native frame evidence"), "execution")
+        self.assertEqual(step_bucket("apt-get install dependencies"), "dependency")
+        self.assertEqual(step_bucket("apt update"), "dependency")
         self.assertEqual(step_bucket("Unrelated housekeeping"), "other")
 
     def test_reports_queue_and_step_buckets(self):

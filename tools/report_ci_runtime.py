@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from statistics import median
 from datetime import datetime, timedelta, timezone
@@ -53,7 +54,7 @@ def elapsed_minutes_or_unknown(value) -> str:
 def step_bucket(name: str) -> str:
     lowered = name.lower()
     if (
-        "apt" in lowered
+        re.search(r"\bapt(?:-get)?\b", lowered) is not None
         or "package dependenc" in lowered
         or ("install" in lowered and "dependenc" in lowered)
         # The Windows static SDL3 install is dependency setup, even though

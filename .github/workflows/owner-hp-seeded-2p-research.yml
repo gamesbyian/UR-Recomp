@@ -1,0 +1,29 @@
+name: HP unattended seeded 2P gameplay research
+
+# Independent of the five LLM agents. Each scheduled run generates fresh
+# source-bound controller populations with a 4-way guest determinism oracle.
+# Reuse canonical Windows Ninja build and full game acceptance before science.
+# No PR/fork can reach the personal Windows runner through this caller.
+on:
+  schedule:
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hp-seeded-2p-research-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-bound-windows-research:
+    if: >-
+      github.repository == 'gamesbyian/UR-Recomp' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      run_on_hp: true
+      hp_ninja_auto: true
+      hp_seeded_2p: true

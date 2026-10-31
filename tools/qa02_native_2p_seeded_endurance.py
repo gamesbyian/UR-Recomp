@@ -156,6 +156,12 @@ def observe(dumps: Path) -> dict[str, str]:
     return observed
 
 
+def guest_command(exe: Path, rom: Path, config: Path, script: Path,
+                  *, windows: bool) -> list[str]:
+    args = [str(exe), str(rom), "--config", str(config), "--script", str(script)]
+    return args if windows else ["xvfb-run", "-a", *args]
+
+
 def execute(exe: Path, rom: Path, control: Path, script: Path,
             root: Path, timeout: int, *, runtime_log: Path | None = None,
             observe_result: bool = True) -> dict[str, str]:
@@ -178,7 +184,13 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
         "SNESRECOMP_INPUT_FILE": str(control),
         "SNESRECOMP_DUMP_DIR": str(root / "dumps"),
     })
-    cmd = ["xvfb-run", "-a", str(exe), str(rom), "--config", str(config), "--script", str(script)]
+    # Reuse the exact native fixture and guest oracle on both OS families.
+    # The HP uses its verified static SDL3 Windows offscreen driver; Linux
+    # retains the long-standing xvfb-run path and unchanged guest behavior.
+    windows = os.name == "nt"
+    if windows:
+        env["SDL_VIDEODRIVER"] = "offscreen"
+    cmd = guest_command(exe, rom, config, script, windows=windows)
     try:
         done = subprocess.run(cmd, cwd=root, env=env, capture_output=True,
                               text=True, errors="replace", timeout=timeout)
@@ -248,20 +260,22 @@ def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
 
 def run_shard(*, exe: Path, rom: Path, source_sha: str,
               shard: int, base_seed: int, minutes: int, max_cases: int,
-              timeout: int, work: Path) -> dict:
+              timeout: int, work: Path, wall_seconds: int | None = None) -> dict:
     if shard not in SHARDS or minutes not in BUDGETS or not 10 <= max_cases <= 5000:
         raise ValueError("unsafe cohort bounds")
     if type(base_seed) is not int or not 0 <= base_seed <= 100000000:
         raise ValueError("unsafe seed")
     if not 10 <= timeout <= 180:
         raise ValueError("unsafe individual native process deadline")
+    if wall_seconds is not None and not 120 <= wall_seconds <= minutes * 60:
+        raise ValueError("unsafe shortened unattended research budget")
     if work.exists():
         raise ValueError("refuse reused trial root")
     proof = identity(exe, rom, source_sha)
     prefix, script = base_source()
     generated_script = render_script(script)
     work.mkdir(parents=True)
-    deadline = time.monotonic() + minutes * 60
+    deadline = time.monotonic() + (wall_seconds if wall_seconds is not None else minutes * 60)
     start = time.monotonic()
     successes, failures = [], []
     seen_inputs = set()
@@ -413,6 +427,8 @@ def main() -> int:
     for name in ("source_sha","shard","base_seed","minutes","max_cases","timeout"):
         run.add_argument("--" + name.replace("_", "-"), required=True,
                          type=str if name=="source_sha" else int)
+    run.add_argument("--wall-seconds", type=int, default=None,
+                     help="Shorten scheduled runs within their nominal budget")
     agg = modes.add_parser("aggregate")
     for name in ("results","out","summary"):
         agg.add_argument("--"+name, type=Path, required=True)
@@ -424,7 +440,8 @@ def main() -> int:
         row = run_shard(
             exe=args.exe.resolve(), rom=args.rom.resolve(), source_sha=args.source_sha,
             shard=args.shard, base_seed=args.base_seed, minutes=args.minutes,
-            max_cases=args.max_cases, timeout=args.timeout, work=args.work)
+            max_cases=args.max_cases, timeout=args.timeout, work=args.work,
+            wall_seconds=args.wall_seconds)
         save(args.out, row)
         print(f"shard={row['shard']} {row['disposition']} {row['passed_cases']} "
               f"unique input plans / {row['total_real_native_processes']} native processes")

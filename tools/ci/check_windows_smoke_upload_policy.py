@@ -15,6 +15,7 @@ import unittest
 EXPECTED_PATHS = (
     "${{ runner.temp }}/*.log",
     "${{ runner.temp }}/hp-commit-pressure.csv",
+    "${{ runner.temp }}/hp-seeded-2p-research-receipt.json",
     "${{ runner.temp }}/boot-dumps/",
     "${{ runner.temp }}/race-result-dumps/race-results.*",
     "${{ runner.temp }}/package-boot-dumps/",

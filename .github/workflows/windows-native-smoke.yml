@@ -33,7 +33,12 @@ on:
         required: false
         default: false
       hp_ninja_auto:
-        description: "Main-push owner HP automatic verified Ninja selection; source fallback remains VS"
+        description: "Trusted main HP automatic verified Ninja selection; fallback remains VS"
+        type: boolean
+        required: false
+        default: false
+      hp_seeded_2p:
+        description: "Scheduled/manual main-only owner HP unique seeded native 2P research"
         type: boolean
         required: false
         default: false
@@ -58,6 +63,10 @@ on:
       - "tools/devnode_benchmark/verify_hp_ninja.py"
       - "tools/ci/ninja_package_canary.cmd"
       - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      - "tools/hp_seeded_2p_research.py"
+      - "tools/qa02_native_2p_seeded_endurance.py"
+      - "tests/unit/test_hp_seeded_2p_research.py"
+      - ".github/workflows/owner-hp-seeded-2p-research.yml"
       - "tools/ci/windows_package_special_path.sh"
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"
@@ -118,7 +127,8 @@ jobs:
       (!inputs.run_on_hp ||
        (github.repository == 'gamesbyian/UR-Recomp' &&
         github.ref == 'refs/heads/main' &&
-        (github.event_name == 'push' || github.event_name == 'workflow_dispatch'))) &&
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+         (github.event_name == 'schedule' && inputs.hp_seeded_2p)))) &&
       (!inputs.hp_ninja_canary ||
        (inputs.run_on_hp &&
         github.repository == 'gamesbyian/UR-Recomp' &&
@@ -128,7 +138,14 @@ jobs:
        (inputs.run_on_hp &&
         github.repository == 'gamesbyian/UR-Recomp' &&
         github.ref == 'refs/heads/main' &&
-        github.event_name == 'push')) &&
+        (github.event_name == 'push' ||
+         (inputs.hp_seeded_2p &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))))) &&
+      (!inputs.hp_seeded_2p ||
+       (inputs.run_on_hp &&
+        github.repository == 'gamesbyian/UR-Recomp' &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))) &&
       !(inputs.hp_ninja_auto && inputs.hp_ninja_canary)
     runs-on: ${{ inputs.run_on_hp && fromJSON('["self-hosted","Windows","X64"]') || 'windows-2022' }}
     timeout-minutes: ${{ inputs.run_on_hp && 45 || inputs.run_tournament_acceptance && 45 || 20 }}
@@ -399,7 +416,12 @@ jobs:
             # owner's established canonical VS build and product checks.
             if [[ -z "${UR_SDL3_PREBUILT_DIR:-}" ]]; then
               echo "HP_NINJA_AUTO=vs_fallback reason=missing_verified_sdl3"
-            elif python tools/devnode_benchmark/verify_hp_ninja.py --allow-trusted-main-push; then
+            elif [[ "${{ inputs.hp_seeded_2p }}" == "true" ]] &&
+                 python tools/devnode_benchmark/verify_hp_ninja.py --allow-trusted-main-schedule; then
+              HP_NINJA_SELECTED=1
+              echo "HP_NINJA_AUTO=verified_source_bound"
+            elif [[ "${{ inputs.hp_seeded_2p }}" != "true" ]] &&
+                 python tools/devnode_benchmark/verify_hp_ninja.py --allow-trusted-main-push; then
               HP_NINJA_SELECTED=1
               echo "HP_NINJA_AUTO=verified_source_bound"
             else
@@ -1331,6 +1353,15 @@ jobs:
             | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
           python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
 
+      - name: HP unattended real two-player seeded gameplay research
+        if: inputs.hp_seeded_2p
+        run: |
+          set -euo pipefail
+          python -m tools.hp_seeded_2p_research \
+            --exe "$EXE" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --receipt "$RUNNER_TEMP/hp-seeded-2p-research-receipt.json"
+
       # Stop the observer on success *or* failure. The numeric CSV remains in
       # the runner workspace even when Windows freezes before artifact upload.
       - name: Preserve HP resource telemetry
@@ -1355,6 +1386,7 @@ jobs:
           path: |
             ${{ runner.temp }}/*.log
             ${{ runner.temp }}/hp-commit-pressure.csv
+            ${{ runner.temp }}/hp-seeded-2p-research-receipt.json
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/

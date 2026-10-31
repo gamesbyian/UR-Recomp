@@ -81,10 +81,15 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=INSTALL_ROOT)
     parser.add_argument("--allow-trusted-main-push", action="store_true",
                         help="Only the pinned owner HP main-push caller may opt into automatic Ninja")
+    parser.add_argument("--allow-trusted-main-schedule", action="store_true",
+                        help="Only the main-only owner HP scheduled research caller may use Ninja")
     args = parser.parse_args()
     event = os.environ.get("GITHUB_EVENT_NAME")
-    event_allowed = (event == "workflow_dispatch" or
-                     (event == "push" and args.allow_trusted_main_push))
+    event_allowed = (
+        event == "workflow_dispatch"
+        or (event == "push" and args.allow_trusted_main_push)
+        or (event == "schedule" and args.allow_trusted_main_schedule)
+    )
     if (os.environ.get("RUNNER_NAME") != "hpmini-ur-recomp"
             or os.environ.get("GITHUB_REPOSITORY") != "gamesbyian/UR-Recomp"
             or os.environ.get("GITHUB_REF") != "refs/heads/main"

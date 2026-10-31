@@ -60,6 +60,18 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertLess(declaration, acceptance)
         self.assertLess(acceptance, definition)
 
+    def test_qa05_hosted_bounded_hold_does_not_change_hp_or_main_acceptance(self) -> None:
+        needle = "UR_QA05_CAPTURE_HOLD_SECONDS: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}"
+        self.assertIn(needle, self.text)
+        # A main-branch workflow_dispatch must not activate the
+        # PR-only trial even when test_hp_compiler_profile is true.
+        self.assertIn("github.event_name == 'pull_request'", needle)
+        self.assertIn("UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}", self.text)
+        self.assertIn("WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5", self.text)
+        self.assertIn('bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"', self.text)
+        self.assertIn('      - "tools/capture_modern_restart_audio.py"', self.text)
+        self.assertIn('      - "tools/ci/qa05_restart_attempt.sh"', self.text)
+
     def test_private_package_is_verified_but_only_evidence_is_uploaded(self) -> None:
         # Internal Windows package and its verifier must still be exercised,
         # but the retail-data ZIP is never a public artifact.

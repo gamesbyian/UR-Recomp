@@ -29,6 +29,14 @@ ONBOARDING_WIN="$(cygpath -w "$ROOT/qa05-onboarding.seen")"
 LOG_WIN="$(cygpath -w "$LOG")"
 PCM_WIN="$(cygpath -w "$PCM")"
 JSON_WIN="$(cygpath -w "$JSON")"
+# Explicit bounded selector: hosted PR can try 3s, trusted main/HP
+# keep 4s. Source-owned 1-second PCM and Win32 guest-input witnesses
+# are never shortened/omitted.
+HOLD="${UR_QA05_CAPTURE_HOLD_SECONDS:-4}"
+case "$HOLD" in
+  3|4) ;;
+  *) echo "refuse unqualified QA-05 audio hold duration" >&2; exit 2 ;;
+esac
 SDL_VIDEODRIVER=windows \
 SDL_AUDIO_DRIVER=disk \
 SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
@@ -43,7 +51,8 @@ UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
 UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
   python -m tools.capture_modern_restart_audio \
     "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
-    --json-out "$JSON_WIN"
+    --json-out "$JSON_WIN" \
+    --paused-hold-seconds "$HOLD" --restarted-hold-seconds "$HOLD"
 # Require fresh, nonempty outputs before parsing any acceptance evidence.
 test -s "$LOG" && test -s "$PCM" && test -s "$JSON"
 python - "$JSON" <<'PY'

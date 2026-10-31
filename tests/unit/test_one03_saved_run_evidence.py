@@ -15,8 +15,8 @@ spec.loader.exec_module(mod)
 
 
 def record(*, course='course:00', ticks=1505):
-    body = (f'URRUN 1\ngame uniracers-usa\nrom_sha256 {"a"*64}\n'
-            f'build_compat source-pinned\ncourse {course}\nmode race-1p\n'
+    body = (f'URRUN 1\ngame uniracers-usa\nrom_sha256 {mod.EXPECTED_ROM_SHA256}\n'
+            f'build_compat {mod.EXPECTED_BUILD_COMPAT}\ncourse {course}\nmode race-1p\n'
             f'elapsed_ticks60 {ticks}\nframe_count 2090\nterminal_digest -\n'
             f'split finish {ticks}\ninput 0 1 100 0\nEND\n').encode('ascii')
     value = 14695981039346656037
@@ -54,6 +54,21 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
         self.assertEqual(receipt['elapsed_ticks60'], 1505)
         self.receipt.write_text(json.dumps(receipt))
         self.assertEqual(mod.verify(self.log, self.root, True, self.receipt)[0], receipt)
+
+    def test_native_producer_provenance_constants_match(self):
+        producer = (ROOT / 'native/product/uniracers_modern_host.cpp').read_text(encoding='utf-8')
+        capture = producer.split('bool begin_run_record_capture(', 1)[1].split(
+            'bool begin_multiplayer_run_record_capture(', 1)[0]
+        self.assertIn('"' + mod.EXPECTED_ROM_SHA256 + '"', capture)
+        self.assertIn('"' + mod.EXPECTED_BUILD_COMPAT + '"', capture)
+
+    def test_foreign_rom_and_build_rejected_with_valid_checksum(self):
+        self.assert_reject_mutation(
+            f'rom_sha256 {mod.EXPECTED_ROM_SHA256}\n'.encode('ascii'),
+            b'rom_sha256 ' + b'a' * 64 + b'\n')
+        self.assert_reject_mutation(
+            f'build_compat {mod.EXPECTED_BUILD_COMPAT}\n'.encode('ascii'),
+            b'build_compat source-pinned\n')
 
     def test_log_only_false_green_rejected(self):
         self.path.unlink()
@@ -126,7 +141,7 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
             self.assert_reject_mutation(b'split finish 1505\n', bad)
 
     def test_invalid_native_tokens_and_u64_rejected(self):
-        self.assert_reject_mutation(b'build_compat source-pinned\n',
+        self.assert_reject_mutation(f'build_compat {mod.EXPECTED_BUILD_COMPAT}\n'.encode('ascii'),
                                     b'build_compat not/allowed\n')
         self.assert_reject_mutation(b'frame_count 2090\n',
                                     b'frame_count 18446744073709551616\n')

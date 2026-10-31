@@ -19,6 +19,9 @@ CAPTURE = re.compile(
     re.MULTILINE)
 CHECKSUM = re.compile(rb'checksum ([0-9a-f]{16})\n\Z')
 MAX_BYTES = 64 * 1024 * 1024
+# Must match the pinned native run-capture producer; tests guard source drift.
+EXPECTED_ROM_SHA256 = '859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478'
+EXPECTED_BUILD_COMPAT = 'snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1'
 
 
 _U64_MAX = (1 << 64) - 1
@@ -153,8 +156,8 @@ def verify(log: Path, root: Path, source_movie: bool,
     if (fields.get('game') != 'uniracers-usa' or
             fields.get('course') != 'course:00' or
             fields.get('mode') != 'race-1p' or
-            not re.fullmatch('[0-9a-f]{64}', fields.get('rom_sha256', '')) or
-            not fields.get('build_compat') or
+            fields.get('rom_sha256') != EXPECTED_ROM_SHA256 or
+            fields.get('build_compat') != EXPECTED_BUILD_COMPAT or
             not fields.get('frame_count', '').isdecimal() or
             fields.get('elapsed_ticks60') != logged_ticks or
             (source_movie and logged_ticks != '1505')):
@@ -172,6 +175,8 @@ def verify(log: Path, root: Path, source_movie: bool,
         'filename': path.name,
         'sha256': hashlib.sha256(raw).hexdigest(),
         'course': 'course:00',
+        'rom_sha256': fields['rom_sha256'],
+        'build_compat': fields['build_compat'],
         'elapsed_ticks60': int(logged_ticks),
         'size': len(raw),
     }

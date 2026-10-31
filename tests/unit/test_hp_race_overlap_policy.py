@@ -37,11 +37,14 @@ class HpRaceOverlapPolicyTests(unittest.TestCase):
         k = source.index("      - name: QA-05 packaged", j)
         finish = source.index("      - name: Package refresh", k)
         serial = source[i:j]
-        self.assertIn("if: ${{ !inputs.run_on_hp }}", serial)
+        self.assertIn("if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}", serial)
         self.assertIn("run: bash tools/ci/windows_package_race_result.sh", serial)
         work = source[k:finish]
         for marker in (
             "UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}",
+            "UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '1' || '0' }}",
+            'HOSTED_RACE_OVERLAP=passed',
+            'HOSTED_RACE_OVERLAP=serial_fallback_passed',
             'RACE_PID="$!"', "trap hp_race_cleanup EXIT",
             'if ! wait "${pids[$idx]}"; then', 'wait "$RACE_PID" || race_rc=$?',
             "trap - EXIT", 'cat "$RUNNER_TEMP/hp-race-overlap.log"',
@@ -59,6 +62,13 @@ class HpRaceOverlapPolicyTests(unittest.TestCase):
         self.assertLess(work.index('wait "$RACE_PID" || race_rc=$?'),
                         work.index('if [[ "$parallel_failed" -ne 0 ]]; then'))
         self.assertEqual(work.count('RACE_PID="$!"'), 1)
+        # Hosted PR canary retains all five visible Win32 attempts sequentially.
+        hosted = work.split("          else\n            for attempt in 1 2 3 4 5; do", 1)[1]
+        self.assertIn("HOSTED_RACE_OVERLAP=passed", hosted)
+        self.assertIn("HOSTED_RACE_OVERLAP=serial_fallback_passed", hosted)
+        self.assertIn('wait "$RACE_PID" || race_rc=$?', hosted)
+        self.assertLess(hosted.index('wait "$RACE_PID" || race_rc=$?'),
+                        hosted.index("HOSTED_RACE_OVERLAP=passed"))
 
     def test_exact_hosted_and_hp_source_invalidation(self):
         for path in (SMOKE, HOSTED, HP):

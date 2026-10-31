@@ -772,6 +772,11 @@ jobs:
         env:
           UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
           UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}
+          # Source-owned trial ONLY for hosted PR compiler-profile acceptance.
+          # Default main/owner-HP original 4+4-second audio holds unchanged.
+          # Real Win32 Down/Enter, PCM silence/audibility, Start 12-word
+          # oracle and FIVE fresh sessions remain mandatory in all modes.
+          UR_QA05_CAPTURE_HOLD_SECONDS: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}
         run: |
           set -euo pipefail
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"

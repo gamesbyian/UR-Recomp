@@ -134,6 +134,31 @@ class ModernRestartAudioTests(unittest.TestCase):
             read_stereo_after_native_exit(Path("capture.raw"), 176400,
                                           unlock_timeout_seconds=6)
 
+    def test_three_second_hosted_canary_preserves_real_windows_audio_oracles(self):
+        capture = (ROOT / "tools/capture_modern_restart_audio.py").read_text()
+        script = (ROOT / "tools/ci/qa05_restart_attempt.sh").read_text()
+        workflow = (ROOT / ".github/workflows/windows-native-smoke.yml").read_text()
+        self.assertIn("paused_hold_seconds: float = 4", capture)
+        self.assertIn("restarted_hold_seconds: float = 4", capture)
+        self.assertIn("not 3 <= paused_hold_seconds <= 10", capture)
+        self.assertIn("not 3 <= restarted_hold_seconds <= 10", capture)
+        self.assertIn('default=4.0', capture)
+        self.assertIn("paused_hold_seconds=a.paused_hold_seconds", capture)
+        self.assertIn("restarted_hold_seconds=a.restarted_hold_seconds", capture)
+        self.assertIn('HOLD="${UR_QA05_CAPTURE_HOLD_SECONDS:-4}"', script)
+        self.assertIn('3|4) ;;', script)
+        self.assertIn('--paused-hold-seconds "$HOLD"', script)
+        self.assertIn('--restarted-hold-seconds "$HOLD"', script)
+        self.assertIn("UR_QA05_CAPTURE_HOLD_SECONDS: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}", workflow)
+        self.assertIn("UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}", workflow)
+        self.assertIn("UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}", workflow)
+        self.assertIn('for attempt in 1 2 3 4 5; do', workflow)
+        for oracle in ("verify_restart_log(current)", "read_stereo_after_native_exit",
+                       "verify_resume_audio", "pcm.stat().st_size",
+                       "_find_game_window", "_press_key(window, 0x28",
+                       "_press_key(window, 0x0D"):
+            self.assertIn(oracle, capture)
+
     def test_real_native_keyboard_and_postclose_device_path_are_used(self):
         source = (ROOT / "tools/capture_modern_restart_audio.py").read_text()
         for expected in ("_find_game_window", "PostMessageW",

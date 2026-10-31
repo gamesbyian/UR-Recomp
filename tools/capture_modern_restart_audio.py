@@ -247,9 +247,15 @@ def main() -> int:
     ap.add_argument("capture_log", type=Path)
     ap.add_argument("device_pcm", type=Path)
     ap.add_argument("--json-out", required=True, type=Path)
+    ap.add_argument("--paused-hold-seconds", type=float, default=4.0,
+                    help="Real paused SDL audio observation, bounded to 3..10 seconds")
+    ap.add_argument("--restarted-hold-seconds", type=float, default=4.0,
+                    help="Real restarted SDL audio observation, bounded to 3..10 seconds")
     a = ap.parse_args()
     evidence = capture(a.windows_launcher, a.windows_script,
-                       a.capture_log, a.device_pcm)
+                       a.capture_log, a.device_pcm,
+                       paused_hold_seconds=a.paused_hold_seconds,
+                       restarted_hold_seconds=a.restarted_hold_seconds)
     a.json_out.parent.mkdir(parents=True, exist_ok=True)
     # Snapshot measurements first; if recovery fails the on-runner report
     # survives as useful evidence and Windows CI stays red.

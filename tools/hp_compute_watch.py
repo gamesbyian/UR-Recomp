@@ -40,9 +40,11 @@ def validate_run(row: dict, now: datetime) -> datetime:
         raise ValueError("invalid Actions run record")
     if type(row.get("id")) is not int or row["id"] <= 0:
         raise ValueError("invalid Actions run ID")
-    if not isinstance(row.get("event"), str) or not row["event"]:
+    if row.get("event") not in ("push", "schedule", "workflow_dispatch"):
         raise ValueError("invalid Actions event")
-    if not isinstance(row.get("head_branch"), str) or not row["head_branch"]:
+    branch = row.get("head_branch")
+    if (not isinstance(branch, str) or not branch
+            or branch != branch.strip() or any(c.isspace() for c in branch)):
         raise ValueError("invalid Actions branch")
     sha = row.get("head_sha")
     if not isinstance(sha, str) or not SHA1.fullmatch(sha):

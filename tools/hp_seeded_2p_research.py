@@ -68,7 +68,7 @@ def authentic_candidate(proof: object, source: str) -> bool:
 def safe_failure_category(kind: str, detail: object) -> str:
     """Allowlisted native failure class; never publish private process logs."""
     if kind == "RuntimeError" and isinstance(detail, str):
-        if re.fullmatch(r"real guest process timeout \\([1-9][0-9]{0,2}s\\)", detail):
+        if re.fullmatch(r"real guest process timeout \([1-9][0-9]{0,2}s\)", detail):
             return "guest_timeout"
         if re.match(r"guest exited -?[0-9]+;", detail):
             return "guest_nonzero_exit"

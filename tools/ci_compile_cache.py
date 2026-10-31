@@ -14,6 +14,7 @@ cache (a miss, a corrupt entry or an unknown flag falls back to the compiler).
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -86,28 +87,65 @@ def compile_cached(real, cache, src, flags, version, workdir):
     if pre.returncode != 0:
         return None  # let the real compiler report the error in context
     h = hashlib.sha256()
-    for part in (version, real, "\0".join(flags), Path(src).suffix):
-        h.update(part.encode() + b"\1")
+    for part in (version, real, "\\0".join(flags), Path(src).suffix):
+        h.update(part.encode() + b"\\1")
     h.update(pre.stdout)
     key = h.hexdigest()
-    obj_cached, err_cached = cache / f"{key}.o", cache / f"{key}.err"
+    obj_cached = cache / f"{key}.o"
+    err_cached = cache / f"{key}.err"
+    receipt = cache / f"{key}.receipt.json"
     obj = Path(workdir) / (hashlib.sha256(src.encode()).hexdigest()[:16] + ".o")
-    if obj_cached.is_file():
-        shutil.copyfile(obj_cached, obj)
-        if err_cached.is_file():
-            sys.stderr.buffer.write(err_cached.read_bytes())
-        return str(obj)
-    res = subprocess.run([real, *flags, "-c", src, "-o", str(obj)], capture_output=True)
+
+    # A cache key authenticates *inputs*, not persisted object contents.
+    # Require the atomic, final-published receipt and verify BOTH objects
+    # and stored compiler diagnostics. Legacy/partial/malformed entries miss.
+    try:
+        if obj_cached.is_file() and err_cached.is_file() and receipt.is_file():
+            manifest = json.loads(receipt.read_text(encoding="utf-8"))
+            contents = obj_cached.read_bytes()
+            diagnostics = err_cached.read_bytes()
+            if (type(manifest) is dict
+                    and set(manifest) == {"schema", "object_sha256", "stderr_sha256"}
+                    and manifest["schema"] == "ur-ci-compile-cache/1"
+                    and contents
+                    and manifest["object_sha256"] == hashlib.sha256(contents).hexdigest()
+                    and manifest["stderr_sha256"] == hashlib.sha256(diagnostics).hexdigest()):
+                obj.write_bytes(contents)
+                sys.stderr.buffer.write(diagnostics)
+                return str(obj)
+    except (OSError, ValueError, UnicodeError):
+        pass  # a corrupt/missing/partial hit is NEVER compiled output
+
+    res = subprocess.run([real, *flags, "-c", src, "-o", str(obj)],
+                         capture_output=True)
     sys.stderr.buffer.write(res.stderr)
     if res.returncode != 0:
         sys.stdout.flush()
         sys.exit(res.returncode)
-    tmp = cache / f".{key}.{os.getpid()}"
-    shutil.copyfile(obj, tmp.with_suffix(".o"))
-    err_tmp = tmp.with_suffix(".err")
-    err_tmp.write_bytes(res.stderr)
-    os.replace(err_tmp, err_cached)
-    os.replace(tmp.with_suffix(".o"), obj_cached)
+
+    # Unique per-process temporary directory avoids collision on concurrent
+    # identical-key compilers. Publish the receipt *last* and atomically, so
+    # interrupted saves cannot attest half-written or mismatched bytes.
+    # A cache publication failure must not invalidate the real compiled .o.
+    try:
+        with tempfile.TemporaryDirectory(prefix=f".{key}.", dir=cache) as tmp:
+            root = Path(tmp)
+            staged_obj = root / "object.o"
+            staged_err = root / "stderr.err"
+            staged_receipt = root / "receipt.json"
+            contents = obj.read_bytes()
+            staged_obj.write_bytes(contents)
+            staged_err.write_bytes(res.stderr)
+            staged_receipt.write_text(json.dumps({
+                "schema": "ur-ci-compile-cache/1",
+                "object_sha256": hashlib.sha256(contents).hexdigest(),
+                "stderr_sha256": hashlib.sha256(res.stderr).hexdigest(),
+            }, sort_keys=True) + "\\n", encoding="utf-8")
+            os.replace(staged_err, err_cached)
+            os.replace(staged_obj, obj_cached)
+            os.replace(staged_receipt, receipt)
+    except OSError:
+        pass
     return str(obj)
 
 

@@ -131,6 +131,23 @@ class HpScheduledResearchTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         hp.authorize(altered)
 
+    def test_eight_workers_fit_unique_bounded_source_owned_namespaces(self):
+        self.assertEqual(hp.WORKERS, 8)
+        source = (ROOT / "tools/hp_seeded_2p_research.py").read_text()
+        self.assertIn("ThreadPoolExecutor(max_workers=WORKERS)", source)
+        self.assertIn("seeds = tuple(base + (i // 2) * 25_000_000 for i in range(WORKERS))", source)
+        self.assertIn("work=private / f\"worker-{i}\"", source)
+        run_id = 41244390541
+        base = run_id % 10_000_000
+        bases = [base + (worker // 2) * 25_000_000
+                 for worker in range(hp.WORKERS)]
+        seeds = [b + (worker % 2) * 1_000_003
+                 for worker, b in enumerate(bases)]
+        self.assertEqual(len(set(seeds)), hp.WORKERS)
+        self.assertLess(max(seeds), 100_000_000)
+        self.assertEqual([s - bases[i] for i, s in enumerate(seeds)],
+                         [0, 1_000_003] * (hp.WORKERS // 2))
+
     def test_all_workers_join_and_distinct_cases_accept(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -146,10 +163,10 @@ class HpScheduledResearchTests(unittest.TestCase):
             with patch.object(hp.native, "run_shard", side_effect=fake_shard):
                 result = hp.run(exe, rom, _env(root), receipt)
             self.assertEqual(result["status"], "completed_positive")
-            self.assertEqual(result["accepted_cases"], 4)
-            self.assertEqual(result["real_guest_processes"], 16)
-            self.assertEqual(len(calls), 4)
-            self.assertEqual(len(set((shard, base) for shard, base in calls)), 4)
+            self.assertEqual(result["accepted_cases"], hp.WORKERS)
+            self.assertEqual(result["real_guest_processes"], 4 * hp.WORKERS)
+            self.assertEqual(len(calls), hp.WORKERS)
+            self.assertEqual(len(set((shard, base) for shard, base in calls)), hp.WORKERS)
             self.assertEqual(json.loads(receipt.read_text())["receipt_sha256"], result["receipt_sha256"])
             self.assertEqual(result["release_gate_credit"], 0)
             self.assertFalse(result["physical_gamepads_tested"])
@@ -296,7 +313,7 @@ class HpScheduledResearchTests(unittest.TestCase):
     def test_authentic_failure_receipt_retains_seed_without_local_path(self):
         source = "a" * 40
         rows = []
-        for index in range(4):
+        for index in range(hp.WORKERS):
             seed = 12345 + (index // 2) * 25000000
             report = _report(Path("unused"), source, seed, index % 2)
             if index == 2:
@@ -344,7 +361,7 @@ class HpScheduledResearchTests(unittest.TestCase):
         source, run_id = "a" * 40, 12345
         def rows():
             results = []
-            for worker in range(4):
+            for worker in range(hp.WORKERS):
                 base = run_id + (worker // 2) * 25000000
                 report = _report(Path("unused"), source, base, worker % 2)
                 if worker == 2:
@@ -411,7 +428,7 @@ class HpScheduledResearchTests(unittest.TestCase):
     def test_cross_worker_negative_identity_mismatch_redacts_all_replay_seeds(self):
         source, run_id = "a" * 40, 12345
         rows = []
-        for worker in range(4):
+        for worker in range(hp.WORKERS):
             base = run_id + (worker // 2) * 25000000
             receipt = _report(Path("unused"), source, base, worker % 2)
             if worker in (1, 2):
@@ -450,7 +467,7 @@ class HpScheduledResearchTests(unittest.TestCase):
                                kwargs["base_seed"], kwargs["shard"])
             with patch.object(hp.native, "run_shard", side_effect=fail_one):
                 row = hp.run(exe, rom, _env(root), root / "partial.json")
-            self.assertEqual(sorted(seen), list(range(4)))
+            self.assertEqual(sorted(seen), list(range(hp.WORKERS)))
             self.assertEqual(row["status"], "research_failure")
             self.assertEqual(row["issues"][0]["reason"], "worker exception")
             self.assertEqual(row["issues"][0]["kind"], "ValueError")
@@ -460,8 +477,9 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertEqual(row["release_gate_credit"], 0)
 
     def test_failed_hp_campaign_retains_sealed_partial_research_without_acceptance(self):
-        # The first post-fix scheduled HP run had four authenticated workers
-        # with trial-2/3 RuntimeErrors. Its aggregate discarded earlier
+        # The historical four-worker HP run had trial-2/3 RuntimeErrors.
+        # Simulate that failure pattern across the current worker population;
+        # its strict aggregate discarded earlier
         # source-sealed positive cases and reduced reported processes to zero.
         source, run_id = "a" * 40, 41223647258
         rows = []
@@ -497,9 +515,9 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertEqual(result["status"], "research_failure")
         self.assertEqual(result["accepted_cases"], 0)
         self.assertEqual(result["real_guest_processes"], 0)
-        self.assertEqual(result["source_attested_pre_failure_cases"], 8)
-        self.assertEqual(result["source_attested_pre_failure_native_processes"], 32)
-        self.assertEqual(len(result["issues"]), 8)
+        self.assertEqual(result["source_attested_pre_failure_cases"], 2 * hp.WORKERS)
+        self.assertEqual(result["source_attested_pre_failure_native_processes"], 8 * hp.WORKERS)
+        self.assertEqual(len(result["issues"]), 2 * hp.WORKERS)
         self.assertEqual({i["failure_category"] for i in result["issues"]},
                          {"guest_timeout", "guest_nonzero_exit"})
         self.assertNotIn("private", json.dumps(result))
@@ -560,7 +578,7 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertEqual(result["status"], "research_failure")
             self.assertEqual(result["accepted_cases"], 0)
             self.assertEqual(result["real_guest_processes"], 0)
-            self.assertEqual(result["source_attested_pre_failure_cases"], 4)
+            self.assertEqual(result["source_attested_pre_failure_cases"], hp.WORKERS)
             self.assertEqual({i["failure_category"] for i in result["issues"]},
                              {"guest_nonzero_exit"})
             self.assertNotIn("private", json.dumps(result))

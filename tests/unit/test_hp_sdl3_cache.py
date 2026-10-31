@@ -359,7 +359,7 @@ class HPSDL3CacheTests(unittest.TestCase):
                      patch.object(cache, "build_stage") as build:
                     self.assertEqual(cache.main(), 0)
                     build.assert_not_called()
-            self.assertEqual(output.read_text(), "cache-state=hit\\n")
+            self.assertEqual(output.read_text(), "cache-state=hit\n")
             self.assertIn("UR_SDL3_PREBUILT_DIR=", env_file.read_text())
             env_file.unlink()
             output.unlink()

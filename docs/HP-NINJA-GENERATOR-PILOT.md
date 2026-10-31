@@ -1,8 +1,10 @@
 # Owner HP: manual Ninja build-generator acceptance
 
-**Scope:** opt-in, trusted-main-only Windows x64 experiment. The normal HP
-push route and hosted PR route continue using the already accepted Visual
-Studio 2022/ClangCL generator. There is no automatic Ninja promotion.
+**Scope:** source-bound Windows x64 acceptance. The owner-run manual Ninja
+trial passed actual full HP game packaging, QA09 and QA05 5/5. A proposed
+trusted-main-only automatic HP selection retains canonical Visual Studio
+fallback if the installed tool or source-pinned SDL3 cache is unavailable.
+Hosted PR acceptance remains Visual Studio. No PR checkout is sent to HP.
 
 ## Grounded starting evidence
 
@@ -19,14 +21,19 @@ official release ZIP SHA256
 `07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65`,
 writes a hash-bound owner-install receipt, grants runner read access and
 provides a receipt-checked undo command. No global PATH/service/registry,
-pagefile/power, or user files change. The owner has not yet confirmed
-installation and this workflow does not perform an installation.
+pagefile/power, or user files change. The owner installed it, and a real HP
+manual run verified the receipt and pinned executable before compiling.
+The workflow itself never installs any machine software.
 
-After installation, manually select **Actions > HP current-source native Windows smoke
-> Run workflow > main > ninja_trial=true**. All automatic `main` pushes
-still pass `hp_ninja_canary=false`, and the reusable workflow rejects
-Ninja selection outside a trusted owner HP `workflow_dispatch` on `main`.
-Do not dispatch from a PR, fork, alternate ref, or generic matching runner.
+To repeat the strict manual trial, select **Actions > HP current-source native
+Windows smoke > Run workflow > main > ninja_trial=true**. Manual dispatch
+with `ninja_trial=false` continues using Visual Studio. Trusted-main push
+builds may separately request `hp_ninja_auto=true`: if and only if the
+read-only pinned executable check and fully validated static SDL3 package
+succeed, the HP selects Ninja. Otherwise it explicitly logs VS fallback.
+No PR, fork, non-main branch or generic matching runner may select either
+Ninja route. A selected Ninja CMake/compile failure fails the job and is
+**not** silently replaced by a passing VS build.
 
 Before invoking Ninja, the HP checks its exact existing install path,
 receipt identity, Ninja version, SHA256 of the installed executable,
@@ -61,3 +68,54 @@ The workflow never modifies owner machine settings or silently changes
 the default generator. Merge/rollout requires final-head hosted unit,
 workflow syntax/hygiene, unchanged real Windows VS QA and independent
 source review; later HP trial needs actual source-bound results.
+
+
+## Physical same-source generator A/B, October 31, 2026
+
+The owner's installed Ninja 1.13.2 was actually verified by the trusted
+main manual workflow. Both runs used source SHA
+`a4d365b42dc8fd92cb1ece45e61f878c45d7f599`, HP runner
+`hpmini-ur-recomp`, static SDL3 cache HIT and identical fingerprint
+`8c3bc49199d48d7ea5a49085`.
+
+| Actual host result | Visual Studio | Ninja Multi-Config |
+| --- | ---: | ---: |
+| Windows Actions run | [#41138892673](https://github.com/gamesbyian/UR-Recomp/actions/runs/41138892673) | [#41148220801](https://github.com/gamesbyian/UR-Recomp/actions/runs/41148220801) |
+| Whole job log span | 423s | 338s |
+| Compile phase (Ninja includes configure) | 112s | 33s |
+| Mean/peak 10s host compile CPU | 12.7% / 15.6% | 45.3% / 57.6% |
+| Minimum available physical memory | 7,491 MiB | 7,823 MiB |
+| PE/ZIP/race/QA09/QA05 | PASS/5 of 5 | PASS/5 of 5 |
+
+Ninja's actual executable SHA-256 is
+`e52a7ad9538d9618c67a0bd777964e2eec8a30f68b810a2f6adce1f2daf847b8`
+from `HP_NINJA_CANARY=verified`. The Ninja job logged
+`HP_NINJA_CANARY=actual_game_compiled` and passed the same real Windows
+package/boot/controller/audio and user-state tests. This is a **20.1%
+whole-job saving (85s)** and 70.5% shorter timed compiler phase, with
+roughly 3.6x the average host CPU use during that phase. Neither result
+credits original/native game fidelity, owner physical H01–H07 or release
+gates.
+
+## Automatic main-push rollout and fallback contract
+
+The HP owner-installed binary is still *optional*. The new caller input
+`hp_ninja_auto` is true **only** for owner HP main push; the reusable job
+refuses it on hosted PRs, alternate branches, manual dispatch and when
+combined with the strict `hp_ninja_canary` trial mode. The Python preflight
+refuses automatic push use unless passed the explicit
+`--allow-trusted-main-push` argument **and** the exact private runner,
+repository and main ref match. It rechecks the receipt, SHA-256, Ninja
+version, no redirected ancestors or extra files every run. No environment
+change persists beyond the single build step. A missing/invalid tool,
+missing approved SDL3 static install or refused preflight selects the
+unchanged Visual Studio source build with an explicit fallback marker.
+A selected Ninja compiler or real package/QA failure fails the job.
+
+On regression, rollback is a one-line workflow input change:
+`hp_ninja_auto: false` in the owner HP caller, leaving the earlier
+strict manual trial intact. No Windows machine action is required; the
+owner can also use the separate one-click Undo package if desired.
+The PR requires full hosted VS package and tooling acceptance, independent
+review, then **one actual post-merge HP automatic Ninja run**. Never
+ascribe the manual timing to an automatic run before that evidence exists.

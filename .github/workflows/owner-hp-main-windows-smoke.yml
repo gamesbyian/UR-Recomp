@@ -73,3 +73,7 @@ jobs:
     with:
       run_on_hp: true
       hp_ninja_canary: ${{ github.event_name == 'workflow_dispatch' && inputs.ninja_trial }}
+      # Automatic main builds prefer the verified installed Ninja tool, while
+      # preserving source-FetchContent/Visual Studio if its preflight is absent.
+      # Manual dispatch remains VS by default or strict Ninja trial by request.
+      hp_ninja_auto: ${{ github.event_name == 'push' }}

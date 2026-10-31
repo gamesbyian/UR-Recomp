@@ -732,27 +732,27 @@ jobs:
           echo "WINDOWS_PACKAGE_USER_DATA_ANCHOR ok"
 
       - name: HP bounded independent offscreen package boot fanout
-        # The same three source-owned acceptance scripts run serially on
-        # hosted Windows and concurrently only on trusted main HP.
+        # The same three source-owned acceptance scripts run concurrently on
+        # trusted HP main and on scoped hosted Windows PR/main routes.
         # All three join before real HWND/controller/audio and user-data
         # refresh checks. Failures fail the job, not a silent serial retry.
         if: ${{ inputs.run_on_hp }}
         run: bash tools/ci/hp_windows_isolated_boot_fanout.sh
 
-      - name: Hosted PR bounded independent offscreen package boot canary
+      - name: Hosted bounded independent offscreen package boot fanout
         # Actual same-source acceptance scripts, isolated roots and strict join.
-        # The HP remains main-only, and ordinary hosted main stays serial.
-        if: ${{ !inputs.run_on_hp && github.event_name == 'pull_request' && inputs.test_hp_compiler_profile }}
+        # HP stays main-only; hosted manual dispatch remains serial.
+        if: ${{ !inputs.run_on_hp && ((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
         run: bash tools/ci/hosted_windows_isolated_boot_fanout.sh
 
       - name: Real packaged game under CMD-special paths
-        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
         run: bash tools/ci/windows_package_special_path.sh
       - name: Read-only portable directory and Unicode user-data cold boots
-        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
         run: bash tools/ci/windows_package_readonly_unicode.sh
       - name: Normal Windows APPDATA clean-user launch
-        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
         run: bash tools/ci/windows_package_default_appdata.sh
       - name: Extracted-package race-result acceptance
         # On HP this exact witness runs concurrently with isolated QA-05

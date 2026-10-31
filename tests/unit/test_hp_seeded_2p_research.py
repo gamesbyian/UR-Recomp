@@ -74,7 +74,12 @@ class HpScheduledResearchTests(unittest.TestCase):
     def test_schedule_uses_only_trusted_hp_main_and_no_new_compiler(self):
         s = SCHEDULE.read_text()
         win = WIN.read_text()
-        self.assertIn("cron: '17 */3 * * *'", s)
+        self.assertIn("cron: '17 * * * *'", s)
+        self.assertNotIn("17 */3 * * *", s)
+        # Exactly one scheduled entry is admitted: no overlapping extra
+        # cron, second scheduler, fork/PR dispatch or fast-path QA bypass.
+        self.assertEqual(s.count("- cron:"), 1)
+        self.assertIn("group: hp-seeded-2p-research-${{ github.ref }}", s)
         for expected in ("github.repository == 'gamesbyian/UR-Recomp'",
                          "github.ref == 'refs/heads/main'",
                          "github.event_name == 'schedule'",

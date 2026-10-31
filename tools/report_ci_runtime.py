@@ -62,6 +62,13 @@ def step_bucket(name: str) -> str:
         # Previous reports wrongly charged ~110s of Windows setup to 'other'.
         or "source-pinned static sdl3 cache" in lowered
         or "hosted windows verified sdl3 candidate" in lowered
+        # Source-owned main-push seed steps added after the original cache
+        # reporter correction; these are dependency work, not "other".
+        or lowered in (
+            "restore hosted main-branch sdl3 seed",
+            "validate isolated hosted main sdl3 seed",
+            "save verified hosted main-branch sdl3 seed",
+        )
     ):
         return "dependency"
     if any(token in lowered for token in (

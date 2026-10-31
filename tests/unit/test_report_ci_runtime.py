@@ -90,6 +90,10 @@ class CiRuntimeReportTest(unittest.TestCase):
             "Restore hosted Windows verified SDL3 candidate",
             "Prepare source-pinned static SDL3 cache (HP and hosted canary)",
             "Save hosted Windows verified SDL3 candidate",
+            # Actual 2026-10-31 main-push #41170106640 seed step names.
+            "Restore hosted main-branch SDL3 seed",
+            "Validate isolated hosted main SDL3 seed",
+            "Save verified hosted main-branch SDL3 seed",
         ):
             with self.subTest(step=step):
                 self.assertEqual(step_bucket(step), "dependency")
@@ -106,6 +110,7 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(step_bucket("Capture native frame evidence"), "execution")
         self.assertEqual(step_bucket("apt-get install dependencies"), "dependency")
         self.assertEqual(step_bucket("apt update"), "dependency")
+        self.assertEqual(step_bucket("Unrelated main-branch SDL3 seed audit"), "other")
         self.assertEqual(step_bucket("Unrelated housekeeping"), "other")
 
     def test_reports_queue_and_step_buckets(self):

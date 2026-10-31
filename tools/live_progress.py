@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Live progress: always reports current HEAD and bounded, source-pinned uncertainty.
 
-Historical acceptance is a FLOOR, never advertised as latest certified HEAD.
+Historical acceptance is the LAST ACCEPTED SCORE, never advertised as latest certified HEAD.
 Unreviewed commits are assessed as a queue, not silently assigned points.
 Requires local git checkout; no network or third-party libraries.
 """
@@ -23,7 +23,7 @@ def summarize(inventory, ledger, reviewed, head, commits):
     progress = validate(inventory, ledger)
     outstanding = [c for c in inventory["criteria"] if c["status"] != "bounded_verified"]
     # No current numeric estimate can be inferred from unreviewed commit counts.
-    # Retain the verified floor and expose the live candidate queue separately.
+    # Retain the last accepted score; newer unreviewed commits may also regress behavior.
     lower = progress["bounded_product_coverage_percent"]
     return {
         "current_main_sha": head,
@@ -33,7 +33,7 @@ def summarize(inventory, ledger, reviewed, head, commits):
         "verified_bounded_coverage_percent": lower,
         "current_completion_estimate_percent": lower if not commits else None,
         "current_estimate_status": "source-reviewed" if not commits else "unreviewed changes require criterion-level assessment",
-        "verified_floor_is_not_current_estimate": bool(commits),
+        "last_accepted_score_is_not_current_estimate": bool(commits),
         "unverified_criteria": [c["id"] for c in outstanding],
         "unverified_criteria_count": len(outstanding),
         "independently_reviewed_bounded_percent": progress["independently_audited_coverage_percent"],
@@ -94,7 +94,7 @@ def main():
     else:
         print("# Live progress status")
         print("HEAD:",head,"| last accepted source:",reviewed)
-        print("Verified floor: %.1f%% | independent bounded: %.1f%%" %
+        print("Last accepted coverage: %.1f%% | independent bounded: %.1f%%" %
               (summary["verified_bounded_coverage_percent"],
                summary["independently_reviewed_bounded_percent"]))
         print("Incremental independently reviewed receipts:",len(accepted_receipts))

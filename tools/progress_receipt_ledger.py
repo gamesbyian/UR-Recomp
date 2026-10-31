@@ -33,7 +33,7 @@ def apply_receipts(inventory, ledger, receipts):
         if (not isinstance(references, list) or not references or
             not all(isinstance(u,str) and u.startswith(REPO) for u in references)
             or not isinstance(audit,str) or not audit.startswith(REPO)):
-            raise ValueError("Receipt needs original source and independent audit links")
+            raise ValueError("Receipt needs evidence and independent audit links")
         row = rows[key]
         if row["area"] == "FID":
             raise ValueError("USA complete-event admission requires authoritative QA ledger, not this mechanism")

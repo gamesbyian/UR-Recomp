@@ -11,11 +11,11 @@ import hashlib
 
 
 def geometry_signature(mesh) -> str:
-    """Hash local triangles at GLB float32 precision, ignoring face ordering.
+    """Hash oriented local triangles at GLB float32 precision.
 
-    Canonicalize vertex order within each triangle and triangle order across
-    the mesh. This binds actual coordinates and topology without depending on
-    Trimesh's vertex/face indices or winding through GLB serialization.
+    Canonicalize cyclic vertex rotations and face order while preserving
+    winding. A reversed triangle has the opposite normal and must never pass
+    the material digest even when its coordinates and watertightness agree.
     """
     import numpy as np
 
@@ -26,8 +26,12 @@ def geometry_signature(mesh) -> str:
     triangles[triangles == 0] = 0  # normalize IEEE negative zero
     vertex_dtype = np.dtype([("x", "<f4"), ("y", "<f4"), ("z", "<f4")])
     vertices = np.ascontiguousarray(triangles).view(vertex_dtype).reshape(-1, 3)
-    vertices.sort(axis=1)
-    faces = np.ascontiguousarray(vertices).view(np.dtype("V36")).reshape(-1)
+    # The three cyclic rotations preserve orientation. Swapping any two
+    # vertices reverses it and therefore must produce a different digest.
+    rotations = np.stack((vertices, np.roll(vertices, -1, axis=1),
+                          np.roll(vertices, -2, axis=1)), axis=1)
+    face_options = np.ascontiguousarray(rotations).view(np.dtype("V36")).reshape(-1, 3)
+    faces = np.sort(face_options, axis=1)[:, 0].copy()
     faces.sort()
     return hashlib.sha256(faces.tobytes()).hexdigest()
 

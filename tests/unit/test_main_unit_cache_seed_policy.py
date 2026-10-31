@@ -18,18 +18,23 @@ class MainUnitCacheSeedPolicyTests(unittest.TestCase):
         self.assertNotIn("\n  push:", before_jobs)
         self.assertIn("  pull_request:", before_jobs)
         self.assertIn("  workflow_dispatch:", before_jobs)
-        unit_header = text.split("\n  unit:\n", 1)[1].split("\n    steps:", 1)[0]
-        for guard in (
-            "github.event_name != 'pull_request'",
-            "github.event.pull_request.draft == false",
-            "github.event_name != 'schedule'",
-            "github.repository == 'gamesbyian/UR-Recomp'",
-            "github.ref == 'refs/heads/main'",
-            "runs-on: ubuntu-latest",
-        ):
-            with self.subTest(guard=guard):
-                self.assertIn(guard, unit_header)
+        unit = text.split("\n  unit:\n", 1)[1].split("\n  draft-syntax:\n", 1)[0]
+        unit_header = unit.split("\n    steps:\n", 1)[0]
+        # Keep the preexisting PR contract verbatim for independent guards.
+        self.assertIn("if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", unit_header)
+        self.assertIn("runs-on: ubuntu-latest", unit_header)
         self.assertNotIn("runs-on: self-hosted", unit_header)
+        guard = unit.split("      - name: Require trusted main for scheduled Linux cache seed\n", 1)[1].split(
+            "      - uses: actions/checkout@v4", 1)[0]
+        for marker in (
+            "if: github.event_name == 'schedule'",
+            'test "$GITHUB_REPOSITORY" = "gamesbyian/UR-Recomp"',
+            'test "$GITHUB_REF" = "refs/heads/main"',
+            'test "$GITHUB_EVENT_NAME" = "schedule"',
+            "set -euo pipefail",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, guard)
         # No automatic post-merge push duplicate CI gate.
         self.assertIn("test_pr_validation_is_not_repeated_after_merge", TRIGGERS.read_text())
 

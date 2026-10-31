@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from statistics import median
 from datetime import datetime, timedelta, timezone
@@ -53,9 +54,14 @@ def elapsed_minutes_or_unknown(value) -> str:
 def step_bucket(name: str) -> str:
     lowered = name.lower()
     if (
-        "apt" in lowered
+        re.search(r"\bapt(?:-get)?\b", lowered) is not None
         or "package dependenc" in lowered
         or ("install" in lowered and "dependenc" in lowered)
+        # The Windows static SDL3 install is dependency setup, even though
+        # the step name says 'cache'. Likewise restore/save transport time.
+        # Previous reports wrongly charged ~110s of Windows setup to 'other'.
+        or "source-pinned static sdl3 cache" in lowered
+        or "hosted windows verified sdl3 candidate" in lowered
     ):
         return "dependency"
     if any(token in lowered for token in (
@@ -64,7 +70,11 @@ def step_bucket(name: str) -> str:
         return "build"
     if any(token in lowered for token in (
         "acceptance", "route", "smoke", "capture", "boot", "prove", "compare",
-        "regression", "evidence shard", "replay"
+        "regression", "evidence shard", "replay",
+        # The dominant actual Win32 QA checks are named by their gate IDs
+        # rather than the word "acceptance". Keep their elapsed runner time
+        # in execution instead of leaving them invisible in "other".
+        "qa-05 packaged", "qa-09 packaged"
     )):
         return "execution"
     return "other"

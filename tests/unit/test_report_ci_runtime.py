@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from tools.report_ci_runtime import summarize, markdown, job_parallelism_profile
+from tools.report_ci_runtime import summarize, markdown, job_parallelism_profile, step_bucket
 
 
 class CiRuntimeReportTest(unittest.TestCase):
@@ -81,6 +81,32 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["total_wall_seconds"], 600)
         self.assertEqual(row["avg_wall_seconds"], 600)
         self.assertEqual(row["max_wall_seconds"], 600)
+
+    def test_hosted_sdl3_cache_preparation_is_measured_as_dependency(self):
+        # A ~110-second static SDL3 preparation step previously disappeared
+        # into the "other" bucket of the cost/critical-path report. Measure
+        # restore and save overhead with the same dependency boundary.
+        for step in (
+            "Restore hosted Windows verified SDL3 candidate",
+            "Prepare source-pinned static SDL3 cache (HP and hosted canary)",
+            "Save hosted Windows verified SDL3 candidate",
+        ):
+            with self.subTest(step=step):
+                self.assertEqual(step_bucket(step), "dependency")
+        self.assertEqual(step_bucket("Configure and build (Visual Studio, ClangCL, SDL3)"),
+                         "build")
+        self.assertEqual(step_bucket("QA-05 packaged Windows Restart audio witness"),
+                         "execution")
+        self.assertEqual(step_bucket("QA-09 packaged Windows controller root witness"),
+                         "execution")
+        self.assertEqual(step_bucket("Prove deterministic route acceptance"),
+                         "execution")
+        # Previous substring detection for "apt" wrongly matched cAPTure,
+        # causing a genuine capture/execution to be charged to dependencies.
+        self.assertEqual(step_bucket("Capture native frame evidence"), "execution")
+        self.assertEqual(step_bucket("apt-get install dependencies"), "dependency")
+        self.assertEqual(step_bucket("apt update"), "dependency")
+        self.assertEqual(step_bucket("Unrelated housekeeping"), "other")
 
     def test_reports_queue_and_step_buckets(self):
         payload = {"workflow_runs": [{

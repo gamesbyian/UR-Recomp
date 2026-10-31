@@ -138,6 +138,11 @@ on:
       - "analysis/agent-context-lanes.json"
       - ".github/workflows/**"
   workflow_dispatch:
+  # Trusted-main daily Linux cache seed; sibling PRs cannot read each
+  # other's merge-ref caches, but may restore verified main-scoped objects.
+  # Full unit suite, not an acceptance shortcut; source-bound object receipts.
+  schedule:
+    - cron: '43 6 * * *'
 
 permissions:
   contents: read
@@ -152,7 +157,10 @@ jobs:
     # A draft cannot be merged; reserve the 120-200s full Python suite for
     # ready_for_review/synchronize and explicit manual dispatch. GitHub marks
     # this required check *skipped*, never a deceptive green full test, on drafts.
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.draft == false) &&
+      (github.event_name != 'schedule' ||
+       (github.repository == 'gamesbyian/UR-Recomp' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -176,6 +184,9 @@ jobs:
           python3 -m compileall -q tests/unit tools
           ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
       - name: Restore compile cache
+        # PR branches use source-validated same-PR caches first; a fresh PR
+        # may restore a published default-branch seed. Never trust only the
+        # cache key: tools/ci_compile_cache.py verifies keyed SHA receipts.
         if: steps.unit-scope.outputs.mode != 'ops'
         id: cxx-cache
         uses: actions/cache/restore@v4
@@ -307,7 +318,10 @@ jobs:
           retention-days: 7
 
       - name: Save compile cache
-        if: always() && steps.unit-scope.outputs.mode != 'ops' && steps.cxx-cache.outputs.cache-hit != 'true'
+        # Main-scoped seed must follow FULL successful unit acceptance.
+        # Existing PR run failure diagnostics still retain old save behavior.
+        # No ROM, PE, savegame or credentials enter the 10 MB C++ object cache.
+        if: (github.event_name != 'schedule' || success()) && steps.unit-scope.outputs.mode != 'ops' && steps.cxx-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/cxx-cache

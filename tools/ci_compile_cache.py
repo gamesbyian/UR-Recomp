@@ -105,8 +105,9 @@ def compile_cached(real, cache, src, flags, version, workdir):
             contents = obj_cached.read_bytes()
             diagnostics = err_cached.read_bytes()
             if (type(manifest) is dict
-                    and set(manifest) == {"schema", "object_sha256", "stderr_sha256"}
+                    and set(manifest) == {"schema", "key", "object_sha256", "stderr_sha256"}
                     and manifest["schema"] == "ur-ci-compile-cache/1"
+                    and manifest["key"] == key
                     and contents
                     and manifest["object_sha256"] == hashlib.sha256(contents).hexdigest()
                     and manifest["stderr_sha256"] == hashlib.sha256(diagnostics).hexdigest()):
@@ -138,6 +139,7 @@ def compile_cached(real, cache, src, flags, version, workdir):
             staged_err.write_bytes(res.stderr)
             staged_receipt.write_text(json.dumps({
                 "schema": "ur-ci-compile-cache/1",
+                "key": key,
                 "object_sha256": hashlib.sha256(contents).hexdigest(),
                 "stderr_sha256": hashlib.sha256(res.stderr).hexdigest(),
             }, sort_keys=True) + "\n", encoding="utf-8")

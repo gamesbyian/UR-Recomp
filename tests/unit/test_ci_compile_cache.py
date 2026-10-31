@@ -68,8 +68,8 @@ class ShimBehaviourTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / "a.cpp").write_text(
-                "int helper(); int main(){return helper()==7?0:1;}\\n")
-            (root / "b.cpp").write_text("int helper(){return 7;}\\n")
+                "int helper(); int main(){return helper()==7?0:1;}\n")
+            (root / "b.cpp").write_text("int helper(){return 7;}\n")
             cache = root / "cache"
             def check():
                 r = self.run_shim(cache, "-std=c++17", "a.cpp", "b.cpp",
@@ -110,8 +110,8 @@ class ShimBehaviourTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             (root / "a.cpp").write_text(
-                "int helper(); int main(){return helper()==7?0:1;}\\n")
-            (root / "b.cpp").write_text("int helper(){return 7;}\\n")
+                "int helper(); int main(){return helper()==7?0:1;}\n")
+            (root / "b.cpp").write_text("int helper(){return 7;}\n")
             # Pre-create shim to eliminate an unrelated symlink creation race.
             shim = root / "shim"
             shim.mkdir()

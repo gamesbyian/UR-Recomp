@@ -7,6 +7,9 @@ name: Windows native build and boot smoke
 # then boots the canonical ROM to the main menu and replays the race-result
 # route headlessly. The Visual Studio ClangCL toolset is used because the
 # framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
+# Python unit-only test modules are likewise executed by complete tooling
+# PR CI, not by the packaged Windows game. Keep executable/QA/fixture changes
+# on the actual Windows producer paths; omit changes only in test assertions.
 # HP-only seeded science source and schedule changes run full tooling CI plus
 # the independent trusted-main HP research caller; ordinary product Windows
 # push has hp_seeded_2p disabled and cannot test that separate research mode.
@@ -70,9 +73,6 @@ on:
       - "tools/ci/windows_package_special_path.sh"
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"
-      - "tests/unit/test_hp_isolated_boot_fanout.py"
-      - "tests/unit/test_windows_native_smoke_policy.py"
-      - "tests/unit/test_hp_ninja_manual_policy.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-title-input-filter.patch"
       - "tools/patches/snesrecomp-source-gamepad-hook.patch"
@@ -92,20 +92,13 @@ on:
       - "tools/analyze_sdl_audio_envelope.py"
       - "tools/qa05_restart_input_guard.py"
       - "tests/input/audio-modern-restart.script"
-      - "tests/unit/test_capture_modern_restart_audio.py"
       - "tools/ci/windows_package_race_result.sh"
-      - "tests/unit/test_hp_race_overlap_policy.py"
-      - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/assemble_windows_package.py"
       - "tools/Test-URRecompPortable.ps1"
       - "tools/check_windows_portable_binary.py"
       - "tools/verify_rom.py"
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
-      - "tests/unit/test_assemble_windows_package.py"
-      - "tests/unit/test_windows_package_streaming_bounds.py"
-      - "tests/unit/test_windows_clean_machine_verifier_policy.py"
-      - "tests/unit/test_windows_portable_binary.py"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "native/product/**"
       - "native/presentation/**"

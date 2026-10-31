@@ -79,12 +79,17 @@ def verify(root: Path, *, run_version: bool = True) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=INSTALL_ROOT)
+    parser.add_argument("--allow-trusted-main-push", action="store_true",
+                        help="Only the pinned owner HP main-push caller may opt into automatic Ninja")
     args = parser.parse_args()
+    event = os.environ.get("GITHUB_EVENT_NAME")
+    event_allowed = (event == "workflow_dispatch" or
+                     (event == "push" and args.allow_trusted_main_push))
     if (os.environ.get("RUNNER_NAME") != "hpmini-ur-recomp"
             or os.environ.get("GITHUB_REPOSITORY") != "gamesbyian/UR-Recomp"
             or os.environ.get("GITHUB_REF") != "refs/heads/main"
-            or os.environ.get("GITHUB_EVENT_NAME") != "workflow_dispatch"):
-        parser.error("HP Ninja only on the exact owner runner and trusted main manual dispatch")
+            or not event_allowed):
+        parser.error("HP Ninja requires the exact owner runner and trusted main dispatch/push")
     if args.root != INSTALL_ROOT:
         parser.error("HP Ninja installation root must be exact and immutable")
     try:

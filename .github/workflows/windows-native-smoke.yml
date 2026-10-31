@@ -32,6 +32,11 @@ on:
         type: boolean
         required: false
         default: false
+      hp_ninja_auto:
+        description: "Main-push owner HP automatic verified Ninja selection; source fallback remains VS"
+        type: boolean
+        required: false
+        default: false
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -112,7 +117,13 @@ jobs:
        (inputs.run_on_hp &&
         github.repository == 'gamesbyian/UR-Recomp' &&
         github.ref == 'refs/heads/main' &&
-        github.event_name == 'workflow_dispatch'))
+        github.event_name == 'workflow_dispatch')) &&
+      (!inputs.hp_ninja_auto ||
+       (inputs.run_on_hp &&
+        github.repository == 'gamesbyian/UR-Recomp' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'push')) &&
+      !(inputs.hp_ninja_auto && inputs.hp_ninja_canary)
     runs-on: ${{ inputs.run_on_hp && fromJSON('["self-hosted","Windows","X64"]') || 'windows-2022' }}
     timeout-minutes: ${{ inputs.run_on_hp && 45 || inputs.run_tournament_acceptance && 45 || 20 }}
     env:
@@ -367,13 +378,31 @@ jobs:
           else
             echo "HP_SDL3_PACKAGE=canonical_source_build"
           fi
+          HP_NINJA_SELECTED=0
           if [[ "${{ inputs.hp_ninja_canary }}" == "true" ]]; then
+            # A deliberate owner trial must fail closed when its prerequisite
+            # is missing. Never silently turn a manual Ninja trial into VS.
             [[ "${{ inputs.run_on_hp }}" == "true" ]] || { echo "HP_NINJA_CANARY=refused_not_hp" >&2; exit 2; }
             [[ -n "${UR_SDL3_PREBUILT_DIR:-}" ]] || { echo "HP_NINJA_CANARY=no_verified_sdl3" >&2; exit 2; }
             python tools/devnode_benchmark/verify_hp_ninja.py
+            HP_NINJA_SELECTED=1
+            echo "HP_NINJA_CANARY=trusted_main_manual_source_bound"
+          elif [[ "${{ inputs.hp_ninja_auto }}" == "true" ]]; then
+            # Automatic use is strictly trusted-main push. Never let a
+            # missing/tampered tool or unavailable SDL cache disable the
+            # owner's established canonical VS build and product checks.
+            if [[ -z "${UR_SDL3_PREBUILT_DIR:-}" ]]; then
+              echo "HP_NINJA_AUTO=vs_fallback reason=missing_verified_sdl3"
+            elif python tools/devnode_benchmark/verify_hp_ninja.py --allow-trusted-main-push; then
+              HP_NINJA_SELECTED=1
+              echo "HP_NINJA_AUTO=verified_source_bound"
+            else
+              echo "HP_NINJA_AUTO=vs_fallback reason=owner_ninja_preflight_unavailable"
+            fi
+          fi
+          if [[ "$HP_NINJA_SELECTED" == "1" ]]; then
             export UR_NINJA_ROOT="$ROOT" UR_NINJA_FRAMEWORK="$FRAMEWORK" UR_NINJA_WS="$WS"
             export UR_HP_NINJA_CANARY=1 UR_HP_NINJA_DIR="C:/DevNode/runner-tools/Ninja/v1.13.2"
-            echo "HP_NINJA_CANARY=trusted_main_manual_source_bound"
           else
             cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
               -DSNESRECOMP_ROOT="$FRAMEWORK" \
@@ -398,7 +427,7 @@ jobs:
             printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"
           fi
-          if [[ "${{ inputs.hp_ninja_canary }}" == "true" ]]; then
+          if [[ "$HP_NINJA_SELECTED" == "1" ]]; then
             # Include Ninja configure and compile within a single measured phase.
             echo "HP_NINJA_COMPILE_WINDOW=configure_plus_build"
             MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd.exe /d /c "$(cygpath -w "$GITHUB_WORKSPACE/tools/ci/ninja_package_canary.cmd")"

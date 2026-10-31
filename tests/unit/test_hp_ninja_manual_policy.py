@@ -45,6 +45,47 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
             self.assertIn(token, s)
         self.assertIn("test_hp_compiler_profile: true", HOSTED.read_text(encoding="utf-8"))
 
+    def test_automatic_hp_ninja_is_only_trusted_main_push(self):
+        hp = HP.read_text(encoding="utf-8")
+        smoke = SMOKE.read_text(encoding="utf-8")
+        hosted = HOSTED.read_text(encoding="utf-8")
+        self.assertIn("hp_ninja_auto: ${{ github.event_name == 'push' }}", hp)
+        self.assertIn("(!inputs.hp_ninja_auto ||", smoke)
+        self.assertIn("github.event_name == 'push'))", smoke)
+        self.assertIn("!(inputs.hp_ninja_auto && inputs.hp_ninja_canary)", smoke)
+        self.assertIn('elif [[ "${{ inputs.hp_ninja_auto }}" == "true" ]]; then', smoke)
+        self.assertIn("HP_NINJA_AUTO=verified_source_bound", smoke)
+        self.assertIn("HP_NINJA_AUTO=vs_fallback reason=owner_ninja_preflight_unavailable", smoke)
+        self.assertIn("HP_NINJA_AUTO=vs_fallback reason=missing_verified_sdl3", smoke)
+        self.assertIn("--allow-trusted-main-push", smoke)
+        self.assertIn('if [[ "$HP_NINJA_SELECTED" == "1" ]]; then', smoke)
+        self.assertIn('cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"', smoke)
+        self.assertNotIn("hp_ninja_auto: true", hosted)
+        self.assertNotIn("hp_ninja_canary: true", hosted)
+        # A compiler error in selected Ninja must still fail the authoritative
+        # Windows job; do not silently fall back to a different candidate.
+        self.assertIn('MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL=', smoke)
+        self.assertNotIn("|| cmake --build", smoke)
+
+    def test_automatic_push_preflight_needs_explicit_opt_in(self):
+        from unittest.mock import patch
+        base = {"RUNNER_NAME": "hpmini-ur-recomp",
+                "GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",
+                "GITHUB_REF": "refs/heads/main", "GITHUB_EVENT_NAME": "push"}
+        with patch.dict(mod.os.environ, base, clear=True):
+            with patch("sys.argv", ["verify_hp_ninja.py"]):
+                with self.assertRaises(SystemExit):
+                    mod.main()
+            with patch("sys.argv", ["verify_hp_ninja.py", "--allow-trusted-main-push"]):
+                with patch.object(mod, "verify", return_value="pinned/ninja.exe"):
+                    with patch.object(mod, "file_hash", return_value="a" * 64):
+                        self.assertEqual(mod.main(), 0)
+            base["GITHUB_EVENT_NAME"] = "pull_request"
+            with patch.dict(mod.os.environ, base, clear=True):
+                with patch("sys.argv", ["verify_hp_ninja.py", "--allow-trusted-main-push"]):
+                    with self.assertRaises(SystemExit):
+                        mod.main()
+
     def test_only_preverified_static_sdl_and_compiler_in_ninja(self):
         s = CMD.read_text(encoding="utf-8")
         for part in ("VsDevCmd.bat", "where ninja.exe", "Ninja Multi-Config",

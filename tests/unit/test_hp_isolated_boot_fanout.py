@@ -199,10 +199,10 @@ class HostedIsolatedBootFanoutTests(unittest.TestCase):
             # Recreate *passing* fixtures: the preceding negative cycle
             # intentionally left appdata failing with exit=9.
             for label, (filename, _) in SCRIPTS.items():
-                code = ('#!/usr/bin/env bash\\n'
-                        'sleep 0.12\\n'
-                        'echo ' + label + ' >> "$RUNNER_TEMP/joined"\\n'
-                        'exit 0\\n')
+                code = ('#!/usr/bin/env bash\n'
+                        'sleep 0.12\n'
+                        'echo ' + label + ' >> "$RUNNER_TEMP/joined"\n'
+                        'exit 0\n')
                 (scripts / filename).write_text(code, encoding="utf-8")
             # Validate the trusted hosted-main push with all three real
             # acceptance scripts, not an inert branch-only source assertion.

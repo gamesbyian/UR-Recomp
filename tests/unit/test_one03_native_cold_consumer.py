@@ -12,9 +12,9 @@ ROM = '859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478'
 BUILD = 'snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1'
 
 
-def record(rom=ROM, *, corrupt=False):
+def record(rom=ROM, *, course='course:01', corrupt=False):
     body = (f'URRUN 1\ngame uniracers-usa\nrom_sha256 {rom}\n'
-            f'build_compat {BUILD}\ncourse course:00\nmode race-1p\n'
+            f'build_compat {BUILD}\ncourse {course}\nmode race-1p\n'
             'elapsed_ticks60 1505\nframe_count 2090\nterminal_digest -\n'
             'split finish 1505\ninput 0 1 100 0\nEND\n').encode('ascii')
     value = 14695981039346656037
@@ -61,6 +61,12 @@ class One03NativeColdConsumerTests(unittest.TestCase):
 
     def test_native_rejects_foreign_rom_even_with_valid_checksum(self):
         self.path.write_bytes(record(rom='a' * 64))
+        result = self.invoke()
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertFalse(self.staged.exists())
+
+    def test_native_rejects_wrong_course_even_with_valid_checksum(self):
+        self.path.write_bytes(record(course='course:02'))
         result = self.invoke()
         self.assertEqual(result.returncode, 2, result.stderr)
         self.assertFalse(self.staged.exists())

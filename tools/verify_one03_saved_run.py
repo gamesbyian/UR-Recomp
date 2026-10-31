@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 
 CAPTURE = re.compile(
-    r'^UR_RUN_RECORD CAPTURED path=(.*?) course=course:00 '
+    r'^UR_RUN_RECORD CAPTURED path=(.*?) course=(course:[0-9]{2}) '
     r'elapsed_ticks60=([1-9][0-9]*) origin_frame=([0-9]+) '
     r'inputs=([0-9]+) splits=([0-9]+) replay_input=[01] ghost_trace=[01]$',
     re.MULTILINE)
@@ -114,9 +114,17 @@ def verify(log: Path, root: Path, source_movie: bool,
     if not log.is_file() or log.is_symlink():
         raise ValueError('ONE-03 missing or redirected producer log')
     captures = CAPTURE.findall(log.read_text(encoding='utf-8', errors='replace'))
-    if len(captures) != 1:
-        raise ValueError('ONE-03 requires exactly one second-course capture')
-    path_text, logged_ticks, _origin_frame, logged_inputs, logged_splits = captures[0]
+    if len(captures) != 2:
+        raise ValueError('ONE-03 requires exactly two race captures')
+    first_path_text, first_course, _first_ticks, first_origin, _, _ = captures[0]
+    path_text, second_course, logged_ticks, origin_frame, logged_inputs, logged_splits = captures[1]
+    if first_course != 'course:01' or second_course != 'course:01':
+        raise ValueError('ONE-03 unexpected source course identity')
+    if first_path_text == path_text or int(first_origin) >= int(origin_frame):
+        raise ValueError('ONE-03 second capture is not distinct and later')
+    first_path = Path(first_path_text)
+    if not first_path.is_absolute() or first_path.parent != root:
+        raise ValueError('ONE-03 first capture escaped expected profile runs root')
     path = Path(path_text)
     if not path.is_absolute() or path.suffix != '.urrun' or path.parent != root:
         raise ValueError('ONE-03 saved record path escaped expected profile runs root')
@@ -154,7 +162,7 @@ def verify(log: Path, root: Path, source_movie: bool,
         raise ValueError('ONE-03 invalid run-record envelope')
     fields, splits, inputs = _parse_native_v1(lines)
     if (fields.get('game') != 'uniracers-usa' or
-            fields.get('course') != 'course:00' or
+            fields.get('course') != 'course:01' or
             fields.get('mode') != 'race-1p' or
             fields.get('rom_sha256') != EXPECTED_ROM_SHA256 or
             fields.get('build_compat') != EXPECTED_BUILD_COMPAT or
@@ -174,7 +182,7 @@ def verify(log: Path, root: Path, source_movie: bool,
         'schema': 'ur-one03-saved-run-evidence/1',
         'filename': path.name,
         'sha256': hashlib.sha256(raw).hexdigest(),
-        'course': 'course:00',
+        'course': 'course:01',
         'rom_sha256': fields['rom_sha256'],
         'build_compat': fields['build_compat'],
         'elapsed_ticks60': int(logged_ticks),
@@ -204,7 +212,7 @@ def main() -> None:
                                     encoding='utf-8')
     if args.evidence_out:
         args.evidence_out.write_bytes(raw)
-    print('ONE03_SAVED_RUN_VERIFIED course=course:00 ticks60=' +
+    print('ONE03_SAVED_RUN_VERIFIED course=course:01 ticks60=' +
           str(receipt['elapsed_ticks60']) + ' sha256=' + receipt['sha256'])
 
 

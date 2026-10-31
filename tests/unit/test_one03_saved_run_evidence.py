@@ -14,7 +14,7 @@ mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 
-def record(*, course='course:00', ticks=1505):
+def record(*, course='course:01', ticks=1505):
     body = (f'URRUN 1\ngame uniracers-usa\nrom_sha256 {mod.EXPECTED_ROM_SHA256}\n'
             f'build_compat {mod.EXPECTED_BUILD_COMPAT}\ncourse {course}\nmode race-1p\n'
             f'elapsed_ticks60 {ticks}\nframe_count 2090\nterminal_digest -\n'
@@ -44,9 +44,15 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
         self.log = base / 'next-earned.log'
         self.receipt = base / 'saved.json'
         self.path.write_bytes(record())
-        self.log.write_text(f'UR_RUN_RECORD CAPTURED path={self.path} course=course:00 '
-                            'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1 '
-                            'replay_input=1 ghost_trace=0\n')
+        self.first_path = self.root / 'run-122-0000.urrun'
+        self.first_path.write_bytes(record(ticks=1714))
+        self.log.write_text(
+            f'UR_RUN_RECORD CAPTURED path={self.first_path} course=course:01 '
+            'elapsed_ticks60=1714 origin_frame=981 inputs=1 splits=1 '
+            'replay_input=0 ghost_trace=1\n'
+            f'UR_RUN_RECORD CAPTURED path={self.path} course=course:01 '
+            'elapsed_ticks60=1505 origin_frame=4285 inputs=1 splits=1 '
+            'replay_input=0 ghost_trace=1\n')
 
     def test_actual_file_checksum_and_reopen(self):
         receipt, raw = mod.verify(self.log, self.root, True)
@@ -81,7 +87,7 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
             mod.verify(self.log, self.root, True)
 
     def test_wrong_course_and_time_rejected(self):
-        self.path.write_bytes(record(course='course:01'))
+        self.path.write_bytes(record(course='course:02'))
         with self.assertRaisesRegex(ValueError, 'provenance'):
             mod.verify(self.log, self.root, True)
         self.path.write_bytes(record(ticks=1506))
@@ -96,16 +102,32 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
             mod.verify(self.log, self.root, True, self.receipt)
 
     def test_path_escape_and_duplicate_rejected(self):
-        self.log.write_text('UR_RUN_RECORD CAPTURED path=/tmp/other.urrun course=course:00 '
-                            'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1 '
-                            'replay_input=1 ghost_trace=0\n')
+        original = self.log.read_text()
+        self.log.write_text(original.replace(str(self.path), '/tmp/other.urrun'))
         with self.assertRaisesRegex(ValueError, 'escaped'):
             mod.verify(self.log, self.root, True)
-        self.log.write_text((f'UR_RUN_RECORD CAPTURED path={self.path} course=course:00 '
-                             'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1 '
-                             'replay_input=1 ghost_trace=0\n') * 2)
-        with self.assertRaisesRegex(ValueError, 'exactly one'):
+        self.log.write_text(original + original.splitlines(keepends=True)[-1])
+        with self.assertRaisesRegex(ValueError, 'exactly two'):
             mod.verify(self.log, self.root, True)
+
+    def test_second_capture_must_be_distinct_later_and_source_identified(self):
+        original = self.log.read_text()
+        altered = (
+            original.replace('origin_frame=4285', 'origin_frame=980'),
+            original.replace(str(self.path), str(self.first_path)),
+            original.replace('course=course:01 elapsed_ticks60=1505',
+                             'course=course:02 elapsed_ticks60=1505'),
+            original.replace('course=course:01 elapsed_ticks60=1714',
+                             'course=course:00 elapsed_ticks60=1714'),
+            original.replace(str(self.first_path), '/tmp/foreign.urrun'),
+            original.splitlines(keepends=True)[-1],
+        )
+        for log in altered:
+            with self.subTest(log=log), self.assertRaises(ValueError):
+                self.log.write_text(log)
+                mod.verify(self.log, self.root, True)
+        self.log.write_text(original)
+        self.assertEqual(mod.verify(self.log, self.root, True)[0]['elapsed_ticks60'], 1505)
 
     def assert_reject_mutation(self, old: bytes, new: bytes):
         body = record().split(b'checksum ', 1)[0]

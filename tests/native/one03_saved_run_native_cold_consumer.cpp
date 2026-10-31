@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         "uniracers-usa",
         "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
         "snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1",
-        "course:00", "race-1p"
+        "course:01", "race-1p"
     };
     const auto loaded = ur::product::load_completed_run_record_file(record_path, &target);
     if (!loaded.loaded()) {

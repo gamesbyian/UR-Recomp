@@ -410,6 +410,35 @@ python3 "$REPO/tools/verify_one03_saved_run.py" \
   --runs-root "$ONE03_RUNS_ROOT" \
   --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
   --expected-receipt "$WORK/next-earned-run-record.json"
+# Native product consumer must independently decode the saved artifact and
+# stage its actual controller stream in a fresh process after game cold boot.
+ONE03_COLD_CONSUMER="$WORK/one03-native-cold-consumer"
+c++ -std=c++17 -O2 -Wall -Wextra \
+  -I"$REPO/native/product" \
+  "$REPO/tests/native/one03_saved_run_native_cold_consumer.cpp" \
+  "$REPO/native/product/completed_run_record.cpp" \
+  "$REPO/native/product/completed_run_replay.cpp" \
+  -o "$ONE03_COLD_CONSUMER"
+ONE03_RECORD_NAME="$(python3 - "$WORK/next-earned-run-record.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+name = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))['filename']
+if Path(name).name != name or not name.endswith('.urrun'):
+    raise SystemExit('ONE-03 invalid saved record filename')
+print(name)
+PY
+)"
+"$ONE03_COLD_CONSUMER" \
+  "$ONE03_RUNS_ROOT/$ONE03_RECORD_NAME" \
+  "$WORK/next-earned-native-cold-replay.input" \
+  | tee "$WORK/next-earned-native-cold-replay.log"
+# Revalidate the producer-exit receipt after the native consumer returns.
+python3 "$REPO/tools/verify_one03_saved_run.py" \
+  --log "$WORK/next-earned.log" \
+  --runs-root "$ONE03_RUNS_ROOT" \
+  --source-movie "${UR_ONE03_USE_2014_SOURCE_INPUT:-0}" \
+  --expected-receipt "$WORK/next-earned-run-record.json"
 fi
 
 if [ "$SHARD" = "all" ] || [ "$SHARD" = "isolation" ]; then

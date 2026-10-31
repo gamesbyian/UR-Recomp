@@ -7,6 +7,29 @@ is mechanical integrity only, never original-game likeness/art approval.
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+
+
+def geometry_signature(mesh) -> str:
+    """Hash local triangles at GLB float32 precision, ignoring face ordering.
+
+    Canonicalize vertex order within each triangle and triangle order across
+    the mesh. This binds actual coordinates and topology without depending on
+    Trimesh's vertex/face indices or winding through GLB serialization.
+    """
+    import numpy as np
+
+    triangles = np.asarray(mesh.triangles, dtype="<f4").copy()
+    if (triangles.ndim != 3 or triangles.shape[1:] != (3, 3)
+            or not len(triangles) or not np.isfinite(triangles).all()):
+        raise ValueError("invalid source material geometry")
+    triangles[triangles == 0] = 0  # normalize IEEE negative zero
+    vertex_dtype = np.dtype([("x", "<f4"), ("y", "<f4"), ("z", "<f4")])
+    vertices = np.ascontiguousarray(triangles).view(vertex_dtype).reshape(-1, 3)
+    vertices.sort(axis=1)
+    faces = np.ascontiguousarray(vertices).view(np.dtype("V36")).reshape(-1)
+    faces.sort()
+    return hashlib.sha256(faces.tobytes()).hexdigest()
 
 
 def validate_glb_roundtrip(path: Path, report: dict) -> dict:
@@ -70,6 +93,11 @@ def validate_glb_roundtrip(path: Path, report: dict) -> dict:
                 raise ValueError(f"GLB material geometry invalid: {node}")
             if len(mesh.faces) != child["triangles"]:
                 raise ValueError(f"GLB material triangle count changed: {node}")
+            expected_geometry = child.get("geometry_sha256")
+            if (not isinstance(expected_geometry, str) or len(expected_geometry) != 64
+                    or any(c not in "0123456789abcdef" for c in expected_geometry)
+                    or geometry_signature(mesh) != expected_geometry):
+                raise ValueError(f"GLB material geometry digest changed: {node}")
             rgba = np.asarray(child["rgba"])
             if (rgba.shape != (4,) or mesh.visual.kind != "vertex"
                     or not np.all(mesh.visual.vertex_colors == rgba)):

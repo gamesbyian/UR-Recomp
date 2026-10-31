@@ -20,9 +20,9 @@ import tempfile
 from pathlib import Path
 
 try:
-    from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
+    from tools.art.glb_roundtrip_guard import validate_glb_roundtrip, geometry_signature
 except ModuleNotFoundError:
-    from glb_roundtrip_guard import validate_glb_roundtrip
+    from glb_roundtrip_guard import validate_glb_roundtrip, geometry_signature
 
 # Support both repo-root unit imports and direct offline script execution.
 try:
@@ -400,6 +400,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                     scene.add_geometry(mesh, node_name=child, geom_name=child,
                                        parent_node_name=name)
                     material_rows.append({"node": child, "rgba": list(rgba),
+                                          "geometry_sha256": geometry_signature(mesh),
                                           "triangles": int(len(mesh.faces)),
                                           "watertight": bool(mesh.is_watertight)})
                 report["components"].append({"name": name,

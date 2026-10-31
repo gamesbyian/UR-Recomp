@@ -41,7 +41,8 @@ class GlbRoundtripGuardTests(unittest.TestCase):
                                     parent_node_name=name)
             self.report["components"].append({"name": name, "pivot_translation": [0, 0, i + 1],
                 "material_count": 1, "triangles": len(mesh.faces),
-                "materials": [{"node": child, "triangles": len(mesh.faces), "rgba": rgba}]})
+                "materials": [{"node": child, "triangles": len(mesh.faces), "rgba": rgba,
+                               "geometry_sha256": module.geometry_signature(mesh)}]})
         self.write_scene()
 
     def write_scene(self):
@@ -84,6 +85,27 @@ class GlbRoundtripGuardTests(unittest.TestCase):
         receipt["components"][0]["materials"][0]["triangles"] += 1
         with self.assertRaisesRegex(ValueError, "triangle count changed"):
             module.validate_glb_roundtrip(self.path, receipt)
+
+    def test_changed_vertices_same_topology_rejected(self):
+        mesh = self.scene.geometry["tire__material_0"]
+        mesh.apply_scale([2, 1, 1])
+        self.assertEqual(len(mesh.faces), 12)
+        self.assertTrue(mesh.is_watertight)
+        self.write_scene()
+        with self.assertRaisesRegex(ValueError, "geometry digest changed"):
+            module.validate_glb_roundtrip(self.path, self.report)
+
+    def test_missing_geometry_signature_rejected(self):
+        receipt = copy.deepcopy(self.report)
+        del receipt["components"][0]["materials"][0]["geometry_sha256"]
+        with self.assertRaisesRegex(ValueError, "geometry digest changed"):
+            module.validate_glb_roundtrip(self.path, receipt)
+
+    def test_face_order_and_winding_do_not_change_signature(self):
+        mesh = self.scene.geometry["tire__material_0"].copy()
+        original = module.geometry_signature(mesh)
+        mesh.faces = mesh.faces[::-1, ::-1]
+        self.assertEqual(module.geometry_signature(mesh), original)
 
     def test_duplicate_receipt_node_rejected(self):
         receipt = copy.deepcopy(self.report)

@@ -88,6 +88,16 @@ def unpack_png(data: bytes) -> tuple[int, int, bytes]:
     for y in range(height):
         base = y * (stride + 1)
         ft, line = raw[base], bytearray(raw[base + 1:base + 1 + stride])
+        # PNG filter 0 leaves the RGBA scanline byte-exact. The generic
+        # Python per-channel reconstruction loop is unnecessary for this
+        # common capture/fixture format and dominates large PNG inspection.
+        # Preserve arbitrary alpha, including transparent and partial alpha.
+        # Mixed-filter PNGs still decode later rows through the generic path.
+        if ft == 0 and bpp == 4:
+            start = y * stride
+            out[start:start + stride] = line
+            prev = line
+            continue
         for i in range(stride):
             a = line[i - bpp] if i >= bpp else 0
             b = prev[i]

@@ -51,6 +51,21 @@ class HpComputeWatchTests(unittest.TestCase):
                                      state="in_progress", conclusion=None)], NOW)
         self.assertEqual(running["status"], "IN_FLIGHT")
 
+    def test_manual_build_does_not_mask_failed_push(self):
+        # A later green manual experiment cannot hide an automatic main
+        # verification failure, or make missing push evidence appear green.
+        runs = [row(event="workflow_dispatch", when=NOW, rid=201),
+                row(event="push", when=NOW - timedelta(hours=1),
+                    rid=200, conclusion="failure")]
+        result = watch.observe("product_windows", runs, NOW)
+        self.assertEqual(result["status"], "LAST_RUN_NOT_PASSED")
+        self.assertEqual(result["last_run_id"], 200)
+        self.assertEqual(result["non_success_24h"], 1)
+        self.assertEqual(result["recent_manual_trials"], 1)
+        missing = watch.observe("product_windows", runs[:1], NOW)
+        self.assertEqual(missing["status"], "NOT_YET_OBSERVED")
+        self.assertEqual(missing["recent_manual_trials"], 1)
+
     def test_never_accepts_wrong_branch_event_future_or_unbound_identity(self):
         x = watch.observe("unattended_2p", [row(main=False)], NOW)
         self.assertEqual(x["status"], "NOT_YET_OBSERVED")

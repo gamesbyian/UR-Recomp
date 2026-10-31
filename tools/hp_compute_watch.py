@@ -17,7 +17,7 @@ from urllib.request import Request, urlopen
 
 REPOSITORY = "gamesbyian/UR-Recomp"
 WORKFLOWS = {
-    "product_windows": ("owner-hp-main-windows-smoke.yml", ("push", "workflow_dispatch")),
+    "product_windows": ("owner-hp-main-windows-smoke.yml", ("push",)),
     "unattended_2p": ("owner-hp-seeded-2p-research.yml", ("schedule",)),
 }
 OVERDUE_HOURS = 8
@@ -43,7 +43,9 @@ def observe(lane: str, runs: list[dict], now: datetime) -> dict:
         if not isinstance(row, dict) or row.get("head_branch") != "main":
             continue
         event = row.get("event")
-        if lane == "unattended_2p" and event == "workflow_dispatch":
+        # Manual trials are counted, never treated as proof that an
+        # automatic push build or recurring research cron is healthy.
+        if event == "workflow_dispatch":
             manual += 1
         if event not in allowed:
             continue
@@ -115,7 +117,8 @@ def render(report: dict) -> str:
     lines += ["", "An observed manual research trial does not establish that "
               "GitHub's recurring cron actually fired.",
               "An old product build alone is not a failure: that lane is triggered "
-              "by source changes, not a timer.",
+              "by source changes, not a timer. Manual builds cannot conceal "
+              "failed automatic push verification.",
               "No automatic research acceptance or release-gate credit.", ""]
     return "\n".join(lines)
 

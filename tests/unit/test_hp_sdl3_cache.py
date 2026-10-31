@@ -265,8 +265,8 @@ class HPSDL3CacheTests(unittest.TestCase):
         self.assertLess(restored, validated)
         self.assertLess(validated, saved)
         self.assertLess(saved, built)
-        self.assertIn("uses: actions/cache/restore@v4", workflow)
-        self.assertIn("uses: actions/cache/save@v4", workflow)
+        self.assertIn("uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809", workflow)
+        self.assertIn("uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809", workflow)
         self.assertEqual(workflow.count("id: hosted-sdl3-cache"), 1)
         self.assertEqual(workflow.count(
             "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}"), 1)

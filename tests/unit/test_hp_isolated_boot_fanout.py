@@ -1,4 +1,4 @@
-"""Original offscreen boot contracts on trusted HP and hosted ready PRs."""
+"""Original offscreen boot contracts on trusted HP and hosted ready PR/main."""
 import os
 from pathlib import Path
 import shutil
@@ -28,8 +28,8 @@ class HpIsolatedBootFanoutTests(unittest.TestCase):
                       "        run: bash tools/ci/hp_windows_isolated_boot_fanout.sh", source)
         worker = FANOUT.read_text(encoding="utf-8")
         hosted = HOSTED_FANOUT.read_text(encoding="utf-8")
-        self.assertIn("      - name: Hosted PR bounded independent offscreen package boot canary", source)
-        self.assertIn("        if: ${{ !inputs.run_on_hp && github.event_name == 'pull_request' && inputs.test_hp_compiler_profile }}", source)
+        self.assertIn("      - name: Hosted bounded independent offscreen package boot fanout", source)
+        self.assertIn("        if: ${{ !inputs.run_on_hp && ((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}", source)
         self.assertIn("run: bash tools/ci/hosted_windows_isolated_boot_fanout.sh", source)
         self.assertIn('"tools/ci/hosted_windows_isolated_boot_fanout.sh"', source)
         self.assertIn('"tools/ci/hosted_windows_isolated_boot_fanout.sh"', HOSTED.read_text())
@@ -42,7 +42,7 @@ class HpIsolatedBootFanoutTests(unittest.TestCase):
                 "windows_package_default_appdata.sh": "Normal Windows APPDATA clean-user launch",
             }[filename]
             self.assertIn("      - name: " + step + "\n"
-                          "        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}\n"
+                          "        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}\n"
                           "        run: bash tools/ci/" + filename, source)
             self.assertIn(filename, worker)
             self.assertIn(marker, (ROOT / "tools/ci" / filename).read_text(encoding="utf-8"))
@@ -141,11 +141,11 @@ class HpIsolatedBootFanoutTests(unittest.TestCase):
 class HostedIsolatedBootFanoutTests(unittest.TestCase):
     """Synthetic process and source boundaries; actual Windows QA still required."""
 
-    def test_ready_pr_only_and_exact_original_scripts(self):
+    def test_scoped_ready_pr_or_trusted_main_and_exact_original_scripts(self):
         source = HOSTED_FANOUT.read_text(encoding="utf-8")
         for marker in (
             'GITHUB_EVENT_NAME', 'pull_request', 'GITHUB_REF',
-            '^refs/pull/[0-9]+/merge$', 'GITHUB_REPOSITORY',
+            '^refs/pull/[0-9]+/merge$', 'refs/heads/main', 'GITHUB_REPOSITORY',
             'gamesbyian/UR-Recomp', 'RUNNER_OS', 'Windows',
             'RUNNER_NAME', 'hpmini-ur-recomp', 'TEST_PACKAGE',
             'PACKAGE_USER_DATA', 'trap join_all EXIT', 'wait "$pid" || true',
@@ -196,16 +196,38 @@ class HostedIsolatedBootFanoutTests(unittest.TestCase):
                 expected = ("HOSTED_BOOT_FANOUT=passed count=3" if failure is None
                             else "HOSTED_BOOT_FANOUT=failed")
                 self.assertIn(expected, run.stdout + run.stderr)
-            for key, invalid in (
-                ("GITHUB_EVENT_NAME", "push"),
-                ("GITHUB_REF", "refs/heads/main"),
-                ("RUNNER_NAME", "hpmini-ur-recomp"),
-                ("RUNNER_OS", "Linux"),
-                ("GITHUB_REPOSITORY", "another/repo"),
+            # Recreate *passing* fixtures: the preceding negative cycle
+            # intentionally left appdata failing with exit=9.
+            for label, (filename, _) in SCRIPTS.items():
+                code = ('#!/usr/bin/env bash\n'
+                        'sleep 0.12\n'
+                        'echo ' + label + ' >> "$RUNNER_TEMP/joined"\n'
+                        'exit 0\n')
+                (scripts / filename).write_text(code, encoding="utf-8")
+            # Validate the trusted hosted-main push with all three real
+            # acceptance scripts, not an inert branch-only source assertion.
+            main_env = dict(env, GITHUB_EVENT_NAME="push",
+                            GITHUB_REF="refs/heads/main")
+            (scratch / "joined").unlink(missing_ok=True)
+            run = subprocess.run([bash, "-c", source], env=main_env, cwd=root,
+                                 capture_output=True, text=True, timeout=8)
+            self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+            self.assertEqual(sorted((scratch / "joined").read_text().splitlines()),
+                             sorted(SCRIPTS.keys()))
+            self.assertIn("HOSTED_BOOT_FANOUT=passed count=3", run.stdout)
+            for changed in (
+                {"GITHUB_EVENT_NAME": "workflow_dispatch"},
+                {"GITHUB_REF": "refs/heads/main"},
+                {"GITHUB_EVENT_NAME": "push"},
+                {"GITHUB_EVENT_NAME": "push", "GITHUB_REF": "refs/heads/feature"},
+                {"GITHUB_EVENT_NAME": "pull_request", "GITHUB_REF": "refs/heads/main"},
+                {"RUNNER_NAME": "hpmini-ur-recomp"},
+                {"RUNNER_OS": "Linux"},
+                {"GITHUB_REPOSITORY": "another/repo"},
             ):
                 (scratch / "joined").unlink(missing_ok=True)
                 run = subprocess.run([bash, "-c", source],
-                                     env=dict(env, **{key: invalid}), cwd=root,
+                                     env=dict(env, **changed), cwd=root,
                                      capture_output=True, text=True, timeout=8)
                 self.assertNotEqual(run.returncode, 0, run.stdout + run.stderr)
                 self.assertFalse((scratch / "joined").exists())

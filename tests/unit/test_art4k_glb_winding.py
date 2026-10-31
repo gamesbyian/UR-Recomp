@@ -13,7 +13,7 @@ except ImportError:
     np = None
     trimesh = None
 
-GUARD = Path(__file__).resolve().parents[2] / "glb_roundtrip_guard.py"
+GUARD = Path(__file__).resolve().parents[2] / "tools" / "art" / "glb_roundtrip_guard.py"
 spec = importlib.util.spec_from_file_location("glb_roundtrip_guard", GUARD)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

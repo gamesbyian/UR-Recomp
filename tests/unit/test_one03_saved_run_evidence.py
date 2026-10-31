@@ -45,7 +45,8 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
         self.receipt = base / 'saved.json'
         self.path.write_bytes(record())
         self.log.write_text(f'UR_RUN_RECORD CAPTURED path={self.path} course=course:00 '
-                            'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1\n')
+                            'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1 '
+                            'replay_input=1 ghost_trace=0\n')
 
     def test_actual_file_checksum_and_reopen(self):
         receipt, raw = mod.verify(self.log, self.root, True)
@@ -81,11 +82,13 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
 
     def test_path_escape_and_duplicate_rejected(self):
         self.log.write_text('UR_RUN_RECORD CAPTURED path=/tmp/other.urrun course=course:00 '
-                            'elapsed_ticks60=1505\n')
+                            'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1 '
+                            'replay_input=1 ghost_trace=0\n')
         with self.assertRaisesRegex(ValueError, 'escaped'):
             mod.verify(self.log, self.root, True)
         self.log.write_text((f'UR_RUN_RECORD CAPTURED path={self.path} course=course:00 '
-                             'elapsed_ticks60=1505\n') * 2)
+                             'elapsed_ticks60=1505 origin_frame=2090 inputs=1 splits=1 '
+                             'replay_input=1 ghost_trace=0\n') * 2)
         with self.assertRaisesRegex(ValueError, 'exactly one'):
             mod.verify(self.log, self.root, True)
 
@@ -143,12 +146,28 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
             with self.subTest(separator=separator), self.assertRaises(ValueError):
                 mod.verify(self.log, self.root, True)
 
+    def test_producer_counts_and_finish_split_match_saved_bytes(self):
+        self.assert_reject_mutation(b'input 0 1 100 0\n', b'')
+        self.assert_reject_mutation(b'split finish 1505\n', b'')
+        self.assert_reject_mutation(b'split finish 1505\n', b'split finish 1504\n')
+        original = self.log.read_text()
+        for altered in (original.replace('inputs=1', 'inputs=2'),
+                        original.replace('splits=1', 'splits=2'),
+                        original.replace('inputs=1', 'inputs=18446744073709551616')):
+            self.log.write_text(altered)
+            with self.assertRaises(ValueError):
+                mod.verify(self.log, self.root, True)
+        self.log.write_text(original)
+        self.assertEqual(mod.verify(self.log, self.root, True)[0]['elapsed_ticks60'], 1505)
+
     def test_native_valid_multiple_splits_and_inputs(self):
         body = record().split(b'checksum ', 1)[0]
         body = body.replace(b'split finish 1505\n', b'split early 500\nsplit finish 1505\n')
         body = body.replace(b'input 0 1 100 0\n',
                             b'input 0 1 100 0\ninput 10 2 0 A00\n')
         self.path.write_bytes(signed_body(body))
+        self.log.write_text(self.log.read_text().replace('inputs=1 splits=1',
+                                                         'inputs=2 splits=2'))
         receipt, raw = mod.verify(self.log, self.root, True)
         self.assertEqual(receipt['sha256'], __import__('hashlib').sha256(raw).hexdigest())
 

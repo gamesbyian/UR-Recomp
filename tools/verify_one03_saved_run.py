@@ -14,7 +14,9 @@ from pathlib import Path
 
 CAPTURE = re.compile(
     r'^UR_RUN_RECORD CAPTURED path=(.*?) course=course:00 '
-    r'elapsed_ticks60=([1-9][0-9]*)(?: |$)', re.MULTILINE)
+    r'elapsed_ticks60=([1-9][0-9]*) origin_frame=([0-9]+) '
+    r'inputs=([0-9]+) splits=([0-9]+) replay_input=[01] ghost_trace=[01]$',
+    re.MULTILINE)
 CHECKSUM = re.compile(rb'checksum ([0-9a-f]{16})\n\Z')
 MAX_BYTES = 64 * 1024 * 1024
 
@@ -43,7 +45,8 @@ def _token(token: str) -> bool:
     return _TOKEN.fullmatch(token) is not None
 
 
-def _parse_native_v1(lines: list[str]) -> dict[str, str]:
+def _parse_native_v1(lines: list[str]) -> tuple[
+        dict[str, str], list[tuple[str, int]], list[tuple[int, int, int, int]]]:
     """Require the same field set and split/input constraints as the C++ decoder.
 
     A checksum authenticates bytes, not their decodability. This parser is
@@ -100,7 +103,7 @@ def _parse_native_v1(lines: list[str]) -> dict[str, str]:
                 start < previous_end or start + duration > frame_count):
             raise ValueError('ONE-03 invalid native input run')
         previous_end = start + duration
-    return fields
+    return fields, splits, inputs
 
 
 def verify(log: Path, root: Path, source_movie: bool,
@@ -110,7 +113,7 @@ def verify(log: Path, root: Path, source_movie: bool,
     captures = CAPTURE.findall(log.read_text(encoding='utf-8', errors='replace'))
     if len(captures) != 1:
         raise ValueError('ONE-03 requires exactly one second-course capture')
-    path_text, logged_ticks = captures[0]
+    path_text, logged_ticks, _origin_frame, logged_inputs, logged_splits = captures[0]
     path = Path(path_text)
     if not path.is_absolute() or path.suffix != '.urrun' or path.parent != root:
         raise ValueError('ONE-03 saved record path escaped expected profile runs root')
@@ -146,7 +149,15 @@ def verify(log: Path, root: Path, source_movie: bool,
         raise ValueError('ONE-03 non-ASCII run record') from exc
     if not lines or lines[0] != 'URRUN 1' or lines[-1] != 'END' or lines.count('END') != 1:
         raise ValueError('ONE-03 invalid run-record envelope')
-    fields = _parse_native_v1(lines)
+    fields, splits, inputs = _parse_native_v1(lines)
+    # The producer logs these counts from the exact record after save.
+    # A valid checksum and native-decodable envelope alone do not prove that
+    # the saved bytes belong to the reported earned race.
+    if (len(inputs) != _uint(logged_inputs) or
+            len(splits) != _uint(logged_splits) or
+            sum(1 for name, ticks in splits
+                if name == 'finish' and ticks == int(logged_ticks)) != 1):
+        raise ValueError('ONE-03 saved record contradicts producer counts or finish split')
     if (fields.get('game') != 'uniracers-usa' or
             fields.get('course') != 'course:00' or
             fields.get('mode') != 'race-1p' or

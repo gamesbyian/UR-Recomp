@@ -191,6 +191,13 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
             raise ValueError('unsupported OpenSCAD color() in '+name)
         for match in matches:
             rgba = _rgba(match.group(1), defaults)
+            # Replacing each color() with an independent if(true/false)
+            # loses ALL geometry when an enclosing color differs from an
+            # inner decorator. The uncolored probe also misses that loss.
+            # Reject the unsupported nested override before STL export.
+            enclosing = enclosing_colors(body, match.start()) | inherited
+            if any(outer != rgba for outer in enclosing):
+                raise ValueError('nested OpenSCAD color cannot be split safely: ' + name)
             colors[rgba] = None
         for called in modules:
             for call in re.finditer(r'\b'+re.escape(called)+r'\s*\(', body):

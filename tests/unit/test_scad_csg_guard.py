@@ -124,6 +124,62 @@ module good() {
         self.assertEqual(set(module.materials_for_part(good, 'good')),
                          {(255,0,0,255), (0,0,255,255)})
 
+    def test_nested_different_colors_fail_closed_even_without_csg(self):
+        # Both independent material passes suppress the inner sphere.
+        for geometry in (
+            'color([1,0,0]) { color([0,0,1]) sphere(1); }',
+            'color([1,0,0]) color([0,0,1]) sphere(1);',
+            'color([1,0,0]) translate([0,0,0]) { color([0,0,1]) sphere(1); }',
+        ):
+            with self.subTest(geometry=geometry):
+                source = SOURCE + '\nmodule nested(){' + geometry + '}\n'
+                with self.assertRaisesRegex(ValueError, 'nested OpenSCAD color'):
+                    module.materials_for_part(source, 'nested')
+
+    def test_nested_color_override_through_called_helper_fails_closed(self):
+        source = SOURCE + '''
+module blue_helper() { color([0,0,1]) sphere(1); }
+module nested() { color([1,0,0]) blue_helper(); }
+'''
+        with self.assertRaisesRegex(ValueError, 'nested OpenSCAD color'):
+            module.materials_for_part(source, 'nested')
+
+    def test_same_color_nesting_and_separate_siblings_remain_supported(self):
+        source = SOURCE + '''
+module same() { color([1,0,0]) { color([1,0,0]) sphere(1); } }
+module siblings() { color([1,0,0]) sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); }
+'''
+        self.assertEqual(module.materials_for_part(source, 'same'), [(255,0,0,255)])
+        self.assertEqual(set(module.materials_for_part(source, 'siblings')),
+                         {(255,0,0,255), (0,0,255,255)})
+
+    def test_real_openscad_nested_color_override_would_erase_geometry(self):
+        if not shutil.which('openscad'):
+            self.skipTest('OpenSCAD unavailable')
+        source = SOURCE + '''
+module nested() { color([1,0,0]) { color([0,0,1]) sphere(1,$fn=24); } }
+nested();
+'''
+        with self.assertRaisesRegex(ValueError, 'nested OpenSCAD color'):
+            module.materials_for_part(source, 'nested')
+        with tempfile.TemporaryDirectory() as tmp:
+            for label, content in (
+                ('whole', source),
+                ('outer', module.material_pass_source(source, (255,0,0,255))),
+                ('inner', module.material_pass_source(source, (0,0,255,255))),
+            ):
+                scad = pathlib.Path(tmp) / (label + '.scad')
+                stl = pathlib.Path(tmp) / (label + '.stl')
+                scad.write_text(content, encoding='utf-8')
+                run = subprocess.run(['openscad','-o',str(stl),str(scad)],
+                                     capture_output=True, text=True, timeout=30)
+                if label == 'whole':
+                    self.assertEqual(run.returncode, 0, run.stderr)
+                    self.assertTrue(stl.is_file())
+                else:
+                    self.assertNotEqual(run.returncode, 0, 'split pass should be empty')
+                    self.assertFalse(stl.is_file())
+
     def test_real_openscad_cross_color_csg_loses_volume_when_split(self):
         if not shutil.which('openscad'):
             self.skipTest('OpenSCAD unavailable')

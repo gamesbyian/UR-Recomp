@@ -89,7 +89,7 @@ def bind_source_normals(mesh) -> None:
 
 
 def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
-    """Reject absent glTF NORMAL accessors before Trimesh synthesizes them."""
+    """Reject absent or unbacked glTF NORMAL data before Trimesh synthesizes it."""
     import json
     import struct
 
@@ -105,12 +105,25 @@ def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
         payload = handle.read(json_size)
         if len(payload) != json_size:
             raise ValueError("GLB normal accessor JSON truncated")
+        bin_header = handle.read(8)
+        if len(bin_header) != 8:
+            raise ValueError("GLB normal accessor BIN chunk missing")
+        bin_length, bin_type = struct.unpack("<II", bin_header)
+        if bin_type != 0x004E4942 or 20 + json_size + 8 + bin_length > total:
+            raise ValueError("GLB normal accessor BIN chunk invalid")
     try:
         gltf = json.loads(payload)
         meshes = gltf["meshes"]
         accessors = gltf["accessors"]
-        if not isinstance(meshes, list) or not isinstance(accessors, list):
-            raise ValueError("invalid mesh/accessor arrays")
+        views = gltf["bufferViews"]
+        buffers = gltf["buffers"]
+        if (not isinstance(meshes, list) or not isinstance(accessors, list)
+                or not isinstance(views, list) or not isinstance(buffers, list)
+                or len(buffers) != 1):
+            raise ValueError("invalid mesh/accessor/buffer arrays")
+        buffer_bytes = buffers[0]["byteLength"]
+        if type(buffer_bytes) is not int or buffer_bytes <= 0 or buffer_bytes > bin_length:
+            raise ValueError("GLB normal buffer exceeds BIN chunk")
         found = set()
         for mesh in meshes:
             name = mesh["name"]
@@ -130,6 +143,25 @@ def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
                     or type(normal.get("count")) is not int
                     or normal["count"] <= 0 or normal["count"] != position.get("count")):
                 raise ValueError("invalid NORMAL accessor format/count")
+            # An accessor can declare VEC3/FLOAT without backing storage.
+            # Downstream loaders may supply default/synthetic normals; require
+            # the actual source-signed float32 bytes inside this GLB BIN.
+            view_index = normal.get("bufferView")
+            if type(view_index) is not int or not 0 <= view_index < len(views):
+                raise ValueError("NORMAL accessor has no valid bufferView")
+            view = views[view_index]
+            if not isinstance(view, dict) or view.get("buffer") != 0:
+                raise ValueError("NORMAL accessor uses invalid BIN buffer")
+            offset = view.get("byteOffset", 0)
+            length = view.get("byteLength")
+            accessor_offset = normal.get("byteOffset", 0)
+            stride = view.get("byteStride", 12)
+            if (any(type(v) is not int for v in (offset, length, accessor_offset, stride))
+                    or offset < 0 or length <= 0 or accessor_offset < 0
+                    or stride < 12 or stride % 4 != 0 or accessor_offset % 4 != 0
+                    or offset + length > buffer_bytes
+                    or accessor_offset + (normal["count"] - 1) * stride + 12 > length):
+                raise ValueError("NORMAL accessor bytes absent or outside BIN view")
         if found != set(expected_nodes):
             raise ValueError("GLB normal accessor mesh identities differ from receipt")
     except (KeyError, TypeError, IndexError, ValueError) as exc:

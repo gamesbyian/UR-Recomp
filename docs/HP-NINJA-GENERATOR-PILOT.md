@@ -119,3 +119,31 @@ owner can also use the separate one-click Undo package if desired.
 The PR requires full hosted VS package and tooling acceptance, independent
 review, then **one actual post-merge HP automatic Ninja run**. Never
 ascribe the manual timing to an automatic run before that evidence exists.
+
+## Owner HP compiler-worker utilization experiment (10-job candidate)
+
+The verified Ninja selection on [HP automatic run #41149867355](https://github.com/gamesbyian/UR-Recomp/actions/runs/41149867355)
+configured and compiled in **39 seconds** using the original hardcoded
+`--parallel 6`, averaging **53.1%** host CPU in 10-second compile windows,
+peaking at **64.7%**, with at least **8,020 MiB** of free physical RAM
+during the job. The machine has 12 logical processors. The actual full
+Windows package/QA (including QA05 5/5, QA09, race result) passed.
+
+The bounded next experiment raises **Ninja compiler concurrency from 6
+to 10** only in the source-owned Ninja canary script. It logs
+`HP_NINJA_BUILD_JOBS=10`. This leaves two logical processors of
+nominal capacity for the OS and other work. The already source-pinned
+SDL3 static cache, verified Ninja executable identity, canonical
+Windows package and gameplay acceptance are unchanged. There are no
+machine service, PATH, paging, power or runner-installation changes.
+
+**Acceptance before promotion:** exact-head tooling and hygiene,
+independent review of the compiler change and full hosted VS Windows
+package acceptance. After merge, observe a normal trusted-main HP run
+and compare its actual Ninja compile phase, mean/peak host CPU, available
+physical and virtual RAM, entire job elapsed, and every mandatory
+package/controller/audio/race-result test against the 6-worker baseline.
+Do not infer a gain from the job-count value alone. If compiler failure,
+memory pressure, physical HP instability or QA regression appears,
+revert the one-line job count to six. No claim to physical owner
+H01–H07, original/native event parity or a release gate.

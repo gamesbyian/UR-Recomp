@@ -67,7 +67,7 @@ class ProgressIntervalV2Tests(unittest.TestCase):
         r=self.score(inventory=inv, interval=interval)
         self.assertEqual(r["interval_product_delta_points"],
                          self.score()["interval_product_delta_points"] + 1.0)
-        self.assertIn("ONE-03", r["newly_verified"])
+        self.assertIn("ONE-09", r["newly_verified"])
         self.assertIn("ONE-03", r["newly_verified"])
     def test_positive_gate_counter_without_formal_delta_rejected(self):
         ledger=copy.deepcopy(self.ledger)

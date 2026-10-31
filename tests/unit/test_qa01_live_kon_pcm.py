@@ -129,6 +129,38 @@ class LiveKONTests(unittest.TestCase):
             with self.subTest(page=p), self.assertRaises(ValueError):
                 self.run_watch(Script([p], [46000]))
 
+    def test_zero_scanned_page_cannot_supply_phantom_kon(self):
+        # A filtered event is impossible when the producer reports zero
+        # absolute event slots scanned. Never accept it as an actual KON.
+        script = Script([page(100, 0, [event(45000)])], [47000])
+        with self.assertRaisesRegex(ValueError, "more events than scanned slots"):
+            self.run_watch(script)
+
+    def test_filtered_events_cannot_exceed_scanned_slots(self):
+        script = Script([page(100, 1, [event(45000),
+                                      {"t": "reg", "adr": "0x5c", "val": "0x00"}])],
+                        [47000])
+        with self.assertRaisesRegex(ValueError, "more events than scanned slots"):
+            self.run_watch(script)
+
+    def test_post_wav_page_cannot_claim_extra_filtered_events(self):
+        script = Script([page(100, 1, [event(45000)]),
+                         page(101, 1, [{"t": "reg", "adr": "0x5c", "val": "0x00"},
+                                       {"t": "reg", "adr": "0x5c", "val": "0x00"}])],
+                        [47000, 47000])
+
+        def wav_request(*_args, **_kwargs):
+            script.head = 102
+            return {"kon_sample_index": 45000, "sample_frames": 2500}
+
+        capture = Mock(side_effect=wav_request)
+        with self.assertRaisesRegex(ValueError, "more events than scanned slots"):
+            live.watch_first_kon(
+                script, wav_path=Path("/tmp/never-written.wav"), before=500,
+                after=2000, capacity=65536, timeout=2, interval=.01,
+                clock=lambda: 0, sleep=lambda _: None, capture_fn=capture)
+        capture.assert_called_once()
+
     def test_missing_event_timeout_is_bounded(self):
         ticks = iter([0, 0, 3])
         script = Script([page(100)], [46000])

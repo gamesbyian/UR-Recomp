@@ -55,6 +55,8 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
         events = page.get("events")
         if not isinstance(events, list):
             raise ValueError("malformed live DSP event page")
+        if len(events) > scanned:
+            raise ValueError("live DSP event page returned more events than scanned slots")
         for event in events:
             if not isinstance(event, dict):
                 raise ValueError("malformed DSP register event")
@@ -118,6 +120,8 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                     events = page.get("events")
                     if not isinstance(events, list):
                         raise ValueError("malformed post-WAV DSP event page")
+                    if len(events) > scanned:
+                        raise ValueError("post-WAV DSP event page returned more events than scanned slots")
                     for event in events:
                         if not isinstance(event, dict):
                             raise ValueError("malformed post-WAV DSP register event")

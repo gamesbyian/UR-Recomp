@@ -85,7 +85,8 @@ def wav_command_path(wav_path: Path) -> str:
     path = str(wav_path)
     if isinstance(wav_path, PureWindowsPath):
         path = path.replace("\\", "/")
-    if ('"' in path or "\\" in path or any(ord(c) < 32 for c in path)):
+    if ('"' in path or "\\" in path or any(ord(c) < 32 for c in path)
+            or any(c.isspace() for c in path)):
         raise ValueError("audio_wav destination cannot be represented safely in native JSON")
     # The pinned server parses audio_wav with sscanf("%511s ..."). A longer
     # token is truncated BEFORE it opens the path with "wb", potentially

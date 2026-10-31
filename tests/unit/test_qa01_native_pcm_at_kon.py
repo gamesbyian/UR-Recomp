@@ -299,7 +299,8 @@ class NativeWavWirePathTests(unittest.TestCase):
 
     def test_unsafe_posix_paths_fail_before_wav_request(self):
         for name in ("/tmp/has\\backslash.wav", '/tmp/has"quote.wav',
-                     "/tmp/has\x00nul.wav"):
+                     "/tmp/has\x00nul.wav", "/tmp/has space.wav",
+                     "/tmp/has\ttab.wav"):
             with self.subTest(path=repr(name)):
                 with self.assertRaisesRegex(ValueError, "safely"):
                     pcm.wav_command_path(Path(name))

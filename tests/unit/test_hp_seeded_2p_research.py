@@ -50,6 +50,7 @@ def _report(work: Path, source: str, seed: int, shard: int) -> dict:
                "seed": seed + shard * 1000003,
                "input_sha256": hp.expected_treatment_digest(
                    native.base_source()[0], seed + shard * 1000003),
+               "script_sha256": hp.expected_script_digest(native.base_source()[1]),
                "real_native_processes": 4,
                "bit_exact_replay": True,
                "two_seats_observably_active": True,
@@ -162,7 +163,7 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertEqual(hp.collect(rows(), source, run_id, 1.0)["status"],
                          "completed_positive")
         for mutation in ("base", "seed", "digest", "valid_wrong_digest",
-                         "stop", "stop_case_cap", "bool_attempts", "failures",
+                         "script_missing", "script_wrong", "stop", "stop_case_cap", "bool_attempts", "failures",
                          "fidelity", "two_player", "physical",
                          "elapsed_negative", "elapsed_nan", "elapsed_bool"):
             with self.subTest(mutation=mutation):
@@ -176,6 +177,10 @@ class HpScheduledResearchTests(unittest.TestCase):
                     report["case_results"][0]["input_sha256"] = "not-a-sha"
                 elif mutation == "valid_wrong_digest":
                     report["case_results"][0]["input_sha256"] = "0" * 64
+                elif mutation == "script_missing":
+                    report["case_results"][0].pop("script_sha256")
+                elif mutation == "script_wrong":
+                    report["case_results"][0]["script_sha256"] = "0" * 64
                 elif mutation == "stop":
                     report["stop_reason"] = "invariant_failure"
                 elif mutation == "stop_case_cap":
@@ -212,6 +217,10 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertEqual(hp.expected_treatment_digest(prefix, seed),
                              hashlib.sha256(rendered.replace(
                                  "\n", "\r\n").encode("utf-8")).hexdigest())
+            rendered_script = native.render_script(native.base_source()[1])
+            self.assertEqual(hp.expected_script_digest(native.base_source()[1]),
+                             hashlib.sha256(rendered_script.replace(
+                                 "\n", "\r\n").encode("utf-8")).hexdigest())
         rows = []
         for worker in range(hp.WORKERS):
             base = run_id % 10000000 + (worker // 2) * 25000000
@@ -222,6 +231,7 @@ class HpScheduledResearchTests(unittest.TestCase):
                 report["case_results"].append({
                     "seed": case_seed,
                     "input_sha256": hp.expected_treatment_digest(prefix, case_seed),
+                    "script_sha256": hp.expected_script_digest(native.base_source()[1]),
                     "real_native_processes": 4,
                     "bit_exact_replay": True,
                     "two_seats_observably_active": True,

@@ -134,6 +134,12 @@ def expected_treatment_digest(stock_input: str, seed: int) -> str:
     return hashlib.sha256(rendered.replace("\n", os.linesep).encode("utf-8")).hexdigest()
 
 
+def expected_script_digest(stock_script: str) -> str:
+    """Hash the exact generated route-script bytes written by the producer."""
+    rendered = native.render_script(stock_script)
+    return hashlib.sha256(rendered.replace("\n", os.linesep).encode("utf-8")).hexdigest()
+
+
 def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     if len(rows) != WORKERS:
         raise ValueError("missing worker result")
@@ -146,6 +152,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     pending_failures = []
     candidate_proofs = []
     stock_input = None
+    script_digest = None
     for index, row in enumerate(rows):
         if row.get("worker") != index:
             raise ValueError("wrong worker order or index")
@@ -207,7 +214,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             continue
         candidate_proofs.append(proof)
         if stock_input is None:
-            stock_input = native.base_source()[0]
+            stock_input, stock_script = native.base_source()
+            script_digest = expected_script_digest(stock_script)
         if identity is None:
             identity = proof
         elif proof != identity:
@@ -226,6 +234,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             if (type(seed) is not int or seed != expected_seed
                     or not isinstance(digest, str) or not native.SHA256.fullmatch(digest)
                     or digest != expected_treatment_digest(stock_input, seed)
+                    or case.get("script_sha256") != script_digest
                     or seed in seeds or digest in inputs
                     or case.get("real_native_processes") != 4
                     or case.get("two_seats_observably_active") is not True

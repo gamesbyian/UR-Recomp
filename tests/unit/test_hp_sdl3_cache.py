@@ -1,9 +1,12 @@
 """Safety and provenance checks for the opt-in pinned Windows SDL3 install."""
 import importlib.util
 import json
+import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 MODULE = Path(__file__).resolve().parents[2] / "tools/devnode_benchmark/prepare_sdl3_cache.py"
 spec = importlib.util.spec_from_file_location("prepare_sdl3_cache", MODULE)
@@ -334,6 +337,40 @@ class HPSDL3CacheTests(unittest.TestCase):
                         helper.index('if args.github_output is not None:'))
         self.assertLess(helper.index("package_dir = validate_stage("),
                         helper.index('if args.github_output is not None:'))
+
+    def test_real_helper_emits_output_only_after_verified_install(self):
+        # Exercise the actual argument/output path while isolating the
+        # compiler-specific fingerprint from this Linux unit environment.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            env_file, output = root / "private-env", root / "cache-output"
+            args = ["prepare_sdl3_cache.py", "--source", str(root / "source"),
+                    "--archive", str(root / "source.tar.gz"),
+                    "--cache-root", str(root / "cache"),
+                    "--github-env", str(env_file),
+                    "--github-output", str(output), "--required"]
+            context = {"GITHUB_REPOSITORY": "gamesbyian/UR-Recomp"}
+            with patch.object(sys, "argv", args), patch.dict(os.environ, context):
+                with patch.object(cache, "visual_studio_root", return_value=root), \
+                     patch.object(cache, "fingerprint", return_value={"known": True}), \
+                     patch.object(cache, "cache_key", return_value="a" * 24), \
+                     patch.object(cache, "validate_stage", return_value=root / "verified"), \
+                     patch.object(cache, "build_stage") as build:
+                    self.assertEqual(cache.main(), 0)
+                    build.assert_not_called()
+            self.assertEqual(output.read_text(), "cache-state=hit\\n")
+            self.assertIn("UR_SDL3_PREBUILT_DIR=", env_file.read_text())
+            env_file.unlink()
+            output.unlink()
+            with patch.object(sys, "argv", args), patch.dict(os.environ, context):
+                with patch.object(cache, "visual_studio_root", return_value=root), \
+                     patch.object(cache, "fingerprint", return_value={"known": True}), \
+                     patch.object(cache, "cache_key", return_value="a" * 24), \
+                     patch.object(cache, "validate_stage", return_value=None), \
+                     patch.object(cache, "build_stage", side_effect=ValueError("incomplete")):
+                    self.assertEqual(cache.main(), 1)
+            self.assertFalse(output.exists())
+            self.assertFalse(env_file.exists())
 
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"

@@ -42,7 +42,8 @@ class GlbRoundtripGuardTests(unittest.TestCase):
             self.report["components"].append({"name": name, "pivot_translation": [0, 0, i + 1],
                 "material_count": 1, "triangles": len(mesh.faces),
                 "materials": [{"node": child, "triangles": len(mesh.faces), "rgba": rgba,
-                               "geometry_sha256": module.geometry_signature(mesh)}]})
+                               "geometry_sha256": module.geometry_signature(mesh),
+                               "normals_sha256": module.normal_signature(mesh, source=True)}]})
         self.write_scene()
 
     def write_scene(self):

@@ -36,6 +36,47 @@ def geometry_signature(mesh) -> str:
     return hashlib.sha256(faces.tobytes()).hexdigest()
 
 
+
+def normal_signature(mesh, *, source: bool = False) -> str:
+    """Bind GLB corner normals to source-derived float32 geometry shading.
+
+    The current OpenSCAD/STL blockout has no separately authored normals.
+    Recompute its expected vertex normals from float32 positions, matching
+    the precision serialized by GLB. At validation read the actual imported
+    normal attribute, so an inverted/shading-altered GLB cannot pass merely
+    because its oriented triangles are unchanged. Canonicalize face order
+    and cyclic vertex rotations, not reversed winding.
+    """
+    import numpy as np
+    if source:
+        import trimesh
+        normalized = trimesh.Trimesh(
+            vertices=np.asarray(mesh.vertices, dtype="<f4"),
+            faces=mesh.faces, process=False)
+        vertex_normals = normalized.vertex_normals
+    else:
+        vertex_normals = mesh.vertex_normals
+    triangles = np.asarray(mesh.triangles, dtype="<f4").copy()
+    normals = np.asarray(vertex_normals[mesh.faces], dtype="<f4").copy()
+    if (triangles.ndim != 3 or triangles.shape[1:] != (3, 3)
+            or not len(triangles) or normals.shape != triangles.shape
+            or not np.isfinite(triangles).all()
+            or not np.isfinite(normals).all()):
+        raise ValueError("invalid material normals")
+    lengths = np.linalg.norm(normals.astype(np.float64), axis=2)
+    if not np.allclose(lengths, 1, rtol=0, atol=1e-4):
+        raise ValueError("invalid material normal magnitude")
+    corners = np.concatenate((triangles, normals), axis=2)
+    corners[corners == 0] = 0
+    vertices = np.ascontiguousarray(corners).view(np.dtype("V24")).reshape(-1, 3)
+    rotations = np.stack((vertices, np.roll(vertices, -1, axis=1),
+                          np.roll(vertices, -2, axis=1)), axis=1)
+    face_options = np.ascontiguousarray(rotations).view(np.dtype("V72")).reshape(-1, 3)
+    faces = np.sort(face_options, axis=1)[:, 0].copy()
+    faces.sort()
+    return hashlib.sha256(faces.tobytes()).hexdigest()
+
+
 def validate_glb_roundtrip(path: Path, report: dict) -> dict:
     """Reopen a staged GLB and reject missing, altered or detached part meshes."""
     import numpy as np
@@ -102,6 +143,11 @@ def validate_glb_roundtrip(path: Path, report: dict) -> dict:
                     or any(c not in "0123456789abcdef" for c in expected_geometry)
                     or geometry_signature(mesh) != expected_geometry):
                 raise ValueError(f"GLB material geometry digest changed: {node}")
+            expected_normals = child.get("normals_sha256")
+            if (not isinstance(expected_normals, str) or len(expected_normals) != 64
+                    or any(c not in "0123456789abcdef" for c in expected_normals)
+                    or normal_signature(mesh) != expected_normals):
+                raise ValueError(f"GLB material normal digest changed: {node}")
             rgba = np.asarray(child["rgba"])
             if (rgba.shape != (4,) or mesh.visual.kind != "vertex"
                     or not np.all(mesh.visual.vertex_colors == rgba)):

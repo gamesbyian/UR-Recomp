@@ -758,9 +758,10 @@ jobs:
         # On HP this exact witness runs concurrently with isolated QA-05
         # within a single owned step, then joins before package refresh.
         # Hosted serial acceptance is otherwise unchanged.
-        # Hosted candidate PR canary overlaps offscreen race with five SERIAL
-        # visible-window QA-05 checks. Ordinary hosted retains the serial step.
-        if: ${{ !inputs.run_on_hp && !(github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) }}
+        # Verified hosted PR and source-bound hosted main-push runs overlap
+        # the unchanged offscreen race check with five SERIAL real Win32 QA-05
+        # checks. Manual hosted dispatch still proves the legacy serial route.
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
         run: bash tools/ci/windows_package_race_result.sh
 
       - name: Extracted-package Win32 window and default renderer smoke
@@ -829,11 +830,11 @@ jobs:
       - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
         # An HP service desktop can have uniquely PID-owned, non-visible SDL
         # windows. Only its isolated diagnostic uses real Win32 messages there.
-        # Hosted/visible UI acceptance stays strictly serial and unchanged.
+        # Hosted/visible UI acceptance remains five serial real Win32 sessions.
         env:
           UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
           UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}
-          UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '1' || '0' }}
+          UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ !inputs.run_on_hp && ((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) && '1' || '0' }}
           # Source-owned trial ONLY for hosted PR compiler-profile acceptance.
           # Default main/owner-HP original 4+4-second audio holds unchanged.
           # Real Win32 Down/Enter, PCM silence/audibility, Start 12-word

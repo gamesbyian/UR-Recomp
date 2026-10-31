@@ -187,8 +187,24 @@ class RF095Tests(unittest.TestCase):
                     path.write_bytes(ending.join((b'frame,samples', b'0,0',
                                                   b'1,100', b'2,200', b'3,300')) + terminal)
                     with self.subTest(ending=ending, terminal=terminal):
-                        self.assertEqual(receipt.frame_map(
-                            path, start=1, end=3, contiguous_from_zero=True)[3], 300)
+                        if not terminal:
+                            with self.assertRaisesRegex(ValueError, 'unterminated'):
+                                receipt.frame_map(
+                                    path, start=1, end=3, contiguous_from_zero=True)
+                        else:
+                            self.assertEqual(receipt.frame_map(
+                                path, start=1, end=3, contiguous_from_zero=True)[3], 300)
+
+    def test_source_truncated_final_newline_rejected_on_both_sides(self):
+        with tempfile.TemporaryDirectory() as d:
+            for index in (1, 3):  # original and native frame maps
+                files = self.fixture(d)
+                path = files[index]
+                self.assertTrue(path.read_bytes().endswith(b'\n'))
+                path.write_bytes(path.read_bytes()[:-1])
+                with self.subTest(side=index), self.assertRaisesRegex(
+                        ValueError, 'unterminated'):
+                    receipt.analyze(*files)
 
     def test_missing_frame_or_regression_rejected(self):
         with tempfile.TemporaryDirectory() as d:

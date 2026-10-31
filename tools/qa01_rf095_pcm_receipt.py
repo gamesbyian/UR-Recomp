@@ -35,12 +35,16 @@ def frame_map(path: Path, *, start: int, end: int,
     # The producers emit LF-terminated rows. Python splitlines() also accepts
     # VT/FF/ASCII record separators as line breaks, allowing impossible maps.
     # Read raw bytes so universal-newline translation cannot hide bare CR.
-    raw = path.read_bytes().decode('ascii').replace('\r\n', '\n')
+    raw_bytes = path.read_bytes()
+    # Both pinned C producers emit a final LF (CRLF on translated streams).
+    # Accepting a complete-looking last row without it hides truncated maps.
+    if not raw_bytes.endswith(b'\n'):
+        raise ValueError('RF095 unterminated frame-map row')
+    raw = raw_bytes.decode('ascii').replace('\r\n', '\n')
     if '\r' in raw:
         raise ValueError('RF095 malformed frame-map line ending')
     lines = raw.split('\n')
-    if lines[-1] == '':
-        lines.pop()
+    lines.pop()
     if any(not line for line in lines):
         raise ValueError('RF095 malformed frame-map row')
     if not lines or lines[0] != 'frame,samples':

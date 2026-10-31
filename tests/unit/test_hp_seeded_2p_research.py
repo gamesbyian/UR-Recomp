@@ -454,6 +454,69 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertNotIn("retail.sfc", json.dumps(row))
             self.assertEqual(row["release_gate_credit"], 0)
 
+    def test_failed_hp_campaign_retains_sealed_partial_research_without_acceptance(self):
+        # The first post-fix scheduled HP run had four authenticated workers
+        # with trial-2/3 RuntimeErrors. Its aggregate discarded earlier
+        # source-sealed positive cases and reduced reported processes to zero.
+        source, run_id = "a" * 40, 41223647258
+        rows = []
+        stock_input, _ = native.base_source()
+        for worker in range(hp.WORKERS):
+            base = run_id % 10000000 + (worker // 2) * 25000000
+            shard = worker % 2
+            first = base + shard * 1000003
+            row = _report(Path("unused"), source, base, shard)
+            second = dict(row["case_results"][0])
+            second["seed"] = first + 1
+            second["input_sha256"] = hp.expected_treatment_digest(
+                stock_input, first + 1)
+            row.update(
+                disposition="invariant_violation", attempted_cases=4,
+                passed_cases=2, failed_cases=2,
+                total_real_native_processes=8,
+                stop_reason="invariant_failure",
+                case_results=[row["case_results"][0], second],
+                failures=[
+                    {"trial_index": 2, "seed": first + 2,
+                     "kind": "RuntimeError",
+                     "error": "real guest process timeout (20s)"},
+                    {"trial_index": 3, "seed": first + 3,
+                     "kind": "RuntimeError",
+                     "error": "guest exited 1; stdout/stderr tail=C:/private/ROM.sfc"},
+                ],
+            )
+            row["receipt_sha256"] = native.hash_object({
+                k: v for k, v in row.items() if k != "receipt_sha256"})
+            rows.append({"worker": worker, "report": row})
+        result = hp.collect(rows, source, run_id, 306.063)
+        self.assertEqual(result["status"], "research_failure")
+        self.assertEqual(result["accepted_cases"], 0)
+        self.assertEqual(result["real_guest_processes"], 0)
+        self.assertEqual(result["source_attested_pre_failure_cases"], 8)
+        self.assertEqual(result["source_attested_pre_failure_native_processes"], 32)
+        self.assertEqual(len(result["issues"]), 8)
+        self.assertEqual({i["failure_category"] for i in result["issues"]},
+                         {"guest_timeout", "guest_nonzero_exit"})
+        self.assertNotIn("private", json.dumps(result))
+        self.assertEqual(result["original_native_event_credit"], 0)
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_failure_category_refuses_arbitrary_private_text(self):
+        self.assertEqual(hp.safe_failure_category(
+            "RuntimeError", "real guest process timeout (90s)"), "guest_timeout")
+        self.assertEqual(hp.safe_failure_category(
+            "RuntimeError", "guest exited -1; stderr=C:/private/file"),
+            "guest_nonzero_exit")
+        for kind, detail in (
+            ("RuntimeError", "C:/private/ROM.sfc"),
+            ("ValueError", "real guest process timeout (90s)"),
+            ("RuntimeError", "real guest process timeout (9999s)"),
+            ("RuntimeError", None),
+        ):
+            with self.subTest(kind=kind, detail=detail):
+                self.assertEqual(hp.safe_failure_category(kind, detail),
+                                 "unclassified")
+
 
 if __name__ == "__main__":
     unittest.main()

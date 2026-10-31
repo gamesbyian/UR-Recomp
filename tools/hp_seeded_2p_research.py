@@ -65,6 +65,16 @@ def authentic_candidate(proof: object, source: str) -> bool:
             hashlib.sha256(stock_script.encode()).hexdigest())
 
 
+def safe_failure_category(kind: str, detail: object) -> str:
+    """Allowlisted native failure class; never publish private process logs."""
+    if kind == "RuntimeError" and isinstance(detail, str):
+        if re.fullmatch(r"real guest process timeout \\([1-9][0-9]{0,2}s\\)", detail):
+            return "guest_timeout"
+        if re.match(r"guest exited -?[0-9]+;", detail):
+            return "guest_nonzero_exit"
+    return "unclassified"
+
+
 def source_owned_failure_notes(sealed: dict, source: str, worker: int,
                                run_id: int) -> list[dict]:
     """Only authentic, bounded attempt records earn replay coordinates."""
@@ -129,7 +139,8 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int,
             return []
         seen.add(trial_index)
         notes.append({"worker": worker, "reason": "source-owned trial invariant failure",
-                      "seed": seed, "trial_index": trial_index, "kind": kind})
+                      "seed": seed, "trial_index": trial_index, "kind": kind,
+                      "failure_category": safe_failure_category(kind, failure.get("error"))})
     return notes if seen == set(range(attempted)) else []
 
 def expected_treatment_digest(stock_input: str, seed: int) -> str:
@@ -158,6 +169,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     attempts = successes = native_processes = 0
     summaries = []
     pending_failures = []
+    source_attested_partial_cases = 0
+    source_attested_partial_native_processes = 0
     candidate_proofs = []
     stock_input = None
     script_digest = None
@@ -183,7 +196,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
         if sealed.get("disposition") == "invariant_violation":
             notes = source_owned_failure_notes(sealed, source, index, run_id)
             if notes:
-                pending_failures.append((index, notes))
+                pending_failures.append((index, notes, sealed))
                 candidate_proofs.append(sealed["identity"])
             else:
                 issues.append({"worker": index, "reason": "unverifiable source-owned failure"})
@@ -267,7 +280,14 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
                               for proof in candidate_proofs))
         if consistent:
             identity = candidate_proofs[0]
-        for index, notes in pending_failures:
+            # Keep source-sealed pre-failure research visible without turning
+            # a failed four-worker campaign into accepted cases or QA credit.
+            source_attested_partial_cases = sum(
+                sealed["passed_cases"] for _, _, sealed in pending_failures)
+            source_attested_partial_native_processes = sum(
+                sealed["total_real_native_processes"]
+                for _, _, sealed in pending_failures)
+        for index, notes, _ in pending_failures:
             issues.extend(notes if consistent else
                           [{"worker": index, "reason": "unverifiable source-owned failure"}])
     valid = not issues and identity is not None and attempts == successes and successes >= WORKERS
@@ -277,6 +297,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
         "workers": WORKERS, "elapsed_seconds": round(elapsed, 3),
         "attempted_cases": attempts, "accepted_cases": successes,
         "real_guest_processes": native_processes,
+        "source_attested_pre_failure_cases": source_attested_partial_cases,
+        "source_attested_pre_failure_native_processes": source_attested_partial_native_processes,
         "candidate_identity": identity,
         "per_worker": summaries, "issues": issues[:16],
         "original_native_event_credit": 0, "release_gate_credit": 0,

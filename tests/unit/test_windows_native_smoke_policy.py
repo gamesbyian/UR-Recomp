@@ -61,8 +61,11 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertLess(acceptance, definition)
 
     def test_qa05_hosted_bounded_hold_does_not_change_hp_or_main_acceptance(self) -> None:
-        needle = "UR_QA05_CAPTURE_HOLD_SECONDS: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}"
+        needle = "UR_QA05_CAPTURE_HOLD_SECONDS: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}"
         self.assertIn(needle, self.text)
+        # A main-branch workflow_dispatch must not activate the
+        # PR-only trial even when test_hp_compiler_profile is true.
+        self.assertIn("github.event_name == 'pull_request'", needle)
         self.assertIn("UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}", self.text)
         self.assertIn("WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5", self.text)
         self.assertIn('bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"', self.text)

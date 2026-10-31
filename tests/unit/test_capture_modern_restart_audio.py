@@ -149,7 +149,7 @@ class ModernRestartAudioTests(unittest.TestCase):
         self.assertIn('3|4) ;;', script)
         self.assertIn('--paused-hold-seconds "$HOLD"', script)
         self.assertIn('--restarted-hold-seconds "$HOLD"', script)
-        self.assertIn("UR_QA05_CAPTURE_HOLD_SECONDS: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}", workflow)
+        self.assertIn("UR_QA05_CAPTURE_HOLD_SECONDS: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}", workflow)
         self.assertIn("UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}", workflow)
         self.assertIn("UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}", workflow)
         self.assertIn('for attempt in 1 2 3 4 5; do', workflow)

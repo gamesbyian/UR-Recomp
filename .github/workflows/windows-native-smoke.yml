@@ -783,7 +783,7 @@ jobs:
           # Default main/owner-HP original 4+4-second audio holds unchanged.
           # Real Win32 Down/Enter, PCM silence/audibility, Start 12-word
           # oracle and FIVE fresh sessions remain mandatory in all modes.
-          UR_QA05_CAPTURE_HOLD_SECONDS: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}
+          UR_QA05_CAPTURE_HOLD_SECONDS: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}
         run: |
           set -euo pipefail
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"

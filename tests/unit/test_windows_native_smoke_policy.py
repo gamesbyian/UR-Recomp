@@ -157,9 +157,13 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertNotIn("python -m zipfile -e", self.text)
 
     def test_real_released_game_boots_under_cmd_special_paths(self) -> None:
-        start = self.text.index("- name: Real packaged game under CMD-special paths")
-        end = self.text.index("- name: Normal Windows APPDATA clean-user launch", start)
-        acceptance = self.text[start:end]
+        # Acceptance implementation moved into the exact script shared by
+        # hosted serial CI and HP isolated concurrent routing. Assert the
+        # workflow still invokes it, then inspect that script's real checks.
+        self.assertIn("run: bash tools/ci/windows_package_special_path.sh", self.text)
+        acceptance = (ROOT / "tools/ci/windows_package_special_path.sh").read_text(
+            encoding="utf-8"
+        )
         # Not a synthetic executable or a new workflow: the same ZIP,
         # shipped PowerShell verifier and actual guest input script.
         for marker in (
@@ -184,9 +188,10 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
     def test_default_appdata_launch_has_no_explicit_root_override(self) -> None:
         # The ordinary player path must be exercised separately from the
         # explicit-root tests, with a disposable profile and unrelated cwd.
-        start = self.text.index("- name: Normal Windows APPDATA clean-user launch")
-        end = self.text.index("- name: Extracted-package race-result acceptance", start)
-        default_boot = self.text[start:end]
+        self.assertIn("run: bash tools/ci/windows_package_default_appdata.sh", self.text)
+        default_boot = (ROOT / "tools/ci/windows_package_default_appdata.sh").read_text(
+            encoding="utf-8"
+        )
         for marker in (
             'APPDATA_DIR="$RUNNER_TEMP/default player roaming data"',
             'DEFAULT_USER_DATA="$APPDATA_DIR/gamesbyian/UR-Recomp"',

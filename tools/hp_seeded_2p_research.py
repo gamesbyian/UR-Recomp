@@ -21,7 +21,7 @@ import time
 from tools import qa02_native_2p_seeded_endurance as native
 
 SCHEMA = "ur-hp-windows-seeded-2p-research/1"
-WORKERS = 4
+WORKERS = 8  # Research-only trial; each worker owns four guest processes per case.
 WALL_SECONDS = 360
 MINUTES = 15
 MAX_CASES = 12
@@ -287,7 +287,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
                               if cases else None, "elapsed_seconds": sealed.get("elapsed_seconds")})
     if pending_failures:
         # A single checksum-vouched foreign PE cannot borrow the source
-        # credentials of another worker. ALL four producers must agree
+        # credentials of another worker. ALL source-owned producers must agree
         # before even one negative seed is published for replay.
         consistent = (not issues and len(candidate_proofs) == WORKERS
                       and all(proof == candidate_proofs[0]
@@ -295,7 +295,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
         if consistent:
             identity = candidate_proofs[0]
             # Keep source-sealed pre-failure research visible without turning
-            # a failed four-worker campaign into accepted cases or QA credit.
+            # a failed multi-worker campaign into accepted cases or QA credit.
             source_attested_partial_cases = sum(
                 sealed["passed_cases"] for _, _, sealed in pending_failures)
             source_attested_partial_native_processes = sum(
@@ -330,9 +330,11 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
     if private.exists():
         raise ValueError("research work root already exists; refusing stale evidence")
     private.mkdir(parents=True)
-    # Every Actions run gets four distinct integer seed namespaces.
+    # Every Actions run gets independent seed namespaces per paired shard.
+    # Pair i owns one base namespace; shard 0/1 offset by 1,000,003.
+    # With eight workers, the largest base remains <85M (source-owned bound 100M).
     base = run_id % 10_000_000
-    seeds = (base, base, base + 25_000_000, base + 25_000_000)
+    seeds = tuple(base + (i // 2) * 25_000_000 for i in range(WORKERS))
     start = time.monotonic()
 
     def worker(i: int) -> dict:

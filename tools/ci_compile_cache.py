@@ -87,8 +87,8 @@ def compile_cached(real, cache, src, flags, version, workdir):
     if pre.returncode != 0:
         return None  # let the real compiler report the error in context
     h = hashlib.sha256()
-    for part in (version, real, "\\0".join(flags), Path(src).suffix):
-        h.update(part.encode() + b"\\1")
+    for part in (version, real, "\0".join(flags), Path(src).suffix):
+        h.update(part.encode() + b"\1")
     h.update(pre.stdout)
     key = h.hexdigest()
     obj_cached = cache / f"{key}.o"
@@ -140,7 +140,7 @@ def compile_cached(real, cache, src, flags, version, workdir):
                 "schema": "ur-ci-compile-cache/1",
                 "object_sha256": hashlib.sha256(contents).hexdigest(),
                 "stderr_sha256": hashlib.sha256(res.stderr).hexdigest(),
-            }, sort_keys=True) + "\\n", encoding="utf-8")
+            }, sort_keys=True) + "\n", encoding="utf-8")
             os.replace(staged_err, err_cached)
             os.replace(staged_obj, obj_cached)
             os.replace(staged_receipt, receipt)

@@ -51,7 +51,9 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
         hosted = HOSTED.read_text(encoding="utf-8")
         self.assertIn("hp_ninja_auto: ${{ github.event_name == 'push' }}", hp)
         self.assertIn("(!inputs.hp_ninja_auto ||", smoke)
-        self.assertIn("github.event_name == 'push'))", smoke)
+        self.assertIn("(github.event_name == 'push' ||", smoke)
+        self.assertIn("inputs.hp_seeded_2p", smoke)
+        self.assertIn("github.event_name == 'schedule'", smoke)
         self.assertIn("!(inputs.hp_ninja_auto && inputs.hp_ninja_canary)", smoke)
         self.assertIn('elif [[ "${{ inputs.hp_ninja_auto }}" == "true" ]]; then', smoke)
         self.assertIn("HP_NINJA_AUTO=verified_source_bound", smoke)
@@ -83,6 +85,27 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
             base["GITHUB_EVENT_NAME"] = "pull_request"
             with patch.dict(mod.os.environ, base, clear=True):
                 with patch("sys.argv", ["verify_hp_ninja.py", "--allow-trusted-main-push"]):
+                    with self.assertRaises(SystemExit):
+                        mod.main()
+
+    def test_scheduled_research_preflight_requires_explicit_permission(self):
+        from unittest.mock import patch
+        base = {"RUNNER_NAME": "hpmini-ur-recomp",
+                "GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",
+                "GITHUB_REF": "refs/heads/main", "GITHUB_EVENT_NAME": "schedule"}
+        with patch.dict(mod.os.environ, base, clear=True):
+            for argv in (["verify_hp_ninja.py"],
+                         ["verify_hp_ninja.py", "--allow-trusted-main-push"]):
+                with self.subTest(argv=argv), patch("sys.argv", argv):
+                    with self.assertRaises(SystemExit):
+                        mod.main()
+            with patch("sys.argv", ["verify_hp_ninja.py", "--allow-trusted-main-schedule"]):
+                with patch.object(mod, "verify", return_value="pinned/ninja.exe"):
+                    with patch.object(mod, "file_hash", return_value="b" * 64):
+                        self.assertEqual(mod.main(), 0)
+            base["GITHUB_EVENT_NAME"] = "pull_request"
+            with patch.dict(mod.os.environ, base, clear=True):
+                with patch("sys.argv", ["verify_hp_ninja.py", "--allow-trusted-main-schedule"]):
                     with self.assertRaises(SystemExit):
                         mod.main()
 

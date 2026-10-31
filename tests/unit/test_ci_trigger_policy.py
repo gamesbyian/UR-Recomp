@@ -1028,9 +1028,20 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("github.repository == 'gamesbyian/UR-Recomp'", text)
         self.assertIn("github.ref == 'refs/heads/main'", text)
         self.assertIn(
-            "(github.event_name == 'push' || github.event_name == 'workflow_dispatch')",
+            "(github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||",
             text,
         )
+        self.assertIn(
+            "(github.event_name == 'schedule' && inputs.hp_seeded_2p)",
+            text,
+        )
+        self.assertIn("(!inputs.hp_seeded_2p ||", text)
+        self.assertIn("github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'", text)
+        research = (WORKFLOWS / "owner-hp-seeded-2p-research.yml").read_text()
+        self.assertIn("github.ref == 'refs/heads/main'", research)
+        self.assertIn("run_on_hp: true", research)
+        self.assertIn("hp_seeded_2p: true", research)
+        self.assertNotIn("  pull_request:", research)
         hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
         self.assertIn("cancel-in-progress: false", hp)
         self.assertIn("run_on_hp: true", hp)

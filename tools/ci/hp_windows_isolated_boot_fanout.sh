@@ -7,7 +7,7 @@ set -euo pipefail
 [[ "${RUNNER_NAME:-}" == "hpmini-ur-recomp" ]] || { echo "HP_BOOT_FANOUT=refused_runner" >&2; exit 2; }
 [[ "${GITHUB_REPOSITORY:-}" == "gamesbyian/UR-Recomp" ]] || { echo "HP_BOOT_FANOUT=refused_repo" >&2; exit 2; }
 [[ "${GITHUB_REF:-}" == "refs/heads/main" ]] || { echo "HP_BOOT_FANOUT=refused_ref" >&2; exit 2; }
-[[ "${GITHUB_EVENT_NAME:-}" == "push" || "${GITHUB_EVENT_NAME:-}" == "workflow_dispatch" ]] || {
+[[ "${GITHUB_EVENT_NAME:-}" == "push" || "${GITHUB_EVENT_NAME:-}" == "workflow_dispatch" || "${GITHUB_EVENT_NAME:-}" == "schedule" ]] || {
   echo "HP_BOOT_FANOUT=refused_event" >&2; exit 2;
 }
 # The checkout is the Actions Bash working directory on Windows. The

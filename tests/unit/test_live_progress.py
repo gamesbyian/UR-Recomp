@@ -24,7 +24,7 @@ class LiveProgressTests(unittest.TestCase):
         self.assertEqual(a["current_completion_estimate_percent"],
                          a["verified_bounded_coverage_percent"])
         self.assertIsNone(b["current_completion_estimate_percent"])
-        self.assertTrue(b["verified_floor_is_not_current_estimate"])
+        self.assertTrue(b["last_accepted_score_is_not_current_estimate"])
 
     def test_stale_scoring_never_changes_release_gates_or_usa_events(self):
         sha=self.i["source_sha"]

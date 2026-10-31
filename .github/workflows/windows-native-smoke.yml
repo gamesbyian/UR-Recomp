@@ -331,6 +331,21 @@ jobs:
       # hosted HP-profile job proves this actual package/link route on PRs.
       # No personal runner is assigned to PRs. HP provisioning failures fall
       # back to the existing per-candidate source build.
+      # Hosted Windows runners are disposable, but every PR need not rebuild
+      # the same pinned static SDL3. Restore only an optimization candidate:
+      # prepare_sdl3_cache.py ALWAYS recomputes actual SDK/compiler/source
+      # fingerprints and validates every staged byte before exposing SDL3_DIR.
+      # HP owns a separate machine-local cache; never transfer PR bytes there.
+      - name: Restore hosted Windows verified SDL3 candidate
+        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}
+        id: hosted-sdl3-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-${{ github.run_id }}
+          restore-keys: |
+            ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-
+
       - name: Prepare source-pinned static SDL3 cache (HP and hosted canary)
         if: ${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}
         shell: bash
@@ -348,6 +363,16 @@ jobs:
             --cache-root "$cache_root" \
             --github-env "$GITHUB_ENV" \
             --jobs 6 "${mode[@]}"
+
+      # Commit the verified *small install only*, not temporary SDL3 build
+      # objects or any product/ROM output. Save BEFORE lengthy Windows QA:
+      # a later superseded PR run can still warm its successor.
+      - name: Save hosted Windows verified SDL3 candidate
+        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && steps.hosted-sdl3-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-${{ github.run_id }}
 
       - name: Prepare pinned Rust/Cargo for owner HP
         if: inputs.run_on_hp

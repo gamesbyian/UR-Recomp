@@ -256,6 +256,38 @@ class HPSDL3CacheTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "redirected source/install"):
                 cache.manifest_for_stage(root / "stage")
 
+    def test_hosted_cache_is_restored_and_saved_before_expensive_build(self):
+        workflow = (MODULE.parents[2] / ".github/workflows/windows-native-smoke.yml").read_text()
+        restored = workflow.index("- name: Restore hosted Windows verified SDL3 candidate")
+        validated = workflow.index("- name: Prepare source-pinned static SDL3 cache")
+        saved = workflow.index("- name: Save hosted Windows verified SDL3 candidate")
+        built = workflow.index("- name: Configure and build (Visual Studio")
+        self.assertLess(restored, validated)
+        self.assertLess(validated, saved)
+        self.assertLess(saved, built)
+        self.assertIn("uses: actions/cache/restore@v4", workflow)
+        self.assertIn("uses: actions/cache/save@v4", workflow)
+        self.assertEqual(workflow.count("id: hosted-sdl3-cache"), 1)
+        self.assertEqual(workflow.count(
+            "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}"), 1)
+        self.assertIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
+        # Reuse cannot turn untrusted PR code into a self-hosted HP job.
+        host_only = "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile"
+        for name in ("Restore hosted Windows verified SDL3 candidate",
+                     "Save hosted Windows verified SDL3 candidate"):
+            block = workflow.split("- name: " + name, 1)[1].split("- name:", 1)[0]
+            self.assertIn(host_only, block)
+            self.assertIn("${{ runner.temp }}/ur-sdl3-canary-cache", block)
+            self.assertIn("hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', "
+                          "'tools/devnode_benchmark/prepare_sdl3_cache.py')", block)
+            self.assertIn("${{ github.run_id }}", block)
+            self.assertNotIn("RUNNER_WORKSPACE", block)
+        # The original full source/SDK fingerprint and byte manifest checks
+        # still gate every reuse before the generated game's CMake config.
+        self.assertIn("python tools/devnode_benchmark/prepare_sdl3_cache.py", workflow)
+        self.assertIn("--required", workflow)
+        self.assertIn("if package_dir is None:", MODULE.read_text())
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

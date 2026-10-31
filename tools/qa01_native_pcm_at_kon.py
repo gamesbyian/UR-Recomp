@@ -94,6 +94,15 @@ def wav_command_path(wav_path: Path) -> str:
         raise ValueError("audio_wav destination cannot be encoded as UTF-8") from exc
     if len(encoded) > 511:
         raise ValueError("audio_wav destination exceeds server's 511-byte path token")
+    # The shared capture_audio_events.command sends ASCII, while the pinned
+    # native producer opens paths with narrow fopen (Windows active codepage).
+    # Neither transport nor filesystem semantics can promise Unicode paths.
+    # Refuse before issuing the destructive server-side WAV write; a future
+    # Unicode-capable staging route must independently prove safe relocation.
+    try:
+        path.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise ValueError("audio_wav debug transport requires an ASCII server-local path") from exc
     return path
 
 

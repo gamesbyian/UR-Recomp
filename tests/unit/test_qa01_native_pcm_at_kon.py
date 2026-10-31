@@ -172,10 +172,44 @@ class NativeWavWirePathTests(unittest.TestCase):
 
     def test_server_path_token_utf8_byte_limit(self):
         # Non-ASCII UTF-8 consumes more wire bytes than Python characters.
-        self.assertEqual(pcm.wav_command_path(Path("/" + "a" * 508 + "é")),
-                         "/" + "a" * 508 + "é")
+        # A 511-byte UTF-8 token still cannot traverse the shared ASCII
+        # command transport. A 512-byte token must fail the server bound too.
+        with self.assertRaisesRegex(ValueError, "ASCII"):
+            pcm.wav_command_path(Path("/" + "a" * 508 + "é"))
         with self.assertRaisesRegex(ValueError, "511-byte"):
             pcm.wav_command_path(Path("/" + "a" * 509 + "é"))
+
+    def test_unicode_path_rejected_before_shared_ascii_transport(self):
+        # Exercise the capture call site with the actual shared transport
+        # attached. No server command or file write may be attempted.
+        import io
+        from capture_audio_events import command as shared_command
+
+        class NoWriteSocket:
+            def sendall(self, payload):
+                raise AssertionError("Unicode path must not reach the server")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "José.wav"
+            calls = []
+            def transport(line):
+                calls.append(line)
+                return shared_command(NoWriteSocket(), io.StringIO('{"ok":true}\n'), line)
+
+            with self.assertRaisesRegex(ValueError, "ASCII"):
+                pcm.capture_kon_pcm(transport, events=NativeKonPCMTests.events(),
+                                    produced=45000, kon_sample_index=40000,
+                                    wav_path=path, before=500, after=2000)
+            self.assertEqual(calls, [])
+            self.assertFalse(path.exists())
+            # The existing shared transport itself rejects non-ASCII lines.
+            with self.assertRaises(UnicodeEncodeError):
+                shared_command(NoWriteSocket(), io.StringIO('{"ok":true}\n'),
+                               f"audio_wav {path} 39500 2500")
+
+    def test_windows_unicode_parent_rejected_before_transport(self):
+        with self.assertRaisesRegex(ValueError, "ASCII"):
+            pcm.wav_command_path(PureWindowsPath(r"C:\Users\José\capture.wav"))
 
     def test_unsafe_posix_paths_fail_before_wav_request(self):
         for name in ("/tmp/has\\backslash.wav", '/tmp/has"quote.wav',

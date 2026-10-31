@@ -1,4 +1,6 @@
 name: HP current-source native Windows smoke
+# Unit-test-only edits are fully exercised by the tooling-unit-tests workflow;
+# this Windows package job does not execute those Python test modules.
 
 # Reuse the canonical Windows smoke rather than maintaining a second product
 # build script. The owner explicitly prefers using HP capacity continuously.
@@ -34,26 +36,16 @@ on:
       - "tools/ci/windows_package_special_path.sh"
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"
-      - "tests/unit/test_hp_isolated_boot_fanout.py"
-      - "tests/unit/test_windows_native_smoke_policy.py"
-      - "tests/unit/test_hp_race_overlap_policy.py"
-      - "tests/unit/test_hp_qa05_parallel_policy.py"
       - "tools/capture_modern_resume_audio.py"
       # These two helpers are also imported by the real QA-05 capture.
       - "tools/capture_modern_paused_audio.py"
       - "tools/analyze_sdl_audio_envelope.py"
       - "tools/ci/stage_windows_smoke_romfree_exe.py"
       - "tools/ci/check_windows_smoke_upload_policy.py"
-      - "tests/unit/test_stage_windows_smoke_romfree_exe.py"
-      - "tests/unit/test_assemble_windows_package.py"
-      - "tests/unit/test_windows_package_streaming_bounds.py"
-      - "tests/unit/test_windows_clean_machine_verifier_policy.py"
-      - "tests/unit/test_windows_portable_binary.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/devnode_benchmark/prepare_sdl3_cache.py"
       - "tools/devnode_benchmark/verify_hp_ninja.py"
       - "tools/ci/ninja_package_canary.cmd"
-      - "tests/unit/test_hp_ninja_manual_policy.py"
       - "tools/devnode_benchmark/**"
       - "tools/patches/**"
       - "tools/toolchain-entries/snesrecomp.json"

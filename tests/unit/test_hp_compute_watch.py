@@ -77,6 +77,44 @@ class HpComputeWatchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             watch.observe("unknown", [], NOW)
 
+    def test_malformed_api_rows_never_turn_into_ordinary_status(self):
+        valid = row()
+        bad = [None, {}, {k: v for k, v in valid.items() if k != "head_branch"},
+               dict(valid, head_sha=None), dict(valid, head_sha="bad"),
+               dict(valid, status="nonsense"),
+               dict(valid, status="completed", conclusion=None),
+               dict(valid, status="in_progress", conclusion="success"),
+               dict(valid, event=None), dict(valid, rid="ignored", id="bad")]
+        for entry in bad:
+            with self.subTest(entry=entry):
+                with self.assertRaises(ValueError):
+                    watch.observe("unattended_2p", [entry], NOW)
+                with self.assertRaises(ValueError):
+                    watch.observe("product_windows", [valid, entry], NOW)
+        with self.assertRaisesRegex(ValueError, "future"):
+            watch.observe("unattended_2p", [row(main=False,
+                          when=NOW + timedelta(minutes=2))], NOW)
+        self.assertEqual(watch.observe("unattended_2p", [], NOW)["status"],
+                         "NOT_YET_OBSERVED")
+        self.assertEqual(watch.observe("unattended_2p", [row(main=False)], NOW)["status"],
+                         "NOT_YET_OBSERVED")
+
+    def test_main_branch_api_query_is_bounded(self):
+        from unittest.mock import patch
+        class Reply:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self, *args):
+                return b'{"workflow_runs": []}'
+        def check(request, timeout):
+            self.assertIn("?branch=main&per_page=30", request.full_url)
+            self.assertEqual(timeout, 15)
+            return Reply()
+        with patch.object(watch, "urlopen", check):
+            self.assertEqual(watch.fetch_runs("owner-hp-seeded-2p-research.yml", "test"), [])
+
     def test_report_is_compact_and_links_exact_run(self):
         result = {"schema": "ur-hp-compute-watch/1", "lanes": {
             "unattended_2p": watch.observe("unattended_2p", [row()], NOW),

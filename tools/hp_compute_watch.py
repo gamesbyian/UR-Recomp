@@ -12,6 +12,7 @@ import argparse
 from datetime import datetime, timezone
 import json
 import os
+import re
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -40,18 +41,44 @@ def observe(lane: str, runs: list[dict], now: datetime) -> dict:
     eligible = []
     manual = 0
     for row in runs[:MAX_RUNS]:
-        if not isinstance(row, dict) or row.get("head_branch") != "main":
-            continue
+        # Validate *before* filtering. A malformed API row must not silently
+        # become NOT_YET_OBSERVED or a healthy main-run observation.
+        if not isinstance(row, dict):
+            raise ValueError("malformed Actions run row")
+        run_id = row.get("id")
         event = row.get("event")
+        branch = row.get("head_branch")
+        sha = row.get("head_sha")
+        status = row.get("status")
+        conclusion = row.get("conclusion")
+        if type(run_id) is not int or run_id <= 0:
+            raise ValueError("invalid Actions run ID")
+        if not isinstance(event, str) or not event:
+            raise ValueError("invalid Actions event")
+        if not isinstance(branch, str) or not branch:
+            raise ValueError("missing Actions branch")
+        if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+            raise ValueError("invalid Actions source SHA")
+        if status not in {"queued", "in_progress", "completed", "waiting",
+                          "requested", "pending"}:
+            raise ValueError("invalid Actions status")
+        valid_conclusions = {"success", "failure", "cancelled", "skipped",
+                             "neutral", "timed_out", "action_required",
+                             "startup_failure", "stale"}
+        if ((status == "completed" and conclusion not in valid_conclusions)
+                or (status != "completed" and conclusion is not None)):
+            raise ValueError("invalid Actions conclusion")
+        when = timestamp(row.get("created_at"))
+        if when > now:
+            raise ValueError("future Actions event")
+        if branch != "main":
+            continue
         # Manual trials are counted, never treated as proof that an
         # automatic push build or recurring research cron is healthy.
         if event == "workflow_dispatch":
             manual += 1
         if event not in allowed:
             continue
-        when = timestamp(row.get("created_at"))
-        if when > now:
-            raise ValueError("future Actions event")
         eligible.append((when, row))
     eligible.sort(key=lambda item: item[0], reverse=True)
     if not eligible:
@@ -87,7 +114,7 @@ def observe(lane: str, runs: list[dict], now: datetime) -> dict:
 
 def fetch_runs(workflow: str, token: str) -> list[dict]:
     url = (f"https://api.github.com/repos/{REPOSITORY}/actions/workflows/"
-           f"{workflow}/runs?per_page={MAX_RUNS}")
+           f"{workflow}/runs?branch=main&per_page={MAX_RUNS}")
     request = Request(url, headers={
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",

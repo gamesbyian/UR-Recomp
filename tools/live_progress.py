@@ -49,7 +49,7 @@ def main():
     ledger = json.loads((ROOT/"docs/RELEASE-QUALITY-LEDGER.json").read_text())
     pointer = json.loads((ROOT/"docs/progress/current-v2-review.json").read_text())
     from tools.progress_receipt_ledger import apply_receipts, read_receipts
-    inv, accepted_receipts = apply_receipts(inv, ledger, read_receipts())
+    inv, pending_receipts = apply_receipts(inv, ledger, read_receipts())
     reviewed = pointer["reviewed_main_sha"]
     head = git("rev-parse","HEAD")
     try:
@@ -58,8 +58,8 @@ def main():
         parser.error("Reviewed source is not an ancestor of this checkout; reconcile before reporting")
     n = int(git("rev-list","--count",f"{reviewed}..{head}"))
     summary = summarize(inv,ledger,reviewed,head,n)
-    summary["independent_incremental_receipts"] = accepted_receipts
-    summary["incremental_receipt_points"] = len(accepted_receipts)
+    summary["pending_incremental_receipts"] = pending_receipts
+    summary["incremental_receipt_points"] = 0
     changes = git("log", "--format=%H%x09%s", f"{reviewed}..{head}").splitlines() if n else []
     patterns = {
         "ONE": ("one-", "tour", "practice", "result", "race"),
@@ -97,7 +97,8 @@ def main():
         print("Last accepted coverage: %.1f%% | independent bounded: %.1f%%" %
               (summary["verified_bounded_coverage_percent"],
                summary["independently_reviewed_bounded_percent"]))
-        print("Incremental independently reviewed receipts:",len(accepted_receipts))
+        print("Pending incremental receipts (unadmitted):",len(pending_receipts))
+        print("Incremental receipt points awarded:",0)
         print("Unreviewed commits:",n,"| unverified criteria at accepted checkpoint:",len(summary["unverified_criteria"]))
         print("Unreviewed candidate commits for evidence triage:",len(candidates))
         for item in candidates[:10]:

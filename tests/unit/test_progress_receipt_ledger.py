@@ -16,17 +16,19 @@ class IncrementalReceiptsTests(unittest.TestCase):
                     kind="new_implementation", rationale="Original exact evidence adjudicated",
                     evidence=["https://github.com/gamesbyian/UR-Recomp/pull/2893"],
                     audit_receipt="https://github.com/gamesbyian/UR-Recomp/actions/runs/41149867355")
-    def test_new_independent_receipt_updates_score_not_release(self):
+    def test_unrelated_urls_and_claimed_reviewer_never_award_credit(self):
         before=self.inv
         target=next(x["id"] for x in before["criteria"]
                     if x["status"]=="unverified" and x["area"] not in ("FID",))
-        result, applied=apply_receipts(before,self.ledger,[self.receipt(target)])
-        self.assertEqual(len(applied),1)
+        result, pending=apply_receipts(before,self.ledger,[self.receipt(target)])
+        self.assertEqual(len(pending),1)
+        self.assertEqual(pending[0]["admission_status"],"pending_independent_review")
         from tools.atomic_progress_v2 import validate
         self.assertEqual(validate(result,self.ledger)["bounded_product_coverage_percent"],
-                         validate(before,self.ledger)["bounded_product_coverage_percent"]+1)
+                         validate(before,self.ledger)["bounded_product_coverage_percent"])
         self.assertEqual(validate(result,self.ledger)["formal_windows_gates_passed"],0)
-        self.assertEqual(next(c for c in before["criteria"] if c["id"]==target)["status"],"unverified")
+        self.assertEqual(next(c for c in result["criteria"] if c["id"]==target)["status"],"unverified")
+        self.assertEqual(before,result)
     def test_duplicate_and_unevidenced_rejected(self):
         target=next(c["id"] for c in self.inv["criteria"] if c["status"]=="unverified")
         x=self.receipt(target)

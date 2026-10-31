@@ -1,9 +1,12 @@
 """Safety and provenance checks for the opt-in pinned Windows SDL3 install."""
 import importlib.util
 import json
+import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 MODULE = Path(__file__).resolve().parents[2] / "tools/devnode_benchmark/prepare_sdl3_cache.py"
 spec = importlib.util.spec_from_file_location("prepare_sdl3_cache", MODULE)
@@ -270,7 +273,9 @@ class HPSDL3CacheTests(unittest.TestCase):
         self.assertEqual(workflow.count("id: hosted-sdl3-cache"), 1)
         self.assertEqual(workflow.count(
             "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}"), 1)
-        self.assertIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'miss'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'recovered'", workflow)
+        self.assertNotIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
         # Reuse cannot turn untrusted PR code into a self-hosted HP job.
         host_only = "if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile"
         for name in ("Restore hosted Windows verified SDL3 candidate",
@@ -287,6 +292,125 @@ class HPSDL3CacheTests(unittest.TestCase):
         self.assertIn("python tools/devnode_benchmark/prepare_sdl3_cache.py", workflow)
         self.assertIn("--required", workflow)
         self.assertIn("if package_dir is None:", MODULE.read_text())
+
+    def test_main_scoped_seed_keeps_canonical_source_build_and_never_touches_hp(self):
+        workflow = (MODULE.parents[2] / ".github/workflows/windows-native-smoke.yml").read_text()
+        restore = workflow.index("- name: Restore hosted main-branch SDL3 seed")
+        prepare = workflow.index("- name: Validate isolated hosted main SDL3 seed")
+        save = workflow.index("- name: Save verified hosted main-branch SDL3 seed")
+        hosted = workflow.index("- name: Restore hosted Windows verified SDL3 candidate")
+        build = workflow.index("- name: Configure and build (Visual Studio")
+        self.assertLess(restore, prepare)
+        self.assertLess(prepare, save)
+        self.assertLess(save, hosted)
+        self.assertLess(hosted, build)
+        for name in ("Restore hosted main-branch SDL3 seed",
+                     "Validate isolated hosted main SDL3 seed",
+                     "Save verified hosted main-branch SDL3 seed"):
+            block = workflow.split("- name: " + name, 1)[1].split("- name:", 1)[0]
+            self.assertIn("continue-on-error: true", block)
+            self.assertIn("github.event_name == 'push'", block)
+            self.assertIn("github.ref == 'refs/heads/main'", block)
+            self.assertIn("!inputs.run_on_hp", block)
+            self.assertIn("!inputs.test_hp_compiler_profile", block)
+        seeder = workflow.split("- name: Validate isolated hosted main SDL3 seed", 1)[1]
+        seeder = seeder.split("- name: Save verified hosted main-branch", 1)[0]
+        self.assertIn("--github-env \"$RUNNER_TEMP/hosted-main-sdl3-private.env\"", seeder)
+        self.assertNotIn('--github-env "$GITHUB_ENV"', seeder)
+        self.assertIn('--github-output "$GITHUB_OUTPUT"', seeder)
+        self.assertIn("continue-on-error: true", seeder)
+        self.assertIn("--required", seeder)
+        self.assertIn("SDL3_ARGS=(-DSNESRECOMP_SDL3_FETCH=ON)", workflow)
+        self.assertIn("if [[ -n \"${UR_SDL3_PREBUILT_DIR:-}\" ]]; then", workflow)
+        self.assertIn("steps.main-sdl3-prepared.outcome == 'success'", workflow)
+        self.assertIn("steps.main-sdl3-prepared.outputs.cache-state == 'miss'", workflow)
+        self.assertIn("steps.main-sdl3-prepared.outputs.cache-state == 'recovered'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'miss'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'recovered'", workflow)
+        self.assertNotIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
+
+    def test_cache_state_output_is_optional_and_success_bound(self):
+        helper = MODULE.read_text()
+        self.assertIn('parser.add_argument("--github-output", type=Path', helper)
+        self.assertIn('if args.github_output is not None:', helper)
+        self.assertIn('f.write("cache-state=" + state + "\\n")', helper)
+        self.assertLess(helper.index("package_dir = build_stage("),
+                        helper.index('if args.github_output is not None:'))
+        self.assertLess(helper.index("package_dir = validate_stage("),
+                        helper.index('if args.github_output is not None:'))
+
+    def test_real_helper_emits_output_only_after_verified_install(self):
+        # Exercise the actual argument/output path while isolating the
+        # compiler-specific fingerprint from this Linux unit environment.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            env_file, output = root / "private-env", root / "cache-output"
+            args = ["prepare_sdl3_cache.py", "--source", str(root / "source"),
+                    "--archive", str(root / "source.tar.gz"),
+                    "--cache-root", str(root / "cache"),
+                    "--github-env", str(env_file),
+                    "--github-output", str(output), "--required"]
+            context = {"GITHUB_REPOSITORY": "gamesbyian/UR-Recomp"}
+            with patch.object(sys, "argv", args), patch.dict(os.environ, context):
+                with patch.object(cache, "visual_studio_root", return_value=root), \
+                     patch.object(cache, "fingerprint", return_value={"known": True}), \
+                     patch.object(cache, "cache_key", return_value="a" * 24), \
+                     patch.object(cache, "validate_stage", return_value=root / "verified"), \
+                     patch.object(cache, "build_stage") as build:
+                    self.assertEqual(cache.main(), 0)
+                    build.assert_not_called()
+            self.assertEqual(output.read_text(), "cache-state=hit\n")
+            self.assertIn("UR_SDL3_PREBUILT_DIR=", env_file.read_text())
+            env_file.unlink()
+            output.unlink()
+            with patch.object(sys, "argv", args), patch.dict(os.environ, context):
+                with patch.object(cache, "visual_studio_root", return_value=root), \
+                     patch.object(cache, "fingerprint", return_value={"known": True}), \
+                     patch.object(cache, "cache_key", return_value="a" * 24), \
+                     patch.object(cache, "validate_stage", return_value=None), \
+                     patch.object(cache, "build_stage", side_effect=ValueError("incomplete")):
+                    self.assertEqual(cache.main(), 1)
+            self.assertFalse(output.exists())
+            self.assertFalse(env_file.exists())
+
+    def test_scheduled_hp_cache_allows_only_trusted_main_and_owner_runner(self):
+        # The existing owner-only 2P cron calls the SAME SDL3 helper with
+        # --hp; rejecting schedule before the actual Windows build would
+        # strand every unattended science run. PR/fork/foreign runners still
+        # cannot invoke this trusted-machine path.
+        workflow = (MODULE.parents[2] /
+                    ".github/workflows/owner-hp-seeded-2p-research.yml").read_text()
+        self.assertIn("github.event_name == 'schedule'", workflow)
+        self.assertIn("run_on_hp: true", workflow)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            args = ["prepare_sdl3_cache.py", "--source", str(root / "source"),
+                    "--archive", str(root / "source.tar.gz"),
+                    "--cache-root", str(root / "cache"), "--github-env",
+                    str(root / "private.env"), "--hp"]
+            trusted = {"GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",
+                       "GITHUB_REF": "refs/heads/main",
+                       "GITHUB_EVENT_NAME": "schedule",
+                       "RUNNER_NAME": "hpmini-ur-recomp"}
+            with patch.object(sys, "argv", args), patch.dict(os.environ, trusted):
+                with patch.object(cache, "visual_studio_root", return_value=root), \
+                     patch.object(cache, "fingerprint", return_value={"known": True}), \
+                     patch.object(cache, "cache_key", return_value="a" * 24), \
+                     patch.object(cache, "validate_stage", return_value=root / "verified"), \
+                     patch.object(cache, "build_stage") as build:
+                    self.assertEqual(cache.main(), 0)
+                    build.assert_not_called()
+            self.assertIn("UR_SDL3_PREBUILT_DIR=", (root / "private.env").read_text())
+            for key, value in (("GITHUB_EVENT_NAME", "pull_request"),
+                               ("GITHUB_REF", "refs/heads/foreign"),
+                               ("RUNNER_NAME", "github-hosted"),
+                               ("GITHUB_REPOSITORY", "foreign/repo")):
+                with self.subTest(field=key):
+                    denied = dict(trusted, **{key: value})
+                    with patch.object(sys, "argv", args), \
+                         patch.dict(os.environ, denied):
+                        with self.assertRaises(SystemExit):
+                            cache.main()
 
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"

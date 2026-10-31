@@ -100,6 +100,13 @@ class ShimBehaviourTests(unittest.TestCase):
             # source recompilation without accepting a partially written .o.
             receipt.write_text('{"schema":"untrusted"}')
             check()
+            # Even a byte-perfect object/diagnostics bundle cannot be
+            # repurposed under a different source-preprocessor key.
+            manifest = json.loads(receipt.read_text())
+            manifest["key"] = "0" * 64
+            receipt.write_text(json.dumps(manifest))
+            check()
+            self.assertEqual(json.loads(receipt.read_text())["key"], obj.stem)
             receipt.unlink()
             obj.write_bytes(b"truncated")
             check()

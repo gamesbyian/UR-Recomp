@@ -107,6 +107,74 @@ class SeededNativeInputContractTests(unittest.TestCase):
                     c.trial(Path("exe"),Path("rom"),source,c.render_script(script),
                             root/"seat",19,30)
 
+
+    def test_hp_budget_preflight_avoids_shortened_deadline_false_failure(self):
+        # A healthy four-process case takes 4*33s. Old code launched trials
+        # with deadlines 90, 57, 24, 18 and falsely failed the last two.
+        class Clock:
+            now = 0.0
+            def monotonic(self):
+                return self.now
+
+        clock = Clock()
+        deadlines = []
+
+        def fake_trial(exe, rom, source_input, script, root, seed, timeout):
+            # The real producer creates the case root before returning; the
+            # mock must preserve cleanup semantics to avoid false OSError.
+            root.mkdir(parents=True)
+            deadlines.append(timeout)
+            clock.now += 132.0
+            return {"seed": seed, "input_sha256": f"{seed:064x}"}
+
+        with tempfile.TemporaryDirectory() as td:
+            with mock.patch.object(c, "identity", return_value=dict(IDENTITY)), \
+                 mock.patch.object(c, "trial", side_effect=fake_trial), \
+                 mock.patch.object(c.time, "monotonic", side_effect=clock.monotonic):
+                result = c.run_shard(
+                    exe=Path("unused.exe"), rom=Path("unused.sfc"), source_sha=SHA,
+                    shard=0, base_seed=20261031, minutes=15, max_cases=10,
+                    timeout=90, work=Path(td) / "fresh", wall_seconds=360)
+        self.assertEqual(deadlines, [90, 57])
+        self.assertEqual(result["attempted_cases"], 2)
+        self.assertEqual(result["passed_cases"], 2)
+        self.assertEqual(result["failed_cases"], 0)
+        self.assertEqual(result["total_real_native_processes"], 8)
+        self.assertEqual(result["stop_reason"], "wall_budget")
+        self.assertEqual(result["disposition"], "completed_positive")
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_hp_full_nominal_guest_timeout_still_fails_closed(self):
+        class Clock:
+            now = 0.0
+            def monotonic(self):
+                return self.now
+
+        clock = Clock()
+        deadlines = []
+
+        def timed_out(exe, rom, source_input, script, root, seed, timeout):
+            deadlines.append(timeout)
+            clock.now += timeout
+            raise c.GuestProcessError("guest_timeout",
+                                      f"real guest process timeout ({timeout}s)")
+
+        with tempfile.TemporaryDirectory() as td:
+            with mock.patch.object(c, "identity", return_value=dict(IDENTITY)), \
+                 mock.patch.object(c, "trial", side_effect=timed_out), \
+                 mock.patch.object(c.time, "monotonic", side_effect=clock.monotonic):
+                result = c.run_shard(
+                    exe=Path("unused.exe"), rom=Path("unused.sfc"), source_sha=SHA,
+                    shard=0, base_seed=20261031, minutes=15, max_cases=10,
+                    timeout=90, work=Path(td) / "fresh", wall_seconds=360)
+        self.assertEqual(deadlines, [90, 67])
+        self.assertEqual(result["failed_cases"], 2)
+        self.assertEqual(result["stop_reason"], "invariant_failure")
+        self.assertEqual(result["disposition"], "invariant_violation")
+        self.assertEqual([f["failure_category"] for f in result["failures"]],
+                         ["guest_timeout", "guest_timeout"])
+        self.assertEqual(result["release_gate_credit"], 0)
+
     def test_optional_native_guest_transcript_preserves_exact_runtime_dump_receipts(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)

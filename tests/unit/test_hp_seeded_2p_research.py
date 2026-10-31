@@ -96,13 +96,20 @@ class HpScheduledResearchTests(unittest.TestCase):
         hosted = HOSTED.read_text()
         self.assertNotIn("hp_seeded_2p: true", hosted)
         self.assertNotIn("hp_seeded_2p: true", OWNER.read_text())
+        # The only execution of HP seeded research is the distinct trusted
+        # schedule/manual HP caller. Ordinary main-push Windows builds and
+        # hosted PR candidates never set hp_seeded_2p: true, so dispatching
+        # them for pure research edits duplicates costly game/package QA and
+        # does not test the changed research behavior. The complete tooling
+        # suite, hygiene and next real scheduled HP run own that invalidation.
         for workflow in (WIN, OWNER, HOSTED):
             source = workflow.read_text()
             for path in ("tools/hp_seeded_2p_research.py",
                          "tools/qa02_native_2p_seeded_endurance.py",
                          "tests/unit/test_hp_seeded_2p_research.py",
                          ".github/workflows/owner-hp-seeded-2p-research.yml"):
-                self.assertIn('      - "' + path + '"', source)
+                with self.subTest(workflow=workflow.name, path=path):
+                    self.assertNotIn('      - "' + path + '"', source)
         self.assertIn("--allow-trusted-main-schedule", VERIFY.read_text())
 
     def test_read_only_archive_free_receipt_allowed_but_raw_data_not_uploaded(self):

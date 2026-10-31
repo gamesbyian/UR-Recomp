@@ -21,9 +21,10 @@ class LiveProgressTests(unittest.TestCase):
         self.assertEqual(b["verified_bounded_coverage_percent"],
                          a["verified_bounded_coverage_percent"])
         self.assertEqual(b["unreviewed_commits"],76)
-        self.assertEqual(a["possible_current_coverage_interval_percent"],
-                         [a["verified_bounded_coverage_percent"]]*2)
-        self.assertEqual(b["possible_current_coverage_interval_percent"][1],100.0)
+        self.assertEqual(a["current_completion_estimate_percent"],
+                         a["verified_bounded_coverage_percent"])
+        self.assertIsNone(b["current_completion_estimate_percent"])
+        self.assertTrue(b["verified_floor_is_not_current_estimate"])
 
     def test_stale_scoring_never_changes_release_gates_or_usa_events(self):
         sha=self.i["source_sha"]

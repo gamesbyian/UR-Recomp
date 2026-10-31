@@ -70,7 +70,8 @@ def safe_failure_category(kind: str, detail: object) -> str:
     if kind == "RuntimeError" and isinstance(detail, str):
         if re.fullmatch(r"real guest process timeout \([1-9][0-9]{0,2}s\)", detail):
             return "guest_timeout"
-        if re.match(r"guest exited -?[0-9]+;", detail):
+        exit_code = re.match(r"guest exited (-?[0-9]{1,10});", detail)
+        if exit_code and int(exit_code.group(1)) != 0:
             return "guest_nonzero_exit"
     return "unclassified"
 
@@ -137,10 +138,23 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int,
                 or not isinstance(kind, str)
                 or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", kind)):
             return []
+        # New producer emits a typed category before truncating noisy guest
+        # output. Historical sealed receipts still use the legacy parser.
+        category = failure.get("failure_category")
+        if kind == "GuestProcessError":
+            if category not in {"guest_timeout", "guest_nonzero_exit"}:
+                return []
+            legacy = safe_failure_category("RuntimeError", failure.get("error"))
+            if legacy != "unclassified" and legacy != category:
+                return []
+        else:
+            if category not in (None, "unclassified"):
+                return []
+            category = safe_failure_category(kind, failure.get("error"))
         seen.add(trial_index)
         notes.append({"worker": worker, "reason": "source-owned trial invariant failure",
                       "seed": seed, "trial_index": trial_index, "kind": kind,
-                      "failure_category": safe_failure_category(kind, failure.get("error"))})
+                      "failure_category": category})
     return notes if seen == set(range(attempted)) else []
 
 def expected_treatment_digest(stock_input: str, seed: int) -> str:

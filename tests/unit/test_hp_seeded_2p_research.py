@@ -517,6 +517,101 @@ class HpScheduledResearchTests(unittest.TestCase):
                 self.assertEqual(hp.safe_failure_category(kind, detail),
                                  "unclassified")
 
+    def test_typed_guest_exit_survives_truncated_private_tail(self):
+        # Native producer slices the last 700 chars, which can discard the
+        # original RuntimeError prefix after 900 chars of guest output.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            done = type("Done", (), {"returncode": 3,
+                                     "stdout": "X" * 900,
+                                     "stderr": "C:/private/ROM.sfc"})()
+            with patch.object(native.subprocess, "run", return_value=done):
+                with self.assertRaises(native.GuestProcessError) as raised:
+                    native.execute(root / "game.exe", root / "retail.sfc",
+                                   root / "input", root / "script",
+                                   root / "nonzero", 90)
+            self.assertEqual(raised.exception.failure_category, "guest_nonzero_exit")
+            truncated = str(raised.exception)[-700:]
+            self.assertEqual(hp.safe_failure_category("RuntimeError", truncated),
+                             "unclassified")
+            source, run_id = "a" * 40, 41223647258
+            rows = []
+            for worker in range(hp.WORKERS):
+                base = run_id % 10000000 + (worker // 2) * 25000000
+                shard = worker % 2
+                row = _report(root, source, base, shard)
+                row.update(disposition="invariant_violation", attempted_cases=2,
+                           passed_cases=1, failed_cases=1,
+                           stop_reason="invariant_failure",
+                           failures=[{"trial_index": 1,
+                                      "seed": base + shard * 1000003 + 1,
+                                      "kind": "GuestProcessError",
+                                      "error": truncated,
+                                      "failure_category": "guest_nonzero_exit"}])
+                row["receipt_sha256"] = native.hash_object({
+                    k: v for k, v in row.items() if k != "receipt_sha256"})
+                rows.append({"worker": worker, "report": row})
+            result = hp.collect(rows, source, run_id, 306.063)
+            self.assertEqual(result["status"], "research_failure")
+            self.assertEqual(result["accepted_cases"], 0)
+            self.assertEqual(result["real_guest_processes"], 0)
+            self.assertEqual(result["source_attested_pre_failure_cases"], 4)
+            self.assertEqual({i["failure_category"] for i in result["issues"]},
+                             {"guest_nonzero_exit"})
+            self.assertNotIn("private", json.dumps(result))
+            self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_typed_timeout_and_contradictory_categories_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            timeout = native.subprocess.TimeoutExpired(cmd="guest", timeout=90)
+            with patch.object(native.subprocess, "run", side_effect=timeout):
+                with self.assertRaises(native.GuestProcessError) as raised:
+                    native.execute(root / "game.exe", root / "retail.sfc",
+                                   root / "input", root / "script",
+                                   root / "timeout", 90)
+            self.assertEqual(raised.exception.failure_category, "guest_timeout")
+        self.assertEqual(hp.safe_failure_category(
+            "RuntimeError", "guest exited 0; stdout/stderr tail=bad"), "unclassified")
+        source, run_id = "a" * 40, 41223647258
+        base = run_id % 10000000
+        for kind, category, error in (
+            ("GuestProcessError", "other", "guest exited 2; x"),
+            ("GuestProcessError", "guest_timeout", "guest exited 2; x"),
+            ("ValueError", "guest_nonzero_exit", "arbitrary"),
+        ):
+            with self.subTest(kind=kind, category=category):
+                row = _report(Path("unused"), source, base, 0)
+                row.update(disposition="invariant_violation", attempted_cases=2,
+                           passed_cases=1, failed_cases=1,
+                           stop_reason="invariant_failure",
+                           failures=[{"trial_index": 1, "seed": base + 1,
+                                      "kind": kind, "error": error,
+                                      "failure_category": category}])
+                self.assertEqual(hp.source_owned_failure_notes(
+                    row, source, 0, run_id), [])
+
+    def test_shard_captures_typed_category_before_error_tail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            message = "guest exited 3; stdout/stderr tail=" + "X" * 900
+            with patch.object(native, "identity", return_value={}), \
+                 patch.object(native, "trial",
+                              side_effect=native.GuestProcessError(
+                                  "guest_nonzero_exit", message)):
+                row = native.run_shard(
+                    exe=root / "game.exe", rom=root / "retail.sfc",
+                    source_sha="a" * 40, shard=0, base_seed=1234,
+                    minutes=15, max_cases=10, timeout=90,
+                    work=root / "shard", wall_seconds=120)
+            self.assertEqual(row["failed_cases"], 2)
+            self.assertEqual(row["passed_cases"], 0)
+            self.assertEqual({f["failure_category"] for f in row["failures"]},
+                             {"guest_nonzero_exit"})
+            self.assertEqual({f["kind"] for f in row["failures"]},
+                             {"GuestProcessError"})
+            self.assertTrue(all(len(f["error"]) == 700 for f in row["failures"]))
+
 
 if __name__ == "__main__":
     unittest.main()

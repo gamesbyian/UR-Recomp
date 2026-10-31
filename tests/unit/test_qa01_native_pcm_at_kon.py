@@ -26,13 +26,17 @@ class NativeKonPCMTests(unittest.TestCase):
     @staticmethod
     def command(path, *, start=39500, count=2500, rate=32040, frames=None):
         def handler(line):
-            assert line == f"audio_wav {path} {start} {count}", line
-            with wave.open(str(path), "wb") as wav:
+            parts = line.split(" ")
+            assert len(parts) == 4 and parts[0] == "audio_wav", line
+            assert (int(parts[2]), int(parts[3])) == (start, count), line
+            staged_path = Path(parts[1])
+            assert staged_path != path and staged_path.parent != path.parent
+            with wave.open(str(staged_path), "wb") as wav:
                 wav.setnchannels(2)
                 wav.setsampwidth(2)
                 wav.setframerate(rate)
                 wav.writeframes(b"\x01\x00\xfe\xff" * (count if frames is None else frames))
-            return {"ok": True, "path": str(path), "start": start, "count": count}
+            return {"ok": True, "path": parts[1], "start": start, "count": count}
         return handler
 
     def test_real_exact_kon_sample_window_and_digest(self):
@@ -94,16 +98,20 @@ class NativeKonPCMTests(unittest.TestCase):
         # wave.open() silently ignores a trailer beyond the declared data.
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
+            observed_lengths = []
             def contaminated(line):
                 reply = self.command(path)(line)
-                with path.open("ab") as out:
+                staged = Path(line.split(" ")[1])
+                with staged.open("ab") as out:
                     out.write(b"UNRELATED_TRAILER")
+                observed_lengths.append(staged.stat().st_size)
                 return reply
             with self.assertRaisesRegex(ValueError, "unexpected native WAV length"):
                 pcm.capture_kon_pcm(contaminated, events=self.events(),
                                     produced=45000, kon_sample_index=40000,
                                     wav_path=path, before=500, after=2000)
-            self.assertEqual(path.stat().st_size, 44 + 4 * 2500 + 17)
+            self.assertEqual(observed_lengths, [44 + 4 * 2500 + 17])
+            self.assertFalse(path.exists())
 
     def test_existing_file_and_whitespace_path_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -144,6 +152,44 @@ class NativeKonPCMTests(unittest.TestCase):
                     self.assertEqual(error.exception.code, 2)
                     self.assertFalse(wav_path.exists())
 
+
+    def test_raced_foreign_destination_never_overwritten(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kon.wav"
+            def race(line):
+                path.write_bytes(b"FOREIGN-DO-NOT-CLOBBER")
+                return self.command(path)(line)
+            with self.assertRaisesRegex(ValueError, "created during capture"):
+                pcm.capture_kon_pcm(race, events=self.events(), produced=45000,
+                                    kon_sample_index=40000, wav_path=path,
+                                    before=500, after=2000)
+            self.assertEqual(path.read_bytes(), b"FOREIGN-DO-NOT-CLOBBER")
+            self.assertFalse(list(Path(tmp).glob(".qa01-kon-*")))
+
+    def test_raced_symlink_destination_never_followed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "kon.wav"
+            foreign = root / "foreign.dat"
+            foreign.write_bytes(b"KEEP-FOREIGN")
+            def race(line):
+                path.symlink_to(foreign)
+                return self.command(path)(line)
+            with self.assertRaisesRegex(ValueError, "created during capture"):
+                pcm.capture_kon_pcm(race, events=self.events(), produced=45000,
+                                    kon_sample_index=40000, wav_path=path,
+                                    before=500, after=2000)
+            self.assertEqual(foreign.read_bytes(), b"KEEP-FOREIGN")
+
+    def test_no_hardlink_volume_falls_back_to_exclusive_create(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kon.wav"
+            with mock.patch.object(pcm.os, "link", side_effect=OSError("unsupported")):
+                result = pcm.capture_kon_pcm(self.command(path), events=self.events(),
+                                             produced=45000, kon_sample_index=40000,
+                                             wav_path=path, before=500, after=2000)
+            self.assertEqual(result["wav_bytes"], path.stat().st_size)
+            self.assertEqual(result["wav_sha256"], pcm.hashlib.sha256(path.read_bytes()).hexdigest())
 
 class NativeWavWirePathTests(unittest.TestCase):
     def test_windows_drive_and_unc_paths_round_trip_native_json(self):

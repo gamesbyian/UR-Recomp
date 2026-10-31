@@ -11,7 +11,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import shutil
+import tempfile
 import wave
 from pathlib import Path, PureWindowsPath
 
@@ -106,6 +109,29 @@ def wav_command_path(wav_path: Path) -> str:
     return path
 
 
+def publish_wav_no_replace(staged_path: Path, wav_path: Path) -> None:
+    """Publish staged WAV without opening an existing destination for writing."""
+    try:
+        os.link(staged_path, wav_path)
+    except FileExistsError as exc:
+        raise ValueError("refusing to replace WAV created during capture") from exc
+    except OSError:
+        # Hard links are unavailable on some volumes. Exclusive creation
+        # preserves a destination created by another process, even a symlink.
+        try:
+            with staged_path.open("rb") as src, wav_path.open("xb") as dst:
+                shutil.copyfileobj(src, dst)
+                dst.flush()
+                os.fsync(dst.fileno())
+        except FileExistsError as exc:
+            raise ValueError("refusing to replace WAV created during capture") from exc
+    # A failed publication leaves no plausible success receipt. A partial
+    # exclusively created fallback file is retained rather than deleting an
+    # uncertain pathname after an exception.
+    if hashlib.sha256(staged_path.read_bytes()).digest() != hashlib.sha256(wav_path.read_bytes()).digest():
+        raise ValueError("published WAV differs from captured staging bytes")
+
+
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
                     kon_sample_index: int, wav_path: Path,
                     before: int = 4096, after: int = 32768) -> dict:
@@ -136,24 +162,30 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         raise ValueError("refusing to reuse or overwrite an existing WAV")
     if not wav_path.parent.is_dir() or wav_path.parent.is_symlink():
         raise ValueError("WAV destination parent must be an existing real directory")
-    wire_path = wav_command_path(wav_path)
-    response = command_fn(f"audio_wav {wire_path} {start} {count}")
-    if (response.get("ok") is not True or response.get("start") != start or
-            response.get("count") != count or response.get("path") != wire_path):
-        raise ValueError("audio_wav returned clamped/mismatched native PCM slice")
-    if not wav_path.is_file() or wav_path.is_symlink():
-        raise ValueError("audio_wav did not create a real local WAV")
-    with wave.open(str(wav_path), "rb") as wav:
-        if (wav.getnchannels(), wav.getsampwidth(), wav.getframerate(),
-                wav.getcomptype(), wav.getnframes()) != (2, 2, 32040, "NONE", count):
-            raise ValueError("native PCM WAV format/sample count mismatch")
-        pcm = wav.readframes(count)
-    if len(pcm) != count * 4:
-        raise ValueError("short decoded native stereo PCM")
-    # Pinned audio_trace_dump_wav emits a fixed 44-byte RIFF header and
-    # exactly four bytes per stereo frame. wave.open() ignores appended data.
-    if wav_path.stat().st_size != 44 + count * 4:
-        raise ValueError("unexpected native WAV length")
+    # The pinned native server uses fopen("wb") and cannot enforce O_EXCL.
+    # Give it a fresh, non-preexisting name inside a per-attempt directory,
+    # then publish to the requested destination with no-replace semantics.
+    # This protects foreign destination bytes against concurrent creation.
+    with tempfile.TemporaryDirectory(prefix=".qa01-kon-", dir=wav_path.parent) as stage_dir:
+        staged_path = Path(stage_dir) / "audio.wav"
+        wire_path = wav_command_path(staged_path)
+        response = command_fn(f"audio_wav {wire_path} {start} {count}")
+        if (response.get("ok") is not True or response.get("start") != start or
+                response.get("count") != count or response.get("path") != wire_path):
+            raise ValueError("audio_wav returned clamped/mismatched native PCM slice")
+        if not staged_path.is_file() or staged_path.is_symlink():
+            raise ValueError("audio_wav did not create a real staged WAV")
+        with wave.open(str(staged_path), "rb") as wav:
+            if (wav.getnchannels(), wav.getsampwidth(), wav.getframerate(),
+                    wav.getcomptype(), wav.getnframes()) != (2, 2, 32040, "NONE", count):
+                raise ValueError("native PCM WAV format/sample count mismatch")
+            pcm = wav.readframes(count)
+        if len(pcm) != count * 4:
+            raise ValueError("short decoded native stereo PCM")
+        # Pinned producer emits a fixed 44-byte header plus four bytes/frame.
+        if staged_path.stat().st_size != 44 + count * 4:
+            raise ValueError("unexpected native WAV length")
+        publish_wav_no_replace(staged_path, wav_path)
     return {
         "schema": "ur-qa01-native-kon-pcm/1",
         "authority": "native DSP producer audio_trace ring; not host SDL device",

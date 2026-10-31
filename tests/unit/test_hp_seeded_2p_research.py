@@ -1,5 +1,6 @@
 """Scheduled owner HP seeded two-seat execution and research acceptance policy."""
 from __future__ import annotations
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -30,13 +31,13 @@ def _env(root: Path, event: str = "schedule") -> dict[str, str]:
 def _report(work: Path, source: str, seed: int, shard: int) -> dict:
     row = {"schema": native.SCHEMA, "shard": shard, "minutes_budget": hp.MINUTES,
            "max_unique_cases": hp.MAX_CASES, "wall_seconds_budget": hp.WALL_SECONDS,
-           "base_seed": seed,
+           "base_seed": seed, "stop_reason": "case_cap",
            "identity": {
                "source_commit": source,
                "native_executable_sha256": "b" * 64,
                "rom_sha256": native.ROM_SHA,
-               "stock_input_sha256": "c" * 64,
-               "stock_script_sha256": "d" * 64,
+               "stock_input_sha256": hashlib.sha256(native.base_source()[0].encode()).hexdigest(),
+               "stock_script_sha256": hashlib.sha256(native.base_source()[1].encode()).hexdigest(),
            },
            "disposition": "completed_positive", "attempted_cases": 1,
            "passed_cases": 1, "failed_cases": 0,
@@ -153,7 +154,8 @@ class HpScheduledResearchTests(unittest.TestCase):
                 case_seed = seed
                 report.update(disposition="invariant_violation",
                               attempted_cases=1, passed_cases=0,
-                              failed_cases=1, total_real_native_processes=0,
+                              failed_cases=1, stop_reason="invariant_failure",
+                              total_real_native_processes=0,
                               case_results=[],
                               failures=[{"seed": case_seed, "trial_index": 0,
                                          "kind": "TimeoutExpired",
@@ -161,7 +163,7 @@ class HpScheduledResearchTests(unittest.TestCase):
                 report.pop("receipt_sha256")
                 report["receipt_sha256"] = native.hash_object(report)
             rows.append({"worker": index, "report": report})
-        result = hp.collect(rows, source, 123456, 1.0)
+        result = hp.collect(rows, source, 12345, 1.0)
         self.assertEqual(result["status"], "research_failure")
         self.assertEqual(result["release_gate_credit"], 0)
         self.assertEqual(result["issues"][0]["worker"], 2)
@@ -175,7 +177,7 @@ class HpScheduledResearchTests(unittest.TestCase):
         report["identity"]["source_commit"] = "f" * 40
         report.pop("receipt_sha256")
         report["receipt_sha256"] = native.hash_object(report)
-        unbound = hp.collect(rows, source, 123456, 1.0)
+        unbound = hp.collect(rows, source, 12345, 1.0)
         self.assertEqual(unbound["issues"][0]["reason"],
                          "unverifiable source-owned failure")
         self.assertNotIn("seed", unbound["issues"][0])
@@ -184,12 +186,106 @@ class HpScheduledResearchTests(unittest.TestCase):
         report["failures"][0]["seed"] += 1
         report.pop("receipt_sha256")
         report["receipt_sha256"] = native.hash_object(report)
-        mismatch = hp.collect(rows, source, 123456, 1.0)
+        mismatch = hp.collect(rows, source, 12345, 1.0)
         self.assertEqual(mismatch["issues"][0]["reason"],
                          "unverifiable source-owned failure")
         self.assertNotIn("seed", mismatch["issues"][0])
 
-    def test_worker_failure_is_rejected_after_all_join_without_fabricated_pass(self):
+       def test_recomputed_negative_receipts_cannot_publish_foreign_provenance(self):
+        source, run_id = "a" * 40, 12345
+        def rows():
+            results = []
+            for worker in range(4):
+                base = run_id + (worker // 2) * 25000000
+                report = _report(Path("unused"), source, base, worker % 2)
+                if worker == 2:
+                    report.update(disposition="invariant_violation",
+                                  stop_reason="invariant_failure",
+                                  attempted_cases=1, passed_cases=0, failed_cases=1,
+                                  total_real_native_processes=0, case_results=[],
+                                  failures=[{"trial_index": 0, "seed": base,
+                                             "kind": "RuntimeError",
+                                             "error": "C:/private/foreign.rom"}])
+                report["receipt_sha256"] = native.hash_object(
+                    {k: v for k, v in report.items() if k != "receipt_sha256"})
+                results.append({"worker": worker, "report": report})
+            return results
+        valid = hp.collect(rows(), source, run_id, 1.0)
+        self.assertEqual(valid["issues"][0]["seed"], 25012345)
+        self.assertEqual(valid["candidate_identity"]["rom_sha256"], native.ROM_SHA)
+        self.assertNotIn("private", json.dumps(valid))
+        self.assertEqual(valid["release_gate_credit"], 0)
+        for key, replacement in (
+            ("native_executable_sha256", "e" * 64),
+            ("rom_sha256", "e" * 64),
+            ("stock_input_sha256", "e" * 64),
+            ("stock_script_sha256", "e" * 64),
+            ("source_commit", "e" * 40),
+        ):
+            changed = rows()
+            receipt = changed[2]["report"]
+            receipt["identity"][key] = replacement
+            receipt["receipt_sha256"] = native.hash_object(
+                {k: v for k, v in receipt.items() if k != "receipt_sha256"})
+            result = hp.collect(changed, source, run_id, 1.0)
+            self.assertEqual(result["issues"][0]["reason"],
+                             "unverifiable source-owned failure", key)
+            self.assertNotIn("seed", result["issues"][0], key)
+        for key, replacement in (
+            ("attempted_cases", 2), ("passed_cases", 1),
+            ("total_real_native_processes", 4), ("stop_reason", "case_cap"),
+            ("base_seed", 4), ("minutes_budget", 60),
+        ):
+            changed = rows()
+            receipt = changed[2]["report"]
+            receipt[key] = replacement
+            receipt["receipt_sha256"] = native.hash_object(
+                {k: v for k, v in receipt.items() if k != "receipt_sha256"})
+            result = hp.collect(changed, source, run_id, 1.0)
+            self.assertNotIn("seed", result["issues"][0], key)
+        for invalid in (1, hp.MAX_CASES):
+            changed = rows()
+            receipt = changed[2]["report"]
+            receipt["failures"][0]["trial_index"] = invalid
+            receipt["failures"][0]["seed"] = 25012345 + invalid
+            receipt["receipt_sha256"] = native.hash_object(
+                {k: v for k, v in receipt.items() if k != "receipt_sha256"})
+            result = hp.collect(changed, source, run_id, 1.0)
+            self.assertNotIn("seed", result["issues"][0])
+        changed = rows()
+        del changed[2]["report"]["identity"]["stock_script_sha256"]
+        receipt = changed[2]["report"]
+        receipt["receipt_sha256"] = native.hash_object(
+            {k: v for k, v in receipt.items() if k != "receipt_sha256"})
+        self.assertNotIn("seed", hp.collect(changed, source, run_id, 1.0)["issues"][0])
+
+    def test_cross_worker_negative_identity_mismatch_redacts_all_replay_seeds(self):
+        source, run_id = "a" * 40, 12345
+        rows = []
+        for worker in range(4):
+            base = run_id + (worker // 2) * 25000000
+            receipt = _report(Path("unused"), source, base, worker % 2)
+            if worker in (1, 2):
+                receipt.update(disposition="invariant_violation",
+                               stop_reason="invariant_failure",
+                               attempted_cases=1, passed_cases=0, failed_cases=1,
+                               total_real_native_processes=0, case_results=[],
+                               failures=[{"trial_index": 0,
+                                          "seed": base + (worker % 2) * 1000003,
+                                          "kind": "RuntimeError",
+                                          "error": "C:/private/foreign.rom"}])
+            if worker == 2:
+                receipt["identity"]["native_executable_sha256"] = "e" * 64
+            receipt["receipt_sha256"] = native.hash_object(
+                {k: v for k, v in receipt.items() if k != "receipt_sha256"})
+            rows.append({"worker": worker, "report": receipt})
+        result = hp.collect(rows, source, run_id, 1.0)
+        self.assertEqual(result["status"], "research_failure")
+        self.assertTrue(result["issues"])
+        self.assertTrue(all("seed" not in issue for issue in result["issues"]))
+        self.assertNotIn("private", json.dumps(result))
+
+ def test_worker_failure_is_rejected_after_all_join_without_fabricated_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             exe, rom = root / "game.exe", root / "rom.sfc"

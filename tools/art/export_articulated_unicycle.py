@@ -19,6 +19,11 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+try:
+    from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
+except ModuleNotFoundError:
+    from glb_roundtrip_guard import validate_glb_roundtrip
+
 # Support both repo-root unit imports and direct offline script execution.
 try:
     from tools.art.scad_materials import materials_for_part, material_pass_source, uncolored_probe_source, UNCOLORED_PROBE_MIN
@@ -408,6 +413,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
             stage.mkdir()
             glb = stage / "unicycle_articulated_blockout.glb"
             glb.write_bytes(scene.export(file_type="glb"))
+            report["glb_roundtrip"] = validate_glb_roundtrip(glb, report)
             report["glb_sha256"] = sha256_bytes(glb.read_bytes())
             report["glb_size"] = glb.stat().st_size
             receipt = stage / "articulated_blockout_receipt.json"

@@ -1,0 +1,83 @@
+"""Fail-closed GLB round-trip integrity check for the unapproved ART-4K blockout.
+
+Checks serialized scene structure, source-derived part transforms and material
+geometry before the exporter publishes its immutable success pointer. This
+is mechanical integrity only, never original-game likeness/art approval.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+
+
+def validate_glb_roundtrip(path: Path, report: dict) -> dict:
+    """Reopen a staged GLB and reject missing, altered or detached part meshes."""
+    import numpy as np
+    import trimesh
+
+    scene = trimesh.load(str(path), file_type="glb", force="scene")
+    if not isinstance(scene, trimesh.Scene):
+        raise ValueError("GLB did not reopen as a scene")
+    components = report["components"]
+    names = [part["name"] for part in components]
+    if len(names) != 5 or len(set(names)) != 5:
+        raise ValueError("GLB receipt must contain five distinct parts")
+    expected_children = {}
+    for part in components:
+        children = part["materials"]
+        if not children or part["material_count"] != len(children):
+            raise ValueError("GLB receipt has missing material entries")
+        for child in children:
+            node = child["node"]
+            if node in expected_children or node in names:
+                raise ValueError("GLB receipt has duplicate material nodes")
+            expected_children[node] = (part["name"], child)
+    expected_nodes = {scene.graph.base_frame, *names, *expected_children}
+    if set(scene.graph.nodes) != expected_nodes:
+        raise ValueError("GLB scene node set differs from receipt")
+    if set(scene.graph.nodes_geometry) != set(expected_children):
+        raise ValueError("GLB material geometry nodes differ from receipt")
+    if set(scene.geometry) != set(expected_children):
+        raise ValueError("GLB material mesh names differ from receipt")
+
+    source_pose = np.asarray(report["source_pose_transform"], dtype=float)
+    if source_pose.shape != (4, 4) or not np.isfinite(source_pose).all():
+        raise ValueError("invalid source pose matrix")
+    total_faces = 0
+    for part in components:
+        name = part["name"]
+        if scene.graph.transforms.parents.get(name) != scene.graph.base_frame:
+            raise ValueError(f"GLB parent node detached: {name}")
+        local = np.eye(4)
+        pivot = np.asarray(part["pivot_translation"], dtype=float)
+        if pivot.shape != (3,) or not np.isfinite(pivot).all():
+            raise ValueError(f"invalid part pivot: {name}")
+        local[:3, 3] = pivot
+        expected_world = source_pose @ local
+        world, geometry = scene.graph.get(name)
+        if geometry is not None or not np.allclose(world, expected_world, rtol=0, atol=1e-5):
+            raise ValueError(f"GLB part transform changed: {name}")
+        part_faces = 0
+        for child in part["materials"]:
+            node = child["node"]
+            if scene.graph.transforms.parents.get(node) != name:
+                raise ValueError(f"GLB material node detached: {node}")
+            child_world, child_geom = scene.graph.get(node)
+            if child_geom != node or not np.allclose(child_world, world, rtol=0, atol=1e-5):
+                raise ValueError(f"GLB material transform changed: {node}")
+            mesh = scene.geometry[node]
+            if (not isinstance(mesh, trimesh.Trimesh) or mesh.is_empty
+                    or not np.isfinite(mesh.vertices).all() or not mesh.is_watertight):
+                raise ValueError(f"GLB material geometry invalid: {node}")
+            if len(mesh.faces) != child["triangles"]:
+                raise ValueError(f"GLB material triangle count changed: {node}")
+            rgba = np.asarray(child["rgba"])
+            if (rgba.shape != (4,) or mesh.visual.kind != "vertex"
+                    or not np.all(mesh.visual.vertex_colors == rgba)):
+                raise ValueError(f"GLB material color changed: {node}")
+            part_faces += len(mesh.faces)
+        if part_faces != part["triangles"]:
+            raise ValueError(f"GLB part triangle count changed: {name}")
+        total_faces += part_faces
+    return {"validated_parts": len(names),
+            "validated_material_meshes": len(expected_children),
+            "validated_triangles": total_faces}

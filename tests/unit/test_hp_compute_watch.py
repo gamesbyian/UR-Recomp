@@ -29,7 +29,7 @@ class HpComputeWatchTests(unittest.TestCase):
         # Without an actual cron event, even a successful manual run cannot
         # prove that the scheduled workflow is delivering any research.
         missing = watch.observe("unattended_2p", entries[:1], NOW)
-        self.assertEqual(missing["status"], "NOT_YET_OBSERVED")
+        self.assertEqual(missing["status"], "SCHEDULE_OVERDUE")
         self.assertEqual(missing["recent_manual_trials"], 1)
 
     def test_reports_overdue_and_failing_scheduled_runs(self):
@@ -68,7 +68,7 @@ class HpComputeWatchTests(unittest.TestCase):
 
     def test_never_accepts_wrong_branch_event_future_or_unbound_identity(self):
         x = watch.observe("unattended_2p", [row(main=False)], NOW)
-        self.assertEqual(x["status"], "NOT_YET_OBSERVED")
+        self.assertEqual(x["status"], "SCHEDULE_OVERDUE")
         with self.assertRaisesRegex(ValueError, "future"):
             watch.observe("unattended_2p",
                           [row(when=NOW + timedelta(minutes=2))], NOW)
@@ -76,6 +76,44 @@ class HpComputeWatchTests(unittest.TestCase):
             watch.observe("unattended_2p", [row(rid="fake")], NOW)
         with self.assertRaises(ValueError):
             watch.observe("unknown", [], NOW)
+
+    def test_missing_schedule_has_bounded_startup_grace(self):
+        start = watch.FIRST_ELIGIBLE_2P_UTC
+        before = watch.observe("unattended_2p", [], start - timedelta(minutes=1))
+        self.assertEqual(before["status"], "NOT_YET_OBSERVED")
+        grace = watch.observe("unattended_2p", [], start + timedelta(hours=8))
+        self.assertEqual(grace["status"], "NOT_YET_OBSERVED")
+        overdue = watch.observe("unattended_2p", [], start + timedelta(hours=8, seconds=1))
+        self.assertEqual(overdue["status"], "SCHEDULE_OVERDUE")
+        self.assertIsNone(overdue["last_run_id"])
+        # Product builds have no wall-clock cadence.
+        self.assertEqual(watch.observe("product_windows", [],
+                         start + timedelta(days=100))["status"], "NOT_YET_OBSERVED")
+
+    def test_malformed_actions_records_fail_closed(self):
+        valid = row()
+        changes = [
+            None, 42, {}, {"event": "schedule", "id": 100,
+                          "created_at": NOW.isoformat()},
+            dict(valid, id=True), dict(valid, id="100"),
+            dict(valid, head_branch=None), dict(valid, head_sha=None),
+            dict(valid, head_sha="f" * 39), dict(valid, event=None),
+            dict(valid, status="finished"), dict(valid, status=None),
+            dict(valid, status="completed", conclusion=None),
+            dict(valid, status="in_progress", conclusion="success"),
+            dict(valid, created_at="nope"),
+        ]
+        for malformed in changes:
+            with self.subTest(malformed=malformed):
+                with self.assertRaises(ValueError):
+                    watch.observe("unattended_2p", [malformed], NOW)
+        # Malformed foreign-branch rows are not silently discarded.
+        with self.assertRaisesRegex(ValueError, "source SHA"):
+            watch.observe("unattended_2p",
+                          [dict(row(main=False), head_sha=None)], NOW)
+        # An actual valid foreign-branch row can still be ignored.
+        self.assertEqual(watch.observe("product_windows",
+                         [row(main=False)], NOW)["status"], "NOT_YET_OBSERVED")
 
     def test_report_is_compact_and_links_exact_run(self):
         result = {"schema": "ur-hp-compute-watch/1", "lanes": {

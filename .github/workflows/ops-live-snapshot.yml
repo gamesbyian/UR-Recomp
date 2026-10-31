@@ -29,6 +29,18 @@ jobs:
           python3 -m unittest -q tests.unit.test_ops_live_status
           python3 tools/agent_control.py --check
           python3 tools/ops_live_status.py --output "$RUNNER_TEMP/ops-status.md" --json-output "$RUNNER_TEMP/ops-status.json"
+      - name: Observe owner HP source-build and unattended science cadence
+        # Monitoring is read-only and advisory; no dispatch, PR writes or
+        # owner HP reservation. If the API is unavailable, emit an explicit
+        # UNKNOWN instead of failing the existing operations snapshot.
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m unittest -q tests.unit.test_hp_compute_watch
+          python3 tools/hp_compute_watch.py \
+            --markdown-output "$RUNNER_TEMP/hp-compute-status.md" \
+            --json-output "$RUNNER_TEMP/hp-compute-status.json"
       - name: Publish bounded mobile-readable observations
         if: always()
         run: |
@@ -37,6 +49,11 @@ jobs:
           else
             echo 'Live status UNAVAILABLE: snapshot failed; do not infer zeros.' >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [ -s "$RUNNER_TEMP/hp-compute-status.md" ]; then
+            cat "$RUNNER_TEMP/hp-compute-status.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'HP compute-watch UNAVAILABLE: schedule status could not be verified.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -44,5 +61,7 @@ jobs:
           path: |
             ${{ runner.temp }}/ops-status.md
             ${{ runner.temp }}/ops-status.json
+            ${{ runner.temp }}/hp-compute-status.md
+            ${{ runner.temp }}/hp-compute-status.json
           if-no-files-found: warn
           retention-days: 7

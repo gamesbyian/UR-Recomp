@@ -27,11 +27,10 @@ on:
       - "tools/capture_modern_restart_audio.py"
       - "tools/ci/qa05_restart_attempt.sh"
       - "tools/ci/windows_package_race_result.sh"
-      - "tools/hp_seeded_2p_research.py"
-      - "tools/qa02_native_2p_seeded_endurance.py"
-      - "tests/unit/test_hp_seeded_2p_research.py"
-      - ".github/workflows/owner-hp-seeded-2p-research.yml"
       - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      # HP-only research edits are checked by complete tooling CI and the
+      # next source-bound scheduled HP science run, not a redundant ordinary
+      # main-push product smoke without hp_seeded_2p enabled.
       - "tools/ci/windows_package_special_path.sh"
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"

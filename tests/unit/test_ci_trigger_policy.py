@@ -960,9 +960,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
             ".github/workflows/owner-hp-seeded-2p-research.yml",
         )
         for filename, marker, end in (
-            ("owner-hp-main-windows-smoke.yml", "  push:\\n", "\\n  workflow_dispatch:"),
-            ("windows-native-smoke.yml", "  push:\\n", "\\nconcurrency:"),
-            ("qa05-qa09-windows-candidate.yml", "  pull_request:\\n", "\\n  workflow_dispatch:"),
+            ("owner-hp-main-windows-smoke.yml", "  push:\n", "\n  workflow_dispatch:"),
+            ("windows-native-smoke.yml", "  push:\n", "\nconcurrency:"),
+            ("qa05-qa09-windows-candidate.yml", "  pull_request:\n", "\n  workflow_dispatch:"),
         ):
             source = (WORKFLOWS / filename).read_text(encoding="utf-8")
             segment = source.split(marker, 1)[1].split(end, 1)[0]
@@ -970,7 +970,10 @@ class CiTriggerPolicyTest(unittest.TestCase):
                 with self.subTest(workflow=filename, path=path):
                     self.assertNotIn(f'      - "{path}"', segment)
             # Product packaging and original source acceptance must remain.
-            self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', segment) if filename != "owner-hp-main-windows-smoke.yml" else None
+            if filename != "qa05-qa09-windows-candidate.yml":
+                self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', segment)
+            else:
+                self.assertIn('      - ".github/workflows/qa05-qa09-windows-candidate.yml"', segment)
 
         science = (WORKFLOWS / "owner-hp-seeded-2p-research.yml").read_text()
         self.assertIn("cron: '17 * * * *'", science)

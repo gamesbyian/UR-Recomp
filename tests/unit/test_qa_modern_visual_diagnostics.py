@@ -291,6 +291,32 @@ class DiagnosticsTest(unittest.TestCase):
         self.assertNotIn(342, det["consistent_widths"], det)
         self.assertGreater(det["nonuniform_fraction"][342], 0.01)
 
+    def test_rgba_png_none_filter_preserves_raw_channels_and_alpha(self):
+        # Hand-authored PNG with nonopaque source pixels. The normal fixture
+        # generator forces alpha 255 and could mask a fast-path regression.
+        rgba = bytes((
+            10, 20, 30, 0,   40, 50, 60, 99,   70, 80, 90, 255,
+            1, 2, 3, 128,    4, 5, 6, 17,     7, 8, 9, 200,
+        ))
+        width, height = 3, 2
+        rows = b"".join(
+            b"\x00" + rgba[i * width * 4:(i + 1) * width * 4]
+            for i in range(height)
+        )
+
+        def chunk(tag, body):
+            return (struct.pack(">I", len(body)) + tag + body
+                    + struct.pack(">I", zlib.crc32(tag + body)))
+        data = (b"\x89PNG\r\n\x1a\n"
+                + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height,
+                                             8, 6, 0, 0, 0))
+                + chunk(b"IDAT", zlib.compress(rows))
+                + chunk(b"IEND", b""))
+        self.assertEqual(d.unpack_png(data), (width, height, rgba))
+        self.assertEqual(d.Frame(data).rgba, rgba)
+        self.assertEqual(d.Frame(data).rgb(0, 0), (10, 20, 30))
+        self.assertEqual(d.Frame(data).rgb(2, 1), (7, 8, 9))
+
     def test_png_input_matches_p7_and_rejects_bad_files(self):
         px = [(i * 7 % 256, i * 13 % 256, i * 29 % 256) for i in range(12 * 9)]
         ref = d.Frame(p7(12, 9, px)).rgba

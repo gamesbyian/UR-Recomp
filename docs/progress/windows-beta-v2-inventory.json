@@ -2,7 +2,7 @@
   "schema": "ur-atomic-progress/2",
   "version": "windows-beta-v2-candidate",
   "created_at_utc": "2026-10-24",
-  "source_sha": "ed562fd45d954949f285ec142d3440eac75032cb",
+  "source_sha": "82111a8cbc690d729a16355d35fc35b3621200f3",
   "status": "evidence_screening_reconciled_independent_acceptance_pending",
   "baseline_note": "The earlier 48.5% v1 maturity score and historical subjective 60% remain unchanged; this is an independently calibrated binary product-coverage scale.",
   "scope": "Private native Windows alpha/beta with original-game fidelity; deferred ports, online P2P and exhaustive atlas excluded",
@@ -166,12 +166,20 @@
       "id": "ONE-03",
       "area": "ONE",
       "criterion": "Tour Next Event preserves completed results and progression",
-      "status": "unverified",
-      "evidence": [],
-      "evidence_class": "none",
+      "status": "bounded_verified",
+      "evidence": [
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6541372787",
+        "https://github.com/gamesbyian/UR-Recomp/actions/runs/41181847744",
+        "https://github.com/gamesbyian/UR-Recomp/pull/2890",
+        "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6540969757"
+      ],
+      "evidence_class": "actual_source_earned_native_tour_results_cold_save_and_native_record_consumer",
       "release_gate_credit": false,
       "weight_units": 45,
-      "audit_state": "pending"
+      "audit_state": "independent_reviewed",
+      "audit_receipt": "https://github.com/gamesbyian/UR-Recomp/issues/2491#issuecomment-6541372787",
+      "independent_review_note": "Bounded Next Event criterion: two original-movie-driven native race results (1714, 1505 ticks), previous-result ghost, actual Next Event traversal, award/row progress and byte-identical saved/cold SRAM. Four earlier Tour slots were deliberately seeded; does not prove a clean five-race campaign or Local Runs UI cold playback.",
+      "independent_review_basis": "Separate actual-byte artifact and native-source audits in issue #2491; source 39120bf..., merged #2890, executable fe138f..., exact saved .urrun 912c17..., native cold consumer PASS. Final inventory admission still requires a different qualified reviewer and exact-head full tests before merge."
     },
     {
       "id": "ONE-04",
@@ -1766,6 +1774,6 @@
   "frozen_contract_fnv1a32": "32c62b80",
   "screening_review_ref": "docs/progress/v2-screening-audit-20261024.json",
   "screening_review_scope": "Source comparison of 119 integrated commits since October 24 checkpoint; criterion-level independent review of exact Windows restart log and existing art source references; other unmet criteria screened, not physically accepted.",
-  "latest_criterion_review_ref": "docs/progress/v2-data05-win32-cold-source-earned-audit-20261028.json",
-  "latest_review_interval": "docs/progress/v2-review-interval-20261028T2305.json"
+  "latest_criterion_review_ref": "docs/progress/v2-one03-earned-tour-cold-audit-20261031.json",
+  "latest_review_interval": "docs/progress/v2-review-interval-20261031T0924.json"
 }

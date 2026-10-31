@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -123,6 +124,22 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int,
                       "seed": seed, "trial_index": trial_index, "kind": kind})
     return notes if seen == set(range(attempted)) else []
 
+def expected_treatment_digest(stock_input: str, seed: int) -> str:
+    """Reproduce the producer's text-mode treatment file bytes on this host.
+
+    Path.write_text uses host newline translation: CRLF on the owner HP,
+    LF in Linux ROM-free tests.
+    """
+    rendered = native.render_input(stock_input, native.input_plan(seed)[0], None)
+    return hashlib.sha256(rendered.replace("\n", os.linesep).encode("utf-8")).hexdigest()
+
+
+def expected_script_digest(stock_script: str) -> str:
+    """Hash the exact generated route-script bytes written by the producer."""
+    rendered = native.render_script(stock_script)
+    return hashlib.sha256(rendered.replace("\n", os.linesep).encode("utf-8")).hexdigest()
+
+
 def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     if len(rows) != WORKERS:
         raise ValueError("missing worker result")
@@ -134,6 +151,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     summaries = []
     pending_failures = []
     candidate_proofs = []
+    stock_input = None
+    script_digest = None
     for index, row in enumerate(rows):
         if row.get("worker") != index:
             raise ValueError("wrong worker order or index")
@@ -161,12 +180,27 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             else:
                 issues.append({"worker": index, "reason": "unverifiable source-owned failure"})
             continue
+        expected_base = run_id % 10000000 + (index // 2) * 25000000
         if (sealed.get("schema") != native.SCHEMA
                 or sealed.get("disposition") != "completed_positive"
                 or sealed.get("release_gate_credit") != 0
                 or sealed.get("source_commit") is not None
                 or sealed.get("failed_cases") != 0
                 or sealed.get("shard") != index % 2
+                or sealed.get("base_seed") != expected_base
+                or type(sealed.get("attempted_cases")) is not int
+                or not 1 <= sealed["attempted_cases"] <= MAX_CASES
+                or sealed.get("stop_reason") != (
+                    "case_cap" if sealed["attempted_cases"] == MAX_CASES else "wall_budget")
+                or type(sealed.get("passed_cases")) is not int
+                or sealed.get("failures") != []
+                or any(sealed.get(k) is not False for k in (
+                    "original_native_fidelity_accepted",
+                    "complete_two_player_result_accepted",
+                    "physical_gamepads_tested"))
+                or type(sealed.get("elapsed_seconds")) is not float
+                or not math.isfinite(sealed["elapsed_seconds"])
+                or sealed["elapsed_seconds"] < 0
                 or sealed.get("minutes_budget") != MINUTES
                 or sealed.get("wall_seconds_budget") != WALL_SECONDS
                 or sealed.get("max_unique_cases") != MAX_CASES
@@ -179,6 +213,9 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             issues.append({"worker": index, "reason": "source or stock fixture mismatch"})
             continue
         candidate_proofs.append(proof)
+        if stock_input is None:
+            stock_input, stock_script = native.base_source()
+            script_digest = expected_script_digest(stock_script)
         if identity is None:
             identity = proof
         elif proof != identity:
@@ -188,9 +225,16 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
         if not isinstance(cases, list) or len(cases) != sealed["passed_cases"]:
             issues.append({"worker": index, "reason": "missing cases"})
             continue
-        for case in cases:
+        for trial_index, case in enumerate(cases):
+            if not isinstance(case, dict):
+                issues.append({"worker": index, "reason": "malformed controller case"})
+                break
             seed, digest = case.get("seed"), case.get("input_sha256")
-            if (not isinstance(seed, int) or not isinstance(digest, str)
+            expected_seed = expected_base + (index % 2) * 1000003 + trial_index
+            if (type(seed) is not int or seed != expected_seed
+                    or not isinstance(digest, str) or not native.SHA256.fullmatch(digest)
+                    or digest != expected_treatment_digest(stock_input, seed)
+                    or case.get("script_sha256") != script_digest
                     or seed in seeds or digest in inputs
                     or case.get("real_native_processes") != 4
                     or case.get("two_seats_observably_active") is not True

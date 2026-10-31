@@ -164,6 +164,13 @@ int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
             return 0; /* repeat-mode or misaligned tables: fail closed */
         const uint16_t h = (uint16_t)(read16(wram, scroll_at + 1) & 0x3FF);
         const uint16_t v = (uint16_t)(read16(wram, scroll_at + 3) & 0x3FF);
+        /* This materializer indexes BG1 as one 32x32 tilemap. BG1SC bits
+         * 0-1 select 64x32, 32x64 or 64x64 screen arrangements with
+         * different VRAM addressing. Never interpret those as 32x32:
+         * a scroll crossing a 32-cell edge would sample the wrong screen.
+         * A future larger-map implementation needs its own calibration. */
+        if ((wram[sc_at + 1] & 0x03u) != 0)
+            return 0;
         const uint16_t base = (uint16_t)((wram[sc_at + 1] & 0xFC) << 8);
         if (count > 0 && bands[count - 1].scroll_x == h &&
             bands[count - 1].scroll_y == v &&

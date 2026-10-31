@@ -161,6 +161,20 @@ int main(void) {
         assert(bands[1].scroll_y == 0xA1 && bands[1].map_base_word == 0x1C00);
         assert(ur_ws_parse_bg1_bands(t, bands, 1) == 0);
 
+        /* BG1SC's two low bits select 64x32/32x64/64x64 maps.
+         * The current calibration assumes 32x32 VRAM wrapping. A valid
+         * 32x32 split must remain accepted; unsupported map sizes in
+         * either viewport must fail closed, not alias another tilemap. */
+        for (unsigned size = 1; size <= 3; size++) {
+            t[UR_WS_BG1_SC_TABLE + 1] = (uint8_t)(0x0C | size);
+            assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+            t[UR_WS_BG1_SC_TABLE + 1] = 0x0C;
+            t[UR_WS_BG1_SC_TABLE + 3] = (uint8_t)(0x1C | size);
+            assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+            t[UR_WS_BG1_SC_TABLE + 3] = 0x1C;
+            assert(ur_ws_parse_bg1_bands(t, bands, 2) == 2);
+        }
+
         t[UR_WS_BG1_SC_TABLE + 2] = 0x02; /* misaligned line counts */
         assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
         t[UR_WS_BG1_SC_TABLE + 2] = 0x01;

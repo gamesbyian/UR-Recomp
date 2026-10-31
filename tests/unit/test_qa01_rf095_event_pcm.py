@@ -141,22 +141,22 @@ class RF095Tests(unittest.TestCase):
         # GS, RS or a bare CR. A checksum-valid forged map must fail closed.
         with tempfile.TemporaryDirectory() as d:
             path = pathlib.Path(d) / 'frame-map.csv'
-            for delimiter in (b'\\v', b'\\f', b'\\x1c', b'\\x1d',
-                              b'\\x1e', b'\\r'):
-                path.write_bytes(b'frame,samples\\n0,0' + delimiter +
-                                 b'1,100\\n2,200\\n3,300\\n')
+            for delimiter in (b'\v', b'\f', b'\x1c', b'\x1d',
+                              b'\x1e', b'\r'):
+                path.write_bytes(b'frame,samples\n0,0' + delimiter +
+                                 b'1,100\n2,200\n3,300\n')
                 with self.subTest(delimiter=delimiter), self.assertRaisesRegex(
                         ValueError, 'malformed'):
                     receipt.frame_map(path, start=1, end=3,
                                       contiguous_from_zero=True)
-            for raw in (b'frame,samples\\n0,0\\n\\n1,100\\n2,200\\n3,300\\n',
-                        b'frame,samples\\n0,0\\n1,100\\n2,200\\n3,300\\n\\n'):
+            for raw in (b'frame,samples\n0,0\n\n1,100\n2,200\n3,300\n',
+                        b'frame,samples\n0,0\n1,100\n2,200\n3,300\n\n'):
                 path.write_bytes(raw)
                 with self.subTest(empty_row=raw), self.assertRaisesRegex(
                         ValueError, 'malformed'):
                     receipt.frame_map(path, start=1, end=3,
                                       contiguous_from_zero=True)
-            for ending in (b'\\n', b'\\r\\n'):
+            for ending in (b'\n', b'\r\n'):
                 for terminal in (b'', ending):
                     path.write_bytes(ending.join((b'frame,samples', b'0,0',
                                                   b'1,100', b'2,200', b'3,300')) + terminal)

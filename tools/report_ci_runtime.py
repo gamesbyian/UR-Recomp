@@ -69,7 +69,11 @@ def step_bucket(name: str) -> str:
         return "build"
     if any(token in lowered for token in (
         "acceptance", "route", "smoke", "capture", "boot", "prove", "compare",
-        "regression", "evidence shard", "replay"
+        "regression", "evidence shard", "replay",
+        # The dominant actual Win32 QA checks are named by their gate IDs
+        # rather than the word "acceptance". Keep their elapsed runner time
+        # in execution instead of leaving them invisible in "other".
+        "qa-05 packaged", "qa-09 packaged"
     )):
         return "execution"
     return "other"

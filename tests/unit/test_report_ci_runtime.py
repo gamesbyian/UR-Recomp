@@ -96,7 +96,9 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(step_bucket("Configure and build (Visual Studio, ClangCL, SDL3)"),
                          "build")
         self.assertEqual(step_bucket("QA-05 packaged Windows Restart audio witness"),
-                         "other")
+                         "execution")
+        self.assertEqual(step_bucket("QA-09 packaged Windows controller root witness"),
+                         "execution")
         self.assertEqual(step_bucket("Prove deterministic route acceptance"),
                          "execution")
         self.assertEqual(step_bucket("Unrelated housekeeping"), "other")

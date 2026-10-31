@@ -19,6 +19,9 @@ _RIG_DEFAULT = re.compile(
 # Subtractive CSG does not distribute across separately rendered color passes.
 # Until whole-part equivalence is checked, reject it in reachable modules.
 _UNSUPPORTED_CSG = re.compile(r'\b(?:difference|intersection|intersection_for)\s*\(')
+# Hull and Minkowski are additive but still do not distribute across
+# separately colored children. A single enclosing color is safe.
+_ADDITIVE_CSG = re.compile(r'\b(?:hull|minkowski)\s*\(\s*\)\s*(\{)?')
 
 
 def _mask_comments(source: str) -> str:
@@ -131,6 +134,23 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
     visited = set()
     colors = OrderedDict()
 
+    def nested_colors(text: str, seen: frozenset[str]) -> set[tuple[int, int, int, int]]:
+        """Find colors inside a CSG child, including called helper modules."""
+        found = {_rgba(m.group(1), defaults) for m in _COLOR.finditer(text)}
+        for called, subbody in modules.items():
+            if called not in seen and re.search(r'\b'+re.escape(called)+r'\s*\(', text):
+                found.update(nested_colors(subbody, seen | {called}))
+        return found
+
+    def guard_additive_csg(body: str, name: str) -> None:
+        for operator in _ADDITIVE_CSG.finditer(body):
+            if not operator.group(1):
+                raise ValueError('unsupported unbraced OpenSCAD additive CSG: ' + name)
+            # _body_end expects the opening brace, included in the regex match.
+            child = body[operator.end():_body_end(body, operator.end()-1)]
+            if len(nested_colors(child, frozenset())) > 1:
+                raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
+
     def visit(name):
         if name in visited:
             return
@@ -138,6 +158,7 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
         body = modules[name]
         if _UNSUPPORTED_CSG.search(body):
             raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
+        guard_additive_csg(body, name)
         matches = list(_COLOR.finditer(body))
         if len(matches) != len(_ANY_COLOR.findall(body)):
             raise ValueError('unsupported OpenSCAD color() in '+name)

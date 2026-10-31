@@ -86,6 +86,21 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         mod.main()
 
+    def test_owner_ninja_ten_compiler_jobs_are_bounded_and_logged(self):
+        s = CMD.read_text(encoding="utf-8")
+        self.assertIn('set "UR_HP_NINJA_BUILD_JOBS=10"', s)
+        self.assertIn('echo HP_NINJA_BUILD_JOBS=%UR_HP_NINJA_BUILD_JOBS%', s)
+        self.assertIn('cmake --build "%UR_NINJA_ROOT%/build" --config Release --parallel %UR_HP_NINJA_BUILD_JOBS%', s)
+        self.assertNotIn('cmake --build "%UR_NINJA_ROOT%/build" --config Release --parallel 6', s)
+        self.assertIn('if errorlevel 1 exit /b 32', s)
+        self.assertIn("Ninja Multi-Config", s)
+        self.assertIn("-DSNESRECOMP_SDL3_FETCH=OFF", s)
+        source = SMOKE.read_text(encoding="utf-8")
+        self.assertIn("HP_NINJA_AUTO=verified_source_bound", source)
+        self.assertIn("HP_NINJA_COMPILE_WINDOW=configure_plus_build", source)
+        self.assertIn("QA-05 packaged Windows default-Return Restart audio", source)
+        self.assertIn("QA-09 packaged Windows controller-only root", source)
+
     def test_only_preverified_static_sdl_and_compiler_in_ninja(self):
         s = CMD.read_text(encoding="utf-8")
         for part in ("VsDevCmd.bat", "where ninja.exe", "Ninja Multi-Config",

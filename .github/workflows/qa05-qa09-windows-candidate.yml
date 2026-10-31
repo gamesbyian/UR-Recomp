@@ -11,6 +11,11 @@ on:
       - ".github/workflows/qa05-qa09-windows-candidate.yml"
       - ".github/workflows/windows-native-smoke.yml"
       - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      # Compiler generator/job-count changes need actual hosted Windows PE,
+      # package/QA parity before the trusted-main HP machine can trial them.
+      - "tools/devnode_benchmark/verify_hp_ninja.py"
+      - "tools/ci/ninja_package_canary.cmd"
+      - "tests/unit/test_hp_ninja_manual_policy.py"
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"

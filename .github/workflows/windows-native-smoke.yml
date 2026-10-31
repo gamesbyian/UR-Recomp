@@ -336,6 +336,46 @@ jobs:
       # prepare_sdl3_cache.py ALWAYS recomputes actual SDK/compiler/source
       # fingerprints and validates every staged byte before exposing SDL3_DIR.
       # HP owns a separate machine-local cache; never transfer PR bytes there.
+      # Main push is the trusted cache seed that brand-new sibling PRs
+      # can read. PR-created caches are scoped to refs/pull/N/merge and do
+      # not warm other PRs. Never execute this on owner HP or any PR.
+      # Crucially, prepare writes to a PRIVATE receipt, NOT $GITHUB_ENV:
+      # main's canonical game still builds original source SDL3 itself.
+      - name: Restore hosted main-branch SDL3 seed
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile }}
+        id: main-sdl3-cache
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-main-${{ github.run_id }}
+          restore-keys: |
+            ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-
+
+      - name: Validate isolated hosted main SDL3 seed
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile }}
+        id: main-sdl3-prepared
+        shell: bash
+        # This is a performance optimization; an unavailable seed must not
+        # block the independent source-built canonical Windows acceptance.
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python tools/devnode_benchmark/prepare_sdl3_cache.py \
+            --source "$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+            --archive "$GITHUB_WORKSPACE/third_party/archives/SDL3-3.4.10.tar.gz" \
+            --cache-root "$RUNNER_TEMP/ur-sdl3-canary-cache" \
+            --github-env "$RUNNER_TEMP/hosted-main-sdl3-private.env" \
+            --github-output "$GITHUB_OUTPUT" \
+            --jobs 4 --required
+          echo "HOSTED_MAIN_SDL3_SEED=verified_only; game_build=canonical_source"
+
+      - name: Save verified hosted main-branch SDL3 seed
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile && steps.main-sdl3-prepared.outcome == 'success' && (steps.main-sdl3-prepared.outputs.cache-state == 'miss' || steps.main-sdl3-prepared.outputs.cache-state == 'recovered') }}
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-main-${{ github.run_id }}
+
       - name: Restore hosted Windows verified SDL3 candidate
         if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}
         id: hosted-sdl3-cache
@@ -348,6 +388,7 @@ jobs:
 
       - name: Prepare source-pinned static SDL3 cache (HP and hosted canary)
         if: ${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}
+        id: hosted-sdl3-prepared
         shell: bash
         run: |
           set -euo pipefail
@@ -362,13 +403,14 @@ jobs:
             --archive "$GITHUB_WORKSPACE/third_party/archives/SDL3-3.4.10.tar.gz" \
             --cache-root "$cache_root" \
             --github-env "$GITHUB_ENV" \
+            --github-output "$GITHUB_OUTPUT" \
             --jobs 6 "${mode[@]}"
 
       # Commit the verified *small install only*, not temporary SDL3 build
       # objects or any product/ROM output. Save BEFORE lengthy Windows QA:
       # a later superseded PR run can still warm its successor.
       - name: Save hosted Windows verified SDL3 candidate
-        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && steps.hosted-sdl3-cache.outputs.cache-hit != 'true' }}
+        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && (steps.hosted-sdl3-prepared.outputs.cache-state == 'miss' || steps.hosted-sdl3-prepared.outputs.cache-state == 'recovered') }}
         uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: ${{ runner.temp }}/ur-sdl3-canary-cache

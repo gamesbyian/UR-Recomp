@@ -275,6 +275,8 @@ def main() -> int:
     parser.add_argument("--archive", required=True, type=Path)
     parser.add_argument("--cache-root", required=True, type=Path)
     parser.add_argument("--github-env", required=True, type=Path)
+    parser.add_argument("--github-output", type=Path,
+                        help="Optional bounded, success-only Actions cache-state output")
     parser.add_argument("--jobs", default=6, type=int)
     parser.add_argument("--required", action="store_true", help="Fail the hosted canary instead of silently using source fallback")
     parser.add_argument("--hp", action="store_true")
@@ -302,6 +304,12 @@ def main() -> int:
         # GITHUB_ENV is appended only after successful complete validation.
         with args.github_env.open("a", encoding="utf-8") as f:
             f.write("UR_SDL3_PREBUILT_DIR=" + package_dir.as_posix() + "\n")
+        if args.github_output is not None:
+            # Only a fully fingerprinted and byte-validated install emits a
+            # state. The cache-save step must not treat missing output as a
+            # fresh successful build, nor duplicate valid prefix-hit caches.
+            with args.github_output.open("a", encoding="utf-8") as f:
+                f.write("cache-state=" + state + "\n")
         print(f"HP_SDL3_CACHE={state} version=3.4.10 source_sha256={SDL_ARCHIVE_SHA} fingerprint={entry.name}")
         return 0
     except (ValueError, OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:

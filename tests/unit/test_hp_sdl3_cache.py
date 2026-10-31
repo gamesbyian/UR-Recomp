@@ -288,6 +288,51 @@ class HPSDL3CacheTests(unittest.TestCase):
         self.assertIn("--required", workflow)
         self.assertIn("if package_dir is None:", MODULE.read_text())
 
+    def test_main_scoped_seed_keeps_canonical_source_build_and_never_touches_hp(self):
+        workflow = (MODULE.parents[2] / ".github/workflows/windows-native-smoke.yml").read_text()
+        restore = workflow.index("- name: Restore hosted main-branch SDL3 seed")
+        prepare = workflow.index("- name: Validate isolated hosted main SDL3 seed")
+        save = workflow.index("- name: Save verified hosted main-branch SDL3 seed")
+        hosted = workflow.index("- name: Restore hosted Windows verified SDL3 candidate")
+        build = workflow.index("- name: Configure and build (Visual Studio")
+        self.assertLess(restore, prepare)
+        self.assertLess(prepare, save)
+        self.assertLess(save, hosted)
+        self.assertLess(hosted, build)
+        for name in ("Restore hosted main-branch SDL3 seed",
+                     "Validate isolated hosted main SDL3 seed",
+                     "Save verified hosted main-branch SDL3 seed"):
+            block = workflow.split("- name: " + name, 1)[1].split("- name:", 1)[0]
+            self.assertIn("github.event_name == 'push'", block)
+            self.assertIn("github.ref == 'refs/heads/main'", block)
+            self.assertIn("!inputs.run_on_hp", block)
+            self.assertIn("!inputs.test_hp_compiler_profile", block)
+        seeder = workflow.split("- name: Validate isolated hosted main SDL3 seed", 1)[1]
+        seeder = seeder.split("- name: Save verified hosted main-branch", 1)[0]
+        self.assertIn("--github-env \"$RUNNER_TEMP/hosted-main-sdl3-private.env\"", seeder)
+        self.assertNotIn('--github-env "$GITHUB_ENV"', seeder)
+        self.assertIn('--github-output "$GITHUB_OUTPUT"', seeder)
+        self.assertIn("continue-on-error: true", seeder)
+        self.assertIn("--required", seeder)
+        self.assertIn("SDL3_ARGS=(-DSNESRECOMP_SDL3_FETCH=ON)", workflow)
+        self.assertIn("if [[ -n \"${UR_SDL3_PREBUILT_DIR:-}\" ]]; then", workflow)
+        self.assertIn("steps.main-sdl3-prepared.outcome == 'success'", workflow)
+        self.assertIn("steps.main-sdl3-prepared.outputs.cache-state == 'miss'", workflow)
+        self.assertIn("steps.main-sdl3-prepared.outputs.cache-state == 'recovered'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'miss'", workflow)
+        self.assertIn("steps.hosted-sdl3-prepared.outputs.cache-state == 'recovered'", workflow)
+        self.assertNotIn("steps.hosted-sdl3-cache.outputs.cache-hit != 'true'", workflow)
+
+    def test_cache_state_output_is_optional_and_success_bound(self):
+        helper = MODULE.read_text()
+        self.assertIn('parser.add_argument("--github-output", type=Path', helper)
+        self.assertIn('if args.github_output is not None:', helper)
+        self.assertIn('f.write("cache-state=" + state + "\\n")', helper)
+        self.assertLess(helper.index("package_dir = build_stage("),
+                        helper.index('if args.github_output is not None:'))
+        self.assertLess(helper.index("package_dir = validate_stage("),
+                        helper.index('if args.github_output is not None:'))
+
     def test_cache_helper_changes_trigger_all_windows_routes(self):
         workflow_dir = MODULE.parents[2] / ".github/workflows"
         required = '"tools/devnode_benchmark/prepare_sdl3_cache.py"'

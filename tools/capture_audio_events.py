@@ -52,6 +52,13 @@ def page_events(command_fn, *, first: int, page_size: int, event_filter: int) ->
         page = result.get("events", [])
         scanned = int(result.get("scanned", len(page)))
         returned_first = int(result.get("first", cursor))
+        # The native server emits integer scanned/first/oldest fields. Keep
+        # generic best-effort collection, but never certify a coerced or
+        # missing counter as complete source-owned ring coverage.
+        if (type(result.get("scanned")) is not int or
+                type(result.get("first")) is not int or
+                type(result.get("oldest")) is not int):
+            contiguous = False
         # Preserve the generic collector's historic best-effort behavior,
         # but expose absolute scan coverage for strict KON evidence consumers.
         if (returned_first != cursor or scanned < 0 or scanned > page_size

@@ -56,6 +56,11 @@ def step_bucket(name: str) -> str:
         "apt" in lowered
         or "package dependenc" in lowered
         or ("install" in lowered and "dependenc" in lowered)
+        # The Windows static SDL3 install is dependency setup, even though
+        # the step name says 'cache'. Likewise restore/save transport time.
+        # Previous reports wrongly charged ~110s of Windows setup to 'other'.
+        or "source-pinned static sdl3 cache" in lowered
+        or "hosted windows verified sdl3 candidate" in lowered
     ):
         return "dependency"
     if any(token in lowered for token in (

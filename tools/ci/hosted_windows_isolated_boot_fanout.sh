@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Hosted ready-PR only: the original three real Windows offscreen package
-# checks may run concurrently, with the same source-owned acceptance scripts.
+# Hosted ready-PR and trusted main-push: the same three source-owned
+# real Windows offscreen package checks may run concurrently.
 # Owner HP remains restricted to its separately guarded main-only worker.
 set -euo pipefail
 : "${RUNNER_TEMP:?missing runner scratch}"
@@ -8,8 +8,14 @@ set -euo pipefail
 : "${TEST_PACKAGE:?missing verified package}"
 : "${PACKAGE_USER_DATA:?missing package user-data root}"
 [[ "${GITHUB_REPOSITORY:-}" == "gamesbyian/UR-Recomp" ]] || { echo "HOSTED_BOOT_FANOUT=refused_repo" >&2; exit 2; }
-[[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]] || { echo "HOSTED_BOOT_FANOUT=refused_event" >&2; exit 2; }
-[[ "${GITHUB_REF:-}" =~ ^refs/pull/[0-9]+/merge$ ]] || { echo "HOSTED_BOOT_FANOUT=refused_ref" >&2; exit 2; }
+if [[ "${GITHUB_EVENT_NAME:-}" == "pull_request" ]]; then
+  [[ "${GITHUB_REF:-}" =~ ^refs/pull/[0-9]+/merge$ ]] || { echo "HOSTED_BOOT_FANOUT=refused_ref" >&2; exit 2; }
+elif [[ "${GITHUB_EVENT_NAME:-}" == "push" ]]; then
+  [[ "${GITHUB_REF:-}" == "refs/heads/main" ]] || { echo "HOSTED_BOOT_FANOUT=refused_ref" >&2; exit 2; }
+else
+  echo "HOSTED_BOOT_FANOUT=refused_event" >&2
+  exit 2
+fi
 [[ "${RUNNER_OS:-}" == "Windows" ]] || { echo "HOSTED_BOOT_FANOUT=refused_os" >&2; exit 2; }
 [[ -n "${RUNNER_NAME:-}" && "${RUNNER_NAME:-}" != "hpmini-ur-recomp" ]] || {
   echo "HOSTED_BOOT_FANOUT=refused_runner" >&2; exit 2;

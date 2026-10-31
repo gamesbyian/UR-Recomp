@@ -150,6 +150,9 @@ class One03SavedRunEvidenceTests(unittest.TestCase):
         self.assert_reject_mutation(b'input 0 1 100 0\n', b'')
         self.assert_reject_mutation(b'split finish 1505\n', b'')
         self.assert_reject_mutation(b'split finish 1505\n', b'split finish 1504\n')
+        # Negative controls deliberately leave the fixture corrupted; restore
+        # the valid saved bytes before testing log-only count tampering.
+        self.path.write_bytes(record())
         original = self.log.read_text()
         for altered in (original.replace('inputs=1', 'inputs=2'),
                         original.replace('splits=1', 'splits=2'),

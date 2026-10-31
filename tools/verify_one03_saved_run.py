@@ -150,14 +150,6 @@ def verify(log: Path, root: Path, source_movie: bool,
     if not lines or lines[0] != 'URRUN 1' or lines[-1] != 'END' or lines.count('END') != 1:
         raise ValueError('ONE-03 invalid run-record envelope')
     fields, splits, inputs = _parse_native_v1(lines)
-    # The producer logs these counts from the exact record after save.
-    # A valid checksum and native-decodable envelope alone do not prove that
-    # the saved bytes belong to the reported earned race.
-    if (len(inputs) != _uint(logged_inputs) or
-            len(splits) != _uint(logged_splits) or
-            sum(1 for name, ticks in splits
-                if name == 'finish' and ticks == int(logged_ticks)) != 1):
-        raise ValueError('ONE-03 saved record contradicts producer counts or finish split')
     if (fields.get('game') != 'uniracers-usa' or
             fields.get('course') != 'course:00' or
             fields.get('mode') != 'race-1p' or
@@ -167,6 +159,14 @@ def verify(log: Path, root: Path, source_movie: bool,
             fields.get('elapsed_ticks60') != logged_ticks or
             (source_movie and logged_ticks != '1505')):
         raise ValueError('ONE-03 saved record provenance or elapsed time mismatch')
+    # The producer logs these counts from the exact record after save.
+    # A valid checksum and native-decodable envelope alone do not prove that
+    # the saved bytes belong to the reported earned race.
+    if (len(inputs) != _uint(logged_inputs) or
+            len(splits) != _uint(logged_splits) or
+            sum(1 for name, ticks in splits
+                if name == 'finish' and ticks == int(logged_ticks)) != 1):
+        raise ValueError('ONE-03 saved record contradicts producer counts or finish split')
     receipt = {
         'schema': 'ur-one03-saved-run-evidence/1',
         'filename': path.name,

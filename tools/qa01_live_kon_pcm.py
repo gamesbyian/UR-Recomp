@@ -63,17 +63,16 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
             if event.get("t") == "reg" and event.get("adr") == "0x4c":
                 voice7 = kon_candidates([event])
                 if voice7:
+                    sample = voice7[0]
+                    # Once the exact target is selected, later voice-7 KON
+                    # writes of ANY bitmask outside the exclusive PCM end
+                    # cannot affect the retained samples.
+                    if candidate is not None and sample >= candidate["s"] + after:
+                        continue
                     if event.get("val") != "0x80":
                         raise ValueError("combined voice-7 KON cannot identify exact $4C=$80 target")
-                    sample = voice7[0]
                     if candidate is not None:
-                        # The selected PCM slice ends at candidate+after,
-                        # exclusively. A later KON at/after that boundary
-                        # cannot change any captured sample; still reject
-                        # another KON within the retained window.
-                        if sample < candidate["s"] + after:
-                            raise ValueError("multiple voice-7 KON events inside PCM window")
-                        continue
+                        raise ValueError("multiple voice-7 KON events inside PCM window")
                     candidate = {"s": sample, "t": "reg", "adr": "0x4c", "val": "0x80"}
         cursor += scanned
         stats = command_fn("audio_stats 0")
@@ -134,15 +133,14 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                         if event.get("t") == "reg" and event.get("adr") == "0x4c":
                             voice7 = kon_candidates([event])
                             if voice7:
+                                # A later combined-bitmask KON outside the
+                                # exclusive WAV end is as irrelevant as an
+                                # exact $4C=$80 write at that sample.
+                                if voice7[0] >= candidate["s"] + after:
+                                    continue
                                 if event.get("val") != "0x80":
                                     raise ValueError("combined voice-7 KON cannot identify exact $4C=$80 target")
-                                # Events recorded during WAV I/O are relevant
-                                # only if their sample lies before the WAV's
-                                # exclusive end. Preserve strict inside-window
-                                # ambiguity rejection without discarding a
-                                # valid earlier slice for subsequent gameplay.
-                                if voice7[0] < candidate["s"] + after:
-                                    raise ValueError("multiple voice-7 KON events inside PCM window")
+                                raise ValueError("multiple voice-7 KON events inside PCM window")
                     cursor += scanned
                 result.update({
                     "selection": "first_voice7_kon_after_live_arm_unverified_route",

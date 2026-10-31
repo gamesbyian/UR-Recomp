@@ -121,10 +121,12 @@ class NativeKonPCMTests(unittest.TestCase):
                 pcm.capture_kon_pcm(lambda _: {}, events=self.events(), produced=45000,
                                     kon_sample_index=40000, wav_path=path,
                                     before=500, after=2000)
-            with self.assertRaisesRegex(ValueError, "whitespace-free"):
-                pcm.capture_kon_pcm(lambda _: {}, events=self.events(), produced=45000,
-                                    kon_sample_index=40000, wav_path=Path(tmp) / "kon name.wav",
-                                    before=500, after=2000)
+            spaced = Path(tmp) / "kon name.wav"
+            result = pcm.capture_kon_pcm(self.command(spaced), events=self.events(),
+                                         produced=45000, kon_sample_index=40000,
+                                         wav_path=spaced, before=500, after=2000)
+            self.assertTrue(spaced.is_file())
+            self.assertEqual(result["wav_bytes"], spaced.stat().st_size)
 
     def test_invalid_sample_index_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "malformed native KON"):
@@ -180,6 +182,41 @@ class NativeKonPCMTests(unittest.TestCase):
                                     kon_sample_index=40000, wav_path=path,
                                     before=500, after=2000)
             self.assertEqual(foreign.read_bytes(), b"KEEP-FOREIGN")
+
+    def test_explicit_ascii_stage_root_allows_unicode_space_parent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            parent = root / "José has spaces"
+            parent.mkdir()
+            stage_root = root / "ascii-stage"
+            stage_root.mkdir()
+            path = parent / "voice 7.wav"
+            seen = []
+            def transport(line):
+                self.assertTrue(line.isascii())
+                self.assertIn(str(stage_root), line)
+                seen.append(line)
+                return self.command(path)(line)
+            with mock.patch.object(pcm.os, "link", side_effect=OSError("cross-device")):
+                result = pcm.capture_kon_pcm(
+                    transport, events=self.events(), produced=45000,
+                    kon_sample_index=40000, wav_path=path,
+                    before=500, after=2000, stage_root=stage_root)
+            self.assertEqual(len(seen), 1)
+            self.assertEqual(result["wav_bytes"], path.stat().st_size)
+            self.assertFalse(list(stage_root.glob(".qa01-kon-*")))
+
+    def test_invalid_server_stage_root_rejected_before_native_wav(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "kon.wav"
+            missing = root / "missing"
+            with self.assertRaisesRegex(ValueError, "server staging root"):
+                pcm.capture_kon_pcm(lambda _: self.fail("must not issue WAV"),
+                                    events=self.events(), produced=45000,
+                                    kon_sample_index=40000, wav_path=path,
+                                    before=500, after=2000, stage_root=missing)
+            self.assertFalse(path.exists())
 
     def test_no_hardlink_volume_falls_back_to_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:

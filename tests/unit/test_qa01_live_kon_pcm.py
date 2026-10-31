@@ -65,6 +65,13 @@ class LiveKONTests(unittest.TestCase):
         self.assertEqual(capture.call_count, 1)
         self.assertEqual(capture.call_args.kwargs["kon_sample_index"], 45000)
 
+    def test_explicit_server_stage_root_is_forwarded_to_capture(self):
+        script = Script([page(100, 1, [event(45000)])], [47000, 47000])
+        stage_root = Path("/tmp/native-ascii-stage")
+        result, capture = self.run_watch(script, stage_root=stage_root)
+        self.assertEqual(result["kon_sample_index"], 45000)
+        self.assertEqual(capture.call_args.kwargs["stage_root"], stage_root)
+
     def test_live_event_ring_gap_fails_before_capture(self):
         script = Script([page(105, oldest=105)], [])
         with self.assertRaisesRegex(ValueError, "overrun"):

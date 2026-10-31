@@ -134,7 +134,8 @@ def publish_wav_no_replace(staged_path: Path, wav_path: Path) -> None:
 
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
                     kon_sample_index: int, wav_path: Path,
-                    before: int = 4096, after: int = 32768) -> dict:
+                    before: int = 4096, after: int = 32768,
+                    stage_root: Path | None = None) -> dict:
     """Fail closed on missing/ambiguous KON or clamped, stale, malformed PCM."""
     if any(type(v) is not int for v in (produced, kon_sample_index, before, after)):
         raise ValueError("sample counters must be integers")
@@ -156,8 +157,8 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         raise ValueError("selected $4C=$80 KON missing or ambiguous in actual event ring")
     if start < 0 or produced < start + count:
         raise ValueError("KON PCM window not yet fully produced")
-    if not wav_path.is_absolute() or any(c.isspace() for c in str(wav_path)):
-        raise ValueError("audio_wav requires absolute whitespace-free server-local path")
+    if not wav_path.is_absolute():
+        raise ValueError("WAV output path must be absolute")
     if wav_path.exists() or wav_path.is_symlink():
         raise ValueError("refusing to reuse or overwrite an existing WAV")
     if not wav_path.parent.is_dir() or wav_path.parent.is_symlink():
@@ -166,9 +167,20 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
     # Give it a fresh, non-preexisting name inside a per-attempt directory,
     # then publish to the requested destination with no-replace semantics.
     # This protects foreign destination bytes against concurrent creation.
-    with tempfile.TemporaryDirectory(prefix=".qa01-kon-", dir=wav_path.parent) as stage_dir:
+    # The final output is published by Python, not named in the native
+    # audio_wav command. An explicit ASCII-safe server staging root therefore
+    # permits Unicode/space-containing user destinations, including Windows
+    # profile directories, without relying on narrow native fopen semantics.
+    staging_parent = wav_path.parent if stage_root is None else stage_root
+    if (not staging_parent.is_absolute() or not staging_parent.is_dir() or
+            staging_parent.is_symlink()):
+        raise ValueError("server staging root must be an existing absolute real directory")
+    with tempfile.TemporaryDirectory(prefix=".qa01-kon-", dir=staging_parent) as stage_dir:
         staged_path = Path(stage_dir) / "audio.wav"
-        wire_path = wav_command_path(staged_path)
+        try:
+            wire_path = wav_command_path(staged_path)
+        except ValueError as exc:
+            raise ValueError(f"{exc}; choose an ASCII-safe --server-stage-root") from exc
         response = command_fn(f"audio_wav {wire_path} {start} {count}")
         if (response.get("ok") is not True or response.get("start") != start or
                 response.get("count") != count or response.get("path") != wire_path):
@@ -213,6 +225,8 @@ def main() -> int:
     ap.add_argument("--before", type=int, default=4096)
     ap.add_argument("--after", type=int, default=32768)
     ap.add_argument("--wav-out", required=True, type=Path)
+    ap.add_argument("--server-stage-root", type=Path,
+                    help="Existing absolute ASCII-safe writable directory on the native server host")
     ap.add_argument("--json-out", required=True, type=Path)
     ap.add_argument("--source-sha", required=True,
                     help="Claimed Git source SHA; verify executable binding separately")
@@ -240,6 +254,7 @@ def main() -> int:
             events=report["events"], produced=report["stats"]["produced"],
             kon_sample_index=args.kon_sample_index,
             wav_path=args.wav_out.absolute(), before=args.before, after=args.after,
+            stage_root=args.server_stage_root.absolute() if args.server_stage_root is not None else None,
         )
     finally:
         reader.close()

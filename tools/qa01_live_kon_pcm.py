@@ -27,7 +27,8 @@ def _nonnegative_int(value, label: str) -> int:
 def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                     after: int = 32768, capacity: int = 65536,
                     timeout: float = 45.0, interval: float = 0.02,
-                    clock=time.monotonic, sleep=time.sleep, capture_fn=capture_kon_pcm) -> dict:
+                    clock=time.monotonic, sleep=time.sleep, capture_fn=capture_kon_pcm,
+                    stage_root: Path | None = None) -> dict:
     """Arm at current event head; reject loss, ambiguous KON and PCM overwrite.
 
     capacity must be no larger than the actual compiled PCM ring. Default
@@ -102,7 +103,8 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                     continue
                 result = capture_fn(command_fn, events=[candidate], produced=produced,
                                     kon_sample_index=candidate["s"], wav_path=wav_path,
-                                    before=before, after=after)
+                                    before=before, after=after,
+                                    **({"stage_root": stage_root} if stage_root is not None else {}))
                 # audio_wav is a separate server command. The producer can
                 # advance between the pre-WAV stats and its PCM snapshot.
                 # Drain the post-WAV event high-water mark before accepting a
@@ -168,6 +170,8 @@ def main() -> int:
     ap.add_argument("--pcm-ring-capacity", type=int, default=65536)
     ap.add_argument("--timeout", type=float, default=45.0)
     ap.add_argument("--wav-out", type=Path, required=True)
+    ap.add_argument("--server-stage-root", type=Path,
+                    help="Existing absolute ASCII-safe writable directory on the native server host")
     ap.add_argument("--json-out", type=Path, required=True)
     ap.add_argument("--source-sha", required=True)
     ap.add_argument("--native-executable", type=Path, required=True)
@@ -194,7 +198,8 @@ def main() -> int:
         result = watch_first_kon(
             lambda line: command(sock, reader, line), wav_path=wav,
             before=args.before, after=args.after,
-            capacity=args.pcm_ring_capacity, timeout=args.timeout)
+            capacity=args.pcm_ring_capacity, timeout=args.timeout,
+            stage_root=args.server_stage_root.absolute() if args.server_stage_root is not None else None)
     finally:
         reader.close()
         sock.close()

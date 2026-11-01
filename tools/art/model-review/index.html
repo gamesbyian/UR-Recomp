@@ -22,6 +22,7 @@ border-radius:8px;border:1px solid #465573}
 <div id="measureStatus" class="tiny" role="status">Optional original-sprite versus experimental-GLB measurements. No authentic pose mapping or camera reconstruction is claimed.</div>
 <div id="measurements" hidden><div class="tiny">Unpaired 2D silhouette similarities, provisional camera. Highest overlap is NOT an authentic original-game pose match.</div><div id="measureResults"></div></div></div>
 <div class="group"><h2>Wheel silhouette hypothesis</h2><div class="controls"><button id="wheelOriginal" type="button" aria-pressed="true" disabled>Source blockout 1.00×</button><button id="wheelWide" type="button" aria-pressed="false" disabled>Tested width 1.10×</button></div><div id="wheelHypothesisStatus" class="tiny" role="status">A published five-part rig is required. Changes are experimental and never alter the original GLB asset.</div><div class="tiny">On 19 new original 2D silhouettes, the frozen 1.10 wheel/rim hypothesis improved mean IoU from 0.3819 to 0.4149 using the same provisional camera. Neither camera nor pose is source-registered in 3D.</div></div>
+<div class="group"><h2>Experimental root lean</h2><label for="rootLean">Source-world Y rotation (not recovered 1994 motion)</label><select id="rootLean" disabled><option value="0">0° · unchanged blockout</option><option value="-35">−35° trial · projected +40.5°</option><option value="10">+10° trial · projected −2.3°</option><option value="15">+15° trial · projected −8.8°</option><option value="30">+30° trial · projected −23.6°</option></select><div id="rootLeanStatus" class="tiny" role="status">A source GLB is required. This only changes the displayed orientation.</div><div class="tiny">Original-ROM research identified missing projected lean directions across 35 source silhouettes. The grid was fitted post hoc; original 3D camera, contact dynamics and pose pairing are unknown. The control leaves all GLB bytes, part meshes and colours untouched.</div></div>
 <div class="group"><h2>Camera angles</h2><div class="buttons" id="views"></div></div>
 <div class="group"><h2>Inspection</h2><div class="controls"><button id="reset">Reset view</button><button id="spin" aria-pressed="false">Auto orbit</button><button id="wire" aria-pressed="false">Wireframe</button></div>
 <label class="formrow">OpenSCAD Z-up conversion <input id="zup" type="checkbox" checked></label>
@@ -37,13 +38,14 @@ import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
 import {validateMeasurements,measurementForFrame} from './measurement_overlay.mjs';
 import {applyWheelWidthHypothesis} from './wheel_hypothesis.mjs';
+import {rootLeanQuaternion} from './root_lean_hypothesis.mjs';
 const $=id=>document.getElementById(id), stage=$('viewport'), scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(35,1,.01,200);
 camera.position.set(6,4.3,8);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;stage.append(renderer.domElement);
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.7,0);
 const hemi=new THREE.HemisphereLight(0xddeeff,0x43546e,1.5);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(5,8,6);scene.add(sun);
 const grid=new THREE.GridHelper(12,24,0x7089ad,0x34445b),axes=new THREE.AxesHelper(1.5);scene.add(grid,axes);
-const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1;
+const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0;
 const poseNames=['upright','pedal','wheelie','stunt','bank'];
 const viewNames=['side','reverse','front','back','top'];let poseRequest=0,sprites=null,manifestRaw=null,spritesRaw=null,measurements=null;
 function say(t,sub=''){$('state').textContent=t;$('details').textContent=sub}
@@ -64,7 +66,22 @@ function chooseWheelWidth(factor){
  try{applyWheelWidthHypothesis(current,factor);wheelFactor=factor;wheelControls(true,$('source').textContent);}
  catch(e){$('wheelHypothesisStatus').textContent='Wheel experiment failed: '+e.message}
 }
-function useModel(gltf,origin){clear();current=gltf.scene;current.rotation.x=$('zup').checked?-Math.PI/2:0;
+function applyRootLean(){
+ if(!current)return;
+ const q=rootLeanQuaternion(rootLean,$('zup').checked);
+ current.quaternion.set(q[0],q[1],q[2],q[3]);
+}
+function updateRootLeanStatus(origin=''){
+ $('rootLean').disabled=!current;
+ $('rootLean').value=String(rootLean);
+ $('rootLeanStatus').textContent=!current?'A source GLB is required.':
+  (rootLean===0?'Unchanged experimental blockout orientation.':
+   'Root lean '+rootLean+'° around unverified source-world contact origin.')+
+  ' Meshes, part materials and GLB source bytes unchanged. '+
+  (origin.startsWith('local ')?'Historical source-axis measurements are not transferable to this local model.':
+   'Source-axis fit is exploratory and does not identify original 1994 3D pose.');
+}
+function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;applyRootLean();updateRootLeanStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -148,10 +165,13 @@ $('measureToggle').onclick=async()=>{
 $('file').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(file);manifest=null;manifestRaw=null;measurements=null;$('measurements').hidden=true;$('measureToggle').setAttribute('aria-expanded','false');$('measureStatus').textContent='Local GLB: published source comparisons are not transferable to a different model.';try{await load(objectURL,'local '+file.name)}catch(err){say('Cannot read model',err.message)}};
 $('wheelOriginal').onclick=()=>chooseWheelWidth(1);
 $('wheelWide').onclick=()=>chooseWheelWidth(1.1);
+$('rootLean').onchange=()=>{if(!current)return;try{
+ rootLean=Number($('rootLean').value);applyRootLean();updateRootLeanStatus($('source').textContent);markers();
+}catch(e){rootLean=0;applyRootLean();updateRootLeanStatus($('source').textContent);$('rootLeanStatus').textContent='Root lean unsupported: '+e.message}};
 $('reset').onclick=()=>{if(current)fit(current);else{camera.position.set(6,4.3,8);controls.target.set(0,1.7,0);controls.update()}};
 $('spin').onclick=()=>{spinning=!spinning;$('spin').setAttribute('aria-pressed',String(spinning))};
 $('wire').onclick=()=>{const on=$('wire').getAttribute('aria-pressed')!=='true';$('wire').setAttribute('aria-pressed',String(on));current?.traverse(o=>{if(o.isMesh){for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=on}})};
-$('zup').onchange=()=>{if(!current)return;current.rotation.x=$('zup').checked?-Math.PI/2:0;fit(current);markers()};$('nodes').onchange=markers;$('helpers').onchange=()=>{grid.visible=axes.visible=$('helpers').checked};$('light').oninput=()=>{hemi.intensity=Number($('light').value);sun.intensity=Number($('light').value)*1.5};
+$('zup').onchange=()=>{if(!current)return;applyRootLean();fit(current);markers()};$('nodes').onchange=markers;$('helpers').onchange=()=>{grid.visible=axes.visible=$('helpers').checked};$('light').oninput=()=>{hemi.intensity=Number($('light').value);sun.intensity=Number($('light').value)*1.5};
 renderer.domElement.addEventListener('click',e=>{if(!current)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObject(current,true);if(hits.length)$('footer').textContent='Selected: '+(hits[0].object.name||hits[0].object.parent?.name||'mesh')});
 const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w&&h){camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}};new ResizeObserver(resize).observe(stage);resize();renderer.setAnimationLoop(()=>{if(spinning)controls.autoRotate=true;else controls.autoRotate=false;controls.update(clock.getDelta());renderer.render(scene,camera)})}
 init();

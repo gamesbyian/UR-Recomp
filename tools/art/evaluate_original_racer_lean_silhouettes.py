@@ -108,7 +108,10 @@ def summarize_per_mask(rows: dict[str, dict]) -> dict:
                                         name))
         best_count[best]+=1
     values={k:round(sum(v)/len(v),8) for k,v in sorted(means.items())}
-    paired={name:round(values[name]-values[root0],8)
+    # Compute differences from unrounded means. Subtracting two separately
+    # rounded summaries causes a reproducible one-unit-at-1e-8 error.
+    unrounded={key:sum(items)/len(items) for key,items in means.items()}
+    paired={name:round(unrounded[name]-unrounded[root0],8)
             for name in sorted(labels) if name!=root0}
     return {
         "original_unique_binary_masks":len(rows),

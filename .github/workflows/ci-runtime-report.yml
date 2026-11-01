@@ -69,12 +69,19 @@ jobs:
           import subprocess
           import sys
 
+          from tools.report_ci_runtime import needs_job_detail
+
           runs_path, output_path = sys.argv[1:]
           runs = json.load(open(runs_path, encoding="utf-8"))
           repo = os.environ["GITHUB_REPOSITORY"]
 
           def fetch_jobs(run):
               run_id = run["id"]
+              # The run census keeps completed/skipped events. Such workflows
+              # have no executed jobs, so fetching their skipped job records
+              # cannot add runner or step timing (but consumes an API call).
+              if not needs_job_detail(run):
+                  return {"run_id": run_id, "jobs": []}
               jobs = []
               page = 1
               while True:
@@ -100,7 +107,10 @@ jobs:
               receipts = list(pool.map(fetch_jobs, population))
           with open(output_path, "w", encoding="utf-8") as output:
               json.dump({"runs": receipts}, output)
-          print(f"exported job timings for {len(receipts)} runs")
+          fetched = sum(needs_job_detail(run) for run in population)
+          print(f"exported job timing receipts for {len(receipts)} runs; "
+                f"{fetched} job API request(s) needed, "
+                f"{len(receipts) - fetched} completed/skipped zero-runner events bypassed")
           PY
 
       - name: Build measured runtime report

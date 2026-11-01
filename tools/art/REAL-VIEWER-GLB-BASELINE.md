@@ -46,6 +46,12 @@ python3 -m unittest tests.unit.test_audit_real_viewer_glbs
 
 The auditor imports existing \`render_racer_glb_projection.py\`, \`score_racer_candidate.py\`, and the bounded source PNG decoder. It does **not** create another rig, another viewer, another Pages pipeline, or a local authoritative model export. Each model file is authenticated against the viewer manifest, and the original source frame is independently rechecked against the repo's original-stock PNG corpus. If a new viewer artifact changes model shape, pose, source or camera, run the same audit and compare the new digest-bound results.
 
+## Where the original silhouette disagrees, and an optimizer trap
+
+Decomposing the **real 16-material upright GLB** into its original five source-authored parent parts gave 124 opaque logical pixels from tire, 70 from rim/hub, 46 from fork/frame, 14 from pedals and 56 from saddle. These component masks overlap and must not be added to infer the assembled total of 267. Compared with the authentic original P1-1205 mask of 325 occupied pixels, the union misses **107 original pixels** and includes **49 extra candidate pixels**. Of those, original rows y<15 contain **44 missing and 26 extra** pixels; rows y>=25 contain **44 missing and 10 extra** pixels. Both saddle/topology and the lower wheel/fork silhouette require work. This is provisional-camera discrepancy attribution, not per-part source truth.
+
+For the **actual** published 16-material GLB, expanding only the saddle's world-X coordinates around the source pivot x=0.04 to 1.4× reproduces the earlier simplified-mesh trial: 9.4 px/world-unit gives **IoU 0.62269129**. At the original 9.5 scale, the same expansion reaches only **0.60156250**. At 9.3, it reaches **0.62169312**. This illustrates an optimizer failure mode: **the expanded saddle worsens physical Chamfer at scale 9.4** (0.9111 px versus 0.8905 px at unchanged span 1.0), despite improving IoU. It would be premature to canonize this new saddle proportion, particularly before multi-pose, camera and title-art evaluation.
+
 ## Next actual art tasks, not relabelling this pilot
 
 1. Extend *source* evidence to different actual registered original pose families through the **private** [ROM corpus exporter](ORIGINAL-RACER-CORPUS-EXPORT.md) where a canonical ROM is legally held; declare disjoint temporal/shape held-out partitions before fitting.

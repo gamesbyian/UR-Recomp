@@ -19,10 +19,12 @@ try:
     from tools.art.continuous_pose_recipe import continuous_pose_recipe
     from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
     from tools.art.export_articulated_unicycle import PLAYER_PALETTES
+    from tools.art.scad_materials import materials_for_part
 except ModuleNotFoundError:
     from continuous_pose_recipe import continuous_pose_recipe
     from glb_roundtrip_guard import validate_glb_roundtrip
     from export_articulated_unicycle import PLAYER_PALETTES
+    from scad_materials import materials_for_part
 
 SCHEMA = "UR-ART4K-REAL-CONTINUOUS-SOURCE-GLB-RECEIPT/1"
 POSES = ("ride", "stunt_cycle")
@@ -159,11 +161,22 @@ def validate_one(source_path: Path, out_dir: Path, pose: str, time: float,
         raise ValueError("source model must preserve five parent parts")
     if {x.get("name") for x in components} != set(PART_MATERIAL_COUNTS):
         raise ValueError("source-owned parent part identity changed")
+    palette_expression, _ = PLAYER_PALETTES[player_palette]
     for row in components:
         if (row.get("material_count") != PART_MATERIAL_COUNTS[row["name"]]
                 or len(row.get("materials", [])) != row["material_count"]
                 or row.get("editable_node") is not True):
             raise ValueError("source-owned material geometry identity changed")
+        # GLB roundtrip checks the bytes against the receipt. Independently
+        # recompute the receipt's material colours from the actual SCAD source
+        # and selected palette, so a self-consistent forged GLB/receipt pair
+        # cannot claim the wrong P1/P2 colours.
+        expected_colors = [
+            list(color) for color in materials_for_part(
+                source, row["name"], rig_color_override=palette_expression)
+        ]
+        if [material.get("rgba") for material in row["materials"]] != expected_colors:
+            raise ValueError("source-owned player palette material RGBA mismatch")
     independently_checked = validate_glb_roundtrip(glb, receipt)
     if receipt.get("glb_roundtrip") != independently_checked:
         raise ValueError("stored GLB round-trip acceptance differs from actual source geometry")

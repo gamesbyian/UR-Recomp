@@ -33,12 +33,14 @@ def fixture(root, pose="stunt_cycle", time=.5, player_palette="source"):
     glb=dest/"unicycle_articulated_blockout.glb"
     glb.write_bytes(b"mock-via-stub")
     sha=lambda d: hashlib.sha256(d).hexdigest()
+    palette_expression, rgba = mod.PLAYER_PALETTES[player_palette]
     components=[
         {"name":k,"material_count":v,"editable_node":True,
-         "materials":[{"node":f"{k}__material_{i}"} for i in range(v)]}
+         "materials":[{"node":f"{k}__material_{i}","rgba":list(color)}
+                      for i,color in enumerate(mod.materials_for_part(
+                          source.read_text(),k,rig_color_override=palette_expression))]}
         for k,v in mod.PART_MATERIAL_COUNTS.items()
     ]
-    _, rgba = mod.PLAYER_PALETTES[player_palette]
     palette = {"schema_version":1, "id":player_palette,
                "override_rgba":list(rgba) if rgba else None,
                "original_raster_color_registered":False,
@@ -111,15 +113,17 @@ class RealContinuousGLBReceiptTests(unittest.TestCase):
                                             if palette_id != "p1-provisional-v1" else "source"))
                     forbidden.assert_not_called()
 
-        for field in ("pointer_id", "receipt_id", "approval"):
+        for field in ("pointer_id", "receipt_id", "approval", "forged_material_rgba"):
             with tempfile.TemporaryDirectory() as tmp:
                 source,out,receipt,pointer=fixture(Path(tmp))
                 if field == "pointer_id":
                     pointer["player_palette"]["id"]="p1-provisional-v1"
                 elif field == "receipt_id":
                     receipt["player_palette"]["id"]="p2-provisional-v1"
-                else:
+                elif field == "approval":
                     receipt["player_palette"]["owner_material_approved"]=True
+                else:
+                    receipt["components"][2]["materials"][0]["rgba"]=[255,0,0,255]
                 file=out/pointer["receipt_path"]
                 write_json(file,receipt)
                 pointer["receipt_sha256"]=mod.sha256(file.read_bytes())

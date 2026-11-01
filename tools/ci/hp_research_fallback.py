@@ -162,9 +162,9 @@ def execute(now: datetime, request: Callable[[list[str]], dict | None], *, dry_r
                "latest_research_run": research[0]["id"] if research else None,
                "decision": result, "dispatched": False, "dry_run": dry_run}
     if result.startswith("dispatch:") and not dry_run:
-        # Narrow the race against a newly arrived genuine schedule.
+        # Narrow the race against a newly arrived genuine schedule or rerun.
         second = classify(workflow_runs(RESEARCH, request), expected_workflow=RESEARCH)
-        if [x["id"] for x in second] != [x["id"] for x in research]:
+        if second != research or any(x["status"] in RUN_STATES for x in second):
             receipt["decision"] = "skip:research-census-changed"
             return receipt
         # Priority workflows have distinct concurrency scopes: a main build or
@@ -173,7 +173,7 @@ def execute(now: datetime, request: Callable[[list[str]], dict | None], *, dry_r
         priority_second = []
         for name in PRIORITY:
             priority_second.extend(classify(workflow_runs(name, request), expected_workflow=name))
-        if ([x["id"] for x in priority_second] != [x["id"] for x in priority]
+        if (priority_second != priority
                 or any(x["status"] in RUN_STATES for x in priority_second)):
             receipt["decision"] = "skip:priority-census-changed"
             return receipt
@@ -226,7 +226,18 @@ def main(argv: list[str] | None = None) -> int:
             # overwrite the first timer's source-bound dispatch receipt.
             try:
                 report = execute(utc_now(), api, dry_run=args.dry_run)
-                publish_status(args.state_dir, report)
+                try:
+                    publish_status(args.state_dir, report)
+                except (OSError, ValueError) as exc:
+                    if report.get("dispatched"):
+                        # GitHub already accepted POST. Do not misreport it as
+                        # no confirmed dispatch or overwrite another receipt.
+                        print(json.dumps({"status": "error", "category": type(exc).__name__,
+                                          "detail": "GitHub accepted dispatch request; local receipt persistence failed; inspect Actions before retry",
+                                          "dispatch_request_accepted": True,
+                                          "main_sha": report["main_sha"]}))
+                        return 2
+                    raise
             except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
                 report = {"status": "error", "category": type(exc).__name__,
                           "detail": "no confirmed dispatch; inspect gh auth status and network"}

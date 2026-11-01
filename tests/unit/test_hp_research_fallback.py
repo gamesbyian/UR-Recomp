@@ -244,5 +244,70 @@ class HPFallbackTests(unittest.TestCase):
         self.assertEqual(h.decision(NOW, SHA, q, []), "skip:recent-research")
 
 
+    def test_same_research_id_rerun_changes_status_without_new_id(self):
+        req, calls = mock_api(research=[row()])
+        reads = [0]
+        def rerun(args):
+            if f"/{h.RESEARCH}/runs?" in args[-1]:
+                reads[0] += 1
+                if reads[0] == 2:
+                    return {"workflow_runs": [{**row(), "status": "in_progress",
+                                              "conclusion": None}]}
+            return req(args)
+        result = h.execute(NOW, rerun, dry_run=False)
+        self.assertEqual(result["decision"], "skip:research-census-changed")
+        self.assertFalse(result["dispatched"])
+        self.assertFalse(any("/dispatches" in a[-1] for a in calls))
+
+    def test_same_priority_id_rerun_changes_status_without_new_id(self):
+        req, calls = mock_api(research=[row()], priority={h.PRIORITY[0]: [row(h.PRIORITY[0])]})
+        reads = [0]
+        def rerun(args):
+            if f"/{h.PRIORITY[0]}/runs?" in args[-1]:
+                reads[0] += 1
+                if reads[0] == 2:
+                    return {"workflow_runs": [{**row(h.PRIORITY[0]), "status": "in_progress",
+                                              "conclusion": None}]}
+            return req(args)
+        result = h.execute(NOW, rerun, dry_run=False)
+        self.assertEqual(result["decision"], "skip:priority-census-changed")
+        self.assertFalse(result["dispatched"])
+        self.assertFalse(any("/dispatches" in a[-1] for a in calls))
+
+    def test_accepted_dispatch_with_unwritable_status_reports_accepted(self):
+        with tempfile.TemporaryDirectory() as temp:
+            state_dir = Path(temp)
+            h.publish_status(state_dir, {"decision": "previous"})
+            before = (state_dir / "last-status.json").read_bytes()
+            stdout = io.StringIO()
+            accepted = {"dispatched": True, "main_sha": SHA,
+                        "decision": "dispatch:missed-research-window"}
+            with patch.object(h, "execute", return_value=accepted):
+                with patch.object(h, "publish_status", side_effect=PermissionError("SECRET_SENTINEL")) as publish:
+                    with redirect_stdout(stdout):
+                        exit_code = h.main(["--once", "--state-dir", str(state_dir)])
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(publish.call_count, 1)
+            self.assertEqual((state_dir / "last-status.json").read_bytes(), before)
+            report = __import__("json").loads(stdout.getvalue())
+            self.assertTrue(report["dispatch_request_accepted"])
+            self.assertIn("accepted dispatch", report["detail"])
+            self.assertNotIn("no confirmed dispatch", report["detail"])
+            self.assertNotIn("SECRET_SENTINEL", stdout.getvalue())
+
+    def test_owner_zip_matches_exact_reviewed_sources(self):
+        from zipfile import ZipFile
+        root = Path(__file__).parents[2]
+        package = root / "tools" / "ci" / "HP-Research-Fallback-Owner-Install.zip"
+        names = ["Install-HP-Research-Fallback.cmd", "Install-HP-Research-Fallback.ps1",
+                 "hp_research_fallback.py", "Uninstall-HP-Research-Fallback.cmd", "README.md"]
+        with ZipFile(package) as archive:
+            self.assertEqual(archive.namelist(), names)
+            self.assertIsNone(archive.testzip())
+            for name in names:
+                source = (root / "docs" / "HP-RESEARCH-FALLBACK.md"
+                          if name == "README.md" else root / "tools" / "ci" / name)
+                self.assertEqual(archive.read(name), source.read_bytes(), name)
+
 if __name__ == "__main__":
     unittest.main()

@@ -59,6 +59,50 @@ class WidescreenProductParityTests(unittest.TestCase):
         self.assertEqual(result["differing_pixels"], 1)
         self.assertEqual(result["bbox"], [250, 5, 250, 5])
 
+
+    def test_empty_or_truncated_bmp_cannot_pass_center_parity(self):
+        stock = self.root / "stock.bmp"
+        wide = self.root / "wide.bmp"
+        write_bmp(stock, 256, 8, stock_pixel)
+        write_bmp(wide, 342, 8, lambda x, y: stock_pixel(x - 43, y))
+        self.assertEqual(compare_center(stock, wide)["differing_pixels"], 0)
+        self.assertFalse(compare_center(stock, stock)["comparable"])
+
+        # Both files contain plausible BMP headers but no pixels.
+        for path in (stock, wide):
+            write_bmp(path, 0, 0, stock_pixel)
+        with self.assertRaisesRegex(ValueError, "invalid BMP"):
+            compare_center(stock, wide)
+
+        write_bmp(stock, 256, 8, stock_pixel)
+        write_bmp(wide, 342, 8, lambda x, y: stock_pixel(x - 43, y))
+        raw = wide.read_bytes()[:-3]
+        # Make the header length agree with the truncated file, so the
+        # pixel-payload check rather than header-size check must catch it.
+        wide.write_bytes(raw[:2] + struct.pack("<I", len(raw)) + raw[6:])
+        with self.assertRaisesRegex(ValueError, "truncated BMP pixels"):
+            compare_center(stock, wide)
+
+        write_bmp(wide, 342, 8, lambda x, y: stock_pixel(x - 43, y))
+        raw = bytearray(wide.read_bytes())
+        struct.pack_into("<I", raw, 30, 1)  # compressed BMP, unsupported
+        wide.write_bytes(raw)
+        with self.assertRaisesRegex(ValueError, "invalid BMP"):
+            compare_center(stock, wide)
+
+    def test_equal_short_or_empty_wram_cannot_pass_parity(self):
+        write_bmp(self.root / "s.fb.bmp", 256, 4, stock_pixel)
+        write_bmp(self.root / "w.fb.bmp", 342, 4,
+                  lambda x, y: stock_pixel(x - 43, y))
+        pair = ("cp", self.root / "s.fb.bmp", self.root / "w.fb.bmp",
+                self.root / "s.wram.bin", self.root / "w.wram.bin")
+        for size in (0, 0x10000):
+            for path in (self.root / "s.wram.bin", self.root / "w.wram.bin"):
+                path.write_bytes(bytes(size))
+            report = check([pair])
+            self.assertEqual(report["outcome"], "rejected")
+            self.assertFalse(compare_wram(pair[3], pair[4])["complete_wram_images"])
+
     def test_wram_lane_allowed_but_leak_rejected(self):
         a = bytearray(0x20000)
         b = bytearray(a)

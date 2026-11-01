@@ -42,15 +42,26 @@ def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
     raw = path.read_bytes()
     if raw[:2] != b"BM" or len(raw) < 54:
         raise ValueError(f"{path}: not a BMP")
+    declared_size = struct.unpack_from("<I", raw, 2)[0]
+    dib_size = struct.unpack_from("<I", raw, 14)[0]
     offset = struct.unpack_from("<I", raw, 10)[0]
     width = struct.unpack_from("<i", raw, 18)[0]
     height_signed = struct.unpack_from("<i", raw, 22)[0]
+    planes = struct.unpack_from("<H", raw, 26)[0]
     bpp = struct.unpack_from("<H", raw, 28)[0]
-    if bpp not in (24, 32):
-        raise ValueError(f"{path}: unsupported {bpp}-bit BMP")
+    compression = struct.unpack_from("<I", raw, 30)[0]
+    # Empty, compressed, malformed or truncated captures must never pass a
+    # source-centre parity check merely because both decoded rows are empty.
+    if (dib_size < 40 or 14 + dib_size > len(raw) or
+        width <= 0 or height_signed in (0, -(1 << 31)) or
+        planes != 1 or bpp not in (24, 32) or compression != 0 or
+        offset < 14 + dib_size or declared_size != len(raw)):
+        raise ValueError(f"{path}: invalid BMP geometry or header")
     height = abs(height_signed)
     bytes_pp = bpp // 8
     stride = (width * bytes_pp + 3) & ~3
+    if offset + height * stride > len(raw):
+        raise ValueError(f"{path}: truncated BMP pixels")
     rows = []
     for y in range(height):
         src_y = y if height_signed < 0 else height - 1 - y
@@ -60,7 +71,6 @@ def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
         rows.append(b"".join(row[i:i + 3] for i in range(0, len(row), bytes_pp)))
     return width, height, rows
 
-
 def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
     sw, sh, srows = read_bmp(stock)
     ww, wh, wrows = read_bmp(wide)
@@ -68,7 +78,7 @@ def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
         "stock_geometry": [sw, sh],
         "wide_geometry": [ww, wh],
     }
-    if sh != wh or ww < sw or (ww - sw) % 2:
+    if sh != wh or ww <= sw or (ww - sw) % 2:
         result["comparable"] = False
         return result
     off = (ww - sw) // 2
@@ -113,6 +123,7 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
             leaks.append(addr)
     return {
         "sizes": [len(a), len(b)],
+        "complete_wram_images": len(a) == 0x20000 and len(b) == 0x20000,
         "lane_differences": lane,
         "run_variant_differences": [f"0x{x:05X}" for x in run_variant],
         "leaked_bytes": len(leaks),
@@ -134,7 +145,7 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
         ))
         checks.append(assertion(
             f"{tag}-wram-confined-to-guest-lane",
-            wram["sizes"][0] == wram["sizes"][1] and wram["leaked_bytes"] == 0,
+            wram["complete_wram_images"] and wram["leaked_bytes"] == 0,
             wram,
         ))
     return make_envelope(

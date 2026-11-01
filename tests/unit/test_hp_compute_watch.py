@@ -201,6 +201,14 @@ class HpComputeWatchTests(unittest.TestCase):
     def test_existing_daily_ops_gets_read_only_monitor_and_bounded_artifacts(self):
         source = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("cron: '30 14 * * *'", source)
+        # Any future change to this watcher is validated by one real, trusted
+        # main-only read, without waiting for a best-effort daily cron.
+        self.assertIn("push:", source)
+        self.assertIn("branches: [main]", source)
+        self.assertIn('".github/workflows/ops-live-snapshot.yml"', source)
+        self.assertIn('"tools/hp_compute_watch.py"', source)
+        self.assertNotIn("pull_request:", source)
+        self.assertNotIn("workflow_run:", source)
         self.assertIn("actions: read", source)
         self.assertIn("python3 tools/hp_compute_watch.py", source)
         self.assertIn("python3 -m unittest -q tests.unit.test_hp_compute_watch", source)

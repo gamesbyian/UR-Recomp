@@ -14,6 +14,9 @@ def example():
     return {
         "schema": mod.OUTPUT_SCHEMA,
         "source_rom_sha256": mod.CANONICAL_ROM_SHA,
+        "corpus_manifest_sha256": "d"*64,
+        "split_request_sha256": "e"*64,
+        "verified_distinct_original_binary_silhouettes": 3,
         "no_original_binary_silhouette_across_roles": True,
         "source_family_split_is_frozen_by_exact_input_hashes": True,
         "owner_likeness_approved": False,
@@ -82,6 +85,20 @@ class HeldoutChoiceTests(unittest.TestCase):
             mod.select_roles(report)
         report = example()
         report["connected_window_components"][2]["unique_source_binary_silhouette_count"] = 2
+        with self.assertRaises(ValueError):
+            mod.select_roles(report)
+
+    def test_rejects_cross_component_mask_leak_and_missing_source_sha(self):
+        report = example()
+        report["connected_window_components"][1]["source_binary_mask_shas"] = ["a"*64]
+        with self.assertRaisesRegex(ValueError, "leaking"):
+            mod.select_roles(report)
+        report = example()
+        report["corpus_manifest_sha256"] = "0"
+        with self.assertRaisesRegex(ValueError, "immutable input SHA"):
+            mod.select_roles(report)
+        report = example()
+        report["verified_distinct_original_binary_silhouettes"] = 4
         with self.assertRaises(ValueError):
             mod.select_roles(report)
 

@@ -131,15 +131,14 @@ def untrusted_job_completion_time(job: dict[str, Any]) -> bool:
             parse_time(step.get("completed_at"))
             for step in steps if isinstance(step, dict) and step.get("completed_at")
         ]
-    except (TypeError, ValueError, OverflowError):
+    except (AttributeError, TypeError, ValueError, OverflowError):
         return True
     ended_steps = [value for value in ended_steps if value is not None]
     if not end or not ended_steps:
         return False
-    latest = max(ended_steps)
-    if end.tzinfo is None or latest.tzinfo is None:
+    if end.tzinfo is None or any(value.tzinfo is None for value in ended_steps):
         return True
-    delta = (end - latest).total_seconds()
+    delta = (end - max(ended_steps)).total_seconds()
     return delta < -60 or delta > MAX_POST_STEP_JOB_SECONDS
 
 
@@ -349,7 +348,10 @@ def summarize(
         started_value = run.get("run_started_at") or run.get("created_at")
         wall_seconds = observed_completed_wall_seconds(
             started_value, run.get("updated_at"))
-        end = parse_time(run.get("updated_at"))
+        try:
+            end = parse_time(run.get("updated_at"))
+        except (AttributeError, TypeError, ValueError, OverflowError):
+            end = None
         # GitHub may emit an impossible completed_at/updated_at on a Windows
         # self-hosted job across a local DST transition. Use the actual step
         # observations to flag the inconsistency, even when reported time

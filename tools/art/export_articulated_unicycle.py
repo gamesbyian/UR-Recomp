@@ -30,6 +30,11 @@ try:
 except ModuleNotFoundError:
     from scad_materials import materials_for_part, material_pass_source, uncolored_probe_source, UNCOLORED_PROBE_MIN
 
+try:
+    from tools.art.continuous_pose_recipe import continuous_pose_recipe
+except ModuleNotFoundError:
+    from continuous_pose_recipe import continuous_pose_recipe
+
 PARTS = {
     "tire": ("tire();", (27, 29, 31, 255)),
     "rim_and_hub": ("rim_and_hub();", (173, 190, 204, 255)),
@@ -291,7 +296,7 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
 
 def export(source: Path, out_dir: Path, *, timeout: int = 90,
            pedal_phase: float | None = None, saddle_lean: float | None = None,
-           rig_pose: str = "custom") -> dict:
+           rig_pose: str = "custom", rig_time: float | None = None) -> dict:
     source_bytes = source.read_bytes()
     base = source_bytes.decode("utf-8")
     source_digest = sha256_bytes(source_bytes)
@@ -308,13 +313,22 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
     _write_json_atomic(last_attempt, state)
     try:
         source_without_entrypoint(base)
-        if rig_pose == "custom":
+        continuous_meta = None
+        if rig_pose in ("ride", "stunt_cycle"):
+            if pedal_phase is not None or saddle_lean is not None or rig_time is None:
+                raise ValueError("continuous source pose requires --rig-time and no manual overrides")
+            pedal_phase, saddle_lean, pose_matrix, continuous_meta = continuous_pose_recipe(
+                base, rig_pose, rig_time)
+            validate_pose_controls(pedal_phase, saddle_lean)
+        elif rig_pose == "custom":
+            if rig_time is not None:
+                raise ValueError("custom pose cannot accept --rig-time")
             pedal_phase = 18.0 if pedal_phase is None else pedal_phase
             saddle_lean = 0.0 if saddle_lean is None else saddle_lean
             validate_pose_controls(pedal_phase, saddle_lean)
             pose_matrix = _identity()
         else:
-            if pedal_phase is not None or saddle_lean is not None:
+            if pedal_phase is not None or saddle_lean is not None or rig_time is not None:
                 raise ValueError("named source pose cannot override its authored controls")
             pedal_phase, saddle_lean, pose_matrix = pose_recipe(base, rig_pose)
         saddle_mount = saddle_mount_from_source(base)
@@ -331,6 +345,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                   "source_pose_transform": [list(row) for row in pose_matrix],
                   "pose_controls": {"pedal_phase_degrees": pedal_phase,
                                     "saddle_lean_degrees": saddle_lean},
+                  "continuous_pose": continuous_meta,
                   "pose_source_registered_to_original_game": False,
                   "original_character_likeness_approved": False,
                   "shipping_art_approved": False,
@@ -431,6 +446,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                    "attempt_id": attempt_id, "source_sha256": source_digest,
                    "rig_pose": rig_pose,
                    "pose_controls": report["pose_controls"],
+                   "continuous_pose": continuous_meta,
                    "glb_path": f"attempts/{attempt_id}/unicycle_articulated_blockout.glb",
                    "receipt_path": f"attempts/{attempt_id}/articulated_blockout_receipt.json",
                    "glb_sha256": report["glb_sha256"],
@@ -455,8 +471,10 @@ def main() -> None:
     parser.add_argument("source", type=Path)
     parser.add_argument("out_dir", type=Path)
     parser.add_argument("--timeout", type=int, default=90)
-    parser.add_argument("--rig-pose", choices=("custom",) + POSES, default="custom",
+    parser.add_argument("--rig-pose", choices=("custom",) + POSES + ("ride", "stunt_cycle"), default="custom",
                         help="source-owned BLOCKOUT pose, never original-game cadence")
+    parser.add_argument("--rig-time", type=float, default=None,
+                        help="authored continuous blockout sample 0..1; not 1994 frame cadence")
     parser.add_argument("--pedal-phase", type=float, default=None,
                         help="blockout crank phase in degrees (-360..360), not original cadence")
     parser.add_argument("--saddle-lean", type=float, default=None,
@@ -466,7 +484,7 @@ def main() -> None:
         parser.error("timeout must be 1..600 seconds")
     print(json.dumps(export(args.source, args.out_dir, timeout=args.timeout,
                             pedal_phase=args.pedal_phase, saddle_lean=args.saddle_lean,
-                            rig_pose=args.rig_pose),
+                            rig_pose=args.rig_pose, rig_time=args.rig_time),
                      indent=2))
 
 

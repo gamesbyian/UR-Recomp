@@ -130,7 +130,7 @@ def frame_edges(frames: list[dict], measurements: dict[str, dict]) -> dict:
                                     e["original_2d_source_transition_kind"] ==
                                         "colour_change_same_silhouette"
                                     for e in observations),
-                } for p in PLAYERS,
+                } for p in PLAYERS
             },
             "observed_original_source_transitions": observations,
         })

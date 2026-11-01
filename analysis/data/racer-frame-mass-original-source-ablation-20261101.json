@@ -1,0 +1,104 @@
+{
+  "schema": "UR-RACER-FIRST-FAMILY-FRAME-MASS-ABLATION-BASELINE/1",
+  "generated": "2026-11-01",
+  "model_source": "Existing single source OpenSCAD shared rig from draft PR #2832, NOT a modified or approved model",
+  "model_source_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "model_source_git_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "original_source_rom_declared_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_input": "32 SHA-authenticated 64x64 original ROM-composed retained P1/P2 frame 1205..1220 rasters, grouped by 10 distinct binary source masks",
+  "original_registered_camera": {
+    "world_right": [
+      1,
+      0,
+      0
+    ],
+    "world_up": [
+      0,
+      0,
+      1
+    ],
+    "camera_status": "provisional",
+    "vertical_pixels_per_model_unit": 9.5,
+    "source_pixel_aspect": "7:6",
+    "base_bottom_alpha_anchor_x2y2": [
+      67,
+      76
+    ],
+    "each_source_shape_shift_from_registered_bottom_alpha_only": true,
+    "source_to_3d_pose_mapping_verified": false
+  },
+  "procedural_candidate": {
+    "pose": "upright",
+    "source_module_export": "OpenSCAD 2021.01, exact unchanged source modules tire, rim_and_hub, pedals(18), saddle(0); fork_and_frame() rebuilt with only rig_frame_mass change; all five modules placed +1Z",
+    "model_render": "fixed 256x256 orthographic alpha; compare 64px logical pixel centres",
+    "original_rig_default_unchanged": true
+  },
+  "source_geometry_reconstruction": "Five original SCAD module STLs combined in one mesh; not a replacement for the 16-material atomic GLB exporter. Baseline at mass=1.0 independently reproduces the real GLB source-registered 10-shape mean 0.57255469 exactly.",
+  "weights": "Equal weight once per independently SHA-distinct original binary silhouette; original P1 six shapes and P2 four shapes",
+  "metric": "Binary silhouette IoU and symmetric physical-boundary Chamfer with SNES 7:6 x-aspect",
+  "trial_results": [
+    {
+      "rig_frame_mass": 1,
+      "fork_source_stl_sha256": "87d1e91acc618c663e6f7b13121bbf9fa0381e3626b2f8efa76a506d94d56f7b",
+      "fork_triangles": 2686,
+      "unpaired_equal_original_shape_weighted_iou": 0.57255469,
+      "unpaired_equal_original_shape_weighted_chamfer_physical_px": 0.97432622,
+      "p1_six_shape_mean_iou": 0.58607617,
+      "p2_four_shape_mean_iou": 0.55227247,
+      "p1_mean_chamfer_physical_px": 0.92674192,
+      "p2_mean_chamfer_physical_px": 1.04570267
+    },
+    {
+      "rig_frame_mass": 1.2,
+      "fork_source_stl_sha256": "7d5e591cbffeba0ca1ec4ab45bd7ad008bce58e1b68fd225a1084ea87f219e58",
+      "fork_triangles": 2706,
+      "unpaired_equal_original_shape_weighted_iou": 0.57505352,
+      "unpaired_equal_original_shape_weighted_chamfer_physical_px": 0.96930239,
+      "p1_six_shape_mean_iou": 0.58913855,
+      "p2_four_shape_mean_iou": 0.55392596,
+      "p1_mean_chamfer_physical_px": 0.92316239,
+      "p2_mean_chamfer_physical_px": 1.03851239
+    },
+    {
+      "rig_frame_mass": 1.4,
+      "fork_source_stl_sha256": "e9f2a688ad5f85005fdaaaaff3ae32d5b9e5c8d39c6abd534b1c6342c0af06cd",
+      "fork_triangles": 2660,
+      "unpaired_equal_original_shape_weighted_iou": 0.58271615,
+      "unpaired_equal_original_shape_weighted_chamfer_physical_px": 0.96785973,
+      "p1_six_shape_mean_iou": 0.59808246,
+      "p2_four_shape_mean_iou": 0.55966668,
+      "p1_mean_chamfer_physical_px": 0.91911558,
+      "p2_mean_chamfer_physical_px": 1.04097597
+    },
+    {
+      "rig_frame_mass": 1.6,
+      "fork_source_stl_sha256": "2209cc40578ec0288774bd39e5245b84c5325405212fc70fcc49b68143ca78f3",
+      "fork_triangles": 2658,
+      "unpaired_equal_original_shape_weighted_iou": 0.58220835,
+      "unpaired_equal_original_shape_weighted_chamfer_physical_px": 0.96194186,
+      "p1_six_shape_mean_iou": 0.60100153,
+      "p2_four_shape_mean_iou": 0.55401857,
+      "p1_mean_chamfer_physical_px": 0.91812337,
+      "p2_mean_chamfer_physical_px": 1.02766959
+    },
+    {
+      "rig_frame_mass": 2,
+      "fork_source_stl_sha256": "2dae572dbac756b466369314f44e27eb34321d4de5a192d761a11025133e9513",
+      "fork_triangles": 2664,
+      "unpaired_equal_original_shape_weighted_iou": 0.58539651,
+      "unpaired_equal_original_shape_weighted_chamfer_physical_px": 0.96121329,
+      "p1_six_shape_mean_iou": 0.60704108,
+      "p2_four_shape_mean_iou": 0.55292966,
+      "p1_mean_chamfer_physical_px": 0.91813488,
+      "p2_mean_chamfer_physical_px": 1.0258309
+    }
+  ],
+  "interpretation": "Frame mass 1.4 improves IoU and physical contour distance over unmodified 1.0 across ten source silhouettes, unlike previously rejected 1.4 saddle expansion. 2.0 gives higher aggregate IoU and lower Chamfer but gain concentrates in P1; P2 IoU falls from its 1.4 peak. This is a bounded research ablation of one experimental rig pose, NOT a source-validated 3D shape optimum and no independent heldout animation family is available.",
+  "heldout_animation_family_measured": false,
+  "source_1994_3d_pose_mapping_verified": false,
+  "source_1994_camera_recovered": false,
+  "rig_default_modified": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "original_image_or_glb_binary_committed": false
+}

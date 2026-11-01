@@ -112,19 +112,18 @@ class RestartInputGuardTest(unittest.TestCase):
         self.assertEqual(validate_restart_guest_input(combined), 12)
         self.assertEqual(validate_restart_p2_guest_input(combined), 12)
 
-    def test_p2_latch_transition_cannot_clear_with_raw_start_or_rearm(self):
-        # The previous synthetic P2 fixture claimed raw Start=0100 even
-        # after the native latch reported cleared. That state is impossible
-        # under modern_restart_key_filter and previously passed strict mode.
+    def test_p2_latch_transition_cannot_clear_while_return_held_or_rearm(self):
+        # A raw Start can be suppressed by tournament_p2_guest_filter
+        # before reaching the Restart latch. Only unambiguous transitions
+        # can be rejected using the currently emitted raw P2 diagnostic.
         valid = p2_trace()
         self.assertEqual(validate_restart_p2_guest_input(
             valid, require_raw_start_witness=True), 12)
         cases = (
-            # At the first released-Return sample, raw Start still high:
-            # the latch must remain armed, even if another filter masks guest.
-            ("raw=0000 guest=0000 return_held=0 release_waiting=0 remaining=7",
-             "raw=0100 guest=0000 return_held=0 release_waiting=0 remaining=7",
-             "sample 5"),
+            # An armed latch cannot clear while physical Return is held.
+            ("raw=0100 guest=0000 return_held=1 release_waiting=1 remaining=8",
+             "raw=0100 guest=0000 return_held=1 release_waiting=0 remaining=8",
+             "sample 4"),
             # Once both Return and raw Start are released, the latch must clear.
             ("raw=0000 guest=0000 return_held=0 release_waiting=0 remaining=7",
              "raw=0000 guest=0000 return_held=0 release_waiting=1 remaining=7",
@@ -141,6 +140,14 @@ class RestartInputGuardTest(unittest.TestCase):
                 validate_restart_p2_guest_input(
                     valid.replace(old, new, 1),
                     require_raw_start_witness=True)
+        # Raw Start is logged before the tournament filter. If that filter
+        # suppresses it, the Restart latch may legitimately clear when Return
+        # is up. Do not infer the intermediate filtered word from raw/guest.
+        ambiguous = valid.replace(
+            "raw=0000 guest=0000 return_held=0 release_waiting=0 remaining=7",
+            "raw=0100 guest=0000 return_held=0 release_waiting=0 remaining=7", 1)
+        self.assertEqual(validate_restart_p2_guest_input(
+            ambiguous, require_raw_start_witness=True), 12)
 
     def test_p2_guest_start_leak_rejected_even_with_valid_p1(self):
         with self.assertRaisesRegex(ValueError, "P2 post-Restart sample 5: guest Start leaked"):

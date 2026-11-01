@@ -28,3 +28,19 @@ The companion tools/art/compare_original_chroma_axes_to_glb_poses.py opens the *
 The numeric comparison reports each of the five experimental image-projected painted axes, the range and gap from all 35 original exact binary source masks. The distance to the nearest *experimental* axis is a **coverage descriptor only**; do not interpret it as a source-to-GLB pose matcher or pose-classification confidence. No 1994 image is labelled with an experimental pose. It does not determine the original 3D camera, true source fork lean, part hierarchy or a sufficient animation system.
 
 The existing opt-in original-ROM GHA workflow emits this second numeric report in its same bounded research job, alongside the source-only axis, frozen wheel and near-duplicate evidence. Future geometry proposals should target gaps in source pose **directional diversity**, not just improving already correlated near-duplicate silhouettes.
+
+### First actual five-GLB result
+
+[Hosted verified original-ROM/GLB run #41290041584](https://github.com/gamesbyian/UR-Recomp/actions/runs/41290041584) passed and independently SHA-bound the full source and model outputs. The *actual* source palette axis range is **-29.185916° to +43.124371°** over 35 original alpha masks. Five original 2026 experimental GLBs projected through the same provisional camera yield:
+
+| Experimental five-part study | Projected painted-frame axis |
+| --- | ---: |
+| upright | +6.944131° |
+| pedal | +6.944131° |
+| wheelie | +33.869252° |
+| stunt | -43.167160° |
+| bank | +9.272860° |
+
+The source pixel-mask mean distance to the closest of these five **unpaired axis directions** is **8.599047°**, and **8 of 35** original source silhouettes lie more than 10° from every experimental preset; worst gap **23.948488°**. Notice that pedal has precisely the same painted-frame axis as upright, and bank is similar. Different wheel/pedal or camera presentation still may distinguish those poses for other reasons. This is evidence that current preset *directional coverage* is sparse, especially for intermediate negative lean, **not** a valid automatic assignment of source frame to a 2026 GLB pose.
+
+The exact numeric, input-hash and false-approval witness is committed at [analysis/data/racer-original-vs-glb-painted-axis-coverage-20261101.json](../../analysis/data/racer-original-vs-glb-painted-axis-coverage-20261101.json). The complete per-shape comparison is in the source-bound run artifact. Next art/rig experiment should test a reversible pose adjustment that addresses missing directional states, while retaining actual registered source *temporal* ordering and preserving the canonical draft rig unchanged until reviewed.

@@ -991,9 +991,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
         # Test-only edits must keep the full tooling suite but not rebuild an
         # unchanged game. All actual package executors and inputs stay active.
         workflows = (
-            ("windows-native-smoke.yml", "  push:\\n", "\\nconcurrency:"),
-            ("owner-hp-main-windows-smoke.yml", "  push:\\n", "\\n  workflow_dispatch:"),
-            ("qa05-qa09-windows-candidate.yml", "  pull_request:\\n", "\\n  workflow_dispatch:"),
+            ("windows-native-smoke.yml", "  push:\n", "\nconcurrency:"),
+            ("owner-hp-main-windows-smoke.yml", "  push:\n", "\n  workflow_dispatch:"),
+            ("qa05-qa09-windows-candidate.yml", "  pull_request:\n", "\n  workflow_dispatch:"),
         )
         for filename, start, end in workflows:
             text = (WORKFLOWS / filename).read_text(encoding="utf-8")

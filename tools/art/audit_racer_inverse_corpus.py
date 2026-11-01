@@ -41,12 +41,18 @@ def audit(data: dict, source_sha256: str) -> dict:
             if type(frame) is not int or (previous is not None and frame <= previous):
                 raise ValueError("frames must be strictly increasing")
             previous = frame
+            present = 0
             for player in ("p1", "p2"):
                 rid = record.get(player + "_representation_id")
+                if rid is None:
+                    continue  # One-player broader-frequency witness.
                 if rid not in by_id or by_id[rid].get("player") != player:
                     raise ValueError("unknown or wrong-player representation: " + str(rid))
+                present += 1
                 counts[player].add(rid)
                 occurrence[rid].add(name)
+            if present == 0:
+                raise ValueError("frame has no registered player representation")
         start, end = sequence.get("window_start"), sequence.get("window_end")
         if frames[0]["frame"] != start or frames[-1]["frame"] != end:
             raise ValueError("sequence range does not match frame contents")

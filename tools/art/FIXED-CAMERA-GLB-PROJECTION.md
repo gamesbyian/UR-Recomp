@@ -9,7 +9,7 @@ On a workstation with \`numpy\`, \`trimesh\` and \`Pillow\` available:
 ```sh
 # Obtain a verified GLB from the existing draft #2832 exporter.
 python3 tools/art/render_racer_glb_projection.py \
-  --glb /private/ur-art4k/attempts/<id>/articulated_unicycle.glb \
+  --glb /private/ur-art4k/attempts/<id>/unicycle_articulated_blockout.glb \
   --glb-sha256 '<actual-64-hex-GLB-file-sha>' \
   --camera analysis/data/racer-inverse-side-provisional-1205.json \
   --out /private/ur-art4k/registered-p1-1205.png \

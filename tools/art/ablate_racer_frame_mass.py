@@ -165,8 +165,66 @@ def export_part(prefix: str, part: str, mass: float,
     return mesh,sha(stl.read_bytes()),len(mesh.faces)
 
 
+def validate_frame_tire_overlap(volume: float, faces: int, components: int,
+                                watertight: bool, winding: bool,
+                                stl_sha256: str) -> dict:
+    """Require an actual closed CSG solid before reporting 3D interference.
+
+    This is OpenSCAD's exact fork_AND_tire Boolean solid, not a 2D silhouette
+    overlap. It can contain multiple disconnected solids. It is not a
+    statement that the 1994 model had the same mechanical constraints.
+    """
+    if (type(volume) not in (float, int) or not math.isfinite(volume) or volume <= 0 or
+            type(faces) is not int or faces < 4 or
+            type(components) is not int or components < 1 or
+            watertight is not True or winding is not True or
+            not isinstance(stl_sha256, str) or len(stl_sha256) != 64 or
+            any(c not in "0123456789abcdef" for c in stl_sha256)):
+        raise ValueError("invalid/non-watertight source-authored fork-tire CSG intersection")
+    return {
+        "fork_tire_intersection_csg_volume_model_units_cubed": round(volume, 12),
+        "fork_tire_intersection_csg_watertight": True,
+        "fork_tire_intersection_csg_winding_consistent": True,
+        "fork_tire_intersection_connected_components": components,
+        "fork_tire_intersection_triangle_count": faces,
+        "fork_tire_intersection_stl_sha256": stl_sha256,
+        "fork_tire_intersection_is_mechanical_art_approval": False,
+    }
+
+
+def export_fork_tire_csg(prefix: str, mass: float,
+                         folder: Path, openscad: str) -> dict:
+    """Optional exact CSG test of source fork volume intersecting source tire.
+
+    Uses the *same* original SCAD modules and mass parameter as silhouette
+    ablation. A mesh-processing boolean approximation is NOT substituted.
+    """
+    target = folder / ("fork-tire-CSG-" + str(mass).replace(".", "_"))
+    script = target.with_suffix(".scad")
+    stl = target.with_suffix(".stl")
+    script.write_text(prefix + "\n" +
+                      "intersection(){ translate([0,0,1]) fork_and_frame(); "
+                      "translate([0,0,1]) tire(); }\n", encoding="utf-8")
+    done = subprocess.run(
+        [openscad, "-D", f"rig_frame_mass={mass:g}",
+         "-o", str(stl), str(script)],
+        text=True, capture_output=True, timeout=120, check=False
+    )
+    if done.returncode or not stl.is_file():
+        raise RuntimeError("source fork/tire OpenSCAD CSG did not produce a complete solid: " +
+                           done.stderr[-200:])
+    raw = stl.read_bytes()
+    mesh = trimesh.load_mesh(stl, process=True)
+    return validate_frame_tire_overlap(
+        float(mesh.volume), int(len(mesh.faces)),
+        len(mesh.split(only_watertight=False)),
+        bool(mesh.is_watertight), bool(mesh.is_winding_consistent),
+        sha(raw),
+    )
+
+
 def study(scad_path: Path, source_sha: str, camera_path: Path,
-          mass_values: list[float]) -> dict:
+          mass_values: list[float], *, measure_frame_tire_csg: bool = False) -> dict:
     if np is None or trimesh is None:
         raise RuntimeError("offline source model ablation requires NumPy and Trimesh")
     masses=checked_masses(mass_values)
@@ -214,8 +272,11 @@ def study(scad_path: Path, source_sha: str, camera_path: Path,
                     "boundary_chamfer_mean_physical_px":metric[
                         "boundary_chamfer_mean_physical_px"],
                 })
+            overlap = (export_fork_tire_csg(prefix, mass, folder, openscad)
+                       if measure_frame_tire_csg else None)
             rows.append({
                 "rig_frame_mass":mass,
+                **({"fork_tire_csg": overlap} if overlap is not None else {}),
                 "candidate_fork_source_stl_sha256":fork[1],
                 "candidate_fork_triangle_count":fork[2],
                 "whole_model_triangle_count":len(geometry.faces),
@@ -224,6 +285,11 @@ def study(scad_path: Path, source_sha: str, camera_path: Path,
                 **validate_scores(scored,10),
             })
     control=next(row for row in rows if row["rig_frame_mass"]==1.0)
+    if measure_frame_tire_csg:
+        baseline=control["fork_tire_csg"]["fork_tire_intersection_csg_volume_model_units_cubed"]
+        for row in rows:
+            volume=row["fork_tire_csg"]["fork_tire_intersection_csg_volume_model_units_cubed"]
+            row["fork_tire_csg"]["volume_ratio_to_unmodified_1_0_rig"]=round(volume/baseline,6)
     if (source_sha==CANONICAL_SOURCE_SHA and
             abs(control["equal_original_binary_mask_weight_mean_iou"]-0.57255469)>1e-7):
         raise ValueError("canonical 2026 model baseline failed independent 10-source verification")
@@ -246,6 +312,8 @@ def study(scad_path: Path, source_sha: str, camera_path: Path,
         "owner_likeness_approved":False,
         "shipping_art_approved":False,
         "model_files_modified":False,
+        "optional_exact_frame_tire_csg_measured":measure_frame_tire_csg,
+        "csg_overlap_is_original_1994_mechanical_contact_proof":False,
         "parameter_trials":rows,
     }
 
@@ -256,12 +324,15 @@ def main():
     ap.add_argument("--source-scad-sha256",required=True)
     ap.add_argument("--camera",type=Path,default=CAMERA)
     ap.add_argument("--mass",type=float,action="append",help="repeat 1.0..2.0, include 1.0")
+    ap.add_argument("--measure-frame-tire-csg", action="store_true",
+                    help="opt-in exact OpenSCAD fork/tire 3D intersection (costly)")
     ap.add_argument("--out",required=True,type=Path,help="new immutable JSON, outside repository")
     args=ap.parse_args()
     if args.out.resolve().is_relative_to(ROOT.resolve()):
         ap.error("source research receipts must be outside public repository")
     report=study(args.source_scad,args.source_scad_sha256,args.camera,
-                 args.mass or [1.0,1.2,1.4,1.6,2.0])
+                 args.mass or [1.0,1.2,1.4,1.6,2.0],
+                 measure_frame_tire_csg=args.measure_frame_tire_csg)
     output=json.dumps(report,sort_keys=True,indent=2)+"\n"
     publish_text_once(args.out,output)
     print(json.dumps({

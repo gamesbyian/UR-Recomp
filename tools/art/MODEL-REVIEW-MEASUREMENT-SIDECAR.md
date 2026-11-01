@@ -7,6 +7,9 @@ The producer `prepare_model_review_measurement_sidecar.py` reuses the **merged r
 ```sh
 # The model-review directory comes from the actual, independently verified
 # five-GLB Pages staging artifact, not a default no-model placeholder.
+# Choose a PRIVATE output directory outside the site. The publisher
+# intentionally refuses to replace any existing file.
+mkdir -p /private/ur-viewer-evidence
 python3 tools/art/prepare_model_review_measurement_sidecar.py \
   --model-review-dir /private/ur-viewer-stage/model-review \
   --camera analysis/data/racer-inverse-side-provisional-1205.json \

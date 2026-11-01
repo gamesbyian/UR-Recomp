@@ -77,6 +77,10 @@ Reproduce reviewer packet with high-detail authentic source references when avai
 
 Only after acceptance: export registered 4x/HD sprite families from the same model into the **existing** HD selector/manifest/host path. Respect rendered OAM source pixels, foreground occlusion, exact guest pose/time, contact/pivot anchors and safe Original fallback. Run native Windows and QA-08/source verification on the precise product head with normal release controls. Archive a reversible candidate and preserve historic art hash approvals.
 
+## Retained bounded source-to-3D pilot (2026-10-31, below M1 acceptance)
+
+The [hash-bound original-P1-1205 calibration pilot](../analysis/data/racer-inverse-first-source-pilot-20261031.json) used the exact source OpenSCAD rig blob from draft #2832, a *locally reassembled* five-part source-module GLB (not the exact material-separated #2832 export), and the retained original ROM-composed P1 frame1205 PNG verified against its decoded RGBA hash. It projected the unapproved rig with a provisional fixed side camera and measured a **0.5829** initial silhouette IoU; a bounded single-frame scale hypothesis improved IoU to **0.5957**, and a source-module-compatible 1.4× saddle-x span produced **0.6227**. These are **training-only alpha metrics** on one source image, with no independent held-out pose, source-1994 camera or owner likeness approval; do not promote the parameters to canonical. The experiment reveals a reproducible projection disparity and supports A1/A2 multi-pose fitting, not M1 completion.
+
 ## Cross-cutting work packages
 
 **A7 / evidence and correctness:** source manifest, measured metrics and provenance receipt all get small ROM-free synthetic tests. Preserve git/artist/reviewer source hashes; fail closed on historical artifacts no longer accessible. Never commit copyrighted original sprites from a hosted API directly to public CI. Use *the existing* tests and dossiers, and add only narrowly focused unit tests adjacent to the new tools.

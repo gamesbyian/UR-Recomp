@@ -14,7 +14,7 @@ def frame(player="p1", slope=1):
     pix = bytearray(64 * 64 * 4)
     color = (210, 28, 30, 255) if player == "p1" else (28, 35, 210, 255)
     for y in range(5, 22):
-        x = 15 + round(slope * (y - 5))
+        x = 23 + round(slope * (y - 5))
         pix[4*(y*64+x):4*(y*64+x)+4] = bytes(color)
     return bytes(pix)
 

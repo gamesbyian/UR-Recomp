@@ -115,6 +115,36 @@ class HpScienceArchiveAuditTests(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(audit.AuditError):
                 self.check(receipt=receipt, binding=binding)
 
+    def test_declared_science_wall_horizon_requires_manual_provenance(self):
+        # Old source-era receipts deliberately have no horizon claim.
+        old = self.check(metadata=run("schedule"))
+        self.assertIsNone(old["declared_cohort_wall_seconds_budget"])
+        for horizon in (360, 600):
+            receipt, binding = sample()
+            receipt.pop("receipt_sha256")
+            receipt["wall_seconds_budget"] = horizon
+            receipt["receipt_sha256"] = audit._hash_json(receipt)
+            manual = self.check(receipt=receipt, binding=binding)
+            self.assertEqual(manual["declared_cohort_wall_seconds_budget"], horizon)
+            if horizon == 360:
+                self.assertEqual(self.check(receipt=receipt, binding=binding,
+                                            metadata=run("schedule"))[
+                                                "declared_cohort_wall_seconds_budget"], 360)
+            else:
+                with self.assertRaisesRegex(audit.AuditError, "manual dispatch"):
+                    self.check(receipt=receipt, binding=binding,
+                               metadata=run("schedule"))
+
+    def test_forged_or_unsupported_science_horizon_fails_closed(self):
+        for invalid in (None, False, True, 0, 599, 601, 600.0, "600"):
+            receipt, binding = sample()
+            receipt.pop("receipt_sha256")
+            receipt["wall_seconds_budget"] = invalid
+            receipt["receipt_sha256"] = audit._hash_json(receipt)
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(
+                    audit.AuditError, "science cohort wall budget"):
+                self.check(receipt=receipt, binding=binding)
+
     def test_wrong_executable_rejected_even_when_zip_crc_passes(self):
         with self.assertRaisesRegex(audit.AuditError, "real executable differs"):
             self.check(exe=EXE + b"tampered")

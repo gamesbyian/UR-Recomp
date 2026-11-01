@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import unittest
 
-from tools.qa05_restart_input_guard import validate_restart_guest_input
+from tools.qa05_restart_input_guard import (
+    validate_restart_guest_input, validate_restart_p2_guest_input,
+)
 
 
 def trace(*, leak_at=None, waiting_cleared_at=4, missing=None, duplicate=False):
@@ -21,6 +23,23 @@ def trace(*, leak_at=None, waiting_cleared_at=4, missing=None, duplicate=False):
     if duplicate:
         lines.append(lines[-1])
     return "before\n" + "\n".join(lines) + "\nafter\n"
+
+
+def p2_trace(*, leak_at=None, missing=None, malformed=False, bad_countdown=False):
+    lines = []
+    for index in range(12):
+        if index == missing:
+            continue
+        guest = "0100" if index == leak_at else "0000"
+        remaining = 9 if bad_countdown and index == 3 else 11 - index
+        lines.append(
+            f"UR_RESTART_INPUT_P2 raw=0100 guest={guest} "
+            f"return_held={int(index < 4)} "
+            f"release_waiting={int(index < 4)} remaining={remaining}"
+        )
+    if malformed:
+        lines.append("UR_RESTART_INPUT_P2 raw=0100 guest=0100 remaining=?")
+    return "\n".join(lines) + "\n"
 
 
 class RestartInputGuardTest(unittest.TestCase):
@@ -67,6 +86,30 @@ class RestartInputGuardTest(unittest.TestCase):
                 "UR_OTHER_EVENT ready=1\n" + trace() + "UR_OTHER_EVENT done=1\n"
             ), 12
         )
+
+    def test_new_p2_diagnostics_coexist_with_p1_and_are_checked(self):
+        combined = trace() + p2_trace()
+        self.assertEqual(validate_restart_guest_input(combined), 12)
+        self.assertEqual(validate_restart_p2_guest_input(combined), 12)
+
+    def test_p2_guest_start_leak_rejected_even_with_valid_p1(self):
+        with self.assertRaisesRegex(ValueError, "P2 post-Restart sample 5: guest Start leaked"):
+            validate_restart_guest_input(trace() + p2_trace(leak_at=4))
+
+    def test_p2_truncated_or_malformed_diagnostic_rejected(self):
+        for extra in (p2_trace(missing=3), p2_trace(malformed=True)):
+            with self.subTest(extra=extra[-60:]), self.assertRaisesRegex(
+                ValueError, "P2 post-Restart|malformed UR_RESTART_INPUT_P2"
+            ):
+                validate_restart_guest_input(trace() + extra)
+
+    def test_p2_countdown_discontinuity_rejected(self):
+        with self.assertRaisesRegex(ValueError, "P2 post-Restart sample 4: expected remaining=8"):
+            validate_restart_guest_input(trace() + p2_trace(bad_countdown=True))
+
+    def test_historical_p1_only_log_remains_valid_without_p2_credit(self):
+        self.assertEqual(validate_restart_guest_input(trace()), 12)
+        self.assertEqual(validate_restart_p2_guest_input(trace()), 0)
 
     def test_missing_diagnostics_is_not_success(self):
         with self.assertRaisesRegex(ValueError, "malformed UR_RESTART_INPUT"):

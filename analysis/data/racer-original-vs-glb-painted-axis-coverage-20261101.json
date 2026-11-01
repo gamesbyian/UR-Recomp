@@ -1,0 +1,41 @@
+{
+  "schema": "UR-ART4K-AUTHENTIC-SOURCE-VS-REAL-GLB-PAINTED-AXIS-SUMMARY/1",
+  "run_id": 41290041584,
+  "source_artifact_id": 13077270497,
+  "source_result_filename": "source-chroma-axes.json",
+  "source_result_sha256": "78f420423c62e61bcb5c4271c61dc8dab17b786f693c2895cd0e3054d1d06bc8",
+  "five_pose_comparison_filename": "source-to-glb-axes.json",
+  "five_pose_comparison_sha256": "3a72ebc0db46b6a07d08b102a31a1e6dedfe3275252554d2b2f3f561c91dfd6a",
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_corpus_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "source_registered_2d_frame_observations": 91,
+  "source_representation_count": 59,
+  "source_independent_binary_silhouettes": 35,
+  "source_2d_coloured_axis_range_deg": [
+    -29.185916,
+    43.124371
+  ],
+  "original_1994_pixel_aspect": "7:6",
+  "model_2026_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "experimental_pose_paint_axes_deg": {
+    "upright": 6.944131,
+    "pedal": 6.944131,
+    "wheelie": 33.869252,
+    "stunt": -43.16716,
+    "bank": 9.27286
+  },
+  "original_masks_with_nearest_experimental_pose_angle_gap_over_10_degrees": 8,
+  "mean_nearest_experimental_pose_2d_angle_gap_deg": 8.599047,
+  "worst_nearest_experimental_pose_2d_angle_gap_deg": 23.948488,
+  "method": "P1 red and P2 blue original raster pixels versus isolated blue-fork mesh projected using the same provisional 7:6 side camera; top three and bottom three chroma-row centroids; one vote per original binary mask. No auto pose matching.",
+  "caveats": {
+    "original_1994_3d_camera_identified": false,
+    "original_1994_mesh_or_joints_recovered": false,
+    "original_sprite_2026_glb_pose_correspondence_verified": false,
+    "model_2026_paint_is_original_1994_albedo": false,
+    "independent_1994_3d_view_generalization_verified": false,
+    "owner_character_likeness_approved": false,
+    "shipping_art_approved": false
+  }
+}

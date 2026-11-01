@@ -78,7 +78,16 @@ jobs:
               out.write(f"1.10 wheel mean IoU: {holdout['mean_iou_width_1_10']}\n\n")
               out.write("**Unverified source 3D camera, pose pairing and owner likeness.**\n")
           PY
-      - name: Upload numeric provenance report only, not ROM or source images
+      - name: Upload short-lived, SHA-verified original sprite research corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-original-source-families-for-review
+          path: |
+            ${{ runner.temp }}/art4k-verified-original-corpus/source-corpus.json
+            ${{ runner.temp }}/art4k-verified-original-corpus/stock/source-*.png
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload bounded numeric provenance report
         uses: actions/upload-artifact@v4
         with:
           name: art4k-genuine-original-pose-family-wheel-holdout

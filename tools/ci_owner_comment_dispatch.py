@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Dispatch narrowly allowlisted CI or HP science via owner PR comments.
 
-Only /ur-ci hp-research requests a bounded current-main HP science trial.
+Only exact /ur-ci hp-research and /ur-ci hp-research 600 owner comments
+request bounded current-main HP science; both share the same cooldown.
 It never establishes that GitHub's *scheduled* cron actually fired.
 A successful dispatch is NOT a successful test: inspect the target run's
 actual checkout SHA and signed eight-worker evidence before any claim.
@@ -21,6 +22,7 @@ REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 REF = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,119}\Z")
 
 SCIENCE_COMMAND = "/ur-ci hp-research"
+SCIENCE_EXTENDED_COMMAND = "/ur-ci hp-research 600"
 SCIENCE_WORKFLOW = "owner-hp-seeded-2p-research.yml"
 SCIENCE_COOLDOWN = timedelta(minutes=90)
 SCIENCE_SHA = re.compile(r"[0-9a-f]{40}\Z")
@@ -120,7 +122,7 @@ def science_intent(event, repo, owner):
     if (not isinstance(issue, dict) or not isinstance(comment, dict)
             or not issue.get("pull_request")
             or not isinstance(comment.get("body"), str)
-            or comment["body"].strip() != SCIENCE_COMMAND):
+            or comment["body"].strip() not in (SCIENCE_COMMAND, SCIENCE_EXTENDED_COMMAND)):
         return None
     record, user = event.get("repository"), comment.get("user")
     if (not isinstance(repo, str) or not REPO.fullmatch(repo)
@@ -185,7 +187,11 @@ def science_process(event, repo, owner, get_repo, get_runs, dispatch, now):
         raise ValueError("Default branch not a live trusted main")
     existing = recent_science_run(get_runs(SCIENCE_WORKFLOW, "main"), now)
     if existing is None:
-        dispatch(SCIENCE_WORKFLOW, "main")
+        # One owner-only, globally serialized cooldown covers both horizons.
+        if event["comment"]["body"].strip() == SCIENCE_EXTENDED_COMMAND:
+            dispatch(SCIENCE_WORKFLOW, "main", {"research_wall_seconds": "600"})
+        else:
+            dispatch(SCIENCE_WORKFLOW, "main")
     return (number, SCIENCE_WORKFLOW, existing)
 
 
@@ -215,14 +221,19 @@ def main():
         lambda workflow, ref: api(repo, token, "GET",
             "/actions/workflows/" + workflow + "/runs?" +
             urlencode({"branch": ref, "per_page": 100})),
-        lambda workflow, ref: api(repo, token, "POST",
-            "/actions/workflows/" + workflow + "/dispatches", {"ref": ref}),
+        lambda workflow, ref, inputs=None: api(repo, token, "POST",
+            "/actions/workflows/" + workflow + "/dispatches",
+            {"ref": ref, **({"inputs": inputs} if inputs is not None else {})}),
         datetime.now(timezone.utc))
     if science is not None:
         number, workflow, existing = science
         if existing is None:
-            message = ("Requested one trusted-main HP science run from owner PR #"
-                       + str(number) + "; only the eventual actual GitHub-run "
+            horizon = ("600-second manual-only" if
+                       event["comment"]["body"].strip() == SCIENCE_EXTENDED_COMMAND
+                       else "360-second default")
+            message = ("Requested one trusted-main HP science run (" + horizon +
+                       ") from owner PR #" + str(number) +
+                       "; only the eventual actual GitHub-run "
                        "SHA and source-bound eight-worker signed receipt can "
                        "establish results. Not evidence of scheduled cron delivery.")
         else:

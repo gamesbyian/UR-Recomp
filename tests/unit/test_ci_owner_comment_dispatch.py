@@ -148,6 +148,36 @@ class OwnerCommentDispatchTests(unittest.TestCase):
         self.assertIn("run_on_hp: true", science)
         self.assertIn("hp_seeded_2p: true", science)
 
+    def test_hp_extended_science_command_is_exact_and_shares_cooldown(self):
+        clock = datetime(2026, 11, 1, 2, 15, tzinfo=timezone.utc)
+        calls = []
+        command = "/ur-ci hp-research 600"
+        ok = science_process(event(text=command), REPO, "gamesbyian",
+            lambda: {"full_name": REPO, "default_branch": "main", "archived": False},
+            lambda w, ref: {"workflow_runs": [], "total_count": 0},
+            lambda w, ref, inputs=None: calls.append((w, ref, inputs)), clock)
+        self.assertEqual(ok, (2837, SCIENCE_WORKFLOW, None))
+        self.assertEqual(calls, [(SCIENCE_WORKFLOW, "main",
+                                  {"research_wall_seconds": "600"})])
+        recent = {"id": 901, "event": "workflow_dispatch", "status": "completed",
+                  "head_branch": "main", "head_sha": SHA,
+                  "created_at": (clock - timedelta(minutes=20)).isoformat()}
+        calls.clear()
+        skipped = science_process(event(text=command), REPO, "gamesbyian",
+            lambda: {"full_name": REPO, "default_branch": "main", "archived": False},
+            lambda w, ref: {"workflow_runs": [recent], "total_count": 1},
+            lambda *args: calls.append(args), clock)
+        self.assertEqual(skipped, (2837, SCIENCE_WORKFLOW, 901))
+        self.assertEqual(calls, [])
+        for value in ("/ur-ci hp-research 601", "/ur-ci hp-research 0600",
+                      "/ur-ci hp-research 600 extra", "/ur-ci hp-research -600"):
+            with self.subTest(value=value):
+                self.assertIsNone(science_intent(event(text=value), REPO, "gamesbyian"))
+        unsafe = event(text=command)
+        unsafe["comment"]["author_association"] = "CONTRIBUTOR"
+        with self.assertRaisesRegex(ValueError, "owner"):
+            science_intent(unsafe, REPO, "gamesbyian")
+
     def test_hp_science_comment_ignores_noncommands_and_rejects_untrusted(self):
         clock = datetime(2026, 11, 1, 2, 15, tzinfo=timezone.utc)
         for value in ("normal message", "/ur-ci hp-research unexpected",
@@ -272,7 +302,9 @@ class OwnerCommentDispatchTests(unittest.TestCase):
         dispatcher = Path("tools/ci_owner_comment_dispatch.py").read_text()
         self.assertIn("recent_science_run(get_runs(SCIENCE_WORKFLOW, \"main\"), now)",
                       dispatcher)
-        self.assertIn("if existing is None:\\n        dispatch(SCIENCE_WORKFLOW, \"main\")".replace("\\n", "\n"),
+        self.assertIn("if existing is None:", dispatcher)
+        self.assertIn('dispatch(SCIENCE_WORKFLOW, "main")', dispatcher)
+        self.assertIn('dispatch(SCIENCE_WORKFLOW, "main", {"research_wall_seconds": "600"})',
                       dispatcher)
 
     def test_only_default_branch_trusted_source_and_existing_dispatch_targets(self):

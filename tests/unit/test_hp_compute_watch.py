@@ -25,6 +25,7 @@ class HpComputeWatchTests(unittest.TestCase):
         result = watch.observe("unattended_2p", entries, NOW)
         self.assertEqual(result["status"], "LAST_RUN_PASSED")
         self.assertEqual(result["last_run_id"], 100)
+        self.assertEqual(watch.OVERDUE_HOURS, 2)
         self.assertEqual(result["recent_manual_trials"], 1)
         # Without an actual cron event, even a successful manual run cannot
         # prove that the scheduled workflow is delivering any research.
@@ -34,10 +35,10 @@ class HpComputeWatchTests(unittest.TestCase):
 
     def test_reports_overdue_and_failing_scheduled_runs(self):
         overdue = watch.observe("unattended_2p",
-                                [row(when=NOW - timedelta(hours=9))], NOW)
+                                [row(when=NOW - timedelta(hours=3))], NOW)
         self.assertEqual(overdue["status"], "SCHEDULE_OVERDUE")
         failed = watch.observe("unattended_2p",
-                               [row(when=NOW - timedelta(hours=3), conclusion="failure")], NOW)
+                               [row(when=NOW - timedelta(hours=1), conclusion="failure")], NOW)
         self.assertEqual(failed["status"], "LAST_RUN_NOT_PASSED")
         self.assertEqual(failed["non_success_24h"], 1)
 
@@ -81,9 +82,9 @@ class HpComputeWatchTests(unittest.TestCase):
         start = watch.FIRST_ELIGIBLE_2P_UTC
         before = watch.observe("unattended_2p", [], start - timedelta(minutes=1))
         self.assertEqual(before["status"], "NOT_YET_OBSERVED")
-        grace = watch.observe("unattended_2p", [], start + timedelta(hours=8))
+        grace = watch.observe("unattended_2p", [], start + timedelta(hours=2))
         self.assertEqual(grace["status"], "NOT_YET_OBSERVED")
-        overdue = watch.observe("unattended_2p", [], start + timedelta(hours=8, seconds=1))
+        overdue = watch.observe("unattended_2p", [], start + timedelta(hours=2, seconds=1))
         self.assertEqual(overdue["status"], "SCHEDULE_OVERDUE")
         self.assertIsNone(overdue["last_run_id"])
         # Product builds have no wall-clock cadence.
@@ -195,6 +196,7 @@ class HpComputeWatchTests(unittest.TestCase):
         self.assertIn("[#100](https://github.com/gamesbyian/UR-Recomp/actions/runs/100)", rendered)
         self.assertIn("research trial does not establish", rendered)
         self.assertIn("Registered workflow state", rendered)
+        self.assertIn("two-hour grace period", rendered)
         self.assertIn("disabled or deleted registration", rendered)
         self.assertNotIn("release gate earned", rendered)
 

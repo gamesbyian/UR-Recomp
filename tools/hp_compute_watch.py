@@ -23,7 +23,7 @@ WORKFLOWS = {
 }
 # This read-only watchdog source is the sole main-push invalidation path of
 # ops-live-snapshot; its definition must not trigger itself (CI policy).
-OVERDUE_HOURS = 8
+OVERDUE_HOURS = 2  # Bounded two-hour cadence alert after four nominal half-hour slots.
 MAX_RUNS = 30
 SHA1 = re.compile(r"[0-9a-f]{40}\Z")
 # #2895 entered main at 02:22 UTC on October 31; its first cron is 03:17.
@@ -186,7 +186,7 @@ def render(report: dict) -> str:
                      f"**{row['status']}** | {url} | "
                      f"{row.get('age_hours', 'n/a')} | {row.get('completed_24h', 'n/a')} |")
     lines += ["", "A research schedule with no observed cron run becomes overdue "
-              "after its first eligible slot plus an eight-hour grace period.",
+              "after its first eligible slot plus a two-hour grace period.",
               "An observed manual research trial does not establish that "
               "GitHub's recurring cron actually fired.",
               "A registered `active` workflow is not proof that any scheduled "

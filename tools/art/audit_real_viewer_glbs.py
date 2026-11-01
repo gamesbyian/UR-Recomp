@@ -21,10 +21,12 @@ try:
     )
     from tools.art.score_racer_candidate import score_retained_original
     from tools.art.racer_source_pixels import decode_rgba_png
+    from tools.art.build_racer_source_pixel_corpus import build as original_corpus
 except ModuleNotFoundError:
     from render_racer_glb_projection import model_mesh, render_mask, render_to_png, camera_config
     from score_racer_candidate import score_retained_original
     from racer_source_pixels import decode_rgba_png
+    from build_racer_source_pixel_corpus import build as original_corpus
 
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
 SCHEMA = "UR-RACER-REAL-VIEWER-GLB-AUDIT/1"
@@ -70,19 +72,35 @@ def inspect_viewer(site: Path) -> tuple[dict, dict, dict]:
             sprites.get("sprite_3d_pose_mapping_verified") is not False or
             not isinstance(sprites.get("frames"), list)):
         raise ValueError("unverified original-sprite rail")
-    refs = [x for x in sprites["frames"]
-            if x.get("player") == "p1" and x.get("guest_frame") == 1205]
-    if len(refs) != 1:
-        raise ValueError("P1 1205 original source is absent or duplicated")
-    reference = refs[0]
-    ref_path = safe_existing_path(site, reference.get("image"), ".png")
-    if (not isinstance(reference.get("sha256"), str) or
-            not HEX64.fullmatch(reference["sha256"]) or
-            digest(ref_path) != reference["sha256"]):
-        raise ValueError("retained original sprite SHA mismatch")
-    w, h, _, _ = decode_rgba_png(ref_path)
-    if (w, h) != (64, 64):
-        raise ValueError("reference must be original 64x64 source raster")
+    # The stage's self-declared image SHA isn't source authentication.
+    # Independently check ALL 32 original frame identities against the
+    # existing ROM-composed source corpus and its retained image hashes.
+    corpus = original_corpus()
+    if sprites.get("source_sha256") != corpus["historical_manifest_declared_rom_sha256"]:
+        raise ValueError("viewer source ROM identity differs from original corpus")
+    expected = {(x["player"], x["guest_frame"]): x
+                for x in corpus["observations"]}
+    if len(expected) != 32 or len(sprites["frames"]) != len(expected):
+        raise ValueError("viewer original sprite rail must contain exactly 32 source observations")
+    refs = {}
+    for item in sprites["frames"]:
+        key = (item.get("player"), item.get("guest_frame"))
+        if key in refs or key not in expected:
+            raise ValueError("duplicate or unrecognized viewer sprite source frame")
+        authentic = expected[key]
+        if (item.get("sha256") != authentic["png_file_sha256"] or
+                item.get("representation_id") != authentic["representation_id"]):
+            raise ValueError("viewer sprite is not original-source authenticated")
+        path = safe_existing_path(site, item.get("image"), ".png")
+        if digest(path) != authentic["png_file_sha256"]:
+            raise ValueError("retained original sprite SHA mismatch")
+        w, h, _, _ = decode_rgba_png(path)
+        if (w, h) != (64, 64):
+            raise ValueError("reference must be original 64x64 source raster")
+        refs[key] = item
+    if set(refs) != set(expected):
+        raise ValueError("missing original sprite reference")
+    reference = refs["p1", 1205]
     pose_files = {}
     if not isinstance(model.get("poses"), dict) or set(model["poses"]) != set(POSES):
         raise ValueError("viewer missing exact five experimental model poses")

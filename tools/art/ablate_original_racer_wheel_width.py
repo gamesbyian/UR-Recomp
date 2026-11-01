@@ -144,7 +144,14 @@ def compute(site: Path, camera_file: Path = CAMERA) -> dict:
         raise ValueError("only fixed original P1:1205 provisional camera is allowed")
     original, corpus = source_shapes(site)
     path = poses["upright"]
-    scene = trimesh.load(str(path), file_type="glb", force="scene", process=False)
+    # Recheck the bytes at the moment of consumption, rather than relying
+    # on the earlier whole-viewer preflight if the source file changes.
+    import io
+    source_bytes = path.read_bytes()
+    if hashlib.sha256(source_bytes).hexdigest() != model["poses"]["upright"]["sha256"]:
+        raise ValueError("source GLB changed since authenticated viewer inspection")
+    scene = trimesh.load(file_obj=io.BytesIO(source_bytes),
+                         file_type="glb", force="scene", process=False)
     if not isinstance(scene, trimesh.Scene):
         raise ValueError("source GLB scene required")
     samples = []

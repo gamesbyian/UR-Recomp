@@ -139,6 +139,25 @@ class OriginalRacerCadenceTests(unittest.TestCase):
         self.assertEqual(report["original_frame_observations"], 32)
         self.assertEqual(report["distinct_original_binary_silhouettes"], 10)
         self.assertEqual(len(report["paired_player_frame_transition_observations"]), 15)
+        # These exact hold lengths come from real registered source PNG hashes,
+        # including the return to P1's earlier pose at guest frame 1213.
+        self.assertEqual([v["frame_count"] for v in
+                          report["players"]["p1"]["source_shape_holds"]],
+                         [2, 6, 2, 2, 2, 1, 1])
+        self.assertEqual([v["frame_count"] for v in
+                          report["players"]["p2"]["source_shape_holds"]],
+                         [10, 3, 1, 2])
+        self.assertEqual([v["to_guest_frame"] for v in
+                          report["players"]["p1"]["source_frame_transitions"]
+                          if v["exact_source_shape_changed"]],
+                         [1207, 1213, 1215, 1217, 1219, 1220])
+        self.assertEqual([v["to_guest_frame"] for v in
+                          report["players"]["p2"]["source_frame_transitions"]
+                          if v["exact_source_shape_changed"]],
+                         [1215, 1218, 1219])
+        self.assertEqual([v["transition_to_guest_frame"] for v in
+                          report["paired_player_frame_transition_observations"]
+                          if v["both_players_changed"]], [1215, 1219])
         for player in ("p1","p2"):
             self.assertEqual(report["players"][player]["guest_frame_count"], 16)
             self.assertEqual(report["players"][player]["consecutive_frame_transition_count"], 15)

@@ -1,10 +1,41 @@
 import unittest
 from datetime import datetime, timezone
+from pathlib import Path
 
-from tools.report_ci_runtime import summarize, markdown, job_parallelism_profile, step_bucket
+from tools.report_ci_runtime import (
+    summarize, markdown, job_parallelism_profile, step_bucket, needs_job_detail,
+)
 
 
 class CiRuntimeReportTest(unittest.TestCase):
+    def test_wholly_skipped_workflow_preserves_run_without_job_api_request(self):
+        # Recent live repository run history contained 46 whole-workflow
+        # skips among 100 records. None executed a runner; the run census
+        # remains complete, while per-run job API calls should be avoided.
+        self.assertFalse(needs_job_detail(
+            {"status": "completed", "conclusion": "skipped"}))
+        for run in (
+            {"status": "completed", "conclusion": "success"},
+            {"status": "completed", "conclusion": "failure"},
+            {"status": "completed", "conclusion": "cancelled"},
+            {"status": "in_progress", "conclusion": "skipped"},
+            {"status": "queued", "conclusion": None},
+            {"status": "completed"},
+            {},
+        ):
+            with self.subTest(run=run):
+                self.assertTrue(needs_job_detail(run))
+        workflow = (Path(__file__).resolve().parents[2]
+                    / ".github/workflows/ci-runtime-report.yml").read_text(
+                        encoding="utf-8")
+        scope = workflow.split(
+            "      - name: Export job and step timings", 1)[1].split(
+            "      - name: Build measured runtime report", 1)[0]
+        self.assertIn("from tools.report_ci_runtime import needs_job_detail", scope)
+        self.assertIn("if not needs_job_detail(run):", scope)
+        self.assertIn('return {"run_id": run_id, "jobs": []}', scope)
+        self.assertIn("list(pool.map(fetch_jobs, population))", scope)
+
     def test_groups_and_sorts_by_total_runtime(self):
         payload = {"workflow_runs": [
             {"id": 1, "name":"A","status":"completed","conclusion":"success","created_at":"2026-10-03T00:00:00Z","run_started_at":"2026-10-03T00:00:00Z","updated_at":"2026-10-03T00:10:00Z"},

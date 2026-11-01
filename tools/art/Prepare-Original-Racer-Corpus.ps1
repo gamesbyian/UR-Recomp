@@ -61,7 +61,8 @@ function Find-CompatiblePython {
             continue
         }
         $prefix = @($candidate.Prefix)
-        & $candidate.Program @prefix -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 12)" 2>$null
+        $program = [string] $candidate.Program
+        & $program @prefix -c "import sys; raise SystemExit(0 if sys.version_info >= (3,10) else 12)" 2>$null
         if ($LASTEXITCODE -eq 0) {
             return $candidate
         }
@@ -81,8 +82,8 @@ function Invoke-CheckedPython([hashtable] $Runtime, [string[]] $Arguments) {
 function Write-NewUtf8File([string] $Path, [string] $Content) {
     # Use a no-BOM UTF-8 file for Python's JSON parser on Windows PowerShell 5.
     # Never use Set-Content or Out-File to overwrite an evidence receipt.
-    $utf8 = New-Object System.Text.UTF8Encoding($false)
-    $stream = New-Object System.IO.FileStream(
+    $utf8 = [System.Text.UTF8Encoding]::new($false)
+    $stream = [System.IO.FileStream]::new(
         $Path,
         [System.IO.FileMode]::CreateNew,
         [System.IO.FileAccess]::Write,

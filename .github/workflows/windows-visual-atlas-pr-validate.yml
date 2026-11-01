@@ -117,6 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           source_commit="$(git -C candidate-rig rev-parse HEAD)"
+          export EXPERIMENTAL_RIG_SHA="$source_commit"
           echo "EXPERIMENTAL_RIG_SHA=$source_commit" >> "$GITHUB_ENV"
           for pose in upright pedal wheelie stunt bank; do
             "$RUNNER_TEMP/rig-venv/bin/python" \

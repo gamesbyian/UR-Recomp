@@ -138,7 +138,7 @@ class RealOriginalPixelsSyntheticFiveGlbTests(unittest.TestCase):
             if frame["image"] == self.refs[0]["image"]:
                 frame["sha256"] = changed_sha
         (self.site/"sprites.json").write_text(json.dumps(meta))
-        with self.assertRaisesRegex(ValueError, "original sprite"):
+        with self.assertRaisesRegex(ValueError, "original-source authenticated"):
             compute(self.site)
 
     def test_forged_camera_calibration_is_rejected(self):

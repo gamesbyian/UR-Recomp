@@ -74,7 +74,9 @@ def stage(exports, site, source_commit):
     if target.exists():
         manifest_path = target / "manifest.json"
         if (target.is_symlink() or not target.is_dir() or
-                {p.name for p in target.iterdir()} != {"index.html", "manifest.json"} or
+                not {"index.html", "manifest.json"}.issubset({p.name for p in target.iterdir()}) or
+                not {p.name for p in target.iterdir()}.issubset(
+                    {"index.html", "manifest.json", "sprites", "sprites.json"}) or
                 not manifest_path.is_file() or manifest_path.is_symlink() or
                 json.loads(manifest_path.read_text()).get("model_url") is not None):
             raise ValueError("refusing to replace a non-placeholder model-review site")
@@ -91,6 +93,13 @@ def stage(exports, site, source_commit):
             pose_map[pose] = {"url": f"assets/{source_commit}/{filename}", "sha256": pointer["glb_sha256"]}
         here = Path(__file__).resolve().parent
         shutil.copy2(here / "index.html", work / "index.html")
+        if target.exists() and (target / "sprites.json").is_file():
+            source_dir = target / "sprites"
+            if (source_dir.is_symlink() or not source_dir.is_dir() or
+                    (target / "sprites.json").is_symlink()):
+                raise ValueError("redirected original-sprite reference")
+            shutil.copytree(source_dir, work / "sprites", symlinks=False)
+            shutil.copy2(target / "sprites.json", work / "sprites.json")
         manifest = {"schema": "ur-racer-model-review/1", "version": source_commit[:12],
                     "source_commit": source_commit, "source_model_sha256": next(iter(sources)),
                     "model_url": pose_map["upright"]["url"],

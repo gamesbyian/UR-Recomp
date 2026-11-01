@@ -11,6 +11,8 @@ on:
       - "tests/unit/test_audit_original_racer_chroma_axes.py"
       - "tools/art/compare_original_chroma_axes_to_glb_poses.py"
       - "tests/unit/test_compare_original_chroma_axes_to_glb_poses.py"
+      - "tools/art/audit_original_racer_temporal_motion.py"
+      - "tests/unit/test_audit_original_racer_temporal_motion.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -120,6 +122,34 @@ jobs:
             --model-review-dir "$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review" \
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --out "$RUNNER_TEMP/art4k-reports/source-to-glb-axes.json"
+      - name: Audit actual original ROM frame holds and 2D motion transitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/audit_original_racer_temporal_motion.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --out "$RUNNER_TEMP/art4k-reports/original-temporal-edges.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          row=json.loads((Path(os.environ["RUNNER_TEMP"])/
+              "art4k-reports/original-temporal-edges.json").read_text())
+          witness=row["temporal_source_witness"]
+          assert row["source_original_frame_observations"]==91
+          assert row["distinct_original_binary_masks"]==35
+          assert row["original_source_representation_count"]==59
+          assert witness["registered_source_windows"]==27
+          assert row["original_frame_cadence_or_model_time_inferred"] is False
+          print("Source original raster temporal edges", witness["source_observed_player_frame_pairs"])
+          print("Actual consecutive guest-frame pairs",witness["actually_consecutive_original_guest_frame_pairs"])
+          print("Actual source alpha changes",witness["source_binary_silhouette_changes"])
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as output:
+              output.write("### Original ROM source-frame motion, not 1994 3D motion\n\n")
+              output.write(f"Registered temporal observations: 91 across 27 windows\n\n")
+              output.write(f"Consecutive guest-frame edges: {witness['actually_consecutive_original_guest_frame_pairs']}\n\n")
+              output.write(f"Source silhouette-change edges: {witness['source_binary_silhouette_changes']}\n\n")
+              output.write("No source→experimental-GLB pose or 1994 timing assigned.\n")
+          PY
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4
         with:

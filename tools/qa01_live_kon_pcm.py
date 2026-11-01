@@ -211,6 +211,12 @@ def main() -> int:
         prepare_receipt_destination(receipt)
     except (OSError, ValueError) as exc:
         ap.error(str(exc))
+    # Snapshot the claimed executable before contacting the live producer.
+    # This is provenance of the local file, not proof it is the server process.
+    try:
+        native_digest = hashlib.sha256(args.native_executable.read_bytes()).hexdigest()
+    except OSError as exc:
+        ap.error(f"cannot read native executable for provenance: {exc}")
     # The live watcher must finish its post-WAV event-ring scan before the
     # requested final filename becomes visible. A second KON or an overrun
     # during audio_wav otherwise leaves a plausible WAV with no valid receipt.
@@ -231,12 +237,15 @@ def main() -> int:
             sock.close()
         if not candidate_wav.is_file() or candidate_wav.is_symlink():
             raise ValueError("live capture did not produce a real staged WAV")
+        result["source_sha_claim"] = args.source_sha
+        result["native_executable_sha256"] = native_digest
+        result["source_to_binary_identity_independently_verified"] = False
+        # Complete deterministic receipt serialization while the WAV is still
+        # private. Neither this nor the preflight makes two paths atomic.
+        receipt_bytes = json.dumps(result, indent=2, sort_keys=True) + "\n"
         publish_wav_no_replace(candidate_wav, wav)
-    result["source_sha_claim"] = args.source_sha
-    result["native_executable_sha256"] = hashlib.sha256(args.native_executable.read_bytes()).hexdigest()
-    result["source_to_binary_identity_independently_verified"] = False
     with receipt.open("x", encoding="utf-8") as out:
-        out.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
+        out.write(receipt_bytes)
     print(f"Captured live candidate KON {result['kon_sample_index']} at {result['sample_frames']} PCM frames")
     return 0
 

@@ -271,6 +271,12 @@ def main() -> int:
         prepare_receipt_destination(args.json_out.absolute())
     except (OSError, ValueError) as exc:
         ap.error(str(exc))
+    # A missing/unreadable binary must fail before the native WAV is written.
+    # The snapshot is a local-file claim, never independent server binding.
+    try:
+        native_digest = hashlib.sha256(args.native_executable.read_bytes()).hexdigest()
+    except OSError as exc:
+        ap.error(f"cannot read native executable for provenance: {exc}")
     sock, reader = connect(args.host, args.port, 20)
     sock.settimeout(45)
     try:
@@ -287,7 +293,7 @@ def main() -> int:
         reader.close()
         sock.close()
     result["source_sha_claim"] = args.source_sha
-    result["native_executable_sha256"] = hashlib.sha256(args.native_executable.read_bytes()).hexdigest()
+    result["native_executable_sha256"] = native_digest
     result["event_head"] = report["event_head"]
     result["kon_candidates_in_retained_event_ring"] = kon_candidates(report["events"])
     result["producer_sample_count_before_capture"] = report["stats"]["produced"]

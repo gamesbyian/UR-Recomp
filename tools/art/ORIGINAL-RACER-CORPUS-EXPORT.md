@@ -42,3 +42,5 @@ This corpus exporter creates additional **private fit/evidence inputs**. It does
 4. Preserve the explicit original-character likeness veto until the owner reviews actual gameplay-scale 1P/2P animation. Source pixel, model export, rendered-alpha scoring and visual art acceptance are different gates.
 
 **Dependencies:** source-corpus extraction requires the original ROM and existing stdlib compositor code. The unit tests use ROM-free synthetic registered frames and must not require the ROM. Heavy OpenSCAD, Trimesh, Blender, neural reconstruction and WebGL are optional separate lanes, not imported by this exporter.
+
+**Retained first-family pixel auditor output safety:** `tools/art/build_racer_source_pixel_corpus.py --out PATH` uses the same immutable `publish_text_once` helper as the newer scorers. A fresh path in an existing directory is required; existing reports, symlinks or empty directories are never replaced. This preserves the authenticated PNG/manifest evidence if an auditor accidentally points `--out` at a source file. Stdout remains available for repeated read-only inspections.

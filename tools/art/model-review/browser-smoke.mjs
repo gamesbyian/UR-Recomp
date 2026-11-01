@@ -124,6 +124,39 @@ try{
        if(q('parts').textContent!==originalNames)issues.push('wheel toggle mutated part names');
      }
    }
+   if(q('rootLean').getBoundingClientRect().height<44)
+     issues.push('root lean accessible touch target');
+   if(q('rootLean').disabled)issues.push('source GLB root lean selector unavailable');
+   const sourceBeforeLean=q('source').textContent;
+   const beforeTire=Number(q('rootLeanStatus').dataset.tireLowerY);
+   const beforeRoot=Number(q('rootLeanStatus').dataset.rootY);
+   function rootPose(value){
+     q('rootLean').value=value;
+     q('rootLean').dispatchEvent(new Event('change',{bubbles:true}));
+   }
+   function sameSourceLower(label,checkRoot){
+     const tire=Number(q('rootLeanStatus').dataset.tireLowerY);
+     const root=Number(q('rootLeanStatus').dataset.rootY);
+     if(!Number.isFinite(tire)||!Number.isFinite(root)||
+        Math.abs(tire-beforeTire)>1e-5||
+        (checkRoot&&Math.abs(root-beforeRoot)>1e-5))
+       issues.push('root pose visually changed original tire baseline '+label);
+   }
+   if(!q('rootLeanStatus').dataset.tireLowerY||
+      !Number.isFinite(beforeTire)||!Number.isFinite(beforeRoot))
+     issues.push('source tire baseline unavailable');
+   for(const [value,expected] of [['-35','-35'],['15','15'],['0','Unchanged']]){
+     rootPose(value);
+     if(q('rootLean').value!==value || !q('rootLeanStatus').textContent.includes(expected))
+       issues.push('source-root lean preset '+value);
+     sameSourceLower('change '+value,value==='0');
+   }
+   rootPose('-35');q('reset').click();rootPose('0');
+   sameSourceLower('camera-only reset under lean',true);
+   rootPose('-35');q('zup').click();q('zup').click();rootPose('0');
+   sameSourceLower('zup off/on under lean',true);
+   if(q('source').textContent!==sourceBeforeLean)
+     issues.push('root lean mutated original source identity');
    q('wire').click();if(q('wire').getAttribute('aria-pressed')!=='true')issues.push('wireframe');
    q('spin').click();if(q('spin').getAttribute('aria-pressed')!=='true')issues.push('orbit');
    q('zup').click();if(q('zup').checked)issues.push('up-axis');

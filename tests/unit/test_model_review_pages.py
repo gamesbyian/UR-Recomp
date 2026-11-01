@@ -82,6 +82,7 @@ class ModelReviewPublicationTests(unittest.TestCase):
             self.assertIn("three", (site / "model-review/index.html").read_text())
             self.assertTrue((site / "model-review/measurement_overlay.mjs").is_file())
             self.assertTrue((site / "model-review/wheel_hypothesis.mjs").is_file())
+            self.assertTrue((site / "model-review/root_lean_hypothesis.mjs").is_file())
             with self.assertRaisesRegex(ValueError, "non-placeholder"):
                 stage(exports, site, SHA)
 

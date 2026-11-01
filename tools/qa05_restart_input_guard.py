@@ -72,8 +72,13 @@ def validate_restart_guest_input(log: str) -> int:
     # A malformed probe must not disappear from the evidence merely because
     # the strict regex cannot parse it. Otherwise twelve valid lines plus a
     # truncated or corrupt guest=1000 line would falsely pass this oracle.
+    # The P2 namespace is separately parsed below. All other lines claiming
+    # the P1 diagnostic prefix must count, including missing separators,
+    # truncated words and unexpected seat suffixes. Counting only the exact
+    # prefix with a space would silently discard malformed extra P1 records.
     emitted = [line for line in log.splitlines()
-               if line.startswith("UR_RESTART_INPUT ")]
+               if line.startswith("UR_RESTART_INPUT")
+               and not line.startswith("UR_RESTART_INPUT_P2")]
     probes = list(PROBE.finditer(log))
     if len(emitted) != len(probes):
         raise ValueError(

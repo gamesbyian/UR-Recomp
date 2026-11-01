@@ -119,8 +119,8 @@ class FrameTireExactCSGTests(unittest.TestCase):
                 return SimpleNamespace(returncode=0,stderr="")
             with patch("tools.art.ablate_racer_frame_mass.subprocess.run",
                        side_effect=render),patch(
-                         "tools.art.ablate_racer_frame_mass.trimesh.load_mesh",
-                         return_value=fake):
+                         "tools.art.ablate_racer_frame_mass.trimesh",
+                         SimpleNamespace(load_mesh=lambda *args,**kwargs: fake)):
                 output=export_fork_tire_csg(
                     "rig_frame_mass=is_undef(rig_frame_mass)?1:rig_frame_mass;\n",
                     1.4,folder,"openscad")

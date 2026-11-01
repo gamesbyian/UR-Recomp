@@ -21,6 +21,8 @@ WORKFLOWS = {
     "product_windows": ("owner-hp-main-windows-smoke.yml", ("push",)),
     "unattended_2p": ("owner-hp-seeded-2p-research.yml", ("schedule",)),
 }
+# This read-only watchdog source is the sole main-push invalidation path of
+# ops-live-snapshot; its definition must not trigger itself (CI policy).
 OVERDUE_HOURS = 8
 MAX_RUNS = 30
 SHA1 = re.compile(r"[0-9a-f]{40}\Z")

@@ -112,7 +112,7 @@ def _rgba(expression: str, rig_default: str) -> tuple[int, int, int, int]:
     return tuple(int(v*255 + 0.5) for v in floats)
 
 
-def _color_data(source: str):
+def _color_data(source: str, rig_color_override: str | None = None):
     masked = _mask_comments(source)
     defaults = _RIG_DEFAULT.findall(masked)
     if len(defaults) != 1:
@@ -120,17 +120,27 @@ def _color_data(source: str):
     matches = list(_COLOR.finditer(masked))
     if len(matches) != len(_ANY_COLOR.findall(masked)):
         raise ValueError('unsupported OpenSCAD color() expression')
-    by_start = {m.start(): _rgba(m.group(1), defaults[0]) for m in matches}
-    return masked, matches, by_start
+    default = defaults[0]
+    if rig_color_override is not None:
+        # Only recolor source-owned color(rig_color) decorators. If a later
+        # refit uses rig_color for geometry, fail rather than export meshes
+        # whose geometry silently differs from the selected SCAD palette.
+        _rgba(rig_color_override, default)
+        non_material = _COLOR.sub('', _RIG_DEFAULT.sub('', masked))
+        if re.search(r'\brig_color\b', non_material):
+            raise ValueError('rig_color used outside source material decorators')
+        default = rig_color_override
+    by_start = {m.start(): _rgba(m.group(1), default) for m in matches}
+    return masked, matches, by_start, default
 
 
-def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]]:
+def materials_for_part(source: str, part: str, *,
+                       rig_color_override: str | None = None) -> list[tuple[int, int, int, int]]:
     """Discover all color groups in the part's transitive source module calls."""
     modules = _modules(source)
     if part not in modules:
         raise ValueError('missing source part module: '+part)
-    _, _, _ = _color_data(source)
-    defaults = _RIG_DEFAULT.findall(_mask_comments(source))[0]
+    _, _, _, defaults = _color_data(source, rig_color_override)
     visited = set()
     colors = OrderedDict()
 
@@ -208,13 +218,14 @@ def materials_for_part(source: str, part: str) -> list[tuple[int, int, int, int]
     return list(colors)
 
 
-def material_pass_source(source: str, rgba: tuple[int, int, int, int]) -> str:
+def material_pass_source(source: str, rgba: tuple[int, int, int, int], *,
+                         rig_color_override: str | None = None) -> str:
     """Replace SCAD color decorators with matching/other pass predicates.
 
     OpenSCAD if(true) preserves the source child geometry, while if(false)
     removes only that colored geometry. No color is guessed.
     """
-    _, matches, by_start = _color_data(source)
+    _, matches, by_start, _ = _color_data(source, rig_color_override)
     result = []
     offset = 0
     for match in matches:
@@ -236,7 +247,7 @@ def uncolored_probe_source(source: str) -> str:
     A sole 1x1x1 sentinel at [100,100,100] is the expected output. Any other
     geometry would otherwise leak into *every* material export pass.
     """
-    _, matches, _ = _color_data(source)
+    _, matches, _, _ = _color_data(source)
     result = []
     offset = 0
     for match in matches:

@@ -49,6 +49,13 @@ END_MARKER = "rig(rig_pose);"
 # Reject ambiguous/changed structure rather than silently exporting a
 # misleading pivot when the model is refitted.
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
+# Explicit experimental authoring palettes, not sampled 1994 raster colors.
+# (SCAD override expression, byte-exact exported RGBA); never fork the rig.
+PLAYER_PALETTES = {
+    "source": (None, None),
+    "p1-provisional-v1": ("[0.87,0.11,0.35]", (222, 28, 89, 255)),
+    "p2-provisional-v1": ("[0.11,0.35,0.87]", (28, 89, 222, 255)),
+}
 _NUMBER = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)"
 _VECTOR = re.compile(r"(translate|rotate)\s*\(\s*\[\s*(" + _NUMBER +
                      r")\s*,\s*(" + _NUMBER + r")\s*,\s*(" + _NUMBER +
@@ -292,7 +299,8 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
 
 def export(source: Path, out_dir: Path, *, timeout: int = 90,
            pedal_phase: float | None = None, saddle_lean: float | None = None,
-           rig_pose: str = "custom", rig_time: float | None = None) -> dict:
+           rig_pose: str = "custom", rig_time: float | None = None,
+           player_palette: str = "source") -> dict:
     source_bytes = source.read_bytes()
     base = source_bytes.decode("utf-8")
     source_digest = sha256_bytes(source_bytes)
@@ -309,6 +317,9 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
     _write_json_atomic(last_attempt, state)
     try:
         source_without_entrypoint(base)
+        if player_palette not in PLAYER_PALETTES:
+            raise ValueError("unknown experimental player palette")
+        palette_expression, palette_rgba = PLAYER_PALETTES[player_palette]
         continuous_meta = None
         if rig_pose in ("ride", "stunt_cycle"):
             if pedal_phase is not None or saddle_lean is not None or rig_time is None:
@@ -342,6 +353,13 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                   "pose_controls": {"pedal_phase_degrees": pedal_phase,
                                     "saddle_lean_degrees": saddle_lean},
                   "continuous_pose": continuous_meta,
+                  "player_palette": {
+                      "schema_version": 1,
+                      "id": player_palette,
+                      "override_rgba": list(palette_rgba) if palette_rgba else None,
+                      "original_raster_color_registered": False,
+                      "owner_material_approved": False,
+                  },
                   "pose_source_registered_to_original_game": False,
                   "original_character_likeness_approved": False,
                   "shipping_art_approved": False,
@@ -362,7 +380,8 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                                    matrix=node_transform)
                 part_source = component_source(base, name, pedal_phase=pedal_phase,
                                                saddle_lean=saddle_lean)
-                materials = materials_for_part(base, name)
+                materials = materials_for_part(
+                    base, name, rig_color_override=palette_expression)
                 # A source refit can add geometry outside color(). That geometry
                 # survives EVERY material pass and silently duplicates in GLB.
                 # Render the uncolored remainder with one remote sentinel cube;
@@ -391,8 +410,9 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                 for index, rgba in enumerate(materials):
                     scad = work / f"{name}-{index}.scad"
                     stl = work / f"{name}-{index}.stl"
-                    scad.write_text(material_pass_source(part_source, rgba),
-                                    encoding="utf-8")
+                    scad.write_text(material_pass_source(
+                        part_source, rgba, rig_color_override=palette_expression),
+                        encoding="utf-8")
                     run = subprocess.run([openscad, "-o", str(stl), str(scad)],
                                          capture_output=True, text=True,
                                          timeout=timeout, check=False)
@@ -443,6 +463,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                    "rig_pose": rig_pose,
                    "pose_controls": report["pose_controls"],
                    "continuous_pose": continuous_meta,
+                   "player_palette": report["player_palette"],
                    "glb_path": f"attempts/{attempt_id}/unicycle_articulated_blockout.glb",
                    "receipt_path": f"attempts/{attempt_id}/articulated_blockout_receipt.json",
                    "glb_sha256": report["glb_sha256"],
@@ -467,6 +488,9 @@ def main() -> None:
     parser.add_argument("source", type=Path)
     parser.add_argument("out_dir", type=Path)
     parser.add_argument("--timeout", type=int, default=90)
+    parser.add_argument("--player-palette", choices=tuple(PLAYER_PALETTES),
+                        default="source",
+                        help="versioned provisional P1/P2 GLB material override; not original RGB")
     parser.add_argument("--rig-pose", choices=("custom",) + POSES + ("ride", "stunt_cycle"), default="custom",
                         help="source-owned BLOCKOUT pose, never original-game cadence")
     parser.add_argument("--rig-time", type=float, default=None,
@@ -480,7 +504,8 @@ def main() -> None:
         parser.error("timeout must be 1..600 seconds")
     print(json.dumps(export(args.source, args.out_dir, timeout=args.timeout,
                             pedal_phase=args.pedal_phase, saddle_lean=args.saddle_lean,
-                            rig_pose=args.rig_pose, rig_time=args.rig_time),
+                            rig_pose=args.rig_pose, rig_time=args.rig_time,
+                            player_palette=args.player_palette),
                      indent=2))
 
 

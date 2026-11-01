@@ -49,6 +49,42 @@ class MaterialContract(unittest.TestCase):
                 self.assertEqual(len(set(colors)), count)
                 self.assertTrue(all(len(c) == 4 for c in colors))
 
+    def test_versioned_player_palette_changes_only_rig_color_material(self):
+        red = '[0.87,0.11,0.35]'
+        blue = '[0.11,0.35,0.87]'
+        p1 = materials_for_part(SOURCE, 'fork_and_frame',
+                                rig_color_override=red)
+        p2 = materials_for_part(SOURCE, 'fork_and_frame',
+                                rig_color_override=blue)
+        self.assertEqual(p1, [(222, 28, 89, 255), (230, 26, 26, 255)])
+        self.assertEqual(p2, [(28, 89, 222, 255), (230, 26, 26, 255)])
+        self.assertEqual(materials_for_part(SOURCE, 'tire',
+                         rig_color_override=red),
+                         materials_for_part(SOURCE, 'tire',
+                         rig_color_override=blue))
+        self.assertIn('if (true) cube(1)',
+                      material_pass_source(SOURCE, p1[0],
+                                           rig_color_override=red))
+        self.assertIn('if (false) cube(1)',
+                      material_pass_source(SOURCE, p2[0],
+                                           rig_color_override=red))
+        self.assertEqual(material_pass_source(SOURCE, p1[1],
+                         rig_color_override=red),
+                         material_pass_source(SOURCE, p2[1],
+                         rig_color_override=blue))
+
+    def test_palette_override_fails_closed_for_geometry_dependent_rig_color(self):
+        for override in ('[2,0,0]', '[0.2,0.3]', 'palette_from_env', ''):
+            with self.subTest(override=override), self.assertRaises(ValueError):
+                materials_for_part(SOURCE, 'fork_and_frame',
+                                   rig_color_override=override)
+        unsafe = SOURCE.replace('module fork_and_frame()',
+                                'module geom() { translate([rig_color[0],0,0]) cube(1); }\n'
+                                'module fork_and_frame()')
+        with self.assertRaisesRegex(ValueError, 'outside source material'):
+            materials_for_part(unsafe, 'fork_and_frame',
+                               rig_color_override='[0.87,0.11,0.35]')
+
     def test_material_filter_keeps_only_selected_source_colors(self):
         red = (230,26,26,255)
         filtered = material_pass_source(SOURCE, red)

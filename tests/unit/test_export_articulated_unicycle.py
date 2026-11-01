@@ -21,6 +21,27 @@ class ArticulatedBlockoutContract(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     module.source_without_entrypoint(invalid)
 
+    def test_player_palette_is_versioned_and_invalid_selection_preserves_pointer(self):
+        self.assertEqual(module.PLAYER_PALETTES['p1-provisional-v1'],
+                         ('[0.87,0.11,0.35]', (222,28,89,255)))
+        self.assertEqual(module.PLAYER_PALETTES['p2-provisional-v1'],
+                         ('[0.11,0.35,0.87]', (28,89,222,255)))
+        self.assertEqual(module.PLAYER_PALETTES['source'], (None, None))
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            source = root / 'source.scad'
+            source.write_text((SCRIPT.parent / 'candidates' /
+                               'unicycle_shared_rig.scad').read_text())
+            out = root / 'out'
+            out.mkdir()
+            pointer = out / 'articulated_blockout_current.json'
+            pointer.write_text('{"attempt_id":"previous"}\n')
+            with self.assertRaisesRegex(ValueError, 'unknown experimental player palette'):
+                module.export(source, out, player_palette='p1')
+            self.assertEqual(pointer.read_text(), '{"attempt_id":"previous"}\n')
+            self.assertEqual(json.loads((out / 'articulated_blockout_last_attempt.json')
+                                        .read_text())['status'], 'failed')
+
     def test_parts_do_not_accidentally_render_full_rig(self):
         source = "module rig(x) {}\nrig(rig_pose);\n"
         for name in module.PARTS:

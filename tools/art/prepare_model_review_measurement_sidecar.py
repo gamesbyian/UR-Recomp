@@ -121,6 +121,14 @@ def sanitized_sidecar(matrix: dict, site_manifest_sha: str,
             compact[pose]["boundary_chamfer_physical_px"], pose))[0]
         if row.get("unpaired_best_fit_pose") != best:
             raise ValueError("source pose winner label inconsistent with metrics")
+        top_two = sorted(POSES, key=lambda pose: (
+            -compact[pose]["silhouette_iou"],
+            compact[pose]["boundary_chamfer_physical_px"], pose))[:2]
+        # A margin is a deterministic descriptive measurement, never a
+        # probability that the original 1994 pose matches a 2026 blockout.
+        top_two_iou_margin = round(
+            compact[top_two[0]]["silhouette_iou"] -
+            compact[top_two[1]]["silhouette_iou"], 8)
         leaders[best] += 1
         normalized_rows.append({
             "original_binary_mask_sha256": mask_sha,
@@ -129,6 +137,9 @@ def sanitized_sidecar(matrix: dict, site_manifest_sha: str,
             "source_frames": unique_frames,
             "unpaired_scores": compact,
             "highest_iou_experimental_pose": best,
+            "runner_up_iou_experimental_pose": top_two[1],
+            "first_minus_second_unpaired_iou_margin": top_two_iou_margin,
+            "margin_is_pose_identity_confidence": False,
             "highest_iou_pose_is_an_authenticated_original_pose": False,
         })
     if len(encountered_frames) != 32:

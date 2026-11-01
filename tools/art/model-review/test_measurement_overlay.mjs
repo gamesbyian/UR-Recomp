@@ -57,7 +57,7 @@ test('valid mock research evidence remains unpaired and keyed by source frame',a
  assert.equal(measurementForFrame(null,'p1',1205),null);
 });
 test('source manifest and sprite rail SHA change are fatal, even when claims are self-consistent',async()=>{
- const f=roots();f.manifest.version='changed';
+ const f=roots();f.raw.manifestRaw=json({...f.manifest,version:'changed'});
  await assert.rejects(check(f),/Stale or mismatched viewer/);
  const g=roots();g.sprites.frames[0].representation_id='swapped';
  await assert.rejects(check(g),/Source sprite identity/);

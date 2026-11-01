@@ -205,7 +205,7 @@ class HpComputeWatchTests(unittest.TestCase):
         # main-only read, without waiting for a best-effort daily cron.
         self.assertIn("push:", source)
         self.assertIn("branches: [main]", source)
-        self.assertIn('".github/workflows/ops-live-snapshot.yml"', source)
+        self.assertNotIn('".github/workflows/ops-live-snapshot.yml"', source)
         self.assertIn('"tools/hp_compute_watch.py"', source)
         self.assertNotIn("pull_request:", source)
         self.assertNotIn("workflow_run:", source)

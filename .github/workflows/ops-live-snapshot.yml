@@ -2,19 +2,20 @@ name: Live operations snapshot
 
 # UTC 14:30 means 07:30 MST / 08:30 MDT in Edmonton.
 # One inexpensive daily report plus a one-shot trusted-main snapshot when the
-# watchdog source/this workflow changes. No sixth agent, personal HP runner,
+# watchdog source changes. No sixth agent, personal HP runner,
 # additional recurring trigger, or auto-merge action.
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 14 * * *'
   # Keep workflow registration diagnostics observable immediately after a
-  # watchdog change even when GitHub schedule delivery is itself unreliable.
+  # watchdog source change even when GitHub schedule delivery is unreliable.
+  # Do not self-trigger on edits to this workflow YAML: CI policy reserves
+  # exact-main workflow self-triggers for the canonical Windows PE producer.
   # No PR/fork source runs with the read-only main operations token.
   push:
     branches: [main]
     paths:
-      - ".github/workflows/ops-live-snapshot.yml"
       - "tools/hp_compute_watch.py"
 
 permissions:

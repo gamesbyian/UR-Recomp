@@ -122,6 +122,24 @@ class ViewerModelArtifactAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "original-source authenticated"):
             inspect_viewer(self.site)
 
+    def test_self_consistent_forged_original_sprite_is_rejected(self):
+        # A website can lie consistently about a replaced image and its SHA.
+        # The independent ROM-composed corpus must be authoritative instead.
+        modified = self.sprite.read_bytes() + b"new untrusted source"
+        self.sprite.write_bytes(modified)
+        for row in self.sprites["frames"]:
+            if row["image"] == "sprites/p1-00.png":
+                row["sha256"] = sha(self.sprite)
+        self.save()
+        with self.assertRaisesRegex(ValueError, "original-source authenticated"):
+            inspect_viewer(self.site)
+
+    def test_source_rom_identity_cannot_be_spoofed(self):
+        self.sprites["source_sha256"] = "0" * 64
+        self.save()
+        with self.assertRaisesRegex(ValueError, "source ROM identity"):
+            inspect_viewer(self.site)
+
     def test_missing_expected_pose_is_not_silent(self):
         self.model["poses"].pop("wheelie")
         self.save()

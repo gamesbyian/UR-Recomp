@@ -4,9 +4,15 @@ from __future__ import annotations
 import hashlib
 import math
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+from types import SimpleNamespace
+import inspect
 
 from tools.art.ablate_racer_frame_mass import (
     CANONICAL_SOURCE_SHA, checked_masses, source_prefix, validate_scores,
+    validate_frame_tire_overlap, export_fork_tire_csg, study,
 )
 
 
@@ -74,6 +80,57 @@ class OriginalFrameMassAblationTests(unittest.TestCase):
         result=validate_scores([row("a"*64,["p1","p2"],.55,.78)],1)
         self.assertEqual(result["mean_by_original_player_group"]["p1"]["mean_mask_iou"],.55)
         self.assertEqual(result["mean_by_original_player_group"]["p2"]["mean_mask_iou"],.55)
+
+
+class FrameTireExactCSGTests(unittest.TestCase):
+    def test_valid_closed_intersection_reports_signed_volume_and_not_art_approval(self):
+        record=validate_frame_tire_overlap(.018820749851,1058,1,True,True,"a"*64)
+        self.assertAlmostEqual(record["fork_tire_intersection_csg_volume_model_units_cubed"],
+                               .018820749851)
+        self.assertEqual(record["fork_tire_intersection_connected_components"],1)
+        self.assertTrue(record["fork_tire_intersection_csg_watertight"])
+        self.assertFalse(record["fork_tire_intersection_is_mechanical_art_approval"])
+
+    def test_unclosed_negative_infinite_or_false_provenance_is_rejected(self):
+        base=[.001211679518,530,2,True,True,"b"*64]
+        for at,value in ((0,float("nan")),(0,float("inf")),(0,0),(0,-1),
+                         (1,0),(2,0),(3,False),(4,False),(5,"bad")):
+            with self.subTest(at=at,value=value):
+                args=list(base);args[at]=value
+                with self.assertRaisesRegex(ValueError, "invalid/non-watertight"):
+                    validate_frame_tire_overlap(*args)
+
+    def test_exact_source_CSG_uses_both_unmodified_SCAD_modules_and_existing_mass(self):
+        with TemporaryDirectory() as base:
+            folder=Path(base)
+            fake=SimpleNamespace(
+                volume=.005606226026, faces=[0]*756,
+                is_watertight=True, is_winding_consistent=True,
+                split=lambda only_watertight: [1,2],
+            )
+            def render(command,**kwargs):
+                self.assertEqual(command[:2],["openscad","-D"])
+                self.assertIn("rig_frame_mass=1.4",command)
+                text=Path(command[-1]).read_text()
+                self.assertIn("rig_frame_mass=",text)
+                self.assertEqual(text.count("translate([0,0,1]) fork_and_frame();"),1)
+                self.assertEqual(text.count("translate([0,0,1]) tire();"),1)
+                Path(command[command.index("-o")+1]).write_bytes(b"synthetic STL fixture")
+                return SimpleNamespace(returncode=0,stderr="")
+            with patch("tools.art.ablate_racer_frame_mass.subprocess.run",
+                       side_effect=render),patch(
+                         "tools.art.ablate_racer_frame_mass.trimesh.load_mesh",
+                         return_value=fake):
+                output=export_fork_tire_csg(
+                    "rig_frame_mass=is_undef(rig_frame_mass)?1:rig_frame_mass;\n",
+                    1.4,folder,"openscad")
+            self.assertEqual(output["fork_tire_intersection_connected_components"],2)
+            self.assertEqual(output["fork_tire_intersection_triangle_count"],756)
+            self.assertTrue(output["fork_tire_intersection_csg_watertight"])
+
+    def test_extra_CSG_work_is_optional_and_not_implicit_default(self):
+        signature=inspect.signature(study)
+        self.assertIs(signature.parameters["measure_frame_tire_csg"].default,False)
 
 
 if __name__ == "__main__":

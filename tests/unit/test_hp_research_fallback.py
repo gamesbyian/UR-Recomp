@@ -54,6 +54,46 @@ class HPFallbackTests(unittest.TestCase):
         self.assertEqual(calls[-1], ["--method", "POST", "-f", "ref=main",
             f"repos/{h.REPO}/actions/workflows/{h.RESEARCH}/dispatches"])
 
+    def test_main_ref_rechecked_immediately_before_post(self):
+        req, calls = mock_api(research=[row()])
+        result = h.execute(NOW, req, dry_run=False)
+        self.assertTrue(result["dispatched"])
+        self.assertEqual(sum("/git/ref/heads/main" in a[-1] for a in calls), 2)
+        self.assertEqual(result["main_sha"], SHA)
+
+    def test_main_ref_advance_during_census_aborts_without_post(self):
+        req, calls = mock_api(research=[row()])
+        reads = [0]
+        def race(args):
+            if "/git/ref/heads/main" in args[-1]:
+                reads[0] += 1
+                if reads[0] == 2:
+                    return {"ref": "refs/heads/main", "object": {"sha": "b" * 40}}
+            return req(args)
+        result = h.execute(NOW, race, dry_run=False)
+        self.assertEqual(result["decision"], "skip:main-ref-changed")
+        self.assertEqual(result["main_sha"], SHA)
+        self.assertFalse(result["dispatched"])
+        self.assertEqual(reads[0], 2)
+        self.assertFalse(any("/dispatches" in a[-1] for a in calls))
+
+    def test_malformed_main_ref_fails_closed_on_both_reads(self):
+        for payload in (None, {}, [], {"ref": "refs/heads/main"},
+                        {"ref": "refs/heads/main", "object": {"sha": "Z" * 40}}):
+            with self.subTest(payload=payload):
+                self.assertRaises(ValueError, h.main_sha, lambda _: payload)
+        req, calls = mock_api(research=[row()])
+        reads = [0]
+        def malformed_second(args):
+            if "/git/ref/heads/main" in args[-1]:
+                reads[0] += 1
+                if reads[0] == 2:
+                    return None
+            return req(args)
+        with self.assertRaises(ValueError):
+            h.execute(NOW, malformed_second, dry_run=False)
+        self.assertFalse(any("/dispatches" in a[-1] for a in calls))
+
     def test_recent_manual_blocks(self):
         req, calls = mock_api(research=[row(minutes=30, event="workflow_dispatch")])
         self.assertEqual(h.execute(NOW, req, dry_run=False)["decision"], "skip:recent-research")
@@ -146,7 +186,7 @@ class HPFallbackTests(unittest.TestCase):
     def test_no_previous_research_can_dispatch(self):
         req, calls = mock_api()
         self.assertTrue(h.execute(NOW, req, dry_run=False)["dispatched"])
-        self.assertEqual(len(calls), 8)
+        self.assertEqual(len(calls), 9)
 
     def test_malformed_or_foreign_rows_fail_closed(self):
         for change in ({"head_branch": "feature"}, {"path": "other.yml"},

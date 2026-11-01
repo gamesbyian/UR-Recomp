@@ -69,7 +69,8 @@ def main_sha(request: Callable[[list[str]], dict | None]) -> str:
     payload = request([f"repos/{REPO}/git/ref/heads/main"])
     ref = payload.get("object") if isinstance(payload, dict) else None
     sha = ref.get("sha") if isinstance(ref, dict) else None
-    if (payload.get("ref") != "refs/heads/main" or not isinstance(sha, str)
+    if (not isinstance(payload, dict) or payload.get("ref") != "refs/heads/main"
+            or not isinstance(sha, str)
             or len(sha) != 40 or any(c not in "0123456789abcdef" for c in sha)):
         raise ValueError("main ref cannot be verified")
     return sha
@@ -175,6 +176,11 @@ def execute(now: datetime, request: Callable[[list[str]], dict | None], *, dry_r
         if ([x["id"] for x in priority_second] != [x["id"] for x in priority]
                 or any(x["status"] in RUN_STATES for x in priority_second)):
             receipt["decision"] = "skip:priority-census-changed"
+            return receipt
+        # Recheck main after all workflow censuses. An intervening branch
+        # update invalidates the original source-bound dispatch decision.
+        if main_sha(request) != sha:
+            receipt["decision"] = "skip:main-ref-changed"
             return receipt
         # Fail closed: no external inputs, PR sha, arbitrary workflow or token.
         # A genuine GitHub schedule may appear after our census; the shared

@@ -24,8 +24,15 @@ def audit(data: dict, source_sha256: str) -> dict:
     if any(not isinstance(x, str) or not x for x in ids) or len(set(ids)) != len(ids):
         raise ValueError("missing or duplicate representation identity")
     by_id = {row["representation_id"]: row for row in entries}
+    extra_sequences = data.get("motion_review_sequences", {})
+    if extra_sequences is None:
+        extra_sequences = {}
+    if not isinstance(extra_sequences, dict):
+        raise ValueError("motion_review_sequences must be an object")
+    if "first-1205-1220" in extra_sequences:
+        raise ValueError("duplicate motion sequence name: first-1205-1220")
     sequences = {"first-1205-1220": data.get("motion_review_sequence")}
-    sequences.update(data.get("motion_review_sequences") or {})
+    sequences.update(extra_sequences)
     groups = []
     occurrence = defaultdict(set)
     for name, sequence in sorted(sequences.items()):

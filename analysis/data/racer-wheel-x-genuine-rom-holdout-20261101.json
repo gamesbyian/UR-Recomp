@@ -1,0 +1,109 @@
+{
+  "schema": "UR-RACER-WHEEL-HOLDOUT-RETAINED-RESEARCH-SUMMARY/1",
+  "source_run_id": 41287222152,
+  "source_artifact_id": 13075379369,
+  "source_commit": "be4e8dff2d0309755b77f405293fc535459e9e34",
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_corpus_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "model_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "registered_original_frame_observations": 91,
+  "distinct_authenticated_source_binary_masks": 35,
+  "heldout_independent_binary_mask_count": 19,
+  "first_family_training_control": {
+    "independent_masks": 10,
+    "one_x_mean_iou": 0.57255469,
+    "one_point_one_x_mean_iou": 0.59883507
+  },
+  "previously_untested_source_2D_masks": {
+    "one_x_mean_iou": 0.38192089,
+    "one_point_one_x_mean_iou": 0.41491323,
+    "one_point_one_x_wins": 19,
+    "one_point_one_x_losses": 0,
+    "one_point_one_x_ties": 0
+  },
+  "withheld_binary_mask_scores": {
+    "0339a7c9e6177c0514a89abe18bd6459d26a58607a966c05408ce5bf229b5a82": {
+      "one_x_mask_iou": 0.38277512,
+      "one_point_one_x_mask_iou": 0.41843972
+    },
+    "043165c50a031c6a49c9045192676c22f3ed4490231b9d18eeacd400578254dd": {
+      "one_x_mask_iou": 0.38369305,
+      "one_point_one_x_mask_iou": 0.41943128
+    },
+    "0735d0163c72d4e24b9432aaaf0920025a0aabcf73563e413261d4d9ef7b3b94": {
+      "one_x_mask_iou": 0.38516746,
+      "one_point_one_x_mask_iou": 0.42080378
+    },
+    "141f334c885bcf1646229287eacdaecdd2083751300986a00f1862b1bb0d2239": {
+      "one_x_mask_iou": 0.38443396,
+      "one_point_one_x_mask_iou": 0.41958042
+    },
+    "1a1180d6963d686ea065cf97823215f164b5bb19379e8a9ddd518896c621bb1f": {
+      "one_x_mask_iou": 0.38571429,
+      "one_point_one_x_mask_iou": 0.41451991
+    },
+    "3a28106440e56736fef68e6979ec037e2d9fbac0430c38d66da92118898e4449": {
+      "one_x_mask_iou": 0.35232068,
+      "one_point_one_x_mask_iou": 0.38413361
+    },
+    "49a7eab84a4c3c1448e9018fc0c193c0d5569ac81bce3470df830db879eb12a5": {
+      "one_x_mask_iou": 0.3952381,
+      "one_point_one_x_mask_iou": 0.43058824
+    },
+    "4f43f91d562c508a1ff044a97ae1a0ad5a06984186eaa3415c27331dcac1cd38": {
+      "one_x_mask_iou": 0.39379475,
+      "one_point_one_x_mask_iou": 0.42924528
+    },
+    "67a9c5b343dd0e20d033f984fbb5992d2b7a3ded2844c6a84f5a72ac2fc7e2e2": {
+      "one_x_mask_iou": 0.38809524,
+      "one_point_one_x_mask_iou": 0.41686183
+    },
+    "6d7a2658f3ef214e77eff40274cbc15d759c8462e06b3a2c011c0abd546e4825": {
+      "one_x_mask_iou": 0.37162162,
+      "one_point_one_x_mask_iou": 0.39911308
+    },
+    "75744c9f6a01aac80b47eeb2f54531f590b79a068e64aba20818661eddfda283": {
+      "one_x_mask_iou": 0.3952381,
+      "one_point_one_x_mask_iou": 0.42388759
+    },
+    "7de56a60120d3c077f613f35b28aeae89658c504b4413aa16e67067d5fe833a6": {
+      "one_x_mask_iou": 0.33891213,
+      "one_point_one_x_mask_iou": 0.37629938
+    },
+    "947aeadddf608bbb89a8a8af42bbad0954805fa1c495c12d9d7d7c9947b6d6ee": {
+      "one_x_mask_iou": 0.3847981,
+      "one_point_one_x_mask_iou": 0.42018779
+    },
+    "9597e1a3e36d27185124b6874b88be36d15b075b36e50f7cb02090d9384146e8": {
+      "one_x_mask_iou": 0.39712919,
+      "one_point_one_x_mask_iou": 0.42924528
+    },
+    "d2c60ee326937eee15c8e05859ca4d8d791af93200bd91759ca3c4425bf1f0c3": {
+      "one_x_mask_iou": 0.3923445,
+      "one_point_one_x_mask_iou": 0.41784038
+    },
+    "de42cae55c6727cfe2799c72e64a154ad3c9fba4ae30022dbc3208e5f6976aca": {
+      "one_x_mask_iou": 0.38333333,
+      "one_point_one_x_mask_iou": 0.41217799
+    },
+    "e3ed43b2c5b7263093e91bcccc37c21b39d3e563b9fa9e566263daea1f8c3cea": {
+      "one_x_mask_iou": 0.39099526,
+      "one_point_one_x_mask_iou": 0.42622951
+    },
+    "eb15bfa0705657438d3b22a6c3dca27f2e0abafb4d3b8749c8ad7e18249ca23f": {
+      "one_x_mask_iou": 0.37825059,
+      "one_point_one_x_mask_iou": 0.4135514
+    },
+    "f215f946c83c9a0356701413c62475eacf86d0bbb5ebf42099b4db7af87cd018": {
+      "one_x_mask_iou": 0.37264151,
+      "one_point_one_x_mask_iou": 0.41121495
+    }
+  },
+  "source_original_3d_camera_independently_verified": false,
+  "original_sprite_to_2026_experimental_rig_pose_registered": false,
+  "genuine_independent_original_2D_source_masks_verified": true,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "acceptance_note": "Frozen candidate 1.10 was selected from earlier first-family training, not the 19 different original-mask components. Their absolute IoU is low and the original 3D camera/pose correspondence remains unknown. This supports further visual examination, not automatic wheel distortion or art approval."
+}

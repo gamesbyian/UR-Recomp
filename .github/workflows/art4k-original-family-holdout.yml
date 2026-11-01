@@ -1,0 +1,96 @@
+name: ART-4K original pose-family wheel holdout research
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/art4k-original-family-holdout.yml"
+      - "tools/art/evaluate_original_racer_wheel_holdout.py"
+      - "tests/unit/test_evaluate_original_racer_wheel_holdout.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: art4k-original-wheel-holdout-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verified-original-source-holdout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Authenticate exact canonical original USA ROM
+        shell: bash
+        run: |
+          set -euo pipefail
+          rom=reference/roms/retail/Uniracers_USA.sfc
+          test -f "$rom"
+          test "$(wc -c < "$rom")" -eq 2097152
+          printf '%s  %s\n' \
+            '859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478' \
+            "$rom" | sha256sum --check --status
+      - name: Install bounded CPU-only offline renderer
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5 trimesh==4.11.1 pillow==12.3.0
+      - name: Recompose all original pose families from canonical ROM
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/export_registered_original_racer_corpus.py \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --out "$RUNNER_TEMP/art4k-verified-original-corpus"
+          test -s "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json"
+      - name: Restore previously verified 2026 five-pose GLB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ur-experimental-model-review-actual-glbs
+          run-id: 41259476190
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/art4k-verified-model
+      - name: Score frozen 1.00 and 1.10 wheel hypotheses on original masks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/art4k-reports"
+          model="$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review/assets/d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1/upright-efdc8425f252b4a0.glb"
+          test -s "$model"
+          printf '%s  %s\n' \
+            'efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5' \
+            "$model" | sha256sum --check --status
+          python tools/art/evaluate_original_racer_wheel_holdout.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --glb "$model" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/art4k-reports/wheel-holdout.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          row = json.loads((Path(os.environ["RUNNER_TEMP"]) /
+                            "art4k-reports/wheel-holdout.json").read_text())
+          holdout = row["genuinely_new_binary_mask_holdout"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("### Canonical original ROM, unpaired experimental GLB\n\n")
+              out.write(f"New independent 2D masks: {holdout['independent_binary_mask_count']}\n\n")
+              out.write(f"1.00 wheel mean IoU: {holdout['mean_iou_width_1_00']}\n\n")
+              out.write(f"1.10 wheel mean IoU: {holdout['mean_iou_width_1_10']}\n\n")
+              out.write("**Unverified source 3D camera, pose pairing and owner likeness.**\n")
+          PY
+      - name: Upload short-lived, SHA-verified original sprite research corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-original-source-families-for-review
+          path: |
+            ${{ runner.temp }}/art4k-verified-original-corpus/source-corpus.json
+            ${{ runner.temp }}/art4k-verified-original-corpus/stock/source-*.png
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload bounded numeric provenance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-genuine-original-pose-family-wheel-holdout
+          path: ${{ runner.temp }}/art4k-reports/wheel-holdout.json
+          if-no-files-found: error
+          retention-days: 30

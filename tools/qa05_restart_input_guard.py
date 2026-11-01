@@ -12,11 +12,55 @@ import re
 
 EXPECTED_SAMPLES = 12  # g_restart_input_probe_remaining in the native host.
 GUEST_START = 0x1000
+P2_GUEST_START = 0x0100  # Unshifted 12-bit second-player word.
 PROBE = re.compile(
     r"(?m)^UR_RESTART_INPUT raw=([0-9A-Fa-f]+) guest=([0-9A-Fa-f]+) "
     r"return_held=([01]) release_waiting=([01]) host_owned=([01]) "
     r"remaining=([0-9]+)$"
 )
+P2_PROBE = re.compile(
+    r"(?m)^UR_RESTART_INPUT_P2 raw=([0-9A-Fa-f]+) guest=([0-9A-Fa-f]+) "
+    r"return_held=([01]) release_waiting=([01]) remaining=([0-9]+)$"
+)
+
+
+def validate_restart_p2_guest_input(log: str) -> int:
+    """Validate P2 when present; allow old P1-only retained logs.
+
+    A P1-only log cannot establish P2 coverage. New native producers emit
+    both probes, so every P2 line must parse and the complete P2 countdown
+    must exclude its raw 12-bit Start from the guest word.
+    """
+    emitted = [line for line in log.splitlines()
+               if line.startswith("UR_RESTART_INPUT_P2")]
+    if not emitted:
+        return 0
+    probes = list(P2_PROBE.finditer(log))
+    if len(emitted) != len(probes):
+        raise ValueError(
+            f"malformed UR_RESTART_INPUT_P2 diagnostic: "
+            f"{len(emitted)} emitted, {len(probes)} parsed"
+        )
+    if len(probes) != EXPECTED_SAMPLES:
+        raise ValueError(
+            f"expected {EXPECTED_SAMPLES} P2 post-Restart guest-word samples, "
+            f"observed {len(probes)}"
+        )
+    for index, match in enumerate(probes):
+        raw, guest, held, waiting, remaining = match.groups()
+        expected_remaining = EXPECTED_SAMPLES - index - 1
+        if int(remaining) != expected_remaining:
+            raise ValueError(
+                f"P2 post-Restart sample {index + 1}: expected remaining="
+                f"{expected_remaining}, observed {remaining}"
+            )
+        if int(guest, 16) & P2_GUEST_START:
+            raise ValueError(
+                f"P2 post-Restart sample {index + 1}: guest Start leaked "
+                f"(raw={raw}, guest={guest}, return_held={held}, "
+                f"release_waiting={waiting})"
+            )
+    return len(probes)
 
 
 def validate_restart_guest_input(log: str) -> int:
@@ -29,7 +73,7 @@ def validate_restart_guest_input(log: str) -> int:
     # the strict regex cannot parse it. Otherwise twelve valid lines plus a
     # truncated or corrupt guest=1000 line would falsely pass this oracle.
     emitted = [line for line in log.splitlines()
-               if line.startswith("UR_RESTART_INPUT")]
+               if line.startswith("UR_RESTART_INPUT ")]
     probes = list(PROBE.finditer(log))
     if len(emitted) != len(probes):
         raise ValueError(
@@ -55,6 +99,7 @@ def validate_restart_guest_input(log: str) -> int:
                 f"(raw={raw}, guest={guest}, return_held={held}, "
                 f"release_waiting={waiting}, host_owned={host_owned})"
             )
+    validate_restart_p2_guest_input(log)
     return len(probes)
 
 
@@ -62,10 +107,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("log", type=Path, help="Native packaged-Windows Restart log")
     args = parser.parse_args()
-    count = validate_restart_guest_input(
-        args.log.read_text(encoding="utf-8", errors="replace")
-    )
+    log = args.log.read_text(encoding="utf-8", errors="replace")
+    count = validate_restart_guest_input(log)
     print(f"UR_QA05_RESTART_GUEST_WORD=passed samples={count}")
+    p2_count = validate_restart_p2_guest_input(log)
+    if p2_count:
+        print(f"UR_QA05_RESTART_P2_GUEST_WORD=passed samples={p2_count}")
     return 0
 
 

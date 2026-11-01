@@ -250,6 +250,23 @@ class OwnerCommentDispatchTests(unittest.TestCase):
             recent_science_run({"workflow_runs": [good, recent],
                                 "total_count": 2}, clock)
 
+    def test_hp_science_comments_serialize_across_distinct_prs(self):
+        """One global HP dispatch lock, preserving per-PR exact-head CI."""
+        wf = Path(".github/workflows/owner-comment-ci-dispatch.yml").read_text()
+        self.assertIn(
+            "group: ${{ startsWith(github.event.comment.body, '/ur-ci hp-research') "
+            "&& 'owner-comment-hp-research' || "
+            "format('owner-comment-dispatch-{0}', github.event.issue.number) }}", wf)
+        self.assertIn("cancel-in-progress: false", wf)
+        # The run-census check must remain inside the serialized job, not only
+        # in a separate comment handler that could race across PR numbers.
+        self.assertIn("python3 tools/ci_owner_comment_dispatch.py", wf)
+        dispatcher = Path("tools/ci_owner_comment_dispatch.py").read_text()
+        self.assertIn("recent_science_run(get_runs(SCIENCE_WORKFLOW, \"main\"), now)",
+                      dispatcher)
+        self.assertIn("if existing is None:\\n        dispatch(SCIENCE_WORKFLOW, \"main\")".replace("\\n", "\n"),
+                      dispatcher)
+
     def test_only_default_branch_trusted_source_and_existing_dispatch_targets(self):
         wf = Path(".github/workflows/owner-comment-ci-dispatch.yml").read_text()
         self.assertIn("types: [created]", wf)

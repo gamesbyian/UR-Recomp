@@ -15,6 +15,8 @@ on:
       - "tests/unit/test_audit_original_racer_temporal_motion.py"
       - "tools/art/study_original_racer_root_lean_grid.py"
       - "tests/unit/test_study_original_racer_root_lean_grid.py"
+      - "tools/art/evaluate_original_racer_lean_silhouettes.py"
+      - "tests/unit/test_evaluate_original_racer_lean_silhouettes.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -151,6 +153,40 @@ jobs:
               out.write("### Exploratory source-mask lean grid, NOT original 3D recovery\n\n")
               out.write("Verified 1994 ROM pixels and frozen five-GLB source.\n\n")
               out.write("No default rig geometry, source camera or 1994 pose mapping changed.\n")
+          PY
+      - name: Test actual whole GLB silhouettes and stable original source contact
+        shell: bash
+        run: |
+          set -euo pipefail
+          model="$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review/assets/d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1/upright-efdc8425f252b4a0.glb"
+          test -s "$model"
+          printf '%s  %s\n' 'efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5' "$model" | sha256sum --check --status
+          python tools/art/evaluate_original_racer_lean_silhouettes.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --glb "$model" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/art4k-reports/full-lean-silhouette.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          path=Path(os.environ["RUNNER_TEMP"])/"art4k-reports/full-lean-silhouette.json"
+          report=json.loads(path.read_text())
+          summary=report["summary"]
+          assert report["original_unique_binary_silhouettes"]==35
+          assert report["model_2026_faces"]==28860
+          assert len(report["model_2026_root_pose_hypotheses"])==5
+          assert summary["original_unique_binary_masks"]==35
+          assert report["angle_grid_was_selected_using_these_known_original_masks"] is True
+          assert report["source_original_1994_sprite_to_2026_rig_pose_paired"] is False
+          assert report["original_3d_mesh_joint_or_tire_contact_recovered"] is False
+          assert report["shipping_art_approved"] is False
+          print("Real GLB full-silhouette source IoU:",summary["mean_full_silhouette_iou_per_fixed_source_root_pose"])
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("### Real source whole-silhouette lean check (post-hoc, unpaired)\n\n")
+              out.write(f"35 SHA-distinct authentic 64px source masks; 5 actual 2026 source-root rotations.\n\n")
+              for name,value in summary["mean_full_silhouette_iou_per_fixed_source_root_pose"].items():
+                  out.write(f"- {name}: mean original-source IoU {value}\n")
+              out.write("\nNo 1994 authentic camera, pose, physical ground-contact or likeness acceptance.\n")
           PY
       - name: Audit actual original ROM frame holds and 2D motion transitions
         shell: bash

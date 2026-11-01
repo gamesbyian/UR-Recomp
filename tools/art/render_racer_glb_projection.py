@@ -74,10 +74,19 @@ def model_mesh(path: Path, expected_sha256: str):
         raise ValueError("GLB content SHA256 mismatch")
     if raw[:4] != b"glTF":
         raise ValueError("candidate model must be a GLB")
-    scene = trimesh.load_scene(path, file_type="glb", process=False)
+    # The exact offline authoring runner pins Trimesh 4.5.3, which predates
+    # the modern convenience load_scene() and Scene.to_geometry() methods.
+    # Preserve world-transform baking on both old and new APIs, rather than
+    # silently changing the package pin or flattening GLB parent transforms.
+    scene = (trimesh.load_scene(path, file_type="glb", process=False)
+             if callable(getattr(trimesh, "load_scene", None))
+             else trimesh.load(path, file_type="glb", force="scene", process=False))
+    if not isinstance(scene, trimesh.Scene):
+        raise ValueError("GLB loader did not preserve articulated scene")
     if not set(PARTS).issubset(set(scene.graph.nodes)):
         raise ValueError("GLB lacks five required articulated parent nodes")
-    mesh = scene.to_geometry()  # Applies the hierarchy's world transforms.
+    mesh = (scene.to_geometry() if callable(getattr(scene, "to_geometry", None))
+            else scene.dump(concatenate=True))  # Bake all world transforms.
     vertices = np.asarray(mesh.vertices)
     faces = np.asarray(mesh.faces)
     if (len(vertices) == 0 or len(faces) == 0 or

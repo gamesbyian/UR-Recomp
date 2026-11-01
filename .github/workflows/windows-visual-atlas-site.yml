@@ -70,7 +70,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq openscad
           python3 -m venv "$RUNNER_TEMP/rig-venv"
-          "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1'
+          "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1' 'pillow==11.1.0'
       - name: Generate and verify the five exact source-owned blockout poses
         if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
         run: |
@@ -90,6 +90,24 @@ jobs:
             echo "### Experimental 3D model review"
             echo "Rig source: \`$source_commit\`"
             echo "Five exported procedural studies; no original likeness or release approval."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Generate source-verified measurements for the explicitly opted-in model
+        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/prepare_model_review_measurement_sidecar.py \
+            --model-review-dir "$RUNNER_TEMP/atlas-site/model-review" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/model-measurements.json"
+          # Only this opt-in path publishes a measurement packet. It was
+          # produced from the exact staged GLBs and sprite rail and checked
+          # against both manifest SHA values. Never publish a stale packet.
+          ln "$RUNNER_TEMP/model-measurements.json" \
+            "$RUNNER_TEMP/atlas-site/model-review/model-measurements.json"
+          {
+            echo "Source comparison: verified 32 original frame observations,"
+            echo "10 distinct original 2D silhouettes, 5 unpaired GLB poses."
+            echo "Provisional camera only; no original pose mapping or art approval."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Retain independent browser-ready site (without copyrighted ROM)
         uses: actions/upload-artifact@v4

@@ -112,7 +112,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq openscad
           python3 -m venv "$RUNNER_TEMP/rig-venv"
-          "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1'
+          "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1' 'pillow==11.1.0'
       - name: Export all five actual experimental poses and bind immutable receipts
         run: |
           set -euo pipefail
@@ -130,12 +130,27 @@ jobs:
             --exports "$RUNNER_TEMP/model-exports" \
             --site "$RUNNER_TEMP/real-model-site" \
             --source-commit "$source_commit"
+          # Exercise the exact optional manual-publish evidence path on
+          # real GLB bytes, at no extra OpenSCAD or Windows-build cost.
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/prepare_model_review_measurement_sidecar.py \
+            --model-review-dir "$RUNNER_TEMP/real-model-site/model-review" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/real-measurements.json"
+          ln "$RUNNER_TEMP/real-measurements.json" \
+            "$RUNNER_TEMP/real-model-site/model-review/model-measurements.json"
           python3 - <<'PY'
           import json,os,pathlib
           site=pathlib.Path(os.environ["RUNNER_TEMP"])/"real-model-site/model-review"
           m=json.loads((site/"manifest.json").read_text())
           assert len(m["poses"])==5 and m["source_commit"]==os.environ["EXPERIMENTAL_RIG_SHA"]
           assert m["likeness_approved"] is False and m["source_sprite_pose_registration"] is False
+          evidence=json.loads((site/"model-measurements.json").read_text())
+          assert evidence["schema"]=="UR-RACER-MODEL-REVIEW-MEASUREMENT-SIDECAR/1"
+          assert evidence["original_frame_observations"]==32
+          assert evidence["distinct_original_source_binary_silhouette_count"]==10
+          assert evidence["experimental_glb_pose_count"]==5
+          assert evidence["source_to_experimental_model_pose_mapping_verified"] is False
+          assert evidence["shipping_art_approved"] is False
           print("EXPERIMENTAL_FIVE_POSE_EXPORT_STAGED",m["source_commit"])
           PY
       - uses: actions/setup-node@v4

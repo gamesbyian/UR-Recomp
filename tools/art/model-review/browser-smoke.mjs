@@ -32,7 +32,7 @@ const original=JSON.parse(readFileSync(join(site,'model-review/manifest.json'),'
 const modelManifest={...original,version:'SYNTHETIC BROWSER FIXTURE',model_url:'mock.glb',
   poses:Object.fromEntries(['upright','pedal','wheelie','stunt','bank'].map(p=>[p,{url:'mock.glb'}])),
   likeness_approved:false};
-const mime={html:'text/html; charset=utf-8',js:'application/javascript; charset=utf-8',css:'text/css; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',glb:'model/gltf-binary',svg:'image/svg+xml'};
+const mime={html:'text/html; charset=utf-8',js:'application/javascript; charset=utf-8',mjs:'application/javascript; charset=utf-8',css:'text/css; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',glb:'model/gltf-binary',svg:'image/svg+xml'};
 const server=createServer((req,res)=>{
   let path;
   try{path=decodeURIComponent((req.url||'/').split('?')[0])}catch{res.writeHead(400);res.end();return}
@@ -110,7 +110,22 @@ try{
    q('wire').click();if(q('wire').getAttribute('aria-pressed')!=='true')issues.push('wireframe');
    q('spin').click();if(q('spin').getAttribute('aria-pressed')!=='true')issues.push('orbit');
    q('zup').click();if(q('zup').checked)issues.push('up-axis');
-   return {width:w,height:innerHeight,issues,source:q('sourceInfo').textContent.slice(0,85)};
+   if(q('measureToggle').getBoundingClientRect().height<44)issues.push('research touch target');
+   q('measureToggle').click();
+   for(let i=0;i<100 && q('measureToggle').disabled;i++)await new Promise(done=>setTimeout(done,50));
+   const research=q('measureStatus').textContent;
+   if(${mocked}) {
+    if(!research.includes('Research comparison unavailable')||!q('measurements').hidden)
+     issues.push('missing sidecar did not fail closed');
+   } else {
+    if(!research.includes('Verified research packet')||q('measurements').hidden||
+       q('measureResults').querySelectorAll('tbody tr').length!==5)
+     issues.push('real source measurements unavailable');
+    if(q('measureResults').textContent.includes('authentic original-game pose match'))
+     issues.push('invented original sprite mapping');
+   }
+   if(!q('source').textContent.includes('published bank GLB'))issues.push('research changes displayed GLB');
+   return {width:w,height:innerHeight,issues,research:research.slice(0,90),source:q('sourceInfo').textContent.slice(0,85)};
   })()`);
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
   writeFileSync(join(out,'model-review-'+width+'.png'),Buffer.from(shot.data,'base64'));

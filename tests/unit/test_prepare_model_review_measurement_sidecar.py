@@ -176,16 +176,37 @@ class ModelReviewMeasurementSidecarTests(unittest.TestCase):
                 publish_text_once(path, "forge\n")
             self.assertEqual(path.read_text(), text)
 
+    def test_mutating_viewer_between_measurement_and_receipt_is_rejected(self):
+        with tempfile.TemporaryDirectory() as base:
+            site = Path(base)
+            (site/"manifest.json").write_text('{"model":"original"}')
+            (site/"sprites.json").write_text('{"sprite":"original"}')
+            camera = site/"camera.json"
+            camera.write_text('{"camera":"original"}')
+            stub = types.ModuleType("tools.art.build_real_viewer_pose_matrix")
+            def unstable_compute(path, camera_path, mode):
+                (path/"manifest.json").write_text('{"model":"swapped"}')
+                result = fake_matrix()
+                result["camera_manifest_sha256"] = digest(camera_path.read_bytes())
+                return result
+            stub.compute = unstable_compute
+            with patch.dict(sys.modules, {"tools.art.build_real_viewer_pose_matrix": stub}):
+                with self.assertRaisesRegex(ValueError, "changed during measurement"):
+                    create_sidecar(site, camera)
+
     def test_actual_create_sidecar_invokes_measurement_not_untrusted_json(self):
         with tempfile.TemporaryDirectory() as base:
             site = Path(base)
             (site / "manifest.json").write_text('{"model":"fixture"}\n')
             (site / "sprites.json").write_text('{"original":"fixture"}\n')
+            (site / "camera.json").write_text('{"camera":"fixture"}\n')
             stub = types.ModuleType("tools.art.build_real_viewer_pose_matrix")
             calls = []
             def fake_compute(path, camera, mode):
                 calls.append((path, camera, mode))
-                return fake_matrix()
+                measured = fake_matrix()
+                measured["camera_manifest_sha256"] = digest(camera.read_bytes())
+                return measured
             stub.compute = fake_compute
             with patch.dict(sys.modules, {"tools.art.build_real_viewer_pose_matrix": stub}):
                 result = create_sidecar(site, Path(base)/"camera.json")

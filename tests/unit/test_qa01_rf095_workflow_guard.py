@@ -61,5 +61,17 @@ class RF095WorkflowPrerequisites(unittest.TestCase):
                                  'missing or duplicated immutable RF095 producer evidence')
 
 
+    def test_source_scan_excludes_rf095_map_before_both_source_runs(self):
+        producer = WORKFLOW.parents[2] / 'tools' / 'probe_original_event_complete.py'
+        source = producer.read_text(encoding='utf-8')
+        scan = source.split('def scan_source(', 1)[1].split(
+            '\n\n# Reuse the pinned', 1)[0]
+        guard = 'env.pop("SNESREF_PCM_FRAME_MAP", None)'
+        self.assertEqual(scan.count(guard), 1)
+        self.assertLess(scan.index(guard), scan.index('p = subprocess.run('))
+        self.assertEqual(scan.count('cwd=scan'), 2)
+        self.assertIn('anchor_env = dict(env, SNESREF_SCRIPT=str(anchor))', scan)
+
+
 if __name__ == '__main__':
     unittest.main()

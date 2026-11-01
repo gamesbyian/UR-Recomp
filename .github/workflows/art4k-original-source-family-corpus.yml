@@ -1,0 +1,113 @@
+name: ART-4K original source family corpus (bounded opt-in)
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/art4k-original-source-family-corpus.yml"
+      - "tests/unit/test_art4k_original_source_workflow_contract.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: art4k-original-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-registered-corpus:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Authenticate the repository's existing canonical USA ROM
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          source = Path("reference/roms/retail/Uniracers_USA.sfc")
+          raw = source.read_bytes()
+          assert len(raw) == 2097152, "canonical source ROM must be 2 MiB"
+          assert hashlib.sha256(raw).hexdigest() == "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+          print("Canonical ROM source SHA verified; original ROM bytes will not be uploaded.")
+          PY
+
+      - name: Compose every currently registered original racer family
+        shell: bash
+        run: |
+          set -euo pipefail
+          corpus="$RUNNER_TEMP/art4k-original-source-corpus"
+          python3 tools/art/export_registered_original_racer_corpus.py \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --registry analysis/data/racer-hd-replacement-prototype.json \
+            --out "$corpus"
+          test -f "$corpus/source-corpus.json"
+          python3 tools/art/freeze_racer_source_family_splits.py \
+            "$corpus/source-corpus.json" --template \
+            > "$corpus/roles-all-diagnostic.json"
+          python3 tools/art/freeze_racer_source_family_splits.py \
+            "$corpus/source-corpus.json" "$corpus/roles-all-diagnostic.json" \
+            > "$corpus/diagnostic-source-family-groups.json"
+          # Freeze the future holdout by a source-mask-only, predeclared
+          # algorithm before ANY geometry score is calculated.
+          python3 tools/art/select_original_racer_heldout_roles.py \
+            "$corpus/diagnostic-source-family-groups.json" \
+            --out "$corpus/roles-first-family-fit-vs-withheld.json"
+          python3 tools/art/freeze_racer_source_family_splits.py \
+            "$corpus/source-corpus.json" "$corpus/roles-first-family-fit-vs-withheld.json" \
+            > "$corpus/frozen-first-family-holdout.json"
+          cp analysis/data/racer-art4k-precommitted-wheel-holdout-trial-20261101.json \
+            "$corpus/precommitted-wheel-trial.json"
+          python3 - "$corpus" <<'PY'
+          import hashlib, json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          receipt = root / "source-corpus.json"
+          data = json.loads(receipt.read_text())
+          registry = json.loads(pathlib.Path("analysis/data/racer-hd-replacement-prototype.json").read_text())
+          expected_windows = 1 + len(registry["motion_review_sequences"])
+          assert data["source_rom_verified_and_used_for_composition"] is True
+          assert data["source_rom_sha256"] == "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+          assert data["source_3d_geometry_recovered"] is False
+          assert data["native_live_original_PPU_or_1994_3d_camera_independently_verified"] is False
+          assert data["owner_likeness_approved"] is False
+          assert data["shipping_art_approved"] is False
+          assert len(data["registered_source_windows"]) == expected_windows >= 2
+          assert data["unique_binary_silhouettes"] > 10
+          families = json.loads((root / "diagnostic-source-family-groups.json").read_text())
+          assert families["no_original_binary_silhouette_across_roles"] is True
+          assert families["role_summary"]["fit"]["window_count"] == 0
+          assert families["role_summary"]["withheld_candidate"]["window_count"] == 0
+          assert families["role_summary"]["diagnostic"]["window_count"] == expected_windows
+          frozen = json.loads((root / "frozen-first-family-holdout.json").read_text())
+          assert frozen["source_family_split_is_frozen_by_exact_input_hashes"] is True
+          assert frozen["no_original_binary_silhouette_across_roles"] is True
+          assert frozen["withheld_candidate_is_an_independent_3d_camera"] is False
+          assert frozen["role_summary"]["fit"]["independent_binary_silhouette_group_count"] > 0
+          assert frozen["role_summary"]["withheld_candidate"]["independent_binary_silhouette_group_count"] > 0
+          precommitted = json.loads((root / "precommitted-wheel-trial.json").read_text())
+          assert precommitted["candidate_geometry_variants"][0]["wheel_and_rim_world_x_scale"] == 1.0
+          assert precommitted["candidate_geometry_variants"][1]["wheel_and_rim_world_x_scale"] == 1.1
+          assert precommitted["allow_additional_candidates_after_seeing_heldout"] is False
+          receipt_sha = hashlib.sha256(receipt.read_bytes()).hexdigest()
+          print("ART4K_VERIFIED_ORIGINAL_SOURCE_FAMILIES",
+                "windows=", expected_windows,
+                "source_shapes=", data["unique_binary_silhouettes"],
+                "source_receipt_sha256=", receipt_sha,
+                "all_roles=diagnostic",
+                "no_1994_3D_camera_or_model_claim")
+          PY
+
+      - name: Upload bounded original-pose research inputs (not ROM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-canonical-source-families-${{ github.run_id }}
+          path: ${{ runner.temp }}/art4k-original-source-corpus/
+          retention-days: 7
+          if-no-files-found: error

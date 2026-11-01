@@ -1,0 +1,66 @@
+{
+  "schema": "UR-ART4K-PRECOMMITTED-WHEEL-HELDOUT-TRIAL/1",
+  "frozen_utc": "2026-11-01",
+  "subject": "One 2026 experimental upright shared unicycle rig, one source-registered original-first-family calibration",
+  "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_artifact": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41259476190/artifacts/13063969312",
+  "experimental_model_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "experimental_model_scad_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "actual_upright_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "first_family_window": "first-1205-1220",
+  "partition_rule": "Use SHA-verified connected window components of identical source binary silhouettes. Entire component containing first-1205-1220 => fit; every other source-image-independent component => withheld_candidate. All fit/withheld roles must be frozen before new-family geometry evaluation.",
+  "source_split_algorithm": "tools/art/select_original_racer_heldout_roles.py then freeze_racer_source_family_splits.py",
+  "candidate_geometry_variants": [
+    {
+      "label": "baseline",
+      "wheel_and_rim_world_x_scale": 1
+    },
+    {
+      "label": "frozen_10_percent_wider",
+      "wheel_and_rim_world_x_scale": 1.1
+    }
+  ],
+  "allow_additional_candidates_after_seeing_heldout": false,
+  "renderer": {
+    "type": "fixed provisional side orthographic CPU silhouette",
+    "right_world": [
+      1,
+      0,
+      0
+    ],
+    "up_world": [
+      0,
+      0,
+      1
+    ],
+    "origin_world": [
+      0,
+      0,
+      0
+    ],
+    "source_pixel_aspect": "7:6",
+    "logical_pixels_per_model_unit_vertical": 9.5,
+    "source_anchor_x2_y2": [
+      67,
+      76
+    ],
+    "source_registration": "visible original lowest-alpha x2/y2 midpoint, not physical wheel-ground contact",
+    "direct_source_pose_to_2026_rig_mapping_verified": false,
+    "allow_per_shape_camera_scale_or_rotation_tuning": false,
+    "allow_iou_optimized_translation": false
+  },
+  "evaluation": {
+    "statistic": "mean silhouette IoU, equal weight per independently SHA-distinct original binary source mask; report worst-source mask and source 7:6 physical Chamfer separately",
+    "observed_first_family_training": {
+      "original_unique_source_shapes": 10,
+      "baseline_mean_iou": 0.57255469,
+      "frozen_1_10_mean_iou": 0.59883507,
+      "source_family_is_heldout": false
+    },
+    "withheld_result_is_invalid_if_no_disjoint_component": true,
+    "valid_withheld_family_does_not_prove_original_3d_camera": true,
+    "cannot_claim_source_3d_articulated_pose_mapping": true,
+    "likeness_approved": false,
+    "shipping_art_approved": false
+  }
+}

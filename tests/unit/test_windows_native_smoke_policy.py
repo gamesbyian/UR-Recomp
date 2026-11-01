@@ -20,7 +20,6 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             '      - "tools/verify_rom.py"',
             '      - "tools/check_result_screen_time.py"',
             '      - "tests/input/ui-race-result-route.script"',
-            '      - "tests/unit/test_assemble_windows_package.py"',
             '      - "reference/roms/retail/Uniracers_USA.sfc"',
             '      - "native/product/**"',
             '      - "native/presentation/**"',

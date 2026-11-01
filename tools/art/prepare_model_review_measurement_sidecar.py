@@ -226,8 +226,10 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True,
                     help="new JSON destination outside the site; no overwrite")
     args = ap.parse_args()
-    site = args.model_review_dir.resolve()
-    if args.out.resolve().is_relative_to(site):
+    site = args.model_review_dir
+    if site.is_symlink():
+        ap.error("the model-review site must not be a symlink")
+    if args.out.resolve().is_relative_to(site.resolve()):
         ap.error("sidecar must be staged separately; the viewer owner controls site publication")
     sidecar = create_sidecar(site, args.camera)
     raw = json.dumps(sidecar, indent=2, sort_keys=True) + "\n"

@@ -139,6 +139,25 @@
         "model_opaque_logical_px": 369
       }
     },
-    "note": "The one-model first-family upright-only fit supports a bounded wheel/rim geometry hypothesis relative to a global camera stretch; no independent original family held out, 1994 3D pose/camera authenticity or approval. This is not a shipping mesh or automatic parameter selection."
+    "note": "The one-model first-family upright-only fit supports a bounded wheel/rim geometry hypothesis relative to a global camera stretch; no independent original family held out, 1994 3D pose/camera authenticity or approval. This is not a shipping mesh or automatic parameter selection.",
+    "per_player_silhouette_mean_by_wheel_factor": {
+      "1.00": {
+        "p1": 0.58607617,
+        "p2": 0.55227247
+      },
+      "1.05": {
+        "p1": 0.60788672,
+        "p2": 0.57449953
+      },
+      "1.10": {
+        "p1": 0.61264834,
+        "p2": 0.57811516
+      },
+      "1.15": {
+        "p1": 0.57259866,
+        "p2": 0.54005335
+      }
+    },
+    "per_player_warning": "Both player sets were examined during factor exploration; P2 must NOT be falsely labelled held-out. A distinct additional original source family must be frozen and evaluated before refitting canonical wheel geometry."
   }
 }

@@ -42,6 +42,37 @@ class ArticulatedBlockoutContract(unittest.TestCase):
             self.assertEqual(json.loads((out / 'articulated_blockout_last_attempt.json')
                                         .read_text())['status'], 'failed')
 
+    def test_fork_mass_source_bound_experiment_is_opt_in(self):
+        actual = (SCRIPT.parent / 'candidates' / 'unicycle_shared_rig.scad').read_bytes()
+        sha = module.sha256_bytes(actual)
+        self.assertEqual(sha, module.SOURCE_FRAME_MASS_SHA)
+        self.assertEqual(module.frame_mass_openscad_define(1.0, 'any-source'), [])
+        self.assertEqual(module.frame_mass_openscad_define(1.4, sha),
+                         ['-D', 'rig_frame_mass=1.4'])
+        for invalid in (0., 1.2, 2.0, -1., math.nan, math.inf, "1.4", True):
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(
+                    ValueError, 'only original 1.0'):
+                module.frame_mass_openscad_define(invalid, sha)
+        with self.assertRaisesRegex(ValueError, 'exact authenticated source rig'):
+            module.frame_mass_openscad_define(1.4, '0'*64)
+
+    def test_unapproved_mass_does_not_overwrite_existing_success(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            source = root / 'source.scad'
+            source.write_bytes((SCRIPT.parent / 'candidates' /
+                                'unicycle_shared_rig.scad').read_bytes())
+            out = root / 'output'
+            out.mkdir()
+            prior = out / 'articulated_blockout_current.json'
+            prior.write_text('{"attempt_id":"original"}\n', encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'only original 1.0'):
+                module.export(source, out, rig_pose='upright', frame_mass=2.0)
+            self.assertEqual(prior.read_text(), '{"attempt_id":"original"}\n')
+            failed = json.loads((out / 'articulated_blockout_last_attempt.json').read_text())
+            self.assertEqual(failed['status'], 'failed')
+            self.assertFalse(failed['current_output_usable'])
+
     def test_parts_do_not_accidentally_render_full_rig(self):
         source = "module rig(x) {}\nrig(rig_pose);\n"
         for name in module.PARTS:

@@ -51,6 +51,21 @@ END_MARKER = "rig(rig_pose);"
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
 # Explicit experimental authoring palettes, not sampled 1994 raster colors.
 # (SCAD override expression, byte-exact exported RGBA); never fork the rig.
+# The 1.4 trial passed a 19 SHA-independent original 2D mask holdout on
+# actual OpenSCAD geometry. No owner likeness or full edge/contact gate passed.
+# This is an optional source-owned visual REVIEW only; never change default.
+SOURCE_FRAME_MASS_SHA = "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984"
+FRAME_MASS_REVIEW_CHOICES = (1.0, 1.4)
+
+def frame_mass_openscad_define(value: float, source_sha: str) -> list[str]:
+    if type(value) not in (int, float) or not math.isfinite(value) or value not in FRAME_MASS_REVIEW_CHOICES:
+        raise ValueError("only original 1.0 or source-studied 1.4 fork mass permitted")
+    if value == 1.0:
+        return []
+    if source_sha != SOURCE_FRAME_MASS_SHA:
+        raise ValueError("nondefault fork mass requires exact authenticated source rig")
+    return ["-D", "rig_frame_mass=1.4"]
+
 PLAYER_PALETTES = {
     "source": (None, None),
     "p1-provisional-v1": ("[0.87,0.11,0.35]", (222, 28, 89, 255)),
@@ -300,7 +315,8 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
 def export(source: Path, out_dir: Path, *, timeout: int = 90,
            pedal_phase: float | None = None, saddle_lean: float | None = None,
            rig_pose: str = "custom", rig_time: float | None = None,
-           player_palette: str = "source") -> dict:
+           player_palette: str = "source",
+           frame_mass: float = 1.0) -> dict:
     source_bytes = source.read_bytes()
     base = source_bytes.decode("utf-8")
     source_digest = sha256_bytes(source_bytes)
@@ -317,6 +333,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
     _write_json_atomic(last_attempt, state)
     try:
         source_without_entrypoint(base)
+        mass_define = frame_mass_openscad_define(frame_mass, source_digest)
         if player_palette not in PLAYER_PALETTES:
             raise ValueError("unknown experimental player palette")
         palette_expression, palette_rgba = PLAYER_PALETTES[player_palette]
@@ -348,6 +365,15 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
         report = {"schema": "ur-art4k-articulated-blockout/1",
                   "attempt_id": attempt_id, "source_sha256": source_digest,
                   "source_saddle_mount": list(saddle_mount),
+                  "source_fork_mass_review": {
+                      "schema_version": 1,
+                      "factor": frame_mass,
+                      "original_SOURCE_silhouette_holdout_researched": frame_mass == 1.4,
+                      "all_parts_except_fork_source_unchanged": True,
+                      "authentic_1994_3D_character_geometry_recovered": False,
+                      "owner_visual_likeness_approved": False,
+                      "shipping_art_approved": False,
+                  },
                   "rig_pose": rig_pose,
                   "source_pose_transform": [list(row) for row in pose_matrix],
                   "pose_controls": {"pedal_phase_degrees": pedal_phase,
@@ -389,7 +415,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                 probe_scad = work / f"{name}-uncolored-probe.scad"
                 probe_stl = work / f"{name}-uncolored-probe.stl"
                 probe_scad.write_text(uncolored_probe_source(part_source), encoding="utf-8")
-                probe_run = subprocess.run([openscad, "-o", str(probe_stl), str(probe_scad)],
+                probe_run = subprocess.run([openscad, *mass_define, "-o", str(probe_stl), str(probe_scad)],
                                            capture_output=True, text=True,
                                            timeout=timeout, check=False)
                 if probe_run.returncode != 0 or not probe_stl.is_file():
@@ -413,7 +439,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                     scad.write_text(material_pass_source(
                         part_source, rgba, rig_color_override=palette_expression),
                         encoding="utf-8")
-                    run = subprocess.run([openscad, "-o", str(stl), str(scad)],
+                    run = subprocess.run([openscad, *mass_define, "-o", str(stl), str(scad)],
                                          capture_output=True, text=True,
                                          timeout=timeout, check=False)
                     if run.returncode != 0 or not stl.is_file():
@@ -464,6 +490,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
                    "pose_controls": report["pose_controls"],
                    "continuous_pose": continuous_meta,
                    "player_palette": report["player_palette"],
+                   "source_fork_mass_review": report["source_fork_mass_review"],
                    "glb_path": f"attempts/{attempt_id}/unicycle_articulated_blockout.glb",
                    "receipt_path": f"attempts/{attempt_id}/articulated_blockout_receipt.json",
                    "glb_sha256": report["glb_sha256"],
@@ -491,6 +518,9 @@ def main() -> None:
     parser.add_argument("--player-palette", choices=tuple(PLAYER_PALETTES),
                         default="source",
                         help="versioned provisional P1/P2 GLB material override; not original RGB")
+    parser.add_argument("--frame-mass", type=float, choices=FRAME_MASS_REVIEW_CHOICES,
+                        default=1.0,
+                        help="source-owned unapproved fork mass 1.0 default / 1.4 visual A/B")
     parser.add_argument("--rig-pose", choices=("custom",) + POSES + ("ride", "stunt_cycle"), default="custom",
                         help="source-owned BLOCKOUT pose, never original-game cadence")
     parser.add_argument("--rig-time", type=float, default=None,
@@ -505,7 +535,8 @@ def main() -> None:
     print(json.dumps(export(args.source, args.out_dir, timeout=args.timeout,
                             pedal_phase=args.pedal_phase, saddle_lean=args.saddle_lean,
                             rig_pose=args.rig_pose, rig_time=args.rig_time,
-                            player_palette=args.player_palette),
+                            player_palette=args.player_palette,
+                            frame_mass=args.frame_mass),
                      indent=2))
 
 

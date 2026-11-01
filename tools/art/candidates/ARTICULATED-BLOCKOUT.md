@@ -32,3 +32,20 @@ The original blockout has only these five static named branches; continuous `rid
 The exporter rejects empty/nonfinite/nonwatertight component meshes and emits source/GLB SHA-256, part pivots and explicitly false likeness, cadence and shipping approval. OpenSCAD and Trimesh are **optional offline authoring dependencies**, never runtime or CI prerequisites.
 
 **Remaining work:** authenticate a high-detail original title/packaging view and adjacent genuine original gameplay poses; measure perspective-tagged landmarks with the existing `measure_unicycle_reference.py`; fit wheel/fork/saddle and original contact/pivots; reconstruct source cadence, original-faithful materials, lighting and motion; compare at 32/64px and 4× in 1P/2P; obtain explicit independent owner likeness approval. No ART-02..ART-10 or Windows/USA event credit from this technical export.
+
+## Source-owned optional 1.4× fork A/B (experimental, NOT default artwork)
+
+A real source-ROM OpenSCAD experiment selected **1.4× fork/frame source `frame_member` mass** on ten original binary silhouettes and then separately retested it on **19 SHA-disjoint original 2D silhouettes** from other registered original-ROM windows. On the 19 masks, complete IoU increased **0.38192089 → 0.38824958 (19/19 wins)**; the more aggressive 2.0 mass lost all 19 shape overlaps. Mean physical boundary Chamfer at 1.4 became slightly **worse**, 3.07819813 → 3.08501689. This is worth **visual review**, not an accepted source character shape or 1994 independent 3D pose proof. See [main research PR #3007](https://github.com/gamesbyian/UR-Recomp/pull/3007), actual ROM/OpenSCAD source producer #41360120641 and pinned `analysis/data/racer-art4k-source-frame-mass-original-19-mask-20261101.json`.
+
+The **same** five-part, 16-material source-owned exporter now supports:
+
+```sh
+python3 tools/art/export_articulated_unicycle.py tools/art/candidates/unicycle_shared_rig.scad /tmp/ur-default --rig-pose upright
+python3 tools/art/export_articulated_unicycle.py tools/art/candidates/unicycle_shared_rig.scad /tmp/ur-fork-review --rig-pose upright --frame-mass 1.4
+```
+
+The default 1.0 does not add OpenSCAD overrides. For 1.4, the exporter requires the **exact historically authenticated source SCAD SHA-256** `e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984` and passes `-D rig_frame_mass=1.4` to both the uncoloured source sentinel and all source-material OpenSCAD passes, rather than generating a second model or modifying a source file. The atomic full GLB receipt and current pointer independently declare source SHA, frame-mass value and false original 1994/likeness/shipping flags. Only **1.0 and 1.4** are allowed until a new source-bound review explicitly qualifies further values.
+
+`.github/workflows/art4k-real-fork-mass-review.yml` runs on source exporter/test changes and creates **both actual source GLBs**. A separate independent Trimesh loader verifies two five-part, 16-material GLBs, immutable source hashes, pivot transforms, color/material identity, unchanged tire, rim, pedals and saddle geometry/normal/triangle signatures, and at least one changed fork source geometry signature. Both source GLBs and their receipts are uploaded for direct use in the **existing** Pages 3D model reviewer via its local GLB upload. No new rig, no automatically published model variant, no original sprite-to-pose mapping and no shipping or title-game art acceptance is implied.
+
+**Next art question:** compare the two real source GLBs at source gameplay size and with the existing authentic P1/P2 sprites, checking saddle shape and wheel/frame contact as well as surface fullness. If the thicker fork does not look more faithful, keep it experimental regardless of the positive whole-image IoU. Original character visual veto and owner likeness approval remain binding.

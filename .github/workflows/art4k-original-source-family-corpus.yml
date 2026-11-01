@@ -55,6 +55,16 @@ jobs:
           python3 tools/art/freeze_racer_source_family_splits.py \
             "$corpus/source-corpus.json" "$corpus/roles-all-diagnostic.json" \
             > "$corpus/diagnostic-source-family-groups.json"
+          # Freeze the future holdout by a source-mask-only, predeclared
+          # algorithm before ANY geometry score is calculated.
+          python3 tools/art/select_original_racer_heldout_roles.py \
+            "$corpus/diagnostic-source-family-groups.json" \
+            --out "$corpus/roles-first-family-fit-vs-withheld.json"
+          python3 tools/art/freeze_racer_source_family_splits.py \
+            "$corpus/source-corpus.json" "$corpus/roles-first-family-fit-vs-withheld.json" \
+            > "$corpus/frozen-first-family-holdout.json"
+          cp analysis/data/racer-art4k-precommitted-wheel-holdout-trial-20261101.json \
+            "$corpus/precommitted-wheel-trial.json"
           python3 - "$corpus" <<'PY'
           import hashlib, json, pathlib, sys
           root = pathlib.Path(sys.argv[1])
@@ -75,6 +85,16 @@ jobs:
           assert families["role_summary"]["fit"]["window_count"] == 0
           assert families["role_summary"]["withheld_candidate"]["window_count"] == 0
           assert families["role_summary"]["diagnostic"]["window_count"] == expected_windows
+          frozen = json.loads((root / "frozen-first-family-holdout.json").read_text())
+          assert frozen["source_family_split_is_frozen_by_exact_input_hashes"] is True
+          assert frozen["no_original_binary_silhouette_across_roles"] is True
+          assert frozen["withheld_candidate_is_an_independent_3d_camera"] is False
+          assert frozen["role_summary"]["fit"]["independent_binary_silhouette_group_count"] > 0
+          assert frozen["role_summary"]["withheld_candidate"]["independent_binary_silhouette_group_count"] > 0
+          precommitted = json.loads((root / "precommitted-wheel-trial.json").read_text())
+          assert precommitted["candidate_geometry_variants"][0]["wheel_and_rim_world_x_scale"] == 1.0
+          assert precommitted["candidate_geometry_variants"][1]["wheel_and_rim_world_x_scale"] == 1.1
+          assert precommitted["allow_additional_candidates_after_seeing_heldout"] is False
           receipt_sha = hashlib.sha256(receipt.read_bytes()).hexdigest()
           print("ART4K_VERIFIED_ORIGINAL_SOURCE_FAMILIES",
                 "windows=", expected_windows,

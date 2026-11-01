@@ -8,6 +8,11 @@ on:
       - "tools/windows_visual_atlas_intake.py"
       - "tools/visual_atlas_web/**"
       - "tools/art/model-review/**"
+      - "tools/art/build_racer_source_pixel_corpus.py"
+      - "tools/art/racer_source_pixels.py"
+      - "analysis/data/racer-hd-replacement-prototype.json"
+      - "media/showcase/art-reconstruction/2026-10-10/stock/**"
+      - "media/showcase/art-reconstruction/2026-10-10/inputs-p*.json"
       - "media/windows-visual-atlas/approved/**"
       - "media/showcase/2026-10-20/graphpaper-final/cards/**"
   workflow_dispatch:

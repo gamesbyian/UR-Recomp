@@ -1,0 +1,135 @@
+name: ART-4K real source-owned fork mass GLB A/B
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/art4k-real-fork-mass-review.yml"
+      - "tools/art/export_articulated_unicycle.py"
+      - "tests/unit/test_export_articulated_unicycle.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: art4k-source-fork-mass-GLB-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-source-fork-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install actual source CSG compiler and independent mesh validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openscad
+          python -m pip install --disable-pip-version-check numpy==2.3.5 trimesh==4.11.1
+      - name: Export actual unchanged and 1.4 fork source GLBs from SAME SCAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/unchanged" "$RUNNER_TEMP/fork-1p4"
+          source=tools/art/candidates/unicycle_shared_rig.scad
+          printf '%s  %s\n' 'e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984' "$source" | sha256sum --check --status
+          python tools/art/export_articulated_unicycle.py "$source" "$RUNNER_TEMP/unchanged" --rig-pose upright --frame-mass 1.0 --timeout 120 > "$RUNNER_TEMP/default-export.json"
+          python tools/art/export_articulated_unicycle.py "$source" "$RUNNER_TEMP/fork-1p4" --rig-pose upright --frame-mass 1.4 --timeout 120 > "$RUNNER_TEMP/review-export.json"
+      - name: Independently compare REAL GLB part geometry and exact immutable receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          import trimesh
+          from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
+          root=Path(os.environ["RUNNER_TEMP"])
+          records=[]
+          for key in ("unchanged","fork-1p4"):
+              folder=root/key
+              status=json.loads((folder/"articulated_blockout_last_attempt.json").read_text())
+              pointer=json.loads((folder/"articulated_blockout_current.json").read_text())
+              assert status["status"]=="succeeded"
+              assert status["attempt_id"]==pointer["attempt_id"]
+              assert status["current_output_usable"] is True
+              glb=folder/pointer["glb_path"]
+              receipt_file=folder/pointer["receipt_path"]
+              r=json.loads(receipt_file.read_text())
+              sha=lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+              assert sha(glb)==pointer["glb_sha256"]==status["glb_sha256"]==r["glb_sha256"]
+              assert sha(receipt_file)==pointer["receipt_sha256"]
+              assert r["source_sha256"]=="e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984"
+              assert r["rig_pose"]=="upright"
+              assert r["pose_source_registered_to_original_game"] is False
+              assert r["original_character_likeness_approved"] is False
+              assert r["shipping_art_approved"] is False
+              assert len(r["components"])==5
+              assert sum(c["material_count"] for c in r["components"])==16
+              assert validate_glb_roundtrip(glb,r)==r["glb_roundtrip"]
+              scene=trimesh.load(glb,force="scene",process=False)
+              assert len(scene.graph.nodes_geometry)==16
+              assert len(scene.geometry)==16
+              parts={x["name"]:x for x in r["components"]}
+              assert set(parts)=={"tire","rim_and_hub","fork_and_frame","pedals","saddle"}
+              records.append((r,pointer,parts))
+          left,_,a=records[0]
+          right,_,b=records[1]
+          assert left["source_fork_mass_review"]["factor"]==1.0
+          assert right["source_fork_mass_review"]["factor"]==1.4
+          assert right["source_fork_mass_review"]["owner_visual_likeness_approved"] is False
+          assert right["source_fork_mass_review"]["authentic_1994_3D_character_geometry_recovered"] is False
+          assert left["glb_sha256"]!=right["glb_sha256"]
+          distinct=0
+          for name in a:
+              assert a[name]["pivot_translation"]==b[name]["pivot_translation"]
+              assert a[name]["world_pivot_translation"]==b[name]["world_pivot_translation"]
+              x,y=a[name]["materials"],b[name]["materials"]
+              assert len(x)==len(y)
+              for m,n in zip(x,y):
+                  assert m["node"]==n["node"]
+                  assert m["rgba"]==n["rgba"]
+                  if name!="fork_and_frame":
+                      assert m["geometry_sha256"]==n["geometry_sha256"],name
+                      assert m["normals_sha256"]==n["normals_sha256"],name
+                      assert m["triangles"]==n["triangles"],name
+                  elif m["geometry_sha256"]!=n["geometry_sha256"]:
+                      distinct+=1
+          assert distinct>=1, "nondefault fork source override did not affect fork GLB geometry"
+          receipt={"schema":"UR-ART4K-REAL-SOURCE-FORK-GLB-AB/1",
+             "source_scad_sha256":left["source_sha256"],
+             "unchanged_GLB_sha256":left["glb_sha256"],
+             "experimental_1p4_fork_GLB_sha256":right["glb_sha256"],
+             "same_5_part_16_material_source_hierarchy":True,
+             "only_source_fork_material_geometry_changed":True,
+             "source_owned_frame_mass_1p4_review_only":True,
+             "original_1994_3D_mesh_or_camera_recovered":False,
+             "owner_likeness_approved":False,
+             "shipping_art_approved":False}
+          (root/"fork-comparison.json").write_text(json.dumps(receipt,sort_keys=True,indent=2)+"\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("### Actual canonical-source fork 1.0 / 1.4 GLB A/B\n\n")
+              out.write(f"- Unchanged real GLB SHA {left['glb_sha256']}\n")
+              out.write(f"- Review 1.4 real GLB SHA {right['glb_sha256']}\n")
+              out.write(f"- Source fork material geometries differing: {distinct}; all other four 3D parts byte-geometry-identical\n")
+              out.write("- No source 1994 3D pose, likeness or shipping art proof.\n")
+          PY
+      - name: Retain exact real GLB A/B source-built artifacts and receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-real-source-fork-mass-one-point-four
+          path: |
+            ${{ runner.temp }}/unchanged/articulated_blockout_current.json
+            ${{ runner.temp }}/unchanged/articulated_blockout_last_attempt.json
+            ${{ runner.temp }}/unchanged/attempts/*/unicycle_articulated_blockout.glb
+            ${{ runner.temp }}/unchanged/attempts/*/articulated_blockout_receipt.json
+            ${{ runner.temp }}/fork-1p4/articulated_blockout_current.json
+            ${{ runner.temp }}/fork-1p4/articulated_blockout_last_attempt.json
+            ${{ runner.temp }}/fork-1p4/attempts/*/unicycle_articulated_blockout.glb
+            ${{ runner.temp }}/fork-1p4/attempts/*/articulated_blockout_receipt.json
+            ${{ runner.temp }}/fork-comparison.json
+          if-no-files-found: error
+          retention-days: 30

@@ -20,6 +20,14 @@ Under the **same** *provisional* P1 frame1205 camera (9.5 source logical px per 
 
 This finding is useful as a **negative control for automatic pose mapping**: selecting the highest IoU to assign a frame to a model pose would produce systematically misleading labels. It also reveals that a five-pose render library does not yet span the original animation's actual shape dynamics.
 
+## Correcting 2D placement from original-source semantic registration
+
+The original game representation registry already specifies an object-local `wheel_contact_x2_y2` anchor (source `64x64` pixels, fixed-point factor 2) derived from each genuine original silhouette's **lowest visible alpha row**. Across the first-family sprite groups, its horizontal coordinate ranges **57 to 69**, versus the P1 frame1205 value **67**. This is a **known source placement contract**, not a physically proven 1994 collision-contact coordinate and not an automatic image-alignment parameter.
+
+Run the same **five real GLBs × ten original source shapes** with `--registration-mode source-registered`. The tool verifies the exact original registry SHA against the independently authenticated source corpus, requires each original sprite identity to have the correct source-player anchor, and translates the projected model image by **exact integer logical-pixel** differences `(source_anchor_x2 - 67)/2`, rejecting any half-pixel parity mismatch or clipping rather than rounding or trimming. Camera orientation, fixed 9.5 px/unit scale, world-origin assumption, original 7:6 physical pixel aspect and 3D geometry remain identical. Distinct original masks with contradictory registered contacts are rejected instead of silently choosing a representative.
+
+At 9.5, **the registered-anchor IoU winner split becomes upright 5/10 and bank 5/10**, instead of bank 10/10 at the P1:1205 witness anchor. Mean one-vote-per-original-shape IoU rises to **0.57255469 (upright)** and **0.57434425 (bank)** from 0.48114718/0.50781314 under the fixed P1 witness anchor. See the [source-registered 50-score table](../../analysis/data/racer-real-glb-registered-anchor-pose-matrix-20261101.json). This is improved alignment to known original sprite coordinates, **not** improved 3D mesh fidelity. Even after alignment, `wheelie` and `stunt` remain very poor unpaired matches, which cannot yet be attributed to an incorrect shape versus missing source pose/angle correspondence.
+
 ## Shared-camera scale sensitivity (still **unpaired**)
 
 A second [eight-point controlled shared-camera scale sweep](../../analysis/data/racer-unpaired-pose-shared-camera-sensitivity-20261101.json) projected the **same exact five real GLBs** against the **same exact ten source alpha masks**, varying *only* the common vertical model-to-logical-pixel scale, holding world axes, camera origin, 7:6 source PAR, source P1:1205 bottom-alpha anchor and all 3D pose parameters fixed. At `9.5`, `bank` wins **10/10** silhouette IoU comparisons; at `9.3`, **upright wins 6/10** and bank 4/10. This ~2.1% camera-scale variation reverses six unpaired pose winner labels. Despite that, bank remains the highest **equal-source-shape mean** IoU at both scales: 0.50781314 at 9.5 versus upright 0.48114718; 0.49231925 at 9.3 versus upright 0.48747993. Maximum-pairwise pose identity is *not identifiable* from these sprites and camera hypothesis alone.
@@ -34,7 +42,16 @@ On an offline authoring host with optional \`numpy\`, \`trimesh\` and \`Pillow\`
 python3 tools/art/build_real_viewer_pose_matrix.py \
   --model-review-dir /private/ur-artifacts/model-review \
   --camera analysis/data/racer-inverse-side-provisional-1205.json \
+  --registration-mode fixed-witness \
   --out /private/ur-artifacts/p1-1205-fixed-camera-5x10.json
+
+# A separate source-exact anchor registration, no score-fitting or arbitrary
+# recentering. Does not overwrite the previous report.
+python3 tools/art/build_real_viewer_pose_matrix.py \
+  --model-review-dir /private/ur-artifacts/model-review \
+  --camera analysis/data/racer-inverse-side-provisional-1205.json \
+  --registration-mode source-registered \
+  --out /private/ur-artifacts/source-registered-5x10.json
 
 python3 -m unittest tests.unit.test_build_real_viewer_pose_matrix
 ```

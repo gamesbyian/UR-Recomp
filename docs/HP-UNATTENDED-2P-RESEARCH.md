@@ -71,8 +71,8 @@ not a verified regression in authentic SNES behavior by itself.
   its independent concurrency scope; normal product and agent CI are not
   canceled by this scheduler. GitHub routes one job at a time to the
   owner's single self-hosted runner. A research run may queue behind a main
-  build or briefly delay a newly arrived main build; its four-cohort
-  horizon and overall timeout bound this effect. Do not add a second HP
+  build or briefly delay a newly arrived main build; its eight-cohort
+  research horizon and overall timeout bound this effect. Do not add a second HP
   runner or let scheduled execution check out PR source.
 - Work roots are unique per run ID/attempt. Research never mutates the
   installed Ninja, SDL3 cache, repo history, machine settings, service

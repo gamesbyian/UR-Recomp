@@ -37,9 +37,9 @@ class SourceWorkflowContractTests(unittest.TestCase):
 
     def test_artifact_contains_only_registered_output_tree_not_rom(self):
         raw = self.text
-        self.assertIn("path: \${{ runner.temp }}/art4k-original-source-corpus/", raw)
+        self.assertIn("path: ${{ runner.temp }}/art4k-original-source-corpus/", raw)
         self.assertNotIn("path: reference/roms/", raw)
-        self.assertNotIn("path: \${{ github.workspace }}", raw)
+        self.assertNotIn("path: ${{ github.workspace }}", raw)
         self.assertIn("retention-days: 7", raw)
         self.assertIn("if-no-files-found: error", raw)
         self.assertIn("persist-credentials: false", raw)

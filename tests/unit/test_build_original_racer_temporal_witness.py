@@ -63,7 +63,7 @@ class OriginalTemporalMotionGeometryTests(unittest.TestCase):
             source_mask_geometry(b"")
         with self.assertRaisesRegex(ValueError,"empty"):
             source_mask_geometry(bytes(4096))
-        with self.assertRaisesRegex(ValueError,"4096"):
+        with self.assertRaisesRegex(ValueError,"incompatible original 64px alpha masks"):
             transition(bytes(10),alpha((10,20)),{},{})
 
 

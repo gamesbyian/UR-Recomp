@@ -12,7 +12,8 @@ from tools.art.build_real_viewer_pose_matrix import (
     POSES, compute, rank_unpaired, translated_binary_mask,
     original_registered_contacts, original_lowest_alpha_anchor,
 )
-from tools.art.build_racer_source_pixel_corpus import build as original_corpus, ROOT
+from tools.art.build_racer_source_pixel_corpus import build as original_corpus, ROOT, REGISTRY
+from tools.art.racer_source_pixels import decode_rgba_png
 from tools.art.render_racer_glb_projection import np, trimesh, Image
 
 
@@ -33,6 +34,22 @@ def ranking_row(sha, n, best="bank", high=0.8):
 
 
 class UnpairedPoseRankingTests(unittest.TestCase):
+    def test_all_32_authentic_source_png_contacts_match_registry(self):
+        original = original_corpus()
+        contacts = original_registered_contacts(
+            REGISTRY, original["source_registry_current_sha256"])
+        self.assertEqual(len(original["observations"]), 32)
+        for row in original["observations"]:
+            with self.subTest(player=row["player"], frame=row["guest_frame"]):
+                image = ROOT / row["source_image"]
+                width, height, rgba, file_sha = decode_rgba_png(image)
+                self.assertEqual((width, height), (64, 64))
+                self.assertEqual(file_sha, row["png_file_sha256"])
+                binary = bytes(1 if alpha else 0 for alpha in rgba[3::4])
+                self.assertEqual(
+                    contacts[row["representation_id"]],
+                    (row["player"], original_lowest_alpha_anchor(binary)))
+
     def test_bottom_alpha_anchor_is_computed_from_pixels_not_claimed(self):
         img = bytearray(64 * 64)
         img[38*64+31] = 1

@@ -192,8 +192,21 @@ def freeze(corpus_path: Path, request_path: Path) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("private_corpus", type=Path, help="immutable source-corpus.json")
-    ap.add_argument("roles", type=Path, help="exact window-to-role request JSON")
+    ap.add_argument("roles", type=Path, nargs="?", help="exact window-to-role request JSON")
+    ap.add_argument("--template", action="store_true",
+                    help="print a conservative all-diagnostic request template, to edit privately")
     args = ap.parse_args()
+    if args.template:
+        if args.roles is not None:
+            ap.error("do not supply roles when requesting a template")
+        manifest, _ = validate_corpus(args.private_corpus)
+        template = {"schema": REQUEST_SCHEMA,
+                    "roles": {name: "diagnostic" for name in
+                              sorted(manifest["registered_source_windows"])}}
+        print(json.dumps(template, indent=2, sort_keys=True))
+        return
+    if args.roles is None:
+        ap.error("roles JSON required, or use --template")
     print(json.dumps(freeze(args.private_corpus, args.roles), indent=2, sort_keys=True))
 
 

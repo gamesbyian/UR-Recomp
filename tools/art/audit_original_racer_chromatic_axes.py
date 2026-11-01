@@ -96,6 +96,82 @@ def row_envelope_sha(alpha: bytes) -> str:
     return hashlib.sha256(envelope).hexdigest()
 
 
+def temporal_source_axes(observations, rows) -> dict:
+    """Reconstruct exact guest-frame chromatic records and repeated holds.
+
+    The registered source timeline is an original 2D representation sequence,
+    not proven continuous 3D source animation, pedal phase or rig bone motion.
+    """
+    if not isinstance(observations, list) or not observations:
+        raise ValueError("source temporal observations missing")
+    by_id = {row["source_representation_id"]: row for row in rows}
+    if len(by_id) != len(rows):
+        raise ValueError("duplicate source representation in colour axis census")
+    sequences = defaultdict(list)
+    seen = set()
+    for sample in observations:
+        if not isinstance(sample, dict):
+            raise ValueError("invalid source frame record")
+        name, frame, players = (sample.get("window"), sample.get("guest_frame"),
+                                sample.get("representations"))
+        if (not isinstance(name, str) or not name or type(frame) is not int or
+                not isinstance(players, dict) or not players or
+                any(player not in ("p1", "p2") or rid not in by_id or
+                    by_id[rid]["player"] != player
+                    for player, rid in players.items())):
+            raise ValueError("unrecognized original registered frame")
+        if (name, frame) in seen:
+            raise ValueError("duplicate original guest frame in a source window")
+        seen.add((name, frame))
+        sequences[name].append({
+            "guest_frame": frame,
+            "source_player_axes": {
+                player: {
+                    "source_representation_id": rid,
+                    "source_binary_mask_sha256":
+                        by_id[rid]["source_binary_mask_sha256"],
+                    "source_chromatic_mask_sha256":
+                        by_id[rid]["source_chromatic_mask_sha256"],
+                    "screen_axis_angle_from_down_y_degrees":
+                        by_id[rid]["screen_axis_angle_from_down_y_degrees"],
+                } for player, rid in sorted(players.items())
+            },
+        })
+    result = {}
+    for name, timeline in sorted(sequences.items()):
+        if any(timeline[i]["guest_frame"] >= timeline[i+1]["guest_frame"]
+               for i in range(len(timeline)-1)):
+            raise ValueError("source window is not strictly chronological")
+        holds = {}
+        for player in ("p1", "p2"):
+            segments = []
+            for row in timeline:
+                p = row["source_player_axes"].get(player)
+                if p is None:
+                    continue
+                identity = p["source_chromatic_mask_sha256"]
+                if segments and segments[-1]["source_chromatic_mask_sha256"] == identity:
+                    segments[-1]["last_guest_frame"] = row["guest_frame"]
+                    segments[-1]["observed_frame_count"] += 1
+                else:
+                    segments.append({
+                        "source_chromatic_mask_sha256": identity,
+                        "first_guest_frame": row["guest_frame"],
+                        "last_guest_frame": row["guest_frame"],
+                        "observed_frame_count": 1,
+                        "screen_axis_angle_from_down_y_degrees":
+                            p["screen_axis_angle_from_down_y_degrees"],
+                    })
+            if segments:
+                holds[player] = segments
+        result[name] = {
+            "source_frame_observation_count": len(timeline),
+            "source_visible_chromatic_holds": holds,
+            "observations": timeline,
+        }
+    return result
+
+
 def audit(artifact: Path) -> dict:
     raw_zip = artifact.read_bytes()
     with ZipFile(artifact) as archive:
@@ -227,6 +303,8 @@ def audit(artifact: Path) -> dict:
             sha for sha, roleset in chroma_roles.items() if len(roleset) > 1),
         "summary": summary,
         "source_binary_shape_rows": shape_rows,
+        "original_guest_frame_chromatic_trajectories":
+            temporal_source_axes(corpus.get("source_temporal_frame_observations"), rows),
         "original_screen_axis_is_source_3d_lean_angle": False,
         "original_1994_3d_camera_identified": False,
         "2026_glb_sprite_pose_correspondence_verified": False,

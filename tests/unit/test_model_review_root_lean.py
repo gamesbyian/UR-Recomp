@@ -23,7 +23,7 @@ class RootLeanViewerTests(unittest.TestCase):
     def test_quaternion_from_original_source_axis_and_reversible_zero(self):
         script=r"""
 import assert from 'node:assert/strict';
-import {ROOT_LEAN_PRESETS,rootLeanQuaternion} from './tools/art/model-review/root_lean_hypothesis.mjs';
+import {ROOT_LEAN_PRESETS,rootLeanQuaternion,tireVisualLift} from './tools/art/model-review/root_lean_hypothesis.mjs';
 assert.deepEqual(ROOT_LEAN_PRESETS,[0,-35,10,15,30]);
 function near(a,b){assert.ok(Math.abs(a-b)<1e-12,'quaternion component mismatch')}
 const base=rootLeanQuaternion(0,true);

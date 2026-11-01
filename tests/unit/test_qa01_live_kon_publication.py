@@ -72,5 +72,32 @@ class LivePublicationTests(unittest.TestCase):
         self.exercise("success")
 
 
+class ReceiptParentBeforeCaptureTests(unittest.TestCase):
+    def test_unwritable_receipt_parent_refused_before_debug_connection(self):
+        import qa01_native_pcm_at_kon as offline
+
+        for module in (offline, live):
+            with self.subTest(module=module.__name__), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                executable = root / "native.exe"
+                executable.write_bytes(b"synthetic")
+                blocked = root / "foreign-file"
+                blocked.write_bytes(b"FOREIGN")
+                wav = root / "candidate.wav"
+                argv = [module.__name__ + ".py", "--wav-out", str(wav),
+                        "--json-out", str(blocked / "receipt.json"),
+                        "--source-sha", "a" * 40,
+                        "--native-executable", str(executable)]
+                if module is offline:
+                    argv += ["--kon-sample-index", "40000"]
+                with patch.object(sys, "argv", argv), patch.object(module, "connect") as connect:
+                    with self.assertRaises(SystemExit) as cm:
+                        module.main()
+                    self.assertEqual(cm.exception.code, 2)
+                    connect.assert_not_called()
+                self.assertFalse(wav.exists())
+                self.assertEqual(blocked.read_bytes(), b"FOREIGN")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -145,7 +145,7 @@ jobs:
               out.write("### Actual canonical-source fork 1.0 / 1.4 GLB A/B\n\n")
               out.write(f"- Unchanged real GLB SHA {left['glb_sha256']}\n")
               out.write(f"- Review 1.4 real GLB SHA {right['glb_sha256']}\n")
-              out.write(f"- Source fork material geometries differing: {distinct}; all other four 3D parts byte-geometry-identical\n")
+              out.write(f"- Source fork material geometries differing: {distinct}; all other four source part surfaces verified oriented-triangle equivalent (buffer ordering may differ)\n")
               out.write("- No source 1994 3D pose, likeness or shipping art proof.\n")
           PY
       - name: Retain exact real GLB A/B source-built artifacts and receipts

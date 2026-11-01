@@ -128,6 +128,24 @@ class FrameTireExactCSGTests(unittest.TestCase):
             self.assertEqual(output["fork_tire_intersection_triangle_count"],756)
             self.assertTrue(output["fork_tire_intersection_csg_watertight"])
 
+    def test_source_authorized_zero_collision_is_valid_only_with_explicit_OpenSCAD_proof(self):
+        with TemporaryDirectory() as base:
+            folder=Path(base)
+            prefix="rig_frame_mass=is_undef(rig_frame_mass)?1:rig_frame_mass;\n"
+            with patch("tools.art.ablate_racer_frame_mass.subprocess.run",
+                       return_value=SimpleNamespace(
+                           returncode=0,stderr="Current top level object is empty.\n")):
+                data=export_fork_tire_csg(prefix,1.0,folder,"openscad")
+            self.assertEqual(data["fork_tire_intersection_csg_volume_model_units_cubed"],0)
+            self.assertEqual(data["fork_tire_intersection_connected_components"],0)
+            self.assertTrue(data["fork_tire_csg_empty_proven_by_openscad"])
+            self.assertIsNone(data["fork_tire_intersection_stl_sha256"])
+            with patch("tools.art.ablate_racer_frame_mass.subprocess.run",
+                       return_value=SimpleNamespace(
+                           returncode=0,stderr="silently missing")):
+                with self.assertRaisesRegex(RuntimeError,"absent without explicit empty proof"):
+                    export_fork_tire_csg(prefix,1.0,folder,"openscad")
+
     def test_extra_CSG_work_is_optional_and_not_implicit_default(self):
         signature=inspect.signature(study)
         self.assertIs(signature.parameters["measure_frame_tire_csg"].default,False)

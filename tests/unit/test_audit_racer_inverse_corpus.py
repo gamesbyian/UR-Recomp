@@ -70,5 +70,24 @@ class RacerInverseCorpusAuditTests(unittest.TestCase):
             self.run_audit()
 
 
+    def test_canonical_motion_sequence_cannot_be_overridden(self):
+        # The original implementation silently discarded motion_review_sequence
+        # when motion_review_sequences repeated its reserved report identity.
+        self.data.setdefault("motion_review_sequences", {})["first-1205-1220"] = {
+            "window_start": 9999, "window_end": 9999,
+            "frames": [{"frame": 9999,
+                        "p1_representation_id": self.data["motion_review_sequence"]["frames"][0]["p1_representation_id"]}],
+        }
+        with self.assertRaisesRegex(ValueError, "duplicate motion sequence name"):
+            self.run_audit()
+
+    def test_malformed_motion_sequence_collection_rejected(self):
+        for invalid in ([], "", 42, False):
+            with self.subTest(invalid=invalid):
+                self.data["motion_review_sequences"] = invalid
+                with self.assertRaisesRegex(ValueError, "must be an object"):
+                    self.run_audit()
+
+
 if __name__ == "__main__":
     unittest.main()

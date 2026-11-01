@@ -103,6 +103,8 @@ class ModelReviewMeasurementSidecarTests(unittest.TestCase):
         self.assertFalse(data["viewer_files_modified"])
         self.assertFalse(data["public_website_deployment_claimed"])
         self.assertEqual(data["experimental_pose_highest_iou_counts"]["bank"], 10)
+        self.assertEqual(data["mean_first_minus_second_unpaired_iou_margin"], .05)
+        self.assertFalse(data["margin_is_an_authentic_pose_probability"])
         self.assertTrue(all(
             item["runner_up_iou_experimental_pose"] == "stunt" and
             item["first_minus_second_unpaired_iou_margin"] == .05 and

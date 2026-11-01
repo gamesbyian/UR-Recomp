@@ -66,7 +66,9 @@ class WidescreenCaptureAliasGuardTests(unittest.TestCase):
         second_stock_wram = self.root / "second-stock.bin"
         second_wide_wram = self.root / "second-wide.bin"
         second_stock_wram.write_bytes(bytes(0x20000))
-        second_wide_wram.write_bytes(bytes(0x20000))
+        changed_lane = bytearray(0x20000)
+        changed_lane[0x03A0] = 1  # permitted +8 lane, so four-hash tuple differs
+        second_wide_wram.write_bytes(changed_lane)
         # The old four-hash fingerprint differed if one capture changed, even
         # though the same BMP files were relabelled as a second checkpoint.
         with self.assertRaisesRegex(ValueError, "capture source reused.*aliases"):

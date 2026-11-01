@@ -173,7 +173,6 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
         raise ValueError("checkpoint tags must be nonempty strings")
     if len(tags) != len(set(tags)):
         raise ValueError("duplicate checkpoint tag cannot identify distinct evidence")
-    _require_distinct_capture_files(pairs)
     seen_inputs: set[tuple[str, ...]] = set()
     checks = []
     metrics: dict[str, Any] = {}
@@ -207,6 +206,9 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
             and not wram["run_variant_differences"],
             wram,
         ))
+    # Preserve the existing exact four-hash duplicate diagnostic first, then
+    # reject partial file aliases before publishing an accepted envelope.
+    _require_distinct_capture_files(pairs)
     return make_envelope(
         evidence_type="widescreen-product-parity",
         producer="tools/check_widescreen_product_parity.py",

@@ -22,8 +22,10 @@ from typing import Any
 
 try:
     from tools.evidence_contract import assertion, make_envelope
+    from tools.art.no_replace_report import publish_text_once
 except ModuleNotFoundError:
     from evidence_contract import assertion, make_envelope
+    from art.no_replace_report import publish_text_once
 
 # Guest +8 lane surfaces (docs/WIDESCREEN-RECONNAISSANCE.md): the shared
 # descriptor slot table at $0399..$03E0 and the strip staging buffer that the
@@ -213,7 +215,7 @@ def main() -> int:
     rendered = json.dumps(envelope, indent=2) + "\n"
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(rendered)
+        publish_text_once(args.out, rendered)
     print(rendered, end="")
     return 0 if envelope["outcome"] == "accepted" else 1
 

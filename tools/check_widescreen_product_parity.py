@@ -146,6 +146,25 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
     }
 
 
+
+def _require_distinct_capture_files(pairs: list[tuple[str, Path, Path, Path, Path]]) -> None:
+    """Reject one physical capture file supplied for two independent roles.
+
+    Byte-identical WRAM from separately retained captures is legitimate; a
+    repeated pathname, symlink or hardlink to the *same file* is not a second
+    source observation.  Check all roles across all checkpoint tags, not just
+    the four-hash tuple, which can change when only one reused role changes.
+    """
+    seen_files: list[tuple[str, Path]] = []
+    for tag, stock_fb, wide_fb, stock_wram, wide_wram in pairs:
+        for role, path in (("stock_fb", stock_fb), ("wide_fb", wide_fb),
+                           ("stock_wram", stock_wram), ("wide_wram", wide_wram)):
+            for prior_role, prior_path in seen_files:
+                if path.samefile(prior_path):
+                    raise ValueError(f"capture source reused: {tag}/{role} aliases {prior_role}")
+            seen_files.append((f"{tag}/{role}", path))
+
+
 def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
     if not pairs:
         raise ValueError("at least one real checkpoint pair is required")
@@ -154,6 +173,7 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
         raise ValueError("checkpoint tags must be nonempty strings")
     if len(tags) != len(set(tags)):
         raise ValueError("duplicate checkpoint tag cannot identify distinct evidence")
+    _require_distinct_capture_files(pairs)
     seen_inputs: set[tuple[str, ...]] = set()
     checks = []
     metrics: dict[str, Any] = {}

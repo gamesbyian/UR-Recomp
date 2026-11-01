@@ -4,6 +4,9 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import sys
+import types
+from unittest import mock
 import struct
 import tempfile
 import unittest
@@ -73,6 +76,30 @@ class GLBExtensionSafetyTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'NORMAL accessor') as ctx:
                     self.validate(altered)
                 self.assertIn('extensions unsupported', str(ctx.exception.__cause__))
+
+    def test_extension_refused_before_trimesh_scene_load(self):
+        # An extension-aware viewer could draw additional geometry. Reject it
+        # before the base-only importer ever interprets the candidate.
+        altered = copy.deepcopy(self.gltf)
+        altered['extensionsUsed'] = ['EXT_mesh_gpu_instancing']
+        altered['extensionsRequired'] = ['EXT_mesh_gpu_instancing']
+        altered['nodes'][0]['extensions'] = {
+            'EXT_mesh_gpu_instancing': {'attributes': {'TRANSLATION': 0}}}
+        self.path.write_bytes(make_glb(altered))
+        report = {'components': [
+            {'name': f'part{i}', 'material_count': 1,
+             'materials': [{'node': f'part{i}__material_0'}]}
+            for i in range(5)]}
+        fake_trimesh = types.ModuleType('trimesh')
+        fake_trimesh.load = mock.Mock(
+            side_effect=AssertionError('Trimesh loader must not run'))
+        with mock.patch.dict(sys.modules, {
+            'numpy': types.ModuleType('numpy'), 'trimesh': fake_trimesh
+        }):
+            with self.assertRaisesRegex(ValueError, 'NORMAL accessor') as caught:
+                module.validate_glb_roundtrip(self.path, report)
+        self.assertIn('extensions unsupported', str(caught.exception.__cause__))
+        fake_trimesh.load.assert_not_called()
 
 
 if __name__ == '__main__':

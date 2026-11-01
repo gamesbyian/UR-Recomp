@@ -210,12 +210,8 @@ def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
 
 def validate_glb_roundtrip(path: Path, report: dict) -> dict:
     """Reopen a staged GLB and reject missing, altered or detached part meshes."""
-    import numpy as np
-    import trimesh
-
-    scene = trimesh.load(str(path), file_type="glb", force="scene")
-    if not isinstance(scene, trimesh.Scene):
-        raise ValueError("GLB did not reopen as a scene")
+    # Validate extension-free, explicit source-backed glTF semantics before
+    # giving the candidate to a loader that may ignore rendering extensions.
     components = report["components"]
     names = [part["name"] for part in components]
     if len(names) != 5 or len(set(names)) != 5:
@@ -231,6 +227,12 @@ def validate_glb_roundtrip(path: Path, report: dict) -> dict:
                 raise ValueError("GLB receipt has duplicate material nodes")
             expected_children[node] = (part["name"], child)
     require_explicit_glb_normals(path, expected_children)
+    import numpy as np
+    import trimesh
+
+    scene = trimesh.load(str(path), file_type="glb", force="scene")
+    if not isinstance(scene, trimesh.Scene):
+        raise ValueError("GLB did not reopen as a scene")
     expected_nodes = {scene.graph.base_frame, *names, *expected_children}
     if set(scene.graph.nodes) != expected_nodes:
         raise ValueError("GLB scene node set differs from receipt")

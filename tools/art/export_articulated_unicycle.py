@@ -31,9 +31,9 @@ except ModuleNotFoundError:
     from scad_materials import materials_for_part, material_pass_source, uncolored_probe_source, UNCOLORED_PROBE_MIN
 
 try:
-    from tools.art.continuous_pose_recipe import continuous_pose_recipe
+    from tools.art.continuous_pose_recipe import continuous_pose_recipe, validate_scad_declarations
 except ModuleNotFoundError:
-    from continuous_pose_recipe import continuous_pose_recipe
+    from continuous_pose_recipe import continuous_pose_recipe, validate_scad_declarations
 
 PARTS = {
     "tire": ("tire();", (27, 29, 31, 255)),
@@ -94,6 +94,7 @@ def pose_recipe(source: str, name: str):
     """
     if name not in POSES:
         raise ValueError("unknown source blockout pose")
+    validate_scad_declarations(source)
     matches = list(_RIG_BRANCH.finditer(source))
     found = [i for i, match in enumerate(matches) if match.group(1) == name]
     if len(found) != 1:
@@ -139,20 +140,15 @@ MODULE_DECLARATION = re.compile(r"\bmodule\s+([A-Za-z_]\w*)\s*\(")
 
 
 def assert_unique_module_declarations(source: str) -> None:
-    """Reject silently overridden OpenSCAD modules before part-only export.
+    """Validate shared OpenSCAD declarations before any part or pose export.
 
-    OpenSCAD accepts duplicate module definitions and renders the later one.
-    A refit could therefore replace a tire/frame/helper without invalidating
-    the saddle mount or the five-component GLB shape contract.
+    Preserve the historical saddle-specific diagnostic; all other duplicate
+    and builtin-shadow checks use the same predicate as continuous poses.
     """
     names = MODULE_DECLARATION.findall(SCAD_COMMENTS.sub("", source))
-    duplicates = sorted(name for name, count in Counter(names).items() if count > 1)
-    if "saddle" in duplicates:
+    if names.count("saddle") > 1:
         raise ValueError("expected one source-owned saddle module declaration")
-    if duplicates:
-        raise ValueError("duplicate OpenSCAD module declaration: " + ", ".join(duplicates))
-
-
+    validate_scad_declarations(source)
 
 
 def saddle_mount_from_source(source: str) -> tuple[float, float, float]:

@@ -62,3 +62,22 @@ Run against an already-built, SHA-verified existing Pages model-review directory
     python3 -m unittest tests.unit.test_audit_real_glb_coloured_frame_axes
 
 Requires optional offline NumPy, Trimesh and Pillow already used by the existing deterministic GLB renderer; never requires OpenSCAD/Blender/ROM rerender or model editing. Source-authenticated original chromatic axis output is a **separate evidence class** from the 2026 material-part axis. See [actual five-GLB material-source SHA/axis pilot](../../analysis/data/racer-art4k-real-five-glb-frame-axis-20261101.json). Preserve the existing canonical #2832 rig and one Pages reviewer while iterating.
+
+
+## Original frame-time chromatic acting, not just isolated silhouettes
+
+The source-audit output also includes every original registered **guest-frame observation** in chronological order for all source windows and all players, with exact representation/binary/chroma SHAs. Adjacent frames holding the same original source chromatic image are preserved as one contiguous *observed* hold segment. An apparent source hold is **not** permission to invent continuous 3D root rotation/pedal phase interpolation through unseen frames.
+
+One actual first-family example, using the original authenticated USA ROM source sequence:
+
+| Original guest-frame period | P1 red body projected axis | P2 blue body projected axis |
+| --- | ---: | ---: |
+| 1205–1206 | +11.62° | −16.57° |
+| 1207–1212 | +16.56° (six-frame hold) | −16.57° |
+| 1213–1214 | +11.62° | −16.57° |
+| 1215–1216 | +6.09° | −11.00° |
+| 1217 | +0.97° | −11.00° |
+| 1218 | +0.97° | −5.54° |
+| 1219–1220 | −4.68° | −0.41° |
+
+This provides a bounded visible 2D **posture-and-hold sequence** from the original, rather than pretending the five unrelated 2026 authored blockout poses define original pedal cadence. The 1994 3D wheel, saddle stretch, camera and code-driven original pose state still require separate authenticated evidence before controlling the native Remastered model.

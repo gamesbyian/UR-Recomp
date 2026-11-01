@@ -124,6 +124,18 @@ try{
        if(q('parts').textContent!==originalNames)issues.push('wheel toggle mutated part names');
      }
    }
+   if(q('rootLean').getBoundingClientRect().height<44)
+     issues.push('root lean accessible touch target');
+   if(q('rootLean').disabled)issues.push('source GLB root lean selector unavailable');
+   const sourceBeforeLean=q('source').textContent;
+   for(const [value,expected] of [['-35','-35'],['15','15'],['0','Unchanged']]){
+     q('rootLean').value=value;
+     q('rootLean').dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('rootLean').value!==value || !q('rootLeanStatus').textContent.includes(expected))
+       issues.push('source-root lean preset '+value);
+   }
+   if(q('source').textContent!==sourceBeforeLean)
+     issues.push('root lean mutated original source identity');
    q('wire').click();if(q('wire').getAttribute('aria-pressed')!=='true')issues.push('wireframe');
    q('spin').click();if(q('spin').getAttribute('aria-pressed')!=='true')issues.push('orbit');
    q('zup').click();if(q('zup').checked)issues.push('up-axis');

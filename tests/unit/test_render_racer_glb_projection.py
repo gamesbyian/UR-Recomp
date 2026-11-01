@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tools.art import render_racer_glb_projection as render
 
@@ -54,6 +55,22 @@ class FixedCameraGlbProjectionTests(unittest.TestCase):
             render.render_to_png(img, p1), render.render_to_png(img, p2)
         )
         self.assertEqual(p1.read_bytes(), p2.read_bytes())
+
+    def test_trimesh_pinned_legacy_scene_loader_preserves_world_geometry(self):
+        modern_vertices, modern_faces, _, modern_nodes = render.model_mesh(self.path, self.sha)
+        # Force Trimesh 4.5-era API shape without changing the version running
+        # the unit suite. Both paths must bake identical 5-part world geometry.
+        with patch.object(render.trimesh, "load_scene", None):
+            with patch.object(render.trimesh.Scene, "to_geometry", None):
+                old_vertices, old_faces, sha, old_nodes = render.model_mesh(self.path, self.sha)
+        self.assertEqual(sha, self.sha)
+        self.assertEqual(old_nodes, modern_nodes)
+        self.assertTrue(render.np.allclose(old_vertices, modern_vertices))
+        self.assertTrue((old_faces == modern_faces).all())
+        self.assertTrue(
+            (render.render_mask(old_vertices, old_faces, self.camera) ==
+             render.render_mask(modern_vertices, modern_faces, self.camera)).all()
+        )
 
     def test_camera_shift_changes_projection_without_auto_fit(self):
         v, f, _, _ = render.model_mesh(self.path, self.sha)

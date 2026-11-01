@@ -107,6 +107,23 @@ try{
    q('pose-bank').click();
    for(let i=0;i<100 && !q('source').textContent.includes('published bank GLB');i++)await new Promise(done=>setTimeout(done,50));
    if(!q('source').textContent.includes('published bank GLB'))issues.push('pose switch');
+   if(q('wheelWide').getBoundingClientRect().height<44||q('wheelOriginal').getBoundingClientRect().height<44)
+     issues.push('wheel hypothesis touch target');
+   if(${mocked}) {
+     if(!q('wheelWide').disabled)issues.push('synthetic GLB falsely enabled width experiment');
+   } else {
+     if(q('wheelWide').disabled)issues.push('real seven-mesh wheel hypothesis unavailable');
+     else {
+       const originalNames=q('parts').textContent;
+       q('wheelWide').click();
+       if(q('wheelWide').getAttribute('aria-pressed')!=='true' ||
+          !q('wheelHypothesisStatus').textContent.includes('10%'))issues.push('wider wheel toggle');
+       q('wheelOriginal').click();
+       if(q('wheelOriginal').getAttribute('aria-pressed')!=='true' ||
+          !q('wheelHypothesisStatus').textContent.includes('Unmodified'))issues.push('wheel reset');
+       if(q('parts').textContent!==originalNames)issues.push('wheel toggle mutated part names');
+     }
+   }
    q('wire').click();if(q('wire').getAttribute('aria-pressed')!=='true')issues.push('wireframe');
    q('spin').click();if(q('spin').getAttribute('aria-pressed')!=='true')issues.push('orbit');
    q('zup').click();if(q('zup').checked)issues.push('up-axis');

@@ -87,6 +87,18 @@ def step_bucket(name: str) -> str:
     return "other"
 
 
+
+def needs_job_detail(run: dict[str, Any]) -> bool:
+    """A completed, wholly skipped workflow has no executed jobs to time.
+
+    Keep its run-level event and wall metadata in the sample. Do not waste
+    another Actions API request fetching job records that are all skipped.
+    Fail open for missing/ambiguous status so real execution is never hidden.
+    """
+    return not (run.get("status") == "completed"
+                and run.get("conclusion") == "skipped")
+
+
 def jobs_by_run(payload: dict[str, Any] | None) -> dict[int, list[dict[str, Any]]]:
     if not payload:
         return {}

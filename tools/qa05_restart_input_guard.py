@@ -79,20 +79,21 @@ def validate_restart_p2_guest_input(
                 f"P2 post-Restart sample {index + 1}: expected remaining="
                 f"{expected_remaining}, observed {remaining}"
             )
-        # The tournament P2 filter runs BEFORE the Restart latch and can
-        # suppress a raw Start bit. Therefore raw Start still high with
-        # Return released does NOT prove that the Restart latch stayed armed.
-        # Check only source-certain transitions: held Return cannot clear an
-        # armed latch; both raw Start and Return low must clear it; a cleared
-        # latch cannot re-arm without another Restart. The first sample has
-        # no observed predecessor and must not be guessed.
+        # The tournament P2 filter runs BEFORE the Restart latch. A raw
+        # Start can still be high after that filter has suppressed it. Use
+        # the actual pre-Restart word when present: if physical Return is up
+        # and Start did not reach the Restart latch, the latch MUST clear.
+        # Historical non-strict logs lack that word and retain the weaker
+        # raw-input fallback. The first sample has no known predecessor.
         if previous_waiting is not None:
-            raw_start = bool(int(raw, 16) & P2_GUEST_START)
+            start_at_restart = bool(int(
+                pre_restart if pre_restart is not None else raw, 16
+            ) & P2_GUEST_START)
             reported_waiting = waiting == '1'
             impossible = (
                 (not previous_waiting and reported_waiting)
                 or (previous_waiting and held == '1' and not reported_waiting)
-                or (previous_waiting and held == '0' and not raw_start
+                or (previous_waiting and held == '0' and not start_at_restart
                     and reported_waiting)
             )
             if impossible:

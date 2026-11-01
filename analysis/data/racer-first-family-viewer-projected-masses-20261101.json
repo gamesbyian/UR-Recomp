@@ -48,7 +48,6 @@
       "intermass_clear_rows_over_lower_height": 0.705882
     }
   },
-  "candidate_original_model_glb": "real-model-site/model-review/assets/d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1/upright-efdc8425f252b4a0.glb",
   "candidate_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
   "candidate_geometry_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
   "candidate_unapproved_static_2026_world_xz_part_bounds": {
@@ -77,5 +76,7 @@
   "independent_other_original_pose_family_holdout_tested": false,
   "owner_character_likeness_approved": false,
   "shipping_art_approved": false,
-  "next_action": "Test locked camera hypotheses against a genuinely separate ROM pose family before editing wheel aspect, saddle offset or part pivots."
+  "next_action": "Test locked camera hypotheses against a genuinely separate ROM pose family before editing wheel aspect, saddle offset or part pivots.",
+  "candidate_experimental_2026_model_glb": "real-model-site/model-review/assets/d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1/upright-efdc8425f252b4a0.glb",
+  "source_registration_note": "Original raster PNGs SHA-rechecked against the previously authenticated real-model viewer sprite rail; project checkout CLI separately rechecks full original stock/registry provenance via existing corpus builder."
 }

@@ -48,6 +48,11 @@ on:
         type: boolean
         required: false
         default: false
+      hp_research_wall_seconds:
+        description: 'Source-owned HP 2P research horizon; 600 only for trusted manual dispatch'
+        type: string
+        required: false
+        default: '360'
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -1457,6 +1462,8 @@ jobs:
 
       - name: HP unattended real two-player seeded gameplay research
         if: inputs.hp_seeded_2p
+        env:
+          UR_HP_RESEARCH_WALL_SECONDS: ${{ inputs.hp_research_wall_seconds }}
         run: |
           set -euo pipefail
           python -m tools.hp_seeded_2p_research \

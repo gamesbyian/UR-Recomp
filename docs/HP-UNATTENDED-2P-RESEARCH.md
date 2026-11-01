@@ -51,7 +51,10 @@ Each run:
    identity, with disjoint paired shard offsets. No manual prompt, guessed
    LLM scenario or repeated fixed control stream is needed. Per cohort:
    nominal 15-minute admissible budget, shortened by a strict 360-second
-   research wall horizon, up to 12 unique plans and up to 90 seconds for
+   research wall horizon for every genuine scheduled run or default manual
+   dispatch. An explicitly owner-selected 600-second manual experiment may
+   widen that horizon without changing `schedule`. Every cohort still has
+   up to 12 unique plans and up to 90 seconds for
    each real Windows guest process. Eight cohorts execute concurrently and
    the coordinator **joins all** even if one fails. The canonical job's
    existing 45-minute deadline remains authoritative.
@@ -75,6 +78,32 @@ gates or 45 authentic USA original/native events. The four-way test is
 native guest-input determinism and independent-seat reachability research.
 Treat a failure as an exact reproducible seed and first failure to debug,
 not a verified regression in authentic SNES behavior by itself.
+
+## Manual-only 600-second throughput pilot (not yet qualified)
+
+The trusted-main **HP unattended seeded 2P gameplay research** workflow now offers
+a `research_wall_seconds` choice under the owner’s deliberate **Run workflow**
+action. Its default is **360**; only explicitly selecting **600** on a
+`workflow_dispatch` permits a 600-second cohort horizon. A normal cron,
+owner-comment command or the [owner's local missed-cron fallback](HP-RESEARCH-FALLBACK.md)
+still uses **360**. A scheduled run with a widened horizon is rejected before
+science. The eight workers, canonical Windows build and full package/QA,
+unique-source seed census, private ROM boundary, and hard 45-minute job limit
+remain unchanged. A 600-second science receipt records the exact cohort wall
+budget in its source-owned SHA-256 self-hash, not an independently keyed signature.
+
+**Decision:** in actual measured 360-second eight-worker runs each worker
+completed one distinct plan in 198–224 seconds. A bounded 600-second manual
+trial might admit a second plan per worker, amortizing the same expensive
+Windows build, but has not yet been executed or verified. Compare the
+real manual run's **complete HP job elapsed time**, accepted cases, four-way
+guest-process count, CPU/free memory and priority-build delay against its
+360-second source-bound reference. A source-bound positive receipt and a
+measurable improvement in accepted distinct cases per **total HP occupied
+minute**, without unreasonable priority-build displacement, are prerequisites
+before considering an unattended policy change. Do not credit original/native
+event parity, pads or release QA from either population. Keep the 360-second
+scheduled default until independently qualified.
 
 ## Read-only offline archive audit
 

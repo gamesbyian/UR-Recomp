@@ -16,6 +16,15 @@ on:
   schedule:
     - cron: '41 * * * *'
   workflow_dispatch:
+    inputs:
+      research_wall_seconds:
+        description: 'Owner-only trial; scheduled/default horizon remains 360 seconds'
+        type: choice
+        required: false
+        default: '360'
+        options:
+          - '360'
+          - '600'
 
 permissions:
   contents: read
@@ -35,3 +44,4 @@ jobs:
       run_on_hp: true
       hp_ninja_auto: true
       hp_seeded_2p: true
+      hp_research_wall_seconds: ${{ github.event_name == 'workflow_dispatch' && inputs.research_wall_seconds || '360' }}

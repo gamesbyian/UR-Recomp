@@ -52,6 +52,7 @@ def validate_restart_p2_guest_input(
             f"observed {len(probes)}"
         )
     saw_held_raw_start = False
+    previous_waiting = None
     for index, match in enumerate(probes):
         raw, guest, held, waiting, remaining = match.groups()
         if (int(raw, 16) & P2_GUEST_START and held == '1'
@@ -63,6 +64,21 @@ def validate_restart_p2_guest_input(
                 f"P2 post-Restart sample {index + 1}: expected remaining="
                 f"{expected_remaining}, observed {remaining}"
             )
+        # The source filter cannot clear its latch while physical Return
+        # remains down or raw Start is still asserted. Once cleared it cannot
+        # re-arm without another Restart, which this 12-sample window excludes.
+        # Check consecutive emitted states; the first sample has no observed
+        # predecessor and must not be guessed.
+        if previous_waiting is not None:
+            expected_waiting = previous_waiting and (
+                held == '1' or bool(int(raw, 16) & P2_GUEST_START))
+            if (waiting == '1') != expected_waiting:
+                raise ValueError(
+                    f"P2 post-Restart sample {index + 1}: release latch "
+                    f"transition inconsistent (previous_waiting="
+                    f"{int(previous_waiting)}, raw={raw}, return_held={held}, "
+                    f"reported_waiting={waiting})")
+        previous_waiting = waiting == '1'
         if int(guest, 16) & P2_GUEST_START:
             raise ValueError(
                 f"P2 post-Restart sample {index + 1}: guest Start leaked "

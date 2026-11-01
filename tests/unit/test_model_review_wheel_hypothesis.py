@@ -74,7 +74,27 @@ assert.deepEqual(zeroNormals[0].position.array,snapshot);
 const aliased=slots.map(mesh);
 aliased[1].geometry=aliased[0].geometry;
 assert.throws(()=>apply({traverse(fn){aliased.forEach(fn)}},1.1),/shared/);
-console.log('source model A/B reversible, byte-exact, seven meshes only');
+const nonWheelAliased=slots.map(mesh), sharedSaddle=mesh('saddle__material_0');
+sharedSaddle.geometry=nonWheelAliased[0].geometry;
+const unchanged=nonWheelAliased[0].position.array.slice();
+assert.throws(()=>apply({traverse(fn){[...nonWheelAliased,sharedSaddle].forEach(fn)}},1.1),/overlap/);
+assert.deepEqual(nonWheelAliased[0].position.array,unchanged);
+const distinctStorage=slots.map(mesh), attributeAliasedSaddle=mesh('saddle__material_0');
+attributeAliasedSaddle.position.array=distinctStorage[0].position.array;
+const saved=distinctStorage[0].position.array.slice();
+assert.throws(()=>apply({traverse(fn){[...distinctStorage,attributeAliasedSaddle].forEach(fn)}},1.1),/overlap/);
+assert.deepEqual(distinctStorage[0].position.array,saved);
+const crossingView=slots.map(mesh), secondSaddle=mesh('saddle__material_0');
+secondSaddle.position.array=new Float32Array(crossingView[0].position.array.buffer);
+assert.throws(()=>apply({traverse(fn){[...crossingView,secondSaddle].forEach(fn)}},1.1),/overlap/);
+const colourOverlap=slots.map(mesh);
+colourOverlap[0].geometry.attributes={
+ position:colourOverlap[0].position,
+ normal:colourOverlap[0].normal,
+ color:{array:colourOverlap[0].position.array}
+};
+assert.throws(()=>apply({traverse(fn){colourOverlap.forEach(fn)}},1.1),/overlap/);
+console.log('source model A/B reversible, byte-exact, and all nonwheel attribute storage isolated');
 """
         process = subprocess.run(
             ["node", "--input-type=module", "-e", script],

@@ -67,7 +67,8 @@ class OriginalHoldoutTests(unittest.TestCase):
         self.assertEqual(len(x2), 4096)
         self.assertTrue(any(x2))
         self.assertEqual(sum(tool.translated_4x_source_mask(
-            mask, (tool.BASE_ANCHOR[0]+2, tool.BASE_ANCHOR[1]))), 1)
+            mask, (tool.BASE_ANCHOR[0]+2, tool.BASE_ANCHOR[1]))),
+            sum(baseline))
 
     def test_source_registered_clipping_is_rejected(self):
         try:

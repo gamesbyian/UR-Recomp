@@ -25,7 +25,8 @@ def trace(*, leak_at=None, waiting_cleared_at=4, missing=None, duplicate=False):
     return "before\n" + "\n".join(lines) + "\nafter\n"
 
 
-def p2_trace(*, leak_at=None, missing=None, malformed=False, bad_countdown=False):
+def p2_trace(*, leak_at=None, missing=None, malformed=False, bad_countdown=False,
+             source_fields=True, upstream_mask=False, restart_leak=False):
     lines = []
     for index in range(12):
         if index == missing:
@@ -33,10 +34,14 @@ def p2_trace(*, leak_at=None, missing=None, malformed=False, bad_countdown=False
         guest = "0100" if index == leak_at else "0000"
         raw = "0100" if index < 4 else "0000"
         remaining = 9 if bad_countdown and index == 3 else 11 - index
+        pre_restart = "0000" if upstream_mask else raw
+        post_restart = "0100" if restart_leak and index < 4 else "0000"
+        suffix = (f" pre_restart={pre_restart} post_restart={post_restart}"
+                  if source_fields else "")
         lines.append(
             f"UR_RESTART_INPUT_P2 raw={raw} guest={guest} "
             f"return_held={int(index < 4)} "
-            f"release_waiting={int(index < 4)} remaining={remaining}"
+            f"release_waiting={int(index < 4)} remaining={remaining}{suffix}"
         )
     if malformed:
         lines.append("UR_RESTART_INPUT_P2 raw=0100 guest=0100 remaining=?")
@@ -198,6 +203,24 @@ class RestartInputGuardTest(unittest.TestCase):
                 trace() + p2_trace().replace('raw=0100', 'raw=0000')),
             12,
         )
+
+    def test_strict_p2_proves_restart_filter_not_upstream_or_downstream(self):
+        # Real raw Start may be consumed by the tournament P2 release mask
+        # before it ever reaches the Restart latch. Guest zero may instead
+        # come from the later root-host filter. Neither is Restart proof.
+        self.assertEqual(validate_restart_p2_guest_input(
+            p2_trace(), require_raw_start_witness=True), 12)
+        self.assertEqual(validate_restart_p2_guest_input(
+            p2_trace(source_fields=False)), 12)
+        with self.assertRaisesRegex(ValueError, "pre/post Restart diagnostics absent"):
+            validate_restart_p2_guest_input(
+                p2_trace(source_fields=False), require_raw_start_witness=True)
+        with self.assertRaisesRegex(ValueError, "witness absent"):
+            validate_restart_p2_guest_input(
+                p2_trace(upstream_mask=True), require_raw_start_witness=True)
+        with self.assertRaisesRegex(ValueError, "Restart filter failed to suppress Start"):
+            validate_restart_p2_guest_input(
+                p2_trace(restart_leak=True), require_raw_start_witness=True)
 
     def test_historical_p1_only_log_remains_valid_without_p2_credit(self):
         self.assertEqual(validate_restart_guest_input(trace()), 12)

@@ -1,0 +1,34 @@
+{
+  "schema": "UR-RACER-FIXED-ORTHOGRAPHIC-CAMERA/1",
+  "name": "p1-1205-side-hypothesis-art-study-only",
+  "camera_calibration_status": "provisional",
+  "source_pixel_aspect": "7:6",
+  "source_witness": {
+    "guest_frame": 1205,
+    "player": "p1",
+    "source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
+    "source_registry": "analysis/data/racer-hd-replacement-prototype.json",
+    "anchor_provenance": "original registered wheel_contact_x2_y2 [67,76], source lowest occupied alpha span; not physical collision contact"
+  },
+  "right_world": [
+    1,
+    0,
+    0
+  ],
+  "up_world": [
+    0,
+    0,
+    1
+  ],
+  "origin_world": [
+    0,
+    0,
+    0
+  ],
+  "logical_pixels_per_model_unit_vertical": 9.5,
+  "source_anchor_x2_y2": [
+    67,
+    76
+  ],
+  "fit_claim": "9.5 pixels/model-unit and side camera are UNFITTED manual hypotheses against the 2026 procedural blockout. No independent 3D camera/source model calibration."
+}

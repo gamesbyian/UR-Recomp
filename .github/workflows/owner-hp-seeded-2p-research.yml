@@ -8,9 +8,13 @@ name: HP unattended seeded 2P gameplay research
 # distinct seeded 2P cases / 32 real guest processes in 289s research time.
 # Hourly pilot reuses this same one-worker workflow, with no parallel
 # HP jobs, new GHA runner, weaker package QA or extra task agent.
+# November 1 single-cron resynchronization: the previous :17 hourly trigger
+# had produced no new scheduled event across multiple eligible UTC slots.
+# Changing the minute can re-register the GitHub schedule and refresh its
+# actor; there is no acceptance credit until a new true schedule receipt.
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '41 * * * *'
   workflow_dispatch:
 
 permissions:

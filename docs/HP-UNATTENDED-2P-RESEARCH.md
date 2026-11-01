@@ -7,12 +7,23 @@ The five existing hourly generalist agents and their work queue are unchanged.
 ## Active first lane
 
 [HP unattended seeded 2P gameplay research](../.github/workflows/owner-hp-seeded-2p-research.yml)
-uses GitHub's UTC cron `17 * * * *` (hourly, 24 nominal opportunities a
+uses GitHub's UTC cron `41 * * * *` (hourly, 24 nominal opportunities a
 day), plus optional owner manual dispatch. GitHub scheduled runs are
 best-effort: they may start late or be dropped under load. Counting expected
 cron slots is not equivalent to counting real source-qualified HP runs. This
 is a deterministic bounded compute pipeline, not a guarantee that the PC
 stays busy during every interval.
+**Scheduling reliability probe (November 1 UTC):** GitHub's former hourly
+`:17` cron yielded no new source-qualified research event after the
+October 31 21:36 UTC four-worker success, despite several subsequent
+eligible slots. The single cron minute is moved to `:41` as an isolated
+re-registration experiment, following GitHub's documented ability to
+reactivate schedules through a cron change. GitHub may still delay or drop
+cron events; **this revision alone proves neither delivery nor eight-worker
+throughput**. Inspect a new real `event=schedule` record and its signed
+science receipt before changing the worker population or claiming a gain.
+The previous signed four-worker result remains immutable prior evidence.
+
 It reuses the **canonical trusted-main HP Windows x64 build/packaging/QA**
 rather than creating another compiler toolchain, backend or private
 release-candidate producer. The exact original game ROM is read locally

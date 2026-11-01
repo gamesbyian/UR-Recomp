@@ -164,6 +164,40 @@ def verify_retained_first_family(manifest: dict) -> None:
                 raise ValueError("fresh canonical ROM source differs from retained original evidence")
 
 
+def publish_private_corpus_stage(stage: Path, out: Path) -> None:
+    """Claim destination exclusively; publish receipt last with no replacements.
+
+    A complete directory cannot be atomically renamed with portable no-replace
+    semantics on every supported filesystem. Instead, exclusively create the
+    target, hardlink already-complete immutable files on the SAME filesystem,
+    and make source-corpus.json visible as the LAST atomic hardlink. If linking
+    is unsupported, fail closed and leave a receipt-less incomplete directory,
+    never overwrite a foreign destination or return success.
+    """
+    original_images = stage / "stock"
+    receipt = stage / "source-corpus.json"
+    if not original_images.is_dir() or not receipt.is_file():
+        raise ValueError("missing completed staged source corpus")
+    # Only create the new path; unlike POSIX rename this cannot replace a
+    # concurrent, preexisting EMPTY directory, symlink or foreign path.
+    out.mkdir(mode=0o700, exist_ok=False)
+    stock = out / "stock"
+    stock.mkdir(mode=0o700, exist_ok=False)
+    for image in sorted(original_images.iterdir()):
+        if (not image.is_file() or image.is_symlink() or
+                not image.name.startswith("source-") or
+                len(image.name) != len("source-") + 64 + len(".png") or
+                not image.name.endswith(".png") or
+                any(c not in "0123456789abcdef" for c in image.name[7:-4])):
+            raise ValueError("staged source image name or identity is invalid")
+        os.link(image, stock / image.name, follow_symlinks=False)
+    # The single receipt is the read-completion signal. It is linked only
+    # after *every* original PNG was successfully published.
+    with receipt.open("rb") as fp:
+        os.fsync(fp.fileno())
+    os.link(receipt, out / "source-corpus.json", follow_symlinks=False)
+
+
 def export(rom_path: Path, registry_path: Path, out: Path,
            selected_windows: list[str] | None = None) -> dict:
     # Source sprite pixels belong in an explicitly private scratch location.
@@ -190,9 +224,7 @@ def export(rom_path: Path, registry_path: Path, out: Path,
             (stage / "stock" / ("source-" + rgba_sha + ".png")).write_bytes(png)
         (stage / "source-corpus.json").write_text(
             json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        if out.exists():
-            raise ValueError("another corpus export already claimed the output destination")
-        os.rename(stage, out)
+        publish_private_corpus_stage(stage, out)
         return manifest
     finally:
         if stage.exists():

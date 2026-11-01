@@ -38,7 +38,7 @@ import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
 import {validateMeasurements,measurementForFrame} from './measurement_overlay.mjs';
 import {applyWheelWidthHypothesis} from './wheel_hypothesis.mjs';
-import {rootLeanQuaternion} from './root_lean_hypothesis.mjs';
+import {rootLeanQuaternion,tireVisualLift} from './root_lean_hypothesis.mjs';
 const $=id=>document.getElementById(id), stage=$('viewport'), scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(35,1,.01,200);
 camera.position.set(6,4.3,8);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;stage.append(renderer.domElement);
@@ -86,7 +86,7 @@ function applyRootLean(){
  if($('zup').checked&&tireBaselineY!==null){
   const after=sourceTireLowerY();
   if(after!==null){
-   rootLeanVisualLift=tireBaselineY-after;
+   rootLeanVisualLift=tireVisualLift(tireBaselineY,after);
    current.position.y+=rootLeanVisualLift;
   }
  }

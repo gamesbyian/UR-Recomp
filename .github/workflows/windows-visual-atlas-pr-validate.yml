@@ -72,6 +72,7 @@ jobs:
         run: |
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
           node --check tools/visual_atlas_web/browser-smoke.mjs
+          node --check tools/art/model-review/browser-smoke.mjs
       - name: Exercise 320–1440px layouts, real DOM interactions and screenshot both surfaces
         run: |
           set -euo pipefail
@@ -79,6 +80,7 @@ jobs:
           test -n "$CHROME_BIN"
           export CHROME_BIN
           node tools/visual_atlas_web/browser-smoke.mjs "$RUNNER_TEMP/atlas-site" "$RUNNER_TEMP/browser-evidence"
+          node tools/art/model-review/browser-smoke.mjs "$RUNNER_TEMP/atlas-site" "$RUNNER_TEMP/browser-evidence"
       - name: Preserve optical evidence and failures for human review
         if: always()
         uses: actions/upload-artifact@v4

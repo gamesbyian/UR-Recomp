@@ -1,0 +1,94 @@
+name: ART-4K actual continuous source rig GLB samples
+on:
+  pull_request:
+    paths:
+      - "tools/art/continuous_pose_recipe.py"
+      - "tools/art/export_articulated_unicycle.py"
+      - "tools/art/candidates/unicycle_shared_rig.scad"
+      - "tools/art/verify_art4k_real_continuous_glb.py"
+      - "tests/unit/test_verify_art4k_real_continuous_glb.py"
+      - ".github/workflows/art4k-real-continuous-glb-smoke.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: art4k-real-continuous-GLB-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-continuous-source-export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - pose: ride
+            sample_time: "0.25"
+          - pose: stunt_cycle
+            sample_time: "0.5"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install offline source-rig renderer and GLB validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openscad
+          python -m pip install --disable-pip-version-check numpy==2.3.5 trimesh==4.11.1
+      - name: Export one ACTUAL OpenSCAD-sampled authored continuous pose
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/art4k-continuous"
+          python tools/art/export_articulated_unicycle.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/art4k-continuous" \
+            --rig-pose "${{ matrix.pose }}" \
+            --rig-time "${{ matrix.sample_time }}" \
+            --timeout 120 > "$RUNNER_TEMP/art4k-export-stdout.json"
+          python tools/art/verify_art4k_real_continuous_glb.py \
+            --source tools/art/candidates/unicycle_shared_rig.scad \
+            --output-dir "$RUNNER_TEMP/art4k-continuous" \
+            --pose "${{ matrix.pose }}" \
+            --time "${{ matrix.sample_time }}" \
+            --receipt "$RUNNER_TEMP/art4k-continuous-qualified.json"
+      - name: Assert full real-source five-part material/pivot contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])
+          evidence=json.loads((p/"art4k-continuous-qualified.json").read_text())
+          assert evidence["part_parent_count"]==5
+          assert evidence["part_material_mesh_count"]==16
+          assert evidence["source_owned_pivots_validated_against_real_GLB"] is True
+          assert evidence["authored_continuous_source_kinematics_recomputed"] is True
+          assert evidence["1994_source_cadence_or_pose_paired"] is False
+          assert evidence["owner_character_likeness_approved"] is False
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as output:
+              output.write("### Actual OpenSCAD continuous-rig GLB sample (unapproved)\n\n")
+              output.write(f"Pose: {evidence['rig_pose']}, normalized rig time: {evidence['rig_time']}\n\n")
+              output.write(f"Real GLB SHA-256: {evidence['GLB_sha256']}\n\n")
+              output.write("Real five part pivots and sixteen material meshes validated; ")
+              output.write("no 1994 original pose pairing, likeness or shipping credit.\n")
+          PY
+      - name: Retain immutable real GLB, underlying receipts and independent evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-real-continuous-${{ matrix.pose }}-${{ matrix.sample_time }}
+          path: |
+            ${{ runner.temp }}/art4k-continuous/attempts/*/unicycle_articulated_blockout.glb
+            ${{ runner.temp }}/art4k-continuous/attempts/*/articulated_blockout_receipt.json
+            ${{ runner.temp }}/art4k-continuous/articulated_blockout_current.json
+            ${{ runner.temp }}/art4k-continuous/articulated_blockout_last_attempt.json
+            ${{ runner.temp }}/art4k-continuous-qualified.json
+          if-no-files-found: error
+          retention-days: 14

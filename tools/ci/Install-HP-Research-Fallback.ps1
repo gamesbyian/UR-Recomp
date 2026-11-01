@@ -23,7 +23,7 @@ New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
 Copy-Item -LiteralPath $Source -Destination $Target -Force
 $Action = New-ScheduledTaskAction -Execute $Python.Source -Argument ('-3 "' + $Target + '" --once --state-dir "' + $InstallRoot + '"') -WorkingDirectory $InstallRoot
 $Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(3) -RepetitionInterval (New-TimeSpan -Minutes 15) -RepetitionDuration (New-TimeSpan -Days 3650)
-$Principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType InteractiveToken -RunLevel Limited
+$Principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive -RunLevel Limited
 $Settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 3) -StartWhenAvailable
 Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Force | Out-Null
 Write-Host 'Installed 15-minute, current-user fallback checks. GitHub cron is unchanged.'

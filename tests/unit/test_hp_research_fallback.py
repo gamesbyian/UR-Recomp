@@ -128,6 +128,12 @@ class HPFallbackTests(unittest.TestCase):
             with h.single_instance(path):
                 pass
 
+    def test_owner_installer_uses_powershell_interactive_enum(self):
+        script = (Path(__file__).parents[2] / "tools" / "ci" / "Install-HP-Research-Fallback.ps1").read_text(encoding="utf-8")
+        self.assertIn("-LogonType Interactive", script)
+        self.assertNotIn("-LogonType InteractiveToken", script)
+        self.assertIn("-MultipleInstances IgnoreNew", script)
+
     def test_iso_time_and_cooldown_boundary(self):
         self.assertEqual(h.parse_utc("2026-11-01T05:00:00Z"), NOW)
         self.assertRaises(ValueError, h.parse_utc, "2026-11-01")

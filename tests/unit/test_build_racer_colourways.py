@@ -116,7 +116,9 @@ class ColourwayTests(unittest.TestCase):
             receipt.write_text(json.dumps(self.receipt))
             previous = module.validate
             module.validate = lambda base, pose: (
-                {"source_sha256": "a"*64},
+                {"source_sha256": "a"*64,
+                 "glb_sha256": module.digest(sample.read_bytes()),
+                 "receipt_sha256": module.digest(receipt.read_bytes())},
                 {"glb": sample, "receipt": receipt})
             try:
                 result = module.build(root, root / "output", "b"*40)
@@ -135,6 +137,27 @@ class ColourwayTests(unittest.TestCase):
                     output = Path(result["directory"]) / record["filename"]
                     self.assertEqual(module.digest(output.read_bytes()),
                                      record["sha256"])
+
+
+    def test_rejects_source_changed_after_pointer_preflight(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sample = root / "sample.glb"
+            sample.write_bytes(self.raw)
+            receipt = root / "sample.json"
+            receipt.write_text(json.dumps(self.receipt))
+            original_digest = module.digest(sample.read_bytes())
+            sample.write_bytes(self.raw + b"spoof")
+            previous = module.validate
+            module.validate = lambda base, pose: (
+                {"source_sha256": "a"*64, "glb_sha256": original_digest,
+                 "receipt_sha256": module.digest(receipt.read_bytes())},
+                {"glb": sample, "receipt": receipt})
+            try:
+                with self.assertRaisesRegex(ValueError, "changed since SHA preflight"):
+                    module.build(root, root / "out", "b"*40)
+            finally:
+                module.validate = previous
 
     def test_mixed_source_shas_are_refused(self):
         with tempfile.TemporaryDirectory() as directory:

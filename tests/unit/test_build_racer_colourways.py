@@ -100,6 +100,18 @@ class ColourwayTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             module.variants(module.encode_glb(doc, binary), self.receipt)
 
+    def test_refuses_distinct_bufferview_alias_of_fork_colour(self):
+        doc, binary = module.read_glb(self.raw)
+        layout = module.colour_layout(doc, binary, self.receipt)
+        # Repoint a POSITION accessor to an overlapping but separately
+        # indexed bufferView. Distinct view IDs are not proof of isolation.
+        original_index = doc["meshes"][0]["primitives"][0]["attributes"]["POSITION"]
+        view = {"buffer": 0, "byteOffset": layout[1], "byteLength": layout[2]}
+        doc["bufferViews"].append(view)
+        doc["accessors"][original_index]["bufferView"] = len(doc["bufferViews"]) - 1
+        with self.assertRaisesRegex(ValueError, "overlap"):
+            module.variants(module.encode_glb(doc, binary), self.receipt)
+
     def test_refuses_altered_opaque_colour_bytes(self):
         doc, binary = module.read_glb(self.raw)
         layout = module.colour_layout(doc, binary, self.receipt)

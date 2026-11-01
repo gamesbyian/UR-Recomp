@@ -195,13 +195,23 @@ def create_sidecar(site: Path, camera: Path) -> dict:
         from tools.art.build_real_viewer_pose_matrix import compute
     except ModuleNotFoundError:
         from build_real_viewer_pose_matrix import compute
+    if site.is_symlink():
+        raise ValueError("refusing symlinked model-review site")
     site = site.resolve()
-    if not site.is_dir() or site.is_symlink():
+    if not site.is_dir():
         raise ValueError("an existing real model-review site directory is required")
+    before_manifest = (site / "manifest.json").read_bytes()
+    before_sprites = (site / "sprites.json").read_bytes()
+    before_camera = camera.read_bytes()
+    # The caller can leave a live writer active. Prevent mixing a measured
+    # model/source with another revision's same-path metadata or camera.
     matrix = compute(site, camera, "source-registered")
-    manifest_raw = (site / "manifest.json").read_bytes()
-    sprites_raw = (site / "sprites.json").read_bytes()
-    return sanitized_sidecar(matrix, digest(manifest_raw), digest(sprites_raw))
+    if (before_manifest != (site / "manifest.json").read_bytes() or
+            before_sprites != (site / "sprites.json").read_bytes() or
+            before_camera != camera.read_bytes() or
+            matrix.get("camera_manifest_sha256") != digest(before_camera)):
+        raise ValueError("model-review source metadata/camera changed during measurement")
+    return sanitized_sidecar(matrix, digest(before_manifest), digest(before_sprites))
 
 
 def main() -> None:

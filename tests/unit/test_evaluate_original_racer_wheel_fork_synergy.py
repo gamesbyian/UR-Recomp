@@ -64,14 +64,14 @@ class CrossedSourceShapeTests(unittest.TestCase):
     def test_factorial_interaction_can_be_subadditive_despite_both_winning(self):
         rows,split=data()
         for h in split["withheld_binary_shas"]:
-            rows[h][module.BOTH]["mask_iou"] -= .02
+            rows[h][module.BOTH]["mask_iou"] -= .005
         for h in split["fit_binary_shas"]:
             rows[h][module.BOTH]["mask_iou"] += .03
         result=module.summarizes(rows,split)
         held=result["previously_SHA_disconnected_original_2D_mask_family"]
         combo=held["candidates"][module.BOTH]
         self.assertEqual(combo["wins_vs_wheel_only"],19)
-        self.assertEqual(combo["factorial_IoU_interaction"]["mean"],-.02)
+        self.assertEqual(combo["factorial_IoU_interaction"]["mean"],-.005)
         self.assertEqual(combo["factorial_IoU_interaction"]["negative_mask_count"],19)
         self.assertEqual(combo["factorial_IoU_interaction"]["positive_mask_count"],0)
         self.assertEqual(combo["factorial_IoU_interaction"]["zero_mask_count"],0)

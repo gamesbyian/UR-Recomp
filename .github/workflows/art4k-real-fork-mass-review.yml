@@ -44,7 +44,9 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import hashlib, json, os
+          from collections import Counter
           from pathlib import Path
+          import numpy as np
           import trimesh
           from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
           root=Path(os.environ["RUNNER_TEMP"])
@@ -75,9 +77,28 @@ jobs:
               assert len(scene.geometry)==16
               parts={x["name"]:x for x in r["components"]}
               assert set(parts)=={"tire","rim_and_hub","fork_and_frame","pedals","saddle"}
-              records.append((r,pointer,parts))
-          left,_,a=records[0]
-          right,_,b=records[1]
+              records.append((r,pointer,parts,scene))
+          left,_,a,scene_a=records[0]
+          right,_,b,scene_b=records[1]
+          def canonical_faces(scene,node):
+              # GLB Trimesh exporter is allowed to reorder equivalent triangles.
+              # Independently compare the actual oriented polygon surfaces of
+              # affected material geometries, not only an order-sensitive SHA.
+              transform,g=scene.graph.get(node)
+              mesh=scene.geometry[g].copy()
+              mesh.apply_transform(transform)
+              out=Counter()
+              for tri in np.asarray(mesh.vertices)[np.asarray(mesh.faces)]:
+                  pts=[tuple(round(float(x),4) for x in point) for point in tri]
+                  # Sort positions as keys, but also require face orientation
+                  # to be unchanged via its source-directed unit normal.
+                  v=np.cross(tri[1]-tri[0],tri[2]-tri[0])
+                  norm=np.linalg.norm(v)
+                  if not np.isfinite(norm) or norm<1e-10:
+                      raise ValueError("invalid degenerate GLB source triangle")
+                  unit=tuple(round(float(x),4) for x in v/norm)
+                  out[(tuple(sorted(pts)),unit)]+=1
+              return out
           assert left["source_fork_mass_review"]["factor"]==1.0
           assert right["source_fork_mass_review"]["factor"]==1.4
           assert right["source_fork_mass_review"]["owner_visual_likeness_approved"] is False
@@ -93,9 +114,19 @@ jobs:
                   assert m["node"]==n["node"]
                   assert m["rgba"]==n["rgba"]
                   if name!="fork_and_frame":
-                      assert m["geometry_sha256"]==n["geometry_sha256"],name
-                      assert m["normals_sha256"]==n["normals_sha256"],name
-                      assert m["triangles"]==n["triangles"],name
+                      assert m["triangles"]==n["triangles"],(name,m["node"])
+                      if (m["geometry_sha256"]!=n["geometry_sha256"] or
+                              m["normals_sha256"]!=n["normals_sha256"]):
+                          print("Order-sensitive signature differs in nonfork source mesh",m["node"],
+                                "original",m["geometry_sha256"],"fork-mode",n["geometry_sha256"])
+                          left_faces=canonical_faces(scene_a,m["node"])
+                          right_faces=canonical_faces(scene_b,n["node"])
+                          print("Canonical oriented source-triangle equivalence",
+                                m["node"],left_faces==right_faces,
+                                "original/variant triangles",sum(left_faces.values()),
+                                sum(right_faces.values()))
+                          assert left_faces==right_faces,(
+                              "nonfork source actual 3D surface changed",m["node"])
                   elif m["geometry_sha256"]!=n["geometry_sha256"]:
                       distinct+=1
           assert distinct>=1, "nondefault fork source override did not affect fork GLB geometry"

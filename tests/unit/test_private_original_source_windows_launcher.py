@@ -47,6 +47,9 @@ class PrivateOriginalSourceWindowsLauncherTests(unittest.TestCase):
         self.assertIn('Test-Path -LiteralPath $receipt -PathType Leaf', self.ps)
         self.assertIn('[System.IO.FileMode]::CreateNew', self.ps)
         self.assertIn('source-corpus.json', self.ps)
+        self.assertIn('$verifiedCorpusReceipt = $receipt', self.ps)
+        self.assertIn('SOURCE CORPUS COMPLETE, DIAGNOSTIC PREPARATION FAILED:', self.ps)
+        self.assertIn('Do not treat partial diagnostic drafts as frozen fit/heldout evidence.', self.ps)
         self.assertIn('publish_private_corpus_stage(stage, out)', self.exporter)
         self.assertIn('out.resolve().is_relative_to(ROOT.resolve())', self.exporter)
 

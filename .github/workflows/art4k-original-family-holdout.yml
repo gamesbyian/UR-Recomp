@@ -13,6 +13,8 @@ on:
       - "tests/unit/test_compare_original_chroma_axes_to_glb_poses.py"
       - "tools/art/audit_original_racer_temporal_motion.py"
       - "tests/unit/test_audit_original_racer_temporal_motion.py"
+      - "tools/art/study_original_racer_root_lean_grid.py"
+      - "tests/unit/test_study_original_racer_root_lean_grid.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -122,6 +124,34 @@ jobs:
             --model-review-dir "$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review" \
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --out "$RUNNER_TEMP/art4k-reports/source-to-glb-axes.json"
+      - name: Test actual 2026 source rig lean directions against original source sprites
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/study_original_racer_root_lean_grid.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --source-axes "$RUNNER_TEMP/art4k-reports/source-chroma-axes.json" \
+            --model-review-dir "$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/art4k-reports/root-lean-grid.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads((Path(os.environ["RUNNER_TEMP"])/
+            "art4k-reports/root-lean-grid.json").read_text())
+          assert data["original_mask_count"]==35
+          assert len(data["all_predeclared_root_rotation_5deg_grid_samples"])==20
+          assert data["genuinely_new_original_3d_pose_holdout_tested"] is False
+          assert data["source_2026_mesh_or_default_geometry_modified"] is False
+          print("Unapproved original-mask root lean baseline",
+            data["baseline_5_pose_unpaired_source_coverage"])
+          print("Descriptive top two-grid candidate",
+            data["top_five_two_added_samples_by_training_mean_axis_gap"][0])
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("### Exploratory source-mask lean grid, NOT original 3D recovery\n\n")
+              out.write("Verified 1994 ROM pixels and frozen five-GLB source.\n\n")
+              out.write("No default rig geometry, source camera or 1994 pose mapping changed.\n")
+          PY
       - name: Audit actual original ROM frame holds and 2D motion transitions
         shell: bash
         run: |

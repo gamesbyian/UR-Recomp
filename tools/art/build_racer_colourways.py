@@ -128,9 +128,21 @@ def colour_layout(doc: dict, binary: bytes, receipt: dict):
     if target is None:
         raise ValueError("missing paintable fork material")
     target_idx, target_view, offset, size, count = target
-    if sum(m["primitives"][0]["attributes"]["COLOR_0"] == target_idx
-           for m in meshes) != 1:
-        raise ValueError("fork colour accessor is aliased by a second material")
+    # A single accessor index can be referenced by unrelated semantics.
+    # Its byte range being unique is insufficient if NORMAL, POSITION, UV,
+    # mesh indices or an attribute of another primitive reuses that index.
+    for mesh in meshes:
+        primitive = mesh["primitives"][0]
+        attributes = primitive["attributes"]
+        if not isinstance(attributes, dict):
+            raise ValueError("invalid primitive attribute mapping")
+        uses = list(attributes.items())
+        if "indices" in primitive:
+            uses.append(("indices", primitive["indices"]))
+        for semantic, accessor_index in uses:
+            if accessor_index == target_idx and (
+                    mesh["name"] != SLOT or semantic != "COLOR_0"):
+                raise ValueError("fork colour accessor aliased by unrelated primitive semantic")
     # Different accessor/view IDs can still alias *the same BIN range*.
     # A recolour must not modify positions, indices or another colourway.
     for other_index, accessor in enumerate(accessors):

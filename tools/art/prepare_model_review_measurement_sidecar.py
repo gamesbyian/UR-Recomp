@@ -169,6 +169,10 @@ def sanitized_sidecar(matrix: dict, site_manifest_sha: str,
         "original_frame_observations": 32,
         "equal_original_mask_weighted_mean_silhouette_iou": means,
         "experimental_pose_highest_iou_counts": leaders,
+        "mean_first_minus_second_unpaired_iou_margin": round(
+            sum(x["first_minus_second_unpaired_iou_margin"] for x in normalized_rows)
+            / len(normalized_rows), 8),
+        "margin_is_an_authentic_pose_probability": False,
         "source_shape_measurements": normalized_rows,
         "source_to_experimental_model_pose_mapping_verified": False,
         "fresh_source_registered_matrix_sha256": digest(

@@ -49,6 +49,41 @@ class UnpairedAxisCoverageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             module.summarize_unpaired_source_coverage(originals(),bad)
 
+    def test_rejects_tampered_original_source_angle_and_mask_identity(self):
+        # A valid-looking self-declared corpus SHA and mask count must NOT
+        # make arbitrary angle or mask identities source-authenticated.
+        from copy import deepcopy
+        trusted={
+            "schema":module.SOURCE_SCHEMA,
+            "source_rom_sha256":module.CANONICAL_ROM_SHA,
+            "source_corpus_sha256":"a"*64,
+            "source_variants":{
+                "independent_exact_source_binary_masks":2,
+                "source_masks":[
+                    {"original_binary_mask_sha256":"1"*64,
+                     "equal_colour_variant_mean_projected_angle_deg":4.5},
+                    {"original_binary_mask_sha256":"2"*64,
+                     "equal_colour_variant_mean_projected_angle_deg":-13.2}
+                ]
+            }
+        }
+        previous=module.recompute_original_source_angles
+        module.recompute_original_source_angles=lambda corpus:deepcopy(trusted)
+        try:
+            module.verify_source_axis_report(Path("/source.json"),deepcopy(trusted))
+            forged=deepcopy(trusted)
+            forged["source_variants"]["source_masks"][0][
+                "equal_colour_variant_mean_projected_angle_deg"]=89.0
+            with self.assertRaisesRegex(ValueError,"differs"):
+                module.verify_source_axis_report(Path("/source.json"),forged)
+            forged=deepcopy(trusted)
+            forged["source_variants"]["source_masks"][0][
+                "original_binary_mask_sha256"]="9"*64
+            with self.assertRaisesRegex(ValueError,"differs"):
+                module.verify_source_axis_report(Path("/source.json"),forged)
+        finally:
+            module.recompute_original_source_angles=previous
+
     def test_historical_exact_five_glb_source_names_are_distinct_and_sha_valid(self):
         self.assertEqual(set(module.POSE_GLB_SHA),
                          {"upright","pedal","wheelie","stunt","bank"})

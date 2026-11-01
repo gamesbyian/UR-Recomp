@@ -117,6 +117,10 @@ class SourceChromaticAxisTests(unittest.TestCase):
         self.assertEqual(holds[0]["first_guest_frame"], 1205)
         self.assertEqual(holds[0]["last_guest_frame"], 1206)
         self.assertEqual(holds[1]["screen_axis_angle_from_down_y_degrees"], -4.)
+        gap = [timeline[0], dict(timeline[1], guest_frame=1215)]
+        separated = mod.temporal_source_axes(gap, rows)
+        self.assertEqual(
+            len(separated["original"]["source_visible_chromatic_holds"]["p1"]), 2)
 
     def test_source_temporal_spoofs_fail(self):
         rows = [{

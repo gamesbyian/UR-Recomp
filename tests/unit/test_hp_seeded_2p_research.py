@@ -91,6 +91,59 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertNotIn("four cohorts execute concurrently", contract.lower())
         self.assertIn("**not** an eight-worker throughput receipt", contract)
 
+    def test_manual_extended_horizon_is_forbidden_on_schedule(self):
+        self.assertEqual(hp.WALL_SECONDS, 360)
+        self.assertEqual(hp.MANUAL_WALL_SECONDS, 600)
+        regular = _env(Path("unused"), event="schedule")
+        self.assertEqual(hp.research_wall_seconds(regular), 360)
+        manual = _env(Path("unused"), event="workflow_dispatch")
+        manual["UR_HP_RESEARCH_WALL_SECONDS"] = "600"
+        self.assertEqual(hp.research_wall_seconds(manual), 600)
+        regular["UR_HP_RESEARCH_WALL_SECONDS"] = "600"
+        with self.assertRaisesRegex(ValueError, "manual"):
+            hp.research_wall_seconds(regular)
+        for bad in ("601", "0", " 600", "", "600.0", "-360"):
+            with self.subTest(bad=bad):
+                manual["UR_HP_RESEARCH_WALL_SECONDS"] = bad
+                with self.assertRaises(ValueError):
+                    hp.research_wall_seconds(manual)
+        caller = SCHEDULE.read_text(encoding="utf-8")
+        reusable = WIN.read_text(encoding="utf-8")
+        self.assertIn("research_wall_seconds:", caller)
+        self.assertIn("hp_research_wall_seconds: ${{ github.event_name == 'workflow_dispatch'", caller)
+        self.assertIn("hp_research_wall_seconds:", reusable)
+        self.assertIn("UR_HP_RESEARCH_WALL_SECONDS: ${{ inputs.hp_research_wall_seconds }}", reusable)
+        self.assertEqual(caller.count("- cron:"), 1)
+
+    def test_manual_600_second_collector_requires_matching_source_budget(self):
+        source, run_id = "a" * 40, 41151999999
+        rows = []
+        for worker in range(hp.WORKERS):
+            base_seed = run_id % 10_000_000 + (worker // 2) * 25_000_000
+            report = _report(Path("unused"), source, base_seed, worker % 2)
+            report.pop("receipt_sha256")
+            initial = report["case_results"][0]
+            next_seed = initial["seed"] + 1
+            report["case_results"].append({
+                **initial,
+                "seed": next_seed,
+                "input_sha256": hp.expected_treatment_digest(
+                    native.base_source()[0], next_seed),
+            })
+            report["attempted_cases"] = 2
+            report["passed_cases"] = 2
+            report["total_real_native_processes"] = 8
+            report["wall_seconds_budget"] = 600
+            report["receipt_sha256"] = native.hash_object(report)
+            rows.append({"worker": worker, "report": report})
+        accepted = hp.collect(rows, source, run_id, 400.0, wall_seconds=600)
+        self.assertEqual(accepted["status"], "completed_positive")
+        self.assertEqual(accepted["accepted_cases"], 16)
+        self.assertEqual(accepted["real_guest_processes"], 64)
+        self.assertEqual(accepted["wall_seconds_budget"], 600)
+        self.assertEqual(hp.collect(rows, source, run_id, 400.0)["status"],
+                         "research_failure")
+
     def test_schedule_uses_only_trusted_hp_main_and_no_new_compiler(self):
         s = SCHEDULE.read_text()
         win = WIN.read_text()

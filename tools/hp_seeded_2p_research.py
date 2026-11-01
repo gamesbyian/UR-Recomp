@@ -22,7 +22,8 @@ from tools import qa02_native_2p_seeded_endurance as native
 
 SCHEMA = "ur-hp-windows-seeded-2p-research/1"
 WORKERS = 8  # Research-only trial; each worker owns four guest processes per case.
-WALL_SECONDS = 360
+WALL_SECONDS = 360  # Scheduled/default manual horizon is unchanged.
+MANUAL_WALL_SECONDS = 600  # Deliberate workflow_dispatch trial only.
 MINUTES = 15
 MAX_CASES = 12
 PROCESS_TIMEOUT = 90
@@ -45,6 +46,16 @@ def authorize(env: dict[str, str]) -> tuple[int, str]:
             or not re.fullmatch(r"[1-9][0-9]{0,3}", attempt)):
         raise ValueError("invalid workflow run identity")
     return int(run_id), sha
+
+
+def research_wall_seconds(env: dict[str, str]) -> int:
+    """Allow the longer horizon only on a trusted manual HP research event."""
+    raw = env.get("UR_HP_RESEARCH_WALL_SECONDS", str(WALL_SECONDS))
+    if raw not in {str(WALL_SECONDS), str(MANUAL_WALL_SECONDS)}:
+        raise ValueError("unsupported HP research wall horizon")
+    if raw != str(WALL_SECONDS) and env.get("GITHUB_EVENT_NAME") != "workflow_dispatch":
+        raise ValueError("extended research horizon requires a manual dispatch")
+    return int(raw)
 
 
 def authentic_candidate(proof: object, source: str) -> bool:
@@ -77,7 +88,7 @@ def safe_failure_category(kind: str, detail: object) -> str:
 
 
 def source_owned_failure_notes(sealed: dict, source: str, worker: int,
-                               run_id: int) -> list[dict]:
+                               run_id: int, wall_seconds: int = WALL_SECONDS) -> list[dict]:
     """Only authentic, bounded attempt records earn replay coordinates."""
     proof, failures = sealed.get("identity"), sealed.get("failures")
     shard = worker % 2
@@ -91,7 +102,7 @@ def source_owned_failure_notes(sealed: dict, source: str, worker: int,
             or sealed.get("shard") != shard
             or sealed.get("base_seed") != expected_base
             or sealed.get("minutes_budget") != MINUTES
-            or sealed.get("wall_seconds_budget") != WALL_SECONDS
+            or sealed.get("wall_seconds_budget") != wall_seconds
             or sealed.get("max_unique_cases") != MAX_CASES
             or sealed.get("stop_reason") != "invariant_failure"
             or not isinstance(failures, list) or not 1 <= len(failures) <= 2
@@ -173,7 +184,8 @@ def expected_script_digest(stock_script: str) -> str:
     return hashlib.sha256(rendered.replace("\n", os.linesep).encode("utf-8")).hexdigest()
 
 
-def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
+def collect(rows: list[dict], source: str, run_id: int, elapsed: float,
+            *, wall_seconds: int = WALL_SECONDS) -> dict:
     if len(rows) != WORKERS:
         raise ValueError("missing worker result")
     identity = None
@@ -208,7 +220,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
             issues.append({"worker": index, "reason": "invalid source-owned research receipt"})
             continue
         if sealed.get("disposition") == "invariant_violation":
-            notes = source_owned_failure_notes(sealed, source, index, run_id)
+            notes = source_owned_failure_notes(sealed, source, index, run_id, wall_seconds)
             if notes:
                 pending_failures.append((index, notes, sealed))
                 candidate_proofs.append(sealed["identity"])
@@ -237,7 +249,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
                 or not math.isfinite(sealed["elapsed_seconds"])
                 or sealed["elapsed_seconds"] < 0
                 or sealed.get("minutes_budget") != MINUTES
-                or sealed.get("wall_seconds_budget") != WALL_SECONDS
+                or sealed.get("wall_seconds_budget") != wall_seconds
                 or sealed.get("max_unique_cases") != MAX_CASES
                 or sealed.get("attempted_cases") != sealed.get("passed_cases")
                 or sealed.get("total_real_native_processes") != 4 * sealed.get("passed_cases", -1)):
@@ -308,7 +320,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
     result = {
         "schema": SCHEMA, "source_sha": source, "run_id": run_id,
         "status": "completed_positive" if valid else "research_failure",
-        "workers": WORKERS, "elapsed_seconds": round(elapsed, 3),
+        "workers": WORKERS, "wall_seconds_budget": wall_seconds,
+        "elapsed_seconds": round(elapsed, 3),
         "attempted_cases": attempts, "accepted_cases": successes,
         "real_guest_processes": native_processes,
         "source_attested_pre_failure_cases": source_attested_partial_cases,
@@ -324,6 +337,7 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float) -> dict:
 
 def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
     run_id, sha = authorize(env)
+    wall_seconds = research_wall_seconds(env)
     if not exe.is_file() or not rom.is_file() or exe.is_symlink() or rom.is_symlink():
         raise ValueError("missing/redirected exact game executable or stock ROM")
     private = Path(env["RUNNER_TEMP"]) / f"hp-seeded-2p-{run_id}-{env['GITHUB_RUN_ATTEMPT']}"
@@ -342,7 +356,7 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
             row = native.run_shard(
                 exe=exe, rom=rom, source_sha=sha, shard=i % 2,
                 base_seed=seeds[i], minutes=MINUTES, max_cases=MAX_CASES,
-                timeout=PROCESS_TIMEOUT, wall_seconds=WALL_SECONDS,
+                timeout=PROCESS_TIMEOUT, wall_seconds=wall_seconds,
                 work=private / f"worker-{i}")
             return {"worker": i, "report": row}
         except Exception as exc:
@@ -361,7 +375,8 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
         for future in as_completed(futures):
             index = futures[future]
             rows[index] = future.result()
-    result = collect(rows, sha, run_id, time.monotonic() - start)
+    result = collect(rows, sha, run_id, time.monotonic() - start,
+                     wall_seconds=wall_seconds)
     receipt.parent.mkdir(parents=True, exist_ok=True)
     receipt.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     return result
@@ -395,6 +410,7 @@ def result_summary(result: dict) -> str:
         "## Owner HP unattended two-player research",
         "",
         f"Source: `{result['source_sha']}`. Run: `{result['run_id']}`.",
+        f"Research cohort wall horizon: **{result.get('wall_seconds_budget', WALL_SECONDS)}s**. "
         f"Disposition: **{result['status']}**. {workers} independent worker cohorts; "
         f"research wall time **{elapsed:.1f}s** (excludes build and QA).",
         "",

@@ -148,6 +148,27 @@ class RF095Tests(unittest.TestCase):
             self.assertFalse(r['producer_identity_independently_verified'])
             self.assertEqual(r['usa_event_credit'], 0)
 
+    def test_original_and_native_pcm_inputs_must_be_distinct(self):
+        # An original WAV can otherwise masquerade as native raw PCM:
+        # its 44-byte WAV header becomes eleven stereo int16 frames.
+        with tempfile.TemporaryDirectory() as d:
+            for hardlink in (False, True):
+                files = list(self.fixture(d))
+                original_wav, native_pcm = files[0], files[2]
+                native_pcm.unlink()
+                if hardlink:
+                    native_pcm.hardlink_to(original_wav)
+                else:
+                    files[2] = original_wav
+                claimed_native_frames = original_wav.stat().st_size // 4
+                files[3].write_text('frame,samples\n' +
+                                    ''.join(
+                                        f'{f},{f - 6447 if f < 6457 else claimed_native_frames}\n'
+                                        for f in range(6447, 6458)))
+                with self.subTest(hardlink=hardlink), self.assertRaisesRegex(
+                        ValueError, 'distinct physical files'):
+                    receipt.analyze(*files)
+
     def test_invalid_native_cannot_leave_plausible_original_window(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)

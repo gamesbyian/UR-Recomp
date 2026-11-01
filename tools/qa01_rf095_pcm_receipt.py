@@ -103,6 +103,11 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
              original_log, native_log)
     if any(not p.is_file() or p.is_symlink() for p in paths):
         raise ValueError('RF095 actual regular non-symlinked source files required')
+    # A single original WAV must never masquerade as native PCM input.
+    # Device/inode identity also detects hardlinks with different pathnames.
+    identities = {(p.stat().st_dev, p.stat().st_ino) for p in paths}
+    if len(identities) != len(paths):
+        raise ValueError('RF095 source inputs must be distinct physical files')
     for log, side in ((original_log, 'ORIG'), (native_log, 'NATIVE')):
         text = log.read_text(encoding='utf-8', errors='replace')
         if any('QA01RF095' + side + suffix in text

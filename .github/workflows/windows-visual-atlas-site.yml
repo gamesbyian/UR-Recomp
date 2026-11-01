@@ -102,7 +102,7 @@ jobs:
           # Only this opt-in path publishes a measurement packet. It was
           # produced from the exact staged GLBs and sprite rail and checked
           # against both manifest SHA values. Never publish a stale packet.
-          cp --no-clobber "$RUNNER_TEMP/model-measurements.json" \
+          ln "$RUNNER_TEMP/model-measurements.json" \
             "$RUNNER_TEMP/atlas-site/model-review/model-measurements.json"
           {
             echo "Source comparison: verified 32 original frame observations,"

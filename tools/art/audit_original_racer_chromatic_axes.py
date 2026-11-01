@@ -78,6 +78,11 @@ def principal_axis(points) -> dict:
     if trace <= 1e-12:
         raise ValueError("degenerate chromatic source axis")
     major = (trace + math.hypot(xx-yy, 2*xy)) / 2
+    # A roughly circular distribution has no unique principal direction.
+    # The authentic source material is much more elongated (>0.92), but
+    # reject ambiguous samples instead of reporting arbitrary 0 degrees.
+    if major / trace <= 0.65:
+        raise ValueError("isotropic chromatic source has undefined major axis")
     angle = math.degrees(0.5 * math.atan2(2*xy, yy-xx))
     return {
         "chroma_pixel_count": n,
@@ -190,6 +195,72 @@ def verify_pinned_source_bytes(source: dict, archive_sha: str,
             raise ValueError("original source bytes differ from pinned GitHub evidence")
 
 
+def summarize_source_axes(rows: list[dict], roles: dict) -> tuple:
+    """Keep P1 and P2 separate even when full original alpha masks coincide."""
+    by_shape = defaultdict(list)
+    chroma_roles = defaultdict(set)
+    for row in rows:
+        mask = row["source_binary_mask_sha256"]
+        if mask not in roles or row["role"] != roles[mask]:
+            raise ValueError("source colour row disagrees with assigned original role")
+        by_shape[mask].append(row)
+        chroma_roles[row["source_chromatic_mask_sha256"]].add(row["role"])
+    shape_rows = []
+    for mask, variants in sorted(by_shape.items()):
+        per_player = {}
+        for player in ("p1", "p2"):
+            selected = [v for v in variants if v["player"] == player]
+            if not selected:
+                continue
+            # Same source alpha may be shared by both players, with very
+            # different *original* red/blue pixel directions. Never average
+            # one player's angle into the other player's source posture.
+            unique = {v["source_chromatic_mask_sha256"]: v
+                      for v in selected}
+            angles = [v["screen_axis_angle_from_down_y_degrees"]
+                      for v in unique.values()]
+            per_player[player] = {
+                "original_chromatic_shape_variants": len(unique),
+                "mean_chromatic_source_screen_axis_degrees":
+                    round(sum(angles) / len(angles), 6),
+            }
+        shape_rows.append({
+            "source_binary_mask_sha256": mask,
+            "role": roles[mask],
+            "players": sorted(per_player),
+            "source_external_row_envelope_sha256":
+                variants[0]["source_external_row_envelope_sha256"],
+            "original_chromatic_shape_variants":
+                len({v["source_chromatic_mask_sha256"] for v in variants}),
+            "per_player_chromatic_source_axes": per_player,
+        })
+    summary = {}
+    for role in ("fit", "withheld_candidate"):
+        sub = [r for r in shape_rows if r["role"] == role]
+        summary[role] = {
+            "independent_original_binary_masks": len(sub),
+            "independent_external_row_envelopes":
+                len({r["source_external_row_envelope_sha256"] for r in sub}),
+            "per_player": {},
+        }
+        for player in ("p1", "p2"):
+            relevant = [
+                row["per_player_chromatic_source_axes"][player]
+                   ["mean_chromatic_source_screen_axis_degrees"]
+                for row in sub
+                if player in row["per_player_chromatic_source_axes"]
+            ]
+            if relevant:
+                summary[role]["per_player"][player] = {
+                    "shape_count": len(relevant),
+                    "equal_source_binary_shape_mean_axis_degrees":
+                        round(sum(relevant) / len(relevant), 6),
+                    "minimum_axis_degrees": min(relevant),
+                    "maximum_axis_degrees": max(relevant),
+                }
+    return shape_rows, summary, chroma_roles
+
+
 def audit(artifact: Path, evidence_path: Path = EXPECTED_SOURCE) -> dict:
     raw_zip = artifact.read_bytes()
     reference = json.loads(evidence_path.read_text(encoding="utf-8"))
@@ -268,49 +339,7 @@ def audit(artifact: Path, evidence_path: Path = EXPECTED_SOURCE) -> dict:
                 set(x["source_binary_mask_sha256"] for x in rows) != set(roles)):
             raise ValueError("incomplete or altered original source silhouette census")
 
-    by_shape = defaultdict(list)
-    chroma_roles = defaultdict(set)
-    for row in rows:
-        by_shape[row["source_binary_mask_sha256"]].append(row)
-        chroma_roles[row["source_chromatic_mask_sha256"]].add(row["role"])
-    shape_rows = []
-    for mask, variants in sorted(by_shape.items()):
-        # Same source shape may have multiple actual chromatic colour variants;
-        # repeated temporal holds or aliases must not multiply its weight.
-        per_variant = {v["source_chromatic_mask_sha256"]: v
-                       for v in variants}
-        angles = [v["screen_axis_angle_from_down_y_degrees"]
-                  for v in per_variant.values()]
-        shape_rows.append({
-            "source_binary_mask_sha256": mask,
-            "role": roles[mask],
-            "players": sorted({v["player"] for v in variants}),
-            "source_external_row_envelope_sha256":
-                variants[0]["source_external_row_envelope_sha256"],
-            "original_chromatic_shape_variants": len(per_variant),
-            "mean_chromatic_source_screen_axis_degrees":
-                round(sum(angles)/len(angles), 6),
-        })
-    summary = {}
-    for role in ("fit", "withheld_candidate"):
-        sub = [r for r in shape_rows if r["role"] == role]
-        summary[role] = {
-            "independent_original_binary_masks": len(sub),
-            "independent_external_row_envelopes":
-                len({r["source_external_row_envelope_sha256"] for r in sub}),
-            "per_player": {},
-        }
-        for player in ("p1", "p2"):
-            relevant = [r["mean_chromatic_source_screen_axis_degrees"]
-                        for r in sub if player in r["players"]]
-            if relevant:
-                summary[role]["per_player"][player] = {
-                    "shape_count": len(relevant),
-                    "equal_source_binary_shape_mean_axis_degrees":
-                        round(sum(relevant)/len(relevant), 6),
-                    "minimum_axis_degrees": min(relevant),
-                    "maximum_axis_degrees": max(relevant),
-                }
+    shape_rows, summary, chroma_roles = summarize_source_axes(rows, roles)
     return {
         "schema": SCHEMA,
         "source_artifact_zip_sha256": hashlib.sha256(raw_zip).hexdigest(),

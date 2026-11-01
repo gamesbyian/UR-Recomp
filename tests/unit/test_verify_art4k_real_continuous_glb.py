@@ -20,7 +20,7 @@ def write_json(file, obj):
     return file
 
 
-def fixture(root, pose="stunt_cycle", time=.5):
+def fixture(root, pose="stunt_cycle", time=.5, player_palette="source"):
     source = root / "source.scad"
     source.write_bytes(SOURCE.read_bytes())
     import sys
@@ -38,10 +38,16 @@ def fixture(root, pose="stunt_cycle", time=.5):
          "materials":[{"node":f"{k}__material_{i}"} for i in range(v)]}
         for k,v in mod.PART_MATERIAL_COUNTS.items()
     ]
+    _, rgba = mod.PLAYER_PALETTES[player_palette]
+    palette = {"schema_version":1, "id":player_palette,
+               "override_rgba":list(rgba) if rgba else None,
+               "original_raster_color_registered":False,
+               "owner_material_approved":False}
     receipt={
         "schema":"ur-art4k-articulated-blockout/1",
         "attempt_id":"test-once","source_sha256":sha(source.read_bytes()),
         "rig_pose":pose,"glb_sha256":sha(glb.read_bytes()),"glb_size":glb.stat().st_size,
+        "player_palette":palette,
         "pose_source_registered_to_original_game":False,
         "original_character_likeness_approved":False,
         "shipping_art_approved":False,
@@ -56,7 +62,7 @@ def fixture(root, pose="stunt_cycle", time=.5):
     pointer={
         "schema":"ur-art4k-export-current/1",
         "attempt_id":"test-once","source_sha256":receipt["source_sha256"],
-        "rig_pose":pose,
+        "rig_pose":pose,"player_palette":palette,
         "glb_path":"attempts/test-once/unicycle_articulated_blockout.glb",
         "receipt_path":"attempts/test-once/articulated_blockout_receipt.json",
         "glb_sha256":receipt["glb_sha256"],
@@ -85,6 +91,44 @@ class RealContinuousGLBReceiptTests(unittest.TestCase):
                 self.assertTrue(result["authored_continuous_source_kinematics_recomputed"])
                 self.assertFalse(result["1994_source_cadence_or_pose_paired"])
                 actual.assert_called_once()
+
+    def test_source_bound_palette_selection_and_forgery_rejected(self):
+        # No real GLB is claimed here: the loader is stubbed. This checks
+        # identity binding; actual material geometry remains a separate gate.
+        for palette_id in mod.PLAYER_PALETTES:
+            with tempfile.TemporaryDirectory() as tmp:
+                source,out,receipt,pointer=fixture(Path(tmp),player_palette=palette_id)
+                with patch.object(mod,"validate_glb_roundtrip",
+                                  return_value=receipt["glb_roundtrip"]) as loader:
+                    qualified=mod.validate_one(source,out,"stunt_cycle",.5,
+                                               player_palette=palette_id)
+                self.assertEqual(qualified["player_palette"]["id"],palette_id)
+                loader.assert_called_once()
+                with patch.object(mod,"validate_glb_roundtrip") as forbidden:
+                    with self.assertRaisesRegex(ValueError,"palette"):
+                        mod.validate_one(source,out,"stunt_cycle",.5,
+                                         player_palette=("p1-provisional-v1"
+                                            if palette_id != "p1-provisional-v1" else "source"))
+                    forbidden.assert_not_called()
+
+        for field in ("pointer_id", "receipt_id", "approval"):
+            with tempfile.TemporaryDirectory() as tmp:
+                source,out,receipt,pointer=fixture(Path(tmp))
+                if field == "pointer_id":
+                    pointer["player_palette"]["id"]="p1-provisional-v1"
+                elif field == "receipt_id":
+                    receipt["player_palette"]["id"]="p2-provisional-v1"
+                else:
+                    receipt["player_palette"]["owner_material_approved"]=True
+                file=out/pointer["receipt_path"]
+                write_json(file,receipt)
+                pointer["receipt_sha256"]=mod.sha256(file.read_bytes())
+                write_json(out/"articulated_blockout_current.json",pointer)
+                with self.subTest(field=field), patch.object(
+                        mod,"validate_glb_roundtrip") as forbidden:
+                    with self.assertRaisesRegex(ValueError,"palette"):
+                        mod.validate_one(source,out,"stunt_cycle",.5)
+                    forbidden.assert_not_called()
 
     def test_stale_attempt_never_reuses_prior_success(self):
         with tempfile.TemporaryDirectory() as tmp:

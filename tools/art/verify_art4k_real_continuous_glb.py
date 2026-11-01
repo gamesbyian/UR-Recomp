@@ -18,9 +18,11 @@ import tempfile
 try:
     from tools.art.continuous_pose_recipe import continuous_pose_recipe
     from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
+    from tools.art.export_articulated_unicycle import PLAYER_PALETTES
 except ModuleNotFoundError:
     from continuous_pose_recipe import continuous_pose_recipe
     from glb_roundtrip_guard import validate_glb_roundtrip
+    from export_articulated_unicycle import PLAYER_PALETTES
 
 SCHEMA = "UR-ART4K-REAL-CONTINUOUS-SOURCE-GLB-RECEIPT/1"
 POSES = ("ride", "stunt_cycle")
@@ -70,9 +72,12 @@ def _same_number(actual, expected, label: str) -> None:
         raise ValueError("actual source-continuous control diverges: " + label)
 
 
-def validate_one(source_path: Path, out_dir: Path, pose: str, time: float) -> dict:
+def validate_one(source_path: Path, out_dir: Path, pose: str, time: float,
+                 player_palette: str = "source") -> dict:
     if pose not in POSES or type(time) not in (int, float) or not math.isfinite(time) or not 0 <= time <= 1:
         raise ValueError("unsupported original authoring pose/time sample")
+    if not isinstance(player_palette, str) or player_palette not in PLAYER_PALETTES:
+        raise ValueError("unsupported source-owned player palette")
     source_bytes = source_path.read_bytes()
     source = source_bytes.decode("utf-8")
     expected_pedal, expected_lean, expected_matrix, expected_meta = (
@@ -112,6 +117,21 @@ def validate_one(source_path: Path, out_dir: Path, pose: str, time: float) -> di
             or receipt.get("shipping_art_approved") is not False
             or receipt.get("animation_cadence_source_registered") is not False):
         raise ValueError("source model receipt claims unverified 1994 art or wrong export")
+    # The exporter now supports provisional P1/P2 material selection. An
+    # immutable GLB's colours can be internally consistent while its palette
+    # identity is forged in the mutable current pointer or the receipt.
+    # Bind both to the caller's expected versioned palette before loading GLB.
+    _, rgba = PLAYER_PALETTES[player_palette]
+    expected_palette = {
+        "schema_version": 1,
+        "id": player_palette,
+        "override_rgba": list(rgba) if rgba else None,
+        "original_raster_color_registered": False,
+        "owner_material_approved": False,
+    }
+    if (pointer.get("player_palette") != expected_palette
+            or receipt.get("player_palette") != expected_palette):
+        raise ValueError("source-bound player palette receipt/pointer mismatch")
     controls = receipt.get("pose_controls")
     meta = receipt.get("continuous_pose")
     if not isinstance(controls, dict) or not isinstance(meta, dict):
@@ -152,6 +172,7 @@ def validate_one(source_path: Path, out_dir: Path, pose: str, time: float) -> di
         "model_source_sha256": sha256(source_bytes),
         "rig_pose": pose,
         "rig_time": time,
+        "player_palette": expected_palette,
         "immutable_attempt_id": last["attempt_id"],
         "GLB_sha256": sha256(glb_bytes),
         "GLB_receipt_sha256": sha256(receipt_bytes),
@@ -172,9 +193,13 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--pose", choices=POSES, required=True)
     parser.add_argument("--time", type=float, required=True)
+    parser.add_argument("--player-palette", choices=tuple(PLAYER_PALETTES),
+                        default="source",
+                        help="expected versioned provisional palette; not original colour approval")
     parser.add_argument("--receipt", type=Path, required=True)
     args = parser.parse_args()
-    payload = validate_one(args.source, args.output_dir, args.pose, args.time)
+    payload = validate_one(args.source, args.output_dir, args.pose, args.time,
+                           player_palette=args.player_palette)
     publish_receipt_no_replace(args.receipt, payload)
     print(json.dumps(payload, sort_keys=True, indent=2))
 

@@ -29,6 +29,9 @@ except ModuleNotFoundError:
     from no_replace_report import publish_text_once
 
 SCHEMA = "UR-ART4K-AUTHENTIC-CHROMATIC-BODY-AXES/1"
+EVIDENCE_SCHEMA = "UR-ART4K-REAL-HOSTED-CHROMATIC-AXIS-EVIDENCE/1"
+EXPECTED_SOURCE = (Path(__file__).resolve().parents[2] /
+                   "analysis/data/racer-art4k-hosted-chromatic-axes-20261101.json")
 CORPUS_SCHEMA = "UR-RACER-ROM-COMPOSED-SOURCE-CORPUS/1"
 PNG = re.compile(r"stock/source-[0-9a-f]{64}\.png\Z")
 SHA = re.compile(r"[0-9a-f]{64}\Z")
@@ -172,8 +175,22 @@ def temporal_source_axes(observations, rows) -> dict:
     return result
 
 
-def audit(artifact: Path) -> dict:
+def verify_pinned_source_bytes(source: dict, archive_sha: str,
+                               corpus_sha: str, frozen_sha: str) -> None:
+    """Require independently published exact source evidence, not self-declared SHA."""
+    if not isinstance(source, dict) or source.get("schema") != EVIDENCE_SCHEMA:
+        raise ValueError("missing trusted original source evidence contract")
+    for measured, key in (
+            (archive_sha, "source_artifact_zip_sha256"),
+            (corpus_sha, "original_source_manifest_sha256"),
+            (frozen_sha, "frozen_source_split_sha256")):
+        if source.get(key) != measured:
+            raise ValueError("original source bytes differ from pinned GitHub evidence")
+
+
+def audit(artifact: Path, evidence_path: Path = EXPECTED_SOURCE) -> dict:
     raw_zip = artifact.read_bytes()
+    reference = json.loads(evidence_path.read_text(encoding="utf-8"))
     with ZipFile(artifact) as archive:
         names = archive.namelist()
         if len(names) != len(set(names)) or any(
@@ -183,6 +200,10 @@ def audit(artifact: Path) -> dict:
         corpus_bytes = archive.read("source-corpus.json")
         frozen_bytes = archive.read("frozen-first-family-holdout.json")
         corpus, frozen = json.loads(corpus_bytes), json.loads(frozen_bytes)
+        verify_pinned_source_bytes(
+            reference, hashlib.sha256(raw_zip).hexdigest(),
+            hashlib.sha256(corpus_bytes).hexdigest(),
+            hashlib.sha256(frozen_bytes).hexdigest())
         if (corpus.get("schema") != CORPUS_SCHEMA or
                 corpus.get("source_rom_sha256") != CANONICAL_ROM_SHA or
                 corpus.get("source_rom_verified_and_used_for_composition") is not True or
@@ -316,9 +337,11 @@ def audit(artifact: Path) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source_artifact_zip", type=Path)
+    parser.add_argument("--evidence", type=Path, default=EXPECTED_SOURCE,
+                        help="committed exact original ZIP/corpus/split source SHA contract")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
-    content = json.dumps(audit(args.source_artifact_zip),
+    content = json.dumps(audit(args.source_artifact_zip, args.evidence),
                          sort_keys=True, indent=2) + "\n"
     if args.out:
         publish_text_once(args.out, content)

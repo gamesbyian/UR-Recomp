@@ -39,7 +39,14 @@ def select_roles(diagnostics: dict) -> dict:
     connected = diagnostics.get("connected_window_components")
     if not isinstance(connected, list) or not connected:
         raise ValueError("no authenticated source components")
+    sha_fields = ("corpus_manifest_sha256", "split_request_sha256")
+    if any(not isinstance(diagnostics.get(field), str) or
+           len(diagnostics[field]) != 64 or
+           any(c not in "0123456789abcdef" for c in diagnostics[field])
+           for field in sha_fields):
+        raise ValueError("source split diagnostic is missing its immutable input SHA")
     roles = {}
+    observed_masks = set()
     first_components = 0
     heldout_components = 0
     for component in connected:
@@ -53,6 +60,12 @@ def select_roles(diagnostics: dict) -> dict:
                 len(masks) != len(set(masks)) or
                 component.get("unique_source_binary_silhouette_count") != len(masks)):
             raise ValueError("malformed independent original-source component")
+        for mask in masks:
+            if (not isinstance(mask, str) or len(mask) != 64 or
+                    any(c not in "0123456789abcdef" for c in mask) or
+                    mask in observed_masks):
+                raise ValueError("invalid or leaking original binary source mask")
+            observed_masks.add(mask)
         is_first = FIRST in windows
         first_components += int(is_first)
         heldout_components += int(not is_first)
@@ -61,6 +74,7 @@ def select_roles(diagnostics: dict) -> dict:
                 raise ValueError("duplicate or invalid original source window")
             roles[window] = "fit" if is_first else "withheld_candidate"
     if (first_components != 1 or heldout_components < 1 or
+            diagnostics.get("verified_distinct_original_binary_silhouettes") != len(observed_masks) or
             diagnostics.get("total_source_windows") != len(roles) or
             diagnostics.get("role_summary", {}).get("diagnostic", {}).get("window_count") != len(roles) or
             diagnostics.get("role_summary", {}).get("fit", {}).get("window_count") != 0 or

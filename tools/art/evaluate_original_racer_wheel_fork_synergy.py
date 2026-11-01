@@ -103,6 +103,22 @@ def summarizes(scores:dict[str,dict],partition:dict)->dict:
         per[BOTH]["mean_IoU_delta_vs_wheel_only"]=round(
             sum(scores[h][BOTH]["mask_iou"]-scores[h][WHEEL]["mask_iou"]
                 for h in names)/len(names),8)
+        # A crossed experiment needs the signed factorial interaction, not
+        # merely the improvement of BOTH over WHEEL. Subadditive combinations
+        # may still have the highest absolute overlap.
+        factorial = [
+            scores[h][BOTH]["mask_iou"] - scores[h][WHEEL]["mask_iou"]
+            - scores[h][FORK]["mask_iou"] + scores[h][FIRST]["mask_iou"]
+            for h in names
+        ]
+        epsilon = 1e-12  # Float-roundoff zero, not a visual significance band.
+        per[BOTH]["factorial_IoU_interaction"] = {
+            "definition": "both - wheel_only - fork_only + unchanged",
+            "mean": round(sum(factorial) / len(factorial), 8),
+            "positive_mask_count": sum(x > epsilon for x in factorial),
+            "negative_mask_count": sum(x < -epsilon for x in factorial),
+            "zero_mask_count": sum(abs(x) <= epsilon for x in factorial),
+        }
         return {"independent_original_binary_mask_count":len(names),
                 "source_original_shapes_have_equal_one_vote_each":True,
                 "candidates":per}

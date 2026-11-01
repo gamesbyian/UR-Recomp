@@ -66,5 +66,20 @@
     "owner_character_likeness_approved": false,
     "shipping_art_approved": false
   },
-  "recommendation": "Combined 1.4 fork and 1.10 wheel is a strong opt-in visual A/B candidate. It improves whole alpha IoU on all 19 SHA-disjoint original 2D holdout masks compared with wheel-only, but slightly worsens physical-pixel boundary Chamfer vs wheel-only. Keep current source rig/default unchanged; inspect original-scale silhouette, edges, contact and high-detail character likeness before any art approval."
+  "recommendation": "Combined 1.4 fork and 1.10 wheel has highest absolute IoU on the 19 SHA-disjoint original 2D masks, but its signed factorial interaction is negative on all 35 masks, and physical-pixel boundary Chamfer slightly worsens versus wheel-only. Keep source rig/default unchanged; use optional A/B and independently inspect original-scale silhouette, edges, contact and likeness before any art approval.",
+  "independent_posthoc_factorial_contrast_from_retained_report": {
+    "formula": "both - wheel_only - fork_only + unchanged",
+    "source": "independent per-mask re-evaluation of original 35-mask report; historical report hash above remains unchanged",
+    "source_disconnected_19": {
+      "mean_iou_interaction": -0.00047794,
+      "positive_mask_count": 0,
+      "negative_mask_count": 19
+    },
+    "all_known_35": {
+      "mean_iou_interaction": -0.00047105,
+      "positive_mask_count": 0,
+      "negative_mask_count": 35
+    },
+    "conclusion": "highest absolute IoU but subadditive crossed effects; no positive synergy or art acceptance"
+  }
 }

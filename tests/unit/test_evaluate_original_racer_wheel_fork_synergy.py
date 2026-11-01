@@ -51,8 +51,34 @@ class CrossedSourceShapeTests(unittest.TestCase):
         self.assertEqual(combo["losses_vs_wheel_only"],0)
         self.assertEqual(combo["mean_IoU_delta_vs_wheel_only"],.01)
         self.assertEqual(combo["mean_IoU_delta_vs_unmodified"],.05)
+        self.assertEqual(combo["factorial_IoU_interaction"],{
+            "definition": "both - wheel_only - fork_only + unchanged",
+            "mean": 0.0,
+            "positive_mask_count": 0,
+            "negative_mask_count": 0,
+            "zero_mask_count": 19,
+        })
         self.assertEqual(result["source_first_fit_connected_component"]["independent_original_binary_mask_count"],16)
         self.assertTrue(result["withheld_source_masks_are_not_proven_independent_1994_3D_views"])
+
+    def test_factorial_interaction_can_be_subadditive_despite_both_winning(self):
+        rows,split=data()
+        for h in split["withheld_binary_shas"]:
+            rows[h][module.BOTH]["mask_iou"] -= .02
+        for h in split["fit_binary_shas"]:
+            rows[h][module.BOTH]["mask_iou"] += .03
+        result=module.summarizes(rows,split)
+        held=result["previously_SHA_disconnected_original_2D_mask_family"]
+        combo=held["candidates"][module.BOTH]
+        self.assertEqual(combo["wins_vs_wheel_only"],19)
+        self.assertEqual(combo["factorial_IoU_interaction"]["mean"],-.02)
+        self.assertEqual(combo["factorial_IoU_interaction"]["negative_mask_count"],19)
+        self.assertEqual(combo["factorial_IoU_interaction"]["positive_mask_count"],0)
+        self.assertEqual(combo["factorial_IoU_interaction"]["zero_mask_count"],0)
+        all_masks=result["entire_known_original_2D_shape_set"]["candidates"][module.BOTH]
+        self.assertEqual(all_masks["factorial_IoU_interaction"]["positive_mask_count"],16)
+        self.assertEqual(all_masks["factorial_IoU_interaction"]["negative_mask_count"],19)
+        self.assertEqual(all_masks["factorial_IoU_interaction"]["zero_mask_count"],0)
 
     def test_invalid_source_partitions_and_missing_components_refused(self):
         rows,part=data()

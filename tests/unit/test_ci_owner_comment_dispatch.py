@@ -253,10 +253,18 @@ class OwnerCommentDispatchTests(unittest.TestCase):
     def test_hp_science_comments_serialize_across_distinct_prs(self):
         """One global HP dispatch lock, preserving per-PR exact-head CI."""
         wf = Path(".github/workflows/owner-comment-ci-dispatch.yml").read_text()
-        self.assertIn(
-            "group: ${{ startsWith(github.event.comment.body, '/ur-ci hp-research') "
-            "&& 'owner-comment-hp-research' || "
-            "format('owner-comment-dispatch-{0}', github.event.issue.number) }}", wf)
+        self.assertEqual(wf.count("  group: >-"), 1)
+        group = wf.split("  group: >-", 1)[1].split("  cancel-in-progress:", 1)[0]
+        for clause in (
+            "github.event.issue.pull_request &&",
+            "github.event.comment.user.login == github.repository_owner &&",
+            "github.event.comment.author_association == 'OWNER' &&",
+            "startsWith(github.event.comment.body, '/ur-ci hp-research') &&",
+            "'owner-comment-hp-research' ||",
+            "format('owner-comment-dispatch-{0}', github.event.issue.number) }}",
+        ):
+            with self.subTest(clause=clause):
+                self.assertIn(clause, group)
         self.assertIn("cancel-in-progress: false", wf)
         # The run-census check must remain inside the serialized job, not only
         # in a separate comment handler that could race across PR numbers.

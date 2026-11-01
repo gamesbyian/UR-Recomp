@@ -76,7 +76,7 @@ def stage(exports, site, source_commit):
         if (target.is_symlink() or not target.is_dir() or
                 not {"index.html", "manifest.json"}.issubset({p.name for p in target.iterdir()}) or
                 not {p.name for p in target.iterdir()}.issubset(
-                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "sprites", "sprites.json"}) or
+                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "sprites", "sprites.json"}) or
                 not manifest_path.is_file() or manifest_path.is_symlink() or
                 json.loads(manifest_path.read_text()).get("model_url") is not None):
             raise ValueError("refusing to replace a non-placeholder model-review site")
@@ -95,6 +95,7 @@ def stage(exports, site, source_commit):
         shutil.copy2(here / "index.html", work / "index.html")
         shutil.copy2(here / "measurement_overlay.mjs", work / "measurement_overlay.mjs")
         shutil.copy2(here / "wheel_hypothesis.mjs", work / "wheel_hypothesis.mjs")
+        shutil.copy2(here / "root_lean_hypothesis.mjs", work / "root_lean_hypothesis.mjs")
         if target.exists() and (target / "sprites.json").is_file():
             source_dir = target / "sprites"
             if (source_dir.is_symlink() or not source_dir.is_dir() or

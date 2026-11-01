@@ -94,7 +94,8 @@ class ModelReviewMeasurementSidecarTests(unittest.TestCase):
     def test_exact_verified_data_produces_readonly_sidecar(self):
         data = self.build()
         self.assertEqual(data["schema"], SCHEMA)
-        self.assertEqual(data["source_poses_count"], 10)
+        self.assertEqual(data["distinct_original_source_binary_silhouette_count"], 10)
+        self.assertEqual(data["experimental_glb_pose_count"], 5)
         self.assertEqual(data["original_frame_observations"], 32)
         self.assertEqual(len(data["source_shape_measurements"]), 10)
         self.assertFalse(data["source_to_experimental_model_pose_mapping_verified"])

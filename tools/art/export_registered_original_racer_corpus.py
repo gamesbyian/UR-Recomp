@@ -129,7 +129,7 @@ def collect(registry: dict, render, selected_windows: list[str] | None = None) -
         "unique_representations": len(representations),
         "unique_rgba_images": len(assets),
         "unique_binary_silhouettes": len(families),
-        "source_rom_verified_and_used_for_composition": True,
+        "source_rom_verified_and_used_for_composition": False,
         "native_live_original_PPU_or_1994_3d_camera_independently_verified": False,
         "source_3d_geometry_recovered": False,
         "original_sprite_pixels_publicly_distributable": False,
@@ -176,6 +176,7 @@ def export(rom_path: Path, registry_path: Path, out: Path,
     manifest, assets = collect(registry, lambda entry: build_stock_rgba(raw_rom, entry),
                                selected_windows)
     verify_retained_first_family(manifest)
+    manifest["source_rom_verified_and_used_for_composition"] = True
     manifest["source_registry_sha256"] = sha(raw_registry)
     out.parent.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=".ur-racer-rom-source-", dir=out.parent))

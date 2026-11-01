@@ -54,6 +54,38 @@ class SourceChromaticAxisTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             mod.pixel_masks(frame("p1"), "wrong")
 
+    def test_shared_alpha_masks_keep_p1_and_p2_body_axes_separate(self):
+        mask = "a"*64
+        rows = [
+            {"player": "p1", "role": "fit",
+             "source_binary_mask_sha256": mask,
+             "source_chromatic_mask_sha256": "b"*64,
+             "source_external_row_envelope_sha256": "e"*64,
+             "screen_axis_angle_from_down_y_degrees": 40.0},
+            {"player": "p2", "role": "fit",
+             "source_binary_mask_sha256": mask,
+             "source_chromatic_mask_sha256": "c"*64,
+             "source_external_row_envelope_sha256": "e"*64,
+             "screen_axis_angle_from_down_y_degrees": -40.0},
+        ]
+        groups, summary, _ = mod.summarize_source_axes(rows, {mask: "fit"})
+        self.assertEqual(summary["fit"]["independent_original_binary_masks"], 1)
+        self.assertEqual(summary["fit"]["per_player"]["p1"]["shape_count"], 1)
+        self.assertEqual(summary["fit"]["per_player"]["p2"]["shape_count"], 1)
+        self.assertEqual(
+            summary["fit"]["per_player"]["p1"]
+                   ["equal_source_binary_shape_mean_axis_degrees"], 40.0)
+        self.assertEqual(
+            summary["fit"]["per_player"]["p2"]
+                   ["equal_source_binary_shape_mean_axis_degrees"], -40.0)
+        self.assertEqual(groups[0]["original_chromatic_shape_variants"], 2)
+        with self.assertRaises(ValueError):
+            mod.summarize_source_axes(rows, {mask: "withheld_candidate"})
+
+    def test_isotropic_pca_axis_is_undefined(self):
+        with self.assertRaisesRegex(ValueError, "isotropic"):
+            mod.principal_axis([(0, 1), (1, 0), (2, 1), (1, 2)])
+
     def test_no_fake_axis_from_degenerate_or_tampered_coordinates(self):
         for points in ([(1,1),(1,1),(1,1)],[(1,1),(float("inf"),2),(3,3)],[(1,1)]):
             with self.subTest(points=points), self.assertRaises(ValueError):

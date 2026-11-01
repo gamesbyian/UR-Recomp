@@ -118,8 +118,12 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
             "tests/native/run_modern_results_navigation_acceptance.sh",
         ):
             with self.subTest(source=path):
-                self.assertIn(path, router_paths)
-                self.assertIn(path, shared_paths)
+                self.assertTrue(
+                    any(classifier.path_matches(path, rule)
+                        for rule in router_paths))
+                self.assertTrue(
+                    any(classifier.path_matches(path, rule)
+                        for rule in shared_paths))
                 self.assertTrue(classifier.classify_paths([path])["shared"])
 
     def test_shared_negative_assertion_helper_selects_actual_onboarding_consumer(self):

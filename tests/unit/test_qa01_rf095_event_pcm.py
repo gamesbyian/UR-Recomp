@@ -315,5 +315,30 @@ class RF095Tests(unittest.TestCase):
             self.assertFalse(absent.exists())
             self.assertEqual([path.read_bytes() for path in files], before)
 
+    def test_receipt_destination_preflight_precedes_pcm_window_publication(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d)
+            blocker = root / 'blocked-parent'
+            blocker.write_text('SENTINEL')
+            window = root / 'original-window.pcm'
+            names = ('original-wav', 'original-map', 'native-pcm',
+                     'native-map', 'original-log', 'native-log')
+            argv = ['qa01_rf095_pcm_receipt.py']
+            for index, name in enumerate(names):
+                argv.extend(('--' + name, str(root / f'input-{index}')))
+            argv.extend(('--out', str(blocker / 'receipt.json'),
+                         '--original-window-out', str(window)))
+            with mock.patch('sys.argv', argv), mock.patch.object(
+                    receipt, 'analyze') as analyze:
+                with self.assertRaises(OSError):
+                    receipt.main()
+                analyze.assert_not_called()
+            self.assertFalse(window.exists())
+            self.assertEqual(blocker.read_text(), 'SENTINEL')
+            good_parent = root / 'writable'
+            receipt.preflight_receipt_output(good_parent / 'receipt.json')
+            self.assertTrue(good_parent.is_dir())
+            self.assertEqual(list(good_parent.iterdir()), [])
+
 if __name__ == '__main__':
     unittest.main()

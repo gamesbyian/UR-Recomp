@@ -11,7 +11,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import struct
+import tempfile
 import wave
 from pathlib import Path
 
@@ -201,6 +203,19 @@ def validate_output_paths(inputs: tuple[Path, ...], out: Path,
         raise ValueError('RF095 refusing stale receipt output')
 
 
+def preflight_receipt_output(out: Path) -> None:
+    """Check receipt-directory writeability before publishing original PCM.
+
+    This catches deterministic parent and write failures; it is not a
+    two-file atomic transaction or a substitute for validating both outputs.
+    """
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(prefix='.rf095-preflight-', dir=out.parent) as probe:
+        probe.write(b'RF095 receipt preflight\\n')
+        probe.flush()
+        os.fsync(probe.fileno())
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     for name in ('original_wav', 'original_map', 'native_pcm', 'native_map',
@@ -213,6 +228,7 @@ def main() -> None:
                    ('original_wav', 'original_map', 'native_pcm', 'native_map',
                     'original_log', 'native_log'))
     validate_output_paths(inputs, args.out, args.original_window_out)
+    preflight_receipt_output(args.out)
     receipt = analyze(*(getattr(args, name) for name in
                         ('original_wav', 'original_map', 'native_pcm', 'native_map',
                          'original_log', 'native_log')),

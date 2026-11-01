@@ -1,0 +1,267 @@
+{
+  "schema": "UR-RACER-REAL-GLB-SOURCE-REGISTERED-ANCHOR-SIMILARITY/1",
+  "date_utc": "2026-11-01",
+  "previous_fixed_witness_report": "analysis/data/racer-unpaired-real-glb-pose-matrix-20261101.json",
+  "model_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "original_first_family": {
+    "first_frame": 1205,
+    "last_frame": 1220,
+    "player_observations": 32,
+    "distinct_original_binary_silhouettes": 10,
+    "source_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+  },
+  "camera": {
+    "right_world": [
+      1,
+      0,
+      0
+    ],
+    "up_world": [
+      0,
+      0,
+      1
+    ],
+    "origin_world": [
+      0,
+      0,
+      0
+    ],
+    "vertical_source_pixels_per_model_unit": 9.5,
+    "source_physical_pixel_aspect": "7:6",
+    "source_witness_original_p1_frame1205_anchor_x2y2": [
+      67,
+      76
+    ],
+    "camera_status": "provisional"
+  },
+  "registered_2d_placement": {
+    "authority": "analysis/data/racer-hd-replacement-prototype.json entries[*].registration.semantic_anchors.wheel_contact_x2_y2",
+    "anchor_coordinate_system": "source 64x64 object-local logical pixels, 2x half-pixel fixed point",
+    "anchor_y2_all_first_family": 76,
+    "operation": "Translate 3D projected 4x binary mask by (source_registered_x2 - 67)/2 source-logical pixels, preserving camera axes, scale and model pose. Half-pixel parity is compatible for all first-family registered masks.",
+    "anchor_is_visible_bottom_alpha_midpoint_not_proven_physical_ground_contact": true,
+    "per_source_iou_maximization_or_auto_registration": false
+  },
+  "rows": [
+    {
+      "source_example_player_frame": "p1:1205",
+      "source_registered_contact_x2_y2": [
+        67,
+        76
+      ],
+      "source_binary_mask_sha256": "82b4155857009195897841b503bb93c7fa0cb99b28c768d10b51c9c966e25d01",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        0,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.5828877,
+        "pedal": 0.584,
+        "wheelie": 0.23760331,
+        "stunt": 0.16500994,
+        "bank": 0.60540541
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_example_player_frame": "p1:1207",
+      "source_registered_contact_x2_y2": [
+        69,
+        76
+      ],
+      "source_binary_mask_sha256": "60b6b81ab1e34fd7aadb5925d845526942537d52877a3954bf0c381257b9da8e",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        1,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.49618321,
+        "pedal": 0.49746193,
+        "wheelie": 0.24737945,
+        "stunt": 0.14341847,
+        "bank": 0.52061856
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_example_player_frame": "p1:1215",
+      "source_registered_contact_x2_y2": [
+        65,
+        76
+      ],
+      "source_binary_mask_sha256": "2f8b18390026809d7f7b7667b2d1c4f3e85e76aa7a9cac99f100bb23931bfbfa",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -1,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.6545961,
+        "pedal": 0.65555556,
+        "wheelie": 0.21414141,
+        "stunt": 0.2073922,
+        "bank": 0.6741573
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_example_player_frame": "p1:1217",
+      "source_registered_contact_x2_y2": [
+        63,
+        76
+      ],
+      "source_binary_mask_sha256": "29116a98624302652f774e8bab44e62c5a82b71aa48957db181feba1eeec4d40",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -2,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.63114754,
+        "pedal": 0.62771739,
+        "wheelie": 0.20558882,
+        "stunt": 0.21355236,
+        "bank": 0.61891892
+      },
+      "highest_unpaired_iou_pose": "upright"
+    },
+    {
+      "source_example_player_frame": "p1:1219",
+      "source_registered_contact_x2_y2": [
+        61,
+        76
+      ],
+      "source_binary_mask_sha256": "ea9a96054948fc6a2071d63f23461d62eb716464ea67385a7aa51cb8e1effec7",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -3,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.57142857,
+        "pedal": 0.55613577,
+        "wheelie": 0.19721116,
+        "stunt": 0.2,
+        "bank": 0.56020942
+      },
+      "highest_unpaired_iou_pose": "upright"
+    },
+    {
+      "source_example_player_frame": "p1:1220",
+      "source_registered_contact_x2_y2": [
+        61,
+        76
+      ],
+      "source_binary_mask_sha256": "fe6744f8d9462a0326a9b81fb8eff1a8fce906907daa12fadcd7205558376e2a",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -3,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.5802139,
+        "pedal": 0.5646438,
+        "wheelie": 0.19839679,
+        "stunt": 0.20123203,
+        "bank": 0.5729443
+      },
+      "highest_unpaired_iou_pose": "upright"
+    },
+    {
+      "source_example_player_frame": "p2:1205",
+      "source_registered_contact_x2_y2": [
+        57,
+        76
+      ],
+      "source_binary_mask_sha256": "a599de387ce36d696313d34f3ced7eec3d4f6f43a338e8bd021005deadb715b0",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -5,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.47607053,
+        "pedal": 0.45905707,
+        "wheelie": 0.18837675,
+        "stunt": 0.24197002,
+        "bank": 0.48110831
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_example_player_frame": "p2:1215",
+      "source_registered_contact_x2_y2": [
+        59,
+        76
+      ],
+      "source_binary_mask_sha256": "312bf146d502f63ef7045b6dc15768c42c2ac61923929193aa01571945aa97c2",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -4,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.5218509,
+        "pedal": 0.51918159,
+        "wheelie": 0.18849206,
+        "stunt": 0.21829522,
+        "bank": 0.52699229
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_example_player_frame": "p2:1218",
+      "source_registered_contact_x2_y2": [
+        61,
+        76
+      ],
+      "source_binary_mask_sha256": "d5e6da925b33b41576a05217d8c7a56a9a42b57ea98fe7ec78dbf65642c0b1d5",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -3,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.57681941,
+        "pedal": 0.56117021,
+        "wheelie": 0.19838057,
+        "stunt": 0.19875776,
+        "bank": 0.56117021
+      },
+      "highest_unpaired_iou_pose": "upright"
+    },
+    {
+      "source_example_player_frame": "p2:1219",
+      "source_registered_contact_x2_y2": [
+        63,
+        76
+      ],
+      "source_binary_mask_sha256": "c531aeae39f777e7fbcf3043f5f5ff6e60ba4a1d0f21af84c639ae09e275af2d",
+      "registered_2d_shift_from_p1_1205_logical_xy": [
+        -2,
+        0
+      ],
+      "unpaired_iou_by_2026_glb_pose": {
+        "upright": 0.63434903,
+        "pedal": 0.63085399,
+        "wheelie": 0.20850202,
+        "stunt": 0.21666667,
+        "bank": 0.62191781
+      },
+      "highest_unpaired_iou_pose": "upright"
+    }
+  ],
+  "equal_unique_original_shape_weight_mean_iou": {
+    "upright": 0.57255469,
+    "pedal": 0.56557773,
+    "wheelie": 0.20840723,
+    "stunt": 0.20062947,
+    "bank": 0.57434425
+  },
+  "unpaired_shape_winners_by_2026_pose": {
+    "upright": 5,
+    "pedal": 0,
+    "wheelie": 0,
+    "stunt": 0,
+    "bank": 5
+  },
+  "original_source_to_3d_pose_mapping_verified": false,
+  "source_1994_physical_camera_recovered": false,
+  "heldout_animation_family_tested": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false,
+  "finding": "Source-registered 2D placement changes 9.5-scale winner balance from bank 10/10 to bank 5/10, upright 5/10, and increases their equal source-shape mean IoUs from 0.50781314/0.48114718 (fixed P1 anchor) to 0.57434425/0.57255469 (registered anchor). This is a source-coordinate correction, not proof of improved 3D geometry or pose correspondence."
+}

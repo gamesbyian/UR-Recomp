@@ -71,6 +71,26 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertIn('wall_seconds if wall_seconds is not None else minutes * 60', source)
         self.assertIn('run.add_argument("--wall-seconds", type=int, default=None', source)
 
+    def test_research_document_follows_actual_cron_and_worker_population(self):
+        # A previously merged eight-worker/hourly change left the operator
+        # contract claiming four workers and a three-hour schedule. Keep
+        # the human-readable source of truth coupled to actual implementation.
+        contract = (ROOT / "docs/HP-UNATTENDED-2P-RESEARCH.md").read_text(
+            encoding="utf-8")
+        lines = [line.strip() for line in SCHEDULE.read_text(
+            encoding="utf-8").splitlines() if line.strip().startswith("- cron:")]
+        self.assertEqual(len(lines), 1)
+        cron = lines[0].split("'", 2)[1]
+        self.assertIn("`" + cron + "`", contract)
+        self.assertEqual(hp.WORKERS, 8)
+        self.assertIn("**eight independent source-owned QA02 native 2P cohorts**",
+                      contract)
+        self.assertIn("all eight upstream source-owned signed receipts",
+                      contract)
+        self.assertNotIn("`17 */3 * * *`", contract)
+        self.assertNotIn("four cohorts execute concurrently", contract.lower())
+        self.assertIn("**not** an eight-worker throughput receipt", contract)
+
     def test_schedule_uses_only_trusted_hp_main_and_no_new_compiler(self):
         s = SCHEDULE.read_text()
         win = WIN.read_text()

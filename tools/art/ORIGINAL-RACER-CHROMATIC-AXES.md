@@ -38,3 +38,27 @@ Download the actual complete 7-day hosted source artifact above (ZIP SHA-256 `21
 The auditor validates original declared ROM hash, source corpus manifest SHA and frozen roles, all 59 original represented PNG-byte/decoded RGBA/binary source identities and each original source alpha mask; it outputs only SHA-bound metadata and cross-role chromatic mask overlaps, not original sprite pixels. The optional immutable report uses the existing no-replace publisher and does not alter the source corpus. Source data and model/viewer assets remain separate.
 
 Machine-readable prior real result: [original hosted colour-axis evidence](../../analysis/data/racer-art4k-hosted-chromatic-axes-20261101.json). This report is reproducible but does **not** independently identify the original physical 3D camera, actual source rig pivot, continuous source animation, or acceptable HD character art. It leaves #2832 as the **one unapproved canonical 3D rig** and #2938/#2957 as the **one source-review Pages viewer**.
+
+
+## Compare against the *real* five experimental 2026 GLB frame poses
+
+There is also one source-aware **unpaired** 3D comparator, with the same provisional side camera already used for the silhouette audit. The optional tool `audit_real_glb_coloured_frame_axes.py` validates the existing **single** model-review site (five complete GLB SHA plus original sprite rail), then reads the actual named blue `fork_and_frame__material_0` child of each pose, checks its unchanged original 2026 material RGB (28,89,222), bakes its parent world transform and rasterizes the triangles with the **existing 4× fixed-camera renderer**. The PCA is measured in *exactly the same* 64×64 source-pixel axes as the authentic original chromatic region, but **original rendered colour pixels are not a verified semantic 3D fork segment**.
+
+| Real 2026 experimental GLB pose | Screen-space colour-frame axis |
+| --- | ---: |
+| Upright | **+5.952°** |
+| Pedal | **+5.952°** |
+| Wheelie | **+30.637°** |
+| Stunt | **−39.497°** |
+| Bank | **+7.124°** |
+| Original 1994 withheld P1, unpaired reference | **+39.809°** |
+
+The original P1 heldout screen axis is about **9.17° away from the 2026 wheelie blue frame projected axis** *under this provisional camera*. This is a falsifiable source-to-render diagnostic; it is **not** evidence that the original scene was the wheelie state, that the physical original wheelie root pitch was 40° or that increasing a 2026 GLB node rotation by 9.17° would recover authentic movement. The model's remaining tire/saddle silhouettes, camera/depth foreshortening, original figure bending, material masks and source cadence must be compared simultaneously. Do not fit against the withheld family and then count it as a holdout.
+
+Run against an already-built, SHA-verified existing Pages model-review directory containing five real GLBs and original PNGs:
+
+    python3 tools/art/audit_real_glb_coloured_frame_axes.py --model-review-dir /path/to/existing/model-review
+    python3 tools/art/audit_real_glb_coloured_frame_axes.py --model-review-dir /path/to/existing/model-review --out /new/immutable/experimental-five-glb-axes.json
+    python3 -m unittest tests.unit.test_audit_real_glb_coloured_frame_axes
+
+Requires optional offline NumPy, Trimesh and Pillow already used by the existing deterministic GLB renderer; never requires OpenSCAD/Blender/ROM rerender or model editing. Source-authenticated original chromatic axis output is a **separate evidence class** from the 2026 material-part axis. See [actual five-GLB material-source SHA/axis pilot](../../analysis/data/racer-art4k-real-five-glb-frame-axis-20261101.json). Preserve the existing canonical #2832 rig and one Pages reviewer while iterating.

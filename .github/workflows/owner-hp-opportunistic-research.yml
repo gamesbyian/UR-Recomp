@@ -1,0 +1,63 @@
+name: HP opportunistic missed-cron science dispatch
+
+# Trusted default-branch main PUSH only. This is a cheap hosted control-plane
+# checkpoint after a real source merge, NOT another HP job or an hourly timer.
+# Reuses the reviewed owner HP local fallback census/source/priority guards;
+# it never executes PR code or a native game on this Ubuntu dispatcher.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  # A rapid sequence of merges cannot create parallel control-plane writers.
+  # GitHub coalesces pending runs; the live-main SHA guard rejects stale ones.
+  group: owner-hp-opportunistic-research-main
+  cancel-in-progress: false
+
+jobs:
+  maybe-dispatch:
+    if: >-
+      github.repository == 'gamesbyian/UR-Recomp' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Dispatch source-bound research only when its existing policy admits it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never execute a source-controlled dispatch policy from a stale
+          # main push, even though every historical main commit was trusted.
+          checked="$(git rev-parse HEAD)"
+          if [[ "$checked" != "$GITHUB_SHA" ]]; then
+            echo "UR_HP_OPPORTUNISTIC=checkout_mismatch_no_dispatch" >&2
+            exit 2
+          fi
+          # An API failure must fail closed; no shadowing with cached HEAD.
+          live="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ ! "$live" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "UR_HP_OPPORTUNISTIC=unknown_main_ref_no_dispatch" >&2
+            exit 2
+          fi
+          if [[ "$live" != "$checked" ]]; then
+            echo "UR_HP_OPPORTUNISTIC=stale_push_no_dispatch" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # Single existing fail-closed decision implementation: 90-minute
+          # science cooldown, both priority HP workflows, main HEAD twice,
+          # repeat census immediately before dispatch and failed-source stop.
+          # No alternative HP caller, native build or additional credentials.
+          python3 tools/ci/hp_research_fallback.py --once \
+            --state-dir "$RUNNER_TEMP/hp-opportunistic" \
+            | tee "$RUNNER_TEMP/hp-opportunistic-result.json"
+          cat "$RUNNER_TEMP/hp-opportunistic-result.json" >> "$GITHUB_STEP_SUMMARY"

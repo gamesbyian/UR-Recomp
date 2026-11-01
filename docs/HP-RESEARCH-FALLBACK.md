@@ -14,6 +14,32 @@ Each check uses `gh api` to read **the latest 30 runs for the specific research 
 
 This is **fallback dispatch**, not an additional fixed-volume research schedule. It cannot guarantee that a late GH cron trigger will not arrive immediately *after* the final census; that race remains bounded by GitHub's same-workflow queue/concurrency group. Nor can it atomically pin `workflow_dispatch ref=main` against a branch update after the final ref read; the resulting Actions run's own `head_sha` and audited executable, not the pre-dispatch local receipt, establish the source that actually executed. The 90-minute gap deliberately favors a genuine delayed schedule and priority HP builds over maximal CPU duty cycle. It also intentionally does not autonomously recover a persistent same-source science failure or claim release credit. An hourly agent may separately inspect a stopped run and fix the root cause.
 
+## Optional GHA trusted-main opportunistic fallback
+
+The [main-push opportunistic dispatcher](../.github/workflows/owner-hp-opportunistic-research.yml)
+provides a separate, lightweight *hosted Ubuntu control-plane check* after a
+new trusted `main` commit. It uses GitHub's short-lived `GITHUB_TOKEN`
+(`actions: write`, `contents: read`), never reaches the HP runner itself,
+refuses a stale checked-out main SHA, and invokes this **same** reviewed
+`hp_research_fallback.py` decision implementation with the existing 90-minute
+cooldown, active-priority-build guard, main-ref recheck, failure lockout and
+second complete research/priority run census. Its only mutation is requesting
+one existing `workflow_dispatch(ref=main)` when all those guards pass.
+The default science horizon remains **360 seconds**. The source that actually
+executes is established by the eventual Actions run and executable receipt.
+
+This mechanism does **not** guarantee an hourly dispatch: it only evaluates
+when `main` gets a qualifying push and GitHub delivers that event. It consumes
+one short hosted control-plane job per accepted main push. Pending jobs are
+serialized/coalesced by their own concurrency group, and a newer main head
+supersedes older checks; failures should remain visible, not retried blindly.
+The original GitHub cron and owner-installed Windows Task Scheduler fallback
+remain supported, and a late cron or a simultaneous local check can still race
+between last census and POST. The research workflow's own concurrency
+serializes that rare case; evaluate observed duplicate requests rather than
+claiming cross-system atomic scheduling. No change to the five hourly agents
+or any release/physical/original acceptance rule.
+
 ## Evidence and acceptance
 
 Read `%LOCALAPPDATA%\UR-Recomp\HPResearchFallback\last-status.json` for an exact source SHA, latest run ID and whether the check actually dispatched. The script never emits raw CLI errors or credentials. Run `py -3 hp_research_fallback.py --dry-run` for a non-dispatch census, using the script from the installed directory. Exit code 2 fails closed and writes a bounded status when persistence is available. The script runs no game code itself; after GitHub completes, **audit the resulting Windows artifact** with `python -m tools.hp_science_archive_audit` and separately fetched run API JSON. A successful CLI API dispatch is *not* a successful run, and neither counts as original/native parity or release acceptance.

@@ -46,6 +46,30 @@ def validate_output_separation(wav_path: Path, json_path: Path) -> None:
         raise ValueError("WAV and JSON output paths must be distinct")
 
 
+def prepare_receipt_destination(json_path: Path) -> None:
+    """Preflight receipt storage before a costly native WAV can be published.
+
+    This detects missing/unwritable parents early. It is NOT a transaction
+    spanning two final pathnames: a crash or later I/O failure can still leave
+    a WAV without a valid receipt. Consumers must require both and verify the
+    receipt's WAV digest before accepting evidence.
+    """
+    if not json_path.is_absolute():
+        raise ValueError("receipt output path must be absolute")
+    if json_path.exists() or json_path.is_symlink():
+        raise ValueError("refusing to overwrite existing evidence JSON")
+    parent = json_path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    if parent.is_symlink() or not parent.is_dir():
+        raise ValueError("receipt parent must be a real directory")
+    # Exercise actual create/write/fsync on the receipt volume before the
+    # debug-server WAV request. A temp probe does not reserve the final path.
+    with tempfile.TemporaryFile(dir=parent) as probe:
+        probe.write(b"qa01-receipt-preflight\n")
+        probe.flush()
+        os.fsync(probe.fileno())
+
+
 def validate_event_ring_coverage(report: dict) -> None:
     """Offline KON uniqueness needs the entire pre-capture DSP event history.
 
@@ -243,8 +267,10 @@ def main() -> int:
         validate_output_separation(args.wav_out, args.json_out)
     except ValueError as exc:
         ap.error(str(exc))
-    if args.json_out.exists() or args.json_out.is_symlink():
-        ap.error("refusing to overwrite existing evidence JSON")
+    try:
+        prepare_receipt_destination(args.json_out.absolute())
+    except (OSError, ValueError) as exc:
+        ap.error(str(exc))
     sock, reader = connect(args.host, args.port, 20)
     sock.settimeout(45)
     try:
@@ -265,7 +291,6 @@ def main() -> int:
     result["event_head"] = report["event_head"]
     result["kon_candidates_in_retained_event_ring"] = kon_candidates(report["events"])
     result["producer_sample_count_before_capture"] = report["stats"]["produced"]
-    args.json_out.parent.mkdir(parents=True, exist_ok=True)
     with args.json_out.open("x", encoding="utf-8") as receipt_file:
         receipt_file.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(f"QA01 native DSP KON PCM captured: {result['sample_frames']} samples, "

@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 from capture_audio_events import command, connect
-from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, publish_wav_no_replace, validate_output_separation, SHA40
+from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, publish_wav_no_replace, prepare_receipt_destination, validate_output_separation, SHA40
 
 
 def _nonnegative_int(value, label: str) -> int:
@@ -203,10 +203,14 @@ def main() -> int:
         validate_output_separation(wav, receipt)
     except ValueError as exc:
         ap.error(str(exc))
-    if wav.exists() or wav.is_symlink() or receipt.exists() or receipt.is_symlink():
-        ap.error("refusing to overwrite existing WAV or receipt")
+    if wav.exists() or wav.is_symlink():
+        ap.error("refusing to overwrite existing WAV")
     if not wav.parent.is_dir() or wav.parent.is_symlink():
         ap.error("WAV parent must exist and not be a symlink")
+    try:
+        prepare_receipt_destination(receipt)
+    except (OSError, ValueError) as exc:
+        ap.error(str(exc))
     # The live watcher must finish its post-WAV event-ring scan before the
     # requested final filename becomes visible. A second KON or an overrun
     # during audio_wav otherwise leaves a plausible WAV with no valid receipt.
@@ -231,7 +235,6 @@ def main() -> int:
     result["source_sha_claim"] = args.source_sha
     result["native_executable_sha256"] = hashlib.sha256(args.native_executable.read_bytes()).hexdigest()
     result["source_to_binary_identity_independently_verified"] = False
-    receipt.parent.mkdir(parents=True, exist_ok=True)
     with receipt.open("x", encoding="utf-8") as out:
         out.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(f"Captured live candidate KON {result['kon_sample_index']} at {result['sample_frames']} PCM frames")

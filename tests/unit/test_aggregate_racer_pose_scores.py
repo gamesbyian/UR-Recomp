@@ -89,8 +89,8 @@ class RetainedOriginalControlTests(unittest.TestCase):
         lines = []
         for y in range(64):
             row = b"".join(pixels[(y*64+x)*4:(y*64+x+1)*4]*4 for x in range(64))
-            lines.extend([b"\\0" + row]*4)
-        raw = (b"\\x89PNG\\r\\n\\x1a\\n" +
+            lines.extend([bytes([0]) + row]*4)
+        raw = (bytes([137,80,78,71,13,10,26,10]) +
                chunk(b"IHDR", struct.pack(">IIBBBBB",256,256,8,6,0,0,0)) +
                chunk(b"IDAT", zlib.compress(b"".join(lines))) +
                chunk(b"IEND", b""))

@@ -148,6 +148,31 @@ class WidescreenProductParityTests(unittest.TestCase):
         self.assertEqual(leak["leaked_bytes"], 1)
         self.assertEqual(leak["first_leaks"], ["0x02049"])
 
+    def test_run_variant_sound_counter_does_not_pass_strict_parity(self):
+        # R-SEED-018 only established that $0069 differed before a B pulse.
+        # It did not establish that this sound-transfer byte has no consumers.
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        write_bmp(stock, 256, 224, stock_pixel)
+        write_bmp(wide, 342, 224, lambda x, y: stock_pixel(x - 43, y))
+        a.write_bytes(bytes(0x20000))
+        variant = bytearray(0x20000)
+        variant[0x0069] = 1
+        b.write_bytes(variant)
+        pair = ("sound-counter", stock, wide, a, b)
+        report = check([pair])
+        self.assertEqual(report["outcome"], "rejected")
+        wram = report["metrics"]["sound-counter"]["wram"]
+        self.assertTrue(wram["complete_wram_images"])
+        self.assertEqual(wram["leaked_bytes"], 0)
+        self.assertEqual(wram["run_variant_differences"], ["0x00069"])
+        # Exact equality still qualifies when the source centre and full
+        # 128-KiB WRAM images match.
+        b.write_bytes(bytes(0x20000))
+        self.assertEqual(check([pair])["outcome"], "accepted")
+
     def test_report_binds_exact_capture_bytes(self):
         stock = self.root / "s.fb.bmp"
         wide = self.root / "w.fb.bmp"

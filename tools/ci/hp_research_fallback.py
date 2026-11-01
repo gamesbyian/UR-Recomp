@@ -166,6 +166,16 @@ def execute(now: datetime, request: Callable[[list[str]], dict | None], *, dry_r
         if [x["id"] for x in second] != [x["id"] for x in research]:
             receipt["decision"] = "skip:research-census-changed"
             return receipt
+        # Priority workflows have distinct concurrency scopes: a main build or
+        # benchmark can arrive while the first three workflow reads are underway.
+        # Re-read them immediately before dispatch, not just the science caller.
+        priority_second = []
+        for name in PRIORITY:
+            priority_second.extend(classify(workflow_runs(name, request), expected_workflow=name))
+        if ([x["id"] for x in priority_second] != [x["id"] for x in priority]
+                or any(x["status"] in RUN_STATES for x in priority_second)):
+            receipt["decision"] = "skip:priority-census-changed"
+            return receipt
         # Fail closed: no external inputs, PR sha, arbitrary workflow or token.
         # A genuine GitHub schedule may appear after our census; the shared
         # workflow concurrency group still serializes all HP research jobs.
@@ -205,18 +215,26 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--once or --dry-run required; no daemon or background process")
     try:
         with single_instance(args.state_dir):
-            report = execute(utc_now(), api, dry_run=args.dry_run)
-            publish_status(args.state_dir, report)
-    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired,
-            json.JSONDecodeError, FileNotFoundError) as exc:
-        # Never print raw subprocess output or authentication material.
-        report = {"status": "error", "category": type(exc).__name__,
-                  "detail": "no confirmed dispatch; inspect gh auth status and network"}
-        try:
-            publish_status(args.state_dir, report)
-        except (OSError, ValueError):
-            pass
-        print(json.dumps(report))
+            # All mutations of shared status must be inside the acquired OS
+            # lock, including failures. A second (losing) timer must NEVER
+            # overwrite the first timer's source-bound dispatch receipt.
+            try:
+                report = execute(utc_now(), api, dry_run=args.dry_run)
+                publish_status(args.state_dir, report)
+            except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+                report = {"status": "error", "category": type(exc).__name__,
+                          "detail": "no confirmed dispatch; inspect gh auth status and network"}
+                try:
+                    publish_status(args.state_dir, report)
+                except (OSError, ValueError):
+                    pass
+                print(json.dumps(report))
+                return 2
+    except (OSError, ValueError, RuntimeError) as exc:
+        # Lock acquisition failed, so only a bounded *stdout* diagnostic is
+        # permitted. Never touch last-status.json outside the ownership lock.
+        print(json.dumps({"status": "error", "category": type(exc).__name__,
+                          "detail": "no dispatch confirmed; lock/state unavailable"}))
         return 2
     print(json.dumps(report, sort_keys=True))
     return 0

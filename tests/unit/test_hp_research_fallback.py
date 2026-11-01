@@ -6,6 +6,8 @@ import tempfile
 import shutil
 import subprocess
 import os
+import io
+from contextlib import redirect_stdout
 import unittest
 from unittest.mock import patch
 from tools.ci import hp_research_fallback as h
@@ -99,10 +101,52 @@ class HPFallbackTests(unittest.TestCase):
             h.publish_status(Path(temp), {"dispatched": True})
             self.assertNotIn('"decision"', (Path(temp)/"last-status.json").read_text())
 
+    def test_priority_job_arrives_during_second_read(self):
+        req, calls = mock_api(research=[row()])
+        reads = [0]
+        def race(args):
+            if f"/{h.PRIORITY[0]}/runs?" in args[-1]:
+                reads[0] += 1
+                if reads[0] == 2:
+                    return {"workflow_runs": [row(h.PRIORITY[0], minutes=1,
+                                                   status="in_progress", conclusion=None)]}
+            return req(args)
+        result = h.execute(NOW, race, dry_run=False)
+        self.assertEqual(result["decision"], "skip:priority-census-changed")
+        self.assertFalse(result["dispatched"])
+        self.assertFalse(any("/dispatches" in a[-1] for a in calls))
+
+    def test_losing_main_lock_never_overwrites_winner_status(self):
+        with tempfile.TemporaryDirectory() as temp:
+            state_dir = Path(temp)
+            h.publish_status(state_dir, {"dispatched": True, "main_sha": SHA})
+            before = (state_dir / "last-status.json").read_bytes()
+            stdout = io.StringIO()
+            with h.single_instance(state_dir):
+                with patch.object(h, "execute", side_effect=AssertionError("must not request")):
+                    with redirect_stdout(stdout):
+                        exit_code = h.main(["--once", "--state-dir", str(state_dir)])
+                self.assertEqual(exit_code, 2)
+                self.assertEqual((state_dir / "last-status.json").read_bytes(), before)
+            self.assertEqual((state_dir / "last-status.json").read_bytes(), before)
+            self.assertIn('"category": "RuntimeError"', stdout.getvalue())
+
+    def test_locked_failure_publishes_failure_without_leaking_cli_detail(self):
+        with tempfile.TemporaryDirectory() as temp:
+            state_dir = Path(temp)
+            stdout = io.StringIO()
+            with patch.object(h, "execute", side_effect=RuntimeError("SECRET_SENTINEL")):
+                with redirect_stdout(stdout):
+                    exit_code = h.main(["--once", "--state-dir", str(state_dir)])
+            self.assertEqual(exit_code, 2)
+            self.assertIn('"status": "error"', (state_dir / "last-status.json").read_text())
+            self.assertNotIn("SECRET_SENTINEL", stdout.getvalue())
+            self.assertNotIn("SECRET_SENTINEL", (state_dir / "last-status.json").read_text())
+
     def test_no_previous_research_can_dispatch(self):
         req, calls = mock_api()
         self.assertTrue(h.execute(NOW, req, dry_run=False)["dispatched"])
-        self.assertEqual(len(calls), 6)
+        self.assertEqual(len(calls), 8)
 
     def test_malformed_or_foreign_rows_fail_closed(self):
         for change in ({"head_branch": "feature"}, {"path": "other.yml"},

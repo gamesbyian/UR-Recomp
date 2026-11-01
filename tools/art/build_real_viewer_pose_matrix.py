@@ -17,14 +17,14 @@ try:
     from tools.art.audit_real_viewer_glbs import (
         CAMERA, POSES, inspect_viewer, safe_existing_path,
     )
-    from tools.art.build_racer_source_pixel_corpus import build as source_corpus
+    from tools.art.build_racer_source_pixel_corpus import build as source_corpus, REGISTRY
     from tools.art.racer_source_pixels import alpha_metrics, decode_rgba_png
     from tools.art.render_racer_glb_projection import camera_config, model_mesh, render_mask
     from tools.art.score_racer_candidate import score
     from tools.art.no_replace_report import publish_text_once
 except ModuleNotFoundError:
     from audit_real_viewer_glbs import CAMERA, POSES, inspect_viewer, safe_existing_path
-    from build_racer_source_pixel_corpus import build as source_corpus
+    from build_racer_source_pixel_corpus import build as source_corpus, REGISTRY
     from racer_source_pixels import alpha_metrics, decode_rgba_png
     from render_racer_glb_projection import camera_config, model_mesh, render_mask
     from score_racer_candidate import score
@@ -73,7 +73,55 @@ def rank_unpaired(rows: list[dict], pose_names=POSES) -> dict:
     }
 
 
-def compute(site: Path, camera_path: Path = CAMERA) -> dict:
+def translated_binary_mask(mask: bytes, logical_dx: int, logical_dy: int) -> bytes:
+    """Apply ONLY independently registered integer source-object placement.
+
+    No image feature tracking, IoU-optimizing shift, nearest candidate search,
+    silent clipping, size change, or guessed half-pixel rounding is allowed.
+    """
+    if len(mask) != 64 * 64 or type(logical_dx) is not int or type(logical_dy) is not int:
+        raise ValueError("registered placement needs 64x64 binary mask and integer shift")
+    shifted = bytearray(64 * 64)
+    for at, pixel in enumerate(mask):
+        if not pixel:
+            continue
+        if pixel != 1:
+            raise ValueError("source candidate mask must be strictly binary")
+        y, x = divmod(at, 64)
+        new_x, new_y = x + logical_dx, y + logical_dy
+        if not 0 <= new_x < 64 or not 0 <= new_y < 64:
+            raise ValueError("verified registered placement would clip model")
+        shifted[new_y * 64 + new_x] = 1
+    return bytes(shifted)
+
+
+def original_registered_contacts(registry_path: Path, corpus_sha: str) -> dict:
+    """Use existing original source semantic anchors, never infer from IoU."""
+    raw = registry_path.read_bytes()
+    if digest(raw) != corpus_sha:
+        raise ValueError("source corpus / original registry SHA mismatch")
+    registry = json.loads(raw)
+    if registry.get("schema_version") != 1:
+        raise ValueError("invalid original racer representation registry")
+    contacts = {}
+    for entry in registry.get("entries", []):
+        identity = entry.get("representation_id")
+        reg = entry.get("registration")
+        if not isinstance(reg, dict) or reg.get("logical_canvas_pixels") != [64, 64]:
+            raise ValueError("original source registration is not a 64px source canvas")
+        anchors = reg.get("semantic_anchors") or {}
+        anchor = anchors.get("wheel_contact_x2_y2")
+        if (anchors.get("fixed_point_scale") != 2 or
+                not isinstance(anchor, list) or len(anchor) != 2 or
+                any(type(x) is not int or not -256 <= x <= 256 for x in anchor) or
+                identity in contacts):
+            raise ValueError("original source contact anchor missing, invalid or duplicate")
+        contacts[identity] = (entry["player"], tuple(anchor))
+    return contacts
+
+
+def compute(site: Path, camera_path: Path = CAMERA,
+            registration_mode: str = "fixed-witness") -> dict:
     model, _, pose_files = inspect_viewer(site)
     camera_raw = camera_path.read_bytes()
     camera = json.loads(camera_raw)
@@ -83,7 +131,11 @@ def compute(site: Path, camera_path: Path = CAMERA) -> dict:
             not isinstance(witness, dict) or
             (witness.get("player"), witness.get("guest_frame")) != ("p1", 1205)):
         raise ValueError("only the explicit original P1:1205 provisional camera is supported")
+    if registration_mode not in ("fixed-witness", "source-registered"):
+        raise ValueError("registration mode must be fixed-witness or source-registered")
     original = source_corpus()
+    contacts = (original_registered_contacts(REGISTRY, original["source_registry_current_sha256"])
+                if registration_mode == "source-registered" else {})
     expected = {(obs["player"], obs["guest_frame"]): obs
                 for obs in original["observations"]}
     refs = json.loads((site / "sprites.json").read_text(encoding="utf-8"))["frames"]
@@ -102,6 +154,12 @@ def compute(site: Path, camera_path: Path = CAMERA) -> dict:
                 metrics["source_rgba_sha256"] != expected_row["source_rgba_sha256"] or
                 metrics["binary_mask_sha256"] != expected_row["binary_mask_sha256"]):
             raise ValueError("original frame fails independent source-pixel identity")
+        contact = None
+        if registration_mode == "source-registered":
+            registered = contacts.get(ref["representation_id"])
+            if registered is None or registered[0] != ref["player"]:
+                raise ValueError("source sprite identity has no player-correct registered contact")
+            contact = registered[1]
         mask = bytes(1 if x else 0 for x in rgba[3::4])
         binary_sha = digest(mask)
         if binary_sha != metrics["binary_mask_sha256"]:
@@ -110,10 +168,13 @@ def compute(site: Path, camera_path: Path = CAMERA) -> dict:
             "mask": mask,
             "source_binary_mask_sha256": binary_sha,
             "source_opaque_pixels": metrics["nonzero_alpha_pixels"],
+            "source_registered_contact_x2_y2": contact,
             "original_source_observations": [],
         })
         if group["mask"] != mask:
             raise ValueError("original binary group hash collision")
+        if group["source_registered_contact_x2_y2"] != contact:
+            raise ValueError("identical original binary source mask has conflicting contact anchors")
         group["original_source_observations"].append({
             "player": ref["player"],
             "guest_frame": ref["guest_frame"],
@@ -143,8 +204,19 @@ def compute(site: Path, camera_path: Path = CAMERA) -> dict:
                                 (x["player"], x["guest_frame"])
                                 for x in kv[1]["original_source_observations"])):
         results = {}
+        anchor = group["source_registered_contact_x2_y2"]
+        shift = (0, 0)
+        if registration_mode == "source-registered":
+            base = camera["source_anchor_x2_y2"]
+            delta = [anchor[i] - base[i] for i in (0, 1)]
+            if any(x % 2 for x in delta):
+                raise ValueError("source 1/2-pixel contact parity requires explicit 4x rerender")
+            shift = (delta[0] // 2, delta[1] // 2)
         for pose, item in candidates.items():
-            measured = score(group["mask"], item["binary_mask"])
+            candidate = (translated_binary_mask(item["binary_mask"], *shift)
+                         if registration_mode == "source-registered"
+                         else item["binary_mask"])
+            measured = score(group["mask"], candidate)
             results[pose] = {
                 k: measured[k] for k in (
                     "mask_iou", "mask_intersection", "mask_union",
@@ -158,6 +230,8 @@ def compute(site: Path, camera_path: Path = CAMERA) -> dict:
         rows.append({
             "source_binary_mask_sha256": key,
             "source_opaque_pixels": group["source_opaque_pixels"],
+            "registered_original_contact_x2_y2": (list(anchor) if anchor is not None else None),
+            "source_registered_logical_xy_translation": list(shift),
             "source_observation_count": len(group["original_source_observations"]),
             "original_source_observations": sorted(
                 group["original_source_observations"],
@@ -181,6 +255,9 @@ def compute(site: Path, camera_path: Path = CAMERA) -> dict:
         "camera_shared_across_all_comparisons": True,
         "camera_witness_is_only_source_p1_frame1205": True,
         "per_pair_auto_alignment": False,
+        "registration_mode": registration_mode,
+        "registered_original_contact_used_without_optimization": registration_mode == "source-registered",
+        "registered_contact_is_original_lowest_alpha_not_physical_collision_contact": True,
         "source_original_rom_sha256": original["historical_manifest_declared_rom_sha256"],
         "original_source_registry_sha256": original["source_registry_current_sha256"],
         "original_frame_observations": len(refs),
@@ -200,10 +277,14 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model-review-dir", type=Path, required=True)
     ap.add_argument("--camera", type=Path, default=CAMERA)
+    ap.add_argument("--registration-mode",
+                    choices=("fixed-witness", "source-registered"),
+                    default="fixed-witness",
+                    help="use one P1-1205 anchor everywhere, or each source-authenticated contact")
     ap.add_argument("--out", type=Path,
                     help="optional one-time JSON receipt, never replace existing")
     args = ap.parse_args()
-    report = compute(args.model_review_dir, args.camera)
+    report = compute(args.model_review_dir, args.camera, args.registration_mode)
     output = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.out:
         publish_text_once(args.out, output)

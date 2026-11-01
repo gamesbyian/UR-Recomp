@@ -1,0 +1,51 @@
+name: ART-4K private source Windows launcher smoke
+on:
+  pull_request:
+    paths:
+      - "tools/art/Prepare-Original-Racer-Corpus.ps1"
+      - "tools/art/Prepare-Original-Racer-Corpus.cmd"
+      - "tests/unit/test_private_original_source_windows_launcher.py"
+      - ".github/workflows/art4k-private-source-windows-smoke.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: art4k-private-source-launcher-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows-script-preflight:
+    runs-on: windows-2022
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Parse Windows PowerShell 5.1 owner source launcher without running it
+        shell: powershell
+        run: |
+          $file = Join-Path $PWD.Path "tools\art\Prepare-Original-Racer-Corpus.ps1"
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            $file, [ref] $tokens, [ref] $errors) | Out-Null
+          if (@($errors).Count -ne 0) {
+            $errors | ForEach-Object { Write-Host $_.ToString() }
+            throw "The owner Windows original-source PowerShell launcher contains syntax errors."
+          }
+          Write-Host "Windows PowerShell 5.1 syntax is valid."
+      - name: Fail closed on missing or fake USA ROM without generating private artwork
+        shell: powershell
+        run: |
+          $script = Join-Path $PWD.Path "tools\art\Prepare-Original-Racer-Corpus.ps1"
+          $root = Join-Path $env:RUNNER_TEMP "never-create-original-source-corpus"
+          $missing = Join-Path $env:RUNNER_TEMP "missing-original-usa.sfc"
+          if (Test-Path -LiteralPath $root) { throw "Unexpected existing output" }
+          & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $script -RomPath $missing -OutputParent $root
+          if ($LASTEXITCODE -eq 0) { throw "Missing original ROM was accepted" }
+          if (Test-Path -LiteralPath $root) { throw "Missing ROM unexpectedly produced source output" }
+          $fake = Join-Path $env:RUNNER_TEMP "wrong-hash-original-usa.sfc"
+          [System.IO.File]::WriteAllBytes($fake, (New-Object byte[] 2097152))
+          & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File $script -RomPath $fake -OutputParent $root
+          if ($LASTEXITCODE -eq 0) { throw "Wrong original ROM SHA was accepted" }
+          if (Test-Path -LiteralPath $root) { throw "Wrong-hash ROM unexpectedly produced source output" }
+          Write-Host "Both negative preflights fail closed. No original ROM was used."

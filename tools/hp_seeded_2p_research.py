@@ -367,6 +367,96 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
     return result
 
 
+
+# Only print labels derived from accepted collector states. Research producers
+# may include private guest stdout/stderr or local Windows paths in errors.
+SUMMARY_ISSUE_LABELS = {
+    "worker exception": "worker exception",
+    "invalid source-owned research receipt": "invalid source-owned receipt",
+    "unverifiable source-owned failure": "unverifiable source-owned failure",
+    "incomplete or nonpositive source-owned result": "incomplete/nonpositive worker result",
+    "source or stock fixture mismatch": "source/stock fixture mismatch",
+    "executable, ROM or source fixture mismatch": "cross-worker identity mismatch",
+    "missing cases": "missing case records",
+    "malformed controller case": "malformed controller case",
+    "repeated/unverified controller case": "duplicate/unverified controller case",
+    "source-owned trial invariant failure": "source-owned trial invariant failure",
+}
+SUMMARY_FAILURE_CATEGORIES = frozenset(
+    ("guest_timeout", "guest_nonzero_exit", "unclassified"))
+
+
+def result_summary(result: dict) -> str:
+    """Bounded, privacy-safe Actions summary; signed receipt stays authoritative."""
+    positive = result["status"] == "completed_positive"
+    workers = result["workers"]
+    elapsed = result["elapsed_seconds"]
+    lines = [
+        "## Owner HP unattended two-player research",
+        "",
+        f"Source: `{result['source_sha']}`. Run: `{result['run_id']}`.",
+        f"Disposition: **{result['status']}**. {workers} independent worker cohorts; "
+        f"research wall time **{elapsed:.1f}s** (excludes build and QA).",
+        "",
+    ]
+    if positive:
+        cases = result["accepted_cases"]
+        processes = result["real_guest_processes"]
+        lines.append(
+            f"**Accepted:** {cases} distinct source-bound seeded plans, "
+            f"{processes} real Windows guest processes (four per plan).")
+        if elapsed > 0:
+            lines.append(
+                f"Research-only throughput: **{60 * cases / elapsed:.2f} "
+                f"accepted cases/min**, **{60 * processes / elapsed:.2f} "
+                "guest processes/min**. No historical speedup inferred.")
+        cohort = ([entry["case_count"] for entry in result["per_worker"]]
+                  if len(result["per_worker"]) == workers else [])
+        if cohort:
+            lines.append(
+                f"Per-worker accepted case range: **{min(cohort)}–{max(cohort)}**.")
+    else:
+        lines.append(
+            "**No campaign accepted.** A source-attested pre-failure case "
+            "cannot be counted as a completed positive campaign.")
+        partial = result.get("source_attested_pre_failure_cases", 0)
+        if partial:
+            lines.append(
+                f"Source-attested pre-failure cases: {partial} "
+                "(diagnostic only; zero acceptance credit).")
+        issues = result.get("issues", [])
+        lines.append(
+            f"First {len(issues)} classified receipt issue(s) "
+            "(receipt is capped at 16; inspect artifact for full context):")
+        if not issues:
+            lines.append("- No classified worker issue in receipt.")
+        for issue in issues[:8]:
+            worker = issue.get("worker")
+            worker_label = (f"worker {worker}" if type(worker) is int
+                            and 0 <= worker < workers else "worker unknown")
+            reason = SUMMARY_ISSUE_LABELS.get(
+                issue.get("reason"), "unclassified collector issue")
+            detail = ""
+            if issue.get("reason") == "source-owned trial invariant failure":
+                category = issue.get("failure_category")
+                if category not in SUMMARY_FAILURE_CATEGORIES:
+                    category = "unclassified"
+                detail = f"; class={category}"
+                seed = issue.get("seed")
+                if type(seed) is int and 0 <= seed < 100_000_000:
+                    detail += f"; replay seed={seed}"
+            lines.append(f"- {worker_label}: {reason}{detail}")
+        if len(issues) > 8:
+            lines.append(f"- {len(issues) - 8} additional issue(s) in receipt.")
+    lines += [
+        "",
+        "Result is native deterministic replay/seat-ablation research only. "
+        "**Zero original/native event, physical-gamepad or release-gate credit.**",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exe", type=Path, required=True)
@@ -379,17 +469,13 @@ def main() -> int:
         print(f"HP_SEEDED_2P_RESEARCH=refused reason={type(exc).__name__} {exc}", file=sys.stderr)
         return 1
     print("HP_SEEDED_2P_RESEARCH=" + result["status"] +
-          f" seeds={result['accepted_cases']} windows_processes={result['real_guest_processes']}")
+          f" workers={result['workers']} elapsed_s={result['elapsed_seconds']}"
+          f" seeds={result['accepted_cases']} windows_processes={result['real_guest_processes']}"
+          f" issue_count={len(result['issues'])}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as stream:
-            stream.write("\n## Owner HP unattended two-player research\n\n")
-            stream.write("Source: `" + result["source_sha"] + "`. "
-                         "Disposition: **" + result["status"] + "**. "
-                         f"{result['accepted_cases']} distinct seeded plans, "
-                         f"{result['real_guest_processes']} actual Windows game processes.\n\n")
-            stream.write("Pure native determinism/seat-ablation evidence only. "
-                         "No original/native or release gate credit.\n")
+            stream.write("\n" + result_summary(result))
     return 0 if result["status"] == "completed_positive" else 1
 
 

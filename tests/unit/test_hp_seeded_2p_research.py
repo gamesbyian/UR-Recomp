@@ -695,5 +695,79 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertTrue(all(len(f["error"]) == 700 for f in row["failures"]))
 
 
+    def test_result_first_summary_reports_rate_only_on_positive_campaign(self):
+        row = {
+            "status": "completed_positive", "source_sha": "a" * 40,
+            "run_id": 41244390541, "workers": 8,
+            "elapsed_seconds": 120.0, "accepted_cases": 16,
+            "real_guest_processes": 64, "issues": [],
+            "per_worker": [{"case_count": 2} for _ in range(8)],
+            "source_attested_pre_failure_cases": 0,
+        }
+        message = hp.result_summary(row)
+        self.assertIn("**8.00 accepted cases/min**", message)
+        self.assertIn("**32.00 guest processes/min**", message)
+        self.assertIn("Per-worker accepted case range: **2–2**", message)
+        self.assertIn("excludes build and QA", message)
+        self.assertIn("Zero original/native event", message)
+        self.assertNotIn("speedup inferred from", message)
+        zero = dict(row, elapsed_seconds=0.0)
+        self.assertNotIn("cases/min", hp.result_summary(zero))
+
+    def test_result_first_failure_summary_is_causal_bounded_and_private(self):
+        row = {
+            "status": "research_failure", "source_sha": "a" * 40,
+            "run_id": 41223647258, "workers": 8,
+            "elapsed_seconds": 306.063, "accepted_cases": 0,
+            "real_guest_processes": 0, "per_worker": [],
+            "source_attested_pre_failure_cases": 16,
+            "issues": [
+                {"worker": 0, "reason": "source-owned trial invariant failure",
+                 "failure_category": "guest_timeout", "seed": 47258,
+                 "error": "C:/private/retail.sfc"},
+                {"worker": 1, "reason": "worker exception", "kind": "OSError",
+                 "error": "C:/private/retail.sfc"},
+                {"worker": 2, "reason": "C:/private/secret.txt",
+                 "failure_category": "arbitrary-private-string",
+                 "seed": "C:/private/retail.sfc"},
+            ],
+        }
+        message = hp.result_summary(row)
+        for expected in (
+            "research_failure", "306.1s", "guest_timeout",
+            "replay seed=47258", "worker exception",
+            "unclassified collector issue", "zero acceptance credit",
+            "Zero original/native event",
+        ):
+            self.assertIn(expected, message)
+        self.assertNotIn("cases/min", message)
+        self.assertNotIn("private", message)
+        self.assertNotIn("OSError", message)
+        self.assertNotIn("arbitrary-private-string", message)
+        self.assertNotIn("16 distinct", message)
+        self.assertLess(len(message), 2000)
+
+    def test_main_emits_failure_summary_without_accepting_failed_research(self):
+        row = {
+            "status": "research_failure", "source_sha": "a" * 40,
+            "run_id": 41223647258, "workers": 8,
+            "elapsed_seconds": 306.0, "accepted_cases": 0,
+            "real_guest_processes": 0, "per_worker": [],
+            "source_attested_pre_failure_cases": 0,
+            "issues": [{"worker": 0, "reason": "invalid source-owned research receipt"}],
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            summary = Path(temp) / "github-summary.md"
+            with patch.object(hp, "run", return_value=row), \
+                 patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}), \
+                 patch("sys.argv", ["hp_seeded_2p_research",
+                                    "--exe", "unused.exe", "--rom", "unused.sfc",
+                                    "--receipt", str(Path(temp) / "receipt.json")]):
+                self.assertEqual(hp.main(), 1)
+            text = summary.read_text(encoding="utf-8")
+            self.assertIn("invalid source-owned receipt", text)
+            self.assertIn("No campaign accepted", text)
+
+
 if __name__ == "__main__":
     unittest.main()

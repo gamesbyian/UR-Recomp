@@ -1,0 +1,44 @@
+{
+  "schema": "UR-ART4K-EXPERIMENTAL-GLB-POSE-TOPOLOGY-WITNESS/1",
+  "date": "2026-11-01",
+  "source": "Actual five material-separated GLBs from successful GHA model-review run 41259476190, artifact 13063969312",
+  "source_model_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "glbs_sha256": {
+    "upright": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+    "pedal": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+    "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+    "stunt": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+    "bank": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59"
+  },
+  "method": "Trimesh 4.11.1, process=False, actual source glTF 2.0 five-part 16-material-node scene. Compared vertex shape and values, imported triangle face index arrays, and node world transforms for each pose against upright.",
+  "original_material_meshes_per_pose": 16,
+  "original_parent_parts": 5,
+  "meshes_with_equal_vertex_count_all_five": 15,
+  "meshes_with_identical_local_vertex_values_all_five": 9,
+  "meshes_with_identical_triangle_face_indices_all_five": 10,
+  "meshes_with_identical_world_transform_all_five": 0,
+  "differing_topology_meshes": [
+    "saddle__material_0",
+    "saddle__material_1",
+    "pedals__material_0",
+    "pedals__material_1",
+    "fork_and_frame__material_0",
+    "rim_and_hub__material_2"
+  ],
+  "vertex_count_changes": [
+    "pedals__material_0"
+  ],
+  "geometry_changed_but_faces_stable": [
+    "pedals__material_2"
+  ],
+  "safe_naive_vertex_index_morph_across_five": false,
+  "required_next_step": "Extract shared authoring pivots/pose parameters or generate stable source geometry/vertex correspondence; validate source chronological animation transitions before making continuous poses or a gameplay animation.",
+  "guarantees": {
+    "original_3d_mesh_recovered": false,
+    "source_1994_camera_identified": false,
+    "original_pose_correspondence_verified": false,
+    "owner_character_likeness_approved": false,
+    "shipping_art_approved": false
+  },
+  "status": "Actual local read-only proof of existing GLBs; checked-in reusable topology auditor requires exact-head CI and independent reproducibility."
+}

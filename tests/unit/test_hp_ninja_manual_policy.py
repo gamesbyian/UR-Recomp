@@ -217,10 +217,11 @@ class HpNinjaManualPolicyTests(unittest.TestCase):
         for file in (SMOKE, HP):
             source = file.read_text(encoding="utf-8")
             for path in ("tools/devnode_benchmark/verify_hp_ninja.py",
-                         "tools/ci/ninja_package_canary.cmd",
-                         "tests/unit/test_hp_ninja_manual_policy.py"):
+                         "tools/ci/ninja_package_canary.cmd"):
                 with self.subTest(file=file.name, path=path):
                     self.assertIn('      - "' + path + '"', source)
+            self.assertNotIn(
+                '      - "tests/unit/test_hp_ninja_manual_policy.py"', source)
 
 
 if __name__ == "__main__":

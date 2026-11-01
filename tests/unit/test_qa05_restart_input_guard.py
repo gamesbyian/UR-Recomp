@@ -80,6 +80,25 @@ class RestartInputGuardTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "malformed UR_RESTART_INPUT"):
             validate_restart_guest_input(corrupted)
 
+    def test_extra_p1_namespace_malformed_line_cannot_hide_start(self):
+        # A missing delimiter previously vanished from the emitted-line
+        # census, letting twelve valid probes plus a corrupt Start leak pass.
+        for extra in (
+            "UR_RESTART_INPUTguest=1000",
+            "UR_RESTART_INPUT_P1 raw=1000 guest=1000",
+            "UR_RESTART_INPUT_P3 raw=1000 guest=1000",
+            "UR_RESTART_INPUT\traw=1000 guest=1000",
+        ):
+            with self.subTest(extra=extra), self.assertRaisesRegex(
+                ValueError, "malformed UR_RESTART_INPUT"
+            ):
+                validate_restart_guest_input(trace() + extra + "\n")
+
+    def test_malformed_p2_namespace_stays_in_p2_parser(self):
+        with self.assertRaisesRegex(ValueError, "malformed UR_RESTART_INPUT_P2"):
+            validate_restart_guest_input(trace() + p2_trace() +
+                                         "UR_RESTART_INPUT_P2guest=0100\n")
+
     def test_unrelated_diagnostics_remain_allowed(self):
         self.assertEqual(
             validate_restart_guest_input(

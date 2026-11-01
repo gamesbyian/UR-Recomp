@@ -986,6 +986,34 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("      - name: Verify canonical ROM and package contracts",
                       (WORKFLOWS / "windows-native-smoke.yml").read_text())
 
+    def test_windows_package_triggers_exclude_python_unit_only_changes(self):
+        # Python unit tests execute in tooling, not in the Windows package.
+        # Test-only edits must keep the full tooling suite but not rebuild an
+        # unchanged game. All actual package executors and inputs stay active.
+        workflows = (
+            ("windows-native-smoke.yml", "  push:\n", "\nconcurrency:"),
+            ("owner-hp-main-windows-smoke.yml", "  push:\n", "\n  workflow_dispatch:"),
+            ("qa05-qa09-windows-candidate.yml", "  pull_request:\n", "\n  workflow_dispatch:"),
+        )
+        for filename, start, end in workflows:
+            text = (WORKFLOWS / filename).read_text(encoding="utf-8")
+            trigger = text.split(start, 1)[1].split(end, 1)[0]
+            self.assertNotIn('      - "tests/unit/', trigger, filename)
+            self.assertIn('      - ".github/workflows/windows-native-smoke.yml"',
+                          trigger, filename)
+            self.assertIn('      - "tools/ci/qa05_restart_attempt.sh"', trigger)
+            self.assertIn('      - "tools/capture_modern_restart_audio.py"', trigger)
+            self.assertIn('      - "tools/ci/windows_package_race_result.sh"', trigger)
+
+        full = (WORKFLOWS / "tooling-unit-tests.yml").read_text()
+        self.assertIn('      - "tests/unit/**"', full)
+        self.assertIn('      - "tools/**"', full)
+        self.assertIn('      - ".github/workflows/**"', full)
+        smoke = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        for path in ("native/product/**", "native/presentation/**",
+                     "native/title/**", "reference/roms/retail/Uniracers_USA.sfc"):
+            self.assertIn('      - "' + path + '"', smoke)
+
     def test_hp_source_current_smoke_covers_exact_executed_windows_consumers(self):
         # A change in the actual packaging, renderer, QA or evidence tools
         # invalidates the HP's existing Windows result, even without native
@@ -1000,15 +1028,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "tools/qa05_restart_input_guard.py",
             "tools/capture_modern_restart_audio.py",
             "tools/ci/qa05_restart_attempt.sh",
-            "tests/unit/test_hp_qa05_parallel_policy.py",
             "tools/capture_modern_resume_audio.py",
             "tools/ci/stage_windows_smoke_romfree_exe.py",
             "tools/ci/check_windows_smoke_upload_policy.py",
-            "tests/unit/test_stage_windows_smoke_romfree_exe.py",
-            "tests/unit/test_assemble_windows_package.py",
-            "tests/unit/test_windows_package_streaming_bounds.py",
-            "tests/unit/test_windows_clean_machine_verifier_policy.py",
-            "tests/unit/test_windows_portable_binary.py",
         ):
             with self.subTest(path=path):
                 self.assertIn(f'      - "{path}"', hp)

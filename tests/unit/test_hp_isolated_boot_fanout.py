@@ -50,9 +50,14 @@ class HpIsolatedBootFanoutTests(unittest.TestCase):
                 self.assertIn('"tools/ci/' + filename + '"', trigger.read_text())
         for trigger in (SMOKE, HP, HOSTED):
             source = trigger.read_text()
-            for path in ("tools/ci/hp_windows_isolated_boot_fanout.sh",
-                         "tests/unit/test_hp_isolated_boot_fanout.py"):
-                self.assertIn('"' + path + '"', source)
+            # Changes to the real offscreen Windows helper invalidate the
+            # complete Windows acceptance, regardless of hosting mode.
+            self.assertIn('"tools/ci/hp_windows_isolated_boot_fanout.sh"', source)
+            # Python-only assertions run in the full tooling suite. They do
+            # not execute in the packaged Windows game and must not dispatch
+            # another standalone Windows build when edited by themselves.
+            self.assertNotIn(
+                '      - "tests/unit/test_hp_isolated_boot_fanout.py"', source)
 
     def test_independent_offscreen_state_and_no_global_focus_overlap(self):
         special = (ROOT / "tools/ci/windows_package_special_path.sh").read_text()

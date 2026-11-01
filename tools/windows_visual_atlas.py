@@ -233,7 +233,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         shutil.copyfile(WEB / name, target / name)
     # The 3D laboratory is a separate read-only route, never a replacement
     # for the source-verified screenshot inventory or original atlas assets.
-    model_review = ROOT / "tools/art/model-review"
+    model_review = Path(__file__).resolve().parent / "art/model-review"
     review_target = target / "model-review"
     review_target.mkdir()
     for filename in ("index.html", "manifest.json"):

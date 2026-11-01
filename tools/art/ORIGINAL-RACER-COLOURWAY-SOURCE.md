@@ -22,6 +22,8 @@ Blue accent indicator: B >= 64 and B > 2*G and B > 2*R
 | P1 | 6 | **54** | 0 |
 | P2 | 4 | 0 | **67** |
 
+Both player-specific source raster palettes contain exactly **15 opaque RGB colours across this verified first family**. They share **five** exact gray entries (`#181818`, `#313131`, `#4a4a4a`, `#737373`, `#a5a5a5`) while **ten entries differ for each player**. This is consistent with the palette-limited original raster art, but alone cannot prove a particular SNES palette-index mapping, PBR reflectance or that any same-RGB pixel belongs to the same 3D mesh part. The tool now explicitly reports the per-player opaque palette unions, common entries and player-exclusive entries as separate SHA-bound source observations.
+
 All 32 original source frames are authenticated and represented in these ten shape groups. Identical repeated sprite frames do **not** add another vote. If a future original frame has the exact same binary mask but different source RGB palette, the auditor retains that as an explicit independent **colour variant within the one source shape**, giving equal weight to each variant rather than frame-hold length.
 
 ## Reproduce

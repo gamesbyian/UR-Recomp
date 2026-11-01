@@ -132,6 +132,62 @@ class RealContinuousGLBReceiptTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"escapes"):
                 mod.validate_one(source,out,"stunt_cycle",.5)
 
+    def test_qualified_receipt_publication_is_atomic_and_no_replace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "qualified.json"
+            mod.publish_receipt_no_replace(receipt, {"status": "qualified"})
+            original = receipt.read_bytes()
+            self.assertEqual(json.loads(original), {"status": "qualified"})
+            with self.assertRaises(FileExistsError):
+                mod.publish_receipt_no_replace(receipt, {"status": "forged"})
+            self.assertEqual(receipt.read_bytes(), original)
+            self.assertEqual(sorted(p.name for p in root.iterdir()), ["qualified.json"])
+
+    def test_dangling_symlink_cannot_redirect_qualified_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "qualified.json"
+            foreign = root / "foreign.json"
+            try:
+                receipt.symlink_to(foreign)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink creation unavailable")
+            self.assertFalse(receipt.exists())
+            with self.assertRaises(FileExistsError):
+                mod.publish_receipt_no_replace(receipt, {"status": "qualified"})
+            self.assertFalse(foreign.exists())
+            self.assertTrue(receipt.is_symlink())
+            self.assertEqual(sorted(p.name for p in root.iterdir()), ["qualified.json"])
+
+    def test_publication_failure_leaves_no_partial_or_temp_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "qualified.json"
+            with patch.object(mod.os, "link",
+                              side_effect=OSError("injected hard-link failure")):
+                with self.assertRaisesRegex(OSError, "injected hard-link failure"):
+                    mod.publish_receipt_no_replace(receipt, {"status": "qualified"})
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_cli_uses_no_replace_publication_for_qualified_receipt(self):
+        import sys
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            receipt = root / "qualified.json"
+            foreign = root / "foreign.json"
+            receipt.symlink_to(foreign)
+            argv = ["verify_art4k_real_continuous_glb.py", "--source",
+                    str(root / "source.scad"), "--output-dir", str(root),
+                    "--pose", "ride", "--time", "0.25",
+                    "--receipt", str(receipt)]
+            with patch.object(sys, "argv", argv), patch.object(
+                    mod, "validate_one", return_value={"schema": mod.SCHEMA}):
+                with self.assertRaises(FileExistsError):
+                    mod.main()
+            self.assertFalse(foreign.exists())
+            self.assertTrue(receipt.is_symlink())
+
     def test_invalid_times_and_unsupported_pose_fail_early(self):
         with tempfile.TemporaryDirectory() as tmp:
             source,out,*_=fixture(Path(tmp))

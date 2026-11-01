@@ -11,7 +11,9 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import tempfile
 
 try:
     from tools.art.continuous_pose_recipe import continuous_pose_recipe
@@ -30,6 +32,26 @@ PART_MATERIAL_COUNTS = {
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def publish_receipt_no_replace(path: Path, payload: dict) -> None:
+    """Publish complete evidence atomically without replacing foreign files.
+
+    A prior exists() check followed by write_text() follows dangling symlinks
+    and can overwrite an unrelated target. Same-directory hard-link creation
+    is atomic and refuses existing files, directories and symlinks.
+    """
+    content = json.dumps(payload, sort_keys=True, indent=2) + "\n"
+    fd, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    staged = Path(name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as output:
+            output.write(content)
+            output.flush()
+            os.fsync(output.fileno())
+        os.link(staged, path)
+    finally:
+        staged.unlink(missing_ok=True)
 
 
 def _verified_child(parent: Path, relative: str) -> Path:
@@ -153,9 +175,7 @@ def main():
     parser.add_argument("--receipt", type=Path, required=True)
     args = parser.parse_args()
     payload = validate_one(args.source, args.output_dir, args.pose, args.time)
-    if args.receipt.exists():
-        raise FileExistsError("continuous GLB evidence receipt cannot overwrite old evidence")
-    args.receipt.write_text(json.dumps(payload, sort_keys=True, indent=2) + "\n")
+    publish_receipt_no_replace(args.receipt, payload)
     print(json.dumps(payload, sort_keys=True, indent=2))
 
 

@@ -73,6 +73,52 @@ class SourceChromaticAxisTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             mod.row_envelope_sha(b"bad")
 
+    def test_actual_frame_order_and_same_chromatic_mask_hold_are_preserved(self):
+        a, b = "a"*64, "b"*64
+        rows = [
+            {"source_representation_id": "p1-a", "player": "p1",
+             "source_binary_mask_sha256": "1"*64,
+             "source_chromatic_mask_sha256": a,
+             "screen_axis_angle_from_down_y_degrees": 10.5},
+            {"source_representation_id": "p1-b", "player": "p1",
+             "source_binary_mask_sha256": "2"*64,
+             "source_chromatic_mask_sha256": b,
+             "screen_axis_angle_from_down_y_degrees": -4.0}]
+        timeline = [
+            {"window": "original", "guest_frame": 1205,
+             "representations": {"p1": "p1-a"}},
+            {"window": "original", "guest_frame": 1206,
+             "representations": {"p1": "p1-a"}},
+            {"window": "original", "guest_frame": 1207,
+             "representations": {"p1": "p1-b"}}]
+        report = mod.temporal_source_axes(timeline, rows)
+        self.assertEqual(report["original"]["source_frame_observation_count"], 3)
+        holds = report["original"]["source_visible_chromatic_holds"]["p1"]
+        self.assertEqual([h["observed_frame_count"] for h in holds], [2, 1])
+        self.assertEqual(holds[0]["first_guest_frame"], 1205)
+        self.assertEqual(holds[0]["last_guest_frame"], 1206)
+        self.assertEqual(holds[1]["screen_axis_angle_from_down_y_degrees"], -4.)
+
+    def test_source_temporal_spoofs_fail(self):
+        rows = [{
+            "source_representation_id": "real", "player": "p1",
+            "source_binary_mask_sha256": "a"*64,
+            "source_chromatic_mask_sha256": "b"*64,
+            "screen_axis_angle_from_down_y_degrees": 0.}]
+        frame = {"window": "original", "guest_frame": 1205,
+                 "representations": {"p1": "real"}}
+        for altered in (
+                [frame, frame],
+                [dict(frame, representations={"p1":"absent"})],
+                [dict(frame, representations={"p2":"real"})],
+                [dict(frame, guest_frame="1205")],
+                [dict(frame, window="")]):
+            with self.subTest(altered=altered), self.assertRaises(ValueError):
+                mod.temporal_source_axes(altered, rows)
+        with self.assertRaises(ValueError):
+            mod.temporal_source_axes([
+                dict(frame, guest_frame=1206), frame], rows)
+
     def test_original_rom_and_report_claims_are_fixed(self):
         self.assertEqual(mod.CANONICAL_ROM_SHA,
                          "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478")

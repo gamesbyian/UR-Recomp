@@ -95,6 +95,17 @@ class ContinuousRigTests(unittest.TestCase):
         source = SOURCE + "\n// function sin(x)=0;\n/* function max(x)=0; */\n"
         self.assertEqual(module.continuous_pose_recipe(source, "ride", .25)[0], 198)
 
+    def test_builtin_module_shadows_fail_closed(self):
+        # A single module can override OpenSCAD's built-in transforms, leaving
+        # the literal continuous_rig formula unchanged while geometry differs.
+        for builtin in ("rotate", "translate", "scale", "color", "hull"):
+            with self.subTest(builtin=builtin), self.assertRaisesRegex(
+                    ValueError, "OpenSCAD builtin module shadowed"):
+                module.continuous_pose_recipe(
+                    SOURCE + f"\nmodule {builtin}(x){{children();}}", "ride", .25)
+        source = SOURCE + "\n// module rotate(x){children();}\n"
+        self.assertEqual(module.continuous_pose_recipe(source, "ride", .25)[0], 198)
+
     def test_comment_only_function_text_does_not_trigger_override(self):
         source = SOURCE + "\n// function unit_time(x)=0;\n/* function ease_time(x)=0; */\n"
         pedal, lean, _, meta = module.continuous_pose_recipe(source, "ride", .25)

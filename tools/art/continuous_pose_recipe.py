@@ -12,6 +12,14 @@ from collections import Counter
 _NUMBER = r"(?:\d+(?:\.\d*)?|\.\d+)"
 _COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
 _FUNCTION_DECLARATION = re.compile(r"\bfunction\s+([A-Za-z_]\w*)\s*\(")
+_MODULE_DECLARATION = re.compile(r"\bmodule\s+([A-Za-z_]\w*)\s*\(")
+# OpenSCAD also allows user modules to shadow the builtin transforms and
+# primitives used by this canonical rig. The receipt must not assume that a
+# literal rotate()/translate() in the formula invokes the real builtin.
+_RIG_BUILTIN_MODULES = frozenset({
+    "translate", "rotate", "scale", "color", "union", "hull", "minkowski",
+    "sphere", "cube", "cylinder", "rotate_extrude", "circle",
+})
 _FORMULA = re.compile(
     r"modulecontinuous_rig\(time,spin=false\)\{"
     r"u=unit_time\(time\);pitch=spin\?(?P<spin>" + _NUMBER + r")\*ease_time\(u\):0;"
@@ -70,6 +78,10 @@ def continuous_pose_recipe(source: str, name: str, time: float):
     shadowed = sorted(set(functions) & {"sin", "cos", "min", "max", "is_undef"})
     if shadowed:
         raise ValueError("OpenSCAD builtin function shadowed: " + ", ".join(shadowed))
+    shadowed_modules = sorted(set(_MODULE_DECLARATION.findall(uncommented))
+                              & _RIG_BUILTIN_MODULES)
+    if shadowed_modules:
+        raise ValueError("OpenSCAD builtin module shadowed: " + ", ".join(shadowed_modules))
     clean = re.sub(r"\s+", "", uncommented)
     if (clean.count("functionunit_time(t)=min(1,max(0,t));") != 1
             or clean.count("functionease_time(t)=let(u=unit_time(t))u*u*(3-2*u);") != 1

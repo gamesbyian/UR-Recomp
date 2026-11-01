@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[2]
 class Snes9xVendoredVersionTests(unittest.TestCase):
     def test_pinned_make_override_matches_exact_vendored_revision(self):
         entry = json.loads((ROOT / 'tools/toolchain-entries/snes9x-libretro.json').read_text())
+        manifest = json.loads((ROOT / 'tools/toolchain.json').read_text())
+        authoritative = next(t for t in manifest['tools'] if t['id'] == 'snes9x-libretro')
+        self.assertEqual(entry, authoritative)
         island = json.loads((ROOT / 'third_party/manifest.json').read_text())
         vendor = next(c for c in island['components'] if c['id'] == 'snes9x-libretro')
         self.assertEqual(vendor['mode'], 'vendored')

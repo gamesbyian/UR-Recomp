@@ -114,7 +114,7 @@ def audit(corpus_file: Path, holdout_file: Path):
             or source.get("original_source_frame_observations") !=
                 len(receipt["source_temporal_frame_observations"])
             or source.get("old_original_3d_camera_recovered") is not False
-            or source.get("original_character_likeness_approved") is not False):
+            or source.get("owner_character_likeness_approved") is not False):
         raise ValueError("stale or falsely claimed original source holdout")
     split=source["leakage_free_window_split"]
     holdout=split["withheld_binary_shas"]

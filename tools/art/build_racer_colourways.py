@@ -129,9 +129,22 @@ def colour_layout(doc: dict, binary: bytes, receipt: dict):
     if sum(m["primitives"][0]["attributes"]["COLOR_0"] == target_idx
            for m in meshes) != 1:
         raise ValueError("fork colour accessor is aliased by a second material")
-    if any(i != target_idx and a.get("bufferView") == target_view
-           for i, a in enumerate(accessors)):
-        raise ValueError("fork colour accessor shares another attribute's storage")
+    # Different accessor/view IDs can still alias *the same BIN range*.
+    # A recolour must not modify positions, indices or another colourway.
+    for other_index, accessor in enumerate(accessors):
+        if other_index == target_idx:
+            continue
+        view_index = accessor.get("bufferView")
+        if type(view_index) is not int or not 0 <= view_index < len(views):
+            raise ValueError("unbacked/invalid GLB attribute accessor")
+        other = views[view_index]
+        start, length = other.get("byteOffset", 0), other.get("byteLength")
+        if (other.get("buffer") != 0 or type(start) is not int or
+                type(length) is not int or start < 0 or length <= 0 or
+                start + length > len(binary)):
+            raise ValueError("invalid GLB attribute storage")
+        if start < offset + size and offset < start + length:
+            raise ValueError("fork colour bytes overlap another attribute's storage")
     return target_idx, offset, size, count, expected
 
 

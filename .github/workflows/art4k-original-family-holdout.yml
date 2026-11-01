@@ -9,6 +9,8 @@ on:
       - "tests/unit/test_audit_original_racer_holdout_near_duplicates.py"
       - "tools/art/audit_original_racer_chroma_axes.py"
       - "tests/unit/test_audit_original_racer_chroma_axes.py"
+      - "tools/art/compare_original_chroma_axes_to_glb_poses.py"
+      - "tests/unit/test_compare_original_chroma_axes_to_glb_poses.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -108,6 +110,16 @@ jobs:
           assert summary["independent_exact_source_binary_masks"] >= 35
           assert row["original_mesh_lean_angle_recovered"] is False
           PY
+      - name: Compare five real 2026 GLB painted axes to original source angles
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/compare_original_chroma_axes_to_glb_poses.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --source-axes "$RUNNER_TEMP/art4k-reports/source-chroma-axes.json" \
+            --model-review-dir "$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/art4k-reports/source-to-glb-axes.json"
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4
         with:

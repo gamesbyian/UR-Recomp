@@ -1,4 +1,6 @@
 name: QA-05/09 Windows candidate package
+# Unit-test-only edits are fully exercised by the tooling-unit-tests workflow;
+# this Windows package job does not execute those Python test modules.
 
 # PR-only validation for the frontend shipping lane. The existing Windows
 # package workflow remains main-push-only for the distributable release;
@@ -15,7 +17,6 @@ on:
       # package/QA parity before the trusted-main HP machine can trial them.
       - "tools/devnode_benchmark/verify_hp_ninja.py"
       - "tools/ci/ninja_package_canary.cmd"
-      - "tests/unit/test_hp_ninja_manual_policy.py"
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"
@@ -30,9 +31,6 @@ on:
       - "tools/ci/windows_package_special_path.sh"
       - "tools/ci/windows_package_readonly_unicode.sh"
       - "tools/ci/windows_package_default_appdata.sh"
-      - "tests/unit/test_hp_isolated_boot_fanout.py"
-      - "tests/unit/test_windows_native_smoke_policy.py"
-      - "tests/unit/test_hp_race_overlap_policy.py"
       - "tools/capture_modern_restart_audio.py"
       - "tools/capture_modern_resume_audio.py"
       - "tools/capture_modern_paused_audio.py"

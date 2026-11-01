@@ -97,6 +97,13 @@ class OriginalRacerCorpusExporterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no visible"):
             collect(self.registry, lambda _: bytes(64*64*4))
 
+    def test_source_pixels_cannot_be_exported_inside_public_checkout(self):
+        from tools.art.export_registered_original_racer_corpus import ROOT
+        destination = ROOT / "analysis" / "unsafe-source-corpus-fixture"
+        with self.assertRaisesRegex(ValueError, "outside repository"):
+            export(Path("/missing-ROM.sfc"), Path("/missing-registry.json"), destination)
+        self.assertFalse(destination.exists())
+
     def test_rom_sha_is_required_before_writing_any_source_pixels(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

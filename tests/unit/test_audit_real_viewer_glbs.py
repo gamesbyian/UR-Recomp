@@ -25,8 +25,23 @@ class ViewerModelArtifactAuditTests(unittest.TestCase):
         self.site = Path(self.temp.name)
         (self.site/"sprites").mkdir()
         (self.site/"assets").mkdir()
+        from tools.art.build_racer_source_pixel_corpus import build as corpus_build
+        corpus = corpus_build()
         self.sprite = self.site/"sprites/p1-00.png"
-        shutil.copyfile(STRIP/"stock/p1-00.png", self.sprite)
+        self.references = []
+        originals = {}
+        for row in corpus["observations"]:
+            source = STRIP/"stock"/Path(row["source_image"]).name
+            destination = self.site/"sprites"/source.name
+            if not destination.exists():
+                shutil.copyfile(source, destination)
+            self.references.append({
+                "player": row["player"], "guest_frame": row["guest_frame"],
+                "sha256": row["png_file_sha256"],
+                "representation_id": row["representation_id"],
+                "image": "sprites/" + source.name,
+            })
+        self.rom_sha = corpus["historical_manifest_declared_rom_sha256"]
         poses = {}
         for pose in POSES:
             path = self.site/"assets"/(pose+".glb")
@@ -43,9 +58,9 @@ class ViewerModelArtifactAuditTests(unittest.TestCase):
         }
         self.sprites = {
             "schema": "ur-racer-original-sprite-reference/1",
+            "source_sha256": self.rom_sha,
             "sprite_3d_pose_mapping_verified": False,
-            "frames": [{"player":"p1", "guest_frame":1205,
-                        "sha256":sha(self.sprite), "image":"sprites/p1-00.png"}],
+            "frames": self.references,
         }
         self.save()
 
@@ -67,11 +82,11 @@ class ViewerModelArtifactAuditTests(unittest.TestCase):
     def test_duplicate_or_missing_source_frame_rejected(self):
         self.sprites["frames"].append(dict(self.sprites["frames"][0]))
         self.save()
-        with self.assertRaisesRegex(ValueError, "duplicated"):
+        with self.assertRaisesRegex(ValueError, "exactly 32"):
             inspect_viewer(self.site)
         self.sprites["frames"] = []
         self.save()
-        with self.assertRaisesRegex(ValueError, "absent"):
+        with self.assertRaisesRegex(ValueError, "exactly 32"):
             inspect_viewer(self.site)
 
     def test_viewer_approval_or_invented_pose_mapping_rejected(self):
@@ -100,11 +115,11 @@ class ViewerModelArtifactAuditTests(unittest.TestCase):
 
     def test_sprite_sha_tamper_and_source_resolution_rejected(self):
         self.sprite.write_bytes(self.sprite.read_bytes()+b"altered")
-        with self.assertRaisesRegex(ValueError, "sprite SHA"):
+        with self.assertRaisesRegex(ValueError, "original sprite SHA"):
             inspect_viewer(self.site)
         self.sprites["frames"][0]["sha256"] = "0"*64
         self.save()
-        with self.assertRaisesRegex(ValueError, "sprite SHA"):
+        with self.assertRaisesRegex(ValueError, "original-source authenticated"):
             inspect_viewer(self.site)
 
     def test_missing_expected_pose_is_not_silent(self):

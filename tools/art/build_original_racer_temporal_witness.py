@@ -59,6 +59,49 @@ def source_mask_geometry(alpha: bytes) -> dict:
     }
 
 
+def source_contact_aligned_binary_delta(first: bytes, second: bytes,
+                                        first_geom: dict, second_geom: dict) -> dict:
+    """Compare original alpha after ONLY its source-visible bottom anchor moves.
+
+    The two independently measured alpha anchors select one exact translation.
+    No optimization against image overlap, hidden crop or presumed 3D physics.
+    """
+    a = first_geom["lowest_alpha_midpoint_x2_y2"]
+    b = second_geom["lowest_alpha_midpoint_x2_y2"]
+    if (not isinstance(a, list) or not isinstance(b, list) or
+            len(a) != 2 or len(b) != 2 or
+            not all(type(x) is int for x in a+b)):
+        raise ValueError("original source-visible contact anchors required")
+    deltas = (a[0]-b[0], a[1]-b[1])
+    if any(d % 2 for d in deltas):
+        raise ValueError("half-pixel source contact difference needs explicit 4x rerender")
+    dx, dy = (d // 2 for d in deltas)
+    if len(first) != 4096 or len(second) != 4096:
+        raise ValueError("source comparison needs original 64x64 alpha")
+    aligned = bytearray(4096)
+    for index, value in enumerate(second):
+        if value == 0:
+            continue
+        x, y = index % 64, index // 64
+        nx, ny = x+dx, y+dy
+        if not (0 <= nx < 64 and 0 <= ny < 64):
+            raise ValueError("registered original source contact would clip silhouette")
+        aligned[ny*64+nx] = 1
+    left = {i for i, a in enumerate(first) if a}
+    right = {i for i, a in enumerate(aligned) if a}
+    if not left or not right:
+        raise ValueError("original source silhouette is empty")
+    union = len(left | right)
+    return {
+        "source_contact_normalized_original_binary_mask_iou": round(
+            len(left & right) / union, 8),
+        "source_contact_normalized_original_binary_mask_xor_pixels": len(left ^ right),
+        "source_contact_logical_translation_applied_to_second_xy": [dx, dy],
+        "source_contact_alignment_selected_by_source_only_not_iou": True,
+        "source_contact_normalized_shape_is_a_verified_3d_pose": False,
+    }
+
+
 def transition(first: bytes, second: bytes, first_geom: dict, second_geom: dict) -> dict:
     """Original 2D frame-to-frame change; no generic optical flow estimate."""
     if len(first) != 4096 or len(second) != 4096:
@@ -82,6 +125,8 @@ def transition(first: bytes, second: bytes, first_geom: dict, second_geom: dict)
         "lowest_alpha_midpoint_delta_x2_y2": [
             low_b[0]-low_a[0],low_b[1]-low_a[1]
         ],
+        **source_contact_aligned_binary_delta(
+            first, second, first_geom, second_geom),
     }
 
 
@@ -177,9 +222,29 @@ def build_witness() -> dict:
             "unchanged_binary_transitions":sum(x["original_alpha_silhouette_unchanged"] for x in changes),
             "changed_binary_transitions":sum(not x["original_alpha_silhouette_unchanged"] for x in changes)
         }
+    # Simultaneous 2D silhouette transitions are an observational index,
+    # not evidence that two separate original riders share 3D crank phase.
+    paired_changes = []
+    for frame in FRAMES[1:]:
+        change_players = sorted(
+            player for player in ("p1", "p2")
+            if not next(
+                x for x in results[player]["frame_transitions"]
+                if x["to_frame"] == frame
+            )["original_alpha_silhouette_unchanged"]
+        )
+        paired_changes.append({
+            "to_guest_frame": frame,
+            "original_players_whose_binary_shapes_changed": change_players,
+            "both_players_changed": len(change_players) == 2,
+            "both_players_held": len(change_players) == 0,
+            "coincident_2d_change_establishes_3d_phase_synchrony": False,
+        })
     return {
         "schema": SCHEMA,
         "source_kind":"original_1994_ROM_composed_retained_64x64_raster",
+        "paired_original_player_transition_observations": paired_changes,
+        "source_contact_aligned_transition_is_3d_deformation_proof": False,
         "source_rom_sha256":corpus["historical_manifest_declared_rom_sha256"],
         "original_source_registry_sha256":corpus["source_registry_current_sha256"],
         "source_review_manifest_sha256":corpus["showcase_manifest_sha256"],

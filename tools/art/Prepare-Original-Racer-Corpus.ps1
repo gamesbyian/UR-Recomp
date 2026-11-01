@@ -134,10 +134,13 @@ try {
 
     $runtime = Find-CompatiblePython
     $runId = (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + [Guid]::NewGuid().ToString("N").Substring(0, 8)
-    $output = Join-Path $privateParent ("original-racer-" + $runId)
-    if (Test-Path -LiteralPath $output) {
-        Fail "Source corpus output already exists; refusing to overwrite it."
+    $runRoot = Join-Path $privateParent ("original-racer-" + $runId)
+    $output = Join-Path $runRoot "source-corpus"
+    $research = Join-Path $runRoot "research"
+    if (Test-Path -LiteralPath $runRoot) {
+        Fail "Private run directory already exists; refusing to overwrite it."
     }
+    [System.IO.Directory]::CreateDirectory($runRoot) | Out-Null
 
     Push-Location $RepoRoot
     try {
@@ -152,6 +155,9 @@ try {
             Fail "Source export has no verified completion receipt. Treat output as incomplete."
         }
 
+        # Keep immutable original ROM-composed sprite images and their
+        # completion receipt separate from diagnostic derived metadata.
+        [System.IO.Directory]::CreateDirectory($research) | Out-Null
         # All source-family roles default to diagnostic. The owner/agent
         # must *separately* designate fit vs withheld roles before fitting.
         $python = $runtime.Program
@@ -160,21 +166,22 @@ try {
         if ($LASTEXITCODE -ne 0 -or -not $templateLines) {
             Fail "Source-family role template generation failed."
         }
-        $draftPath = Join-Path $output "roles-draft-all-diagnostic.json"
+        $draftPath = Join-Path $research "roles-draft-all-diagnostic.json"
         Write-NewUtf8File $draftPath (($templateLines -join [Environment]::NewLine) +
                                        [Environment]::NewLine)
         $diagnosticLines = & $python @prefix $FreezeScript $receipt $draftPath
         if ($LASTEXITCODE -ne 0 -or -not $diagnosticLines) {
             Fail "Original-source diagnostic grouping verification failed."
         }
-        $diagnosticPath = Join-Path $output "source-family-diagnostic-groups.json"
+        $diagnosticPath = Join-Path $research "source-family-diagnostic-groups.json"
         Write-NewUtf8File $diagnosticPath (($diagnosticLines -join [Environment]::NewLine) +
                                             [Environment]::NewLine)
 
         $source = Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json
         Write-Host ""
         Write-Host "SOURCE CORPUS EXPORTED AND VERIFIED" -ForegroundColor Green
-        Write-Host "Private folder: $output"
+        Write-Host "Private run folder: $runRoot"
+        Write-Host "Immutable source corpus: $output"
         Write-Host ("Registered windows: " + @($source.registered_source_windows).Count)
         Write-Host ("Distinct source binary silhouettes: " + $source.unique_binary_silhouettes)
         Write-Host "Diagnostic role draft: $draftPath"

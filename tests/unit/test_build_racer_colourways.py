@@ -143,6 +143,8 @@ class ColourwayTests(unittest.TestCase):
             self.assertFalse(body["original_character_likeness_approved"])
             self.assertFalse(body["original_sprite_to_blockout_pose_mapped"])
             self.assertFalse(body["source_raster_colour_to_3d_material_proven"])
+            self.assertFalse(body["source_commit_verified"])
+            self.assertEqual(body["source_commit"], "b"*40)
             for pose in module.POSES:
                 for player in ("p1", "p2"):
                     record = body["poses"][pose]["outputs"][player]
@@ -150,6 +152,31 @@ class ColourwayTests(unittest.TestCase):
                     self.assertEqual(module.digest(output.read_bytes()),
                                      record["sha256"])
 
+
+    def test_publish_directory_never_replaces_existing_empty_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            staging, destination = root / "staging", root / "existing"
+            staging.mkdir()
+            (staging / "payload").write_text("preserve")
+            destination.mkdir()
+            with self.assertRaises(FileExistsError):
+                module.publish_directory(staging, destination)
+            self.assertEqual(list(destination.iterdir()), [])
+            self.assertEqual((staging / "payload").read_text(), "preserve")
+
+    def test_publish_directory_rejects_symlink_destination(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            staging, destination, target = (root / "staging",
+                                            root / "redirect", root / "target")
+            staging.mkdir()
+            target.mkdir()
+            destination.symlink_to(target, target_is_directory=True)
+            with self.assertRaises(FileExistsError):
+                module.publish_directory(staging, destination)
+            self.assertTrue(destination.is_symlink())
+            self.assertTrue(staging.is_dir())
 
     def test_rejects_source_changed_after_pointer_preflight(self):
         with tempfile.TemporaryDirectory() as directory:

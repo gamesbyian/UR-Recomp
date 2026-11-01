@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import argparse
 import copy
+import ctypes
+import errno
 import hashlib
 import json
 import os
@@ -177,6 +179,30 @@ def variants(source: bytes, receipt: dict):
     return {"p1": p1, "p2": source}, reference
 
 
+def publish_directory(source: Path, destination: Path) -> None:
+    """Atomically publish a directory without replacing any existing entry.
+
+    POSIX os.rename can replace an existing empty directory. Linux therefore
+    requires kernel RENAME_NOREPLACE; unsupported platforms fail closed.
+    """
+    if os.name == "nt":
+        os.rename(source, destination)
+        return
+    if sys.platform != "linux":
+        raise OSError(errno.ENOTSUP, "atomic no-replace directory rename unavailable")
+    libc = ctypes.CDLL(None, use_errno=True)
+    try:
+        renameat2 = libc.renameat2
+    except AttributeError as exc:
+        raise OSError(errno.ENOSYS, "renameat2 unavailable") from exc
+    renameat2.argtypes = (ctypes.c_int, ctypes.c_char_p, ctypes.c_int,
+                          ctypes.c_char_p, ctypes.c_uint)
+    renameat2.restype = ctypes.c_int
+    if renameat2(-100, os.fsencode(source), -100, os.fsencode(destination), 1) != 0:
+        code = ctypes.get_errno()
+        raise OSError(code, os.strerror(code), os.fspath(destination))
+
+
 def build(exports: Path, out: Path, source_commit: str) -> dict:
     if not COMMIT.fullmatch(source_commit):
         raise ValueError("exact lowercase 40-character rig source commit required")
@@ -188,6 +214,7 @@ def build(exports: Path, out: Path, source_commit: str) -> dict:
         raise ValueError("redirected output path")
     out.mkdir(parents=True, exist_ok=True)
     result = {"schema": SCHEMA, "source_commit": source_commit,
+              "source_commit_verified": False,
               "source_model_sha256": next(iter(source_sha)),
               "original_colour_evidence": "tools/art/ORIGINAL-RACER-COLOURWAY-SOURCE.md (#2965)",
               "source_raster_colour_to_3d_material_proven": False,
@@ -223,9 +250,7 @@ def build(exports: Path, out: Path, source_commit: str) -> dict:
         (temp / "colourways.json").write_text(
             json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         destination = out / ("art4k-colourways-" + uuid.uuid4().hex)
-        if destination.exists():
-            raise FileExistsError("immutable colourway output collision")
-        os.rename(temp, destination)
+        publish_directory(temp, destination)
     return {"directory": str(destination), "receipt": str(destination / "colourways.json"),
             "source_model_sha256": next(iter(source_sha)), "poses": list(POSES)}
 

@@ -42,8 +42,10 @@ const server=createServer((req,res)=>{
     res.writeHead(200,{'Content-Type':mime.glb});res.end(fakeGlb);return}
   const file=resolve(site,'.'+(path.endsWith('/')?path+'index.html':path));
   if(!file.startsWith(site+sep)){res.writeHead(403);res.end();return}
-  try{res.writeHead(200,{'Content-Type':mime[file.split('.').at(-1)]||'application/octet-stream','Cache-Control':'no-store'});res.end(readFileSync(file))}
-  catch{res.writeHead(404);res.end('missing')}
+  let payload;
+  try{payload=readFileSync(file)}catch{res.writeHead(404);res.end('missing');return}
+  res.writeHead(200,{'Content-Type':mime[file.split('.').at(-1)]||'application/octet-stream','Cache-Control':'no-store'});
+  res.end(payload)
 });
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const address='http://127.0.0.1:'+server.address().port+'/model-review/';

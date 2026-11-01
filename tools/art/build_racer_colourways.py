@@ -191,7 +191,13 @@ def build(exports: Path, out: Path, source_commit: str) -> dict:
         temp = Path(tmp)
         for pose, (ptr, paths) in checked.items():
             source = paths["glb"].read_bytes()
-            report = json.loads(paths["receipt"].read_text())
+            receipt_bytes = paths["receipt"].read_bytes()
+            # The preflight can precede this read: recheck actual bytes here,
+            # not merely the paths that were valid a moment earlier.
+            if (digest(source) != ptr["glb_sha256"] or
+                    digest(receipt_bytes) != ptr["receipt_sha256"]):
+                raise ValueError(f"{pose}: source changed since SHA preflight")
+            report = json.loads(receipt_bytes)
             outputs, neutral = variants(source, report)
             row = {"source_glb_sha256": digest(source),
                    "non_colour_payload_sha256": neutral, "outputs": {}}

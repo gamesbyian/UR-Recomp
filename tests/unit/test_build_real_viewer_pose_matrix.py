@@ -10,7 +10,7 @@ from pathlib import Path
 
 from tools.art.build_real_viewer_pose_matrix import (
     POSES, compute, rank_unpaired, translated_binary_mask,
-    original_registered_contacts,
+    original_registered_contacts, original_lowest_alpha_anchor,
 )
 from tools.art.build_racer_source_pixel_corpus import build as original_corpus, ROOT
 from tools.art.render_racer_glb_projection import np, trimesh, Image
@@ -33,6 +33,19 @@ def ranking_row(sha, n, best="bank", high=0.8):
 
 
 class UnpairedPoseRankingTests(unittest.TestCase):
+    def test_bottom_alpha_anchor_is_computed_from_pixels_not_claimed(self):
+        img = bytearray(64 * 64)
+        img[38*64+31] = 1
+        img[38*64+36] = 1
+        img[20*64+20] = 1
+        self.assertEqual(original_lowest_alpha_anchor(bytes(img)), (67, 76))
+        img[38*64+36] = 0
+        self.assertEqual(original_lowest_alpha_anchor(bytes(img)), (62, 76))
+        with self.assertRaisesRegex(ValueError, "no visible"):
+            original_lowest_alpha_anchor(bytes(4096))
+        with self.assertRaisesRegex(ValueError, "binary"):
+            original_lowest_alpha_anchor(bytes([2])*4096)
+
     def test_declared_integer_contact_translation_without_clipping(self):
         source = bytearray(64 * 64)
         source[21*64+27] = 1

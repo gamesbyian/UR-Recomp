@@ -112,6 +112,32 @@ class SerializedNormalBufferTests(unittest.TestCase):
         self.gltf["accessors"].append({"sparse": {"count": 1}})
         self.assert_rejected()
 
+    def test_weighted_morph_position_rejected(self):
+        # A glTF morph target adds its POSITION deltas to the base accessor.
+        # The renderer changes geometry, but Trimesh 4.11.1 ignores targets.
+        self.gltf["meshes"][0]["primitives"][0]["targets"] = [{"POSITION": 0}]
+        self.gltf["meshes"][0]["weights"] = [1.0]
+        self.assert_rejected()
+
+    def test_unweighted_morph_target_rejected(self):
+        self.gltf["meshes"][0]["primitives"][0]["targets"] = [{"POSITION": 0}]
+        self.assert_rejected()
+
+    def test_node_morph_weights_rejected(self):
+        self.gltf["nodes"] = [{"mesh": 0, "weights": [1.0]}]
+        self.assert_rejected()
+
+    def test_skin_reference_rejected(self):
+        self.gltf["nodes"] = [{"mesh": 0, "skin": 0}]
+        self.assert_rejected()
+
+    def test_animation_and_skin_containers_rejected(self):
+        for field in ("animations", "skins"):
+            with self.subTest(field=field):
+                self.gltf[field] = []
+                self.assert_rejected()
+                del self.gltf[field]
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -128,6 +128,22 @@ def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
         if any(not isinstance(accessor, dict) or "sparse" in accessor
                for accessor in accessors):
             raise ValueError("GLB sparse accessor unsupported")
+        # Only static, rigid GLBs are emitted. glTF morph targets, skins and
+        # animations can alter rendered geometry/poses while Trimesh imports
+        # unchanged base vertices and normals. Refuse these features before
+        # treating the imported static signatures as source-equivalent.
+        if "animations" in gltf or "skins" in gltf:
+            raise ValueError("GLB animation/skin data unsupported")
+        nodes = gltf.get("nodes", [])
+        if (not isinstance(nodes, list) or
+                any(not isinstance(node, dict) or "skin" in node or "weights" in node
+                    for node in nodes)):
+            raise ValueError("GLB skinned or weighted node unsupported")
+        if any(not isinstance(mesh, dict) or "weights" in mesh or
+               any(not isinstance(primitive, dict) or "targets" in primitive
+                   for primitive in mesh.get("primitives", []))
+               for mesh in meshes):
+            raise ValueError("GLB morph targets unsupported")
         buffer_bytes = buffers[0]["byteLength"]
         if type(buffer_bytes) is not int or buffer_bytes <= 0 or buffer_bytes > bin_length:
             raise ValueError("GLB normal buffer exceeds BIN chunk")

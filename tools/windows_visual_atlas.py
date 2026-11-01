@@ -231,6 +231,13 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         shutil.copyfile(ART / (art + ".png"), target / "assets" / (art + ".png"))
     for name in ("index.html", "atlas.css", "atlas.js", "tube-header.svg"):
         shutil.copyfile(WEB / name, target / name)
+    # The 3D laboratory is a separate read-only route, never a replacement
+    # for the source-verified screenshot inventory or original atlas assets.
+    model_review = ROOT / "tools/art/model-review"
+    review_target = target / "model-review"
+    review_target.mkdir()
+    for filename in ("index.html", "manifest.json"):
+        shutil.copyfile(model_review / filename, review_target / filename)
     published = []
     exe_digest = None
     # Reviewed, content-addressed incidental snapshots from the repository.

@@ -79,31 +79,61 @@ native guest-input determinism and independent-seat reachability research.
 Treat a failure as an exact reproducible seed and first failure to debug,
 not a verified regression in authentic SNES behavior by itself.
 
-## Manual-only 600-second throughput pilot (not yet qualified)
+## Manual-only 600-second throughput pilot: actual Windows result
 
-The trusted-main **HP unattended seeded 2P gameplay research** workflow now offers
-a `research_wall_seconds` choice under the owner’s deliberate **Run workflow**
-action. Its default is **360**; only explicitly selecting **600** on a
-`workflow_dispatch` permits a 600-second cohort horizon. A normal cron,
-owner-comment command or the [owner's local missed-cron fallback](HP-RESEARCH-FALLBACK.md)
-still uses **360**. A scheduled run with a widened horizon is rejected before
-science. The eight workers, canonical Windows build and full package/QA,
-unique-source seed census, private ROM boundary, and hard 45-minute job limit
-remain unchanged. A 600-second science receipt records the exact cohort wall
-budget in its source-owned SHA-256 self-hash, not an independently keyed signature.
+The trusted-main [HP two-player research workflow](../.github/workflows/owner-hp-seeded-2p-research.yml)
+offers `research_wall_seconds` of **360** (default) or **600** through deliberate
+`workflow_dispatch`. The exact owner-only PR comment
+`/ur-ci hp-research 600` also selects the 600-second manual trial using
+the established global owner gateway and 90-minute deduplication guard;
+`/ur-ci hp-research` without the argument uses 360. A genuine GitHub
+`schedule` event and the [owner-installed local missed-cron fallback](HP-RESEARCH-FALLBACK.md)
+always use **360**. The source-owned research validator rejects a scheduled
+600-second horizon. Neither route bypasses the canonical Windows Ninja/VS
+build, exact portable package, QA-09, QA-05, race, user-data or launcher
+checks, nor the 45-minute job cap.
 
-**Decision:** in actual measured 360-second eight-worker runs each worker
-completed one distinct plan in 198–224 seconds. A bounded 600-second manual
-trial might admit a second plan per worker, amortizing the same expensive
-Windows build, but has not yet been executed or verified. Compare the
-real manual run's **complete HP job elapsed time**, accepted cases, four-way
-guest-process count, CPU/free memory and priority-build delay against its
-360-second source-bound reference. A source-bound positive receipt and a
-measurable improvement in accepted distinct cases per **total HP occupied
-minute**, without unreasonable priority-build displacement, are prerequisites
-before considering an unattended policy change. Do not credit original/native
-event parity, pads or release QA from either population. Keep the 360-second
-scheduled default until independently qualified.
+**First real 600-second positive result, November 1 UTC:** [owner-authorized
+Windows run #41286835360](https://github.com/gamesbyian/UR-Recomp/actions/runs/41286835360)
+is an actual `event=workflow_dispatch` at
+`6c23045ee244ded3c5d51365b6448bbe54a15392`, not a scheduled
+delivery. Its Windows job and all required package/QA checks passed.
+Eight independent workers each accepted **two distinct four-process
+treatment/replay/P1-muted/P2-muted cases**: **16 accepted seeds, 64 actual
+Windows game processes, 0 research issues, 452.282 seconds** of research.
+The 600-second budget is included in the source-owned SHA-256 receipt
+*self-hash*, not independently signed by a trusted key. The retained
+[76-member ZIP artifact #13076395136](https://github.com/gamesbyian/UR-Recomp/actions/runs/41286835360/artifacts/13076395136)
+was inspected for member CRCs, unique names, matched Actions run/source
+identity and independently checked ROM-free executable/binding SHA-256;
+no ROM or player-data upload and no physical/original-parity acceptance.
+
+**Measured capacity:** research-phase accepted cases/minute were **2.123**
+for the 600-second trial, versus **2.149** for [the earlier 360-second
+manual run #41272207332](https://github.com/gamesbyian/UR-Recomp/actions/runs/41272207332)
+which accepted 8 cases/32 real processes in 223.390 research seconds.
+The actual raw Windows job log spans were approximately **784 seconds
+(16 cases, 73.5 cases per whole HP job-hour)** versus **578 seconds
+(8 cases, 49.8 per whole HP job-hour)**: **+47% observed overall
+yield**, largely by amortizing the same ~5–6-minute build/QA overhead.
+These are **different source SHAs, distinct seed populations and run
+epochs**. This is an operational observation, **not** a controlled
+same-source speedup or proof that a third case per worker is admissible.
+The first 600-second run's GitHub API job `completed_at` showed a
+one-hour discrepancy relative to its last actual UTC job step and raw
+log across the local DST fallback. Use the verified raw log/step times,
+not the inconsistent run-level end, for this bounded comparison;
+[CI timing correction PR #2979](https://github.com/gamesbyian/UR-Recomp/pull/2979)
+tracks the measurement issue separately.
+
+**Decision:** retain **360** for cron/default/local fallback. Any
+promotion to a longer unattended horizon requires repeated source-bound
+science with acceptable priority Windows-build queue latency, accurate
+CPU/memory and whole-job accounting, a same-source comparison where
+practical, and genuine reliable automatic dispatch. Do not change the
+five hourly LLM agents or create a second HP job. No 1/45 original/native
+USA event, physical pad verification or formal release gate follows
+from seeded *native-only* research.
 
 ## Read-only offline archive audit
 

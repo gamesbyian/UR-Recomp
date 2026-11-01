@@ -49,3 +49,6 @@ jobs:
           if ($LASTEXITCODE -eq 0) { throw "Wrong original ROM SHA was accepted" }
           if (Test-Path -LiteralPath $root) { throw "Wrong-hash ROM unexpectedly produced source output" }
           Write-Host "Both negative preflights fail closed. No original ROM was used."
+          # Hosted Windows PowerShell wrappers propagate the final LASTEXITCODE.
+          # These two failures are expected and explicitly verified above.
+          $global:LASTEXITCODE = 0

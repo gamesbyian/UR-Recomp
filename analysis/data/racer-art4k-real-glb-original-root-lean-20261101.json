@@ -1,0 +1,76 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-ROM-GLB-ROOT-Y-LEAN-GRID-RETAINED/1",
+  "source_run_id": 41343832310,
+  "source_artifact_id": 13098029573,
+  "source_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "actual_upright_GLb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "full_numeric_report_sha256": "6d74f074fe726fbc3c1e9b5f80204c54c14e3b803d7d559aa532496181ce364a",
+  "outer_artifact_zip_sha256": "b438ba4b285dd5c816012d7d71b0dedcda020dcff967cae22e997af28a756689",
+  "original_binary_mask_count": 35,
+  "grid": {
+    "start_degrees": -45,
+    "end_degrees": 50,
+    "step_degrees": 5,
+    "samples": 20,
+    "axis": "2026 source world Y",
+    "pivot": [
+      0,
+      0,
+      0
+    ]
+  },
+  "original_five_pose_coverage": {
+    "mean_gap_degrees": 8.599047,
+    "worst_gap_degrees": 23.948488,
+    "source_masks_above_10deg": 8
+  },
+  "best_pair_by_mean_gap": {
+    "root_rotations_degrees": [
+      -35,
+      10
+    ],
+    "projected_paint_axes_degrees": [
+      40.50188,
+      -2.252044
+    ],
+    "mean_gap_degrees": 3.570006,
+    "worst_gap_degrees": 20.447608,
+    "source_masks_above_10deg": 5
+  },
+  "best_pair_by_fewest_large_gaps": {
+    "root_rotations_degrees": [
+      15,
+      30
+    ],
+    "projected_paint_axes_degrees": [
+      -8.841815,
+      -23.629378
+    ],
+    "mean_gap_degrees": 6.043076,
+    "worst_gap_degrees": 10.790213,
+    "source_masks_above_10deg": 1
+  },
+  "balanced_sample_pair": {
+    "root_rotations_degrees": [
+      -35,
+      15
+    ],
+    "projected_paint_axes_degrees": [
+      40.50188,
+      -8.841815
+    ],
+    "mean_gap_degrees": 3.634176,
+    "worst_gap_degrees": 13.981244,
+    "source_masks_above_10deg": 3
+  },
+  "limitations": {
+    "grid_selected_posthoc_on_all_source_masks": true,
+    "independent_original_1994_3d_view_holdout": false,
+    "authentic_original_1994_camera_identified": false,
+    "true_original_game_3d_lean_recovered": false,
+    "original_sprite_to_2026_glb_poses_mapped": false,
+    "original_2026_rig_geometry_modified": false,
+    "owner_character_likeness_approved": false,
+    "shipping_art_approved": false
+  }
+}

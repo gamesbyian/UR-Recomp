@@ -210,9 +210,24 @@ def export_fork_tire_csg(prefix: str, mass: float,
          "-o", str(stl), str(script)],
         text=True, capture_output=True, timeout=120, check=False
     )
-    if done.returncode or not stl.is_file():
-        raise RuntimeError("source fork/tire OpenSCAD CSG did not produce a complete solid: " +
-                           done.stderr[-200:])
+    if done.returncode:
+        raise RuntimeError("source fork/tire OpenSCAD CSG failed: " + done.stderr[-200:])
+    if not stl.is_file():
+        # A genuinely collision-free future model has ZERO intersection.
+        # OpenSCAD 2021.01 reports this explicitly without writing an STL.
+        # Distinguish that result from an absent/failed/corrupted export.
+        if "Current top level object is empty." not in done.stderr:
+            raise RuntimeError("source fork/tire CSG output absent without explicit empty proof")
+        return {
+            "fork_tire_intersection_csg_volume_model_units_cubed": 0.0,
+            "fork_tire_intersection_csg_watertight": None,
+            "fork_tire_intersection_csg_winding_consistent": None,
+            "fork_tire_intersection_connected_components": 0,
+            "fork_tire_intersection_triangle_count": 0,
+            "fork_tire_intersection_stl_sha256": None,
+            "fork_tire_csg_empty_proven_by_openscad": True,
+            "fork_tire_intersection_is_mechanical_art_approval": False,
+        }
     raw = stl.read_bytes()
     mesh = trimesh.load_mesh(stl, process=True)
     return validate_frame_tire_overlap(
@@ -289,7 +304,11 @@ def study(scad_path: Path, source_sha: str, camera_path: Path,
         baseline=control["fork_tire_csg"]["fork_tire_intersection_csg_volume_model_units_cubed"]
         for row in rows:
             volume=row["fork_tire_csg"]["fork_tire_intersection_csg_volume_model_units_cubed"]
-            row["fork_tire_csg"]["volume_ratio_to_unmodified_1_0_rig"]=round(volume/baseline,6)
+            # Ratios to a zero-overlap baseline have no finite interpretation.
+            # Preserve absolute CSG volume and explicitly mark undefined ratios.
+            row["fork_tire_csg"]["volume_ratio_to_unmodified_1_0_rig"] = (
+                round(volume/baseline,6) if baseline > 0 else None)
+            row["fork_tire_csg"]["unmodified_baseline_csg_intersection_is_zero"] = baseline == 0
     if (source_sha==CANONICAL_SOURCE_SHA and
             abs(control["equal_original_binary_mask_weight_mean_iou"]-0.57255469)>1e-7):
         raise ValueError("canonical 2026 model baseline failed independent 10-source verification")

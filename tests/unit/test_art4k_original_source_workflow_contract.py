@@ -46,6 +46,21 @@ class SourceWorkflowContractTests(unittest.TestCase):
         self.assertIn("contents: read", raw)
         self.assertNotIn("secrets.", raw)
 
+    def test_precommitted_shape_disjoint_holdout_precedes_any_fitting(self):
+        raw = self.text
+        diagnostic = raw.index('"$corpus/diagnostic-source-family-groups.json"')
+        selector = raw.index("python3 tools/art/select_original_racer_heldout_roles.py")
+        frozen = raw.index('"$corpus/frozen-first-family-holdout.json"')
+        trial = raw.index("racer-art4k-precommitted-wheel-holdout-trial-20261101.json")
+        publish = raw.index("uses: actions/upload-artifact@v4")
+        self.assertLess(diagnostic, selector)
+        self.assertLess(selector, frozen)
+        self.assertLess(frozen, publish)
+        self.assertLess(trial, publish)
+        self.assertIn("precommitted-wheel-trial.json", raw)
+        self.assertIn('"withheld_candidate"]["independent_binary_silhouette_group_count"] > 0', raw)
+        self.assertIn('"withheld_candidate_is_an_independent_3d_camera"] is False', raw)
+
     def test_no_false_original_camera_or_holdout_approval(self):
         raw = self.text
         self.assertIn('"diagnostic"]["window_count"] == expected_windows', raw)

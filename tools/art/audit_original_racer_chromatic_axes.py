@@ -153,7 +153,9 @@ def temporal_source_axes(observations, rows) -> dict:
                 if p is None:
                     continue
                 identity = p["source_chromatic_mask_sha256"]
-                if segments and segments[-1]["source_chromatic_mask_sha256"] == identity:
+                if (segments and
+                        segments[-1]["source_chromatic_mask_sha256"] == identity and
+                        segments[-1]["last_guest_frame"] + 1 == row["guest_frame"]):
                     segments[-1]["last_guest_frame"] = row["guest_frame"]
                     segments[-1]["observed_frame_count"] += 1
                 else:

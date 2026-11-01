@@ -10,6 +10,27 @@ const PART_SLOTS = Object.freeze([
 export const WHEEL_HYPOTHESIS_FACTORS = Object.freeze([1, 1.1]);
 const ORIGINAL = new WeakMap();
 
+function attributeView(attribute) {
+  const view=attribute?.array ?? attribute?.data?.array;
+  return ArrayBuffer.isView(view) ? view : null;
+}
+function overlaps(a,b) {
+  return a.buffer===b.buffer &&
+    a.byteOffset < b.byteOffset+b.byteLength &&
+    b.byteOffset < a.byteOffset+a.byteLength;
+}
+function attributesOf(geometry) {
+  const entries=Object.entries(geometry?.attributes ?? {});
+  for (const role of ['position','normal']) {
+    if (!entries.some(([name])=>name===role)) {
+      const attribute=geometry?.getAttribute?.(role);
+      if (attribute) entries.push([role,attribute]);
+    }
+  }
+  const index=geometry?.getIndex?.() ?? geometry?.index;
+  if (index) entries.push(['index',index]);
+  return entries;
+}
 /** Mutate only tire/rim X of a loaded, named GLB mesh, never its source bytes.
  * The original vertex and normal Float32 data is cached per BufferGeometry,
  * and baseline reversion restores it bit-for-bit even after many toggles.
@@ -19,8 +40,9 @@ export function applyWheelWidthHypothesis(root, factor) {
       !WHEEL_HYPOTHESIS_FACTORS.includes(factor)) {
     throw Error('Unsupported experimental wheel factor or model');
   }
-  const meshes = new Map();
+  const meshes = new Map(), allGeometries = [];
   root.traverse(object => {
+    if (object.geometry) allGeometries.push(object);
     if (object.isMesh && PART_SLOTS.includes(object.name)) {
       if (meshes.has(object.name)) throw Error('Duplicated named wheel material node');
       meshes.set(object.name, object);
@@ -67,7 +89,28 @@ export function applyWheelWidthHypothesis(root, factor) {
         }
       }
     }
-    checked.push({geometry, position, normal, original});
+    checked.push({name, geometry, position, normal, original});
+  }
+  // Two distinct BufferGeometry objects may still share attribute storage.
+  // Also a non-wheel part may point to a wheel's *same* BufferGeometry.
+  // Refuse all overlapping POSITION/NORMAL buffers across every GLB object,
+  // including COLOR_0, indices, interleaved or other-named attributes.
+  const mutations=checked.flatMap(({name, position, normal}) => [
+    {object:meshes.get(name), role:'position', attribute:position, view:attributeView(position)},
+    {object:meshes.get(name), role:'normal', attribute:normal, view:attributeView(normal)}
+  ]);
+  if (mutations.some(m=>!m.view)) throw Error('Wheel attribute data is not independently backed');
+  for (const object of allGeometries) {
+    for (const [role, attribute] of attributesOf(object.geometry)) {
+      const view=attributeView(attribute);
+      if (!view) throw Error('Cannot prove independent geometry attribute storage');
+      for (const m of mutations) {
+        if (overlaps(view,m.view) &&
+            !(object===m.object && role===m.role && attribute===m.attribute)) {
+          throw Error('Wheel attribute bytes overlap a non-target model attribute');
+        }
+      }
+    }
   }
   // All 7 materials must pass preflight before changing even one vertex.
   for (const {geometry, position, normal, original} of checked) {

@@ -25,6 +25,18 @@ def _nonnegative_int(value, label: str) -> int:
     return value
 
 
+def _checked_page_returned(page: dict, events: list, phase: str) -> None:
+    """Native audio_events always reports the number of serialized events.
+
+    Scanned slots may exceed returned filtered events, but a missing, coerced
+    or contradictory returned count cannot prove that a voice-7 KON was not
+    silently omitted from an otherwise contiguous event page.
+    """
+    count = page.get("returned")
+    if type(count) is not int or count != len(events):
+        raise ValueError(f"{phase} DSP event page returned count mismatch")
+
+
 def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                     after: int = 32768, capacity: int = 65536,
                     timeout: float = 45.0, interval: float = 0.02,
@@ -59,6 +71,7 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
             raise ValueError("malformed live DSP event page")
         if len(events) > scanned:
             raise ValueError("live DSP event page returned more events than scanned slots")
+        _checked_page_returned(page, events, "live")
         for event in events:
             if not isinstance(event, dict):
                 raise ValueError("malformed DSP register event")
@@ -130,6 +143,7 @@ def watch_first_kon(command_fn, *, wav_path: Path, before: int = 4096,
                         raise ValueError("malformed post-WAV DSP event page")
                     if len(events) > scanned:
                         raise ValueError("post-WAV DSP event page returned more events than scanned slots")
+                    _checked_page_returned(page, events, "post-WAV")
                     for event in events:
                         if not isinstance(event, dict):
                             raise ValueError("malformed post-WAV DSP register event")

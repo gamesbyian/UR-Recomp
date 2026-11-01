@@ -22,7 +22,7 @@ class Script:
                 return {'event_count': 100, 'produced': self.armed_produced}
             return {'event_count': 101, 'produced': 47000}
         if line == 'audio_events 100 8000 1':
-            return {'first': 100, 'oldest': 0, 'scanned': 1,
+            return {'first': 100, 'oldest': 0, 'scanned': 1, 'returned': 1,
                     'events': [{'t': 'reg', 'adr': '0x4c', 'val': '0x80', 's': 45000}]}
         raise AssertionError(line)
 

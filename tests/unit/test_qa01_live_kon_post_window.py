@@ -36,10 +36,12 @@ class Server:
             if not self.during_wav:
                 events.append(kon(self.second_sample, self.second_value))
             return {"first": 100, "oldest": 0,
-                    "scanned": len(events), "events": events}
+                    "scanned": len(events), "returned": len(events),
+                    "events": events}
         if line == "audio_events 101 1 1" and self.during_wav:
             return {"first": 101, "oldest": 0,
-                    "scanned": 1, "events": [kon(self.second_sample, self.second_value)]}
+                    "scanned": 1, "returned": 1,
+                    "events": [kon(self.second_sample, self.second_value)]}
         raise AssertionError(f"unexpected debug command: {line}")
 
 

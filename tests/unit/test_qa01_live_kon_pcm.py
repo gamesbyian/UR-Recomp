@@ -43,7 +43,7 @@ class Script:
 
 def page(first, scanned=0, events=(), oldest=0):
     return {"first": first, "scanned": scanned, "oldest": oldest,
-            "events": list(events)}
+            "returned": len(events), "events": list(events)}
 
 
 class LiveKONTests(unittest.TestCase):
@@ -166,6 +166,46 @@ class LiveKONTests(unittest.TestCase):
                 script, wav_path=Path("/tmp/never-written.wav"), before=500,
                 after=2000, capacity=65536, timeout=2, interval=.01,
                 clock=lambda: 0, sleep=lambda _: None, capture_fn=capture)
+        capture.assert_called_once()
+
+    def test_missing_or_contradictory_returned_count_fails_before_wav(self):
+        # The native debug server reports returned=len(events), separately
+        # from scanned absolute slots. Missing/false counters can hide a KON.
+        for value in (None, True, "1", 0, 2):
+            with self.subTest(value=value):
+                first = page(100, 1, [event(45000)])
+                if value is None:
+                    first.pop("returned")
+                else:
+                    first["returned"] = value
+                capture = Mock(return_value={"kon_sample_index": 45000,
+                                             "sample_frames": 2500})
+                with self.assertRaisesRegex(ValueError, "returned count mismatch"):
+                    live.watch_first_kon(
+                        Script([first], [47000]),
+                        wav_path=Path("/tmp/never-written.wav"),
+                        before=500, after=2000, capacity=65536,
+                        timeout=2, interval=.01, clock=lambda: 0,
+                        sleep=lambda _: None, capture_fn=capture)
+                capture.assert_not_called()
+
+    def test_post_wav_returned_count_mismatch_rejects_receipt(self):
+        first = page(100, 1, [event(45000)])
+        second = page(101, 1, [event(48000)])
+        second["returned"] = 0
+        script = Script([first, second], [47000, 47000])
+
+        def wav_request(*_args, **_kwargs):
+            script.head = 102
+            return {"kon_sample_index": 45000, "sample_frames": 2500}
+
+        capture = Mock(side_effect=wav_request)
+        with self.assertRaisesRegex(ValueError, "post-WAV DSP event page returned count mismatch"):
+            live.watch_first_kon(
+                script, wav_path=Path("/tmp/never-written.wav"),
+                before=500, after=2000, capacity=65536,
+                timeout=2, interval=.01, clock=lambda: 0,
+                sleep=lambda _: None, capture_fn=capture)
         capture.assert_called_once()
 
     def test_missing_event_timeout_is_bounded(self):

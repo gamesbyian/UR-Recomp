@@ -28,6 +28,20 @@ Run the same **five real GLBs × ten original source shapes** with `--registrati
 
 At 9.5, **the registered-anchor IoU winner split becomes upright 5/10 and bank 5/10**, instead of bank 10/10 at the P1:1205 witness anchor. Mean one-vote-per-original-shape IoU rises to **0.57255469 (upright)** and **0.57434425 (bank)** from 0.48114718/0.50781314 under the fixed P1 witness anchor. See the [source-registered 50-score table](../../analysis/data/racer-real-glb-registered-anchor-pose-matrix-20261101.json). This is improved alignment to known original sprite coordinates, **not** improved 3D mesh fidelity. Even after alignment, `wheelie` and `stunt` remain very poor unpaired matches, which cannot yet be attributed to an incorrect shape versus missing source pose/angle correspondence.
 
+## A nine-point real-GLB saddle-width ablation falsifies the single-frame fit
+
+The earlier 1.4× saddle-X width trial maximized **one manually selected** original P1 frame1205 IoU at an additionally tuned camera scale9.4. An independent [nine-point multi-source ablation](../../analysis/data/racer-real-upright-saddle-multisource-ablation-20261101.json) reused the real 16-material published `upright` GLB, varied **only** its saddle child mesh X span around its source pivot x=0.04 (all other wheel/fork/rim/pedals geometry unchanged), and evaluated one common scale9.5 camera using the original-source-registered placement for **all ten different first-family binary silhouettes**. Each source shape counts once.
+
+| Saddle X span | Mean IoU | Mean 7:6 boundary Chamfer, physical px |
+| --- | ---: | ---: |
+| 1.0× (original unapproved blockout) | **0.57255469** | **0.97432622** |
+| 1.2× | 0.57153372 | 0.98837239 |
+| 1.4× | 0.56061627 | 1.03987456 |
+| 1.6× | 0.54766519 | 1.11893645 |
+| 2.0× | 0.51815796 | 1.34817320 |
+
+Both metrics favour the **unchanged saddle** over this particular wider-saddle family under the shared fixed provisional camera. It is now unsafe to promote 1.4× to the canonical rig on the strength of the earlier single-source improvement. It remains **equally unsafe to declare the 1.0× saddle the authentic 1994 design**: all these scores compare the same experimental `upright` pose with the same short first-family source window, and authentic sprite-to-GLB pose assignment, physically verified 3D camera and withheld animation families are absent. This is an effective *negative control* on overfitting, not a final design verdict.
+
 ## Shared-camera scale sensitivity (still **unpaired**)
 
 A second [eight-point controlled shared-camera scale sweep](../../analysis/data/racer-unpaired-pose-shared-camera-sensitivity-20261101.json) projected the **same exact five real GLBs** against the **same exact ten source alpha masks**, varying *only* the common vertical model-to-logical-pixel scale, holding world axes, camera origin, 7:6 source PAR, source P1:1205 bottom-alpha anchor and all 3D pose parameters fixed. At `9.5`, `bank` wins **10/10** silhouette IoU comparisons; at `9.3`, **upright wins 6/10** and bank 4/10. This ~2.1% camera-scale variation reverses six unpaired pose winner labels. Despite that, bank remains the highest **equal-source-shape mean** IoU at both scales: 0.50781314 at 9.5 versus upright 0.48114718; 0.49231925 at 9.3 versus upright 0.48747993. Maximum-pairwise pose identity is *not identifiable* from these sprites and camera hypothesis alone.

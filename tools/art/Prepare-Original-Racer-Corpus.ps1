@@ -99,6 +99,7 @@ function Write-NewUtf8File([string] $Path, [string] $Content) {
 }
 
 $exitCode = 1
+$verifiedCorpusReceipt = $null
 try {
     if (-not (Test-Path -LiteralPath $ExportScript -PathType Leaf) -or
         -not (Test-Path -LiteralPath $FreezeScript -PathType Leaf) -or
@@ -154,6 +155,7 @@ try {
         if (-not (Test-Path -LiteralPath $receipt -PathType Leaf)) {
             Fail "Source export has no verified completion receipt. Treat output as incomplete."
         }
+        $verifiedCorpusReceipt = $receipt
 
         # Keep immutable original ROM-composed sprite images and their
         # completion receipt separate from diagnostic derived metadata.
@@ -194,8 +196,16 @@ try {
     }
 } catch {
     Write-Host ""
-    Write-Host ("PRIVATE SOURCE EXPORT NOT COMPLETE: " + $_.Exception.Message) -ForegroundColor Red
-    Write-Host "An incomplete directory without source-corpus.json is NEVER valid evidence."
+    if ($null -ne $verifiedCorpusReceipt -and
+        (Test-Path -LiteralPath $verifiedCorpusReceipt -PathType Leaf)) {
+        Write-Host ("SOURCE CORPUS COMPLETE, DIAGNOSTIC PREPARATION FAILED: " +
+                    $_.Exception.Message) -ForegroundColor Yellow
+        Write-Host ("The original source receipt remains valid at: " + $verifiedCorpusReceipt)
+        Write-Host "Do not treat partial diagnostic drafts as frozen fit/heldout evidence."
+    } else {
+        Write-Host ("PRIVATE SOURCE EXPORT NOT COMPLETE: " + $_.Exception.Message) -ForegroundColor Red
+        Write-Host "An incomplete directory without source-corpus.json is NEVER valid evidence."
+    }
 } finally {
     Write-Host "No network upload or automatic GitHub publication is part of this launcher."
 }

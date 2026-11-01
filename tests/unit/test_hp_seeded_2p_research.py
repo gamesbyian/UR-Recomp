@@ -147,7 +147,7 @@ class HpScheduledResearchTests(unittest.TestCase):
     def test_schedule_uses_only_trusted_hp_main_and_no_new_compiler(self):
         s = SCHEDULE.read_text()
         win = WIN.read_text()
-        self.assertIn("cron: '41 * * * *'", s)
+        self.assertIn("cron: '11,41 * * * *'", s)
         self.assertNotIn("17 */3 * * *", s)
         self.assertNotIn("cron: '17 * * * *'", s)
         # Exactly one scheduled entry is admitted: no overlapping extra

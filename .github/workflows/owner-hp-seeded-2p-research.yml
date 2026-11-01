@@ -6,15 +6,16 @@ name: HP unattended seeded 2P gameplay research
 # No PR/fork can reach the personal Windows runner through this caller.
 # The first source-bound scheduled science run #41244390541 completed 8
 # distinct seeded 2P cases / 32 real guest processes in 289s research time.
-# Hourly pilot reuses this same one-worker workflow, with no parallel
-# HP jobs, new GHA runner, weaker package QA or extra task agent.
-# November 1 single-cron resynchronization: the previous :17 hourly trigger
-# had produced no new scheduled event across multiple eligible UTC slots.
-# Changing the minute can re-register the GitHub schedule and refresh its
-# actor; there is no acceptance credit until a new true schedule receipt.
+# Half-hourly pilot reuses this same one-worker workflow (two nominal
+# UTC opportunities/hour), with no parallel HP jobs, new GHA runner,
+# weaker package QA or extra task agent. Monitor main-build queue latency.
+# November 1: the earlier :41 resynchronization produced passing scheduled
+# eight-worker/32-process run #41348698814. Add a second :11 opportunity
+# without a competing workflow, preserving one HP concurrency group.
+# GitHub can defer/drop runs: count observed receipts, not nominal slots.
 on:
   schedule:
-    - cron: '41 * * * *'
+    - cron: '11,41 * * * *'
   workflow_dispatch:
     inputs:
       research_wall_seconds:

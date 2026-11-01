@@ -57,6 +57,16 @@ export function applyWheelWidthHypothesis(root, factor) {
         !original.normals.every(Number.isFinite)) {
       throw Error('Nonfinite or changed experimental wheel geometry');
     }
+    if (factor !== 1) {
+      for (let i = 0; i < original.normals.length; i += 3) {
+        const x = original.normals[i] / factor;
+        const y = original.normals[i+1], z = original.normals[i+2];
+        const magnitude = Math.hypot(x, y, z);
+        if (!(magnitude > 0) || !Number.isFinite(magnitude)) {
+          throw Error('Invalid experimental wheel normal');
+        }
+      }
+    }
     checked.push({geometry, position, normal, original});
   }
   // All 7 materials must pass preflight before changing even one vertex.
@@ -86,7 +96,7 @@ export function applyWheelWidthHypothesis(root, factor) {
     geometry.computeBoundingSphere?.();
   }
   return {modifiedMaterialMeshes: PART_SLOTS.length,
-          wheelAndRimWorldXFactor: factor,
+          wheelAndRimLocalXFactor: factor,
           sourceGLBModified: false,
           original1994LikenessApproved: false};
 }

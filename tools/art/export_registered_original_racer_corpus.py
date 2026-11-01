@@ -166,6 +166,10 @@ def verify_retained_first_family(manifest: dict) -> None:
 
 def export(rom_path: Path, registry_path: Path, out: Path,
            selected_windows: list[str] | None = None) -> dict:
+    # Source sprite pixels belong in an explicitly private scratch location.
+    # Never populate even an ignored directory inside the public checkout.
+    if out.resolve().is_relative_to(ROOT.resolve()):
+        raise ValueError("original source corpus output must be outside repository")
     if out.exists():
         raise ValueError("destination exists; use a new private immutable corpus directory")
     raw_rom = rom_path.read_bytes()

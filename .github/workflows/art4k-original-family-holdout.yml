@@ -7,6 +7,8 @@ on:
       - "tests/unit/test_evaluate_original_racer_wheel_holdout.py"
       - "tools/art/audit_original_racer_holdout_near_duplicates.py"
       - "tests/unit/test_audit_original_racer_holdout_near_duplicates.py"
+      - "tools/art/audit_original_racer_chroma_axes.py"
+      - "tests/unit/test_audit_original_racer_chroma_axes.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -88,6 +90,24 @@ jobs:
             --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
             --holdout "$RUNNER_TEMP/art4k-reports/wheel-holdout.json" \
             --out "$RUNNER_TEMP/art4k-reports/shape-clusters.json"
+      - name: Measure original sprite-colour projected axis for model pose design
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/audit_original_racer_chroma_axes.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --out "$RUNNER_TEMP/art4k-reports/source-chroma-axes.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          row=json.loads((Path(os.environ["RUNNER_TEMP"]) /
+              "art4k-reports/source-chroma-axes.json").read_text())
+          summary=row["source_variants"]
+          print("Verified original source 2D painted-axis range:",
+                summary["source_2d_chroma_axis_range_deg"])
+          assert summary["independent_exact_source_binary_masks"] >= 35
+          assert row["original_mesh_lean_angle_recovered"] is False
+          PY
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4
         with:

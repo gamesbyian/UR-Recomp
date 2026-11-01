@@ -100,6 +100,31 @@ class ColourwayTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             module.variants(module.encode_glb(doc, binary), self.receipt)
 
+    def test_refuses_target_colour_accessor_reused_as_geometry_semantic(self):
+        # Same accessor index used outside the one intended COLOR_0 slot
+        # changes nominal geometry semantics, even with unique bufferViews.
+        for target in ("NORMAL", "POSITION", "TEXCOORD_0", "indices"):
+            with self.subTest(target=target):
+                doc, binary = module.read_glb(self.raw)
+                fork = next(mesh for mesh in doc["meshes"]
+                            if mesh["name"] == module.SLOT)
+                colour = fork["primitives"][0]["attributes"]["COLOR_0"]
+                other = doc["meshes"][0]["primitives"][0]
+                if target == "indices":
+                    other["indices"] = colour
+                else:
+                    other["attributes"][target] = colour
+                with self.assertRaisesRegex(ValueError, "aliased by unrelated"):
+                    module.variants(module.encode_glb(doc, binary), self.receipt)
+
+    def test_refuses_same_mesh_colour_as_normal(self):
+        doc, binary = module.read_glb(self.raw)
+        fork = next(mesh for mesh in doc["meshes"]
+                    if mesh["name"] == module.SLOT)["primitives"][0]
+        fork["attributes"]["NORMAL"] = fork["attributes"]["COLOR_0"]
+        with self.assertRaisesRegex(ValueError, "aliased by unrelated"):
+            module.variants(module.encode_glb(doc, binary), self.receipt)
+
     def test_refuses_distinct_bufferview_alias_of_fork_colour(self):
         doc, binary = module.read_glb(self.raw)
         layout = module.colour_layout(doc, binary, self.receipt)

@@ -17,6 +17,7 @@ from pathlib import Path
 try:
     from tools.art.audit_original_racer_chroma_axes import (
         SCHEMA as SOURCE_SCHEMA, CANONICAL_ROM_SHA, painted_axis,
+        audit as recompute_original_source_angles,
     )
     from tools.art.freeze_racer_source_family_splits import validate_corpus
     from tools.art.render_racer_glb_projection import camera_config, render_mask
@@ -24,6 +25,7 @@ try:
 except ModuleNotFoundError:
     from audit_original_racer_chroma_axes import (
         SCHEMA as SOURCE_SCHEMA, CANONICAL_ROM_SHA, painted_axis,
+        audit as recompute_original_source_angles,
     )
     from freeze_racer_source_family_splits import validate_corpus
     from render_racer_glb_projection import camera_config, render_mask
@@ -113,18 +115,24 @@ def summarize_unpaired_source_coverage(source_masks:list[dict],
         "per_original_binary_mask_unpaired_axis_gap":values,
     }
 
+def verify_source_axis_report(corpus:Path, packet:dict)->None:
+    """Source metadata hashes alone cannot authenticate painted angles."""
+    if not isinstance(packet,dict) or packet.get("schema")!=SOURCE_SCHEMA:
+        raise ValueError("unrecognised original painted-axis source report")
+    trusted=recompute_original_source_angles(corpus)
+    if packet!=trusted:
+        raise ValueError("source angle report differs from authenticated original ROM PNGs")
+
+
 def compare(corpus:Path, source_report:Path, model_root:Path, camera_file:Path)->dict:
     import trimesh
-    original,verified=validate_corpus(corpus)
     source_bytes=source_report.read_bytes()
     source=json.loads(source_bytes)
-    if (source.get("schema")!=SOURCE_SCHEMA or
-            source.get("source_corpus_sha256")!=digest(corpus.read_bytes()) or
+    verify_source_axis_report(corpus,source)  # remeasure every genuine original PNG
+    if (source.get("source_corpus_sha256")!=digest(corpus.read_bytes()) or
             source.get("source_rom_sha256")!=CANONICAL_ROM_SHA or
             source.get("owner_character_likeness_approved") is not False or
-            source.get("original_mesh_lean_angle_recovered") is not False or
-            source["source_variants"]["independent_exact_source_binary_masks"]!=
-                len(verified["all_masks"])):
+            source.get("original_mesh_lean_angle_recovered") is not False):
         raise ValueError("not the authenticated original source chroma-axis packet")
     camera_bytes=camera_file.read_bytes()
     if digest(camera_bytes)!=CAMERA_SHA:

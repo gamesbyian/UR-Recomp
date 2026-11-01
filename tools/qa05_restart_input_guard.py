@@ -52,6 +52,7 @@ def validate_restart_p2_guest_input(
             f"observed {len(probes)}"
         )
     saw_held_raw_start = False
+    previous_waiting = None
     for index, match in enumerate(probes):
         raw, guest, held, waiting, remaining = match.groups()
         if (int(raw, 16) & P2_GUEST_START and held == '1'
@@ -63,6 +64,29 @@ def validate_restart_p2_guest_input(
                 f"P2 post-Restart sample {index + 1}: expected remaining="
                 f"{expected_remaining}, observed {remaining}"
             )
+        # The tournament P2 filter runs BEFORE the Restart latch and can
+        # suppress a raw Start bit. Therefore raw Start still high with
+        # Return released does NOT prove that the Restart latch stayed armed.
+        # Check only source-certain transitions: held Return cannot clear an
+        # armed latch; both raw Start and Return low must clear it; a cleared
+        # latch cannot re-arm without another Restart. The first sample has
+        # no observed predecessor and must not be guessed.
+        if previous_waiting is not None:
+            raw_start = bool(int(raw, 16) & P2_GUEST_START)
+            reported_waiting = waiting == '1'
+            impossible = (
+                (not previous_waiting and reported_waiting)
+                or (previous_waiting and held == '1' and not reported_waiting)
+                or (previous_waiting and held == '0' and not raw_start
+                    and reported_waiting)
+            )
+            if impossible:
+                raise ValueError(
+                    f"P2 post-Restart sample {index + 1}: release latch "
+                    f"transition inconsistent (previous_waiting="
+                    f"{int(previous_waiting)}, raw={raw}, return_held={held}, "
+                    f"reported_waiting={waiting})")
+        previous_waiting = waiting == '1'
         if int(guest, 16) & P2_GUEST_START:
             raise ValueError(
                 f"P2 post-Restart sample {index + 1}: guest Start leaked "

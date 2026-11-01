@@ -27,7 +27,7 @@ const chunk=(content,type)=>{const header=Buffer.alloc(8);header.writeUInt32LE(c
 const a=chunk(json,'JSON'),b=chunk(Buffer.concat([positions,indices]),'BIN\0');
 const header=Buffer.alloc(12);header.write('glTF');header.writeUInt32LE(2,4);header.writeUInt32LE(12+a.length+b.length,8);
 const fakeGlb=Buffer.concat([header,a,b]);
-let mocked=false;
+let mocked=process.env.UR_MODEL_SMOKE_REAL!=='1';
 const original=JSON.parse(readFileSync(join(site,'model-review/manifest.json'),'utf8'));
 const modelManifest={...original,version:'SYNTHETIC BROWSER FIXTURE',model_url:'mock.glb',
   poses:Object.fromEntries(['upright','pedal','wheelie','stunt','bank'].map(p=>[p,{url:'mock.glb'}])),
@@ -88,7 +88,6 @@ try{
  await cdp('Page.enable',{},session);await cdp('Runtime.enable',{},session);
  const summaries=[];
  for(const [width,height] of [[320,700],[412,892],[1440,900]]){
-  mocked=true;
   await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<600},session);
   await cdp('Page.navigate',{url:address},session);
   let ready=false;
@@ -118,7 +117,7 @@ try{
   summaries.push(report);console.log('MODEL_REVIEW_CHROMIUM '+JSON.stringify(report));
   if(report.issues.length)throw Error('Browser defects: '+report.issues.join('; '));
  }
- writeFileSync(join(out,'model-review-smoke.json'),JSON.stringify({synthetic_glb:true,original_sprite_frames:true,summaries},null,2));
+ writeFileSync(join(out,'model-review-smoke.json'),JSON.stringify({synthetic_glb:mocked,original_sprite_frames:true,summaries},null,2));
  console.log('MODEL_REVIEW_BROWSER_SMOKE_PASS');
 }finally{
  try{ws?.close()}catch{}

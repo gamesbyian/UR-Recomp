@@ -162,13 +162,7 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         raise ValueError('RF095 native sample capture not bounded to source window')
     with native_pcm.open('rb') as src:
         native = src.read()
-    if original_window_out is not None:
-        if original_window_out.exists() or original_window_out.is_symlink():
-            raise ValueError('RF095 refusing stale original PCM window')
-        original_window_out.parent.mkdir(parents=True, exist_ok=True)
-        with original_window_out.open('xb') as output:
-            output.write(original)
-    return {
+    receipt = {
         'schema': 'ur-qa01-rf095-source-registered-pcm/1',
         'claimed_output_stages': 'libretro callback and native post-echo DSP output',
         'producer_identity_independently_verified': False,
@@ -193,6 +187,17 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         'usa_event_credit': 0,
         'windows_release_gate_credit': 0,
     }
+    # Finish every source read/hash and validate receipt serialization before
+    # publishing the optional final-named original PCM window. A late source
+    # error must never leave an apparently usable orphan window.
+    json.dumps(receipt, indent=2, sort_keys=True)
+    if original_window_out is not None:
+        if original_window_out.exists() or original_window_out.is_symlink():
+            raise ValueError('RF095 refusing stale original PCM window')
+        original_window_out.parent.mkdir(parents=True, exist_ok=True)
+        with original_window_out.open('xb') as output:
+            output.write(original)
+    return receipt
 
 
 def validate_output_paths(inputs: tuple[Path, ...], out: Path,

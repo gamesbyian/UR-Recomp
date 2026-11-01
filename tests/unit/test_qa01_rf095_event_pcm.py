@@ -183,6 +183,38 @@ class RF095Tests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'stale original PCM'):
                 receipt.analyze(*files, original_window_out=output)
 
+    def test_late_receipt_failure_does_not_publish_original_pcm_window(self):
+        # All hashes and JSON serialization must finish before the optional
+        # final-named PCM window becomes visible. Preflight alone is insufficient.
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            names = ('original-wav', 'original-map', 'native-pcm',
+                     'native-map', 'original-log', 'native-log')
+            prefix = ['qa01_rf095_pcm_receipt.py']
+            for name, path in zip(names, files):
+                prefix.extend(('--' + name, str(path)))
+            for failure in ('source-read', 'json-serialization'):
+                with self.subTest(failure=failure):
+                    window = pathlib.Path(d) / (failure + '.pcm')
+                    out = pathlib.Path(d) / (failure + '.json')
+                    argv = prefix + ['--out', str(out),
+                                     '--original-window-out', str(window)]
+                    with mock.patch('sys.argv', argv):
+                        if failure == 'source-read':
+                            with mock.patch.object(
+                                    receipt, 'sha256',
+                                    side_effect=OSError('injected late source read failure')):
+                                with self.assertRaisesRegex(OSError, 'injected late'):
+                                    receipt.main()
+                        else:
+                            with mock.patch.object(
+                                    receipt.json, 'dumps',
+                                    side_effect=TypeError('injected late serialization failure')):
+                                with self.assertRaisesRegex(TypeError, 'injected late'):
+                                    receipt.main()
+                    self.assertFalse(window.exists())
+                    self.assertFalse(out.exists())
+
     def test_frame_map_rejects_non_lf_delimiters_and_empty_rows(self):
         # Pinned C producers terminate CSV rows with LF, never VT, FF, FS,
         # GS, RS or a bare CR. A checksum-valid forged map must fail closed.

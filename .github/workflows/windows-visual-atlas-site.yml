@@ -80,9 +80,11 @@ jobs:
             --exports "$RUNNER_TEMP/model-exports" \
             --site "$RUNNER_TEMP/atlas-site" \
             --source-commit "$source_commit"
-          echo "### Experimental 3D model review" >> "$GITHUB_STEP_SUMMARY"
-          echo "Rig source: \`$source_commit\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Five exported procedural studies; no original likeness or release approval." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### Experimental 3D model review"
+            echo "Rig source: \`$source_commit\`"
+            echo "Five exported procedural studies; no original likeness or release approval."
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Retain independent browser-ready site (without copyrighted ROM)
         uses: actions/upload-artifact@v4
         with:

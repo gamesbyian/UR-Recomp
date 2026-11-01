@@ -74,6 +74,13 @@ class RacerColourwayTests(unittest.TestCase):
         self.assertEqual(p1["mean_blue_chroma_indicator_pixels_per_shape"], 0.0)
         self.assertEqual(p2["mean_red_chroma_indicator_pixels_per_shape"], 0.0)
         self.assertEqual(p2["mean_blue_chroma_indicator_pixels_per_shape"], 1.0)
+        self.assertEqual(p1["distinct_original_source_opaque_rgb_colours"], 2)
+        self.assertEqual(p2["distinct_original_source_opaque_rgb_colours"], 2)
+        self.assertEqual(
+            data["original_source_palette_overlap"]["shared_opaque_rgb_colours"],
+            ["#4a4a4a"])
+        self.assertFalse(
+            data["original_source_palette_overlap"]["rgb_palette_union_is_a_recovered_1994_3d_material_map"])
         self.assertFalse(data["source_colour_is_an_authentic_3d_material_label"])
         self.assertFalse(data["shipping_art_approved"])
         self.assertFalse(data["1994_3d_camera_or_lighting_recovered"])
@@ -140,6 +147,15 @@ class RacerColourwayTests(unittest.TestCase):
         self.assertEqual(p1["mean_blue_chroma_indicator_pixels_per_shape"], 0)
         self.assertEqual(p2["mean_red_chroma_indicator_pixels_per_shape"], 0)
         self.assertEqual(p2["mean_blue_chroma_indicator_pixels_per_shape"], 67)
+        self.assertEqual(p1["distinct_original_source_opaque_rgb_colours"], 15)
+        self.assertEqual(p2["distinct_original_source_opaque_rgb_colours"], 15)
+        self.assertEqual(
+            actual["original_source_palette_overlap"]["shared_opaque_rgb_colours"],
+            ["#181818", "#313131", "#4a4a4a", "#737373", "#a5a5a5"])
+        self.assertEqual(len(
+            actual["original_source_palette_overlap"]["p1_only_opaque_rgb_colours"]), 10)
+        self.assertEqual(len(
+            actual["original_source_palette_overlap"]["p2_only_opaque_rgb_colours"]), 10)
         self.assertFalse(actual["source_colour_is_an_authentic_3d_material_label"])
         self.assertFalse(actual["owner_character_likeness_approved"])
 

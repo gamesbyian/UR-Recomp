@@ -161,6 +161,7 @@ def aggregate_source_colourways(rows: list[dict], *,
     # Weight each distinct source silhouette once, and within it each
     # original colour-variant once. Frame-holds never become extra weights.
     summaries = {}
+    player_palettes = {}
     for player in PLAYERS:
         groups = [group for (p, _), group in by_mask.items() if p == player]
         totals = {"red": 0.0, "blue": 0.0, "opaque": 0.0}
@@ -182,7 +183,19 @@ def aggregate_source_colourways(rows: list[dict], *,
                 "distinct_original_rgba_colour_variants": n,
                 "original_rgba_variants": sorted(variants, key=lambda x: x["source_rgba_sha256"]),
             })
+        # A colour can appear in several original sprite poses. Preserve
+        # the union of independently authenticated, opaque source RGB values;
+        # never count it as a distinct material, part, UV or 3D albedo.
+        colours = {
+            entry["rgb_hex"]
+            for group in groups
+            for variant in group["rgba_variants"].values()
+            for entry in variant["source_color_stats"]["source_opaque_rgb_histogram"]
+        }
+        player_palettes[player] = colours
         summaries[player] = {
+            "distinct_original_source_opaque_rgb_colours": len(colours),
+            "source_opaque_rgb_palette_union": sorted(colours),
             "distinct_original_binary_silhouette_weight": len(groups),
             "mean_source_opaque_pixels_per_distinct_shape": round(totals["opaque"] / len(groups), 8),
             "mean_red_chroma_indicator_pixels_per_shape": round(totals["red"] / len(groups), 8),
@@ -199,6 +212,17 @@ def aggregate_source_colourways(rows: list[dict], *,
         }
     return {
         "schema": SCHEMA,
+        "original_source_palette_overlap": {
+            "shared_opaque_rgb_colours": sorted(
+                player_palettes["p1"] & player_palettes["p2"]),
+            "shared_opaque_rgb_colour_count": len(
+                player_palettes["p1"] & player_palettes["p2"]),
+            "p1_only_opaque_rgb_colours": sorted(
+                player_palettes["p1"] - player_palettes["p2"]),
+            "p2_only_opaque_rgb_colours": sorted(
+                player_palettes["p2"] - player_palettes["p1"]),
+            "rgb_palette_union_is_a_recovered_1994_3d_material_map": False,
+        },
         "source_rom_sha256": source_rom_sha256,
         "source_registry_sha256": source_registry_sha256,
         "original_64x64_observation_count": 32,

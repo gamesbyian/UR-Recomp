@@ -126,6 +126,41 @@ class RestartInputGuardTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "P2 post-Restart sample 4: expected remaining=8"):
             validate_restart_guest_input(trace() + p2_trace(bad_countdown=True))
 
+    def test_strict_p2_witness_rejects_vacuous_no_start_probes(self):
+        valid = trace() + p2_trace()
+        self.assertEqual(
+            validate_restart_guest_input(valid, require_p2_start_witness=True),
+            12,
+        )
+        self.assertEqual(
+            validate_restart_p2_guest_input(
+                p2_trace(), require_raw_start_witness=True), 12,
+        )
+        # A 12-line, zero-leak P2 trace does not prove the Return/Start
+        # collision was ever exercised. Keep the ordinary P1-only diagnostic
+        # backwards-compatible, but refuse it as a two-seat witness.
+        variants = (
+            trace(),
+            trace() + p2_trace().replace('raw=0100', 'raw=0000'),
+            trace() + p2_trace().replace(
+                'raw=0100 guest=0000 return_held=1',
+                'raw=0000 guest=0000 return_held=1'),
+            trace() + p2_trace().replace(
+                'return_held=1', 'return_held=0'),
+            trace() + p2_trace().replace(
+                'release_waiting=1', 'release_waiting=0'),
+        )
+        for candidate in variants:
+            with self.subTest(candidate=candidate[-90:]), self.assertRaisesRegex(
+                    ValueError, 'P2 raw Start/held Return witness absent'):
+                validate_restart_guest_input(
+                    candidate, require_p2_start_witness=True)
+        self.assertEqual(
+            validate_restart_guest_input(
+                trace() + p2_trace().replace('raw=0100', 'raw=0000')),
+            12,
+        )
+
     def test_historical_p1_only_log_remains_valid_without_p2_credit(self):
         self.assertEqual(validate_restart_guest_input(trace()), 12)
         self.assertEqual(validate_restart_p2_guest_input(trace()), 0)

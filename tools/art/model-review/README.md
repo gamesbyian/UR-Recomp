@@ -21,6 +21,12 @@ The existing #2832 exporter creates five separate source-owned pose GLBs using `
 5. For every new accepted model revision, rebuild the five poses and atomically replace the manifest only after all files validate. Never show the previous successful artifact as a newly successful run.
 6. Preserve exact export SHA and original source comparison/holdout evidence separately. Show an authentic sprite-pose selector only when mappings are explicitly registered to verified source frame IDs; the five current selections are **blockout studies**, not original 1994 poses.
 
+## Original 1994 sprite reference rail
+
+The atlas assembler independently runs `tools/art/build_racer_source_pixel_corpus.py` and verifies the retained original first-family stock PNGs and source manifest before copying **P1 and P2 frames 1205–1220** to `model-review/sprites/`. It writes a separate `sprites.json` with each frame, authenticated source representation ID and the original PNG byte SHA-256. These are pre-existing source-registered images, not ML-generated pixels, and the user may scrub through them beside the candidate mesh. The 2D sprite scrubber is **deliberately independent** of the five blockout pose GLBs. There is no invented mapping from guest frame to a 3D rig state, nor a claim that those seven distinct stock images represent independent 3D cameras.
+
+The true GLB source is OpenSCAD Z-up; the viewer rotates the source scene into browser Y-up. Side/front/rear/top camera shortcuts are view-only and never modify the underlying authored transforms.
+
 ## Known limitations
 
 This page and the atlas's optional GLB export/deployment workflow are implemented on PR #2938, **but no live Pages deployment or real model-export browser smoke has yet been verified**. The draft #2832 branch is intentionally still the GLB producer. The existing workflow can publish its current experimental head only on an explicit authorized dispatch after these changes merge. The viewer's five named poses require five separately exported GLBs; a local neutral GLB upload alone cannot recreate source-defined OpenSCAD per-part crank and saddle transforms. Picking mesh nodes is diagnostic only; pivots are displayed as model-node origins. The OpenSCAD GLB has Z-up coordinates, and the viewer converts them into Three.js Y-up for normal inspection; conversion can be toggled for third-party GLBs. No owner likeness sign-off, skeletal skinning, real animation channels, source-camera calibration or sprite-pose authentication is implied.

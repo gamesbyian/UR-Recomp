@@ -80,6 +80,7 @@ class ModelReviewPublicationTests(unittest.TestCase):
                 self.assertTrue(path.is_file(), pose)
                 self.assertEqual(sha(path.read_bytes()), payload["sha256"])
             self.assertIn("three", (site / "model-review/index.html").read_text())
+            self.assertTrue((site / "model-review/measurement_overlay.mjs").is_file())
             with self.assertRaisesRegex(ValueError, "non-placeholder"):
                 stage(exports, site, SHA)
 

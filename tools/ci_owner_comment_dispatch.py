@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Dispatch narrowly allowlisted CI workflows via repository-owner PR comments.
+"""Dispatch narrowly allowlisted CI or HP science via owner PR comments.
 
+Only /ur-ci hp-research requests a bounded current-main HP science trial.
+It never establishes that GitHub's *scheduled* cron actually fired.
 A successful dispatch is NOT a successful test: inspect the target run's
-actual checkout SHA and full evidence before using it for PR qualification.
+actual checkout SHA and signed eight-worker evidence before any claim.
 """
 import json
 import os

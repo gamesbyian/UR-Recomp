@@ -17,6 +17,8 @@ on:
       - "tests/unit/test_study_original_racer_root_lean_grid.py"
       - "tools/art/evaluate_original_racer_lean_silhouettes.py"
       - "tests/unit/test_evaluate_original_racer_lean_silhouettes.py"
+      - "tools/art/evaluate_original_racer_frame_mass_holdout.py"
+      - "tests/unit/test_evaluate_original_racer_frame_mass_holdout.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,7 +29,7 @@ concurrency:
 jobs:
   verified-original-source-holdout:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -187,6 +189,56 @@ jobs:
               for name,value in summary["mean_full_silhouette_iou_per_fixed_source_root_pose"].items():
                   out.write(f"- {name}: mean original-source IoU {value}\n")
               out.write("\nNo 1994 authentic camera, pose, physical ground-contact or likeness acceptance.\n")
+          PY
+      - name: Restore pinned original five-part OpenSCAD authoring source
+        uses: actions/checkout@v4
+        with:
+          ref: 3f63d744f6381acebd86f9df2b84de01abb2e33b
+          path: art4k-frozen-source
+          persist-credentials: false
+      - name: Qualify real OpenSCAD fork mass against SHA-disjoint original silhouettes
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_scad="art4k-frozen-source/tools/art/candidates/unicycle_shared_rig.scad"
+          test -s "$source_scad"
+          printf '%s  %s\n' \
+            'e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984' \
+            "$source_scad" | sha256sum --check --status
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq openscad
+          python tools/art/evaluate_original_racer_frame_mass_holdout.py \
+            --source-scad "$source_scad" \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/art4k-reports/fork-mass-disconnected-family.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          row=json.loads((Path(os.environ["RUNNER_TEMP"])/
+            "art4k-reports/fork-mass-disconnected-family.json").read_text())
+          assert row["actual_original_binary_silhouettes"]==35
+          assert row["first_family_source_mask_count"]==10
+          assert row["first_family_unmodified_mean_iou_reproduced"]==0.57255469
+          assert row["source_family_partition_results"]["previously_unseen_source_mask_holdout"][
+            "source_independent_binary_mask_count"]==19
+          assert len(row["actual_source_OpenSCAD_mesh_exports"])==3
+          assert row["rig_geometry_or_shipping_default_modified"] is False
+          assert row["owner_character_likeness_approved"] is False
+          for trial in row["actual_source_OpenSCAD_mesh_exports"]:
+            assert trial["real_source_model_openSCAD_geometry_exported"] is True
+            assert trial["all_other_four_source_parts_unchanged"] is True
+          control=row["source_family_partition_results"][
+            "previously_unseen_source_mask_holdout"]["mass_trials"]
+          print("Actual ROM independent-family 3D source fork mass",control)
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+            out.write("### Actual source OpenSCAD fork mass on 19 disjoint original 2D masks\n\n")
+            for mass,v in control.items():
+              out.write(f"- Fork mass {mass}: IoU {v['mean_original_mask_iou']}; "
+                f"chamfer {v['mean_boundary_chamfer_physical_px']}; "
+                f"wins/losses vs original {v['wins_over_unmodified_iou']}"
+                f"/{v['losses_to_unmodified_iou']}\n")
+            out.write("\nAuthentic 1994 3D camera, pose, contact, likeness unverified.\n")
           PY
       - name: Audit actual original ROM frame holds and 2D motion transitions
         shell: bash

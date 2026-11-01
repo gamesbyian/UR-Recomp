@@ -227,5 +227,43 @@
     "owner_likeness_approved": false,
     "shipping_art_approved": false,
     "source_images_or_GLbs_committed_to_repo": false
+  },
+  "source_region_diagnostic": {
+    "source_frame": "P1:1205",
+    "model_pose": "upright",
+    "camera_vertical_scale": 9.5,
+    "source_opaque_pixel_count": 325,
+    "model_opaque_pixel_count": 267,
+    "model_missing_source_pixels": 107,
+    "model_excess_pixels": 49,
+    "model_part_opaque_pixels_before_union": {
+      "tire": 124,
+      "rim_and_hub": 70,
+      "fork_and_frame": 46,
+      "pedals": 14,
+      "saddle": 56
+    },
+    "missing_source_pixels_y_lt_15": 44,
+    "excess_model_pixels_y_lt_15": 26,
+    "missing_source_pixels_y_ge_25": 44,
+    "excess_model_pixels_y_ge_25": 10,
+    "non_additivity_note": "Part occupancy overlaps; individual part counts cannot be summed to yield assembled silhouette occupancy.",
+    "interpretation": "Both upper saddle and lower wheel/fork area contribute; no isolated part edit can be declared the solution."
+  },
+  "real_GLB_saddle_span_ablation": {
+    "model": "real 16-material GLB, same five-parent scene, upright pose",
+    "original_model_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+    "method": "Transform *only* real world-space saddle child vertices along model X, anchored at the source-authored saddle pivot x=0.04, by fixed factor. This reproduces a bounded geometric parameter candidate and does not mutate published GLB or claim production rig export.",
+    "raw_model_unmodified": true,
+    "camera_status": "provisional",
+    "saddle_1x_camera_9_5_iou": 0.5828877,
+    "saddle_1_4_camera_9_5_iou": 0.6015625,
+    "saddle_1_4_camera_9_4_iou": 0.62269129,
+    "saddle_1_4_camera_9_3_iou": 0.62169312,
+    "saddle_1_4_camera_9_4_boundary_chamfer_px": 0.91112337,
+    "saddle_1x_camera_9_4_boundary_chamfer_px": 0.89045218,
+    "interesting_tradeoff": "Saddle expansion improves single-source mask IoU but worsens boundary Chamfer at camera9.4, so cannot select geometry on IoU alone.",
+    "heldout_pose_family_tested": false,
+    "owner_likeness_approved": false
   }
 }

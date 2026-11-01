@@ -1,3 +1,4 @@
+import hashlib
 import struct
 import tempfile
 import unittest
@@ -146,6 +147,51 @@ class WidescreenProductParityTests(unittest.TestCase):
         leak = compare_wram(self.root / "a.bin", self.root / "b.bin")
         self.assertEqual(leak["leaked_bytes"], 1)
         self.assertEqual(leak["first_leaks"], ["0x02049"])
+
+    def test_report_binds_exact_capture_bytes(self):
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        write_bmp(stock, 256, 224, stock_pixel)
+        write_bmp(wide, 342, 224, lambda x, y: stock_pixel(x - 43, y))
+        a.write_bytes(bytes(0x20000))
+        b.write_bytes(bytes(0x20000))
+        pair = ("frame-100", stock, wide, a, b)
+        report = check([pair])
+        self.assertEqual(report["outcome"], "accepted")
+        metrics = report["metrics"]["frame-100"]
+        for section, paths in (("center", (stock, wide)), ("wram", (a, b))):
+            for side, path in zip(("stock", "wide"), paths):
+                identity = metrics[section]["input_identities"][side]
+                self.assertEqual(identity["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+                self.assertEqual(identity["size"], path.stat().st_size)
+        original_hash = metrics["center"]["input_identities"]["wide"]["sha256"]
+        # Change only a widened margin: centre parity remains true, but the
+        # evidence identity must change with the actual consumed capture.
+        write_bmp(wide, 342, 224, lambda x, y: (9, 8, 7) if x < 43 else stock_pixel(x - 43, y))
+        updated = check([pair])
+        self.assertEqual(updated["outcome"], "accepted")
+        self.assertNotEqual(updated["metrics"]["frame-100"]["center"]["input_identities"]["wide"]["sha256"], original_hash)
+
+    def test_empty_duplicate_and_reused_checkpoints_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, "at least one"):
+            check([])
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        write_bmp(stock, 256, 224, stock_pixel)
+        write_bmp(wide, 342, 224, lambda x, y: stock_pixel(x - 43, y))
+        a.write_bytes(bytes(0x20000))
+        b.write_bytes(bytes(0x20000))
+        pair = ("frame-100", stock, wide, a, b)
+        with self.assertRaisesRegex(ValueError, "duplicate checkpoint tag"):
+            check([pair, pair])
+        with self.assertRaisesRegex(ValueError, "identical capture bytes reused"):
+            check([pair, ("frame-200", stock, wide, a, b)])
+        with self.assertRaisesRegex(ValueError, "nonempty strings"):
+            check([("", stock, wide, a, b)])
 
     def test_envelope_outcome(self):
         write_bmp(self.root / "s.fb.bmp", 256, 224, stock_pixel)

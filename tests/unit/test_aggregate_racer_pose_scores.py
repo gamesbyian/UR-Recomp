@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
+import struct
 import tempfile
+import zlib
 import unittest
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from tools.art.aggregate_racer_pose_scores import (
 )
 from tools.art.build_racer_source_pixel_corpus import build as original_corpus, STRIP
 from tools.art.score_racer_candidate import score_retained_original
+from tools.art.racer_source_pixels import decode_rgba_png
 
 
 def fake_row(i, role="fit", source="a", candidate="b", iou=0.5):
@@ -78,15 +80,28 @@ class RetainedOriginalControlTests(unittest.TestCase):
         self.addCleanup(self.t.cleanup)
         self.root = Path(self.t.name)
         self.source = STRIP/"stock/p1-00.png"
-        self.local = self.root/"candidate.png"
-        shutil.copyfile(self.source, self.local)
+        self.local = self.root/"candidate-4x.png"
+        w, h, pixels, _ = decode_rgba_png(self.source)
+        self.assertEqual((w, h), (64, 64))
+        def chunk(tag, payload):
+            return (struct.pack(">I", len(payload)) + tag + payload +
+                    struct.pack(">I", zlib.crc32(tag+payload)&0xffffffff))
+        lines = []
+        for y in range(64):
+            row = b"".join(pixels[(y*64+x)*4:(y*64+x+1)*4]*4 for x in range(64))
+            lines.extend([b"\\0" + row]*4)
+        raw = (b"\\x89PNG\\r\\n\\x1a\\n" +
+               chunk(b"IHDR", struct.pack(">IIBBBBB",256,256,8,6,0,0,0)) +
+               chunk(b"IDAT", zlib.compress(b"".join(lines))) +
+               chunk(b"IEND", b""))
+        self.local.write_bytes(raw)
         self.source_img_sha = hashlib.sha256(self.local.read_bytes()).hexdigest()
         corpus = original_corpus()
         self.source_row = next(x for x in corpus["observations"]
                                if x["player"]=="p1" and x["guest_frame"]==1205)
 
     def packet_entry(self, frame, role="fit"):
-        score = score_retained_original("p1", frame, self.local, self.source_img_sha, 1)
+        score = score_retained_original("p1", frame, self.local, self.source_img_sha, 4)
         packet = {
             "schema": PACKET_SCHEMA,
             "source_scad_sha256": "a"*64,

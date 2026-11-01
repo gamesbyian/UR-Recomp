@@ -52,7 +52,7 @@ Actions:
 1. Derive an offline pose mapping from verified original semantic frame IDs/pose equivalence, with root tilt/translation, wheel/crank phase, saddle lean/curvature and optional stretch; explicitly distinguish source-supported parameters from plausible performance/acting priors.
 2. Ensure crank geometry and pedal-platform orientation stay valid as phase changes (whole-parent pedal mesh rotation is insufficient). Add a deformable saddle/head pathway if supported by original high-detail acting; don't invent steering bones.
 3. Fit source-registered train frames without per-frame arbitrary scale, camera or bespoke mesh. Render a named *withheld* pose family without optimizing against its target image. Report metrics on train, validation and holdout independently, plus a 16-frame uninterrupted sequence and static/alias behavior.
-4. Repeat with red/green colors from verified palette equivalence using identical mesh and shared lights. Identify where original PPU final-composite color is affected by foreground/HMDA rather than material paint. (Correct term: HDMA.)
+4. Repeat with red/green colors from verified palette equivalence using identical mesh and shared lights. Identify where original PPU final-composite color is affected by foreground/HDMA rather than source racer material paint.
 
 **Tests:** original stock-static aliases remain identical after exact source pose mapping; cadence/changed-pixel ratio versus source; no hidden per-frame alpha trim/zoom; continuous wheel/pedal closure and pivots; source-provenanced holdout metrics. **Gate:** nondegenerate articulated motion and credible withheld-pose generalization; otherwise record specific missing geometry/camera evidence.
 

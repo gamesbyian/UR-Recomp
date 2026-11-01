@@ -61,8 +61,13 @@ def page_events(command_fn, *, first: int, page_size: int, event_filter: int) ->
             contiguous = False
         # Preserve the generic collector's historic best-effort behavior,
         # but expose absolute scan coverage for strict KON evidence consumers.
+        # The native server separately reports returned=len(serialized events)
+        # and scanned=absolute ring slots. A mismatch could hide a voice-7
+        # KON despite a seemingly contiguous scanned interval.
         if (returned_first != cursor or scanned < 0 or scanned > page_size
-                or not isinstance(page, list) or len(page) > scanned):
+                or not isinstance(page, list) or len(page) > scanned
+                or type(result.get("returned")) is not int
+                or result["returned"] != len(page)):
             contiguous = False
         if page:
             events.extend(page)

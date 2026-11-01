@@ -14,8 +14,8 @@ class AudioEventCaptureTests(unittest.TestCase):
     def test_pages_until_short_scan(self) -> None:
         calls = []
         responses = [
-            {"events": [{"t": "cpu_wr"}], "scanned": 2, "first": 0, "oldest": 0},
-            {"events": [{"t": "spc_rd"}], "scanned": 1, "first": 2, "oldest": 0},
+            {"events": [{"t": "cpu_wr"}], "returned": 1, "scanned": 2, "first": 0, "oldest": 0},
+            {"events": [{"t": "spc_rd"}], "returned": 1, "scanned": 1, "first": 2, "oldest": 0},
         ]
 
         def command(line: str) -> dict:
@@ -49,7 +49,7 @@ class AudioEventCaptureTests(unittest.TestCase):
 
     def test_native_counter_coercions_never_certify_strict_ring_coverage(self) -> None:
         good = {"events": [{"t": "reg", "adr": "0x4c", "val": "0x80", "s": 40000}],
-                "scanned": 1, "first": 0, "oldest": 0}
+                "returned": 1, "scanned": 1, "first": 0, "oldest": 0}
         for field, malformed in (("scanned", "1"), ("scanned", True),
                                  ("first", "0"), ("first", False),
                                  ("oldest", "0"), ("oldest", None),
@@ -69,12 +69,34 @@ class AudioEventCaptureTests(unittest.TestCase):
         self.assertTrue(meta["_client_contiguous"])
         self.assertEqual(meta["_client_scan_end"], 1)
 
+    def test_returned_count_mismatch_cannot_certify_strict_ring(self) -> None:
+        good = {"events": [{"t": "reg", "adr": "0x4c",
+                            "val": "0x80", "s": 40000}],
+                "returned": 1, "scanned": 1, "first": 0, "oldest": 0}
+        for value in (None, True, "1", 0, 2):
+            with self.subTest(value=value):
+                response = dict(good)
+                if value is None:
+                    response.pop("returned")
+                else:
+                    response["returned"] = value
+                events, meta = cap.page_events(lambda _: response,
+                                               first=0, page_size=8000,
+                                               event_filter=1)
+                self.assertEqual(len(events), 1)
+                self.assertFalse(meta["_client_contiguous"])
+        events, meta = cap.page_events(lambda _: good, first=0,
+                                       page_size=8000, event_filter=1)
+        self.assertEqual(len(events), 1)
+        self.assertTrue(meta["_client_contiguous"])
+
     def test_capture_includes_stats_and_ring_metadata(self) -> None:
         responses = {
             "audio_stats 5": {"event_count": 3, "cpu_port_writes": 1},
             "audio_events 0 8 2": {
                 "events": [{"t": "cpu_wr", "adr": "0x02", "val": "0x31"}],
                 "scanned": 1,
+                "returned": 1,
                 "first": 0,
                 "oldest": 0,
             },

@@ -69,7 +69,8 @@ class RF095WorkflowPrerequisites(unittest.TestCase):
         guard = 'env.pop("SNESREF_PCM_FRAME_MAP", None)'
         self.assertEqual(scan.count(guard), 1)
         self.assertLess(scan.index(guard), scan.index('p = subprocess.run('))
-        self.assertEqual(scan.count('cwd=scan'), 2)
+        self.assertEqual(scan.count('env=env, cwd=scan'), 1)
+        self.assertEqual(scan.count('env=anchor_env, cwd=scan'), 1)
         self.assertIn('anchor_env = dict(env, SNESREF_SCRIPT=str(anchor))', scan)
 
 

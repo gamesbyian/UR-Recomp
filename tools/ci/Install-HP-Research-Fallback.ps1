@@ -17,8 +17,17 @@ $GitHub = Get-Command gh.exe -ErrorAction Stop
 if ($LASTEXITCODE -ne 0) { throw 'Python 3 via py.exe is required.' }
 # The token remains in the existing GitHub CLI credential store. No new token
 # is generated, printed, copied or stored by this package.
-& $GitHub.Source auth status -h github.com *> $null
-if ($LASTEXITCODE -ne 0) { throw 'Authenticate gh first using gh auth login.' }
+# Windows PowerShell 5.1 may treat a successful native process writing to stderr
+# as an ErrorRecord when ErrorActionPreference=Stop. gh auth status commonly
+# reports success on stderr; capture its exit code without elevating the stream.
+$ErrorActionPreference = 'Continue'
+try {
+    & $GitHub.Source auth status -h github.com *> $null
+    $AuthExit = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = 'Stop'
+}
+if ($AuthExit -ne 0) { throw 'Authenticate gh first using gh auth login.' }
 New-Item -ItemType Directory -Path $InstallRoot -Force | Out-Null
 Copy-Item -LiteralPath $Source -Destination $Target -Force
 $Action = New-ScheduledTaskAction -Execute $Python.Source -Argument ('-3 "' + $Target + '" --once --state-dir "' + $InstallRoot + '"') -WorkingDirectory $InstallRoot

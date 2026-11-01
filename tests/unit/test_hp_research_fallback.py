@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
+import shutil
+import subprocess
+import os
 import unittest
 from unittest.mock import patch
 from tools.ci import hp_research_fallback as h
@@ -133,6 +136,20 @@ class HPFallbackTests(unittest.TestCase):
         self.assertIn("-LogonType Interactive", script)
         self.assertNotIn("-LogonType InteractiveToken", script)
         self.assertIn("-MultipleInstances IgnoreNew", script)
+
+    def test_owner_installer_powershell_parser_when_available(self):
+        pwsh = shutil.which("pwsh")
+        if not pwsh:
+            self.skipTest("PowerShell Core not installed; Windows task acceptance remains external")
+        script = Path(__file__).parents[2] / "tools" / "ci" / "Install-HP-Research-Fallback.ps1"
+        check = ("$tokens = $null; $errors = $null; "
+                 "[void][System.Management.Automation.Language.Parser]::ParseFile("
+                 "$env:HP_PS1_TEST, [ref]$tokens, [ref]$errors); "
+                 "if ($errors.Count -gt 0) { exit 1 }")
+        r = subprocess.run([pwsh, "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", check],
+                           env={**os.environ, "HP_PS1_TEST": str(script)},
+                           capture_output=True, text=True, timeout=15)
+        self.assertEqual(r.returncode, 0, "owner installer PowerShell syntax failed")
 
     def test_iso_time_and_cooldown_boundary(self):
         self.assertEqual(h.parse_utc("2026-11-01T05:00:00Z"), NOW)

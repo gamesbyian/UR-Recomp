@@ -75,6 +75,53 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
             {"shared": False, "onboarding": False, "ui": True},
         )
 
+    def test_python_assertion_only_changes_do_not_dispatch_heavy_native(self):
+        # These wrappers compile their native fixtures in the full tooling
+        # suite; the heavy Modern workflow doesn't import or execute them.
+        names = (
+            "test_completed_run_browser_cpp.py",
+            "test_completed_run_catalog_cpp.py",
+            "test_completed_run_ghost_cpp.py",
+            "test_completed_run_ghost_frame_cpp.py",
+            "test_completed_run_ghost_policy_cpp.py",
+            "test_completed_run_ghost_projection_cpp.py",
+            "test_completed_run_ghost_racer_selector_cpp.py",
+            "test_completed_run_ghost_raster_cpp.py",
+            "test_completed_run_ghost_trace_cpp.py",
+            "test_completed_run_ghost_world_sample_cpp.py",
+            "test_completed_run_presentation_cpp.py",
+            "test_completed_run_replay_cpp.py",
+            "test_completed_run_store_cpp.py",
+            "test_modern_results_navigation_cpp.py",
+            "test_modern_results_navigation_host_contract.py",
+        )
+        router_paths = set(workflow_pr_paths(WORKFLOWS / "modern-native-heavy-router.yml"))
+        shared_paths = set(classifier.load_patterns(MANIFESTS["shared"]))
+        unit_workflow = (WORKFLOWS / "tooling-unit-tests.yml").read_text(
+            encoding="utf-8")
+        self.assertIn('      - "tests/unit/**"', unit_workflow)
+        for filename in names:
+            path = "tests/unit/" + filename
+            with self.subTest(path=path):
+                self.assertNotIn(path, router_paths)
+                self.assertNotIn(path, shared_paths)
+                self.assertEqual(
+                    classifier.classify_paths([path]),
+                    {"shared": False, "onboarding": False, "ui": False},
+                )
+        # Source and real native test changes remain full heavy invalidations.
+        for path in (
+            "native/product/completed_run_ghost_policy.hpp",
+            "native/product/completed_run_replay.hpp",
+            "tests/native/completed_run_ghost_policy_test.cpp",
+            "tests/native/modern_results_navigation_test.cpp",
+            "tests/native/run_modern_results_navigation_acceptance.sh",
+        ):
+            with self.subTest(source=path):
+                self.assertIn(path, router_paths)
+                self.assertIn(path, shared_paths)
+                self.assertTrue(classifier.classify_paths([path])["shared"])
+
     def test_shared_negative_assertion_helper_selects_actual_onboarding_consumer(self):
         helper = "tests/native/assert_absent_grep.sh"
         self.assertEqual(

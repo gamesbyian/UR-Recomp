@@ -9,7 +9,8 @@ import unittest
 from pathlib import Path
 
 from tools.art.build_real_viewer_pose_matrix import (
-    POSES, compute, rank_unpaired,
+    POSES, compute, rank_unpaired, translated_binary_mask,
+    original_registered_contacts,
 )
 from tools.art.build_racer_source_pixel_corpus import build as original_corpus, ROOT
 from tools.art.render_racer_glb_projection import np, trimesh, Image
@@ -32,6 +33,34 @@ def ranking_row(sha, n, best="bank", high=0.8):
 
 
 class UnpairedPoseRankingTests(unittest.TestCase):
+    def test_declared_integer_contact_translation_without_clipping(self):
+        source = bytearray(64 * 64)
+        source[21*64+27] = 1
+        moved = translated_binary_mask(bytes(source), -5, 0)
+        self.assertEqual(moved[21*64+22], 1)
+        self.assertEqual(sum(moved), 1)
+        self.assertEqual(translated_binary_mask(bytes(source), 0, 0), bytes(source))
+        with self.assertRaisesRegex(ValueError, "would clip"):
+            translated_binary_mask(bytes(source), -30, 0)
+        with self.assertRaisesRegex(ValueError, "integer shift"):
+            translated_binary_mask(bytes(source), 0.5, 0)
+
+    def test_registration_contacts_are_source_defined_not_fitted(self):
+        from tools.art.build_racer_source_pixel_corpus import REGISTRY
+        original = original_corpus()
+        contacts = original_registered_contacts(
+            REGISTRY, original["source_registry_current_sha256"])
+        ids = {x["representation_id"] for x in original["observations"]}
+        self.assertTrue(ids.issubset(contacts))
+        p1 = next(x for x in original["observations"]
+                  if x["player"]=="p1" and x["guest_frame"]==1205)
+        p2 = next(x for x in original["observations"]
+                  if x["player"]=="p2" and x["guest_frame"]==1205)
+        self.assertEqual(contacts[p1["representation_id"]], ("p1", (67,76)))
+        self.assertEqual(contacts[p2["representation_id"]], ("p2", (57,76)))
+        with self.assertRaisesRegex(ValueError, "SHA mismatch"):
+            original_registered_contacts(REGISTRY, "0"*64)
+
     def test_repeated_frames_do_not_outvote_distinct_source_shapes(self):
         rows = [ranking_row("a", 30, "upright"),
                 ranking_row("b", 1, "bank", 0.7)]
@@ -128,6 +157,24 @@ class RealOriginalPixelsSyntheticFiveGlbTests(unittest.TestCase):
         self.assertTrue(result["similarities_are_unpaired_hypotheses_not_source_pose_mapping"])
         self.assertFalse(result["owner_likeness_approved"])
         self.assertFalse(result["independent_pose_family_holdout_tested"])
+
+    def test_source_semantic_registered_anchors_are_distinct_from_fixed_witness(self):
+        fixed = compute(self.site, registration_mode="fixed-witness")
+        registered = compute(self.site, registration_mode="source-registered")
+        self.assertEqual(registered["comparison_count"], 50)
+        self.assertTrue(registered["registered_original_contact_used_without_optimization"])
+        self.assertFalse(registered["per_pair_auto_alignment"])
+        self.assertFalse(registered["owner_likeness_approved"])
+        self.assertEqual(registered["unique_original_binary_silhouettes"], 10)
+        by_frame = {r["original_source_observations"][0]["player"]+":"+
+                    str(r["original_source_observations"][0]["guest_frame"]): r
+                    for r in registered["rows"]}
+        self.assertEqual(by_frame["p1:1205"]["source_registered_logical_xy_translation"], [0, 0])
+        self.assertEqual(by_frame["p2:1205"]["source_registered_logical_xy_translation"], [-5, 0])
+        self.assertNotEqual(
+            fixed["summary"]["equal_source_mask_weighted_mean_iou_by_experimental_pose"],
+            registered["summary"]["equal_source_mask_weighted_mean_iou_by_experimental_pose"],
+        )
 
     def test_internally_consistent_forged_sprite_is_rejected(self):
         sprite = self.site / self.refs[0]["image"]

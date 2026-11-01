@@ -103,6 +103,12 @@ class ModelReviewMeasurementSidecarTests(unittest.TestCase):
         self.assertFalse(data["viewer_files_modified"])
         self.assertFalse(data["public_website_deployment_claimed"])
         self.assertEqual(data["experimental_pose_highest_iou_counts"]["bank"], 10)
+        self.assertTrue(all(
+            item["runner_up_iou_experimental_pose"] == "stunt" and
+            item["first_minus_second_unpaired_iou_margin"] == .05 and
+            item["margin_is_pose_identity_confidence"] is False
+            for item in data["source_shape_measurements"]
+        ))
         self.assertNotIn("image", str(data))  # image binaries / local URLs never embedded.
 
     def test_repeated_identical_original_shape_is_rejected(self):

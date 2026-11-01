@@ -11,11 +11,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import tempfile
 import time
 from pathlib import Path
 
 from capture_audio_events import command, connect
-from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, validate_output_separation, SHA40
+from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, publish_wav_no_replace, validate_output_separation, SHA40
 
 
 def _nonnegative_int(value, label: str) -> int:
@@ -192,17 +193,27 @@ def main() -> int:
         ap.error("refusing to overwrite existing WAV or receipt")
     if not wav.parent.is_dir() or wav.parent.is_symlink():
         ap.error("WAV parent must exist and not be a symlink")
-    sock, reader = connect(args.host, args.port, 20)
-    sock.settimeout(10)
-    try:
-        result = watch_first_kon(
-            lambda line: command(sock, reader, line), wav_path=wav,
-            before=args.before, after=args.after,
-            capacity=args.pcm_ring_capacity, timeout=args.timeout,
-            stage_root=args.server_stage_root.absolute() if args.server_stage_root is not None else None)
-    finally:
-        reader.close()
-        sock.close()
+    # The live watcher must finish its post-WAV event-ring scan before the
+    # requested final filename becomes visible. A second KON or an overrun
+    # during audio_wav otherwise leaves a plausible WAV with no valid receipt.
+    # This is a second, client-side staging layer beyond the native server's
+    # ASCII-safe per-attempt staging directory.
+    with tempfile.TemporaryDirectory(prefix=".qa01-live-", dir=wav.parent) as attempt_dir:
+        candidate_wav = Path(attempt_dir) / "candidate.wav"
+        sock, reader = connect(args.host, args.port, 20)
+        sock.settimeout(10)
+        try:
+            result = watch_first_kon(
+                lambda line: command(sock, reader, line), wav_path=candidate_wav,
+                before=args.before, after=args.after,
+                capacity=args.pcm_ring_capacity, timeout=args.timeout,
+                stage_root=args.server_stage_root.absolute() if args.server_stage_root is not None else None)
+        finally:
+            reader.close()
+            sock.close()
+        if not candidate_wav.is_file() or candidate_wav.is_symlink():
+            raise ValueError("live capture did not produce a real staged WAV")
+        publish_wav_no_replace(candidate_wav, wav)
     result["source_sha_claim"] = args.source_sha
     result["native_executable_sha256"] = hashlib.sha256(args.native_executable.read_bytes()).hexdigest()
     result["source_to_binary_identity_independently_verified"] = False

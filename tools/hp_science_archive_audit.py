@@ -13,6 +13,8 @@ script never contacts GitHub or awards gameplay, physical-pad or release credit.
 from __future__ import annotations
 
 import argparse
+import io
+import os
 import hashlib
 import json
 import math
@@ -124,10 +126,20 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
     input/script text. A missing fixture is *reported*, not secretly assumed.
     """
     run_id, sha, event = _run_identity(run)
-    require(artifact.is_file() and not artifact.is_symlink(), "missing/redirected archive")
-    require(0 < artifact.stat().st_size <= MAX_ARCHIVE, "unexpected archive size")
+    # Read one bounded snapshot through a single descriptor. Its identity and
+    # archive SHA-256 now describe exactly the same bytes audited by ZipFile,
+    # even if the path is replaced immediately after the read completes.
+    require(not artifact.is_symlink(), "redirected archive")
     try:
-        with zipfile.ZipFile(artifact) as z:
+        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+        fd = os.open(artifact, flags)
+        with os.fdopen(fd, "rb") as source:
+            info = os.fstat(source.fileno())
+            require(stat.S_ISREG(info.st_mode) and 0 < info.st_size <= MAX_ARCHIVE,
+                    "unexpected archive type/size")
+            snapshot = source.read(MAX_ARCHIVE + 1)
+        require(0 < len(snapshot) <= MAX_ARCHIVE, "archive exceeds bounded snapshot")
+        with zipfile.ZipFile(io.BytesIO(snapshot)) as z:
             _safe_zip_members(z)
             receipt = _strict_json(z.read(RECEIPT))
             binding = _strict_json(z.read(BINDING))
@@ -223,7 +235,7 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
         "run_id": run_id, "source_sha": sha,
         "actions_event_from_supplied_metadata": event,
         "positive_receipt_verified": True,
-        "archive_sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+        "archive_sha256": hashlib.sha256(snapshot).hexdigest(),
         "science_receipt_sha256": sig,
         "executable_sha256": exe_sha,
         "workers": workers, "accepted_cases": accepted,
@@ -262,10 +274,15 @@ def main() -> int:
         return 1
     output = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.out:
-        if args.out.exists():
-            print("HP_SCIENCE_AUDIT=refused output already exists", file=sys.stderr)
+        # Atomic publication: never follow a symlink, truncate a competing
+        # writer's file or publish a partially written report.
+        from tools.art.no_replace_report import publish_text_once
+        try:
+            publish_text_once(args.out, output)
+        except OSError as exc:
+            print("HP_SCIENCE_AUDIT=refused output publication: " +
+                  type(exc).__name__, file=sys.stderr)
             return 1
-        args.out.write_text(output, encoding="utf-8")
     print(output)
     return 0
 

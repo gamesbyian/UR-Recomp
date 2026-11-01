@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
+from tools.art.no_replace_report import publish_text_once
 
 try:
     from tools import hp_science_archive_audit as audit
@@ -162,6 +164,45 @@ class HpScienceArchiveAuditTests(unittest.TestCase):
         self.path.write_bytes(payload)
         with self.assertRaisesRegex(audit.AuditError, "CRC"):
             audit.audit(self.path, run())
+
+    def test_atomic_publication_rejects_dangling_symlink_existing_and_racing_writer(self):
+        out = self.path.parent / "report.json"
+        foreign = self.path.parent / "foreign.json"
+        try:
+            out.symlink_to(foreign)
+        except (OSError, NotImplementedError):
+            self.skipTest("local symlinks unavailable")
+        self.assertFalse(out.exists())
+        with self.assertRaises(OSError):
+            publish_text_once(out, "safe report")
+        self.assertFalse(foreign.exists())
+        out.unlink()
+        out.write_text("existing-owned-content")
+        with self.assertRaises(OSError):
+            publish_text_once(out, "new report")
+        self.assertEqual(out.read_text(), "existing-owned-content")
+        out.unlink()
+        publish_text_once(out, "first-complete-report")
+        with self.assertRaises(OSError):
+            publish_text_once(out, "competing report")
+        self.assertEqual(out.read_text(), "first-complete-report")
+        source = Path(audit.__file__).read_text()
+        self.assertIn("publish_text_once(args.out, output)", source)
+        self.assertNotIn("args.out.write_text", source)
+
+    def test_snapshot_hash_and_verified_bytes_cannot_diverge_on_path_replacement(self):
+        receipt, binding = sample()
+        initial = make_zip(receipt, binding)
+        self.path.write_bytes(initial)
+        real_check = audit._safe_zip_members
+        def replace_path_after_snapshot(z):
+            self.path.write_bytes(b"unrelated local bytes")
+            return real_check(z)
+        with patch.object(audit, "_safe_zip_members", side_effect=replace_path_after_snapshot):
+            report = audit.audit(self.path, run(), fixture_sha256=FIXTURES)
+        self.assertEqual(report["archive_sha256"], hashlib.sha256(initial).hexdigest())
+        self.assertNotEqual(report["archive_sha256"],
+                            hashlib.sha256(self.path.read_bytes()).hexdigest())
 
     def test_duplicate_json_keys_rejected(self):
         with self.assertRaisesRegex(audit.AuditError, "duplicate JSON field"):

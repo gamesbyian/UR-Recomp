@@ -40,6 +40,19 @@ class RacerInverseCorpusAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "wrong-player"):
             self.run_audit()
 
+    def test_one_player_broader_window_is_preserved(self):
+        result = self.run_audit()
+        row = next(x for x in result["groups"] if x["id"] == "ordinary-race-04b9-broader-static-1392-1393")
+        self.assertEqual(row["unique_p1_representations"], 1)
+        self.assertEqual(row["unique_p2_representations"], 0)
+
+    def test_empty_frame_identity_rejected(self):
+        frame = self.data["motion_review_sequence"]["frames"][0]
+        frame.pop("p1_representation_id")
+        frame.pop("p2_representation_id")
+        with self.assertRaisesRegex(ValueError, "no registered"):
+            self.run_audit()
+
     def test_out_of_order_frame_rejected(self):
         frames = self.data["motion_review_sequence"]["frames"]
         frames[1]["frame"] = frames[0]["frame"]

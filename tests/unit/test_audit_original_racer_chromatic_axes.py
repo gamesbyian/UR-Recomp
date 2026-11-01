@@ -73,6 +73,25 @@ class SourceChromaticAxisTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             mod.row_envelope_sha(b"bad")
 
+    def test_independent_original_source_artifact_hashes_are_required(self):
+        original = {
+            "schema": mod.EVIDENCE_SCHEMA,
+            "source_artifact_zip_sha256": "a"*64,
+            "original_source_manifest_sha256": "b"*64,
+            "frozen_source_split_sha256": "c"*64,
+        }
+        mod.verify_pinned_source_bytes(original, "a"*64, "b"*64, "c"*64)
+        for k in ("source_artifact_zip_sha256",
+                  "original_source_manifest_sha256",
+                  "frozen_source_split_sha256"):
+            forged = dict(original)
+            forged[k] = "f"*64
+            with self.subTest(field=k), self.assertRaisesRegex(
+                    ValueError, "differ from pinned"):
+                mod.verify_pinned_source_bytes(forged, "a"*64, "b"*64, "c"*64)
+        with self.assertRaises(ValueError):
+            mod.verify_pinned_source_bytes({}, "a"*64, "b"*64, "c"*64)
+
     def test_actual_frame_order_and_same_chromatic_mask_hold_are_preserved(self):
         a, b = "a"*64, "b"*64
         rows = [

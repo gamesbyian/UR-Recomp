@@ -32,7 +32,7 @@ const original=JSON.parse(readFileSync(join(site,'model-review/manifest.json'),'
 const modelManifest={...original,version:'SYNTHETIC BROWSER FIXTURE',model_url:'mock.glb',
   poses:Object.fromEntries(['upright','pedal','wheelie','stunt','bank'].map(p=>[p,{url:'mock.glb'}])),
   likeness_approved:false};
-const mime={html:'text/html; charset=utf-8',js:'application/javascript; charset=utf-8',css:'text/css; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',glb:'model/gltf-binary',svg:'image/svg+xml'};
+const mime={html:'text/html; charset=utf-8',js:'application/javascript; charset=utf-8',mjs:'application/javascript; charset=utf-8',css:'text/css; charset=utf-8',json:'application/json; charset=utf-8',png:'image/png',glb:'model/gltf-binary',svg:'image/svg+xml'};
 const server=createServer((req,res)=>{
   let path;
   try{path=decodeURIComponent((req.url||'/').split('?')[0])}catch{res.writeHead(400);res.end();return}

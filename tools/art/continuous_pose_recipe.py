@@ -78,8 +78,15 @@ def continuous_pose_recipe(source: str, name: str, time: float):
     shadowed = sorted(set(functions) & {"sin", "cos", "min", "max", "is_undef"})
     if shadowed:
         raise ValueError("OpenSCAD builtin function shadowed: " + ", ".join(shadowed))
-    shadowed_modules = sorted(set(_MODULE_DECLARATION.findall(uncommented))
-                              & _RIG_BUILTIN_MODULES)
+    modules = Counter(_MODULE_DECLARATION.findall(uncommented))
+    # OpenSCAD also resolves duplicate user-defined modules to the later
+    # declaration. A second shared_rig(), rig() or part helper can change
+    # the rendered mesh while the recognized continuous formula remains.
+    duplicate_modules = sorted(name for name, count in modules.items() if count > 1)
+    if duplicate_modules:
+        raise ValueError("duplicate OpenSCAD module declaration: "
+                         + ", ".join(duplicate_modules))
+    shadowed_modules = sorted(set(modules) & _RIG_BUILTIN_MODULES)
     if shadowed_modules:
         raise ValueError("OpenSCAD builtin module shadowed: " + ", ".join(shadowed_modules))
     clean = re.sub(r"\s+", "", uncommented)

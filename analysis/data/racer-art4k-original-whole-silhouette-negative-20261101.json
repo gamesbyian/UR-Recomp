@@ -1,0 +1,100 @@
+{
+  "schema": "UR-ART4K-ACTUAL-USA-ROM-WHOLE-SILHOUETTE-LEAN-NEGATIVE-RESULT/1",
+  "run_id": 41357381721,
+  "downloaded_artifact_id": 13103667975,
+  "artifact_zip_sha256": "4890e9d9004b553e6649d1f8484fc05082653bfd7418eb8e8d22df575e86f165",
+  "actual_full_report_file": "full-lean-silhouette.json",
+  "actual_full_report_sha256": "efec65d65db40ac866d217714acfce657036f7ccd092849255efefb67e32dfee",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_source_corpus_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "actual_2026_five_part_upright_GLB_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "provisional_fixed_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "verified_distinct_original_binary_source_masks": 35,
+  "full_experimental_model_faces": 28860,
+  "all_source_frames_are_not_independent_masks": true,
+  "five_previously_selected_angles_in_source_world_y_deg": [
+    0,
+    -35,
+    10,
+    15,
+    30
+  ],
+  "results": [
+    {
+      "angle": 0,
+      "description": "unchanged",
+      "mean_IoU": 0.46002071,
+      "mean_chamfer_physical_px": 2.210003,
+      "mean_mask_XOR_px": 222.371,
+      "visible_lower_alpha_x2_y2_delta": [
+        0,
+        -2
+      ],
+      "masks_where_pose_has_highest_unpaired_IoU": 31
+    },
+    {
+      "angle": -35,
+      "description": "lean negative",
+      "mean_IoU": 0.22489752,
+      "mean_chamfer_physical_px": 2.956225,
+      "mean_mask_XOR_px": 375,
+      "visible_lower_alpha_x2_y2_delta": [
+        -9,
+        -2
+      ],
+      "masks_where_pose_has_highest_unpaired_IoU": 0
+    },
+    {
+      "angle": 10,
+      "description": "lean positive small",
+      "mean_IoU": 0.37663073,
+      "mean_chamfer_physical_px": 3.014193,
+      "mean_mask_XOR_px": 270.771,
+      "visible_lower_alpha_x2_y2_delta": [
+        3,
+        -2
+      ],
+      "masks_where_pose_has_highest_unpaired_IoU": 4
+    },
+    {
+      "angle": 15,
+      "description": "lean positive medium",
+      "mean_IoU": 0.30965002,
+      "mean_chamfer_physical_px": 3.464348,
+      "mean_mask_XOR_px": 310.457,
+      "visible_lower_alpha_x2_y2_delta": [
+        4,
+        -2
+      ],
+      "masks_where_pose_has_highest_unpaired_IoU": 0
+    },
+    {
+      "angle": 30,
+      "description": "lean positive large",
+      "mean_IoU": 0.22832492,
+      "mean_chamfer_physical_px": 4.741753,
+      "mean_mask_XOR_px": 374.257,
+      "visible_lower_alpha_x2_y2_delta": [
+        8,
+        -2
+      ],
+      "masks_where_pose_has_highest_unpaired_IoU": 0
+    }
+  ],
+  "validation_notes": {
+    "exact_original_P1_P2_raster_sha_rechecked": true,
+    "full_mesh_uniform_in_memory_rotation_only": true,
+    "tire_lower_source_z_restored_for_every_pose": true,
+    "only_original_visible_lower_alpha_contact_anchor_shift": true,
+    "camera_fixed_and_provisional": true,
+    "source_frames_to_2026_poses_paired": false,
+    "baseline_wins_over_every_nonzero_lean_on_mean_full_IoU": true,
+    "mean_IoU_is_unpaired_study_not_original_pose_reconstruction": true,
+    "angles_selected_posthoc_from_all_source_masks": true,
+    "independent_unseen_source_3D_holdout": false,
+    "original_1994_camera_or_joint_pose_identified": false,
+    "owner_character_likeness_approved": false,
+    "shipping_art_approved": false
+  },
+  "next_recommendation": "Retain optional viewer root-lean controls as diagnostic. Do not elevate lean angles to default 3D geometry. Next fit source-owned wheel/fork/saddle/articulation using full binary silhouettes and true independent original semantic pose families; separate original visible contact offset from physical collision."
+}

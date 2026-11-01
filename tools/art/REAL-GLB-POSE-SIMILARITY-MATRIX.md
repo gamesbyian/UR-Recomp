@@ -20,6 +20,12 @@ Under the **same** *provisional* P1 frame1205 camera (9.5 source logical px per 
 
 This finding is useful as a **negative control for automatic pose mapping**: selecting the highest IoU to assign a frame to a model pose would produce systematically misleading labels. It also reveals that a five-pose render library does not yet span the original animation's actual shape dynamics.
 
+## Shared-camera scale sensitivity (still **unpaired**)
+
+A second [eight-point controlled shared-camera scale sweep](../../analysis/data/racer-unpaired-pose-shared-camera-sensitivity-20261101.json) projected the **same exact five real GLBs** against the **same exact ten source alpha masks**, varying *only* the common vertical model-to-logical-pixel scale, holding world axes, camera origin, 7:6 source PAR, source P1:1205 bottom-alpha anchor and all 3D pose parameters fixed. At `9.5`, `bank` wins **10/10** silhouette IoU comparisons; at `9.3`, **upright wins 6/10** and bank 4/10. This ~2.1% camera-scale variation reverses six unpaired pose winner labels. Despite that, bank remains the highest **equal-source-shape mean** IoU at both scales: 0.50781314 at 9.5 versus upright 0.48114718; 0.49231925 at 9.3 versus upright 0.48747993. Maximum-pairwise pose identity is *not identifiable* from these sprites and camera hypothesis alone.
+
+This is why geometry fitting must lock shared source-camera hypotheses and require real pose/cadence evidence; **no per-frame camera fitting to maximize IoU**. The eight scale samples were obtained on a local offline Trimesh/NumPy renderer of the hash-verified viewer GLBs; the new matrix tool's `--camera` flag can independently reproduce each specified hypothesis with a SHA-bound camera manifest. These are research sensitivity checks, not source-calibrated camera receipts or original 1994 pose measurements.
+
 ## Reproduce without contaminating the existing viewer
 
 On an offline authoring host with optional \`numpy\`, \`trimesh\` and \`Pillow\` installed, unpack the real GLB viewer artifact into a **private** directory containing \`model-review/manifest.json\`, \`model-review/sprites.json\`, all five immutable GLBs and 14 retained source PNGs. Then from repository root:

@@ -5,6 +5,8 @@ on:
       - ".github/workflows/art4k-original-family-holdout.yml"
       - "tools/art/evaluate_original_racer_wheel_holdout.py"
       - "tests/unit/test_evaluate_original_racer_wheel_holdout.py"
+      - "tools/art/audit_original_racer_holdout_near_duplicates.py"
+      - "tests/unit/test_audit_original_racer_holdout_near_duplicates.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -78,6 +80,14 @@ jobs:
               out.write(f"1.10 wheel mean IoU: {holdout['mean_iou_width_1_10']}\n\n")
               out.write("**Unverified source 3D camera, pose pairing and owner likeness.**\n")
           PY
+      - name: Audit visually correlated original binary masks separately
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/audit_original_racer_holdout_near_duplicates.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --holdout "$RUNNER_TEMP/art4k-reports/wheel-holdout.json" \
+            --out "$RUNNER_TEMP/art4k-reports/shape-clusters.json"
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4
         with:
@@ -91,6 +101,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: art4k-genuine-original-pose-family-wheel-holdout
-          path: ${{ runner.temp }}/art4k-reports/wheel-holdout.json
+          path: ${{ runner.temp }}/art4k-reports/*.json
           if-no-files-found: error
           retention-days: 30

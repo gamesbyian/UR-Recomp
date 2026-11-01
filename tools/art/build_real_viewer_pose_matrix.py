@@ -49,17 +49,19 @@ def rank_unpaired(rows: list[dict], pose_names=POSES) -> dict:
         results = row.get("unpaired_pose_scores")
         if not isinstance(results, dict) or set(results) != set(pose_names):
             raise ValueError("incomplete pose matrix")
+        for pose in pose_names:
+            number = results[pose].get("mask_iou")
+            chamfer = results[pose].get("boundary_chamfer_mean_physical_px")
+            if (type(number) not in (int, float) or not 0 <= number <= 1 or
+                    type(chamfer) not in (int, float) or not 0 <= chamfer < 1e4):
+                raise ValueError("invalid silhouette IoU or boundary Chamfer")
+            totals[pose].append(number)
         ordered = sorted(pose_names, key=lambda pose: (
             -results[pose]["mask_iou"],
             results[pose]["boundary_chamfer_mean_physical_px"], pose))
         if row.get("unpaired_best_fit_pose") != ordered[0]:
             raise ValueError("claimed best pose disagrees with scored silhouettes")
         winners[ordered[0]] += 1
-        for pose in pose_names:
-            number = results[pose]["mask_iou"]
-            if type(number) not in (int, float) or not 0 <= number <= 1:
-                raise ValueError("invalid silhouette IoU")
-            totals[pose].append(number)
     return {
         "equal_source_mask_weighted_mean_iou_by_experimental_pose": {
             name: round(sum(totals[name]) / len(totals[name]), 8)

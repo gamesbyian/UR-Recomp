@@ -758,8 +758,8 @@ class HpScheduledResearchTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as temp:
             summary = Path(temp) / "github-summary.md"
-            with patch.object(hp, "run", return_value=row), \\
-                 patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}), \\
+            with patch.object(hp, "run", return_value=row), \
+                 patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}), \
                  patch("sys.argv", ["hp_seeded_2p_research",
                                     "--exe", "unused.exe", "--rom", "unused.sfc",
                                     "--receipt", str(Path(temp) / "receipt.json")]):

@@ -250,13 +250,10 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     sprite_rows = []
     for obs in stock_corpus["observations"]:
         original = Path(obs["source_image"])
-        if (len(original.parts) != 5 or original.parts[0] != "media" or
-                original.parts[1:4] != ("showcase", "art-reconstruction", "2026-10-10") or
-                original.parts[4] != "stock"):
-            # Absolute source paths are intentionally never emitted into Pages.
-            # The known source root is fixed and only stock PNG basenames are used.
-            if original.parent != original_strip / "stock":
-                raise ValueError("unexpected source sprite location")
+        if (len(original.parts) != 6 or
+                original.parts[:5] != ("media", "showcase", "art-reconstruction",
+                                      "2026-10-10", "stock")):
+            raise ValueError("unexpected source sprite location")
         filename = original.name
         if not re.fullmatch(r"p[12]-[0-9]{2}\\.png", filename):
             raise ValueError("unexpected source sprite filename")
@@ -276,7 +273,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         "source_kind": "retained original ROM-composed source PNG (verified, not reextracted)",
         "source_sha256": stock_corpus["historical_manifest_declared_rom_sha256"],
         "sprite_3d_pose_mapping_verified": False,
-        "frames": sprite_rows}, indent=2) + "\\n", encoding="utf-8")
+        "frames": sprite_rows}, indent=2) + "\n", encoding="utf-8")
     published = []
     exe_digest = None
     # Reviewed, content-addressed incidental snapshots from the repository.

@@ -687,6 +687,33 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("cmake --build", routes)
         self.assertIn("widescreen-4x3-candidates", routes)
 
+    def test_native_smoke_avoids_python_unit_only_edits_but_keeps_producers(self):
+        native = (WORKFLOWS / "native-build-smoke.yml").read_text(
+            encoding="utf-8")
+        tooling = (WORKFLOWS / "tooling-unit-tests.yml").read_text(
+            encoding="utf-8")
+        native_pr = _block(native, "pull_request")
+        tooling_pr = _block(tooling, "pull_request")
+        self.assertIn('      - "tests/unit/**"', tooling_pr)
+        # The native workflow does not run Python unittest. Its real
+        # executable/source contracts must still invalidate native smoke.
+        for source in (
+            "tools/analyze_display_active_height.py",
+            "tools/check_ppm.py",
+            "native/title/uniracers_ws_margins.*",
+            "tests/native/uniracers_ws_margins_test.c",
+            ".github/workflows/native-build-smoke.yml",
+        ):
+            with self.subTest(source=source):
+                self.assertIn('      - "' + source + '"', native_pr)
+        for test in (
+            "tests/unit/test_analyze_display_active_height.py",
+            "tests/unit/test_check_ppm.py",
+            "tests/unit/test_uniracers_ws_margins_c.py",
+        ):
+            with self.subTest(test=test):
+                self.assertNotIn('      - "' + test + '"', native_pr)
+
     def test_native_build_smoke_stays_fast_and_bounded(self):
         text = (WORKFLOWS / "native-build-smoke.yml").read_text()
         self.assertIn("    timeout-minutes: 15", text)

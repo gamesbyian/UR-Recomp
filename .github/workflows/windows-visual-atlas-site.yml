@@ -7,12 +7,17 @@ on:
       - "tools/windows_visual_atlas.py"
       - "tools/windows_visual_atlas_intake.py"
       - "tools/visual_atlas_web/**"
+      - "tools/art/model-review/**"
       - "media/windows-visual-atlas/approved/**"
       - "media/showcase/2026-10-20/graphpaper-final/cards/**"
   workflow_dispatch:
     inputs:
       deploy_pages:
         description: "Deploy to GitHub Pages (only if Pages Actions source is configured)"
+        type: boolean
+        default: false
+      include_experimental_model:
+        description: "Build latest five-pose unapproved draft GLB for the model review route (expensive opt-in)"
         type: boolean
         default: false
 permissions:
@@ -23,7 +28,7 @@ concurrency:
 jobs:
   assemble-site:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,6 +49,40 @@ jobs:
                   f.write(f"- {name}: {amount}\n")
               f.write("\nThis site contains current-source engineering captures or distinct COMING SOON plates; no hardware/visual/release approval.\n")
           PY
+      - name: Check out existing five-part draft rig only on explicit manual opt-in
+        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          ref: graphics/art4k-part-addressable-rig-20261029
+          path: candidate-rig
+          persist-credentials: false
+      - name: Prepare isolated, offline-authoring-only GLB dependencies
+        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openscad
+          python3 -m venv "$RUNNER_TEMP/rig-venv"
+          "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3'
+      - name: Generate and verify the five exact source-owned blockout poses
+        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        run: |
+          set -euo pipefail
+          source_commit="$(git -C candidate-rig rev-parse HEAD)"
+          for pose in upright pedal wheelie stunt bank; do
+            "$RUNNER_TEMP/rig-venv/bin/python" \
+              candidate-rig/tools/art/export_articulated_unicycle.py \
+              candidate-rig/tools/art/candidates/unicycle_shared_rig.scad \
+              "$RUNNER_TEMP/model-exports/$pose" --rig-pose "$pose" --timeout 120
+          done
+          python3 tools/art/model-review/stage_pages.py \
+            --exports "$RUNNER_TEMP/model-exports" \
+            --site "$RUNNER_TEMP/atlas-site" \
+            --source-commit "$source_commit"
+          echo "### Experimental 3D model review" >> "$GITHUB_STEP_SUMMARY"
+          echo "Rig source: \`$source_commit\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Five exported procedural studies; no original likeness or release approval." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain independent browser-ready site (without copyrighted ROM)
         uses: actions/upload-artifact@v4
         with:

@@ -136,11 +136,19 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
     metrics: dict[str, Any] = {}
     for tag, stock_fb, wide_fb, stock_wram, wide_wram in pairs:
         center = compare_center(stock_fb, wide_fb)
+        # Only the canonical stock/wide source rasters qualify this envelope.
+        # A perfectly matched 1x1 or cropped BMP is not a WIDE-07 witness.
+        center["expected_source_geometry"] = (
+            center.get("stock_geometry") == [256, 224]
+            and center.get("wide_geometry") == [342, 224]
+        )
         wram = compare_wram(stock_wram, wide_wram)
         metrics[tag] = {"center": center, "wram": wram}
         checks.append(assertion(
             f"{tag}-center-matches-stock",
-            center.get("comparable") is True and center.get("differing_pixels") == 0,
+            center["expected_source_geometry"] is True
+            and center.get("comparable") is True
+            and center.get("differing_pixels") == 0,
             center,
         ))
         checks.append(assertion(

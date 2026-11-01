@@ -103,6 +103,29 @@ class WidescreenProductParityTests(unittest.TestCase):
             self.assertEqual(report["outcome"], "rejected")
             self.assertFalse(compare_wram(pair[3], pair[4])["complete_wram_images"])
 
+    def test_wrong_source_geometry_cannot_claim_parity(self):
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        a.write_bytes(bytes(0x20000))
+        b.write_bytes(bytes(0x20000))
+        pair = ("cp", stock, wide, a, b)
+        # Each pair has a genuinely identical centre and complete equal WRAM.
+        # The old check accepted all three as WIDE-07 parity evidence.
+        for sw, sh, ww, wh in ((1, 1, 3, 1),
+                               (256, 8, 342, 8),
+                               (256, 224, 344, 224)):
+            with self.subTest(geometry=(sw, sh, ww, wh)):
+                write_bmp(stock, sw, sh, stock_pixel)
+                offset = (ww - sw) // 2
+                write_bmp(wide, ww, wh,
+                          lambda x, y: stock_pixel(x - offset, y))
+                self.assertEqual(compare_center(stock, wide)["differing_pixels"], 0)
+                report = check([pair])
+                self.assertEqual(report["outcome"], "rejected")
+                self.assertFalse(report["metrics"]["cp"]["center"]["expected_source_geometry"])
+
     def test_wram_lane_allowed_but_leak_rejected(self):
         a = bytearray(0x20000)
         b = bytearray(a)
@@ -125,8 +148,8 @@ class WidescreenProductParityTests(unittest.TestCase):
         self.assertEqual(leak["first_leaks"], ["0x02049"])
 
     def test_envelope_outcome(self):
-        write_bmp(self.root / "s.fb.bmp", 256, 4, stock_pixel)
-        write_bmp(self.root / "w.fb.bmp", 342, 4, lambda x, y: stock_pixel(x - 43, y))
+        write_bmp(self.root / "s.fb.bmp", 256, 224, stock_pixel)
+        write_bmp(self.root / "w.fb.bmp", 342, 224, lambda x, y: stock_pixel(x - 43, y))
         (self.root / "s.wram.bin").write_bytes(bytes(0x20000))
         (self.root / "w.wram.bin").write_bytes(bytes(0x20000))
         pair = ("cp", self.root / "s.fb.bmp", self.root / "w.fb.bmp",

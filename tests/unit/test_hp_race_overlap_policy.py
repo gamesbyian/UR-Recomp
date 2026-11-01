@@ -81,7 +81,7 @@ class HpRaceOverlapPolicyTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 src = path.read_text()
                 self.assertIn('      - "tools/ci/windows_package_race_result.sh"', src)
-                self.assertIn('      - "tests/unit/test_hp_race_overlap_policy.py"', src)
+                self.assertNotIn('      - "tests/unit/test_hp_race_overlap_policy.py"', src)
         self.assertIn("test_hp_compiler_profile: true", HOSTED.read_text())
         self.assertIn("cancel-in-progress: false", HP.read_text())
 

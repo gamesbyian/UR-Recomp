@@ -35,6 +35,26 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertIn("if not needs_job_detail(run):", scope)
         self.assertIn('return {"run_id": run_id, "jobs": []}', scope)
         self.assertIn("list(pool.map(fetch_jobs, population))", scope)
+        self.assertIn("one or more API requests each", scope)
+
+        # The data reducer must retain the skipped event in its numerator,
+        # rather than silently making the sampled run population appear
+        # smaller after the job-detail request is suppressed.
+        skipped = {"id": 17, "name": "Comment dispatch", "event": "issue_comment",
+                   "status": "completed", "conclusion": "skipped",
+                   "created_at": "2026-10-30T01:00:00Z",
+                   "run_started_at": "2026-10-30T01:00:00Z",
+                   "updated_at": "2026-10-30T01:00:01Z"}
+        report = summarize(
+            {"workflow_runs": [skipped], "total_count": 1},
+            72, datetime(2026, 10, 31, tzinfo=timezone.utc),
+            jobs_payload={"runs": [{"run_id": 17, "jobs": []}]},
+        )
+        self.assertEqual(report["included_runs"], 1)
+        self.assertEqual(report["workflows"][0]["runs"], 1)
+        self.assertEqual(report["workflows"][0]["events"], {"issue_comment": 1})
+        self.assertEqual(report["workflows"][0]["runner_seconds"], 0)
+        self.assertEqual(report["workflows"][0]["jobs"], 0)
 
     def test_groups_and_sorts_by_total_runtime(self):
         payload = {"workflow_runs": [

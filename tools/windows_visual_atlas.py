@@ -236,7 +236,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     model_review = Path(__file__).resolve().parent / "art/model-review"
     review_target = target / "model-review"
     review_target.mkdir()
-    for filename in ("index.html", "manifest.json"):
+    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs"):
         shutil.copyfile(model_review / filename, review_target / filename)
     # Independently hash-verify retained original 64x64 review sprites.
     # They are a separate, explicitly NON-REGISTERED 2D reference timeline:

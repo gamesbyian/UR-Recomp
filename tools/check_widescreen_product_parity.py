@@ -14,6 +14,7 @@ captured at the same script checkpoint in matched stock and widened runs.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import struct
 from pathlib import Path
@@ -38,7 +39,7 @@ ALLOWED_WRAM_RANGES = ((0x0399, 0x03E0), (0x0433, 0x04B6))
 RUN_VARIANT_WRAM = (0x0069,)
 
 
-def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
+def _read_bmp_with_identity(path: Path) -> tuple[int, int, list[bytes], dict[str, Any]]:
     raw = path.read_bytes()
     if raw[:2] != b"BM" or len(raw) < 54:
         raise ValueError(f"{path}: not a BMP")
@@ -69,14 +70,21 @@ def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
         row = raw[start:start + width * bytes_pp]
         # Normalise to 3-byte BGR so 24/32-bit captures compare equal.
         rows.append(b"".join(row[i:i + 3] for i in range(0, len(row), bytes_pp)))
+    return width, height, rows, {"sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}
+
+
+def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
+    width, height, rows, _ = _read_bmp_with_identity(path)
     return width, height, rows
 
+
 def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
-    sw, sh, srows = read_bmp(stock)
-    ww, wh, wrows = read_bmp(wide)
+    sw, sh, srows, stock_id = _read_bmp_with_identity(stock)
+    ww, wh, wrows, wide_id = _read_bmp_with_identity(wide)
     result: dict[str, Any] = {
         "stock_geometry": [sw, sh],
         "wide_geometry": [ww, wh],
+        "input_identities": {"stock": stock_id, "wide": wide_id},
     }
     if sh != wh or ww <= sw or (ww - sw) % 2:
         result["comparable"] = False
@@ -123,6 +131,10 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
             leaks.append(addr)
     return {
         "sizes": [len(a), len(b)],
+        "input_identities": {
+            "stock": {"sha256": hashlib.sha256(a).hexdigest(), "size": len(a)},
+            "wide": {"sha256": hashlib.sha256(b).hexdigest(), "size": len(b)},
+        },
         "complete_wram_images": len(a) == 0x20000 and len(b) == 0x20000,
         "lane_differences": lane,
         "run_variant_differences": [f"0x{x:05X}" for x in run_variant],
@@ -132,6 +144,14 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
 
 
 def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
+    if not pairs:
+        raise ValueError("at least one real checkpoint pair is required")
+    tags = [pair[0] for pair in pairs]
+    if any(not isinstance(tag, str) or not tag.strip() for tag in tags):
+        raise ValueError("checkpoint tags must be nonempty strings")
+    if len(tags) != len(set(tags)):
+        raise ValueError("duplicate checkpoint tag cannot identify distinct evidence")
+    seen_inputs: set[tuple[str, ...]] = set()
     checks = []
     metrics: dict[str, Any] = {}
     for tag, stock_fb, wide_fb, stock_wram, wide_wram in pairs:
@@ -143,6 +163,13 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
             and center.get("wide_geometry") == [342, 224]
         )
         wram = compare_wram(stock_wram, wide_wram)
+        fingerprint = tuple(
+            section["input_identities"][side]["sha256"]
+            for section in (center, wram) for side in ("stock", "wide")
+        )
+        if fingerprint in seen_inputs:
+            raise ValueError("identical capture bytes reused under different checkpoint tags")
+        seen_inputs.add(fingerprint)
         metrics[tag] = {"center": center, "wram": wram}
         checks.append(assertion(
             f"{tag}-center-matches-stock",

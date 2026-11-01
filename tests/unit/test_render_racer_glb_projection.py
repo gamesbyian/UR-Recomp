@@ -81,6 +81,8 @@ class FixedCameraGlbProjectionTests(unittest.TestCase):
             {"logical_pixels_per_model_unit_vertical": 0},
             {"source_anchor_x2_y2": [67, 76.0]},
             {"camera_calibration_status": "source-calibrated"},
+            {"camera_calibration_status": "source-calibrated",
+             "source_calibration_receipt_sha256": "a"*64},
         ):
             camera = dict(self.camera, **change)
             with self.subTest(change=change), self.assertRaises(ValueError):

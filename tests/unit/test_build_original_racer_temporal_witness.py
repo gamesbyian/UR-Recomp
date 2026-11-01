@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from tools.art.build_original_racer_temporal_witness import (
     SCHEMA, build_witness, contiguous_holds, source_mask_geometry, transition,
+    source_contact_aligned_binary_delta,
 )
 from tools.art.build_racer_source_pixel_corpus import build as source_corpus, REGISTRY
 
@@ -40,6 +41,32 @@ class OriginalTemporalMotionGeometryTests(unittest.TestCase):
         self.assertAlmostEqual(res["original_binary_mask_overlap_iou"],1/3,places=8)
         self.assertEqual(res["centroid_delta_source_logical_xy"],[1,0])
         self.assertEqual(res["lowest_alpha_midpoint_delta_x2_y2"],[2,0])
+        self.assertEqual(res["source_contact_normalized_original_binary_mask_xor_pixels"],0)
+        self.assertEqual(res["source_contact_normalized_original_binary_mask_iou"],1.0)
+        self.assertEqual(res["source_contact_logical_translation_applied_to_second_xy"],[-1,0])
+
+    def test_source_contact_shift_is_not_mistaken_for_shape_deformation(self):
+        first=alpha((30,38),(31,38),(32,37))
+        second=alpha((32,38),(33,38),(34,37))
+        result=transition(first,second,source_mask_geometry(first),source_mask_geometry(second))
+        self.assertGreater(result["binary_mask_xor_pixels"],0)
+        self.assertEqual(result["source_contact_normalized_original_binary_mask_xor_pixels"],0)
+        self.assertEqual(result["source_contact_normalized_original_binary_mask_iou"],1.0)
+        self.assertFalse(result["source_contact_normalized_shape_is_a_verified_3d_pose"])
+
+    def test_contact_alignment_rejects_unsupported_half_pixel_or_clipped_pixels(self):
+        # A silhouette can change its bottom-row midpoint by half a pixel.
+        left=alpha((30,38),(31,38))
+        right=alpha((30,38),(31,38),(32,38))
+        with self.assertRaisesRegex(ValueError,"half-pixel"):
+            transition(left,right,source_mask_geometry(left),source_mask_geometry(right))
+        # In this case source contact migration would hide left-edge pixel
+        # outside the 64px registered canvas, so do not silently crop it.
+        first=alpha((30,38),(31,38))
+        second=alpha((0,37),(32,38),(33,38))
+        with self.assertRaisesRegex(ValueError,"clip"):
+            source_contact_aligned_binary_delta(
+                first,second,source_mask_geometry(first),source_mask_geometry(second))
 
     def test_alpha_intensity_change_is_not_new_binary_shape(self):
         first=alpha((10,20),value=128)
@@ -78,6 +105,12 @@ class RealFirstFamilyTemporalWitnessTests(unittest.TestCase):
         self.assertEqual(witness["unique_original_binary_silhouettes"],10)
         self.assertEqual(witness["source_binary_mask_changed_transition_count"],9)
         self.assertEqual(witness["source_binary_mask_held_transition_count"],21)
+        self.assertEqual([x["to_guest_frame"] for x in
+                          witness["paired_original_player_transition_observations"]
+                          if x["both_players_changed"]],[1215,1219])
+        self.assertEqual(sum(x["both_players_held"] for x in
+                             witness["paired_original_player_transition_observations"]),8)
+        self.assertFalse(witness["source_contact_aligned_transition_is_3d_deformation_proof"])
         self.assertEqual(witness["players"]["p1"]["changed_binary_transitions"],6)
         self.assertEqual(witness["players"]["p2"]["changed_binary_transitions"],3)
         self.assertEqual(witness["players"]["p1"]["distinct_original_binary_masks"],6)

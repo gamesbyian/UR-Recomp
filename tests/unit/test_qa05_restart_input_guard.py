@@ -222,6 +222,32 @@ class RestartInputGuardTest(unittest.TestCase):
             validate_restart_p2_guest_input(
                 p2_trace(restart_leak=True), require_raw_start_witness=True)
 
+    def test_p2_release_uses_post_tournament_word_not_raw_start(self):
+        # The tournament P2 release mask can suppress a still-high raw
+        # Start before it reaches the Restart latch. Once Return is up and
+        # pre_restart has no Start, the C++ latch MUST clear on that sample.
+        # The previous raw-based oracle accepted an impossible armed latch.
+        lines = p2_trace().splitlines()
+        for index in range(4, 12):
+            lines[index] = (lines[index]
+                            .replace("raw=0000", "raw=0100", 1)
+                            .replace("release_waiting=0", "release_waiting=1", 1))
+        with self.assertRaisesRegex(
+                ValueError, "sample 5: release latch transition inconsistent"):
+            validate_restart_p2_guest_input(
+                "\n".join(lines) + "\n", require_raw_start_witness=True)
+
+        # Positive control: the post-tournament Start really reaches Restart
+        # after physical Return is up, so it may keep the latch armed until
+        # a subsequent source-observed zero Start input.
+        lines = p2_trace().splitlines()
+        lines[4] = (lines[4]
+                    .replace("raw=0000", "raw=0100", 1)
+                    .replace("pre_restart=0000", "pre_restart=0100", 1)
+                    .replace("release_waiting=0", "release_waiting=1", 1))
+        self.assertEqual(validate_restart_p2_guest_input(
+            "\n".join(lines) + "\n", require_raw_start_witness=True), 12)
+
     def test_historical_p1_only_log_remains_valid_without_p2_credit(self):
         self.assertEqual(validate_restart_guest_input(trace()), 12)
         self.assertEqual(validate_restart_p2_guest_input(trace()), 0)

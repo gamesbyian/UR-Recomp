@@ -188,6 +188,10 @@ def build_witness() -> dict:
         "first_frame":1205,"last_frame":1220,
         "source_frame_observations":32,
         "temporal_transition_observations":30,
+        "source_binary_mask_changed_transition_count":sum(
+            results[p]["changed_binary_transitions"] for p in ("p1","p2")),
+        "source_binary_mask_held_transition_count":sum(
+            results[p]["unchanged_binary_transitions"] for p in ("p1","p2")),
         "unique_original_binary_silhouettes":corpus["distinct_binary_silhouette_groups"],
         "pixel_data_included":False,
         "original_1994_3d_pose_mapping_recovered":False,

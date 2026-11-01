@@ -13,32 +13,59 @@ best-effort: they may start late or be dropped under load. Counting expected
 cron slots is not equivalent to counting real source-qualified HP runs. This
 is a deterministic bounded compute pipeline, not a guarantee that the PC
 stays busy during every interval.
-**Scheduling reliability probe (November 1 UTC):** GitHub's former hourly
-`:17` cron yielded no new source-qualified research event after the
-October 31 21:36 UTC four-worker success, despite several subsequent
-eligible slots. The single cron minute is moved to `:41` as an isolated
-re-registration experiment, following GitHub's documented ability to
-reactivate schedules through a cron change. GitHub may still delay or drop
-cron events; the first `:41` recovery **did** produce a true scheduled
-8-worker success, [run #41348698814](https://github.com/gamesbyian/UR-Recomp/actions/runs/41348698814)
-at `2fb65e7469053bca6e4e7b788669f8b0620d30ae`. Its Windows job log records
-**8 distinct accepted cases, 32 real game processes, 218.953 seconds of
-research and zero issues** under the standard 360-second wall limit, with a
-ROM-free artifact uploaded. This confirms a positive source-owned collector
-receipt, **not** a separately performed artifact byte audit, original/native
-parity, or a release QA gate. The prior four-worker signed result is retained.
+**Observed schedule delivery, November 1 UTC (source and Actions API):**
+The former hourly `:17` schedule produced genuine successful **eight-worker**
+Windows runs at [09:40 UTC #41294161998](https://github.com/gamesbyian/UR-Recomp/actions/runs/41294161998)
+(source `d19b03a4635e0ba9a750f38d8d440a42e888aeb8`: **8 cases, 32
+real Windows processes, 201.766 seconds** science) and
+[16:23 UTC #41326050521](https://github.com/gamesbyian/UR-Recomp/actions/runs/41326050521)
+(source `9460b811a8ad4b6419bf65399912fe2dcba6a743`: **8 cases,
+32 processes, 201.031 seconds**). Both passed normal Windows package/QA,
+verified Ninja, SDL3 cache and boot fanout. The `:41` schedule re-registration
+then produced a successful [20:48 UTC #41348698814](https://github.com/gamesbyian/UR-Recomp/actions/runs/41348698814)
+(source `2fb65e7469053bca6e4e7b788669f8b0620d30ae`: **8 cases, 32
+processes, 218.953 seconds**, zero collector issues). These three real
+`event=schedule` runs contain **24 run-distinct source-owned seeded cases
+and 96 real Windows guest executions** across distinct source commits. The
+last run's retained ROM-free artifact passed a separate complete 76-member
+CRC, receipt self-hash, PE/binding and GitHub API digest audit; the earlier
+two runs have passing source-owned job logs, but no independent byte-level
+artifact audit recorded here. The older genuine four-worker scheduled run
+remains distinct historical evidence.
 
-**November 1 half-hourly pilot:** after this successful scheduled run, add a
-`:11` UTC opportunity to the existing `:41` cadence. This remains one
-schedule expression, one serialized trusted-main HP job, the same Windows
-build/package/QA checks and the same 360-second research wall limit. The
-first scheduled job occupied about 9 minutes 20 seconds end-to-end, within
-one nominal 30-minute interval. Twice as many cron slots do not guarantee
-twice as many delivered runs: compare actual accepted cases/hour and total
-HP occupancy, especially delays to priority main-push product builds. Stop
-or revert to hourly `:41` if source-bound science fails or product builds
-experience unacceptable queue delay. Cron re-registration can change schedule
-delivery; this is an explicitly reversible capacity experiment.
+**Twice-hourly pilot, integrated in [#3001](https://github.com/gamesbyian/UR-Recomp/pull/3001):**
+the one existing schedule expression is `11,41 * * * *`, still using one
+serialized trusted-main HP job, eight cohorts, canonical Windows package/QA
+and a 360-second scheduled research horizon. **As of the November 1 22:24 UTC
+repository-wide schedule census, no new HP research run had arrived after
+20:48 UTC**, despite the first three nominal `:11/:41` slots since merge;
+other repository cron workloads were observed at 22:13 UTC. This is a
+delivery concern, not a science run failure or proof of a disabled workflow.
+GitHub scheduling is best-effort: 48 theoretical opportunities/day neither
+guarantee delivery nor earn 48 source-qualified experiments.
+
+**Non-LLM recovery:** the existing [owner-installable Windows Task Scheduler
+fallback](HP-RESEARCH-FALLBACK.md) checks for missed GitHub runs every
+15 minutes and, after a 90-minute gap with no priority HP Windows job and
+no unresolved same-source failure, can dispatch the **same** tested main-only
+workflow using the owner's authenticated GitHub CLI. The
+[reviewed five-file one-click installer ZIP](../tools/ci/HP-Research-Fallback-Owner-Install.zip)
+requires an explicit installation on the owner's HP PC; no result here
+confirms it has been installed. Do not claim that this backup is active
+until its local status receipt or a qualifying manual `workflow_dispatch`
+proves operation. It never creates another HP runner or relaxes product QA.
+
+**Health/stop conditions:** [watchdog PR #3003](https://github.com/gamesbyian/UR-Recomp/pull/3003)
+shortens the *read-only* missing-schedule alert from eight to **two hours**
+(four nominal half-hourly opportunities), retaining the existing daily
+snapshot and its one-shot trusted-main watcher-source trigger. It does
+not dispatch jobs. Compare actual arrivals, distinct accepted cases/hour,
+total HP job occupancy, CPU/memory receipts and source-to-HP product-build
+queue delays before changing workers or research horizons. On a repeated
+source-bound science failure or material delay to product builds, restore
+hourly `:41` and retain all experiment evidence. No original/native
+full-event, physical pad or release gate credit follows from the seeded
+native-only research.
 
 It reuses the **canonical trusted-main HP Windows x64 build/packaging/QA**
 rather than creating another compiler toolchain, backend or private
@@ -177,7 +204,7 @@ The SHA-256 research receipt is **self-hashed, not cryptographically signed by a
 
 ## Decisions and next research lanes
 
-1. **Eight-worker manual and scheduled proof acquired; twice-hourly cadence is a new pilot:** the owner-authorized [manual HP run #41264488130](https://github.com/gamesbyian/UR-Recomp/actions/runs/41264488130) at source `d6eb79fc` completed all Windows package/QA checks and **eight real concurrent source-owned cohorts**, accepting **8 distinct cases, 32 Windows guest processes in 200.718 s** with zero collector issues. The retained [four-worker genuine scheduled run #41244390541](https://github.com/gamesbyian/UR-Recomp/actions/runs/41244390541) at different source `fde3b6c3` accepted **8 cases, 32 processes in 289.282 s**; it is **not** an eight-worker throughput receipt. Research-only observed rates were **2.391 vs 1.659 accepted cases/min**, a 44.1% increase, but unlike-source cohorts and changed parallel load preclude a controlled speedup claim. The manual eight-worker canary does **not** prove true GitHub `schedule` delivery. The actual eight-worker `event=schedule` job #41348698814 establishes schedule delivery and positive source-owned eight-worker execution; the artifact still requires independent byte-level review. Twice-hourly frequency must earn its own measured yield and priority-queue observations. Neither trial earns gameplay/physical-pad/release credit.
+1. **Eight-worker manual and three genuine Nov 1 scheduled successes acquired; twice-hourly cadence remains a delivery pilot:** the owner-authorized [manual HP run #41264488130](https://github.com/gamesbyian/UR-Recomp/actions/runs/41264488130) at source `d6eb79fc` completed all Windows package/QA checks and **eight real concurrent source-owned cohorts**, accepting **8 distinct cases, 32 Windows guest processes in 200.718 s** with zero collector issues. The retained [four-worker genuine scheduled run #41244390541](https://github.com/gamesbyian/UR-Recomp/actions/runs/41244390541) at different source `fde3b6c3` accepted **8 cases, 32 processes in 289.282 s**; it is **not** an eight-worker throughput receipt. Research-only observed rates were **2.391 vs 1.659 accepted cases/min**, a 44.1% increase, but unlike-source cohorts and changed parallel load preclude a controlled speedup claim. The manual eight-worker canary does **not** prove true GitHub `schedule` delivery. The actual eight-worker `event=schedule` job #41348698814 establishes schedule delivery and positive source-owned eight-worker execution; the artifact still requires independent byte-level review. Twice-hourly frequency must earn its own measured yield and priority-queue observations. Neither trial earns gameplay/physical-pad/release credit.
 2. **Value measurement:** quantify distinct valid seeded cases/day, actual
    native Windows process count, host CPU/memory/time, whether source/fixture
    identity was maintained, failure reproducibility and delay to normal

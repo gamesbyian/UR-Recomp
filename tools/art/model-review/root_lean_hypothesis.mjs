@@ -19,3 +19,15 @@ export function rootLeanQuaternion(degrees, zup=true) {
   // Rx(-90°) * Ry(source Y lean); multiplication order is intentional.
   return [sx*cy,cx*sy,sx*sy,cx*cy];
 }
+
+/** Visual floor-reference correction only. Not recovered 1994 tire contact.
+ * Always applied to the *object transform*, never GLB geometry.
+ */
+export function tireVisualLift(baselineLowerY, rotatedLowerY) {
+  if (!Number.isFinite(baselineLowerY) || !Number.isFinite(rotatedLowerY)) {
+    throw Error('invalid experimental tire lower bound');
+  }
+  const lift=baselineLowerY-rotatedLowerY;
+  if (!Number.isFinite(lift)) throw Error('nonfinite visual lift');
+  return lift;
+}

@@ -63,6 +63,12 @@ class FixedCameraGlbProjectionTests(unittest.TestCase):
         self.assertFalse((original == moved).all())
         self.assertEqual(original.shape, moved.shape)
 
+    def test_out_of_canvas_projection_rejected_not_cropped(self):
+        verts, faces, _, _ = render.model_mesh(self.path, self.sha)
+        shifted = dict(self.camera, source_anchor_x2_y2=[250, 76])
+        with self.assertRaisesRegex(ValueError, "clips"):
+            render.render_mask(verts, faces, shifted)
+
     def test_tampered_glb_hash_rejected(self):
         with self.assertRaisesRegex(ValueError, "SHA256"):
             render.model_mesh(self.path, "0" * 64)

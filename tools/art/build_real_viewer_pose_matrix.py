@@ -95,6 +95,23 @@ def translated_binary_mask(mask: bytes, logical_dx: int, logical_dy: int) -> byt
     return bytes(shifted)
 
 
+def original_lowest_alpha_anchor(mask: bytes) -> tuple[int, int]:
+    """Original source-visible lowest alpha midpoint, in half-pixel units.
+
+    This is *not* independent evidence of the tire's physical road contact.
+    It is recomputed from the actual authenticated PNG rather than inferred
+    from the model, the score, or self-reported registry metadata.
+    """
+    if len(mask) != 64 * 64 or any(x not in (0, 1) for x in mask):
+        raise ValueError("source lowest-alpha calculation needs binary 64x64 raster")
+    occupied = [i for i, x in enumerate(mask) if x]
+    if not occupied:
+        raise ValueError("source original sprite has no visible alpha")
+    y = max(i // 64 for i in occupied)
+    bottom_x = [i % 64 for i in occupied if i // 64 == y]
+    return (min(bottom_x) + max(bottom_x), 2 * y)
+
+
 def original_registered_contacts(registry_path: Path, corpus_sha: str) -> dict:
     """Use existing original source semantic anchors, never infer from IoU."""
     raw = registry_path.read_bytes()
@@ -164,6 +181,9 @@ def compute(site: Path, camera_path: Path = CAMERA,
         binary_sha = digest(mask)
         if binary_sha != metrics["binary_mask_sha256"]:
             raise ValueError("corrupted original binary mask")
+        if (registration_mode == "source-registered" and
+                original_lowest_alpha_anchor(mask) != contact):
+            raise ValueError("source registry contact disagrees with authenticated original PNG alpha")
         group = source_groups.setdefault(binary_sha, {
             "mask": mask,
             "source_binary_mask_sha256": binary_sha,

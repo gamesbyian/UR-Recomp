@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import math
 import re
+from collections import Counter
 
 _NUMBER = r"(?:\d+(?:\.\d*)?|\.\d+)"
 _COMMENTS = re.compile(r"/\*.*?\*/|//[^\n]*", re.S)
+_FUNCTION_DECLARATION = re.compile(r"\bfunction\s+([A-Za-z_]\w*)\s*\(")
 _FORMULA = re.compile(
     r"modulecontinuous_rig\(time,spin=false\)\{"
     r"u=unit_time\(time\);pitch=spin\?(?P<spin>" + _NUMBER + r")\*ease_time\(u\):0;"
@@ -53,7 +55,15 @@ def continuous_pose_recipe(source: str, name: str, time: float):
         raise ValueError("unknown continuous blockout pose")
     if not isinstance(time, (int, float)) or not math.isfinite(time) or not 0 <= time <= 1:
         raise ValueError("continuous rig time must be finite and within 0..1")
-    clean = re.sub(r"\s+", "", _COMMENTS.sub("", source))
+    uncommented = _COMMENTS.sub("", source)
+    functions = Counter(_FUNCTION_DECLARATION.findall(uncommented))
+    duplicates = sorted(name for name, count in functions.items() if count > 1)
+    if duplicates:
+        # OpenSCAD silently lets later function declarations override earlier
+        # ones, even with a different formal argument name. A canonical body
+        # still present in the source does not prove which body rendered.
+        raise ValueError("duplicate OpenSCAD function declaration: " + ", ".join(duplicates))
+    clean = re.sub(r"\s+", "", uncommented)
     if (clean.count("functionunit_time(t)=min(1,max(0,t));") != 1
             or clean.count("functionease_time(t)=let(u=unit_time(t))u*u*(3-2*u);") != 1
             or clean.count("modulecontinuous_rig(") != 1

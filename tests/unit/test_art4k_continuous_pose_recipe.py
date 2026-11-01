@@ -69,6 +69,23 @@ class ContinuousRigTests(unittest.TestCase):
             with self.subTest(changed=changed[-40:]), self.assertRaises(ValueError):
                 module.continuous_pose_recipe(changed, "ride", .5)
 
+    def test_duplicate_function_overrides_fail_closed(self):
+        # OpenSCAD's later declaration overrides the canonical source even
+        # when its formal parameter differs. No GLB may receive a mismatched
+        # authored-pose transform or misleading source-bound receipt.
+        for override in ("function unit_time(x)=0;",
+                         "function ease_time(x)=0;",
+                         "function helper(x)=x; function helper(y)=0;"):
+            with self.subTest(override=override), self.assertRaisesRegex(
+                    ValueError, "duplicate OpenSCAD function declaration"):
+                module.continuous_pose_recipe(SOURCE + override, "stunt_cycle", .25)
+
+    def test_comment_only_function_text_does_not_trigger_override(self):
+        source = SOURCE + "\n// function unit_time(x)=0;\n/* function ease_time(x)=0; */\n"
+        pedal, lean, _, meta = module.continuous_pose_recipe(source, "ride", .25)
+        self.assertEqual((pedal, lean), (198, 3))
+        self.assertTrue(meta["source_formula_validated"])
+
     def test_invalid_time_refused(self):
         for time in (-.1, 1.1, float("nan"), float("inf"), "0.5"):
             with self.subTest(time=time), self.assertRaises(ValueError):

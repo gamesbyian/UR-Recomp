@@ -29,7 +29,14 @@ class SourceCorpusNoReplaceTests(unittest.TestCase):
             publish_private_corpus_stage(self.stage, self.dest)
         self.assertEqual((self.dest/"source-corpus.json").read_bytes(), self.manifest.read_bytes())
 
-    def test_preexisting_empty_directory_is_never_replaced(self):
+    def test_preexisting_truly_empty_directory_is_never_replaced(self):
+        # On POSIX, the old os.rename(stage, out) WOULD replace this.
+        self.dest.mkdir()
+        with self.assertRaises(FileExistsError):
+            publish_private_corpus_stage(self.stage, self.dest)
+        self.assertEqual(list(self.dest.iterdir()), [])
+
+    def test_preexisting_nonempty_foreign_directory_is_never_replaced(self):
         self.dest.mkdir()
         marker = self.dest/"foreign"
         marker.write_bytes(b"untouched")

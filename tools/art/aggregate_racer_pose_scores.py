@@ -17,10 +17,12 @@ try:
     from tools.art.build_racer_source_pixel_corpus import build as original_corpus
     from tools.art.racer_source_pixels import decode_rgba_png, alpha_metrics
     from tools.art.score_racer_candidate import score_retained_original
+    from tools.art.no_replace_report import publish_text_once
 except ModuleNotFoundError:
     from build_racer_source_pixel_corpus import build as original_corpus
     from racer_source_pixels import decode_rgba_png, alpha_metrics
     from score_racer_candidate import score_retained_original
+    from no_replace_report import publish_text_once
 
 SCHEMA = "UR-RACER-MULTIPOSE-SCORE-SUITE/1"
 REPORT_SCHEMA = "UR-RACER-MULTIPOSE-SCORE-REPORT/1"
@@ -206,7 +208,7 @@ def main() -> None:
     report = evaluate(args.manifest)
     text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.out:
-        args.out.write_text(text, encoding="utf-8")
+        publish_text_once(args.out, text)
     else:
         print(text, end="")
 

@@ -25,6 +25,17 @@ python3 -m unittest tests.unit.test_audit_original_racer_cadence
 
 The existing immutable no-replace report helper prevents overwriting a foreign destination. The report contains **hashes and numeric 2D measurements only**, no copied original PNG, ROM, GLB or other binary artwork. ROM-free synthetic tests cover repeated holds, returning-to-old shapes, palette-only changes, 2D source shifts, forged alpha/registry identity and missing or duplicate source frames. A positive integration test recomputes the complete first-family authentic evidence from the actual already-retained original PNG files.
 
+## Registered first-family temporal structure (source-manifest fingerprint)
+
+The existing SHA-recorded P1/P2 original strip manifests contain 16 ordered guest-frame observations per player and identify the same original binary source silhouettes even when the editorial filename or semantic representation ID differs. The positive real-pixel test enforces the following expected timing **against decoded PNG alpha**, not filenames alone:
+
+| Original racer | Contiguous exact binary-shape hold lengths (guest frames) | Edges changing exact binary shape |
+| --- | --- | --- |
+| P1 | 2, 6, 2, 2, 2, 1, 1 | 1207, 1213, 1215, 1217, 1219, 1220 |
+| P2 | 10, 3, 1, 2 | 1215, 1218, 1219 |
+
+Both players change exact 2D silhouettes at frame boundaries **1215 and 1219**. This is a useful review index: P1's 1205–1206 shape returns at 1213–1214, while P2 holds its first silhouette across ten sampled guest frames despite changing source representation IDs/PNG filenames. **The source frames do not prove the two physically share crank phase**, nor that 16 successive guest frames equal 16 independently filmed 3D poses. The report's source-contact-normalized XOR exposes changes caused by 2D placement rather than source shape; this source-only observation is separate from any 2026 rig animation calibration.
+
 ## How to use this for the rig
 
 Use the source **hold boundaries and 2D placement deltas** to choose which temporal transitions deserve actual calibrated 3D reconstruction. The measured source-frame occupancy variation can guide validation of crank/fork/saddle/wheel silhouette acting only after a defensible correspondence between original sprite family and model rig phase is obtained. Neither coincident 2D shape changes nor disjoint alpha masks prove novel 1994 source camera, orientation or 3D articulation. Keep original motion evidence independent of the [unpaired GLB pose similarity matrix](REAL-GLB-POSE-SIMILARITY-MATRIX.md), the [private source-family split freezer](FROZEN-SOURCE-FAMILY-SPLITS.md), the [canonical draft rig #2832](https://github.com/gamesbyian/UR-Recomp/pull/2832), and the existing [single 3D review website](model-review/README.md).

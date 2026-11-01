@@ -16,8 +16,10 @@ from pathlib import Path
 
 try:
     from tools.art.racer_source_pixels import alpha_metrics, decode_rgba_png
+    from tools.art.no_replace_report import publish_text_once
 except ModuleNotFoundError:
     from racer_source_pixels import alpha_metrics, decode_rgba_png
+    from no_replace_report import publish_text_once
 
 SCHEMA = "UR-RACER-SOURCE-PIXEL-CORPUS/1"
 ROOT = Path(__file__).resolve().parents[2]
@@ -163,7 +165,7 @@ def main() -> None:
     report = build(args.strip, args.registry)
     result = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.out:
-        args.out.write_text(result, encoding="utf-8")
+        publish_text_once(args.out, result)
     else:
         print(result, end="")
 

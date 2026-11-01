@@ -171,7 +171,8 @@ class HpComputeWatchTests(unittest.TestCase):
             )
             return Reply(value)
         with patch.object(watch, "urlopen", read):
-            for state in ("active", "disabled_manually", "disabled_inactivity"):
+            for state in ("active", "deleted", "disabled_fork",
+                          "disabled_manually", "disabled_inactivity"):
                 value["state"] = state
                 self.assertEqual(watch.fetch_workflow_state(name, "token"), state)
             for payload in (None, [], {}, {"state": "active"},

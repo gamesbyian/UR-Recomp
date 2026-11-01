@@ -164,7 +164,8 @@ def fetch_workflow_state(workflow: str, token: str) -> str:
     if (not isinstance(payload, dict)
             or payload.get("path") != f".github/workflows/{workflow}"
             or payload.get("state") not in
-               ("active", "disabled_manually", "disabled_inactivity")):
+               ("active", "deleted", "disabled_fork",
+                "disabled_manually", "disabled_inactivity")):
         raise ValueError("unverifiable GitHub workflow registration")
     return payload["state"]
 
@@ -187,8 +188,8 @@ def render(report: dict) -> str:
               "An observed manual research trial does not establish that "
               "GitHub's recurring cron actually fired.",
               "A registered `active` workflow is not proof that any scheduled "
-              "event was delivered. A reported `disabled_manually` or "
-              "`disabled_inactivity` registration warrants owner review "
+              "event was delivered. A disabled or deleted registration "
+              "warrants owner review "
               "in GitHub Actions before further cron edits.",
               "An old product build alone is not a failure: that lane is triggered "
               "by source changes, not a timer. Manual builds cannot conceal "

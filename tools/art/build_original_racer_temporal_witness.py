@@ -122,7 +122,7 @@ def build_witness() -> dict:
             raise ValueError("the authentic original temporal sequence is incomplete")
         frames = []
         changes = []
-        previous_mask = previous_rgba = previous_geom = None
+        previous_mask = previous_rgba = previous_geom = previous_binary_sha = None
         for obs in original:
             path = ROOT / obs["source_image"]
             if path not in cache:
@@ -160,12 +160,14 @@ def build_witness() -> dict:
                     "from_frame":obs["guest_frame"]-1,
                     "to_frame":obs["guest_frame"],
                     "original_full_rgba_unchanged":previous_rgba==rgba,
-                    "original_alpha_silhouette_unchanged":previous_mask==rgba[3::4],
+                    "original_alpha_silhouette_unchanged":(
+                        previous_binary_sha == metrics["binary_mask_sha256"]),
                     **delta
                 })
             previous_mask = rgba[3::4]
             previous_rgba = rgba
             previous_geom = geom
+            previous_binary_sha = metrics["binary_mask_sha256"]
         results[player] = {
             "frames":frames,
             "frame_transitions":changes,

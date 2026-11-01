@@ -29,3 +29,21 @@ The existing optional original-USA-ROM CPU job already pins the exact source ROM
 ROM-free contract tests verify allowed angles, a reversible root geometry transformation, one-vote-per-source-shape aggregation, duplicate/invalid source score rejection, and preservation of the original experimental tire lower height. A separate run must produce real GLB/source results before comparing or making any recommendation.
 
 **Next decision:** if improved painted-axis angles do not improve complete-silhouette IoU and residual contact errors, stop chasing the scalar lean score and refit the model's actual source-owned wheel, fork and saddle proportions with a genuinely withheld original semantic pose family. Keep source original-camera, original animation correspondence, geometry recovery and owner character-likeness approval false until explicitly demonstrated.
+
+## Observed real-source result, GitHub Actions #41357381721
+
+The **actual** original USA-ROM producer completed on the first PR head. The seven-file numeric ZIP artifact #13103667975 has SHA-256 `4890e9d9004b553e6649d1f8484fc05082653bfd7418eb8e8d22df575e86f165`, passes CRC verification and contains `full-lean-silhouette.json` (SHA-256 `efec65d65db40ac866d217714acfce657036f7ccd092849255efefb67e32dfee`). The report reverified all 35 unique original source binary masks, SHA-pinned actual five-part GLB and unchanged frozen camera, and rasterized the complete 28,860-triangle source candidate five times.
+
+| Previously selected source-Y root rotation | Mean full alpha IoU | Mean boundary chamfer (physical px) | Mean XOR original 64px pixels |
+| --- | ---: | ---: | ---: |
+| Unchanged 0° | **0.46002071** | **2.210003** | **222.371** |
+| +10° | 0.37663073 | 3.014193 | 270.771 |
+| +15° | 0.30965002 | 3.464348 | 310.457 |
+| +30° | 0.22832492 | 4.741753 | 374.257 |
+| −35° | 0.22489752 | 2.956225 | 375.000 |
+
+The original unchanged model is the highest unpaired-IoU fixed candidate for **31 of the 35** original silhouettes; +10° leads only four. The lean-only trials are worse overall across three different full-shape metrics, even though the separate painted-fork-axis study preferred some of these lean directions.
+
+The evidence also isolates a **source-visible contact-placement issue**: original contact-registered candidate alpha bounds are consistently one logical pixel vertically above the source (half-pixel unit residual y2=−2). For −35°, candidate lowest-alpha horizontal residual is x2=−9 across every source shape, +10° gives +3, +15° gives +4 and +30° gives +8. These are per-*study pose* residuals common to all registered shapes, not independent proof of 1994 game wheel physics, and no camera tweak or per-pose source alignment was performed in the test. Fitting source-owned art proportions and modeling actual contact should precede adopting these root rotations.
+
+**Decision:** retain the reversible viewer control for qualitative reference, **do not promote the angle-only numeric optimum into the canonical rig**. Use the original source mask IoU, boundary and contact witnesses when evaluating further geometry/kinematic changes. All original 1994 camera/3D pose identity, artist likeness and shipping-art gates remain unapproved.

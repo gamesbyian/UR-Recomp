@@ -58,11 +58,11 @@ def camera_config(camera: dict):
     status = camera.get("camera_calibration_status")
     if status not in ("provisional", "source-calibrated"):
         raise ValueError("explicit provisional/source-calibrated status required")
+    # A hexadecimal string alone cannot establish source calibration.
+    # Enable this status only when an actual calibration receipt validator
+    # is implemented, not when a caller can simply invent a digest.
     if status == "source-calibrated":
-        receipt = camera.get("source_calibration_receipt_sha256")
-        if (not isinstance(receipt, str) or len(receipt) != 64 or
-                any(c not in "0123456789abcdef" for c in receipt)):
-            raise ValueError("source-calibrated camera requires SHA-bound evidence receipt")
+        raise ValueError("source-calibrated camera requires implemented evidence validator")
     return right, up, np.asarray(camera["origin_world"], dtype=float), float(scale), anchor
 
 
@@ -186,6 +186,7 @@ def main():
     text = json.dumps(result, indent=2, sort_keys=True) + "\n"
     # The receipt is the specific invocation's result and source digest, not
     # an assertion that some pre-existing output was generated this time.
+    args.receipt.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
         mode="w", encoding="utf-8", dir=args.receipt.parent,
         prefix=".racer-receipt-", delete=False

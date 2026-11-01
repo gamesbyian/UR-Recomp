@@ -29,13 +29,10 @@ The split freezer independently rechecks the created source PNG bytes and groups
 
 ```powershell
 # Uses existing files; only run with your explicit authorization.
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File \
-  .\tools\art\Prepare-Original-Racer-Corpus.ps1 \
-  -RomPath "D:\MyPrivateROMs\Uniracers_USA.sfc" \
-  -OutputParent "D:\PrivateArtResearch"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\art\Prepare-Original-Racer-Corpus.ps1 -RomPath "D:\MyPrivateROMs\Uniracers_USA.sfc" -OutputParent "D:\PrivateArtResearch"
 ```
 
-PowerShell line continuation in a real `.ps1` uses backticks rather than Unix backslashes. The two-line example above is illustrative; invoke it as **one line** in a PowerShell console if pasting. The `.cmd` file is the ordinary one-click path and needs no arguments. All generated source raster bytes stay entirely on the local Windows disk by design.
+Invoke the command from the repository root, or use the ordinary `.cmd` file for a GUI file picker. Choose paths actually present on the HP PC; the examples are illustrative and no ROM path is assumed. The `.cmd` file is the ordinary one-click path and needs no arguments. All generated source raster bytes stay entirely on the local Windows disk by design.
 
 ## Follow-up for ART-4K agents
 

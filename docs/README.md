@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). The [ranked hourly shared board](HOURLY-AGENT-LINES.md) is the only active five-agent assignment authority. Every generalist considers five eligible jobs. A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## HD racer inverse-graphics and rig fitting
+
+The [source-registered inverse-graphics specification](HD-RACER-INVERSE-GRAPHICS-SPEC.md) inventories already-implemented original-sprite/pose tooling and the active part-addressable ART-4K GLB draft, defines camera/geometry/animation fitting and test contracts, and evaluates current neural reconstruction options. The [dependency-ordered execution plan](HD-RACER-INVERSE-GRAPHICS-PLAN.md) gives concrete evidence, refit, holdout and owner-likeness milestones. Neither document creates a competing work queue, replaces the [character-likeness authority](HD-RACER-CHARACTER-RECONSTRUCTION.md), or approves the unreviewed 3D blockout.
+
 ## Windows screenshot atlas and visual reference IDs
 
 [Windows Visual Atlas](WINDOWS-VISUAL-ATLAS.md) specifies stable visual IDs, the declared capture/COMING SOON inventory, genuine Windows final-SDL capture reuse, process/job-sharded opt-in GitHub Actions, source-checked website assembly and mobile one-tap agent references. The executable inventory lives in [`analysis/windows-visual-atlas.json`](../analysis/windows-visual-atlas.json); it does not replace the Modern visual-acceptance matrix or the release quality ledger.

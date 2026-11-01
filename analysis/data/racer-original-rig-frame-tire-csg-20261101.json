@@ -1,0 +1,72 @@
+{
+  "schema": "UR-RACER-SOURCE-FORK-TIRE-CSG-INTERFERENCE-BASELINE/1",
+  "observation_date_utc": "2026-11-01",
+  "research_status": "Exact source-OpenSCAD CSG of existing unapproved 2026 procedural rig; not an accepted original 1994 mechanical model.",
+  "source": {
+    "repository": "gamesbyian/UR-Recomp",
+    "model_authoring_pr": 2832,
+    "model_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+    "model_source_file": "tools/art/candidates/unicycle_shared_rig.scad",
+    "model_source_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+    "original_rig_frame_mass_default": 1,
+    "parameter_scope": "Existing source rig_frame_mass limited to inclusive [1.0,2.0]; exactly one parameter varied.",
+    "original_saddle_span_unchanged": 1,
+    "part_modules": "tire() and fork_and_frame() from exact unchanged file; each translated by OpenSCAD [0,0,1]."
+  },
+  "method": {
+    "csg_expression": "intersection(){ translate([0,0,1]) fork_and_frame(); translate([0,0,1]) tire(); }",
+    "parameter_command": "openscad -D rig_frame_mass=<bound> -o source-fork-tire-intersection.stl",
+    "renderer": "OpenSCAD 2021.01",
+    "geometry_processor": "Trimesh 4.11.1, process=True",
+    "validation": "Each resulting STL triangulated into a watertight, consistently wound 3D intersection mesh after standard mesh processing; positive signed enclosed volume independently checked.",
+    "measured_dimension": "3D model coordinates cubed, NOT pixels or source 1994 physical dimensions",
+    "scene_contains_original_ROM_or_source_PNG": false
+  },
+  "trials": [
+    {
+      "rig_frame_mass": 1,
+      "intersection_volume_model_units_cubed": 0.001211679518,
+      "ratio_to_default": 1,
+      "connected_components": 2,
+      "triangles": 530,
+      "closed_watertight": true,
+      "consistent_winding": true,
+      "stl_sha256": "9be2df5aef176165276832b92fb54a57b53e0a82c24f7f82d979ccbf282f4a52",
+      "unpaired_source_mean_iou": 0.57255469,
+      "unpaired_source_mean_boundary_chamfer_physical_px": 0.97432622
+    },
+    {
+      "rig_frame_mass": 1.4,
+      "intersection_volume_model_units_cubed": 0.005606226025,
+      "ratio_to_default": 4.626822,
+      "connected_components": 2,
+      "triangles": 756,
+      "closed_watertight": true,
+      "consistent_winding": true,
+      "stl_sha256": "c6a064fdcaf7be17aca4fbb6a11baaea9917a5da8f89f700b1ccec287f7e6d0f",
+      "unpaired_source_mean_iou": 0.58271615,
+      "unpaired_source_mean_boundary_chamfer_physical_px": 0.96785973
+    },
+    {
+      "rig_frame_mass": 2,
+      "intersection_volume_model_units_cubed": 0.018820749851,
+      "ratio_to_default": 15.532779,
+      "connected_components": 1,
+      "triangles": 1058,
+      "closed_watertight": true,
+      "consistent_winding": true,
+      "stl_sha256": "1daf818ad58ffb861626dd1b22e77877f79015c64878df920f3fa5a842df20d2",
+      "unpaired_source_mean_iou": 0.58539651,
+      "unpaired_source_mean_boundary_chamfer_physical_px": 0.96121329
+    }
+  ],
+  "interpretation": "The modest original 2D silhouette IoU gains from increasing frame mass occur alongside a 4.63x to 15.53x increase in REAL source-authored 3D fork/tire solid intersection volume. Some overlap is present already at 1.0 and may reflect source-authored assembly/axle placement; increased collision volume should be visually and mechanically reviewed, not automatically called an impossible physical design. This is a negative-control tradeoff for selecting unapproved geometry by silhouette score alone.",
+  "no_independent_original_pose_family_holdout": true,
+  "original_source_1994_3d_camera_recovered": false,
+  "source_sprite_to_2026_rig_pose_mapping_verified": false,
+  "1994_physical_collision_mechanics_established": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "canonical_scad_file_changed": false,
+  "model_variant_or_original_source_artwork_committed": false
+}

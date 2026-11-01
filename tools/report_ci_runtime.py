@@ -112,6 +112,37 @@ def jobs_by_run(payload: dict[str, Any] | None) -> dict[int, list[dict[str, Any]
 
 
 
+MAX_POST_STEP_JOB_SECONDS = 600
+
+
+def untrusted_job_completion_time(job: dict[str, Any]) -> bool:
+    """Reject API job ends irreconcilable with source-observed final steps.
+
+    A real HP run crossing 2026-11-01 DST had completed_at one hour AFTER
+    its actual final job log and completed Actions step. Do not silently
+    count that phantom hour as occupied CPU or try to repair the timestamp.
+    Without completed step evidence, the job interval remains unverified
+    by this additional guard (ordinary missing-time rules still apply).
+    """
+    try:
+        end = parse_time(job.get("completed_at"))
+        steps = job.get("steps") or []
+        ended_steps = [
+            parse_time(step.get("completed_at"))
+            for step in steps if isinstance(step, dict) and step.get("completed_at")
+        ]
+    except (TypeError, ValueError, OverflowError):
+        return True
+    ended_steps = [value for value in ended_steps if value is not None]
+    if not end or not ended_steps:
+        return False
+    latest = max(ended_steps)
+    if end.tzinfo is None or latest.tzinfo is None:
+        return True
+    delta = (end - latest).total_seconds()
+    return delta < -60 or delta > MAX_POST_STEP_JOB_SECONDS
+
+
 def job_parallelism_profile(jobs: list[dict[str, Any]]) -> dict[str, float] | None:
     """Observed runner occupancy from actual started/completed job intervals.
 
@@ -124,7 +155,7 @@ def job_parallelism_profile(jobs: list[dict[str, Any]]) -> dict[str, float] | No
     for job in jobs:
         # GitHub can populate synthetic timestamps for skipped matrix jobs,
         # even in reverse order. They never occupied a runner.
-        if job.get("conclusion") == "skipped":
+        if job.get("conclusion") == "skipped" or untrusted_job_completion_time(job):
             continue
         start = parse_time(job.get("started_at"))
         end = parse_time(job.get("completed_at"))
@@ -248,6 +279,8 @@ def summarize(
         "jobs": 0,
         "runs_with_job_timing": 0,
         "runs_missing_job_timing": 0,
+        "untrusted_job_completion_timestamps": 0,
+        "untrusted_run_completion_timestamps": 0,
         "runner_seconds": 0.0,
         "observed_job_span_seconds": 0.0,
         "peak_active_jobs": 0,
@@ -309,11 +342,28 @@ def summarize(
         if run.get("conclusion") == "failure":
             row["failed_runs"] += 1
 
+        run_id = run.get("id")
+        detailed_jobs = job_map.get(int(run_id), []) if run_id is not None else []
+        bad_job_ends = sum(untrusted_job_completion_time(j) for j in detailed_jobs)
+        row["untrusted_job_completion_timestamps"] += bad_job_ends
         started_value = run.get("run_started_at") or run.get("created_at")
         wall_seconds = observed_completed_wall_seconds(
             started_value, run.get("updated_at"))
-        # The updated_at field is only a valid end time for completed runs.
-        # Missing/reversed timestamps must not bias measured averages to zero.
+        end = parse_time(run.get("updated_at"))
+        # GitHub may emit an impossible completed_at/updated_at on a Windows
+        # self-hosted job across a local DST transition. Use the actual step
+        # observations to flag the inconsistency, even when reported time
+        # stops being "future" an hour later. Never fabricate a corrected end.
+        untrusted_run_end = (
+            bad_job_ends > 0 or
+            (end is not None and end.tzinfo is not None
+             and end > now + timedelta(minutes=5))
+        )
+        if run.get("status") == "completed" and untrusted_run_end:
+            row["untrusted_run_completion_timestamps"] += 1
+            wall_seconds = None
+        # Missing/reversed/inconsistent timestamps must not bias averages
+        # by becoming a fictitious zero or an extra hour of occupied time.
         if run.get("status") == "completed":
             if wall_seconds is None:
                 row["completed_runs_missing_wall_timing"] += 1
@@ -427,7 +477,10 @@ def markdown(report: dict[str, Any]) -> str:
         f"Sample created-at range: {report.get('sample_oldest_created_at') or 'unknown'} to {report.get('sample_newest_created_at') or 'unknown'}",
         f"Requested lookback fully covered: {'yes' if report.get('window_census_complete') else 'NO (sample only; do not infer 7-day totals)'}",
         "",
-        "Completed runs lacking timestamps are explicitly excluded from observed wall-time averages and percentiles; p90 uses nearest rank.",
+        "Completed runs with absent, reversed, future or step-inconsistent "
+        "timestamps are excluded from observed wall-time averages and "
+        "percentiles; p90 uses nearest rank. Inconsistent job intervals "
+        "are excluded from runner occupancy, while valid step times remain available.",
         "| Workflow | Runs | Timed completed | Missing timing | Total min | Avg min | p50 min | p90 min | Max min | Run queue avg | Job queue avg | Dependencies | Build | Execution | Cancelled min | Failed |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
@@ -446,6 +499,14 @@ def markdown(report: dict[str, Any]) -> str:
             f"{row['failed_runs']} |"
         )
 
+    bad_jobs = sum(row.get("untrusted_job_completion_timestamps", 0)
+                   for row in report["workflows"])
+    bad_runs = sum(row.get("untrusted_run_completion_timestamps", 0)
+                   for row in report["workflows"])
+    if bad_jobs or bad_runs:
+        lines += ["", f"Timestamp anomalies excluded: {bad_jobs} job interval(s), "
+                  f"{bad_runs} completed-run wall interval(s). "
+                  "Inspect the raw Actions job steps before comparing runtime."]
     lines.extend([
         "",
         "## Observed parallel runner occupancy",

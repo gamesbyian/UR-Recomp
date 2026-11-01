@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from tools.report_ci_runtime import (
-    summarize, markdown, job_parallelism_profile, step_bucket, needs_job_detail,
+    summarize, markdown, job_parallelism_profile, untrusted_job_completion_time,
+    step_bucket, needs_job_detail,
 )
 
 
@@ -297,6 +298,57 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["mean_active_jobs"], 0)
         self.assertEqual(row["peak_active_jobs"], 0)
 
+
+    def test_dst_repeated_hour_never_adds_phantom_runner_hour(self):
+        # Actual HP Actions #41286835360: the source-owned final step/log
+        # ended 08:10Z, but Actions job completed_at/updated_at said 09:10Z.
+        # Keep valid science-step timing and distinguish invalid job/run wall.
+        run = {"id": 41286835360, "name": "HP science",
+               "status": "completed", "conclusion": "success",
+               "created_at": "2026-11-01T07:57:39Z",
+               "run_started_at": "2026-11-01T07:57:39Z",
+               "updated_at": "2026-11-01T09:10:52Z"}
+        job = {"started_at": "2026-11-01T07:57:43Z",
+               "completed_at": "2026-11-01T09:10:52Z",
+               "conclusion": "success",
+               "steps": [
+                   {"name": "HP unattended real two-player seeded gameplay research",
+                    "started_at": "2026-11-01T08:03:08Z",
+                    "completed_at": "2026-11-01T08:10:40Z"},
+                   {"name": "Post job cleanup", "started_at": "2026-11-01T08:10:44Z",
+                    "completed_at": "2026-11-01T08:10:48Z"},
+               ]}
+        now = datetime(2026, 11, 1, 8, 11, tzinfo=timezone.utc)
+        self.assertTrue(untrusted_job_completion_time(job))
+        self.assertIsNone(job_parallelism_profile([job]))
+        report = summarize({"workflow_runs": [run], "total_count": 1},
+                           24, now,
+                           {"runs": [{"run_id": run["id"], "jobs": [job]}]})
+        result = report["workflows"][0]
+        self.assertEqual(result["runs"], 1)
+        self.assertEqual(result["timed_completed_runs"], 0)
+        self.assertEqual(result["completed_runs_missing_wall_timing"], 1)
+        self.assertEqual(result["runner_seconds"], 0)
+        self.assertEqual(result["runs_missing_job_timing"], 1)
+        self.assertEqual(result["untrusted_job_completion_timestamps"], 1)
+        self.assertEqual(result["untrusted_run_completion_timestamps"], 1)
+        self.assertIn("Timestamp anomalies excluded: 1 job interval(s)", markdown(report))
+        # The same bogus hour remains recognizable after the wall clock
+        # catches up. A real bounded end immediately after cleanup is fine.
+        later = summarize({"workflow_runs": [run], "total_count": 1},
+                          24, datetime(2026, 11, 1, 12, tzinfo=timezone.utc),
+                          {"runs": [{"run_id": run["id"], "jobs": [job]}]})
+        self.assertEqual(later["workflows"][0]["runner_seconds"], 0)
+        good_run = dict(run, updated_at="2026-11-01T08:10:52Z")
+        good_job = dict(job, completed_at="2026-11-01T08:10:52Z")
+        self.assertFalse(untrusted_job_completion_time(good_job))
+        valid = summarize({"workflow_runs": [good_run], "total_count": 1},
+                          24, now, {"runs": [{"run_id": run["id"],
+                                             "jobs": [good_job]}]})["workflows"][0]
+        self.assertEqual(valid["untrusted_job_completion_timestamps"], 0)
+        self.assertEqual(valid["untrusted_run_completion_timestamps"], 0)
+        self.assertEqual(valid["timed_completed_runs"], 1)
+        self.assertEqual(valid["runner_seconds"], 789)
 
     def test_detects_close_same_source_cross_workflow_builds_only(self):
         source = "a" * 40

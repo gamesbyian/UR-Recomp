@@ -121,6 +121,23 @@ def require_explicit_glb_normals(path: Path, expected_nodes) -> None:
                 or not isinstance(views, list) or not isinstance(buffers, list)
                 or len(buffers) != 1):
             raise ValueError("invalid mesh/accessor/buffer arrays")
+        # Trimesh's base-mesh importer does not implement every glTF extension.
+        # A required instancing/geometry extension can alter the rendered scene
+        # while leaving its imported base vertices and normal digests intact.
+        # The current exporter produces extension-free rigid GLBs, so reject
+        # both declared extensions and nested extension payloads before using
+        # Trimesh as the source-equivalence oracle.
+        def has_extensions(value):
+            if isinstance(value, dict):
+                return "extensions" in value or any(
+                    has_extensions(child) for child in value.values())
+            if isinstance(value, list):
+                return any(has_extensions(child) for child in value)
+            return False
+
+        if (any(key in gltf for key in ("extensionsUsed", "extensionsRequired"))
+                or has_extensions(gltf)):
+            raise ValueError("GLB extensions unsupported")
         # This exporter emits dense accessors only. Sparse overrides change
         # the glTF-defined vertex data, but Trimesh currently reads the base
         # buffer values and can silently accept a source-different GLB.

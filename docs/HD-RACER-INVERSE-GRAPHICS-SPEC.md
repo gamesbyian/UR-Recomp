@@ -146,7 +146,7 @@ Use existing dossier, motion checker, original stock variants and 1P/2P original
 | PyTorch3D | Optional differentiable mesh reprojection, GPU/toolchain gate | https://github.com/facebookresearch/pytorch3d |
 | NVIDIA nvdiffrast | Optional high-performance differentiable rasterizer, CUDA + separate license | https://nvlabs.github.io/nvdiffrast/ |
 | TRELLIS.2 | Optional proposal generator; MIT code, GPU and dependencies/weights require review | https://github.com/microsoft/TRELLIS.2 |
-| Tencent Hunyuan3D-2.1 | Optional image-to-3D/texture competitor, not assumed source-faithful; high VRAM + license | https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1 |
+| Tencent Hunyuan3D-2.1 | Optional image-to-3D/texture competitor, not assumed source-faithful; high VRAM. Its community license specifically excludes the EU, UK and South Korea and governs model outputs; suitability must be checked before any use/distribution | https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1/blob/main/LICENSE |
 | LARM | Articulated sparse-view research lead, applicability/release readiness unproven on sprites | https://sylviayuan-sy.github.io/larm-site/ |
 | Classical silhouette/visual-hull carving | Constrains occupied volume **only** with actual independent calibrated views of substantially identical rigid shape; not an animation sequence with unknown camera | multi-view geometry |
 

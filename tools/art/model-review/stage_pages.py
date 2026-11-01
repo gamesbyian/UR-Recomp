@@ -67,8 +67,17 @@ def stage(exports, site, source_commit):
     if len(sources) != 1:
         raise ValueError("poses built from different source files")
     target = site / "model-review"
-    if not site.is_dir() or site.is_symlink() or target.exists():
-        raise ValueError("existing Pages root required; model-review must not already exist")
+    if not site.is_dir() or site.is_symlink():
+        raise ValueError("existing Pages root required")
+    # Existing atlas assembly deliberately installs a model-free landing page.
+    # Only that known empty placeholder can be replaced by successful exports.
+    if target.exists():
+        manifest_path = target / "manifest.json"
+        if (target.is_symlink() or not target.is_dir() or
+                {p.name for p in target.iterdir()} != {"index.html", "manifest.json"} or
+                not manifest_path.is_file() or manifest_path.is_symlink() or
+                json.loads(manifest_path.read_text()).get("model_url") is not None):
+            raise ValueError("refusing to replace a non-placeholder model-review site")
     with tempfile.TemporaryDirectory(prefix=".model-review-stage-", dir=site) as temp:
         work = Path(temp) / "model-review"
         assets = work / "assets" / source_commit
@@ -88,9 +97,18 @@ def stage(exports, site, source_commit):
                     "candidate_sha256": pose_map["upright"]["sha256"],
                     "poses": pose_map, "likeness_approved": False,
                     "source_sprite_pose_registration": False}
-        (work / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\\n")
-        # Only a completely checked directory becomes visible to the Pages build.
-        work.rename(target)
+        (work / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        # The model-free directory may already exist from the atlas assembly.
+        # Keep its old files restorable until the new directory is complete.
+        backup = Path(temp) / "old-model-review"
+        if target.exists():
+            target.rename(backup)
+        try:
+            work.rename(target)
+        except Exception:
+            if backup.exists():
+                backup.rename(target)
+            raise
     print(json.dumps({"staged": str(target), "source_commit": source_commit,
                       "pose_hashes": {p: v["sha256"] for p, v in pose_map.items()}}, indent=2))
 

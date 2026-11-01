@@ -74,7 +74,7 @@ def read_glb_materials(path: Path, declared_sha: str) -> dict:
 
 
 def reduce_five_materials(source: dict, *, manifest_sha: str,
-                          sprite_rail_sha: str, camera_witness_sha: str | None = None) -> dict:
+                          sprite_rail_sha: str) -> dict:
     """Require equal geometry material colourway for each provisional pose.
 
     An intentional future per-pose/per-player material change requires an

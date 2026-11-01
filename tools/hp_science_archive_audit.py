@@ -162,6 +162,16 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
             "not a completed-positive research receipt")
     require(receipt.get("run_id") == run_id and receipt.get("source_sha") == sha,
             "science receipt does not match Actions source and run")
+    # Historical 4/8-worker receipts did not declare an explicit cohort wall
+    # horizon. Keep them auditable without inventing a value. Once a producer
+    # does declare one, enforce the only two authorized populations and the
+    # independently fetched Actions event's manual-only widening boundary.
+    horizon = receipt.get("wall_seconds_budget")
+    if "wall_seconds_budget" in receipt:
+        require(type(horizon) is int and horizon in (360, 600),
+                "unsupported science cohort wall budget")
+        require(horizon != 600 or event == "workflow_dispatch",
+                "extended cohort wall budget is not a manual dispatch")
     require(receipt.get("release_gate_credit") == 0
             and receipt.get("original_native_event_credit") == 0
             and receipt.get("physical_gamepads_tested") is False,
@@ -241,6 +251,7 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
         "workers": workers, "accepted_cases": accepted,
         "real_guest_processes": receipt["real_guest_processes"],
         "research_wall_seconds": elapsed,
+        "declared_cohort_wall_seconds_budget": horizon,
         "accepted_cases_per_minute": round(60 * accepted / elapsed, 3),
         "fixture_source_rechecked": fixture_sha256 is not None,
         "limitations": [

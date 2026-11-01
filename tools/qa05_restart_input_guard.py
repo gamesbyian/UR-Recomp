@@ -20,7 +20,8 @@ PROBE = re.compile(
 )
 P2_PROBE = re.compile(
     r"(?m)^UR_RESTART_INPUT_P2 raw=([0-9A-Fa-f]+) guest=([0-9A-Fa-f]+) "
-    r"return_held=([01]) release_waiting=([01]) remaining=([0-9]+)$"
+    r"return_held=([01]) release_waiting=([01]) remaining=([0-9]+)"
+    r"(?: pre_restart=([0-9A-Fa-f]+) post_restart=([0-9A-Fa-f]+))?$"
 )
 
 
@@ -54,9 +55,23 @@ def validate_restart_p2_guest_input(
     saw_held_raw_start = False
     previous_waiting = None
     for index, match in enumerate(probes):
-        raw, guest, held, waiting, remaining = match.groups()
-        if (int(raw, 16) & P2_GUEST_START and held == '1'
-                and waiting == '1'):
+        raw, guest, held, waiting, remaining, pre_restart, post_restart = match.groups()
+        # Raw P2 Start is logged before the tournament filter. Guest P2
+        # Start is logged after both Restart and root-host filtering. A
+        # strict witness needs the actual intermediate words to prove that
+        # the Restart latch, rather than either neighbour, suppressed Start.
+        if require_raw_start_witness and (pre_restart is None or post_restart is None):
+            raise ValueError("source-bound P2 pre/post Restart diagnostics absent")
+        if (pre_restart is not None and post_restart is not None
+                and int(pre_restart, 16) & P2_GUEST_START
+                and waiting == '1' and int(post_restart, 16) & P2_GUEST_START):
+            raise ValueError(
+                f"P2 post-Restart sample {index + 1}: Restart filter failed to suppress Start")
+        if (int(raw, 16) & P2_GUEST_START and pre_restart is not None
+                and int(pre_restart, 16) & P2_GUEST_START
+                and post_restart is not None
+                and not int(post_restart, 16) & P2_GUEST_START
+                and held == '1' and waiting == '1'):
             saw_held_raw_start = True
         expected_remaining = EXPECTED_SAMPLES - index - 1
         if int(remaining) != expected_remaining:
@@ -94,7 +109,7 @@ def validate_restart_p2_guest_input(
                 f"release_waiting={waiting})"
             )
     if require_raw_start_witness and not saw_held_raw_start:
-        raise ValueError('P2 raw Start/held Return witness absent')
+        raise ValueError('P2 raw Start/held Return witness absent at Restart filter')
     return len(probes)
 
 

@@ -9322,12 +9322,14 @@ extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(stderr,
                 "UR_RESTART_INPUT_P2 raw=%04X guest=%04X return_held=%d "
-                "release_waiting=%d remaining=%u\n",
+                "release_waiting=%d remaining=%u pre_restart=%04X post_restart=%04X\n",
                 static_cast<unsigned>(raw_p2_word),
                 static_cast<unsigned>(owned.inputs),
                 return_held ? 1 : 0,
                 g_restart_return_release_p2.awaiting_return_release ? 1 : 0,
-                g_restart_p2_input_probe_remaining);
+                g_restart_p2_input_probe_remaining,
+                static_cast<unsigned>(filtered.inputs),
+                static_cast<unsigned>(restart_filtered.inputs));
             std::fflush(stderr);
         }
     }

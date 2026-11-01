@@ -63,6 +63,13 @@ def continuous_pose_recipe(source: str, name: str, time: float):
         # ones, even with a different formal argument name. A canonical body
         # still present in the source does not prove which body rendered.
         raise ValueError("duplicate OpenSCAD function declaration: " + ", ".join(duplicates))
+    # A SINGLE user function can also shadow an OpenSCAD builtin. The authored
+    # continuous formula uses sin/min/max; the shared rig uses cos/is_undef.
+    # Python's recipe would otherwise evaluate the original builtin while
+    # OpenSCAD renders the shadowed function, producing a false source match.
+    shadowed = sorted(set(functions) & {"sin", "cos", "min", "max", "is_undef"})
+    if shadowed:
+        raise ValueError("OpenSCAD builtin function shadowed: " + ", ".join(shadowed))
     clean = re.sub(r"\s+", "", uncommented)
     if (clean.count("functionunit_time(t)=min(1,max(0,t));") != 1
             or clean.count("functionease_time(t)=let(u=unit_time(t))u*u*(3-2*u);") != 1

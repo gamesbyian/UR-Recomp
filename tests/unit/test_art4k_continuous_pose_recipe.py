@@ -80,6 +80,21 @@ class ContinuousRigTests(unittest.TestCase):
                     ValueError, "duplicate OpenSCAD function declaration"):
                 module.continuous_pose_recipe(SOURCE + override, "stunt_cycle", .25)
 
+    def test_builtin_function_shadows_fail_closed(self):
+        # A single user declaration can override an OpenSCAD builtin without
+        # duplicating a source function. Python would still use math.sin and
+        # ordinary min/max, while OpenSCAD would render different geometry.
+        for builtin, body in (("sin", "0"), ("cos", "0"),
+                              ("min", "0"), ("max", "0"),
+                              ("is_undef", "true")):
+            with self.subTest(builtin=builtin), self.assertRaisesRegex(
+                    ValueError, "OpenSCAD builtin function shadowed"):
+                module.continuous_pose_recipe(
+                    SOURCE + f"\nfunction {builtin}(x)={body};", "ride", .25)
+        # Comments must not create a false declaration.
+        source = SOURCE + "\n// function sin(x)=0;\n/* function max(x)=0; */\n"
+        self.assertEqual(module.continuous_pose_recipe(source, "ride", .25)[0], 198)
+
     def test_comment_only_function_text_does_not_trigger_override(self):
         source = SOURCE + "\n// function unit_time(x)=0;\n/* function ease_time(x)=0; */\n"
         pedal, lean, _, meta = module.continuous_pose_recipe(source, "ride", .25)

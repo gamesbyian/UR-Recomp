@@ -4,6 +4,8 @@ import argparse
 import hashlib
 import json
 import shutil
+import struct
+import tempfile
 from pathlib import Path
 
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
@@ -15,9 +17,13 @@ def digest(path):
 
 def validate(base, pose):
     folder = base / pose
+    if not folder.is_dir() or folder.is_symlink():
+        raise ValueError(f"{pose}: missing or redirected export directory")
     last = json.loads((folder / "articulated_blockout_last_attempt.json").read_text())
     ptr = json.loads((folder / "articulated_blockout_current.json").read_text())
-    if last.get("status") != "succeeded" or not last.get("current_output_usable"):
+    if (last.get("status") != "succeeded" or last.get("current_output_usable") is not True
+            or last.get("schema") != "ur-art4k-export-attempt/1"
+            or ptr.get("schema") != "ur-art4k-export-current/1"):
         raise ValueError(f"{pose}: last attempt not successful")
     if last["attempt_id"] != ptr["attempt_id"] or last["source_sha256"] != ptr["source_sha256"]:
         raise ValueError(f"{pose}: stale pointer or different source")
@@ -26,16 +32,26 @@ def validate(base, pose):
     out = {}
     for key in ("glb", "receipt"):
         relative = Path(ptr[key + "_path"])
-        if relative.is_absolute() or ".." in relative.parts or relative.parts[0] != "attempts":
+        if (relative.is_absolute() or len(relative.parts) != 3
+                or relative.parts[0] != "attempts"
+                or relative.parts[1] != ptr["attempt_id"]
+                or relative.parts[2] != ("unicycle_articulated_blockout.glb" if key == "glb" else "articulated_blockout_receipt.json")):
             raise ValueError(f"{pose}: invalid output path")
         path = folder / relative
-        if not path.is_file() or digest(path) != ptr[key + "_sha256"]:
+        if (not path.is_file() or path.is_symlink() or path.parent.is_symlink()
+                or digest(path) != ptr[key + "_sha256"]):
             raise ValueError(f"{pose}: {key} missing or digest mismatch")
         out[key] = path
+    with out["glb"].open("rb") as stream:
+        header = stream.read(12)
+    if (len(header) != 12 or header[:4] != b"glTF"
+            or struct.unpack("<II", header[4:]) != (2, out["glb"].stat().st_size)):
+        raise ValueError(f"{pose}: invalid GLB header/version/length")
     report = json.loads(out["receipt"].read_text())
     if (report.get("attempt_id") != ptr["attempt_id"] or
         report.get("source_sha256") != ptr["source_sha256"] or
         report.get("rig_pose") != pose or
+        report.get("schema") != "ur-art4k-articulated-blockout/1" or
         report.get("glb_sha256") != ptr["glb_sha256"] or
         report.get("original_character_likeness_approved") is not False or
         report.get("shipping_art_approved") is not False):
@@ -51,26 +67,30 @@ def stage(exports, site, source_commit):
     if len(sources) != 1:
         raise ValueError("poses built from different source files")
     target = site / "model-review"
-    if target.exists():
-        raise ValueError("target exists; stage into a fresh directory and integrate atomically")
-    assets = target / "assets" / source_commit
-    assets.mkdir(parents=True)
-    pose_map = {}
-    for pose, (pointer, outputs) in verified.items():
-        filename = pose + "-" + pointer["glb_sha256"][:16] + ".glb"
-        shutil.copyfile(outputs["glb"], assets / filename)
-        if digest(assets / filename) != pointer["glb_sha256"]:
-            raise ValueError(f"{pose}: staged asset digest mismatch")
-        pose_map[pose] = {"url": f"assets/{source_commit}/{filename}", "sha256": pointer["glb_sha256"]}
-    here = Path(__file__).resolve().parent
-    shutil.copy2(here / "index.html", target / "index.html")
-    manifest = {"schema": "ur-racer-model-review/1", "version": source_commit[:12],
-                "source_commit": source_commit, "source_model_sha256": next(iter(sources)),
-                "model_url": pose_map["upright"]["url"],
-                "candidate_sha256": pose_map["upright"]["sha256"],
-                "poses": pose_map, "likeness_approved": False,
-                "source_sprite_pose_registration": False}
-    (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    if not site.is_dir() or site.is_symlink() or target.exists():
+        raise ValueError("existing Pages root required; model-review must not already exist")
+    with tempfile.TemporaryDirectory(prefix=".model-review-stage-", dir=site) as temp:
+        work = Path(temp) / "model-review"
+        assets = work / "assets" / source_commit
+        assets.mkdir(parents=True)
+        pose_map = {}
+        for pose, (pointer, outputs) in verified.items():
+            filename = pose + "-" + pointer["glb_sha256"][:16] + ".glb"
+            shutil.copyfile(outputs["glb"], assets / filename)
+            if digest(assets / filename) != pointer["glb_sha256"]:
+                raise ValueError(f"{pose}: staged asset digest mismatch")
+            pose_map[pose] = {"url": f"assets/{source_commit}/{filename}", "sha256": pointer["glb_sha256"]}
+        here = Path(__file__).resolve().parent
+        shutil.copy2(here / "index.html", work / "index.html")
+        manifest = {"schema": "ur-racer-model-review/1", "version": source_commit[:12],
+                    "source_commit": source_commit, "source_model_sha256": next(iter(sources)),
+                    "model_url": pose_map["upright"]["url"],
+                    "candidate_sha256": pose_map["upright"]["sha256"],
+                    "poses": pose_map, "likeness_approved": False,
+                    "source_sprite_pose_registration": False}
+        (work / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\\n")
+        # Only a completely checked directory becomes visible to the Pages build.
+        work.rename(target)
     print(json.dumps({"staged": str(target), "source_commit": source_commit,
                       "pose_hashes": {p: v["sha256"] for p, v in pose_map.items()}}, indent=2))
 

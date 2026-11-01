@@ -31,11 +31,12 @@ except ModuleNotFoundError:
 # P1/P2 staging as well).
 ALLOWED_WRAM_RANGES = ((0x0399, 0x03E0), (0x0433, 0x04B6))
 
-# Bytes that differ between otherwise matched native runs regardless of
-# Widescreen. They are reported, never counted as leaks.
-#   $0069: accumulator written by 82:8082 through the $0063 long pointer;
-#          already run-variant between matched native routes before any
-#          input divergence (RESEARCH-LEDGER R-SEED-018).
+# Known cross-run variant, retained separately from other leak diagnostics.
+# $0069 differed before the B-button intervention in R-SEED-018, which proves
+# only that the B pulse did not cause it. The same address is identified as the
+# sound-transfer counter in CPU/APU research (#1689). Neither observation proves
+# downstream semantic irrelevance to audio. Do not let a difference here pass
+# strict WIDE-07 WRAM parity without a separately reviewed consumer witness.
 RUN_VARIANT_WRAM = (0x0069,)
 
 
@@ -180,7 +181,8 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
         ))
         checks.append(assertion(
             f"{tag}-wram-confined-to-guest-lane",
-            wram["complete_wram_images"] and wram["leaked_bytes"] == 0,
+            wram["complete_wram_images"] and wram["leaked_bytes"] == 0
+            and not wram["run_variant_differences"],
             wram,
         ))
     return make_envelope(

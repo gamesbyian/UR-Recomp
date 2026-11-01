@@ -8,6 +8,7 @@ SCRIPT = ROOT/"tools/art/Prepare-Original-Racer-Corpus.ps1"
 LAUNCHER = ROOT/"tools/art/Prepare-Original-Racer-Corpus.cmd"
 EXPORTER = ROOT/"tools/art/export_registered_original_racer_corpus.py"
 FREEZER = ROOT/"tools/art/freeze_racer_source_family_splits.py"
+WINDOWS_SMOKE = ROOT/".github/workflows/art4k-private-source-windows-smoke.yml"
 
 
 class PrivateOriginalSourceWindowsLauncherTests(unittest.TestCase):
@@ -72,6 +73,18 @@ class PrivateOriginalSourceWindowsLauncherTests(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertNotIn(token.lower(), self.ps.lower())
         self.assertNotIn('start /b', self.cmd)
+
+    def test_hosted_windows_only_parses_and_negative_tests_relevant_launcher(self):
+        workflow = WINDOWS_SMOKE.read_text(encoding="utf-8")
+        self.assertIn("pull_request:", workflow)
+        self.assertIn("tools/art/Prepare-Original-Racer-Corpus.ps1", workflow)
+        self.assertIn("runs-on: windows-2022", workflow)
+        self.assertIn("timeout-minutes: 6", workflow)
+        self.assertIn("Language.Parser]::ParseFile", workflow)
+        self.assertIn("missing-original-usa.sfc", workflow)
+        self.assertIn("wrong-hash-original-usa.sfc", workflow)
+        self.assertIn("$global:LASTEXITCODE = 0", workflow)
+        self.assertNotIn("git push", workflow.lower())
 
     def test_cli_arguments_match_the_existing_real_exporter_and_splitter(self):
         for arg in ('"--rom"', '"--registry"', '"--out"'):

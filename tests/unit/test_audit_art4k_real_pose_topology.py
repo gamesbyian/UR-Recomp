@@ -37,7 +37,25 @@ class SourceGLBTopologyTests(unittest.TestCase):
         self.assertEqual(data["source_parent_parts"],5)
         self.assertEqual(data["all_five_vertex_counts_stable_meshes"],16)
         self.assertEqual(data["all_five_face_index_arrays_stable_meshes"],16)
-        self.assertTrue(data["all_material_meshes_safe_for_naive_glb_vertex_morph"])
+        self.assertTrue(data["all_material_meshes_meet_necessary_topology_conditions"])
+        self.assertFalse(data["all_material_meshes_safe_for_naive_glb_vertex_morph"])
+        self.assertTrue(all(m["direct_vertex_index_blending_requires_authored_correspondence"]
+                            for m in data["material_meshes"]))
+        self.assertFalse(data["matched_3d_semantic_vertex_correspondence_proven"])
+
+    def test_equal_counts_and_faces_do_not_prove_vertex_correspondence(self):
+        poses=fixture()
+        poses["wheelie"]["fork_and_frame__material_0"]["vertex_bytes_sha256"]="f"*64
+        data=mod.compare_mesh_pose_tables(poses)
+        self.assertEqual(data["all_five_vertex_counts_stable_meshes"],16)
+        self.assertEqual(data["all_five_face_index_arrays_stable_meshes"],16)
+        self.assertEqual(data["all_five_local_positions_identical_meshes"],15)
+        self.assertTrue(data["all_material_meshes_meet_necessary_topology_conditions"])
+        self.assertFalse(data["all_material_meshes_safe_for_naive_glb_vertex_morph"])
+        mesh=next(m for m in data["material_meshes"]
+                  if m["material_mesh_name"]=="fork_and_frame__material_0")
+        self.assertTrue(mesh["necessary_topology_conditions_met"])
+        self.assertTrue(mesh["direct_vertex_index_blending_requires_authored_correspondence"])
         self.assertFalse(data["matched_3d_semantic_vertex_correspondence_proven"])
 
     def test_one_pose_changes_face_order_and_vertex_count(self):
@@ -51,6 +69,7 @@ class SourceGLBTopologyTests(unittest.TestCase):
         self.assertEqual(data["all_five_face_index_arrays_stable_meshes"],15)
         self.assertEqual(data["all_five_local_positions_identical_meshes"],15)
         self.assertEqual(data["all_five_world_matrices_identical_meshes"],15)
+        self.assertFalse(data["all_material_meshes_meet_necessary_topology_conditions"])
         self.assertFalse(data["all_material_meshes_safe_for_naive_glb_vertex_morph"])
         self.assertFalse(data["1994_original_pose_or_camera_identified"])
 

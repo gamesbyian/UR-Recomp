@@ -77,8 +77,8 @@ def compare_mesh_pose_tables(tables:dict[str,dict[str,dict]])->dict:
             "local_positions_equal_in_all_five_poses":bool(vertices_equal),
             "face_index_arrays_equal_in_all_five_poses":bool(faces_equal),
             "world_matrices_equal_in_all_five_poses":bool(world_transform_equal),
-            "direct_vertex_index_blending_requires_authored_correspondence":
-                not(vertex_count_stable and faces_equal),
+            "necessary_topology_conditions_met":bool(vertex_count_stable and faces_equal),
+            "direct_vertex_index_blending_requires_authored_correspondence":True,
             "per_pose_counts":per_pose,
         })
     return {
@@ -92,9 +92,9 @@ def compare_mesh_pose_tables(tables:dict[str,dict[str,dict]])->dict:
             sum(x["face_index_arrays_equal_in_all_five_poses"] for x in output),
         "all_five_world_matrices_identical_meshes":
             sum(x["world_matrices_equal_in_all_five_poses"] for x in output),
-        "all_material_meshes_safe_for_naive_glb_vertex_morph":
-            all(x["vertex_counts_equal_in_all_five_poses"] and
-                x["face_index_arrays_equal_in_all_five_poses"] for x in output),
+        "all_material_meshes_meet_necessary_topology_conditions":
+            all(x["necessary_topology_conditions_met"] for x in output),
+        "all_material_meshes_safe_for_naive_glb_vertex_morph":False,
         "material_meshes":output,
         "matched_3d_semantic_vertex_correspondence_proven":False,
         "1994_original_pose_or_camera_identified":False,

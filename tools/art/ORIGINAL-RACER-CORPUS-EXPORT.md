@@ -1,6 +1,6 @@
 # Reproducible registered original-racer source corpus
 
-**An offline, private input supplier for inverse-graphics fitting.** This tool deliberately consumes the project's **existing** deterministic ROM compositor (not a second extractor) and the existing \`analysis/data/racer-hd-replacement-prototype.json\` registry. It can regenerate registered original sprite sources when historical Actions artifacts have expired. No ROM or newly extracted source sprite pixels are added to the repository. It does **not** claim final native PPU/foreground visibility or original source 3D camera recovery.
+**An offline, private input supplier for inverse-graphics fitting.** This tool deliberately consumes the project's **existing** deterministic ROM compositor (not a second extractor) and the existing \`analysis/data/racer-hd-replacement-prototype.json\` registry. It can regenerate registered original sprite sources when historical Actions artifacts have expired. No ROM or newly extracted source sprite pixels are added to the repository. The exporter **rejects destinations anywhere inside the public checkout** (even ignored directories); choose an external private output path. It does **not** claim final native PPU/foreground visibility or original source 3D camera recovery.
 
 ## Private workflow
 

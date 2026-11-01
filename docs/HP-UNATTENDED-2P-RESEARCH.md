@@ -76,6 +76,12 @@ native guest-input determinism and independent-seat reachability research.
 Treat a failure as an exact reproducible seed and first failure to debug,
 not a verified regression in authentic SNES behavior by itself.
 
+## Read-only offline archive audit
+
+`python -m tools.hp_science_archive_audit --artifact windows-native-smoke.zip --run-json hp-run.json` independently checks the retained GitHub Actions ZIP CRCs, safe member paths, source/run/event identity in the separately retrieved **GitHub Actions run API JSON**, the collector's self-hash and eight/four-cohort seed/case totals, the ROM-free PE's **actual bytes** against both the source-owned science candidate and the independent Windows PE binding, and the stock input/script file digests from this checkout. Nothing is executed or uploaded, and source/fixture differences fail closed. Fetch the run's actual `/repos/gamesbyian/UR-Recomp/actions/runs/RUN_ID` API JSON independently; the ZIP by itself **cannot prove** that GitHub delivered a scheduled event.
+
+The SHA-256 research receipt is **self-hashed, not cryptographically signed by an independent trusted key**. Even a valid archive audit cannot reconstruct the 4-way guest traces absent from the retained compact summary or grant 1/45 genuine original/native events, physical gamepad checks or release gates. The audit's positive result must be paired with the trusted Actions run and its successful producer job. Compare historical run rates only with labeled source/epoch, total wall time and accepted cases; never describe the four-to-eight worker shift as an eight-to-sixteen-case gain.
+
 ## Safeguards and source integration
 
 - The main HP source-push workflow remains separate and automatic, including
@@ -96,17 +102,7 @@ not a verified regression in authentic SNES behavior by itself.
 
 ## Decisions and next research lanes
 
-1. **Eight-worker production proof pending:** [#2922](https://github.com/gamesbyian/UR-Recomp/pull/2922)
-   integrated the eight-worker implementation after full tooling, real
-   Windows QA and independent review. The latest verified genuine
-   scheduled success, [run #41244390541](https://github.com/gamesbyian/UR-Recomp/actions/runs/41244390541),
-   ran the preceding four-worker source, yielding eight distinct seeded
-   plans and 32 actual guest processes in approximately 289 seconds of
-   research time. It is **not** an eight-worker throughput receipt. Inspect
-   the next successful real scheduled eight-worker signed receipt and
-   preserve its exact source, run ID, worker count and research-only elapsed
-   before comparing rates. Never infer an eight-worker speedup from
-   code integration or the different-source four-worker baseline.
+1. **Eight-worker manual proof acquired; scheduled delivery still pending:** the owner-authorized [manual HP run #41264488130](https://github.com/gamesbyian/UR-Recomp/actions/runs/41264488130) at source `d6eb79fc` completed all Windows package/QA checks and **eight real concurrent source-owned cohorts**, accepting **8 distinct cases, 32 Windows guest processes in 200.718 s** with zero collector issues. The retained [four-worker genuine scheduled run #41244390541](https://github.com/gamesbyian/UR-Recomp/actions/runs/41244390541) at different source `fde3b6c3` accepted **8 cases, 32 processes in 289.282 s**; it is **not** an eight-worker throughput receipt. Research-only observed rates were **2.391 vs 1.659 accepted cases/min**, a 44.1% increase, but unlike-source cohorts and changed parallel load preclude a controlled speedup claim. The manual eight-worker canary does **not** prove true GitHub `schedule` delivery. Only a new run recorded as `event=schedule`, bound to the then-active eight-worker source and independently inspected evidence, can establish cron recovery. Neither trial earns gameplay/physical-pad/release credit.
 2. **Value measurement:** quantify distinct valid seeded cases/day, actual
    native Windows process count, host CPU/memory/time, whether source/fixture
    identity was maintained, failure reproducibility and delay to normal

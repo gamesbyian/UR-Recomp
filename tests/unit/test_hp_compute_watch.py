@@ -195,7 +195,7 @@ class HpComputeWatchTests(unittest.TestCase):
         self.assertIn("[#100](https://github.com/gamesbyian/UR-Recomp/actions/runs/100)", rendered)
         self.assertIn("research trial does not establish", rendered)
         self.assertIn("Registered workflow state", rendered)
-        self.assertIn("disabled_manually", rendered)
+        self.assertIn("disabled or deleted registration", rendered)
         self.assertNotIn("release gate earned", rendered)
 
     def test_existing_daily_ops_gets_read_only_monitor_and_bounded_artifacts(self):

@@ -99,6 +99,10 @@ def render_mask(vertices, faces, camera):
         (points @ right) * (scale * 4 * 6 / 7) + 2*anchor[0] + 2,
         -(points @ up) * (scale * 4) + 2*anchor[1] + 2,
     ))
+    # Reject a camera/view that silently cuts off model geometry. A clipped
+    # render can score artificially well against cropped source art.
+    if (np.any(projected < 0) or np.any(projected > 255)):
+        raise ValueError("fixed-camera model geometry clips the 256x256 canvas")
     alpha = np.zeros((256, 256), dtype=np.uint8)
     for face in np.asarray(faces):
         a, b, c = projected[face]

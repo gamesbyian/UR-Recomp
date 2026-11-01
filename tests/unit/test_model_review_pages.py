@@ -150,6 +150,21 @@ class ModelReviewPublicationTests(unittest.TestCase):
             self.assertTrue((site / "model-review/index.html").is_file())
             self.assertIsNone(json.loads((site / "model-review/manifest.json").read_text())["model_url"])
             self.assertIn("model-review/", (site / "index.html").read_text())
+            rows = json.loads((site / "model-review/sprites.json").read_text())
+            self.assertEqual(rows["schema"], "ur-racer-original-sprite-reference/1")
+            self.assertFalse(rows["sprite_3d_pose_mapping_verified"])
+            self.assertEqual(len(rows["frames"]), 32)
+            self.assertEqual({r["player"] for r in rows["frames"]}, {"p1", "p2"})
+            self.assertEqual({r["guest_frame"] for r in rows["frames"]}, set(range(1205, 1221)))
+            for row in rows["frames"]:
+                source = site / "model-review" / row["image"]
+                self.assertTrue(source.is_file())
+                self.assertEqual(sha(source.read_bytes()), row["sha256"])
+            # Publishing GLBs must not remove existing hash-verified source images.
+            exports, _ = prepare(Path(d) / "fixture")
+            stage(exports, site, SHA)
+            self.assertTrue((site / "model-review/sprites.json").is_file())
+            self.assertEqual(len(list((site / "model-review/sprites").glob("*.png"))), 14)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,17 @@ permissions:
   actions: write
 
 concurrency:
-  group: owner-comment-dispatch-${{ github.event.issue.number }}
+  # Only verified owner HP science commands share one lock across PRs; untrusted
+  # lookalike comments cannot evict an owner's pending work. Ordinary exact-head
+  # CI commands retain their independent PR-number lock. Recheck run census
+  # inside this serialized job before any new HP science dispatch.
+  group: >-
+    ${{ github.event.issue.pull_request &&
+        github.event.comment.user.login == github.repository_owner &&
+        github.event.comment.author_association == 'OWNER' &&
+        startsWith(github.event.comment.body, '/ur-ci hp-research') &&
+        'owner-comment-hp-research' ||
+        format('owner-comment-dispatch-{0}', github.event.issue.number) }}
   cancel-in-progress: false
 
 jobs:

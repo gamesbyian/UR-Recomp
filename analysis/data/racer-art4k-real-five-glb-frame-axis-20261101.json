@@ -1,0 +1,55 @@
+{
+  "schema": "UR-ART4K-REAL-FIVE-GLB-FRAME-AXIS-PILOT/1",
+  "date_utc": "2026-11-01",
+  "original_3d_source_model": "2026 unapproved single part-addressable 5-pose GLB rig from source commit d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "original_viewer_artifact": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41259476190/artifacts/13063969312",
+  "actual_scad_source_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "source_authentic_chromatic_axis_report": "analysis/data/racer-art4k-hosted-chromatic-axes-20261101.json",
+  "camera_manifest": "analysis/data/racer-inverse-side-provisional-1205.json",
+  "method": "Load all five hash-matched real material-separated GLBs, take only source-owned fork_and_frame__material_0 homogeneous blue 28,89,222, world-transform mesh through its existing fork parent, rasterize its exact real triangle geometry with the same project 4x source pixel-centre orthographic 9.5px/axis camera under horizontal 6/7 conversion, downsample 64px, compute P1/P2-compatible PCA screen-axis from pixels. No GLB or original image mutated.",
+  "actual_model_pose_axes": [
+    {
+      "pose": "upright",
+      "sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+      "projected_source_logical_blue_material_pixels": 42,
+      "screen_axis_degrees": 5.951754,
+      "major_axis_variance_fraction": 0.989189
+    },
+    {
+      "pose": "pedal",
+      "sha256": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+      "projected_source_logical_blue_material_pixels": 42,
+      "screen_axis_degrees": 5.951754,
+      "major_axis_variance_fraction": 0.989189
+    },
+    {
+      "pose": "wheelie",
+      "sha256": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+      "projected_source_logical_blue_material_pixels": 42,
+      "screen_axis_degrees": 30.637464,
+      "major_axis_variance_fraction": 0.985518
+    },
+    {
+      "pose": "stunt",
+      "sha256": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+      "projected_source_logical_blue_material_pixels": 40,
+      "screen_axis_degrees": -39.496967,
+      "major_axis_variance_fraction": 0.988938
+    },
+    {
+      "pose": "bank",
+      "sha256": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59",
+      "projected_source_logical_blue_material_pixels": 47,
+      "screen_axis_degrees": 7.12404,
+      "major_axis_variance_fraction": 0.98715
+    }
+  ],
+  "source_p1_withheld_chromatic_mask_screen_axis_mean_degrees": 39.809375,
+  "comparison_caveat": "Original raster red/blue high-chroma region is not independently verified to represent exactly the experimental primary fork_and_frame material. The camera, original 3D pose, material identities and source-to-GLB matching are unproven. Difference 39.81-30.64 is an exploratory angle residual, not a validated 3D rotation correction or a license to alter draft #2832 wheelie angle.",
+  "original_1994_pose_to_model_pose_mapping_verified": false,
+  "actual_3d_camera_recovered": false,
+  "independent_original_art_approval": false,
+  "shipping_art_approved": false,
+  "pilot_renderer_exact_real_glb_reused": true,
+  "new_checked_in_cli_end_to_end_executed": false
+}

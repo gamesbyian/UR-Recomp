@@ -231,6 +231,54 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         shutil.copyfile(ART / (art + ".png"), target / "assets" / (art + ".png"))
     for name in ("index.html", "atlas.css", "atlas.js", "tube-header.svg"):
         shutil.copyfile(WEB / name, target / name)
+    # The 3D laboratory is a separate read-only route, never a replacement
+    # for the source-verified screenshot inventory or original atlas assets.
+    model_review = Path(__file__).resolve().parent / "art/model-review"
+    review_target = target / "model-review"
+    review_target.mkdir()
+    for filename in ("index.html", "manifest.json"):
+        shutil.copyfile(model_review / filename, review_target / filename)
+    # Independently hash-verify retained original 64x64 review sprites.
+    # They are a separate, explicitly NON-REGISTERED 2D reference timeline:
+    # never alias a frame number to a speculative 2026 3D blockout pose.
+    # Works in both direct "python tools/windows_visual_atlas.py" and module mode.
+    # Use this source file's real checkout, not ROOT (tests may substitute ROOT).
+    module_root = str(Path(__file__).resolve().parents[1])
+    if module_root not in sys.path:
+        sys.path.insert(0, module_root)
+    from tools.art.build_racer_source_pixel_corpus import build as verified_stock_corpus
+    stock_corpus = verified_stock_corpus()
+    stock_out = review_target / "sprites"
+    stock_out.mkdir()
+    original_strip = Path(__file__).resolve().parents[1] / "media/showcase/art-reconstruction/2026-10-10"
+    image_names = {}
+    sprite_rows = []
+    for obs in stock_corpus["observations"]:
+        original = Path(obs["source_image"])
+        if (len(original.parts) != 6 or
+                original.parts[:5] != ("media", "showcase", "art-reconstruction",
+                                      "2026-10-10", "stock")):
+            raise ValueError("unexpected source sprite location")
+        filename = original.name
+        if not re.fullmatch(r"p[12]-[0-9]{2}\.png", filename):
+            raise ValueError("unexpected source sprite filename")
+        src = original_strip / "stock" / filename
+        if not src.is_file() or src.is_symlink() or sha256(src) != obs["png_file_sha256"]:
+            raise ValueError("original sprite asset digest mismatch")
+        if filename not in image_names:
+            shutil.copyfile(src, stock_out / filename)
+            image_names[filename] = obs["png_file_sha256"]
+        elif image_names[filename] != obs["png_file_sha256"]:
+            raise ValueError("source sprite identity collision")
+        sprite_rows.append({"player": obs["player"], "guest_frame": obs["guest_frame"],
+                            "image": "sprites/" + filename, "sha256": obs["png_file_sha256"],
+                            "representation_id": obs["representation_id"]})
+    (review_target / "sprites.json").write_text(json.dumps({
+        "schema": "ur-racer-original-sprite-reference/1",
+        "source_kind": "retained original ROM-composed source PNG (verified, not reextracted)",
+        "source_sha256": stock_corpus["historical_manifest_declared_rom_sha256"],
+        "sprite_3d_pose_mapping_verified": False,
+        "frames": sprite_rows}, indent=2) + "\n", encoding="utf-8")
     published = []
     exe_digest = None
     # Reviewed, content-addressed incidental snapshots from the repository.

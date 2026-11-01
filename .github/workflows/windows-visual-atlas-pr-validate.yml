@@ -15,6 +15,13 @@ on:
       - "tools/windows_visual_atlas_intake.py"
       - "media/windows-visual-atlas/**"
       - "tools/visual_atlas_web/**"
+      - "tools/art/model-review/**"
+      - "tools/art/build_racer_source_pixel_corpus.py"
+      - "tools/art/racer_source_pixels.py"
+      - "analysis/data/racer-hd-replacement-prototype.json"
+      - "media/showcase/art-reconstruction/2026-10-10/stock/**"
+      - "media/showcase/art-reconstruction/2026-10-10/inputs-p*.json"
+      - "tests/unit/test_model_review_pages.py"
       - "tests/unit/test_windows_visual_atlas.py"
       - "tests/unit/test_windows_visual_atlas_intake.py"
       - "tests/unit/test_windows_visual_atlas_frontend.py"
@@ -34,13 +41,23 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate real fixture routes, assets and inventory
         run: |
-          python3 -m unittest tests.unit.test_windows_visual_atlas tests.unit.test_windows_visual_atlas_intake tests.unit.test_windows_visual_atlas_frontend
+          python3 -m unittest tests.unit.test_windows_visual_atlas tests.unit.test_windows_visual_atlas_intake tests.unit.test_windows_visual_atlas_frontend tests.unit.test_model_review_pages
           python3 tools/windows_visual_atlas.py validate
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-preview"
           test -s "$RUNNER_TEMP/atlas-preview/index.html"
           test -s "$RUNNER_TEMP/atlas-preview/atlas.json"
       - name: Check mobile browser JS syntax
-        run: node --check tools/visual_atlas_web/atlas.js
+        run: |
+          set -euo pipefail
+          node --check tools/visual_atlas_web/atlas.js
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          html = Path("tools/art/model-review/index.html").read_text()
+          source = html.rsplit('<script type="module">', 1)[1].split("</script>", 1)[0]
+          (Path(os.environ["RUNNER_TEMP"]) / "model-review.mjs").write_text(source)
+          PY
+          node --check "$RUNNER_TEMP/model-review.mjs"
 
   mobile-chromium-smoke:
     # Fast, targeted atlas-only real-browser test; no Windows build or ROM.
@@ -55,6 +72,7 @@ jobs:
         run: |
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
           node --check tools/visual_atlas_web/browser-smoke.mjs
+          node --check tools/art/model-review/browser-smoke.mjs
       - name: Exercise 320–1440px layouts, real DOM interactions and screenshot both surfaces
         run: |
           set -euo pipefail
@@ -62,6 +80,7 @@ jobs:
           test -n "$CHROME_BIN"
           export CHROME_BIN
           node tools/visual_atlas_web/browser-smoke.mjs "$RUNNER_TEMP/atlas-site" "$RUNNER_TEMP/browser-evidence"
+          node tools/art/model-review/browser-smoke.mjs "$RUNNER_TEMP/atlas-site" "$RUNNER_TEMP/browser-evidence"
       - name: Preserve optical evidence and failures for human review
         if: always()
         uses: actions/upload-artifact@v4
@@ -70,3 +89,81 @@ jobs:
           path: ${{ runner.temp }}/browser-evidence/
           if-no-files-found: warn
           retention-days: 7
+
+  experimental-real-model-export:
+    # One source-bound consumer of the EXISTING unapproved #2832 draft rig.
+    # Do not wake this expensive OpenSCAD route while a PR is still a draft.
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          ref: graphics/art4k-part-addressable-rig-20261029
+          path: candidate-rig
+          persist-credentials: false
+      - name: Install isolated offline OpenSCAD/GLB authoring dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openscad
+          python3 -m venv "$RUNNER_TEMP/rig-venv"
+          "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1'
+      - name: Export all five actual experimental poses and bind immutable receipts
+        run: |
+          set -euo pipefail
+          source_commit="$(git -C candidate-rig rev-parse HEAD)"
+          export EXPERIMENTAL_RIG_SHA="$source_commit"
+          echo "EXPERIMENTAL_RIG_SHA=$source_commit" >> "$GITHUB_ENV"
+          for pose in upright pedal wheelie stunt bank; do
+            "$RUNNER_TEMP/rig-venv/bin/python" \
+              candidate-rig/tools/art/export_articulated_unicycle.py \
+              candidate-rig/tools/art/candidates/unicycle_shared_rig.scad \
+              "$RUNNER_TEMP/model-exports/$pose" --rig-pose "$pose" --timeout 120
+          done
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/real-model-site"
+          python3 tools/art/model-review/stage_pages.py \
+            --exports "$RUNNER_TEMP/model-exports" \
+            --site "$RUNNER_TEMP/real-model-site" \
+            --source-commit "$source_commit"
+          python3 - <<'PY'
+          import json,os,pathlib
+          site=pathlib.Path(os.environ["RUNNER_TEMP"])/"real-model-site/model-review"
+          m=json.loads((site/"manifest.json").read_text())
+          assert len(m["poses"])==5 and m["source_commit"]==os.environ["EXPERIMENTAL_RIG_SHA"]
+          assert m["likeness_approved"] is False and m["source_sprite_pose_registration"] is False
+          print("EXPERIMENTAL_FIVE_POSE_EXPORT_STAGED",m["source_commit"])
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exercise actual five-part glTF exports and original sprite rail in Chromium
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME_BIN"
+          export CHROME_BIN
+          UR_MODEL_SMOKE_REAL=1 node tools/art/model-review/browser-smoke.mjs \
+            "$RUNNER_TEMP/real-model-site" "$RUNNER_TEMP/real-model-evidence"
+      - name: Summarize exact art provenance without approval
+        if: always()
+        run: |
+          {
+            echo "### Five-pose experimental 3D review"
+            echo "Draft model source: \`${EXPERIMENTAL_RIG_SHA:-unavailable}\`"
+            echo "Artifact is a technical viewer candidate, not original art likeness or release approval."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain experimental site and visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-experimental-model-review-actual-glbs
+          path: |
+            ${{ runner.temp }}/real-model-site/model-review/
+            ${{ runner.temp }}/real-model-evidence/
+          if-no-files-found: warn
+          retention-days: 14

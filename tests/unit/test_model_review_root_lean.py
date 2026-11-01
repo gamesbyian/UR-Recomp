@@ -10,7 +10,7 @@ ROOT=Path(__file__).resolve().parents[2]
 class RootLeanViewerTests(unittest.TestCase):
     def test_real_existing_site_and_both_publishers_include_helper(self):
         html=(ROOT/"tools/art/model-review/index.html").read_text(encoding="utf-8")
-        self.assertIn("import {rootLeanQuaternion} from './root_lean_hypothesis.mjs'",html)
+        self.assertIn("import {rootLeanQuaternion,tireVisualLift} from './root_lean_hypothesis.mjs'",html)
         self.assertIn('id="rootLean"',html)
         self.assertIn('id="rootLeanStatus"',html)
         self.assertIn("applyRootLean()",html)
@@ -38,6 +38,14 @@ for(const t of ROOT_LEAN_PRESETS){
 }
 assert.notDeepEqual(rootLeanQuaternion(-35,true),rootLeanQuaternion(15,true));
 assert.deepEqual(rootLeanQuaternion(0,true),base);
+// Actual source tire z-min under -35° rotation is approximately -0.1806955;
+// the display-only correction must restore its original lower height.
+near(tireVisualLift(0,-0.18069551607616607),0.18069551607616607);
+near(tireVisualLift(0,-0.015039530784946737),0.015039530784946737);
+near(tireVisualLift(0,0),0);
+for(const pair of [[NaN,0],[0,Infinity],[Infinity,0]]){
+ assert.throws(()=>tireVisualLift(...pair),/invalid/);
+}
 for(const n of [Infinity,NaN,1,5,-50,45,"15",null]){
  assert.throws(()=>rootLeanQuaternion(n,true),/unsupported/);
 }

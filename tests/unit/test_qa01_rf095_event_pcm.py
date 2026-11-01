@@ -215,6 +215,36 @@ class RF095Tests(unittest.TestCase):
                     self.assertFalse(window.exists())
                     self.assertFalse(out.exists())
 
+    def test_cli_serializes_receipt_only_once_before_window_publication(self):
+        # A second json.dumps after the PCM window is published could fail,
+        # leaving a plausible final-named window and an empty JSON receipt.
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            names = ('original-wav', 'original-map', 'native-pcm',
+                     'native-map', 'original-log', 'native-log')
+            argv = ['qa01_rf095_pcm_receipt.py']
+            for name, path in zip(names, files):
+                argv.extend(('--' + name, str(path)))
+            window = pathlib.Path(d) / 'one-serialization.pcm'
+            out = pathlib.Path(d) / 'one-serialization.json'
+            argv.extend(('--out', str(out), '--original-window-out', str(window)))
+            real_dumps = receipt.json.dumps
+            calls = []
+
+            def fail_on_second_serialization(*args, **kwargs):
+                calls.append(True)
+                if len(calls) > 1:
+                    raise TypeError('injected second serialization failure')
+                return real_dumps(*args, **kwargs)
+
+            with mock.patch('sys.argv', argv), mock.patch.object(
+                    receipt.json, 'dumps',
+                    side_effect=fail_on_second_serialization):
+                receipt.main()
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(window.read_bytes(), struct.pack('<hh', 100, -50) * 7)
+            self.assertEqual(receipt.json.loads(out.read_text())['original']['frames'], 7)
+
     def test_frame_map_rejects_non_lf_delimiters_and_empty_rows(self):
         # Pinned C producers terminate CSV rows with LF, never VT, FF, FS,
         # GS, RS or a bare CR. A checksum-valid forged map must fail closed.

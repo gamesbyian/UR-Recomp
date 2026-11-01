@@ -98,7 +98,8 @@ def sample_stats(raw: bytes) -> dict:
 
 def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
             native_map: Path, original_log: Path, native_log: Path,
-            *, original_window_out: Path | None = None) -> dict:
+            *, original_window_out: Path | None = None,
+            serialized_receipt_out: list[str] | None = None) -> dict:
     paths = (original_wav, original_map, native_pcm, native_map,
              original_log, native_log)
     if any(not p.is_file() or p.is_symlink() for p in paths):
@@ -190,7 +191,9 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
     # Finish every source read/hash and validate receipt serialization before
     # publishing the optional final-named original PCM window. A late source
     # error must never leave an apparently usable orphan window.
-    json.dumps(receipt, indent=2, sort_keys=True)
+    serialized = json.dumps(receipt, indent=2, sort_keys=True) + '\n'
+    if serialized_receipt_out is not None:
+        serialized_receipt_out.append(serialized)
     if original_window_out is not None:
         if original_window_out.exists() or original_window_out.is_symlink():
             raise ValueError('RF095 refusing stale original PCM window')
@@ -239,13 +242,15 @@ def main() -> None:
                     'original_log', 'native_log'))
     validate_output_paths(inputs, args.out, args.original_window_out)
     preflight_receipt_output(args.out)
+    serialized_receipt: list[str] = []
     receipt = analyze(*(getattr(args, name) for name in
                         ('original_wav', 'original_map', 'native_pcm', 'native_map',
                          'original_log', 'native_log')),
-                      original_window_out=args.original_window_out)
+                      original_window_out=args.original_window_out,
+                      serialized_receipt_out=serialized_receipt)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open('x', encoding='utf-8') as output:
-        output.write(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
+        output.write(serialized_receipt[0])
     print('RF095_SOURCE_REGISTERED_PCM PASS '
           f"original={receipt['original']['frames']} "
           f"native={receipt['native']['frames']} "

@@ -2,7 +2,7 @@
 
 **Ownership:** The existing [model-review Pages site](model-review/README.md), merged as [#2938](https://github.com/gamesbyian/UR-Recomp/pull/2938), exclusively owns the HTML, interaction, original-sprite rail and Pages deployment. This document introduces a compatible **offline JSON producer** and an optional handoff format. It neither changes the website nor publishes anything automatically.
 
-The producer `prepare_model_review_measurement_sidecar.py` depends on the **real five-pose comparison runner** from [#2948](https://github.com/gamesbyian/UR-Recomp/pull/2948). It recomputes the full 5×10 comparison from **actual five GLBs and all 32 independently authenticated original source sprite references**, using source-registered 2D anchors. It does **not** accept previously saved, self-asserted metrics as authoritative.
+The producer `prepare_model_review_measurement_sidecar.py` reuses the **merged real five-pose comparison runner** from [#2948](https://github.com/gamesbyian/UR-Recomp/pull/2948). It recomputes the full 5×10 comparison from **actual five GLBs and all 32 independently authenticated original source sprite references**, using source-registered 2D anchors. It does **not** accept previously saved, self-asserted metrics as authoritative.
 
 ```sh
 # The model-review directory comes from the actual, independently verified
@@ -15,7 +15,7 @@ python3 tools/art/prepare_model_review_measurement_sidecar.py \
 python3 -m unittest tests.unit.test_prepare_model_review_measurement_sidecar
 ```
 
-The output is an immutable, **no-overwrite** UTF-8 JSON file with schema `UR-RACER-MODEL-REVIEW-MEASUREMENT-SIDECAR/1`. It records the exact SHA-256 of the staged viewer manifest and sprite rail, source-model commit and SCAD digest, all five actual GLB file digests, exact original USA ROM and source registry digests, camera-manifest digest and provisional camera status, 32 original frame IDs grouped into 10 genuine source binary silhouette identities, source-registered 2D anchor offsets, and five 2D similarity scores per unique source shape. There are no original PNG, ROM, GLB, derived image bytes or on-page URLs in this sidecar.
+The output is an immutable, **no-overwrite** UTF-8 JSON file with schema `UR-RACER-MODEL-REVIEW-MEASUREMENT-SIDECAR/1`. It records the exact SHA-256 of the staged viewer manifest and sprite rail, source-model commit and SCAD digest, all five actual GLB file digests, exact original USA ROM and source registry digests, camera-manifest digest and provisional camera status, 32 original frame IDs grouped into 10 distinct source binary silhouette identities, explicitly separate from the **five** experimental model poses, source-registered 2D anchor offsets, and five 2D similarity scores per unique source shape. There are no original PNG, ROM, GLB, derived image bytes or on-page URLs in this sidecar.
 
 **Every rank is labelled exploratory and unpaired.** The source sprites have **no authenticated mapping** to the experimental `upright`, `pedal`, `wheelie`, `stunt`, and `bank` model poses. The original 1994 3D camera, truly independent pose-family holdout, owner character likeness and shipping art remain unverified. The producer refuses input marked as owner-approved, camera-calibrated, pose-authenticated, or other unsupported success. It also rejects inconsistent score winners, duplicated player/frame observations, impossible source-to-registered-anchor offsets, wrong GLB count, forged missing source SHA and inconsistent equal-shape-weighted means.
 

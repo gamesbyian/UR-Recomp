@@ -58,7 +58,7 @@ python3 tools/art/ablate_racer_frame_mass.py \
   --out /private/ur-art4k-evidence/frame-mass-plus-clearance-new.json
 ```
 
-Omit `--measure-frame-tire-csg` to preserve the lightweight legacy silhouette study. The additional operation is explicitly **bounded and optional**. It fails closed if OpenSCAD cannot create a complete intersection solid, if Trimesh finds non-watertight or inconsistent winding, if volume or SHA is invalid, or if the selected mass is outside the existing source-authored [1.0,2.0] interval. All intermediate STLs stay private; only SHA-bound numeric evidence is published through the existing no-replace helper. The original rig, simulator, viewer and Pages deployment remain unchanged.
+Omit `--measure-frame-tire-csg` to preserve the lightweight legacy silhouette study. The additional operation is explicitly **bounded and optional**. It fails closed if OpenSCAD cannot establish either a complete watertight intersection solid **or an explicitly proven empty intersection** (`Current top level object is empty.` in OpenSCAD's successful result), if Trimesh finds non-watertight or inconsistent winding in a nonempty solid, if volume or SHA is invalid, or if the selected mass is outside the existing source-authored [1.0,2.0] interval. A genuine zero-volume future baseline has **no finite relative-volume ratio**, which is recorded as null rather than dividing by zero or rejecting a valid collision-free design. All intermediate STLs stay private; only SHA-bound numeric evidence is published through the existing no-replace helper. The original rig, simulator, viewer and Pages deployment remain unchanged.
 
 ## Next responsible step
 

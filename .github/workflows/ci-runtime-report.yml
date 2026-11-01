@@ -109,7 +109,7 @@ jobs:
               json.dump({"runs": receipts}, output)
           fetched = sum(needs_job_detail(run) for run in population)
           print(f"exported job timing receipts for {len(receipts)} runs; "
-                f"{fetched} job API request(s) needed, "
+                f"{fetched} non-skipped runs queried (one or more API requests each), "
                 f"{len(receipts) - fetched} completed/skipped zero-runner events bypassed")
           PY
 

@@ -144,6 +144,47 @@ class HpComputeWatchTests(unittest.TestCase):
             self.assertEqual(watch.fetch_runs(
                 "owner-hp-main-windows-smoke.yml", "test"), [])
 
+    def test_workflow_registration_distinguishes_active_disabled_and_unknown(self):
+        import json
+        from unittest.mock import patch
+        name = "owner-hp-seeded-2p-research.yml"
+
+        class Reply:
+            def __init__(self, payload):
+                self.payload = payload
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self, *args):
+                return json.dumps(self.payload).encode("utf-8")
+
+        value = {"path": f".github/workflows/{name}", "state": "active"}
+        def read(request, timeout):
+            self.assertEqual(timeout, 15)
+            self.assertEqual(
+                request.full_url,
+                f"https://api.github.com/repos/{watch.REPOSITORY}/actions/workflows/{name}",
+            )
+            return Reply(value)
+        with patch.object(watch, "urlopen", read):
+            for state in ("active", "deleted", "disabled_fork",
+                          "disabled_manually", "disabled_inactivity"):
+                value["state"] = state
+                self.assertEqual(watch.fetch_workflow_state(name, "token"), state)
+            for payload in (None, [], {}, {"state": "active"},
+                            {"path": "other.yml", "state": "active"},
+                            {"path": f".github/workflows/{name}", "state": "invented"}):
+                value = payload
+                with self.subTest(payload=payload):
+                    with self.assertRaisesRegex(ValueError, "unverifiable"):
+                        watch.fetch_workflow_state(name, "token")
+        with self.assertRaisesRegex(ValueError, "unknown owner HP"):
+            watch.fetch_workflow_state("foreign.yml", "token")
+
     def test_report_is_compact_and_links_exact_run(self):
         result = {"schema": "ur-hp-compute-watch/1", "lanes": {
             "unattended_2p": watch.observe("unattended_2p", [row()], NOW),
@@ -153,6 +194,8 @@ class HpComputeWatchTests(unittest.TestCase):
         rendered = watch.render(result)
         self.assertIn("[#100](https://github.com/gamesbyian/UR-Recomp/actions/runs/100)", rendered)
         self.assertIn("research trial does not establish", rendered)
+        self.assertIn("Registered workflow state", rendered)
+        self.assertIn("disabled or deleted registration", rendered)
         self.assertNotIn("release gate earned", rendered)
 
     def test_existing_daily_ops_gets_read_only_monitor_and_bounded_artifacts(self):

@@ -142,22 +142,55 @@ def fetch_runs(workflow: str, token: str) -> list[dict]:
     return rows
 
 
+def fetch_workflow_state(workflow: str, token: str) -> str:
+    """Inspect GitHub's workflow registration, not merely past cron events.
+
+    An active workflow with missing schedule events needs different recovery
+    from an explicitly disabled/inactivity-disabled workflow. This query is
+    read-only and neither re-enables nor dispatches anything.
+    """
+    if workflow not in (name for name, _ in WORKFLOWS.values()):
+        raise ValueError("unknown owner HP workflow")
+    url = (f"https://api.github.com/repos/{REPOSITORY}/actions/workflows/"
+           f"{workflow}")
+    request = Request(url, headers={
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "UR-Recomp-owner-hp-compute-watch",
+    })
+    with urlopen(request, timeout=15) as reply:
+        payload = json.load(reply)
+    if (not isinstance(payload, dict)
+            or payload.get("path") != f".github/workflows/{workflow}"
+            or payload.get("state") not in
+               ("active", "deleted", "disabled_fork",
+                "disabled_manually", "disabled_inactivity")):
+        raise ValueError("unverifiable GitHub workflow registration")
+    return payload["state"]
+
+
 def render(report: dict) -> str:
     lines = ["## HP unattended compute watchdog", "",
              "Read-only source-bound Actions observations. "
              "Scheduled results are independent of the five LLM agents.", "",
-             "| Lane | Current status | Most recent run | Age (hours) | Completed (24h) |",
-             "|:--|:--|:--|--:|--:|"]
+             "| Lane | Registered workflow state | Delivery status | Most recent run | Age (hours) | Completed (24h) |",
+             "|:--|:--|:--|:--|--:|--:|"]
     for lane, row in report["lanes"].items():
         run = row.get("last_run_id")
         url = (f"[#{run}](https://github.com/{REPOSITORY}/actions/runs/{run})"
                if run else "none")
-        lines.append(f"| {lane} | **{row['status']}** | {url} | "
+        lines.append(f"| {lane} | `{row.get('workflow_state', 'UNAVAILABLE')}` | "
+                     f"**{row['status']}** | {url} | "
                      f"{row.get('age_hours', 'n/a')} | {row.get('completed_24h', 'n/a')} |")
     lines += ["", "A research schedule with no observed cron run becomes overdue "
               "after its first eligible slot plus an eight-hour grace period.",
               "An observed manual research trial does not establish that "
               "GitHub's recurring cron actually fired.",
+              "A registered `active` workflow is not proof that any scheduled "
+              "event was delivered. A disabled or deleted registration "
+              "warrants owner review "
+              "in GitHub Actions before further cron edits.",
               "An old product build alone is not a failure: that lane is triggered "
               "by source changes, not a timer. Manual builds cannot conceal "
               "failed automatic push verification.",
@@ -181,6 +214,13 @@ def main() -> int:
         except Exception as exc:
             lanes[lane] = {"status": "UNAVAILABLE", "error_type": type(exc).__name__,
                            "last_run_id": None}
+        # Registration status is an independent read. Failure here must not
+        # erase a valid run census or be misrepresented as disabled.
+        try:
+            lanes[lane]["workflow_state"] = fetch_workflow_state(workflow, token)
+        except Exception as exc:
+            lanes[lane]["workflow_state"] = "UNAVAILABLE"
+            lanes[lane]["workflow_state_error_type"] = type(exc).__name__
     report = {"schema": "ur-hp-compute-watch/1",
               "observed_utc": now.isoformat(), "repository": REPOSITORY,
               "lanes": lanes, "release_gate_credit": 0}

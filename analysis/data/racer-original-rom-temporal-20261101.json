@@ -1,0 +1,68 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-ROM-TEMPORAL-RETAINED-EVIDENCE/1",
+  "produced_utc_date": "2026-11-01",
+  "actual_original_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "exact_original_corpus_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "producing_github_run": 41342849392,
+  "producing_numeric_artifact_id": 13098336759,
+  "numeric_artifact_outer_zip_sha256": "825761f58d1d95376c8a6f4e83dc99b8f00e616356e258972a46dcc9dd60c8c7",
+  "original_temporal_full_json_sha256": "24595ed2671ed1abae48a03079332a68581086f9e02d6e2a3423e87386944992",
+  "registered_guest_frame_observations": 91,
+  "registered_original_source_windows": 27,
+  "original_source_representation_count": 59,
+  "distinct_original_source_binary_silhouettes": 35,
+  "consecutive_per_player_original_guest_frame_edges": 109,
+  "real_guest_frame_delta_one_edges": 109,
+  "source_held_raster_rgba_unchanged_edges": 90,
+  "source_binary_silhouette_changed_edges": 19,
+  "source_paint_only_same_binary_silhouette_edges": 0,
+  "source_projected_red_blue_axis_changed_edges": 17,
+  "selected_motion_windows": {
+    "first-1205-1220": {
+      "p1": {
+        "source_shape_transitions": 6,
+        "same_rgba_holds": 9
+      },
+      "p2": {
+        "source_shape_transitions": 3,
+        "same_rgba_holds": 12
+      }
+    },
+    "ordinary-race-1230-1239-entry-hold-exit": {
+      "p1": {
+        "source_shape_transitions": 1,
+        "same_rgba_holds": 8
+      },
+      "p2": {
+        "source_shape_transitions": 2,
+        "same_rgba_holds": 7
+      }
+    },
+    "ordinary-race-1244-1252-hold-recovery": {
+      "p1": {
+        "source_shape_transitions": 1,
+        "same_rgba_holds": 7
+      },
+      "p2": {
+        "source_shape_transitions": 1,
+        "same_rgba_holds": 7
+      }
+    },
+    "ordinary-race-1261-1267-staircase": {
+      "p1": {
+        "source_shape_transitions": 2,
+        "same_rgba_holds": 4
+      },
+      "p2": {
+        "source_shape_transitions": 2,
+        "same_rgba_holds": 4
+      }
+    }
+  },
+  "evidence_scope": "Source-authenticated 2D ROM-composed sprite-frame pairs; only source window consecutive guest-frame pairs, original P1/P2 identities, binary original raster and painted-axis movement. Does not infer the game's physical unicycle/world-space joint behavior, or how t in the 2026 OpenSCAD rig maps to 1994 frames.",
+  "original_1994_3d_joint_motion_verified": false,
+  "original_1994_camera_verified": false,
+  "original_1994_to_2026_rig_time_mapping_verified": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false
+}

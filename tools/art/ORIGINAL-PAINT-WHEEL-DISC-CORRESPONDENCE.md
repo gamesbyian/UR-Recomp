@@ -40,3 +40,20 @@ Use the original SHA-pinned source corpus ZIP from run #41396846120, historical 
       --out /private/new/wheel-disk-material-comparison.json
 
 Pillow, NumPy and Trimesh are optional for the actual source/GLB evaluation; ROM-free synthetic region/uncertainty tests use standard Python only. The existing no-replace publisher rejects overwriting evidence. No new GLB, viewer, recurring workflow or Windows game change.
+
+
+## Above-wheel-only centroid falsification test
+
+The same script now also emits a paired whole-colour vs strictly-above-wheel-top centroid test. It keeps the original rim centre candidate and the original 7:6 horizontal screen-pixel convention for both measurements. A pixel at y >= wheel_y-7 is explicitly excluded from the above-rim subset. The original source part of each distinct RGB variant and each tied wheel-centre candidate is retained in the report, and the model uses the exact posed existing GLB axle and frontmost BLUE material. The model centre is **not** moved by optimizing silhouette overlap or colour overlap.
+
+The historical real original 41-RGBA/35-binary-source-mask pilot gives these **mean 2D physical-pixel centroid-vector distance intervals**, carrying all tied original wheel centres without selecting a favourable candidate:
+
+| Equal vote per source binary mask | Whole original paint vs model BLUE | Paint strictly above wheel rim vs model BLUE strictly above rim |
+| --- | ---: | ---: |
+| All 35 | 5.82338840–5.89797063 | **2.80567018–2.86254340** |
+| First16 | 6.10315691–6.22937399 | 3.45011560–3.56819340 |
+| Additional19 | 5.58779387–5.61889411 | 2.26297931–2.26831182 |
+
+This is an independent conditional segmentation experiment: removing coloured pixels near/inside the ring cuts the *centroid disagreement magnitude* nearly in half in the 35-source aggregate. Above-wheel centroid mismatch remains, especially in the first16 family, and source-camera, original palette anatomy, sprite pose and 1994 joint geometry are all unproven. A lower centroid discrepancy is NOT evidence that the excluded pixels are actually a coloured wheel; other components can overlap this region in 2D. The check specifically cautions against widening the fork, globally translating the wheel, or assigning every red/blue source pixel to one model BLUE material based on an in-sample fit.
+
+A complete full-binary-mask/variant/ring-tie numeric initial above-wheel receipt is retained with SHA256 9adfcd235fc807bb7477dc5f4aeb528f71cdfab88066faa99c809e979543abcb. Its source-weighted summary is descriptive, not original-1994 animation or camera approval. The now-executable producer emits fresh source-verified 2D/GLB numbers and includes ROM-free controls for exact centroid cutoffs, tied centres, and invalid empty subsets.

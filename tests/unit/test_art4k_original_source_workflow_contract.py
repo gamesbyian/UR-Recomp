@@ -61,6 +61,20 @@ class SourceWorkflowContractTests(unittest.TestCase):
         self.assertIn('"withheld_candidate"]["independent_binary_silhouette_group_count"] > 0', raw)
         self.assertIn('"withheld_candidate_is_an_independent_3d_camera"] is False', raw)
 
+    def test_original_palette_evidence_uses_pinned_historical_sources(self):
+        raw = self.text
+        self.assertIn('art4k-original-source-families-for-review', raw)
+        self.assertIn('run-id: 41396846120', raw)
+        self.assertIn('7ba8295e966c8b2c959cfeb12ae82f8c701772e0', raw)
+        self.assertIn('05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad', raw)
+        self.assertIn('sha256sum --check --status', raw)
+        self.assertIn('tools/art/audit_original_racer_palette_indices.py', raw)
+        self.assertIn('art4k-original-index-census-', raw)
+        self.assertIn('actions: read', raw)
+        self.assertLess(raw.index('Authenticate the repository'), raw.index('Download frozen 41-PNG'))
+        self.assertLess(raw.index('Download frozen 41-PNG'), raw.index('Upload numeric palette-index'))
+        self.assertNotIn('path: reference/roms/', raw)
+
     def test_no_false_original_camera_or_holdout_approval(self):
         raw = self.text
         self.assertIn('"diagnostic"]["window_count"] == expected_windows', raw)

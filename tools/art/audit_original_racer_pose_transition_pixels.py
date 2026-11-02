@@ -67,11 +67,19 @@ def pixel_change(before, after, predicted_before, predicted_after,
     pose_only = {i for i in range(4096)
                  if predicted_before[i] != predicted_pose_only_after[i]}
     overlap = len(reference & predicted)
+    pose_overlap = len(reference & pose_only)
     return {
         "source_changed_pixel_count": len(reference),
         "model_placed_changed_pixel_count": len(predicted),
         "model_pose_only_changed_pixel_count": len(pose_only),
         "source_changed_pixels_explained_by_placed_model": overlap,
+        "source_changed_pixels_overlapping_pose_only_model_change": pose_overlap,
+        "source_changed_pixels_not_overlapping_pose_only_model_change":
+            len(reference) - pose_overlap,
+        "pose_only_model_source_change_recall":
+            round(pose_overlap / len(reference), 8) if reference else None,
+        "pose_only_model_source_change_precision":
+            round(pose_overlap / len(pose_only), 8) if pose_only else None,
         "source_changed_pixels_not_explained_by_placed_model":
             len(reference) - overlap,
         "model_placed_changed_pixels_not_in_source": len(predicted) - overlap,
@@ -96,6 +104,9 @@ def summarize(edges: list[dict]) -> dict:
     source_pixels = sum(x["source_changed_pixel_count"] for x in counts)
     explained = sum(x["source_changed_pixels_explained_by_placed_model"] for x in counts)
     model_pixels = sum(x["model_placed_changed_pixel_count"] for x in counts)
+    pose_pixels = sum(x["model_pose_only_changed_pixel_count"] for x in counts)
+    pose_overlap = sum(x["source_changed_pixels_overlapping_pose_only_model_change"]
+                       for x in counts)
     return {
         "actually_consecutive_original_guest_frame_edges": len(edges),
         "original_binary_silhouette_changed_edges": source_events,
@@ -103,6 +114,12 @@ def summarize(edges: list[dict]) -> dict:
         "source_binary_changed_pixels_total": source_pixels,
         "placed_model_changed_pixels_total": model_pixels,
         "placed_model_overlapping_source_change_pixels": explained,
+        "pose_only_model_changed_pixel_count": pose_pixels,
+        "pose_only_model_overlapping_source_changed_pixels": pose_overlap,
+        "pose_only_model_changed_pixel_recall":
+            round(pose_overlap / source_pixels, 8) if source_pixels else None,
+        "pose_only_model_changed_pixel_precision":
+            round(pose_overlap / pose_pixels, 8) if pose_pixels else None,
         "placed_model_pixel_recall_across_source_changes":
             round(explained / source_pixels, 8) if source_pixels else None,
         "placed_model_pixel_precision_across_predicted_changes":

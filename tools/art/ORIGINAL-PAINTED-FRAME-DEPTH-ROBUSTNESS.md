@@ -32,3 +32,13 @@ Use the historical exact original upright GLB from real model-review run #412594
       --out /private/new/depth-visible-blue-frame.json
 
 A successful output is a write-once numeric receipt using the existing repository publisher. The next genuinely independent discriminator needs authenticated live emulator PPU/OAM capture and source-colour part attribution. This diagnostic does not make #2832 shipping-ready, recover the original 1994 camera, identify original 3D joints or approve character likeness.
+
+
+## Independent RGB variants of the same source binary silhouette
+
+The original ROM corpus has 35 unique 2D binary masks but **six** have more than one independently authenticated original RGB variant. The previous per-mask colour-axis reducer reports their equal-variant mean angle. That mean is useful for a one-vote-per-binary-mask census but can hide genuine uncertainty in the *painted* anatomy. Under the new actual-depth +Y model:
+- Three of the six multi-colour masks select differing **5-degree 2026 hinge** candidates across their original colour variants.
+- The affected mask SHA prefixes are 29116a986243, 312bf146d502 and 385cffd21b4e. Their pairwise candidate sets are respectively +5°/+10°, +20°/+25° and +5°/+10° under the existing original-to-model angle sign.
+- Each exact source colour variant is now separately reported by source player, original RGBA SHA, original 2D painted axis and candidate angle for all three projected blue-material visibility methods. Summary counts retain one **binary mask vote**, while reporting multiple allowable 2026 frame poses rather than silently assigning the average-derived angle as physically unique.
+
+These differences can stem from original sprite colour segmentation, player-specific paint area, palette shading or structural remapping. They do **not** prove that 1994 geometry differs between colour variants of the same binary silhouette, or that a 5° shift measures an actual historical joint. Do not turn source colour-variant ambiguity into fictitious independent 3D pose coverage or additional statistical masks.

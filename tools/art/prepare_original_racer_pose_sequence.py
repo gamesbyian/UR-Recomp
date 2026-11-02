@@ -165,7 +165,8 @@ def compute(corpus_path: Path, pose_matrix_path: Path, windows: list[str],
     raw = pose_matrix_path.read_bytes()
     matrix = json.loads(raw)
     split = json.loads(split_path.read_bytes()) if split_path else None
-    inputs = build_input(corpus, matrix, windows, split, checked["corpus_sha256"])
+    selected = (corpus["registered_source_windows"] if windows is None else windows)
+    inputs = build_input(corpus, matrix, selected, split, checked["corpus_sha256"])
     inputs["change_penalty"] = change_penalty
     result = fit(inputs)
     return {
@@ -183,12 +184,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", type=Path, required=True)
     parser.add_argument("--pose-matrix", type=Path, required=True)
-    parser.add_argument("--window", action="append", dest="windows", required=True)
+    parser.add_argument("--window", action="append", dest="windows")
+    parser.add_argument("--all-windows", action="store_true",
+                        help="explicitly select all source windows (gaps remain separate)")
     parser.add_argument("--frozen-split", type=Path)
     parser.add_argument("--change-penalty", type=float, default=0.0)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
-    result = json.dumps(compute(args.corpus, args.pose_matrix, args.windows,
+    if args.all_windows == bool(args.windows):
+        parser.error("choose either --all-windows OR one or more --window")
+    selected = None if args.all_windows else args.windows
+    result = json.dumps(compute(args.corpus, args.pose_matrix, selected,
                                 args.frozen_split, args.change_penalty),
                         sort_keys=True, indent=2) + "\n"
     if args.out:

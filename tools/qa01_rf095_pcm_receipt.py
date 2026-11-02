@@ -79,6 +79,21 @@ def frame_map(path: Path, *, start: int, end: int,
     return rows
 
 
+def require_sample_coverage(samples: int, frames: int, rate: int, side: str) -> None:
+    """Reject a completed event with implausibly little producer audio.
+
+    Each producer uses its own frame clock. NTSC nominal is approximately
+    60 guest frames/s; allow an eightfold deficit before failing closed.
+    This is a deliberately weak completeness floor, NOT an assertion of
+    clock equivalence, matching waveform, or audible parity.
+    """
+    minimum = max(1, (rate * frames + 479) // 480)
+    if samples < minimum:
+        raise ValueError(
+            f'RF095 {side} PCM coverage too short: {samples} < {minimum} '
+            f'stereo samples over {frames} guest frames')
+
+
 def sample_stats(raw: bytes) -> dict:
     if not raw or len(raw) % 4:
         raise ValueError('RF095 incomplete stereo int16 PCM')
@@ -163,6 +178,13 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         raise ValueError('RF095 native sample capture not bounded to source window')
     with native_pcm.open('rb') as src:
         native = src.read()
+    # A self-consistent WAV/map pair with one sample per guest frame is
+    # structurally valid but cannot represent the complete RF095 interval.
+    # Apply a separate generous lower bound on each producer's own clock.
+    require_sample_coverage(ref[ORIGINAL_END] - ref[ORIGINAL_START],
+                            ORIGINAL_END - ORIGINAL_START, rate, 'original')
+    require_sample_coverage(nat[NATIVE_END] - nat[NATIVE_START],
+                            NATIVE_END - NATIVE_START, 32040, 'native')
     receipt = {
         'schema': 'ur-qa01-rf095-source-registered-pcm/1',
         'claimed_output_stages': 'libretro callback and native post-echo DSP output',

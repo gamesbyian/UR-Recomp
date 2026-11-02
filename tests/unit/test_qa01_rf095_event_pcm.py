@@ -126,12 +126,12 @@ class RF095Tests(unittest.TestCase):
         native_log = p / 'native.log'
         with wave.open(str(original_wav), 'wb') as wav:
             wav.setnchannels(2); wav.setsampwidth(2); wav.setframerate(32040)
-            wav.writeframes(struct.pack('<hh', 100, -50) * 6454)
+            wav.writeframes(struct.pack('<hh', 100, -50) * (6445 + 9 * 128))
         ref_map.write_text('frame,samples\n' +
-                           ''.join(f'{f},{f}\n' for f in range(6455)))
-        nat_pcm.write_bytes(struct.pack('<hh', 75, -25) * 10)
+                           ''.join(f'{f},{f if f <= 6445 else 6445 + (f-6445)*128}\n' for f in range(6455)))
+        nat_pcm.write_bytes(struct.pack('<hh', 75, -25) * (10 * 128))
         nat_map.write_text('frame,samples\n' +
-                           ''.join(f'{f},{f-6447}\n' for f in range(6447,6458)))
+                           ''.join(f'{f},{(f-6447)*128}\n' for f in range(6447,6458)))
         orig_log.write_text('original genuine replay\n')
         native_log.write_text('native genuine replay\n')
         return original_wav, ref_map, nat_pcm, nat_map, orig_log, native_log
@@ -140,8 +140,8 @@ class RF095Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)
             r = receipt.analyze(*files)
-            self.assertEqual(r['original']['frames'], 7)
-            self.assertEqual(r['native']['frames'], 10)
+            self.assertEqual(r['original']['frames'], 896)
+            self.assertEqual(r['native']['frames'], 1280)
             self.assertEqual(r['original']['peak'], [100, 50])
             self.assertEqual(r['native']['peak'], [75, 25])
             self.assertFalse(r['audible_parity_proven'])
@@ -179,7 +179,7 @@ class RF095Tests(unittest.TestCase):
             self.assertFalse(output.exists())
             files = self.fixture(d)
             receipt.analyze(*files, original_window_out=output)
-            self.assertEqual(output.read_bytes(), struct.pack('<hh', 100, -50) * 7)
+            self.assertEqual(output.read_bytes(), struct.pack('<hh', 100, -50) * 896)
             with self.assertRaisesRegex(ValueError, 'stale original PCM'):
                 receipt.analyze(*files, original_window_out=output)
 
@@ -242,8 +242,8 @@ class RF095Tests(unittest.TestCase):
                     side_effect=fail_on_second_serialization):
                 receipt.main()
             self.assertEqual(len(calls), 1)
-            self.assertEqual(window.read_bytes(), struct.pack('<hh', 100, -50) * 7)
-            self.assertEqual(receipt.json.loads(out.read_text())['original']['frames'], 7)
+            self.assertEqual(window.read_bytes(), struct.pack('<hh', 100, -50) * 896)
+            self.assertEqual(receipt.json.loads(out.read_text())['original']['frames'], 896)
 
     def test_frame_map_rejects_non_lf_delimiters_and_empty_rows(self):
         # Pinned C producers terminate CSV rows with LF, never VT, FF, FS,
@@ -310,7 +310,7 @@ class RF095Tests(unittest.TestCase):
                     contaminated = canonical.replace('frame,samples\n',
                                                      'frame,samples\n6446,0\n', 1)
                 else:
-                    contaminated = canonical + '6458,10\n'
+                    contaminated = canonical + '6458,1280\n'
                 native_map.write_text(contaminated)
                 with self.subTest(extra=extra), self.assertRaisesRegex(
                         ValueError, 'native frame-map population'):
@@ -351,7 +351,7 @@ class RF095Tests(unittest.TestCase):
     def test_no_silent_wav_map_false_positive(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)
-            files[1].write_text(files[1].read_text().replace('6454,6454', '6454,6453'))
+            files[1].write_text(files[1].read_text().replace('6454,7597', '6454,7596'))
             with self.assertRaisesRegex(ValueError, 'count/WAV frame mismatch'):
                 receipt.analyze(*files)
 

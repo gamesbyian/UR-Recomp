@@ -34,12 +34,12 @@ class ProducerIntegrityTests(unittest.TestCase):
             w.setnchannels(2)
             w.setsampwidth(2)
             w.setframerate(32040)
-            w.writeframes(struct.pack('<hh', 123, -45) * 6454)
+            w.writeframes(struct.pack('<hh', 123, -45) * (6445 + 9 * 128))
         self.ref_map.write_text('frame,samples\n' +
-                                ''.join(f'{f},{f}\n' for f in range(6455)))
-        self.pcm.write_bytes(struct.pack('<hh', 12, -8) * 10)
+                                ''.join(f'{f},{f if f <= 6445 else 6445 + (f-6445)*128}\n' for f in range(6455)))
+        self.pcm.write_bytes(struct.pack('<hh', 12, -8) * (10 * 128))
         self.native_map.write_text('frame,samples\n' +
-                                   ''.join(f'{f},{f - 6447}\n'
+                                   ''.join(f'{f},{(f - 6447)*128}\n'
                                            for f in range(6447, 6458)))
         self.ref_log.write_text('original replay\n')
         self.native_log.write_text('native replay\n')
@@ -51,9 +51,37 @@ class ProducerIntegrityTests(unittest.TestCase):
 
     def test_normal_complete_producers_are_accepted_as_diagnostics(self):
         result = self.analyze()
-        self.assertEqual(result['original']['frames'], 7)
-        self.assertEqual(result['native']['frames'], 10)
+        self.assertEqual(result['original']['frames'], 896)
+        self.assertEqual(result['native']['frames'], 1280)
         self.assertFalse(result['audible_parity_proven'])
+
+    def test_original_event_underproduction_is_rejected(self):
+        # The original fixture previously passed with just seven stereo
+        # samples for seven guest frames despite a 32040-Hz WAV header.
+        with wave.open(str(self.wav), 'wb') as w:
+            w.setnchannels(2)
+            w.setsampwidth(2)
+            w.setframerate(32040)
+            w.writeframes(struct.pack('<hh', 123, -45) * 6454)
+        self.ref_map.write_text('frame,samples\\n' +
+                                ''.join(f'{f},{f}\\n' for f in range(6455)))
+        with self.assertRaisesRegex(ValueError, 'original PCM coverage too short'):
+            self.analyze()
+
+    def test_native_event_underproduction_is_rejected(self):
+        # The native producer can report ten complete guest frames while
+        # yielding only ten stereo samples; matching lengths alone is weak.
+        self.pcm.write_bytes(struct.pack('<hh', 12, -8) * 10)
+        self.native_map.write_text('frame,samples\\n' +
+                                   ''.join(f'{f},{f - 6447}\\n'
+                                           for f in range(6447, 6458)))
+        with self.assertRaisesRegex(ValueError, 'native PCM coverage too short'):
+            self.analyze()
+
+    def test_conservative_coverage_floor_is_inclusive(self):
+        with self.assertRaisesRegex(ValueError, 'native PCM coverage too short'):
+            self.receipt.require_sample_coverage(667, 10, 32040, 'native')
+        self.receipt.require_sample_coverage(668, 10, 32040, 'native')
 
     def test_native_frame_boundary_sync_timeout_rejected(self):
         self.native_log.write_text('[apu] frame-boundary guest-clock sync timed out\n')

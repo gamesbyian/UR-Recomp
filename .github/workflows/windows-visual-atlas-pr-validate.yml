@@ -1,6 +1,7 @@
 name: Windows Visual Atlas (PR validation)
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - ".github/workflows/windows-visual-atlas.yml"
       - ".github/workflows/windows-visual-atlas-intake.yml"

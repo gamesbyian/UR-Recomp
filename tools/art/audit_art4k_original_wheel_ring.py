@@ -53,6 +53,19 @@ def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def verify_representation_digests(rec: dict, png_sha: str, rgba_sha: str,
+                                  alpha_sha: str, mask_sha: str) -> None:
+    """Every label, including a reused PNG path, must match actual bytes."""
+    expected = {
+        "local_png_sha256": png_sha,
+        "source_rgba_sha256": rgba_sha,
+        "source_alpha_sha256": alpha_sha,
+        "source_binary_mask_sha256": mask_sha,
+    }
+    if any(rec.get(key) != value for key, value in expected.items()):
+        raise ValueError("source PNG/alpha identity inconsistent across labels")
+
+
 def ring_candidates(rgba: bytes) -> dict:
     """Return ALL equally high scoring candidate centres, not a false unique axle."""
     if not isinstance(rgba,bytes) or len(rgba)!=64*64*4:
@@ -132,12 +145,12 @@ def validate_corpus_and_measure(source_zip: Path) -> dict:
                         or sha(rgba[3::4])!=rec.get("source_alpha_sha256")
                         or sha(bytes(a!=0 for a in rgba[3::4]))!=rec.get("source_binary_mask_sha256")):
                     raise ValueError("source image alpha/RGBA differs from authenticated record")
-                images[path]=(rec["source_binary_mask_sha256"],rec["source_rgba_sha256"],
+                images[path]=(sha(png), sha(rgba), sha(rgba[3::4]),
+                              sha(bytes(a!=0 for a in rgba[3::4])),
                               ring_candidates(rgba))
-            mask,original_sha,obs=images[path]
-            if (mask!=rec.get("source_binary_mask_sha256")
-                    or original_sha!=rec.get("source_rgba_sha256")):
-                raise ValueError("source PNG/alpha identity inconsistent across labels")
+            png_digest,original_sha,alpha_digest,mask,obs=images[path]
+            verify_representation_digests(
+                rec,png_digest,original_sha,alpha_digest,mask)
             per_mask[mask].add(json.dumps(obs,sort_keys=True))
         if len(images)!=41 or len(per_mask)!=35:
             raise ValueError("authenticated unique color/mask identity lost")
@@ -146,8 +159,8 @@ def validate_corpus_and_measure(source_zip: Path) -> dict:
             raise ValueError("palette variants disagree on neutral-grey wheel centre")
         rows=[{
             "source_rgba_sha256":value[1],
-            "source_binary_mask_sha256":value[0],
-            "2d_ring_candidate":value[2],
+            "source_binary_mask_sha256":value[3],
+            "2d_ring_candidate":value[4],
         } for path,value in sorted(images.items())]
         hits=[r["2d_ring_candidate"]["max_neutral_ring_hits"] for r in rows]
         candidate_counts=[len(r["2d_ring_candidate"]["best_candidate_centres_xy_radius_logical_px"])

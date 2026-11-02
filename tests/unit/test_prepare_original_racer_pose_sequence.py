@@ -42,6 +42,27 @@ class OriginalPoseBinderTests(unittest.TestCase):
         self.assertEqual(result["frames"][0]["costs"]["upright"], .5)
         self.assertEqual(result["provenance"]["window_roles"]["first"], "unfrozen_diagnostic")
 
+    def test_full_matrix_requires_exact_independent_original_corpus_sha(self):
+        corpus, matrix = self.fixture()
+        matrix["schema"] = "UR-ART4K-ACTUAL-USA-ROM-FIVE-GLB-POSE-MATRIX/1"
+        for value in (None, "0" * 64, "not-a-sha", "F" * 64):
+            invalid = copy.deepcopy(matrix)
+            if value is not None:
+                invalid["source_original_corpus_sha256"] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                build_input(corpus, invalid, ["first"], corpus_sha="f" * 64)
+        matrix["source_original_corpus_sha256"] = "f" * 64
+        result = build_input(corpus, matrix, ["first"], corpus_sha="f" * 64)
+        self.assertTrue(result["provenance"]["pose_matrix_source_corpus_sha_verified"])
+        self.assertFalse(result["provenance"]["legacy_matrix_has_weaker_corpus_binding"])
+        self.assertEqual(result["provenance"]["pose_matrix_schema"], matrix["schema"])
+
+    def test_legacy_matrix_preserves_explicit_weaker_provenance(self):
+        corpus, matrix = self.fixture()
+        result = build_input(corpus, matrix, ["first"], corpus_sha="f" * 64)
+        self.assertFalse(result["provenance"]["pose_matrix_source_corpus_sha_verified"])
+        self.assertTrue(result["provenance"]["legacy_matrix_has_weaker_corpus_binding"])
+
     def test_missing_original_mask_is_error_not_omission(self):
         corpus, matrix = self.fixture()
         matrix["rows"] = matrix["rows"][:1]

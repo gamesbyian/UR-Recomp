@@ -14,24 +14,49 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import time
 
 REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 PAGE_SIZE = 100
 
 
 def gh_json(*args):
-    """Call gh without putting credentials in arguments or logging them."""
-    try:
-        result = subprocess.run(
-            ["gh", *args], text=True, capture_output=True,
-            timeout=45, check=True,
+    """Read GitHub JSON with small transient retries and status-only errors.
+
+    Never print raw stderr, request headers or credentials. Stable denial is
+    an error, and a failed repository remains excluded from account totals.
+    """
+    for attempt in range(3):
+        try:
+            result = subprocess.run(
+                ["gh", *args], text=True, capture_output=True,
+                timeout=45, check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+                continue
+            raise RuntimeError("GitHub CLI timed out after 3 attempts") from exc
+        except OSError as exc:
+            raise RuntimeError("GitHub CLI unavailable") from exc
+        if result.returncode == 0:
+            try:
+                return json.loads(result.stdout)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError("GitHub CLI returned invalid JSON") from exc
+        # gh's stderr may contain sensitive request information: only expose
+        # an HTTP status code parsed from it, never the underlying text.
+        match = re.search(r"\bHTTP\s*([1-5][0-9]{2})\b", result.stderr or "")
+        status = int(match.group(1)) if match else None
+        transient = status in (429, 502, 503, 504) or (
+            "secondary rate limit" in (result.stderr or "").lower()
         )
-    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError("GitHub CLI failed: check gh auth status and repository access") from exc
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError as exc:
-        raise RuntimeError("GitHub CLI returned invalid JSON") from exc
+        if transient and attempt < 2:
+            time.sleep(2 ** attempt)
+            continue
+        kind = f"HTTP {status}" if status is not None else "status unavailable"
+        raise RuntimeError(f"GitHub CLI failed ({kind}); no storage count claimed")
+    raise RuntimeError("GitHub CLI transient retries exhausted")
 
 
 def repositories(owner, api=gh_json):

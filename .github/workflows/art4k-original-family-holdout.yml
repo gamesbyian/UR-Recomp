@@ -19,6 +19,10 @@ on:
       - "tests/unit/test_evaluate_original_racer_lean_silhouettes.py"
       - "tools/art/evaluate_original_racer_frame_mass_holdout.py"
       - "tests/unit/test_evaluate_original_racer_frame_mass_holdout.py"
+      - "tools/art/evaluate_original_racer_wheel_fork_synergy.py"
+      - "tests/unit/test_evaluate_original_racer_wheel_fork_synergy.py"
+      - "tools/art/evaluate_original_racer_part_ablation.py"
+      - "tests/unit/test_evaluate_original_racer_part_ablation.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -239,6 +243,91 @@ jobs:
                 f"wins/losses vs original {v['wins_over_unmodified_iou']}"
                 f"/{v['losses_to_unmodified_iou']}\n")
             out.write("\nAuthentic 1994 3D camera, pose, contact, likeness unverified.\n")
+          PY
+      - name: Restore exact two verified default and 1.4 source-fork GLBs
+        uses: actions/download-artifact@v4
+        with:
+          name: art4k-real-source-fork-mass-one-point-four
+          run-id: 41361012210
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/art4k-real-two-fork-GLBs
+      - name: Source-original full-silhouette 2x2 wheel and fork interaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir="$RUNNER_TEMP/art4k-real-two-fork-GLBs"
+          default="$(find "$source_dir/unchanged/attempts" -maxdepth 2 -name 'unicycle_articulated_blockout.glb' -type f -print -quit)"
+          fork="$(find "$source_dir/fork-1p4/attempts" -maxdepth 2 -name 'unicycle_articulated_blockout.glb' -type f -print -quit)"
+          test -s "$default" && test -s "$fork"
+          printf '%s  %s\n' 'ffa14324c10c50b68400fbfab4285d893b248d081a50361c01d09937dd03bc04' "$default" | sha256sum --check --status
+          printf '%s  %s\n' '5531438b95c97dc0508790247aa3f5889f7c0d96d9079ba2970529cb1e05fa53' "$fork" | sha256sum --check --status
+          python tools/art/evaluate_original_racer_wheel_fork_synergy.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --unchanged-glb "$default" \
+            --fork-1p4-glb "$fork" \
+            --out "$RUNNER_TEMP/art4k-reports/wheel-fork-2x2-synergy.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          row=json.loads((Path(os.environ["RUNNER_TEMP"])/
+              "art4k-reports/wheel-fork-2x2-synergy.json").read_text())
+          assert row["actual_source_original_mask_count"]==35
+          assert row["source_partition_interaction"][
+            "previously_SHA_disconnected_original_2D_mask_family"][
+            "independent_original_binary_mask_count"]==19
+          assert row["both_candidate_axes_selected_after_inspecting_2D_source_masks"] is True
+          assert row["source_character_true_1994_3D_mesh_or_camera_recovered"] is False
+          assert row["owner_character_likeness_approved"] is False
+          hold=row["source_partition_interaction"]["previously_SHA_disconnected_original_2D_mask_family"]["candidates"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+            out.write("### Real 2026 fork/wheel 2x2 source-ROM silhouette interaction\n\n")
+            for label,v in hold.items():
+              out.write(f"- {label}: source independent 19-mask IoU {v['mean_IoU']}; "
+                f"boundary {v['mean_boundary_chamfer_physical_px']}\n")
+            out.write("Previously inspected source masks, provisional camera, no 1994 3D view or art acceptance.\n")
+          PY
+      - name: Attribute 2026 five-part GLB silhouettes without confusing original 1994 pose
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir="$RUNNER_TEMP/art4k-real-two-fork-GLBs"
+          default="$(find "$source_dir/unchanged/attempts" -maxdepth 2 -name 'unicycle_articulated_blockout.glb' -type f -print -quit)"
+          fork="$(find "$source_dir/fork-1p4/attempts" -maxdepth 2 -name 'unicycle_articulated_blockout.glb' -type f -print -quit)"
+          test -s "$default" && test -s "$fork"
+          printf '%s  %s\n' 'ffa14324c10c50b68400fbfab4285d893b248d081a50361c01d09937dd03bc04' "$default" | sha256sum --check --status
+          printf '%s  %s\n' '5531438b95c97dc0508790247aa3f5889f7c0d96d9079ba2970529cb1e05fa53' "$fork" | sha256sum --check --status
+          python tools/art/evaluate_original_racer_part_ablation.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --unchanged-glb "$default" \
+            --combined-glb "$fork" \
+            --out "$RUNNER_TEMP/art4k-reports/source-3d-part-ablation.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          payload=json.loads((Path(os.environ["RUNNER_TEMP"])/
+            "art4k-reports/source-3d-part-ablation.json").read_text())
+          assert payload["owner_likeness_approved"] is False
+          assert payload["original_1994_art_parts_or_mesh_recovered"] is False
+          x=payload["result"]
+          assert set(x)=={"unchanged","wheel1p1_fork1p4"}
+          assert x["unchanged"]["mean_full_model_original_source_IoU"]==0.46002071
+          assert x["wheel1p1_fork1p4"]["mean_full_model_original_source_IoU"]==0.49816283
+          for variant in x:
+            families=x[variant]["families"]
+            assert families["first_connected_16_binary_masks"]["saddle"]["source_independent_binary_masks"]==16
+            hold=families["19_SHA_disconnected_additional_2D_source_masks"]["saddle"]
+            assert hold["source_independent_binary_masks"]==19
+            assert hold["original_true_positive_pixels_lost_across_masks"]==1
+            assert hold["masks_better_without_part"]>0
+          print("Verified actual ROM and SHA-bound GLB source-part attribution:",{
+            kind:data["families"]["19_SHA_disconnected_additional_2D_source_masks"]["saddle"]
+            for kind,data in x.items()})
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+            out.write("### Real 1994 source alpha versus unpaired 2026 source GLB parts\n\n")
+            out.write("Both whole-model IoU baselines reproduced exactly; saddle original source true-positive uniquely visible pixels across 19 novel 2D masks = 1.\n\n")
+            out.write("Source part labels and expressive 3D pose mapping NOT recovered; do not delete saddle or approve likeness.\n")
           PY
       - name: Audit actual original ROM frame holds and 2D motion transitions
         shell: bash

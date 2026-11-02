@@ -32,6 +32,9 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
             "material.wireframe=wireframe",
             "record.original.wireframe=wireframe",
             "status.dataset.materialWireframe=paintState?",
+            "if(new URLSearchParams(location.search).has('art4k-still'))",
+            "renderer.setAnimationLoop(null)",
+            "renderer.domElement.toDataURL('image/png')",
             "material.vertexColors=false",
             "material.color.setRGB(28/255,89/255,222/255,THREE.SRGBColorSpace)",
             "record.mesh.material=material",
@@ -66,7 +69,9 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
             "model-review-paint-disc-412.png",
             "paint transition lost active wireframe",
             "wireframe off did not restore solid material render",
-            "source GLB view did not stabilize",
+            "source GLB still-frame capture hook/camera unavailable",
+            "window.__urArt4kVisualReadback.snapshot()",
+            "window.__urArt4kVisualReadback.resume()",
         ):
             self.assertIn(marker,smoke)
         self.assertIn("320",smoke)

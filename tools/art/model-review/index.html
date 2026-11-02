@@ -449,6 +449,31 @@ $('spin').onclick=()=>{spinning=!spinning;$('spin').setAttribute('aria-pressed',
 $('wire').onclick=()=>{const on=$('wire').getAttribute('aria-pressed')!=='true';$('wire').setAttribute('aria-pressed',String(on));current?.traverse(o=>{if(o.isMesh){for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=on}});updatePaintHypothesisStatus($('source').textContent)};
 $('zup').onchange=()=>{if(!current)return;applyRootLean();resetCameraForModel(current);updateRootLeanStatus($('source').textContent);markers()};$('nodes').onchange=markers;$('helpers').onchange=()=>{grid.visible=axes.visible=$('helpers').checked};$('light').oninput=()=>{hemi.intensity=Number($('light').value);sun.intensity=Number($('light').value)*1.5};
 renderer.domElement.addEventListener('click',e=>{if(!current)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObject(current,true);if(hits.length)$('footer').textContent='Selected: '+(hits[0].object.name||hits[0].object.parent?.name||'mesh')});
-const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w&&h){camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}};new ResizeObserver(resize).observe(stage);resize();renderer.setAnimationLoop(()=>{if(spinning)controls.autoRotate=true;else controls.autoRotate=false;controls.update(clock.getDelta());renderer.render(scene,camera)})}
+const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w&&h){camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}};new ResizeObserver(resize).observe(stage);resize();const animate=()=>{if(spinning)controls.autoRotate=true;else controls.autoRotate=false;controls.update(clock.getDelta());renderer.render(scene,camera)};
+renderer.setAnimationLoop(animate);
+// Diagnostic only: the unchanged published GLB is rendered to the canvas on
+// demand. The regular animation loop cannot be a pixel restoration oracle.
+if(new URLSearchParams(location.search).has('art4k-still')){
+ window.__urArt4kVisualReadback={
+  snapshot(){
+   if(!current||!paintState)throw Error('verified published source GLB required');
+   spinning=false;controls.autoRotate=false;controls.enableDamping=false;
+   $('spin').setAttribute('aria-pressed','false');
+   renderer.setAnimationLoop(null);
+   controls.update();
+   renderer.render(scene,camera);
+   const png=renderer.domElement.toDataURL('image/png');
+   if(!png.startsWith('data:image/png;base64,')||png.length<200)
+    throw Error('the source GLB framebuffer did not render');
+   return png;
+  },
+  resume(){
+   controls.enableDamping=true;
+   clock.getDelta();
+   renderer.setAnimationLoop(animate);
+  }
+ };
+}
+}
 init();
 </script></body></html>

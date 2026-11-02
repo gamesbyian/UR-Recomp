@@ -89,7 +89,7 @@ try{
  const summaries=[];
  for(const [width,height] of [[320,700],[412,892],[1440,900]]){
   await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<600},session);
-  await cdp('Page.navigate',{url:address},session);
+  await cdp('Page.navigate',{url:address+(mocked?'':'?art4k-still=1')},session);
   let ready=false;
   for(let i=0;i<150;i++){
    ready=await evaluate("document.getElementById('source')?.textContent.includes('published current model') && document.getElementById('sprite')?.naturalWidth===64");
@@ -398,40 +398,33 @@ try{
    if(!q('source').textContent.includes('published bank GLB'))issues.push('research changes displayed GLB');
    return {width:w,height:innerHeight,issues,research:research.slice(0,90),source:q('sourceInfo').textContent.slice(0,85)};
   })()`);
-  // Freeze everything affecting viewport pixels BEFORE acquiring a baseline.
-  // Earlier check sampled an auto-orbiting camera and compared unlike poses.
-  // The same fixed view is used for original, hypothetical and restored GLBs.
+  // Explicit synchronous original/alternative/original GLB canvas rendering.
+  // Query-gated test hook stops the OrbitControls animation loop, avoiding
+  // camera damping, compositor timing and CDP screenshot aliasing entirely.
   if(!mocked && width===412){
-   const frozen=await evaluate("(()=>{const q=id=>document.getElementById(id);if(q('spin').getAttribute('aria-pressed')==='true')q('spin').click();if(q('wire').getAttribute('aria-pressed')==='true')q('wire').click();if(!q('zup').checked)q('zup').click();q('reset').click();return q('spin').getAttribute('aria-pressed')==='false'&&q('wire').getAttribute('aria-pressed')==='false'&&q('zup').checked&&q('paintHypothesis').value==='original'})()");
-   if(!frozen)throw Error('could not freeze source GLB camera and original materials');
-   // Settling the existing OrbitControls update loop avoids motion aliasing.
-   await sleep(700);
-   const rect=await evaluate("(()=>{const r=document.querySelector('.stage').getBoundingClientRect();return {x:Math.max(0,Math.floor(r.x)),y:Math.max(0,Math.floor(r.y)),width:Math.floor(r.width),height:Math.floor(r.height),scale:1}})()");
-   if(rect.width<150||rect.height<150)throw Error('actual 3D paint render region collapsed');
-   const capture=async()=>Buffer.from((await cdp('Page.captureScreenshot',
-      {format:'png',captureBeyondViewport:false,clip:rect},session)).data,'base64');
-   const captureStable=async(label)=>{
-     let previous=await capture();
-     for(let attempt=0;attempt<12;attempt++){
-       await sleep(130);
-       const next=await capture();
-       if(previous.equals(next))return next;
-       previous=next;
-     }
-     throw Error('stationary source GLB view did not stabilize for '+label);
+   const frozen=await evaluate("(()=>{const q=id=>document.getElementById(id);if(q('spin').getAttribute('aria-pressed')==='true')q('spin').click();if(q('wire').getAttribute('aria-pressed')==='true')q('wire').click();if(!q('zup').checked)q('zup').click();q('reset').click();return q('spin').getAttribute('aria-pressed')==='false'&&q('wire').getAttribute('aria-pressed')==='false'&&q('zup').checked&&q('paintHypothesis').value==='original'&&!!window.__urArt4kVisualReadback})()");
+   if(!frozen)throw Error('source GLB still-frame capture hook/camera unavailable');
+   const capture=async()=> {
+     const png=await evaluate("window.__urArt4kVisualReadback.snapshot()");
+     if(!png?.startsWith('data:image/png;base64,'))throw Error('actual GLB canvas readback absent');
+     return Buffer.from(png.slice('data:image/png;base64,'.length),'base64');
    };
-   const originalPaint=await captureStable('original');
+   // First call consumes any residual OrbitControls damping. This exact camera
+   // is subsequently frozen and reused across the THREE render calls below.
+   await capture();
+   const originalPaint=await capture();
    const changed=await evaluate("(()=>{const c=document.getElementById('paintHypothesis');if(c.disabled)return false;c.value='disc';c.dispatchEvent(new Event('change',{bubbles:true}));return c.value==='disc'})()");
    if(!changed)throw Error('real GLB paint preview not accessible');
-   const alternativePaint=await captureStable('disc');
+   const alternativePaint=await capture();
    await evaluate("(()=>{const c=document.getElementById('paintHypothesis');c.value='original';c.dispatchEvent(new Event('change',{bubbles:true}))})()");
-   const exactRestored=await captureStable('restored original');
+   const exactRestored=await capture();
    if(originalPaint.equals(alternativePaint))
      throw Error('actual 3D paint hypothesis changed labels but not GLB viewport pixels');
    if(!originalPaint.equals(exactRestored))
      throw Error('stationary original 3D GLB paint pixels not exactly restored');
    writeFileSync(join(out,'model-review-paint-original-412.png'),originalPaint);
    writeFileSync(join(out,'model-review-paint-disc-412.png'),alternativePaint);
+   await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
   writeFileSync(join(out,'model-review-'+width+'.png'),Buffer.from(shot.data,'base64'));

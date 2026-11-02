@@ -10,7 +10,8 @@
       "make",
       "-C",
       "libretro",
-      "-j{jobs}"
+      "-j{jobs}",
+      "GIT_VERSION=+1bcc369"
     ]
   ],
   "group": "core",

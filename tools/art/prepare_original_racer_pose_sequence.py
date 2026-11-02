@@ -49,6 +49,14 @@ def build_input(corpus, matrix, requested_windows, split=None, corpus_sha=None):
             or matrix.get("registration_mode") not in ("fixed-witness", "source-registered")
             or not _sha(matrix.get("camera_manifest_sha256"))):
         raise ValueError("pose matrix is not source-bound/fixed-camera evidence")
+    if matrix["schema"] == ALL_FAMILY_MATRIX_SCHEMA:
+        # SHA-verified original pixels are not enough when the separate pose
+        # score report falsely names a different source corpus. Require the
+        # independently revalidated exact manifest identity before joining.
+        if (not _sha(corpus_sha)
+                or not _sha(matrix.get("source_original_corpus_sha256"))
+                or matrix["source_original_corpus_sha256"] != corpus_sha):
+            raise ValueError("pose matrix source corpus SHA does not match verified originals")
     glbs = matrix.get("viewer_five_pose_glb_sha256")
     if (not isinstance(glbs, dict) or set(glbs) != set(POSES)
             or any(not _sha(value) for value in glbs.values())):
@@ -148,6 +156,11 @@ def build_input(corpus, matrix, requested_windows, split=None, corpus_sha=None):
         "provenance": {
             "original_rom_sha256": CANONICAL_ROM_SHA,
             "source_corpus_manifest_sha256": corpus_sha,
+            "pose_matrix_schema": matrix["schema"],
+            "pose_matrix_source_corpus_sha_verified":
+                matrix["schema"] == ALL_FAMILY_MATRIX_SCHEMA,
+            "legacy_matrix_has_weaker_corpus_binding":
+                matrix["schema"] == MATRIX_SCHEMA,
             "camera_manifest_sha256": matrix["camera_manifest_sha256"],
             "camera_registration_mode": matrix["registration_mode"],
             "five_original_experimental_glb_hashes": glbs,

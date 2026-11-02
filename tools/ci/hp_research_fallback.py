@@ -80,11 +80,24 @@ def classify(rows: list[dict], *, expected_workflow: str) -> list[dict]:
     result = []
     for row in rows:
         # An unrecognized row cannot be safely interpreted as no work.
-        if (row.get("name") not in ("HP unattended seeded 2P gameplay research",
-                                     "HP current-source native Windows smoke",
-                                     "Owner HP Windows runner benchmark (isolated)")
+        # Older benchmark experiments originated on an isolated ops branch.
+        # GitHub also used the workflow path as the name for one early run.
+        # Retain those as priority work rather than failing the whole census;
+        # an ACTIVE non-main benchmark must still prevent HP research dispatch.
+        benchmark = expected_workflow == PRIORITY[1]
+        names = {
+            RESEARCH: ("HP unattended seeded 2P gameplay research",),
+            PRIORITY[0]: ("HP current-source native Windows smoke",),
+            PRIORITY[1]: ("Owner HP Windows runner benchmark (isolated)",
+                          ".github/workflows/owner-hp-windows-benchmark.yml"),
+        }
+        branch = row.get("head_branch")
+        if (expected_workflow not in names
+                or row.get("name") not in names[expected_workflow]
                 or row.get("path") != f".github/workflows/{expected_workflow}"
-                or row.get("head_branch") != "main"
+                or not isinstance(branch, str) or not branch
+                or branch != branch.strip() or any(ch.isspace() for ch in branch)
+                or (not benchmark and branch != "main")
                 or not isinstance(row.get("id"), int)
                 or row.get("event") not in ("schedule", "workflow_dispatch", "push")
                 or not isinstance(row.get("head_sha"), str)

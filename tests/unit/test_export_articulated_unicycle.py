@@ -273,6 +273,27 @@ class ArticulatedBlockoutContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected one source-owned pose branch"):
             module.pose_recipe(spoofed, "upright")
 
+    def test_named_pose_parser_scopes_branches_to_executed_rig_module(self):
+        source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
+        # A second module is legal OpenSCAD but does not run from rig(rig_pose).
+        # Global branch regexes would treat this decoy as a second upright.
+        harmless = source.replace(
+            "rig(rig_pose);",
+            'module decoy(p) { if(p=="upright")shared_rig(pedal=91,seat_lean=0); }'
+            + chr(10) + "rig(rig_pose);")
+        self.assertEqual(module.pose_recipe(harmless, "upright")[:2], (18, 0))
+        # OpenSCAD evaluates str("upright"), while the old global regex
+        # incorrectly signed the decoy's 18-degree branch as the real pose.
+        spoofed = source.replace(
+            'if(p=="upright")shared_rig(pedal=18,seat_lean=0);',
+            'if(p==str("upright"))shared_rig(pedal=88,seat_lean=0);')
+        spoofed = spoofed.replace(
+            "rig(rig_pose);",
+            'module decoy(p) { if(p=="upright")shared_rig(pedal=18,seat_lean=0); }'
+            + chr(10) + "rig(rig_pose);")
+        with self.assertRaisesRegex(ValueError, "expected one source-owned pose branch"):
+            module.pose_recipe(spoofed, "upright")
+
     def test_failed_rerun_does_not_publish_stale_asset_as_current(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

@@ -76,6 +76,7 @@ _VECTOR = re.compile(r"(translate|rotate)\s*\(\s*\[\s*(" + _NUMBER +
                      r")\s*,\s*(" + _NUMBER + r")\s*,\s*(" + _NUMBER +
                      r")\s*\]\s*\)")
 _RIG_BRANCH = re.compile(r'(?:^|\s)(?:else\s+)?if\s*\(\s*p\s*==\s*"([a-z_]+)"\s*\)', re.M)
+_RIG_MODULE = re.compile(r"\bmodule\s+rig\s*\(\s*p\s*\)\s*\{")
 _RIG_CALL = re.compile(r"shared_rig\s*\(\s*pedal\s*=\s*(" + _NUMBER +
                        r")\s*,\s*seat_lean\s*=\s*(" + _NUMBER + r")\s*\)\s*;\s*\Z")
 
@@ -119,16 +120,24 @@ def pose_recipe(source: str, name: str):
     validate_scad_declarations(source)
     # Comments are not executable OpenSCAD; they cannot supply pose controls.
     code = SCAD_COMMENTS.sub("", source)
-    matches = list(_RIG_BRANCH.finditer(code))
+    # Only branches in the executed rig(p) module own named-pose receipts.
+    # An unused helper module can otherwise spoof a missing real branch.
+    rig_modules = list(_RIG_MODULE.finditer(code))
+    if len(rig_modules) != 1:
+        raise ValueError("expected one source-owned rig(p) module")
+    module_start = rig_modules[0].end()
+    module_end = code.find("}", module_start)
+    if module_end < 0 or "{" in code[module_start:module_end]:
+        raise ValueError("unsupported nested source-owned rig body")
+    rig_body = code[module_start:module_end]
+    matches = list(_RIG_BRANCH.finditer(rig_body))
     found = [i for i, match in enumerate(matches) if match.group(1) == name]
     if len(found) != 1:
         raise ValueError("expected one source-owned pose branch")
     i = found[0]
     start = matches[i].end()
-    end = matches[i+1].start() if i + 1 < len(matches) else code.find("}", start)
-    if end < 0:
-        raise ValueError("unterminated source-owned pose branch")
-    body = code[start:end].strip()
+    end = matches[i+1].start() if i + 1 < len(matches) else len(rig_body)
+    body = rig_body[start:end].strip()
     call = _RIG_CALL.search(body)
     if call is None:
         raise ValueError("source-owned pose must end in one shared_rig call")

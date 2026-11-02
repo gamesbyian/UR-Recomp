@@ -202,5 +202,66 @@ class LiveOriginalWitnessTests(unittest.TestCase):
         self.assertEqual(out.read_bytes(), prior)
 
 
+    def test_derived_ledger_retains_distinct_actual_source_corpora(self):
+        baseline = validate(self.record, self.root)
+        self.assertEqual(len(baseline["capture_observations"]), 3)
+        self.assertFalse(baseline["capture_producer_independently_authenticated"])
+        self.assertEqual(baseline["capture_observations"][0]["binary_alpha_sha256"],
+                         hashlib.sha256(self.a).hexdigest())
+        q = copy.deepcopy(self.record)
+        alternate = bytes([0, 0, 1]) + bytes(4093)
+        (self.root / "frames/p1-10").write_bytes(alternate)
+        q["frames"][0]["binary_alpha_sha256"] = hashlib.sha256(alternate).hexdigest()
+        other = validate(q, self.root)
+        self.assertEqual(baseline["edges"], other["edges"])
+        self.assertNotEqual(baseline["capture_observations"],
+                            other["capture_observations"])
+        changed_oam = b"Z" * 544
+        (self.root / "oam/13").write_bytes(changed_oam)
+        q["frames"][2]["oam_sha256"] = hashlib.sha256(changed_oam).hexdigest()
+        third = validate(q, self.root)
+        self.assertEqual(other["edges"], third["edges"])
+        self.assertNotEqual(other["capture_observations"],
+                            third["capture_observations"])
+
+    def test_atomic_ledger_visibility_and_foreign_writer_race(self):
+        from unittest.mock import patch
+        from tools.art.no_replace_report import publish_text_once
+
+        destination = self.root / "atomic-ledger.json"
+        payload = json.dumps(validate(self.record, self.root), sort_keys=True) + "\\n"
+        original_link = os.link
+
+        def inspect_before_link(staged, target):
+            self.assertFalse(destination.exists())
+            self.assertEqual(Path(staged).read_text(), payload)
+            return original_link(staged, target)
+
+        with patch("tools.art.no_replace_report.os.link",
+                   side_effect=inspect_before_link):
+            publish_text_once(destination, payload)
+        self.assertEqual(destination.read_text(), payload)
+
+        foreign = self.root / "foreign-ledger.json"
+        def competing_writer(staged, target):
+            foreign.write_text("foreign complete report")
+            return original_link(staged, target)
+
+        with patch("tools.art.no_replace_report.os.link",
+                   side_effect=competing_writer):
+            with self.assertRaises(FileExistsError):
+                publish_text_once(foreign, payload)
+        self.assertEqual(foreign.read_text(), "foreign complete report")
+        self.assertFalse(any(self.root.glob(".ur-report-stage-*")))
+
+        failed = self.root / "failed-ledger.json"
+        with patch("tools.art.no_replace_report.os.fsync",
+                   side_effect=OSError("simulated incomplete staging")):
+            with self.assertRaises(OSError):
+                publish_text_once(failed, payload)
+        self.assertFalse(failed.exists())
+        self.assertFalse(any(self.root.glob(".ur-report-stage-*")))
+
+
 if __name__ == "__main__":
     unittest.main()

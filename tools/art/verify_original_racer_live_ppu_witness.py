@@ -7,8 +7,12 @@ Only genuinely captured consecutive emulator frame IDs count as live edges.
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
+
+if __package__:
+    from .no_replace_report import publish_text_once
+else:
+    from no_replace_report import publish_text_once
 
 SCHEMA = "UR-ART4K-LIVE-ORIGINAL-PPU-FRAME-WITNESS/1"
 ROM_SHA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
@@ -45,29 +49,6 @@ def _read_capture(root: Path, name, prefix, size, digest, binary=False):
     return raw, (after.st_dev, after.st_ino)
 
 
-def _write_exclusive(path: Path, content: str):
-    """Never follow or replace a pre-existing ledger, including dangling links."""
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    fd = os.open(path, flags, 0o644)
-    created = os.fstat(fd)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as out:
-            out.write(content)
-            out.flush()
-            os.fsync(out.fileno())
-    except BaseException:
-        # Only unlink the entry created by this invocation, not a replacement.
-        try:
-            if (os.lstat(path).st_dev,
-                    os.lstat(path).st_ino) == (created.st_dev, created.st_ino):
-                path.unlink()
-        except (OSError, ValueError):
-            pass
-        raise
-
-
 def validate(manifest, root: Path):
     if (not isinstance(manifest, dict) or manifest.get("schema") != SCHEMA
             or manifest.get("rom_sha256") != ROM_SHA
@@ -86,6 +67,7 @@ def validate(manifest, root: Path):
         raise ValueError("no live frame observations")
     seen, counts, edges, prev = set(), {"p1": 0, "p2": 0}, [], {}
     alpha_files, oam_files = set(), {}
+    observations = []
     global_tick = global_replay = global_oam = None
     for row in frames:
         if not isinstance(row, dict):
@@ -119,6 +101,17 @@ def validate(manifest, root: Path):
             if tick > global_tick and replay <= global_replay:
                 raise ValueError("nonmonotonic global replay frame chronology")
         global_tick, global_replay, global_oam = tick, replay, oam_raw
+        # Retain independently rehashable per-frame input identity in the
+        # derived ledger; change/hold booleans alone collide across corpora.
+        observations.append({
+            "player": player,
+            "emulated_frame_index": tick,
+            "input_replay_frame_index": replay,
+            "binary_alpha_file": row["binary_alpha_file"],
+            "binary_alpha_sha256": row["binary_alpha_sha256"],
+            "oam_binary_file": row["oam_binary_file"],
+            "oam_sha256": row["oam_sha256"],
+        })
         raw = image_raw
         prior = prev.get(player)
         if prior is not None:
@@ -133,6 +126,8 @@ def validate(manifest, root: Path):
     return {"schema": "UR-ART4K-VERIFIED-LIVE-PPU-TEMPORAL-LEDGER/1",
             "rom_sha256": ROM_SHA,
             "emulator": producer,
+            "capture_observations": observations,
+            "capture_producer_independently_authenticated": False,
             "captured_player_frame_counts": counts,
             "live_consecutive_edges": len(edges),
             "live_silhouette_change_edges": sum(x["original_binary_silhouette_changed"] for x in edges),
@@ -152,7 +147,7 @@ def main():
     data = validate(json.loads(a.manifest.read_text(encoding="utf-8")), a.manifest.parent)
     result = json.dumps(data, indent=2, sort_keys=True) + "\n"
     if a.out:
-        _write_exclusive(a.out, result)
+        publish_text_once(a.out, result)
     else:
         print(result, end="")
 

@@ -17,7 +17,10 @@ class FrameHingeViewerTests(unittest.TestCase):
         self.assertIn("applyFrameHinge()",html)
         self.assertIn("frameHinge=0;frameHingeState=captureFrameHinge()",html)
         self.assertIn("const k=axle.clone().multiply(r).multiply(axle.clone().invert())",html)
-        self.assertIn("k.clone().multiply(original)",html)
+        self.assertIn("k.clone().multiply(original.matrix)",html)
+        self.assertIn("node.position.copy(original.position)",html)
+        self.assertIn("node.quaternion.copy(original.quaternion)",html)
+        self.assertIn("node.scale.copy(original.scale)",html)
         self.assertIn("meshes.length!==16",html)
         for path in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
             self.assertIn("frame_hinge_hypothesis.mjs",

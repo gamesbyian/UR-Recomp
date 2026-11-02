@@ -133,7 +133,7 @@ function captureFrameHinge(){
  const meshes=[];
  current.traverse(o=>{if(o.isMesh)meshes.push(o)});
  if(meshes.length!==16)return null;
- return {axle:tire.matrix.clone(),parts:[[fork,fork.matrix.clone()],[saddle,saddle.matrix.clone()]]};
+ return {axle:tire.matrix.clone(),parts:[fork,saddle].map(node=>[node,{matrix:node.matrix.clone(),position:node.position.clone(),quaternion:node.quaternion.clone(),scale:node.scale.clone()}])};
 }
 function applyFrameHinge(){
  if(!current||!frameHingeState)return;
@@ -141,8 +141,15 @@ function applyFrameHinge(){
  const axle=frameHingeState.axle;
  const k=axle.clone().multiply(r).multiply(axle.clone().invert());
  for(const [node,original] of frameHingeState.parts){
-  const result=k.clone().multiply(original);
-  result.decompose(node.position,node.quaternion,node.scale);
+  if(frameHinge===0){
+   // Restore exact stored TRS instead of inverting a previous rotation.
+   node.position.copy(original.position);
+   node.quaternion.copy(original.quaternion);
+   node.scale.copy(original.scale);
+  }else{
+   const result=k.clone().multiply(original.matrix);
+   result.decompose(node.position,node.quaternion,node.scale);
+  }
   node.updateMatrix();
  }
  current.updateMatrixWorld(true);

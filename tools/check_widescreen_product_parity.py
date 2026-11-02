@@ -81,6 +81,30 @@ def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
     return width, height, rows
 
 
+
+def _margin_summary(rows: list[bytes]) -> dict[str, Any]:
+    """Describe normalized side pixels; never infer genuine world extension."""
+    payload = b"".join(rows)
+    if len(payload) % 3:
+        raise ValueError("invalid normalized margin RGB payload")
+    nonblack = sum(payload[i:i + 3] != b"\x00\x00\x00"
+                   for i in range(0, len(payload), 3))
+    return {
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "nonblack_pixels": nonblack,
+        "total_pixels": len(payload) // 3,
+    }
+
+
+def _margin_activity(wrows: list[bytes], offset: int, stock_width: int) -> dict[str, Any]:
+    """Evidence-selection hints only: colour/motion do not prove camera or tiles."""
+    return {
+        "left": _margin_summary([row[:offset * 3] for row in wrows]),
+        "right": _margin_summary([row[(offset + stock_width) * 3:] for row in wrows]),
+        "interpretation": "descriptive_only_not_source_world_or_camera_tile_proof",
+    }
+
+
 def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
     sw, sh, srows, stock_id = _read_bmp_with_identity(stock)
     ww, wh, wrows, wide_id = _read_bmp_with_identity(wide)
@@ -109,7 +133,8 @@ def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
                     bbox = [min(bbox[0], x), min(bbox[1], y),
                             max(bbox[2], x), max(bbox[3], y)]
     result.update({"comparable": True, "center_offset": off,
-                   "differing_pixels": diffs, "bbox": bbox})
+                   "differing_pixels": diffs, "bbox": bbox,
+                   "margin_activity": _margin_activity(wrows, off, sw)})
     return result
 
 
@@ -192,7 +217,12 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
         if fingerprint in seen_inputs:
             raise ValueError("identical capture bytes reused under different checkpoint tags")
         seen_inputs.add(fingerprint)
-        metrics[tag] = {"center": center, "wram": wram}
+        # Passing centre/WRAM noninterference never certifies that either
+        # side strip contains genuine camera-scrolled source-world tiles.
+        metrics[tag] = {
+            "center": center, "wram": wram,
+            "world_extension_verified": False,
+        }
         checks.append(assertion(
             f"{tag}-center-matches-stock",
             center["expected_source_geometry"] is True
@@ -213,7 +243,10 @@ def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
         evidence_type="widescreen-product-parity",
         producer="tools/check_widescreen_product_parity.py",
         subject={"checkpoints": [p[0] for p in pairs]},
-        inputs={"allowed_wram_ranges": [[f"0x{lo:04X}", f"0x{hi:04X}"] for lo, hi in ALLOWED_WRAM_RANGES]},
+        inputs={
+            "allowed_wram_ranges": [[f"0x{lo:04X}", f"0x{hi:04X}"] for lo, hi in ALLOWED_WRAM_RANGES],
+            "acceptance_scope": "stock-centre and WRAM noninterference only; world extension not assessed",
+        },
         metrics=metrics,
         assertions=checks,
     )

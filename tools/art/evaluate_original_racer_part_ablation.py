@@ -35,6 +35,7 @@ except ModuleNotFoundError:
 
 SCHEMA="UR-ART4K-REAL-GLB-SOURCE-PART-LEAVE-ONE-OUT-ALPHA/1"
 PARTS=("tire","rim_and_hub","pedals","saddle","fork_and_frame")
+EXPECTED_MATERIALS={"tire":2,"rim_and_hub":5,"pedals":3,"saddle":2,"fork_and_frame":4}
 ACTUAL_GLB_SHA={
     "unchanged":"ffa14324c10c50b68400fbfab4285d893b248d081a50361c01d09937dd03bc04",
     "wheel1p1_fork1p4":"5531438b95c97dc0508790247aa3f5889f7c0d96d9079ba2970529cb1e05fa53",
@@ -48,10 +49,16 @@ def hash_bytes(data:bytes)->str:
 
 
 def source_owned_part(node:str)->str:
-    matches=[part for part in PARTS if node.startswith(part+"__material_")]
-    if len(matches)!=1:
-        raise ValueError("unexpected source-owned 3D material part "+str(node))
-    return matches[0]
+    if type(node) is not str:
+        raise ValueError("missing source-owned 3D material node")
+    for part in PARTS:
+        prefix=part+"__material_"
+        if node.startswith(prefix):
+            suffix=node[len(prefix):]
+            if (suffix.isdigit() and suffix==str(int(suffix)) and
+                    int(suffix)<EXPECTED_MATERIALS[part]):
+                return part
+    raise ValueError("unexpected source-owned 3D material part "+str(node))
 
 
 def parts_from_sha_locked_GLb(path:Path,kind:str):
@@ -79,8 +86,8 @@ def parts_from_sha_locked_GLb(path:Path,kind:str):
         if not np.isfinite(mesh.vertices).all() or len(mesh.faces)<1:
             raise ValueError("invalid real source mesh part")
         result[owner].append(mesh)
-    if any(not result[p] for p in PARTS):
-        raise ValueError("missing one or more source parts")
+    if any(len(result[p])!=EXPECTED_MATERIALS[p] for p in PARTS):
+        raise ValueError("incomplete source-owned material slots")
     return result
 
 

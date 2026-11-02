@@ -49,9 +49,12 @@ jobs:
               echo "Complete: $repo"
               rm -f "$RUNNER_TEMP/storage-census/$name.error"
             else
-              echo "::warning::Incomplete GitHub artifact listing for $repo, excluded from totals"
+              # Report only a bounded classification, never raw CLI stderr.
+              classification="$(grep -Eo 'HTTP [1-5][0-9]{2}|status unavailable|timed out after 3 attempts|artifact count changed during pagination' "$RUNNER_TEMP/storage-census/$name.error" | tail -n 1 || true)"
+              classification="${classification:-unclassified}"
+              echo "::warning::Incomplete GitHub artifact listing for $repo (reason: $classification), excluded from totals"
               rm -f "$RUNNER_TEMP/storage-census/$name.json" "$RUNNER_TEMP/storage-census/$name.md"
-              printf 'Scan incomplete; no bytes claimed\n' > "$RUNNER_TEMP/storage-census/$name.error"
+              printf 'INCOMPLETE: %s (no bytes claimed)\n' "$classification" > "$RUNNER_TEMP/storage-census/$name.error"
             fi
             echo "::endgroup::"
           done < "$RUNNER_TEMP/storage-census/repos.txt"

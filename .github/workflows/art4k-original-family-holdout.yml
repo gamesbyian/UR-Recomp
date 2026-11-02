@@ -23,6 +23,12 @@ on:
       - "tests/unit/test_evaluate_original_racer_wheel_fork_synergy.py"
       - "tools/art/evaluate_original_racer_part_ablation.py"
       - "tests/unit/test_evaluate_original_racer_part_ablation.py"
+      - "tools/art/evaluate_original_racer_five_pose_matrix.py"
+      - "tests/unit/test_evaluate_original_racer_five_pose_matrix.py"
+      - "tools/art/fit_original_racer_pose_sequence.py"
+      - "tests/unit/test_fit_original_racer_pose_sequence.py"
+      - "tools/art/prepare_original_racer_pose_sequence.py"
+      - "tests/unit/test_prepare_original_racer_pose_sequence.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -356,6 +362,48 @@ jobs:
               output.write(f"Consecutive guest-frame edges: {witness['actually_consecutive_original_guest_frame_pairs']}\n\n")
               output.write(f"Source silhouette-change edges: {witness['source_binary_silhouette_changes']}\n\n")
               output.write("No source→experimental-GLB pose or 1994 timing assigned.\n")
+          PY
+      - name: Bind 35 actual original-ROM silhouettes to five real GLB pose hypotheses
+        shell: bash
+        run: |
+          set -euo pipefail
+          corpus="$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json"
+          model="$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review"
+          matrix="$RUNNER_TEMP/art4k-reports/original-35-by-five-real-glb-pose-matrix.json"
+          python tools/art/evaluate_original_racer_five_pose_matrix.py \
+            --corpus "$corpus" \
+            --model-review-dir "$model" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$matrix"
+          python tools/art/prepare_original_racer_pose_sequence.py \
+            --corpus "$corpus" \
+            --pose-matrix "$matrix" \
+            --window first-1205-1220 \
+            --change-penalty 0.03 \
+            --out "$RUNNER_TEMP/art4k-reports/original-first-family-discrete-pose-sequence.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          folder = Path(os.environ["RUNNER_TEMP"]) / "art4k-reports"
+          matrix = json.loads((folder / "original-35-by-five-real-glb-pose-matrix.json").read_text())
+          sequence = json.loads((folder / "original-first-family-discrete-pose-sequence.json").read_text())
+          assert matrix["unique_original_binary_silhouettes"] == 35
+          assert matrix["source_original_frame_observations"] == 91
+          assert set(matrix["viewer_five_pose_glb_sha256"]) == {"upright", "pedal", "wheelie", "stunt", "bank"}
+          assert matrix["similarities_are_unpaired_hypotheses_not_source_pose_mapping"] is True
+          assert sequence["frame_count"] == 32
+          tracks = sequence["temporal_experiment"]["sequences"]
+          assert len(tracks) == 2
+          assert {t["player"] for t in tracks} == {"p1", "p2"}
+          assert all(len(t["guest_frames"]) == 16 for t in tracks)
+          assert not matrix["original_1994_3d_camera_recovered"]
+          assert not sequence["authentic_original_3d_pose_registration"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("### 35 authentic original masks × five existing GLB poses\n\n")
+              out.write("35 authenticated source silhouettes, five SHA-verified experimental GLBs; original P1/P2 first-window temporal labels for 32 original observations.\n\n")
+              for track in tracks:
+                  out.write(f"- {track['player']}: independent label changes {track['independent_transition_count']}; regularized label changes {track['sequence_transition_count']}; constant path {track['constant_label_sequence']}\n")
+              out.write("\nThese are *unpaired silhouette preferences*, not original 1994 pose identity, camera, skeleton, artistic acceptance or independent unseen-family validation.\n")
           PY
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4

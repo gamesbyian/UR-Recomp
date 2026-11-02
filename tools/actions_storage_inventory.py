@@ -46,7 +46,7 @@ def gh_json(*args):
                 raise RuntimeError("GitHub CLI returned invalid JSON") from exc
         # gh's stderr may contain sensitive request information: only expose
         # an HTTP status code parsed from it, never the underlying text.
-        match = re.search(r"\\bHTTP\\s*([1-5][0-9]{2})\\b", result.stderr or "")
+        match = re.search(r"\bHTTP\s*([1-5][0-9]{2})\b", result.stderr or "")
         status = int(match.group(1)) if match else None
         transient = status in (429, 502, 503, 504) or (
             "secondary rate limit" in (result.stderr or "").lower()

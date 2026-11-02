@@ -63,10 +63,15 @@ def rasterize_depth(triangles, material_ids, camera, direction=1, eps=DEPTH_TIE_
     if (xy.min() < 0 or xy.max() > 63):
         raise ValueError("source-fixed depth image would crop actual 2026 mesh")
     depth = t[:, :, 1] * direction
-    best = np.full((64, 64), -np.inf)
-    owner = np.full((64, 64), -1, dtype=np.int32)
-    tied = np.zeros((64, 64), dtype=np.bool_)
-    hits = np.zeros((64, 64), dtype=np.int32)
+    if np.any(ids < 0):
+        raise ValueError("negative material identity is forbidden")
+    materials = np.unique(ids)
+    material_layer_index = {int(value):index for index,value in enumerate(materials)}
+    # Max-depth per material is associative and independent of face iteration
+    # order. Resolve *cross-material* near-depth ambiguity only after every
+    # triangle, avoiding a false clear when zA < zB < zC but B~C within eps.
+    layers = np.full((len(materials),64,64), -np.inf)
+    hits = np.zeros((64,64), dtype=np.int32)
     for i, corners in enumerate(xy):
         a, b, c = corners
         det = (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
@@ -86,16 +91,16 @@ def rasterize_depth(triangles, material_ids, camera, direction=1, eps=DEPTH_TIE_
         if not covered.any():
             continue
         z = depth[i,0]*(1-u-v)+depth[i,1]*u+depth[i,2]*v
-        zz = best[y0:y1+1,x0:x1+1]
-        own = owner[y0:y1+1,x0:x1+1]
-        tie = tied[y0:y1+1,x0:x1+1]
+        layer = layers[material_layer_index[int(ids[i])],y0:y1+1,x0:x1+1]
         hits[y0:y1+1,x0:x1+1][covered] += 1
-        closer = covered & (z > zz+eps)
-        ambiguous = covered & (~closer) & (abs(z-zz)<=eps) & (own!=ids[i])
-        zz[closer] = z[closer]
-        own[closer] = ids[i]
-        tie[closer] = False
-        tie[ambiguous] = True
+        np.maximum(layer,z,out=layer,where=covered)
+    best = layers.max(axis=0)
+    occupied = np.isfinite(best)
+    closest_index = np.argmax(layers,axis=0)
+    owner = materials[closest_index].astype(np.int32)
+    owner[~occupied] = -1
+    within = occupied[None,:,:] & (layers >= best[None,:,:]-eps)
+    tied = within.sum(axis=0) > 1
     return owner, tied, hits
 
 

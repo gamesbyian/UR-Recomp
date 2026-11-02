@@ -37,7 +37,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/storage-census"
           python3 - <<'PY' > "$RUNNER_TEMP/storage-census/repos.txt"
           from tools.actions_storage_inventory import repositories
-          print(*repositories("gamesbyian"), sep="\n")
+          all_repos = repositories("gamesbyian")
+          first = "gamesbyian/UR-Recomp"
+          print(first, *(repo for repo in all_repos if repo != first), sep="\n")
           PY
           while IFS= read -r repo; do
             name="$(basename "$repo")"

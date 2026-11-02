@@ -323,6 +323,18 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def _require_local_attempts_directory(out_dir: Path) -> None:
+    """Reject a redirected attempts root before any expensive OpenSCAD work.
+
+    mkdir(exist_ok=True) accepts a symlink to a directory, and os.rename()
+    would then publish the GLB/receipt outside the requested output root.
+    This preflight rejects an existing redirection; recheck at publication.
+    """
+    attempts = out_dir / "attempts"
+    if attempts.is_symlink() or (attempts.exists() and not attempts.is_dir()):
+        raise ValueError("attempts directory must be a local directory, not a symlink")
+
+
 def export(source: Path, out_dir: Path, *, timeout: int = 90,
            pedal_phase: float | None = None, saddle_lean: float | None = None,
            rig_pose: str = "custom", rig_time: float | None = None,
@@ -344,6 +356,7 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
     _write_json_atomic(last_attempt, state)
     try:
         source_without_entrypoint(base)
+        _require_local_attempts_directory(out_dir)
         mass_define = frame_mass_openscad_define(frame_mass, source_digest)
         if player_palette not in PLAYER_PALETTES:
             raise ValueError("unknown experimental player palette")
@@ -491,7 +504,9 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
             receipt.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
                                encoding="utf-8")
             receipt_sha = sha256_bytes(receipt.read_bytes())
+            _require_local_attempts_directory(out_dir)
             attempts_dir.mkdir(exist_ok=True)
+            _require_local_attempts_directory(out_dir)
             destination = attempts_dir / attempt_id
             # Same-filesystem rename publishes a complete immutable pair.
             os.rename(stage, destination)

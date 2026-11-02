@@ -13,6 +13,32 @@ spec.loader.exec_module(module)
 
 
 class ArticulatedBlockoutContract(unittest.TestCase):
+    def test_symlinked_attempts_root_does_not_publish_outside_output(self):
+        # An existing attempts symlink is accepted by mkdir(exist_ok=True)
+        # and would redirect os.rename() to a foreign directory.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad"
+            output = root / "output"
+            output.mkdir()
+            foreign = root / "foreign"
+            foreign.mkdir()
+            try:
+                (output / "attempts").symlink_to(foreign, target_is_directory=True)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"directory symlink unavailable: {exc}")
+            pointer = output / "articulated_blockout_current.json"
+            pointer.write_text('{"attempt_id":"previous-success"}\n', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "attempts directory"):
+                module.export(source, output)
+            self.assertEqual(list(foreign.iterdir()), [])
+            self.assertEqual(pointer.read_text(encoding="utf-8"),
+                             '{"attempt_id":"previous-success"}\n')
+            failed = json.loads(
+                (output / "articulated_blockout_last_attempt.json").read_text())
+            self.assertEqual(failed["status"], "failed")
+            self.assertFalse(failed["current_output_usable"])
+
     def test_source_entrypoint_exactly_once_at_end(self):
         source = "module rig(x) {}\nrig(rig_pose);\n"
         self.assertEqual(module.source_without_entrypoint(source), "module rig(x) {}\n")

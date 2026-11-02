@@ -53,8 +53,14 @@ def raster_band_residuals(original:bytes,model:bytes)->list[dict]:
         o,m=original[64*low:64*high],model[64*low:64*high]
         xor=sum(a!=b for a,b in zip(o,m))
         union=sum(bool(a or b) for a,b in zip(o,m))
+        source_only=sum(a==1 and b==0 for a,b in zip(o,m))
+        model_only=sum(a==0 and b==1 for a,b in zip(o,m))
+        if source_only+model_only!=xor:
+            raise ValueError("raster source-only/model-only conservation failed")
         rows.append({"raster_rows_start_inclusive":low,"raster_rows_end_exclusive":high,
-                     "xor_pixels":xor,"union_pixels":union})
+                     "xor_pixels":xor,"union_pixels":union,
+                     "source_only_pixels":source_only,
+                     "model_only_pixels":model_only})
     if sum(r["xor_pixels"] for r in rows)!=sum(a!=b for a,b in zip(original,model)):
         raise ValueError("raster band XOR did not conserve exact original residual")
     return rows
@@ -71,7 +77,11 @@ def raster_band_envelope(per_source_choice:list[list[dict]])->list[dict]:
                     "xor_min":min(v["xor_pixels"] for v in pixels),
                     "xor_max":max(v["xor_pixels"] for v in pixels),
                     "union_min":min(v["union_pixels"] for v in pixels),
-                    "union_max":max(v["union_pixels"] for v in pixels)})
+                    "union_max":max(v["union_pixels"] for v in pixels),
+                    "source_only_min":min(v["source_only_pixels"] for v in pixels),
+                    "source_only_max":max(v["source_only_pixels"] for v in pixels),
+                    "model_only_min":min(v["model_only_pixels"] for v in pixels),
+                    "model_only_max":max(v["model_only_pixels"] for v in pixels)})
     return out
 
 
@@ -269,7 +279,11 @@ def evaluate(corpus_path:Path,glb_path:Path,camera_path:Path,
                 "xor_sum_possible_min":sum(v["xor_min"] for v in segments),
                 "xor_sum_possible_max":sum(v["xor_max"] for v in segments),
                 "union_sum_possible_min":sum(v["union_min"] for v in segments),
-                "union_sum_possible_max":sum(v["union_max"] for v in segments)})
+                "union_sum_possible_max":sum(v["union_max"] for v in segments),
+                "source_only_sum_possible_min":sum(v["source_only_min"] for v in segments),
+                "source_only_sum_possible_max":sum(v["source_only_max"] for v in segments),
+                "model_only_sum_possible_min":sum(v["model_only_min"] for v in segments),
+                "model_only_sum_possible_max":sum(v["model_only_max"] for v in segments)})
         return result
     summaries={"all35":{"count":35,"mean_iou":mean(rows),
                            "fixed_upright_raster_bands":region_sum(

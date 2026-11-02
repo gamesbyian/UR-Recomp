@@ -41,6 +41,11 @@ class ChromaGuidedHingeTests(unittest.TestCase):
         after[0]=after[21*64]=after[35*64]=1
         bands=raster_band_residuals(bytes(before),bytes(after))
         self.assertEqual([v["xor_pixels"] for v in bands],[0,2,0,0])
+        self.assertEqual(bands[1]["source_only_pixels"],1)
+        self.assertEqual(bands[1]["model_only_pixels"],1)
+        self.assertEqual(
+            sum(v["source_only_pixels"]+v["model_only_pixels"] for v in bands),
+            sum(v["xor_pixels"] for v in bands))
         envelopes=raster_band_envelope([bands,bands])
         self.assertEqual(envelopes[1]["xor_min"],2)
         self.assertEqual(envelopes[1]["xor_max"],2)

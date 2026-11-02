@@ -45,6 +45,32 @@ class UniracersWsMarginsCTests(unittest.TestCase):
                 )
                 subprocess.run([str(exe)], cwd=ROOT, check=True)
 
+    def test_runtime_shadow_lifecycle(self):
+        # Compile the actual production runtime against instrumented shadow
+        # calls, including the wide 2P -> Original -> Original transition.
+        for compiler in ("gcc", "clang"):
+            with self.subTest(compiler=compiler), tempfile.TemporaryDirectory() as tmp:
+                exe = pathlib.Path(tmp) / "uniracers-ws-margins-runtime-test"
+                subprocess.run(
+                    [
+                        compiler,
+                        *STRICT_C_FLAGS,
+                        "-fsanitize=address,undefined",
+                        "-fno-omit-frame-pointer",
+                        "-I",
+                        str(ROOT / "tests" / "native" / "ws_margin_stubs"),
+                        "-I",
+                        str(ROOT / "native" / "title"),
+                        str(ROOT / "native" / "title" / "uniracers_ws_margins.c"),
+                        str(ROOT / "tests" / "native" / "uniracers_ws_margins_runtime_test.c"),
+                        "-o",
+                        str(exe),
+                    ],
+                    cwd=ROOT,
+                    check=True,
+                )
+                subprocess.run([str(exe)], cwd=ROOT, check=True)
+
 
 if __name__ == "__main__":
     unittest.main()

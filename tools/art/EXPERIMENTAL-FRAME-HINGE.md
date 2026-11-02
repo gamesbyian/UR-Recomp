@@ -12,7 +12,7 @@ Install optional offline Python packages numpy and trimesh in the experiment env
       --out-glb /private/new/hinge-plus3.glb \
       --receipt /private/new/hinge-plus3.json
 
-Accept the derived GLB only with its successfully published write-once receipt. The tool checks exact source input SHA, finite restricted angle ±8°, five source parent and sixteen material child identities, source wheel/rim/crank pivot consistency, preserved untransformed source vertex/face buffers after actual GLB round-trip, exact unchanged wheel/rim/pedal transforms, and no overwrites. A zero-degree transform retains original geometry; it can produce a different export hash due to reserialization.
+Accept the derived GLB only with its successfully published write-once receipt. The tool checks exact source input SHA, finite bounded experimental angle ±45°, five source parent and sixteen material child identities, source wheel/rim/crank pivot consistency, preserved untransformed source vertex/face buffers after actual GLB round-trip, exact unchanged wheel/rim/pedal transforms, and no overwrites. A zero-degree transform retains original geometry; it can produce a different export hash due to reserialization.
 
 ## Independent fixed-camera original-ROM diagnostic (2026-11-02)
 
@@ -37,3 +37,26 @@ Source masks, and the authored registry's timing/hold schedule, remain separate 
     python3 -m unittest tests.unit.test_art4k_experimental_frame_hinge
 
 Pure-Python matrix and invalid-angle tests need only stdlib. Four scene/asset tests use optional numpy/trimesh and skip if unavailable. Local real-GLB export of both ±3° samples passed all five-source-parent and sixteen-source-material checks, and their bytes match the previously generated candidate hashes. Hosted PR checks and independent source review still required; no candidate GLB is committed to the repository or substituted for shipping artwork.
+
+
+## Extended source-family orientation experiment (post-hoc, not 3D pose recovered)
+
+Further local real GLB variants used exactly the same source GLB, parent-only rotation, source renderer and ROM SHA-verified 35-mask corpus. The larger ±40° range remains **experimental**: it models possible distinct wheel-attached frame orientations, not a recovered original joint and not an approved continuous animation. Source image-target shapes were inspected before candidate angle selection. The default authored OpenSCAD model remains unchanged.
+
+| Fork/frame + saddle angle around axle | Connected first 16 mean IoU | Additional 19 mean IoU | All 35 mean IoU |
+|---|---:|---:|---:|
+| 0° historical upright | 0.55276425 | 0.38192089 | 0.46002071 |
+| +3° | 0.54748542 | 0.38421620 | 0.45885356 |
+| −3° | 0.55159519 | 0.38285225 | 0.45999188 |
+| +6° | 0.54781536 | 0.38902168 | 0.46161307 |
+| −6° | 0.54189989 | 0.38434949 | 0.45637253 |
+| +20° | 0.46752865 | 0.39046905 | 0.42569629 |
+| −20° | 0.45744548 | 0.43093374 | 0.44305339 |
+| +40° | 0.39956527 | 0.38729922 | 0.39290656 |
+| −40° | 0.41585476 | 0.53320448 | 0.47955889 |
+
+Actual −40° derived GLB SHA-256 `64bcf0e6aa70b6b9941d78b5c7706a86e8555640ffa4eddea22de71cc72ef676`, 640000 bytes; +40° `e46fbefe1ad86fef4c33b28c9ff73beb294e0122a507b8a6cc9c8d4f1cb5c137`, 640000 bytes. Eighteen of nineteen additional masks improve against the unhinged baseline at −40°, while fourteen of sixteen first-connected masks worsen. **No one static hinge angle fits every source pose family.** Each original 64x64 source mask has only a 2D silhouette, so these remain *unpaired* candidate pose comparisons, not confirmed historical animation.
+
+The independently ROM-authenticated, already merged original 2D painted-colour-axis witness `source-chroma-axes.json` from run #41398486394 supplies a plausible explanation without cherry-picking a 3D joint: first-connected 16 have signed image-vertical axis median **−1.053°**, while additional 19 have median **+41.504°**, one vote per binary source SHA. The two family sets are very different in *observed 2D painted orientation*. These source axis angles cannot be equated directly to any GLB axle rotation, nor do they establish original camera. Before fitting geometry, use the existing chroma-axis semantic cue and original masked part visibility to assign pose hypotheses, preserve frozen train/test clusters and validate independently with future genuine emulator PPU temporal capture.
+
+The ±45° code range is a finite exploratory authoring envelope, **not** a physically or historically accepted permissible tilt limit. Source-matched validation must test wheel/rim/crank synchronization, fork-to-hub connectivity, real contact and saddle shape as separate kinematic constraints. No shipping geometry is promoted automatically.

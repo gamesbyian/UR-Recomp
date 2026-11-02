@@ -16,7 +16,7 @@ class PureHingeControls(unittest.TestCase):
         self.assertAlmostEqual(positive[2][0], -positive[0][2])
 
     def test_invalid_angles_fail_closed(self):
-        for val in (-9, 9, float("nan"), float("inf"), True, "3", None):
+        for val in (-46, 46, float("nan"), float("inf"), True, "3", None):
             with self.subTest(val=val), self.assertRaises(ValueError):
                 rotation_y(val)
 
@@ -66,6 +66,17 @@ class SceneHingeControls(unittest.TestCase):
                               file_type="glb",force="scene",process=False)
         self.assertEqual(len(rerender.graph.nodes_geometry),16)
         self.assertEqual(len(rerender.graph.nodes),22)
+
+    def test_large_source_family_pose_keeps_axle_and_children(self):
+        scene = self.fixture()
+        before = scene.graph.get("saddle")[0].copy()
+        record = pitch_scene(scene, -40)
+        saddle = scene.graph.get("saddle")[0]
+        fork = scene.graph.get("fork_and_frame")[0]
+        self.assertEqual(record["moving_parent_parts"], ["fork_and_frame", "saddle"])
+        np.testing.assert_allclose(fork[:3,3], [0,0,1], atol=1e-9)
+        self.assertLess(saddle[0,3], before[0,3]-1.0)
+        self.assertEqual(len(scene.graph.nodes_geometry), 16)
 
     def test_zero_hinge_noop(self):
         scene=self.fixture()

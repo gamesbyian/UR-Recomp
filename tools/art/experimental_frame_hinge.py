@@ -23,8 +23,8 @@ SCHEMA = "UR-ART4K-EXPERIMENTAL-HUB-PIVOT-FRAME-PITCH/1"
 
 def rotation_y(degrees):
     """Pure-Python axle-local rotation (optional 3D dependencies not needed)."""
-    if type(degrees) not in (float, int) or not math.isfinite(degrees) or not -8 <= degrees <= 8:
-        raise ValueError("experimental frame pitch must be finite within +/-8 degrees")
+    if type(degrees) not in (float, int) or not math.isfinite(degrees) or not -45 <= degrees <= 45:
+        raise ValueError("experimental frame pitch must be finite within +/-45 degrees")
     a = math.radians(degrees)
     c, s = math.cos(a), math.sin(a)
     return ((c, 0., s, 0.), (0., 1., 0., 0.),

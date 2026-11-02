@@ -1,5 +1,6 @@
 """ROM-free controls for the optional original-five-parent GLB axle hinge."""
 import io
+import json
 import math
 import tempfile
 import unittest
@@ -121,6 +122,64 @@ class SceneHingeControls(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 process(source,3,output,receipt)
             self.assertEqual(output.read_bytes(),b"existing")
+
+
+class PublicationInterleavingControls(unittest.TestCase):
+    def test_success_and_foreign_replacement_survives_receipt_collision(self):
+        from unittest.mock import patch
+        from tools.art import experimental_frame_hinge as hinge
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / "source.glb"
+            source.write_bytes(b"source-fixture")
+            output, receipt = root / "candidate.glb", root / "candidate.json"
+            derived = b"glTF-fixture"
+            record = {"schema": hinge.SCHEMA}
+            with patch.object(hinge, "build", return_value=(derived, record)):
+                hinge.process(source, 3, output, receipt)
+            self.assertEqual(output.read_bytes(), derived)
+            self.assertEqual(json.loads(receipt.read_text()), record)
+            output.unlink()
+            receipt.unlink()
+
+            real_link = hinge.os.link
+            def interleave(src, dst):
+                if Path(dst) == receipt:
+                    output.unlink()
+                    output.write_bytes(b"foreign-writer-replacement")
+                    raise FileExistsError("simulated receipt collision")
+                return real_link(src, dst)
+            with patch.object(hinge, "build", return_value=(derived, record)), \
+                    patch.object(hinge.os, "link", side_effect=interleave):
+                with self.assertRaisesRegex(FileExistsError, "receipt collision"):
+                    hinge.process(source, 3, output, receipt)
+            self.assertEqual(output.read_bytes(), b"foreign-writer-replacement")
+            self.assertFalse(receipt.exists())
+
+    def test_receipt_collision_keeps_complete_unreceipted_orphan(self):
+        from unittest.mock import patch
+        from tools.art import experimental_frame_hinge as hinge
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / "source.glb"
+            source.write_bytes(b"source-fixture")
+            output, receipt = root / "candidate.glb", root / "candidate.json"
+            real_link = hinge.os.link
+            def fail_receipt(src, dst):
+                if Path(dst) == receipt:
+                    raise FileExistsError("receipt collision")
+                return real_link(src, dst)
+            with patch.object(hinge, "build", return_value=(b"glTF-fixture", {"schema": hinge.SCHEMA})), \
+                    patch.object(hinge.os, "link", side_effect=fail_receipt):
+                with self.assertRaisesRegex(FileExistsError, "receipt collision"):
+                    hinge.process(source, -3, output, receipt)
+            self.assertEqual(output.read_bytes(), b"glTF-fixture")
+            self.assertFalse(receipt.exists())
+            # A retry must not overwrite the orphan, even if the receipt is absent.
+            with patch.object(hinge, "build", return_value=(b"new", {})):
+                with self.assertRaises(FileExistsError):
+                    hinge.process(source, -3, output, receipt)
+            self.assertEqual(output.read_bytes(), b"glTF-fixture")
 
 
 if __name__ == "__main__":

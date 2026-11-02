@@ -148,15 +148,12 @@ def process(glb: Path, pitch: float, output: Path, receipt: Path):
         staged_receipt = Path(right) / "complete.json"
         staged.write_bytes(derived)
         staged_receipt.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        linked_output = False
-        try:
-            os.link(staged, output)
-            linked_output = True
-            os.link(staged_receipt, receipt)
-        except BaseException:
-            if linked_output:
-                output.unlink()
-            raise
+        # The receipt is the completion signal. If its exclusive link fails,
+        # retain the complete but unreceipted GLB as an orphan: unlinking the
+        # output here could delete a concurrent writer's replacement inode.
+        # Never roll back a public path without an atomic ownership guarantee.
+        os.link(staged, output)
+        os.link(staged_receipt, receipt)
     return record
 
 

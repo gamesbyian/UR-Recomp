@@ -1,6 +1,6 @@
 """Original 64x64 ROM source wheel-ring pixels, no ROM or Pillow dependency."""
 import unittest
-from tools.art.audit_art4k_original_wheel_ring import ring_candidates,OFFSETS,MIN_GREY_RING_HITS
+from tools.art.audit_art4k_original_wheel_ring import ring_candidates,OFFSETS,MIN_GREY_RING_HITS,verify_representation_digests
 
 
 def colored_rgba(cx=None,cy=28,radius=7,red=False):
@@ -39,6 +39,29 @@ class OriginalRingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"64x64"):
             ring_candidates(b"not an image")
         self.assertEqual(len(OFFSETS),5)
+
+    def test_reused_png_path_must_match_every_declared_digest(self):
+        # The first occurrence of a PNG is checked against actual bytes.
+        # Later representation labels may share that path, but cannot
+        # substitute inconsistent PNG or alpha digests in the receipt.
+        expected={
+            "local_png_sha256":"a"*64,
+            "source_rgba_sha256":"b"*64,
+            "source_alpha_sha256":"c"*64,
+            "source_binary_mask_sha256":"d"*64,
+        }
+        values=tuple(expected.values())
+        verify_representation_digests(expected,*values)
+        for key in expected:
+            bad=dict(expected)
+            bad[key]="0"*64
+            with self.subTest(key=key,mode="changed"):
+                with self.assertRaisesRegex(ValueError,"inconsistent"):
+                    verify_representation_digests(bad,*values)
+            bad.pop(key)
+            with self.subTest(key=key,mode="missing"):
+                with self.assertRaisesRegex(ValueError,"inconsistent"):
+                    verify_representation_digests(bad,*values)
 
     def test_nonbinary_alpha_is_rejected(self):
         raw=bytearray(colored_rgba(cx=29))

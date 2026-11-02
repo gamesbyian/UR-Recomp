@@ -329,19 +329,28 @@ class HPFallbackTests(unittest.TestCase):
             self.assertNotIn("no confirmed dispatch", report["detail"])
             self.assertNotIn("SECRET_SENTINEL", stdout.getvalue())
 
-    def test_owner_zip_matches_exact_reviewed_sources(self):
-        from zipfile import ZipFile
+    def test_local_patch_is_exact_old_and_new_reviewed_source(self):
+        import hashlib
         root = Path(__file__).parents[2]
-        package = root / "tools" / "ci" / "HP-Research-Fallback-Owner-Install.zip"
-        names = ["Install-HP-Research-Fallback.cmd", "Install-HP-Research-Fallback.ps1",
-                 "hp_research_fallback.py", "Uninstall-HP-Research-Fallback.cmd", "README.md"]
-        with ZipFile(package) as archive:
-            self.assertEqual(archive.namelist(), names)
-            self.assertIsNone(archive.testzip())
-            for name in names:
-                source = (root / "docs" / "HP-RESEARCH-FALLBACK.md"
-                          if name == "README.md" else root / "tools" / "ci" / name)
-                self.assertEqual(archive.read(name), source.read_bytes(), name)
+        source = (root / "tools" / "ci" / "hp_research_fallback.py").read_bytes()
+        old = b"COOLDOWN = timedelta(minutes=90)"
+        new = (b"COOLDOWN = timedelta(minutes=60)  # Measured HP idle-capacity "
+               b"pilot; still main-build priority.")
+        old_digest = "5756e12471d2241300915abbb06eabaef087007eb54f58e2ee557aa96e91d64b"
+        new_digest = "316cfe232d476fed5af65d0e72543b16f506150c638b428edb31df7a89db629d"
+        self.assertEqual(source.count(new), 1)
+        self.assertEqual(hashlib.sha256(source).hexdigest(), new_digest)
+        reconstructed = source.replace(new, old)
+        self.assertEqual(hashlib.sha256(reconstructed).hexdigest(), old_digest)
+        self.assertEqual(reconstructed.replace(old, new), source)
+        guide = (root / "docs" / "HP-RESEARCH-FALLBACK.md").read_text()
+        for marker in (old_digest, new_digest, "Trojan:Script/Wacatac.B!ml",
+                       "[IO.File]::Replace($temporary, $path, $backup)",
+                       "Do **not** restore"):
+            self.assertIn(marker, guide)
+        self.assertFalse((root / "tools" / "ci" /
+                          "HP-Research-Fallback-Owner-Install.zip").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

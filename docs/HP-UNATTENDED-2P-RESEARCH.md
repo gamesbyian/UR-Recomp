@@ -49,7 +49,7 @@ fallback](HP-RESEARCH-FALLBACK.md) checks for missed GitHub runs every
 15 minutes and, after a 60-minute **pilot** gap with no priority HP Windows job and
 no unresolved same-source failure, can dispatch the **same** tested main-only
 workflow using the owner's authenticated GitHub CLI. The
-[reviewed five-file one-click installer ZIP](../tools/ci/HP-Research-Fallback-Owner-Install.zip)
+[historical installer, retired pending Defender investigation](HP-RESEARCH-FALLBACK.md)
 was owner-installed on the physical HP on November 1. The initially
 installed version ran but failed closed on valid historical off-main
 benchmark jobs; [merged #3012](https://github.com/gamesbyian/UR-Recomp/pull/3012)
@@ -111,8 +111,10 @@ Windows session logoff and offline periods all restrict dispatch.
 The GitHub cron schedule remains `11,41 * * * *`; the workflow still uses
 the same eight cohorts and 360-second research cap. The owner-comment
 manual gateway keeps its independent 90-minute deduplication guard.
-The new ZIP must be explicitly reinstalled by the owner before HP's local
-task uses 60 minutes; the previously installed script otherwise keeps 90.
+The downloadable ZIP has been withdrawn after Defender flagged it. The owner
+can optionally perform the documented SHA-256-verified local one-line patch
+instead, without re-registering the task. Until then the installed script
+retains the working 90-minute setting.
 **Rollback:** restore the last validated 90-minute installer if extra
 fallback HP occupancy demonstrably queues a priority main Windows build
 over 10 minutes, causes repeated research contention or lowers source-bound

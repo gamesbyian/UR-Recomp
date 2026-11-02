@@ -3,6 +3,7 @@ import math
 import unittest
 from tools.art.evaluate_original_racer_chroma_guided_3d_hinge import (
     ANGLES,source_selected_angle,painted_axis_from_mask,spin_frame,
+    raster_band_residuals,raster_band_envelope,
 )
 
 class ChromaGuidedHingeTests(unittest.TestCase):
@@ -33,6 +34,23 @@ class ChromaGuidedHingeTests(unittest.TestCase):
         self.assertLess(painted_axis_from_mask(image),0.)
         with self.assertRaises(ValueError):
             painted_axis_from_mask(np.zeros((64,64),dtype=bool))
+
+    def test_raster_region_xor_conservation_with_source_centre_ties(self):
+        before=bytearray(4096);after=bytearray(4096)
+        before[0]=before[20*64]=before[35*64]=1
+        after[0]=after[21*64]=after[35*64]=1
+        bands=raster_band_residuals(bytes(before),bytes(after))
+        self.assertEqual([v["xor_pixels"] for v in bands],[0,2,0,0])
+        self.assertEqual(bands[1]["source_only_pixels"],1)
+        self.assertEqual(bands[1]["model_only_pixels"],1)
+        self.assertEqual(
+            sum(v["source_only_pixels"]+v["model_only_pixels"] for v in bands),
+            sum(v["xor_pixels"] for v in bands))
+        envelopes=raster_band_envelope([bands,bands])
+        self.assertEqual(envelopes[1]["xor_min"],2)
+        self.assertEqual(envelopes[1]["xor_max"],2)
+        with self.assertRaises(ValueError):
+            raster_band_residuals(b"invalid",bytes(after))
 
     def test_projection_report_does_not_claim_paint_visibility(self):
         src=(__import__("pathlib").Path(__file__).resolve().parents[2]/

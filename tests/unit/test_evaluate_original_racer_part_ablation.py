@@ -2,7 +2,10 @@
 import importlib.util
 from pathlib import Path
 import unittest
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np=None
 
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location(
@@ -25,6 +28,7 @@ class SourcePartLeaveOneOutTests(unittest.TestCase):
             with self.subTest(node=node),self.assertRaises(ValueError):
                 model.source_owned_part(node)
 
+    @unittest.skipIf(np is None,"numpy is an optional original-source art dependency")
     def test_true_and_false_positive_unique_source_part_pixels(self):
         source=np.zeros((64,64),dtype=np.uint8)
         full=np.zeros_like(source)
@@ -40,6 +44,7 @@ class SourcePartLeaveOneOutTests(unittest.TestCase):
         self.assertEqual(row["whole_model_source_mask_iou"],round(2/3,8))
         self.assertEqual(row["without_part_source_mask_iou"],.5)
 
+    @unittest.skipIf(np is None,"numpy is an optional original-source art dependency")
     def test_non_subtractive_2D_part_or_invalid_masks_rejected(self):
         original=np.zeros((64,64),dtype=np.uint8)
         original[0,0]=1

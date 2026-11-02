@@ -95,6 +95,35 @@ def envelope(records: list[dict], name: str) -> tuple[float,float]:
     return min(x[name] for x in records), max(x[name] for x in records)
 
 
+def relative_painted_centroids(points:set[tuple[int,int]], centres:list,
+                               *, above_wheel_only:bool=False)->list[dict]:
+    """Independent wheel-anchored screen-pixel paint centroid, retaining ties.
+
+    The boundary is STRICTLY above the top of the frozen radius-seven ring
+    at y = wheel_y - 7. Excludes the near-wheel paint, not the entire frame.
+    Returned pixel differences are physical 7:6 source-screen pixels and
+    never constitute a recovered anatomical origin or 3D joint.
+    """
+    disk_band_fractions(points,centres)  # Fail closed on source shape/ring input.
+    if type(above_wheel_only) is not bool:
+        raise ValueError("above-wheel selector must be a Boolean")
+    observations=[]
+    for cx,cy,radius in centres:
+        selected=[(x,y) for x,y in points
+                  if not above_wheel_only or y<cy-radius]
+        if len(selected)<3:
+            raise ValueError("insufficient painted pixels above original wheel rim")
+        xmean=sum(x for x,y in selected)/len(selected)
+        ymean=sum(y for x,y in selected)/len(selected)
+        observations.append({
+            "wheel_centre_xy_logical_px":[cx,cy],
+            "painted_pixel_count":len(selected),
+            "paint_centroid_relative_to_wheel_physical_xy":[
+                (xmean-cx)*7/6,ymean-cy],
+        })
+    return observations
+
+
 def original_source_paint(zip_path: Path, chroma_report:dict):
     """Fresh original-ROM PNG/alpha hashes and all colour variants, no mask clips."""
     try:
@@ -137,7 +166,12 @@ def original_source_paint(zip_path: Path, chroma_report:dict):
             found={"source_player":player,
                    "source_binary_mask_sha256":rec["source_binary_mask_sha256"],
                    "painted_source_pixels":len(points),
-                   "all_original_ring_centre_candidates":bands}
+                   "all_original_ring_centre_candidates":bands,
+                   "all_original_paint_centroid_candidates":
+                       relative_painted_centroids(points,ring_by_rgba[name]),
+                   "above_wheel_paint_centroid_candidates":
+                       relative_painted_centroids(points,ring_by_rgba[name],
+                                                  above_wheel_only=True)}
             if name in result and result[name]!=found:
                 raise ValueError("identical source RGBA assigned inconsistent colours")
             result[name]=found
@@ -195,6 +229,15 @@ def historical_model_paint(glb_path:Path,camera_path:Path,direction:int):
         fraction=disk_band_fractions(pixels,[[wheel_cx,wheel_cy,
                                               WHEEL_RING_RADIUS_LOGICAL_PX]])[0]
         fraction["blue_visible_pixel_count"]=len(pixels)
+        fraction["all_blue_centroid_relative_to_axle_physical_xy"] = (
+            relative_painted_centroids(pixels,
+                [[wheel_cx,wheel_cy,WHEEL_RING_RADIUS_LOGICAL_PX]])[0][
+                    "paint_centroid_relative_to_wheel_physical_xy"])
+        fraction["above_wheel_blue_centroid_relative_to_axle_physical_xy"] = (
+            relative_painted_centroids(pixels,
+                [[wheel_cx,wheel_cy,WHEEL_RING_RADIUS_LOGICAL_PX]],
+                above_wheel_only=True)[0][
+                    "paint_centroid_relative_to_wheel_physical_xy"])
         fraction["blue_model_painted_axis_degrees"]=painted_axis_from_mask(mask)
         model[angle]=fraction
     return model
@@ -229,20 +272,49 @@ def compare_shapes(source_chroma:dict,source:dict,model:dict,
             witness=source[rgba]
             bounds={k:envelope(witness["all_original_ring_centre_candidates"],k)
                     for k in keys}
+            centroid_mismatch={}
+            for region,source_key,model_key in (
+                ("all_paint","all_original_paint_centroid_candidates",
+                 "all_blue_centroid_relative_to_axle_physical_xy"),
+                ("above_wheel_only","above_wheel_paint_centroid_candidates",
+                 "above_wheel_blue_centroid_relative_to_axle_physical_xy"),
+            ):
+                model_xy=model[selected][model_key]
+                source_rows=witness[source_key]
+                distances=[
+                    math.hypot(
+                        row["paint_centroid_relative_to_wheel_physical_xy"][0]-model_xy[0],
+                        row["paint_centroid_relative_to_wheel_physical_xy"][1]-model_xy[1])
+                    for row in source_rows
+                ]
+                centroid_mismatch[region]={
+                    "distance_min":min(distances),"distance_max":max(distances),
+                    "source_centres_and_painted_centroids":source_rows,
+                    "model_blue_centroid_relative_to_axle_physical_xy":model_xy,
+                }
             evidence.append({"original_rgba_sha256":rgba,
                              "original_player":witness["source_player"],
                              "painted_original_pixel_count":witness["painted_source_pixels"],
                              "original_all_wheel_centres":witness["all_original_ring_centre_candidates"],
-                             "source_wheel_fraction_bounds":bounds})
+                             "source_wheel_fraction_bounds":bounds,
+                             "centroid_mismatch_by_region":centroid_mismatch})
         if not evidence:
             raise ValueError("no source RGB for binary mask")
         def source_avg(key,idx):
             return sum(x["source_wheel_fraction_bounds"][key][idx] for x in evidence)/len(evidence)
+        def centroid_avg(region,name):
+            return sum(v["centroid_mismatch_by_region"][region][name]
+                       for v in evidence)/len(evidence)
         result.append({
             "source_original_binary_mask_sha256":mask,
             "source_family":families.get(mask) if families else None,
             "posthoc_painted_direction_selected_2026_hinge_degrees":selected,
             "source_original_RGBA_variants":evidence,
+            "painted_centroid_distance_envelopes_physical_px":{
+                region:{"min":centroid_avg(region,"distance_min"),
+                        "max":centroid_avg(region,"distance_max")}
+                for region in ("all_paint","above_wheel_only")
+            },
             "painted_original_vs_model_fraction_by_wheel_region":{
                 key:{"source_min":source_avg(key,0),
                      "source_max":source_avg(key,1),
@@ -268,6 +340,21 @@ def compare_shapes(source_chroma:dict,source:dict,model:dict,
                 "source_strictly_greater_with_all_tied_centres":sum(
                     v["source_min"]>v["model"] for v in vals),
             }
+        for region in ("all_paint","above_wheel_only"):
+            bounds=[r["painted_centroid_distance_envelopes_physical_px"][region]
+                    for r in part]
+            output["centroid_distance_"+region]={
+                "mean_min_physical_px":round(
+                    sum(x["min"] for x in bounds)/len(bounds),8),
+                "mean_max_physical_px":round(
+                    sum(x["max"] for x in bounds)/len(bounds),8),
+                "distinct_masks_with_min_distance_above_3px":sum(
+                    x["min"]>3 for x in bounds),
+            }
+        output["masks_where_ignoring_near_wheel_paint_reduces_centroid_error"] = sum(
+            r["painted_centroid_distance_envelopes_physical_px"]["above_wheel_only"]["max"] <
+            r["painted_centroid_distance_envelopes_physical_px"]["all_paint"]["min"]
+            for r in part)
         return output
     summary={"all35":summarize(result)}
     if families:

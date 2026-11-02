@@ -367,5 +367,60 @@ class NativeWavWirePathTests(unittest.TestCase):
                     pcm.wav_command_path(Path(name))
 
 
+
+class ReceiptPublicationPinnedDirectoryTests(unittest.TestCase):
+    def test_normal_publication_and_existing_final_are_no_replace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            final = Path(tmp) / "receipt.json"
+            pcm.publish_receipt_no_replace(final, '{"validated":true}\n')
+            self.assertEqual(final.read_text(), '{"validated":true}\n')
+            with self.assertRaisesRegex(ValueError, "replace"):
+                pcm.publish_receipt_no_replace(final, '{"foreign":true}\n')
+            self.assertEqual(final.read_text(), '{"validated":true}\n')
+            self.assertFalse(list(Path(tmp).glob(".qa01-receipt-stage-*")))
+
+    def test_parent_symlink_swap_cannot_redirect_validated_receipt(self):
+        if (not hasattr(pcm.os, "O_DIRECTORY") or not hasattr(pcm.os, "O_NOFOLLOW")
+                or pcm.os.open not in pcm.os.supports_dir_fd):
+            self.skipTest("POSIX descriptor-relative publication unavailable")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            parent = root / "intended"
+            parent.mkdir()
+            foreign = root / "foreign"
+            foreign.mkdir()
+            old_parent = root / "old_intended"
+            final = parent / "receipt.json"
+            real_link = pcm.os.link
+
+            def redirect_after_stage(src, dst, **kwargs):
+                parent.rename(old_parent)
+                parent.symlink_to(foreign, target_is_directory=True)
+                (foreign / src).write_bytes(b'{"unvalidated":"foreign"}')
+                return real_link(src, dst, **kwargs)
+
+            with mock.patch.object(pcm.os, "link", side_effect=redirect_after_stage):
+                with self.assertRaisesRegex(OSError, "identity changed"):
+                    pcm.publish_receipt_no_replace(final, '{"validated":true}\n')
+            self.assertFalse((foreign / "receipt.json").exists())
+            self.assertEqual((old_parent / "receipt.json").read_text(),
+                             '{"validated":true}\n')
+            self.assertFalse(list(old_parent.glob(".qa01-receipt-stage-*")))
+            self.assertEqual(len(list(foreign.iterdir())), 1)
+            self.assertEqual(next(foreign.iterdir()).read_bytes(),
+                             b'{"unvalidated":"foreign"}')
+
+    def test_symlinked_receipt_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            foreign = root / "foreign"
+            foreign.mkdir()
+            alias = root / "alias"
+            alias.symlink_to(foreign, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "real directory"):
+                pcm.publish_receipt_no_replace(alias / "receipt.json", "{}")
+            self.assertEqual(list(foreign.iterdir()), [])
+
+
 if __name__ == "__main__":
     unittest.main()

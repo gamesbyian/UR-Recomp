@@ -13,6 +13,7 @@ import hashlib
 import io
 import json
 import os
+import secrets
 import re
 import shutil
 import tempfile
@@ -73,30 +74,45 @@ def prepare_receipt_destination(json_path: Path) -> None:
 
 
 def publish_receipt_no_replace(path: Path, payload: str) -> None:
-    """Stage complete JSON on the receipt volume, then link without replacement.
+    """Stage and publish JSON in one pinned POSIX directory without replacement.
 
-    A WAV and its receipt remain two independent paths. Consumers must require
-    both, verify the receipt's WAV hash and reject an orphaned WAV.
+    A renamed or redirected visible parent fails closed; descriptor-relative
+    staging/linking never follows a replacement parent into foreign storage.
+    The WAV and JSON remain separate publications, not one transaction.
     """
     if not path.is_absolute():
         raise ValueError("receipt output path must be absolute")
     parent = path.parent
     if parent.is_symlink() or not parent.is_dir():
         raise ValueError("receipt parent must be a real directory")
-    staged = None
+    if (not all(hasattr(os, flag) for flag in ("O_DIRECTORY", "O_NOFOLLOW"))
+            or not all(fn in os.supports_dir_fd for fn in (os.open, os.unlink))):
+        raise OSError("secure descriptor-relative receipt publication unavailable")
+    directory_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        fd, name = tempfile.mkstemp(prefix=".qa01-receipt-stage-", suffix=".json", dir=parent)
-        staged = Path(name)
-        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as out:
-            out.write(payload)
-            out.flush()
-            os.fsync(out.fileno())
-        # The destination is never opened until all bytes are durable in the
-        # staged inode. A concurrent file or symlink at the final name wins.
-        os.link(staged, path)
+        pinned = os.fstat(directory_fd)
+        stage_name = ".qa01-receipt-stage-" + secrets.token_hex(16) + ".json"
+        stage_fd = os.open(stage_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                           0o600, dir_fd=directory_fd)
+        try:
+            with os.fdopen(stage_fd, "w", encoding="utf-8", newline="\n") as output:
+                output.write(payload)
+                output.flush()
+                os.fsync(output.fileno())
+            try:
+                os.link(stage_name, path.name, src_dir_fd=directory_fd,
+                        dst_dir_fd=directory_fd, follow_symlinks=False)
+            except FileExistsError as exc:
+                raise ValueError("refusing to replace existing evidence JSON") from exc
+            os.fsync(directory_fd)
+            visible = os.stat(parent, follow_symlinks=False)
+            if (visible.st_dev, visible.st_ino) != (pinned.st_dev, pinned.st_ino):
+                raise OSError("receipt parent identity changed during publication")
+        finally:
+            os.unlink(stage_name, dir_fd=directory_fd)
+            os.fsync(directory_fd)
     finally:
-        if staged is not None:
-            staged.unlink(missing_ok=True)
+        os.close(directory_fd)
 
 
 def validate_event_ring_coverage(report: dict) -> None:

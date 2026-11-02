@@ -49,6 +49,61 @@ class NativeRingCoverageTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'incomplete or discontinuous'):
                     pcm.validate_event_ring_coverage(report)
 
+    def test_post_wav_census_rejects_second_kon_inside_real_pcm_window(self):
+        first = self.report()
+        second = self.report(head=3, stats_head=3)
+        second['events'] = first['events'] + [
+            {'t': 'reg', 'adr': '0x4c', 'val': '0x81', 's': 41000}]
+        second['events_returned'] = 2
+        with self.assertRaisesRegex(ValueError, 'post-WAV DSP KON history ambiguous'):
+            pcm.validate_post_wav_kon_window(
+                first, second, kon_sample_index=40000, before=500, after=2000)
+        # An event strictly after the captured WAV end cannot change it.
+        second['events'][-1]['s'] = 42000
+        pcm.validate_post_wav_kon_window(
+            first, second, kon_sample_index=40000, before=500, after=2000)
+
+    def test_post_wav_census_rejects_overwrite_regression_and_history_change(self):
+        first = self.report()
+        for second, reason in (
+            (self.report(oldest=1), 'overwritten'),
+            (self.report(head=1, stats_head=1), 'counters regressed'),
+            (self.report(), 'history changed'),
+        ):
+            if reason == 'history changed':
+                second['events'][0]['s'] = 40001
+            with self.subTest(reason=reason), self.assertRaisesRegex(ValueError, reason):
+                pcm.validate_post_wav_kon_window(
+                    first, second, kon_sample_index=40000, before=500, after=2000)
+
+    def test_offline_cli_requires_post_wav_census_before_success_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            native = root / 'native.exe'
+            native.write_bytes(b'fake executable for ROM-free regression')
+            wav, receipt = root / 'out.wav', root / 'receipt.json'
+            first = self.report()
+            second = self.report(head=3, stats_head=3)
+            second['events'] = first['events'] + [
+                {'t': 'reg', 'adr': '0x4c', 'val': '0x80', 's': 41000}]
+            second['events_returned'] = 2
+            def fake_wav(*args, **kwargs):
+                wav.write_bytes(b'UNQUALIFIED-WAV')
+                return {'wav_sha256': '0' * 64, 'sample_frames': 2500,
+                        'kon_offset_frames': 500}
+            with (mock.patch.object(sys, 'argv', ['pcm', '--kon-sample-index', '40000',
+                   '--before', '500', '--after', '2000',
+                   '--wav-out', str(wav), '--json-out', str(receipt),
+                   '--source-sha', 'a' * 40, '--native-executable', str(native)]),
+                  mock.patch.object(pcm, 'connect', return_value=(mock.Mock(), mock.Mock())),
+                  mock.patch.object(pcm, 'capture', side_effect=[first, second]) as scans,
+                  mock.patch.object(pcm, 'capture_kon_pcm', side_effect=fake_wav),
+                  self.assertRaisesRegex(ValueError, 'post-WAV DSP KON history ambiguous')):
+                pcm.main()
+            self.assertEqual(scans.call_count, 2)
+            self.assertTrue(wav.exists())  # Unqualified output is not a receipt.
+            self.assertFalse(receipt.exists())
+
     def test_cli_refuses_overwritten_ring_before_wav(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

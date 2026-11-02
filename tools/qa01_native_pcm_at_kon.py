@@ -99,6 +99,32 @@ def validate_event_ring_coverage(report: dict) -> None:
         raise ValueError('malformed native DSP event-ring census')
 
 
+def validate_post_wav_kon_window(before_report: dict, after_report: dict, *,
+                                 kon_sample_index: int, before: int,
+                                 after: int) -> None:
+    """Reject a KON hidden between the first event census and audio_wav.
+
+    The pinned debug server's pause command is a no-op. A second complete
+    census after audio_wav is required even if the WAV sample count is exact.
+    Only KONs within the already captured PCM sample interval can invalidate
+    that single-KON witness; later KONs cannot change the captured samples.
+    """
+    validate_event_ring_coverage(after_report)
+    if (after_report['event_head'] < before_report['event_head'] or
+            after_report['stats']['produced'] < before_report['stats']['produced']):
+        raise ValueError('post-WAV DSP counters regressed')
+    old = before_report['events']
+    observed = after_report['events']
+    if observed[:len(old)] != old:
+        raise ValueError('post-WAV DSP event history changed or lost')
+    window_start = kon_sample_index - before
+    window_end = kon_sample_index + after
+    events = [s for s in kon_candidates(observed)
+              if window_start <= s < window_end]
+    if events != [kon_sample_index]:
+        raise ValueError('post-WAV DSP KON history ambiguous inside PCM window')
+
+
 def wav_command_path(wav_path: Path) -> str:
     """Return a JSON-safe server path without changing the local file target.
 
@@ -289,6 +315,14 @@ def main() -> int:
             wav_path=args.wav_out.absolute(), before=args.before, after=args.after,
             stage_root=args.server_stage_root.absolute() if args.server_stage_root is not None else None,
         )
+        # The server's pause command does not stop DSP production. An
+        # additional voice-7 KON may enter the ring during audio_wav; reject
+        # that source window before any successful receipt is published.
+        post_wav_report = capture(
+            lambda line: command(sock, reader, line), event_filter=1)
+        validate_post_wav_kon_window(
+            report, post_wav_report, kon_sample_index=args.kon_sample_index,
+            before=args.before, after=args.after)
     finally:
         reader.close()
         sock.close()
@@ -297,6 +331,9 @@ def main() -> int:
     result["event_head"] = report["event_head"]
     result["kon_candidates_in_retained_event_ring"] = kon_candidates(report["events"])
     result["producer_sample_count_before_capture"] = report["stats"]["produced"]
+    result["post_wav_event_head"] = post_wav_report["event_head"]
+    result["post_wav_produced_samples"] = post_wav_report["stats"]["produced"]
+    result["post_wav_ring_census_complete"] = True
     with args.json_out.open("x", encoding="utf-8") as receipt_file:
         receipt_file.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(f"QA01 native DSP KON PCM captured: {result['sample_frames']} samples, "

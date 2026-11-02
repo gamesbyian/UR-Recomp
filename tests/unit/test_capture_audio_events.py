@@ -90,10 +90,65 @@ class AudioEventCaptureTests(unittest.TestCase):
         self.assertEqual(len(events), 1)
         self.assertTrue(meta["_client_contiguous"])
 
+    def test_capture_stops_at_pre_scan_head_despite_unending_full_pages(self) -> None:
+        calls = []
+        head = 16003
+
+        def command(line: str) -> dict:
+            calls.append(line)
+            if line == "audio_stats 5":
+                return {"event_count": head, "produced": 45000}
+            _, cursor, count, event_filter = line.split()
+            self.assertEqual(event_filter, "1")
+            return {"events": [], "returned": 0, "scanned": int(count),
+                    "first": int(cursor), "oldest": 0}
+
+        report = cap.capture(command, page_size=8000, event_filter=1)
+        self.assertEqual(calls, ["audio_stats 5", "audio_events 0 8000 1",
+                                 "audio_events 8000 8000 1",
+                                 "audio_events 16000 3 1"])
+        self.assertEqual(report["event_head"], head)
+        self.assertEqual(report["last_scanned_event_index"], head)
+        self.assertTrue(report["event_pages_contiguous"])
+        self.assertEqual(report["events_returned"], 0)
+
+    def test_capture_zero_head_makes_no_page_request(self) -> None:
+        calls = []
+        def command(line: str) -> dict:
+            calls.append(line)
+            self.assertEqual(line, "audio_stats 5")
+            return {"event_count": 0}
+        report = cap.capture(command)
+        self.assertEqual(calls, ["audio_stats 5"])
+        self.assertEqual(report["last_scanned_event_index"], 0)
+        self.assertTrue(report["event_pages_contiguous"])
+
+    def test_bounded_scan_does_not_certify_overlong_page(self) -> None:
+        def command(line: str) -> dict:
+            self.assertEqual(line, "audio_events 0 3 1")
+            return {"events": [], "returned": 0, "scanned": 8,
+                    "first": 0, "oldest": 0}
+        _, meta = cap.page_events(command, first=0, page_size=8,
+                                  event_filter=1, stop_at=3)
+        self.assertFalse(meta["_client_contiguous"])
+
+    def test_invalid_snapshot_or_page_bounds_fail_before_scan(self) -> None:
+        for bad in (None, True, "2", -1):
+            with self.subTest(head=bad):
+                with self.assertRaisesRegex(ValueError, "event_count"):
+                    cap.capture(lambda _: {"event_count": bad})
+        for kwargs in ({"first": 0, "page_size": 0, "stop_at": 2},
+                       {"first": 2, "page_size": 8, "stop_at": 1},
+                       {"first": 0, "page_size": 8, "stop_at": True}):
+            with self.subTest(kwargs=kwargs):
+                with self.assertRaisesRegex(ValueError, "scan bounds"):
+                    cap.page_events(lambda _: self.fail("must not request"),
+                                    event_filter=1, **kwargs)
+
     def test_capture_includes_stats_and_ring_metadata(self) -> None:
         responses = {
             "audio_stats 5": {"event_count": 3, "cpu_port_writes": 1},
-            "audio_events 0 8 2": {
+            "audio_events 0 3 2": {
                 "events": [{"t": "cpu_wr", "adr": "0x02", "val": "0x31"}],
                 "scanned": 1,
                 "returned": 1,

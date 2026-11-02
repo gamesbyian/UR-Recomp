@@ -254,6 +254,25 @@ class ArticulatedBlockoutContract(unittest.TestCase):
             self.assertEqual(status["status"], "failed")
             self.assertFalse(status["current_output_usable"])
 
+    def test_named_pose_comments_cannot_forge_source_controls(self):
+        source = (SCRIPT.parent / "candidates" / "unicycle_shared_rig.scad").read_text()
+        # A harmless commented-out duplicate must not make a real branch
+        # ambiguous or change the source-authored controls.
+        harmless = source.replace(
+            'else if(p=="pedal")',
+            '// if(p=="upright")shared_rig(pedal=99,seat_lean=0);' + chr(10)
+            + '  else if(p=="pedal")')
+        self.assertEqual(module.pose_recipe(harmless, "upright")[:2], (18, 0))
+        # Real OpenSCAD evaluates str("upright") and runs 88 degrees.
+        # A regex over raw source formerly signed the commented 18 degrees.
+        spoofed = source.replace(
+            'if(p=="upright")shared_rig(pedal=18,seat_lean=0);',
+            'if(p==str("upright"))shared_rig(pedal=88,seat_lean=0);' + chr(10)
+            + '  // if(p=="upright")shared_rig(pedal=18,seat_lean=0);')
+        self.assertNotEqual(spoofed, source)
+        with self.assertRaisesRegex(ValueError, "expected one source-owned pose branch"):
+            module.pose_recipe(spoofed, "upright")
+
     def test_failed_rerun_does_not_publish_stale_asset_as_current(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)

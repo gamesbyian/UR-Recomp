@@ -117,16 +117,18 @@ def pose_recipe(source: str, name: str):
     if name not in POSES:
         raise ValueError("unknown source blockout pose")
     validate_scad_declarations(source)
-    matches = list(_RIG_BRANCH.finditer(source))
+    # Comments are not executable OpenSCAD; they cannot supply pose controls.
+    code = SCAD_COMMENTS.sub("", source)
+    matches = list(_RIG_BRANCH.finditer(code))
     found = [i for i, match in enumerate(matches) if match.group(1) == name]
     if len(found) != 1:
         raise ValueError("expected one source-owned pose branch")
     i = found[0]
     start = matches[i].end()
-    end = matches[i+1].start() if i + 1 < len(matches) else source.find("}", start)
+    end = matches[i+1].start() if i + 1 < len(matches) else code.find("}", start)
     if end < 0:
         raise ValueError("unterminated source-owned pose branch")
-    body = source[start:end].strip()
+    body = code[start:end].strip()
     call = _RIG_CALL.search(body)
     if call is None:
         raise ValueError("source-owned pose must end in one shared_rig call")

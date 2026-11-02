@@ -30,12 +30,16 @@ jobs:
           persist-credentials: false
       - name: Offline inventory contract tests
         run: python3 -m unittest discover -s tests/unit -p test_actions_storage_inventory.py -v
-      - name: Collect complete public-repository artifact inventory
+      - name: Collect a complete artifact inventory for five active repositories
         shell: bash
         run: |
           set -euo pipefail
           python3 tools/actions_storage_inventory.py \
-            --owner gamesbyian \
+            --repo gamesbyian/Chunks \
+            --repo gamesbyian/Glimpse \
+            --repo gamesbyian/AYA \
+            --repo gamesbyian/wallgen \
+            --repo gamesbyian/Expository \
             --json-out "$RUNNER_TEMP/actions-storage-inventory.json" \
             | tee "$RUNNER_TEMP/actions-storage-inventory.md"
           cat "$RUNNER_TEMP/actions-storage-inventory.md" >> "$GITHUB_STEP_SUMMARY"

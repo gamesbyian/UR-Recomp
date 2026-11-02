@@ -75,17 +75,20 @@ def composition_for_registry_entry(rom:bytes,entry:dict)->dict:
 
 
 def rasterize_composed_palette_indices(rom:bytes,composition:dict,player:str,
-                                      *,hflip:bool=False,vflip:bool=False)->bytes:
+                                      *,hflip:bool=False,vflip:bool=False,
+                                      return_touched:bool=False):
     """Exact source composer cell ownership; index zero stays transparent.
 
     Both source tile layers and overrides are consumed in composition order,
     including transparent pixels that overwrite a preceding cell.
     """
-    if player not in ("p1","p2") or type(hflip) is not bool or type(vflip) is not bool:
+    if (player not in ("p1","p2") or type(hflip) is not bool or
+            type(vflip) is not bool or type(return_touched) is not bool):
         raise ValueError("unsupported original source player or 2D reflection")
     if (RASTER_WIDTH,RASTER_HEIGHT)!=(64,64):
         raise ValueError("original source raster layout changed")
     data=bytearray(RASTER_WIDTH*RASTER_HEIGHT)
+    touched=bytearray(RASTER_WIDTH*RASTER_HEIGHT)
     ox,oy=RASTER_TILE_OFFSET
     for cell in composition["cells"]:
         if cell["player"]!=player or cell["word_hex"] is None:
@@ -101,8 +104,30 @@ def rasterize_composed_palette_indices(rom:bytes,composition:dict,player:str,
                 if vflip:y=63-y
                 if not(0<=x<64 and 0<=y<64 and 0<=index<16):
                     raise ValueError("invalid tile cell or palette index")
-                data[y*64+x]=index
-    return bytes(data)
+                q=y*64+x
+                data[q]=index
+                touched[q]=1
+    return (bytes(data),bytes(touched)) if return_touched else bytes(data)
+
+
+def rgba_from_original_index_plane(indices:bytes,touched:bytes,palette:list)->bytes:
+    """Preserve untouched black-transparent pixels separately from index-zero tiles.
+
+    The established ROM composer begins with 0,0,0,0 everywhere, but a
+    source tile *explicitly writing* index zero uses the palette's index-zero
+    RGB (alpha zero). Their visually identical alpha is not byte identity.
+    """
+    if (not isinstance(indices,bytes) or not isinstance(touched,bytes) or
+            len(indices)!=4096 or len(touched)!=4096 or
+            any(v>15 for v in indices) or any(v not in (0,1) for v in touched) or
+            len(palette)<16 or
+            any(len(p)!=4 or any(type(v) is not int or not 0<=v<=255 for v in p)
+                for p in palette[:16])):
+        raise ValueError("original source index/visited/palette raster invalid")
+    if any(index!=0 and visit==0 for index,visit in zip(indices,touched)):
+        raise ValueError("unwritten source pixel has a nontransparent 4bpp index")
+    return b"".join(bytes(palette[index]) if visit else bytes(4)
+                    for index,visit in zip(indices,touched))
 
 
 def palette_disk_census(indices:bytes,centres:list,palette:list)->dict:
@@ -182,11 +207,12 @@ def original_source_audit(rom_path:Path,registry_path:Path,corpus_zip:Path)->dic
         if entry["player"]!=record["player"]:
             raise ValueError("registered source player vs corpus mismatch")
         composition=composition_for_registry_entry(rom,entry)
-        plane=rasterize_composed_palette_indices(rom,composition,entry["player"])
+        plane,touched=rasterize_composed_palette_indices(
+            rom,composition,entry["player"],return_touched=True)
         palette=rgba_palette(rom,parse_id(entry["palette_asset_id"]))
         if len(palette)<16 or len(palette[0])!=4 or palette[0][3]!=0:
             raise ValueError("source palette zero lost transparency")
-        rgba=b"".join(bytes(palette[v]) for v in plane)
+        rgba=rgba_from_original_index_plane(plane,touched,palette)
         independent=rasterize_composed_player_rgba(
             rom,composition,entry["player"],parse_id(entry["palette_asset_id"]))
         if rgba!=independent or digest(rgba)!=record["source_rgba_sha256"]:
@@ -208,6 +234,11 @@ def original_source_audit(rom_path:Path,registry_path:Path,corpus_zip:Path)->dic
             "source_rgba_sha256":record["source_rgba_sha256"],
             "source_binary_mask_sha256":record["source_binary_mask_sha256"],
             "original_4bpp_index_plane_sha256":digest(plane),
+            "original_4bpp_tile_written_mask_sha256":digest(touched),
+            "tile_written_logical_pixels":sum(touched),
+            "explicit_transparent_palette_zero_pixels":sum(
+                i==0 and written==1 for i,written in zip(plane,touched)),
+            "unwritten_black_transparent_pixels":4096-sum(touched),
             "palette_index_census":census,
         })
         by_shape[record["source_binary_mask_sha256"]].add(digest(plane))

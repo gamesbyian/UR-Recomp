@@ -2,7 +2,8 @@
 import unittest
 from unittest.mock import patch
 from tools.art.audit_original_racer_palette_indices import (
-    rasterize_composed_palette_indices, palette_disk_census, parse_id)
+    rasterize_composed_palette_indices, rgba_from_original_index_plane,
+    palette_disk_census, parse_id)
 from tools.extract_racer_presentation_family import encode_4bpp_tile
 
 
@@ -48,6 +49,30 @@ class OriginalIndexTests(unittest.TestCase):
             plane=rasterize_composed_palette_indices(b"",composition(2),"p1")
         self.assertEqual(sum(plane),0)
         self.assertEqual(plane[8],0)
+
+    def test_nonblack_transparent_palette_zero_matches_existing_rom_rgba_composer(self):
+        from tools.extract_racer_presentation_family import rasterize_composed_player_rgba
+        pal=palette()
+        pal[0]=(47,28,62,0)
+        with patch("tools.art.audit_original_racer_palette_indices.piece_source_tile",
+                   return_value=(tile(),{})):
+            index,touched=rasterize_composed_palette_indices(
+                b"",composition(1),"p1",return_touched=True)
+        actual=rgba_from_original_index_plane(index,touched,pal)
+        with patch("tools.extract_racer_presentation_family.piece_source_tile",
+                   return_value=(tile(),{})), patch(
+                   "tools.extract_racer_presentation_family.rgba_palette",return_value=pal):
+            source=rasterize_composed_player_rgba(b"",composition(1),"p1",6)
+        self.assertEqual(actual,source)
+        # The authored cell covers one 8x8 tile at original x8..15, y0..7.
+        self.assertEqual(sum(touched),64)
+        self.assertEqual(actual[:4],bytes([0,0,0,0]))
+        self.assertEqual(actual[4*9:4*10],bytes([47,28,62,0]))
+        self.assertEqual(actual[4*8:4*9],bytes([240,30,30,255]))
+        with self.assertRaisesRegex(ValueError,"unwritten"):
+            rgba_from_original_index_plane(bytes([3])+bytes(4095),bytes(4096),pal)
+        with self.assertRaises(ValueError):
+            rgba_from_original_index_plane(index,bytes(4095),pal)
 
     def test_index_level_disk_census_retains_tied_original_wheel_centre(self):
         plane=bytearray(4096)

@@ -18,3 +18,10 @@ Use the original source ZIP from previous verified run #41396846120 and a histor
       --out /private/new/original-source-palette-indices.json
 
 No changed GLB, pose viewer, new emulator, source sprite redistribution or shipping-art approval. The next independent discriminator remains source PPU/OAM palette/OBJ attribution and real animation chronology.
+
+
+## Source index-zero transparency ambiguity and exact-byte correction
+
+Independent source review found an important edge: the canonical original RGBA composer starts a 64x64 image as true black-transparent 0,0,0,0, while a source tile explicitly writing palette index 0 produces the exact ROM palette-zero RGB with alpha 0. If that palette entry happens to have nonblack RGB, equal index-zero values alone cannot reconstruct identical PNG RGBA bytes.
+
+The new producer therefore retains BOTH an index raster AND a second tile-written/visited raster. Its RGBA rehydrator outputs true 0,0,0,0 for untouched pixels and the exact palette byte tuple for explicitly written positions, including transparent index-zero overdraw. The numeric ledger includes the tile-written mask SHA and counts of explicit-zero versus untouched background pixels. A synthetic negative/positive regression uses an original-like nonblack transparent palette-zero entry and demands byte identity against the preexisting original ROM rasterizer. This fix does not invent physical 3D part labels; the tile-written raster is one more authentic 2D source-provenance boundary.

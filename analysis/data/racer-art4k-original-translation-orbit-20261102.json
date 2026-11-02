@@ -1,0 +1,59 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-ROM-TRANSLATION-ORBIT-RESULT/1",
+  "experiment_source": "source-verified-original-USA-ROM-authored-registry",
+  "provenance": {
+    "workflow_run_id": 41396846120,
+    "producer_commit_sha": "7ba8295e966c8b2c959cfeb12ae82f8c701772e0",
+    "artifact_id": 13118714968,
+    "artifact_name": "art4k-genuine-original-pose-family-wheel-holdout",
+    "downloaded_zip_sha256": "18253e652dbbdeba8823c4bd050814681d3c65ffd2ac0614f0ccf6d474993b0f",
+    "report_member": "original-source-translation-orbit.json",
+    "report_member_sha256": "000c2b3f03600e86d468dc3fca7283a7ba8e49488e19de4e31b6214df4db2ada",
+    "canonical_original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "verified_corpus_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e"
+  },
+  "method": {
+    "dimensions": [
+      64,
+      64
+    ],
+    "max_abs_shift_px_each_axis": 2,
+    "no_clipping": true,
+    "exact_binary_source": true,
+    "future_source_mask_used_as_oracle": true,
+    "same_player_and_authored_window_only": true
+  },
+  "result": {
+    "distinct_original_binary_masks": 35,
+    "authored_registry_adjacencies": 109,
+    "changed_authored_registry_edges": 19,
+    "held_authored_registry_edges": 90,
+    "unshifted_changed_pixels": 1631,
+    "optimal_integer_shift_residual_pixels": 1293,
+    "change_pixels_reduced_by_shift": 338,
+    "fraction_source_xor_residual": 0.79277,
+    "changed_edges_same_optimum_as_source_visible_anchor": 19,
+    "changed_edges_with_nonzero_optimal_residual": 19,
+    "all_edges_with_optimum_ties": 0,
+    "min_second_best_distinct_residual_margin_pixels_on_changed_edges": 12,
+    "max_second_best_distinct_residual_margin_pixels_on_changed_edges": 80,
+    "shape_changing_edges_with_zero_shift": 2,
+    "per_player_changed_edges": {
+      "p1": 11,
+      "p2": 8
+    },
+    "per_player_optimal_residual_pixels": {
+      "p1": 718,
+      "p2": 575
+    }
+  },
+  "evidence_limits": {
+    "original_sprite_pixels_ROM_authenticated": true,
+    "frame_chronology_live_PPU_authenticated": false,
+    "actual_1994_motion_or_camera_recovered": false,
+    "original_3D_mesh_or_rig_recovered": false,
+    "target_shape_was_held_out": false,
+    "owner_art_likeness_approved": false,
+    "shipping_art_approved": false
+  }
+}

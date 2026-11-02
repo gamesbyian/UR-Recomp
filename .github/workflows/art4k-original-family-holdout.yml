@@ -33,6 +33,8 @@ on:
       - "tests/unit/test_audit_original_racer_pose_transition_pixels.py"
       - "tools/art/audit_original_racer_translation_only_control.py"
       - "tests/unit/test_audit_original_racer_translation_only_control.py"
+      - "tools/art/audit_original_racer_translation_orbit.py"
+      - "tests/unit/test_audit_original_racer_translation_orbit.py"
       - "tools/art/study_original_racer_continuous_ride_motion.py"
       - "tests/unit/test_study_original_racer_continuous_ride_motion.py"
       - "tools/art/study_original_racer_eighth_ride_motion.py"
@@ -543,6 +545,34 @@ jobs:
               out.write("### Actual original source 2D translation-only negative control\n\n")
               out.write(f"Using NEXT source frame's own visible-alpha anchor, simple image translation overlaps {s['matching_original_changed_pixel_positions']} of 1,631 original changed pixel positions (recall {s['source_translation_changed_pixel_recall']}, precision {s['source_translation_changed_pixel_precision']}).\n\n")
               out.write(f"**Still {s['next_original_shape_residual_after_shift_pixels']} original next-shape pixels differ after translation alignment.** Translation is post-hoc, NOT inferred 3D motion/camera, a source-timed predictive model, likeness or release acceptance.\n")
+          PY
+      - name: Measure best integer source-silhouette translation and remaining shape mismatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/audit_original_racer_translation_orbit.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --radius 2 --out "$RUNNER_TEMP/art4k-reports/original-source-translation-orbit.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          receipt=json.loads((Path(os.environ["RUNNER_TEMP"]) /
+              "art4k-reports/original-source-translation-orbit.json").read_text())
+          s=receipt["summary"]
+          assert receipt["source_original_64x64_mask_bytes_revalidated"] is True
+          assert receipt["registered_sequence_origin"] == "authored-reference-registry-not-live-PPU"
+          assert s["authored_registry_consecutive_edges"] == 109
+          assert s["authored_registry_changed_edges"] == 19
+          assert s["changed_source_pixels"] == 1631
+          assert 0 <= s["best_shift_residual_pixels"] <= s["changed_source_pixels"]
+          assert receipt["input_next_original_mask_used_in_search"] is True
+          assert receipt["source_articulation_or_live_cadence_recovered"] is False
+          assert receipt["shipping_art_approved"] is False
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("### Optimistic original-ROM silhouette translation-only shape bound\n\n")
+              out.write(f"Actual ROM pixels, AUTHOR-REGISTRY timeline: {s['authored_registry_changed_edges']} changing silhouette pairs from {s['authored_registry_consecutive_edges']} edges.\n\n")
+              out.write(f"Unaligned changed pixels: {s['changed_source_pixels']}; best no-clipping ±2px shift residual: {s['best_shift_residual_pixels']}; ambiguous min-cost shifts on {s['shift_oracle_tie_edges']} edges.\n\n")
+              out.write("The next original mask chose the shift: optimistic retrospective bound only. NOT live 1994 PPU cadence, 3D mesh, actual motion, likeness or release acceptance.\n")
           PY
       - name: Restore nine SHA-pinned source-rig eighth-phase GLBs from existing verified producer
         uses: actions/download-artifact@v4

@@ -36,6 +36,15 @@ except ModuleNotFoundError:
 SCHEMA = "UR-ART4K-REAL-CONTINUOUS-RIDE-SOURCE-MOTION/1"
 SOURCE_RIG_SHA = "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984"
 TIMES = ("0.0", "0.25", "0.5", "0.75", "1.0")
+# Real 2026 OpenSCAD GLB bytes verified from exact-head original authoring
+# workflow run 41383635894, artifact ZIP and immutable exporter receipts.
+PINNED_GRID_GLB_SHA = {
+    "0.0": "482364ab9db69ed7ff4879a73cb10aab848442ad3adaf94b246ec0c87f5aad25",
+    "0.25": "4c2ecc8f3a226486d363d5987a08f79bbbbf5606ab12de85a719c52cf35e6eac",
+    "0.5": "a4af4c9dd3bdbf3985d2b8ff299b70eab413808a7a5595c83dd0cfb973607c85",
+    "0.75": "9a05dabf58103c0f4495534a82f8737b576530f2750fc0f8e147c482c1b36a5e",
+    "1.0": "12c5724e725b099d56238a461b06a286ffc03a2f551116decff5d1b1ac11ab96",
+}
 RECEIPT_SCHEMA = "UR-ART4K-REAL-CONTINUOUS-SOURCE-GLB-RECEIPT/1"
 
 
@@ -54,6 +63,7 @@ def validate_sample_receipt(qualified, current, last, requested_time):
             or not math.isfinite(qualified["rig_time"])
             or qualified["rig_time"] != float(requested_time)
             or qualified.get("model_source_sha256") != SOURCE_RIG_SHA
+            or qualified.get("GLB_sha256") != PINNED_GRID_GLB_SHA[requested_time]
             or qualified.get("part_parent_count") != 5
             or qualified.get("part_material_mesh_count") != 16
             or qualified.get("source_owned_pivots_validated_against_real_GLB") is not True

@@ -268,10 +268,14 @@ class HPFallbackTests(unittest.TestCase):
     def test_iso_time_and_cooldown_boundary(self):
         self.assertEqual(h.parse_utc("2026-11-01T05:00:00Z"), NOW)
         self.assertRaises(ValueError, h.parse_utc, "2026-11-01")
-        q = h.classify([row(minutes=90)], expected_workflow=h.RESEARCH)
+        self.assertEqual(h.COOLDOWN, __import__("datetime").timedelta(minutes=60))
+        q = h.classify([row(minutes=60)], expected_workflow=h.RESEARCH)
         self.assertEqual(h.decision(NOW, SHA, q, []), "dispatch:missed-research-window")
-        q = h.classify([row(minutes=89)], expected_workflow=h.RESEARCH)
+        q = h.classify([row(minutes=59)], expected_workflow=h.RESEARCH)
         self.assertEqual(h.decision(NOW, SHA, q, []), "skip:recent-research")
+        # The old 90-minute cadence must no longer suppress an idle 75m gap.
+        q = h.classify([row(minutes=75)], expected_workflow=h.RESEARCH)
+        self.assertEqual(h.decision(NOW, SHA, q, []), "dispatch:missed-research-window")
 
 
     def test_same_research_id_rerun_changes_status_without_new_id(self):

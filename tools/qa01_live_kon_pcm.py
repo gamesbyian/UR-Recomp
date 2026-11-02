@@ -243,7 +243,11 @@ def main() -> int:
         # Complete deterministic receipt serialization while the WAV is still
         # private. Neither this nor the preflight makes two paths atomic.
         receipt_bytes = json.dumps(result, indent=2, sort_keys=True) + "\n"
-        publish_wav_no_replace(candidate_wav, wav)
+        # The candidate receipt hash was established before this final link.
+        # Do not trust two names of the same mutable inode as an integrity test.
+        publish_wav_no_replace(
+            candidate_wav, wav,
+            expected_digest=bytes.fromhex(result["wav_sha256"]))
     publish_receipt_no_replace(receipt, receipt_bytes)
     print(f"Captured live candidate KON {result['kon_sample_index']} at {result['sample_frames']} PCM frames")
     return 0

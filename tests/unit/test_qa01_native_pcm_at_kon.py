@@ -228,6 +228,39 @@ class NativeKonPCMTests(unittest.TestCase):
             self.assertEqual(result["wav_bytes"], path.stat().st_size)
             self.assertEqual(result["wav_sha256"], pcm.hashlib.sha256(path.read_bytes()).hexdigest())
 
+    def test_hardlink_mutation_after_publication_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kon.wav"
+            real_link = pcm.os.link
+
+            def mutate_after_link(src, dst):
+                real_link(src, dst)
+                Path(dst).write_bytes(b"CORRUPTED-AFTER-LINK")
+
+            with mock.patch.object(pcm.os, "link", side_effect=mutate_after_link):
+                with self.assertRaisesRegex(ValueError, "validated staging bytes"):
+                    pcm.capture_kon_pcm(
+                        self.command(path), events=self.events(), produced=45000,
+                        kon_sample_index=40000, wav_path=path,
+                        before=500, after=2000)
+
+    def test_hardlink_mutation_before_publication_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kon.wav"
+            real_link = pcm.os.link
+
+            def mutate_before_link(src, dst):
+                Path(src).write_bytes(b"CORRUPTED-BEFORE-LINK")
+                real_link(src, dst)
+
+            with mock.patch.object(pcm.os, "link", side_effect=mutate_before_link):
+                with self.assertRaisesRegex(ValueError, "validated staging bytes"):
+                    pcm.capture_kon_pcm(
+                        self.command(path), events=self.events(), produced=45000,
+                        kon_sample_index=40000, wav_path=path,
+                        before=500, after=2000)
+
+
 class NativeWavWirePathTests(unittest.TestCase):
     def test_windows_drive_and_unc_paths_round_trip_native_json(self):
         for original, expected in (

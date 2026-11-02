@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import re
@@ -188,8 +189,15 @@ def wav_command_path(wav_path: Path) -> str:
     return path
 
 
-def publish_wav_no_replace(staged_path: Path, wav_path: Path) -> None:
-    """Publish staged WAV without opening an existing destination for writing."""
+def publish_wav_no_replace(staged_path: Path, wav_path: Path, *,
+                           expected_digest: bytes | None = None) -> None:
+    """Publish staged WAV without replacing the destination.
+
+    Compare against an independent pre-link digest, never a digest obtained
+    from the staged hardlink name after the final inode becomes writable.
+    """
+    if expected_digest is None:
+        expected_digest = hashlib.sha256(staged_path.read_bytes()).digest()
     try:
         os.link(staged_path, wav_path)
     except FileExistsError as exc:
@@ -207,8 +215,8 @@ def publish_wav_no_replace(staged_path: Path, wav_path: Path) -> None:
     # A failed publication leaves no plausible success receipt. A partial
     # exclusively created fallback file is retained rather than deleting an
     # uncertain pathname after an exception.
-    if hashlib.sha256(staged_path.read_bytes()).digest() != hashlib.sha256(wav_path.read_bytes()).digest():
-        raise ValueError("published WAV differs from captured staging bytes")
+    if expected_digest != hashlib.sha256(wav_path.read_bytes()).digest():
+        raise ValueError("published WAV differs from validated staging bytes")
 
 
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
@@ -266,7 +274,10 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
             raise ValueError("audio_wav returned clamped/mismatched native PCM slice")
         if not staged_path.is_file() or staged_path.is_symlink():
             raise ValueError("audio_wav did not create a real staged WAV")
-        with wave.open(str(staged_path), "rb") as wav:
+        # Decode and hash the same immutable byte snapshot. A later mutation
+        # of the linked inode must not redefine the expected evidence bytes.
+        staged_bytes = staged_path.read_bytes()
+        with wave.open(io.BytesIO(staged_bytes), "rb") as wav:
             if (wav.getnchannels(), wav.getsampwidth(), wav.getframerate(),
                     wav.getcomptype(), wav.getnframes()) != (2, 2, 32040, "NONE", count):
                 raise ValueError("native PCM WAV format/sample count mismatch")
@@ -274,9 +285,11 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         if len(pcm) != count * 4:
             raise ValueError("short decoded native stereo PCM")
         # Pinned producer emits a fixed 44-byte header plus four bytes/frame.
-        if staged_path.stat().st_size != 44 + count * 4:
+        if len(staged_bytes) != 44 + count * 4:
             raise ValueError("unexpected native WAV length")
-        publish_wav_no_replace(staged_path, wav_path)
+        publish_wav_no_replace(
+            staged_path, wav_path,
+            expected_digest=hashlib.sha256(staged_bytes).digest())
     return {
         "schema": "ur-qa01-native-kon-pcm/1",
         "authority": "native DSP producer audio_trace ring; not host SDL device",

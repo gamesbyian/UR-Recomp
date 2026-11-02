@@ -66,8 +66,8 @@ def extent_from_mask(mask) -> dict:
     """Same top/bottom THREE occupied rows as original source painted census."""
     import numpy as np
     m=np.asarray(mask)
-    if m.shape!=(64,64) or m.dtype.kind not in "biu" or
-            not np.isin(m,[0,1]).all():
+    if (m.shape!=(64,64) or m.dtype.kind not in "biu" or
+            not np.isin(m,[0,1]).all()):
         raise ValueError("model blue painted mask must be 64x64 binary")
     pts=np.argwhere(m.astype(bool))
     if len(pts)<12:
@@ -95,8 +95,8 @@ def original_variant_extent(variant:dict)->dict:
     r=extent_from_endpoints(m.get("top_centroid_logical_xy"),
                             m.get("bottom_centroid_logical_xy"),m.get("pixel_count"))
     axis=m.get("signed_axis_angle_from_image_vertical_deg")
-    if type(axis) not in (float,int) or not math.isfinite(axis) or
-            abs(axis-r["signed_painted_axis_deg"])>0.00002:
+    if (type(axis) not in (float,int) or not math.isfinite(axis) or
+            abs(axis-r["signed_painted_axis_deg"])>0.00002):
         raise ValueError("original source axial centroid receipt inconsistent")
     return {"source_player":variant["player"],"source_rgba_sha256":rgba,**r}
 

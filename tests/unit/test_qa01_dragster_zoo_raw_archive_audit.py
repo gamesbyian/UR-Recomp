@@ -202,6 +202,29 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             self.assertFalse(evidence["actual_source_executable_manifest"][
                 "compiled_binaries_physically_in_case_zip"])
 
+    def test_pinned_stock_core_cross_producer_identity_and_no_event_credit(self):
+        # Exact stock ELF from RF065 #13109297984, independently reviewed
+        # against Baldosa #13109129538 and Dragster #13109381329.
+        stock = "c1fa118343cbd149edab1d092f649222d3b2f9988b77cb198a27c948f0843e6b"
+        self.assertIn(stock, audit.QUALIFIED_ORIGINAL_CORES)
+        report = self.make()
+        report["reference_core_sha256"] = stock
+        self.write("dragster-report.json", report)
+        self.manifest_source(report)
+        evidence = audit.audit(self.root)
+        self.assertEqual(evidence["actual_source_executable_manifest"][
+            "original_core_sha256"], stock)
+        self.assertTrue(evidence["actual_source_executable_manifest"][
+            "original_core_on_independently_verified_archive_allowlist"])
+        self.assertEqual(evidence["independent_usa_event_adjudication"], "HOLD")
+        self.assertEqual(evidence["accepted_usa_events"], 0)
+        # The new admission is one exact binary, not an open-ended pin.
+        report["reference_core_sha256"] = "d" * 64
+        self.write("dragster-report.json", report)
+        self.manifest_source(report)
+        with self.assertRaisesRegex(ValueError, "not independently source-qualified"):
+            audit.audit(self.root)
+
     def test_missing_tampered_misnamed_or_unqualified_original_manifest_rejected(self):
         self.make()
         manifest = self.root / "executables.sha256"

@@ -26,6 +26,9 @@ class FrameHingeViewerTests(unittest.TestCase):
         self.assertIn("synthetic tire-only GLB falsely enabled axle hinge",browser)
         self.assertIn("real five-parent frame hinge unavailable",browser)
         self.assertIn("frame hinge failed to reset original pose",browser)
+        self.assertIn("frame hinge altered stationary",browser)
+        self.assertIn("frame hinge 0 degree reset mutated original source transforms",browser)
+        self.assertIn("hingeStatus.dataset[key]",html)
         for path in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
             self.assertIn("frame_hinge_hypothesis.mjs",
                           (ROOT/path).read_text(encoding="utf-8"))

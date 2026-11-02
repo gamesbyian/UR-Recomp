@@ -157,7 +157,19 @@ function applyFrameHinge(){
 function updateFrameHingeStatus(origin=''){
  $('frameHinge').disabled=!frameHingeState;
  $('frameHinge').value=String(frameHinge);
- $('frameHingeStatus').textContent=!frameHingeState?
+ const hingeStatus=$('frameHingeStatus');
+ // DOM-visible provenance for actual pose-transform browser assertions.
+ // Matrices belong to source part PARENTS, not the mesh child vertices.
+ const parts=['tire','rim_and_hub','pedals','fork_and_frame','saddle'];
+ for(const [i,name] of parts.entries()){
+  const key=['tireMatrix','rimMatrix','pedalsMatrix','forkMatrix','saddleMatrix'][i];
+  const node=current?.getObjectByName(name);
+  if(frameHingeState&&node){
+   node.updateMatrix();
+   hingeStatus.dataset[key]=Array.from(node.matrix.elements,v=>v.toFixed(9)).join(',');
+  } else delete hingeStatus.dataset[key];
+ }
+ hingeStatus.textContent=!frameHingeState?
   'Frame hinge unavailable: GLB must preserve five axle-sharing parents and sixteen child meshes.':
   (frameHinge===0?'Unmodified source parent transforms.':'Experimental '+frameHinge+'° axle-centred fork/saddle parent rotation.')+
   ' Wheel, rim and crank stay unchanged; no 1994 source joint or frame cadence has been established. '+

@@ -133,11 +133,29 @@ try{
      if(q('frameHinge').disabled)issues.push('real five-parent frame hinge unavailable');
      else {
        const originalIdentity=q('source').textContent;
+       const attr=()=>Object.fromEntries(['tireMatrix','rimMatrix','pedalsMatrix','forkMatrix','saddleMatrix']
+                        .map(name=>[name,q('frameHingeStatus').dataset[name]||'']));
+       const initial=attr();
+       if(Object.values(initial).some(value=>!value))issues.push('source part transforms not available');
+       let last=initial;
        for(const [value,label] of [['-40','-40'],['20','20'],['0','Unmodified']]){
          q('frameHinge').value=value;
          q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
          if(q('frameHinge').value!==value || !q('frameHingeStatus').textContent.includes(label))
            issues.push('frame hinge selection '+value);
+         const now=attr();
+         for(const key of ['tireMatrix','rimMatrix','pedalsMatrix']){
+           if(now[key]!==initial[key])issues.push('frame hinge altered stationary '+key+' at '+value);
+         }
+         if(value!=='0'){
+           for(const key of ['forkMatrix','saddleMatrix']){
+             if(now[key]===initial[key]||now[key]===last[key])
+               issues.push('frame hinge failed to move '+key+' at '+value);
+           }
+         }else if(Object.keys(initial).some(key=>now[key]!==initial[key])){
+           issues.push('frame hinge 0 degree reset mutated original source transforms');
+         }
+         last=now;
        }
        if(q('source').textContent!==originalIdentity)
          issues.push('frame hinge changed actual GLB source identity');

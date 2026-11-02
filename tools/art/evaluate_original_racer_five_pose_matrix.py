@@ -35,6 +35,7 @@ SCHEMA = "UR-ART4K-ACTUAL-USA-ROM-FIVE-GLB-POSE-MATRIX/1"
 def validate_matrix_rows(rows, originals, poses=POSES):
     """Pure negative-control audit, one vote per actual original binary mask."""
     if (not isinstance(rows, list) or len(rows) != len(originals)
+            or any(not isinstance(r, dict) for r in rows)
             or len({r.get("source_binary_mask_sha256") for r in rows}) != len(rows)
             or {r.get("source_binary_mask_sha256") for r in rows} != set(originals)):
         raise ValueError("original 35-mask census or uniqueness altered")

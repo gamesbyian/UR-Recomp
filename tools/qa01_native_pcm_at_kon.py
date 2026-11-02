@@ -287,9 +287,13 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         # Pinned producer emits a fixed 44-byte header plus four bytes/frame.
         if len(staged_bytes) != 44 + count * 4:
             raise ValueError("unexpected native WAV length")
+        # Freeze the identity of the validated WAV before its final name
+        # becomes visible. A post-check mutation must never redefine the
+        # receipt digest by hashing the mutable published pathname.
+        expected_wav_digest = hashlib.sha256(staged_bytes).digest()
         publish_wav_no_replace(
             staged_path, wav_path,
-            expected_digest=hashlib.sha256(staged_bytes).digest())
+            expected_digest=expected_wav_digest)
     return {
         "schema": "ur-qa01-native-kon-pcm/1",
         "authority": "native DSP producer audio_trace ring; not host SDL device",
@@ -299,9 +303,9 @@ def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
         "start_sample_index": start, "sample_frames": count,
         "kon_offset_frames": before, "before_frames": before, "after_frames": after,
         "sample_rate_hz": 32040, "channels": 2, "sample_format": "signed_pcm16_le",
-        "wav_sha256": hashlib.sha256(wav_path.read_bytes()).hexdigest(),
+        "wav_sha256": expected_wav_digest.hex(),
         "pcm_sha256": hashlib.sha256(pcm).hexdigest(),
-        "wav_bytes": wav_path.stat().st_size,
+        "wav_bytes": len(staged_bytes),
         "source_to_binary_identity_independently_verified": False,
         "original_native_audio_parity_proven": False,
         "usa_event_credit": 0, "windows_release_gate_credit": 0,

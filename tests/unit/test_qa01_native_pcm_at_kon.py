@@ -260,6 +260,34 @@ class NativeKonPCMTests(unittest.TestCase):
                         kon_sample_index=40000, wav_path=path,
                         before=500, after=2000)
 
+    def test_mutation_after_publisher_check_cannot_redefine_receipt_identity(self):
+        # The publisher's own digest check passed. A later mutation of its
+        # final hardlink must not be blessed by the caller's receipt fields.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "kon.wav"
+            real_publish = pcm.publish_wav_no_replace
+            expected = []
+
+            def mutate_after_validation(staged, final, *, expected_digest=None):
+                expected.append(expected_digest.hex())
+                real_publish(staged, final, expected_digest=expected_digest)
+                Path(final).write_bytes(b"CORRUPTED-AFTER-PUBLISHER-CHECK")
+
+            with mock.patch.object(pcm, "publish_wav_no_replace",
+                                   side_effect=mutate_after_validation):
+                result = pcm.capture_kon_pcm(
+                    self.command(path), events=self.events(), produced=45000,
+                    kon_sample_index=40000, wav_path=path,
+                    before=500, after=2000)
+            self.assertEqual(len(expected), 1)
+            self.assertEqual(result["wav_sha256"], expected[0])
+            self.assertEqual(result["wav_bytes"], 44 + 2500 * 4)
+            # A paired-file consumer must reject the changed final WAV.
+            self.assertNotEqual(
+                result["wav_sha256"],
+                pcm.hashlib.sha256(path.read_bytes()).hexdigest())
+            self.assertNotEqual(result["wav_bytes"], path.stat().st_size)
+
 
 class NativeWavWirePathTests(unittest.TestCase):
     def test_windows_drive_and_unc_paths_round_trip_native_json(self):

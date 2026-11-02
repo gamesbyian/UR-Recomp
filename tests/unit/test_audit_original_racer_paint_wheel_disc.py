@@ -2,7 +2,7 @@
 import unittest
 
 from tools.art.audit_original_racer_paint_wheel_disc import (
-    disk_band_fractions, envelope, compare_shapes,
+    disk_band_fractions, relative_painted_centroids, envelope, compare_shapes,
     WHEEL_RING_RADIUS_LOGICAL_PX,
 )
 from tools.art.evaluate_original_racer_chroma_guided_3d_hinge import ANGLES
@@ -15,6 +15,8 @@ def disk_points():
 def source_model():
     masks=[]
     images={}
+    sample=({(25+i,27+j) for i in range(4) for j in range(4)} |
+            {(25+i,14+j) for i in range(4) for j in range(2)})
     for i in range(35):
         mask=f"{1000+i:064x}"
         variants=[]
@@ -28,7 +30,12 @@ def source_model():
                 "source_binary_mask_sha256":mask,
                 "painted_source_pixels":24,
                 "all_original_ring_centre_candidates":disk_band_fractions(
-                    disk_points(),[[27,29,7],[28,29,7]]),
+                    sample,[[27,29,7],[28,29,7]]),
+                "all_original_paint_centroid_candidates":
+                    relative_painted_centroids(sample,[[27,29,7],[28,29,7]]),
+                "above_wheel_paint_centroid_candidates":
+                    relative_painted_centroids(sample,[[27,29,7],[28,29,7]],
+                                               above_wheel_only=True),
             }
         masks.append({"original_binary_mask_sha256":mask,
                       "equal_colour_variant_mean_projected_angle_deg":0.,
@@ -36,7 +43,9 @@ def source_model():
     model={a:{"blue_model_painted_axis_degrees":float(-a),
               "fraction_inside_source_ring_disc":0.2,
               "fraction_at_or_below_wheel_top":0.3,
-              "fraction_at_or_below_wheel_centre":0.1}
+              "fraction_at_or_below_wheel_centre":0.1,
+              "all_blue_centroid_relative_to_axle_physical_xy":[-2.,-8.],
+              "above_wheel_blue_centroid_relative_to_axle_physical_xy":[-2.,-12.]}
            for a in ANGLES}
     return {"source_variants":{"source_masks":masks}},images,model
 
@@ -53,6 +62,22 @@ class WheelDiskEvidenceTests(unittest.TestCase):
         translated={(x+4,y+3) for x,y in pts}
         self.assertEqual(disk_band_fractions(translated,[[31,32,7]])[0][
             "fraction_inside_source_ring_disc"],1.)
+
+    def test_source_wheel_relative_centroids_drop_near_wheel_pixels(self):
+        pts={(20,y) for y in range(10,24)}
+        all_paint=relative_painted_centroids(pts,[[20,20,7],[20,21,7]])
+        above=relative_painted_centroids(
+            pts,[[20,20,7],[20,21,7]],above_wheel_only=True)
+        self.assertEqual([x["painted_pixel_count"] for x in all_paint],[14,14])
+        self.assertEqual([x["painted_pixel_count"] for x in above],[3,4])
+        self.assertEqual(
+            [x["paint_centroid_relative_to_wheel_physical_xy"][1] for x in above],
+            [-9.,-9.5])
+        with self.assertRaisesRegex(ValueError,"insufficient"):
+            relative_painted_centroids(disk_points(),[[27,29,7]],
+                                       above_wheel_only=True)
+        with self.assertRaises(ValueError):
+            relative_painted_centroids(pts,[[20,20,7]],above_wheel_only=1)
 
     def test_original_2d_ring_candidates_preserve_both_tied_fractions(self):
         pts={(20,y) for y in range(10,24)}
@@ -87,6 +112,13 @@ class WheelDiskEvidenceTests(unittest.TestCase):
         self.assertEqual(bands["source_strictly_greater_with_all_tied_centres"],35)
         self.assertEqual(bands["model_mean"],0.2)
         self.assertLessEqual(bands["source_min_mean"],bands["source_max_mean"])
+        m=evidence["summary"]["all35"]
+        self.assertIn("centroid_distance_all_paint",m)
+        self.assertIn("centroid_distance_above_wheel_only",m)
+        self.assertEqual(len(evidence["per_original_binary_mask"][0][
+            "source_original_RGBA_variants"][0]["centroid_mismatch_by_region"]),2)
+        self.assertGreaterEqual(
+            m["masks_where_ignoring_near_wheel_paint_reduces_centroid_error"],0)
 
     def test_source_shape_family_and_rgba_mismatch_fails_closed(self):
         chroma,images,model=source_model()

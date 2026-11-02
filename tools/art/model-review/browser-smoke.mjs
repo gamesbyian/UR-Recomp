@@ -99,6 +99,9 @@ try{
   const report=await evaluate(`(async function(){
    const issues=[],q=id=>document.getElementById(id),w=innerWidth;
    if(document.documentElement.scrollWidth>w+1)issues.push('horizontal overflow');
+   const panel=document.querySelector('.panel');
+   if(panel&&panel.scrollWidth>panel.clientWidth+1)
+     issues.push('model-review panel horizontal overflow');
    if(!document.querySelector('#viewport canvas'))issues.push('no WebGL canvas');
    if(!q('parts').textContent.includes('tire'))issues.push('no glTF part');
    if(!q('sourceInfo').textContent.includes('frame 1205'))issues.push('missing original provenance');

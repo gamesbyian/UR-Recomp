@@ -18,8 +18,11 @@ class SourceDriveViewerTests(unittest.TestCase):
             self.assertIn(marker,html)
         for file in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
             self.assertIn("direct_drive_hypothesis.mjs",(ROOT/file).read_text())
+        self.assertIn("overflow-wrap:anywhere",html)
+        self.assertIn("overflow-x:hidden",html)
         smoke=(ROOT/"tools/art/model-review/browser-smoke.mjs").read_text()
-        for marker in ("synthetic non-source GLB falsely enabled direct drive",
+        for marker in ("model-review panel horizontal overflow",
+                       "synthetic non-source GLB falsely enabled direct drive",
                        "direct drive failed to rotate","direct drive moved stationary",
                        "direct drive source matrices not restored",
                        "wheel sync altered independent fork hinge",

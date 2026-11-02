@@ -16,6 +16,19 @@ class WidescreenProductHostContractTests(unittest.TestCase):
         self.assertIn('if (std::getenv("URRECOMP_WS_MARGIN")) return;', body)
         self.assertIn('const char* explicit_view = std::getenv("URRECOMP_WS_VIEW");', body)
 
+    def test_original_view_releases_live_margin_shadow(self):
+        host = HOST.read_text(encoding="utf-8")
+        start = host.index('extern "C" void ur_uniracers_modern_prepare_frame(')
+        end = host.index('extern "C" void ur_uniracers_modern_begin_sim_frame(', start)
+        body = host[start:end]
+        self.assertRegex(
+            body,
+            r'if \(!authentic_16x9_view_enabled\(\)\) \{\s*'
+            r'ur_ws_margins_prepare_frame\(0, 0\);\s*return;\s*\}',
+        )
+        self.assertLess(body.index('ur_ws_margins_prepare_frame(0, 0);'),
+                        body.index('const auto plan ='))
+
     def test_hook_guest_lane_zero_preserves_stock_guest_ring(self):
         hook = HOOK.read_text(encoding="utf-8")
         self.assertIn("URRECOMP_WS_GUEST_LANE=0 keeps the second pass", hook)

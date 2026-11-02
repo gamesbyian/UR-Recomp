@@ -40,7 +40,7 @@ static void course(void) {
         put16(0x10000+0x000F+2u*rec,rec);
         for(int fy=0;fy<4;fy++) for(int fx=0;fx<4;fx++) {
             int x=sx*4+fx,y=sy*4+fy;
-            put16(0x10000+0x800F+32u*rec+2u*(fy*4+fx),
+            put16(0x10000+0x800F+32u*rec+2u*(uint32_t)(fy*4+fx),
                   (uint16_t)(0x1000|(y<<6)|x));
         }
     }
@@ -94,5 +94,16 @@ int main(void) {
     flip_nine(0x1C00,8);
     counters(); ur_ws_margins_prepare_frame(1,43);
     assert(frames==1 && worlds==1 && forces>0 && splits==1);
+
+    /* Switching from an active widened 2P frame to Original must retire
+     * both the world-keyed shadow and its per-frame registration. A second
+     * Original frame must not repeatedly reset an already inactive store. */
+    const int reset_before = resets;
+    counters(); ur_ws_margins_prepare_frame(0,0);
+    assert(resets==reset_before+1 && frames==1);
+    assert(worlds==0 && forces==0 && splits==0);
+    assert(!ur_ws_margins_calibrated());
+    counters(); ur_ws_margins_prepare_frame(0,0);
+    assert(resets==reset_before+1 && frames==0);
     return 0;
 }

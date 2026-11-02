@@ -10,7 +10,7 @@ from tools.art.study_original_racer_continuous_ride_motion import (
 
 class RideSourceMotionTests(unittest.TestCase):
     def fixture(self):
-        sha = "a" * 64
+        sha = "4c2ecc8f3a226486d363d5987a08f79bbbbf5606ab12de85a719c52cf35e6eac"
         qualified = {
             "schema": "UR-ART4K-REAL-CONTINUOUS-SOURCE-GLB-RECEIPT/1",
             "rig_pose": "ride", "rig_time": 0.25,

@@ -21,6 +21,7 @@ except ModuleNotFoundError:
 
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
 MATRIX_SCHEMA = "UR-RACER-UNPAIRED-POSE-SIMILARITY-MATRIX/1"
+ALL_FAMILY_MATRIX_SCHEMA = "UR-ART4K-ACTUAL-USA-ROM-FIVE-GLB-POSE-MATRIX/1"
 SPLIT_SCHEMA = "UR-RACER-FROZEN-SOURCE-FAMILY-SPLIT/1"
 
 
@@ -39,7 +40,7 @@ def build_input(corpus, matrix, requested_windows, split=None, corpus_sha=None):
             or len(set(requested_windows)) != len(requested_windows)
             or not set(requested_windows).issubset(set(windows))):
         raise ValueError("explicit valid source windows required")
-    if (not isinstance(matrix, dict) or matrix.get("schema") != MATRIX_SCHEMA
+    if (not isinstance(matrix, dict) or matrix.get("schema") not in (MATRIX_SCHEMA, ALL_FAMILY_MATRIX_SCHEMA)
             or matrix.get("source_original_rom_sha256") != CANONICAL_ROM_SHA
             or matrix.get("camera_status") != "provisional"
             or matrix.get("camera_shared_across_all_comparisons") is not True

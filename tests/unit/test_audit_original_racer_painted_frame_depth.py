@@ -20,6 +20,29 @@ CAMERA={
 }
 
 
+class SourceRGBVariantEvidenceTests(unittest.TestCase):
+    def test_source_rgb_variants_retain_different_5_degree_pose_hypotheses(self):
+        from tools.art.evaluate_original_racer_chroma_guided_3d_hinge import ANGLES
+        predictions={"camera_from_plus_world_y":{a:float(-a) for a in ANGLES}}
+        def variant(angle, suffix):
+            return {"player":"p1","rgba_sha256":suffix*64,
+                    "measurement":{"signed_axis_angle_from_image_vertical_deg":angle}}
+        result=variant_painted_angle_selections(
+            {"source_colour_variants":[variant(5.,"a"),variant(10.,"b")]},
+            predictions)
+        self.assertEqual(
+            result["source_variant_pose_ambiguity"]["camera_from_plus_world_y"]["possible_hinge_degrees"],
+            [-10,-5])
+        self.assertTrue(result["source_variant_pose_ambiguity"]["camera_from_plus_world_y"]["variant_disagreement"])
+        self.assertEqual(len(result["authenticated_source_rgba_variants"]),2)
+        with self.assertRaisesRegex(ValueError,"source original colour variants absent"):
+            variant_painted_angle_selections({"source_colour_variants":[]},predictions)
+        with self.assertRaisesRegex(ValueError,"source original painted axis must be finite"):
+            variant_painted_angle_selections(
+                {"source_colour_variants":[variant(float("nan"),"a")]},predictions)
+
+
+
 @unittest.skipUnless(np is not None,"optional NumPy")
 class DepthPaintedAxisTests(unittest.TestCase):
     def triangle(self,front):
@@ -77,26 +100,6 @@ class DepthPaintedAxisTests(unittest.TestCase):
         bad={**CAMERA,"source_anchor_x2_y2":[120,120]}
         with self.assertRaisesRegex(ValueError,"crop"):
             rasterize_depth(np.stack([t]),ids,bad)
-
-    def test_source_rgb_variants_retain_different_5_degree_pose_hypotheses(self):
-        from tools.art.evaluate_original_racer_chroma_guided_3d_hinge import ANGLES
-        predictions={"camera_from_plus_world_y":{a:float(-a) for a in ANGLES}}
-        def variant(angle, suffix):
-            return {"player":"p1","rgba_sha256":suffix*64,
-                    "measurement":{"signed_axis_angle_from_image_vertical_deg":angle}}
-        result=variant_painted_angle_selections(
-            {"source_colour_variants":[variant(5.,"a"),variant(10.,"b")]},
-            predictions)
-        self.assertEqual(
-            result["source_variant_pose_ambiguity"]["camera_from_plus_world_y"]["possible_hinge_degrees"],
-            [-10,-5])
-        self.assertTrue(result["source_variant_pose_ambiguity"]["camera_from_plus_world_y"]["variant_disagreement"])
-        self.assertEqual(len(result["authenticated_source_rgba_variants"]),2)
-        with self.assertRaisesRegex(ValueError,"source original colour variants absent"):
-            variant_painted_angle_selections({"source_colour_variants":[]},predictions)
-        with self.assertRaisesRegex(ValueError,"source original painted axis must be finite"):
-            variant_painted_angle_selections(
-                {"source_colour_variants":[variant(float("nan"),"a")]},predictions)
 
     def test_original_source_axis_selector_is_separate_from_iou(self):
         from tools.art.evaluate_original_racer_chroma_guided_3d_hinge import (

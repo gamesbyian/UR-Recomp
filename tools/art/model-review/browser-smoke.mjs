@@ -220,6 +220,9 @@ try{
      if(q('crankScrub').disabled)issues.push('real source-owned crank scrub disabled');
      else{
        const sourceLabel=q('source').textContent;
+       // Refresh the ledger after prior independent fork/saddle hinge tests.
+       q('wheelDrive').value='0';
+       q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
        const get=()=>Object.fromEntries(['tireMatrix','rimMatrix','pedalsMatrix','forkMatrix','saddleMatrix']
           .map(k=>[k,q('wheelDriveStatus').dataset[k]||'']));
        const original=get();

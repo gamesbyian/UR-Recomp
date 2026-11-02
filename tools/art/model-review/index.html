@@ -352,7 +352,7 @@ $('crankScrub').oninput=()=>{if(!current||!wheelDriveState)return;try{
  applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();markers();
 }catch(e){crankStep=0;wheelDrive=false;applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();$('crankStatus').textContent='Crank scrub unsupported: '+e.message}};
 $('frameHinge').onchange=()=>{if(!current||!frameHingeState)return;try{
- frameHinge=Number($('frameHinge').value);applyFrameHinge();updateFrameHingeStatus($('source').textContent);markers();
+ frameHinge=Number($('frameHinge').value);applyFrameHinge();updateFrameHingeStatus($('source').textContent);updateWheelDriveStatus($('source').textContent);markers();
 }catch(e){frameHinge=0;applyFrameHinge();updateFrameHingeStatus($('source').textContent);$('frameHingeStatus').textContent='Frame hinge unsupported: '+e.message}};
 $('rootLean').onchange=()=>{if(!current)return;try{
  rootLean=Number($('rootLean').value);applyRootLean();updateRootLeanStatus($('source').textContent);markers();

@@ -1,4 +1,7 @@
 """ROM-free regression: nine actual sourced GLB SHA pins, legacy default preserved."""
+import hashlib
+import json
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -51,6 +54,39 @@ class EighthRideSourceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_sample_receipt(q, c, last, "0.125", eighth.SHA)
 
+    def test_verified_rom_sprite_source_is_explicitly_not_live_ppu_timing(self):
+        document = {
+            "source_kind": "deterministic_canonical_USA_ROM_registered_composition",
+            "source_rom_verified_and_used_for_composition": True,
+            "native_live_original_PPU_or_1994_3d_camera_independently_verified": False,
+            "source_temporal_frame_observations": [{"window": "authored", "guest_frame": 1}],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/"authentic-source-corpus.json"
+            payload = (json.dumps(document, sort_keys=True)+"\\n").encode()
+            path.write_bytes(payload)
+            actual_sha = hashlib.sha256(payload).hexdigest()
+            result = eighth.registered_source_time_evidence(path, actual_sha)
+            self.assertTrue(result["original_64px_rasters_composed_from_sha_authenticated_original_rom"])
+            self.assertTrue(result["source_frame_order_is_registry_authored"])
+            self.assertFalse(result["original_live_emulator_ppu_frame_timing_independently_verified"])
+            self.assertFalse(result["original_live_gameplay_hold_cadence_proven"])
+            with self.assertRaises(ValueError):
+                eighth.registered_source_time_evidence(path, "0"*64)
+            for key, bad in (
+                ("source_kind", "live_original_PP_U_verified"),
+                ("source_rom_verified_and_used_for_composition", False),
+                ("native_live_original_PPU_or_1994_3d_camera_independently_verified", True),
+                ("source_temporal_frame_observations", None),
+            ):
+                altered = dict(document)
+                altered[key] = bad
+                raw = (json.dumps(altered, sort_keys=True)+"\\n").encode()
+                path.write_bytes(raw)
+                with self.subTest(key=key), self.assertRaises(ValueError):
+                    eighth.registered_source_time_evidence(
+                        path, hashlib.sha256(raw).hexdigest())
+
     def test_wrapper_rejects_incomplete_grid_without_model_loading(self):
         with self.assertRaises(ValueError):
             eighth.compute(Path("not-used"), Path("not-used"),
@@ -59,6 +95,7 @@ class EighthRideSourceTests(unittest.TestCase):
     def test_wrapper_rechecks_old_five_remains_stored_as_original(self):
         roots = {t: Path("untouched") for t in eighth.TIMES}
         source = {
+            "source_original_corpus_sha256": "f"*64,
             "exact_ride_grid": list(eighth.TIMES),
             "first_last_authored_cycle_4x_pixel_xor": 0,
             "uniform_2026_phase_transition_diagnostics": [{} for _ in range(8)],
@@ -66,7 +103,9 @@ class EighthRideSourceTests(unittest.TestCase):
             "original_1994_camera_or_pose_or_cadence_recovered": False,
             "shipping_art_approved": False,
         }
-        with patch.object(eighth, "evaluate", return_value=source) as fake:
+        with (patch.object(eighth, "evaluate", return_value=source) as fake,
+              patch.object(eighth, "registered_source_time_evidence",
+                           return_value={"source_frame_order_is_registry_authored": True})):
             out = eighth.compute(Path("original"), Path("camera"), roots)
         self.assertEqual(out["schema"], eighth.SCHEMA)
         self.assertEqual(out["actual_GLBS_from_existing_draft_exporter_run_id"], 41385793054)
@@ -81,7 +120,8 @@ class EighthRideSourceTests(unittest.TestCase):
                                ("original_1994_camera_or_pose_or_cadence_recovered", True),
                                ("shipping_art_approved", True)):
             payload = {
-                "exact_ride_grid": list(eighth.TIMES),
+                "source_original_corpus_sha256": "f"*64,
+            "exact_ride_grid": list(eighth.TIMES),
                 "first_last_authored_cycle_4x_pixel_xor": 0,
                 "uniform_2026_phase_transition_diagnostics": [{} for _ in range(8)],
                 "all_transition_pairs_predeclared_without_frame_matching": True,
@@ -89,7 +129,10 @@ class EighthRideSourceTests(unittest.TestCase):
                 "shipping_art_approved": False,
             }
             payload[field] = invalid
-            with self.subTest(field=field), patch.object(eighth, "evaluate", return_value=payload):
+            with (self.subTest(field=field),
+                  patch.object(eighth, "evaluate", return_value=payload),
+                  patch.object(eighth, "registered_source_time_evidence",
+                               return_value={"source_frame_order_is_registry_authored": True})):
                 with self.assertRaises(ValueError):
                     eighth.compute(Path("unused"), Path("unused"), roots)
 

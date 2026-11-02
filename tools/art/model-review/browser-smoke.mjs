@@ -279,6 +279,56 @@ try{
          issues.push('continuous crank leaked across published pose return');
      }
    }
+   if(q('paintHypothesis').getBoundingClientRect().height<44)
+     issues.push('paint hypothesis touch target too small');
+   if(${mocked}){
+     if(!q('paintHypothesis').disabled)
+       issues.push('synthetic non-source model falsely enabled paint hypotheses');
+   }else{
+     if(q('paintHypothesis').disabled)issues.push('real source GLB paint hypothesis disabled');
+     else{
+       const source=q('source').textContent,parts=q('parts').textContent;
+       const original=q('paintStatus').dataset.materialState;
+       if(!original||original.includes(':temporary'))
+         issues.push('source blue material state not originally restored');
+       function choosePaint(value,expected){
+         q('paintHypothesis').value=value;
+         q('paintHypothesis').dispatchEvent(new Event('change',{bubbles:true}));
+         const actual=q('paintStatus').dataset.materialState||'';
+         if(q('paintHypothesis').value!==value ||
+            !q('paintStatus').textContent.includes(value==='original'?'Unmodified':'Temporary') ||
+            actual.split(':temporary').length-1!==expected.length)
+           issues.push('paint material choice not implemented '+value);
+         for(const name of expected){
+           if(!actual.includes(name+':temporary'))
+             issues.push('paint material not recoloured '+name);
+         }
+         return actual;
+       }
+       choosePaint('area',['rim_and_hub__material_1','pedals__material_1']);
+       choosePaint('disc',['rim_and_hub__material_2','pedals__material_1']);
+       choosePaint('discPlus',['rim_and_hub__material_2','pedals__material_0','pedals__material_1']);
+       const restored=choosePaint('original',[]);
+       if(restored!==original)
+         issues.push('paint experiment failed exact original material restoration');
+       if(q('source').textContent!==source||q('parts').textContent!==parts)
+         issues.push('paint experiment changed source GLB identity or mesh census');
+       choosePaint('disc',['rim_and_hub__material_2','pedals__material_1']);
+       q('pose-pedal').click();
+       for(let attempt=0;attempt<160&&!q('source').textContent.includes('published pedal GLB');attempt++)
+         await new Promise(done=>setTimeout(done,25));
+       if(q('paintHypothesis').value!=='original'||
+          q('paintHypothesis').disabled ||
+          q('paintStatus').dataset.materialState?.includes(':temporary'))
+         issues.push('paint experiment persisted after changing actual published GLB');
+       q('pose-bank').click();
+       for(let attempt=0;attempt<160&&!q('source').textContent.includes('published bank GLB');attempt++)
+         await new Promise(done=>setTimeout(done,25));
+       if(!q('source').textContent.includes('published bank GLB')||
+          q('paintHypothesis').value!=='original')
+         issues.push('paint experiment leaked across named pose roundtrip');
+     }
+   }
    if(q('rootLean').getBoundingClientRect().height<44)
      issues.push('root lean accessible touch target');
    if(q('rootLean').disabled)issues.push('source GLB root lean selector unavailable');

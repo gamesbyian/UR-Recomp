@@ -291,14 +291,19 @@ function applyPaintHypothesis(choice){
  if(!paintState||!Object.prototype.hasOwnProperty.call(PAINT_HYPOTHESES,choice))
    throw Error('historical source paint hypothesis unavailable');
  const additions=new Set(PAINT_HYPOTHESES[choice]);
+ // The Wireframe control is global across the current model. Every original
+ // material restored or freshly cloned must preserve its ACTIVE UI state.
+ const wireframe=$('wire').getAttribute('aria-pressed')==='true';
  for(const record of paintState.records){
    if(record.mesh.material!==record.original){
      const temporary=record.mesh.material;
      record.mesh.material=record.original;
      temporary?.dispose();
    }
+   record.original.wireframe=wireframe;
    if(additions.has(record.name)){
      const material=record.original.clone();
+     material.wireframe=wireframe;
      // Existing model colour lives in vertex RGB; override only the
      // experiment's material, never its source mesh/vertex colour buffer.
      material.vertexColors=false;
@@ -316,13 +321,19 @@ function updatePaintHypothesisStatus(origin=''){
  selector.value=paintState?paintMode:'original';
  status.dataset.materialState=paintState?paintState.records.map(x=>
    x.name+':'+(x.mesh.material===x.original?'source':'temporary')).join('|'):'unavailable';
+ status.dataset.materialWireframe=paintState?paintState.records.map(x=>
+   x.name+':'+(x.mesh.material?.wireframe?'wire':'solid')).join('|'):'unavailable';
  status.textContent=!paintState?
    'Unavailable: published exact-SHA 2026 five-part GLB and source material hierarchy required.':
    (paintMode==='original'?'Unmodified original 2026 GLB material allocation.':
      'Temporary selected existing rim/crank material override; original GLB and vertex colours preserved.')+
    ' The original 1994 material boundaries, original camera and character likeness remain unverified.';
 }
-function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);paintMode='original';paintState=capturePaintMaterials(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);
+function useModel(gltf,origin){clear();current=gltf.scene;
+if($('wire').getAttribute('aria-pressed')==='true')current.traverse(o=>{
+ if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=true;
+});
+rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);paintMode='original';paintState=capturePaintMaterials(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -435,7 +446,7 @@ $('rootLean').onchange=()=>{if(!current)return;try{
 }catch(e){rootLean=0;applyRootLean();updateRootLeanStatus($('source').textContent);$('rootLeanStatus').textContent='Root lean unsupported: '+e.message}};
 $('reset').onclick=()=>{if(current){resetCameraForModel(current);updateRootLeanStatus($('source').textContent);}else{camera.position.set(6,4.3,8);controls.target.set(0,1.7,0);controls.update()}};
 $('spin').onclick=()=>{spinning=!spinning;$('spin').setAttribute('aria-pressed',String(spinning))};
-$('wire').onclick=()=>{const on=$('wire').getAttribute('aria-pressed')!=='true';$('wire').setAttribute('aria-pressed',String(on));current?.traverse(o=>{if(o.isMesh){for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=on}})};
+$('wire').onclick=()=>{const on=$('wire').getAttribute('aria-pressed')!=='true';$('wire').setAttribute('aria-pressed',String(on));current?.traverse(o=>{if(o.isMesh){for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=on}});updatePaintHypothesisStatus($('source').textContent)};
 $('zup').onchange=()=>{if(!current)return;applyRootLean();resetCameraForModel(current);updateRootLeanStatus($('source').textContent);markers()};$('nodes').onchange=markers;$('helpers').onchange=()=>{grid.visible=axes.visible=$('helpers').checked};$('light').oninput=()=>{hemi.intensity=Number($('light').value);sun.intensity=Number($('light').value)*1.5};
 renderer.domElement.addEventListener('click',e=>{if(!current)return;const r=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObject(current,true);if(hits.length)$('footer').textContent='Selected: '+(hits[0].object.name||hits[0].object.parent?.name||'mesh')});
 const resize=()=>{const w=stage.clientWidth,h=stage.clientHeight;if(w&&h){camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}};new ResizeObserver(resize).observe(stage);resize();renderer.setAnimationLoop(()=>{if(spinning)controls.autoRotate=true;else controls.autoRotate=false;controls.update(clock.getDelta());renderer.render(scene,camera)})}

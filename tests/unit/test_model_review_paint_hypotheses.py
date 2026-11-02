@@ -29,6 +29,9 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
         html=(ROOT/"tools/art/model-review/index.html").read_text()
         for marker in (
             "const material=record.original.clone()",
+            "material.wireframe=wireframe",
+            "record.original.wireframe=wireframe",
+            "status.dataset.materialWireframe=paintState?",
             "material.vertexColors=false",
             "material.color.setRGB(28/255,89/255,222/255,THREE.SRGBColorSpace)",
             "record.mesh.material=material",
@@ -59,8 +62,11 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
             "paint experiment persisted after changing actual published GLB",
             "paint experiment leaked across named pose roundtrip",
             "actual 3D paint hypothesis changed labels but not GLB viewport pixels",
-            "actual 3D source model paint visual reset differs",
+            "stationary original 3D GLB paint pixels not exactly restored",
             "model-review-paint-disc-412.png",
+            "paint transition lost active wireframe",
+            "wireframe off did not restore solid material render",
+            "source GLB view did not stabilize",
         ):
             self.assertIn(marker,smoke)
         self.assertIn("320",smoke)

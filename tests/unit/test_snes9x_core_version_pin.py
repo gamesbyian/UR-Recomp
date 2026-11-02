@@ -30,6 +30,14 @@ class Snes9xVendoredVersionTests(unittest.TestCase):
         self.assertIn('GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"', makefile)
         self.assertIn('info->library_version = VERSION GIT_VERSION;', source)
 
+    def test_instrumented_source_rebuilds_keep_vendored_version(self):
+        workflow = (ROOT / '.github/workflows/qa01-original-stack-producer-compile.yml').read_text()
+        self.assertEqual(workflow.count('PINNED_GIT_VERSION="$(python3 -c '), 2)
+        self.assertEqual(workflow.count('["revision"][:7]'), 2)
+        self.assertEqual(
+            workflow.count('make -C "$SRC/libretro" -j2 "GIT_VERSION=$PINNED_GIT_VERSION"'), 2)
+        self.assertNotIn('make -C "$SRC/libretro" -j2\\n', workflow)
+
     @unittest.skipUnless(shutil.which('make') and shutil.which('git'), 'requires make and git')
     def test_make_command_line_override_beats_host_repository_sha(self):
         with tempfile.TemporaryDirectory() as temp:

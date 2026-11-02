@@ -98,7 +98,8 @@ jobs:
           # changing getset.h does NOT invalidate all old stock .o files.
           # An incremental link can mix getset versions under LTO.
           make -C "$SRC/libretro" clean
-          make -C "$SRC/libretro" -j2
+          PINNED_GIT_VERSION="$(python3 -c 'import json; from pathlib import Path; print("+" + json.loads(Path("tools/toolchain-entries/snes9x-libretro.json").read_text())["revision"][:7])')"
+          make -C "$SRC/libretro" -j2 "GIT_VERSION=$PINNED_GIT_VERSION"
           test -s "$SRC/libretro/snes9x_libretro.so"
           sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/instrumented-core-sha256.txt"
           cp "$SRC/libretro/snes9x_libretro.so" "$RUNNER_TEMP/rf065/instrumented-original-libretro.so"
@@ -175,7 +176,8 @@ jobs:
           # 2014 make rules do not fully invalidate every object on header
           # changes. Rebuild all four genuine translation units in one link.
           make -C "$SRC/libretro" clean
-          make -C "$SRC/libretro" -j2
+          PINNED_GIT_VERSION="$(python3 -c 'import json; from pathlib import Path; print("+" + json.loads(Path("tools/toolchain-entries/snes9x-libretro.json").read_text())["revision"][:7])')"
+          make -C "$SRC/libretro" -j2 "GIT_VERSION=$PINNED_GIT_VERSION"
           test -s "$SRC/libretro/snes9x_libretro.so"
           sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf083/linked-original-core-sha256.txt"
           {

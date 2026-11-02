@@ -68,12 +68,16 @@ class OriginalIndexTests(unittest.TestCase):
                 parse_id(bad)
         with self.assertRaises(ValueError):
             rasterize_composed_palette_indices(b"",composition(0),"p3")
+        plane=bytearray(4096)
+        plane[20*64+20]=3
+        good=bytes(plane)
         for plane,centres,colours in (
             (b"x"*4096,[[20,20,7]],palette()),
-            (bytes(4096),[],palette()),
-            (bytes(4096),[[20,20,6]],palette()),
-            (bytes(4096),[[64,20,7]],palette()),
-            (bytes(4096),[[20,20,7]],palette()[:8]),
+            (bytes(4096),[[20,20,7]],palette()),
+            (good,[],palette()),
+            (good,[[20,20,6]],palette()),
+            (good,[[64,20,7]],palette()),
+            (good,[[20,20,7]],palette()[:8]),
         ):
             with self.assertRaises(ValueError):
                 palette_disk_census(plane,centres,colours)

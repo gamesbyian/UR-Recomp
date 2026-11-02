@@ -111,7 +111,18 @@ def palette_disk_census(indices:bytes,centres:list,palette:list)->dict:
             any(v>15 for v in indices) or len(palette)<16 or
             not isinstance(centres,list) or not centres):
         raise ValueError("invalid exact 64x64 index plane, palette or wheel candidates")
+    # Validate the source-ring hypothesis even before looping nonzero indices:
+    # an all-transparent sprite cannot make invalid centres silently pass.
+    for centre in centres:
+        if (not isinstance(centre,(list,tuple)) or len(centre)!=3 or
+                any(type(v) is not int for v in centre)):
+            raise ValueError("bad original ring centre")
+        cx,cy,r=centre
+        if not (0<=cx<64 and 0<=cy<64 and r==SAMPLE_RADIUS):
+            raise ValueError("not an original source 7px wheel ring")
     histogram=Counter(indices)
+    if histogram[0]==4096:
+        raise ValueError("original source palette plane is empty")
     if histogram[0]+sum(histogram[i] for i in range(1,16))!=4096:
         raise ValueError("palette index census incomplete")
     per_index={}
@@ -123,13 +134,7 @@ def palette_disk_census(indices:bytes,centres:list,palette:list)->dict:
             raise ValueError("unexpected opaque 4bpp index palette")
         points=[(j%64,j//64) for j,v in enumerate(indices) if v==i]
         by_centre=[]
-        for centre in centres:
-            if (not isinstance(centre,(list,tuple)) or len(centre)!=3 or
-                    any(type(v) is not int for v in centre)):
-                raise ValueError("bad original ring centre")
-            cx,cy,r=centre
-            if not(0<=cx<64 and 0<=cy<64 and r==SAMPLE_RADIUS):
-                raise ValueError("not an original source 7px wheel ring")
+        for cx,cy,r in centres:
             by_centre.append(sum(
                 (x-cx)**2+(y-cy)**2<=r*r for x,y in points))
         colour=palette[i]

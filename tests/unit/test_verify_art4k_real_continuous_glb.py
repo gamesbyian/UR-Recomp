@@ -201,6 +201,42 @@ class RealContinuousGLBReceiptTests(unittest.TestCase):
                 with self.subTest(field=key),self.assertRaises(ValueError):
                     mod.validate_one(source,out,"stunt_cycle",.5)
 
+    def test_glb_replacement_during_validation_rejects_signed_path(self):
+        # The signed bytes must be the same bytes the round-trip loader sees.
+        # A different writer can atomically replace the attempt pathname
+        # after the initial hash, before the loader runs.
+        with tempfile.TemporaryDirectory() as tmp:
+            source, out, receipt, pointer = fixture(Path(tmp))
+            glb = out / pointer["glb_path"]
+            signed_bytes = glb.read_bytes()
+            original_materials = mod.materials_for_part
+            replaced = [False]
+            checked = [False]
+
+            def replace_on_material(*args, **kwargs):
+                if not replaced[0]:
+                    foreign = glb.with_name("replacement.glb")
+                    foreign.write_bytes(b"concurrent foreign GLB")
+                    foreign.replace(glb)
+                    replaced[0] = True
+                return original_materials(*args, **kwargs)
+
+            def inspect_snapshot(path, actual_receipt):
+                self.assertEqual(path.read_bytes(), signed_bytes)
+                self.assertEqual(actual_receipt["attempt_id"], receipt["attempt_id"])
+                checked[0] = True
+                return receipt["glb_roundtrip"]
+
+            with patch.object(mod, "materials_for_part",
+                              side_effect=replace_on_material), patch.object(
+                                  mod, "validate_glb_roundtrip",
+                                  side_effect=inspect_snapshot):
+                with self.assertRaisesRegex(ValueError, "changed during validation"):
+                    mod.validate_one(source, out, "stunt_cycle", .5)
+            self.assertTrue(replaced[0])
+            self.assertTrue(checked[0])
+            self.assertEqual(glb.read_bytes(), b"concurrent foreign GLB")
+
     def test_changed_glb_and_path_escape_rejected_before_loader(self):
         with tempfile.TemporaryDirectory() as tmp:
             source,out,receipt,pointer=fixture(Path(tmp))

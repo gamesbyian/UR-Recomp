@@ -201,7 +201,16 @@ def validate_one(source_path: Path, out_dir: Path, pose: str, time: float,
         ]
         if [material.get("rgba") for material in row["materials"]] != expected_colors:
             raise ValueError("source-owned player palette material RGBA mismatch")
-    independently_checked = validate_glb_roundtrip(glb, receipt)
+    # The pathname can be replaced after its SHA was checked above. Validate
+    # precisely those hashed bytes, not a second read of a mutable GLB path.
+    with tempfile.TemporaryDirectory(prefix="ur-art4k-verified-glb-") as tmp:
+        snapshot = Path(tmp) / "source-locked.glb"
+        snapshot.write_bytes(glb_bytes)
+        independently_checked = validate_glb_roundtrip(snapshot, receipt)
+    # Also reject a replacement observed during this invocation. Later
+    # consumers must still independently hash the published immutable member.
+    if glb.read_bytes() != glb_bytes or receipt_file.read_bytes() != receipt_bytes:
+        raise ValueError("immutable GLB or receipt changed during validation")
     if receipt.get("glb_roundtrip") != independently_checked:
         raise ValueError("stored GLB round-trip acceptance differs from actual source geometry")
     return {

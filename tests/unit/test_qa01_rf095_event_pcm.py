@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import io
+import os
 import pathlib
 import struct
 import tempfile
@@ -441,12 +442,15 @@ class RF095Tests(unittest.TestCase):
             actual_link = receipt.os.link
             calls = []
 
-            def inspect_link(staged, target):
-                self.assertEqual(pathlib.Path(target), final)
+            def inspect_link(staged, target, **kwargs):
+                self.assertEqual(target, final.name)
+                self.assertEqual(kwargs['src_dir_fd'], kwargs['dst_dir_fd'])
                 self.assertFalse(final.exists())
-                self.assertEqual(pathlib.Path(staged).read_bytes(), payload)
+                fd = os.open(staged, os.O_RDONLY, dir_fd=kwargs['src_dir_fd'])
+                with os.fdopen(fd, 'rb') as source:
+                    self.assertEqual(source.read(), payload)
                 calls.append(True)
-                return actual_link(staged, target)
+                return actual_link(staged, target, **kwargs)
 
             with mock.patch.object(receipt.os, 'link', side_effect=inspect_link):
                 receipt.publish_bytes_no_replace(final, payload, label='receipt output')
@@ -469,7 +473,7 @@ class RF095Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             final = pathlib.Path(d) / 'receipt.json'
 
-            def race(staged, target):
+            def race(staged, target, **kwargs):
                 final.write_bytes(b'FOREIGN')
                 raise FileExistsError('injected concurrent create')
 
@@ -479,6 +483,50 @@ class RF095Tests(unittest.TestCase):
                         final, b'NEW', label='receipt output')
             self.assertEqual(final.read_bytes(), b'FOREIGN')
             self.assertEqual([p.name for p in pathlib.Path(d).iterdir()], ['receipt.json'])
+
+    def test_final_publication_parent_swap_cannot_redirect_bytes(self):
+        # Reproduce the real foreign-stage-same-name swap from independent
+        # review #5743126927. A mutable parent path must not redirect a link.
+        if not hasattr(os, 'O_NOFOLLOW'):
+            self.skipTest('POSIX directory descriptors unavailable')
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d)
+            intended, foreign = root / 'intended', root / 'foreign'
+            old_intended = root / 'old_intended'
+            intended.mkdir()
+            foreign.mkdir()
+            final = intended / 'receipt.json'
+            actual_link = receipt.os.link
+
+            def swap_parent(staged, target, **kwargs):
+                intended.rename(old_intended)
+                intended.symlink_to(foreign, target_is_directory=True)
+                (foreign / staged).write_bytes(b'FOREIGN DIFFERENT BYTES')
+                return actual_link(staged, target, **kwargs)
+
+            with mock.patch.object(receipt.os, 'link', side_effect=swap_parent):
+                with self.assertRaisesRegex(OSError, 'directory identity changed'):
+                    receipt.publish_bytes_no_replace(
+                        final, b'VALID RECEIPT', label='receipt output')
+            self.assertEqual((old_intended / 'receipt.json').read_bytes(),
+                             b'VALID RECEIPT')
+            self.assertFalse((foreign / 'receipt.json').exists())
+            self.assertFalse(any(p.name.startswith('.rf095-stage-')
+                                 for p in old_intended.iterdir()))
+
+    def test_final_publication_rejects_symlinked_parent(self):
+        if not hasattr(os, 'O_NOFOLLOW'):
+            self.skipTest('POSIX directory descriptors unavailable')
+        with tempfile.TemporaryDirectory() as d:
+            root = pathlib.Path(d)
+            actual = root / 'actual'
+            actual.mkdir()
+            alias = root / 'alias'
+            alias.symlink_to(actual, target_is_directory=True)
+            with self.assertRaises(OSError):
+                receipt.publish_bytes_no_replace(
+                    alias / 'receipt.json', b'VALID', label='receipt output')
+            self.assertEqual(list(actual.iterdir()), [])
 
     def test_cli_publishes_both_final_names_through_staging(self):
         with tempfile.TemporaryDirectory() as d:

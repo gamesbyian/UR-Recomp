@@ -15,6 +15,7 @@ import json
 import os
 import struct
 import tempfile
+import secrets
 import wave
 from pathlib import Path
 
@@ -33,29 +34,43 @@ def sha256(path: Path) -> str:
 
 
 def publish_bytes_no_replace(path: Path, payload: bytes, *, label: str) -> None:
-    """Publish only complete, synced bytes at an unused final pathname.
+    """Publish complete bytes via a pinned POSIX directory, never a mutable path.
 
-    This is a one-file atomic publication, not a transaction across the
-    separately published original PCM window and JSON receipt.
+    The two RF095 outputs remain separately published. A concurrent rename of
+    the output parent fails closed, but cannot redirect this file to another
+    directory. Filesystems without descriptor-relative operations fail closed.
     """
     if path.exists() or path.is_symlink():
         raise ValueError('RF095 refusing stale ' + label)
     path.parent.mkdir(parents=True, exist_ok=True)
-    staged = None
+    if (not all(hasattr(os, flag) for flag in ('O_DIRECTORY', 'O_NOFOLLOW'))
+            or not all(fn in os.supports_dir_fd for fn in (os.open, os.unlink))):
+        raise OSError('RF095 secure directory-relative publication unavailable')
+    parent_fd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        fd, name = tempfile.mkstemp(prefix='.rf095-stage-', dir=path.parent)
-        staged = Path(name)
-        with os.fdopen(fd, 'wb') as output:
-            output.write(payload)
-            output.flush()
-            os.fsync(output.fileno())
+        pinned = os.fstat(parent_fd)
+        stage = '.rf095-stage-' + secrets.token_hex(16)
+        stage_fd = os.open(stage, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                           0o600, dir_fd=parent_fd)
         try:
-            os.link(staged, path)
-        except FileExistsError as exc:
-            raise ValueError('RF095 refusing stale ' + label) from exc
+            with os.fdopen(stage_fd, 'wb') as output:
+                output.write(payload)
+                output.flush()
+                os.fsync(output.fileno())
+            try:
+                os.link(stage, path.name, src_dir_fd=parent_fd,
+                        dst_dir_fd=parent_fd, follow_symlinks=False)
+            except FileExistsError as exc:
+                raise ValueError('RF095 refusing stale ' + label) from exc
+            os.fsync(parent_fd)
+            visible = os.stat(path.parent, follow_symlinks=False)
+            if (visible.st_dev, visible.st_ino) != (pinned.st_dev, pinned.st_ino):
+                raise OSError('RF095 output directory identity changed during publication')
+        finally:
+            os.unlink(stage, dir_fd=parent_fd)
+            os.fsync(parent_fd)
     finally:
-        if staged is not None:
-            staged.unlink(missing_ok=True)
+        os.close(parent_fd)
 
 
 def frame_map(path: Path, *, start: int, end: int,

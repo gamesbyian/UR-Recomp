@@ -57,6 +57,20 @@ static void stream_view(const uint8_t* wram, uint16_t* vram, uint16_t base,
 }
 
 int main(void) {
+    /* WIDE-07: no first-frame wrong-world margin publication. A one-frame
+     * stream edge recovers, while two gross mismatches force recalibration. */
+    {
+        unsigned bad = 0;
+        assert(ur_ws_mismatch_transition(0, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(8, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(9, 8, &bad) == 0 && bad == 1);
+        assert(ur_ws_mismatch_transition(8, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(200, 8, &bad) == 0 && bad == 1);
+        assert(ur_ws_mismatch_transition(200, 8, &bad) == -1 && bad == 0);
+        assert(ur_ws_mismatch_transition(0, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(-1, 8, &bad) == -1);
+        assert(ur_ws_mismatch_transition(9, 8, NULL) == -1);
+    }
     uint8_t* wram = build_wram();
     uint16_t* vram = calloc(0x8000, sizeof(uint16_t));
     assert(vram);

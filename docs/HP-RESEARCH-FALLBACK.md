@@ -5,10 +5,10 @@
 ## Security advisory and local upgrade (November 2, 2026)
 
 Windows Defender detected the downloadable owner installer ZIP as
-\`Trojan:Script/Wacatac.B!ml\`. The detection is unresolved: neither a
+`Trojan:Script/Wacatac.B!ml`. The detection is unresolved: neither a
 false positive nor a real infection has been established. Do **not** restore
 or allow-list the ZIP, change Defender settings, or disable scanning.
-Distribution of that ZIP is withdrawn from current \`main\`; its former
+Distribution of that ZIP is withdrawn from current `main`; its former
 bytes remain in Git history for forensic review. The already installed
 90-minute fallback has completed real Windows research successfully, so
 leaving it unchanged is supported.
@@ -16,8 +16,8 @@ leaving it unchanged is supported.
 ### Optional in-place update without downloads or installer execution
 
 The **repaired** installed 90-minute Python file from source
-\`edd4c3b5f06be3b54bddb12374fe1c5d75a8e795\` and the tested 60-minute
-file from \`6268103310e132c795d74ed73e6474e78edacddd\` differ by exactly
+`edd4c3b5f06be3b54bddb12374fe1c5d75a8e795` and the tested 60-minute
+file from `6268103310e132c795d74ed73e6474e78edacddd` differ by exactly
 one text line. To avoid replacing a working task, the owner can apply that
 single-line edit directly in normal **non-administrator PowerShell**. The
 operation is fail-closed: full-script SHA-256 checks before and after,
@@ -27,7 +27,7 @@ same-directory file swap, and a retained original backup. It performs
 execution-policy change. If Defender flags the installed Python file
 itself, do not run this update; investigate the alert instead.
 
-\`\`\`powershell
+```powershell
 $path = Join-Path $env:LOCALAPPDATA 'UR-Recomp\HPResearchFallback\hp_research_fallback.py'
 $oldHash = '5756e12471d2241300915abbb06eabaef087007eb54f58e2ee557aa96e91d64b'
 $newHash = '316cfe232d476fed5af65d0e72543b16f506150c638b428edb31df7a89db629d'
@@ -63,22 +63,22 @@ if ($found -eq $newHash) {
     [IO.File]::Replace($temporary, $path, $backup)
     Write-Host 'Verified 60-minute source installed. Original backup preserved.'
 }
-\`\`\`
+```
 
-Confirm the new SHA-256 with \`Get-FileHash\`, then run the **installed**
-Python source with \`--dry-run\` to check the API without dispatching.
+Confirm the new SHA-256 with `Get-FileHash`, then run the **installed**
+Python source with `--dry-run` to check the API without dispatching.
 The already registered task will read the new file on its next run;
 **no new installer or Task Scheduler edits are required**.
 
 **Rollback** if added HP occupancy materially delays priority main Windows
-builds: verify that the backup hashes to \`$oldHash\`, copy it to a fresh
+builds: verify that the backup hashes to `$oldHash`, copy it to a fresh
 temporary pathname in the same directory, and atomically replace the
 installed file. Do not overwrite an unknown source or delete the backup
 without verifying the hashes. The former installer remains retired while
 Defender's finding is investigated.
 
 The existing scheduled task runs every 15 minutes under the owner's
-interactive logged-in account, using the authenticated \`gh\` client.
+interactive logged-in account, using the authenticated `gh` client.
 A locked screen is supported; a logged-out session is not. It uses no new
 token or elevated rights.
 

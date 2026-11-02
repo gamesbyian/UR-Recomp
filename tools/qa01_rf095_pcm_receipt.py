@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import struct
@@ -31,13 +32,18 @@ def sha256(path: Path) -> str:
 
 
 def frame_map(path: Path, *, start: int, end: int,
-              contiguous_from_zero: bool) -> dict[int, int]:
-    if not path.is_file() or path.is_symlink() or path.stat().st_size > 750000:
-        raise ValueError('RF095 missing, symlinked or unbounded frame map')
+              contiguous_from_zero: bool,
+              raw_bytes: bytes | None = None) -> dict[int, int]:
+    if raw_bytes is None:
+        if not path.is_file() or path.is_symlink():
+            raise ValueError('RF095 missing or symlinked frame map')
+        raw_bytes = path.read_bytes()
+    if len(raw_bytes) > 750000:
+        raise ValueError('RF095 unbounded frame map')
     # The producers emit LF-terminated rows. Python splitlines() also accepts
     # VT/FF/ASCII record separators as line breaks, allowing impossible maps.
     # Read raw bytes so universal-newline translation cannot hide bare CR.
-    raw_bytes = path.read_bytes()
+    # A caller-supplied snapshot is the same bytes used for its receipt hash.
     # Both pinned C producers emit a final LF (CRLF on translated streams).
     # Accepting a complete-looking last row without it hides truncated maps.
     if not raw_bytes.endswith(b'\n'):
@@ -139,8 +145,18 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
     identities = {(p.stat().st_dev, p.stat().st_ino) for p in paths}
     if len(identities) != len(paths):
         raise ValueError('RF095 source inputs must be distinct physical files')
+    # Snapshot all six decision-bearing inputs before validation. Reopening a
+    # mutable pathname for its digest after parsing could authenticate different
+    # bytes from those actually screened, even when device/inode checks passed.
+    source_bytes = {path: path.read_bytes() for path in paths}
+    producer_logs = {}
     for log, side in ((original_log, 'ORIG'), (native_log, 'NATIVE')):
-        text = log.read_text(encoding='utf-8', errors='replace')
+        raw_log = source_bytes[log]
+        text = raw_log.decode('utf-8', errors='replace')
+        producer_logs[side.lower()] = {
+            'sha256': hashlib.sha256(raw_log).hexdigest(),
+            'bytes': len(raw_log),
+        }
         if any('QA01RF095' + side + suffix in text
                for suffix in ('_TRUNCATED', '_OPEN_FAILED', '_WRITE_FAILED',
                               '_FRAME_FAILED', '_INCOMPLETE')):
@@ -157,14 +173,16 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         if side == 'NATIVE' and '=== WATCHDOG: Frame ' in text:
             raise ValueError('RF095 native watchdog abandoned a guest frame')
     ref = frame_map(original_map, start=ORIGINAL_START,
-                    end=ORIGINAL_END, contiguous_from_zero=True)
+                    end=ORIGINAL_END, contiguous_from_zero=True,
+                    raw_bytes=source_bytes[original_map])
     nat = frame_map(native_map, start=NATIVE_START,
-                    end=NATIVE_END, contiguous_from_zero=False)
+                    end=NATIVE_END, contiguous_from_zero=False,
+                    raw_bytes=source_bytes[native_map])
     if set(nat) != set(range(NATIVE_START, NATIVE_END + 1)):
         raise ValueError('RF095 native frame-map population must be exact 6447..6457')
     if ref[0] != 0:
         raise ValueError('RF095 original frame-zero callback count must be zero')
-    with wave.open(str(original_wav), 'rb') as wav:
+    with wave.open(io.BytesIO(source_bytes[original_wav]), 'rb') as wav:
         if (wav.getnchannels(), wav.getsampwidth(), wav.getcomptype()) != (2, 2, 'NONE'):
             raise ValueError('RF095 original WAV must be uncompressed stereo int16')
         if wav.getframerate() < 30000 or wav.getframerate() > 48000:
@@ -180,19 +198,18 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         # Pinned snesref/frontend.cpp writes a fixed 44-byte PCM WAV header
         # and exactly four bytes per callback stereo frame, no extra chunks.
         # Reject appended bytes that wave.getnframes() silently ignores.
-        if original_wav.stat().st_size != 44 + 4 * wav.getnframes():
+        if len(source_bytes[original_wav]) != 44 + 4 * wav.getnframes():
             raise ValueError('RF095 unexpected original WAV length')
         wav.setpos(ref[ORIGINAL_START])
         original = wav.readframes(ref[ORIGINAL_END] - ref[ORIGINAL_START])
         rate = wav.getframerate()
     if len(original) != (ref[ORIGINAL_END] - ref[ORIGINAL_START]) * 4:
         raise ValueError('RF095 original short WAV slice')
-    if native_pcm.stat().st_size != nat[NATIVE_END] * 4:
+    if len(source_bytes[native_pcm]) != nat[NATIVE_END] * 4:
         raise ValueError('RF095 native raw sample/map length mismatch')
     if nat[NATIVE_START] != 0 or nat[NATIVE_END] > 8192:
         raise ValueError('RF095 native sample capture not bounded to source window')
-    with native_pcm.open('rb') as src:
-        native = src.read()
+    native = source_bytes[native_pcm]
     # A self-consistent WAV/map pair with one sample per guest frame is
     # structurally valid but cannot represent the complete RF095 interval.
     # Apply a separate generous lower bound on each producer's own clock.
@@ -211,17 +228,19 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
         'schema': 'ur-qa01-rf095-source-registered-pcm/1',
         'claimed_output_stages': 'libretro callback and native post-echo DSP output',
         'producer_identity_independently_verified': False,
+        'producer_logs': producer_logs,
         'original': {'guest_frames': [ORIGINAL_START, ORIGINAL_END],
-                     'sample_rate': rate, 'wav_sha256': sha256(original_wav),
-                     'map_sha256': sha256(original_map),
+                     'sample_rate': rate,
+                     'wav_sha256': hashlib.sha256(source_bytes[original_wav]).hexdigest(),
+                     'map_sha256': hashlib.sha256(source_bytes[original_map]).hexdigest(),
                      'first_sample_index': ref[ORIGINAL_START],
                      'last_sample_index': ref[ORIGINAL_END],
                      'frame_sample_indices': {str(f): ref[f] for f in range(ORIGINAL_START, ORIGINAL_END+1)},
                      **sample_stats(original)},
         'native': {'guest_frames': [NATIVE_START, NATIVE_END],
                    'sample_rate_nominal': 32040,
-                   'raw_sha256': sha256(native_pcm),
-                   'map_sha256': sha256(native_map),
+                   'raw_sha256': hashlib.sha256(source_bytes[native_pcm]).hexdigest(),
+                   'map_sha256': hashlib.sha256(source_bytes[native_map]).hexdigest(),
                    'frame_sample_indices': {str(f): nat[f] for f in range(NATIVE_START, NATIVE_END+1)},
                    **sample_stats(native)},
         'guest_frame_clock_equivalence_proven': False,

@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 from pathlib import Path
 import struct
 import tempfile
 import unittest
 import wave
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2] / 'tools'
 
@@ -54,6 +56,67 @@ class ProducerIntegrityTests(unittest.TestCase):
         self.assertEqual(result['original']['frames'], 896)
         self.assertEqual(result['native']['frames'], 1280)
         self.assertFalse(result['audible_parity_proven'])
+
+
+    def test_clean_producer_logs_have_distinct_receipt_identities(self):
+        before = self.analyze()
+        self.assertEqual(before['producer_logs']['original']['bytes'],
+                         len(self.ref_log.read_bytes()))
+        self.assertEqual(before['producer_logs']['native']['sha256'],
+                         hashlib.sha256(self.native_log.read_bytes()).hexdigest())
+        self.native_log.write_text('native replay with additional clean line\n')
+        after = self.analyze()
+        self.assertNotEqual(before['producer_logs']['native']['sha256'],
+                            after['producer_logs']['native']['sha256'])
+        self.assertEqual(before['producer_logs']['original'],
+                         after['producer_logs']['original'])
+        self.assertEqual(before['native']['raw_sha256'],
+                         after['native']['raw_sha256'])
+        self.ref_log.write_text('different clean original replay\n')
+        changed_original = self.analyze()
+        self.assertNotEqual(after['producer_logs']['original']['sha256'],
+                            changed_original['producer_logs']['original']['sha256'])
+
+    def test_native_pcm_mutation_after_snapshot_cannot_relabel_receipt(self):
+        expected = hashlib.sha256(self.pcm.read_bytes()).hexdigest()
+        real_map = self.receipt.frame_map
+        altered = False
+
+        def mutate_after_snapshot(*args, **kwargs):
+            nonlocal altered
+            if not altered:
+                altered = True
+                self.pcm.write_bytes(struct.pack('<hh', 99, -88) * (10 * 128))
+            return real_map(*args, **kwargs)
+
+        with mock.patch.object(self.receipt, 'frame_map',
+                               side_effect=mutate_after_snapshot):
+            result = self.analyze()
+        self.assertTrue(altered)
+        self.assertEqual(result['native']['raw_sha256'], expected)
+        self.assertEqual(result['native']['sha256'], expected)
+        self.assertNotEqual(hashlib.sha256(self.pcm.read_bytes()).hexdigest(),
+                            expected)
+
+    def test_original_map_mutation_after_snapshot_cannot_relabel_receipt(self):
+        expected = hashlib.sha256(self.ref_map.read_bytes()).hexdigest()
+        real_map = self.receipt.frame_map
+        altered = False
+
+        def mutate_after_snapshot(*args, **kwargs):
+            nonlocal altered
+            if not altered:
+                altered = True
+                self.ref_map.write_bytes(self.ref_map.read_bytes() + b'\n')
+            return real_map(*args, **kwargs)
+
+        with mock.patch.object(self.receipt, 'frame_map',
+                               side_effect=mutate_after_snapshot):
+            result = self.analyze()
+        self.assertTrue(altered)
+        self.assertEqual(result['original']['map_sha256'], expected)
+        self.assertNotEqual(hashlib.sha256(self.ref_map.read_bytes()).hexdigest(),
+                            expected)
 
     def test_original_event_underproduction_is_rejected(self):
         # The original fixture previously passed with just seven stereo

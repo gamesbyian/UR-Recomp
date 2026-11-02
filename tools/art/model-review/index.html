@@ -50,7 +50,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.set
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.7,0);
 const hemi=new THREE.HemisphereLight(0xddeeff,0x43546e,1.5);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(5,8,6);scene.add(sun);
 const grid=new THREE.GridHelper(12,24,0x7089ad,0x34445b),axes=new THREE.AxesHelper(1.5);scene.add(grid,axes);
-const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0;
+const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false;
 const poseNames=['upright','pedal','wheelie','stunt','bank'];
 const viewNames=['side','reverse','front','back','top'];let poseRequest=0,sprites=null,manifestRaw=null,spritesRaw=null,measurements=null;
 function say(t,sub=''){$('state').textContent=t;$('details').textContent=sub}
@@ -67,7 +67,7 @@ function resetCameraForModel(obj){
  camera.near=Math.max(.001,span/1000);camera.far=span*100;
  camera.updateProjectionMatrix();controls.update();
 }
-function clear(){if(current){scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
+function clear(){if(current){scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
 function markers(){nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[];if(!current||!$('nodes').checked)return;current.updateMatrixWorld(true);const parts=['tire','rim_and_hub','fork_and_frame','pedals','saddle'];for(const n of parts){const x=current.getObjectByName(n);if(!x)continue;const p=x.getWorldPosition(new THREE.Vector3());const marker=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),new THREE.MeshBasicMaterial({color:0xffcc62,depthTest:false}));marker.position.copy(p);marker.renderOrder=100;scene.add(marker);nodeMarkers.push(marker)}}
 function wheelControls(available, origin=''){
  $('wheelOriginal').disabled=!available;$('wheelWide').disabled=!available;
@@ -251,7 +251,7 @@ function updateCrankScrubStatus(){
   '; crank and wheel rotation +'+sourceCrankDegrees(crankStep)+'° from this named pose. '+
   'No 1994 PPU frame timing, joint mapping or likeness approval.';
 }
-function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;wheelDriveState=captureWheelDrive(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();
+function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -338,13 +338,17 @@ $('wheelWide').onclick=()=>chooseWheelWidth(1.1);
 $('wheelDrive').onchange=()=>{if(!current||!wheelDriveState)return;try{
  wheelDrive=$('wheelDrive').value==='1';
  if(!wheelDrive)crankStep=0;
+ driveBeforeScrub=wheelDrive;
  applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();markers();
 }catch(e){wheelDrive=false;crankStep=0;applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();$('wheelDriveStatus').textContent='Wheel phase unavailable: '+e.message}};
 $('crankScrub').oninput=()=>{if(!current||!wheelDriveState)return;try{
  const next=Number($('crankScrub').value);
  sourceCrankDegrees(next);
+ const previous=crankStep;
+ if(previous===0&&next>0)driveBeforeScrub=wheelDrive;
  crankStep=next;
- if(crankStep!==0)wheelDrive=true;
+ if(next===0&&previous!==0)wheelDrive=driveBeforeScrub;
+ else if(next>0)wheelDrive=true;
  applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();markers();
 }catch(e){crankStep=0;wheelDrive=false;applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();$('crankStatus').textContent='Crank scrub unsupported: '+e.message}};
 $('frameHinge').onchange=()=>{if(!current||!frameHingeState)return;try{

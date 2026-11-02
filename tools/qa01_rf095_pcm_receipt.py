@@ -153,7 +153,7 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
     for log, side in ((original_log, 'ORIG'), (native_log, 'NATIVE')):
         raw_log = source_bytes[log]
         text = raw_log.decode('utf-8', errors='replace')
-        producer_logs[side.lower()] = {
+        producer_logs['original' if side == 'ORIG' else 'native'] = {
             'sha256': hashlib.sha256(raw_log).hexdigest(),
             'bytes': len(raw_log),
         }

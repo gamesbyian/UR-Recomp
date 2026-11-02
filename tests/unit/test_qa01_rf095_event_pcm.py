@@ -201,9 +201,20 @@ class RF095Tests(unittest.TestCase):
                                      '--original-window-out', str(window)]
                     with mock.patch('sys.argv', argv):
                         if failure == 'source-read':
+                            # Snapshot reads now supply the exact bytes that
+                            # are validated and hashed. Inject the failure at
+                            # that real source boundary, not the retired
+                            # second-pathname sha256() call.
+                            real_read = pathlib.Path.read_bytes
+
+                            def fail_snapshot_read(path):
+                                if path == files[5]:
+                                    raise OSError('injected late source read failure')
+                                return real_read(path)
+
                             with mock.patch.object(
-                                    receipt, 'sha256',
-                                    side_effect=OSError('injected late source read failure')):
+                                    pathlib.Path, 'read_bytes', autospec=True,
+                                    side_effect=fail_snapshot_read):
                                 with self.assertRaisesRegex(OSError, 'injected late'):
                                     receipt.main()
                         else:

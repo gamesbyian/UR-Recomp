@@ -1,0 +1,157 @@
+{
+  "schema": "UR-ART4K-EXPERIMENTAL-HUB-PIVOT-FRAME-PITCH-SOURCE-DIAGNOSTIC/1",
+  "exact_original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_run_id": 41396846120,
+  "original_source_corpus_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "historical_actual_glb_source_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "camera_manifest": "analysis/data/racer-inverse-side-provisional-1205.json",
+  "camera_calibration_status": "provisional",
+  "source_split_control_artifact_run_id": 41398486394,
+  "source_split": {
+    "first_connected_binary_masks": 16,
+    "additional_sha_disjoint_binary_masks": 19
+  },
+  "real_glb_samples": {
+    "baseline": {
+      "pitch_degrees": 0,
+      "sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5"
+    },
+    "plus3": {
+      "pitch_degrees": 3,
+      "sha256": "fd08d6f277d78f55d7b7ca3823f808587543f3f3e64c3d077ffd284b39af8172",
+      "bytes": 640012
+    },
+    "minus3": {
+      "pitch_degrees": -3,
+      "sha256": "385bf80875960cfd4c105ecb8a0d3466406ab370f12e66cec237ad081e5ffb8e",
+      "bytes": 640012
+    }
+  },
+  "mean_unpaired_original_source_silhouette_iou": {
+    "first_connected_16": {
+      "baseline": 0.55276425,
+      "plus3": 0.54748542,
+      "minus3": 0.55159519
+    },
+    "additional_19": {
+      "baseline": 0.38192089,
+      "plus3": 0.3842162,
+      "minus3": 0.38285225
+    },
+    "all_35": {
+      "baseline": 0.46002071,
+      "plus3": 0.45885356,
+      "minus3": 0.45999188
+    }
+  },
+  "unpaired_additional_19_masks_improved_by_plus3": 19,
+  "logical_model_raster_xor_from_baseline": {
+    "plus3": {
+      "all": 34,
+      "y_0_15": 32,
+      "y_16_31": 2,
+      "y_32_63": 0
+    },
+    "minus3": {
+      "all": 38,
+      "y_0_15": 31,
+      "y_16_31": 7,
+      "y_32_63": 0
+    }
+  },
+  "historical_glb_not_changed": true,
+  "source_1994_camera_pose_and_cadence_recovered": false,
+  "independent_source_pose_holdout": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false,
+  "exploratory_bounded_parent_hinge_sweep": {
+    "source_frame_angle_pairing": "unpaired; source families and colours already inspected before testing angles",
+    "not_preregistered_novel_pose_holdout": true,
+    "model_parent_pivot": "historical source-owned tire axle",
+    "swept_mean_mask_iou": {
+      "0": {
+        "first_connected16": 0.55276425,
+        "additional19": 0.38192089,
+        "all35": 0.46002071
+      },
+      "3": {
+        "first_connected16": 0.54748542,
+        "additional19": 0.3842162,
+        "all35": 0.45885356
+      },
+      "6": {
+        "first_connected16": 0.54781536,
+        "additional19": 0.38902168,
+        "all35": 0.46161307
+      },
+      "20": {
+        "first_connected16": 0.46752865,
+        "additional19": 0.39046905,
+        "all35": 0.42569629
+      },
+      "40": {
+        "first_connected16": 0.39956527,
+        "additional19": 0.38729922,
+        "all35": 0.39290656
+      },
+      "-3": {
+        "first_connected16": 0.55159519,
+        "additional19": 0.38285225,
+        "all35": 0.45999188
+      },
+      "-6": {
+        "first_connected16": 0.54189989,
+        "additional19": 0.38434949,
+        "all35": 0.45637253
+      },
+      "-20": {
+        "first_connected16": 0.45744548,
+        "additional19": 0.43093374,
+        "all35": 0.44305339
+      },
+      "-40": {
+        "first_connected16": 0.41585476,
+        "additional19": 0.53320448,
+        "all35": 0.47955889
+      }
+    },
+    "actual_additional_19_masks_improved_at_minus40": 18,
+    "actual_connected_first_16_masks_worsened_at_minus40": 14,
+    "derived_sha256": {
+      "40": "e46fbefe1ad86fef4c33b28c9ff73beb294e0122a507b8a6cc9c8d4f1cb5c137",
+      "-40": "64bcf0e6aa70b6b9941d78b5c7706a86e8555640ffa4eddea22de71cc72ef676"
+    },
+    "original_rom_painted_axis_median_degrees": {
+      "first_connected_16": -1.053,
+      "additional_19": 41.504
+    },
+    "source_axis_is_2d_only": true,
+    "original_game_3d_geometry_or_kinematics_recovered": false,
+    "owner_likeness_approved": false
+  },
+  "exploratory_source_painted_axis_pose_hypothesis": {
+    "method": "signed original ROM 2D painted colour-axis from existing source-authenticated source-chroma-axes.json; use -40 degree derived 3D parent-only pose if angle > 20 degrees, otherwise 0 degree original",
+    "threshold_and_candidates_selected_after_inspecting_35_reference_masks": true,
+    "source_signal_is_2d_not_proven_original_joint_angle": true,
+    "mask_count": 35,
+    "selected_minus40": 20,
+    "selected_zero": 15,
+    "silhouette_iou_original_uniform_upright": 0.46002071,
+    "silhouette_iou_colour_guided_pose_class": 0.54715522,
+    "connected_first16": {
+      "mean_iou": 0.56328621,
+      "selected_minus40": 2
+    },
+    "other_sha_disjoint19": {
+      "mean_iou": 0.53357123,
+      "selected_minus40": 18
+    },
+    "binary_masks_improved_vs_original": 20,
+    "binary_masks_worsened_vs_original": 0,
+    "source_target_binary_masks_used_during_angle_and_threshold_selection": true,
+    "independent_pose_holdout_validation": false,
+    "original_emulator_ppu_animation_chronology_verified": false,
+    "original_1994_joint_angle_recovered": false,
+    "shipping_art_approved": false
+  }
+}

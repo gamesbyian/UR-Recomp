@@ -33,6 +33,20 @@ def mock_corpus():
 
 
 class PaintedMomentsTests(unittest.TestCase):
+    def test_original_colour_integer_arithmetic_rejects_uint8_overflow_false_red(self):
+        from tools.art.audit_original_racer_chroma_components import source_chroma_pixels
+        image=bytearray(64*64*4)
+        for y in range(10,30):
+            k=4*(y*64+20)
+            image[k:k+4]=bytes([190,25,20,255])
+        # 2 * 160 overflows uint8 to 64. That wrong implementation
+        # includes the isolated pixel, but original Python int rejects it.
+        k=4*(20*64+40)
+        image[k:k+4]=bytes([185,160,20,255])
+        valid=source_chroma_pixels(bytes(image),"p1")
+        self.assertEqual(len(valid),20)
+        self.assertNotIn((40,20),valid)
+
     def test_translation_invariance_and_7_to_6_pixel_aspect(self):
         a=painted_spread(rectangle())
         b=painted_spread(rectangle(18,19))

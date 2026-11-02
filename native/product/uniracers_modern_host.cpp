@@ -7262,7 +7262,13 @@ extern "C" void ur_uniracers_modern_prepare_frame(
         ur::presentation::racer_hd_prepare_frame(
             0, 0, frame_width, frame_height);
     }
-    if (!authentic_16x9_view_enabled()) return;
+    // Retire the previous wide frame's world-shadow registration when the
+    // user switches back to Original; otherwise it remains active across
+    // stock frames because no WsShadowFrame() is called on that path.
+    if (!authentic_16x9_view_enabled()) {
+        ur_ws_margins_prepare_frame(0, 0);
+        return;
+    }
 
     const auto plan = ur::product::resolve_16x9_output_composition(
         ur::product::resolve_output_geometry_representation(false),

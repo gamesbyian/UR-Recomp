@@ -94,5 +94,16 @@ int main(void) {
     flip_nine(0x1C00,8);
     counters(); ur_ws_margins_prepare_frame(1,43);
     assert(frames==1 && worlds==1 && forces>0 && splits==1);
+
+    /* Switching from an active widened 2P frame to Original must retire
+     * both the world-keyed shadow and its per-frame registration. A second
+     * Original frame must not repeatedly reset an already inactive store. */
+    const int reset_before = resets;
+    counters(); ur_ws_margins_prepare_frame(0,0);
+    assert(resets==reset_before+1 && frames==1);
+    assert(worlds==0 && forces==0 && splits==0);
+    assert(!ur_ws_margins_calibrated());
+    counters(); ur_ws_margins_prepare_frame(0,0);
+    assert(resets==reset_before+1 && frames==0);
     return 0;
 }

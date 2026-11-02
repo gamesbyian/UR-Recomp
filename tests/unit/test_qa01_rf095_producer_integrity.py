@@ -63,8 +63,8 @@ class ProducerIntegrityTests(unittest.TestCase):
             w.setsampwidth(2)
             w.setframerate(32040)
             w.writeframes(struct.pack('<hh', 123, -45) * 6454)
-        self.ref_map.write_text('frame,samples\\n' +
-                                ''.join(f'{f},{f}\\n' for f in range(6455)))
+        self.ref_map.write_text('frame,samples\n' +
+                                ''.join(f'{f},{f}\n' for f in range(6455)))
         with self.assertRaisesRegex(ValueError, 'original PCM coverage too short'):
             self.analyze()
 
@@ -72,8 +72,8 @@ class ProducerIntegrityTests(unittest.TestCase):
         # The native producer can report ten complete guest frames while
         # yielding only ten stereo samples; matching lengths alone is weak.
         self.pcm.write_bytes(struct.pack('<hh', 12, -8) * 10)
-        self.native_map.write_text('frame,samples\\n' +
-                                   ''.join(f'{f},{f - 6447}\\n'
+        self.native_map.write_text('frame,samples\n' +
+                                   ''.join(f'{f},{f - 6447}\n'
                                            for f in range(6447, 6458)))
         with self.assertRaisesRegex(ValueError, 'native PCM coverage too short'):
             self.analyze()

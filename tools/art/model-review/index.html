@@ -222,7 +222,7 @@ function updateWheelDriveStatus(origin=''){
   (wheelDrive?'Wheel/rim follow source-authored pedal phase.':'Original source wheel/rim transforms restored.')+
   ' Crank, frame, saddle, mesh materials and source GLB unchanged. No 1994 PPU timing or character likeness inferred. ';
 }
-function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;wheelDrive=false;frameHingeState=captureFrameHinge();wheelDriveState=captureWheelDrive(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);
+function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;wheelDriveState=captureWheelDrive(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}

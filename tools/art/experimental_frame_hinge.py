@@ -31,6 +31,20 @@ def rotation_y(degrees):
             (-s, 0., c, 0.), (0., 0., 0., 1.))
 
 
+
+def exploratory_pose_from_source_painted_axis(signed_angle_degrees):
+    """Post-hoc binary pose hypothesis from the existing 2D ROM colour-axis.
+
+    The threshold and angles were inspected on the SAME 35 reference masks;
+    this is an exploratory in-sample classifier, not validated original pose
+    registration or a physical relationship between raster/3D angle units.
+    """
+    if (type(signed_angle_degrees) not in (float, int)
+            or not math.isfinite(signed_angle_degrees)
+            or not -90 <= signed_angle_degrees <= 90):
+        raise ValueError("source painted-axis angle must be finite within -90..90 degrees")
+    return -40. if signed_angle_degrees > 20. else 0.
+
 def pitch_scene(scene, degrees):
     """Modify exactly two existing parent nodes around the real GLB axle pivot."""
     import numpy as np

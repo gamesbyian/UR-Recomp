@@ -60,3 +60,15 @@ Actual −40° derived GLB SHA-256 `64bcf0e6aa70b6b9941d78b5c7706a86e8555640ffa4
 The independently ROM-authenticated, already merged original 2D painted-colour-axis witness `source-chroma-axes.json` from run #41398486394 supplies a plausible explanation without cherry-picking a 3D joint: first-connected 16 have signed image-vertical axis median **−1.053°**, while additional 19 have median **+41.504°**, one vote per binary source SHA. The two family sets are very different in *observed 2D painted orientation*. These source axis angles cannot be equated directly to any GLB axle rotation, nor do they establish original camera. Before fitting geometry, use the existing chroma-axis semantic cue and original masked part visibility to assign pose hypotheses, preserve frozen train/test clusters and validate independently with future genuine emulator PPU temporal capture.
 
 The ±45° code range is a finite exploratory authoring envelope, **not** a physically or historically accepted permissible tilt limit. Source-matched validation must test wheel/rim/crank synchronization, fork-to-hub connectivity, real contact and saddle shape as separate kinematic constraints. No shipping geometry is promoted automatically.
+
+
+## Exploratory source-painted-axis pose choice, NOT independent validation
+
+A source-image feature can be used to choose *between* two real existing-geometry GLB poses without selecting the best silhouette score for each target. Reuse the existing ROM-authenticated `tools/art/audit_original_racer_chroma_axes.py` output, namely `source_variants.source_masks[].equal_colour_variant_mean_projected_angle_deg`, then apply:
+
+- signed painted axis > +20° relative to source image vertical: choose −40° axle-centred frame hinge;
+- otherwise: choose original 0° upright GLB.
+
+`exploratory_pose_from_source_painted_axis()` is deliberately a separate, pure-Python **research** helper. It does not modify `process()` defaults, source rig, exported animation or live game. With the same 35 authentic ROM-composed source masks, 20 selected −40°, 15 selected upright. Under the unchanged provisional 7:6 camera, this gave **mean silhouette IoU 0.54715522** compared with original static upright 0.46002071. The 20 selected masks improve individually and none lose; connected first 16 scored **0.56328621** (two selected −40°), and other SHA-disjoint 19 scored **0.53357123** (18 selected −40°).
+
+This number has a major **training/selection warning**: the −40° candidate, the signed +20° threshold, and the two source families were all inspected on these same 35 masks before evaluating this rule. This is *not held-out validation*, an original 1994 joint angle, calibrated source camera, animation-timing recovery, or a rule proven useful on new sprites. It does establish that 2D original painted appearance can provide a deterministic cue for choosing two constrained poses of the existing 3D GLB, without a per-mask silhouette-IoU oracle at the final selection step. Require new independent original PPU/OAM source captures and predeclared unseen pose-family test before calling the colour-conditioned mapping predictive.

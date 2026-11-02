@@ -128,5 +128,30 @@
     "source_axis_is_2d_only": true,
     "original_game_3d_geometry_or_kinematics_recovered": false,
     "owner_likeness_approved": false
+  },
+  "exploratory_source_painted_axis_pose_hypothesis": {
+    "method": "signed original ROM 2D painted colour-axis from existing source-authenticated source-chroma-axes.json; use -40 degree derived 3D parent-only pose if angle > 20 degrees, otherwise 0 degree original",
+    "threshold_and_candidates_selected_after_inspecting_35_reference_masks": true,
+    "source_signal_is_2d_not_proven_original_joint_angle": true,
+    "mask_count": 35,
+    "selected_minus40": 20,
+    "selected_zero": 15,
+    "silhouette_iou_original_uniform_upright": 0.46002071,
+    "silhouette_iou_colour_guided_pose_class": 0.54715522,
+    "connected_first16": {
+      "mean_iou": 0.56328621,
+      "selected_minus40": 2
+    },
+    "other_sha_disjoint19": {
+      "mean_iou": 0.53357123,
+      "selected_minus40": 18
+    },
+    "binary_masks_improved_vs_original": 20,
+    "binary_masks_worsened_vs_original": 0,
+    "source_target_binary_masks_used_during_angle_and_threshold_selection": true,
+    "independent_pose_holdout_validation": false,
+    "original_emulator_ppu_animation_chronology_verified": false,
+    "original_1994_joint_angle_recovered": false,
+    "shipping_art_approved": false
   }
 }

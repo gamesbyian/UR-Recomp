@@ -4,7 +4,7 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
-from tools.art.experimental_frame_hinge import rotation_y, pitch_scene, process
+from tools.art.experimental_frame_hinge import rotation_y, pitch_scene, process, exploratory_pose_from_source_painted_axis
 
 
 class PureHingeControls(unittest.TestCase):
@@ -14,6 +14,15 @@ class PureHingeControls(unittest.TestCase):
         positive = rotation_y(3)
         self.assertAlmostEqual(positive[0][2], math.sin(math.radians(3)))
         self.assertAlmostEqual(positive[2][0], -positive[0][2])
+
+    def test_source_painted_axis_pose_hypothesis_is_signed(self):
+        self.assertEqual(exploratory_pose_from_source_painted_axis(20.), 0.)
+        self.assertEqual(exploratory_pose_from_source_painted_axis(20.01), -40.)
+        self.assertEqual(exploratory_pose_from_source_painted_axis(-29.), 0.)
+        self.assertEqual(exploratory_pose_from_source_painted_axis(41.5), -40.)
+        for bad in (True, "42", None, float("nan"), float("inf"), 91):
+            with self.subTest(value=bad), self.assertRaises(ValueError):
+                exploratory_pose_from_source_painted_axis(bad)
 
     def test_invalid_angles_fail_closed(self):
         for val in (-46, 46, float("nan"), float("inf"), True, "3", None):

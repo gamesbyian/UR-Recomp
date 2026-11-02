@@ -124,6 +124,27 @@ try{
        if(q('parts').textContent!==originalNames)issues.push('wheel toggle mutated part names');
      }
    }
+   if(q('frameHinge').getBoundingClientRect().height<44)
+     issues.push('frame hinge touch target');
+   if(${mocked}){
+     if(!q('frameHinge').disabled)
+       issues.push('synthetic tire-only GLB falsely enabled axle hinge');
+   } else {
+     if(q('frameHinge').disabled)issues.push('real five-parent frame hinge unavailable');
+     else {
+       const originalIdentity=q('source').textContent;
+       for(const [value,label] of [['-40','-40'],['20','20'],['0','Unmodified']]){
+         q('frameHinge').value=value;
+         q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
+         if(q('frameHinge').value!==value || !q('frameHingeStatus').textContent.includes(label))
+           issues.push('frame hinge selection '+value);
+       }
+       if(q('source').textContent!==originalIdentity)
+         issues.push('frame hinge changed actual GLB source identity');
+       if(!q('frameHingeStatus').textContent.includes('Unmodified'))
+         issues.push('frame hinge failed to reset original pose');
+     }
+   }
    if(q('rootLean').getBoundingClientRect().height<44)
      issues.push('root lean accessible touch target');
    if(q('rootLean').disabled)issues.push('source GLB root lean selector unavailable');

@@ -22,6 +22,10 @@ class FrameHingeViewerTests(unittest.TestCase):
         self.assertIn("node.quaternion.copy(original.quaternion)",html)
         self.assertIn("node.scale.copy(original.scale)",html)
         self.assertIn("meshes.length!==16",html)
+        browser=(ROOT/"tools/art/model-review/browser-smoke.mjs").read_text(encoding="utf-8")
+        self.assertIn("synthetic tire-only GLB falsely enabled axle hinge",browser)
+        self.assertIn("real five-parent frame hinge unavailable",browser)
+        self.assertIn("frame hinge failed to reset original pose",browser)
         for path in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
             self.assertIn("frame_hinge_hypothesis.mjs",
                           (ROOT/path).read_text(encoding="utf-8"))

@@ -1,10 +1,12 @@
 """Pure contract tests for the optional ART-4K articulated WIP exporter."""
 import importlib.util
 import json
+import os
 import math
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).resolve().parents[2] / "tools" / "art" / "export_articulated_unicycle.py"
 spec = importlib.util.spec_from_file_location("export_articulated_unicycle", SCRIPT)
@@ -38,6 +40,50 @@ class ArticulatedBlockoutContract(unittest.TestCase):
                 (output / "articulated_blockout_last_attempt.json").read_text())
             self.assertEqual(failed["status"], "failed")
             self.assertFalse(failed["current_output_usable"])
+
+    def test_attempt_publication_pins_local_directory_handle(self):
+        if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+            self.skipTest("POSIX no-follow directory handle required")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            attempts = root / "attempts"
+            attempts.mkdir()
+            stage = root / "stage"
+            stage.mkdir()
+            (stage / "receipt").write_bytes(b"valid")
+            module._publish_attempt_directory(stage, attempts, "a" * 32)
+            self.assertEqual((attempts / ("a" * 32) / "receipt").read_bytes(),
+                             b"valid")
+
+    def test_attempt_symlink_swap_cannot_redirect_publication(self):
+        if os.name != "posix" or not hasattr(os, "O_NOFOLLOW"):
+            self.skipTest("POSIX no-follow directory handle required")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            attempts = root / "attempts"
+            attempts.mkdir()
+            moved = root / "moved"
+            foreign = root / "foreign"
+            foreign.mkdir()
+            stage = root / "stage"
+            stage.mkdir()
+            (stage / "receipt").write_bytes(b"valid")
+            original_rename = os.rename
+
+            def swap_before_rename(src, dst, **kwargs):
+                if kwargs.get("dst_dir_fd") is not None:
+                    original_rename(attempts, moved)
+                    attempts.symlink_to(foreign, target_is_directory=True)
+                return original_rename(src, dst, **kwargs)
+
+            with mock.patch.object(module.os, "rename",
+                                   side_effect=swap_before_rename):
+                with self.assertRaisesRegex(ValueError,
+                                            "changed during publication"):
+                    module._publish_attempt_directory(stage, attempts, "b" * 32)
+            self.assertEqual(list(foreign.iterdir()), [])
+            self.assertEqual((moved / ("b" * 32) / "receipt").read_bytes(),
+                             b"valid")
 
     def test_source_entrypoint_exactly_once_at_end(self):
         source = "module rig(x) {}\nrig(rig_pose);\n"

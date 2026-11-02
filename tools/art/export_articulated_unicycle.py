@@ -335,6 +335,29 @@ def _require_local_attempts_directory(out_dir: Path) -> None:
         raise ValueError("attempts directory must be a local directory, not a symlink")
 
 
+def _publish_attempt_directory(stage: Path, attempts_dir: Path, attempt_id: str) -> None:
+    """Publish into a no-follow directory handle, not a mutable pathname.
+
+    A second process may swap attempts/ for a symlink between a pathname
+    preflight and rename. The descriptor pins the original directory inode;
+    refuse the current-success pointer if the pathname changed during rename.
+    """
+    if not re.fullmatch(r"[0-9a-f]{32}", attempt_id):
+        raise ValueError("invalid immutable attempt identifier")
+    if (os.name != "posix" or not hasattr(os, "O_DIRECTORY")
+            or not hasattr(os, "O_NOFOLLOW")):
+        raise RuntimeError("secure attempt publication requires POSIX directory handles")
+    fd = os.open(attempts_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        anchored = os.fstat(fd)
+        os.rename(stage, attempt_id, dst_dir_fd=fd)
+        current = os.stat(attempts_dir, follow_symlinks=False)
+        if (current.st_dev, current.st_ino) != (anchored.st_dev, anchored.st_ino):
+            raise ValueError("attempts directory changed during publication")
+    finally:
+        os.close(fd)
+
+
 def export(source: Path, out_dir: Path, *, timeout: int = 90,
            pedal_phase: float | None = None, saddle_lean: float | None = None,
            rig_pose: str = "custom", rig_time: float | None = None,
@@ -507,9 +530,9 @@ def export(source: Path, out_dir: Path, *, timeout: int = 90,
             _require_local_attempts_directory(out_dir)
             attempts_dir.mkdir(exist_ok=True)
             _require_local_attempts_directory(out_dir)
-            destination = attempts_dir / attempt_id
-            # Same-filesystem rename publishes a complete immutable pair.
-            os.rename(stage, destination)
+            # A pathname-only check leaves a symlink-swap race before rename.
+            # Pin the real attempts directory and rename relative to its handle.
+            _publish_attempt_directory(stage, attempts_dir, attempt_id)
         pointer = {"schema": "ur-art4k-export-current/1",
                    "attempt_id": attempt_id, "source_sha256": source_digest,
                    "rig_pose": rig_pose,

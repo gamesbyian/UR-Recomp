@@ -64,6 +64,26 @@ def analyze_pair(before: bytes, after: bytes, radius: int = 2) -> dict:
     if optimum != len(changed)+len(predicted)-2*common:
         raise ValueError("source/alignment XOR identity violated")
     higher = [c[0] for c in candidates if c[0] != optimum]
+    # Source raster crop coordinates, NOT an original anatomical segmentation.
+    # Union-normalized mismatch prevents dense silhouette bands receiving
+    # more weight merely because they contain more source pixels.
+    regions = []
+    for y0, y1 in ((0, 16), (16, 32), (32, 40), (40, 64)):
+        lo, hi = y0*64, y1*64
+        occupancy = sum(bool(a or b) for a, b in
+                        zip(shifted[lo:hi], after[lo:hi]))
+        mismatch = sum(a != b for a, b in
+                       zip(shifted[lo:hi], after[lo:hi]))
+        regions.append({
+            "raster_y_start_inclusive": y0,
+            "raster_y_end_exclusive": y1,
+            "source_target_union_pixels": occupancy,
+            "aligned_shape_residual_pixels": mismatch,
+            "fraction_union_pixels_mismatched":
+                round(mismatch/occupancy, 8) if occupancy else None,
+        })
+    if sum(b["aligned_shape_residual_pixels"] for b in regions) != optimum:
+        raise ValueError("regional original-mask XOR does not conserve residual")
     return {
         "original_changed_pixels": len(changed),
         "optimal_integer_shift_dx_dy": [dx, dy],
@@ -78,6 +98,7 @@ def analyze_pair(before: bytes, after: bytes, radius: int = 2) -> dict:
             round(common/len(changed), 8) if changed else None,
         "posthoc_translation_change_precision":
             round(common/len(predicted), 8) if predicted else None,
+        "source_mask_raster_regions": regions,
         "target_silhouette_used_for_search": True,
         "real_original_emulator_frame_timing_observed": False,
         "physical_source_translation_or_3d_articulation_inferred": False,
@@ -110,6 +131,35 @@ def evaluate(corpus_path: Path, radius: int = 2) -> dict:
         })
     stats = [r["diagnostic"] for r in rows]
     changing = [s for s in stats if s["original_changed_pixels"]]
+    # Same binary masks recur in multiple authored windows. Count a directed
+    # pair only once before presenting residuals as independent shape cases.
+    distinct_pairs = {}
+    for row in rows:
+        d = row["diagnostic"]
+        if not d["original_changed_pixels"]:
+            continue
+        key = (row["original_binary_mask_sha256_before"],
+               row["original_binary_mask_sha256_after"])
+        earlier = distinct_pairs.setdefault(key, d)
+        if earlier != d:
+            raise ValueError("same authenticated directed masks yielded different residuals")
+    distinct = list(distinct_pairs.values())
+    aggregate_regions = []
+    for i, (y0, y1) in enumerate(((0, 16), (16, 32), (32, 40), (40, 64))):
+        occupancy = sum(x["source_mask_raster_regions"][i]["source_target_union_pixels"]
+                        for x in distinct)
+        residual = sum(x["source_mask_raster_regions"][i]["aligned_shape_residual_pixels"]
+                       for x in distinct)
+        aggregate_regions.append({
+            "raster_y_start_inclusive": y0, "raster_y_end_exclusive": y1,
+            "source_target_union_pixels": occupancy,
+            "aligned_shape_residual_pixels": residual,
+            "fraction_union_pixels_mismatched":
+                round(residual/occupancy, 8) if occupancy else None,
+        })
+    if (sum(r["aligned_shape_residual_pixels"] for r in aggregate_regions)
+            != sum(d["optimal_residual_shape_pixels"] for d in distinct)):
+        raise ValueError("deduplicated regional residual does not conserve XOR")
     if len(rows) != 109 or len(changing) != 19:
         raise ValueError("ROM-composed *authored registry* census changed")
     return {
@@ -124,6 +174,10 @@ def evaluate(corpus_path: Path, radius: int = 2) -> dict:
             "authored_registry_changed_edges": len(changing),
             "authored_registry_unchanged_edges": len(rows)-len(changing),
             "changed_source_pixels": sum(s["original_changed_pixels"] for s in stats),
+            "unique_directed_changed_binary_mask_pairs": len(distinct),
+            "unique_directed_optimal_residual_pixels":
+                sum(d["optimal_residual_shape_pixels"] for d in distinct),
+            "unique_directed_regional_shape_residual": aggregate_regions,
             "best_shift_residual_pixels": sum(s["optimal_residual_shape_pixels"] for s in stats),
             "positive_shape_residual_edges":
                 sum(s["optimal_residual_shape_pixels"] > 0 for s in changing),

@@ -56,7 +56,7 @@ def validate(manifest, root: Path):
             raise ValueError("missing actual captured frame")
         raw = file.read_bytes()
         if (len(raw) != 4096 or any(v not in (0, 1) for v in raw)
-                or not any(raw) or not _sha(row.get("binary_alpha_sha256"))
+                or not _sha(row.get("binary_alpha_sha256"))
                 or hashlib.sha256(raw).hexdigest() != row["binary_alpha_sha256"]):
             raise ValueError("invalid or stale actual 64x64 PPU alpha pixels")
         oam = row.get("oam_sha256")

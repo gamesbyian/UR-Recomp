@@ -75,6 +75,31 @@ class LiveOriginalWitnessTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate(q, self.root)
 
+    def test_authentic_blank_frames_preserve_disappearance_hold_and_return(self):
+        # A live original sprite can be hidden or offscreen without a missing
+        # capture. Zero-alpha frames are real observations, not registry gaps.
+        blank = bytes(4096)
+        (self.root / "frames" / "blank").write_bytes(blank)
+        q = copy.deepcopy(self.record)
+        first = self.row(10, "a")
+        hidden1 = self.row(11, "a")
+        hidden2 = self.row(12, "a")
+        last = self.row(13, "b")
+        for hidden in (hidden1, hidden2):
+            hidden["binary_alpha_file"] = "frames/blank"
+            hidden["binary_alpha_sha256"] = hashlib.sha256(blank).hexdigest()
+        q["frames"] = [first, hidden1, hidden2, last]
+        r = validate(q, self.root)
+        self.assertEqual(r["live_consecutive_edges"], 3)
+        self.assertEqual(r["live_silhouette_change_edges"], 2)
+        self.assertEqual(r["live_silhouette_hold_edges"], 1)
+        self.assertEqual([x["original_binary_silhouette_changed"]
+                          for x in r["edges"]], [True, False, True])
+        # Empty captures still require correct actual-byte provenance.
+        q["frames"][1]["binary_alpha_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "invalid or stale"):
+            validate(q, self.root)
+
     def test_independent_player_tracks(self):
         q = copy.deepcopy(self.record)
         q["frames"].insert(1, self.row(10, "b", "p2"))

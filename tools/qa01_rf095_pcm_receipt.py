@@ -94,6 +94,21 @@ def require_sample_coverage(samples: int, frames: int, rate: int, side: str) -> 
             f'stereo samples over {frames} guest frames')
 
 
+def require_frame_window_coverage(rows: dict[int, int], start: int, end: int,
+                                  rate: int, side: str) -> None:
+    """Bound missing PCM within every consecutive three-frame window.
+
+    The floor is eightfold below nominal 60-Hz output on each producer's
+    own frame clock. A single zero-sample frame can pass if neighboring
+    frames cover the window; this does not prove every frame had audio.
+    """
+    width = 3
+    for first in range(start, end - width + 1):
+        last = first + width
+        require_sample_coverage(rows[last] - rows[first], width, rate,
+                                f'{side} frames {first}..{last}')
+
+
 def sample_stats(raw: bytes) -> dict:
     if not raw or len(raw) % 4:
         raise ValueError('RF095 incomplete stereo int16 PCM')
@@ -185,6 +200,13 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
                             ORIGINAL_END - ORIGINAL_START, rate, 'original')
     require_sample_coverage(nat[NATIVE_END] - nat[NATIVE_START],
                             NATIVE_END - NATIVE_START, 32040, 'native')
+    # An aggregate floor alone admits a frame map with nine empty frames
+    # followed by one implausible burst. Enforce the same weak minimum
+    # over rolling three-frame windows on each producer's own clock.
+    require_frame_window_coverage(ref, ORIGINAL_START, ORIGINAL_END,
+                                  rate, 'original')
+    require_frame_window_coverage(nat, NATIVE_START, NATIVE_END,
+                                  32040, 'native')
     receipt = {
         'schema': 'ur-qa01-rf095-source-registered-pcm/1',
         'claimed_output_stages': 'libretro callback and native post-echo DSP output',

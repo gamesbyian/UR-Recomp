@@ -1,5 +1,7 @@
 """Offline, no-auth controls for the read-only account artifact census."""
 from datetime import datetime, timezone
+from types import SimpleNamespace
+from unittest.mock import patch
 import unittest
 
 from tools import actions_storage_inventory as inv
@@ -61,6 +63,35 @@ class InventoryTests(unittest.TestCase):
         result = inv.summarize("gamesbyian/Glimpse", [a(1, "a|b", 4)],
                                now=datetime(2026, 11, 2, tzinfo=timezone.utc))
         self.assertIn("a\\|b", inv.markdown([result]))
+
+
+    def test_gh_json_retries_503_then_returns_json(self):
+        failed = SimpleNamespace(returncode=1, stderr="gh: upstream (HTTP 503) secret=never-log", stdout="")
+        passed = SimpleNamespace(returncode=0, stderr="", stdout='{"ok": true}')
+        with patch.object(inv.subprocess, "run", side_effect=[failed, passed]) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                self.assertEqual(inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts"), {"ok": True})
+        self.assertEqual(run.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_gh_json_auth_denial_has_status_only_and_no_retry(self):
+        failed = SimpleNamespace(returncode=1, stderr="gh: token=secret (HTTP 403)", stdout="")
+        with patch.object(inv.subprocess, "run", return_value=failed) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                with self.assertRaisesRegex(RuntimeError, "HTTP 403") as caught:
+                    inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts")
+        self.assertNotIn("secret", str(caught.exception))
+        run.assert_called_once()
+        sleep.assert_not_called()
+
+    def test_gh_json_bounded_rate_limit_retry(self):
+        failed = SimpleNamespace(returncode=1, stderr="gh: rate limit (HTTP 429)", stdout="")
+        with patch.object(inv.subprocess, "run", return_value=failed) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                with self.assertRaisesRegex(RuntimeError, "HTTP 429"):
+                    inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts")
+        self.assertEqual(run.call_count, 3)
+        self.assertEqual([c.args for c in sleep.call_args_list], [(1,), (2,)])
 
 
 if __name__ == "__main__":

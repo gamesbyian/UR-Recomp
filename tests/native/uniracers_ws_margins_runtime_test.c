@@ -40,7 +40,7 @@ static void course(void) {
         put16(0x10000+0x000F+2u*rec,rec);
         for(int fy=0;fy<4;fy++) for(int fx=0;fx<4;fx++) {
             int x=sx*4+fx,y=sy*4+fy;
-            put16(0x10000+0x800F+32u*rec+2u*(fy*4+fx),
+            put16(0x10000+0x800F+32u*rec+2u*(uint32_t)(fy*4+fx),
                   (uint16_t)(0x1000|(y<<6)|x));
         }
     }

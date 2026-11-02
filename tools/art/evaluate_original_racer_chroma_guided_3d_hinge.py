@@ -39,6 +39,42 @@ CHROMA_NODE="fork_and_frame__material_0"
 BLUE_RGBA=(28,89,222,255)
 
 
+REGIONS=((0,16),(16,32),(32,40),(40,64))
+
+
+def raster_band_residuals(original:bytes,model:bytes)->list[dict]:
+    """Fixed source canvas bands only, NOT anatomical wheel/saddle segmentation."""
+    if (len(original)!=4096 or len(model)!=4096 or
+            any(v not in (0,1) for v in original) or
+            any(v not in (0,1) for v in model)):
+        raise ValueError("band residual requires two binary 64px source/model masks")
+    rows=[]
+    for low,high in REGIONS:
+        o,m=original[64*low:64*high],model[64*low:64*high]
+        xor=sum(a!=b for a,b in zip(o,m))
+        union=sum(bool(a or b) for a,b in zip(o,m))
+        rows.append({"raster_rows_start_inclusive":low,"raster_rows_end_exclusive":high,
+                     "xor_pixels":xor,"union_pixels":union})
+    if sum(r["xor_pixels"] for r in rows)!=sum(a!=b for a,b in zip(original,model)):
+        raise ValueError("raster band XOR did not conserve exact original residual")
+    return rows
+
+
+def raster_band_envelope(per_source_choice:list[list[dict]])->list[dict]:
+    """Source 2D centre ties produce bounds, NEVER an optimized choice."""
+    if not per_source_choice:
+        raise ValueError("no source-centre candidates")
+    out=[]
+    for i,(lo,hi) in enumerate(REGIONS):
+        pixels=[row[i] for row in per_source_choice]
+        out.append({"raster_rows":[lo,hi],
+                    "xor_min":min(v["xor_pixels"] for v in pixels),
+                    "xor_max":max(v["xor_pixels"] for v in pixels),
+                    "union_min":min(v["union_pixels"] for v in pixels),
+                    "union_max":max(v["union_pixels"] for v in pixels)})
+    return out
+
+
 def painted_axis_from_mask(binary_64)->float:
     """Top and bottom three occupied source raster rows, SNES 7:6 physical X."""
     import numpy as np
@@ -196,9 +232,15 @@ def evaluate(corpus_path:Path,glb_path:Path,camera_path:Path,
         ax,ay=rec["source_alpha_anchor_x2_y2"]
         historical=iou(rec["mask"],translate_4x(model_mask,2*(ax-67),2*(ay-76)))
         vals=[]
+        selected_bands=[]
+        upright_bands=[]
         for cx,cy,r in rings[sha]:
             dx,dy=centre_shift_4x(cx,cy,axle4)
-            vals.append(iou(rec["mask"],translate_4x(model_mask,dx,dy)))
+            moved=translate_4x(model_mask,dx,dy)
+            vals.append(iou(rec["mask"],moved))
+            selected_bands.append(raster_band_residuals(rec["mask"],moved))
+            upright_bands.append(raster_band_residuals(
+                rec["mask"],translate_4x(projected[0],dx,dy)))
         rows.append({
             "source_binary_mask_sha256":sha,
             "original_source_painted_axis_degrees":observed[sha],
@@ -209,17 +251,40 @@ def evaluate(corpus_path:Path,glb_path:Path,camera_path:Path,
             "historical_source_alpha_anchor_iou":historical,
             "wheel_centre_iou_min":min(vals),
             "wheel_centre_iou_max":max(vals),
+            "selected_pose_raster_band_residual_envelope":
+                raster_band_envelope(selected_bands),
+            "fixed_upright_raster_band_residual_envelope":
+                raster_band_envelope(upright_bands),
             "source_target_model_silhouette_used_to_select_hinge_or_shift":False,
         })
     def mean(part):
         return {name:round(sum(r[name] for r in part)/len(part),8) for name in
                 ("historical_source_alpha_anchor_iou","wheel_centre_iou_min","wheel_centre_iou_max")}
-    summaries={"all35":{"count":35,"mean_iou":mean(rows)}}
+    def region_sum(part,kind):
+        result=[]
+        for i,(lo,hi) in enumerate(REGIONS):
+            segments=[r[kind][i] for r in part]
+            result.append({
+                "raster_rows":[lo,hi],
+                "xor_sum_possible_min":sum(v["xor_min"] for v in segments),
+                "xor_sum_possible_max":sum(v["xor_max"] for v in segments),
+                "union_sum_possible_min":sum(v["union_min"] for v in segments),
+                "union_sum_possible_max":sum(v["union_max"] for v in segments)})
+        return result
+    summaries={"all35":{"count":35,"mean_iou":mean(rows),
+                           "fixed_upright_raster_bands":region_sum(
+                                rows,"fixed_upright_raster_band_residual_envelope"),
+                           "selected_pose_raster_bands":region_sum(
+                                rows,"selected_pose_raster_band_residual_envelope")}}
     if families:
         for name in ("first16","additional19"):
             group=[r for r in rows if r["source_family"]==name]
             if not group:raise ValueError("empty historical source family")
-            summaries[name]={"count":len(group),"mean_iou":mean(group)}
+            summaries[name]={"count":len(group),"mean_iou":mean(group),
+                             "fixed_upright_raster_bands":region_sum(
+                                  group,"fixed_upright_raster_band_residual_envelope"),
+                             "selected_pose_raster_bands":region_sum(
+                                  group,"selected_pose_raster_band_residual_envelope")}
     return {
         "schema":SCHEMA,"original_rom_corpus_manifest_sha256":CORPUS_SHA,
         "historical_2026_glb_sha256":MODEL_SHA,

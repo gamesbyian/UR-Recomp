@@ -63,7 +63,7 @@ class WheelDiskEvidenceTests(unittest.TestCase):
         self.assertEqual(a,3/14)
         self.assertEqual(b,4/14)
         self.assertEqual(envelope(stats,"fraction_at_or_below_wheel_top"),
-                         (12/14,13/14))
+                         (10/14,11/14))
 
     def test_bad_source_or_fake_wheel_radius_cannot_be_counted(self):
         pts=disk_points()

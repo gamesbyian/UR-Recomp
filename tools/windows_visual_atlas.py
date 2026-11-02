@@ -236,8 +236,11 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     model_review = Path(__file__).resolve().parent / "art/model-review"
     review_target = target / "model-review"
     review_target.mkdir()
-    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs"):
+    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs"):
         shutil.copyfile(model_review / filename, review_target / filename)
+    # This numeric look-up is original-USA-ROM/PNG-SHA-bound; never a 3D part label.
+    shutil.copyfile(Path(__file__).resolve().parents[1] / "analysis/data/racer-original-index-lookup-20261102.json",
+                    review_target / "original-index-lookup.json")
     # Independently hash-verify retained original 64x64 review sprites.
     # They are a separate, explicitly NON-REGISTERED 2D reference timeline:
     # never alias a frame number to a speculative 2026 3D blockout pose.
@@ -272,7 +275,8 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
             raise ValueError("source sprite identity collision")
         sprite_rows.append({"player": obs["player"], "guest_frame": obs["guest_frame"],
                             "image": "sprites/" + filename, "sha256": obs["png_file_sha256"],
-                            "representation_id": obs["representation_id"]})
+                            "representation_id": obs["representation_id"],
+                            "rgba_sha256": obs["source_rgba_sha256"]})
     (review_target / "sprites.json").write_text(json.dumps({
         "schema": "ur-racer-original-sprite-reference/1",
         "source_kind": "retained original ROM-composed source PNG (verified, not reextracted)",

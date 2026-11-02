@@ -45,7 +45,7 @@ def rasterize_depth(triangles, material_ids, camera, direction=1, eps=DEPTH_TIE_
     camera_config(camera)
     t = np.asarray(triangles, dtype=np.float64)
     ids = np.asarray(material_ids)
-    if (t.ndim != 3 or t.shape[1:] != (3, 3)
+    if (t.ndim != 3 or t.shape[1:] != (3, 3) or len(t)==0
             or ids.shape != (len(t),) or ids.dtype.kind not in "iu"
             or not np.isfinite(t).all()
             or type(direction) is not int or direction not in SIDES

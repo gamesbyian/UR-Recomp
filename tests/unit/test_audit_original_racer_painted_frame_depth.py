@@ -80,6 +80,25 @@ class DepthPaintedAxisTests(unittest.TestCase):
             np.stack([t,t]),np.array([0,0],dtype=np.int32),CAMERA)
         self.assertFalse(same[22,22])
 
+    def test_three_surface_epsilon_chain_is_order_invariant(self):
+        from itertools import permutations
+        t=self.triangle(0)
+        # B and C are tied (0.75 epsilon apart) even though A to C spans
+        # 1.5 epsilon; prior incremental z-buffer erroneously cleared it.
+        surfaces=[
+            (t,np.int32(0)),
+            (self.triangle(.75e-6),np.int32(1)),
+            (self.triangle(1.5e-6),np.int32(2)),
+        ]
+        for ordering in permutations(surfaces):
+            with self.subTest(order=[int(x[1]) for x in ordering]):
+                triangles=np.stack([x[0] for x in ordering])
+                ids=np.array([x[1] for x in ordering],dtype=np.int32)
+                owner,tie,hits=rasterize_depth(triangles,ids,CAMERA,1)
+                self.assertEqual(int(owner[22,22]),2)
+                self.assertTrue(tie[22,22])
+                self.assertEqual(int(hits[22,22]),3)
+
     def test_nearer_third_material_resolves_prior_tie(self):
         t=self.triangle(0)
         close=self.triangle(2)

@@ -42,3 +42,10 @@ The original ROM corpus has 35 unique 2D binary masks but **six** have more than
 - Each exact source colour variant is now separately reported by source player, original RGBA SHA, original 2D painted axis and candidate angle for all three projected blue-material visibility methods. Summary counts retain one **binary mask vote**, while reporting multiple allowable 2026 frame poses rather than silently assigning the average-derived angle as physically unique.
 
 These differences can stem from original sprite colour segmentation, player-specific paint area, palette shading or structural remapping. They do **not** prove that 1994 geometry differs between colour variants of the same binary silhouette, or that a 5° shift measures an actual historical joint. Do not turn source colour-variant ambiguity into fictitious independent 3D pose coverage or additional statistical masks.
+
+
+### Depth-tie publication-order negative control
+
+An independent post-publication review found that a simple incremental nearest-triangle z-buffer could produce different outcomes when three differently labelled materials had depths A=0, B=0.75×10⁻⁶, C=1.5×10⁻⁶ source-world units. Even though B and C are within the declared 10⁻⁶ tie threshold, processing A→B→C could clear the earlier ambiguity on arrival of C. This is unacceptable because serialized triangle order must not influence a source/material visibility receipt.
+
+The current guard now computes a separate **maximum depth for every material** at each source pixel, then resolves the highest visible material and all material ties only after every triangle has contributed. This is order-independent, conservatively preserves B/C ambiguity, and still allows a strictly nearer material to win. The six permutations of the adversarial three-triangle fixture are an explicit regression control. Same-material repeated triangles do not create false cross-material ambiguity. The tie rule is a numerical uncertainty convention, not a claim about exact source-game anti-aliasing or multi-layer sprite compositing.

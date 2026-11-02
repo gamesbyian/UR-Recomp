@@ -206,7 +206,7 @@ def evaluate(corpus_path: Path, sample_roots: dict[str, Path],
     anchors = {sha: originals[sha]["source_alpha_anchor_x2_y2"]
                for sha in originals}
     placed = {(time, sha): translated_4x_source_mask(projections[time], anchor)
-              for time in TIMES for sha, anchor in sorted(anchors.items())}
+              for time in times for sha, anchor in sorted(anchors.items())}
     pairs = list(zip(times, times[1:]))
     results = []
     for from_time, to_time in pairs:

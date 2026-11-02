@@ -7,7 +7,7 @@ from tools.art.continuous_pose_recipe import continuous_pose_recipe
 
 
 SOURCE = Path(__file__).resolve().parents[2] / "tools/art/candidates/unicycle_shared_rig.scad"
-TIMES = (0.0, 0.25, 0.5, 0.75, 1.0)
+TIMES = (0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0)
 
 
 class AuthoredRidePhaseGridTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class AuthoredRidePhaseGridTests(unittest.TestCase):
 
     def test_fixed_five_sample_times_recover_same_2026_authoring_contract(self):
         samples = [continuous_pose_recipe(self.source, "ride", t) for t in TIMES]
-        self.assertEqual(len(samples), 5)
+        self.assertEqual(len(samples), 9)
         for t, (pedal, lean, matrix, metadata) in zip(TIMES, samples):
             with self.subTest(phase=t):
                 self.assertEqual(metadata["rig_time"], t)
@@ -46,7 +46,22 @@ class AuthoredRidePhaseGridTests(unittest.TestCase):
                             or any(abs(a - b) > 1e-7
                                    for ra, rb in zip(samples[i][2], samples[0][2])
                                    for a, b in zip(ra, rb))
-                            for i in (1, 2, 3)))
+                            for i in (1, 2, 3, 4, 5, 6, 7)))
+
+    def test_eighth_cycle_samples_avoid_720_degree_wobble_alias(self):
+        # A quarter-only grid hits sin(720*t)=0 every time, and previously
+        # counted multiple authored times as independent geometry.
+        middle = [continuous_pose_recipe(self.source, "ride", t)[3]
+                  for t in TIMES]
+        for index in (0, 2, 4, 6, 8):
+            self.assertAlmostEqual(middle[index]["continuous_wobble_degrees"],
+                                   0, places=8)
+        for index, expected in ((1, 3), (3, -3), (5, 3), (7, -3)):
+            self.assertAlmostEqual(middle[index]["continuous_wobble_degrees"],
+                                   expected, places=8)
+        self.assertEqual(len(TIMES), len(set(TIMES)))
+        self.assertEqual(TIMES[0], 0.0)
+        self.assertEqual(TIMES[-1], 1.0)
 
     def test_wrong_pose_or_out_of_bounds_is_refused(self):
         for name, t in (("invented", 0.25), ("ride", -0.01),

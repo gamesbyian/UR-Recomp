@@ -11,7 +11,7 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
         for marker in (
             'id="paintHypothesis"',
             'id="paintStatus"',
-            'style="min-height:44px"',
+            'min-height:44px;min-width:0;width:100%;max-width:100%',
             "manifest?.source_model_sha256!==SOURCE_SHA",
             "if(!wheelDriveState||!origin.startsWith('published ')",
             "function capturePaintMaterials(origin)",

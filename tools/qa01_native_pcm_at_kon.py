@@ -99,11 +99,10 @@ def publish_receipt_no_replace(path: Path, payload: str) -> None:
                 output.write(payload)
                 output.flush()
                 os.fsync(output.fileno())
-            try:
-                os.link(stage_name, path.name, src_dir_fd=directory_fd,
-                        dst_dir_fd=directory_fd, follow_symlinks=False)
-            except FileExistsError as exc:
-                raise ValueError("refusing to replace existing evidence JSON") from exc
+            # Preserve the pre-existing FileExistsError contract for a foreign
+            # final name; the link never replaces it, even if it is a symlink.
+            os.link(stage_name, path.name, src_dir_fd=directory_fd,
+                    dst_dir_fd=directory_fd, follow_symlinks=False)
             os.fsync(directory_fd)
             visible = os.stat(parent, follow_symlinks=False)
             if (visible.st_dev, visible.st_ino) != (pinned.st_dev, pinned.st_ino):

@@ -374,7 +374,7 @@ class ReceiptPublicationPinnedDirectoryTests(unittest.TestCase):
             final = Path(tmp) / "receipt.json"
             pcm.publish_receipt_no_replace(final, '{"validated":true}\n')
             self.assertEqual(final.read_text(), '{"validated":true}\n')
-            with self.assertRaisesRegex(ValueError, "replace"):
+            with self.assertRaises(FileExistsError):
                 pcm.publish_receipt_no_replace(final, '{"foreign":true}\n')
             self.assertEqual(final.read_text(), '{"validated":true}\n')
             self.assertFalse(list(Path(tmp).glob(".qa01-receipt-stage-*")))

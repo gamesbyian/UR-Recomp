@@ -165,11 +165,15 @@ class AtomicReceiptPublicationTests(unittest.TestCase):
             destination = root / "receipt.json"
             payload = json.dumps({"wav_sha256": "a" * 64}, sort_keys=True) + "\n"
             original_link = offline.os.link
-            def verify_before_link(staged, target):
-                self.assertEqual(Path(target), destination)
+            def verify_before_link(staged, target, **kwargs):
+                self.assertEqual(target, destination.name)
+                self.assertEqual(kwargs.get("src_dir_fd"), kwargs.get("dst_dir_fd"))
                 self.assertFalse(destination.exists())
-                self.assertEqual(Path(staged).read_text(encoding="utf-8"), payload)
-                return original_link(staged, target)
+                fd = offline.os.open(staged, offline.os.O_RDONLY,
+                                     dir_fd=kwargs["src_dir_fd"])
+                with offline.os.fdopen(fd, "r", encoding="utf-8") as snapshot:
+                    self.assertEqual(snapshot.read(), payload)
+                return original_link(staged, target, **kwargs)
             with patch.object(offline.os, "link", side_effect=verify_before_link):
                 offline.publish_receipt_no_replace(destination, payload)
             self.assertEqual(destination.read_text(encoding="utf-8"), payload)

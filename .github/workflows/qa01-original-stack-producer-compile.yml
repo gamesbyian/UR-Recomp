@@ -70,6 +70,9 @@ jobs:
           test -s "$SRC/libretro/snes9x_libretro.so"
           mkdir -p "$RUNNER_TEMP/rf065"
           sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/stock-core-sha256.txt"
+          # Preserve the exact pre-instrumentation ELF for independent source/provenance review.
+          cp -- "$SRC/libretro/snes9x_libretro.so" "$RUNNER_TEMP/rf065/stock-original-libretro.so"
+          cmp -s "$SRC/libretro/snes9x_libretro.so" "$RUNNER_TEMP/rf065/stock-original-libretro.so"
       - name: Stage genuine original CPU/stack probes without adding guest bus calls
         shell: bash
         run: |

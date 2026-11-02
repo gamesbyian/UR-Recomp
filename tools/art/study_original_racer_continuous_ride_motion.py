@@ -52,9 +52,10 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def validate_sample_receipt(qualified, current, last, requested_time):
+def validate_sample_receipt(qualified, current, last, requested_time, expected_shas=None):
     """ROM-free strict identity check before looking at candidate geometry."""
-    if requested_time not in TIMES:
+    pins = PINNED_GRID_GLB_SHA if expected_shas is None else expected_shas
+    if requested_time not in pins:
         raise ValueError("ride-grid sample not predeclared")
     if (not isinstance(qualified, dict)
             or qualified.get("schema") != RECEIPT_SCHEMA
@@ -63,7 +64,7 @@ def validate_sample_receipt(qualified, current, last, requested_time):
             or not math.isfinite(qualified["rig_time"])
             or qualified["rig_time"] != float(requested_time)
             or qualified.get("model_source_sha256") != SOURCE_RIG_SHA
-            or qualified.get("GLB_sha256") != PINNED_GRID_GLB_SHA[requested_time]
+            or qualified.get("GLB_sha256") != pins[requested_time]
             or qualified.get("part_parent_count") != 5
             or qualified.get("part_material_mesh_count") != 16
             or qualified.get("source_owned_pivots_validated_against_real_GLB") is not True
@@ -159,9 +160,16 @@ def summarize_candidate(rows):
 
 
 def evaluate(corpus_path: Path, sample_roots: dict[str, Path],
-             camera_path: Path) -> dict:
-    if set(sample_roots) != set(TIMES):
-        raise ValueError("exact five predeclared ride sample times required")
+             camera_path: Path, *, sample_times=None, pinned_glbs=None) -> dict:
+    times = TIMES if sample_times is None else tuple(sample_times)
+    pins = PINNED_GRID_GLB_SHA if pinned_glbs is None else pinned_glbs
+    if (not times or not isinstance(pins, dict)
+            or len(set(times)) != len(times)
+            or set(pins) != set(times)
+            or set(sample_roots) != set(times)
+            or any(type(t) is not str or not t or t not in pins for t in times)
+            or any(float(a) >= float(b) for a, b in zip(times, times[1:]))):
+        raise ValueError("source-pinned monotonic complete ride sample grid required")
     corpus, verified = validate_corpus(corpus_path)
     originals = originals_from_corpus(corpus_path, corpus)
     if len(originals) != 35 or set(originals) != verified["all_masks"]:
@@ -173,14 +181,14 @@ def evaluate(corpus_path: Path, sample_roots: dict[str, Path],
     camera = json.loads(raw_camera)
     camera_config(camera)
     samples, projections = {}, {}
-    for time in TIMES:
+    for time in times:
         root = sample_roots[time].resolve()
         root_continuous = root / "art4k-continuous"
         qpath = root / "art4k-continuous-qualified.json"
         qualified = json.loads(qpath.read_bytes())
         current = json.loads((root_continuous / "articulated_blockout_current.json").read_bytes())
         last = json.loads((root_continuous / "articulated_blockout_last_attempt.json").read_bytes())
-        relative = validate_sample_receipt(qualified, current, last, time)
+        relative = validate_sample_receipt(qualified, current, last, time, pins)
         glb = (root_continuous / relative).resolve()
         if not glb.is_relative_to(root_continuous.resolve()) or not glb.is_file():
             raise ValueError("source GLB escapes verified immutable artifact")
@@ -199,7 +207,7 @@ def evaluate(corpus_path: Path, sample_roots: dict[str, Path],
                for sha in originals}
     placed = {(time, sha): translated_4x_source_mask(projections[time], anchor)
               for time in TIMES for sha, anchor in sorted(anchors.items())}
-    pairs = list(zip(TIMES, TIMES[1:]))
+    pairs = list(zip(times, times[1:]))
     results = []
     for from_time, to_time in pairs:
         rows = []
@@ -219,7 +227,7 @@ def evaluate(corpus_path: Path, sample_roots: dict[str, Path],
             "1994_guest_frame_to_2026_rig_time_paired": False,
             "source_pixel_statistics": summarize_candidate(rows),
         })
-    first, last = projections[TIMES[0]], projections[TIMES[-1]]
+    first, last = projections[times[0]], projections[times[-1]]
     if first.shape != (256, 256) or last.shape != (256, 256):
         raise ValueError("invalid experimental render grid")
     import numpy as np
@@ -233,7 +241,7 @@ def evaluate(corpus_path: Path, sample_roots: dict[str, Path],
         "source_original_actual_frame_edges": len(edges),
         "source_original_unique_binary_silhouettes": len(originals),
         "source_model_sha256": SOURCE_RIG_SHA,
-        "exact_ride_grid": list(TIMES),
+        "exact_ride_grid": list(times),
         "real_verified_glb_samples": samples,
         "first_last_authored_cycle_4x_pixel_xor": close_pixel_difference,
         "all_transition_pairs_predeclared_without_frame_matching": True,

@@ -18,12 +18,14 @@ import tempfile
 try:
     from tools.art.continuous_pose_recipe import continuous_pose_recipe
     from tools.art.glb_roundtrip_guard import validate_glb_roundtrip
-    from tools.art.export_articulated_unicycle import PLAYER_PALETTES
+    from tools.art.export_articulated_unicycle import (PLAYER_PALETTES, saddle_mount_from_source,
+                                                     part_translation)
     from tools.art.scad_materials import materials_for_part
 except ModuleNotFoundError:
     from continuous_pose_recipe import continuous_pose_recipe
     from glb_roundtrip_guard import validate_glb_roundtrip
-    from export_articulated_unicycle import PLAYER_PALETTES
+    from export_articulated_unicycle import (PLAYER_PALETTES, saddle_mount_from_source,
+                                              part_translation)
     from scad_materials import materials_for_part
 
 SCHEMA = "UR-ART4K-REAL-CONTINUOUS-SOURCE-GLB-RECEIPT/1"
@@ -161,6 +163,28 @@ def validate_one(source_path: Path, out_dir: Path, pose: str, time: float,
         raise ValueError("source model must preserve five parent parts")
     if {x.get("name") for x in components} != set(PART_MATERIAL_COUNTS):
         raise ValueError("source-owned parent part identity changed")
+    # GLB roundtrip alone compares transforms with mutable receipt pivots.
+    # Reconstruct the five source-owned pivots independently from exact SCAD.
+    saddle_mount = saddle_mount_from_source(source)
+    stored_mount = receipt.get("source_saddle_mount")
+    if not isinstance(stored_mount, list) or len(stored_mount) != 3:
+        raise ValueError("missing source-owned saddle mount")
+    for i, expected in enumerate(saddle_mount):
+        _same_number(stored_mount[i], expected, f"source saddle mount[{i}]")
+    for row in components:
+        name = row["name"]
+        expected_pivot = part_translation(name, saddle_mount)
+        pivot = row.get("pivot_translation")
+        world = row.get("world_pivot_translation")
+        if not isinstance(pivot, list) or len(pivot) != 3:
+            raise ValueError(f"missing source-owned pivot for {name}")
+        if not isinstance(world, list) or len(world) != 3:
+            raise ValueError(f"missing source-owned world pivot for {name}")
+        local_h = (*expected_pivot, 1.0)
+        for i in range(3):
+            _same_number(pivot[i], expected_pivot[i], f"{name} pivot[{i}]")
+            expected_world = sum(expected_matrix[i][j] * local_h[j] for j in range(4))
+            _same_number(world[i], expected_world, f"{name} world pivot[{i}]")
     palette_expression, _ = PLAYER_PALETTES[player_palette]
     for row in components:
         if (row.get("material_count") != PART_MATERIAL_COUNTS[row["name"]]

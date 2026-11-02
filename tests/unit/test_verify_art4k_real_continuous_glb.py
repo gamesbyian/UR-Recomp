@@ -34,8 +34,14 @@ def fixture(root, pose="stunt_cycle", time=.5, player_palette="source"):
     glb.write_bytes(b"mock-via-stub")
     sha=lambda d: hashlib.sha256(d).hexdigest()
     palette_expression, rgba = mod.PLAYER_PALETTES[player_palette]
+    saddle_mount = mod.saddle_mount_from_source(source.read_text())
+    def world_pivot(name):
+        local = (*mod.part_translation(name, saddle_mount), 1.0)
+        return [sum(matrix[i][j] * local[j] for j in range(4)) for i in range(3)]
     components=[
         {"name":k,"material_count":v,"editable_node":True,
+         "pivot_translation":list(mod.part_translation(k,saddle_mount)),
+         "world_pivot_translation":world_pivot(k),
          "materials":[{"node":f"{k}__material_{i}","rgba":list(color)}
                       for i,color in enumerate(mod.materials_for_part(
                           source.read_text(),k,rig_color_override=palette_expression))]}
@@ -50,6 +56,7 @@ def fixture(root, pose="stunt_cycle", time=.5, player_palette="source"):
         "attempt_id":"test-once","source_sha256":sha(source.read_bytes()),
         "rig_pose":pose,"glb_sha256":sha(glb.read_bytes()),"glb_size":glb.stat().st_size,
         "player_palette":palette,
+        "source_saddle_mount":list(saddle_mount),
         "pose_source_registered_to_original_game":False,
         "original_character_likeness_approved":False,
         "shipping_art_approved":False,
@@ -131,6 +138,33 @@ class RealContinuousGLBReceiptTests(unittest.TestCase):
                 with self.subTest(field=field), patch.object(
                         mod,"validate_glb_roundtrip") as forbidden:
                     with self.assertRaisesRegex(ValueError,"palette"):
+                        mod.validate_one(source,out,"stunt_cycle",.5)
+                    forbidden.assert_not_called()
+
+    def test_forged_source_owned_pivots_rejected_before_glb_loader(self):
+        # A receipt/pointer rehash cannot legitimize a pivot or saddle mount
+        # that does not come from the exact immutable OpenSCAD source.
+        for field in ("source_saddle_mount", "tire_pivot", "saddle_pivot",
+                      "saddle_world_pivot", "missing_world_pivot"):
+            with tempfile.TemporaryDirectory() as tmp:
+                source,out,receipt,pointer=fixture(Path(tmp))
+                if field == "source_saddle_mount":
+                    receipt["source_saddle_mount"][0] += 1
+                elif field == "tire_pivot":
+                    receipt["components"][0]["pivot_translation"][2] += 1
+                elif field == "saddle_pivot":
+                    receipt["components"][4]["pivot_translation"][0] += 1
+                elif field == "saddle_world_pivot":
+                    receipt["components"][4]["world_pivot_translation"][1] += 1
+                else:
+                    del receipt["components"][0]["world_pivot_translation"]
+                file=out/pointer["receipt_path"]
+                write_json(file,receipt)
+                pointer["receipt_sha256"]=mod.sha256(file.read_bytes())
+                write_json(out/"articulated_blockout_current.json",pointer)
+                with self.subTest(field=field), patch.object(
+                        mod,"validate_glb_roundtrip") as forbidden:
+                    with self.assertRaisesRegex(ValueError,"saddle mount|pivot"):
                         mod.validate_one(source,out,"stunt_cycle",.5)
                     forbidden.assert_not_called()
 

@@ -573,10 +573,10 @@ jobs:
           import json,os
           from pathlib import Path
           data=json.loads((Path(os.environ["RUNNER_TEMP"])/"art4k-reports/original-real-eighth-phase-pose-only-motion.json").read_text())
-          times=[0,0.125,0.25,0.375,0.5,0.625,0.75,0.875,1]
+          times=["0.0","0.125","0.25","0.375","0.5","0.625","0.75","0.875","1.0"]
           assert data["source_original_actual_frame_edges"]==109
           assert data["source_original_unique_binary_silhouettes"]==35
-          assert data["exact_ride_grid"]==[str(x) for x in times]
+          assert data["exact_ride_grid"]==times
           assert data["first_last_authored_cycle_4x_pixel_xor"]==0
           assert len(data["real_verified_glb_samples"])==9
           assert len(data["uniform_2026_phase_transition_diagnostics"])==8

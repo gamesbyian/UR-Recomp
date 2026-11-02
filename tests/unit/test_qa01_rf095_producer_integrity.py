@@ -183,6 +183,43 @@ class ProducerIntegrityTests(unittest.TestCase):
         self.receipt.require_frame_window_coverage(
             rows, 6447, 6457, 32040, 'native')
 
+    def test_native_two_empty_intervals_cannot_hide_in_three_frame_totals(self):
+        # Each three-frame sum exceeds the weak floor, but two adjacent
+        # completed guest frames have zero newly produced DSP samples.
+        increments = [0, 0, 201, 0, 0, 201, 0, 0, 266, 0]
+        totals = [0]
+        for count in increments:
+            totals.append(totals[-1] + count)
+        self.pcm.write_bytes(struct.pack('<hh', 12, -8) * totals[-1])
+        self.native_map.write_text('frame,samples\n' +
+                                   ''.join(f'{6447 + i},{total}\n'
+                                           for i, total in enumerate(totals)))
+        with self.assertRaisesRegex(
+                ValueError, 'native consecutive empty PCM frame intervals 6448..6449'):
+            self.analyze()
+
+    def test_original_two_empty_intervals_cannot_hide_in_three_frame_totals(self):
+        # Retain the complete original WAV and map lengths, assigning the
+        # seven event-frame increments to a sparse bursty callback map.
+        increments = [0, 0, 300, 0, 0, 300, 296]
+        totals = [0]
+        for count in increments:
+            totals.append(totals[-1] + count)
+
+        def sample_count(frame):
+            if frame <= 6445:
+                return frame
+            if frame <= 6452:
+                return 6445 + totals[frame - 6445]
+            return 6445 + totals[-1] + (frame - 6452) * 128
+
+        self.ref_map.write_text('frame,samples\n' +
+                                ''.join(f'{f},{sample_count(f)}\n'
+                                        for f in range(6455)))
+        with self.assertRaisesRegex(
+                ValueError, 'original consecutive empty PCM frame intervals 6446..6447'):
+            self.analyze()
+
     def test_native_frame_boundary_sync_timeout_rejected(self):
         self.native_log.write_text('[apu] frame-boundary guest-clock sync timed out\n')
         with self.assertRaisesRegex(ValueError, 'APU frame-boundary sync timed out'):

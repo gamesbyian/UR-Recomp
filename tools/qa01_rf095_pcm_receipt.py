@@ -102,17 +102,27 @@ def require_sample_coverage(samples: int, frames: int, rate: int, side: str) -> 
 
 def require_frame_window_coverage(rows: dict[int, int], start: int, end: int,
                                   rate: int, side: str) -> None:
-    """Bound missing PCM within every consecutive three-frame window.
+    """Bound missing PCM in three-frame windows and adjacent empty intervals.
 
     The floor is eightfold below nominal 60-Hz output on each producer's
     own frame clock. A single zero-sample frame can pass if neighboring
-    frames cover the window; this does not prove every frame had audio.
+    frames cover the window; two consecutive empty intervals fail closed.
+    This does not prove every frame had audio.
     """
     width = 3
     for first in range(start, end - width + 1):
         last = first + width
         require_sample_coverage(rows[last] - rows[first], width, rate,
                                 f'{side} frames {first}..{last}')
+    # A three-frame total can still pass with two entire adjacent intervals
+    # producing no samples. Treat that as incomplete temporal registration;
+    # an isolated zero increment remains permissible for callback batching.
+    # This is a conservative source-contract check, not a parity verdict.
+    for first in range(start, end - 1):
+        if rows[first] == rows[first + 1] == rows[first + 2]:
+            raise ValueError(
+                f'RF095 {side} consecutive empty PCM frame intervals '
+                f'{first + 1}..{first + 2}')
 
 
 def sample_stats(raw: bytes) -> dict:

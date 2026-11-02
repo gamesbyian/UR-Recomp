@@ -2,7 +2,7 @@
 import math
 import unittest
 from tools.art.audit_original_racer_painted_frame_length import (
-    physical_painted_vector, visible_blue_endpoints,
+    physical_painted_vector, visible_blue_endpoints, painted_area_ratio,
 )
 
 
@@ -19,6 +19,14 @@ class SourcePaintEndpointTests(unittest.TestCase):
         a=physical_painted_vector([3.25,10.5],[15.5,27.25])
         b=physical_painted_vector([23.25,4.5],[35.5,21.25])
         self.assertEqual(a,b)
+
+    def test_painted_area_source_model_ratio_and_bad_counts(self):
+        self.assertEqual(painted_area_ratio(60,40),1.5)
+        self.assertEqual(painted_area_ratio(60,48),1.25)
+        for a,b in ((0,1),(1,0),(4097,1),(1,4097),(True,10),
+                    (1,False),(1,2.0),(float("nan"),3)):
+            with self.subTest(a=a,b=b),self.assertRaises(ValueError):
+                painted_area_ratio(a,b)
 
     def test_invalid_source_endpoints_fail_closed(self):
         for top,bottom in (([0,1],[4,0]),([2,2],[2,2]),

@@ -49,6 +49,14 @@ def physical_painted_vector(top,bottom):
             "angle_from_image_vertical_deg":round(math.degrees(math.atan2(dx,dy)),8)}
 
 
+def painted_area_ratio(original_pixels:int,model_visible_pixels:int)->float:
+    """Original high-chroma area versus depth-frontmost blue, not 3D coverage."""
+    if (type(original_pixels) is not int or type(model_visible_pixels) is not int
+            or not 0<original_pixels<=4096 or not 0<model_visible_pixels<=4096):
+        raise ValueError("two finite nonzero original/model 64px painted areas required")
+    return round(original_pixels/model_visible_pixels,8)
+
+
 def visible_blue_endpoints(blue_mask):
     import numpy as np
     mask=np.asarray(blue_mask)
@@ -129,15 +137,27 @@ def evaluate(glb_path:Path,camera_path:Path,chroma_path:Path,split_path:Path|Non
                 m["top_centroid_logical_xy"],m["bottom_centroid_logical_xy"])
             original.append({"original_source_rgba_sha256":variant["rgba_sha256"],
                 "source_player":variant["player"],
+                "original_high_chroma_pixel_count":m["pixel_count"],
                 "source_painted_endpoints":vector})
         source_mean=sum(v["source_painted_endpoints"]["length_physical_px"]
                         for v in original)/len(original)
+        mean_source_painted_area=sum(v["original_high_chroma_pixel_count"]
+                                      for v in original)/len(original)
         relatives={}
         for side,chosen in choices.items():
             measured=poses[chosen][side]
             relatives[side]={
                 "source_angle_selected_2026_hinge_degrees":chosen,
                 "source_mean_painted_length_physical_px":round(source_mean,8),
+                "source_mean_original_high_chroma_pixels":round(mean_source_painted_area,8),
+                "depth_visible_model_blue_pixels":measured["depth_visible_blue_pixel_count"],
+                "original_to_model_painted_area_ratio":round(
+                    mean_source_painted_area/measured["depth_visible_blue_pixel_count"],8),
+                "source_original_variant_to_model_area_ratio_bounds":[
+                    painted_area_ratio(min(v["original_high_chroma_pixel_count"] for v in original),
+                                      measured["depth_visible_blue_pixel_count"]),
+                    painted_area_ratio(max(v["original_high_chroma_pixel_count"] for v in original),
+                                      measured["depth_visible_blue_pixel_count"])],
                 "depth_visible_model_blue_length_physical_px":measured["length_physical_px"],
                 "original_to_model_painted_length_ratio":
                     round(source_mean/measured["length_physical_px"],8),
@@ -162,7 +182,13 @@ def evaluate(glb_path:Path,camera_path:Path,chroma_path:Path,split_path:Path|Non
                     round(sum(numbers)/len(numbers),8),
                 "minimum_original_to_model_ratio":min(numbers),
                 "maximum_original_to_model_ratio":max(numbers),
-                "original_shapes_with_ratio_below_one":sum(x<1 for x in numbers)}
+                "original_shapes_with_ratio_below_one":sum(x<1 for x in numbers),
+                "mean_original_to_model_visible_painted_area_ratio":round(
+                    sum(r["unpaired_selected_model_endpoint_lengths"][side][
+                        "original_to_model_painted_area_ratio"] for r in items)/len(items),8),
+                "source_shapes_with_more_painted_pixels_than_model":sum(
+                    r["unpaired_selected_model_endpoint_lengths"][side][
+                        "original_to_model_painted_area_ratio"]>1 for r in items)}
         return result
     summaries={"all35":summarize(rows)}
     if split:

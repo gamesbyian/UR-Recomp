@@ -29,3 +29,20 @@ Reproduce with the real experimental GLB from model-review run #41259476190 and 
       --out /private/new/original-paint-versus-model-length.json
 
 This emits a write-once numeric report with the established source-integrity publisher. Do not mutate the canonical source rig, hardcode a length-scaled fork or promote shipping art based on the descriptive ratio alone.
+
+
+## Painted-area and endpoint-length constraints must be evaluated together
+
+The source chroma report already provides **source high-chroma pixel counts** for each authenticated original colour variant, while the merged #3047 depth tool reports the count of **frontmost blue 2026 model material pixels** under the identical 64×64 camera raster. No additional sprite segmentation, target silhouette overlap or camera registration is needed for this independent painted-area ratio. The current tool now records both ratios for each 35-mask vote and the full minimum/maximum original RGB variant bounds.
+
+Actual original-ROM and actual historical 2026 GLB pilot with the same source-guided 5° hinge selection, provisional +Y side view and one vote per binary mask:
+
+| Measure | All 35 | First 16 | Additional 19 |
+| --- | ---: | ---: | ---: |
+| Mean authentic original high-chroma pixels | 56.6143 | 59.7188 | 54.0000 |
+| Mean depth-frontmost model blue material pixels | 37.7714 | 38.6250 | 37.0526 |
+| Mean original/model **painted area** ratio | **1.49821244** | 1.54651596 | 1.45753579 |
+| Mean original/model **painted endpoint length** ratio | **0.91236878** | 0.88630568 | 0.93431666 |
+| Source masks with more original colour pixels than visible model blue | 35/35 | 16/16 | 19/19 |
+
+The original high-chroma area is larger in every inspected source mask while its top-to-bottom descriptor is shorter. Under this uncalibrated camera, that suggests **more lateral painted coverage per unit length** in the original 2D sprite than the model's depth-visible blue material. This is not a source physical fork width measurement: the original high-chroma pixels and model material boundaries are not proven anatomically corresponding, and changing camera or visibility assumptions can affect the model area. This is a reason to investigate source material/part correspondence before any canonical SCAD fork-thickness/height refit. A blanket +50% material width or −9% fork length is not justified.

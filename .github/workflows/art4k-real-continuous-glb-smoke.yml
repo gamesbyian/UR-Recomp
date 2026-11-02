@@ -25,14 +25,24 @@ jobs:
         include:
           # Fixed experimental normalized-time grid on the ONE existing rig.
           # Do not infer any 1994 original guest-frame-to-time mapping.
+          # 1/8-cycle grid captures authored 720-degree wobble extrema;
+          # quarter-cycle-only sampling aliases every wobble sample to ZERO.
           - pose: ride
             sample_time: "0.0"
           - pose: ride
+            sample_time: "0.125"
+          - pose: ride
             sample_time: "0.25"
+          - pose: ride
+            sample_time: "0.375"
           - pose: ride
             sample_time: "0.5"
           - pose: ride
+            sample_time: "0.625"
+          - pose: ride
             sample_time: "0.75"
+          - pose: ride
+            sample_time: "0.875"
           - pose: ride
             sample_time: "1.0"
           - pose: stunt_cycle

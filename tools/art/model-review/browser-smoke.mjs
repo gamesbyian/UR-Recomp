@@ -107,6 +107,16 @@ try{
    if(!q('sourceInfo').textContent.includes('frame 1205'))issues.push('missing original provenance');
    q('frame').value='1210';q('frame').dispatchEvent(new Event('input'));
    if(!q('sourceInfo').textContent.includes('frame 1210'))issues.push('sprite scrub');
+   if(!q('spriteIndex')||q('spriteIndex').disabled)issues.push('index selector unavailable');
+   else{
+     q('spriteIndex').value='7';q('spriteIndex').dispatchEvent(new Event('change'));
+     for(let i=0;i<80&&!q('indexStatus').textContent.includes('Index 7:');i++)
+       await new Promise(done=>setTimeout(done,50));
+     if(!q('indexStatus').textContent.includes('Index 7:')||
+        q('indexCanvas').hidden||!q('sprite').hidden)issues.push('authenticated original index isolate');
+     q('spriteIndex').value='original';q('spriteIndex').dispatchEvent(new Event('change'));
+     if(!q('indexCanvas').hidden||q('sprite').hidden)issues.push('original sprite restoration');
+   }
    q('pose-bank').click();
    for(let i=0;i<100 && !q('source').textContent.includes('published bank GLB');i++)await new Promise(done=>setTimeout(done,50));
    if(!q('source').textContent.includes('published bank GLB'))issues.push('pose switch');

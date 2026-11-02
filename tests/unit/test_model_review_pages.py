@@ -83,6 +83,8 @@ class ModelReviewPublicationTests(unittest.TestCase):
             self.assertTrue((site / "model-review/measurement_overlay.mjs").is_file())
             self.assertTrue((site / "model-review/wheel_hypothesis.mjs").is_file())
             self.assertTrue((site / "model-review/root_lean_hypothesis.mjs").is_file())
+            self.assertTrue((site / "model-review/index_overlay.mjs").is_file())
+            self.assertTrue((site / "model-review/original-index-lookup.json").is_file())
             with self.assertRaisesRegex(ValueError, "non-placeholder"):
                 stage(exports, site, SHA)
 
@@ -157,6 +159,10 @@ class ModelReviewPublicationTests(unittest.TestCase):
             self.assertEqual(rows["schema"], "ur-racer-original-sprite-reference/1")
             self.assertFalse(rows["sprite_3d_pose_mapping_verified"])
             self.assertEqual(len(rows["frames"]), 32)
+            self.assertTrue(all(len(row["rgba_sha256"])==64 for row in rows["frames"]))
+            lookup = json.loads((site / "model-review/original-index-lookup.json").read_text())
+            self.assertTrue(all(row["rgba_sha256"] in lookup["rgba_to_index"]
+                                for row in rows["frames"]))
             self.assertEqual({r["player"] for r in rows["frames"]}, {"p1", "p2"})
             self.assertEqual({r["guest_frame"] for r in rows["frames"]}, set(range(1205, 1221)))
             for row in rows["frames"]:

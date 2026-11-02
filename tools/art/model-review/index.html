@@ -6,7 +6,8 @@
 background-color:#283549;background-image:linear-gradient(45deg,#30415b 25%,transparent 25%),linear-gradient(-45deg,#30415b 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#30415b 75%),linear-gradient(-45deg,transparent 75%,#30415b 75%);
 background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;
 border-radius:8px;border:1px solid #465573}
-.reference-image img{max-width:100%;object-fit:fill;image-rendering:pixelated}.file-label{display:block;border:1px dashed #7188a8;border-radius:10px;padding:11px;text-align:center;cursor:pointer}#file{position:absolute;width:1px;height:1px;opacity:0}.empty{font-size:15px;line-height:1.5}kbd{background:#27374c;border-radius:4px;padding:2px 4px}@media(max-width:720px){.app{height:100dvh;grid-template-rows:auto minmax(0,1fr) auto}.top{padding:7px 10px}.main{grid-template-columns:1fr;grid-template-rows:minmax(230px,1fr) auto}.panel{border-left:0;border-top:1px solid #293a51;max-height:min(44dvh,370px);padding:10px}.buttons{grid-template-columns:repeat(5,minmax(0,1fr))}.buttons button{font-size:11px;padding:5px 2px;min-height:44px}.overlay{font-size:12px}.bottom{font-size:11px}}
+.reference-image img,.reference-image canvas{max-width:100%;object-fit:fill;image-rendering:pixelated}
+.reference-image img[hidden],.reference-image canvas[hidden]{display:none!important}.file-label{display:block;border:1px dashed #7188a8;border-radius:10px;padding:11px;text-align:center;cursor:pointer}#file{position:absolute;width:1px;height:1px;opacity:0}.empty{font-size:15px;line-height:1.5}kbd{background:#27374c;border-radius:4px;padding:2px 4px}@media(max-width:720px){.app{height:100dvh;grid-template-rows:auto minmax(0,1fr) auto}.top{padding:7px 10px}.main{grid-template-columns:1fr;grid-template-rows:minmax(230px,1fr) auto}.panel{border-left:0;border-top:1px solid #293a51;max-height:min(44dvh,370px);padding:10px}.buttons{grid-template-columns:repeat(5,minmax(0,1fr))}.buttons button{font-size:11px;padding:5px 2px;min-height:44px}.overlay{font-size:12px}.bottom{font-size:11px}}
 </style></head><body>
 <div class="app"><header class="top"><strong>UNIRACERS / 3D LAB</strong><span class="tag">Experimental blockout · likeness unapproved</span><span id="version" class="muted">Checking model manifest…</span><a href="../" aria-label="Return to screenshot atlas">Screenshot atlas</a></header>
 <main class="main"><section class="stage" aria-label="Interactive 3D unicycle viewport"><div id="viewport" style="width:100%;height:100%"></div><div class="overlay"><div id="state" class="empty" role="status">Loading viewer…</div><div class="tiny" id="details"></div></div></section>
@@ -14,7 +15,9 @@ border-radius:8px;border:1px solid #465573}
 <div class="group"><h2>Verified 1994 sprite references</h2>
 <div class="formrow"><label for="player">Racer</label><select id="player"><option value="p1">P1</option><option value="p2">P2</option></select></div>
 <label class="formrow" for="frame">Guest frame <input id="frame" type="range" min="1205" max="1220" value="1205" step="1"></label>
-<div class="reference-image"><img id="sprite" width="224" height="192" alt="No original source sprite loaded yet"></div>
+<div class="reference-image"><img id="sprite" width="224" height="192" alt="No original source sprite loaded yet"><canvas id="indexCanvas" width="64" height="64" style="width:224px;height:192px" aria-label="Source palette-index diagnostic" hidden></canvas></div>
+<div class="formrow"><label for="spriteIndex">Original 4bpp pixel index</label><select id="spriteIndex" disabled><option value="original">Unchanged source</option><option value="1">Index 1</option><option value="2">Index 2</option><option value="3">Index 3</option><option value="4">Index 4</option><option value="5">Index 5</option><option value="6">Index 6</option><option value="7">Index 7</option><option value="8">Index 8</option><option value="9">Index 9</option><option value="10">Index 10</option><option value="11">Index 11</option><option value="12">Index 12</option><option value="13">Index 13</option><option value="14">Index 14</option><option value="15">Index 15</option></select></div>
+<div class="tiny" id="indexStatus" role="status">Authenticating original index evidence…</div>
 <div class="tiny" id="sourceInfo" role="status">Checking verified original-source frames…</div>
 <div class="tiny">Source sprite and 3D pose are independent selections. A source-authenticated 3D pose mapping is not yet available.</div></div>
 <div class="group" aria-labelledby="measurementTitle"><h2 id="measurementTitle">Experimental source comparison</h2>
@@ -41,6 +44,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.m
 import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
 import {validateMeasurements,measurementForFrame} from './measurement_overlay.mjs';
+import {validateIndexLookup,originalIndexPlane,sourceIndexHighlight} from './index_overlay.mjs';
 import {applyWheelWidthHypothesis} from './wheel_hypothesis.mjs';
 import {rootLeanQuaternion,tireVisualLift} from './root_lean_hypothesis.mjs';
 import {frameHingeSourceRotation} from './frame_hinge_hypothesis.mjs';
@@ -60,7 +64,7 @@ const PAINT_HYPOTHESES=Object.freeze({
 });
 const PAINT_PARTS=Object.freeze(['rim_and_hub__material_1','rim_and_hub__material_2','pedals__material_0','pedals__material_1']);
 const poseNames=['upright','pedal','wheelie','stunt','bank'];
-const viewNames=['side','reverse','front','back','top'];let poseRequest=0,sprites=null,manifestRaw=null,spritesRaw=null,measurements=null;
+const viewNames=['side','reverse','front','back','top'];let poseRequest=0,sprites=null,manifestRaw=null,spritesRaw=null,measurements=null,indexPacket=null,indexRequest=0;
 function say(t,sub=''){$('state').textContent=t;$('details').textContent=sub}
 function fit(obj){const bounds=new THREE.Box3().setFromObject(obj),size=bounds.getSize(new THREE.Vector3());if(bounds.isEmpty()||!Number.isFinite(size.length())||size.length()===0)throw Error('Model has empty or invalid geometry');const center=bounds.getCenter(new THREE.Vector3());obj.position.sub(center);obj.position.y+=size.y/2;const span=Math.max(size.length(),2);camera.position.set(span*.95,span*.65,span*1.3);controls.target.set(0,size.y*.48,0);camera.near=Math.max(.001,span/1000);camera.far=span*100;camera.updateProjectionMatrix();controls.update()}
 function resetCameraForModel(obj){
@@ -358,14 +362,41 @@ const directions={side:[0,0,1],reverse:[0,0,-1],front:[1,0,0],back:[-1,0,0],top:
 const v=directions[name];if(!v)return;
 camera.position.set(target.x+v[0]*distance,target.y+v[1]*distance,target.z+v[2]*distance);
 controls.update()}
+async function paintSpriteIndex(token,row){
+ const selection=$('spriteIndex').value,canvas=$('indexCanvas'),image=$('sprite');
+ canvas.hidden=true;image.hidden=false;
+ if(selection==='original'){
+  $('indexStatus').textContent=indexPacket?'Original 1994 source pixels unchanged. Choose an index to isolate its exact ROM positions.':'Source index inspector unavailable; original sprite unchanged.';
+  return;
+ }
+ try{
+  const rec=indexPacket?.rgba_to_index?.[row?.rgba_sha256];
+  if(!rec||image.naturalWidth!==64||image.naturalHeight!==64)throw Error('Indexed original source PNG unavailable');
+  const temp=document.createElement('canvas');temp.width=temp.height=64;
+  const ctx=temp.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,64,64);
+  const pixels=ctx.getImageData(0,0,64,64);
+  const plane=await originalIndexPlane(pixels,rec);
+  if(token!==indexRequest||selection!==$('spriteIndex').value)return;
+  const highlight=sourceIndexHighlight(pixels,plane,Number(selection));
+  canvas.getContext('2d').putImageData(new ImageData(highlight.data,64,64),0,0);
+  image.hidden=true;canvas.hidden=false;
+  $('indexStatus').textContent='Index '+selection+': '+highlight.count+' original opaque pixels highlighted in yellow. Verified index-plane SHA '+rec.original_4bpp_index_plane_sha256.slice(0,16)+'…; no 3D part identity inferred.';
+ }catch(e){if(token!==indexRequest)return;
+  $('indexStatus').textContent='Original sprite preserved: '+e.message;
+ }
+}
 function renderSprite(){
-const frame=Number($('frame').value),player=$('player').value;
-const row=sprites?.frames?.find(x=>x.player===player&&x.guest_frame===frame);
-if(!row){$('sprite').removeAttribute('src');$('sourceInfo').textContent='No verified original sprite for this selection';renderMeasurements();return}
-$('sprite').src=new URL(row.image,location.href).href;
-$('sprite').alt='Original '+player.toUpperCase()+' ROM-composed 64×64 sprite, guest frame '+frame;
-$('sourceInfo').textContent='Original ROM-composed · '+player.toUpperCase()+' · frame '+frame+' · '+row.representation_id+' · PNG SHA-256 '+row.sha256.slice(0,16)+'…';
-renderMeasurements();
+ const token=++indexRequest,frame=Number($('frame').value),player=$('player').value;
+ const row=sprites?.frames?.find(x=>x.player===player&&x.guest_frame===frame);
+ $('indexCanvas').hidden=true;$('sprite').hidden=false;
+ if(!row){$('sprite').removeAttribute('src');$('spriteIndex').disabled=true;
+   $('sourceInfo').textContent='No verified original sprite for this selection';renderMeasurements();return}
+ $('spriteIndex').disabled=!indexPacket?.rgba_to_index?.[row.rgba_sha256];
+ $('sprite').onload=()=>{if(token===indexRequest)void paintSpriteIndex(token,row)};
+ $('sprite').src=new URL(row.image,location.href).href;
+ $('sprite').alt='Original '+player.toUpperCase()+' ROM-composed 64×64 sprite, guest frame '+frame;
+ $('sourceInfo').textContent='Original ROM-composed · '+player.toUpperCase()+' · frame '+frame+' · '+row.representation_id+' · PNG SHA-256 '+row.sha256.slice(0,16)+'…';
+ renderMeasurements();
 }
 function renderMeasurements(){
  const target=$('measureResults');if(!target||$('measurements').hidden||!measurements)return;
@@ -393,9 +424,17 @@ async function loadSprites(){
 try{const res=await fetch('./sprites.json',{cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);
 spritesRaw=await res.text();const data=JSON.parse(spritesRaw);if(data.schema!=='ur-racer-original-sprite-reference/1'||
 data.sprite_3d_pose_mapping_verified!==false||!Array.isArray(data.frames))throw Error('Unexpected reference schema');
-sprites=data;renderSprite()}catch(e){$('sourceInfo').textContent='Original sprites unavailable: '+e.message}}
+sprites=data;
+ try{
+  const indexed=await fetch('./original-index-lookup.json',{cache:'no-store'});
+  if(!indexed.ok)throw Error('index manifest HTTP '+indexed.status);
+  indexPacket=validateIndexLookup(await indexed.json());
+ }catch(error){indexPacket=null;$('indexStatus').textContent='Index inspector unavailable: '+error.message}
+ renderSprite()}catch(e){$('sourceInfo').textContent='Original sprites unavailable: '+e.message}}
 async function init(){poseButtons();viewButtons();setPose('upright');try{const res=await fetch('./manifest.json',{cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);manifestRaw=await res.text();manifest=JSON.parse(manifestRaw);$('version').textContent=manifest.version||'Unversioned candidate';$('evidence').textContent=JSON.stringify({candidate:manifest.candidate_sha256||null,source:manifest.source_commit||null,likeness_approved:manifest.likeness_approved===true},null,2);if(manifest.model_url)await load(new URL(manifest.model_url,location.href).href,'published current model');else say('No published GLB yet','Select a local GLB to inspect. The site will automatically show a model after a valid GLB is published.')}catch(e){say('Published model unavailable',e.message+' · Upload a GLB to inspect it locally.');$('version').textContent='Local review mode'}
-$('player').onchange=renderSprite;$('frame').oninput=renderSprite;await loadSprites();
+$('player').onchange=renderSprite;$('frame').oninput=renderSprite;
+$('spriteIndex').onchange=()=>{const row=sprites?.frames?.find(x=>x.player===$('player').value&&x.guest_frame===Number($('frame').value));if(row)void paintSpriteIndex(indexRequest,row)};
+await loadSprites();
 $('measureToggle').onclick=async()=>{
  if(!$('measurements').hidden){$('measurements').hidden=true;$('measureToggle').setAttribute('aria-expanded','false');return}
  if(!measurements){

@@ -3,6 +3,7 @@ name: QA-01 original 2014 Bowl scored Stunt native candidate
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".github/workflows/qa01-bowl-stunt-2014.yml"
       - "tools/probe_original_event_complete.py"
@@ -29,6 +30,9 @@ concurrency:
 
 jobs:
   original-native-bowl-stunt:
+    # Preserve manual research and full ready-state product checks; drafts run
+    # hygiene and bounded diagnostics without duplicate native campaigns.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-22.04
     timeout-minutes: 50
     steps:

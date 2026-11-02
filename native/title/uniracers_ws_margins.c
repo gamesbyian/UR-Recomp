@@ -97,6 +97,22 @@ static int view_matches(const uint8_t* wram, const uint16_t* vram,
     return bad == 0;
 }
 
+int ur_ws_mismatch_transition(int mismatches, int max_mismatches,
+                              unsigned* consecutive_bad_frames) {
+    if (!consecutive_bad_frames || mismatches < 0 || max_mismatches < 0)
+        return -1;
+    if (mismatches <= max_mismatches) {
+        *consecutive_bad_frames = 0;
+        return 1;
+    }
+    if (*consecutive_bad_frames >= 1u) {
+        *consecutive_bad_frames = 0;
+        return -1;
+    }
+    *consecutive_bad_frames = 1u;
+    return 0;
+}
+
 int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
                         uint16_t map_base_word, uint16_t scroll_x,
                         uint16_t scroll_y, int first_line, int line_count,
@@ -330,6 +346,7 @@ static void deactivate(void) {
 
 static int update_band(int index, const UrWsBg1Band* band) {
     BandState* state = &s_band[index];
+    int publishable = 1;
     if (state->calibrated) {
         uint32_t next_world_x = 0;
         uint32_t next_world_y = 0;
@@ -362,18 +379,23 @@ static int update_band(int index, const UrWsBg1Band* band) {
             if (mismatches > s_max_mismatches)
                 s_max_mismatches = mismatches;
         }
-        if (mismatches > kMaxFrameMismatches) {
-            state->consecutive_bad_frames++;
-            if (state->consecutive_bad_frames >= 2u) {
-                state->calibrated = 0;
-                state->consecutive_bad_frames = 0;
-                if (trace_enabled())
-                    fprintf(stderr,
-                            "URWS_MARGINS LOST band=%d mismatches=%d sustained=2\n",
-                            index, mismatches);
-            }
-        } else {
-            state->consecutive_bad_frames = 0;
+        const int decision = ur_ws_mismatch_transition(
+            mismatches, kMaxFrameMismatches,
+            &state->consecutive_bad_frames);
+        if (decision < 0) {
+            state->calibrated = 0;
+            if (trace_enabled())
+                fprintf(stderr,
+                        "URWS_MARGINS LOST band=%d mismatches=%d sustained=2\n",
+                        index, mismatches);
+        } else if (decision == 0) {
+            /* Keep calibration through one possible streaming edge, but
+             * never publish uncorroborated margin tiles on that frame. */
+            publishable = 0;
+            if (trace_enabled())
+                fprintf(stderr,
+                        "URWS_MARGINS SUPPRESSED band=%d mismatches=%d first=1\n",
+                        index, mismatches);
         }
     }
     if (!state->calibrated) {
@@ -420,7 +442,7 @@ static int update_band(int index, const UrWsBg1Band* band) {
     }
     state->prev_scroll_x = band->scroll_x;
     state->prev_scroll_y = band->scroll_y;
-    return state->calibrated;
+    return state->calibrated && publishable;
 }
 
 void ur_ws_margins_prepare_frame(int enabled, int extra_pixels) {

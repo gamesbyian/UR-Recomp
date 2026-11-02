@@ -60,10 +60,9 @@ class OriginalTranslationControls(unittest.TestCase):
         original = [98,98,90,89,93,7,102,89,93,14,91,93,93,102,93,98,106,89,93]
         predicted = [104,104,104,104,106,0,104,104,104,0,106,104,106,104,106,104,104,104,104]
         overlap = [60,60,61,61,59,0,69,66,59,0,60,62,63,69,59,60,64,66,59]
-        right = {0,6,7,8,13,15,16,17,18,}
-        # Original exact moving-source delta is 10 right, 7 left, two fixed.
-        # Give right list explicitly below to verify the shape census.
-        right = {0,6,7,8,13,15,16,17,18,11}
+        # Actual original source edge observations, in the fixed source order.
+        # There are 10 right, 7 left and 2 stationary visible-alpha anchors.
+        right = {0, 6, 7, 8, 12, 13, 15, 16, 17, 18}
         stationary = {5,9}
         rows = []
         for i in range(19):

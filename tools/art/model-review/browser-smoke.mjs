@@ -99,6 +99,9 @@ try{
   const report=await evaluate(`(async function(){
    const issues=[],q=id=>document.getElementById(id),w=innerWidth;
    if(document.documentElement.scrollWidth>w+1)issues.push('horizontal overflow');
+   const panel=document.querySelector('.panel');
+   if(panel&&panel.scrollWidth>panel.clientWidth+1)
+     issues.push('model-review panel horizontal overflow');
    if(!document.querySelector('#viewport canvas'))issues.push('no WebGL canvas');
    if(!q('parts').textContent.includes('tire'))issues.push('no glTF part');
    if(!q('sourceInfo').textContent.includes('frame 1205'))issues.push('missing original provenance');
@@ -161,6 +164,50 @@ try{
          issues.push('frame hinge changed actual GLB source identity');
        if(!q('frameHingeStatus').textContent.includes('Unmodified'))
          issues.push('frame hinge failed to reset original pose');
+     }
+   }
+   if(q('wheelDrive').getBoundingClientRect().height<44)
+     issues.push('source direct drive touch target');
+   if(${mocked}){
+     if(!q('wheelDrive').disabled)
+       issues.push('synthetic non-source GLB falsely enabled direct drive');
+   }else{
+     if(q('wheelDrive').disabled)issues.push('real source-owned wheel drive unavailable');
+     else{
+       const originalSource=q('source').textContent;
+       const get=()=>Object.fromEntries(['tireMatrix','rimMatrix','pedalsMatrix','forkMatrix','saddleMatrix']
+         .map(k=>[k,q('wheelDriveStatus').dataset[k]||'']));
+       const before=get();
+       q('wheelDrive').value='1';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       const spinning=get();
+       for(const k of ['tireMatrix','rimMatrix']){
+         if(spinning[k]===before[k])issues.push('direct drive failed to rotate '+k);
+       }
+       for(const k of ['pedalsMatrix','forkMatrix','saddleMatrix']){
+         if(spinning[k]!==before[k])issues.push('direct drive moved stationary '+k);
+       }
+       q('wheelDrive').value='0';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       if(Object.keys(before).some(k=>get()[k]!==before[k]))
+         issues.push('direct drive source matrices not restored');
+       // Test both independent axle-centred controls together, then exact resets.
+       const forkAtZero=q('frameHingeStatus').dataset.forkMatrix;
+       q('frameHinge').value='-40';q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
+       const forkLeaning=q('frameHingeStatus').dataset.forkMatrix;
+       if(forkLeaning===forkAtZero)issues.push('frame hinge failed before combined axle test');
+       q('wheelDrive').value='1';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       const combined=get();
+       if(combined.rimMatrix===before.rimMatrix || combined.tireMatrix===before.tireMatrix)
+         issues.push('drive phase cannot coexist with leaning frame');
+       if(q('frameHingeStatus').dataset.forkMatrix!==forkLeaning)
+         issues.push('wheel sync altered independent fork hinge');
+       q('wheelDrive').value='0';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       if(get().rimMatrix!==before.rimMatrix || get().tireMatrix!==before.tireMatrix)
+         issues.push('combined drive reset did not restore wheel');
+       q('frameHinge').value='0';q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
+       if(q('frameHingeStatus').dataset.forkMatrix!==forkAtZero)
+         issues.push('combined hinge reset did not restore frame');
+       if(q('source').textContent!==originalSource)
+         issues.push('direct drive source GLB identity changed');
      }
    }
    if(q('rootLean').getBoundingClientRect().height<44)

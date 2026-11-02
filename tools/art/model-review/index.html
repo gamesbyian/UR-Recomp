@@ -26,6 +26,7 @@ border-radius:8px;border:1px solid #465573}
 <div class="group"><h2>Experimental frame hinge</h2><label for="frameHinge">Fork and saddle about wheel axle</label><select id="frameHinge" disabled><option value="0">0° · original GLB</option><option value="-40">−40° · leaning frame study</option><option value="-20">−20° · leaning frame study</option><option value="20">+20° · opposite study</option><option value="40">+40° · opposite study</option></select><div id="frameHingeStatus" class="tiny" role="status">A five-part GLB is required. This is not source-registered original animation.</div><div class="tiny">Only the fork/frame and saddle parent transforms turn about the original tire axle. Tire, rim, pedals and 16 material meshes remain unchanged. Source-colour axis and original pose pairing are hypotheses, not approved character motion.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
 <div class="group"><h2>Experimental continuous crank</h2><label for="crankScrub">Source-authored crank cycle · <output id="crankStep">0/64</output></label><input id="crankScrub" class="crank-scrub" type="range" min="0" max="64" step="1" value="0" disabled><div id="crankStatus" class="tiny" role="status">A published source-verified five-part GLB is required. This controls only 2026 authored mechanics.</div><div class="tiny">Each of 64 steps advances the wheel and pedals by 11.25°. This grid deliberately avoids the old spoke-symmetry alias. It is not observed original-game frame timing.</div></div>
+<div class="group"><h2>Experimental paint allocation</h2><label for="paintHypothesis">Blue-material wheel/hub counterfactual</label><select id="paintHypothesis" style="min-height:44px" disabled><option value="original">Original 2026 materials</option><option value="area">Fork + narrow rim and crank materials</option><option value="disc">Fork + wider rim and crank materials</option><option value="discPlus">Fork + wider rim and both crank materials</option></select><div id="paintStatus" class="tiny" role="status">Requires a source-verified published 2026 five-part GLB.</div><div class="tiny">Reversible material-only research preview. Original 1994 sprite paint may belong to different parts. No source geometry or release likeness approval.</div></div>
 <div class="group"><h2>Camera angles</h2><div class="buttons" id="views"></div></div>
 <div class="group"><h2>Inspection</h2><div class="controls"><button id="reset">Reset view</button><button id="spin" aria-pressed="false">Auto orbit</button><button id="wire" aria-pressed="false">Wireframe</button></div>
 <label class="formrow">OpenSCAD Z-up conversion <input id="zup" type="checkbox" checked></label>
@@ -50,7 +51,14 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.set
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.7,0);
 const hemi=new THREE.HemisphereLight(0xddeeff,0x43546e,1.5);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(5,8,6);scene.add(sun);
 const grid=new THREE.GridHelper(12,24,0x7089ad,0x34445b),axes=new THREE.AxesHelper(1.5);scene.add(grid,axes);
-const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false;
+const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null;
+const PAINT_HYPOTHESES=Object.freeze({
+ original:Object.freeze([]),
+ area:Object.freeze(['rim_and_hub__material_1','pedals__material_1']),
+ disc:Object.freeze(['rim_and_hub__material_2','pedals__material_1']),
+ discPlus:Object.freeze(['rim_and_hub__material_2','pedals__material_0','pedals__material_1']),
+});
+const PAINT_PARTS=Object.freeze(['rim_and_hub__material_1','rim_and_hub__material_2','pedals__material_0','pedals__material_1']);
 const poseNames=['upright','pedal','wheelie','stunt','bank'];
 const viewNames=['side','reverse','front','back','top'];let poseRequest=0,sprites=null,manifestRaw=null,spritesRaw=null,measurements=null;
 function say(t,sub=''){$('state').textContent=t;$('details').textContent=sub}
@@ -67,7 +75,7 @@ function resetCameraForModel(obj){
  camera.near=Math.max(.001,span/1000);camera.far=span*100;
  camera.updateProjectionMatrix();controls.update();
 }
-function clear(){if(current){scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
+function clear(){if(current){restorePaintMaterials();scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
 function markers(){nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[];if(!current||!$('nodes').checked)return;current.updateMatrixWorld(true);const parts=['tire','rim_and_hub','fork_and_frame','pedals','saddle'];for(const n of parts){const x=current.getObjectByName(n);if(!x)continue;const p=x.getWorldPosition(new THREE.Vector3());const marker=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),new THREE.MeshBasicMaterial({color:0xffcc62,depthTest:false}));marker.position.copy(p);marker.renderOrder=100;scene.add(marker);nodeMarkers.push(marker)}}
 function wheelControls(available, origin=''){
  $('wheelOriginal').disabled=!available;$('wheelWide').disabled=!available;
@@ -251,7 +259,70 @@ function updateCrankScrubStatus(){
   '; crank and wheel rotation +'+sourceCrankDegrees(crankStep)+'° from this named pose. '+
   'No 1994 PPU frame timing, joint mapping or likeness approval.';
 }
-function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();
+
+function restorePaintMaterials(){
+ if(!paintState)return;
+ for(const record of paintState.records){
+   if(record.mesh.material!==record.original){
+     const temporary=record.mesh.material;
+     record.mesh.material=record.original;
+     temporary?.dispose();
+   }
+ }
+ paintMode='original';paintState=null;
+}
+function capturePaintMaterials(origin){
+ // Inherit the existing full source SHA/five-parent/16-mesh wheel gate.
+ if(!wheelDriveState||!origin.startsWith('published ')||
+    manifest?.source_model_sha256!==SOURCE_SHA)return null;
+ const originalBlue=current.getObjectByName('fork_and_frame__material_0');
+ if(!originalBlue?.isMesh)return null;
+ const records=[];
+ for(const name of PAINT_PARTS){
+   const mesh=current.getObjectByName(name);
+   if(!mesh?.isMesh||Array.isArray(mesh.material)||
+      !mesh.material?.isMeshStandardMaterial||
+      !mesh.geometry?.getAttribute('color'))return null;
+   records.push({name,mesh,original:mesh.material});
+ }
+ return {records};
+}
+function applyPaintHypothesis(choice){
+ if(!paintState||!Object.prototype.hasOwnProperty.call(PAINT_HYPOTHESES,choice))
+   throw Error('historical source paint hypothesis unavailable');
+ const additions=new Set(PAINT_HYPOTHESES[choice]);
+ for(const record of paintState.records){
+   if(record.mesh.material!==record.original){
+     const temporary=record.mesh.material;
+     record.mesh.material=record.original;
+     temporary?.dispose();
+   }
+   if(additions.has(record.name)){
+     const material=record.original.clone();
+     // Existing model colour lives in vertex RGB; override only the
+     // experiment's material, never its source mesh/vertex colour buffer.
+     material.vertexColors=false;
+     material.color.setRGB(28/255,89/255,222/255,THREE.SRGBColorSpace);
+     material.name='ART-4K experimental source-blue allocation';
+     material.needsUpdate=true;
+     record.mesh.material=material;
+   }
+ }
+ paintMode=choice;
+}
+function updatePaintHypothesisStatus(origin=''){
+ const selector=$('paintHypothesis'),status=$('paintStatus');
+ selector.disabled=!paintState;
+ selector.value=paintState?paintMode:'original';
+ status.dataset.materialState=paintState?paintState.records.map(x=>
+   x.name+':'+(x.mesh.material===x.original?'source':'temporary')).join('|'):'unavailable';
+ status.textContent=!paintState?
+   'Unavailable: published exact-SHA 2026 five-part GLB and source material hierarchy required.':
+   (paintMode==='original'?'Unmodified original 2026 GLB material allocation.':
+     'Temporary selected existing rim/crank material override; original GLB and vertex colours preserved.')+
+   ' The original 1994 material boundaries, original camera and character likeness remain unverified.';
+}
+function useModel(gltf,origin){clear();current=gltf.scene;rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);paintMode='original';paintState=capturePaintMaterials(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -335,6 +406,11 @@ $('measureToggle').onclick=async()=>{
 $('file').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(file);manifest=null;manifestRaw=null;measurements=null;$('measurements').hidden=true;$('measureToggle').setAttribute('aria-expanded','false');$('measureStatus').textContent='Local GLB: published source comparisons are not transferable to a different model.';try{await load(objectURL,'local '+file.name)}catch(err){say('Cannot read model',err.message)}};
 $('wheelOriginal').onclick=()=>chooseWheelWidth(1);
 $('wheelWide').onclick=()=>chooseWheelWidth(1.1);
+$('paintHypothesis').onchange=()=>{if(!current||!paintState)return;try{
+ applyPaintHypothesis($('paintHypothesis').value);
+ updatePaintHypothesisStatus($('source').textContent);
+}catch(e){applyPaintHypothesis('original');updatePaintHypothesisStatus($('source').textContent);
+ $('paintStatus').textContent='Paint hypothesis unavailable: '+e.message}};
 $('wheelDrive').onchange=()=>{if(!current||!wheelDriveState)return;try{
  wheelDrive=$('wheelDrive').value==='1';
  if(!wheelDrive)crankStep=0;

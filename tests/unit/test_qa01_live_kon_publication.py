@@ -156,5 +156,54 @@ class NativeExecutableSnapshotTests(unittest.TestCase):
             self.assertFalse(report["source_to_binary_identity_independently_verified"])
 
 
+
+class AtomicReceiptPublicationTests(unittest.TestCase):
+    def test_complete_receipt_visible_only_after_staging_fsync(self):
+        import qa01_native_pcm_at_kon as offline
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            destination = root / "receipt.json"
+            payload = json.dumps({"wav_sha256": "a" * 64}, sort_keys=True) + "\n"
+            original_link = offline.os.link
+            def verify_before_link(staged, target):
+                self.assertEqual(Path(target), destination)
+                self.assertFalse(destination.exists())
+                self.assertEqual(Path(staged).read_text(encoding="utf-8"), payload)
+                return original_link(staged, target)
+            with patch.object(offline.os, "link", side_effect=verify_before_link):
+                offline.publish_receipt_no_replace(destination, payload)
+            self.assertEqual(destination.read_text(encoding="utf-8"), payload)
+            self.assertFalse(list(root.glob(".qa01-receipt-stage-*")))
+
+    def test_existing_and_dangling_symlink_receipts_are_preserved(self):
+        import qa01_native_pcm_at_kon as offline
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            destination = root / "receipt.json"
+            destination.write_bytes(b"FOREIGN")
+            with self.assertRaises(FileExistsError):
+                offline.publish_receipt_no_replace(destination, "{}\n")
+            self.assertEqual(destination.read_bytes(), b"FOREIGN")
+            destination.unlink()
+            foreign = root / "not-yet-created.json"
+            destination.symlink_to(foreign)
+            with self.assertRaises(FileExistsError):
+                offline.publish_receipt_no_replace(destination, "{}\n")
+            self.assertTrue(destination.is_symlink())
+            self.assertFalse(foreign.exists())
+            self.assertFalse(list(root.glob(".qa01-receipt-stage-*")))
+
+    def test_interrupted_staging_never_exposes_partial_receipt(self):
+        import qa01_native_pcm_at_kon as offline
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            destination = root / "receipt.json"
+            with patch.object(offline.os, "fsync", side_effect=OSError("incomplete staged write")):
+                with self.assertRaises(OSError):
+                    offline.publish_receipt_no_replace(destination, "{}\n")
+            self.assertFalse(destination.exists())
+            self.assertFalse(list(root.glob(".qa01-receipt-stage-*")))
+
+
 if __name__ == "__main__":
     unittest.main()

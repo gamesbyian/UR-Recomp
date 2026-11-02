@@ -70,6 +70,34 @@ def prepare_receipt_destination(json_path: Path) -> None:
         os.fsync(probe.fileno())
 
 
+
+def publish_receipt_no_replace(path: Path, payload: str) -> None:
+    """Stage complete JSON on the receipt volume, then link without replacement.
+
+    A WAV and its receipt remain two independent paths. Consumers must require
+    both, verify the receipt's WAV hash and reject an orphaned WAV.
+    """
+    if not path.is_absolute():
+        raise ValueError("receipt output path must be absolute")
+    parent = path.parent
+    if parent.is_symlink() or not parent.is_dir():
+        raise ValueError("receipt parent must be a real directory")
+    staged = None
+    try:
+        fd, name = tempfile.mkstemp(prefix=".qa01-receipt-stage-", suffix=".json", dir=parent)
+        staged = Path(name)
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as out:
+            out.write(payload)
+            out.flush()
+            os.fsync(out.fileno())
+        # The destination is never opened until all bytes are durable in the
+        # staged inode. A concurrent file or symlink at the final name wins.
+        os.link(staged, path)
+    finally:
+        if staged is not None:
+            staged.unlink(missing_ok=True)
+
+
 def validate_event_ring_coverage(report: dict) -> None:
     """Offline KON uniqueness needs the entire pre-capture DSP event history.
 
@@ -334,8 +362,8 @@ def main() -> int:
     result["post_wav_event_head"] = post_wav_report["event_head"]
     result["post_wav_produced_samples"] = post_wav_report["stats"]["produced"]
     result["post_wav_ring_census_complete"] = True
-    with args.json_out.open("x", encoding="utf-8") as receipt_file:
-        receipt_file.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    publish_receipt_no_replace(
+        args.json_out.absolute(), json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(f"QA01 native DSP KON PCM captured: {result['sample_frames']} samples, "
           f"KON at +{result['kon_offset_frames']}, WAV sha256={result['wav_sha256']}")
     return 0

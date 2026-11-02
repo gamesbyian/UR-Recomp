@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 
 from capture_audio_events import command, connect
-from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, publish_wav_no_replace, prepare_receipt_destination, validate_output_separation, SHA40
+from qa01_native_pcm_at_kon import capture_kon_pcm, kon_candidates, publish_wav_no_replace, publish_receipt_no_replace, prepare_receipt_destination, validate_output_separation, SHA40
 
 
 def _nonnegative_int(value, label: str) -> int:
@@ -244,8 +244,7 @@ def main() -> int:
         # private. Neither this nor the preflight makes two paths atomic.
         receipt_bytes = json.dumps(result, indent=2, sort_keys=True) + "\n"
         publish_wav_no_replace(candidate_wav, wav)
-    with receipt.open("x", encoding="utf-8") as out:
-        out.write(receipt_bytes)
+    publish_receipt_no_replace(receipt, receipt_bytes)
     print(f"Captured live candidate KON {result['kon_sample_index']} at {result['sample_frames']} PCM frames")
     return 0
 

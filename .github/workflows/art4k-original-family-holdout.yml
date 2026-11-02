@@ -35,6 +35,8 @@ on:
       - "tests/unit/test_audit_original_racer_translation_only_control.py"
       - "tools/art/study_original_racer_continuous_ride_motion.py"
       - "tests/unit/test_study_original_racer_continuous_ride_motion.py"
+      - "tools/art/study_original_racer_eighth_ride_motion.py"
+      - "tests/unit/test_study_original_racer_eighth_ride_motion.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -541,6 +543,55 @@ jobs:
               out.write("### Actual original source 2D translation-only negative control\n\n")
               out.write(f"Using NEXT source frame's own visible-alpha anchor, simple image translation overlaps {s['matching_original_changed_pixel_positions']} of 1,631 original changed pixel positions (recall {s['source_translation_changed_pixel_recall']}, precision {s['source_translation_changed_pixel_precision']}).\n\n")
               out.write(f"**Still {s['next_original_shape_residual_after_shift_pixels']} original next-shape pixels differ after translation alignment.** Translation is post-hoc, NOT inferred 3D motion/camera, a source-timed predictive model, likeness or release acceptance.\n")
+          PY
+      - name: Restore nine SHA-pinned source-rig eighth-phase GLBs from existing verified producer
+        uses: actions/download-artifact@v4
+        with:
+          pattern: art4k-real-continuous-ride-*
+          run-id: 41385793054
+          github-token: ${{ github.token }}
+          merge-multiple: false
+          path: ${{ runner.temp }}/art4k-eighth-phase
+      - name: Compare eight fixed real 2026 eighth-phase transitions against genuine original-ROM motion
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/study_original_racer_eighth_ride_motion.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --ride-sample 0.0 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.0" \
+            --ride-sample 0.125 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.125" \
+            --ride-sample 0.25 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.25" \
+            --ride-sample 0.375 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.375" \
+            --ride-sample 0.5 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.5" \
+            --ride-sample 0.625 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.625" \
+            --ride-sample 0.75 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.75" \
+            --ride-sample 0.875 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-0.875" \
+            --ride-sample 1.0 "$RUNNER_TEMP/art4k-eighth-phase/art4k-real-continuous-ride-1.0" \
+            --out "$RUNNER_TEMP/art4k-reports/original-real-eighth-phase-pose-only-motion.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads((Path(os.environ["RUNNER_TEMP"])/"art4k-reports/original-real-eighth-phase-pose-only-motion.json").read_text())
+          times=[0,0.125,0.25,0.375,0.5,0.625,0.75,0.875,1]
+          assert data["source_original_actual_frame_edges"]==109
+          assert data["source_original_unique_binary_silhouettes"]==35
+          assert data["exact_ride_grid"]==[str(x) for x in times]
+          assert data["first_last_authored_cycle_4x_pixel_xor"]==0
+          assert len(data["real_verified_glb_samples"])==9
+          assert len(data["uniform_2026_phase_transition_diagnostics"])==8
+          assert data["quarter_phase_grid_had_720_degree_wobble_aliasing"] is True
+          assert data["all_transition_pairs_predeclared_without_frame_matching"] is True
+          assert data["original_1994_camera_or_pose_or_cadence_recovered"] is False
+          assert data["owner_likeness_approved"] is False
+          assert data["shipping_art_approved"] is False
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("### Nine actual OpenSCAD ride GLBs vs original-ROM source edges\n\n")
+              out.write("Nine SHA-pinned authored times, eight fixed source-unpaired intervals, 109 authenticated original edges. Seven different 3D mesh states, three equal by actual geometry; no 1994 time pairing.\n\n")
+              for entry in data["uniform_2026_phase_transition_diagnostics"]:
+                  m=entry["source_pixel_statistics"]
+                  out.write(f"Author t={entry['authored_2026_rig_time_from']}→{entry['authored_2026_rig_time_to']}: pose-only source recall {m['pose_only_source_changed_pixel_recall']}, precision {m['pose_only_source_changed_pixel_precision']}; spurious model motion on {m['source_held_edges_with_spurious_pose_change']}/90 source holds.\n")
+              out.write("\nNo source 1994 animation registration, 3D camera, independent untouched family, original rig likeness or shipping art acceptance.\n")
           PY
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4

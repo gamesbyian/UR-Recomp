@@ -163,6 +163,33 @@ try{
          issues.push('frame hinge failed to reset original pose');
      }
    }
+   if(q('wheelDrive').getBoundingClientRect().height<44)
+     issues.push('source direct drive touch target');
+   if(${mocked}){
+     if(!q('wheelDrive').disabled)
+       issues.push('synthetic non-source GLB falsely enabled direct drive');
+   }else{
+     if(q('wheelDrive').disabled)issues.push('real source-owned wheel drive unavailable');
+     else{
+       const originalSource=q('source').textContent;
+       const get=()=>Object.fromEntries(['tireMatrix','rimMatrix','pedalsMatrix','forkMatrix','saddleMatrix']
+         .map(k=>[k,q('wheelDriveStatus').dataset[k]||'']));
+       const before=get();
+       q('wheelDrive').value='1';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       const spinning=get();
+       for(const k of ['tireMatrix','rimMatrix']){
+         if(spinning[k]===before[k])issues.push('direct drive failed to rotate '+k);
+       }
+       for(const k of ['pedalsMatrix','forkMatrix','saddleMatrix']){
+         if(spinning[k]!==before[k])issues.push('direct drive moved stationary '+k);
+       }
+       q('wheelDrive').value='0';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       if(Object.keys(before).some(k=>get()[k]!==before[k]))
+         issues.push('direct drive source matrices not restored');
+       if(q('source').textContent!==originalSource)
+         issues.push('direct drive source GLB identity changed');
+     }
+   }
    if(q('rootLean').getBoundingClientRect().height<44)
      issues.push('root lean accessible touch target');
    if(q('rootLean').disabled)issues.push('source GLB root lean selector unavailable');

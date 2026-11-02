@@ -137,7 +137,7 @@ jobs:
               for file in files:
                   archive.write(file,file.relative_to(root).as_posix())
           PY
-          python3 tools/art/audit_original_racer_palette_indices.py \
+          python3 -m tools.art.audit_original_racer_palette_indices \
             --rom reference/roms/retail/Uniracers_USA.sfc \
             --registry "$RUNNER_TEMP/art4k-exact-source-registry.json" \
             --source-zip "$RUNNER_TEMP/art4k-frozen-41.zip" \

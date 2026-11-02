@@ -68,7 +68,7 @@ class SourceWorkflowContractTests(unittest.TestCase):
         self.assertIn('7ba8295e966c8b2c959cfeb12ae82f8c701772e0', raw)
         self.assertIn('05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad', raw)
         self.assertIn('sha256sum --check --status', raw)
-        self.assertIn('tools/art/audit_original_racer_palette_indices.py', raw)
+        self.assertIn('python3 -m tools.art.audit_original_racer_palette_indices', raw)
         self.assertIn('art4k-original-index-census-', raw)
         self.assertIn('actions: read', raw)
         self.assertLess(raw.index('Authenticate the repository'), raw.index('Download frozen 41-PNG'))

@@ -104,7 +104,7 @@ def build(source_zip: Path, index_report: Path) -> dict:
                     raise ValueError("original source PNG SHA mismatch")
                 target.write_bytes(data)
                 w, h, rgba, png_sha = decode_rgba_png(target)
-                if (w, h) != (64, 64) or png_sha != ref["local_png_sha256"] or
+                if ((w, h) != (64, 64) or png_sha != ref["local_png_sha256"] or
                     digest(rgba) != row["source_rgba_sha256"] or
                     digest(rgba[3::4]) != ref["source_alpha_sha256"] or
                     digest(bytes(int(a != 0) for a in rgba[3::4])) != row["source_binary_mask_sha256"] or

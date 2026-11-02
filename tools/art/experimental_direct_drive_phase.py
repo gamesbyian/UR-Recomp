@@ -96,10 +96,13 @@ def build(source:bytes,pose:str):
         raise ValueError("only SHA-pinned original 2026 experimental GLB accepted")
     scene=trimesh.load(io.BytesIO(source),file_type="glb",force="scene",process=False)
     nodes,meshnodes=set(scene.graph.nodes),set(scene.graph.nodes_geometry)
-    original={k:(np.array(v.vertices,copy=True),np.array(v.faces,copy=True))
+    parents={n:scene.graph.transforms.parents.get(n) for n in nodes}
+    original={k:(
+        np.array(v.vertices,copy=True),np.array(v.faces,copy=True),
+        np.array(v.vertex_normals,copy=True),np.array(v.visual.vertex_colors,copy=True))
               for k,v in scene.geometry.items()}
-    fixed={p:np.array(scene.graph.get(p)[0],copy=True) for p in STATIONARY}
     meta=synchronize(scene,delta_for_pose(pose))
+    expected_parts={p:np.array(scene.graph.get(p)[0],copy=True) for p in PARTS}
     output=scene.export(file_type="glb")
     if not isinstance(output,bytes) or output[:4]!=b"glTF":
         raise ValueError("actual GLB serialization failed")
@@ -108,13 +111,18 @@ def build(source:bytes,pose:str):
             or set(roundtrip.graph.nodes_geometry)!=meshnodes
             or set(roundtrip.geometry)!=set(original)):
         raise ValueError("roundtrip changed source part/material identity")
-    for k,(vertices,faces) in original.items():
+    if parents!={n:roundtrip.graph.transforms.parents.get(n) for n in nodes}:
+        raise ValueError("roundtrip changed source parent hierarchy")
+    for k,(vertices,faces,normals,colors) in original.items():
         found=roundtrip.geometry[k]
         if not np.array_equal(found.vertices,vertices) or not np.array_equal(found.faces,faces):
             raise ValueError("roundtrip changed source mesh geometry")
-    for p,T in fixed.items():
-        if not np.allclose(roundtrip.graph.get(p)[0],T,atol=1e-7,rtol=0):
-            raise ValueError("roundtrip moved original pedals/frame/saddle")
+        if (not np.allclose(found.vertex_normals,normals,atol=1e-6,rtol=0)
+                or not np.array_equal(found.visual.vertex_colors,colors)):
+            raise ValueError("roundtrip changed original surface normals or material colors")
+    for p,T in expected_parts.items():
+        if not np.allclose(roundtrip.graph.get(p)[0],T,atol=1e-6,rtol=0):
+            raise ValueError("roundtrip changed expected wheel or fixed-part pose")
     meta.update({
         "schema":SCHEMA,"source_named_pose":pose,
         "source_pedal_phase_degrees":SOURCE_PHASE[pose],

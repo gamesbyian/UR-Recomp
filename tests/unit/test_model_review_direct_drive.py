@@ -21,7 +21,9 @@ class SourceDriveViewerTests(unittest.TestCase):
         smoke=(ROOT/"tools/art/model-review/browser-smoke.mjs").read_text()
         for marker in ("synthetic non-source GLB falsely enabled direct drive",
                        "direct drive failed to rotate","direct drive moved stationary",
-                       "direct drive source matrices not restored"):
+                       "direct drive source matrices not restored",
+                       "wheel sync altered independent fork hinge",
+                       "combined drive reset did not restore wheel"):
             self.assertIn(marker,smoke)
 
     @unittest.skipUnless(shutil.which("node"),"node unavailable")

@@ -11,5 +11,5 @@ export function frameHingeSourceRotation(degrees){
   throw Error('unsupported experimental frame hinge angle');
  }
  const theta=degrees*Math.PI/180,c=Math.cos(theta),s=Math.sin(theta);
- return [c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1];
+ return [c,0,s===0?0:-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1];
 }

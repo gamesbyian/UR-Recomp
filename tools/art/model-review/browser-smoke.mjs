@@ -382,6 +382,28 @@ try{
    if(!q('source').textContent.includes('published bank GLB'))issues.push('research changes displayed GLB');
    return {width:w,height:innerHeight,issues,research:research.slice(0,90),source:q('sourceInfo').textContent.slice(0,85)};
   })()`);
+  // Actual WebGL colour acceptance, not merely select/status changes.
+  // Record only the 412px source-verified viewport to avoid redundant assets.
+  if(!mocked && width===412){
+   const rect=await evaluate("(()=>{const r=document.querySelector('.stage').getBoundingClientRect();return {x:Math.max(0,Math.floor(r.x)),y:Math.max(0,Math.floor(r.y)),width:Math.floor(r.width),height:Math.floor(r.height),scale:1}})()");
+   if(rect.width<150||rect.height<150)throw Error('actual 3D paint render region collapsed');
+   const capture=async()=>Buffer.from((await cdp('Page.captureScreenshot',
+      {format:'png',captureBeyondViewport:false,clip:rect},session)).data,'base64');
+   const originalPaint=await capture();
+   const changed=await evaluate("(()=>{const c=document.getElementById('paintHypothesis');if(c.disabled)return false;c.value='disc';c.dispatchEvent(new Event('change',{bubbles:true}));return c.value==='disc'})()");
+   if(!changed)throw Error('real GLB paint preview not accessible');
+   await sleep(160);
+   const alternativePaint=await capture();
+   await evaluate("(()=>{const c=document.getElementById('paintHypothesis');c.value='original';c.dispatchEvent(new Event('change',{bubbles:true}))})()");
+   await sleep(160);
+   const exactRestored=await capture();
+   if(originalPaint.equals(alternativePaint))
+     throw Error('actual 3D paint hypothesis changed labels but not GLB viewport pixels');
+   if(!originalPaint.equals(exactRestored))
+     throw Error('actual 3D source model paint visual reset differs');
+   writeFileSync(join(out,'model-review-paint-original-412.png'),originalPaint);
+   writeFileSync(join(out,'model-review-paint-disc-412.png'),alternativePaint);
+  }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);
   writeFileSync(join(out,'model-review-'+width+'.png'),Buffer.from(shot.data,'base64'));
   summaries.push(report);console.log('MODEL_REVIEW_CHROMIUM '+JSON.stringify(report));

@@ -58,6 +58,9 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
             "paint experiment changed source GLB identity or mesh census",
             "paint experiment persisted after changing actual published GLB",
             "paint experiment leaked across named pose roundtrip",
+            "actual 3D paint hypothesis changed labels but not GLB viewport pixels",
+            "actual 3D source model paint visual reset differs",
+            "model-review-paint-disc-412.png",
         ):
             self.assertIn(marker,smoke)
         self.assertIn("320",smoke)

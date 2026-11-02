@@ -36,6 +36,42 @@ class PoseSequenceTests(unittest.TestCase):
         self.assertEqual(len(output), 3)
         self.assertEqual(output[-2]["sequence_poses"], ["bank"])
 
+    def test_interleaved_player_major_tracks_preserve_real_continuity(self):
+        first = self.example()
+        p1 = first["frames"]
+        p2 = [
+            {"window": "first", "player": "p2", "guest_frame": 1205 + offset,
+             "costs": {"upright": u, "bank": b}}
+            for offset, (u, b) in enumerate([(1, 0), (0, 1), (1, 0)])
+        ]
+        first["frames"] = [row for pair in zip(p1, p2) for row in pair]
+        actual = fit(first)["sequences"]
+        self.assertEqual(len(actual), 2)
+        self.assertEqual([s["guest_frames"] for s in actual], [[1205, 1206, 1207]] * 2)
+        self.assertEqual([s["player"] for s in actual], ["p1", "p2"])
+        self.assertEqual(actual[0]["independent_poses"], ["upright", "bank", "upright"])
+        self.assertEqual(actual[1]["independent_poses"], ["bank", "upright", "bank"])
+        self.assertEqual(actual[0]["sequence_poses"], ["upright"] * 3)
+        self.assertEqual(actual[1]["sequence_poses"], ["bank"] * 3)
+        self.assertEqual(sum(s["independent_transition_count"] for s in actual), 4)
+
+    def test_interleaved_player_gap_breaks_only_affected_track(self):
+        first = self.example()
+        p1 = first["frames"]
+        p2 = [
+            {"window": "first", "player": "p2", "guest_frame": 1205 + offset,
+             "costs": {"upright": 1, "bank": 0}}
+            for offset in range(3)
+        ]
+        p1[2]["guest_frame"] = 1210
+        first["frames"] = [row for pair in zip(p1, p2) for row in pair]
+        sequences = fit(first)["sequences"]
+        by_track = {player: [s["guest_frames"] for s in sequences
+                             if s["player"] == player]
+                    for player in ("p1", "p2")}
+        self.assertEqual(by_track["p1"], [[1205, 1206], [1210]])
+        self.assertEqual(by_track["p2"], [[1205, 1206, 1207]])
+
     def test_bad_inputs_fail_closed(self):
         for variant in ("nan", "boolean", "duplicate", "missing", "negative",
                         "transition", "out_of_order", "missing_number", "wrong_player"):

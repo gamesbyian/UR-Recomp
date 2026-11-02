@@ -6,6 +6,7 @@ authentic-source evaluator and retains its original historical five-point mode.
 """
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -34,11 +35,44 @@ SHA = {
 }
 
 
+
+def registered_source_time_evidence(corpus_path: Path,
+                                    verified_corpus_sha256: str) -> dict:
+    """Bind a real ROM-composed sprite corpus to its *authored* time registry.
+
+    A verified source-ROM raster is not independently verified original game
+    PPU/OAM frame cadence. Never infer that its guest-frame numbers or holds
+    were observed as a live simulation trace.
+    """
+    raw = corpus_path.read_bytes()
+    if (type(verified_corpus_sha256) is not str
+            or hashlib.sha256(raw).hexdigest() != verified_corpus_sha256):
+        raise ValueError("authenticated source corpus SHA identity changed")
+    source = json.loads(raw)
+    if (not isinstance(source, dict)
+            or source.get("source_kind")
+                != "deterministic_canonical_USA_ROM_registered_composition"
+            or source.get("source_rom_verified_and_used_for_composition") is not True
+            or source.get("native_live_original_PPU_or_1994_3d_camera_independently_verified") is not False
+            or not isinstance(source.get("source_temporal_frame_observations"), list)):
+        raise ValueError("wrong or unclassified original source sampling evidence")
+    return {
+        "original_64px_rasters_composed_from_sha_authenticated_original_rom": True,
+        "source_frame_order_is_registry_authored": True,
+        "source_registered_guest_frame_integer_adjacency_measured": True,
+        "original_live_emulator_ppu_frame_timing_independently_verified": False,
+        "original_live_gameplay_hold_cadence_proven": False,
+        "source_visible_alpha_anchor_is_physical_ground_contact": False,
+    }
+
+
 def compute(corpus: Path, camera: Path, samples: dict[str, Path]) -> dict:
     if set(samples) != set(TIMES):
         raise ValueError("exact nine 2026-authored ride grid samples required")
     result = evaluate(corpus, samples, camera,
                       sample_times=TIMES, pinned_glbs=SHA)
+    source_evidence = registered_source_time_evidence(
+        corpus, result["source_original_corpus_sha256"])
     if (result["exact_ride_grid"] != list(TIMES)
             or result["first_last_authored_cycle_4x_pixel_xor"] != 0
             or len(result["uniform_2026_phase_transition_diagnostics"]) != 8
@@ -47,6 +81,7 @@ def compute(corpus: Path, camera: Path, samples: dict[str, Path]) -> dict:
             or result["shipping_art_approved"]):
         raise ValueError("actual source rhythm/phase boundary or loop closure lost")
     result["schema"] = SCHEMA
+    result["source_temporal_evidence_class"] = source_evidence
     result["actual_GLBS_from_existing_draft_exporter_run_id"] = 41385793054
     result["quarter_phase_grid_had_720_degree_wobble_aliasing"] = True
     result["eighth_phase_wobble_extrema_source_authored_deg"] = {

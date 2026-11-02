@@ -29,6 +29,8 @@ on:
       - "tests/unit/test_fit_original_racer_pose_sequence.py"
       - "tools/art/prepare_original_racer_pose_sequence.py"
       - "tests/unit/test_prepare_original_racer_pose_sequence.py"
+      - "tools/art/audit_original_racer_pose_transition_pixels.py"
+      - "tests/unit/test_audit_original_racer_pose_transition_pixels.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -423,6 +425,45 @@ jobs:
                   out.write(f"- {track['player']}: independent label changes {track['independent_transition_count']}; regularized label changes {track['sequence_transition_count']}; constant path {track['constant_label_sequence']}\n")
               out.write(f"\nAll original windows: {len({t['window'] for t in all_tracks})}; actual contiguous edges {sum(len(t['guest_frames'])-1 for t in all_tracks)}; frame/player observations {all_windows['frame_count']}.\n")
               out.write("\nThese are *unpaired silhouette preferences*, not original 1994 pose identity, camera, skeleton, artistic acceptance or independent unseen-family validation.\n")
+          PY
+      - name: Measure original binary-frame motion versus real GLB pose and registration changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/audit_original_racer_pose_transition_pixels.py \
+            --corpus "$RUNNER_TEMP/art4k-verified-original-corpus/source-corpus.json" \
+            --pose-matrix "$RUNNER_TEMP/art4k-reports/original-35-by-five-real-glb-pose-matrix.json" \
+            --pose-sequence "$RUNNER_TEMP/art4k-reports/original-all-window-discrete-pose-sequence.json" \
+            --model-review-dir "$RUNNER_TEMP/art4k-verified-model/real-model-site/model-review" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/art4k-reports/original-temporal-model-pixel-motion.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) /
+            "art4k-reports/original-temporal-model-pixel-motion.json").read_text())
+          summary = report["summary"]
+          assert report["actual_original_source_pngs_revalidated"] is True
+          assert report["exact_35_by_5_source_iou_independently_reproduced"] is True
+          assert summary["actually_consecutive_original_guest_frame_edges"] == 109
+          assert summary["original_binary_silhouette_changed_edges"] == 19
+          assert summary["original_binary_silhouette_held_edges"] == 90
+          assert report["source_1994_camera_or_3d_joint_pose_recovered"] is False
+          assert report["shipping_art_approved"] is False
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
+              out.write("### Actual original frame-pixel motion versus frozen model\n\n")
+              out.write(f"Source changed pixels: {summary['source_binary_changed_pixels_total']}; "
+                        f"model overlapping original changed pixels: {summary['placed_model_overlapping_source_change_pixels']}; "
+                        f"recall: {summary['placed_model_pixel_recall_across_source_changes']}.\n\n")
+              out.write(f"Authentic source moving edges with NO 3D pose-only raster change: "
+                        f"{summary['source_moving_edges_with_no_pose_only_pixel_change']} "
+                        "out of 19; visible-alpha registration is measured separately.\n\n")
+              out.write(f"3D pose-only changed pixels overlapping authentic source movement: "
+                        f"{summary['pose_only_model_overlapping_source_changed_pixels']} of "
+                        f"{summary['source_binary_changed_pixels_total']} source changes; "
+                        f"pose-only recall {summary['pose_only_model_changed_pixel_recall']}; "
+                        f"precision {summary['pose_only_model_changed_pixel_precision']}.\n\n")
+              out.write("No 1994 joint, camera, time, likeness or shipping approval inferred.\n")
           PY
       - name: Upload short-lived, SHA-verified original sprite research corpus
         uses: actions/upload-artifact@v4

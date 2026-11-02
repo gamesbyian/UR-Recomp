@@ -228,14 +228,56 @@ class NativeKonPCMTests(unittest.TestCase):
             self.assertEqual(result["wav_bytes"], path.stat().st_size)
             self.assertEqual(result["wav_sha256"], pcm.hashlib.sha256(path.read_bytes()).hexdigest())
 
+    def test_parent_symlink_swap_cannot_redirect_validated_wav(self):
+        if (not hasattr(pcm.os, "O_DIRECTORY") or not hasattr(pcm.os, "O_NOFOLLOW")
+                or pcm.os.open not in pcm.os.supports_dir_fd):
+            self.skipTest("POSIX descriptor-relative WAV publication unavailable")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            parent = root / "intended"
+            parent.mkdir()
+            foreign = root / "foreign"
+            foreign.mkdir()
+            old_parent = root / "old_intended"
+            stage = root / "validated-stage.wav"
+            stage.write_bytes(b"VALID-WAV-BYTES")
+            final = parent / "kon.wav"
+            real_link = pcm.os.link
+
+            def redirect_after_stage(src, dst, **kwargs):
+                parent.rename(old_parent)
+                parent.symlink_to(foreign, target_is_directory=True)
+                return real_link(src, dst, **kwargs)
+
+            with mock.patch.object(pcm.os, "link", side_effect=redirect_after_stage):
+                with self.assertRaisesRegex(OSError, "identity changed"):
+                    pcm.publish_wav_no_replace(
+                        stage, final,
+                        expected_digest=pcm.hashlib.sha256(stage.read_bytes()).digest())
+            self.assertFalse((foreign / "kon.wav").exists())
+            self.assertEqual((old_parent / "kon.wav").read_bytes(), b"VALID-WAV-BYTES")
+
+    def test_symlinked_wav_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            foreign = root / "foreign"
+            foreign.mkdir()
+            alias = root / "alias"
+            alias.symlink_to(foreign, target_is_directory=True)
+            stage = root / "stage.wav"
+            stage.write_bytes(b"VALID")
+            with self.assertRaisesRegex(ValueError, "real directory"):
+                pcm.publish_wav_no_replace(stage, alias / "kon.wav")
+            self.assertEqual(list(foreign.iterdir()), [])
+
     def test_hardlink_mutation_after_publication_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
             real_link = pcm.os.link
 
-            def mutate_after_link(src, dst):
-                real_link(src, dst)
-                Path(dst).write_bytes(b"CORRUPTED-AFTER-LINK")
+            def mutate_after_link(src, dst, **kwargs):
+                real_link(src, dst, **kwargs)
+                path.write_bytes(b"CORRUPTED-AFTER-LINK")
 
             with mock.patch.object(pcm.os, "link", side_effect=mutate_after_link):
                 with self.assertRaisesRegex(ValueError, "validated staging bytes"):
@@ -249,9 +291,9 @@ class NativeKonPCMTests(unittest.TestCase):
             path = Path(tmp) / "kon.wav"
             real_link = pcm.os.link
 
-            def mutate_before_link(src, dst):
+            def mutate_before_link(src, dst, **kwargs):
                 Path(src).write_bytes(b"CORRUPTED-BEFORE-LINK")
-                real_link(src, dst)
+                real_link(src, dst, **kwargs)
 
             with mock.patch.object(pcm.os, "link", side_effect=mutate_before_link):
                 with self.assertRaisesRegex(ValueError, "validated staging bytes"):

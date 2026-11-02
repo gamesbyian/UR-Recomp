@@ -206,33 +206,59 @@ def wav_command_path(wav_path: Path) -> str:
 
 def publish_wav_no_replace(staged_path: Path, wav_path: Path, *,
                            expected_digest: bytes | None = None) -> None:
-    """Publish staged WAV without replacing the destination.
+    """Publish a validated WAV into one pinned POSIX destination directory.
 
-    Compare against an independent pre-link digest, never a digest obtained
-    from the staged hardlink name after the final inode becomes writable.
+    The server's stage may be on another volume. Hardlink when possible, or
+    exclusively create and copy relative to the same pinned directory fd.
+    A renamed/replaced destination parent fails closed, rather than linking
+    the WAV into a foreign directory through a changed pathname. The WAV and
+    JSON receipt are still separate publications, not a transaction.
     """
     if expected_digest is None:
         expected_digest = hashlib.sha256(staged_path.read_bytes()).digest()
+    if not wav_path.is_absolute():
+        raise ValueError("WAV output path must be absolute")
+    parent = wav_path.parent
+    if parent.is_symlink() or not parent.is_dir():
+        raise ValueError("WAV destination parent must be an existing real directory")
+    if (not all(hasattr(os, flag) for flag in ("O_DIRECTORY", "O_NOFOLLOW"))
+            or os.open not in os.supports_dir_fd):
+        raise OSError("secure descriptor-relative WAV publication unavailable")
+    directory_fd = os.open(parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        os.link(staged_path, wav_path)
-    except FileExistsError as exc:
-        raise ValueError("refusing to replace WAV created during capture") from exc
-    except OSError:
-        # Hard links are unavailable on some volumes. Exclusive creation
-        # preserves a destination created by another process, even a symlink.
+        pinned = os.fstat(directory_fd)
         try:
-            with staged_path.open("rb") as src, wav_path.open("xb") as dst:
+            os.link(staged_path, wav_path.name, dst_dir_fd=directory_fd,
+                    follow_symlinks=False)
+        except FileExistsError as exc:
+            raise ValueError("refusing to replace WAV created during capture") from exc
+        except OSError:
+            # A cross-volume/unsupported hardlink may fail. The fallback must
+            # never reopen the final through the mutable parent pathname.
+            try:
+                final_fd = os.open(wav_path.name,
+                                   os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                                   0o600, dir_fd=directory_fd)
+            except FileExistsError as exc:
+                raise ValueError("refusing to replace WAV created during capture") from exc
+            with os.fdopen(final_fd, "wb") as dst, staged_path.open("rb") as src:
                 shutil.copyfileobj(src, dst)
                 dst.flush()
                 os.fsync(dst.fileno())
-        except FileExistsError as exc:
-            raise ValueError("refusing to replace WAV created during capture") from exc
-    # A failed publication leaves no plausible success receipt. A partial
-    # exclusively created fallback file is retained rather than deleting an
-    # uncertain pathname after an exception.
-    if expected_digest != hashlib.sha256(wav_path.read_bytes()).digest():
-        raise ValueError("published WAV differs from validated staging bytes")
-
+        os.fsync(directory_fd)
+        # Check the published bytes by descriptor, never by a destination
+        # pathname that may have been redirected after the original link.
+        published_fd = os.open(wav_path.name, os.O_RDONLY | os.O_NOFOLLOW,
+                               dir_fd=directory_fd)
+        with os.fdopen(published_fd, "rb") as src:
+            actual_digest = hashlib.sha256(src.read()).digest()
+        if expected_digest != actual_digest:
+            raise ValueError("published WAV differs from validated staging bytes")
+        visible = os.stat(parent, follow_symlinks=False)
+        if (visible.st_dev, visible.st_ino) != (pinned.st_dev, pinned.st_ino):
+            raise OSError("WAV parent identity changed during publication")
+    finally:
+        os.close(directory_fd)
 
 def capture_kon_pcm(command_fn, *, events: list[dict], produced: int,
                     kon_sample_index: int, wav_path: Path,

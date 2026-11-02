@@ -14,8 +14,8 @@ An independent offline actual GLB / source-colour comparison with the historical
 
 | One vote per distinct original binary source mask | Mean source/model painted pixel area | Mean source/model painted axial length | Mean source/model area per axial length |
 |---|---:|---:|---:|
-| All 35 source masks | **1.49821244** | **0.91236878** | **1.64438023** |
-| Historical first 16 | 1.54651596 | 0.88630568 | 1.74558196 |
+| All 35 source masks | **1.49821244** | **0.91236878** | **1.64348566** |
+| Historical first 16 | 1.54651596 | 0.88630568 | 1.74362508 |
 | Additional 19 source SHA-distinct masks | 1.45753579 | 0.93431666 | 1.55915773 |
 
 All **35** original source binary masks contained more painted pixels than their selected 2026 blue-material model projection; original region area averages about 50% greater, even though the measured original colour-axis **length averages about 9% shorter**. This opposes an immediate conclusion that the 2026 fork merely needs to be lengthened. Stronger alternative hypotheses include painted-area thickness, high-chroma segmentation of multiple original sprite parts, different palette/shading, and camera / materials correspondence. This numeric disparity does NOT establish which explanation is correct, and no geometry/colour defaults should be changed without visual and independent source evidence.
@@ -36,3 +36,10 @@ Requires the exact historical 2026 upright GLB SHA `efdc8425...`, the frozen cam
       --out /private/new/original-painted-extent-comparison.json
 
 The resulting numeric JSON is write-once through the existing no-replace publisher, reports all 35 binary mask identities and every original RGBA variant's area/length ratios, and identifies uncertainty and unsupported physics explicitly. It does not create a new workflow, source-pixel upload or shipping-art acceptance result.
+
+
+### Two-sided actual-depth repeat and aggregation convention
+
+An independent run of the exact historical GLB against the entire 19-angle grid also tested the provisional **−world-Y** camera direction, alongside +world-Y. The equal-weight 35-source-mask means for source/model colour area **1.49821244**, projected axial length **0.91236878**, and *per-colour-variant area-per-length* **1.64348566** are identical under the two views to eight decimals. All 35 source shapes still contain more colour pixels than the selected model blue material under either view. The first16/other19 area-per-length ratios remain **1.74362508** / **1.55915773**. This is a specific orthographic model robustness result; it does not establish the true camera-facing side in 1994 or anatomical source/model paint correspondence.
+
+For clarity, the area-per-length ratio is computed **for each original RGB variant**, those ratios are averaged within its binary source silhouette, and binary silhouettes are then averaged equally. It must not be replaced with a ratio of separately averaged area and length numbers. The earlier prototype's 1.64438023 and 1.74558196 used that different aggregation and are superseded for this new report. The exact source/model SHA-pinned two-direction offline receipts are retained as numeric experimental data outside the repository. Neither interpretation authorizes a proportional fork mesh edit.

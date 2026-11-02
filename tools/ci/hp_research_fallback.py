@@ -20,7 +20,7 @@ from typing import Callable
 REPO = "gamesbyian/UR-Recomp"
 RESEARCH = "owner-hp-seeded-2p-research.yml"
 PRIORITY = ("owner-hp-main-windows-smoke.yml", "owner-hp-windows-benchmark.yml")
-COOLDOWN = timedelta(minutes=90)
+COOLDOWN = timedelta(minutes=60)  # Measured HP idle-capacity pilot; still main-build priority.
 RUN_STATES = frozenset(("queued", "in_progress", "waiting", "pending", "requested"))
 MAX_RECORDS = 30
 GH_TIMEOUT_SECONDS = 30

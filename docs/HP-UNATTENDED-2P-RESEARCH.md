@@ -46,7 +46,7 @@ guarantee delivery nor earn 48 source-qualified experiments.
 
 **Non-LLM recovery:** the existing [owner-installable Windows Task Scheduler
 fallback](HP-RESEARCH-FALLBACK.md) checks for missed GitHub runs every
-15 minutes and, after a 90-minute gap with no priority HP Windows job and
+15 minutes and, after a 60-minute **pilot** gap with no priority HP Windows job and
 no unresolved same-source failure, can dispatch the **same** tested main-only
 workflow using the owner's authenticated GitHub CLI. The
 [reviewed five-file one-click installer ZIP](../tools/ci/HP-Research-Fallback-Owner-Install.zip)
@@ -70,7 +70,7 @@ for precise SHA-256 receipts). This proves **the installed script's deliberate
 `--once` path**, not yet the automatically recurring Task Scheduler invocation
 on the new version. A subsequent independent recurring task receipt or a
 distinct later eligible automatic dispatch is still required. The script
-retains its 90-minute cooldown, physical HP priority-build checks and
+retained its 90-minute cooldown at that historical run; the later **60-minute cooldown pilot** preserves physical HP priority-build checks and
 360-second default. It never creates another HP runner or relaxes product QA.
 
 **Monitoring after fallback qualification:** [merged #3014](https://github.com/gamesbyian/UR-Recomp/pull/3014)
@@ -81,6 +81,43 @@ actually reported the recovery run `IN_FLIGHT` while GitHub cron stayed
 `SCHEDULE_OVERDUE`, both workflow registrations `active`. GitHub Actions
 cannot determine whether an individual `workflow_dispatch` was sent by
 an owner or the local Windows fallback merely from its event name.
+
+**Additional November 2 dispatch evidence and 60-minute local-fallback pilot:**
+After the owner-triggered #41367902448, a genuine
+[GitHub scheduled #41368786920](https://github.com/gamesbyian/UR-Recomp/actions/runs/41368786920)
+at 00:44 UTC passed on `590a99af78792c4c9641a551a5000a9a4417c935`
+(**8 cases, 32 real processes, 228.125s research, about 570s full HP job**).
+An additional distinct [workflow_dispatch #41377239423](https://github.com/gamesbyian/UR-Recomp/actions/runs/41377239423)
+at 02:20 UTC passed on `aeee259ad25c5402d5a47cf98445e8471ef7dedb`
+(**8 cases, 32 processes, 209.156s research, about 553s HP job**).
+Both independently downloaded 76-member artifacts passed actual outer SHA-256
+against GitHub, ZIP CRC/path, eight unique seed-namespace, self-hash,
+PE/binding bytes and stock original-route fixture SHA checks, as documented
+on [throughput issue #2885](https://github.com/gamesbyian/UR-Recomp/issues/2885).
+The later dispatch arrived roughly 106 minutes after the owner's explicit
+`--once` and is consistent with a working recurring 15-minute Windows task
+after the former 90-minute cooldown. GitHub's `workflow_dispatch` event
+cannot prove which client sent it; a later physical HP task-history/local
+receipt would give conclusive recurrence attribution.
+
+With observed science jobs occupying approximately nine to ten minutes each
+and GitHub cron still irregular, this pilot lowers **only** the owner-installed
+local fallback's missing-research cooldown from **90 to 60 minutes**. With
+the unchanged 15-minute checks and eight positive cases/run, its
+*theoretical* fallback-only ceiling rises from 128 to 192 seeded cases/day
+under uninterrupted eligibility (+50%). Neither rate is an empirical
+throughput claim: real cron events, build priority, source-bound failures,
+Windows session logoff and offline periods all restrict dispatch.
+The GitHub cron schedule remains `11,41 * * * *`; the workflow still uses
+the same eight cohorts and 360-second research cap. The owner-comment
+manual gateway keeps its independent 90-minute deduplication guard.
+The new ZIP must be explicitly reinstalled by the owner before HP's local
+task uses 60 minutes; the previously installed script otherwise keeps 90.
+**Rollback:** restore the last validated 90-minute installer if extra
+fallback HP occupancy demonstrably queues a priority main Windows build
+over 10 minutes, causes repeated research contention or lowers source-bound
+accepted cases per occupied HP hour. Do not interpret normal GitHub schedule
+delay as that evidence.
 
 **Health/stop conditions:** [watchdog PR #3003](https://github.com/gamesbyian/UR-Recomp/pull/3003)
 shortens the *read-only* missing-schedule alert from eight to **two hours**

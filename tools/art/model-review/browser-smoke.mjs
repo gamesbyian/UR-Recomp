@@ -210,6 +210,75 @@ try{
          issues.push('direct drive source GLB identity changed');
      }
    }
+   // Guard against the 45-degree symmetry alias and cumulative drift.
+   if(q('crankScrub').getBoundingClientRect().height<44)
+     issues.push('continuous crank slider touch target');
+   if(${mocked}){
+     if(!q('crankScrub').disabled)
+       issues.push('synthetic non-source GLB falsely enabled crank scrub');
+   }else{
+     if(q('crankScrub').disabled)issues.push('real source-owned crank scrub disabled');
+     else{
+       const sourceLabel=q('source').textContent;
+       // Refresh the ledger after prior independent fork/saddle hinge tests.
+       q('wheelDrive').value='0';
+       q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       const get=()=>Object.fromEntries(['tireMatrix','rimMatrix','pedalsMatrix','forkMatrix','saddleMatrix']
+          .map(k=>[k,q('wheelDriveStatus').dataset[k]||'']));
+       const original=get();
+       function scrub(i){
+         q('crankScrub').value=String(i);
+         q('crankScrub').dispatchEvent(new Event('input',{bubbles:true}));
+         if(q('crankScrub').value!==String(i)||
+            !q('crankStatus').textContent.includes(i+'/64'))
+           issues.push('continuous crank step update '+i);
+         return get();
+       }
+       const one=scrub(1),two=scrub(2),three=scrub(3),four=scrub(4);
+       for(const k of ['tireMatrix','rimMatrix','pedalsMatrix']){
+         if(one[k]===original[k]||one[k]===two[k]||two[k]===three[k]||three[k]===four[k])
+           issues.push('continuous crank failed to advance '+k);
+       }
+       for(const k of ['forkMatrix','saddleMatrix']){
+         if([one,two,three,four].some(v=>v[k]!==original[k]))
+           issues.push('continuous crank moved independent '+k);
+       }
+       const end=scrub(64);
+       if(end.pedalsMatrix!==original.pedalsMatrix)
+         issues.push('720-degree crank did not return pedals exactly');
+       const reset=scrub(0);
+       if(Object.keys(original).some(k=>reset[k]!==original[k]))
+         issues.push('continuous crank zero did not restore original TRS');
+       if(q('wheelDrive').value!=='0')
+         issues.push('continuous crank original wheel-sync preference lost');
+       q('wheelDrive').value='1';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       const enabled=get();
+       scrub(2);const back=scrub(0);
+       if(Object.keys(enabled).some(k=>back[k]!==enabled[k]))
+         issues.push('drive-enabled crank scrub zero changed original matrices');
+       if(q('wheelDrive').value!=='1')
+         issues.push('drive-enabled preference lost after crank scrub');
+       q('wheelDrive').value='0';q('wheelDrive').dispatchEvent(new Event('change',{bubbles:true}));
+       if(Object.keys(original).some(k=>get()[k]!==original[k]))
+         issues.push('continuous crank final original state mismatch');
+       if(q('source').textContent!==sourceLabel)
+         issues.push('continuous crank changed original GLB identity');
+       // A new published GLB must never inherit an old pose's crank state.
+       scrub(3);
+       q('pose-pedal').click();
+       for(let attempt=0;attempt<160 && !q('source').textContent.includes('published pedal GLB');attempt++)
+         await new Promise(done=>setTimeout(done,25));
+       if(!q('source').textContent.includes('published pedal GLB') ||
+          q('crankScrub').value!=='0' || q('wheelDrive').value!=='0')
+         issues.push('continuous crank not reset on named pose change');
+       q('pose-bank').click();
+       for(let attempt=0;attempt<160 && !q('source').textContent.includes('published bank GLB');attempt++)
+         await new Promise(done=>setTimeout(done,25));
+       if(!q('source').textContent.includes('published bank GLB') ||
+          q('crankScrub').value!=='0')
+         issues.push('continuous crank leaked across published pose return');
+     }
+   }
    if(q('rootLean').getBoundingClientRect().height<44)
      issues.push('root lean accessible touch target');
    if(q('rootLean').disabled)issues.push('source GLB root lean selector unavailable');

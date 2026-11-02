@@ -611,7 +611,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-ws-shadow-split-band.patch",
-          "sha256": "82f018c76569fe296ef5a4f1e1f312f7a92d110684feac98271a794479a60d5a"
+          "sha256": "410036552d5a585723f6ce9142208b8941c018e08e5dda5032132c49a5821e53"
         },
         {
           "path": "tools/patches/snesrecomp-user-data-root.patch",

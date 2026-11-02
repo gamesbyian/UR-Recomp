@@ -34,6 +34,13 @@ class ChromaGuidedHingeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             painted_axis_from_mask(np.zeros((64,64),dtype=bool))
 
+    def test_projection_report_does_not_claim_paint_visibility(self):
+        src=(__import__("pathlib").Path(__file__).resolve().parents[2]/
+             "tools/art/evaluate_original_racer_chroma_guided_3d_hinge.py").read_text()
+        self.assertIn("true_visibility_and_depth_order_unknown",src)
+        self.assertIn("painted_frame_true_visible_pixels_depth_tested",src)
+        self.assertIn("projected_blue_pixels_overlapping_other_materials",src)
+
     def test_unexpected_source_hinge_angles_fail_closed(self):
         for angle in (-46,46,3.,5.5,"5",True,None):
             with self.subTest(angle=angle),self.assertRaises(ValueError):

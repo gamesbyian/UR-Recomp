@@ -102,7 +102,28 @@ def painted_model_axis(scene,camera)->float:
         raise ValueError("source blue-frame material no longer authenticated")
     paint.apply_transform(world)
     mask=render_mask(paint.vertices,paint.faces,camera)[2::4,2::4]
-    return painted_axis_from_mask(mask)
+    other=[]
+    for node in sorted(scene.graph.nodes_geometry):
+        if node==CHROMA_NODE:
+            continue
+        other_world,other_key=scene.graph.get(node)
+        mesh=scene.geometry[other_key].copy()
+        mesh.apply_transform(other_world)
+        other.append(mesh)
+    if len(other)!=15:
+        raise ValueError("original source sixteen-material graph missing")
+    merged=trimesh.util.concatenate(other)
+    other_mask=render_mask(merged.vertices,merged.faces,camera)[2::4,2::4]
+    occupied=int(mask.sum())
+    if not occupied:
+        raise ValueError("projected blue fork is empty")
+    overlap=int((mask.astype(bool)&other_mask.astype(bool)).sum())
+    return painted_axis_from_mask(mask),{
+        "projected_blue_raster_pixels":occupied,
+        "projected_blue_pixels_overlapping_other_materials":overlap,
+        "overlap_fraction_not_proven_occluded":round(overlap/occupied,8),
+        "true_visibility_and_depth_order_unknown":True,
+    }
 
 
 def evaluate(corpus_path:Path,glb_path:Path,camera_path:Path,
@@ -159,9 +180,12 @@ def evaluate(corpus_path:Path,glb_path:Path,camera_path:Path,
             raise ValueError("original source family leakage or missing masks")
     projected={}
     axes={}
+    overlap_witness={}
     for angle in ANGLES:
         derived=spin_frame(model,angle)
-        axes[angle]=round(painted_model_axis(derived,camera),8)
+        measured_axis,overlap=painted_model_axis(derived,camera)
+        axes[angle]=round(measured_axis,8)
+        overlap_witness[angle]=overlap
         mesh=(derived.to_geometry() if callable(getattr(derived,"to_geometry",None))
               else derived.dump(concatenate=True))
         projected[angle]=render_mask(mesh.vertices,mesh.faces,camera)
@@ -203,6 +227,8 @@ def evaluate(corpus_path:Path,glb_path:Path,camera_path:Path,
         "original_chroma_axes_receipt_sha256":CHROMA_SHA,
         "tested_rig_hinge_degrees":list(ANGLES),
         "rendered_2026_blue_frame_angle_by_hinge_degrees":{str(a):axes[a] for a in ANGLES},
+        "blue_material_2d_overlap_by_hinge":{str(a):overlap_witness[a] for a in ANGLES},
+        "painted_frame_true_visible_pixels_depth_tested":False,
         "pose_selected_using_source_2d_colour_and_model_painted_axis_only":True,
         "pose_selected_using_original_silhouette_iou_oracle":False,
         "translation_selected_using_original_model_silhouette_iou_oracle":False,

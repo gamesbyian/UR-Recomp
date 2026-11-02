@@ -399,6 +399,8 @@ jobs:
           assert set(matrix["viewer_five_pose_glb_sha256"]) == {"upright", "pedal", "wheelie", "stunt", "bank"}
           assert matrix["similarities_are_unpaired_hypotheses_not_source_pose_mapping"] is True
           assert sequence["frame_count"] == 32
+          assert sequence["provenance"]["pose_matrix_source_corpus_sha_verified"] is True
+          assert sequence["provenance"]["source_corpus_manifest_sha256"] == matrix["source_original_corpus_sha256"]
           tracks = sequence["temporal_experiment"]["sequences"]
           assert len(tracks) == 2
           assert {t["player"] for t in tracks} == {"p1", "p2"}
@@ -412,6 +414,8 @@ jobs:
           # actual consecutive guest-frame observations are linked.
           assert sum(len(t["guest_frames"])-1 for t in all_tracks) == 109
           assert not all_windows["authentic_original_3d_pose_registration"]
+          assert all_windows["provenance"]["pose_matrix_source_corpus_sha_verified"] is True
+          assert all_windows["provenance"]["source_corpus_manifest_sha256"] == matrix["source_original_corpus_sha256"]
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
               out.write("### 35 authentic original masks × five existing GLB poses\n\n")
               out.write("35 authenticated source silhouettes, five SHA-verified experimental GLBs; original P1/P2 first-window temporal labels for 32 original observations.\n\n")

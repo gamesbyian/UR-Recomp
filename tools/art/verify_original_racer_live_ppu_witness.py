@@ -7,6 +7,7 @@ Only genuinely captured consecutive emulator frame IDs count as live edges.
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 
 SCHEMA = "UR-ART4K-LIVE-ORIGINAL-PPU-FRAME-WITNESS/1"
@@ -15,6 +16,56 @@ ROM_SHA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 
 def _sha(s):
     return type(s) is str and len(s) == 64 and all(c in "0123456789abcdef" for c in s)
+
+
+def _read_capture(root: Path, name, prefix, size, digest, binary=False):
+    """Read a source-owned, unique regular file without accepting symlink aliases."""
+    if (type(name) is not str or not name.startswith(prefix + "/")
+            or Path(name).is_absolute() or ".." in Path(name).parts
+            or not _sha(digest)):
+        raise ValueError("unsafe or unverifiable " + prefix + " capture")
+    path = root
+    for component in Path(name).parts:
+        path = path / component
+        if path.is_symlink():
+            raise ValueError("symlink capture path is not independent evidence")
+    resolved_root = root.resolve()
+    resolved = path.resolve()
+    if not resolved.is_relative_to(resolved_root) or not path.is_file():
+        raise ValueError("missing actual " + prefix + " capture")
+    before = path.stat()
+    raw = path.read_bytes()
+    after = path.stat()
+    if ((before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+            != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns)):
+        raise ValueError("capture changed while being read")
+    if (len(raw) != size or (binary and any(v not in (0, 1) for v in raw))
+            or hashlib.sha256(raw).hexdigest() != digest):
+        raise ValueError("invalid or stale actual " + prefix + " capture bytes")
+    return raw, (after.st_dev, after.st_ino)
+
+
+def _write_exclusive(path: Path, content: str):
+    """Never follow or replace a pre-existing ledger, including dangling links."""
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(path, flags, 0o644)
+    created = os.fstat(fd)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as out:
+            out.write(content)
+            out.flush()
+            os.fsync(out.fileno())
+    except BaseException:
+        # Only unlink the entry created by this invocation, not a replacement.
+        try:
+            if (os.lstat(path).st_dev,
+                    os.lstat(path).st_ino) == (created.st_dev, created.st_ino):
+                path.unlink()
+        except (OSError, ValueError):
+            pass
+        raise
 
 
 def validate(manifest, root: Path):
@@ -34,6 +85,8 @@ def validate(manifest, root: Path):
     if not isinstance(frames, list) or not frames:
         raise ValueError("no live frame observations")
     seen, counts, edges, prev = set(), {"p1": 0, "p2": 0}, [], {}
+    alpha_files, oam_files = set(), {}
+    global_tick = global_replay = global_oam = None
     for row in frames:
         if not isinstance(row, dict):
             raise ValueError("malformed captured frame")
@@ -46,22 +99,27 @@ def validate(manifest, root: Path):
         if key in seen:
             raise ValueError("duplicate captured player/frame")
         seen.add(key)
-        image = row.get("binary_alpha_file")
-        if (not isinstance(image, str) or
-                not image.startswith("frames/") or
-                Path(image).is_absolute() or ".." in Path(image).parts):
-            raise ValueError("unsafe or unverifiable source frame path")
-        file = (root / image).resolve()
-        if not file.is_relative_to(root.resolve()) or not file.is_file():
-            raise ValueError("missing actual captured frame")
-        raw = file.read_bytes()
-        if (len(raw) != 4096 or any(v not in (0, 1) for v in raw)
-                or not _sha(row.get("binary_alpha_sha256"))
-                or hashlib.sha256(raw).hexdigest() != row["binary_alpha_sha256"]):
-            raise ValueError("invalid or stale actual 64x64 PPU alpha pixels")
-        oam = row.get("oam_sha256")
-        if not _sha(oam):
-            raise ValueError("missing observed PPU/OAM identity hash")
+        replay = row["input_replay_frame_index"]
+        image_raw, alpha_id = _read_capture(
+            root, row.get("binary_alpha_file"), "frames", 4096,
+            row.get("binary_alpha_sha256"), binary=True)
+        if alpha_id in alpha_files:
+            raise ValueError("reused physical alpha file cannot represent a new capture")
+        alpha_files.add(alpha_id)
+        oam_raw, oam_id = _read_capture(
+            root, row.get("oam_binary_file"), "oam", 544,
+            row.get("oam_sha256"))
+        if oam_id in oam_files and oam_files[oam_id] != tick:
+            raise ValueError("reused physical OAM file across distinct emulator frames")
+        oam_files[oam_id] = tick
+        if global_tick is not None:
+            if tick < global_tick or (tick == global_tick and
+                                     (replay != global_replay or oam_raw != global_oam)):
+                raise ValueError("contradictory interleaved emulator/OAM frame chronology")
+            if tick > global_tick and replay <= global_replay:
+                raise ValueError("nonmonotonic global replay frame chronology")
+        global_tick, global_replay, global_oam = tick, replay, oam_raw
+        raw = image_raw
         prior = prev.get(player)
         if prior is not None:
             if tick <= prior[0] or row["input_replay_frame_index"] <= prior[1]:
@@ -94,9 +152,7 @@ def main():
     data = validate(json.loads(a.manifest.read_text(encoding="utf-8")), a.manifest.parent)
     result = json.dumps(data, indent=2, sort_keys=True) + "\n"
     if a.out:
-        if a.out.exists():
-            raise FileExistsError("cannot overwrite prior live witness ledger")
-        a.out.write_text(result, encoding="utf-8")
+        _write_exclusive(a.out, result)
     else:
         print(result, end="")
 

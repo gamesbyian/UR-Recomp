@@ -130,7 +130,7 @@
 -  return s_layers[layerIndex].worldY;
 +  const WsShadowLayer *layer = &s_layers[layerIndex];
 +  if (layer->retainHistory)
-+    return layer->scrollY;
++    return UseSplit(layer) ? layer->splitScrollY : layer->scrollY;
 +  return UseSplit(layer) ? layer->splitWorldY : layer->worldY;
  }
  

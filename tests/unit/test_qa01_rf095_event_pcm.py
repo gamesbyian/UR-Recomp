@@ -434,5 +434,77 @@ class RF095Tests(unittest.TestCase):
             self.assertTrue(good_parent.is_dir())
             self.assertEqual(list(good_parent.iterdir()), [])
 
+    def test_final_publication_stages_complete_bytes_before_name_is_visible(self):
+        with tempfile.TemporaryDirectory() as d:
+            final = pathlib.Path(d) / 'receipt.json'
+            payload = b'{"complete":true}\\n'
+            actual_link = receipt.os.link
+            calls = []
+
+            def inspect_link(staged, target):
+                self.assertEqual(pathlib.Path(target), final)
+                self.assertFalse(final.exists())
+                self.assertEqual(pathlib.Path(staged).read_bytes(), payload)
+                calls.append(True)
+                return actual_link(staged, target)
+
+            with mock.patch.object(receipt.os, 'link', side_effect=inspect_link):
+                receipt.publish_bytes_no_replace(final, payload, label='receipt output')
+            self.assertEqual(calls, [True])
+            self.assertEqual(final.read_bytes(), payload)
+            self.assertEqual([p.name for p in pathlib.Path(d).iterdir()], ['receipt.json'])
+
+    def test_final_publication_failure_leaves_no_partial_name_or_stage(self):
+        with tempfile.TemporaryDirectory() as d:
+            final = pathlib.Path(d) / 'window.pcm'
+            with mock.patch.object(receipt.os, 'link',
+                                   side_effect=OSError('injected link denial')):
+                with self.assertRaisesRegex(OSError, 'injected link denial'):
+                    receipt.publish_bytes_no_replace(
+                        final, b'PCM' * 10, label='original PCM window')
+            self.assertFalse(final.exists())
+            self.assertEqual(list(pathlib.Path(d).iterdir()), [])
+
+    def test_final_publication_racing_foreign_file_is_preserved(self):
+        with tempfile.TemporaryDirectory() as d:
+            final = pathlib.Path(d) / 'receipt.json'
+
+            def race(staged, target):
+                final.write_bytes(b'FOREIGN')
+                raise FileExistsError('injected concurrent create')
+
+            with mock.patch.object(receipt.os, 'link', side_effect=race):
+                with self.assertRaisesRegex(ValueError, 'stale receipt output'):
+                    receipt.publish_bytes_no_replace(
+                        final, b'NEW', label='receipt output')
+            self.assertEqual(final.read_bytes(), b'FOREIGN')
+            self.assertEqual([p.name for p in pathlib.Path(d).iterdir()], ['receipt.json'])
+
+    def test_cli_publishes_both_final_names_through_staging(self):
+        with tempfile.TemporaryDirectory() as d:
+            files = self.fixture(d)
+            names = ('original-wav', 'original-map', 'native-pcm',
+                     'native-map', 'original-log', 'native-log')
+            argv = ['qa01_rf095_pcm_receipt.py']
+            for name, path in zip(names, files):
+                argv.extend(('--' + name, str(path)))
+            window = pathlib.Path(d) / 'window.pcm'
+            final = pathlib.Path(d) / 'receipt.json'
+            argv.extend(('--out', str(final), '--original-window-out', str(window)))
+            actual_publish = receipt.publish_bytes_no_replace
+            labels = []
+
+            def record_publish(path, payload, *, label):
+                labels.append(label)
+                return actual_publish(path, payload, label=label)
+
+            with mock.patch('sys.argv', argv), mock.patch.object(
+                    receipt, 'publish_bytes_no_replace',
+                    side_effect=record_publish):
+                receipt.main()
+            self.assertEqual(labels, ['original PCM window', 'receipt output'])
+            self.assertEqual(receipt.json.loads(final.read_text())['original']['frames'], 896)
+            self.assertEqual(len(window.read_bytes()), 896 * 4)
+
 if __name__ == '__main__':
     unittest.main()

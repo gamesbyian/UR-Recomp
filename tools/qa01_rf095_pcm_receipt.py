@@ -31,6 +31,33 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+
+def publish_bytes_no_replace(path: Path, payload: bytes, *, label: str) -> None:
+    """Publish only complete, synced bytes at an unused final pathname.
+
+    This is a one-file atomic publication, not a transaction across the
+    separately published original PCM window and JSON receipt.
+    """
+    if path.exists() or path.is_symlink():
+        raise ValueError('RF095 refusing stale ' + label)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    staged = None
+    try:
+        fd, name = tempfile.mkstemp(prefix='.rf095-stage-', dir=path.parent)
+        staged = Path(name)
+        with os.fdopen(fd, 'wb') as output:
+            output.write(payload)
+            output.flush()
+            os.fsync(output.fileno())
+        try:
+            os.link(staged, path)
+        except FileExistsError as exc:
+            raise ValueError('RF095 refusing stale ' + label) from exc
+    finally:
+        if staged is not None:
+            staged.unlink(missing_ok=True)
+
+
 def frame_map(path: Path, *, start: int, end: int,
               contiguous_from_zero: bool,
               raw_bytes: bytes | None = None) -> dict[int, int]:
@@ -270,9 +297,8 @@ def analyze(original_wav: Path, original_map: Path, native_pcm: Path,
     if original_window_out is not None:
         if original_window_out.exists() or original_window_out.is_symlink():
             raise ValueError('RF095 refusing stale original PCM window')
-        original_window_out.parent.mkdir(parents=True, exist_ok=True)
-        with original_window_out.open('xb') as output:
-            output.write(original)
+        publish_bytes_no_replace(original_window_out, original,
+                                 label='original PCM window')
     return receipt
 
 
@@ -321,9 +347,8 @@ def main() -> None:
                          'original_log', 'native_log')),
                       original_window_out=args.original_window_out,
                       serialized_receipt_out=serialized_receipt)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    with args.out.open('x', encoding='utf-8') as output:
-        output.write(serialized_receipt[0])
+    publish_bytes_no_replace(args.out, serialized_receipt[0].encode('utf-8'),
+                             label='receipt output')
     print('RF095_SOURCE_REGISTERED_PCM PASS '
           f"original={receipt['original']['frames']} "
           f"native={receipt['native']['frames']} "

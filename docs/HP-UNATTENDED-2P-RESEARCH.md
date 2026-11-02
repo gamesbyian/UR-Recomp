@@ -50,10 +50,37 @@ fallback](HP-RESEARCH-FALLBACK.md) checks for missed GitHub runs every
 no unresolved same-source failure, can dispatch the **same** tested main-only
 workflow using the owner's authenticated GitHub CLI. The
 [reviewed five-file one-click installer ZIP](../tools/ci/HP-Research-Fallback-Owner-Install.zip)
-requires an explicit installation on the owner's HP PC; no result here
-confirms it has been installed. Do not claim that this backup is active
-until its local status receipt or a qualifying manual `workflow_dispatch`
-proves operation. It never creates another HP runner or relaxes product QA.
+was owner-installed on the physical HP on November 1. The initially
+installed version ran but failed closed on valid historical off-main
+benchmark jobs; [merged #3012](https://github.com/gamesbyian/UR-Recomp/pull/3012)
+repaired that narrow validation and rebuilt the exact-source installer ZIP.
+The corrected installed Python script passed the owner's real GitHub
+`--dry-run` and then an explicitly owner-executed `--once` reported
+`dispatched: true` at **November 2 00:34:44 UTC**, pinned to main
+`edd4c3b5f06be3b54bddb12374fe1c5d75a8e795`. Genuine Actions
+[manual dispatch #41367902448](https://github.com/gamesbyian/UR-Recomp/actions/runs/41367902448)
+began **nine seconds later** on that exact source and **PASSED** at
+00:44 UTC: eight accepted seeded cases, 32 real Windows guest processes,
+229.953 seconds research, canonical Windows package/boot/QA and zero
+collector issues. The retained [artifact #13107779955](https://github.com/gamesbyian/UR-Recomp/actions/runs/41367902448/artifacts/13107779955)
+passed independent 76-member ZIP CRC, exact outer GitHub digest,
+receipt self-hash, source/seed, PE/binding-byte and ROM-free-content checks
+(see [HP throughput issue #2885](https://github.com/gamesbyian/UR-Recomp/issues/2885)
+for precise SHA-256 receipts). This proves **the installed script's deliberate
+`--once` path**, not yet the automatically recurring Task Scheduler invocation
+on the new version. A subsequent independent recurring task receipt or a
+distinct later eligible automatic dispatch is still required. The script
+retains its 90-minute cooldown, physical HP priority-build checks and
+360-second default. It never creates another HP runner or relaxes product QA.
+
+**Monitoring after fallback qualification:** [merged #3014](https://github.com/gamesbyian/UR-Recomp/pull/3014)
+adds a separate `dispatched_2p` read-only status alongside the
+`unattended_2p` genuine cron status, using the **same** GitHub API census
+without new polling. [Snapshot #41368607284](https://github.com/gamesbyian/UR-Recomp/actions/runs/41368607284)
+actually reported the recovery run `IN_FLIGHT` while GitHub cron stayed
+`SCHEDULE_OVERDUE`, both workflow registrations `active`. GitHub Actions
+cannot determine whether an individual `workflow_dispatch` was sent by
+an owner or the local Windows fallback merely from its event name.
 
 **Health/stop conditions:** [watchdog PR #3003](https://github.com/gamesbyian/UR-Recomp/pull/3003)
 shortens the *read-only* missing-schedule alert from eight to **two hours**

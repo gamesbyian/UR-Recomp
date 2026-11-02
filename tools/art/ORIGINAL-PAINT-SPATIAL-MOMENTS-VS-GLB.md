@@ -16,9 +16,9 @@ An independently coded prior run against the authentic 41 original source images
 
 | Source painted spatial spread relative to model visible blue | Major-axis sigma ratio | Minor-axis sigma ratio | Original shapes with larger minor spread |
 | --- | ---: | ---: | ---: |
-| All 35 original binary silhouettes | 1.20853026 | **2.80416866** | 35/35 |
-| Historical first16 masks | 1.20311547 | 2.77802070 | 16/16 |
-| Additional19 distinct original alpha SHAs | 1.21309009 | 2.82618799 | 19/19 |
+| All 35 original binary silhouettes | 0.93060585 | **1.92262939** | 35/35 |
+| Historical first16 masks | 0.90904740 | 2.02787570 | 16/16 |
+| Additional19 distinct original alpha SHAs | 0.94876033 | 1.83400092 | 19/19 |
 
 The source's high-chroma 2D image is distributed much more broadly across its minor spatial axis than the projected 2026 blue-fork material under this exact provisional camera. This makes the **paint-footprint/part-correspondence hypothesis** worth testing before modifying the rig's length or width. It does NOT authorize widening the actual 2026 model fork by 2.8 times. The 1994 sprite may colour multiple anatomically distinct surfaces; the rig may use another camera or material partition. The original camera, original physical joints, and independent unseen views remain unproven. Prior hypotheses were developed on the very same source corpus, including the additional19 masks, so these results are retrospective, not a held-out 3D geometry success.
 
@@ -37,3 +37,10 @@ Use the original privately retained authentic source PNG corpus from run #413968
       --out /private/new/original-2d-painted-spatial-moments.json
 
 Any 1994 original emulator frame sequence must still be independently captured and audited. The 3D model and Pages viewer, source ROM, Windows game and shipping art remain untouched.
+
+
+## Source-colour integer safety and component sensitivity
+
+An independent check exposed an early offline NumPy pilot error: RGB uint8 channel arithmetic overflowed when comparing red to twice green or blue. This could accept otherwise non-red original source pixels. The actual repository producer uses the integer-safe original source high-chroma classifier and did NOT contain this mistake; its source code and source PNG SHA gates remain valid. Re-running the previous local pilot with 32-bit RGB channels changes the mean all-mask major/minor sigma ratios from preliminary 1.20853026 / 2.80416866 to the CORRECT 0.93060585 / 1.92262939. The preliminary values have been superseded and must not be cited.
+
+A separate independent run excluding small disconnected source-colour accents, keeping only each original image's largest 8-connected painted component, gives mean major/minor ratios 0.92227749 / 1.89139603; the original minor spread remains larger for 35 of 35 binary silhouettes. The largest component contains at least 95.4545 percent of the safe-classified high-chroma pixels in every original image. The excess minor-axis spread therefore survives removal of small detached accents, but this still does not prove the physical fork was nearly twice as thick. A new ROM-free regression tests an RGB near-overflow counterexample: red 185, green 160, blue 20 is not high-chroma red, even though an unsafe uint8 multiplication could falsely classify it.

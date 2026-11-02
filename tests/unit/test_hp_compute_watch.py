@@ -33,6 +33,28 @@ class HpComputeWatchTests(unittest.TestCase):
         self.assertEqual(missing["status"], "SCHEDULE_OVERDUE")
         self.assertEqual(missing["recent_manual_trials"], 1)
 
+    def test_dispatch_does_not_mask_overdue_cron(self):
+        rows = [
+            row(event="workflow_dispatch", when=NOW - timedelta(minutes=12),
+                rid=901, state="in_progress", conclusion=None),
+            row(when=NOW - timedelta(hours=3), rid=900),
+        ]
+        cron = watch.observe("unattended_2p", rows, NOW)
+        dispatch = watch.observe("dispatched_2p", rows, NOW)
+        self.assertEqual(cron["status"], "SCHEDULE_OVERDUE")
+        self.assertEqual(cron["last_run_id"], 900)
+        self.assertEqual(dispatch["status"], "IN_FLIGHT")
+        self.assertEqual(dispatch["last_run_id"], 901)
+        self.assertEqual(dispatch["last_event"], "workflow_dispatch")
+        rows[0] = {**rows[0], "status": "completed", "conclusion": "success"}
+        self.assertEqual(watch.observe("dispatched_2p", rows, NOW)["status"],
+                         "LAST_RUN_PASSED")
+        self.assertEqual(watch.observe("unattended_2p", rows, NOW)["status"],
+                         "SCHEDULE_OVERDUE")
+        self.assertEqual(watch.observe("dispatched_2p",
+                         [row(event="schedule")], NOW)["status"],
+                         "NOT_YET_OBSERVED")
+
     def test_reports_overdue_and_failing_scheduled_runs(self):
         overdue = watch.observe("unattended_2p",
                                 [row(when=NOW - timedelta(hours=3))], NOW)
@@ -189,6 +211,8 @@ class HpComputeWatchTests(unittest.TestCase):
     def test_report_is_compact_and_links_exact_run(self):
         result = {"schema": "ur-hp-compute-watch/1", "lanes": {
             "unattended_2p": watch.observe("unattended_2p", [row()], NOW),
+            "dispatched_2p": watch.observe("dispatched_2p",
+                                           [row(event="workflow_dispatch")], NOW),
             "product_windows": watch.observe("product_windows",
                                              [row(event="push", rid=200)], NOW),
         }}
@@ -197,8 +221,40 @@ class HpComputeWatchTests(unittest.TestCase):
         self.assertIn("research trial does not establish", rendered)
         self.assertIn("Registered workflow state", rendered)
         self.assertIn("two-hour grace period", rendered)
+        self.assertIn("The dispatched_2p lane includes", rendered)
         self.assertIn("disabled or deleted registration", rendered)
         self.assertNotIn("release gate earned", rendered)
+
+    def test_reuses_one_api_census_for_cron_and_dispatch_lanes(self):
+        from unittest.mock import patch
+        import json
+        import os
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            queried, registered = [], []
+            def fake_runs(name, token):
+                queried.append(name)
+                return [row(when=NOW),
+                        row(event="workflow_dispatch", rid=103, when=NOW)]
+            def fake_registration(name, token):
+                registered.append(name)
+                return "active"
+            env = {"GITHUB_TOKEN": "test", "GITHUB_REPOSITORY": watch.REPOSITORY}
+            with (
+                patch.object(watch, "fetch_runs", side_effect=fake_runs),
+                patch.object(watch, "fetch_workflow_state",
+                             side_effect=fake_registration),
+                patch.dict(os.environ, env),
+                patch("sys.argv", ["watch", "--json-output",
+                                   str(Path(temp)/"status.json"),
+                                   "--markdown-output", str(Path(temp)/"status.md")]),
+            ):
+                self.assertEqual(watch.main(), 0)
+            report = json.loads((Path(temp)/"status.json").read_text())
+            self.assertIn("unattended_2p", report["lanes"])
+            self.assertIn("dispatched_2p", report["lanes"])
+            self.assertEqual(queried.count("owner-hp-seeded-2p-research.yml"), 1)
+            self.assertEqual(registered.count("owner-hp-seeded-2p-research.yml"), 1)
 
     def test_existing_daily_ops_gets_read_only_monitor_and_bounded_artifacts(self):
         source = WORKFLOW.read_text(encoding="utf-8")

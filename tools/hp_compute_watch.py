@@ -20,6 +20,8 @@ REPOSITORY = "gamesbyian/UR-Recomp"
 WORKFLOWS = {
     "product_windows": ("owner-hp-main-windows-smoke.yml", ("push",)),
     "unattended_2p": ("owner-hp-seeded-2p-research.yml", ("schedule",)),
+    # GitHub records owner manual and local fallback as the same dispatch event.
+    "dispatched_2p": ("owner-hp-seeded-2p-research.yml", ("workflow_dispatch",)),
 }
 # This read-only watchdog source is the sole main-push invalidation path of
 # ops-live-snapshot; its definition must not trigger itself (CI policy).
@@ -187,6 +189,8 @@ def render(report: dict) -> str:
                      f"{row.get('age_hours', 'n/a')} | {row.get('completed_24h', 'n/a')} |")
     lines += ["", "A research schedule with no observed cron run becomes overdue "
               "after its first eligible slot plus a two-hour grace period.",
+              "The dispatched_2p lane includes owner-manual and local-fallback "
+              "requests, indistinguishable from the GitHub event alone. "
               "An observed manual research trial does not establish that "
               "GitHub's recurring cron actually fired.",
               "A registered `active` workflow is not proof that any scheduled "
@@ -210,16 +214,26 @@ def main() -> int:
         parser.error("requires read-only token on the exact repository")
     now = datetime.now(timezone.utc)
     lanes = {}
+    # Reuse one exact workflow census for cron and owner/fallback dispatch.
+    run_cache, state_cache = {}, {}
+    def cached_runs(workflow):
+        if workflow not in run_cache:
+            run_cache[workflow] = fetch_runs(workflow, token)
+        return run_cache[workflow]
+    def cached_state(workflow):
+        if workflow not in state_cache:
+            state_cache[workflow] = fetch_workflow_state(workflow, token)
+        return state_cache[workflow]
     for lane, (workflow, _) in WORKFLOWS.items():
         try:
-            lanes[lane] = observe(lane, fetch_runs(workflow, token), now)
+            lanes[lane] = observe(lane, cached_runs(workflow), now)
         except Exception as exc:
             lanes[lane] = {"status": "UNAVAILABLE", "error_type": type(exc).__name__,
                            "last_run_id": None}
         # Registration status is an independent read. Failure here must not
         # erase a valid run census or be misrepresented as disabled.
         try:
-            lanes[lane]["workflow_state"] = fetch_workflow_state(workflow, token)
+            lanes[lane]["workflow_state"] = cached_state(workflow)
         except Exception as exc:
             lanes[lane]["workflow_state"] = "UNAVAILABLE"
             lanes[lane]["workflow_state_error_type"] = type(exc).__name__

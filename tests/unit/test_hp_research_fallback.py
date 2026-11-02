@@ -195,6 +195,36 @@ class HPFallbackTests(unittest.TestCase):
             with self.subTest(change=change):
                 self.assertRaises(ValueError, h.classify, [{**row(), **change}], expected_workflow=h.RESEARCH)
 
+    def test_actual_benchmark_history_does_not_abort_research(self):
+        old_branch = "ops/hp-windows-runner-benchmark-20261029"
+        historical = {**row(h.PRIORITY[1], minutes=240),
+                      "head_branch": old_branch, "event": "push"}
+        legacy = {**historical, "id": 2002,
+                  "name": ".github/workflows/owner-hp-windows-benchmark.yml"}
+        parsed = h.classify([historical, legacy], expected_workflow=h.PRIORITY[1])
+        self.assertEqual(len(parsed), 2)
+        req, _ = mock_api(research=[row()],
+                          priority={h.PRIORITY[1]: [historical, legacy]})
+        self.assertTrue(h.execute(NOW, req, dry_run=False)["dispatched"])
+
+    def test_active_non_main_benchmark_blocks_research(self):
+        busy = {**row(h.PRIORITY[1], minutes=5,
+                       status="in_progress", conclusion=None),
+                "head_branch": "ops/hp-windows-runner-benchmark-20261029",
+                "event": "push"}
+        req, calls = mock_api(research=[row()],
+                              priority={h.PRIORITY[1]: [busy]})
+        self.assertEqual(h.execute(NOW, req, dry_run=False)["decision"],
+                         "skip:priority-windows-build-active")
+        self.assertFalse(any("/dispatches" in a[-1] for a in calls))
+        for change in ({"path": ".github/workflows/other.yml"},
+                       {"name": "unexpected workflow"},
+                       {"head_branch": " invalid branch"},
+                       {"head_branch": None}):
+            with self.subTest(change=change):
+                self.assertRaises(ValueError, h.classify,
+                    [{**busy, **change}], expected_workflow=h.PRIORITY[1])
+
     def test_unrecognized_api_fails_closed(self):
         req, calls = mock_api(research=[row()])
         def corrupt(args):

@@ -458,6 +458,11 @@ jobs:
               out.write(f"Authentic source moving edges with NO 3D pose-only raster change: "
                         f"{summary['source_moving_edges_with_no_pose_only_pixel_change']} "
                         "out of 19; visible-alpha registration is measured separately.\n\n")
+              out.write(f"3D pose-only changed pixels overlapping authentic source movement: "
+                        f"{summary['pose_only_model_overlapping_source_changed_pixels']} of "
+                        f"{summary['source_binary_changed_pixels_total']} source changes; "
+                        f"pose-only recall {summary['pose_only_model_changed_pixel_recall']}; "
+                        f"precision {summary['pose_only_model_changed_pixel_precision']}.\\n\\n")
               out.write("No 1994 joint, camera, time, likeness or shipping approval inferred.\n")
           PY
       - name: Upload short-lived, SHA-verified original sprite research corpus

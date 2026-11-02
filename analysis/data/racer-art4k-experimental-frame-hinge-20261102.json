@@ -1,0 +1,67 @@
+{
+  "schema": "UR-ART4K-EXPERIMENTAL-HUB-PIVOT-FRAME-PITCH-SOURCE-DIAGNOSTIC/1",
+  "exact_original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_run_id": 41396846120,
+  "original_source_corpus_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "historical_actual_glb_source_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "camera_manifest": "analysis/data/racer-inverse-side-provisional-1205.json",
+  "camera_calibration_status": "provisional",
+  "source_split_control_artifact_run_id": 41398486394,
+  "source_split": {
+    "first_connected_binary_masks": 16,
+    "additional_sha_disjoint_binary_masks": 19
+  },
+  "real_glb_samples": {
+    "baseline": {
+      "pitch_degrees": 0,
+      "sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5"
+    },
+    "plus3": {
+      "pitch_degrees": 3,
+      "sha256": "fd08d6f277d78f55d7b7ca3823f808587543f3f3e64c3d077ffd284b39af8172",
+      "bytes": 640012
+    },
+    "minus3": {
+      "pitch_degrees": -3,
+      "sha256": "385bf80875960cfd4c105ecb8a0d3466406ab370f12e66cec237ad081e5ffb8e",
+      "bytes": 640012
+    }
+  },
+  "mean_unpaired_original_source_silhouette_iou": {
+    "first_connected_16": {
+      "baseline": 0.55276425,
+      "plus3": 0.54748542,
+      "minus3": 0.55159519
+    },
+    "additional_19": {
+      "baseline": 0.38192089,
+      "plus3": 0.3842162,
+      "minus3": 0.38285225
+    },
+    "all_35": {
+      "baseline": 0.46002071,
+      "plus3": 0.45885356,
+      "minus3": 0.45999188
+    }
+  },
+  "unpaired_additional_19_masks_improved_by_plus3": 19,
+  "logical_model_raster_xor_from_baseline": {
+    "plus3": {
+      "all": 34,
+      "y_0_15": 32,
+      "y_16_31": 2,
+      "y_32_63": 0
+    },
+    "minus3": {
+      "all": 38,
+      "y_0_15": 31,
+      "y_16_31": 7,
+      "y_32_63": 0
+    }
+  },
+  "historical_glb_not_changed": true,
+  "source_1994_camera_pose_and_cadence_recovered": false,
+  "independent_source_pose_holdout": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

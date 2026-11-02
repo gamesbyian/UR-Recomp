@@ -151,6 +151,50 @@ def angle_witness(scene, camera, hinge_angle):
     return report
 
 
+
+def variant_painted_angle_selections(source_row:dict,axes:dict)->dict:
+    """Do not erase distinct original player-colour pose evidence by averaging.
+
+    The *binary* silhouette retains one vote, but every source-authenticated
+    RGB variant can express a different 2D painted frame axis. No IoU oracle.
+    """
+    variants=source_row.get("source_colour_variants")
+    if not isinstance(variants,list) or not variants:
+        raise ValueError("source original colour variants absent")
+    observations=[]
+    for variant in variants:
+        if not isinstance(variant,dict) or variant.get("player") not in ("p1","p2"):
+            raise ValueError("invalid source original colour variant")
+        rgba=variant.get("rgba_sha256")
+        if (not isinstance(rgba,str) or len(rgba)!=64 or
+                any(c not in "0123456789abcdef" for c in rgba)):
+            raise ValueError("source colour variant SHA invalid")
+        measurement=variant.get("measurement")
+        if not isinstance(measurement,dict):
+            raise ValueError("source 2D variant colour measurement absent")
+        value=measurement.get("signed_axis_angle_from_image_vertical_deg")
+        if type(value) not in (int,float) or not math.isfinite(value):
+            raise ValueError("source original painted axis must be finite")
+        observations.append({
+            "source_player":variant["player"],
+            "source_rgba_sha256":rgba,
+            "original_source_2d_painted_axis_deg":value,
+            "selected_hinges_by_model_visibility":{
+                key:source_selected_angle(value,predictions)
+                for key,predictions in axes.items()},
+        })
+    observed_different={}
+    for label in axes:
+        choices=sorted({o["selected_hinges_by_model_visibility"][label]
+                        for o in observations})
+        observed_different[label]={
+            "possible_hinge_degrees":choices,
+            "distinct_hinge_count":len(choices),
+            "variant_disagreement":len(choices)>1,
+        }
+    return {"authenticated_source_rgba_variants":observations,
+            "source_variant_pose_ambiguity":observed_different}
+
 def evaluate(glb_path: Path, camera_path: Path, source_chroma_path: Path):
     import trimesh
     glb = glb_path.read_bytes()
@@ -184,6 +228,7 @@ def evaluate(glb_path: Path, camera_path: Path, source_chroma_path: Path):
         }
         selected = {name:source_selected_angle(target, candidates)
                     for name,candidates in axes.items()}
+        variants=variant_painted_angle_selections(row,axes)
         cases.append({
             "source_binary_mask_sha256":row["original_binary_mask_sha256"],
             "source_painted_2d_axis_degrees":target,
@@ -191,6 +236,7 @@ def evaluate(glb_path: Path, camera_path: Path, source_chroma_path: Path):
             "selected_painted_axis_error_degrees":{
                 k:round(abs(axes[k][v]-target),8) for k,v in selected.items()
             },
+            **variants,
         })
     def changes(key):
         return sum(r["selected_rig_hinge_degrees"][key] !=
@@ -214,6 +260,12 @@ def evaluate(glb_path: Path, camera_path: Path, source_chroma_path: Path):
             "plus_minus_y_pose_disagreement_count":sum(
                 r["selected_rig_hinge_degrees"]["camera_from_plus_world_y"] !=
                 r["selected_rig_hinge_degrees"]["camera_from_minus_world_y"] for r in cases),
+            "source_binary_shapes_with_multiple_rgb_variants":sum(
+                len(r["authenticated_source_rgba_variants"])>1 for r in cases),
+            "source_binary_shapes_with_variant_pose_disagreement_plus_y":sum(
+                r["source_variant_pose_ambiguity"]["camera_from_plus_world_y"]["variant_disagreement"]
+                for r in cases),
+            "source_variant_angles_are_not_reduced_to_one_physical_3d_joint":True,
         },
         "per_hinge":{str(angle):witnesses[angle] for angle in ANGLES},
         "per_original_binary_mask":cases,

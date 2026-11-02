@@ -37,7 +37,7 @@ def fit(data):
 
     # No fictitious transitions: window/player identities and actual guest-frame
     # adjacency are mandatory. No reordering or interpolation is performed.
-    groups, seen, last_by_track = [], set(), {}
+    groups, seen, last_by_track, current_group = [], set(), {}, {}
     for frame in frames:
         if not isinstance(frame, dict):
             raise ValueError("invalid source frame")
@@ -54,12 +54,15 @@ def fit(data):
         seen.add(identity)
         if track in last_by_track and number <= last_by_track[track]:
             raise ValueError("nonmonotonic original source chronology")
-        last_by_track[track] = number
-        previous = groups[-1][-1] if groups else None
-        if (previous is None or (previous["window"], previous["player"]) != track
-                or number != previous["guest_frame"] + 1):
+        # Window/player tracks may be interleaved in chronological source
+        # order. The globally previous frame is NOT necessarily this player's
+        # previous frame. Keep each genuine contiguous segment independently.
+        previous = last_by_track.get(track)
+        if previous is None or number != previous + 1:
             groups.append([])
-        groups[-1].append(frame)
+            current_group[track] = groups[-1]
+        current_group[track].append(frame)
+        last_by_track[track] = number
 
     sequences = []
     for seq in groups:

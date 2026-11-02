@@ -63,7 +63,7 @@ class EighthRideSourceTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)/"authentic-source-corpus.json"
-            payload = (json.dumps(document, sort_keys=True)+"\\n").encode()
+            payload = (json.dumps(document, sort_keys=True)+"\n").encode()
             path.write_bytes(payload)
             actual_sha = hashlib.sha256(payload).hexdigest()
             result = eighth.registered_source_time_evidence(path, actual_sha)
@@ -81,7 +81,7 @@ class EighthRideSourceTests(unittest.TestCase):
             ):
                 altered = dict(document)
                 altered[key] = bad
-                raw = (json.dumps(altered, sort_keys=True)+"\\n").encode()
+                raw = (json.dumps(altered, sort_keys=True)+"\n").encode()
                 path.write_bytes(raw)
                 with self.subTest(key=key), self.assertRaises(ValueError):
                     eighth.registered_source_time_evidence(

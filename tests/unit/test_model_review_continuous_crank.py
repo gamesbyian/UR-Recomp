@@ -26,7 +26,9 @@ class ContinuousCrankViewerTests(unittest.TestCase):
                      "continuous crank moved independent",
                      "720-degree crank did not return pedals exactly",
                      "drive-enabled preference lost after crank scrub",
-                     "continuous crank changed original GLB identity"):
+                     "continuous crank changed original GLB identity",
+                     "continuous crank not reset on named pose change",
+                     "continuous crank leaked across published pose return"):
             self.assertIn(frag,smoke)
         self.assertIn("direct_drive_hypothesis.mjs",
                       (ROOT/"tools/art/model-review/stage_pages.py").read_text())

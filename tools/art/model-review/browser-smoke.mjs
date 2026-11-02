@@ -260,6 +260,20 @@ try{
          issues.push('continuous crank final original state mismatch');
        if(q('source').textContent!==sourceLabel)
          issues.push('continuous crank changed original GLB identity');
+       // A new published GLB must never inherit an old pose's crank state.
+       scrub(3);
+       q('pose-pedal').click();
+       for(let attempt=0;attempt<160 && !q('source').textContent.includes('published pedal GLB');attempt++)
+         await new Promise(done=>setTimeout(done,25));
+       if(!q('source').textContent.includes('published pedal GLB') ||
+          q('crankScrub').value!=='0' || q('wheelDrive').value!=='0')
+         issues.push('continuous crank not reset on named pose change');
+       q('pose-bank').click();
+       for(let attempt=0;attempt<160 && !q('source').textContent.includes('published bank GLB');attempt++)
+         await new Promise(done=>setTimeout(done,25));
+       if(!q('source').textContent.includes('published bank GLB') ||
+          q('crankScrub').value!=='0')
+         issues.push('continuous crank leaked across published pose return');
      }
    }
    if(q('rootLean').getBoundingClientRect().height<44)

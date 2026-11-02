@@ -5,13 +5,10 @@ on:
     paths:
       - ".github/workflows/art4k-original-source-family-corpus.yml"
       - "tests/unit/test_art4k_original_source_workflow_contract.py"
-      - "tools/art/audit_original_racer_palette_indices.py"
-      - "tests/unit/test_audit_original_racer_palette_indices.py"
   workflow_dispatch:
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: art4k-original-source-${{ github.event.pull_request.number || github.ref }}
@@ -106,68 +103,6 @@ jobs:
                 "all_roles=diagnostic",
                 "no_1994_3D_camera_or_model_claim")
           PY
-
-      # One-off ART-4K source discriminator; no ROM/source PNGs uploaded here.
-      - name: Download frozen 41-PNG original-source witness
-        uses: actions/download-artifact@v4
-        with:
-          name: art4k-original-source-families-for-review
-          run-id: 41396846120
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/art4k-palette-source-41
-
-      - name: Validate original 4bpp indices and historical registry
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check pillow==12.3.0
-          git fetch --no-tags --depth=1 origin 7ba8295e966c8b2c959cfeb12ae82f8c701772e0
-          git show FETCH_HEAD:analysis/data/racer-hd-replacement-prototype.json \
-            > "$RUNNER_TEMP/art4k-exact-source-registry.json"
-          printf '%s  %s\n' \
-            '05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad' \
-            "$RUNNER_TEMP/art4k-exact-source-registry.json" | sha256sum --check --status
-          python3 - <<'PY'
-          import os, pathlib, zipfile
-          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-palette-source-41"
-          files=sorted(p for p in root.rglob("*") if p.is_file())
-          assert len(files)==42 and (root/"source-corpus.json").is_file()
-          with zipfile.ZipFile(pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-frozen-41.zip",
-                               "w",compression=zipfile.ZIP_DEFLATED) as archive:
-              for file in files:
-                  archive.write(file,file.relative_to(root).as_posix())
-          PY
-          python3 -m tools.art.audit_original_racer_palette_indices \
-            --rom reference/roms/retail/Uniracers_USA.sfc \
-            --registry "$RUNNER_TEMP/art4k-exact-source-registry.json" \
-            --source-zip "$RUNNER_TEMP/art4k-frozen-41.zip" \
-            --out "$RUNNER_TEMP/art4k-index-provenance.json"
-          python3 - <<'PY'
-          import json, os
-          from pathlib import Path
-          report=json.loads((Path(os.environ["RUNNER_TEMP"])/"art4k-index-provenance.json").read_text())
-          assert report["registered_original_representations"]==59
-          assert report["unique_source_RGBA_images"]==41
-          assert report["unique_source_binary_silhouettes"]==35
-          assert report["source_index_to_1994_physical_part_correspondence_verified"] is False
-          assert report["owner_likeness_approved"] is False
-          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
-              out.write("### Authentic source 4bpp index evidence\n\n")
-              for field in ("registered_original_representations","unique_source_RGBA_images",
-                            "unique_source_binary_silhouettes",
-                            "same_rgba_with_multiple_index_planes",
-                            "same_binary_mask_with_multiple_index_planes"):
-                  out.write(f"- {field}: {report[field]}\n")
-              out.write("\nNo source 3D part identity, actual PPU timing, or approved likeness.\n")
-          PY
-
-      - name: Upload numeric palette-index census only
-        uses: actions/upload-artifact@v4
-        with:
-          name: art4k-original-index-census-${{ github.run_id }}
-          path: ${{ runner.temp }}/art4k-index-provenance.json
-          retention-days: 7
-          if-no-files-found: error
 
       - name: Upload bounded original-pose research inputs (not ROM)
         uses: actions/upload-artifact@v4

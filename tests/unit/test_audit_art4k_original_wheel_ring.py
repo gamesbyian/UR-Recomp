@@ -22,6 +22,12 @@ class OriginalRingTests(unittest.TestCase):
         self.assertTrue(r["not_an_original_3d_axle"])
         self.assertGreaterEqual(r["max_neutral_ring_hits"],MIN_GREY_RING_HITS)
 
+    def test_source_circle_sampling_has_explicit_half_pixel_rounding(self):
+        self.assertEqual(OFFSETS[7][4],(6,4))
+        self.assertEqual(OFFSETS[7][16],(-4,6))
+        self.assertEqual(OFFSETS[7][20],(-6,4))
+        self.assertEqual(OFFSETS[7][40],(4,-6))
+
     def test_non_grey_frame_pixel_does_not_move_source_ring(self):
         a=ring_candidates(colored_rgba(cx=29))
         b=ring_candidates(colored_rgba(cx=29,red=True))

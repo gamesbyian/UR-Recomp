@@ -31,9 +31,19 @@ X_MIN, X_MAX = 14, 49
 Y_MIN, Y_MAX = 22, 34
 R_MIN, R_MAX = 6, 10
 MIN_GREY_RING_HITS = 36
+def _round_pixel(value: float) -> int:
+    """Nearest raster pixel, explicit half-away-from-zero near .5 boundaries.
+
+    Using language-default round or a different trigonometric vectorization
+    changes source evidence tie counts at 7.5-degree sample offsets.
+    """
+    sign = 1 if value >= 0 else -1
+    return sign*math.floor(abs(value)+0.5+1e-10)
+
+
 OFFSETS = {
-    radius: tuple((round(radius*math.cos(2*math.pi*i/SAMPLES)),
-                   round(radius*math.sin(2*math.pi*i/SAMPLES)))
+    radius: tuple((_round_pixel(radius*math.cos(2*math.pi*i/SAMPLES)),
+                   _round_pixel(radius*math.sin(2*math.pi*i/SAMPLES)))
                   for i in range(SAMPLES))
     for radius in range(R_MIN,R_MAX+1)
 }

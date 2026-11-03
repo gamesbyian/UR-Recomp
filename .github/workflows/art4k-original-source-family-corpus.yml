@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: art4k-original-source-${{ github.event.pull_request.number || github.ref }}
@@ -104,62 +103,6 @@ jobs:
                 "all_roles=diagnostic",
                 "no_1994_3D_camera_or_model_claim")
           PY
-
-
-      # Temporary, bounded original-tile lineage evidence collection for PR #3061. Exact nonblank-move follow-up.
-      - name: Download exact historical original sprite witness
-        uses: actions/download-artifact@v4
-        with:
-          name: art4k-original-source-families-for-review
-          run-id: 41396846120
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/art4k-tile-source-41
-
-      - name: Authenticate original 8x8 tile reuse across 59 source representations
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check pillow==12.3.0
-          git fetch --no-tags --depth=1 origin 7ba8295e966c8b2c959cfeb12ae82f8c701772e0
-          git show FETCH_HEAD:analysis/data/racer-hd-replacement-prototype.json \
-            > "$RUNNER_TEMP/art4k-exact-tile-registry.json"
-          printf '%s  %s\n' \
-            '05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad' \
-            "$RUNNER_TEMP/art4k-exact-tile-registry.json" | sha256sum --check --status
-          python3 - <<'PY'
-          import os, pathlib, zipfile
-          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-tile-source-41"
-          files=sorted(p for p in root.rglob("*") if p.is_file())
-          assert len(files)==42 and (root/"source-corpus.json").is_file()
-          with zipfile.ZipFile(pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-frozen-tile-source.zip",
-                               "w",compression=zipfile.ZIP_DEFLATED) as archive:
-              for file in files:
-                  archive.write(file,file.relative_to(root).as_posix())
-          PY
-          python3 -m tools.art.audit_original_racer_tile_lineage \
-            --rom reference/roms/retail/Uniracers_USA.sfc \
-            --registry "$RUNNER_TEMP/art4k-exact-tile-registry.json" \
-            --source-zip "$RUNNER_TEMP/art4k-frozen-tile-source.zip" \
-            --out "$RUNNER_TEMP/art4k-original-tile-lineage.json"
-          python3 - <<'PY'
-          import json, os
-          from pathlib import Path
-          receipt=json.loads((Path(os.environ["RUNNER_TEMP"])/"art4k-original-tile-lineage.json").read_text())
-          assert receipt["original_source_representations"]==59
-          assert receipt["unique_original_index_planes"]==35
-          assert receipt["source_verified_original_4bpp_png_roundtrips"] is True
-          assert receipt["original_1994_anatomical_part_correspondence_verified"] is False
-          assert receipt["original_live_PPU_capture_verified"] is False
-          print("AUTHENTIC_ORIGINAL_8X8_TILE_LINEAGE",receipt["unique_exact_8x8_tile_payloads"])
-          PY
-
-      - name: Upload only numeric source tile-lineage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: art4k-source-tile-lineage-${{ github.run_id }}
-          path: ${{ runner.temp }}/art4k-original-tile-lineage.json
-          retention-days: 7
-          if-no-files-found: error
 
       - name: Upload bounded original-pose research inputs (not ROM)
         uses: actions/upload-artifact@v4

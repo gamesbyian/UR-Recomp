@@ -35,7 +35,7 @@
       "upright": {
         "glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
         "part_id_64_sha256": "7493a9168be9d4f27584955db015d1681b5d6f74c3e6cc8424e2039d80e04670",
-        "part_id_256_sha256": "0b2b1e2979bf145d59ed6090c1db6099075c7b91b8494badd3bb905cc1b5",
+        "part_id_256_sha256": "0b2b1e2979bf08fb145d59ed6090c1db6099075c7b91b8494badd3bb905cc1b5",
         "visible_pixels_64": 267,
         "visible_pixels_256": 4358
       },

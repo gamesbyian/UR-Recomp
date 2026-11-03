@@ -1,5 +1,7 @@
 """Synthetic, ROM-free colour-independent parent ID and Z-buffer contracts."""
+import json
 import unittest
+from pathlib import Path
 from tools.art.glb_parent_part_id_raster import raster_part_ids,PART_IDS
 
 CAMERA={"schema":"UR-RACER-FIXED-ORTHOGRAPHIC-CAMERA/1",
@@ -60,6 +62,21 @@ class GLBParentIDs(unittest.TestCase):
         for order in (meshes,list(reversed(meshes))):
             with self.assertRaisesRegex(ValueError,"indistinguishable"):
                 raster_part_ids(order,CAMERA)
+
+
+    def test_frozen_five_glb_receipt_digest_fields_are_complete(self):
+        path=(Path(__file__).resolve().parents[2] /
+              "analysis/data/racer-source-index-and-model-part-evidence-20261102.json")
+        report=json.loads(path.read_text(encoding="utf-8"))
+        poses=report["experimental_model"]["poses"]
+        self.assertEqual(set(poses),{"upright","pedal","wheelie","stunt","bank"})
+        for pose,receipt in poses.items():
+            for key in ("glb_sha256","part_id_64_sha256","part_id_256_sha256"):
+                with self.subTest(pose=pose,key=key):
+                    self.assertRegex(receipt[key],r"\A[0-9a-f]{64}\Z")
+        # Actual artifact #13063969312, independently re-rastered at 256px.
+        self.assertEqual(poses["upright"]["part_id_256_sha256"],
+                         "0b2b1e2979bf08fb145d59ed6090c1db6099075c7b91b8494badd3bb905cc1b5")
 
 if __name__=="__main__":
     unittest.main()

@@ -117,6 +117,53 @@ class HpScienceArchiveAuditTests(unittest.TestCase):
         self.assertIsNone(audit._pe_timestamp_neutral_sha256(EXE))
         self.assertIsNone(audit._pe_timestamp_neutral_sha256(b"MZ" + bytes(10)))
 
+    def test_comparison_never_awards_build_reuse_even_for_identical_pe(self):
+        import copy
+        first = self.check()
+        second = copy.deepcopy(first)
+        second["run_id"] += 1
+        second["worker_first_seeds"] = [x + 1 for x in first["worker_first_seeds"]]
+        compared = audit.compare_audited_runs(first, second)
+        self.assertTrue(compared["same_full_executable_sha256"])
+        self.assertEqual(compared["new_first_worker_seeds_in_second_run"], 8)
+        self.assertFalse(compared["safe_to_skip_build_or_product_qa"])
+        self.assertEqual(compared["binary_comparison"], "exact_binary_bytes_equal")
+        self.assertEqual(compared["first_worker_seed_collisions"], [])
+        # A failed/forged, or same-run, receipt may not be compared.
+        for mutated in (
+            {"positive_receipt_verified": False},
+            {"release_gate_credit": 1},
+            {"schema": "other"},
+        ):
+            with self.subTest(mutated=mutated), self.assertRaises(audit.AuditError):
+                audit.compare_audited_runs(first, {**second, **mutated})
+        with self.assertRaisesRegex(audit.AuditError, "distinct runs"):
+            audit.compare_audited_runs(first, first)
+
+    def test_comparison_timestamp_neutral_does_not_claim_source_reuse(self):
+        import copy
+        a = self.check()
+        b = copy.deepcopy(a)
+        b["run_id"] += 1
+        a["pe_coff_timestamp_neutral_executable_sha256"] = "c" * 64
+        b["pe_coff_timestamp_neutral_executable_sha256"] = "c" * 64
+        b["executable_sha256"] = "d" * 64
+        b["source_sha"] = "e" * 40
+        b["worker_first_seeds"] = [x + 100 for x in a["worker_first_seeds"]]
+        x = audit.compare_audited_runs(a, b)
+        self.assertFalse(x["same_source_commit"])
+        self.assertTrue(x["same_pe_coff_timestamp_neutral_executable_sha256"])
+        self.assertFalse(x["same_full_executable_sha256"])
+        self.assertEqual(x["binary_comparison"], "equal_except_pe_coff_timestamp")
+        self.assertEqual(x["new_first_worker_seeds_in_second_run"], 8)
+        self.assertFalse(x["safe_to_skip_build_or_product_qa"])
+        b["pe_coff_timestamp_neutral_executable_sha256"] = None
+        self.assertEqual(audit.compare_audited_runs(a, b)["binary_comparison"],
+                         "different_or_unavailable")
+        b["worker_first_seeds"][0] = a["worker_first_seeds"][0]
+        self.assertEqual(audit.compare_audited_runs(a, b)[
+            "first_worker_seed_collisions"], a["worker_first_seeds"][:1])
+
     def test_bad_actions_event_and_identity_rejected(self):
         for mutation in ({"event": "push"}, {"head_branch": "evil"},
                          {"head_sha": "a" * 40}, {"id": RUN_ID + 1},

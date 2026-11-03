@@ -105,6 +105,19 @@ No future Defender allowlisting or ZIP reinstallation is authorized by this
 confirmation. Source hash identity and successful Task Scheduler status
 are not malware-clearance verdicts.
 
+**Read-only cross-run tool:** After [#3072](https://github.com/gamesbyian/UR-Recomp/pull/3072),
+the existing independent archive auditor accepts a second pair of
+`--compare-artifact path.zip --compare-run-json run.json`. It first
+audits **both** exact GitHub-run-bound archives, then prints the two
+receipts plus a `comparison` containing same-source, same-fixture,
+full-binary SHA-256 equality, timestamp-neutral PE equality, verified
+initial worker seed collisions/novelty, and an explicit
+`safe_to_skip_build_or_product_qa: false`. No background API requests,
+downloads, additional host workload, automated release promotion or binary
+reuse happen. The result is intended to make a source-bound **reuse shadow
+study** repeatable with controlled historical artifacts, while retaining
+all current Windows product/QA gates.
+
 ## Active first lane
 
 [HP unattended seeded 2P gameplay research](../.github/workflows/owner-hp-seeded-2p-research.yml)

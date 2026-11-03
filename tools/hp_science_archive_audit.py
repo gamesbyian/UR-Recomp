@@ -275,6 +275,8 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
         # Cross-run comparison only: the full PE digest above is authoritative.
         "pe_coff_timestamp_neutral_executable_sha256": pe_neutral,
         "worker_first_seeds": [first_seeds[i] for i in sorted(first_seeds)],
+        "stock_input_sha256": identity["stock_input_sha256"],
+        "stock_script_sha256": identity["stock_script_sha256"],
         "workers": workers, "accepted_cases": accepted,
         "real_guest_processes": receipt["real_guest_processes"],
         "research_wall_seconds": elapsed,
@@ -295,13 +297,72 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
     }
 
 
+
+def compare_audited_runs(left: dict, right: dict) -> dict:
+    """Observational comparison of two independently audited positive runs.
+
+    This NEVER grants binary reuse, executable QA, or release acceptance.
+    Call audit() on each raw ZIP and independent Actions JSON first.
+    """
+    for candidate in (left, right):
+        require(isinstance(candidate, dict)
+                and candidate.get("schema") == "ur-hp-science-archive-audit/1"
+                and candidate.get("positive_receipt_verified") is True
+                and candidate.get("release_gate_credit") == 0,
+                "comparison requires two positive audit receipts")
+    require(left["run_id"] != right["run_id"], "comparison requires distinct runs")
+    one = left["worker_first_seeds"]
+    two = right["worker_first_seeds"]
+    require(isinstance(one, list) and isinstance(two, list)
+            and all(type(x) is int for x in one + two)
+            and len(set(one)) == len(one) and len(set(two)) == len(two),
+            "invalid comparison seed populations")
+    a, b = (left.get("pe_coff_timestamp_neutral_executable_sha256"),
+            right.get("pe_coff_timestamp_neutral_executable_sha256"))
+    normalized_equal = (isinstance(a, str) and HEX64.fullmatch(a) is not None
+                        and isinstance(b, str) and HEX64.fullmatch(b) is not None
+                        and a == b)
+    exact_equal = left["executable_sha256"] == right["executable_sha256"]
+    return {
+        "schema": "ur-hp-science-cross-run-comparison/1",
+        "run_ids": [left["run_id"], right["run_id"]],
+        "same_source_commit": left["source_sha"] == right["source_sha"],
+        "same_stock_fixture_hashes": (
+            left["stock_input_sha256"], left["stock_script_sha256"]) == (
+            right["stock_input_sha256"], right["stock_script_sha256"]),
+        "same_full_executable_sha256": exact_equal,
+        "same_pe_coff_timestamp_neutral_executable_sha256": normalized_equal,
+        "distinct_first_worker_seeds_total": len(set(one + two)),
+        "first_worker_seed_collisions": sorted(set(one).intersection(two)),
+        "new_first_worker_seeds_in_second_run": len(set(two) - set(one)),
+        "binary_comparison": (
+            "exact_binary_bytes_equal" if exact_equal
+            else "equal_except_pe_coff_timestamp" if normalized_equal
+            else "different_or_unavailable"),
+        "safe_to_skip_build_or_product_qa": False,
+        "limitations": [
+            "Both inputs must already have passed independent source-bound ZIP/Actions audits.",
+            "First worker seeds are not the complete input-plan census.",
+            "Equal PE bytes with a masked four-byte timestamp do not prove source, "
+            "toolchain, portable package or release equivalence.",
+            "No Windows QA, original/native comparison, physical gamepad or release gate credit.",
+        ],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifact", required=True, type=Path)
     parser.add_argument("--run-json", required=True, type=Path,
                         help="independently retrieved GitHub Actions run API JSON")
     parser.add_argument("--out", type=Path, help="optional read-only audit JSON output")
+    parser.add_argument("--compare-artifact", type=Path,
+                        help="second ROM-free archive for independent audited comparison")
+    parser.add_argument("--compare-run-json", type=Path,
+                        help="independently fetched GitHub Actions JSON for second archive")
     args = parser.parse_args()
+    if (args.compare_artifact is None) != (args.compare_run_json is None):
+        parser.error("--compare-artifact and --compare-run-json must both be supplied")
     try:
         run = _strict_json(args.run_json.read_bytes())
         # Import the canonical stock-route authority only when running inside
@@ -311,6 +372,14 @@ def main() -> int:
         fixtures = (hashlib.sha256(stock_input.encode("utf-8")).hexdigest(),
                     hashlib.sha256(stock_script.encode("utf-8")).hexdigest())
         result = audit(args.artifact, run, fixture_sha256=fixtures)
+        if args.compare_artifact is not None:
+            other_run = _strict_json(args.compare_run_json.read_bytes())
+            other = audit(args.compare_artifact, other_run, fixture_sha256=fixtures)
+            result = {
+                "first_run": result,
+                "second_run": other,
+                "comparison": compare_audited_runs(result, other),
+            }
     except (AuditError, OSError, ValueError) as exc:
         print("HP_SCIENCE_AUDIT=refused " + str(exc), file=sys.stderr)
         return 1

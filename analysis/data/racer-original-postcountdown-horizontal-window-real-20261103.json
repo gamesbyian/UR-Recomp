@@ -1,0 +1,221 @@
+{
+  "schema": "UR-ART4K-POSTCOUNTDOWN-BOUNDED-X-REAL-ARCHIVE-RECEIPT/1",
+  "actual_authenticated_original_USA_ROM_source_workflow_run": 41585842911,
+  "source_original_artifact_id": 13208166875,
+  "source_original_artifact_zip_sha256": "d7d3e312528563bae0940ed97258024103085576c385334253458af501744ab7",
+  "source_original_mesen_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "source_original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_source_ppu_memory_and_P6_per_file_shas_checked": true,
+  "independent_analysis": "Direct local reconstruction using NumPy for candidate search only; exact original OAM high-table, SNES planar 4bpp decode, CGRAM BGR555, palette-zero transparency and pinned MesenCE 5-to-8 conversion. Zero additional emulator execution. The existing repo producer's full original-source archive reader is separately unit-tested; this numeric result is independently derived from real archived bytes.",
+  "source_frame_ticks": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605
+  ],
+  "source_2d_experiment_rows": [
+    {
+      "tick": 1601,
+      "original_oam_slot": 96,
+      "original_colourway": "blue",
+      "source_held_oam_x": 82,
+      "source_held_oam_y": 151,
+      "source_opaque_OBJ_pixels": 316,
+      "historical_x_76_to_170_exact_matches": 281,
+      "historical_best_screen_origin": [
+        82,
+        158
+      ],
+      "wide_x_0_to_192_exact_matches": 281,
+      "wide_best_screen_origin": [
+        82,
+        158
+      ],
+      "additional_matches_due_only_to_horizontal_search": 0
+    },
+    {
+      "tick": 1601,
+      "original_oam_slot": 97,
+      "original_colourway": "red",
+      "source_held_oam_x": 48,
+      "source_held_oam_y": 48,
+      "source_opaque_OBJ_pixels": 311,
+      "historical_x_76_to_170_exact_matches": 0,
+      "historical_best_screen_origin": [
+        76,
+        0
+      ],
+      "wide_x_0_to_192_exact_matches": 132,
+      "wide_best_screen_origin": [
+        34,
+        48
+      ],
+      "additional_matches_due_only_to_horizontal_search": 132
+    },
+    {
+      "tick": 1602,
+      "original_oam_slot": 96,
+      "original_colourway": "blue",
+      "source_held_oam_x": 83,
+      "source_held_oam_y": 151,
+      "source_opaque_OBJ_pixels": 316,
+      "historical_x_76_to_170_exact_matches": 277,
+      "historical_best_screen_origin": [
+        83,
+        158
+      ],
+      "wide_x_0_to_192_exact_matches": 277,
+      "wide_best_screen_origin": [
+        83,
+        158
+      ],
+      "additional_matches_due_only_to_horizontal_search": 0
+    },
+    {
+      "tick": 1602,
+      "original_oam_slot": 97,
+      "original_colourway": "red",
+      "source_held_oam_x": 48,
+      "source_held_oam_y": 48,
+      "source_opaque_OBJ_pixels": 319,
+      "historical_x_76_to_170_exact_matches": 0,
+      "historical_best_screen_origin": [
+        76,
+        0
+      ],
+      "wide_x_0_to_192_exact_matches": 134,
+      "wide_best_screen_origin": [
+        34,
+        48
+      ],
+      "additional_matches_due_only_to_horizontal_search": 134
+    },
+    {
+      "tick": 1603,
+      "original_oam_slot": 96,
+      "original_colourway": "blue",
+      "source_held_oam_x": 84,
+      "source_held_oam_y": 151,
+      "source_opaque_OBJ_pixels": 320,
+      "historical_x_76_to_170_exact_matches": 281,
+      "historical_best_screen_origin": [
+        84,
+        158
+      ],
+      "wide_x_0_to_192_exact_matches": 281,
+      "wide_best_screen_origin": [
+        84,
+        158
+      ],
+      "additional_matches_due_only_to_horizontal_search": 0
+    },
+    {
+      "tick": 1603,
+      "original_oam_slot": 97,
+      "original_colourway": "red",
+      "source_held_oam_x": 48,
+      "source_held_oam_y": 48,
+      "source_opaque_OBJ_pixels": 316,
+      "historical_x_76_to_170_exact_matches": 0,
+      "historical_best_screen_origin": [
+        76,
+        0
+      ],
+      "wide_x_0_to_192_exact_matches": 134,
+      "wide_best_screen_origin": [
+        34,
+        48
+      ],
+      "additional_matches_due_only_to_horizontal_search": 134
+    },
+    {
+      "tick": 1604,
+      "original_oam_slot": 96,
+      "original_colourway": "blue",
+      "source_held_oam_x": 85,
+      "source_held_oam_y": 151,
+      "source_opaque_OBJ_pixels": 323,
+      "historical_x_76_to_170_exact_matches": 282,
+      "historical_best_screen_origin": [
+        85,
+        158
+      ],
+      "wide_x_0_to_192_exact_matches": 282,
+      "wide_best_screen_origin": [
+        85,
+        158
+      ],
+      "additional_matches_due_only_to_horizontal_search": 0
+    },
+    {
+      "tick": 1604,
+      "original_oam_slot": 97,
+      "original_colourway": "red",
+      "source_held_oam_x": 48,
+      "source_held_oam_y": 48,
+      "source_opaque_OBJ_pixels": 314,
+      "historical_x_76_to_170_exact_matches": 0,
+      "historical_best_screen_origin": [
+        76,
+        0
+      ],
+      "wide_x_0_to_192_exact_matches": 128,
+      "wide_best_screen_origin": [
+        34,
+        48
+      ],
+      "additional_matches_due_only_to_horizontal_search": 128
+    },
+    {
+      "tick": 1605,
+      "original_oam_slot": 96,
+      "original_colourway": "blue",
+      "source_held_oam_x": 86,
+      "source_held_oam_y": 151,
+      "source_opaque_OBJ_pixels": 317,
+      "historical_x_76_to_170_exact_matches": 281,
+      "historical_best_screen_origin": [
+        86,
+        158
+      ],
+      "wide_x_0_to_192_exact_matches": 281,
+      "wide_best_screen_origin": [
+        86,
+        158
+      ],
+      "additional_matches_due_only_to_horizontal_search": 0
+    },
+    {
+      "tick": 1605,
+      "original_oam_slot": 97,
+      "original_colourway": "red",
+      "source_held_oam_x": 48,
+      "source_held_oam_y": 48,
+      "source_opaque_OBJ_pixels": 318,
+      "historical_x_76_to_170_exact_matches": 0,
+      "historical_best_screen_origin": [
+        76,
+        0
+      ],
+      "wide_x_0_to_192_exact_matches": 132,
+      "wide_best_screen_origin": [
+        34,
+        48
+      ],
+      "additional_matches_due_only_to_horizontal_search": 132
+    }
+  ],
+  "observations": [
+    "The historical 76..170 X window excludes all actual post-countdown red source sprite pixel matches; expanded X0..192 finds exactly 128..134 at screen origin X34,Y48.",
+    "Both horizontal windows find identical blue exact-match counts 277..282, at X82..86,Y158; widening X alone is not the source of its incomplete correspondence.",
+    "Measured red screen candidate X34 differs from held OAM x48; this source-derived displacement is not explained by a single held scanline225 OAM image.",
+    "The real source-wide red counts agree with the prior independent postcountdown exploratory counts of PR #3077. This fixes an existing matcher boundary condition, but does not restore full red or blue source pixel correspondence."
+  ],
+  "source_original_racer_2d_pixel_exact_correspondence_in_all_postcountdown_frames": false,
+  "source_per_scanline_sprite_ownership_verified": false,
+  "original_sprite_priority_and_overlay_occlusion_classification_verified": false,
+  "original_1994_3d_geometry_camera_bones_recovered": false,
+  "source_to_2026_experimental_GLB_pose_alignment_verified": false,
+  "owner_likeness_approved": false
+}

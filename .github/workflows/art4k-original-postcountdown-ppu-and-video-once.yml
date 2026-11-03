@@ -1,0 +1,135 @@
+name: ART4K original postcountdown 2P PPU+register+video (one-off)
+
+on:
+  pull_request:
+    paths:
+      - 'tools/art/capture_original_mesen_ppu_registers.py'
+      - 'tests/unit/test_capture_original_mesen_ppu_registers.py'
+      - '.github/workflows/art4k-original-postcountdown-ppu-and-video-once.yml'
+
+concurrency:
+  group: art4k-postcountdown-ppu-video-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  MESENCE_REVISION: a60e79feb4d6dcced5922d636f9211837d01e381
+  MESENCE_INPUT_PATCH_REV: v2
+
+jobs:
+  proof:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -qy
+          sudo apt-get install -qy libsdl2-dev xvfb unzip curl clang
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Restore pinned MesenCE binary cache
+        id: mesence-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/mesence-cache
+          key: mesence-linux-x64-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}
+
+      - name: Fetch pinned MesenCE source
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/nesdev-org/MesenCE.git "$RUNNER_TEMP/MesenCE"
+          git -C "$RUNNER_TEMP/MesenCE" checkout --detach "$MESENCE_REVISION"
+          test "$(git -C "$RUNNER_TEMP/MesenCE" rev-parse HEAD)" = "$MESENCE_REVISION"
+          git -C "$RUNNER_TEMP/MesenCE" apply --unidiff-zero             "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+
+      - name: Stage MesenCE librashader dependency
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/MesenCE"
+          curl -fL --retry 3             "https://nightly.link/SourMesen/librashader/workflows/build/Mesen/librashader-x64-ubuntu.zip"             -o "$RUNNER_TEMP/librashader.zip"
+          rm -rf "$RUNNER_TEMP/librashader"
+          mkdir -p "$RUNNER_TEMP/librashader"
+          unzip -q "$RUNNER_TEMP/librashader.zip" -d "$RUNNER_TEMP/librashader"
+          LIB="$(find "$RUNNER_TEMP/librashader" -type f -name librashader.so -print -quit)"
+          test -n "$LIB"
+          mkdir -p UI/Dependencies
+          cp "$LIB" UI/Dependencies/librashader.so
+
+      - name: Build pinned MesenCE
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C "$RUNNER_TEMP/MesenCE" -j2 -O LTO=true STATICLINK=true SYSTEM_LIBEVDEV=false
+          PUBLISH="$RUNNER_TEMP/MesenCE/bin/linux-x64/Release/linux-x64/publish"
+          test -x "$PUBLISH/Mesen"
+          rm -rf "$RUNNER_TEMP/mesence-cache"
+          mkdir -p "$RUNNER_TEMP/mesence-cache"
+          cp -a "$PUBLISH/." "$RUNNER_TEMP/mesence-cache/"
+
+
+
+      - name: Verify combined source witness and capture postcountdown frames 1601-1605
+        env:
+          MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_capture_original_mesen_ppu_registers
+          MESEN_BIN="$RUNNER_TEMP/mesence-cache/Mesen"
+          timeout 390s xvfb-run -a python3 -m tools.art.capture_original_mesen_ppu_registers \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --input-file tests/input/two-player-first-race.input \
+            --mesen-for-ai-repo third_party/src/mesen-for-ai \
+            --mesen-executable "$MESEN_BIN" \
+            --advance-frames 1600 --capture-frames 5 --include-held-framebuffer \
+            --out-dir "$RUNNER_TEMP/art4k-postcountdown-original-ppu"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          from tools.art.capture_original_mesen_ppu_raw import validate_snapshot_files
+          root=Path(os.environ["RUNNER_TEMP"])/"art4k-postcountdown-original-ppu"
+          register=json.loads((root/"selected-original-ppu-registers.json").read_text())
+          raw=json.loads((root/"original-raw-ppu-and-video-manifest.json").read_text())
+          validate_snapshot_files(root,raw)
+          expected=list(range(1601,1606))
+          assert [x["original_bridge_tick"] for x in register["actual_original_emulator_frame_states"]]==expected
+          assert [x["emulator_bridge_frame"] for x in raw["frames"]]==expected
+          assert register["original_held_RGB_p6_exported"] is True
+          assert not register["source_PPU_screen_phase_correspondence_verified"]
+          assert not register["original_racer_sprite_pixel_ownership_verified"]
+          assert raw["source_original_snes_frame_skipping_disabled_requested"] is True
+          for reg,frame in zip(register["actual_original_emulator_frame_states"],raw["frames"]):
+              fields=reg["exact_source_PPU_register_fields"]
+              assert fields["frameCount"]["original_value"]==reg["original_bridge_tick"]
+              assert all(k in fields for k in ("OamMode","OamBaseAddress","OamAddressOffset","scanline"))
+              display=frame["original_emulator_held_display_P6"]
+              assert display["source_display_width"]==256
+              assert display["source_display_height"]==239
+          print("ACTUAL_ORIGINAL_2P_POSTCOUNTDOWN_SOURCE_PPU",expected,
+                [(x["original_bridge_tick"],x["exact_source_PPU_register_fields"]["OamMode"]["original_value"])
+                 for x in register["actual_original_emulator_frame_states"]])
+          PY
+
+      - name: Upload SHA-bound original postcountdown PPU RAM and P6 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-original-postcountdown-ppu-${{ github.run_id }}
+          path: ${{ runner.temp }}/art4k-postcountdown-original-ppu/
+          retention-days: 7
+          if-no-files-found: error

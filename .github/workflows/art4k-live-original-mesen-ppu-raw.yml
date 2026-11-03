@@ -95,7 +95,7 @@ jobs:
             --input-file tests/input/two-player-first-race.input \
             --mesen-for-ai-repo third_party/src/mesen-for-ai \
             --mesen-executable "$MESEN_BIN" \
-            --advance-frames 1218 --capture-frames 2 \
+            --advance-frames 1218 --capture-frames 2 --include-held-framebuffer \
             --out-dir "$RUNNER_TEMP/art4k-actual-ppu-raw"
           python3 - <<'PY'
           import json, os
@@ -108,7 +108,16 @@ jobs:
           assert [f["emulator_bridge_frame"] for f in report["frames"]]==[1219,1220]
           assert not report["live_original_per_player_64x64_alpha_composition_verified"]
           assert not report["source_original_3d_camera_or_articulated_rig_verified"]
-          print("ACTUAL_MESENCE_SNES_RAW_PPU",1219,1220,"no_original_camera_claim")
+          assert report["original_held_framebuffer_P6_exported"] is True
+          assert report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"] is False
+          for row in report["frames"]:
+              display=row["original_emulator_held_display_P6"]
+              assert display["source_format"]=="P6"
+              assert display["source_rgb_byte_length"]==3*display["source_display_width"]*display["source_display_height"]
+              assert display["source_display_width"]>=256
+              assert display["source_display_height"]>=200
+          assert len({x["original_emulator_held_display_P6"]["sha256"] for x in report["frames"]})>=1
+          print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",1219,1220,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
 
       - name: Upload SHA-bound original emulator PPU raw RAM states

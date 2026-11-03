@@ -21,6 +21,7 @@ MESEN_REVISION="a60e79feb4d6dcced5922d636f9211837d01e381"
 REGIONS={"oam":("snesSpriteRam",544),"vram":("snesVideoRam",65536),
          "cgram":("snesCgRam",512)}
 MAX_CHUNK=1024
+MAX_DISPLAY_AXIS=1024
 
 
 def sha(raw:bytes)->str:
@@ -51,8 +52,37 @@ def read_region(mesen,memtype:str,total:int)->bytes:
     return data
 
 
-def capture_states(mesen,controller_runs,advance:int,count:int,output:Path)->dict:
-    if (type(advance) is not int or not 0<=advance<=2500 or
+def inspect_held_ppm(raw: bytes, reply: dict, requested_path: str) -> dict:
+    """Validate actual Mesen P6 screen-buffer bytes without conversion or crop."""
+    if (not isinstance(reply,dict) or reply.get("format")!="P6" or
+            reply.get("path")!=requested_path):
+        raise ValueError("original emulator video.export_frame identity differs")
+    width,height=reply.get("width"),reply.get("height")
+    if (type(width) is not int or type(height) is not int or
+            not 1<=width<=MAX_DISPLAY_AXIS or
+            not 1<=height<=MAX_DISPLAY_AXIS or
+            type(reply.get("pixels")) is not int or
+            reply["pixels"]!=width*height):
+        raise ValueError("original source screen size or pixel count invalid")
+    header=f"P6\\n{width} {height}\\n255\\n".encode("ascii")
+    if not isinstance(raw,bytes) or not raw.startswith(header) or
+            len(raw)!=len(header)+3*width*height:
+        raise ValueError("original emulator P6 RGB file/header/length invalid")
+    return {
+        "source_format":"P6",
+        "source_display_width":width,
+        "source_display_height":height,
+        "source_framebuffer_RGB_sha256":sha(raw[len(header):]),
+        "source_rgb_byte_length":3*width*height,
+        "sha256":sha(raw),
+        "byte_size":len(raw),
+    }
+
+
+def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
+                   include_held_framebuffer:bool=False)->dict:
+    if (type(include_held_framebuffer) is not bool or
+            type(advance) is not int or not 0<=advance<=2500 or
             type(count) is not int or not 1<=count<=5):
         raise ValueError("bounded original emulator capture range required")
     if output.exists() and any(output.iterdir()):
@@ -91,7 +121,24 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path)->dic
                        "byte_size":len(data),"mesen_memory_type":memtype}
         if mesen.tool("run.status").get("frame")!=expected:
             raise ValueError("emulator advanced between PPU source regions")
+        display=None
+        if include_held_framebuffer:
+            if mesen.tool("run.status").get("frame")!=expected:
+                raise ValueError("original emulator advanced before held display read")
+            filename=f"frame-{expected:06d}-held-display.ppm"
+            target=output/filename
+            if target.exists():
+                raise ValueError("original held-framebuffer output must not exist")
+            requested_path=str(target.resolve())
+            response=mesen.tool("video.export_frame",path=requested_path)
+            if not target.is_file() or target.is_symlink():
+                raise ValueError("original emulator screen buffer file not produced")
+            display=inspect_held_ppm(target.read_bytes(),response,requested_path)
+            display["relative_file"]=filename
+            if mesen.tool("run.status").get("frame")!=expected:
+                raise ValueError("original emulator advanced during held display read")
         frames.append({
+            "original_emulator_held_display_P6":display,
             "emulator_bridge_frame":expected,
             "replayed_controller_step_index":step,
             "p1_controller_mask":current[0],
@@ -104,6 +151,8 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path)->dic
             "original_USA_ROM_sha256":ROM_SHA,
             "authentic_live_emulator_bridge_step_counter_verified":True,
             "actual_raw_SNES_sprite_RAM_VRAM_CGRAM_snapshots":len(frames),
+            "original_held_framebuffer_P6_exported":include_held_framebuffer,
+            "original_PPU_RGB_to_source_OBJ_pixel_ownership_verified":False,
             "source_regional_memory_bytes_sha_bound":True,
             "live_original_per_player_64x64_alpha_composition_verified":False,
             "source_original_live_OAM_sprite_to_racer_identity_verified":False,
@@ -149,6 +198,31 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
                     record.get("mesen_memory_type")!=REGIONS[region][0] or
                     sha(raw)!=record.get("sha256")):
                 raise ValueError("actual emulator original PPU region SHA mismatch")
+        display=frame.get("original_emulator_held_display_P6")
+        if manifest.get("original_held_framebuffer_P6_exported") is True:
+            if not isinstance(display,dict):
+                raise ValueError("original held framebuffer missing")
+            name=f"frame-{n:06d}-held-display.ppm"
+            if display.get("relative_file")!=name or name in seen:
+                raise ValueError("original held framebuffer path/identity invalid")
+            seen.add(name)
+            path=directory/name
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("original emulator P6 framebuffer absent or linked")
+            response={
+                "format":display.get("source_format"),
+                "path":str(path.resolve()),
+                "width":display.get("source_display_width"),
+                "height":display.get("source_display_height"),
+                "pixels":display.get("source_display_width",0)*
+                         display.get("source_display_height",0),
+            }
+            actual=inspect_held_ppm(path.read_bytes(),response,str(path.resolve()))
+            for key,value in actual.items():
+                if display.get(key)!=value:
+                    raise ValueError("original source held P6 framebuffer SHA/metadata changed")
+        elif display is not None:
+            raise ValueError("unclaimed original held screen pixels in source receipt")
 
 
 def main():
@@ -159,6 +233,7 @@ def main():
     p.add_argument("--mesen-executable",type=Path,required=True)
     p.add_argument("--advance-frames",type=int,default=1218)
     p.add_argument("--capture-frames",type=int,default=2)
+    p.add_argument("--include-held-framebuffer",action="store_true")
     p.add_argument("--out-dir",required=True,type=Path)
     args=p.parse_args()
     if sha(args.rom.read_bytes())!=ROM_SHA:
@@ -171,14 +246,16 @@ def main():
     runs=load_controller_runs(args.input_file)
     with Mesen(repo=str(args.mesen_for_ai_repo.resolve())) as mesen:
         mesen.load_rom(str(args.rom.resolve()),timeout=180)
-        report=capture_states(mesen,runs,args.advance_frames,args.capture_frames,args.out_dir)
+        report=capture_states(mesen,runs,args.advance_frames,args.capture_frames,args.out_dir,
+                              include_held_framebuffer=args.include_held_framebuffer)
     report["original_input_replay_sha256"]=sha(args.input_file.read_bytes())
     report["actual_emulator_executable_sha256"]=sha(args.mesen_executable.read_bytes())
     validate_snapshot_files(args.out_dir,report)
     publish_text_once(args.out_dir/"manifest.json",json.dumps(report,sort_keys=True,indent=2)+"\n")
     print(json.dumps({"schema":SCHEMA,"emulator_ticks":[x["emulator_bridge_frame"] for x in report["frames"]],
                       "captured_regions":list(REGIONS),
-                      "live_source_racer_alpha_reconstructed":False},sort_keys=True))
+                      "live_source_racer_alpha_reconstructed":False,
+                      "original_held_emulator_screen_exported":args.include_held_framebuffer},sort_keys=True))
 
 
 if __name__=="__main__":

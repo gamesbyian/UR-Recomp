@@ -110,5 +110,11 @@
   "original_racer_identity_from_each_oam_slot_verified": false,
   "original_1994_3d_anatomy_or_camera_verified": false,
   "owner_likeness_approved": false,
-  "limits": "This is a modal-descriptor anomaly census, not a visibility classifier. Negative X is 9-bit signed OAM X. PPU OBSEL and final framebuffer are not observed. Recurring OAM entries with VRAM/CGRAM changes may change rendered appearance."
+  "limits": "This is a modal-descriptor anomaly census, not a visibility classifier. Negative X is 9-bit signed OAM X. PPU OBSEL and final framebuffer are not observed. Recurring OAM entries with VRAM/CGRAM changes may change rendered appearance.",
+  "real_source_OAM_producer_workflow_run": 41564535323,
+  "real_source_OAM_producer_artifact_id": 13198528214,
+  "real_source_OAM_numerical_json_sha256": "bf28344faa6f176bc70f00b0e56964dcdfff732b58ce36ae03826401c3c51ae5",
+  "real_source_OAM_numerical_json_bytes": 7101,
+  "independently_rechecked_original_high_table_two_bit_slots": true,
+  "live_original_2d_source_raster_from_OAM_confirmed": false
 }

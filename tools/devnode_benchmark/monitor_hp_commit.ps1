@@ -258,22 +258,32 @@ if ($Mode -eq 'Stop') {
         $export = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv'
         $partial = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv.partial'
         $exported = $false
+        $failureStage = 'not_attempted'
         foreach ($attempt in 1..3) {
             try {
+                $stage = 'existing_export'
                 if (Test-Path -LiteralPath $export) {
                     throw 'refuse_existing_export'
                 }
+                $stage = 'copy'
                 Copy-Item -LiteralPath $csv -Destination $partial -ErrorAction Stop
-                $header = [IO.File]::ReadLines($partial) | Select-Object -First 1
+                $stage = 'header'
+                # ReadLines returns a lazy enumerator. Select-Object -First 1
+                # can stop enumeration before closing its file handle, then
+                # Move-Item fails on Windows. ReadAllLines eagerly closes the
+                # small, bounded numeric CSV before rename.
+                $header = ([IO.File]::ReadAllLines($partial))[0]
                 if ($header -ne 'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors,cpu_pct_window_avg') {
                     throw 'unrecognized_monitor_csv'
                 }
+                $stage = 'publish'
                 Move-Item -LiteralPath $partial -Destination $export -ErrorAction Stop
                 $exported = $true
                 break
             } catch {
-                # No untrusted error strings, local paths or personal process
-                # details in logs; the exact original remains on the HP.
+                # Only a stage chosen from this source-owned enum is printed.
+                # Never publish exception detail, a private path or process.
+                $failureStage = $stage
                 Remove-Item -LiteralPath $partial -ErrorAction SilentlyContinue
                 if ($attempt -lt 3) {
                     Start-Sleep -Milliseconds 250
@@ -283,7 +293,7 @@ if ($Mode -eq 'Stop') {
         if ($exported) {
             Write-Output ('HP_MONITOR_EXPORT=passed attempts={0}' -f $attempt)
         } else {
-            Write-Output 'HP_MONITOR_EXPORT=unavailable_original_retained'
+            Write-Output ('HP_MONITOR_EXPORT=unavailable_original_retained stage={0} attempts=3' -f $failureStage)
         }
     } else {
         Write-Output 'HP_MONITOR_EXPORT=unavailable_missing_runner_temp'

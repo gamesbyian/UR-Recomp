@@ -166,6 +166,13 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         hp = (ROOT / ".github/workflows/owner-hp-main-windows-smoke.yml").read_text(encoding="utf-8")
         self.assertIn("HP_MONITOR_EXPORT=passed attempts=", script)
         self.assertIn("HP_MONITOR_EXPORT=unavailable_original_retained", script)
+        self.assertIn("HP_MONITOR_EXPORT=unavailable_original_retained stage={0} attempts=3", script)
+        self.assertIn("([IO.File]::ReadAllLines($partial))[0]", script)
+        self.assertNotIn("[IO.File]::ReadLines($partial) | Select-Object -First 1", script)
+        for stage in ("existing_export", "copy", "header", "publish"):
+            self.assertIn(f"$stage = '{stage}'", script)
+        self.assertIn("$failureStage = $stage", script)
+        self.assertNotIn("Write-Output $_", script)
         self.assertIn("HP_MONITOR_EXPORT=unavailable_missing_runner_temp", script)
         self.assertIn("foreach ($attempt in 1..3)", script)
         self.assertIn("Start-Sleep -Milliseconds 250", script)

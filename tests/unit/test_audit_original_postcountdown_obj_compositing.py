@@ -104,7 +104,7 @@ class OriginalCompositingTests(unittest.TestCase):
             "analysis/data/racer-original-postcountdown-obj-flip-red-overlay-20261103.json")
         receipt=json.loads(path.read_text())
         self.assertEqual(receipt["original_emulator_ticks"],list(TICKS))
-        self.assertEqual(receipt["source_observed_SNESCGRAM_red_component_addition_5bit"],13)
+        self.assertEqual(receipt["observed_RGB_red_component_5bit_addend"],13)
         rows=receipt["original_2D_source_correspondence_per_frame"]
         self.assertEqual([(x["original_emulator_tick"],x["original_OAM_slot"]) for x in rows],
                          [(tick,slot) for tick in TICKS for slot in (96,97)])

@@ -490,7 +490,7 @@ def main() -> int:
     print("HP_SEEDED_2P_RESEARCH=" + result["status"] +
           f" workers={result['workers']} elapsed_s={result['elapsed_seconds']}"
           f" seeds={result['accepted_cases']} windows_processes={result['real_guest_processes']}"
-          f" variant_parallelism={result['variant_parallelism']}"
+          f" variant_parallelism={result.get('variant_parallelism', 'unknown')}"
           f" issue_count={len(result['issues'])}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:

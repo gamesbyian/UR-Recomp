@@ -22,6 +22,7 @@ from tools import qa02_native_2p_seeded_endurance as native
 
 SCHEMA = "ur-hp-windows-seeded-2p-research/1"
 WORKERS = 8  # Research-only trial; each worker owns four guest processes per case.
+VARIANT_PARALLELISM = 1  # Rolled back: 2-way HP canary timed out 16/16 cases; default safe serial.
 WALL_SECONDS = 360  # Scheduled/default manual horizon is unchanged.
 MANUAL_WALL_SECONDS = 600  # Deliberate workflow_dispatch trial only.
 MINUTES = 15
@@ -320,7 +321,8 @@ def collect(rows: list[dict], source: str, run_id: int, elapsed: float,
     result = {
         "schema": SCHEMA, "source_sha": source, "run_id": run_id,
         "status": "completed_positive" if valid else "research_failure",
-        "workers": WORKERS, "wall_seconds_budget": wall_seconds,
+        "workers": WORKERS, "variant_parallelism": VARIANT_PARALLELISM,
+        "wall_seconds_budget": wall_seconds,
         "elapsed_seconds": round(elapsed, 3),
         "attempted_cases": attempts, "accepted_cases": successes,
         "real_guest_processes": native_processes,
@@ -357,6 +359,7 @@ def run(exe: Path, rom: Path, env: dict[str, str], receipt: Path) -> dict:
                 exe=exe, rom=rom, source_sha=sha, shard=i % 2,
                 base_seed=seeds[i], minutes=MINUTES, max_cases=MAX_CASES,
                 timeout=PROCESS_TIMEOUT, wall_seconds=wall_seconds,
+                parallel_variants=VARIANT_PARALLELISM,
                 work=private / f"worker-{i}")
             return {"worker": i, "report": row}
         except Exception as exc:
@@ -487,6 +490,7 @@ def main() -> int:
     print("HP_SEEDED_2P_RESEARCH=" + result["status"] +
           f" workers={result['workers']} elapsed_s={result['elapsed_seconds']}"
           f" seeds={result['accepted_cases']} windows_processes={result['real_guest_processes']}"
+          f" variant_parallelism={result.get('variant_parallelism', 'unknown')}"
           f" issue_count={len(result['issues'])}")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:

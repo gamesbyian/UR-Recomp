@@ -29,6 +29,13 @@ FROZEN_FIT_SOURCE = (1952, "blue")
 FROZEN_WITHHELD_SOURCE = (1601, "red")
 STATUS_CONNECTED = "historical_fit_tile_connected_review_only"
 STATUS_DISJOINT = "historical_tile_disjoint_review_only"
+# Independent SHA-authenticated five-archive audit #3094 freezes these exact
+# original content-independent source identities, not merely group sizes.
+FROZEN_DISJOINT_KEYS = frozenset({
+    (1648, "blue"), (1671, "blue"), (1700, "blue"), (2011, "blue"),
+    (1671, "red"), (1700, "red"), (1731, "red"), (2283, "blue"),
+    (2445, "blue"),
+})
 RACERS = ("blue", "red")
 
 
@@ -189,8 +196,10 @@ def select_live40(masks: dict[tuple[int, str], bytes],
     if normalized != expected or len(normalized) != 11:
         raise ValueError("source original 8x8 tile components do not reproduce old classification")
     if (sorted(g["size"] for g in groups if g["source_content_connection"] == STATUS_DISJOINT)
-            != [1, 4, 4]):
-        raise ValueError("historical-source-independent 4/4/1 groups altered")
+            != [1, 4, 4] or
+            {tuple(k) for g in groups if g["source_content_connection"] == STATUS_DISJOINT
+             for k in g["members"]} != FROZEN_DISJOINT_KEYS):
+        raise ValueError("historical-source-independent 4/4/1 identities altered")
     sample = {(r["tick"], racer): r[racer]
               for r in registration["samples"] for racer in RACERS}
     rows = []

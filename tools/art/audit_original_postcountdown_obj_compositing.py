@@ -169,7 +169,7 @@ def analyse(frames: list[dict]) -> dict:
         "source_Mesen_revision":MESEN_REVISION,
         "source_artifact_zip_sha256":SOURCE_ZIP_SHA,
         "original_emulator_ticks":list(TICKS),
-        "source_observed_SNESCGRAM_red_component_addition_5bit":BONUS_RED_5BIT,
+        "observed_RGB_red_component_5bit_addend":BONUS_RED_5BIT,
         "original_2D_source_correspondence_per_frame":rows,
         "source_completed_P6_and_held_PPU_arrays_SHA_verified":True,
         "source_pixel_rgb_correspondence_with_two_observed_transform_states_verified":

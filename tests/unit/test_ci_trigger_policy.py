@@ -1079,12 +1079,53 @@ class CiTriggerPolicyTest(unittest.TestCase):
                 entry = f'      - "{path}"'
                 self.assertIn(entry, hosted)
                 self.assertIn(entry, hp)
-        # HP already watches all scripted input, but hosted PR routing is
-        # deliberately narrow so the required audio script is named.
+        # HP and hosted now watch the *actual* packaged QA scripts, not
+        # 129 unrelated research input fixtures.
         self.assertIn('      - "tests/input/audio-modern-restart.script"', hosted)
-        self.assertIn('      - "tests/input/**"', hp)
+        self.assertIn('      - "tests/input/audio-modern-restart.script"', hp)
+        self.assertIn('      - "tests/input/ui-race-result-route.script"', hp)
+        self.assertNotIn('      - "tests/input/**"', hp)
         self.assertNotIn('      - "tools/**"', hosted)
         self.assertNotIn('      - "tools/**"', hp)
+
+    def test_hp_product_build_triggers_match_actual_package_and_optional_qa_inputs(self):
+        hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
+        windows = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        tournament = (Path("tests/native/run_windows_local_tournament_package_acceptance.sh")
+                      .read_text())
+        toolchain = (Path("tools/toolchain-entries/snesrecomp.json").read_text())
+        # Changes to any native shipping product code invalidate HP Windows.
+        for path in ("native/product/**", "native/presentation/**",
+                     "native/title/**"):
+            self.assertIn(f'      - "{path}"', hp)
+        for forbidden in ('      - "native/**"', '      - "tests/input/**"',
+                          '      - "tests/native/**"', '      - "tools/patches/**"'):
+            self.assertNotIn(forbidden, hp)
+        # These real named scripts are consumed by the ordinary shipping
+        # package acceptance, including its installed Windows guest binary.
+        for path in ("tests/input/audio-modern-restart.script",
+                     "tests/input/ui-race-result-route.script"):
+            self.assertIn(path, windows)
+            self.assertIn(f'      - "{path}"', hp)
+        # Preserve optional tournament inputs and helper, rather than
+        # weakening its explicit main-only opt-in acceptance contract.
+        self.assertIn("tests/native/run_windows_local_tournament_package_acceptance.sh", windows)
+        for path in ("tests/input/two-player-joined-records-acceptance.input",
+                     "tests/input/two-player-records-acceptance.script"):
+            self.assertIn(path, tournament)
+            self.assertIn(f'      - "{path}"', hp)
+        for path in ("tests/native/run_windows_local_tournament_package_acceptance.sh",
+                     "tests/native/assert_absent_grep.sh",
+                     "tests/native/run_modern_root_acceptance.sh"):
+            self.assertIn(f'      - "{path}"', hp)
+        # The snesrecomp toolchain owns the Windows framework patch stack;
+        # experimental patches for other emulators must not reserve HP.
+        self.assertIn('      - "tools/patches/snesrecomp-*.patch"', hp)
+        self.assertIn("tools/patches/snesrecomp-input-file.patch", toolchain)
+        self.assertIn("tools/patches/snesrecomp-ws-shadow-split-band.patch", toolchain)
+        for unrelated in ("tools/patches/snes9x-", "tools/patches/snes2asm-",
+                          "tools/patches/wla-", "tools/patches/bsnes-"):
+            self.assertNotIn(f'      - "{unrelated}', hp)
 
     def test_windows_reusable_callers_do_not_cancel_one_another(self):
         # Only the QA wrapper now triggers when smoke YAML changes on a

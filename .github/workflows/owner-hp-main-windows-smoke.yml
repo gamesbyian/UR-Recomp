@@ -12,9 +12,23 @@ on:
       - main
     paths:
       - ".github/workflows/windows-native-smoke.yml"
-      - "native/**"
-      - "tests/input/**"
-      - "tests/native/**"
+      # Shipping native sources; native/reference is diagnostic-only and
+      # never linked into the canonical Windows product.
+      - "native/product/**"
+      - "native/presentation/**"
+      - "native/title/**"
+      # Exact stock input scripts executed by the normal Windows package.
+      - "tests/input/audio-modern-restart.script"
+      - "tests/input/ui-race-result-route.script"
+      # Optional same-run packaged tournament acceptance uses these exact
+      # inputs; retain them even though that journey is manual-only.
+      - "tests/input/two-player-joined-records-acceptance.input"
+      - "tests/input/two-player-records-acceptance.script"
+      # These are the only native-test shell consumers on the canonical
+      # Windows route (including the optional tournament's shared helper).
+      - "tests/native/run_windows_local_tournament_package_acceptance.sh"
+      - "tests/native/assert_absent_grep.sh"
+      - "tests/native/run_modern_root_acceptance.sh"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
       # Actual executable/packaging/QA consumers in the shared Windows smoke.
@@ -52,7 +66,9 @@ on:
       # not invalidate the shipped executable or warrant a full HP build.
       - "tools/devnode_benchmark/prepare_python.ps1"
       - "tools/devnode_benchmark/prepare_rust.ps1"
-      - "tools/patches/**"
+      # The Windows toolchain manifests consume the snesrecomp patch stack.
+      # snes9x/bsnes/snes2asm/WLA experimental patches are not game inputs.
+      - "tools/patches/snesrecomp-*.patch"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"
       - "third_party/cargo/snesrecomp-analyzer/**"

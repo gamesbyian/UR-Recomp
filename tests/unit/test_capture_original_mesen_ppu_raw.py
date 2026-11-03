@@ -6,7 +6,7 @@ import unittest
 
 from tools.art.capture_original_mesen_ppu_raw import (
     REGIONS, SCHEMA, capture_states, read_region, valid_bytes,
-    validate_snapshot_files,
+    validate_snapshot_files, inspect_held_ppm,
 )
 
 
@@ -100,6 +100,104 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             capture_states(FakeMesen(),[],0,1,root)
             with self.assertRaisesRegex(ValueError,"fresh empty"):
                 capture_states(FakeMesen(),[],0,1,root)
+
+    def test_original_emulator_held_rgb_screen_is_p6_and_source_sha_bound(self):
+        class FakeVideoMesen(FakeMesen):
+            def tool(self,kind,**arguments):
+                if kind=="video.export_frame":
+                    path=Path(arguments["path"])
+                    path.write_bytes(b"P6\n3 2\n255\n"+bytes([self.frame,20,40])*6)
+                    return {"path":str(path),"format":"P6","width":3,"height":2,
+                            "pixels":6}
+                return super().tool(kind,**arguments)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            report=capture_states(FakeVideoMesen(),[],0,2,root,include_held_framebuffer=True)
+            self.assertTrue(report["original_held_framebuffer_P6_exported"])
+            self.assertFalse(report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"])
+            self.assertFalse(report["source_held_display_RGB_reproducibility_across_runs_independently_verified"])
+            self.assertEqual(len(report["frames"]),2)
+            for frame in report["frames"]:
+                meta=frame["original_emulator_held_display_P6"]
+                self.assertEqual((meta["source_display_width"],meta["source_display_height"]),(3,2))
+                self.assertEqual(meta["source_rgb_byte_length"],18)
+                self.assertRegex(meta["source_framebuffer_RGB_sha256"],r"\A[0-9a-f]{64}\Z")
+            validate_snapshot_files(root,report)
+            self.assertNotEqual(
+                report["frames"][0]["original_emulator_held_display_P6"]["source_framebuffer_RGB_sha256"],
+                report["frames"][1]["original_emulator_held_display_P6"]["source_framebuffer_RGB_sha256"])
+            old=report["frames"][0]["original_emulator_held_display_P6"]
+            target=root/old["relative_file"]
+            corrupt=bytearray(target.read_bytes())
+            corrupt[-1]^=1
+            target.write_bytes(corrupt)
+            with self.assertRaisesRegex(ValueError,"SHA/metadata"):
+                validate_snapshot_files(root,report)
+
+    def test_false_video_size_format_and_rgb_length_fail_closed(self):
+        raw=b"P6\n2 2\n255\n"+bytes(12)
+        ack={"path":"/private/source.ppm","format":"P6","width":2,"height":2,"pixels":4}
+        self.assertEqual(inspect_held_ppm(raw,ack,"/private/source.ppm")["source_rgb_byte_length"],12)
+        for label,change in (("path",{"path":"/other.ppm"}),
+                             ("format",{"format":"P3"}),
+                             ("size",{"width":1025,"pixels":2050}),
+                             ("count",{"pixels":3}),
+                             ("bool",{"width":True,"pixels":2})):
+            with self.subTest(label=label),self.assertRaisesRegex(ValueError,"source|video"):
+                inspect_held_ppm(raw,{**ack,**change},"/private/source.ppm")
+        for bad in (raw[:-1],b"P3"+raw[2:],b"P6\n3 2\n255\n"+bytes(12)):
+            with self.assertRaisesRegex(ValueError,"P6"):
+                inspect_held_ppm(bad,ack,"/private/source.ppm")
+
+    def test_original_emulator_must_remain_paused_during_screen_export(self):
+        class MovingVideo(FakeMesen):
+            def tool(self,kind,**arguments):
+                if kind=="video.export_frame":
+                    path=Path(arguments["path"])
+                    path.write_bytes(b"P6\n2 1\n255\n"+bytes(6))
+                    self.frame+=1
+                    return {"path":str(path),"format":"P6","width":2,"height":1,"pixels":2}
+                return super().tool(kind,**arguments)
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(ValueError,"advanced during held display"):
+                capture_states(MovingVideo(),[],0,1,Path(d),include_held_framebuffer=True)
+
+    def test_historic_held_P6_receipt_remains_source_only(self):
+        import json
+        root=Path(__file__).resolve().parents[2]
+        report=json.loads((root/"analysis/data/racer-original-mesen-held-framebuffer-20261103.json").read_text())
+        self.assertEqual(report["real_original_emulator_workflow_run"],41565384581)
+        self.assertEqual(report["source_original_emulated_bridge_ticks"],[1219,1220])
+        self.assertEqual(report["source_screen_P6_dimensions"],{"width":256,"height":239})
+        self.assertEqual(report["original_held_display_changed_pixel_count_between_consecutive_ticks"],0)
+        self.assertEqual(report["original_raw_PPU_memory_changed_bytes_between_ticks"],
+                         {"oam":0,"vram":38,"cgram":17})
+        self.assertFalse(report["original_scanout_content_contemporaneous_with_held_PPU_RAM_verified"])
+        self.assertFalse(report["original_racer_OBJ_pixel_ownership_reconstructed"])
+        self.assertFalse(report["separate_independent_repeatability_cross_check"]["source_held_screen_is_validated_repeatable_PPU_raster"])
+
+    def test_held_display_claim_escalation_and_malformed_dimensions_rejected(self):
+        class FakeVideo(FakeMesen):
+            def tool(self,kind,**arguments):
+                if kind=="video.export_frame":
+                    path=Path(arguments["path"])
+                    path.write_bytes(b"P6\n2 1\n255\n"+bytes(6))
+                    return {"path":str(path),"format":"P6","width":2,"height":1,"pixels":2}
+                return super().tool(kind,**arguments)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            report=capture_states(FakeVideo(),[],0,1,root,include_held_framebuffer=True)
+            for field in ("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified",
+                          "source_held_display_to_current_PPU_scanout_phase_independently_aligned",
+                          "source_held_display_RGB_reproducibility_across_runs_independently_verified"):
+                changed=copy.deepcopy(report)
+                changed[field]=True
+                with self.subTest(field=field),self.assertRaisesRegex(ValueError,"provenance"):
+                    validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(report)
+            changed["frames"][0]["original_emulator_held_display_P6"]["source_display_width"]="2"
+            with self.assertRaisesRegex(ValueError,"dimensions"):
+                validate_snapshot_files(root,changed)
 
 
 if __name__=="__main__":

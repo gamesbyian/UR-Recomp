@@ -77,5 +77,51 @@ class OriginalPpuSerializedTests(unittest.TestCase):
                 select_source_state(invalid)
 
 
+    def test_one_pass_original_PPU_register_RAM_and_screen_capture(self):
+        import json
+        class VideoMesen(FakeMesen):
+            def tool(self,name,**args):
+                if name=="video.export_frame":
+                    path=Path(args["path"])
+                    path.write_bytes(b"P6\n2 1\n255\n"+bytes([self.frame,12,34])*2)
+                    return {"path":str(path),"format":"P6",
+                            "width":2,"height":1,"pixels":2}
+                return super().tool(name,**args)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            evidence=capture_registers(VideoMesen(),[],3,2,root,include_held_framebuffer=True)
+            self.assertTrue(evidence["original_held_RGB_p6_exported"])
+            self.assertEqual(evidence["original_raw_PPU_and_video_source_manifest_file"],
+                             "original-raw-ppu-and-video-manifest.json")
+            self.assertEqual([row["tick"] for row in evidence["original_emulator_frame_sources"]],[4,5])
+            self.assertNotEqual(evidence["original_emulator_frame_sources"][0]["source_original_P6_sha"],
+                                evidence["original_emulator_frame_sources"][1]["source_original_P6_sha"])
+            manifest=json.loads((root/"original-raw-ppu-and-video-manifest.json").read_text())
+            self.assertTrue(manifest["original_held_framebuffer_P6_exported"])
+            self.assertFalse(evidence["source_PPU_screen_phase_correspondence_verified"])
+            self.assertFalse(evidence["original_racer_sprite_pixel_ownership_verified"])
+            from tools.art.capture_original_mesen_ppu_raw import validate_snapshot_files
+            validate_snapshot_files(root,manifest)
+
+
+    def test_actual_postcountdown_five_frame_source_is_bounded_not_3D_accepted(self):
+        import json
+        root=Path(__file__).resolve().parents[2]
+        evidence=json.loads((root/"analysis/data/racer-original-two-player-postcountdown-actual-frames-20261103.json").read_text())
+        self.assertEqual(evidence["authentic_source_run"],41585842911)
+        self.assertEqual([r["tick"] for r in evidence["original_frames"]],list(range(1601,1606)))
+        self.assertEqual([r["original_held_blue_OBJ_x"] for r in evidence["original_frames"]],[82,83,84,85,86])
+        self.assertEqual([r["original_held_red_OBJ_x"] for r in evidence["original_frames"]],[48]*5)
+        self.assertEqual([r["changed_bytes_from_prior_held_frame"]["oam"]
+                          for r in evidence["original_frames"][1:]],[1]*4)
+        self.assertEqual([r["changed_bytes_from_prior_held_frame"]["source_completed_screen_RGB_pixels"]
+                          for r in evidence["original_frames"][1:]],[19903,19858,20613,20821])
+        self.assertTrue(evidence["source_OAM_VRAM_CGRAM_bytes_SHA_checked"])
+        self.assertFalse(evidence["source_per_scanline_obj_ownership_captured"])
+        self.assertFalse(evidence["source_original_1994_3d_rig_camera_or_skeleton_recovered"])
+        self.assertFalse(evidence["source_to_experimental_2026_glb_pose_alignment_verified"])
+        self.assertFalse(evidence["owner_likeness_approved"])
+
+
 if __name__=="__main__":
     unittest.main()

@@ -10,7 +10,9 @@ import json
 import os
 from pathlib import Path
 
-from tools.art.capture_original_mesen_ppu_raw import capture_states, sha, ROM_SHA, MESEN_REVISION
+from tools.art.capture_original_mesen_ppu_raw import (
+    capture_states, validate_snapshot_files, sha, ROM_SHA, MESEN_REVISION,
+)
 from tools.capture_racer_composition_mesen import load_mesen_class
 from tools.controller_input import load_controller_runs
 from tools.art.no_replace_report import publish_text_once
@@ -67,13 +69,27 @@ class RegisterSpy:
         return reply
 
 
-def capture_registers(mesen,runs,advance,count,out):
+def capture_registers(mesen,runs,advance,count,out,*,include_held_framebuffer=False):
     spy=RegisterSpy(mesen,advance)
     evidence=capture_states(spy,runs,advance,count,out,
+                            include_held_framebuffer=include_held_framebuffer,
                             source_snes_frame_skipping_disabled_requested=True)
+    validate_snapshot_files(out,evidence)
     if [x["original_bridge_tick"] for x in spy.holds]!=[x["emulator_bridge_frame"] for x in evidence["frames"]]:
         raise ValueError("source serialized PPU register frame mismatch")
+    if include_held_framebuffer:
+        publish_text_once(out/"original-raw-ppu-and-video-manifest.json",
+                          json.dumps(evidence,sort_keys=True,indent=2)+"\n")
     return {"schema":SCHEMA,"original_mesen_revision":MESEN_REVISION,
+            "original_raw_PPU_and_video_source_manifest_file":
+                "original-raw-ppu-and-video-manifest.json" if include_held_framebuffer else None,
+            "original_held_RGB_p6_exported":include_held_framebuffer,
+            "original_emulator_frame_sources": [
+                {"tick":row["emulator_bridge_frame"],
+                 "original_PPU_memory_SHA":{k:v["sha256"] for k,v in row["raw_original_snes_ppu_memory"].items()},
+                 "source_original_P6_sha":row["original_emulator_held_display_P6"]["sha256"]
+                 if include_held_framebuffer else None}
+                for row in evidence["frames"]],
             "original_USA_ROM_sha256":ROM_SHA,
             "source_frame_skipping_disabled_requested":True,
             "actual_original_emulator_frame_states":spy.holds,
@@ -90,6 +106,7 @@ def main():
         p.add_argument("--"+arg,required=True,type=Path)
     p.add_argument("--advance-frames",type=int,default=1218)
     p.add_argument("--capture-frames",type=int,default=2)
+    p.add_argument("--include-held-framebuffer",action="store_true")
     args=p.parse_args()
     if sha(args.rom.read_bytes())!=ROM_SHA or not args.mesen_executable.is_file():
         p.error("source ROM/binary not verified")
@@ -100,7 +117,8 @@ def main():
     with cls(repo=str(args.mesen_for_ai_repo.resolve())) as mesen:
         mesen.load_rom(str(args.rom.resolve()),timeout=180)
         record=capture_registers(mesen,load_controller_runs(args.input_file),
-                                 args.advance_frames,args.capture_frames,args.out_dir)
+                                 args.advance_frames,args.capture_frames,args.out_dir,
+                                 include_held_framebuffer=args.include_held_framebuffer)
     record["original_input_replay_sha256"]=sha(args.input_file.read_bytes())
     record["emulator_executable_sha256"]=sha(args.mesen_executable.read_bytes())
     publish_text_once(args.out_dir/"selected-original-ppu-registers.json",

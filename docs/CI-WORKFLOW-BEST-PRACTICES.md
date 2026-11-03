@@ -277,6 +277,25 @@ the reusable QA route. The earlier measured 10.63 direct-job runner-minutes
 is a historical opportunity, not yet a measured saving.
 
 
+**2026-11-03 HP product source filter refinement:** The owner HP current-source
+product build previously watched every file under tests/input (129 fixtures),
+tests/native (230 test files), native/reference and every framework-research
+patch. The actual canonical Windows producer uses native/product,
+native/presentation and native/title, two stock replay scripts, and the
+two additional test inputs plus native-test helper required by its
+optional tournament acceptance. It stages only the snesrecomp patch
+family for Windows; other emulator patch families have different
+research consumers. The HP main-push trigger now watches those exact
+inputs rather than reserving a physical Windows build on unrelated
+native-test/input/emulator-patch edits. The generic tooling/unit and
+specialist research workflows continue to validate their own changed
+files; no Windows product test itself was removed. This is a source
+dependency audit and trigger correction, not a claim of measured
+post-rollout saved runner time. Verify subsequent eligible gameplay
+merges still dispatch full hosted and HP Windows acceptance, and that
+irrelevant fixture-only merges do not; revert the narrowing if an
+actual consumed dependency is discovered outside the named paths.
+
 Use this pattern instead:
 
 - if the workflow already has a `pull_request` trigger, include its own YAML path there so workflow edits are exercised before merge;

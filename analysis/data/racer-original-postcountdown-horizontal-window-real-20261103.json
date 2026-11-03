@@ -210,12 +210,148 @@
     "The historical 76..170 X window excludes all actual post-countdown red source sprite pixel matches; expanded X0..192 finds exactly 128..134 at screen origin X34,Y48.",
     "Both horizontal windows find identical blue exact-match counts 277..282, at X82..86,Y158; widening X alone is not the source of its incomplete correspondence.",
     "Measured red screen candidate X34 differs from held OAM x48; this source-derived displacement is not explained by a single held scanline225 OAM image.",
-    "The real source-wide red counts agree with the prior independent postcountdown exploratory counts of PR #3077. This fixes an existing matcher boundary condition, but does not restore full red or blue source pixel correspondence."
+    "The real source-wide red counts agree with the prior independent postcountdown exploratory counts of PR #3077. This fixes an existing matcher boundary condition, but does not restore full red or blue source pixel correspondence.",
+    "Colour-selective controls show red 6..12 chromatic exact matches despite 59..66 source chromatic pixels, whereas blue matches essentially all chromatic source pixels (71/71,73/74,61/61,69/69,62/62). Prior red 128..134 opaque matches are too gray-dominated to assert authentic red screen-pixel ownership."
   ],
   "source_original_racer_2d_pixel_exact_correspondence_in_all_postcountdown_frames": false,
   "source_per_scanline_sprite_ownership_verified": false,
   "original_sprite_priority_and_overlay_occlusion_classification_verified": false,
   "original_1994_3d_geometry_camera_bones_recovered": false,
   "source_to_2026_experimental_GLB_pose_alignment_verified": false,
-  "owner_likeness_approved": false
+  "owner_likeness_approved": false,
+  "independent_colour_discriminators": {
+    "method": "For each decoded original source 2D OBJ, count exact source RGB matches at wide-window best placement after restricting to opaque pixels with max(R,G,B)-min(R,G,B) >=35. For held red OBJ the chromatic pixels are strongly red (R>G+30 and R>B+30). Screen matches are still raw colour coincidences, not per-pixel ownership.",
+    "colour_source_pixel_counts": {
+      "blue": [
+        71,
+        74,
+        61,
+        69,
+        62
+      ],
+      "red": [
+        59,
+        65,
+        66,
+        65,
+        61
+      ]
+    },
+    "colour_exact_matches_at_wide_best": {
+      "blue": [
+        71,
+        73,
+        61,
+        69,
+        62
+      ],
+      "red": [
+        6,
+        8,
+        12,
+        8,
+        6
+      ]
+    },
+    "source_opposite_viewport_best_opaque_RGB_matches": {
+      "blue": [
+        104,
+        104,
+        105,
+        105,
+        109
+      ],
+      "red": [
+        110,
+        106,
+        116,
+        114,
+        115
+      ]
+    },
+    "interpretation": [
+      "Blue discriminative chromatic pixels match 71/71,73/74,61/61,69/69,62/62 across source ticks 1601..1605; held blue 2D pose is strongly frame-synchronous, without claiming finished PPU ownership.",
+      "Red same-viewport opaque RGB matches 128..134 versus wrong-viewport 106..116, and only 6..12 of 59..66 strongly red pixels match. Thus much of the red score comes from common greys and does not justify a validated original source 2D pose-to-screen identity.",
+      "Red chromatic-only exhaustive bounded screen-origin search over X0..192, upper Y0..110 yields at most 10,10,12,10,10 matches respectively, never a high-confidence recovery of the source red raster.",
+      "The original screen visibly contains overlay and course graphics intersecting the candidate 64x64 areas; whether any particular source red pixel was occluded versus not fetched is unknown without actual PPU draw/fetch timing."
+    ]
+  },
+  "cross_frame_local_registration": {
+    "method": "For each source sprite at bridge ticks 1601..1605, compare its exact opaque RGB against each five authentic completed screen P6 frames, optimizing only within ±8 pixels around same-frame source-derived screen position (blue X82..86/Y158; red X34/Y48). Uses true original CGRAM and source raster at each producer tick. This is a bounded heuristic temporal discriminator, not full per-scanline pixel ownership.",
+    "blue_matches_by_source_tick_and_screen_tick": [
+      [
+        281,
+        238,
+        166,
+        169,
+        164
+      ],
+      [
+        242,
+        277,
+        169,
+        173,
+        169
+      ],
+      [
+        165,
+        166,
+        281,
+        240,
+        246
+      ],
+      [
+        169,
+        171,
+        242,
+        282,
+        249
+      ],
+      [
+        165,
+        168,
+        243,
+        244,
+        281
+      ]
+    ],
+    "red_matches_by_source_tick_and_screen_tick": [
+      [
+        132,
+        133,
+        135,
+        127,
+        135
+      ],
+      [
+        133,
+        134,
+        131,
+        133,
+        132
+      ],
+      [
+        135,
+        131,
+        134,
+        129,
+        130
+      ],
+      [
+        127,
+        133,
+        129,
+        128,
+        130
+      ],
+      [
+        135,
+        132,
+        130,
+        130,
+        132
+      ]
+    ],
+    "finding": "Blue uniquely favors each corresponding source tick. Red varies by a few gray-dominated matches across adjacent screens; no uniform ±1-frame red registration makes the held red raster fully match."
+  }
 }

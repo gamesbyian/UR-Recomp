@@ -84,11 +84,11 @@ def _pe_timestamp_neutral_sha256(data: bytes) -> str | None:
     if len(data) < 0x40 or data[:2] != b"MZ":
         return None
     pe = int.from_bytes(data[0x3c:0x40], "little")
-    if pe < 0x40 or pe + 12 > len(data) or data[pe:pe + 4] != b"PE\\0\\0":
+    if pe < 0x40 or pe + 12 > len(data) or data[pe:pe + 4] != b"PE\0\0":
         return None
     digest = hashlib.sha256()
     digest.update(data[:pe + 8])
-    digest.update(b"\\0" * 4)
+    digest.update(b"\0" * 4)
     digest.update(data[pe + 12:])
     return digest.hexdigest()
 

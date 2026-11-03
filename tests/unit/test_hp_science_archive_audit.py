@@ -103,7 +103,7 @@ class HpScienceArchiveAuditTests(unittest.TestCase):
         pe = bytearray(256)
         pe[:2] = b"MZ"
         pe[0x3c:0x40] = (0x80).to_bytes(4, "little")
-        pe[0x80:0x84] = b"PE\\0\\0"
+        pe[0x80:0x84] = b"PE\0\0"
         pe[0x88:0x8c] = (1700000000).to_bytes(4, "little")
         first = bytes(pe)
         pe[0x88:0x8c] = (1700000001).to_bytes(4, "little")

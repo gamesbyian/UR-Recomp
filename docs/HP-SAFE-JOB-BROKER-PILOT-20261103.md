@@ -46,6 +46,13 @@ python $script --repo $repo --state-dir $state host-status
 python $script --repo $repo --state-dir $state status --job-id <returned-job-id>
 ```
 
+## Planned GHA resource coordination
+
+A separate, opt-in reservation protocol and exact deployment prerequisites
+are documented in `docs/HP-RUNNER-COORDINATION-PROTOCOL-20261103.md`.
+That local prototype is not installed into GHA runner hooks and is not yet
+connected to `run-once`. It provides no live resource arbitration today.
+
 ## Guardrails and unresolved work
 
 Do not execute this against arbitrary PR heads or the trusted-main GHA runner

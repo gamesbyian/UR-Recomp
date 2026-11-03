@@ -78,6 +78,8 @@ def select_one_component(keys: list[tuple[int, str]],
         raise ValueError("invalid source-content component identities")
     for key in keys:
         visible_mask(masks[key], key[1])
+        if not any(masks[key]):
+            raise ValueError("empty original source sprite cannot anchor review")
     ordered = sorted(keys, key=key_order)
     pairs = {(a, b): mask_iou(visible_mask(masks[a], a[1]),
                             visible_mask(masks[b], b[1]))

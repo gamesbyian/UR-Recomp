@@ -1,0 +1,77 @@
+{
+  "schema": "UR-ART4K-SOURCE-INDEX-VS-EXPERIMENTAL-GLB-ID-WITNESSES/1",
+  "original_source": {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_registry_sha256": "05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad",
+    "original_corpus_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+    "original_palette_census_report_sha256": "b6f59fc5f9030b44ca9345bf308e5df83901f8b9534a6f33b215fa39f8e3079e",
+    "authenticated_new_topology_workflow_run": 41550316932,
+    "authenticated_new_topology_artifact_id": 13190178539,
+    "authenticated_topology_json_sha256": "7c00ccbb1e7e2ebc50fa51702d22305dd77c070a5ae03e7f8ef8edfe05febdc3",
+    "verified_representations": 59,
+    "unique_RGBA_images": 41,
+    "unique_binary_silhouettes": 35,
+    "unique_index_planes": 35,
+    "same_silhouette_palette_variant_groups": 6,
+    "source_index_7": {
+      "observed_in_unique_planes": 35,
+      "opaque_pixels": 486,
+      "four_connected_components_across_planes": 285,
+      "inside_2d_wheel_disc_pixels": 353
+    },
+    "source_ring_candidate_ties_max_per_index_plane": 3,
+    "original_ROM_reauthenticated_in_workflow": true,
+    "source_part_correspondence_verified": false
+  },
+  "experimental_model": {
+    "artifact_run": 41259476190,
+    "artifact_id": 13063969312,
+    "tested_camera": "analysis/data/racer-inverse-side-provisional-1205.json",
+    "camera_status": "provisional",
+    "emitted_scene_part_ID_masks_from_real_GLBS": true,
+    "xor_with_existing_independent_rasterizer_at_256x256_for_all_five_local_tests": 0,
+    "receipt_provenance": "local hash-bound real five-GLB execution; source-to-GLB pose correspondence not established",
+    "poses": {
+      "upright": {
+        "glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+        "part_id_64_sha256": "7493a9168be9d4f27584955db015d1681b5d6f74c3e6cc8424e2039d80e04670",
+        "part_id_256_sha256": "0b2b1e2979bf08fb145d59ed6090c1db6099075c7b91b8494badd3bb905cc1b5",
+        "visible_pixels_64": 267,
+        "visible_pixels_256": 4358
+      },
+      "pedal": {
+        "glb_sha256": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+        "part_id_64_sha256": "e8a85d0c81a80d66a4c17217bcde724565ea74839c1a4cd808db439be0359e91",
+        "part_id_256_sha256": "9585286837d2eeedad991fbbdb2eda7eee2316377d16f464789078fe73995268",
+        "visible_pixels_64": 269,
+        "visible_pixels_256": 4316
+      },
+      "wheelie": {
+        "glb_sha256": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+        "part_id_64_sha256": "3d22530fc212b84ca9ad7e154686e44f81bd316636384a021d7e49d209ec6a07",
+        "part_id_256_sha256": "6cce715902c542f06f5e842c8db91e96802092431ae00795283b93d2b3d077e1",
+        "visible_pixels_64": 274,
+        "visible_pixels_256": 4346
+      },
+      "stunt": {
+        "glb_sha256": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+        "part_id_64_sha256": "d1f3894911a01ef4d8aeb8b36fa408c1a176ecb666f3e5529796f2337d86d0c9",
+        "part_id_256_sha256": "630c81e07671b714253c7f1fdba57360312e74793918616481dc61736724b040",
+        "visible_pixels_64": 261,
+        "visible_pixels_256": 4301
+      },
+      "bank": {
+        "glb_sha256": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59",
+        "part_id_64_sha256": "f5ea969a37c4a86879316cb58eb2e2c82427dc7a0ffaec382162829b6d021ada",
+        "part_id_256_sha256": "6847e0373faf992d14032efb1e9664367d1ccaac41248b8592ffda68b468601b",
+        "visible_pixels_64": 269,
+        "visible_pixels_256": 4371
+      }
+    }
+  },
+  "independent_original_OAM_OBJ_part_witness_verified": false,
+  "source_sprite_to_experimental_3D_pose_pairs_verified": false,
+  "original_1994_3D_camera_recovered": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

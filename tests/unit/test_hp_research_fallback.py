@@ -21,10 +21,13 @@ NAME = {
 }
 
 
-def row(name=h.RESEARCH, *, minutes=120, sha=SHA, status="completed", conclusion="success", event="schedule"):
+def row(name=h.RESEARCH, *, minutes=120, sha=SHA, status="completed", conclusion="success",
+        event="schedule", updated_minutes=None):
+    updated_minutes = minutes if updated_minutes is None else updated_minutes
     return {"id": 1001, "name": NAME[name], "path": ".github/workflows/"+name,
             "head_branch": "main", "head_sha": sha, "status": status,
             "conclusion": conclusion, "created_at": (NOW-timedelta(minutes=minutes)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "updated_at": (NOW-timedelta(minutes=updated_minutes)).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "event": event}
 
 
@@ -98,6 +101,23 @@ class HPFallbackTests(unittest.TestCase):
         req, calls = mock_api(research=[row(minutes=30, event="workflow_dispatch")])
         self.assertEqual(h.execute(NOW, req, dry_run=False)["decision"], "skip:recent-research")
         self.assertEqual(len(calls), 4)
+
+    def test_delayed_completed_schedule_is_recent_by_completion_update(self):
+        # Exact failure shape: queued for nearly five hours, completed 4m ago.
+        req, calls = mock_api(research=[row(minutes=300, updated_minutes=4)])
+        result = h.execute(NOW, req, dry_run=False)
+        self.assertEqual(result["decision"], "skip:recent-research")
+        self.assertFalse(result["dispatched"])
+        self.assertFalse(any("/dispatches" in args[-1] for args in calls))
+
+    def test_cooldown_checks_last_completion_even_if_created_earlier(self):
+        # Actions can complete out of creation order; no recent completion
+        # may be overlooked just because a newer-created run finished first.
+        older_late = row(minutes=300, updated_minutes=4)
+        newer_early = {**row(minutes=120, updated_minutes=120), "id": 2002}
+        req, _ = mock_api(research=[older_late, newer_early])
+        self.assertEqual(h.execute(NOW, req, dry_run=False)["decision"],
+                         "skip:recent-research")
 
     def test_pending_schedule_blocks_even_if_stale(self):
         req, _ = mock_api(research=[row(minutes=300, status="queued", conclusion=None)])
@@ -190,7 +210,9 @@ class HPFallbackTests(unittest.TestCase):
 
     def test_malformed_or_foreign_rows_fail_closed(self):
         for change in ({"head_branch": "feature"}, {"path": "other.yml"},
-                       {"created_at": "invalid"}, {"status": "surprise"},
+                       {"created_at": "invalid"}, {"updated_at": "invalid"},
+                       {"updated_at": "2026-11-01T02:00:00Z"},
+                       {"status": "surprise"},
                        {"name": "other"}):
             with self.subTest(change=change):
                 self.assertRaises(ValueError, h.classify, [{**row(), **change}], expected_workflow=h.RESEARCH)
@@ -329,22 +351,17 @@ class HPFallbackTests(unittest.TestCase):
             self.assertNotIn("no confirmed dispatch", report["detail"])
             self.assertNotIn("SECRET_SENTINEL", stdout.getvalue())
 
-    def test_local_patch_is_exact_old_and_new_reviewed_source(self):
-        import hashlib
+    def test_historical_owner_patch_is_documented_without_pinning_new_source(self):
+        # The old/new SHA-256 identities describe an *already installed*
+        # owner-HP patch, not the current improved repository source.
         root = Path(__file__).parents[2]
-        source = (root / "tools" / "ci" / "hp_research_fallback.py").read_bytes()
-        old = b"COOLDOWN = timedelta(minutes=90)"
-        new = (b"COOLDOWN = timedelta(minutes=60)  # Measured HP idle-capacity "
-               b"pilot; still main-build priority.")
-        old_digest = "5756e12471d2241300915abbb06eabaef087007eb54f58e2ee557aa96e91d64b"
-        new_digest = "316cfe232d476fed5af65d0e72543b16f506150c638b428edb31df7a89db629d"
-        self.assertEqual(source.count(new), 1)
-        self.assertEqual(hashlib.sha256(source).hexdigest(), new_digest)
-        reconstructed = source.replace(new, old)
-        self.assertEqual(hashlib.sha256(reconstructed).hexdigest(), old_digest)
-        self.assertEqual(reconstructed.replace(old, new), source)
+        source = (root / "tools" / "ci" / "hp_research_fallback.py").read_text()
         guide = (root / "docs" / "HP-RESEARCH-FALLBACK.md").read_text()
-        for marker in (old_digest, new_digest, "Trojan:Script/Wacatac.B!ml",
+        self.assertIn("COOLDOWN = timedelta(minutes=60)", source)
+        self.assertIn('row.get("updated_at")', source)
+        for marker in ("5756e12471d2241300915abbb06eabaef087007eb54f58e2ee557aa96e91d64b",
+                       "316cfe232d476fed5af65d0e72543b16f506150c638b428edb31df7a89db629d",
+                       "Trojan:Script/Wacatac.B!ml",
                        "[IO.File]::Replace($temporary, $path, $backup)",
                        "Do **not** restore"):
             self.assertIn(marker, guide)

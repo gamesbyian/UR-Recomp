@@ -91,7 +91,7 @@ class SourceOriginalObjMatchTests(unittest.TestCase):
             best_opaque_matches(obj,b"",upper=True)
 
     def test_strict_source_ppm_header(self):
-        valid=b"P6\\n256 239\\n255\\n"+bytes(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        valid=b"P6\n256 239\n255\n"+bytes(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
         self.assertEqual(len(p6_screen(valid)),256*239*3)
         for bad in (valid[:-1],b"P3"+valid[2:],valid+b"x"):
             with self.assertRaisesRegex(ValueError,"256x239"):

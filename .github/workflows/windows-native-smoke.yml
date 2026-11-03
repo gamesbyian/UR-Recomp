@@ -203,7 +203,9 @@ jobs:
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_python.ps1
 
       - name: Verify owner HP ClangCL toolset
-        if: inputs.run_on_hp
+        # Product CI proves the separate compiler preflight. The source-built
+        # science executable's real Ninja/ClangCL compile remains mandatory.
+        if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}
         shell: cmd
         run: |
           cmake -S tools/devnode_benchmark -B "%RUNNER_TEMP%\ur-clangcl-preflight" -G "Visual Studio 17 2022" -A x64 -T ClangCL
@@ -223,8 +225,17 @@ jobs:
 
       - name: Verify canonical ROM and package contracts
         run: |
+          set -euo pipefail
+          # Source/ROM integrity cannot be reused; check every science job.
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
+          # The four standalone package-policy unit modules already run in
+          # ready-PR CI and normal Windows product smoke. Actual science
+          # still builds/verifies a fresh portable ZIP and boots its extract.
+          if [[ "${{ inputs.hp_seeded_2p }}" != "true" || "${{ inputs.run_tournament_acceptance }}" == "true" ]]; then
+            python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
+          else
+            echo "HP_SCIENCE_PACKAGE_UNIT_REUSE=product_ci_kept_source_rom_and_zip_verified_here"
+          fi
 
       - name: Restore pinned toolchain text directly from Git object bytes
         if: inputs.run_on_hp
@@ -729,11 +740,12 @@ jobs:
           echo "WINDOWS_PACKAGE_USER_DATA_ANCHOR ok"
 
       - name: HP bounded independent offscreen package boot fanout
-        # The same three source-owned acceptance scripts run concurrently on
-        # trusted HP main and on scoped hosted Windows PR/main routes.
-        # All three join before real HWND/controller/audio and user-data
-        # refresh checks. Failures fail the job, not a silent serial retry.
-        if: ${{ inputs.run_on_hp }}
+        # Product/explicit tournament acceptance retains the three isolated
+        # packaged-app boots. Science already requires one clean extracted
+        # package boot and 32 separate real native game launches from eight
+        # workers; repeated packaged boot isolation belongs to product CI.
+        # The full original helper remains unchanged, fail-closed on product.
+        if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}
         run: bash tools/ci/hp_windows_isolated_boot_fanout.sh
 
       - name: Hosted bounded independent offscreen package boot fanout

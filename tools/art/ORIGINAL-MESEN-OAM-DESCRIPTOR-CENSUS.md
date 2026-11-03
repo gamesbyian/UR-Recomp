@@ -14,6 +14,8 @@ Five slots depart from that mode in *both* live states: **0, 96, 97, 98, 99**. S
 
 Across the adjacent ticks, **zero** OAM bytes changed while **38** VRAM and **17** CGRAM bytes changed. Thus further source animation evaluation must inspect VRAM/CGRAM and the actual simultaneously captured framebuffer, not count changed OAM positions as an animation proxy. This source-only anomaly inventory does **not** validate original 1994 motion cadence, canonical 3D rig pivots, wheel material, physical contact or owner likeness.
 
+The one-off authenticated source execution [run #41564535323](https://github.com/gamesbyian/UR-Recomp/actions/runs/41564535323) passed both synthetic tests and real original emulator archive decoding. Its [bounded numerical output #13198528214](https://github.com/gamesbyian/UR-Recomp/actions/runs/41564535323/artifacts/13198528214) contains 7,101 bytes, SHA-256 `bf28344faa6f176bc70f00b0e56964dcdfff732b58ce36ae03826401c3c51ae5`. Independently decoding the original actual 544-byte OAM with the SNES high-table word positions reproduced all five outlier slot IDs, source 9-bit X, palette/priority/flip/size-selection flags, 123 modal records, and all 0/38/17 raw memory byte differences. It did not establish framebuffer visibility or OBJSEL pixel dimensions.
+
 The source ZIP expires around November 10, 2026. The complete bounded numerical observation, exact raw-source SHA, decoded slot numbers and explicit negative claims remain in `analysis/data/racer-original-mesen-oam-structure-20261103.json`. The test suite covers 2-bit high table packing, signed X, palette/priority/hflip/vflip, tile MSB and fail-closed archived-source SHA checks:
 
 ```sh

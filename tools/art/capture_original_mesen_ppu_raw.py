@@ -65,8 +65,8 @@ def inspect_held_ppm(raw: bytes, reply: dict, requested_path: str) -> dict:
             reply["pixels"]!=width*height):
         raise ValueError("original source screen size or pixel count invalid")
     header=f"P6\n{width} {height}\n255\n".encode("ascii")
-    if not isinstance(raw,bytes) or not raw.startswith(header) or
-            len(raw)!=len(header)+3*width*height:
+    if (not isinstance(raw,bytes) or not raw.startswith(header) or
+            len(raw)!=len(header)+3*width*height):
         raise ValueError("original emulator P6 RGB file/header/length invalid")
     return {
         "source_format":"P6",

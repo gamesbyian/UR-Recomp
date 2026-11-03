@@ -5,7 +5,16 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tools.devnode_benchmark import prepare_native_analyzer_cache as cache
+# A legacy tools/devnode_benchmark.py module shadows the sibling directory,
+# so resolve the standalone cache helper by its exact repository-owned path.
+import importlib.util
+
+CACHE_SOURCE = Path(__file__).parents[2] / "tools/devnode_benchmark/prepare_native_analyzer_cache.py"
+CACHE_SPEC = importlib.util.spec_from_file_location("ur_hp_native_analyzer_cache", CACHE_SOURCE)
+if CACHE_SPEC is None or CACHE_SPEC.loader is None:
+    raise RuntimeError("native analyzer cache helper cannot be resolved")
+cache = importlib.util.module_from_spec(CACHE_SPEC)
+CACHE_SPEC.loader.exec_module(cache)
 
 TRUSTED = {
     "GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",

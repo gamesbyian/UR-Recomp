@@ -121,10 +121,10 @@ jobs:
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check pillow==12.3.0
           git fetch --no-tags --depth=1 origin 7ba8295e966c8b2c959cfeb12ae82f8c701772e0
-          git show FETCH_HEAD:analysis/data/racer-hd-replacement-prototype.json \\
+          git show FETCH_HEAD:analysis/data/racer-hd-replacement-prototype.json \
             > "$RUNNER_TEMP/art4k-exact-tile-registry.json"
-          printf '%s  %s\\n' \\
-            '05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad' \\
+          printf '%s  %s\n' \
+            '05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad' \
             "$RUNNER_TEMP/art4k-exact-tile-registry.json" | sha256sum --check --status
           python3 - <<'PY'
           import os, pathlib, zipfile
@@ -136,10 +136,10 @@ jobs:
               for file in files:
                   archive.write(file,file.relative_to(root).as_posix())
           PY
-          python3 -m tools.art.audit_original_racer_tile_lineage \\
-            --rom reference/roms/retail/Uniracers_USA.sfc \\
-            --registry "$RUNNER_TEMP/art4k-exact-tile-registry.json" \\
-            --source-zip "$RUNNER_TEMP/art4k-frozen-tile-source.zip" \\
+          python3 -m tools.art.audit_original_racer_tile_lineage \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --registry "$RUNNER_TEMP/art4k-exact-tile-registry.json" \
+            --source-zip "$RUNNER_TEMP/art4k-frozen-tile-source.zip" \
             --out "$RUNNER_TEMP/art4k-original-tile-lineage.json"
           python3 - <<'PY'
           import json, os

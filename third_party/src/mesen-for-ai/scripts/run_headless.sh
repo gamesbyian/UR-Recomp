@@ -34,6 +34,14 @@ SESSION_WORK="$SESSION_ROOT/work"
 MESEN_SOURCE_DIR="$(dirname "$MESEN_BIN")"
 MESEN_PORTABLE_DIR="$SESSION_ROOT/mesen-portable"
 MESEN_CONFIG_HOME="$MESEN_PORTABLE_DIR"
+# Original source RGB capture requires an explicit no-skip setting.
+# Default zero preserves all existing Mesen clients and non-visual runs.
+MESEN_SNES_DISABLE_FRAME_SKIPPING="${MESEN_SNES_DISABLE_FRAME_SKIPPING:-0}"
+case "$MESEN_SNES_DISABLE_FRAME_SKIPPING" in
+  0) SNES_DISABLE_FRAME_SKIPPING_JSON=false ;;
+  1) SNES_DISABLE_FRAME_SKIPPING_JSON=true ;;
+  *) echo "MESEN_SNES_DISABLE_FRAME_SKIPPING must be 0 or 1" >&2; exit 64 ;;
+esac
 
 mkdir -p "$SESSION_HOME" "$SESSION_WORK" "$MESEN_PORTABLE_DIR"
 if ! cp -al "$MESEN_SOURCE_DIR/." "$MESEN_PORTABLE_DIR/"; then
@@ -67,6 +75,7 @@ cat > "$MESEN_CONFIG_HOME/settings.json" <<JSON
     }
   },
   "Snes": {
+    "DisableFrameSkipping": $SNES_DISABLE_FRAME_SKIPPING_JSON,
     "RamPowerOnState": 1,
     "EnableRandomPowerOnState": false,
     "Port1": { "Type": 1 },

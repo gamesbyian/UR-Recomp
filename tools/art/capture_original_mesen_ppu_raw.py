@@ -80,8 +80,10 @@ def inspect_held_ppm(raw: bytes, reply: dict, requested_path: str) -> dict:
 
 
 def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
-                   include_held_framebuffer:bool=False)->dict:
-    if (type(include_held_framebuffer) is not bool or
+                   include_held_framebuffer:bool=False,
+                   source_snes_frame_skipping_disabled_requested:bool=False)->dict:
+    if (type(source_snes_frame_skipping_disabled_requested) is not bool or
+            type(include_held_framebuffer) is not bool or
             type(advance) is not int or not 0<=advance<=2500 or
             type(count) is not int or not 1<=count<=5):
         raise ValueError("bounded original emulator capture range required")
@@ -152,6 +154,7 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "authentic_live_emulator_bridge_step_counter_verified":True,
             "actual_raw_SNES_sprite_RAM_VRAM_CGRAM_snapshots":len(frames),
             "original_held_framebuffer_P6_exported":include_held_framebuffer,
+            "source_original_snes_frame_skipping_disabled_requested":source_snes_frame_skipping_disabled_requested,
             "original_PPU_RGB_to_source_OBJ_pixel_ownership_verified":False,
             "source_held_display_to_current_PPU_scanout_phase_independently_aligned":False,
             "source_held_display_RGB_reproducibility_across_runs_independently_verified":False,
@@ -170,6 +173,7 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
             manifest.get("original_USA_ROM_sha256")!=ROM_SHA or
             manifest.get("emulator_source_revision")!=MESEN_REVISION or
             manifest.get("source_original_live_OAM_sprite_to_racer_identity_verified") is not False or
+            type(manifest.get("source_original_snes_frame_skipping_disabled_requested",False)) is not bool or
             manifest.get("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified",False) is not False or
             manifest.get("source_held_display_to_current_PPU_scanout_phase_independently_aligned",False) is not False or
             manifest.get("source_held_display_RGB_reproducibility_across_runs_independently_verified",False) is not False):
@@ -249,12 +253,14 @@ def main():
         p.error("real emulator executable not present")
     import os
     os.environ["MESEN_BIN"]=str(args.mesen_executable.resolve())
+    disable_request=os.environ.get("MESEN_SNES_DISABLE_FRAME_SKIPPING","0") == "1"
     Mesen=load_mesen_class(args.mesen_for_ai_repo.resolve())
     runs=load_controller_runs(args.input_file)
     with Mesen(repo=str(args.mesen_for_ai_repo.resolve())) as mesen:
         mesen.load_rom(str(args.rom.resolve()),timeout=180)
         report=capture_states(mesen,runs,args.advance_frames,args.capture_frames,args.out_dir,
-                              include_held_framebuffer=args.include_held_framebuffer)
+                              include_held_framebuffer=args.include_held_framebuffer,
+                              source_snes_frame_skipping_disabled_requested=disable_request)
     report["original_input_replay_sha256"]=sha(args.input_file.read_bytes())
     report["actual_emulator_executable_sha256"]=sha(args.mesen_executable.read_bytes())
     validate_snapshot_files(args.out_dir,report)
@@ -262,7 +268,8 @@ def main():
     print(json.dumps({"schema":SCHEMA,"emulator_ticks":[x["emulator_bridge_frame"] for x in report["frames"]],
                       "captured_regions":list(REGIONS),
                       "live_source_racer_alpha_reconstructed":False,
-                      "original_held_emulator_screen_exported":args.include_held_framebuffer},sort_keys=True))
+                      "original_held_emulator_screen_exported":args.include_held_framebuffer,
+                      "source_no_frameskip_explicitly_requested":disable_request},sort_keys=True))
 
 
 if __name__=="__main__":

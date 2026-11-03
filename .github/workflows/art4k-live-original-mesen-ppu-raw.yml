@@ -86,6 +86,8 @@ jobs:
 
 
       - name: Capture consecutive original MesenCE PPU RAM frames
+        env:
+          MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
         shell: bash
         run: |
           set -euo pipefail
@@ -109,6 +111,7 @@ jobs:
           assert not report["live_original_per_player_64x64_alpha_composition_verified"]
           assert not report["source_original_3d_camera_or_articulated_rig_verified"]
           assert report["original_held_framebuffer_P6_exported"] is True
+          assert report["source_original_snes_frame_skipping_disabled_requested"] is True
           assert report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"] is False
           for row in report["frames"]:
               display=row["original_emulator_held_display_P6"]
@@ -118,6 +121,12 @@ jobs:
               assert display["source_display_height"]>=200
           assert report["source_held_display_to_current_PPU_scanout_phase_independently_aligned"] is False
           assert report["source_held_display_RGB_reproducibility_across_runs_independently_verified"] is False
+          original_screen_shas={f["emulator_bridge_frame"]:f["original_emulator_held_display_P6"]["sha256"]
+                                for f in report["frames"]}
+          assert original_screen_shas=={
+              1219:"3db1ead6ef6da21dc5c085f38dbd3fe8c17e00d4eba7900ce1074beaa9358cfb",
+              1220:"2fdc8dbdcf55d971209b09922802f81d0c31ad75af90ba0c5cf3137d9e1150d3",
+          }, original_screen_shas
           print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",1219,1220,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
 

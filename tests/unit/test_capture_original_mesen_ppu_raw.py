@@ -112,8 +112,10 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                 return super().tool(kind,**arguments)
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)
-            report=capture_states(FakeVideoMesen(),[],0,2,root,include_held_framebuffer=True)
+            report=capture_states(FakeVideoMesen(),[],0,2,root,include_held_framebuffer=True,
+                                  source_snes_frame_skipping_disabled_requested=True)
             self.assertTrue(report["original_held_framebuffer_P6_exported"])
+            self.assertTrue(report["source_original_snes_frame_skipping_disabled_requested"])
             self.assertFalse(report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"])
             self.assertFalse(report["source_held_display_RGB_reproducibility_across_runs_independently_verified"])
             self.assertEqual(len(report["frames"]),2)
@@ -198,6 +200,25 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             changed["frames"][0]["original_emulator_held_display_P6"]["source_display_width"]="2"
             with self.assertRaisesRegex(ValueError,"dimensions"):
                 validate_snapshot_files(root,changed)
+
+    def test_original_snes_runner_no_skip_opt_in_and_sanitized_settings(self):
+        text=(Path(__file__).resolve().parents[2] /
+              "third_party/src/mesen-for-ai/scripts/run_headless.sh").read_text()
+        self.assertIn("MESEN_SNES_DISABLE_FRAME_SKIPPING",text)
+        self.assertIn('0) SNES_DISABLE_FRAME_SKIPPING_JSON=false ;;',text)
+        self.assertIn('1) SNES_DISABLE_FRAME_SKIPPING_JSON=true ;;',text)
+        self.assertIn('MESEN_SNES_DISABLE_FRAME_SKIPPING must be 0 or 1',text)
+        self.assertIn('"DisableFrameSkipping": $SNES_DISABLE_FRAME_SKIPPING_JSON',text)
+
+    def test_legacy_raw_capture_no_skip_default_and_invalid_flag(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            record=capture_states(FakeMesen(),[],0,1,root)
+            self.assertFalse(record["source_original_snes_frame_skipping_disabled_requested"])
+            self.assertFalse(record["original_held_framebuffer_P6_exported"])
+            record["source_original_snes_frame_skipping_disabled_requested"]="yes"
+            with self.assertRaisesRegex(ValueError,"provenance"):
+                validate_snapshot_files(root,record)
 
 
 if __name__=="__main__":

@@ -266,7 +266,7 @@ class HpScheduledResearchTests(unittest.TestCase):
 
     def test_eight_workers_fit_unique_bounded_source_owned_namespaces(self):
         self.assertEqual(hp.WORKERS, 8)
-        self.assertEqual(hp.VARIANT_PARALLELISM, 2)
+        self.assertEqual(hp.VARIANT_PARALLELISM, 1)
         source = (ROOT / "tools/hp_seeded_2p_research.py").read_text()
         self.assertIn("ThreadPoolExecutor(max_workers=WORKERS)", source)
         self.assertIn("seeds = tuple(base + (i // 2) * 25_000_000 for i in range(WORKERS))", source)
@@ -302,8 +302,8 @@ class HpScheduledResearchTests(unittest.TestCase):
             self.assertEqual(result["accepted_cases"], hp.WORKERS)
             self.assertEqual(result["real_guest_processes"], 4 * hp.WORKERS)
             self.assertEqual(len(calls), hp.WORKERS)
-            self.assertEqual(variant_modes, [2] * hp.WORKERS)
-            self.assertEqual(result["variant_parallelism"], 2)
+            self.assertEqual(variant_modes, [1] * hp.WORKERS)
+            self.assertEqual(result["variant_parallelism"], 1)
             self.assertEqual(len(set((shard, base) for shard, base in calls)), hp.WORKERS)
             self.assertEqual(json.loads(receipt.read_text())["receipt_sha256"], result["receipt_sha256"])
             self.assertEqual(result["release_gate_credit"], 0)

@@ -329,5 +329,6 @@
   "original_1994_3d_camera_rig_pose_names_recovered": false,
   "source_to_2026_experimental_glb_pose_mapping_verified": false,
   "owner_likeness_approved": false,
-  "shipping_art_approved": false
+  "shipping_art_approved": false,
+  "original_source_zip_sha256": "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f"
 }

@@ -99,7 +99,7 @@ class LiveTwentyUnpairedPoseTests(unittest.TestCase):
         old = json.loads((base / "racer-original-live20-five-real-glb-unpaired-diagnostic-20261103.json").read_text())
         screen = json.loads((base / "racer-original-live20-screen-orientation-sensitivity-20261103.json").read_text())
         self.assertEqual(screen["original_source_zip_sha256"],
-                         old["authentic_original_source_zip_sha256"])
+                         old["source_original_zip_sha256"])
         self.assertTrue(screen["original_red_display_reflection_independently_source_screen_authenticated"])
         self.assertFalse(screen["selection_between_held_and_screen_view_by_model_IoU"])
         self.assertEqual(len(screen["red_screen_oriented_fixed_camera_unpaired_20_rows"]),20)

@@ -8,10 +8,10 @@
       "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
       "source_path": "third_party/src/mesen-for-ai",
       "archive_path": null,
-      "source_sha256": "93c7c5e3c32c4662d5e691558aab5422c82f435ef7122fb142fe29c9dd71633b",
+      "source_sha256": "4d7e5778417ce1f5c4d344227a2e70da311f257e2cc59b80b7a7d23880cd9527",
       "license_spdx": "GPL-3.0-only",
       "license_path": "third_party/src/mesen-for-ai/LICENSE",
-      "notes": "Pruned repository-owned source subset from the pinned upstream revision. AGENTS.md and optional agent-skill metadata are excluded; bridge, daemon, scripts, tests, patches, packaging metadata, README and license are retained.",
+      "notes": "Pruned repository-owned source subset from the pinned upstream revision. AGENTS.md and optional agent-skill metadata are excluded; bridge, daemon, scripts, tests, patches, packaging metadata, README and license are retained. The retained bridge now exposes read-only MesenCE SNES sprite RAM, video RAM, and CGRAM aliases for independently SHA-checked source PPU research; this is a local intentional patch, not a revision change.",
       "provenance_path": "third_party/provenance/mesen-for-ai.json"
     },
     {

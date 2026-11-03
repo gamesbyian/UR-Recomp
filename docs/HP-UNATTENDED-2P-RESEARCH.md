@@ -118,6 +118,19 @@ reuse happen. The result is intended to make a source-bound **reuse shadow
 study** repeatable with controlled historical artifacts, while retaining
 all current Windows product/QA gates.
 
+### November 3: bounded HP two-variant native-process pilot
+
+**Telemetry-export follow-up, November 3:** The failed canary run also printed `HP_MONITOR_EXPORT=unavailable_original_retained` despite PR #3081, while independently producing valid numeric CPU summaries. The export path was using lazy [IO.File]::ReadLines through Select-Object -First 1, which can retain a reader handle when the PowerShell pipeline stops early and interfere with the immediate Windows Move-Item. The subsequent narrow source repair uses eager [IO.File]::ReadAllLines on the small numeric CSV and sanitizes failures into one of four literal stages: existing_export, copy, header or publish. Neither a successful PowerShell parse nor a source-level test proves the Windows export now succeeds; inspect the next real HP run's `HP_MONITOR_EXPORT` marker and downloadable exact-run artifact. Any remaining failure should be diagnosed from the reported stage, without exposing local process lists, paths or raw exceptions.
+
+**Trial failed and was rolled back.** The first actual 360-second trusted-main HP canary, [run #41599042074](https://github.com/gamesbyian/UR-Recomp/actions/runs/41599042074), source commit 254bc75e7f3b60caaf736c9cc1179f931b87b3ab, passed the exact Windows build, package and isolated boots but produced **0 accepted cases / 0 accepted four-guest groups** in 358.734 seconds of research. All eight source-owned workers reported two real guest_timeout failures each: **16 classified timeouts**, not a replay mismatch or evidence that game code regressed. The machine reported peak 100% ten-second CPU, 81.3% mean across the job, minimum 5,876 MiB free physical memory, and a still-missing optional exported telemetry CSV. The resource pressure and fixed 90-second per-guest limit make the two-way canary unproductive on this 12-logical-processor host. The HP default has therefore been restored to VARIANT_PARALLELISM=1 before another schedule; the generic optional two-way implementation remains dormant for a future separately qualified experiment. No retry is justified by longer timeouts or weakening the oracle without a new measured premise. Existing successful 8-case/32-process serial HP run #41591727338 remains the benchmark. No original/native game event, physical pad or formal release QA credit is implied.
+
+
+The first successful science run after the seven-step economy change (#3079) was scheduled #41591727338 on integrated source aa75ad2542eb. It completed 8 distinct seeds/32 real game executions in 211.937 seconds of research and 386 seconds of whole HP occupancy. The interval-averaged HP CPU load was about 71.3% during the real research window, with at least 6,159 MiB free physical memory. Those observations justify testing additional concurrency, not predicting a speed gain.
+
+The discontinued HP-only canary attempted up to two of each worker's four independent source-owned native guest variants together, for a maximum of 16 simultaneous game processes across the existing eight workers. Every variant has separate controller, process, config, user-data and dump directories; only exact immutable executable, original ROM and script inputs are shared read-only. Treatment, identical replay and independent P1/P2 ablation must still pass the same original guest-WRAM oracle, and all child processes are joined before result publication. Linux/other QA02 callers retain serial execution. A two-wave guest deadline was attempted only for the disabled HP canary; the unchanged 360/600-second wall budgets and failure-stop rules remain.
+
+The failed HP canary's SHA-256 self-sealed source receipt declared variant_parallelism=2; after rollback the trusted HP default declares 1. Its independent offline ROM-free evidence auditor validates 1 or 2, treating historical missing mode as serial. The first post-integration scheduled/manual trusted-main HP run must establish accepted cases per HP occupied minute, negative/timeout count, ROM/executable/fixture identity and priority Windows queue delay. If nondeterminism, timeouts, host instability, or worse useful yield appear, revert the HP setting to 1 without relaxing the oracle. Neither native determinism nor higher case count awards original/native event, real physical pad, or formal Windows release QA credit.
+
 ## Active first lane
 
 [HP unattended seeded 2P gameplay research](../.github/workflows/owner-hp-seeded-2p-research.yml)
@@ -312,9 +325,13 @@ the established global owner gateway and 90-minute deduplication guard;
 `/ur-ci hp-research` without the argument uses 360. A genuine GitHub
 `schedule` event and the [owner-installed local missed-cron fallback](HP-RESEARCH-FALLBACK.md)
 always use **360**. The source-owned research validator rejects a scheduled
-600-second horizon. Neither route bypasses the canonical Windows Ninja/VS
-build, exact portable package, QA-09, QA-05, race, user-data or launcher
-checks, nor the 45-minute job cap.
+600-second horizon. During the historic November 1 trial both routes
+performed the complete Windows product checks. Since merged #3079, the
+science-only route retains source-built Windows executable, verified ROM
+and portable ZIP, clean package boot and three independent HP boot tests,
+but skips seven repeated product-specific Win32/audio/storage acceptance
+steps. The normal product Windows workflows still execute every check,
+and the existing 45-minute HP job cap remains unchanged.
 
 **First real 600-second positive result, November 1 UTC:** [owner-authorized
 Windows run #41286835360](https://github.com/gamesbyian/UR-Recomp/actions/runs/41286835360)

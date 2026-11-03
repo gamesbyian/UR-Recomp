@@ -9,6 +9,7 @@ full-course completion, physical pads, or a Baldosa Windows release witness.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -221,7 +222,10 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
 
 
 def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
-          root: Path, seed: int, timeout: int) -> dict:
+          root: Path, seed: int, timeout: int, *,
+          parallel_variants: int = 1) -> dict:
+    if type(parallel_variants) is not int or parallel_variants not in (1, 2):
+        raise ValueError("unsupported variant concurrency")
     if root.exists():
         raise ValueError("trial root exists")
     root.mkdir(parents=True)
@@ -242,10 +246,25 @@ def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
         raise ValueError("same-seed treatment changed between replicas")
     if len(set((inputs["treatment"], inputs["mute-p1"], inputs["mute-p2"]))) != 3:
         raise ValueError("counterfactuals did not alter independent seats")
+    variants = ("treatment", "repeat", "mute-p1", "mute-p2")
     results = {}
-    for variant in ("treatment", "repeat", "mute-p1", "mute-p2"):
-        results[variant] = execute(exe, rom, input_files[variant], script,
-                                   root / variant, timeout)
+    if parallel_variants == 1:
+        for variant in variants:
+            results[variant] = execute(exe, rom, input_files[variant], script,
+                                       root / variant, timeout)
+    else:
+        # Only read-only executable/ROM/script bytes are shared. Every
+        # native process owns a fresh config, controller, user-data and dump.
+        # The context joins ALL children even if one future fails. Partial
+        # four-process cases never earn source-owned acceptance.
+        with ThreadPoolExecutor(max_workers=parallel_variants) as pool:
+            futures = {
+                variant: pool.submit(execute, exe, rom, input_files[variant],
+                                     script, root / variant, timeout)
+                for variant in variants
+            }
+            for variant in variants:
+                results[variant] = futures[variant].result()
     a = results["treatment"]
     if a != results["repeat"]:
         first = next((name for name in a if a[name] != results["repeat"].get(name)), "?")
@@ -270,7 +289,10 @@ def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
 
 def run_shard(*, exe: Path, rom: Path, source_sha: str,
               shard: int, base_seed: int, minutes: int, max_cases: int,
-              timeout: int, work: Path, wall_seconds: int | None = None) -> dict:
+              timeout: int, work: Path, wall_seconds: int | None = None,
+              parallel_variants: int = 1) -> dict:
+    if type(parallel_variants) is not int or parallel_variants not in (1, 2):
+        raise ValueError("unsupported variant concurrency")
     if shard not in SHARDS or minutes not in BUDGETS or not 10 <= max_cases <= 5000:
         raise ValueError("unsafe cohort bounds")
     if type(base_seed) is not int or not 0 <= base_seed <= 100000000:
@@ -304,19 +326,23 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
         if (wall_seconds is not None and successful_case_durations
                 and remaining < max(60, 1.25 * max(successful_case_durations))):
             break
-        # Only a shortened unattended budget changes timeout allocation.
-        # A case runs four actual guests, so bound each one by the
-        # remaining research horizon / 4. Linux's historical caller keeps
-        # its identical fixed timeout and exact original fixture semantics.
+        # Four serial guest waves ordinarily; two when trusted HP science
+        # opts into paired isolated variants. Preserve historical /4 by
+        # default and stop before a too-short deadline manufactures failure.
+        guest_waves = 4 // parallel_variants
         case_timeout = (timeout if wall_seconds is None else
-                        max(10, min(timeout, int(max(0, remaining) / 4))))
+                        max(10, min(timeout, int(max(0, remaining) / guest_waves))))
         trial_index = attempted
         seed = base_seed + shard * 1000003 + trial_index
         path = work / f"trial-{trial_index:04d}"
         attempted += 1
         case_started = time.monotonic()
         try:
-            row = trial(exe, rom, prefix, generated_script, path, seed, case_timeout)
+            if parallel_variants == 1:
+                row = trial(exe, rom, prefix, generated_script, path, seed, case_timeout)
+            else:
+                row = trial(exe, rom, prefix, generated_script, path, seed,
+                            case_timeout, parallel_variants=parallel_variants)
             if row["input_sha256"] in seen_inputs:
                 raise ValueError("campaign created duplicate input stream")
             seen_inputs.add(row["input_sha256"])

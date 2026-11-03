@@ -761,7 +761,12 @@ jobs:
         if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
         run: bash tools/ci/windows_package_race_result.sh
 
+      # For repeat seeded HP research the verified build, clean-package boot,
+      # and independent offscreen boot fanout still run. Product-specific
+      # Win32/audio/user-data journeys run in regular Windows acceptance or
+      # an expressly nominated tournament campaign, not on every seed batch.
       - name: Extracted-package Win32 window and default renderer smoke
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           # Offscreen SDL boot validates deterministic game progress but never
@@ -806,6 +811,7 @@ jobs:
           echo "WINDOWS_PACKAGE_WIN32_RENDERER ok"
 
       - name: QA-09 packaged Windows controller-only root and modal return
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/qa09-root-user"
@@ -825,6 +831,7 @@ jobs:
           echo "WINDOWS_QA09_ROOT_PACKAGE=passed"
 
       - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         # An HP service desktop can have uniquely PID-owned, non-visible SDL
         # windows. Only its isolated diagnostic uses real Win32 messages there.
         # Hosted/visible UI acceptance remains five serial real Win32 sessions.
@@ -937,6 +944,7 @@ jobs:
           echo "WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5"
 
       - name: Package refresh preserves user data
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           # Quoted PowerShell strings are intentionally passed without Bash expansion.
           set -euo pipefail
@@ -1032,6 +1040,7 @@ jobs:
           echo "WINDOWS_PACKAGE_REFRESH_USER_DATA_PRESERVED ok"
 
       - name: Legacy portable state migrates once
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           LEGACY="$RUNNER_TEMP/package-legacy"
@@ -1154,6 +1163,7 @@ jobs:
           echo "WINDOWS_PACKAGE_LEGACY_MIGRATION ok"
 
       - name: Boot to main menu
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/boot-dumps"
@@ -1176,6 +1186,7 @@ jobs:
           PY
 
       - name: Representative package startup diagnostics
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           assert_bounded_startup_log() {

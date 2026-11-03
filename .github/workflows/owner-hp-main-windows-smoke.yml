@@ -46,7 +46,12 @@ on:
       - "tools/devnode_benchmark/prepare_sdl3_cache.py"
       - "tools/devnode_benchmark/verify_hp_ninja.py"
       - "tools/ci/ninja_package_canary.cmd"
-      - "tools/devnode_benchmark/**"
+      # The core Windows workflow executes these two HP provisioning scripts.
+      # Monitoring-only edits are covered by hosted PowerShell parse/unit
+      # checks and the next scheduled source-bound HP science run. They do
+      # not invalidate the shipped executable or warrant a full HP build.
+      - "tools/devnode_benchmark/prepare_python.ps1"
+      - "tools/devnode_benchmark/prepare_rust.ps1"
       - "tools/patches/**"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"

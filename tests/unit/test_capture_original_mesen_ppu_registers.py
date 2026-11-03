@@ -83,7 +83,7 @@ class OriginalPpuSerializedTests(unittest.TestCase):
             def tool(self,name,**args):
                 if name=="video.export_frame":
                     path=Path(args["path"])
-                    path.write_bytes(b"P6\\n2 1\\n255\\n"+bytes([self.frame,12,34])*2)
+                    path.write_bytes(b"P6\n2 1\n255\n"+bytes([self.frame,12,34])*2)
                     return {"path":str(path),"format":"P6",
                             "width":2,"height":1,"pixels":2}
                 return super().tool(name,**args)

@@ -36,5 +36,30 @@ class GLBParentIDs(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"clip"):
             raster_part_ids(meshes[:-1]+[triangle("saddle",200)],CAMERA)
 
+
+    def test_nearest_third_parent_wins_regardless_of_mesh_order(self):
+        # The first two parents are within epsilon, but a third is clearly
+        # closer than both. An early tie must not preempt the final winner.
+        meshes=[triangle("tire",0),
+                triangle("rim_and_hub",0,y=-.9e-7),
+                triangle("fork_and_frame",0,y=-2e-7),
+                triangle("pedals",1.2),triangle("saddle",1.8)]
+        first=raster_part_ids(meshes,CAMERA)
+        reverse=raster_part_ids(list(reversed(meshes)),CAMERA)
+        self.assertEqual(first,reverse)
+        self.assertEqual(first["id_plane_256"][66*256+66],
+                         PART_IDS["fork_and_frame"])
+
+    def test_sub_epsilon_same_parent_depth_cannot_hide_cross_parent_tie(self):
+        # Same true nearest depths in both permutations. The second tire
+        # fragment was previously discarded by an epsilon-filtered winner.
+        meshes=[triangle("tire",0),triangle("tire",0,y=-.9e-7),
+                triangle("rim_and_hub",0,y=-1.8e-7),
+                triangle("fork_and_frame",.6),
+                triangle("pedals",1.2),triangle("saddle",1.8)]
+        for order in (meshes,list(reversed(meshes))):
+            with self.assertRaisesRegex(ValueError,"indistinguishable"):
+                raster_part_ids(order,CAMERA)
+
 if __name__=="__main__":
     unittest.main()

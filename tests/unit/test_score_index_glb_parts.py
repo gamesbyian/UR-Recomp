@@ -49,5 +49,24 @@ class SourceGLBMatcherTests(unittest.TestCase):
         q=sample("B","wheelie",{3:c},{1:c,2:b})
         with self.assertRaisesRegex(ValueError,"independent pose alignment"):
             score([p,q],["wheelie"])
+
+    def test_default_margin_accepts_perfect_single_parent_without_superset_rival(self):
+        a,b=square(2,2),square(2,12)
+        p=sample("A","upright",{3:a},{1:a})
+        q=sample("B","wheelie",{3:b},{1:b})
+        row=score([p,q],["wheelie"])["hypotheses"][0]
+        self.assertEqual(row["candidate_experimental_3d_parts"],["tire"])
+        self.assertEqual(row["classification"],"provisional_paired_2d_hypothesis")
+        self.assertGreaterEqual(row["second_candidate_margin"],.10)
+
+    def test_default_margin_still_accepts_supported_two_parent_split(self):
+        a,b,c,d=square(2,2),square(25,20),square(2,12),square(25,30)
+        p=sample("A","upright",{3:a+b},{1:a,2:b})
+        q=sample("B","wheelie",{3:c+d},{1:c,2:d})
+        row=score([p,q],["wheelie"])["hypotheses"][0]
+        self.assertEqual(set(row["candidate_experimental_3d_parts"]),
+                         {"tire","rim_and_hub"})
+        self.assertEqual(row["classification"],"provisional_paired_2d_hypothesis")
+
 if __name__=="__main__":
     unittest.main()

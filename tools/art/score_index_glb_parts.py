@@ -97,8 +97,13 @@ def propose_index_part_correspondence(pairs,holdout_families,
         best=candidates[0] if candidates else None
         reasons=[]
         score=best["score"] if best else 0
-        margin=score-(candidates[1]["score"] if len(candidates)>1 else 0)
         hypothesis=best["parts"] if best else []
+        # Adding an unused parent to a winning singleton is not an
+        # independent rival hypothesis. Its fixed .08 complexity penalty
+        # otherwise makes the default .10 margin impossible to satisfy.
+        rivals=[row for row in candidates[1:]
+                if not set(hypothesis).issubset(row["parts"])]
+        margin=score-(rivals[0]["score"] if rivals else 0)
         held_purity=sum(hold[idx][p] for p in hypothesis)/hold_total[idx] if hold_total[idx] else 0
         null=max((ranked_parts(counts[idx],fit_total[idx],parts)[0]["score"]
                   for counts in negatives if fit_total[idx]),default=0)

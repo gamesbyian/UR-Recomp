@@ -49,8 +49,9 @@ def raster_part_ids(meshes:list,camera:dict)->dict:
     right,up,origin,scale,anchor,front=validated_camera(camera)
     if not isinstance(meshes,list) or not meshes:
         raise ValueError("missing GLB part geometry")
-    labels=bytearray(256*256)
-    zbuffer=[float("-inf")]*(256*256)
+    # Retain the true maximum depth for each parent before deciding ownership.
+    # An epsilon-filtered running winner is order-dependent across triangles.
+    depth_by_part={name:[float("-inf")]*(256*256) for name in PARTS}
     observed=set()
     for mesh in meshes:
         part=mesh.get("part") if isinstance(mesh,dict) else None
@@ -69,7 +70,7 @@ def raster_part_ids(meshes:list,camera:dict)->dict:
             if x<0 or x>255 or y<0 or y>255:
                 raise ValueError("fixed camera would clip the original geometry")
             projected.append((x,y,dot(p,front)))
-        label=PART_IDS[part]
+        depths=depth_by_part[part]
         for face in faces:
             if (not isinstance(face,(list,tuple)) or len(face)!=3 or
                     any(type(i) is not int or i<0 or i>=len(projected) for i in face)):
@@ -86,12 +87,17 @@ def raster_part_ids(meshes:list,camera:dict)->dict:
                     v=(dy*(b[0]-a[0])-dx*(b[1]-a[1]))/det
                     if u < -1e-9 or v < -1e-9 or u+v > 1+1e-9:continue
                     d=a[2]+u*(b[2]-a[2])+v*(c[2]-a[2]);q=y*256+x
-                    if d > zbuffer[q]+1e-7:
-                        labels[q]=label;zbuffer[q]=d
-                    elif abs(d-zbuffer[q])<=1e-7 and labels[q] not in (0,label):
-                        raise ValueError("different GLB parents are indistinguishable in depth")
+                    if d>depths[q]:depths[q]=d
     if observed != set(PARTS):
         raise ValueError("all five real GLB parent components must be present")
+    labels=bytearray(256*256)
+    for q in range(256*256):
+        nearest=max(depth_by_part[name][q] for name in PARTS)
+        if nearest==float("-inf"):continue
+        near=[name for name in PARTS if depth_by_part[name][q]>=nearest-1e-7]
+        if len(near)!=1:
+            raise ValueError("different GLB parents are indistinguishable in depth")
+        labels[q]=PART_IDS[near[0]]
     source=bytes(labels[(4*y+2)*256+4*x+2] for y in range(64) for x in range(64))
     if not any(source):raise ValueError("no GLB pixels at 64px source centres")
     return {"id_plane_256":bytes(labels),"id_plane_64":source,

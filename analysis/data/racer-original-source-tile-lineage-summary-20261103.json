@@ -1,0 +1,61 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-SOURCE-TILE-LINEAGE-SUMMARY/1",
+  "authenticated_real_rom_workflow_run_id": 41554638043,
+  "authenticated_real_rom_workflow_artifact_id": 13194250673,
+  "authenticated_numeric_report_sha256": "cccb78328307003b3f8148aa20ef7cca27c905e77610be2b3ffd1aa7e7d5f33f",
+  "authenticated_report_bytes": 58571,
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "historical_source_registry_sha256": "05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad",
+  "source_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "authentic_source_representations": 59,
+  "independent_original_rgba_images": 41,
+  "independent_original_index_planes": 35,
+  "unique_exact_source_8x8_tile_payloads_including_zero": 251,
+  "unique_nonzero_exact_source_8x8_tile_payloads": 250,
+  "nonzero_tile_contents_shared_across_multiple_source_planes": 62,
+  "distinct_source_plane_pairs_sharing_nonzero_tile_content": 170,
+  "possible_source_plane_pairs": 595,
+  "shared_nonzero_tile_count_per_pair_frequency": {
+    "1": 28,
+    "2": 5,
+    "3": 7,
+    "7": 41,
+    "8": 51,
+    "9": 35,
+    "10": 3
+  },
+  "median_shared_nonzero_tiles_among_170_pairs": 8,
+  "all_tile_payloads_observed_at_multiple_source_slots_including_zero": 2,
+  "nonzero_tile_payloads_observed_at_multiple_source_slots": 1,
+  "only_nonzero_tile_move": {
+    "tile_payload_sha256": "36a2afe3cc14227c4f656a57bd9dcfa5c2c0b1028afe3ecd581613ecde6221d0",
+    "source_cell_row_column_positions": [
+      [
+        4,
+        3
+      ],
+      [
+        4,
+        4
+      ]
+    ],
+    "distinct_original_source_index_planes": 2
+  },
+  "independent_png_reconstruction": {
+    "passed": true,
+    "method": "SHA-bound frozen original PNG RGBA->4bpp palette-index inversion, encode each opaque 8x8 tile to planar 32 bytes; compare exact content hashes and source-plane shared-tile intersections",
+    "original_image_sha_checked": true,
+    "original_rgba_index_plane_sha_checked": true,
+    "independent_lookup_json_sha256": "52bcb6ede43f8b29e0881c02d3eb30c37373a2c9214461e8ee961527bd7c0f23",
+    "source_image_witness_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+    "confirmed_nonzero_payloads": 250,
+    "confirmed_reused_nonzero_payloads": 62,
+    "confirmed_moved_nonzero_payloads": 1,
+    "confirmed_shared_distinct_plane_pairs": 170
+  },
+  "original_live_ppu_timing_verified": false,
+  "original_source_3d_camera_verified": false,
+  "original_anatomical_part_attribution_verified": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

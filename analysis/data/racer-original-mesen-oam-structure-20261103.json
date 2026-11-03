@@ -1,0 +1,114 @@
+{
+  "schema": "UR-ART4K-AUTHENTIC-MESEN-OAM-DESCRIPTOR-CENSUS-SUMMARY/1",
+  "source_original_emulator_workflow_run_id": 41560222232,
+  "source_original_emulator_artifact_id": 13196973168,
+  "source_original_emulator_archive_sha256": "a1aa2d04ca936a031d6f46d821d4ece14a7bdbad03b4774f7ab705d275cef6cc",
+  "source_original_emulator_manifest_sha256": "f50accd67c36cc8455bcb0cc5f774f0efaa233ebc62d68fb33da2c10eb86e21a",
+  "original_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "emulator_source_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "authentic_consecutive_emulator_ticks": [
+    1219,
+    1220
+  ],
+  "oam_bytes_per_frame": 544,
+  "source_oam_sha256_per_frame": [
+    "14b0cfa18b3bd1c7ca0a1459490047d6b57a95eccdf4d258cff249265ee083f7",
+    "14b0cfa18b3bd1c7ca0a1459490047d6b57a95eccdf4d258cff249265ee083f7"
+  ],
+  "original_oam_slot_count": 128,
+  "distinct_original_oam_decoded_descriptors_per_frame": [
+    6,
+    6
+  ],
+  "most_common_descriptor_count_per_frame": [
+    123,
+    123
+  ],
+  "most_common_oam_descriptor": {
+    "signed_x": -32,
+    "raw_y": 224,
+    "tile_word9": 0,
+    "palette": 0,
+    "priority": 0,
+    "hflip": false,
+    "vflip": false,
+    "large_size_selection": false
+  },
+  "nonmodal_original_oam_slots_at_both_ticks": [
+    0,
+    96,
+    97,
+    98,
+    99
+  ],
+  "per_nonmodal_oam_descriptor_at_both_ticks": [
+    {
+      "slot": 0,
+      "x": -32,
+      "y": 0,
+      "tile": 0,
+      "palette": 0,
+      "priority": 0,
+      "hflip": false,
+      "vflip": false,
+      "large": false
+    },
+    {
+      "slot": 96,
+      "x": 104,
+      "y": 153,
+      "tile": 136,
+      "palette": 4,
+      "priority": 2,
+      "hflip": true,
+      "vflip": false,
+      "large": true
+    },
+    {
+      "slot": 97,
+      "x": 104,
+      "y": 153,
+      "tile": 0,
+      "palette": 3,
+      "priority": 2,
+      "hflip": true,
+      "vflip": false,
+      "large": true
+    },
+    {
+      "slot": 98,
+      "x": -152,
+      "y": 40,
+      "tile": 0,
+      "palette": 3,
+      "priority": 2,
+      "hflip": true,
+      "vflip": false,
+      "large": false
+    },
+    {
+      "slot": 99,
+      "x": -152,
+      "y": 40,
+      "tile": 136,
+      "palette": 4,
+      "priority": 2,
+      "hflip": true,
+      "vflip": false,
+      "large": false
+    }
+  ],
+  "changed_oam_descriptors": 0,
+  "changed_raw_memory_bytes_between_ticks": {
+    "oam": 0,
+    "vram": 38,
+    "cgram": 17
+  },
+  "source_OBSEL_register_or_true_pixel_dimensions_verified": false,
+  "source_actual_displayed_sprite_pixels_verified": false,
+  "source_framebuffer_reference_paired": false,
+  "original_racer_identity_from_each_oam_slot_verified": false,
+  "original_1994_3d_anatomy_or_camera_verified": false,
+  "owner_likeness_approved": false,
+  "limits": "This is a modal-descriptor anomaly census, not a visibility classifier. Negative X is 9-bit signed OAM X. PPU OBSEL and final framebuffer are not observed. Recurring OAM entries with VRAM/CGRAM changes may change rendered appearance."
+}

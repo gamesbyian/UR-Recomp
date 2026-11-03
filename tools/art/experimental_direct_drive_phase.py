@@ -18,7 +18,7 @@ import tempfile
 SOURCE_GLBS = {
     "upright": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
     "pedal": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
-    "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec833f33c27",
+    "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
     "stunt": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
     "bank": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59",
 }
@@ -56,8 +56,20 @@ def synchronize(scene, delta):
     if len(scene.graph.nodes_geometry)!=16:
         raise ValueError("requires sixteen source-owned material meshes")
     root=scene.graph.base_frame
-    if any(scene.graph.transforms.parents.get(p)!=root for p in PARTS):
-        raise ValueError("source parents must share one world root")
+    # Actual 2026 GLBs export world -> world_1 -> five sibling parts.
+    # A direct world parent is also valid, but never silently reparent nodes.
+    parent=scene.graph.transforms.parents.get("tire")
+    if (parent is None or any(scene.graph.transforms.parents.get(p)!=parent for p in PARTS)
+            or (parent!=root and scene.graph.transforms.parents.get(parent)!=root)):
+        raise ValueError("source part parents must share one rigid root")
+    parent_world=(np.asarray(scene.graph.get(parent)[0],dtype=float)
+                  if parent!=root else np.eye(4))
+    if (parent_world.shape!=(4,4) or not np.isfinite(parent_world).all()
+            or not np.allclose(parent_world[3,:],[0,0,0,1],atol=1e-8,rtol=0)
+            or not np.allclose(parent_world[:3,:3].T@parent_world[:3,:3],np.eye(3),atol=1e-7,rtol=0)
+            or not np.isclose(np.linalg.det(parent_world[:3,:3]),1,atol=1e-7,rtol=0)):
+        raise ValueError("source shared parent transform is not rigid")
+    inv_parent=np.linalg.inv(parent_world)
     for name,n in CHILD_COUNTS.items():
         children=[x for x in scene.graph.nodes_geometry if scene.graph.transforms.parents.get(x)==name]
         if len(children)!=n:
@@ -73,13 +85,15 @@ def synchronize(scene, delta):
     motion=axle@r@np.linalg.inv(axle)
     if delta!=0:
         for p in MOVING:
-            scene.graph.update(frame_to=p,frame_from=root,matrix=motion@before[p])
+            scene.graph.update(frame_to=p,frame_from=parent,
+                               matrix=inv_parent@motion@before[p])
     if original_nodes!=set(scene.graph.nodes) or original_geometry!=set(scene.geometry):
         raise ValueError("material or node identities changed")
     for p in PARTS:
         expected=motion@before[p] if p in MOVING and delta!=0 else before[p]
         if not np.allclose(scene.graph.get(p)[0],expected,atol=1e-8,rtol=0):
-            raise ValueError("unexpected parent motion")
+            residual=float(np.max(np.abs(scene.graph.get(p)[0]-expected)))
+            raise ValueError(f"unexpected parent motion: {p} residual {residual}")
     return {
         "source_owned_relative_wheel_phase_degrees":float(delta),
         "original_source_axle_world_xyz":list(map(float,axle[:3,3])),

@@ -24,7 +24,7 @@ class HpIsolatedBootFanoutTests(unittest.TestCase):
         source = SMOKE.read_text(encoding="utf-8")
         self.assertIn("      - name: HP bounded independent offscreen package boot fanout\n"
                       "        # The same three source-owned", source)
-        self.assertIn("        if: ${{ inputs.run_on_hp }}\n"
+        self.assertIn("        if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}\n"
                       "        run: bash tools/ci/hp_windows_isolated_boot_fanout.sh", source)
         worker = FANOUT.read_text(encoding="utf-8")
         hosted = HOSTED_FANOUT.read_text(encoding="utf-8")

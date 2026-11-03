@@ -25,7 +25,6 @@ SCIENCE_MUST_KEEP = (
     "Assemble and verify portable Windows package",
     "Independently verify portable ZIP with stock Windows PowerShell",
     "Clean-package boot and per-user state anchoring",
-    "HP bounded independent offscreen package boot fanout",
     "HP unattended real two-player seeded gameplay research",
     "Preserve HP resource telemetry",
     "Verify archive-free Windows artifact upload policy",
@@ -58,11 +57,39 @@ class HpScienceValidationScopeTests(unittest.TestCase):
         for name in SCIENCE_MUST_KEEP:
             with self.subTest(name=name):
                 self.assertNotIn(SCIENCE_GUARD, step(source, name))
-        self.assertIn("if: ${{ inputs.run_on_hp }}",
+        self.assertIn("if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}",
                       step(source, "HP bounded independent offscreen package boot fanout"))
         self.assertIn("if: inputs.hp_seeded_2p",
                       step(source, "HP unattended real two-player seeded gameplay research"))
         self.assertIn("if: always()", step(source, "Upload Windows evidence"))
+
+
+    def test_hp_science_reuses_product_only_preflight_but_verifies_own_rom_zip_and_guest(self):
+        source = SMOKE.read_text(encoding="utf-8")
+        native_guard = "if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}"
+        for name in ("Verify owner HP ClangCL toolset",
+                     "HP bounded independent offscreen package boot fanout"):
+            with self.subTest(name=name):
+                self.assertIn("        " + native_guard + "\n", step(source, name))
+        self.assertEqual(source.count("        " + native_guard + "\n"), 2)
+        preflight = step(source, "Verify canonical ROM and package contracts")
+        self.assertIn('python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"', preflight)
+        self.assertIn('if [[ "${{ inputs.hp_seeded_2p }}" != "true" || "${{ inputs.run_tournament_acceptance }}" == "true" ]]; then', preflight)
+        self.assertIn("python -m unittest tests.unit.test_assemble_windows_package", preflight)
+        self.assertIn("tests.unit.test_windows_clean_machine_verifier_policy", preflight)
+        self.assertIn("HP_SCIENCE_PACKAGE_UNIT_REUSE=product_ci_kept_source_rom_and_zip_verified_here", preflight)
+        for required in ("Scaffold and generate",
+                         "Configure and build (Visual Studio, ClangCL, SDL3)",
+                         "Assemble and verify portable Windows package",
+                         "Independently verify portable ZIP with stock Windows PowerShell",
+                         "Clean-package boot and per-user state anchoring",
+                         "HP unattended real two-player seeded gameplay research"):
+            with self.subTest(required=required):
+                self.assertNotIn("        " + native_guard + "\n", step(source, required))
+        # No condition or hunk changes the source-bound science oracle itself.
+        self.assertIn("python -m tools.hp_seeded_2p_research",
+                      step(source, "HP unattended real two-player seeded gameplay research"))
+        self.assertNotIn("hp_seeded_2p: true", PRODUCT.read_text(encoding="utf-8"))
 
     def test_science_is_only_trusted_main_and_product_caller_keeps_full_qa(self):
         caller = SCIENCE.read_text(encoding="utf-8")

@@ -1,0 +1,81 @@
+{
+  "schema": "UR-ART4K-SIX-TILE-DISJOINT-RETROSPECTIVE-WHEEL-WIDTH/1",
+  "historical_wheel_report_git_blob_SHA1": "48e2db64b8b485fb0f0de52078ac88542666b379",
+  "original_index_lookup_git_blob_SHA1": "525c3d52f96594d332394ba60dc2096b391caec4",
+  "strict_six_frozen_selection_git_blob_SHA1": "828d8e0c53f314a9e2164d8fd0158c7f01e90049",
+  "original_source_corpus_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "source_original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "experiment_2026_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "full_fitted_source_index_planes": 16,
+  "all_heldout_source_index_planes": 19,
+  "strict_heldout_source_index_planes": 6,
+  "all_19_retrospective": {
+    "mean_iou_width_1p0": 0.38192089,
+    "mean_iou_width_1p1": 0.41491323,
+    "mean_delta_width_1p1_minus_1p0": 0.03299234,
+    "width_1p1_wins": 19
+  },
+  "six_strict_retrospective": {
+    "mean_iou_width_1p0": 0.38543972,
+    "mean_iou_width_1p1": 0.41730258,
+    "mean_delta_width_1p1_minus_1p0": 0.03186286,
+    "width_1p1_wins": 6
+  },
+  "per_strict_original_2d_source": [
+    {
+      "source_original_4bpp_index_sha256": "3b46e0003c11fa5066501c9b270b67d044aa309e583b3ec90716116c4d799f1e",
+      "source_original_2d_binary_mask_sha256": "67a9c5b343dd0e20d033f984fbb5992d2b7a3ded2844c6a84f5a72ac2fc7e2e2",
+      "original_authored_representation_id": "ordinary-racer-0x0139-p1-broader-frequency-reference",
+      "old_wheel_width_1p0_iou": 0.38809524,
+      "old_wheel_width_1p1_iou": 0.41686183,
+      "retroactive_signed_delta": 0.02876659
+    },
+    {
+      "source_original_4bpp_index_sha256": "9b56d826108753b167dda6fb654440547c404cce975d35c9d1d844d7c4502347",
+      "source_original_2d_binary_mask_sha256": "4f43f91d562c508a1ff044a97ae1a0ad5a06984186eaa3415c27331dcac1cd38",
+      "original_authored_representation_id": "ordinary-racer-0x00B9-p1-broader-frequency-reference",
+      "old_wheel_width_1p0_iou": 0.39379475,
+      "old_wheel_width_1p1_iou": 0.42924528,
+      "retroactive_signed_delta": 0.03545053
+    },
+    {
+      "source_original_4bpp_index_sha256": "9d65701f73af83f8477d8e52fbc63ba40424faeafd96565f7a2b2b41c4a77086",
+      "source_original_2d_binary_mask_sha256": "de42cae55c6727cfe2799c72e64a154ad3c9fba4ae30022dbc3208e5f6976aca",
+      "original_authored_representation_id": "ordinary-racer-0x01B9-p1-broader-frequency-reference",
+      "old_wheel_width_1p0_iou": 0.38333333,
+      "old_wheel_width_1p1_iou": 0.41217799,
+      "retroactive_signed_delta": 0.02884466
+    },
+    {
+      "source_original_4bpp_index_sha256": "d92801ba7a6f6f4e63139fe657f65ebe81caa3ad0c971b715f6249dd60771423",
+      "source_original_2d_binary_mask_sha256": "e3ed43b2c5b7263093e91bcccc37c21b39d3e563b9fa9e566263daea1f8c3cea",
+      "original_authored_representation_id": "ordinary-racer-0x02B9-p1-broader-frequency-reference",
+      "old_wheel_width_1p0_iou": 0.39099526,
+      "old_wheel_width_1p1_iou": 0.42622951,
+      "retroactive_signed_delta": 0.03523425
+    },
+    {
+      "source_original_4bpp_index_sha256": "d97c664fab33cac3ee166d40bf7421bc6f39ad9f5bdc405d86390fea40b33d33",
+      "source_original_2d_binary_mask_sha256": "947aeadddf608bbb89a8a8af42bbad0954805fa1c495c12d9d7d7c9947b6d6ee",
+      "original_authored_representation_id": "ordinary-racer-0x04B9-p1-broader-frequency-reference",
+      "old_wheel_width_1p0_iou": 0.3847981,
+      "old_wheel_width_1p1_iou": 0.42018779,
+      "retroactive_signed_delta": 0.03538969
+    },
+    {
+      "source_original_4bpp_index_sha256": "f4cae973bc8649c5a08381623f7b7c31c9be04fb5e9e258b1354843601a343ba",
+      "source_original_2d_binary_mask_sha256": "6d7a2658f3ef214e77eff40274cbc15d759c8462e06b3a2c011c0abd546e4825",
+      "original_authored_representation_id": "ordinary-racer-0x0546-p2-companion-0EB2-broader-frequency-reference",
+      "old_wheel_width_1p0_iou": 0.37162162,
+      "old_wheel_width_1p1_iou": 0.39911308,
+      "retroactive_signed_delta": 0.02749146
+    }
+  ],
+  "only_prior_existing_2d_scores_reaggregated": true,
+  "strict_six_not_new_blind_independent_source_3d_viewpoints": true,
+  "candidates_selected_before_this_strict_subset_was_defined": true,
+  "source_original_camera_or_rig_verified": false,
+  "original_pose_correspondence_verified": false,
+  "likeness_approved": false
+}

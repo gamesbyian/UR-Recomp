@@ -107,10 +107,14 @@ class SourceOriginalObjMatchTests(unittest.TestCase):
         root=Path(__file__).resolve().parents[2]
         receipt=json.loads((root/"analysis/data/racer-original-mesen-two-racer-obj-screen-exact-match-20261103.json").read_text())
         self.assertEqual(receipt["live_original_emulator_original_capture_run"],41574463232)
-        self.assertEqual(receipt["independent_4bpp_to_original_screen_proof_run"],41584805693)
+        self.assertEqual(receipt["independent_4bpp_to_original_screen_proof_run"],41585156448)
         self.assertTrue(receipt["original_2D_OBJ_to_completed_screen_exact_opaque_colour_correspondence_verified"])
         self.assertFalse(receipt["original_per_scanline_OAM_writes_verified"])
         self.assertFalse(receipt["original_source_3D_mesh_bones_or_camera_verified"])
+        alpha=receipt["source_two_original_racer_2D_binary_alpha_overlap"]
+        self.assertEqual((alpha["intersection_pixels"],alpha["union_pixels"]),(278,372))
+        self.assertEqual((alpha["blue_only_pixels"],alpha["red_only_pixels"]),(45,49))
+        self.assertFalse(alpha["original_2D_alpha_silhouettes_identical"])
         for slot,colour,xy,n in ((96,"blue",[104,160],323),(97,"red",[104,47],327)):
             row=next(r for r in receipt["actual_source_sprite_candidates"] if r["slot"]==slot)
             self.assertEqual(row["coloured_racer"],colour)

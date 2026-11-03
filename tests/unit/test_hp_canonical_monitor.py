@@ -161,5 +161,26 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("Stop-Process", script)
 
 
+    def test_telemetry_export_is_independent_bounded_and_never_uploads_partial_csv(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+        hp = (ROOT / ".github/workflows/owner-hp-main-windows-smoke.yml").read_text(encoding="utf-8")
+        self.assertIn("HP_MONITOR_EXPORT=passed attempts=", script)
+        self.assertIn("HP_MONITOR_EXPORT=unavailable_original_retained", script)
+        self.assertIn("HP_MONITOR_EXPORT=unavailable_missing_runner_temp", script)
+        self.assertIn("foreach ($attempt in 1..3)", script)
+        self.assertIn("Start-Sleep -Milliseconds 250", script)
+        self.assertIn("hp-commit-pressure.csv.partial", script)
+        self.assertIn("Move-Item -LiteralPath $partial -Destination $export -ErrorAction Stop", script)
+        self.assertIn("Remove-Item -LiteralPath $partial -ErrorAction SilentlyContinue", script)
+        self.assertLess(script.index("HP_MONITOR_SUMMARY unavailable_but_original_retained"),
+                        script.index("HP_MONITOR_EXPORT=passed"))
+        self.assertNotIn('      - "tools/devnode_benchmark/**"', hp)
+        for required in ("prepare_sdl3_cache.py", "verify_hp_ninja.py",
+                         "prepare_python.ps1", "prepare_rust.ps1"):
+            self.assertIn(f'      - "tools/devnode_benchmark/{required}"', hp)
+        self.assertNotIn('      - "tools/devnode_benchmark/monitor_hp_commit.ps1"', hp)
+
+
+
 if __name__ == "__main__":
     unittest.main()

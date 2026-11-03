@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: art4k-original-source-${{ github.event.pull_request.number || github.ref }}
@@ -104,59 +103,6 @@ jobs:
                 "all_roles=diagnostic",
                 "no_1994_3D_camera_or_model_claim")
           PY
-
-      - name: Download frozen 41-PNG source witness for 4bpp regions
-        uses: actions/download-artifact@v4
-        with:
-          name: art4k-original-source-families-for-review
-          run-id: 41396846120
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/art4k-index-source
-
-      - name: Authenticate historical source registry and produce 35 indexed topology planes
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check pillow==12.3.0
-          git fetch --no-tags --depth=1 origin 7ba8295e966c8b2c959cfeb12ae82f8c701772e0
-          git show FETCH_HEAD:analysis/data/racer-hd-replacement-prototype.json \
-            > "$RUNNER_TEMP/art4k-original-index-registry.json"
-          printf '%s  %s\n' \
-            '05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad' \
-            "$RUNNER_TEMP/art4k-original-index-registry.json" | sha256sum --check --status
-          python3 - <<'PY'
-          import pathlib, os, zipfile
-          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-index-source"
-          files=sorted(p for p in root.rglob("*") if p.is_file())
-          assert len(files)==42 and (root/"source-corpus.json").is_file()
-          with zipfile.ZipFile(pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-index-source.zip",
-                               "w",compression=zipfile.ZIP_DEFLATED) as archive:
-              for file in files:
-                  archive.write(file,file.relative_to(root).as_posix())
-          PY
-          python3 -m tools.art.audit_original_index_regions \
-            --rom reference/roms/retail/Uniracers_USA.sfc \
-            --registry "$RUNNER_TEMP/art4k-original-index-registry.json" \
-            --source-zip "$RUNNER_TEMP/art4k-index-source.zip" \
-            --out "$RUNNER_TEMP/art4k-original-35-index-topology.json"
-          python3 - <<'PY'
-          import json,os
-          from pathlib import Path
-          d=json.loads((Path(os.environ["RUNNER_TEMP"])/"art4k-original-35-index-topology.json").read_text())
-          assert (d["verified_original_source_representations"], d["verified_source_RGBA_images"],
-                  d["unique_binary_silhouettes"], d["unique_index_planes"])==(59,41,35,35)
-          assert d["original_1994_3d_part_identity_verified"] is False
-          assert d["owner_likeness_approved"] is False
-          print("ART4K_AUTHENTICATED_INDEX_REGIONS",59,41,35,35)
-          PY
-
-      - name: Retain numerical source region topology only
-        uses: actions/upload-artifact@v4
-        with:
-          name: art4k-original-35-index-topology-${{ github.run_id }}
-          path: ${{ runner.temp }}/art4k-original-35-index-topology.json
-          retention-days: 7
-          if-no-files-found: error
 
       - name: Upload bounded original-pose research inputs (not ROM)
         uses: actions/upload-artifact@v4

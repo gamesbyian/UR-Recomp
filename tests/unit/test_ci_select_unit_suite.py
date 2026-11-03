@@ -2,7 +2,8 @@
 import unittest
 
 from tools.ci_select_unit_suite import (
-    BOUNDED_RESEARCH_WORKFLOWS, FOCUSED_TEST_MODULES, OPERATIONS_ONLY, OPS_CONTEXT_DOCS,
+    BOUNDED_RESEARCH_WORKFLOWS, FOCUSED_TEST_MODULES, OPERATIONS_ONLY,
+    OPS_CONTEXT_DOCS, HP_SCIENCE_OBSERVATION_DOCS,
     classify, classify_paged, github_mode,
 )
 
@@ -42,6 +43,11 @@ class UnitSuiteSelectorTests(unittest.TestCase):
         self.assertEqual(classify(pair[:1]), "ops")
         self.assertEqual(classify(pair[1:]), "ops")
         self.assertEqual(classify([*pair, f("tools/hp_compute_watch.py")]), "ops")
+        self.assertEqual(HP_SCIENCE_OBSERVATION_DOCS,
+                         {"docs/HP-UNATTENDED-2P-RESEARCH.md"})
+        self.assertEqual(classify([*pair,
+                                  f("docs/HP-UNATTENDED-2P-RESEARCH.md")]), "ops")
+        self.assertEqual(classify([f("docs/HP-UNATTENDED-2P-RESEARCH.md")]), "ops")
         for sensitive in (
             "tools/hp_seeded_2p_research.py",
             "tools/qa02_native_2p_seeded_endurance.py",
@@ -255,9 +261,11 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 20)
+        self.assertEqual(len(OPERATIONS_ONLY), 21)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
-        self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
+        self.assertTrue(all(
+            p.endswith(".py") for p in
+            OPERATIONS_ONLY - OPS_CONTEXT_DOCS - HP_SCIENCE_OBSERVATION_DOCS))
         self.assertTrue(all((p.startswith("docs/") or p == "AGENTS.md") and p.endswith(".md")
                             for p in OPS_CONTEXT_DOCS))
 

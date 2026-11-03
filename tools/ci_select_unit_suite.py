@@ -56,7 +56,14 @@ OPS_CONTEXT_DOCS = frozenset({
     "docs/HOURLY-AGENT-LINES.md",
     "docs/WORK-QUEUE.md",
 })
-OPERATIONS_ONLY = OPERATIONS_ONLY | OPS_CONTEXT_DOCS
+# Only the corresponding non-executable operator evidence document is
+# related to the isolated science auditor. Full gameplay, Windows producer,
+# and release/QA contracts remain outside the allowlist. This covers the
+# common audit-source + test + report documentation PR, not just code-only.
+HP_SCIENCE_OBSERVATION_DOCS = frozenset({
+    "docs/HP-UNATTENDED-2P-RESEARCH.md",
+})
+OPERATIONS_ONLY = OPERATIONS_ONLY | OPS_CONTEXT_DOCS | HP_SCIENCE_OBSERVATION_DOCS
 # Research workflow edits are *configuration-only*, never native/gameplay
 # source changes. Their own producer jobs and repository hygiene independently
 # validate execution/actionlint. The focused suite already includes the global

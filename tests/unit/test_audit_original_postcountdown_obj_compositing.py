@@ -90,7 +90,7 @@ class OriginalCompositingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"inconsistent"):
             compare_opaque_pixels(bad,display,x=0,y=0,horizontal_mirror=False)
         wrong_channel=synthetic_obj({(0,0):(75,74,74)})
-        with self.assertRaisesRegex(ValueError,"five-bit"):
+        with self.assertRaisesRegex(ValueError,"5-bit"):
             compare_opaque_pixels(wrong_channel,display,x=0,y=0,horizontal_mirror=False)
 
     def test_untrusted_frames_cannot_be_promoted_to_original_source(self):

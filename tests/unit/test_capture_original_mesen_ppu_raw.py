@@ -6,7 +6,7 @@ import unittest
 
 from tools.art.capture_original_mesen_ppu_raw import (
     REGIONS, SCHEMA, capture_states, read_region, valid_bytes,
-    validate_snapshot_files,
+    validate_snapshot_files, inspect_held_ppm,
 )
 
 
@@ -100,6 +100,66 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             capture_states(FakeMesen(),[],0,1,root)
             with self.assertRaisesRegex(ValueError,"fresh empty"):
                 capture_states(FakeMesen(),[],0,1,root)
+
+    def test_original_emulator_held_rgb_screen_is_p6_and_source_sha_bound(self):
+        class FakeVideoMesen(FakeMesen):
+            def tool(self,kind,**arguments):
+                if kind=="video.export_frame":
+                    path=Path(arguments["path"])
+                    path.write_bytes(b"P6\\n3 2\\n255\\n"+bytes([self.frame,20,40])*6)
+                    return {"path":str(path),"format":"P6","width":3,"height":2,
+                            "pixels":6}
+                return super().tool(kind,**arguments)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            report=capture_states(FakeVideoMesen(),[],0,2,root,include_held_framebuffer=True)
+            self.assertTrue(report["original_held_framebuffer_P6_exported"])
+            self.assertFalse(report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"])
+            self.assertEqual(len(report["frames"]),2)
+            for frame in report["frames"]:
+                meta=frame["original_emulator_held_display_P6"]
+                self.assertEqual((meta["source_display_width"],meta["source_display_height"]),(3,2))
+                self.assertEqual(meta["source_rgb_byte_length"],18)
+                self.assertRegex(meta["source_framebuffer_RGB_sha256"],r"\\A[0-9a-f]{64}\\Z")
+            validate_snapshot_files(root,report)
+            self.assertNotEqual(
+                report["frames"][0]["original_emulator_held_display_P6"]["source_framebuffer_RGB_sha256"],
+                report["frames"][1]["original_emulator_held_display_P6"]["source_framebuffer_RGB_sha256"])
+            old=report["frames"][0]["original_emulator_held_display_P6"]
+            target=root/old["relative_file"]
+            corrupt=bytearray(target.read_bytes())
+            corrupt[-1]^=1
+            target.write_bytes(corrupt)
+            with self.assertRaisesRegex(ValueError,"SHA/metadata"):
+                validate_snapshot_files(root,report)
+
+    def test_false_video_size_format_and_rgb_length_fail_closed(self):
+        raw=b"P6\\n2 2\\n255\\n"+bytes(12)
+        ack={"path":"/private/source.ppm","format":"P6","width":2,"height":2,"pixels":4}
+        self.assertEqual(inspect_held_ppm(raw,ack,"/private/source.ppm")["source_rgb_byte_length"],12)
+        for label,change in (("path",{"path":"/other.ppm"}),
+                             ("format",{"format":"P3"}),
+                             ("size",{"width":1025,"pixels":2050}),
+                             ("count",{"pixels":3}),
+                             ("bool",{"width":True,"pixels":2})):
+            with self.subTest(label=label),self.assertRaisesRegex(ValueError,"source|video"):
+                inspect_held_ppm(raw,{**ack,**change},"/private/source.ppm")
+        for bad in (raw[:-1],b"P3"+raw[2:],b"P6\\n3 2\\n255\\n"+bytes(12)):
+            with self.assertRaisesRegex(ValueError,"P6"):
+                inspect_held_ppm(bad,ack,"/private/source.ppm")
+
+    def test_original_emulator_must_remain_paused_during_screen_export(self):
+        class MovingVideo(FakeMesen):
+            def tool(self,kind,**arguments):
+                if kind=="video.export_frame":
+                    path=Path(arguments["path"])
+                    path.write_bytes(b"P6\\n2 1\\n255\\n"+bytes(6))
+                    self.frame+=1
+                    return {"path":str(path),"format":"P6","width":2,"height":1,"pixels":2}
+                return super().tool(kind,**arguments)
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(ValueError,"advanced during held display"):
+                capture_states(MovingVideo(),[],0,1,Path(d),include_held_framebuffer=True)
 
 
 if __name__=="__main__":

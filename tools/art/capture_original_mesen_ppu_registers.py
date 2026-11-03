@@ -32,6 +32,7 @@ def select_source_state(raw:dict)->dict:
     for field in FIELD_NAMES:
         matches=[(key,value) for key,value in raw.items()
                  if isinstance(key,str) and len(key)<=200 and
+                 key.startswith("ppu.") and
                  key.replace("_","").lower().endswith("."+field.lower())]
         if len(matches)>1:
             raise ValueError("ambiguous source Mesen PPU register "+field)
@@ -40,6 +41,9 @@ def select_source_state(raw:dict)->dict:
             if type(value) not in (int,bool) or (type(value) is int and abs(value)>(1<<48)):
                 raise ValueError("non-physical Mesen serialized PPU register "+field)
             selected[field]={"source_serialized_name":key,"original_value":value}
+    required=("OamMode","OamBaseAddress","OamAddressOffset","scanline","frameCount")
+    if any(key not in selected for key in required):
+        raise ValueError("missing mandatory original PPU register identity")
     return selected
 
 

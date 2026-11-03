@@ -59,6 +59,11 @@ class OriginalTileLineageTests(unittest.TestCase):
         self.assertEqual(report["unique_exact_8x8_tile_payloads"],2)
         self.assertEqual(report["exact_nonblank_tile_payloads_reused_in_multiple_source_planes"],1)
         self.assertEqual(report["tile_payloads_observed_at_multiple_source_slots"],2)
+        self.assertEqual(report["nonblank_tile_payloads_observed_at_multiple_source_slots"],1)
+        move=report["reused_nonblank_tile_content_at_distinct_original_slots"]
+        self.assertEqual(len(move),1)
+        self.assertEqual(move[0]["original_source_slots_row_column"],[[0,0],[0,2]])
+        self.assertEqual(move[0]["distinct_original_index_planes"],2)
         self.assertEqual(report["distinct_original_pose_pairs_with_shared_nonblank_8x8_tiles"],1)
         self.assertFalse(report["original_1994_anatomical_part_correspondence_verified"])
 

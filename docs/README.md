@@ -4,6 +4,9 @@
 
 ## HD racer inverse-graphics and rig fitting
 
+**Current experiment/handoff (November 3):** [source-to-rig registration decision packet](HD-RACER-RECONSTRUCTION-DECISION-HANDOFF-20261103.md) reconciles the 40 authenticated live 2D racer observations, original tile-content holdouts, five-GLB unpaired negative result and red projection handedness. It prescribes a bounded camera/temporal registration test before geometry refitting, with source-role, compute, owner-likeness and stop rules. This is a research handoff, not another scheduling authority.
+
+
 The [source-registered inverse-graphics specification](HD-RACER-INVERSE-GRAPHICS-SPEC.md) inventories already-implemented original-sprite/pose tooling and the active part-addressable ART-4K GLB draft, defines camera/geometry/animation fitting and test contracts, and evaluates current neural reconstruction options. The [dependency-ordered execution plan](HD-RACER-INVERSE-GRAPHICS-PLAN.md) gives concrete evidence, refit, holdout and owner-likeness milestones. Neither document creates a competing work queue, replaces the [character-likeness authority](HD-RACER-CHARACTER-RECONSTRUCTION.md), or approves the unreviewed 3D blockout.
 
 ## Windows screenshot atlas and visual reference IDs

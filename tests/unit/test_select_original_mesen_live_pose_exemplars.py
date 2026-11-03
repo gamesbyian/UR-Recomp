@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 
 from tools.art.select_original_mesen_live_pose_exemplars import (
-    SCHEMA, TICKS, visible_mask, mask_iou, select_one_component,
+    SCHEMA, TICKS, visible_mask, visible_rgba, mask_iou, select_one_component,
 )
 
 
@@ -32,6 +32,28 @@ class SourceReviewExemplarTests(unittest.TestCase):
                 visible_mask(value, "blue")
         with self.assertRaisesRegex(ValueError, "identity"):
             visible_mask(source, "unknown")
+
+    def test_actual_source_rgb_pixels_reflect_without_recolouring(self):
+        rgba=bytearray(64*64*4)
+        rgba[4*(1*64+2):4*(1*64+2)+4]=bytes([74,181,0,255])
+        rgba[4*(2*64+8):4*(2*64+8)+4]=bytes([255,0,0,255])
+        blue=visible_rgba(bytes(rgba),"blue")
+        red=visible_rgba(bytes(rgba),"red")
+        self.assertEqual(blue,bytes(rgba))
+        self.assertEqual(red[4*(1*64+61):4*(1*64+61)+4],
+                         bytes([74,181,0,255]))
+        self.assertEqual(red[4*(2*64+55):4*(2*64+55)+4],
+                         bytes([255,0,0,255]))
+        self.assertEqual(visible_rgba(red,"red"),blue)
+        self.assertEqual(
+            bytes(1 if red[p+3] else 0 for p in range(0,len(red),4)),
+            visible_mask(mask(1*64+2,2*64+8),"red"))
+        for bad in (b"",bytes(4095*4),bytes([255,0,0,254])*(64*64)):
+            with self.subTest(bad=bad[:4]),self.assertRaisesRegex(
+                    ValueError,"original opaque/transparent"):
+                visible_rgba(bad,"red")
+        with self.assertRaisesRegex(ValueError,"original opaque/transparent"):
+            visible_rgba(blue,"yellow")
 
     def test_iou_uses_original_binary_source_only_and_rejects_empty(self):
         a = mask(0,1,2)

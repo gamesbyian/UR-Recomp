@@ -113,8 +113,8 @@ def decode_source_obj(oam_row:dict,vram:bytes,cgram:bytes,*,oam_mode:int,
 
 def p6_screen(source:bytes)->bytes:
     header=b"P6\n256 239\n255\n"
-    if not isinstance(source,bytes) or not source.startswith(header) or
-            len(source)!=len(header)+FRAME_SIZE[0]*FRAME_SIZE[1]*3:
+    if (not isinstance(source,bytes) or not source.startswith(header) or
+            len(source)!=len(header)+FRAME_SIZE[0]*FRAME_SIZE[1]*3):
         raise ValueError("exact original 256x239 P6 screen required")
     return source[len(header):]
 

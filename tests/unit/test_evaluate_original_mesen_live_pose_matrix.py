@@ -5,7 +5,8 @@ from pathlib import Path
 import unittest
 
 from tools.art.evaluate_original_mesen_live_pose_matrix import (
-    POSES, TICKS, verified_roles, assigned_role, silhouette_iou, summarize_rows,
+    POSES, TICKS, verified_roles, assigned_role, silhouette_iou,
+    mirror_source_horizontal, summarize_rows,
 )
 
 
@@ -25,6 +26,23 @@ class LiveTwentyUnpairedPoseTests(unittest.TestCase):
         corrupt["fit_original_index_plane_sha256"][0] = next(iter(strict))
         with self.assertRaisesRegex(ValueError, "leakage"):
             verified_roles(corrupt)
+
+    def test_source_red_horizontal_mirror_preserves_alpha_and_source_identity(self):
+        raw = bytearray(4096)
+        raw[5*64+3] = 1
+        raw[5*64+61] = 1
+        raw[6*64+2] = 1
+        raw = bytes(raw)
+        mirrored = mirror_source_horizontal(raw)
+        self.assertEqual(mirrored[5*64+60], 1)
+        self.assertEqual(mirrored[5*64+2], 1)
+        self.assertEqual(mirrored[6*64+61], 1)
+        self.assertEqual(mirror_source_horizontal(mirrored), raw)
+        self.assertNotEqual(mirrored, raw)
+        with self.assertRaisesRegex(ValueError, "binary"):
+            mirror_source_horizontal(raw[:-1])
+        with self.assertRaisesRegex(ValueError, "binary"):
+            mirror_source_horizontal(bytes([2]) + raw[1:])
 
     def test_binary_silhouette_score_rejects_nonbinary_and_empty(self):
         a = bytes([1, 0, 1, 0]) + bytes(4092)

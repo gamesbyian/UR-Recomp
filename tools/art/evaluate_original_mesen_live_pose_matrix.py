@@ -71,6 +71,17 @@ def assigned_role(index_sha: str, roles: tuple[set[str], set[str], set[str]]) ->
     return "unclassified_live_source"
 
 
+def mirror_source_horizontal(mask: bytes) -> bytes:
+    """Reorient the real red upper viewport's source 2D alpha as displayed.
+
+    The original held OAM plane SHA and source-fit/withheld identities remain
+    based on the *unreflected* actual 1994 memory, never this screen transform.
+    """
+    if not isinstance(mask, bytes) or len(mask) != 4096 or any(v not in (0,1) for v in mask):
+        raise ValueError("source sprite horizontal mirror requires binary 64x64")
+    return b"".join(mask[row*64:(row+1)*64][::-1] for row in range(64))
+
+
 def silhouette_iou(source: bytes, candidate: bytes) -> float:
     if (len(source) != 4096 or len(candidate) != 4096 or
             any(x not in (0, 1) for x in source) or
@@ -83,7 +94,10 @@ def silhouette_iou(source: bytes, candidate: bytes) -> float:
     return round(intersect / union, 8)
 
 
-def summarize_rows(rows: list[dict]) -> dict:
+def summarize_rows(rows: list[dict], *,
+                   scores_key: str = "unpaired_iou",
+                   winner_key: str = "unpaired_iou_winner",
+                   ties_key: str = "unpaired_iou_tied_candidates") -> dict:
     if (not isinstance(rows, list) or
             [(r.get("tick"), r.get("racer")) for r in rows] !=
             [(tick, racer) for tick in TICKS for racer in ("blue", "red")]):
@@ -91,7 +105,7 @@ def summarize_rows(rows: list[dict]) -> dict:
     counts = Counter()
     totals = {pose: 0.0 for pose in POSES}
     for row in rows:
-        scores = row.get("unpaired_iou")
+        scores = row.get(scores_key)
         if (not isinstance(scores, dict) or set(scores) != set(POSES) or
                 any(type(x) not in (float, int) or not math.isfinite(x) or
                     not 0 <= x <= 1 for x in scores.values())):
@@ -100,8 +114,8 @@ def summarize_rows(rows: list[dict]) -> dict:
         highest = [p for p in POSES if scores[p] == top]
         ranked = highest[0] if len(highest) == 1 else None
         tied = highest if len(highest) > 1 else []
-        if (row.get("unpaired_iou_winner") != ranked or
-                row.get("unpaired_iou_tied_candidates") != tied):
+        if (row.get(winner_key) != ranked or
+                row.get(ties_key) != tied):
             raise ValueError("wrong unpaired pose rank or tie classification")
         if row.get("frozen_source_role") not in (
                 "fit", "withheld", "strict_withheld", "unclassified_live_source"):
@@ -162,14 +176,28 @@ def compute(source_zip: Path, receipt_file: Path, site: Path,
                 if obj["size"] != 64 or obj["opaque_count"] != item[racer]["opaque"]:
                     raise ValueError("authentic original OBJ content changed")
                 anchor = original_lowest_alpha_anchor(obj["alpha_mask"])
-                scores = {}
+                # Source-held and completed-screen orientations answer
+                # distinct questions. The actual original red upper raster
+                # appears reflected relative to held slot 97 OAM hflip=false.
+                # Do NOT optimize mirror choice by maximizing model IoU.
+                screen_mask = (mirror_source_horizontal(obj["alpha_mask"])
+                               if racer == "red" else obj["alpha_mask"])
+                screen_anchor = original_lowest_alpha_anchor(screen_mask)
+                scores, screen_scores = {}, {}
                 for pose in POSES:
                     model_mask = translated_4x_source_mask(projected[pose], anchor)
+                    screen_model_mask = translated_4x_source_mask(projected[pose], screen_anchor)
                     scores[pose] = silhouette_iou(obj["alpha_mask"], model_mask)
-                top = max(scores.values())
-                highest = [p for p in POSES if scores[p] == top]
-                winner = highest[0] if len(highest) == 1 else None
-                tied = highest if len(highest) > 1 else []
+                    screen_scores[pose] = silhouette_iou(screen_mask, screen_model_mask)
+                def winners(values):
+                    top = max(values.values())
+                    highest = [p for p in POSES if values[p] == top]
+                    return (highest[0] if len(highest) == 1 else None,
+                            highest if len(highest) > 1 else [])
+                winner, tied = winners(scores)
+                screen_winner, screen_tied = winners(screen_scores)
+                if racer == "blue" and (scores != screen_scores or anchor != screen_anchor):
+                    raise ValueError("unreflected blue original display source moved")
                 index_sha = sha(obj["plane"])
                 rows.append({
                     "tick": tick, "racer": racer, "original_OAM_slot": slot,
@@ -178,9 +206,13 @@ def compute(source_zip: Path, receipt_file: Path, site: Path,
                     "original_screen_xy": item[racer]["screen_xy"],
                     "original_screen_mirror_from_held": racer == "red",
                     "original_lowest_alpha_anchor_x2_y2": list(anchor),
+                    "completed_screen_facing_lowest_alpha_anchor_x2_y2": list(screen_anchor),
                     "frozen_source_role": assigned_role(index_sha, roles),
                     "unpaired_iou": scores, "unpaired_iou_winner": winner,
                     "unpaired_iou_tied_candidates": tied,
+                    "screen_oriented_unpaired_iou": screen_scores,
+                    "screen_oriented_iou_winner": screen_winner,
+                    "screen_oriented_iou_tied_candidates": screen_tied,
                     "original_1994_pose_identity_known": False,
                 })
     return {
@@ -195,7 +227,13 @@ def compute(source_zip: Path, receipt_file: Path, site: Path,
         "authentic_1994_3D_model_or_camera_recovered": False,
         "source_to_experimental_GLb_pose_mapping_verified": False,
         "owner_likeness_approved": False, "shipping_art_approved": False,
-        "summary": summarize_rows(rows), "rows": rows,
+        "summary": summarize_rows(rows),
+        "screen_oriented_summary": summarize_rows(
+            rows, scores_key="screen_oriented_unpaired_iou",
+            winner_key="screen_oriented_iou_winner",
+            ties_key="screen_oriented_iou_tied_candidates"),
+        "source_held_orientation_and_original_completed_screen_orientation_distinguished": True,
+        "rows": rows,
     }
 
 
@@ -215,7 +253,9 @@ def main():
     publish_text_once(args.out, json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps({
         "original_source_2D_count": 40,
-        "diagnostic_unpaired_best_pose_counts": result["summary"]["unpaired_iou_winner_counts"],
+        "held_source_unpaired_winners": result["summary"]["unpaired_iou_winner_counts"],
+        "completed_screen_oriented_unpaired_winners":
+            result["screen_oriented_summary"]["unpaired_iou_winner_counts"],
         "original_source_3D_accepted": False,
     }, sort_keys=True))
 

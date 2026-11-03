@@ -6,7 +6,8 @@ import unittest
 
 from tools.art.capture_original_mesen_ppu_raw import (
     REGIONS, SCHEMA, capture_states, read_region, valid_bytes,
-    validate_snapshot_files, inspect_held_ppm,
+    validate_snapshot_files, inspect_held_ppm, parse_capture_ticks,
+    validate_capture_ticks,
 )
 
 
@@ -56,6 +57,79 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             self.assertEqual(len(chunks),2*(1+64+1))
             self.assertTrue(all(x[1]["length"]<=1024 for x in chunks))
             self.assertEqual(len([x for x in fake.events if x[0]=="run.step_frames"]),5)
+
+    def test_sparse_source_frames_share_one_exact_stepped_replay_and_manifest(self):
+        fake=FakeMesen()
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            record=capture_states(
+                fake,[],0,1,root,source_capture_ticks=(2,5,9),
+                source_snes_frame_skipping_disabled_requested=True)
+            self.assertEqual(record["source_requested_capture_ticks"],[2,5,9])
+            self.assertEqual([f["emulator_bridge_frame"] for f in record["frames"]],
+                             [2,5,9])
+            self.assertEqual([f["replayed_controller_step_index"] for f in record["frames"]],
+                             [1,4,8])
+            self.assertEqual(len([a for a in fake.events
+                                  if a[0]=="run.step_frames"]),9)
+            self.assertEqual(len([a for a in fake.events
+                                  if a[0]=="cpu.read_memory"]),3*(1+64+1))
+            validate_snapshot_files(root,record)
+            changed=copy.deepcopy(record)
+            changed["source_requested_capture_ticks"]=[2,5,8]
+            with self.assertRaisesRegex(ValueError,"sparse"):
+                validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(record)
+            changed.pop("source_requested_capture_ticks")
+            with self.assertRaisesRegex(ValueError,"sequence"):
+                validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(record)
+            changed["source_requested_capture_ticks"]=[2,5,5]
+            with self.assertRaisesRegex(ValueError,"sparse"):
+                validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(record)
+            changed["frames"][1]["replayed_controller_step_index"]=2
+            with self.assertRaisesRegex(ValueError,"sequence"):
+                validate_snapshot_files(root,changed)
+
+    def test_sparse_tick_parser_cannot_accept_duplicate_unsorted_or_unbounded(self):
+        self.assertEqual(parse_capture_ticks("1,10,2500"),(1,10,2500))
+        self.assertEqual(validate_capture_ticks((1,10,2500)),(1,10,2500))
+        for raw in ("",",","0,3","1,1","2,1","1,2501",
+                    "-1,2","1.5,2","1, 2","1,,2",
+                    ",".join(str(i) for i in range(1,26))):
+            with self.subTest(value=raw),self.assertRaises(ValueError):
+                parse_capture_ticks(raw)
+        for ticks in ([],(0,),(1,1),(2,1),(1,True),(1,2.0),
+                      (2501,),tuple(range(1,26))):
+            with self.subTest(value=ticks),self.assertRaisesRegex(ValueError,"sparse"):
+                validate_capture_ticks(ticks)
+
+    def test_sparse_selection_rejects_empty_or_stale_output_without_work(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            fake=FakeMesen()
+            with self.assertRaisesRegex(ValueError,"sparse"):
+                capture_states(fake,[],0,1,root,source_capture_ticks=())
+            self.assertEqual(fake.events,[])
+            root.joinpath("already-here").write_text("do not overwrite")
+            with self.assertRaisesRegex(ValueError,"fresh empty"):
+                capture_states(fake,[],0,1,root,source_capture_ticks=(2,4))
+
+
+    def test_manual_original_actions_workflow_accepts_sparse_without_default_drift(self):
+        workflow=(Path(__file__).resolve().parents[2] /
+                  ".github/workflows/art4k-live-original-mesen-ppu-raw.yml").read_text()
+        self.assertIn("      capture_ticks:", workflow)
+        self.assertIn('        default: ""', workflow)
+        self.assertIn("CAPTURE_TICKS: $" + "{{ inputs.capture_ticks || '' }}", workflow)
+        self.assertIn('selection=(--capture-ticks "$CAPTURE_TICKS")', workflow)
+        self.assertIn('selection=(--advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES")', workflow)
+        self.assertIn('parse_capture_ticks(os.environ["CAPTURE_TICKS"])', workflow)
+        self.assertIn('assert report["source_requested_capture_ticks"]==desired', workflow)
+        self.assertIn('if not sparse and (advance,count)==(1218,2):', workflow)
+        self.assertIn('assert "source_requested_capture_ticks" not in report', workflow)
+        self.assertIn('MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"', workflow)
 
     def test_byte_span_types_and_length_are_enforced(self):
         good={"memoryType":"snesSpriteRam","address":0,"length":3,"bytes":[0,12,255]}

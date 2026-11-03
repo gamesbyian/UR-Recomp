@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 
 from tools.art.capture_original_mesen_ppu_raw import (
-    capture_states, validate_snapshot_files, sha, ROM_SHA, MESEN_REVISION,
+    capture_states, validate_snapshot_files, parse_capture_ticks, sha, ROM_SHA, MESEN_REVISION,
 )
 from tools.capture_racer_composition_mesen import load_mesen_class
 from tools.controller_input import load_controller_runs
@@ -50,15 +50,16 @@ def select_source_state(raw:dict)->dict:
 
 
 class RegisterSpy:
-    def __init__(self,original,advance):
+    def __init__(self,original,advance,source_capture_ticks=None):
         self.original=original
         self.advance=advance
+        self.requested=set(source_capture_ticks) if source_capture_ticks is not None else None
         self.holds=[]
     def tool(self,name,**kwargs):
         reply=self.original.tool(name,**kwargs)
         if name=="run.step_frames":
             frame=reply.get("status",{}).get("frame")
-            if type(frame) is int and frame>self.advance:
+            if type(frame) is int and (frame in self.requested if self.requested is not None else frame>self.advance):
                 serial=self.original.tool("console.state")
                 selected=select_source_state(serial)
                 if self.original.tool("run.status").get("frame")!=frame:
@@ -69,11 +70,13 @@ class RegisterSpy:
         return reply
 
 
-def capture_registers(mesen,runs,advance,count,out,*,include_held_framebuffer=False):
-    spy=RegisterSpy(mesen,advance)
+def capture_registers(mesen,runs,advance,count,out,*,include_held_framebuffer=False,
+                      source_capture_ticks:tuple[int,...]|None=None):
+    spy=RegisterSpy(mesen,advance,source_capture_ticks)
     evidence=capture_states(spy,runs,advance,count,out,
                             include_held_framebuffer=include_held_framebuffer,
-                            source_snes_frame_skipping_disabled_requested=True)
+                            source_snes_frame_skipping_disabled_requested=True,
+                            source_capture_ticks=source_capture_ticks)
     validate_snapshot_files(out,evidence)
     if [x["original_bridge_tick"] for x in spy.holds]!=[x["emulator_bridge_frame"] for x in evidence["frames"]]:
         raise ValueError("source serialized PPU register frame mismatch")
@@ -104,10 +107,19 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     for arg in ("rom","input-file","mesen-for-ai-repo","mesen-executable","out-dir"):
         p.add_argument("--"+arg,required=True,type=Path)
-    p.add_argument("--advance-frames",type=int,default=1218)
-    p.add_argument("--capture-frames",type=int,default=2)
+    p.add_argument("--advance-frames",type=int)
+    p.add_argument("--capture-frames",type=int)
+    p.add_argument("--capture-ticks",type=str,help="1..24 increasing decimal ticks in one replay")
     p.add_argument("--include-held-framebuffer",action="store_true")
     args=p.parse_args()
+    if args.capture_ticks is not None and (args.advance_frames is not None or args.capture_frames is not None):
+        p.error("--capture-ticks cannot be combined with contiguous capture options")
+    try:
+        sparse_ticks=parse_capture_ticks(args.capture_ticks) if args.capture_ticks is not None else None
+    except ValueError as exc:
+        p.error(str(exc))
+    advance=1218 if args.advance_frames is None else args.advance_frames
+    count=2 if args.capture_frames is None else args.capture_frames
     if sha(args.rom.read_bytes())!=ROM_SHA or not args.mesen_executable.is_file():
         p.error("source ROM/binary not verified")
     if os.environ.get("MESEN_SNES_DISABLE_FRAME_SKIPPING")!="1":
@@ -117,8 +129,9 @@ def main():
     with cls(repo=str(args.mesen_for_ai_repo.resolve())) as mesen:
         mesen.load_rom(str(args.rom.resolve()),timeout=180)
         record=capture_registers(mesen,load_controller_runs(args.input_file),
-                                 args.advance_frames,args.capture_frames,args.out_dir,
-                                 include_held_framebuffer=args.include_held_framebuffer)
+                                 advance,count,args.out_dir,
+                                 include_held_framebuffer=args.include_held_framebuffer,
+                                 source_capture_ticks=sparse_ticks)
     record["original_input_replay_sha256"]=sha(args.input_file.read_bytes())
     record["emulator_executable_sha256"]=sha(args.mesen_executable.read_bytes())
     publish_text_once(args.out_dir/"selected-original-ppu-registers.json",

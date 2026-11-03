@@ -104,6 +104,36 @@ class OriginalPpuSerializedTests(unittest.TestCase):
             validate_snapshot_files(root,manifest)
 
 
+    def test_sparse_registers_raw_and_video_share_selected_real_frame_ticks(self):
+        import json
+        class VideoMesen(FakeMesen):
+            def tool(self,name,**args):
+                if name=="video.export_frame":
+                    target=Path(args["path"])
+                    target.write_bytes(b"P6\n2 1\n255\n"+bytes([self.frame,12,34])*2)
+                    return {"path":str(target),"format":"P6",
+                            "width":2,"height":1,"pixels":2}
+                return super().tool(name,**args)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            record=capture_registers(
+                VideoMesen(),[],0,1,root,
+                include_held_framebuffer=True,source_capture_ticks=(2,5,9))
+            self.assertEqual(
+                [f["original_bridge_tick"] for f in
+                 record["actual_original_emulator_frame_states"]],[2,5,9])
+            self.assertEqual(
+                [f["tick"] for f in record["original_emulator_frame_sources"]],[2,5,9])
+            self.assertEqual(
+                [f["exact_source_PPU_register_fields"]["frameCount"]["original_value"]
+                 for f in record["actual_original_emulator_frame_states"]],[2,5,9])
+            manifest=json.loads((root/"original-raw-ppu-and-video-manifest.json").read_text())
+            self.assertEqual(manifest["source_requested_capture_ticks"],[2,5,9])
+            from tools.art.capture_original_mesen_ppu_raw import validate_snapshot_files
+            validate_snapshot_files(root,manifest)
+            self.assertFalse(record["source_PPU_screen_phase_correspondence_verified"])
+            self.assertFalse(record["owner_likeness_approved"])
+
     def test_actual_postcountdown_five_frame_source_is_bounded_not_3D_accepted(self):
         import json
         root=Path(__file__).resolve().parents[2]

@@ -9,10 +9,15 @@ on:
         default: 1218
         required: true
       capture_frames:
-        description: "Consecutive source frame captures, 1-5"
+        description: "Consecutive source frame captures, 1-5 (unless capture_ticks set)"
         type: number
         default: 2
         required: true
+      capture_ticks:
+        description: "Optional ordered comma-separated original bridge ticks (1..24 distinct, <=2500); overrides contiguous inputs"
+        type: string
+        default: ""
+        required: false
   pull_request:
     paths:
       - 'tools/art/capture_original_mesen_ppu_raw.py'
@@ -96,37 +101,60 @@ jobs:
           cp -a "$PUBLISH/." "$RUNNER_TEMP/mesence-cache/"
 
 
-      - name: Capture consecutive original MesenCE PPU RAM frames
+      - name: Capture selected or consecutive original MesenCE PPU RAM frames
         env:
           MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
+          CAPTURE_TICKS: ${{ inputs.capture_ticks || '' }}
         shell: bash
         run: |
           set -euo pipefail
           MESEN_BIN="$RUNNER_TEMP/mesence-cache/Mesen"
           ADVANCE_FRAMES="${{ inputs.advance_frames || 1218 }}"
           CAPTURE_FRAMES="${{ inputs.capture_frames || 2 }}"
-          [[ "$ADVANCE_FRAMES" =~ ^[0-9]+$ ]] && [[ "$CAPTURE_FRAMES" =~ ^[0-9]+$ ]]
-          (( 1 <= ADVANCE_FRAMES && ADVANCE_FRAMES <= 2500 ))
-          (( 1 <= CAPTURE_FRAMES && CAPTURE_FRAMES <= 5 ))
           export ADVANCE_FRAMES CAPTURE_FRAMES
+          if [[ -n "$CAPTURE_TICKS" ]]; then
+            # A manual sparse capture executes the whole original input replay
+            # once, but snapshots only the requested bounded bridge ticks.
+            python3 - <<'PYSPARSE'
+          import os
+          from tools.art.capture_original_mesen_ppu_raw import parse_capture_ticks
+          ticks=parse_capture_ticks(os.environ["CAPTURE_TICKS"])
+          print("SOURCE_ORIGINAL_SPARSE_TICKS", list(ticks))
+          PYSPARSE
+            selection=(--capture-ticks "$CAPTURE_TICKS")
+          else
+            [[ "$ADVANCE_FRAMES" =~ ^[0-9]+$ ]] && [[ "$CAPTURE_FRAMES" =~ ^[0-9]+$ ]]
+            (( 1 <= ADVANCE_FRAMES && ADVANCE_FRAMES <= 2500 ))
+            (( 1 <= CAPTURE_FRAMES && CAPTURE_FRAMES <= 5 ))
+            selection=(--advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES")
+          fi
           timeout 300s xvfb-run -a python3 -m tools.art.capture_original_mesen_ppu_raw \
             --rom reference/roms/retail/Uniracers_USA.sfc \
             --input-file tests/input/two-player-first-race.input \
             --mesen-for-ai-repo third_party/src/mesen-for-ai \
             --mesen-executable "$MESEN_BIN" \
-            --advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES" --include-held-framebuffer \
+            "${selection[@]}" --include-held-framebuffer \
             --out-dir "$RUNNER_TEMP/art4k-actual-ppu-raw"
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          from tools.art.capture_original_mesen_ppu_raw import validate_snapshot_files
+          from tools.art.capture_original_mesen_ppu_raw import validate_snapshot_files, parse_capture_ticks
           root=Path(os.environ["RUNNER_TEMP"])/"art4k-actual-ppu-raw"
           report=json.loads((root/"manifest.json").read_text())
           validate_snapshot_files(root,report)
           advance=int(os.environ["ADVANCE_FRAMES"])
           count=int(os.environ["CAPTURE_FRAMES"])
-          assert len(report["frames"])==count
-          assert [f["emulator_bridge_frame"] for f in report["frames"]]==list(range(advance+1,advance+count+1))
+          actual=[f["emulator_bridge_frame"] for f in report["frames"]]
+          sparse=os.environ.get("CAPTURE_TICKS","")
+          if sparse:
+              desired=list(parse_capture_ticks(sparse))
+              assert report["source_requested_capture_ticks"]==desired
+              assert actual==desired
+              print("SOURCE_ORIGINAL_SPARSE_CAPTURE_SHA_BOUND",desired)
+          else:
+              assert len(report["frames"])==count
+              assert actual==list(range(advance+1,advance+count+1))
+              assert "source_requested_capture_ticks" not in report
           assert not report["live_original_per_player_64x64_alpha_composition_verified"]
           assert not report["source_original_3d_camera_or_articulated_rig_verified"]
           assert report["original_held_framebuffer_P6_exported"] is True
@@ -142,16 +170,16 @@ jobs:
           assert report["source_held_display_RGB_reproducibility_across_runs_independently_verified"] is False
           original_screen_shas={f["emulator_bridge_frame"]:f["original_emulator_held_display_P6"]["sha256"]
                                 for f in report["frames"]}
-          if (advance,count)==(1218,2):
+          if not sparse and (advance,count)==(1218,2):
               assert original_screen_shas=={
                   1219:"3db1ead6ef6da21dc5c085f38dbd3fe8c17e00d4eba7900ce1074beaa9358cfb",
                   1220:"2fdc8dbdcf55d971209b09922802f81d0c31ad75af90ba0c5cf3137d9e1150d3",
               }, original_screen_shas
           else:
-              assert len(original_screen_shas)==count
+              assert len(original_screen_shas)==len(actual)
               print("EXPLORATORY_ORIGINAL_FRAME_WINDOW_NOT_SOURCE_ART_APPROVED",
-                    advance,count,original_screen_shas)
-          print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",advance,count,"held_source_screen_with_no_OBJ_or_3D_claim")
+                    actual,original_screen_shas)
+          print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",actual,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
 
       - name: Upload SHA-bound original emulator PPU raw RAM states

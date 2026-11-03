@@ -182,10 +182,17 @@ def prepare(framework: Path, cache_root: Path, github_env: Path,
             built = framework / "recompiler-rs/target/release" / BINARY
             binary = publish(cache_root, entry, built, fingerprint)
             status = "miss_built"
-        # Set the downstream native analyzer only after byte verification.
-        # The emitter also hashes the binary and generator sources itself.
+        # The emitter hashes the analyzer's *path as well as its bytes*.
+        # Restore cached bytes to the canonical freshly staged location before
+        # generating C, so a warm run has exactly the cold-run generator identity.
+        canonical = framework / "recompiler-rs/target/release" / BINARY
+        require_plain_parents(canonical)
+        canonical.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(binary, canonical)
+        if digest_file(canonical) != digest_file(binary):
+            raise ValueError("restored analyzer bytes differ from validated cache")
         with github_env.open("a", encoding="utf-8") as out:
-            out.write("SNESRECOMP_NATIVE_ANALYZER=" + str(binary.absolute()) + "\n")
+            out.write("SNESRECOMP_NATIVE_ANALYZER=" + str(canonical.absolute()) + "\n")
         return status
     except (OSError, ValueError, TypeError, subprocess.SubprocessError):
         # Never replace a source build with an unverifiable binary.

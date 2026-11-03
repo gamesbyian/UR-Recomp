@@ -46,9 +46,12 @@ class NativeAnalyzerCacheTests(unittest.TestCase):
 
     def test_repeat_run_uses_verified_binary_without_rebuild(self):
         self.assertEqual(self.prepare(), "miss_built")
+        canonical = self.crate / "target/release" / cache.BINARY
+        canonical.unlink()  # Simulate freshly staged framework on the next HP job.
         self.assertEqual(self.prepare(), "hit")
         self.assertEqual(self.builds, 1)
-        path = self.root / cache.cache_key(self.fixture) / cache.BINARY
+        self.assertEqual(canonical.read_bytes(), b"MZ" + b"A" * 2048)
+        path = canonical
         self.assertEqual(self.envfile.read_text().splitlines(), [
             f"SNESRECOMP_NATIVE_ANALYZER={path.absolute()}",
             f"SNESRECOMP_NATIVE_ANALYZER={path.absolute()}"])

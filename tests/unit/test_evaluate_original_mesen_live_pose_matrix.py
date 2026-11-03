@@ -44,11 +44,23 @@ class LiveTwentyUnpairedPoseTests(unittest.TestCase):
                 scores["upright"] = 0.4 if racer == "blue" else 0.3
                 rows.append({"tick": tick, "racer": racer,
                              "frozen_source_role": "unclassified_live_source",
-                             "unpaired_iou": scores, "unpaired_iou_winner": "upright"})
+                             "unpaired_iou": scores, "unpaired_iou_winner": "upright",
+                             "unpaired_iou_tied_candidates": []})
         result = summarize_rows(rows)
         self.assertEqual(result["original_2D_observations"], 40)
         self.assertEqual(result["unpaired_iou_winner_counts"]["upright"], 40)
         self.assertFalse(result["authentic_source_1994_pose_labels_verified"])
+        tie = copy.deepcopy(rows)
+        tie[0]["unpaired_iou"]["bank"] = tie[0]["unpaired_iou"]["upright"]
+        tie[0]["unpaired_iou_winner"] = None
+        tie[0]["unpaired_iou_tied_candidates"] = ["upright", "bank"]
+        summary = summarize_rows(tie)
+        self.assertEqual(summary["ambiguous_exact_iou_tie_count"], 1)
+        self.assertEqual(summary["unpaired_iou_winner_counts"]["upright"], 39)
+        tampered = copy.deepcopy(tie)
+        tampered[0]["unpaired_iou_winner"] = "upright"
+        with self.assertRaisesRegex(ValueError, "tie"):
+            summarize_rows(tampered)
         tampered = copy.deepcopy(rows)
         tampered[1]["unpaired_iou_winner"] = "bank"
         with self.assertRaisesRegex(ValueError, "rank"):

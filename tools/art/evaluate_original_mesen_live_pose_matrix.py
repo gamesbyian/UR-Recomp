@@ -96,18 +96,23 @@ def summarize_rows(rows: list[dict]) -> dict:
                 any(type(x) not in (float, int) or not math.isfinite(x) or
                     not 0 <= x <= 1 for x in scores.values())):
             raise ValueError("invalid real GLB silhouette scores")
-        ranked = sorted(POSES, key=lambda p: (-scores[p], p))[0]
-        if row.get("unpaired_iou_winner") != ranked:
-            raise ValueError("wrong unpaired pose rank")
+        top = max(scores.values())
+        highest = [p for p in POSES if scores[p] == top]
+        ranked = highest[0] if len(highest) == 1 else None
+        tied = highest if len(highest) > 1 else []
+        if (row.get("unpaired_iou_winner") != ranked or
+                row.get("unpaired_iou_tied_candidates") != tied):
+            raise ValueError("wrong unpaired pose rank or tie classification")
         if row.get("frozen_source_role") not in (
                 "fit", "withheld", "strict_withheld", "unclassified_live_source"):
             raise ValueError("invalid precommitted source role")
-        counts[ranked] += 1
+        counts[ranked if ranked is not None else "ambiguous_exact_tie"] += 1
         for p in POSES:
             totals[p] += scores[p]
     return {
         "original_2D_observations": 40,
         "unpaired_iou_winner_counts": {p: counts[p] for p in POSES},
+        "ambiguous_exact_iou_tie_count": counts["ambiguous_exact_tie"],
         "mean_iou_per_real_GLb_pose": {p: round(totals[p] / 40, 8) for p in POSES},
         "authentic_source_1994_pose_labels_verified": False,
     }
@@ -161,7 +166,10 @@ def compute(source_zip: Path, receipt_file: Path, site: Path,
                 for pose in POSES:
                     model_mask = translated_4x_source_mask(projected[pose], anchor)
                     scores[pose] = silhouette_iou(obj["alpha_mask"], model_mask)
-                winner = sorted(POSES, key=lambda p: (-scores[p], p))[0]
+                top = max(scores.values())
+                highest = [p for p in POSES if scores[p] == top]
+                winner = highest[0] if len(highest) == 1 else None
+                tied = highest if len(highest) > 1 else []
                 index_sha = sha(obj["plane"])
                 rows.append({
                     "tick": tick, "racer": racer, "original_OAM_slot": slot,
@@ -172,6 +180,7 @@ def compute(source_zip: Path, receipt_file: Path, site: Path,
                     "original_lowest_alpha_anchor_x2_y2": list(anchor),
                     "frozen_source_role": assigned_role(index_sha, roles),
                     "unpaired_iou": scores, "unpaired_iou_winner": winner,
+                    "unpaired_iou_tied_candidates": tied,
                     "original_1994_pose_identity_known": False,
                 })
     return {

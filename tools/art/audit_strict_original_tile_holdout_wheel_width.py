@@ -28,7 +28,7 @@ def valid_sha(s):
 
 
 def git_blob_sha(raw:bytes)->str:
-    return hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\\0"+raw).hexdigest()
+    return hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest()
 
 
 def read_frozen_file(path:Path,blob:str)->dict:
@@ -190,7 +190,7 @@ def main():
     wheel=read_frozen_file(root/"analysis/data/racer-wheel-x-genuine-rom-holdout-20261101.json",WHEEL_BLOB)
     lookup=read_frozen_file(root/"analysis/data/racer-original-index-lookup-20261102.json",LOOKUP_BLOB)
     frozen=read_frozen_file(root/"analysis/data/racer-original-strict-tile-disjoint-holdout-20261103.json",FROZEN_BLOB)
-    raw=json.dumps(audited_retrospective(wheel,lookup,frozen),indent=2,sort_keys=True)+"\\n"
+    raw=json.dumps(audited_retrospective(wheel,lookup,frozen),indent=2,sort_keys=True)+"\n"
     if args.out:
         if args.out.resolve().is_relative_to(root):
             raise ValueError("do not overwrite frozen original input repository")

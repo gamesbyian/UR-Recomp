@@ -30,3 +30,21 @@ python3 -m tools.art.capture_original_mesen_ppu_registers \
 ```
 
 **Next source discriminator:** collect time/scanline-indexed original OAM writes to PPU OBJ registers (or derive a source-verified finished-frame OAM buffer), then match one held source sprite raster to a particular **completed** original screen scanout for each of the two racer viewports. Preserve the exact already-verified original 2D 323/327 match as positive control. Only after source-to-screen temporal correspondence is stable should the existing part-addressable GLB (#2832), its pose viewer and the strict source-family withheld silhouettes be used to search source **3D** pose/camera hypotheses. The original 1994 mesh, rig pivots, skeleton, depth and shader remain unknown, as does owner likeness approval.
+
+## Subsequent archived-data discriminator, no additional ROM run
+
+[ART-4K diagnostic #3080](https://github.com/gamesbyian/UR-Recomp/pull/3080) reuses the real authenticated original source ZIP above without rebuilding Mesen or changing the game. The existing exact-colour 2D screen matcher inherited **countdown-only screen-origin bounds X=76..170**, excluding the red racer's post-countdown candidate. An explicit wide diagnostic X=0..192 preserves the original default for prior 1219 controls and changes no source video or model assets. All five held original frames yield:
+
+| Mesen tick | Blue opaque matching | Red opaque matching, widened | Red with historical X76..170 |
+| --- | ---: | ---: | ---: |
+| 1601 | 281/316 | 132/311 | 0 |
+| 1602 | 277/316 | 134/319 | 0 |
+| 1603 | 281/320 | 134/316 | 0 |
+| 1604 | 282/323 | 128/314 | 0 |
+| 1605 | 281/317 | 132/318 | 0 |
+
+The wide red source candidate is best at completed-screen **(34,48)**, while held OAM says **X48/Y48**. The blue best origin follows **X82..86/Y158**. Actual underlying raw PPU and P6 source SHA identities are unchanged; the numeric input and negative acceptance gates are frozen in [the authenticated source-only X-window receipt](../../analysis/data/racer-original-postcountdown-horizontal-window-real-20261103.json).
+
+**Discriminative-colour control is essential:** blue's chromatic source pixels match **71/71,73/74,61/61,69/69,62/62**, but the red held source raster's strongly red pixels match **6/59,8/65,12/66,8/65,6/61**. The red 128..134 opaque matches are largely shared grays, while the opposite viewport also yields ~106..116 such grayscale-rich matches. This is insufficient evidence of correct original red source 2D pose registration. A separate ±8px bounded five-source × five-screen comparison finds that blue favors its corresponding original screen tick each time; red stays near 127..135 matches across target ticks, with no consistent uniform one-frame phase shift.
+
+The original completed frames visibly contain text overlays and track graphics intersecting the racer crop. This **does not independently prove** which source pixels are occluded, absent at fetch time, altered by brightness/colour math, or overwritten by a higher-priority layer. The next real source experiment should therefore capture original **upper-viewport effective OBJ tile fetch and final BG/OBJ composition winner**, with original blue and 1219 exact 2D positives as controls; see [bounded source instrumentation issue #3078](https://github.com/gamesbyian/UR-Recomp/issues/3078). Do not use these partial 2D pixel residuals to refit the experimental GLB, certify the 1994 3D camera/skeleton, or award owner likeness approval.

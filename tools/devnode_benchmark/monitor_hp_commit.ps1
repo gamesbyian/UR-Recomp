@@ -247,10 +247,45 @@ if ($Mode -eq 'Stop') {
         } else {
             Write-Output 'HP_MONITOR_SUMMARY no_complete_samples'
         }
-        if ($env:RUNNER_TEMP) {
-            Copy-Item -LiteralPath $csv -Destination (Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv') -Force
-        }
     } catch {
         Write-Output 'HP_MONITOR_SUMMARY unavailable_but_original_retained'
+    }
+    # Export is independent of optional summary parsing: a malformed CPU
+    # counter must not suppress the intact source CSV. The sampler can hold
+    # the file briefly after the stop marker; retry the *copy* only, bounded.
+    # Stage then rename so a failed copy never masquerades as an uploaded CSV.
+    if ($env:RUNNER_TEMP) {
+        $export = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv'
+        $partial = Join-Path $env:RUNNER_TEMP 'hp-commit-pressure.csv.partial'
+        $exported = $false
+        foreach ($attempt in 1..3) {
+            try {
+                if (Test-Path -LiteralPath $export) {
+                    throw 'refuse_existing_export'
+                }
+                Copy-Item -LiteralPath $csv -Destination $partial -ErrorAction Stop
+                $header = [IO.File]::ReadLines($partial) | Select-Object -First 1
+                if ($header -ne 'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors,cpu_pct_window_avg') {
+                    throw 'unrecognized_monitor_csv'
+                }
+                Move-Item -LiteralPath $partial -Destination $export -ErrorAction Stop
+                $exported = $true
+                break
+            } catch {
+                # No untrusted error strings, local paths or personal process
+                # details in logs; the exact original remains on the HP.
+                Remove-Item -LiteralPath $partial -ErrorAction SilentlyContinue
+                if ($attempt -lt 3) {
+                    Start-Sleep -Milliseconds 250
+                }
+            }
+        }
+        if ($exported) {
+            Write-Output ('HP_MONITOR_EXPORT=passed attempts={0}' -f $attempt)
+        } else {
+            Write-Output 'HP_MONITOR_EXPORT=unavailable_original_retained'
+        }
+    } else {
+        Write-Output 'HP_MONITOR_EXPORT=unavailable_missing_runner_temp'
     }
 }

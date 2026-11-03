@@ -48,5 +48,18 @@
   "original_3d_camera_or_rig_recovered": false,
   "original_to_experimental_2026_GLb_pose_registered": false,
   "owner_likeness_approved": false,
-  "note": "Two exact source Mesen held screen buffers are identical while VRAM and CGRAM changed. A buffer is not a provenance proof of which scanline used a given OAM/VRAM/CGRAM state. Source game screen has multiple viewports; a single held OAM snapshot must not be used as the final PPU sprite ownership of both."
+  "note": "Two exact source Mesen held screen buffers are identical while VRAM and CGRAM changed. A buffer is not a provenance proof of which scanline used a given OAM/VRAM/CGRAM state. Source game screen has multiple viewports; a single held OAM snapshot must not be used as the final PPU sprite ownership of both.",
+  "separate_independent_repeatability_cross_check": {
+    "source_original_emulator_second_run": 41566836578,
+    "frozen_discrepancy_file": "analysis/data/racer-original-mesen-screen-repeatability-discrepancy-20261103.json",
+    "original_raw_OAM_VRAM_CGRAM_sha_at_both_ticks_same_across_runs": true,
+    "original_exported_RGB_same_at_source_tick_1219_across_runs": false,
+    "original_exported_RGB_same_at_source_tick_1220_across_runs": false,
+    "source_held_screen_is_validated_repeatable_PPU_raster": false,
+    "cross_run_screen_pixels_different_by_tick": {
+      "1219": 10258,
+      "1220": 22776
+    },
+    "interpretation": "The zero changed-pixel count above applies only to this first original emulator run. The second exact-ROM/executable/replay/raw-PPU-matched run contradicts it; do not generalize the first run as evidence of deterministic original displayed source pixel registration."
+  }
 }

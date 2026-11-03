@@ -120,10 +120,24 @@ def p6_screen(source:bytes)->bytes:
     return source[len(header):]
 
 
-def best_opaque_matches(obj:dict,rgb:bytes,*,upper:bool)->dict:
+def best_opaque_matches(obj:dict,rgb:bytes,*,upper:bool,
+                        horizontal_origin_bounds:tuple[int,int]=(76,170))->dict:
+    """Match opaque source colours, with explicit inclusive X-origin bounds.
+
+    The historical countdown proof keeps its original X=76..170 default.
+    Post-countdown sprites may move outside it; widening this search is a
+    diagnostic only and cannot establish temporal PPU pixel ownership.
+    """
     if len(rgb)!=FRAME_SIZE[0]*FRAME_SIZE[1]*3:
         raise ValueError("source original screen RGB dimensions invalid")
     size=obj["size"]
+    if (type(horizontal_origin_bounds) is not tuple or
+            len(horizontal_origin_bounds)!=2 or
+            any(type(x) is not int for x in horizontal_origin_bounds)):
+        raise ValueError("invalid original OBJ horizontal origin bounds")
+    x_min,x_max=horizontal_origin_bounds
+    if not (0<=x_min<=x_max<=FRAME_SIZE[0]-size):
+        raise ValueError("original OBJ horizontal origin bounds outside screen")
     rgba=obj["rgba"]
     points=[(x,y,rgba[4*(y*size+x):4*(y*size+x)+3])
             for y in range(size) for x in range(size)
@@ -136,7 +150,7 @@ def best_opaque_matches(obj:dict,rgb:bytes,*,upper:bool)->dict:
     for y0 in range(min_y,max_y+1):
         if y0+size>FRAME_SIZE[1]:
             continue
-        for x0 in range(76,171):
+        for x0 in range(x_min,x_max+1):
             if x0+size>FRAME_SIZE[0]:
                 continue
             exact=sum(rgb[3*((y0+y)*256+x0+x):3*((y0+y)*256+x0+x)+3]==c

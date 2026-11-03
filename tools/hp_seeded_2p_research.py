@@ -22,7 +22,7 @@ from tools import qa02_native_2p_seeded_endurance as native
 
 SCHEMA = "ur-hp-windows-seeded-2p-research/1"
 WORKERS = 8  # Research-only trial; each worker owns four guest processes per case.
-VARIANT_PARALLELISM = 2  # HP-only 16-process maximum pilot; other native runs stay serial.
+VARIANT_PARALLELISM = 1  # Rolled back: 2-way HP canary timed out 16/16 cases; default safe serial.
 WALL_SECONDS = 360  # Scheduled/default manual horizon is unchanged.
 MANUAL_WALL_SECONDS = 600  # Deliberate workflow_dispatch trial only.
 MINUTES = 15

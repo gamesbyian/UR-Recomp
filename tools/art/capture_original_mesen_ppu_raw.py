@@ -22,6 +22,29 @@ REGIONS={"oam":("snesSpriteRam",544),"vram":("snesVideoRam",65536),
          "cgram":("snesCgRam",512)}
 MAX_CHUNK=1024
 MAX_DISPLAY_AXIS=1024
+MAX_SPARSE_SNAPSHOTS=24
+MAX_SPARSE_TICK=2500
+
+
+def validate_capture_ticks(ticks:tuple[int,...])->tuple[int,...]:
+    """Validate an ordered, bounded set of real executed Mesen bridge ticks."""
+    if (type(ticks) is not tuple or
+            not 1<=len(ticks)<=MAX_SPARSE_SNAPSHOTS or
+            any(type(t) is not int or not 1<=t<=MAX_SPARSE_TICK
+                for t in ticks) or
+            any(b<=a for a,b in zip(ticks,ticks[1:]))):
+        raise ValueError("sparse original capture ticks must increase, 1..2500, at most 24")
+    return ticks
+
+
+def parse_capture_ticks(text:str)->tuple[int,...]:
+    """Parse CLI decimal-only tick selection; do not infer duplicate ticks."""
+    if (not isinstance(text,str) or not text or
+            len(text)>6*MAX_SPARSE_SNAPSHOTS or
+            any(not part.isascii() or not part.isdecimal()
+                for part in text.split(","))):
+        raise ValueError("capture ticks must be comma-separated decimal bridge frames")
+    return validate_capture_ticks(tuple(int(t,10) for t in text.split(",")))
 
 
 def sha(raw:bytes)->str:
@@ -81,18 +104,23 @@ def inspect_held_ppm(raw: bytes, reply: dict, requested_path: str) -> dict:
 
 def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
                    include_held_framebuffer:bool=False,
-                   source_snes_frame_skipping_disabled_requested:bool=False)->dict:
+                   source_snes_frame_skipping_disabled_requested:bool=False,
+                   *,source_capture_ticks:tuple[int,...]|None=None)->dict:
     if (type(source_snes_frame_skipping_disabled_requested) is not bool or
             type(include_held_framebuffer) is not bool or
             type(advance) is not int or not 0<=advance<=2500 or
             type(count) is not int or not 1<=count<=5):
         raise ValueError("bounded original emulator capture range required")
+    requested=(validate_capture_ticks(source_capture_ticks)
+               if source_capture_ticks is not None else
+               tuple(range(advance+1,advance+count+1)))
     if output.exists() and any(output.iterdir()):
         raise ValueError("source evidence output must be a fresh empty directory")
     output.mkdir(parents=True,exist_ok=True)
     previous=(None,None)
     frames=[]
-    for step in range(advance+count):
+    requested_set=set(requested)
+    for step in range(requested[-1]):
         current=masks_at(controller_runs,step)
         for port,mask in enumerate(current):
             if mask!=previous[port]:
@@ -106,7 +134,7 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
                 not isinstance(response,dict) or
                 response.get("status",{}).get("frame")!=expected):
             raise ValueError("actual emulator bridge frame tick is not consecutive")
-        if step<advance:
+        if expected not in requested_set:
             continue
         raw={}
         # Enforce one held frame for every region; a live unrequested emulator
@@ -147,9 +175,9 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "p2_controller_mask":current[1],
             "raw_original_snes_ppu_memory":raw,
         })
-    if len(frames)!=count or any(frames[i]["emulator_bridge_frame"]!=frames[i-1]["emulator_bridge_frame"]+1 for i in range(1,len(frames))):
-        raise ValueError("missing original emulator state frame")
-    return {"schema":SCHEMA,"emulator_source_revision":MESEN_REVISION,
+    if [frame["emulator_bridge_frame"] for frame in frames]!=list(requested):
+        raise ValueError("missing requested original emulator source frame")
+    record={"schema":SCHEMA,"emulator_source_revision":MESEN_REVISION,
             "original_USA_ROM_sha256":ROM_SHA,
             "authentic_live_emulator_bridge_step_counter_verified":True,
             "actual_raw_SNES_sprite_RAM_VRAM_CGRAM_snapshots":len(frames),
@@ -166,6 +194,9 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "original_source_to_experimental_GLb_pose_correspondence_verified":False,
             "owner_likeness_approved":False,
             "frames":frames}
+    if source_capture_ticks is not None:
+        record["source_requested_capture_ticks"]=list(requested)
+    return record
 
 
 def validate_snapshot_files(directory:Path,manifest:dict)->None:
@@ -182,13 +213,26 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
     if (not isinstance(frames,list) or not frames or
             manifest.get("actual_raw_SNES_sprite_RAM_VRAM_CGRAM_snapshots")!=len(frames)):
         raise ValueError("raw original SNES PPU frame count incorrect")
+    sparse=None
+    if "source_requested_capture_ticks" in manifest:
+        requested=manifest["source_requested_capture_ticks"]
+        if type(requested) is not list:
+            raise ValueError("sparse original capture tick manifest malformed")
+        try:
+            sparse=validate_capture_ticks(tuple(requested))
+        except ValueError as exc:
+            raise ValueError("sparse original capture tick manifest malformed") from exc
+        if [row.get("emulator_bridge_frame") for row in frames]!=list(sparse):
+            raise ValueError("sparse original capture tick manifest disagrees with frames")
+    elif len(frames)>5:
+        raise ValueError("legacy source capture cannot exceed five frames")
     seen=set()
     last=None
     for frame in frames:
         n=frame.get("emulator_bridge_frame")
         step=frame.get("replayed_controller_step_index")
         if (type(n) is not int or type(step) is not int or n!=step+1 or
-                (last is not None and n!=last+1) or
+                (sparse is None and last is not None and n!=last+1) or
                 set(frame.get("raw_original_snes_ppu_memory",{}))!=set(REGIONS)):
             raise ValueError("source bridge frame sequence or PPU region invalid")
         last=n
@@ -242,11 +286,20 @@ def main():
     p.add_argument("--input-file",required=True,type=Path)
     p.add_argument("--mesen-for-ai-repo",type=Path,required=True)
     p.add_argument("--mesen-executable",type=Path,required=True)
-    p.add_argument("--advance-frames",type=int,default=1218)
-    p.add_argument("--capture-frames",type=int,default=2)
+    p.add_argument("--advance-frames",type=int)
+    p.add_argument("--capture-frames",type=int)
+    p.add_argument("--capture-ticks",type=str,help="1..24 increasing decimal ticks, one replay")
     p.add_argument("--include-held-framebuffer",action="store_true")
     p.add_argument("--out-dir",required=True,type=Path)
     args=p.parse_args()
+    if args.capture_ticks is not None and (args.advance_frames is not None or args.capture_frames is not None):
+        p.error("--capture-ticks cannot be combined with contiguous capture options")
+    try:
+        sparse_ticks=parse_capture_ticks(args.capture_ticks) if args.capture_ticks is not None else None
+    except ValueError as exc:
+        p.error(str(exc))
+    advance=1218 if args.advance_frames is None else args.advance_frames
+    count=2 if args.capture_frames is None else args.capture_frames
     if sha(args.rom.read_bytes())!=ROM_SHA:
         p.error("original USA ROM SHA256 mismatch")
     if not args.mesen_executable.is_file():
@@ -258,9 +311,10 @@ def main():
     runs=load_controller_runs(args.input_file)
     with Mesen(repo=str(args.mesen_for_ai_repo.resolve())) as mesen:
         mesen.load_rom(str(args.rom.resolve()),timeout=180)
-        report=capture_states(mesen,runs,args.advance_frames,args.capture_frames,args.out_dir,
+        report=capture_states(mesen,runs,advance,count,args.out_dir,
                               include_held_framebuffer=args.include_held_framebuffer,
-                              source_snes_frame_skipping_disabled_requested=disable_request)
+                              source_snes_frame_skipping_disabled_requested=disable_request,
+                              source_capture_ticks=sparse_ticks)
     report["original_input_replay_sha256"]=sha(args.input_file.read_bytes())
     report["actual_emulator_executable_sha256"]=sha(args.mesen_executable.read_bytes())
     validate_snapshot_files(args.out_dir,report)

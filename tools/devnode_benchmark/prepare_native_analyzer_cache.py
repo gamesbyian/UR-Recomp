@@ -86,6 +86,9 @@ def identity(framework: Path, environment: dict[str, str] | None = None) -> dict
     return {
         "recipe": RECIPE,
         "crate_sha256": crate_digest(framework / "recompiler-rs"),
+        # The build recipe lives outside the crate. A source change to its
+        # Cargo flags or target handling must invalidate the binary cache.
+        "build_recipe_sha256": digest_file(framework / "tools/build_native_analyzer.py"),
         "rustc": rustc,
         "cargo": cargo,
         "build_environment": {k: env.get(k, "") for k in BUILD_ENV},

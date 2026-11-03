@@ -100,6 +100,17 @@ class NativeAnalyzerCacheTests(unittest.TestCase):
         self.assertEqual(self.prepare(), "invalid_fallback")
         self.assertEqual(self.envfile.read_text(), "")
 
+    def test_build_recipe_changes_invalidate_identity(self):
+        recipe = self.framework / "tools/build_native_analyzer.py"
+        recipe.parent.mkdir(parents=True)
+        recipe.write_text("print('build A')\n")
+        with patch.object(cache.subprocess, "check_output", return_value="pinned tool 1"):
+            first = cache.identity(self.framework, {})
+            recipe.write_text("print('build B')\n")
+            second = cache.identity(self.framework, {})
+        self.assertNotEqual(first["build_recipe_sha256"], second["build_recipe_sha256"])
+        self.assertNotEqual(cache.cache_key(first), cache.cache_key(second))
+
     def test_crate_digest_invalidates_source_changes_not_generated_target(self):
         first = cache.crate_digest(self.crate)
         (self.crate / "src/main.rs").write_text('fn main() { println!("new"); }\n')

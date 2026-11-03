@@ -94,6 +94,49 @@ class LiveTwentyUnpairedPoseTests(unittest.TestCase):
                       "owner_likeness_approved", "shipping_art_approved"):
             self.assertFalse(d[field])
 
+    def test_frozen_screen_reflection_sensitivity_rejects_winner_overclaim(self):
+        base = Path(__file__).resolve().parents[2] / "analysis/data"
+        old = json.loads((base / "racer-original-live20-five-real-glb-unpaired-diagnostic-20261103.json").read_text())
+        screen = json.loads((base / "racer-original-live20-screen-orientation-sensitivity-20261103.json").read_text())
+        self.assertEqual(screen["original_source_zip_sha256"],
+                         old["authentic_original_source_zip_sha256"])
+        self.assertTrue(screen["original_red_display_reflection_independently_source_screen_authenticated"])
+        self.assertFalse(screen["selection_between_held_and_screen_view_by_model_IoU"])
+        self.assertEqual(len(screen["red_screen_oriented_fixed_camera_unpaired_20_rows"]),20)
+        red = {r["tick"]:r for r in screen["red_screen_oriented_fixed_camera_unpaired_20_rows"]}
+        self.assertEqual(set(red),set(TICKS))
+        rows=[]
+        for r in old["per_original_racer_frame_scores"]:
+            if r["original_racer"] == "red":
+                observation = red[r["original_mesen_tick"]]
+                scores = observation["screen_oriented_iou_by_glb_pose"]
+                winner = observation["unpaired_iou_winner"]
+                tied = observation["ambiguous_tied_candidates"]
+            else:
+                scores=r["fixed_camera_iou_by_GLb_pose"]
+                winner=r["unique_unpaired_pose_winner"]
+                tied=r["ambiguous_equal_iou_candidates"]
+            rows.append({"tick":r["original_mesen_tick"],
+                         "racer":r["original_racer"],
+                         "unpaired_iou":scores,
+                         "unpaired_iou_winner":winner,
+                         "unpaired_iou_tied_candidates":tied,
+                         "frozen_source_role":r["frozen_role"]})
+        summary=summarize_rows(rows)
+        self.assertEqual(summary["unpaired_iou_winner_counts"],
+                         {"upright":17,"pedal":4,"wheelie":0,"stunt":0,"bank":18})
+        self.assertEqual(summary["ambiguous_exact_iou_tie_count"],1)
+        self.assertEqual(summary["mean_iou_per_real_GLb_pose"],
+                         screen["screen_oriented_40_observation_mean_iou_per_2026_GLb_pose"])
+        ties=screen["source_original_40_observation_screen_oriented_exact_iou_ties"]
+        self.assertEqual(ties,[{"tick":1899,"racer":"red",
+                                "tied_candidate_names":["pedal","bank"],
+                                "exact_rounded_iou":0.51428571}])
+        for field in ("original_1994_3d_camera_rig_pose_names_recovered",
+                      "source_to_2026_experimental_glb_pose_mapping_verified",
+                      "owner_likeness_approved","shipping_art_approved"):
+            self.assertFalse(screen[field])
+
     def test_exact_20_by_2_source_matrix_counts_and_no_pose_promotion(self):
         rows = []
         for tick in TICKS:

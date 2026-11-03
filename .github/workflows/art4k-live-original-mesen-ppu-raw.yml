@@ -1,6 +1,13 @@
 name: ART-4K original Mesen SNES raw PPU snapshot
 
 on:
+  # Reusable exact pinned build shared with trusted-main cache seeder.
+  workflow_call:
+    inputs:
+      seed_only:
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       advance_frames:
@@ -29,6 +36,9 @@ concurrency:
   group: art4k-live-mesen-ppu-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -54,14 +64,17 @@ jobs:
           sudo apt-get install -qy libsdl2-dev xvfb unzip curl clang
 
       - name: Verify canonical ROM
+        # Trusted cache seeding builds only an emulator, no ROM or capture.
+        if: ${{ !inputs.seed_only }}
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Restore pinned MesenCE binary cache
         id: mesence-cache
-        uses: actions/cache@v4
+        # Only main-created caches can be restored across sibling PR refs.
+        uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/mesence-cache
-          key: mesence-linux-x64-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}
+          key: mesence-linux-x64-v3-${{ runner.os }}-${{ runner.arch }}-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}-${{ hashFiles('tools/art/mesence_cache_receipt.py', 'third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch') }}
 
       - name: Fetch pinned MesenCE source
         if: steps.mesence-cache.outputs.cache-hit != 'true'
@@ -101,7 +114,36 @@ jobs:
           cp -a "$PUBLISH/." "$RUNNER_TEMP/mesence-cache/"
 
 
+      - name: Verify source-bound MesenCE cache before any emulator execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode=seal
+          if [[ "${{ steps.mesence-cache.outputs.cache-hit }}" == "true" ]]; then
+            mode=verify
+          fi
+          python3 tools/art/mesence_cache_receipt.py "$mode" \
+            --cache "$RUNNER_TEMP/mesence-cache" \
+            --revision "$MESENCE_REVISION" \
+            --patch "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+          if [[ "$mode" == "seal" ]]; then
+            python3 tools/art/mesence_cache_receipt.py verify \
+              --cache "$RUNNER_TEMP/mesence-cache" \
+              --revision "$MESENCE_REVISION" \
+              --patch "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+          fi
+
+      # A good nine-minute build must survive a later original-capture
+      # assertion failure. Save only after checking every actual runtime file.
+      - name: Save verified pinned MesenCE build
+        if: ${{ steps.mesence-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/mesence-cache
+          key: mesence-linux-x64-v3-${{ runner.os }}-${{ runner.arch }}-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}-${{ hashFiles('tools/art/mesence_cache_receipt.py', 'third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch') }}
+
       - name: Capture selected or consecutive original MesenCE PPU RAM frames
+        if: ${{ !inputs.seed_only }}
         env:
           MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
           CAPTURE_TICKS: ${{ inputs.capture_ticks || '' }}
@@ -183,6 +225,7 @@ jobs:
           PY
 
       - name: Upload SHA-bound original emulator PPU raw RAM states
+        if: ${{ !inputs.seed_only }}
         uses: actions/upload-artifact@v4
         with:
           name: art4k-original-mesen-ppu-raw-${{ github.run_id }}

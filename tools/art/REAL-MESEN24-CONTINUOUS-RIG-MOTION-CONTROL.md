@@ -46,3 +46,21 @@ python3 -m tools.art.evaluate_original_mesen24_continuous_pose \
 This offline renderer refuses the wrong source archive, wrong real GLB, changed camera and existing output. Its source geometry and camera remain frozen; all rig poses are absolute rest-based moves. Numeric receipt is `analysis/data/racer-original-mesen24-continuous-pose-control-20261103.json`, SHA-256 **`678ef943675d893e6eb7fc78af94f3a35a3dbe4bc155574c64941b1eae4fb075`**. The accompanying cheap stdlib unit test recomputes source/model changed-pixel totals, intersections, precision, recall and IoU without rerendering any GLB or touching ROM evidence.
 
 No owner approval, frame-accurate 1994 character animation, prospective generalization, final PPU 2D color ownership, art asset promotion or Windows release milestone follows.
+
+## Follow-up: two predeclared actual upper-silhouette events
+
+A subsequent *read-only* source-band audit of the exact same 24 original Mesen ticks localized all upper-band silhouette changes to one source event per racer: blue 1602→1603 has 27 upper changes, red 1605→1606 has 20. No other adjacent upper-band mask changes during the window. Blue lower band changes on every edge (527 of all 660 blue changed-pixel instances), as does red lower (454 of 659). The "upper" and "lower" regions are equal-height thirds of the occupied source-Y range, **not verified 3D body component IDs**. The blue event has another 20 middle/57 lower changes; red event another 41 middle/58 lower changes.
+
+Before running a narrowly bounded real-model event check, the exact two source event ticks and **three after-pose candidates** were recorded on draft #2832. Both models at the before tick use the existing direct-drive +24°/tick rate and zero pitch, with the same frozen camera and source-anchor registration. At the after tick, only pitch changes among **0°, +10°, −10°**. Neither event tick nor angle is a prospective independent test, and the step size is reused from the earlier sine control rather than optimized to the original source. The genuine upright GLB/world-parent transformations and source original 24-tick ZIP are unchanged.
+
+| Original source event | Original top-band changed pixels | Wheel-only model top changed | +10° step top changes / intersection | −10° step top changes / intersection |
+|---|---:|---:|---:|---:|
+| Blue 1602→1603 | 27 | 0 | 86 / 6 | 79 / 8 |
+| Red 1605→1606 | 20 | 0 | 70 / 0 | 64 / 6 |
+
+Whole-64px changed-pixel IoU blue for pitch 0/+10/−10 is **0.08823529 / 0.08474576 / 0.09130435**; red is **0.13868613 / 0.07818930 / 0.10775862**. The predeclared ±10° rigid upper-frame steps generate two to four times the original source top-band changes and intersect little of their actual location. For red, **27** (−10°) or **28** (+10°) additional predicted changing pixels also fall *outside the original occupied vertical envelope*, explaining why summed model changes across the three source bands need not equal whole-frame model changes. A sign change alone does not rescue the current fork/saddle pivot hypothesis. **This is a negative for the tested step amplitudes and pivot**, not an inference that the original 1994 upper frame lacks 3D motion. Do not sweep arbitrary angles to rescue a hand-picked retrospective frame.
+
+The source-bound receipt is `analysis/data/racer-original-mesen24-event-pitch-control-20261103.json`, SHA-256 `0c1fbd0296d88a3c0b33812383319052f786b2c80c97b8b7e3e8ca046c313424`. The optional offline reproducer is `tools/art/compare_original_mesen24_event_pitch.py` with the *same four positional args* as the prior 24-frame comparison (original ZIP, actual upright GLB, provisional camera JSON, new no-overwrite result path). One cheap ROM-free test verifies the exact source-binding, all pixel-band totals and numerical pixel intersection metrics. No new original Mesen capture or generated shipping art.
+
+**Next causal discriminator:** compare the observed upper change *location* with the projected source rig's frame/fork/saddle parts and fixed camera, including potential occlusion or missing localized deformation. Preserve original sprite paints and wheel/rim source region separately. Avoid geometry optimization until the pivot/camera hypothesis becomes identifiable.
+

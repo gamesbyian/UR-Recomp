@@ -23,9 +23,9 @@ class FakeMesen:
         if name=="run.status":
             return {"frame":self.frame}
         if name=="console.state":
-            return {"snesppu.oammode":3,"snesppu.oambaseaddress":4096,
-                    "snesppu.scanline":239,"snesppu.forcedblank":False,
-                    "snesppu.framecount":self.frame}
+            return {"ppu.oammode":3,"ppu.oambaseaddress":4096,
+                    "ppu.scanline":239,"ppu.forcedblank":False,
+                    "ppu.framecount":self.frame}
         if name=="cpu.read_memory":
             return {"memoryType":args["memoryType"],"address":args["address"],
                     "length":args["length"],"bytes":[(self.frame+i)&255
@@ -47,7 +47,7 @@ class OriginalPpuSerializedTests(unittest.TestCase):
             self.assertFalse(proof["original_racer_sprite_pixel_ownership_verified"])
 
     def test_missing_source_fields_are_not_fabricated(self):
-        result=select_source_state({"snesppu.oammode":2,"snesppu.someotherfield":42})
+        result=select_source_state({"ppu.oammode":2,"ppu.someotherfield":42})
         self.assertEqual(list(result),["OamMode"])
 
     def test_ambiguous_source_field_fails_closed(self):

@@ -1,0 +1,639 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-LIVE20-REAL-FIVE-GLB-UNPAIRED-SCORE-RECEIPT/1",
+  "source_original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_original_one_pass_run_id": 41605614082,
+  "source_original_artifact_id": 13217381754,
+  "source_original_zip_sha256": "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f",
+  "source_original_40_sprites_and_all_12937_opaque_pixels_independently_checked": true,
+  "source_original_fit_holdout_index_authority": "analysis/data/racer-original-strict-tile-disjoint-holdout-20261103.json",
+  "old_frozen_index_plane_roles_among_new_live_sources": {
+    "fit": 1,
+    "withheld": 1,
+    "strict_withheld": 0,
+    "unclassified_live_source": 38
+  },
+  "historical_real_2026_GLb_artifact_id": 13063969312,
+  "real_2026_GLb_sha256": {
+    "upright": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+    "pedal": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+    "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+    "stunt": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+    "bank": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59"
+  },
+  "provisional_P1_1205_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "provisional_shared_camera_settings": {
+    "pixel_aspect": "7:6",
+    "up_world": [
+      0,
+      0,
+      1
+    ],
+    "right_world": [
+      1,
+      0,
+      0
+    ],
+    "scale_logical_pixels_per_unit": 9.5,
+    "baseline_source_anchor_x2_y2": [
+      67,
+      76
+    ]
+  },
+  "source_origin_anchor_method": "per original 64x64 source 2D lowest occupied alpha span, applied equally to all five fixed shared-camera projections; no IoU-optimized translation",
+  "individual_scores_rounded_to_8_decimals": true,
+  "unpaired_winner_counts": {
+    "upright": 7,
+    "pedal": 3,
+    "wheelie": 0,
+    "stunt": 0,
+    "bank": 29
+  },
+  "ambiguous_exact_iou_ties": [
+    {
+      "tick": 1952,
+      "racer": "red",
+      "competing_2026_pose_names": [
+        "pedal",
+        "bank"
+      ],
+      "score": 0.67042254
+    }
+  ],
+  "mean_iou_by_glb_pose": {
+    "upright": 0.4681266,
+    "pedal": 0.4655206,
+    "wheelie": 0.24588637,
+    "stunt": 0.17701848,
+    "bank": 0.48061737
+  },
+  "per_original_racer_frame_scores": [
+    {
+      "original_mesen_tick": 1601,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.50645995,
+        "pedal": 0.51554404,
+        "wheelie": 0.26609442,
+        "stunt": 0.14257426,
+        "bank": 0.53543307
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1601,
+      "original_racer": "red",
+      "frozen_role": "withheld",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.38277512,
+        "pedal": 0.38095238,
+        "wheelie": 0.35103926,
+        "stunt": 0.12820513,
+        "bank": 0.40435835
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1607,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.44852941,
+        "pedal": 0.45700246,
+        "wheelie": 0.27777778,
+        "stunt": 0.12716763,
+        "bank": 0.46782178
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1607,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.39150943,
+        "pedal": 0.38967136,
+        "wheelie": 0.33557047,
+        "stunt": 0.12741313,
+        "bank": 0.39622642
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1618,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.44471744,
+        "pedal": 0.45679012,
+        "wheelie": 0.27408994,
+        "stunt": 0.12572534,
+        "bank": 0.46766169
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1618,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.3952381,
+        "pedal": 0.38352941,
+        "wheelie": 0.31485588,
+        "stunt": 0.12621359,
+        "bank": 0.4
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1631,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.43842365,
+        "pedal": 0.44691358,
+        "wheelie": 0.25477707,
+        "stunt": 0.12670565,
+        "bank": 0.46867168
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1631,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.3793911,
+        "pedal": 0.3744186,
+        "wheelie": 0.31858407,
+        "stunt": 0.12765957,
+        "bank": 0.40380048
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1648,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.41545894,
+        "pedal": 0.40334129,
+        "wheelie": 0.19556452,
+        "stunt": 0.24731183,
+        "bank": 0.43065693
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1648,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.38352941,
+        "pedal": 0.36890951,
+        "wheelie": 0.31929047,
+        "stunt": 0.13009709,
+        "bank": 0.39479905
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1671,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.40865385,
+        "pedal": 0.40334129,
+        "wheelie": 0.19315895,
+        "stunt": 0.23931624,
+        "bank": 0.41686747
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1671,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.39858491,
+        "pedal": 0.39018692,
+        "wheelie": 0.28755365,
+        "stunt": 0.12884615,
+        "bank": 0.43028846
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1700,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.41346154,
+        "pedal": 0.41486811,
+        "wheelie": 0.19238477,
+        "stunt": 0.24093817,
+        "bank": 0.42512077
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1700,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.39952153,
+        "pedal": 0.40095465,
+        "wheelie": 0.27861771,
+        "stunt": 0.12427184,
+        "bank": 0.4178744
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1731,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.44827586,
+        "pedal": 0.42168675,
+        "wheelie": 0.19477912,
+        "stunt": 0.2516129,
+        "bank": 0.44254279
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1731,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.40855107,
+        "pedal": 0.40661939,
+        "wheelie": 0.2987013,
+        "stunt": 0.12667946,
+        "bank": 0.42004773
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1768,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.45137157,
+        "pedal": 0.43842365,
+        "wheelie": 0.19472617,
+        "stunt": 0.25217391,
+        "bank": 0.44913151
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1768,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.44226044,
+        "pedal": 0.42270531,
+        "wheelie": 0.26652452,
+        "stunt": 0.13035019,
+        "bank": 0.46153846
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1809,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.48860759,
+        "pedal": 0.46766169,
+        "wheelie": 0.19959677,
+        "stunt": 0.24093817,
+        "bank": 0.47869674
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1809,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.49487179,
+        "pedal": 0.5,
+        "wheelie": 0.25799574,
+        "stunt": 0.14940239,
+        "bank": 0.53543307
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1852,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.52835052,
+        "pedal": 0.52956298,
+        "wheelie": 0.19047619,
+        "stunt": 0.22291667,
+        "bank": 0.54145078
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1852,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.50259067,
+        "pedal": 0.50777202,
+        "wheelie": 0.2542735,
+        "stunt": 0.14115308,
+        "bank": 0.53968254
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1899,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.54569191,
+        "pedal": 0.52307692,
+        "wheelie": 0.19560878,
+        "stunt": 0.2107438,
+        "bank": 0.51918159
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1899,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.57452575,
+        "pedal": 0.58855586,
+        "wheelie": 0.24840764,
+        "stunt": 0.16396761,
+        "bank": 0.60606061
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1952,
+      "original_racer": "blue",
+      "frozen_role": "fit",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.57681941,
+        "pedal": 0.56117021,
+        "wheelie": 0.19838057,
+        "stunt": 0.19875776,
+        "bank": 0.56117021
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 1952,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.66011236,
+        "pedal": 0.67042254,
+        "wheelie": 0.24583333,
+        "stunt": 0.2037037,
+        "bank": 0.67042254
+      },
+      "unique_unpaired_pose_winner": null,
+      "ambiguous_equal_iou_candidates": [
+        "pedal",
+        "bank"
+      ]
+    },
+    {
+      "original_mesen_tick": 2011,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.41204819,
+        "pedal": 0.40669856,
+        "wheelie": 0.18837675,
+        "stunt": 0.23931624,
+        "bank": 0.41686747
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2011,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.64044944,
+        "pedal": 0.64606742,
+        "wheelie": 0.20366599,
+        "stunt": 0.21174004,
+        "bank": 0.63231198
+      },
+      "unique_unpaired_pose_winner": "pedal",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2072,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.625,
+        "pedal": 0.63043478,
+        "wheelie": 0.22469636,
+        "stunt": 0.20081136,
+        "bank": 0.61290323
+      },
+      "unique_unpaired_pose_winner": "pedal",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2072,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.49104859,
+        "pedal": 0.49616368,
+        "wheelie": 0.25265393,
+        "stunt": 0.1471173,
+        "bank": 0.53947368
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2139,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.4361949,
+        "pedal": 0.44083527,
+        "wheelie": 0.29338843,
+        "stunt": 0.12065814,
+        "bank": 0.45433255
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2139,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.38297872,
+        "pedal": 0.38443396,
+        "wheelie": 0.30973451,
+        "stunt": 0.12865497,
+        "bank": 0.40767386
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2210,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.47721823,
+        "pedal": 0.48201439,
+        "wheelie": 0.18216319,
+        "stunt": 0.22983871,
+        "bank": 0.46099291
+      },
+      "unique_unpaired_pose_winner": "pedal",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2210,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.44117647,
+        "pedal": 0.42857143,
+        "wheelie": 0.19238477,
+        "stunt": 0.23829787,
+        "bank": 0.43203883
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2283,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.35974304,
+        "pedal": 0.36989247,
+        "wheelie": 0.34309623,
+        "stunt": 0.12121212,
+        "bank": 0.38779956
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2283,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.51679587,
+        "pedal": 0.51025641,
+        "wheelie": 0.20242915,
+        "stunt": 0.21041667,
+        "bank": 0.52590674
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2362,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.55163728,
+        "pedal": 0.55667506,
+        "wheelie": 0.23366337,
+        "stunt": 0.16190476,
+        "bank": 0.58056266
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2362,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.55408971,
+        "pedal": 0.5511811,
+        "wheelie": 0.2040404,
+        "stunt": 0.21205821,
+        "bank": 0.5802139
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2445,
+      "original_racer": "blue",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.38084112,
+        "pedal": 0.37268519,
+        "wheelie": 0.196,
+        "stunt": 0.20867769,
+        "bank": 0.37587007
+      },
+      "unique_unpaired_pose_winner": "upright",
+      "ambiguous_equal_iou_candidates": []
+    },
+    {
+      "original_mesen_tick": 2445,
+      "original_racer": "red",
+      "frozen_role": "unclassified_live_source",
+      "fixed_camera_iou_by_GLb_pose": {
+        "upright": 0.52755906,
+        "pedal": 0.52083333,
+        "wheelie": 0.20449898,
+        "stunt": 0.21518987,
+        "bank": 0.5328084
+      },
+      "unique_unpaired_pose_winner": "bank",
+      "ambiguous_equal_iou_candidates": []
+    }
+  ],
+  "source_original_3D_pose_labels_recovered": false,
+  "original_1994_3D_camera_rig_mesh_recovered": false,
+  "source_to_existing_2026_GLb_pose_mapping_verified": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

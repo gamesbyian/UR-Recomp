@@ -1,0 +1,334 @@
+{
+  "schema": "UR-ART4K-LIVE20-RED-SCREEN-FACING-VS-HELD-UNPAIRED-REAL-GLB/1",
+  "original_source_artifact_id": 13217381754,
+  "real_2026_five_GLb_sha256": {
+    "upright": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+    "pedal": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+    "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+    "stunt": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+    "bank": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59"
+  },
+  "common_provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "held_original_unmirrored_numeric_receipt_blob_sha1": "8cbc4d56326da4f41751c66535a304d758051eea",
+  "original_red_display_reflection_independently_source_screen_authenticated": true,
+  "original_blue_display_reflection": false,
+  "selection_between_held_and_screen_view_by_model_IoU": false,
+  "real_2026_glb_or_camera_modified": false,
+  "red_original_held_source_pixel_plane_and_historical_fit_withheld_identity_unchanged": true,
+  "red_screen_oriented_fixed_camera_unpaired_20_rows": [
+    {
+      "tick": 1601,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.38942308,
+        "pedal": 0.38424821,
+        "wheelie": 0.19877049,
+        "stunt": 0.21702128,
+        "bank": 0.38095238
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1607,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.39479905,
+        "pedal": 0.38967136,
+        "wheelie": 0.19161677,
+        "stunt": 0.21161826,
+        "bank": 0.38317757
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1618,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.39856802,
+        "pedal": 0.39007092,
+        "wheelie": 0.20283976,
+        "stunt": 0.21338912,
+        "bank": 0.38679245
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1631,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.38915094,
+        "pedal": 0.38084112,
+        "wheelie": 0.20647773,
+        "stunt": 0.21458333,
+        "bank": 0.3712297
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1648,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.38679245,
+        "pedal": 0.37209302,
+        "wheelie": 0.20445344,
+        "stunt": 0.22268908,
+        "bank": 0.38173302
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1671,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.40521327,
+        "pedal": 0.38694639,
+        "wheelie": 0.21212121,
+        "stunt": 0.2410148,
+        "bank": 0.39671362
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1700,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.39952153,
+        "pedal": 0.38770686,
+        "wheelie": 0.19838057,
+        "stunt": 0.24248927,
+        "bank": 0.41105769
+      },
+      "unpaired_iou_winner": "bank",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1731,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.39201878,
+        "pedal": 0.39344262,
+        "wheelie": 0.19521912,
+        "stunt": 0.2462845,
+        "bank": 0.41666667
+      },
+      "unpaired_iou_winner": "bank",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1768,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.43170732,
+        "pedal": 0.40909091,
+        "wheelie": 0.2,
+        "stunt": 0.25215517,
+        "bank": 0.42961165
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1809,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.46115288,
+        "pedal": 0.45522388,
+        "wheelie": 0.18951613,
+        "stunt": 0.23819742,
+        "bank": 0.46984925
+      },
+      "unpaired_iou_winner": "bank",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1852,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.47208122,
+        "pedal": 0.46969697,
+        "wheelie": 0.18585859,
+        "stunt": 0.23175966,
+        "bank": 0.46969697
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 1899,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.51302083,
+        "pedal": 0.51428571,
+        "wheelie": 0.18072289,
+        "stunt": 0.20798319,
+        "bank": 0.51428571
+      },
+      "unpaired_iou_winner": null,
+      "ambiguous_tied_candidates": [
+        "pedal",
+        "bank"
+      ]
+    },
+    {
+      "tick": 1952,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.57180851,
+        "pedal": 0.5729443,
+        "wheelie": 0.19361277,
+        "stunt": 0.2037037,
+        "bank": 0.56052632
+      },
+      "unpaired_iou_winner": "pedal",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2011,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.66381766,
+        "pedal": 0.68390805,
+        "wheelie": 0.20366599,
+        "stunt": 0.20668058,
+        "bank": 0.6232687
+      },
+      "unpaired_iou_winner": "pedal",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2072,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.47222222,
+        "pedal": 0.4625,
+        "wheelie": 0.19675456,
+        "stunt": 0.23819742,
+        "bank": 0.46984925
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2139,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.4028777,
+        "pedal": 0.39099526,
+        "wheelie": 0.19354839,
+        "stunt": 0.20876827,
+        "bank": 0.38117647
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2210,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.44471744,
+        "pedal": 0.44254279,
+        "wheelie": 0.26865672,
+        "stunt": 0.13009709,
+        "bank": 0.45679012
+      },
+      "unpaired_iou_winner": "bank",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2283,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.56117021,
+        "pedal": 0.55,
+        "wheelie": 0.19758065,
+        "stunt": 0.24411135,
+        "bank": 0.56233422
+      },
+      "unpaired_iou_winner": "bank",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2362,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.51025641,
+        "pedal": 0.50765306,
+        "wheelie": 0.19919517,
+        "stunt": 0.25646552,
+        "bank": 0.50381679
+      },
+      "unpaired_iou_winner": "upright",
+      "ambiguous_tied_candidates": []
+    },
+    {
+      "tick": 2445,
+      "completed_screen_reflection_from_held": true,
+      "completed_screen_racer": "red",
+      "screen_oriented_iou_by_glb_pose": {
+        "upright": 0.56873315,
+        "pedal": 0.55733333,
+        "wheelie": 0.19959267,
+        "stunt": 0.24137931,
+        "bank": 0.56989247
+      },
+      "unpaired_iou_winner": "bank",
+      "ambiguous_tied_candidates": []
+    }
+  ],
+  "source_original_40_observation_screen_oriented_winner_counts": {
+    "upright": 17,
+    "pedal": 4,
+    "wheelie": 0,
+    "stunt": 0,
+    "bank": 18
+  },
+  "source_original_40_observation_screen_oriented_exact_iou_ties": [
+    {
+      "tick": 1899,
+      "racer": "red",
+      "tied_candidate_names": [
+        "pedal",
+        "bank"
+      ],
+      "exact_rounded_iou": 0.51428571
+    }
+  ],
+  "screen_oriented_40_observation_mean_iou_per_2026_GLb_pose": {
+    "upright": 0.46466393,
+    "pedal": 0.45999534,
+    "wheelie": 0.21268457,
+    "stunt": 0.20944724,
+    "bank": 0.46582891
+  },
+  "observational_original_2d_sprite_orientation_verified": true,
+  "original_1994_3d_camera_rig_pose_names_recovered": false,
+  "source_to_2026_experimental_glb_pose_mapping_verified": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false,
+  "original_source_zip_sha256": "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f"
+}

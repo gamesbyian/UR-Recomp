@@ -76,7 +76,9 @@ def read_original_run(path: Path, run: str) -> dict:
                 manifest.get("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified") is not False or
                 manifest.get("source_held_display_to_current_PPU_scanout_phase_independently_aligned", False) is not False):
             raise ValueError("original source ROM/replay/scanout provenance changed")
-        # The first capture predates the explicit false scanout-phase flag.\n        # Absence cannot constitute independent pixel registration.\n        rows = manifest.get("frames")
+        # The first capture predates the explicit false scanout-phase flag.
+        # Absence cannot constitute independent pixel registration.
+        rows = manifest.get("frames")
         if not isinstance(rows, list) or [x.get("emulator_bridge_frame") for x in rows] != [1219, 1220]:
             raise ValueError("actual original held emulator frame identities changed")
         frames = {}

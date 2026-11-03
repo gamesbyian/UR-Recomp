@@ -1,0 +1,71 @@
+name: ART4K authentic original two-player OBJ to screen proof (one-off)
+
+on:
+  pull_request:
+    paths:
+      - 'tools/art/audit_original_mesen_obj_screen_pixels.py'
+      - 'tests/unit/test_audit_original_mesen_obj_screen_pixels.py'
+      - '.github/workflows/art4k-original-obj-rgb-proof-once.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: art4k-original-obj-rgb-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-original-obj-raster-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original source SNES OBJ semantics on ROM-free synthetic tests
+        run: python3 -m unittest tests.unit.test_audit_original_mesen_obj_screen_pixels
+      - name: Retrieve exact original no-frame-skip PPU and RGB evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/13203312348/zip" \
+            --output "$RUNNER_TEMP/actual-original-mesen-no-skip.zip"
+          printf '%s  %s\n' \
+            "7106fadd8d37b134f53501a251c281e88fd0336514a123ed70b1855aedf513f7" \
+            "$RUNNER_TEMP/actual-original-mesen-no-skip.zip" | sha256sum --check
+      - name: Decode original 4bpp OBJ and match exact source screen RGB pixels
+        run: |
+          set -euo pipefail
+          python3 -m tools.art.audit_original_mesen_obj_screen_pixels \
+            --original-no-skip-zip "$RUNNER_TEMP/actual-original-mesen-no-skip.zip" \
+            --source-register-summary analysis/data/racer-original-live-mesen-ppu-serialized-registers-20261103.json \
+            --out "$RUNNER_TEMP/authenticated-original-obj-exact-match.json"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads((Path(os.environ["RUNNER_TEMP"])/"authenticated-original-obj-exact-match.json").read_text())
+          assert r["verified_complete_source_2D_OBJ_to_original_screen_pixel_match"]
+          slots=r["source_OBJ_and_screen_correspondence"]
+          for slot,viewport,n,xy in (("96","lower",323,(104,160)),("97","upper",327,(104,47))):
+              row=slots[slot]
+              assert row["matching_viewport"]==viewport
+              assert row["source_opaque_pixel_count"]==n
+              assert row["source_original_OBJ_pixel_size"]==[64,64]
+              m=row["same_screen_full_opaque_RGB_match"]
+              assert m["exact_opaque_RGB_pixel_matches"]==n
+              assert (m["source_screen_x"],m["source_screen_y"])==xy
+              assert m["complete_pixel_match"]
+              assert not row["other_viewport_best_opaque_RGB_match"]["complete_pixel_match"]
+          assert not r["source_per_scanline_OAM_register_writes_independently_captured"]
+          assert not r["original_source_1994_3D_mesh_camera_or_skeleton_recovered"]
+          print("EXACT_ORIGINAL_MESEN_TWO_PLAYER_SOURCE_OBJ_PIXELS",323,327)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: art4k-original-obj-pixel-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/authenticated-original-obj-exact-match.json
+          retention-days: 7
+          if-no-files-found: error

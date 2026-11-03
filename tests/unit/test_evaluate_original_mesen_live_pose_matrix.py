@@ -36,6 +36,46 @@ class LiveTwentyUnpairedPoseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "empty"):
             silhouette_iou(bytes(4096), bytes(4096))
 
+    def test_frozen_actual_200_score_receipt_joins_to_uncertain_pose_ranking(self):
+        report_path = Path(__file__).resolve().parents[2] / (
+            "analysis/data/racer-original-live20-five-real-glb-unpaired-diagnostic-20261103.json")
+        d = json.loads(report_path.read_text())
+        self.assertEqual(d["source_original_artifact_id"], 13217381754)
+        self.assertEqual(d["source_original_zip_sha256"],
+                         "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f")
+        self.assertEqual(d["old_frozen_index_plane_roles_among_new_live_sources"], {
+            "fit": 1, "withheld": 1, "strict_withheld": 0,
+            "unclassified_live_source": 38})
+        rows = []
+        for r in d["per_original_racer_frame_scores"]:
+            rows.append({
+                "tick": r["original_mesen_tick"], "racer": r["original_racer"],
+                "frozen_source_role": r["frozen_role"],
+                "unpaired_iou": r["fixed_camera_iou_by_GLb_pose"],
+                "unpaired_iou_winner": r["unique_unpaired_pose_winner"],
+                "unpaired_iou_tied_candidates": r["ambiguous_equal_iou_candidates"],
+            })
+        summary = summarize_rows(rows)
+        self.assertEqual(summary["unpaired_iou_winner_counts"],
+                         {"upright": 7, "pedal": 3, "wheelie": 0, "stunt": 0, "bank": 29})
+        self.assertEqual(summary["ambiguous_exact_iou_tie_count"], 1)
+        self.assertEqual(summary["mean_iou_per_real_GLb_pose"],
+                         d["mean_iou_by_glb_pose"])
+        self.assertEqual([r["frozen_role"] for r in
+                          d["per_original_racer_frame_scores"]
+                          if r["frozen_role"] != "unclassified_live_source"],
+                         ["withheld", "fit"])
+        tie = d["ambiguous_exact_iou_ties"]
+        self.assertEqual(len(tie), 1)
+        self.assertEqual((tie[0]["tick"], tie[0]["racer"]),
+                         (1952, "red"))
+        self.assertEqual(tie[0]["competing_2026_pose_names"], ["pedal", "bank"])
+        for field in ("source_original_3D_pose_labels_recovered",
+                      "original_1994_3D_camera_rig_mesh_recovered",
+                      "source_to_existing_2026_GLb_pose_mapping_verified",
+                      "owner_likeness_approved", "shipping_art_approved"):
+            self.assertFalse(d[field])
+
     def test_exact_20_by_2_source_matrix_counts_and_no_pose_promotion(self):
         rows = []
         for tick in TICKS:

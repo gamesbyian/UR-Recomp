@@ -264,7 +264,7 @@ if ($Mode -eq 'Stop') {
                     throw 'refuse_existing_export'
                 }
                 Copy-Item -LiteralPath $csv -Destination $partial -ErrorAction Stop
-                $header = Get-Content -LiteralPath $partial -TotalCount 1 -ErrorAction Stop
+                $header = [IO.File]::ReadLines($partial) | Select-Object -First 1
                 if ($header -ne 'timestamp_utc,free_virtual_mb,total_virtual_mb,free_physical_mb,cpu_load_pct_est,logical_processors,cpu_pct_window_avg') {
                     throw 'unrecognized_monitor_csv'
                 }

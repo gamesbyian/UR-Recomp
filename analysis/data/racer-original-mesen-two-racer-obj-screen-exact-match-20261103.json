@@ -1,0 +1,86 @@
+{
+  "schema": "UR-ART4K-DURABLE-AUTHENTIC-ORIGINAL-MESEN-TWO-RACER-2D-OBJ-PIXEL-EVIDENCE/1",
+  "live_original_emulator_original_capture_run": 41574463232,
+  "original_source_OAM_VRAM_CGRAM_RGB_archive_id": 13203312348,
+  "original_source_archive_zip_sha256": "7106fadd8d37b134f53501a251c281e88fd0336514a123ed70b1855aedf513f7",
+  "original_source_register_census_run": 41582586941,
+  "original_source_register_json_sha256": "b3b80d032cbfc3a6fa225c8cb524172e924e633ae27916be37dc9e2293c2cf40",
+  "independent_4bpp_to_original_screen_proof_run": 41584805693,
+  "independent_numeric_proof_artifact_id": 13207687246,
+  "independent_numeric_proof_archive_zip_sha256": "75f779408360bea27500f6f2a8fb700a86dd390670c071dc7b1f05a4fd257306",
+  "independent_numeric_proof_json_sha256": "ba96a62d6de656c5d921a8c8cefd126d21054ad6c2f17ca823d9bbfecdba957e",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_frame": 1219,
+  "original_2D_screen_dimensions": [
+    256,
+    239
+  ],
+  "source_no_frame_skipping_replay_PPU_and_RGB_identical": true,
+  "source_SNESPpu_OamMode": 4,
+  "small_OBJ_size": [
+    16,
+    16
+  ],
+  "large_OBJ_size": [
+    64,
+    64
+  ],
+  "source_obj_word_base_address_hex": "0x6000",
+  "source_obj_second_table_word_offset_hex": "0x1000",
+  "exact_MesenCE_BGR555_conversion": "v8=(v5<<3)|(v5>>2)",
+  "actual_source_sprite_candidates": [
+    {
+      "slot": 96,
+      "coloured_racer": "blue",
+      "original_held_OAM_position": [
+        104,
+        153
+      ],
+      "original_held_OAM_palette": 4,
+      "sprite_size_px": [
+        64,
+        64
+      ],
+      "opaque_pixel_count": 323,
+      "fully_matching_screen_viewport": "lower",
+      "source_screen_top_left": [
+        104,
+        160
+      ],
+      "opaque_pixel_exact_RGB_matches": 323,
+      "source_opposite_viewport_max_RGB_matches": 137,
+      "source_index_plane_sha256": "b37fde40d7638a82d83f60e67f20cc6a50144a8aa7e0b8d82e391d6b1652d9ae",
+      "source_RGBA_bytes_sha256": "4a3b69e6162f90d1da64dde7580cb80bb329926d19faa5880682d4d2c366e311"
+    },
+    {
+      "slot": 97,
+      "coloured_racer": "red",
+      "original_held_OAM_position": [
+        104,
+        153
+      ],
+      "original_held_OAM_palette": 3,
+      "sprite_size_px": [
+        64,
+        64
+      ],
+      "opaque_pixel_count": 327,
+      "fully_matching_screen_viewport": "upper",
+      "source_screen_top_left": [
+        104,
+        47
+      ],
+      "opaque_pixel_exact_RGB_matches": 327,
+      "source_opposite_viewport_max_RGB_matches": 139,
+      "source_index_plane_sha256": "b0138d05212f0c96bcdb02ea227684ae9c4b9bad94e79b420e556fa4bd455fb7",
+      "source_RGBA_bytes_sha256": "11b255066e308fc6ed0d756540b24fbb7bd46268ee3fdae8435c8f67cc196836"
+    }
+  ],
+  "original_2D_OBJ_to_completed_screen_exact_opaque_colour_correspondence_verified": true,
+  "original_source_gameplay_pose_free_from_countdown_overlay": false,
+  "original_per_scanline_OAM_writes_verified": false,
+  "original_source_3D_mesh_bones_or_camera_verified": false,
+  "source_to_GLb_pose_registration_verified": false,
+  "owner_likeness_approved": false,
+  "note": "These are exact fully opaque 2D source OBJ pixel-colour matches between independently source-captured OAM/VRAM/CGRAM and original Mesen completed-screen RGB for two racers. They do not provide scanline timing, continuous 3D articulated geometry, or a clean unoccluded gameplay pose. The held OAM records for both candidates use y153, while matching screen top-left differs by viewport; investigate original split-screen OAM updates rather than forcing held OAM y as both sprite display locations."
+}

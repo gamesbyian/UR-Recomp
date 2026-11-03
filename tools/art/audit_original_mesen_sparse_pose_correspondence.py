@@ -87,6 +87,20 @@ def validate_receipt(receipt:dict)->None:
             receipt.get("red_screen_mirror") is not True or
             receipt.get("blue_screen_mirror") is not False):
         raise ValueError("source held OAM vs observed flip identity changed")
+    # Roles and exact original 4bpp/alpha identities are precommitted;
+    # source-screen registration cannot silently reassign withheld to fit.
+    joins=receipt.get("original_source_corpus_frozen_joins")
+    if (not isinstance(joins,list) or len(joins)!=2 or
+            [(x.get("tick"),x.get("slot"),x.get("frozen_role"),
+              x.get("source_index_plane_sha256"),x.get("source_alpha_sha256"))
+             for x in joins]!=[
+            (1601,97,"withheld",
+             "f42b7881da2c5b9f579e73cdc9a7a90ed99d0712e5cf88c91d4842df68afee1d",
+             "0339a7c9e6177c0514a89abe18bd6459d26a58607a966c05408ce5bf229b5a82"),
+            (1952,96,"fit",
+             "544929ff98bfe2438a754e1c3849e927f98ed340004e5cc677c70f5ae4b5def5",
+             "d5e6da925b33b41576a05217d8c7a56a9a42b57ea98fe7ec78dbf65642c0b1d5")]):
+        raise ValueError("frozen original fit/withheld source identities changed")
 
 
 def audit_source(source_zip:Path,receipt:dict)->dict:
@@ -133,6 +147,11 @@ def audit_source(source_zip:Path,receipt:dict)->dict:
                         raise ValueError("held original red OAM differs")
                     obj=decode_source_obj(held,raw_vram,raw_cgram,
                         oam_mode=4,obj_base=0x6000,second_table_offset=0x1000)
+                    for join in receipt["original_source_corpus_frozen_joins"]:
+                        if (tick,slot)==(join["tick"],join["slot"]):
+                            if (sha(obj["plane"])!=join["source_index_plane_sha256"] or
+                                    sha(obj["alpha_mask"])!=join["source_alpha_sha256"]):
+                                raise ValueError("actual source bytes disagree with frozen holdout plane")
                     xy=frame[name]["screen_xy"]
                     measured=compare_opaque_pixels(obj,rgb,x=xy[0],y=xy[1],
                         horizontal_mirror=mirror)

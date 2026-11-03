@@ -53,6 +53,14 @@ class SparseOriginalPoseCorrespondenceTests(unittest.TestCase):
             with self.subTest(field=key),self.assertRaises(ValueError):
                 validate_receipt(changed)
         changed=copy.deepcopy(d)
+        changed["original_source_corpus_frozen_joins"][0]["frozen_role"]="fit"
+        with self.assertRaisesRegex(ValueError,"frozen"):
+            validate_receipt(changed)
+        changed=copy.deepcopy(d)
+        changed["original_source_corpus_frozen_joins"][1]["source_index_plane_sha256"]="0"*64
+        with self.assertRaisesRegex(ValueError,"frozen"):
+            validate_receipt(changed)
+        changed=copy.deepcopy(d)
         changed["samples"][1]["tick"]=d["samples"][0]["tick"]
         with self.assertRaisesRegex(ValueError,"tick"):
             validate_receipt(changed)

@@ -106,7 +106,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             def tool(self,kind,**arguments):
                 if kind=="video.export_frame":
                     path=Path(arguments["path"])
-                    path.write_bytes(b"P6\\n3 2\\n255\\n"+bytes([self.frame,20,40])*6)
+                    path.write_bytes(b"P6\n3 2\n255\n"+bytes([self.frame,20,40])*6)
                     return {"path":str(path),"format":"P6","width":3,"height":2,
                             "pixels":6}
                 return super().tool(kind,**arguments)
@@ -120,7 +120,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                 meta=frame["original_emulator_held_display_P6"]
                 self.assertEqual((meta["source_display_width"],meta["source_display_height"]),(3,2))
                 self.assertEqual(meta["source_rgb_byte_length"],18)
-                self.assertRegex(meta["source_framebuffer_RGB_sha256"],r"\\A[0-9a-f]{64}\\Z")
+                self.assertRegex(meta["source_framebuffer_RGB_sha256"],r"\A[0-9a-f]{64}\Z")
             validate_snapshot_files(root,report)
             self.assertNotEqual(
                 report["frames"][0]["original_emulator_held_display_P6"]["source_framebuffer_RGB_sha256"],
@@ -134,7 +134,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                 validate_snapshot_files(root,report)
 
     def test_false_video_size_format_and_rgb_length_fail_closed(self):
-        raw=b"P6\\n2 2\\n255\\n"+bytes(12)
+        raw=b"P6\n2 2\n255\n"+bytes(12)
         ack={"path":"/private/source.ppm","format":"P6","width":2,"height":2,"pixels":4}
         self.assertEqual(inspect_held_ppm(raw,ack,"/private/source.ppm")["source_rgb_byte_length"],12)
         for label,change in (("path",{"path":"/other.ppm"}),
@@ -144,7 +144,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                              ("bool",{"width":True,"pixels":2})):
             with self.subTest(label=label),self.assertRaisesRegex(ValueError,"source|video"):
                 inspect_held_ppm(raw,{**ack,**change},"/private/source.ppm")
-        for bad in (raw[:-1],b"P3"+raw[2:],b"P6\\n3 2\\n255\\n"+bytes(12)):
+        for bad in (raw[:-1],b"P3"+raw[2:],b"P6\n3 2\n255\n"+bytes(12)):
             with self.assertRaisesRegex(ValueError,"P6"):
                 inspect_held_ppm(bad,ack,"/private/source.ppm")
 
@@ -153,7 +153,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             def tool(self,kind,**arguments):
                 if kind=="video.export_frame":
                     path=Path(arguments["path"])
-                    path.write_bytes(b"P6\\n2 1\\n255\\n"+bytes(6))
+                    path.write_bytes(b"P6\n2 1\n255\n"+bytes(6))
                     self.frame+=1
                     return {"path":str(path),"format":"P6","width":2,"height":1,"pixels":2}
                 return super().tool(kind,**arguments)

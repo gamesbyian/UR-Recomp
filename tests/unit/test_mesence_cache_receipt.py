@@ -86,7 +86,8 @@ class MesenCeCacheTests(unittest.TestCase):
         scope = "$" + "{{ !inputs.seed_only }}"
         self.assertIn("      - name: Capture selected or consecutive original MesenCE PPU RAM frames\n        if: " + scope, capture)
         self.assertIn("      - name: Upload SHA-bound original emulator PPU raw RAM states\n        if: " + scope, capture)
-        self.assertIn("      - name: Verify canonical ROM\n        if: " + scope, capture)
+        self.assertIn("      - name: Verify canonical ROM\n", capture)
+        self.assertIn("        if: " + scope + "\n        run: python3 tools/verify_rom.py", capture)
         self.assertIn("github.ref == 'refs/heads/main'", main)
         self.assertIn("github.repository == 'gamesbyian/UR-Recomp'", main)
         self.assertIn("      seed_only: true", main)

@@ -104,7 +104,10 @@ jobs:
       - name: Capture selected or consecutive original MesenCE PPU RAM frames
         env:
           MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
-          CAPTURE_TICKS: ${{ inputs.capture_ticks || '' }}
+          # One-off source-research PR only. NEVER MERGE this override.
+          # It forces a 20-tick sparse capture on pull_request, retaining the
+          # production workflow's real source ROM and per-region SHA guards.
+          CAPTURE_TICKS: ${{ inputs.capture_ticks || '1601,1607,1618,1631,1648,1671,1700,1731,1768,1809,1852,1899,1952,2011,2072,2139,2210,2283,2362,2445' }}
         shell: bash
         run: |
           set -euo pipefail

@@ -93,6 +93,39 @@ class SourceOriginalObjMatchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"screen RGB"):
             best_opaque_matches(obj,b"",upper=True)
 
+    def test_postcountdown_red_sprite_may_be_outside_countdown_x_search(self):
+        # The historical countdown matching window X=76..170 excludes a
+        # plausible post-countdown screen origin at X=48. Broader search must
+        # be explicitly requested, leaving historical evidence unchanged.
+        row,vram,cgram=fixture()
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        rgb=bytearray(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        pixel=3*(47*FRAME_SIZE[0]+48)
+        rgb[pixel:pixel+3]=bytes([255,0,0])
+        original=best_opaque_matches(obj,bytes(rgb),upper=True)
+        self.assertFalse(original["complete_pixel_match"])
+        wider=best_opaque_matches(
+            obj,bytes(rgb),upper=True,horizontal_origin_bounds=(0,192))
+        self.assertTrue(wider["complete_pixel_match"])
+        self.assertEqual((wider["source_screen_x"],wider["source_screen_y"]),(48,47))
+        self.assertTrue(best_opaque_matches(
+            obj,bytes(rgb),upper=True,horizontal_origin_bounds=(48,48)
+        )["complete_pixel_match"])
+
+    def test_diagnostic_horizontal_bounds_are_strict_and_screen_bounded(self):
+        row,vram,cgram=fixture()
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        screen=bytes(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        invalid=((True,20),(10,False),(1.0,20),[0,192],(11,10),
+                 (-1,20),(0,241),(0,256),(),(1,2,3))
+        for bounds in invalid:
+            with self.subTest(bounds=bounds),self.assertRaisesRegex(
+                    ValueError,"horizontal origin bounds"):
+                best_opaque_matches(
+                    obj,screen,upper=True,horizontal_origin_bounds=bounds)
+
     def test_strict_source_ppm_header(self):
         valid=b"P6\n256 239\n255\n"+bytes(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
         self.assertEqual(len(p6_screen(valid)),256*239*3)

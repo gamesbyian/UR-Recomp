@@ -108,6 +108,104 @@ class SeededNativeInputContractTests(unittest.TestCase):
                             root/"seat",19,30)
 
 
+
+    def test_pairwise_variants_retain_four_way_oracle_and_join_all_guest_failures(self):
+        import threading
+        import time
+        source, script = c.base_source()
+        valid = {c.BASE_CHECK: "a" * 64,
+                 **{f"endurance-{n}": "c" * 64 for n in c.FRAMES}}
+        ablated = {**valid, c.FIRST_PROBE: "d" * 64}
+        lock = threading.Lock()
+        barrier = threading.Barrier(2, timeout=3)
+        active, peak, visited = [0], [0], []
+
+        def guest(exe, rom, control, route, root, timeout):
+            variant = root.name
+            with lock:
+                active[0] += 1
+                peak[0] = max(peak[0], active[0])
+                visited.append(variant)
+            try:
+                if variant in ("treatment", "repeat"):
+                    barrier.wait()
+                time.sleep(0.02)
+                return valid if variant in ("treatment", "repeat") else ablated
+            finally:
+                with lock:
+                    active[0] -= 1
+
+        with tempfile.TemporaryDirectory() as d:
+            with mock.patch.object(c, "execute", side_effect=guest):
+                evidence = c.trial(Path("exe"), Path("rom"), source,
+                                   c.render_script(script), Path(d) / "paired",
+                                   42, 90, parallel_variants=2)
+        self.assertEqual(peak[0], 2)
+        self.assertEqual(active[0], 0)
+        self.assertEqual(set(visited), {"treatment", "repeat", "mute-p1", "mute-p2"})
+        self.assertTrue(evidence["bit_exact_replay"])
+        self.assertTrue(evidence["two_seats_observably_active"])
+        self.assertEqual(evidence["real_native_processes"], 4)
+
+        completed = []
+        def fail_once(exe, rom, control, route, root, timeout):
+            if root.name == "treatment":
+                raise c.GuestProcessError("guest_nonzero_exit", "synthetic failure")
+            time.sleep(0.02)
+            completed.append(root.name)
+            return valid
+        with tempfile.TemporaryDirectory() as d:
+            with mock.patch.object(c, "execute", side_effect=fail_once):
+                with self.assertRaisesRegex(c.GuestProcessError, "synthetic failure"):
+                    c.trial(Path("exe"), Path("rom"), source,
+                            c.render_script(script), Path(d) / "failed",
+                            43, 90, parallel_variants=2)
+        self.assertEqual(sorted(completed), ["mute-p1", "mute-p2", "repeat"])
+
+    def test_paired_deadline_keeps_two_waves_and_rejects_invalid_values(self):
+        class Clock:
+            now = 0.0
+            def monotonic(self):
+                return self.now
+
+        clock = Clock()
+        timeouts = []
+
+        def fake_trial(exe, rom, source_input, script, root, seed, timeout,
+                       *, parallel_variants=1):
+            self.assertEqual(parallel_variants, 2)
+            root.mkdir(parents=True)
+            timeouts.append(timeout)
+            clock.now += 140.0
+            return {"seed": seed, "input_sha256": f"{seed:064x}"}
+
+        with tempfile.TemporaryDirectory() as d:
+            with mock.patch.object(c, "identity", return_value=dict(IDENTITY)), \
+                 mock.patch.object(c, "trial", side_effect=fake_trial), \
+                 mock.patch.object(c.time, "monotonic", side_effect=clock.monotonic):
+                report = c.run_shard(
+                    exe=Path("exe"), rom=Path("rom"), source_sha=SHA,
+                    shard=0, base_seed=20261103, minutes=15, max_cases=10,
+                    timeout=90, work=Path(d) / "work", wall_seconds=360,
+                    parallel_variants=2)
+        self.assertEqual(timeouts, [90, 90])
+        self.assertEqual(report["passed_cases"], 2)
+        self.assertEqual(report["total_real_native_processes"], 8)
+        self.assertEqual(report["release_gate_credit"], 0)
+
+        for bad in (0, 3, -1, True, "2"):
+            with self.subTest(bad=bad), tempfile.TemporaryDirectory() as d:
+                target = Path(d) / "unwritten"
+                with self.assertRaisesRegex(ValueError, "variant concurrency"):
+                    c.trial(Path("exe"), Path("rom"), "", "",
+                            target, 1, 90, parallel_variants=bad)
+                self.assertFalse(target.exists())
+                with self.assertRaisesRegex(ValueError, "variant concurrency"):
+                    c.run_shard(exe=Path("exe"), rom=Path("rom"), source_sha=SHA,
+                                shard=0, base_seed=1, minutes=15, max_cases=10,
+                                timeout=90, work=target, parallel_variants=bad)
+                self.assertFalse(target.exists())
+
     def test_hp_budget_preflight_avoids_shortened_deadline_false_failure(self):
         # A healthy four-process case takes 4*33s. Old code launched trials
         # with deadlines 90, 57, 24, 18 and falsely failed the last two.

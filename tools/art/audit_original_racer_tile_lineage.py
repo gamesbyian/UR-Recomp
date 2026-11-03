@@ -165,6 +165,16 @@ def summarize_lineages(rows: list[dict]) -> dict:
             sum(len(poses)>1 for poses in tile_poses.values()),
         "tile_payloads_observed_at_multiple_source_slots":
             sum(len(slots)>1 for slots in tile_slots.values()),
+        "nonblank_tile_payloads_observed_at_multiple_source_slots":
+            sum(len(positions)>1 for tile,positions in tile_slots.items()
+                if tile in tile_poses),
+        "reused_nonblank_tile_content_at_distinct_original_slots": [
+            {"source_tile_sha256":tile,
+             "original_source_slots_row_column":[list(slot) for slot in sorted(positions)],
+             "distinct_original_index_planes":len(tile_poses[tile])}
+            for tile,positions in sorted(tile_slots.items())
+            if tile in tile_poses and len(positions)>1
+        ],
         "distinct_original_pose_pairs_with_shared_nonblank_8x8_tiles":len(source_pairs),
         "per_original_index_plane":{
             key:{

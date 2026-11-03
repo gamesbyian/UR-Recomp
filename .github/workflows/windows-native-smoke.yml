@@ -440,6 +440,20 @@ jobs:
         shell: cmd
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_rust.ps1
 
+      # A compiled Rust tool for the exact staged framework can be reused on
+      # consecutive trusted-main science jobs. Generated C is still rebuilt from
+      # the verified ROM. On a cache fault, the upstream generator compiles it.
+      # Do not extend this shortcut to product/main/hosted qualification.
+      - name: Prepare trusted HP native analyzer cache (science only)
+        if: ${{ inputs.run_on_hp && inputs.hp_seeded_2p && !inputs.run_tournament_acceptance }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/devnode_benchmark/prepare_native_analyzer_cache.py \
+            --framework "$GITHUB_WORKSPACE/.tools/src/snesrecomp" \
+            --cache-root "$RUNNER_WORKSPACE/../.ur-recomp-hp-native-analyzer-cache" \
+            --github-env "$GITHUB_ENV"
+
       - name: Scaffold and generate
         run: |
           set -euo pipefail

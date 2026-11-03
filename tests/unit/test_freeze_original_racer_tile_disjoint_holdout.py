@@ -101,7 +101,7 @@ class OriginalTileDisjointHoldoutTests(unittest.TestCase):
         self.assertTrue(set(strict).issubset(held))
         self.assertEqual(len(set(fit+held)),35)
         for digest in fit+held:
-            self.assertRegex(digest,r"\\A[0-9a-f]{64}\\Z")
+            self.assertRegex(digest,r"\A[0-9a-f]{64}\Z")
         self.assertEqual(set(strict),
                          set(data["strictly_tile_disjoint_withheld_original_registry_representation_ids"]))
         self.assertFalse(data["source_original_live_PPU_timing_verified"])

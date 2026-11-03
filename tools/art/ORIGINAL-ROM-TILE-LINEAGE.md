@@ -25,3 +25,16 @@ python3 -m tools.art.audit_original_racer_tile_lineage \
 ```
 
 **Admission:** no shipping art/release gate, no GLB changes, no novel PPU timing, no asset redistribution and no claim of source anatomical segmentation. Real-ROM producer execution and an independent exact-head code/CI review are required before treating aggregate tile-reuse counts as measured evidence. Any numeric output must carry exact source and registry hashes.
+
+
+## Authenticated original-ROM result (November 3, 2026)
+
+One-off [original source workflow #41554638043](https://github.com/gamesbyian/UR-Recomp/actions/runs/41554638043) **passed**, using the exact frozen 41-PNG original archive, historical registry and USA-ROM hash already required by the merged #3057 audit. The [full numeric report (artifact #13194250673)](https://github.com/gamesbyian/UR-Recomp/actions/runs/41554638043/artifacts/13194250673), SHA-256 `cccb78328307003b3f8148aa20ef7cca27c905e77610be2b3ffd1aa7e7d5f33f`, is retained only until November 10, 2026. Compact durable evidence is in `analysis/data/racer-original-source-tile-lineage-summary-20261103.json`.
+
+Across **59 original registered source descriptions**, the authentic original content comprises **41 RGBA images** and **35 distinct 4bpp source index planes**. Those 35 planes contain **250 distinct nonzero 8×8 planar tile payloads** (251 if counting the zero tile). Exactly **62** nonzero payloads recur in more than one distinct index plane; **170 of the 595 possible unordered distinct-plane pairs** share at least one nonzero tile. Among those 170 positive pairs the median is eight shared distinct nonzero tiles (maximum ten).
+
+**Important negative result:** only **one nonzero tile payload** occurs at more than one source tile-cell position. Its exact byte digest is `36a2afe3cc14227c4f656a57bd9dcfa5c2c0b1028afe3ecd581613ecde6221d0`, at original 5×6 staging slots `[row 4, column 3]` and `[row 4, column 4]` in two different source index planes. The total `tile_payloads_observed_at_multiple_source_slots` is two **only because it includes the all-zero tile**; the additional named nonblank counter is one. No 3D translation, rigid wheel fragment or animated bone is proven by the source reuse.
+
+As a genuinely different reconstruction route, the 41 source PNGs were independently decoded and SHA-verified, their exact palette indices regenerated from the previously authenticated RGB-to-index lookup, and each opaque 8×8 index region re-encoded into 32-byte SNES planar 4bpp. This independent archived-PNG route reproduced **250 unique nonzero tile payload hashes, 62 reused across unique index planes, one moved nonzero payload, and 170 positive index-plane pairs**. It does not independently prove that the original 1994 game displayed these authored-registry frames in any particular temporal order.
+
+The next discriminator should prioritize **live original PPU/OAM frame capture and source pose pairing**. This source-only tile census shows that treating a shared packed tile as a movable 3D mesh component would manufacture unsupported anatomy. At minimum, independent held-out pose evaluations should quantify asset-content overlap as well as avoiding identical binary silhouettes: a silhouette-disjoint pair can still reuse exact 8×8 original source content.

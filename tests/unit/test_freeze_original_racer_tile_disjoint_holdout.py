@@ -23,7 +23,7 @@ class OriginalTileDisjointHoldoutTests(unittest.TestCase):
                  "withheld-b":{D,E}}
         report=freeze(windows,[edge(B,C,2),edge(C,E,3)])
         self.assertEqual(report["fit_connected_original_registry_windows"],
-                         [FIRST,"connected"])
+                         ["connected",FIRST])
         self.assertEqual(report["original_fitting_index_plane_shas"],[A,B])
         self.assertEqual(report["original_withheld_index_plane_shas"],[C,D,E])
         self.assertEqual(report["potential_fitting_to_withheld_pairs"],6)

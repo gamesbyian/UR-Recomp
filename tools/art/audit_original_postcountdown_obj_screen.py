@@ -36,7 +36,7 @@ def source_archive_frames(raw_zip: bytes, *, expected_zip_sha: str = SOURCE_ZIP_
     Alternate expected hashes are allowed only for explicit synthetic tests.
     The CLI always uses the fixed independently authenticated ZIP SHA.
     """
-    if not isinstance(raw_zip, bytes) or len(raw_zip) > 16_000_000:
+    if not isinstance(raw_zip, bytes) or not raw_zip or len(raw_zip) > 16_000_000:
         raise ValueError("original source ZIP absent or exceeds diagnostic cap")
     if sha(raw_zip) != expected_zip_sha:
         raise ValueError("not the authenticated original post-countdown source ZIP")

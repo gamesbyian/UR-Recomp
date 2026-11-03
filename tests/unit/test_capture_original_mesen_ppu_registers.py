@@ -77,5 +77,32 @@ class OriginalPpuSerializedTests(unittest.TestCase):
                 select_source_state(invalid)
 
 
+    def test_one_pass_original_PPU_register_RAM_and_screen_capture(self):
+        import json
+        class VideoMesen(FakeMesen):
+            def tool(self,name,**args):
+                if name=="video.export_frame":
+                    path=Path(args["path"])
+                    path.write_bytes(b"P6\\n2 1\\n255\\n"+bytes([self.frame,12,34])*2)
+                    return {"path":str(path),"format":"P6",
+                            "width":2,"height":1,"pixels":2}
+                return super().tool(name,**args)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            evidence=capture_registers(VideoMesen(),[],3,2,root,include_held_framebuffer=True)
+            self.assertTrue(evidence["original_held_RGB_p6_exported"])
+            self.assertEqual(evidence["original_raw_PPU_and_video_source_manifest_file"],
+                             "original-raw-ppu-and-video-manifest.json")
+            self.assertEqual([row["tick"] for row in evidence["original_emulator_frame_sources"]],[4,5])
+            self.assertNotEqual(evidence["original_emulator_frame_sources"][0]["source_original_P6_sha"],
+                                evidence["original_emulator_frame_sources"][1]["source_original_P6_sha"])
+            manifest=json.loads((root/"original-raw-ppu-and-video-manifest.json").read_text())
+            self.assertTrue(manifest["original_held_framebuffer_P6_exported"])
+            self.assertFalse(evidence["source_PPU_screen_phase_correspondence_verified"])
+            self.assertFalse(evidence["original_racer_sprite_pixel_ownership_verified"])
+            from tools.art.capture_original_mesen_ppu_raw import validate_snapshot_files
+            validate_snapshot_files(root,manifest)
+
+
 if __name__=="__main__":
     unittest.main()

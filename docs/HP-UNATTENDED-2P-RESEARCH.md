@@ -54,6 +54,57 @@ pickup or claim zero build contention. The second priority build
 [#41509060392](https://github.com/gamesbyian/UR-Recomp/actions/runs/41509060392)
 also passed. Keep the local 60-minute pilot under observation.
 
+### Physical HP confirmation: 60-minute pilot in operation
+
+The owner confirmed the installed Python source's complete SHA-256 changed
+from the previously verified 90-minute version
+`5756e12471d2241300915abbb06eabaef087007eb54f58e2ee557aa96e91d64b`
+to the reviewed 60-minute version
+`316cfe232d476fed5af65d0e72543b16f506150c638b428edb31df7a89db629d`
+after performing the bounded local one-line update without downloading
+the quarantined ZIP. In Windows PowerShell, Task Scheduler reported
+**LastRunTime November 2 14:50:50 MST, LastTaskResult 0, NextRunTime
+15:05:05 MST** for the existing
+`UR-Recomp HP Research Missed-Schedule Fallback` task.
+
+The owner's actual `last-status.json` from **2026-11-02 21:50:47.884 UTC**
+reported `decision=skip:recent-research`, `dispatched=false`,
+`dry_run=false`, and latest research run
+[#41522940636](https://github.com/gamesbyian/UR-Recomp/actions/runs/41522940636).
+GitHub created that successful run at **20:50:57 UTC**, **59 minutes
+50 seconds before** the task check. The 60-minute cutoff was therefore
+working correctly, **not** an API timestamp anomaly. The next local
+check window yielded successful
+[dispatch #41534266867](https://github.com/gamesbyian/UR-Recomp/actions/runs/41534266867)
+at 22:05:58 UTC, followed by successful dispatches
+[#41544730154](https://github.com/gamesbyian/UR-Recomp/actions/runs/41544730154)
+at 23:20:57,
+[#41557456296](https://github.com/gamesbyian/UR-Recomp/actions/runs/41557456296)
+at 01:05:59 November 3 (after a separate real cron run),
+[#41565550358](https://github.com/gamesbyian/UR-Recomp/actions/runs/41565550358)
+at 02:21:00 and
+[#41573163644](https://github.com/gamesbyian/UR-Recomp/actions/runs/41573163644)
+at 03:35:58. GitHub `workflow_dispatch` does not label its client:
+this is strong timing evidence of local unattended operation plus a genuine
+successful local Task Scheduler receipt, rather than definitive per-run
+client attribution.
+
+**Observed fallback-only dispatch intervals are about 75 minutes**, not
+60, because a task checking every 15 minutes often tests just before the
+60-minute boundary. The pilot's 192 cases/day ceiling assumes perfect
+hourly eligibility and is **not** actual accepted throughput. Priority
+Windows product [push #41481409141](https://github.com/gamesbyian/UR-Recomp/actions/runs/41481409141)
+was created at 16:26:01 UTC while research
+[#41480568113](https://github.com/gamesbyian/UR-Recomp/actions/runs/41480568113)
+was occupying the HP. The product job reached its first recorded HP
+output only at 16:30:42 after research completed, then passed at 16:35:33.
+So the pilot has a real several-minute priority queue cost to monitor.
+Do not describe priority queue delay as zero or relax full product QA.
+
+No future Defender allowlisting or ZIP reinstallation is authorized by this
+confirmation. Source hash identity and successful Task Scheduler status
+are not malware-clearance verdicts.
+
 ## Active first lane
 
 [HP unattended seeded 2P gameplay research](../.github/workflows/owner-hp-seeded-2p-research.yml)

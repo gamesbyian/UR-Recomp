@@ -56,6 +56,22 @@ class NativeAnalyzerCacheTests(unittest.TestCase):
             f"SNESRECOMP_NATIVE_ANALYZER={path.absolute()}",
             f"SNESRECOMP_NATIVE_ANALYZER={path.absolute()}"])
 
+    def test_copy_failure_cannot_expose_partial_executable_to_emitter(self):
+        self.assertEqual(self.prepare(), "miss_built")
+        canonical = self.crate / "target/release" / cache.BINARY
+        canonical.unlink()
+        self.envfile.write_text("")
+
+        def partial(_source, destination):
+            Path(destination).write_bytes(b"MZpartial")
+            raise OSError("emulated incomplete copy")
+
+        with patch.object(cache.shutil, "copyfile", side_effect=partial):
+            self.assertEqual(self.prepare(), "source_fallback")
+        self.assertFalse(canonical.exists())
+        self.assertFalse(list(canonical.parent.glob(".analyzer-*.partial")))
+        self.assertEqual(self.envfile.read_text(), "")
+
     def test_tampered_binary_falls_back_without_exporting_path(self):
         self.assertEqual(self.prepare(), "miss_built")
         self.envfile.write_text("")

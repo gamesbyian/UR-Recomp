@@ -188,8 +188,22 @@ def prepare(framework: Path, cache_root: Path, github_env: Path,
         canonical = framework / "recompiler-rs/target/release" / BINARY
         require_plain_parents(canonical)
         canonical.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(binary, canonical)
-        if digest_file(canonical) != digest_file(binary):
+        expected_hash = digest_file(binary)
+        if not canonical.is_file() or digest_file(canonical) != expected_hash:
+            # A failed copy must never leave a partial executable at the name
+            # that upstream's ensure_native_analyzer() accepts as ready.
+            fd, temporary_name = tempfile.mkstemp(prefix=".analyzer-", suffix=".partial",
+                                                   dir=canonical.parent)
+            os.close(fd)
+            temporary = Path(temporary_name)
+            try:
+                shutil.copyfile(binary, temporary)
+                if digest_file(temporary) != expected_hash:
+                    raise ValueError("restored analyzer checksum mismatch")
+                os.replace(temporary, canonical)
+            finally:
+                temporary.unlink(missing_ok=True)
+        if digest_file(canonical) != expected_hash:
             raise ValueError("restored analyzer bytes differ from validated cache")
         with github_env.open("a", encoding="utf-8") as out:
             out.write("SNESRECOMP_NATIVE_ANALYZER=" + str(canonical.absolute()) + "\n")

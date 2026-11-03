@@ -115,6 +115,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             report=capture_states(FakeVideoMesen(),[],0,2,root,include_held_framebuffer=True)
             self.assertTrue(report["original_held_framebuffer_P6_exported"])
             self.assertFalse(report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"])
+            self.assertFalse(report["source_held_display_RGB_reproducibility_across_runs_independently_verified"])
             self.assertEqual(len(report["frames"]),2)
             for frame in report["frames"]:
                 meta=frame["original_emulator_held_display_P6"]
@@ -173,6 +174,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                          {"oam":0,"vram":38,"cgram":17})
         self.assertFalse(report["original_scanout_content_contemporaneous_with_held_PPU_RAM_verified"])
         self.assertFalse(report["original_racer_OBJ_pixel_ownership_reconstructed"])
+        self.assertFalse(report["separate_independent_repeatability_cross_check"]["source_held_screen_is_validated_repeatable_PPU_raster"])
 
     def test_held_display_claim_escalation_and_malformed_dimensions_rejected(self):
         class FakeVideo(FakeMesen):
@@ -186,7 +188,8 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             root=Path(d)
             report=capture_states(FakeVideo(),[],0,1,root,include_held_framebuffer=True)
             for field in ("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified",
-                          "source_held_display_to_current_PPU_scanout_phase_independently_aligned"):
+                          "source_held_display_to_current_PPU_scanout_phase_independently_aligned",
+                          "source_held_display_RGB_reproducibility_across_runs_independently_verified"):
                 changed=copy.deepcopy(report)
                 changed[field]=True
                 with self.subTest(field=field),self.assertRaisesRegex(ValueError,"provenance"):

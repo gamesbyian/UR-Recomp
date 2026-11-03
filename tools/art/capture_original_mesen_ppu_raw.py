@@ -154,6 +154,7 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "original_held_framebuffer_P6_exported":include_held_framebuffer,
             "original_PPU_RGB_to_source_OBJ_pixel_ownership_verified":False,
             "source_held_display_to_current_PPU_scanout_phase_independently_aligned":False,
+            "source_held_display_RGB_reproducibility_across_runs_independently_verified":False,
             "source_regional_memory_bytes_sha_bound":True,
             "live_original_per_player_64x64_alpha_composition_verified":False,
             "source_original_live_OAM_sprite_to_racer_identity_verified":False,
@@ -170,7 +171,8 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
             manifest.get("emulator_source_revision")!=MESEN_REVISION or
             manifest.get("source_original_live_OAM_sprite_to_racer_identity_verified") is not False or
             manifest.get("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified",False) is not False or
-            manifest.get("source_held_display_to_current_PPU_scanout_phase_independently_aligned",False) is not False):
+            manifest.get("source_held_display_to_current_PPU_scanout_phase_independently_aligned",False) is not False or
+            manifest.get("source_held_display_RGB_reproducibility_across_runs_independently_verified",False) is not False):
         raise ValueError("invalid provenance or overclaimed original PPU capture")
     frames=manifest.get("frames")
     if (not isinstance(frames,list) or not frames or

@@ -116,7 +116,8 @@ jobs:
               assert display["source_rgb_byte_length"]==3*display["source_display_width"]*display["source_display_height"]
               assert display["source_display_width"]>=256
               assert display["source_display_height"]>=200
-          assert len({x["original_emulator_held_display_P6"]["sha256"] for x in report["frames"]})>=1
+          assert report["source_held_display_to_current_PPU_scanout_phase_independently_aligned"] is False
+          assert report["source_held_display_RGB_reproducibility_across_runs_independently_verified"] is False
           print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",1219,1220,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
 

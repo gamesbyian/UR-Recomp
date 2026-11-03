@@ -70,5 +70,11 @@
   "source_racer_pixel_ownership_verified": false,
   "source_original_3D_camera_rig_and_pose_alignment_verified": false,
   "owner_likeness_approved": false,
-  "interpretation": "Both actually executed pinned MesenCE ROM runs reproduce identical 544-byte OAM, 65536-byte VRAM, and 512-byte CGRAM SHA at ticks 1219 and 1220. Yet the 256x239 RGB buffers differ significantly across executions and disagree over whether adjacent ticks have changed display pixels. This proves that the currently captured raw region set plus tick number does not uniquely determine the exported held screen. Missing PPU register/scanout phase state versus buffer capture timing remain unisolated. Do not treat either screen as an accepted, registered original sprite surface."
+  "interpretation": "Both actually executed pinned MesenCE ROM runs reproduce identical 544-byte OAM, 65536-byte VRAM, and 512-byte CGRAM SHA at ticks 1219 and 1220. Yet the 256x239 RGB buffers differ significantly across executions and disagree over whether adjacent ticks have changed display pixels. This proves that the currently captured raw region set plus tick number does not uniquely determine the exported held screen. Missing PPU register/scanout phase state versus buffer capture timing remain unisolated. Do not treat either screen as an accepted, registered original sprite surface.",
+  "actual_original_source_repeatability_tooling_run": 41573485431,
+  "actual_source_repeatability_artifact_id": 13202910464,
+  "actual_source_repeatability_json_sha256": "f365c913b9e21107d660117670b9405f0699a219fe8de74ad4d7181c923f9893",
+  "actual_source_repeatability_json_bytes": 2153,
+  "independent_second_implementation_of_original_RGB_diff_confirmed": true,
+  "source_held_display_rgb_presentation_across_runs_accepted": false
 }

@@ -116,6 +116,21 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"fresh empty"):
                 capture_states(fake,[],0,1,root,source_capture_ticks=(2,4))
 
+
+    def test_manual_original_actions_workflow_accepts_sparse_without_default_drift(self):
+        workflow=(Path(__file__).resolve().parents[2] /
+                  ".github/workflows/art4k-live-original-mesen-ppu-raw.yml").read_text()
+        self.assertIn("      capture_ticks:", workflow)
+        self.assertIn('        default: ""', workflow)
+        self.assertIn("CAPTURE_TICKS: $" + "{{ inputs.capture_ticks || '' }}", workflow)
+        self.assertIn('selection=(--capture-ticks "$CAPTURE_TICKS")', workflow)
+        self.assertIn('selection=(--advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES")', workflow)
+        self.assertIn('parse_capture_ticks(os.environ["CAPTURE_TICKS"])', workflow)
+        self.assertIn('assert report["source_requested_capture_ticks"]==desired', workflow)
+        self.assertIn('if not sparse and (advance,count)==(1218,2):', workflow)
+        self.assertIn('assert "source_requested_capture_ticks" not in report', workflow)
+        self.assertIn('MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"', workflow)
+
     def test_byte_span_types_and_length_are_enforced(self):
         good={"memoryType":"snesSpriteRam","address":0,"length":3,"bytes":[0,12,255]}
         self.assertEqual(valid_bytes(good,"snesSpriteRam",0,3),bytes([0,12,255]))

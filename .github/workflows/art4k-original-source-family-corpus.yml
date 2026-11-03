@@ -106,7 +106,7 @@ jobs:
           PY
 
 
-      # Temporary, bounded original-tile lineage evidence collection for PR #3061.
+      # Temporary, bounded original-tile lineage evidence collection for PR #3061. Exact nonblank-move follow-up.
       - name: Download exact historical original sprite witness
         uses: actions/download-artifact@v4
         with:

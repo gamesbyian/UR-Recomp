@@ -104,5 +104,24 @@ class OriginalPpuSerializedTests(unittest.TestCase):
             validate_snapshot_files(root,manifest)
 
 
+    def test_actual_postcountdown_five_frame_source_is_bounded_not_3D_accepted(self):
+        import json
+        root=Path(__file__).resolve().parents[2]
+        evidence=json.loads((root/"analysis/data/racer-original-two-player-postcountdown-actual-frames-20261103.json").read_text())
+        self.assertEqual(evidence["authentic_source_run"],41585842911)
+        self.assertEqual([r["tick"] for r in evidence["original_frames"]],list(range(1601,1606)))
+        self.assertEqual([r["original_held_blue_OBJ_x"] for r in evidence["original_frames"]],[82,83,84,85,86])
+        self.assertEqual([r["original_held_red_OBJ_x"] for r in evidence["original_frames"]],[48]*5)
+        self.assertEqual([r["changed_bytes_from_prior_held_frame"]["oam"]
+                          for r in evidence["original_frames"][1:]],[1]*4)
+        self.assertEqual([r["changed_bytes_from_prior_held_frame"]["source_completed_screen_RGB_pixels"]
+                          for r in evidence["original_frames"][1:]],[19903,19858,20613,20821])
+        self.assertTrue(evidence["source_OAM_VRAM_CGRAM_bytes_SHA_checked"])
+        self.assertFalse(evidence["source_per_scanline_obj_ownership_captured"])
+        self.assertFalse(evidence["source_original_1994_3d_rig_camera_or_skeleton_recovered"])
+        self.assertFalse(evidence["source_to_experimental_2026_glb_pose_alignment_verified"])
+        self.assertFalse(evidence["owner_likeness_approved"])
+
+
 if __name__=="__main__":
     unittest.main()

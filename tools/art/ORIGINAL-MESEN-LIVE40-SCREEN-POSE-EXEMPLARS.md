@@ -42,8 +42,11 @@ python3 -m tools.art.select_original_mesen_live_pose_exemplars \
   --registration analysis/data/racer-original-mesen-twenty-live-2d-screen-registrations-20261103.json \
   --novelty analysis/data/racer-original-live40-historical-tile-content-novelty-20261103.json \
   --verify-committed analysis/data/racer-original-live40-screen-review-exemplars-20261103.json \
+  --contact-sheet /private/new/original-15-pose-reference.png \
   --out /private/new/source-review-exemplars.json
 ```
+
+**Optional original-colour review sheet:** the `--contact-sheet` argument renders the 15 exact source **OAM+VRAM+CGRAM** 64×64 RGBA sprites onto a neutral checkerboard at nearest-neighbour scale. Red is reflected *only* because the independently authenticated completed screen shows it that way; its CGRAM RGB bytes are untouched, and HUD red-overlay pixels are not fabricated. The generator verifies original index and alpha SHA for each selected sprite, refuses an existing output path, and prints the PNG SHA. Pillow is required only when rendering the optional sheet. This sheet is a local/private review artifact; the PR does not redistribute 40 raw original sprites or another published Pages app. Original full-screen P6/source SHA audit and compact receipt verification always run before the sheet is created.
 
 Authentic original source: [Actions run #41605614082](https://github.com/gamesbyian/UR-Recomp/actions/runs/41605614082), artifact #13217381754, ZIP SHA `709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f`. The actual original USA ROM, original replay, MesenCE revision and per-source framebuffer SHA identities remain pinned in #3088. This command **does not execute the emulator**, rebuild GLBs, mutate the Pages site, reassign assets, adjust the provisional camera, or alter native graphics.
 

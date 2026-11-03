@@ -1,0 +1,316 @@
+{
+  "schema": "UR-ART4K-AUTHENTIC-ORIGINAL-OBJ-ORIENTATION-AND-RED-COMPOSITING/1",
+  "source_original_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_Mesen_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "source_artifact_zip_sha256": "d7d3e312528563bae0940ed97258024103085576c385334253458af501744ab7",
+  "source_artifact_id": 13208166875,
+  "source_workflow_run": 41585842911,
+  "original_emulator_ticks": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605
+  ],
+  "observed_RGB_red_component_5bit_addend": 13,
+  "original_2D_source_correspondence_per_frame": [
+    {
+      "original_emulator_tick": 1601,
+      "original_OAM_slot": 96,
+      "source_colourway": "blue",
+      "source_held_OAM_xy": [
+        82,
+        151
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        82,
+        158
+      ],
+      "independently_preobserved_screen_y_offset": 7,
+      "postcapture_2D_diagnostic_mirror_applied": false,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 316,
+        "direct_exact_RGB": 281,
+        "red_5bit_plus_13_RGB": 35,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 71,
+        "source_chromatic_pixels_accounted": 71,
+        "source_screen_pixel_classification_sha256": "3c4d6f35721395bf20531be546595231aa2158647e431dd757f223debc20bdb8",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 298,
+      "one_pixel_x_shift_unaccounted": 232,
+      "red_bonus_12_instead_of_13_unaccounted": 33
+    },
+    {
+      "original_emulator_tick": 1601,
+      "original_OAM_slot": 97,
+      "source_colourway": "red",
+      "source_held_OAM_xy": [
+        48,
+        48
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        48,
+        48
+      ],
+      "independently_preobserved_screen_y_offset": 0,
+      "postcapture_2D_diagnostic_mirror_applied": true,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 311,
+        "direct_exact_RGB": 290,
+        "red_5bit_plus_13_RGB": 21,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 59,
+        "source_chromatic_pixels_accounted": 59,
+        "source_screen_pixel_classification_sha256": "8bb8828cea11422484d98e81410046a45a39115a1a36bd9e3a3dd1e299ce7f8e",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 297,
+      "one_pixel_x_shift_unaccounted": 230,
+      "red_bonus_12_instead_of_13_unaccounted": 21
+    },
+    {
+      "original_emulator_tick": 1602,
+      "original_OAM_slot": 96,
+      "source_colourway": "blue",
+      "source_held_OAM_xy": [
+        83,
+        151
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        83,
+        158
+      ],
+      "independently_preobserved_screen_y_offset": 7,
+      "postcapture_2D_diagnostic_mirror_applied": false,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 316,
+        "direct_exact_RGB": 277,
+        "red_5bit_plus_13_RGB": 39,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 74,
+        "source_chromatic_pixels_accounted": 74,
+        "source_screen_pixel_classification_sha256": "cf1ee280247353b2d1b96f5ebc72c24e76e8b8e7f8ac78161f65f473f34079fd",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 292,
+      "one_pixel_x_shift_unaccounted": 235,
+      "red_bonus_12_instead_of_13_unaccounted": 35
+    },
+    {
+      "original_emulator_tick": 1602,
+      "original_OAM_slot": 97,
+      "source_colourway": "red",
+      "source_held_OAM_xy": [
+        48,
+        48
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        48,
+        48
+      ],
+      "independently_preobserved_screen_y_offset": 0,
+      "postcapture_2D_diagnostic_mirror_applied": true,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 319,
+        "direct_exact_RGB": 298,
+        "red_5bit_plus_13_RGB": 21,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 65,
+        "source_chromatic_pixels_accounted": 65,
+        "source_screen_pixel_classification_sha256": "10b2bcd11032c946771c7b6aca7715eedf62faeb4f1950318b6de0cf3dd70f2b",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 301,
+      "one_pixel_x_shift_unaccounted": 237,
+      "red_bonus_12_instead_of_13_unaccounted": 21
+    },
+    {
+      "original_emulator_tick": 1603,
+      "original_OAM_slot": 96,
+      "source_colourway": "blue",
+      "source_held_OAM_xy": [
+        84,
+        151
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        84,
+        158
+      ],
+      "independently_preobserved_screen_y_offset": 7,
+      "postcapture_2D_diagnostic_mirror_applied": false,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 320,
+        "direct_exact_RGB": 281,
+        "red_5bit_plus_13_RGB": 39,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 61,
+        "source_chromatic_pixels_accounted": 61,
+        "source_screen_pixel_classification_sha256": "1c27d1a4d3d101d6d090a8fbbbdf0d10ff6acaa841e66cd084a4bf9b60467ed5",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 300,
+      "one_pixel_x_shift_unaccounted": 226,
+      "red_bonus_12_instead_of_13_unaccounted": 34
+    },
+    {
+      "original_emulator_tick": 1603,
+      "original_OAM_slot": 97,
+      "source_colourway": "red",
+      "source_held_OAM_xy": [
+        48,
+        48
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        48,
+        48
+      ],
+      "independently_preobserved_screen_y_offset": 0,
+      "postcapture_2D_diagnostic_mirror_applied": true,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 316,
+        "direct_exact_RGB": 295,
+        "red_5bit_plus_13_RGB": 21,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 66,
+        "source_chromatic_pixels_accounted": 66,
+        "source_screen_pixel_classification_sha256": "1a4d4039b33ad0dabf45ef7d4c1cbb50b58a75288950b2a71a17a5ac249a89b5",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 302,
+      "one_pixel_x_shift_unaccounted": 231,
+      "red_bonus_12_instead_of_13_unaccounted": 21
+    },
+    {
+      "original_emulator_tick": 1604,
+      "original_OAM_slot": 96,
+      "source_colourway": "blue",
+      "source_held_OAM_xy": [
+        85,
+        151
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        85,
+        158
+      ],
+      "independently_preobserved_screen_y_offset": 7,
+      "postcapture_2D_diagnostic_mirror_applied": false,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 323,
+        "direct_exact_RGB": 282,
+        "red_5bit_plus_13_RGB": 41,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 69,
+        "source_chromatic_pixels_accounted": 69,
+        "source_screen_pixel_classification_sha256": "dae7abed22be04c04f8dba66ce679100a49474cf0437abc9f3a8301cf6e57d85",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 305,
+      "one_pixel_x_shift_unaccounted": 231,
+      "red_bonus_12_instead_of_13_unaccounted": 34
+    },
+    {
+      "original_emulator_tick": 1604,
+      "original_OAM_slot": 97,
+      "source_colourway": "red",
+      "source_held_OAM_xy": [
+        48,
+        48
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        48,
+        48
+      ],
+      "independently_preobserved_screen_y_offset": 0,
+      "postcapture_2D_diagnostic_mirror_applied": true,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 314,
+        "direct_exact_RGB": 293,
+        "red_5bit_plus_13_RGB": 21,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 65,
+        "source_chromatic_pixels_accounted": 65,
+        "source_screen_pixel_classification_sha256": "3328a80cd1b2403e99d88d6a88cdd56720f89563067a6d72924ef7348f8d3a0d",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 300,
+      "one_pixel_x_shift_unaccounted": 228,
+      "red_bonus_12_instead_of_13_unaccounted": 21
+    },
+    {
+      "original_emulator_tick": 1605,
+      "original_OAM_slot": 96,
+      "source_colourway": "blue",
+      "source_held_OAM_xy": [
+        86,
+        151
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        86,
+        158
+      ],
+      "independently_preobserved_screen_y_offset": 7,
+      "postcapture_2D_diagnostic_mirror_applied": false,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 317,
+        "direct_exact_RGB": 281,
+        "red_5bit_plus_13_RGB": 36,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 62,
+        "source_chromatic_pixels_accounted": 62,
+        "source_screen_pixel_classification_sha256": "bf4f0e439265746d70b14e94a387cc04bd8d51af7fad3800f5e4a74cd888f035",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 297,
+      "one_pixel_x_shift_unaccounted": 220,
+      "red_bonus_12_instead_of_13_unaccounted": 30
+    },
+    {
+      "original_emulator_tick": 1605,
+      "original_OAM_slot": 97,
+      "source_colourway": "red",
+      "source_held_OAM_xy": [
+        48,
+        48
+      ],
+      "source_held_OAM_horizontal_flip_bit": false,
+      "tested_screen_origin_xy": [
+        48,
+        48
+      ],
+      "independently_preobserved_screen_y_offset": 0,
+      "postcapture_2D_diagnostic_mirror_applied": true,
+      "source_pixel_correspondence": {
+        "source_opaque_pixels": 318,
+        "direct_exact_RGB": 297,
+        "red_5bit_plus_13_RGB": 21,
+        "unaccounted_RGB": 0,
+        "source_chromatic_pixels": 61,
+        "source_chromatic_pixels_accounted": 61,
+        "source_screen_pixel_classification_sha256": "76e8ed5f82cdbe46bb96f5936fb7eafdea57fe8efd1e125d95526109c34c4bf8",
+        "unaccounted_examples": []
+      },
+      "opposite_orientation_unaccounted": 304,
+      "one_pixel_x_shift_unaccounted": 231,
+      "red_bonus_12_instead_of_13_unaccounted": 21
+    }
+  ],
+  "source_completed_P6_and_held_PPU_arrays_SHA_verified": true,
+  "source_pixel_rgb_correspondence_with_two_observed_transform_states_verified": true,
+  "source_original_effective_per_scanline_OAM_flip_write_verified": false,
+  "source_original_pixel_layer_winner_or_colour_math_register_verified": false,
+  "source_1994_original_3D_geometry_rig_camera_verified": false,
+  "source_to_2026_GLB_pose_mapping_verified": false,
+  "owner_likeness_approved": false,
+  "interpretation": "From authentic original held 2D OBJ tile/colour bytes, every opaque source pixel coincides with the completed original P6 screen at preobserved registration after horizontally mirroring red and allowing either unchanged RGB or the exact red-only +13/31 five-bit addition per pixel (clamped). Blue is registered at held Y+7, red at held XY. This is a source-RGB observational equivalence, not a recorded PPU color-math register, proven per-scanline pixel ownership, original 3D geometry, or approved likeness."
+}

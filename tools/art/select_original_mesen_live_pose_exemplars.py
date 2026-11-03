@@ -274,6 +274,24 @@ def evaluate(source_zip: Path, registration_path: Path, novelty_path: Path) -> d
     return select_live40(masks, planes, novelty, registration)
 
 
+
+def committed_review_projection(result: dict) -> dict:
+    """Small immutable source-derived receipt, without duplicating all 40 pixels."""
+    return {key: result[key] for key in (
+        "schema", "actual_original_USA_ROM_source_zip_sha256",
+        "source_artifact_id", "orientation_basis", "exemplar_algorithm",
+        "source_history_fit_and_withheld_unchanged",
+        "new_live_source_fit_or_holdout_roles_assigned",
+        "exemplars_prospectively_blind_to_2026_GLB_scores",
+        "original_1994_pose_labels_verified",
+        "original_source_3D_geometry_camera_bones_verified",
+        "source_to_experimental_3D_GLb_pose_mapping_verified",
+        "owner_likeness_approved",
+        "historical_source_content_components",
+        "screen_oriented_review_exemplars",
+        "summary",
+    )}
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-zip", type=Path, required=True)
@@ -287,8 +305,8 @@ def main() -> None:
     result = evaluate(args.source_zip, args.registration, args.novelty)
     if args.verify_committed:
         historic = json.loads(args.verify_committed.read_text())
-        if historic != result:
-            raise ValueError("recomputed authentic source exemplar receipt differs")
+        if historic != committed_review_projection(result):
+            raise ValueError("recomputed authentic source exemplar selection differs")
     publish_text_once(args.out, json.dumps(result, sort_keys=True, indent=2)+"\n")
     print(json.dumps({
         "authentic_original_screen_registered_sprite_count":

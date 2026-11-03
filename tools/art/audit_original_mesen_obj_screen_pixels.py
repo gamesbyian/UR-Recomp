@@ -104,6 +104,7 @@ def decode_source_obj(oam_row:dict,vram:bytes,cgram:bytes,*,oam_mode:int,
             rgba[pos*4:pos*4+4]=bytes([r,g,b,255])
     return {
         "slot":slot,"size":size,"plane":bytes(raster),"rgba":bytes(rgba),
+        "alpha_mask":bytes(1 if index else 0 for index in raster),
         "source_palette_id":palette,
         "opaque_count":sum(ci!=0 for ci in raster),
         "tile_word_address_count":len(tiles),
@@ -190,9 +191,11 @@ def audit_source(zip_file:Path,register_summary:dict)->dict:
     source=first["first"]
     oam=decode_oam(source["oam"])
     results={}
+    source_objects={}
     for slot,target in ((96,"lower"),(97,"upper")):
         obj=decode_source_obj(oam[slot],source["vram"],source["cgram"],
                oam_mode=4,obj_base=0x6000,second_table_offset=0x1000)
+        source_objects[slot]=obj
         upper=best_opaque_matches(obj,source["rgb"],upper=True)
         lower=best_opaque_matches(obj,source["rgb"],upper=False)
         expected={"upper":(104,47),"lower":(104,160)}[target]
@@ -211,14 +214,26 @@ def audit_source(zip_file:Path,register_summary:dict)->dict:
             "source_original_OBJ_palette_id":obj["source_palette_id"],
             "source_4bpp_indices_sha256":sha(obj["plane"]),
             "source_RGBA_sha256":sha(obj["rgba"]),
+            "source_alpha_mask_sha256":sha(obj["alpha_mask"]),
             "source_opaque_pixel_count":obj["opaque_count"],
             "original_sprite_tile_count":obj["tile_word_address_count"],
             "matching_viewport":target,
             "same_screen_full_opaque_RGB_match":chosen,
             "other_viewport_best_opaque_RGB_match":rival,
         }
+    a,b=source_objects[96]["alpha_mask"],source_objects[97]["alpha_mask"]
+    intersection=sum(bool(x) and bool(y) for x,y in zip(a,b))
+    union=sum(bool(x) or bool(y) for x,y in zip(a,b))
     return {
         "schema":SCHEMA,
+        "original_two_racer_2D_alpha_shape_overlap":{
+            "intersection_pixels":intersection,
+            "union_pixels":union,
+            "blue_only_pixels":sum(bool(x) and not bool(y) for x,y in zip(a,b)),
+            "red_only_pixels":sum(bool(y) and not bool(x) for x,y in zip(a,b)),
+            "shared_shape_iou":intersection/union,
+            "source_alpha_planes_identical":a==b,
+        },
         "original_source_PPU_archive_SHA256":SOURCE_ZIP_SHA,
         "original_PPU_register_numeric_source_sha256":SOURCE_REG_JSON_SHA,
         "original_USA_ROM_sha256":ROM_SHA,

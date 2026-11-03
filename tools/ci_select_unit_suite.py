@@ -18,6 +18,9 @@ OPERATIONS_ONLY = frozenset({
     "tools/agent_control.py",
     "tools/ops_live_status.py",
     "tools/hp_compute_watch.py",
+    # Read-only ROM-free science archive verification/reporting. Never alters
+    # producer science, Windows gameplay, package QA or release acceptance.
+    "tools/hp_science_archive_audit.py",
     "tools/ci_cancelled_job_sample.py",
     "tools/report_ci_runtime.py",
     "tools/validate_history_custody.py",
@@ -25,6 +28,7 @@ OPERATIONS_ONLY = frozenset({
     "tests/unit/test_agent_control.py",
     "tests/unit/test_ops_live_status.py",
     "tests/unit/test_hp_compute_watch.py",
+    "tests/unit/test_hp_science_archive_audit.py",
     "tests/unit/test_ci_cancelled_job_sample.py",
     "tests/unit/test_report_ci_runtime.py",
     "tests/unit/test_validate_history_custody.py",
@@ -37,8 +41,13 @@ OPERATIONS_ONLY = frozenset({
 # The shared board is exercised by the focused test_agent_control suite.
 # The HP cadence watcher is read-only GitHub API reporting with pure stdlib
 # tests: it cannot alter game builds, source parity or product acceptance.
-# Its isolated source + regression changes run the exact watcher tests here;
-# any edit to the Windows producer, research harness or workflow stays FULL.
+# Its isolated source + regression changes run the exact watcher tests here.
+# A standalone science *archive auditor* is also observational: its only
+# accepted output is an offline report with zero release-gate credit. Its
+# exact source/test pair is focused ONLY if the science-audit, producer and
+# ROM-free binary-staging regressions all run. Any change to the live Windows
+# producer, research harness, stage/packaging implementation, or a workflow
+# remains FULL.
 # The Windows physical candidate marker is deliberately excluded: a ready
 # request must receive the complete unit suite before main-only dispatch.
 OPS_CONTEXT_DOCS = frozenset({
@@ -70,6 +79,9 @@ FOCUSED_TEST_MODULES = (
     "tests.unit.test_agent_control",
     "tests.unit.test_ops_live_status",
     "tests.unit.test_hp_compute_watch",
+    "tests.unit.test_hp_science_archive_audit",
+    "tests.unit.test_hp_seeded_2p_research",
+    "tests.unit.test_stage_windows_smoke_romfree_exe",
     "tests.unit.test_ci_cancelled_job_sample",
     "tests.unit.test_validate_history_custody",
     "tests.unit.test_backup_main_history",

@@ -23,11 +23,44 @@ class UnitSuiteSelectorTests(unittest.TestCase):
         self.assertEqual(classify([f("tools/hp_compute_watch.py"),
                                    f("tests/unit/test_hp_compute_watch.py")]), "ops")
         self.assertIn("tests.unit.test_hp_compute_watch", FOCUSED_TEST_MODULES)
+        for module in (
+            "tests.unit.test_hp_science_archive_audit",
+            "tests.unit.test_hp_seeded_2p_research",
+            "tests.unit.test_stage_windows_smoke_romfree_exe",
+        ):
+            self.assertIn(module, FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_agent_control", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_trigger_policy", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_ci_playtest_request_guard", FOCUSED_TEST_MODULES)
         self.assertIn("tests.unit.test_verify_baldosa_playtest_release", FOCUSED_TEST_MODULES)
         self.assertEqual(classify([f("docs/playtest/REQUEST-WINDOWS-PLAYTEST.md")]), "full")
+
+    def test_romfree_science_archive_audit_is_isolated_but_producer_is_full(self):
+        pair = [f("tools/hp_science_archive_audit.py"),
+                f("tests/unit/test_hp_science_archive_audit.py")]
+        self.assertEqual(classify(pair), "ops")
+        self.assertEqual(classify(pair[:1]), "ops")
+        self.assertEqual(classify(pair[1:]), "ops")
+        self.assertEqual(classify([*pair, f("tools/hp_compute_watch.py")]), "ops")
+        for sensitive in (
+            "tools/hp_seeded_2p_research.py",
+            "tools/qa02_native_2p_seeded_endurance.py",
+            "tools/ci/stage_windows_smoke_romfree_exe.py",
+            "tests/unit/test_hp_seeded_2p_research.py",
+            "tests/unit/test_stage_windows_smoke_romfree_exe.py",
+            ".github/workflows/owner-hp-seeded-2p-research.yml",
+            ".github/workflows/windows-native-smoke.yml",
+            ".github/workflows/tooling-unit-tests.yml",
+            "tools/assemble_windows_package.py",
+            "docs/RELEASE-QUALITY-LEDGER.json",
+            "native/product/uniracers_modern_host.cpp",
+        ):
+            with self.subTest(sensitive=sensitive):
+                self.assertEqual(classify([*pair, f(sensitive)]), "full")
+        for status in ("renamed", "removed", "copied", "changed", None):
+            with self.subTest(status=status):
+                self.assertEqual(classify([f(pair[0]["filename"], status)]), "full")
+        self.assertEqual(classify([pair[0], pair[0]]), "full")
 
     def test_hp_watch_isolated_but_product_or_workflow_changes_remain_full(self):
         watcher = f("tools/hp_compute_watch.py")
@@ -222,7 +255,7 @@ class UnitSuiteSelectorTests(unittest.TestCase):
                 self.assertIn(module, narrow)
 
     def test_allowlist_is_only_exact_py_source_and_its_test_modules(self):
-        self.assertEqual(len(OPERATIONS_ONLY), 18)
+        self.assertEqual(len(OPERATIONS_ONLY), 20)
         self.assertEqual(len(FOCUSED_TEST_MODULES), len(set(FOCUSED_TEST_MODULES)))
         self.assertTrue(all(p.endswith(".py") for p in OPERATIONS_ONLY - OPS_CONTEXT_DOCS))
         self.assertTrue(all((p.startswith("docs/") or p == "AGENTS.md") and p.endswith(".md")

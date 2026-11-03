@@ -75,6 +75,24 @@ def _hash_json(data: dict) -> str:
                                       ensure_ascii=True).encode("utf-8")).hexdigest()
 
 
+def _pe_timestamp_neutral_sha256(data: bytes) -> str | None:
+    """Exploratory PE identity with only the four COFF timestamp bytes masked.
+
+    This is NOT a replacement for the fully bound executable SHA-256.
+    Invalid, non-PE or ambiguous headers return no comparable fingerprint.
+    """
+    if len(data) < 0x40 or data[:2] != b"MZ":
+        return None
+    pe = int.from_bytes(data[0x3c:0x40], "little")
+    if pe < 0x40 or pe + 12 > len(data) or data[pe:pe + 4] != b"PE\0\0":
+        return None
+    digest = hashlib.sha256()
+    digest.update(data[:pe + 8])
+    digest.update(b"\0" * 4)
+    digest.update(data[pe + 12:])
+    return digest.hexdigest()
+
+
 def _safe_zip_members(z: zipfile.ZipFile) -> None:
     members = z.infolist()
     require(0 < len(members) <= 1000, "invalid archive entry count")
@@ -150,6 +168,10 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
                     digest.update(block)
                     length += len(block)
             exe_sha = digest.hexdigest()
+            # Only read small executables again for optional comparison.
+            # The original byte-exact, source-bound binding remains mandatory.
+            pe_neutral = (_pe_timestamp_neutral_sha256(z.read(EXECUTABLE))
+                          if length <= 16 * 1024 * 1024 else None)
     except (OSError, zipfile.BadZipFile, RuntimeError) as exc:
         raise AuditError("invalid/unreadable artifact ZIP") from exc
 
@@ -195,6 +217,7 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
     require(isinstance(per_worker, list) and len(per_worker) == workers,
             "missing worker summary")
     observed = set()
+    first_seeds = {}
     count = 0
     for row in per_worker:
         require(isinstance(row, dict), "malformed worker row")
@@ -209,6 +232,7 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
         require(type(cases) is int and cases > 0, "missing worker cases")
         expected_seed = run_id % 10_000_000 + (index // 2) * 25_000_000 + (index % 2) * 1_000_003
         require(type(seed) is int and seed == expected_seed, "wrong worker seed namespace")
+        first_seeds[index] = seed
         require(type(duration) is float and math.isfinite(duration)
                 and 0 <= duration <= elapsed + 0.002,
                 "invalid per-worker wall time")
@@ -248,6 +272,9 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
         "archive_sha256": hashlib.sha256(snapshot).hexdigest(),
         "science_receipt_sha256": sig,
         "executable_sha256": exe_sha,
+        # Cross-run comparison only: the full PE digest above is authoritative.
+        "pe_coff_timestamp_neutral_executable_sha256": pe_neutral,
+        "worker_first_seeds": [first_seeds[i] for i in sorted(first_seeds)],
         "workers": workers, "accepted_cases": accepted,
         "real_guest_processes": receipt["real_guest_processes"],
         "research_wall_seconds": elapsed,
@@ -258,6 +285,10 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
             "The producer's SHA-256 seal is unkeyed, not a digital signature.",
             "GitHub event provenance depends on independently retrieved run metadata.",
             "No raw per-case guest traces exist in the uploaded summary receipt.",
+            "PE timestamp-neutral fingerprint masks only four COFF header bytes, "
+            "not source differences or gameplay behavior; full binary SHA-256 "
+            "remains the independently bound executable identity.",
+            "Only first worker seeds are retained; not all generated input plans.",
             "Zero original/native-event, physical-gamepad, or release-gate credit.",
         ],
         "release_gate_credit": 0,

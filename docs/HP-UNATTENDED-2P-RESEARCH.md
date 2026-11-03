@@ -4,6 +4,56 @@
 evidence between source changes, without reserving a sixth LLM agent.
 The five existing hourly generalist agents and their work queue are unchanged.
 
+### November 3 forensic discovery: distinct inputs, timestamp-equivalent binaries
+
+Four **read-only, ROM-free** exact-run HP evidence archives were downloaded
+and compared against their actual GitHub artifact SHA-256 digests:
+
+| Run / origin | Source SHA | Real Windows game executable SHA-256 prefix | New worker-first seeds | Cases / processes |
+| --- | --- | --- | --- | --- |
+| [#41544730154](https://github.com/gamesbyian/UR-Recomp/actions/runs/41544730154), dispatch | `041319d9a7e4` | `cd976fe15059` | 8 | 8 / 32 |
+| [#41549934055](https://github.com/gamesbyian/UR-Recomp/actions/runs/41549934055), genuine cron | `041319d9a7e4` | `52009de770ec` | 8 | 8 / 32 |
+| [#41565550358](https://github.com/gamesbyian/UR-Recomp/actions/runs/41565550358), dispatch | `2d7d0ea1f444` | `4a3864d7ca40` | 8 | 8 / 32 |
+| [#41573163644](https://github.com/gamesbyian/UR-Recomp/actions/runs/41573163644), dispatch | `2d7d0ea1f444` | `97931d873f33` | 8 | 8 / 32 |
+
+All four real Windows jobs passed normal packaging/boot/QA, the science receipt
+self-hash, run/source/candidate binding, ZIP CRC, eight seed namespace checks,
+and reported zero collector issues, with no original/native or release credit.
+The **32 observed first-worker seeds are unique** (a source can repeat while
+new input experiments continue). All four compiled executable files are
+**5,446,656 bytes**. Their raw full-file SHA-256 values differ, but all four
+share a single **COFF timestamp-neutral** SHA-256
+`364c0103717c0f1597d7e4e1422a9c4dc81447889b8b3ef65586b31de46c1a2a`.
+Byte-for-byte comparison of the two `2d7d0e` builds found **only two differing
+bytes**, at PE offset `0x80`, inside the four-byte COFF timestamp. Thus
+*different Git source epochs and different full binary hashes* need not imply
+that the game executable's code or resources have changed.
+
+The existing archive auditor now **adds** a strictly bounded optional
+`pe_coff_timestamp_neutral_executable_sha256` and
+`worker_first_seeds`, without altering mandatory full executable SHA-256,
+source, run, seal and fixture verification. Only the four PE timestamp
+bytes are neutralized; comparable hash equality does **not** prove semantic
+equivalence of source changes, game fidelity, deterministic build identity
+in general, or independence of all within-worker case inputs. This
+is evidence for evaluating **future reuse of a previously qualified binary**
+during unchanged executable epochs, after separately designing invalidation
+criteria for game code, toolchain, canonical controller/audio/storage QA,
+assets, native runtime dependencies and failure recovery. No cache/reuse
+workflow has been enabled by this discovery.
+
+Observed priority interaction: [research #41480568113](https://github.com/gamesbyian/UR-Recomp/actions/runs/41480568113)
+was executing 16:21–16:30 UTC when
+[main product HP push #41481409141](https://github.com/gamesbyian/UR-Recomp/actions/runs/41481409141)
+arrived 16:26 UTC. Its first observed HP job output was at 16:30:42,
+after the research completed, and product QA passed by 16:35:33.
+This demonstrates a **real research-induced priority queue delay of several
+minutes**, not a proven violation of the separately documented 10-minute
+rollback condition. Do not conflate workflow creation and actual runner
+pickup or claim zero build contention. The second priority build
+[#41509060392](https://github.com/gamesbyian/UR-Recomp/actions/runs/41509060392)
+also passed. Keep the local 60-minute pilot under observation.
+
 ## Active first lane
 
 [HP unattended seeded 2P gameplay research](../.github/workflows/owner-hp-seeded-2p-research.yml)

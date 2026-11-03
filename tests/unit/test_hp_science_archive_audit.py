@@ -90,8 +90,32 @@ class HpScienceArchiveAuditTests(unittest.TestCase):
                 self.assertEqual(result["workers"], workers)
                 self.assertEqual(result["accepted_cases"], workers)
                 self.assertEqual(result["real_guest_processes"], workers * 4)
+                self.assertEqual(result["worker_first_seeds"],
+                                 [RUN_ID % 10000000 + (i // 2) * 25000000
+                                  + (i % 2) * 1000003 for i in range(workers)])
+                self.assertIsNone(result["pe_coff_timestamp_neutral_executable_sha256"])
                 self.assertTrue(result["fixture_source_rechecked"])
                 self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_pe_timestamp_normalization_is_narrow_and_never_replaces_real_hash(self):
+        # Synthetic PE, no executable acceptance: change exactly the 4-byte
+        # COFF timestamp and verify that unrelated bytes still affect identity.
+        pe = bytearray(256)
+        pe[:2] = b"MZ"
+        pe[0x3c:0x40] = (0x80).to_bytes(4, "little")
+        pe[0x80:0x84] = b"PE\0\0"
+        pe[0x88:0x8c] = (1700000000).to_bytes(4, "little")
+        first = bytes(pe)
+        pe[0x88:0x8c] = (1700000001).to_bytes(4, "little")
+        second = bytes(pe)
+        self.assertNotEqual(hashlib.sha256(first).hexdigest(),
+                            hashlib.sha256(second).hexdigest())
+        neutral = audit._pe_timestamp_neutral_sha256(first)
+        self.assertEqual(neutral, audit._pe_timestamp_neutral_sha256(second))
+        pe[0x90] ^= 1
+        self.assertNotEqual(neutral, audit._pe_timestamp_neutral_sha256(bytes(pe)))
+        self.assertIsNone(audit._pe_timestamp_neutral_sha256(EXE))
+        self.assertIsNone(audit._pe_timestamp_neutral_sha256(b"MZ" + bytes(10)))
 
     def test_bad_actions_event_and_identity_rejected(self):
         for mutation in ({"event": "push"}, {"head_branch": "evil"},

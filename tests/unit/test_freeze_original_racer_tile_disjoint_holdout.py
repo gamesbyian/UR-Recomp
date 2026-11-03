@@ -78,6 +78,35 @@ class OriginalTileDisjointHoldoutTests(unittest.TestCase):
         self.assertFalse(no_match["source_live_ppu_sequence_verified"])
         self.assertFalse(no_match["original_source_to_model_pose_correspondence_verified"])
 
+    def test_frozen_real_source_holdout_sha_identity_and_scope(self):
+        import json
+        from pathlib import Path
+        path=(Path(__file__).resolve().parents[2] /
+              "analysis/data/racer-original-strict-tile-disjoint-holdout-20261103.json")
+        data=json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(data["actual_SHA_bound_source_workflow_run"],41556181251)
+        self.assertEqual(data["original_source_manifest_sha256"],
+                         "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e")
+        self.assertEqual(data["source_4bpp_planes_in_fit"],16)
+        self.assertEqual(data["source_4bpp_planes_in_withheld"],19)
+        self.assertEqual(data["fit_to_withheld_exact_nonblank_tile_pair_histogram"],
+                         {"0":291,"1":12,"7":1})
+        fit=data["fit_original_index_plane_sha256"]
+        held=data["withheld_original_index_plane_sha256"]
+        strict=data["strictly_tile_disjoint_withheld_index_plane_sha256"]
+        self.assertEqual(len(fit),16)
+        self.assertEqual(len(held),19)
+        self.assertEqual(len(strict),6)
+        self.assertFalse(set(fit) & set(held))
+        self.assertTrue(set(strict).issubset(held))
+        self.assertEqual(len(set(fit+held)),35)
+        for digest in fit+held:
+            self.assertRegex(digest,r"\\A[0-9a-f]{64}\\Z")
+        self.assertEqual(set(strict),
+                         set(data["strictly_tile_disjoint_withheld_original_registry_representation_ids"]))
+        self.assertFalse(data["source_original_live_PPU_timing_verified"])
+        self.assertFalse(data["experimental_GLb_pose_correspondence_verified"])
+
 
 if __name__=="__main__":
     unittest.main()

@@ -83,6 +83,17 @@ class Live40SourceTileLineageTests(unittest.TestCase):
         clean=[g for g in groups if not g["shares_precommitted_fit_tile"] and
                not g["shares_precommitted_withheld_tile"]]
         self.assertEqual(sorted(len(g["source_ticks_and_racers"]) for g in clean),[1,4,4])
+        # Freeze the actual original emulator identities of the three
+        # tile-content-independent groups, not merely their sizes. Changing
+        # membership can silently contaminate future pose evaluation.
+        self.assertEqual(
+            {tuple(tuple(v) for v in g["source_ticks_and_racers"])
+             for g in clean},
+            {
+                ((1648,"blue"),(1671,"blue"),(1700,"blue"),(2011,"blue")),
+                ((1671,"red"),(1700,"red"),(1731,"red"),(2283,"blue")),
+                ((2445,"blue"),),
+            })
         identities=[tuple(v) for g in groups for v in g["source_ticks_and_racers"]]
         self.assertEqual(len(identities),len(set(identities)))
         for key in ("historical_fit_or_withheld_index_membership_modified",

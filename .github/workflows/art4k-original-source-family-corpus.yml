@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: art4k-original-source-${{ github.event.pull_request.number || github.ref }}
@@ -103,6 +104,68 @@ jobs:
                 "all_roles=diagnostic",
                 "no_1994_3D_camera_or_model_claim")
           PY
+
+
+      # Temporary source-only frozen tile-disjoint holdout validation (#3062).
+      - name: Retrieve exact archived original source pixels
+        uses: actions/download-artifact@v4
+        with:
+          name: art4k-original-source-families-for-review
+          run-id: 41396846120
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/art4k-frozen-original-41
+
+      - name: Retrieve frozen authenticated original 8x8 tile-lineage evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: art4k-source-tile-lineage-41554638043
+          run-id: 41554638043
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/art4k-source-tile-edges
+
+      - name: Freeze six strictly tile-disjoint original heldout shapes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, os, pathlib, zipfile
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-frozen-original-41"
+          files=sorted(p for p in root.rglob("*") if p.is_file())
+          assert len(files)==42 and (root/"source-corpus.json").is_file()
+          assert hashlib.sha256((root/"source-corpus.json").read_bytes()).hexdigest()=="e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e"
+          with zipfile.ZipFile(pathlib.Path(os.environ["RUNNER_TEMP"])/"original-frozen-sources.zip",
+                               "w",compression=zipfile.ZIP_DEFLATED) as archive:
+              for file in files:
+                  archive.write(file,file.relative_to(root).as_posix())
+          report=pathlib.Path(os.environ["RUNNER_TEMP"])/"art4k-source-tile-edges/art4k-original-tile-lineage.json"
+          assert hashlib.sha256(report.read_bytes()).hexdigest()=="cccb78328307003b3f8148aa20ef7cca27c905e77610be2b3ffd1aa7e7d5f33f"
+          PY
+          python3 -m tools.art.freeze_original_racer_tile_disjoint_holdout \
+            --source-zip "$RUNNER_TEMP/original-frozen-sources.zip" \
+            --tile-lineage-json "$RUNNER_TEMP/art4k-source-tile-edges/art4k-original-tile-lineage.json" \
+            --out "$RUNNER_TEMP/frozen-original-tile-disjoint-holdout.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          record=json.loads((Path(os.environ["RUNNER_TEMP"])/"frozen-original-tile-disjoint-holdout.json").read_text())
+          assert record["original_fitting_planes"]==16
+          assert record["original_withheld_planes"]==19
+          assert record["potential_fitting_to_withheld_pairs"]==304
+          assert record["fitting_to_withheld_pairs_with_any_shared_exact_nonblank_tile"]==13
+          assert len(record["fully_tile_disjoint_original_withheld_index_plane_shas"])==6
+          assert record["original_source_to_model_pose_correspondence_verified"] is False
+          assert record["source_original_3d_camera_verified"] is False
+          print("AUTHENTIC_ART4K_SOURCE_HOLDOUT",16,19,6,13,
+                "no_live_PPU_or_3D_pose_claim")
+          PY
+
+      - name: Upload numerical original tile-disjoint holdout identifiers
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-original-tile-disjoint-holdout-${{ github.run_id }}
+          path: ${{ runner.temp }}/frozen-original-tile-disjoint-holdout.json
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Upload bounded original-pose research inputs (not ROM)
         uses: actions/upload-artifact@v4

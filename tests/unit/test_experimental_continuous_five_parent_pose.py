@@ -78,6 +78,17 @@ class ContinuousParentPoseTests(unittest.TestCase):
             self.assertTrue(np.array_equal(scene.geometry[k].faces, faces))
         self.assertFalse(output["original_3d_geometry_recovered"])
         self.assertFalse(output["owner_likeness_approved"])
+        # Absolute control should not accumulate A into B or fail to return
+        # to the SHA-bound source rest geometry when neutral is requested.
+        apply_scene(scene, -25, 7)
+        apply_scene(scene, 0, 0)
+        for p in PARTS:
+            self.assertTrue(np.allclose(scene.graph.get(p)[0], before[p],
+                                        atol=1e-8, rtol=0))
+        # An external writer cannot silently invalidate that cached source.
+        scene.graph.update(frame_to="tire", frame_from="world", matrix=np.eye(4))
+        with self.assertRaisesRegex(ValueError, "externally changed"):
+            apply_scene(scene, 20, 4)
 
     @unittest.skipUnless(np is not None and trimesh is not None, "optional trimesh/numpy")
     def test_reject_bad_source_scene_hierarchy_and_unauthenticated_glb(self):

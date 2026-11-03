@@ -70,7 +70,21 @@ def apply_scene(scene, wheel_crank_delta_deg: float, frame_pitch_deg: float) -> 
         if len(child_nodes) != n:
             raise ValueError("source material part identities changed")
 
-    before = {p: np.array(scene.graph.get(p)[0], dtype=float, copy=True) for p in PARTS}
+    # Absolute samples must start from ONE rest pose. Cache the untouched
+    # original parent matrices on first use; never accumulate a previous pose.
+    current = {p: np.array(scene.graph.get(p)[0], dtype=float, copy=True)
+               for p in PARTS}
+    rest = getattr(scene, "_ur_art4k_continuous_rest", None)
+    last = getattr(scene, "_ur_art4k_continuous_last", None)
+    if rest is None and last is None:
+        before = current
+    elif (type(rest) is not dict or type(last) is not dict or
+          set(rest) != set(PARTS) or set(last) != set(PARTS) or
+          any(not np.allclose(current[p], last[p], atol=1e-8, rtol=0)
+              for p in PARTS)):
+        raise ValueError("externally changed or invalid cached source rest pose")
+    else:
+        before = {p: np.array(rest[p], dtype=float, copy=True) for p in PARTS}
     if any(T.shape != (4, 4) or not np.isfinite(T).all() for T in before.values()):
         raise ValueError("nonfinite source parent matrix")
     axle = before["tire"]
@@ -101,6 +115,12 @@ def apply_scene(scene, wheel_crank_delta_deg: float, frame_pitch_deg: float) -> 
             not np.allclose(np.linalg.inv(after["fork_and_frame"]) @ after["saddle"],
                             source_frame_saddle, atol=1e-8, rtol=0)):
         raise ValueError("direct drive or rigid frame coupling broken")
+    # Private in-memory bookkeeping is deliberately absent from the exported
+    # glTF: only the five real named parent matrices travel with the GLB.
+    scene._ur_art4k_continuous_rest = {
+        p: np.array(before[p], copy=True) for p in PARTS}
+    scene._ur_art4k_continuous_last = {
+        p: np.array(after[p], copy=True) for p in PARTS}
 
     return {
         "schema": SCHEMA,

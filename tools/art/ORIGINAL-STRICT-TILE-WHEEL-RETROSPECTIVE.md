@@ -27,3 +27,10 @@ python3 -m tools.art.audit_strict_original_tile_holdout_wheel_width \
 ```
 
 The immutable numerical summary is `analysis/data/racer-original-six-tile-disjoint-wheel-width-retrospective-20261103.json`. The tool's exact eight-decimal score table retains both candidate scores for all 19 withheld index planes, with six clearly tagged. The model/material/Pages reviewer remains unchanged. Next genuine advancement is original emulator OAM/PPU pose alignment or new independently captured source viewpoints; another unpaired camera tweak based on the six scores would spoil their usefulness.
+
+
+## Historical numeric-summary SHA correction
+
+The first draft's strict original-source join failed its exact 19-mask membership check. That was a **valuable integrity failure**, not a reason to weaken the source SHA gate. The older durable summary `analysis/data/racer-wheel-x-genuine-rom-holdout-20261101.json` had one manually transcribed original binary-mask key `eb15bfa0705657438d3b22a6c3dca27f2e0abafb4d3b8749c8ad7e18249ca23f`, whereas the [original real run #41287222152 numeric artifact #13075379369](https://github.com/gamesbyian/UR-Recomp/actions/runs/41287222152/artifacts/13075379369), original `wheel-holdout.json` SHA-256 `aa86e13348875a768351d926a2daa913c3428732e92c2f38f135bbeadf53398c`, and the separately authenticated 41-image source 4bpp lookup all agree on **`eb15bfa0705657438d3c22a6c3dca27f2e0abafb4d3b8749c8ad7e18249ca23f`**. The one-character error was corrected in the old durable numeric summary; both candidate IoU values (0.37825059 / 0.41355140) were retained unchanged. The new exact input Git blob is `49db7090f3455b2a9cc7ae946888fb4413877fd8`. No fuzzy hash association or nearest-mask substitution is permitted.
+
+This correction also explains why the older source report's declared aggregate 19-mask scores were true but its manually transcribed mask identity failed a stricter later join. The original actual score artifact is authoritative for its exact source input identifiers; later summary authors do not get to invent one-character aliases.

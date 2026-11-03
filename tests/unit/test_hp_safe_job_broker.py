@@ -52,6 +52,17 @@ class BrokerTests(unittest.TestCase):
         (self.root / "worker.lock").mkdir()
         self.assertEqual(broker.run_once(self.root, self.repo)["state"], "busy")
 
+    def test_stranded_job_blocks_next_without_consumer_side_effect(self):
+        old = broker.submit(self.root, self.repo, "repo-status", self.sha, "agent-1")
+        (self.root / "pending" / (old["job_id"] + ".json")).rename(
+            self.root / "running" / (old["job_id"] + ".json"))
+        pending = broker.submit(self.root, self.repo, "repo-status", self.sha, "agent-2")
+        result = broker.run_once(self.root, self.repo)
+        self.assertEqual(result["state"], "blocked")
+        self.assertEqual(result["running_job_ids"], [old["job_id"]])
+        self.assertTrue((self.root / "pending" / (pending["job_id"] + ".json")).exists())
+        self.assertFalse((self.root / "worker.lock").exists())
+
     def test_diagnostics_only_report_stranded_jobs(self):
         self.assertFalse(broker.diagnose(self.root)["needs_operator_inspection"])
         lock = self.root / "worker.lock"

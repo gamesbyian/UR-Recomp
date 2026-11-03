@@ -20,6 +20,11 @@ self-hosted GitHub Actions replacement, or authorization to run arbitrary PR cod
   Its owner metadata records the worker PID and start time.
 - `diagnose` reports the worker lock owner and potentially stranded running
   receipts without modifying any state or retrying anything.
+- A new `run-once` refuses to consume pending work if an earlier running
+  receipt remains unresolved; the pending job is preserved exactly as submitted.
+- `host-status` reads available physical RAM and observes selected Windows
+  builder processes (`Runner.Worker`, MSBuild, cl, link, Ninja, CMake, clang-cl).
+  This is advisory telemetry, not a process lease or proof of idle capacity.
 - The owner must separately arrange any automatic invocation. This PR does
   **not** create Windows scheduled tasks or modify GHA, runner services,
   machine settings, credentials, or the five hourly ChatGPT schedules.
@@ -36,6 +41,8 @@ $state = 'C:\DevNode\hp-agent-jobs'
 $sha = git -C $repo rev-parse HEAD
 python $script --repo $repo --state-dir $state submit --kind repo-status --sha $sha --agent agent-1
 python $script --repo $repo --state-dir $state run-once
+python $script --repo $repo --state-dir $state diagnose
+python $script --repo $repo --state-dir $state host-status
 python $script --repo $repo --state-dir $state status --job-id <returned-job-id>
 ```
 
@@ -50,6 +57,11 @@ reused, so its presence or absence alone does not establish job completion.
 Do not silently requeue an uncertain job. There is no automatic retry, watchdog,
 heartbeat, resource scheduling, workload priority, multihost support, or
 cross-process proof of noninterference with existing Windows builds.
+`host-status` only samples instantaneously; absent process names do not prove
+GHA idle, and future CPU-intensive jobs must fail closed without an explicit
+shared reservation protocol between this broker and the GHA service.
+Timeouts constrain the direct subprocess only; they do not establish that a
+spawned descendant process has exited. No long-running job kind is admitted.
 
 Before authorizing mutation-capable work: implement bounded leases/recovery,
 proper machine-resource coordination with the existing self-hosted GHA runner,

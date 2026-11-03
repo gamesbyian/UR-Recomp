@@ -6,7 +6,9 @@ The runner is deliberately one-shot; scheduling and resource policy belong to
 the machine owner, not a remote agent.
 """
 import argparse
+import csv
 import datetime as dt
+import io
 import json
 import os
 from pathlib import Path
@@ -101,6 +103,44 @@ def diagnose(root):
     return result
 
 
+def host_status():
+    """Advisory Windows resource snapshot; not an exclusive runner reservation."""
+    if os.name != "nt":
+        return {"available": False, "reason": "Windows-only resource probe"}
+    try:
+        import ctypes
+
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [("length", ctypes.c_ulong),
+                        ("memory_load", ctypes.c_ulong),
+                        ("total_phys", ctypes.c_ulonglong),
+                        ("avail_phys", ctypes.c_ulonglong),
+                        ("total_page", ctypes.c_ulonglong),
+                        ("avail_page", ctypes.c_ulonglong),
+                        ("total_virtual", ctypes.c_ulonglong),
+                        ("avail_virtual", ctypes.c_ulonglong),
+                        ("avail_extended", ctypes.c_ulonglong)]
+
+        status = MemoryStatus()
+        status.length = ctypes.sizeof(status)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+            raise OSError("GlobalMemoryStatusEx failed")
+        output = subprocess.run(["tasklist.exe", "/fo", "csv", "/nh"], check=True,
+                                capture_output=True, text=True, encoding="utf-8",
+                                errors="replace", timeout=15).stdout
+        names = {"runner.worker.exe", "msbuild.exe", "cl.exe", "link.exe",
+                 "ninja.exe", "cmake.exe", "clang-cl.exe"}
+        active = sorted({row[0].casefold() for row in csv.reader(io.StringIO(output))
+                         if row and row[0].casefold() in names})
+        # Positive observation is useful; absence is not proof that GHA is idle.
+        return {"available": True, "free_physical_mib": status.avail_phys // 1048576,
+                "total_physical_mib": status.total_phys // 1048576,
+                "observed_build_processes": active,
+                "exclusive_reservation": False}
+    except (OSError, subprocess.SubprocessError, IndexError) as exc:
+        return {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
+
+
 def run_once(root, repo):
     lock = root / "worker.lock"
     try:
@@ -110,6 +150,12 @@ def run_once(root, repo):
     owner = lock / "owner.json"
     try:
         atomic_json(owner, {"pid": os.getpid(), "started_utc": utc()})
+        # Never process another job while an earlier attempt has an uncertain
+        # outcome. Operator investigation is required, even for read-only work.
+        stale = sorted((root / "running").glob("*.json"))
+        if stale:
+            return {"state": "blocked", "reason": "unresolved running receipts",
+                    "running_job_ids": [path.stem for path in stale]}
         pending = sorted((root / "pending").glob("*.json"))
         if not pending:
             return dict(state="empty")
@@ -152,6 +198,7 @@ def main():
     submit_p.add_argument("--agent", choices=[f"agent-{i}" for i in range(1, 6)], required=True)
     sub.add_parser("run-once")
     sub.add_parser("diagnose")
+    sub.add_parser("host-status")
     status = sub.add_parser("status")
     status.add_argument("--job-id", required=True)
     args = p.parse_args()
@@ -165,6 +212,8 @@ def main():
         result = run_once(root, repo)
     elif args.command == "diagnose":
         result = diagnose(root)
+    elif args.command == "host-status":
+        result = host_status()
     else:
         if not re.fullmatch(r"[0-9a-f]{32}", args.job_id):
             p.error("invalid job id")

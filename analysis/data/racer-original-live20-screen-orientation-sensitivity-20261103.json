@@ -321,7 +321,7 @@
   "screen_oriented_40_observation_mean_iou_per_2026_GLb_pose": {
     "upright": 0.46466393,
     "pedal": 0.45999534,
-    "wheelie": 0.21268458,
+    "wheelie": 0.21268457,
     "stunt": 0.20944724,
     "bank": 0.46582891
   },

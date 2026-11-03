@@ -1,0 +1,107 @@
+{
+  "schema": "UR-ART4K-SOURCE-LIVE-MESEN-PPU-REGISTER-EVIDENCE-SUMMARY/1",
+  "original_emulator_workflow_run": 41582586941,
+  "original_emulator_artifact_id": 13206716770,
+  "source_original_emulator_artifact_zip_sha256": "849abdaf241c5951e8b1627c0c9622989d421266bfcdd1c47ac2918c5c81df21",
+  "source_register_json_sha256": "b3b80d032cbfc3a6fa225c8cb524172e924e633ae27916be37dc9e2293c2cf40",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_replay_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+  "actual_mesen_executable_sha256": "b72d4dd0eeaab9e63cf614ffb1eef657aa80b6f367783a1d8db65a9447fb7f48",
+  "upstream_mesen_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "frame_skipping_disabled_requested": true,
+  "source_emulator_bridge_ticks": [
+    1219,
+    1220
+  ],
+  "serialized_fields_in_emulator_state_per_tick": 598,
+  "original_halt_scanline_per_tick": [
+    225,
+    225
+  ],
+  "source_ppu_register_values_equal_except_frameCount": true,
+  "source_registers_at_both_ticks": {
+    "ppu.bgMode": 1,
+    "ppu.colorMathEnabled": 4,
+    "ppu.enableOamPriority": false,
+    "ppu.fixedColor": 31744,
+    "ppu.forcedBlank": false,
+    "ppu.hiResMode": false,
+    "ppu.mainScreenLayers": 23,
+    "ppu.oamAddressOffset": 4096,
+    "ppu.oamBaseAddress": 24576,
+    "ppu.oamMode": 4,
+    "ppu.oamRamAddress": 256,
+    "ppu.objInterlace": false,
+    "ppu.overscanMode": false,
+    "ppu.screenBrightness": 15,
+    "ppu.screenInterlace": false,
+    "ppu.subScreenLayers": 16,
+    "ppu.scanline": 225
+  },
+  "source_reg_counter_values": {
+    "1219": 1219,
+    "1220": 1220
+  },
+  "source_original_oam_sprite_pixel_sizes_in_bytes": null,
+  "source_original_oam_mode4_pixel_dimensions": {
+    "small": [
+      16,
+      16
+    ],
+    "large": [
+      64,
+      64
+    ]
+  },
+  "source_oam_tile_address_base_Mesen_unit": "0x6000 word-address in SNES PPU address calculation; divide/bitshift correctly when reading byte-addressed VRAM",
+  "source_second_obj_tile_table_offset_Mesen_unit": "0x1000 word-address offset",
+  "verified_original_OAM_descriptor_candidates_from_prior_run": [
+    {
+      "slot": 96,
+      "x": 104,
+      "y": 153,
+      "large": true,
+      "source_pixel_dimensions": [
+        64,
+        64
+      ]
+    },
+    {
+      "slot": 97,
+      "x": 104,
+      "y": 153,
+      "large": true,
+      "source_pixel_dimensions": [
+        64,
+        64
+      ]
+    },
+    {
+      "slot": 98,
+      "x": -152,
+      "y": 40,
+      "large": false,
+      "source_pixel_dimensions": [
+        16,
+        16
+      ]
+    },
+    {
+      "slot": 99,
+      "x": -152,
+      "y": 40,
+      "large": false,
+      "source_pixel_dimensions": [
+        16,
+        16
+      ]
+    }
+  ],
+  "source_screen_at_ticks_1219_1220_is_countdown_obscured": true,
+  "original_presentation_framebuffer_scanout_phase_verified": false,
+  "original_sprite_to_player_identity_verified": false,
+  "original_sprite_to_1994_racer_bone_verified": false,
+  "original_3D_camera_or_rig_verified": false,
+  "owner_likeness_approved": false,
+  "notes": "Actual original MesenCE serial console state was sampled while bridge frame counter held at 1219/1220. This proves original OBJ size mode and tile-base config for a single held PPU timepoint; cannot infer display scanline ownership or 2P identity. Source rendered P6 at same ticks includes giant countdown overlays."
+}

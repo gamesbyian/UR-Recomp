@@ -286,6 +286,114 @@ def evaluate(source_zip: Path, registration_path: Path, novelty_path: Path) -> d
 
 
 
+
+def visible_rgba(source: bytes, racer: str) -> bytes:
+    """Reorient only true RGBA pixels, preserving original CGRAM RGB values."""
+    if (type(source) is not bytes or len(source) != 64*64*4 or
+            racer not in RACERS or
+            any(source[i] not in (0, 255) for i in range(3, len(source), 4))):
+        raise ValueError("actual original opaque/transparent 64x64 RGBA required")
+    if racer == "blue":
+        return source
+    return b"".join(
+        source[4*(y*64+x):4*(y*64+x)+4]
+        for y in range(64) for x in range(63, -1, -1))
+
+
+def render_review_sheet(source_zip: Path, result: dict, out: Path) -> str:
+    """Optional private PNG review output: no committed sprite-image redistribution.
+
+    Uses only the same original verified OBJ OAM/VRAM/CGRAM palette information.
+    No 3D mesh, source-frame timing interpolation, RGB postprocess or GLB pose
+    is introduced. Sheet labels are diagnostic, not actual 1994 action names.
+    """
+    if (out.exists() or out == source_zip or
+            type(result) is not dict or result.get("schema") != SCHEMA or
+            result.get("source_artifact_id") != SOURCE_ARTIFACT_ID or
+            len(result.get("screen_oriented_review_exemplars", [])) != 15 or
+            sha(source_zip.read_bytes()) != SOURCE_ZIP_SHA):
+        raise ValueError("original research review source/target not qualified or target exists")
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+    except ImportError as exc:
+        raise RuntimeError("offline sprite review sheet requires Pillow") from exc
+    selected = [tuple(v) for v in result["screen_oriented_review_exemplars"]]
+    if len(set(selected)) != 15:
+        raise ValueError("duplicate original screen-review sprite")
+    metadata = {(r["tick"], r["racer"]): r for r in
+                result["original_screen_registered_2D_observations"]}
+    labels = {}
+    for i, group in enumerate(result["historical_source_content_components"]):
+        for key in (group["medoid"], group["contrast"]):
+            if key:
+                labels[tuple(key)] = (
+                    i + 1,
+                    "MEDOID" if key == group["medoid"] else "CONTRAST",
+                    group["source_content_connection"] == STATUS_DISJOINT,
+                )
+    if set(labels) != set(selected):
+        raise ValueError("selection labels do not agree with source component groups")
+    width, height = 1120, 900
+    sheet = Image.new("RGB", (width, height), "#0d121d")
+    d = ImageDraw.Draw(sheet)
+    font = ImageFont.load_default()
+    d.text((24, 18), "ORIGINAL UNIRACERS / 15 AUTHENTIC 2D SOURCE REFERENCES",
+           font=font, fill="#f1f5ff")
+    d.text((24, 43), "Mesen original gameplay frames / red mirrored to completed screen",
+           font=font, fill="#aabbd2")
+    with zipfile.ZipFile(source_zip) as archive:
+        for i, identity in enumerate(selected):
+            tick, racer = identity
+            if identity not in metadata:
+                raise ValueError("original review reference outside the 40-source receipt")
+            slot = 96 if racer == "blue" else 97
+            oam = decode_oam(archive.read(f"frame-{tick:06d}-oam.bin"))
+            vram = archive.read(f"frame-{tick:06d}-vram.bin")
+            cgram = archive.read(f"frame-{tick:06d}-cgram.bin")
+            obj = decode_source_obj(oam[slot], vram, cgram,
+                oam_mode=4, obj_base=0x6000, second_table_offset=0x1000)
+            frozen = metadata[identity]
+            if (sha(obj["plane"]) != frozen["original_source_index_sha256"] or
+                    sha(obj["alpha_mask"]) != frozen["original_source_alpha_sha256"] or
+                    obj["opaque_count"] != frozen["source_opaque_pixels"]):
+                raise ValueError("source original sprite RGBA no longer matches audited plane")
+            visible_pixels = visible_rgba(obj["rgba"], racer)
+            expected_alpha = visible_mask(obj["alpha_mask"], racer)
+            if (bytes(1 if visible_pixels[j+3] else 0
+                      for j in range(0, len(visible_pixels), 4))
+                    != expected_alpha or
+                    sha(expected_alpha) != frozen["screen_oriented_alpha_sha256"]):
+                raise ValueError("source original displayed alpha/colour changed")
+            x = 24 + (i % 5) * 217
+            y = 76 + (i // 5) * 263
+            group, example_kind, disjoint = labels[identity]
+            d.rounded_rectangle((x, y, x+210, y+250), radius=10,
+                                fill="#1b2635", outline=(
+                                    "#51718d" if disjoint else "#394960"), width=2)
+            d.text((x+12, y+9), f"{racer.upper()} / TICK {tick}", font=font,
+                   fill="#c7e4ff" if racer == "blue" else "#ffd0bf")
+            checker = Image.new("RGBA", (64, 64), "#2b394d")
+            ch = ImageDraw.Draw(checker)
+            for cy in range(0, 64, 8):
+                for cx in range(0, 64, 8):
+                    if ((cy+cx)//8) % 2:
+                        ch.rectangle((cx,cy,cx+7,cy+7), fill="#37465b")
+            checker.alpha_composite(Image.frombytes("RGBA", (64,64), visible_pixels))
+            sheet.paste(checker.convert("RGB").resize(
+                (178,178), Image.Resampling.NEAREST), (x+16,y+33))
+            d.text((x+12, y+220), f"GROUP {group} / {example_kind}",
+                   font=font, fill="#f1f5ff")
+            d.text((x+12, y+235), "CONTENT-DISJOINT" if disjoint else "FIT-TILE-CONNECTED",
+                   font=font, fill="#a1d9c5" if disjoint else "#d4c1a7")
+    d.text((24, 876), "Original USA ROM: source 2D pixel review only. No 1994 3D pose or likeness approval.",
+           font=font, fill="#94a8c3")
+    from io import BytesIO
+    image_bytes = BytesIO()
+    sheet.save(image_bytes, format="PNG", optimize=True)
+    with out.open("xb") as destination:
+        destination.write(image_bytes.getvalue())
+    return sha(image_bytes.getvalue())
+
 def committed_review_projection(result: dict) -> dict:
     """Small immutable source-derived receipt, without duplicating all 40 pixels."""
     return {key: result[key] for key in (
@@ -312,14 +420,21 @@ def main() -> None:
         "analysis/data/racer-original-live40-historical-tile-content-novelty-20261103.json"))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--verify-committed", type=Path)
+    parser.add_argument("--contact-sheet", type=Path,
+                        help="optional original 2D sprite PNG sheet at a new private path")
     args = parser.parse_args()
     result = evaluate(args.source_zip, args.registration, args.novelty)
     if args.verify_committed:
         historic = json.loads(args.verify_committed.read_text())
         if historic != committed_review_projection(result):
             raise ValueError("recomputed authentic source exemplar selection differs")
+    if args.contact_sheet is not None and args.contact_sheet == args.out:
+        raise ValueError("source review report and contact sheet need distinct outputs")
+    contact_sha = (render_review_sheet(args.source_zip, result, args.contact_sheet)
+                   if args.contact_sheet is not None else None)
     publish_text_once(args.out, json.dumps(result, sort_keys=True, indent=2)+"\n")
     print(json.dumps({
+        "original_review_sheet_png_sha256": contact_sha,
         "authentic_original_screen_registered_sprite_count":
             result["summary"]["actual_original_sprite_observations"],
         "source_2D_review_exemplars":

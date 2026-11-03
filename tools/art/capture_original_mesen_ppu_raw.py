@@ -153,6 +153,7 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "actual_raw_SNES_sprite_RAM_VRAM_CGRAM_snapshots":len(frames),
             "original_held_framebuffer_P6_exported":include_held_framebuffer,
             "original_PPU_RGB_to_source_OBJ_pixel_ownership_verified":False,
+            "source_held_display_to_current_PPU_scanout_phase_independently_aligned":False,
             "source_regional_memory_bytes_sha_bound":True,
             "live_original_per_player_64x64_alpha_composition_verified":False,
             "source_original_live_OAM_sprite_to_racer_identity_verified":False,
@@ -167,7 +168,9 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
     if (not isinstance(manifest,dict) or manifest.get("schema")!=SCHEMA or
             manifest.get("original_USA_ROM_sha256")!=ROM_SHA or
             manifest.get("emulator_source_revision")!=MESEN_REVISION or
-            manifest.get("source_original_live_OAM_sprite_to_racer_identity_verified") is not False):
+            manifest.get("source_original_live_OAM_sprite_to_racer_identity_verified") is not False or
+            manifest.get("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified",False) is not False or
+            manifest.get("source_held_display_to_current_PPU_scanout_phase_independently_aligned",False) is not False):
         raise ValueError("invalid provenance or overclaimed original PPU capture")
     frames=manifest.get("frames")
     if (not isinstance(frames,list) or not frames or
@@ -209,13 +212,15 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
             path=directory/name
             if path.is_symlink() or not path.is_file():
                 raise ValueError("original emulator P6 framebuffer absent or linked")
+            width,height=display.get("source_display_width"),display.get("source_display_height")
+            if type(width) is not int or type(height) is not int:
+                raise ValueError("original source held P6 dimensions malformed")
             response={
                 "format":display.get("source_format"),
                 "path":str(path.resolve()),
-                "width":display.get("source_display_width"),
-                "height":display.get("source_display_height"),
-                "pixels":display.get("source_display_width",0)*
-                         display.get("source_display_height",0),
+                "width":width,
+                "height":height,
+                "pixels":width*height,
             }
             actual=inspect_held_ppm(path.read_bytes(),response,str(path.resolve()))
             for key,value in actual.items():

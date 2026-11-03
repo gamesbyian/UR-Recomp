@@ -161,6 +161,41 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"advanced during held display"):
                 capture_states(MovingVideo(),[],0,1,Path(d),include_held_framebuffer=True)
 
+    def test_historic_held_P6_receipt_remains_source_only(self):
+        import json
+        root=Path(__file__).resolve().parents[2]
+        report=json.loads((root/"analysis/data/racer-original-mesen-held-framebuffer-20261103.json").read_text())
+        self.assertEqual(report["real_original_emulator_workflow_run"],41565384581)
+        self.assertEqual(report["source_original_emulated_bridge_ticks"],[1219,1220])
+        self.assertEqual(report["source_screen_P6_dimensions"],{"width":256,"height":239})
+        self.assertEqual(report["original_held_display_changed_pixel_count_between_consecutive_ticks"],0)
+        self.assertEqual(report["original_raw_PPU_memory_changed_bytes_between_ticks"],
+                         {"oam":0,"vram":38,"cgram":17})
+        self.assertFalse(report["original_scanout_content_contemporaneous_with_held_PPU_RAM_verified"])
+        self.assertFalse(report["original_racer_OBJ_pixel_ownership_reconstructed"])
+
+    def test_held_display_claim_escalation_and_malformed_dimensions_rejected(self):
+        class FakeVideo(FakeMesen):
+            def tool(self,kind,**arguments):
+                if kind=="video.export_frame":
+                    path=Path(arguments["path"])
+                    path.write_bytes(b"P6\n2 1\n255\n"+bytes(6))
+                    return {"path":str(path),"format":"P6","width":2,"height":1,"pixels":2}
+                return super().tool(kind,**arguments)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            report=capture_states(FakeVideo(),[],0,1,root,include_held_framebuffer=True)
+            for field in ("original_PPU_RGB_to_source_OBJ_pixel_ownership_verified",
+                          "source_held_display_to_current_PPU_scanout_phase_independently_aligned"):
+                changed=copy.deepcopy(report)
+                changed[field]=True
+                with self.subTest(field=field),self.assertRaisesRegex(ValueError,"provenance"):
+                    validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(report)
+            changed["frames"][0]["original_emulator_held_display_P6"]["source_display_width"]="2"
+            with self.assertRaisesRegex(ValueError,"dimensions"):
+                validate_snapshot_files(root,changed)
+
 
 if __name__=="__main__":
     unittest.main()

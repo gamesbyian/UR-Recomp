@@ -1,0 +1,52 @@
+{
+  "schema": "UR-ART4K-INDEPENDENT-ORIGINAL-MESEN-HELD-SCREEN-VS-PPU/1",
+  "real_original_emulator_workflow_run": 41565384581,
+  "real_original_emulator_artifact_id": 13199861365,
+  "actual_source_zip_sha256": "b72a1c805423f14847b257fe807be84559aa2a9e8914314ce1b8d24532f95964",
+  "actual_source_manifest_sha256": "e63c9e51d82befcd9720439aaf5e37a822837690c0b64f52759466999700c38d",
+  "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "actual_mesen_executable_sha256": "8d501dcdea86837387df1c1bca1e7660d2a5b1adbe822beff4f82935a50fe94b",
+  "emulator_source_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "original_replay_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+  "source_original_emulated_bridge_ticks": [
+    1219,
+    1220
+  ],
+  "source_screen_P6_dimensions": {
+    "width": 256,
+    "height": 239
+  },
+  "original_held_video_P6_bytes_per_frame": 183567,
+  "original_held_video_RGB_bytes_per_frame": 183552,
+  "source_held_video_P6_sha256_by_tick": [
+    "3db1ead6ef6da21dc5c085f38dbd3fe8c17e00d4eba7900ce1074beaa9358cfb",
+    "3db1ead6ef6da21dc5c085f38dbd3fe8c17e00d4eba7900ce1074beaa9358cfb"
+  ],
+  "source_held_video_rgb_sha256_by_tick": [
+    "2116accb288925ad3bdaf3354879a57b0bb80671afb186bf1d0a51387bb6d853",
+    "2116accb288925ad3bdaf3354879a57b0bb80671afb186bf1d0a51387bb6d853"
+  ],
+  "source_distinct_RGB_values_per_held_screen": [
+    55,
+    55
+  ],
+  "original_held_display_changed_pixel_count_between_consecutive_ticks": 0,
+  "original_raw_PPU_memory_changed_bytes_between_ticks": {
+    "oam": 0,
+    "vram": 38,
+    "cgram": 17
+  },
+  "source_CGRAM_changed_byte_regions": {
+    "background_palette_indices_0_through_127": 17,
+    "obj_palette_indices_128_through_255": 0
+  },
+  "original_screen_buffer_was_read_at_same_held_emulator_bridge_tick": true,
+  "original_scanout_content_contemporaneous_with_held_PPU_RAM_verified": false,
+  "original_cgram_to_screen_pixels_causality_established": false,
+  "original_racer_OBJ_pixel_ownership_reconstructed": false,
+  "original_OAM_phase_consistency_across_split_screen_established": false,
+  "original_3d_camera_or_rig_recovered": false,
+  "original_to_experimental_2026_GLb_pose_registered": false,
+  "owner_likeness_approved": false,
+  "note": "Two exact source Mesen held screen buffers are identical while VRAM and CGRAM changed. A buffer is not a provenance proof of which scanline used a given OAM/VRAM/CGRAM state. Source game screen has multiple viewports; a single held OAM snapshot must not be used as the final PPU sprite ownership of both."
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "UR-ART4K-INDEPENDENT-LIVE-MESENCE-RAW-PPU-RECEIPT/1",
+  "source_git_pr": 3065,
+  "source_workflow_run": 41560222232,
+  "source_artifact_id": 13196973168,
+  "source_artifact_name": "art4k-original-mesen-ppu-raw-41560222232",
+  "artifact_zip_sha256": "a1aa2d04ca936a031d6f46d821d4ece14a7bdbad03b4774f7ab705d275cef6cc",
+  "capture_manifest_sha256": "f50accd67c36cc8455bcb0cc5f774f0efaa233ebc62d68fb33da2c10eb86e21a",
+  "emulator_source_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "emulator_executable_sha256": "bb827bae9ab4059b7940e9a83a23d890bf9109f1973cc3ceb6c228f34b51e2c5",
+  "original_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "input_replay_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+  "source_frame_boundary_kind": "actual executing MesenCE emulator held-frame state; bridge tick verified before/after each region",
+  "two_original_emulator_bridge_frame_indices": [
+    1219,
+    1220
+  ],
+  "replay_step_indices": [
+    1218,
+    1219
+  ],
+  "raw_byte_sizes_per_frame": {
+    "oam": 544,
+    "vram": 65536,
+    "cgram": 512
+  },
+  "original_emulator_raw_ppu_sha256_by_frame": [
+    {
+      "frame": 1219,
+      "oam_sha256": "14b0cfa18b3bd1c7ca0a1459490047d6b57a95eccdf4d258cff249265ee083f7",
+      "vram_sha256": "796ced408df88bb91773b49ac1df071896e281c01a5a21884756d5688504eef6",
+      "cgram_sha256": "02dfb109cad83e68f24610182fbecc68cfa56b958825ad97078ee5d9cfd70cef"
+    },
+    {
+      "frame": 1220,
+      "oam_sha256": "14b0cfa18b3bd1c7ca0a1459490047d6b57a95eccdf4d258cff249265ee083f7",
+      "vram_sha256": "7717563af995ca40a32e60782c4bdad34e4666969481bd133b9b01b74f3ce624",
+      "cgram_sha256": "9e857e315148893c0746b537fb700feaa5dc90a4e1ff3714a646794ca730f1a5"
+    }
+  ],
+  "changed_memory_bytes_between_frames": {
+    "oam": 0,
+    "vram": 38,
+    "cgram": 17
+  },
+  "raw_original_player64x64_alpha_verified": false,
+  "raw_oam_to_player_identity_verified": false,
+  "final_ppu_screen_pixel_composition_verified": false,
+  "original_source_3d_camera_and_rig_verified": false,
+  "source_to_experimental_2026_glb_poses_registered": false,
+  "owner_likeness_approved": false,
+  "ship_art_approved": false,
+  "note": "Raw source memory snapshots validate actual emulator state and source bytes. Identical OAM plus VRAM/CGRAM differences is not evidence of an unchanged on-screen racer, a recovered animation pose or proven source draw ordering."
+}

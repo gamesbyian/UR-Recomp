@@ -135,6 +135,37 @@ class OriginalObjXBoundsTests(unittest.TestCase):
         self.assertFalse(result["owner_likeness_approved"])
         self.assertEqual(result["authenticated_source_artifact_ZIP_sha256"], SOURCE_ZIP_SHA)
 
+    def test_authentic_five_frame_numeric_receipt_preserves_negative_gates(self):
+        from pathlib import Path
+        from tools.art.audit_original_postcountdown_obj_screen import SOURCE_ZIP_SHA
+        path = (Path(__file__).resolve().parents[2] /
+                "analysis/data/racer-original-postcountdown-horizontal-window-real-20261103.json")
+        receipt = json.loads(path.read_text())
+        self.assertEqual(receipt["source_original_artifact_zip_sha256"], SOURCE_ZIP_SHA)
+        self.assertTrue(receipt["original_source_ppu_memory_and_P6_per_file_shas_checked"])
+        rows = receipt["source_2d_experiment_rows"]
+        self.assertEqual(len(rows), 10)
+        self.assertEqual([(r["tick"], r["original_oam_slot"]) for r in rows],
+                         [(tick, slot) for tick in TICKS for slot in (96, 97)])
+        self.assertEqual([r["historical_x_76_to_170_exact_matches"]
+                          for r in rows if r["original_oam_slot"] == 97], [0]*5)
+        self.assertEqual([r["wide_x_0_to_192_exact_matches"]
+                          for r in rows if r["original_oam_slot"] == 97],
+                         [132, 134, 134, 128, 132])
+        self.assertEqual([r["wide_x_0_to_192_exact_matches"]
+                          for r in rows if r["original_oam_slot"] == 96],
+                         [281, 277, 281, 282, 281])
+        for row in rows:
+            self.assertEqual(
+                row["additional_matches_due_only_to_horizontal_search"],
+                row["wide_x_0_to_192_exact_matches"] -
+                row["historical_x_76_to_170_exact_matches"])
+        for gate in ("source_per_scanline_sprite_ownership_verified",
+                     "original_sprite_priority_and_overlay_occlusion_classification_verified",
+                     "source_to_2026_experimental_GLB_pose_alignment_verified",
+                     "owner_likeness_approved"):
+            self.assertFalse(receipt[gate])
+
     def test_refuses_nonconsecutive_held_frame_input(self):
         frames = [{"tick": tick} for tick in TICKS]
         frames[1]["tick"] += 1

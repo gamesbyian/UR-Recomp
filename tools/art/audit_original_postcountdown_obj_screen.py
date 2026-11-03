@@ -72,7 +72,7 @@ def source_archive_frames(raw_zip: bytes, *, expected_zip_sha: str = SOURCE_ZIP_
                     (root / name).write_bytes(z.read(info))
                 name = f"frame-{tick:06d}-held-display.ppm"
                 info = z.getinfo(prefix + name)
-                if info.file_size != len(b"P6\\n256 239\\n255\\n") + 256*239*3:
+                if info.file_size != len(b"P6\n256 239\n255\n") + 256*239*3:
                     raise ValueError("source original P6 screen has wrong size")
                 (root / name).write_bytes(z.read(info))
             validate_snapshot_files(root, manifest)

@@ -90,12 +90,27 @@ class HpScienceArchiveAuditTests(unittest.TestCase):
                 self.assertEqual(result["workers"], workers)
                 self.assertEqual(result["accepted_cases"], workers)
                 self.assertEqual(result["real_guest_processes"], workers * 4)
+                self.assertEqual(result["variant_parallelism"], 1)
                 self.assertEqual(result["worker_first_seeds"],
                                  [RUN_ID % 10000000 + (i // 2) * 25000000
                                   + (i % 2) * 1000003 for i in range(workers)])
                 self.assertIsNone(result["pe_coff_timestamp_neutral_executable_sha256"])
                 self.assertTrue(result["fixture_source_rechecked"])
                 self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_parallel_variant_archive_policy_accepts_two_and_rejects_unbounded(self):
+        for mode in (2, 3, True, "2"):
+            with self.subTest(mode=mode):
+                receipt, binding = sample()
+                receipt["variant_parallelism"] = mode
+                receipt["receipt_sha256"] = audit._hash_json({
+                    k: v for k, v in receipt.items() if k != "receipt_sha256"})
+                if mode == 2:
+                    self.assertEqual(
+                        self.check(receipt=receipt, binding=binding)["variant_parallelism"], 2)
+                else:
+                    with self.assertRaisesRegex(audit.AuditError, "variant process concurrency"):
+                        self.check(receipt=receipt, binding=binding)
 
     def test_pe_timestamp_normalization_is_narrow_and_never_replaces_real_hash(self):
         # Synthetic PE, no executable acceptance: change exactly the 4-byte

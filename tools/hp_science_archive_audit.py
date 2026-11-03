@@ -199,6 +199,10 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
             and receipt.get("physical_gamepads_tested") is False,
             "invalid science-only credit disclaimer")
     require(receipt.get("issues") == [], "research reports issues")
+    # Earlier signed-by-hash science receipts predate this optional field.
+    variants = receipt.get("variant_parallelism", 1)
+    require(type(variants) is int and variants in (1, 2),
+            "unsupported variant process concurrency")
     workers = receipt.get("workers")
     accepted = receipt.get("accepted_cases")
     require(type(workers) is int and workers in (4, 8), "unsupported worker population")
@@ -277,7 +281,8 @@ def audit(artifact: Path, run: dict, *, fixture_sha256: tuple[str, str] | None =
         "worker_first_seeds": [first_seeds[i] for i in sorted(first_seeds)],
         "stock_input_sha256": identity["stock_input_sha256"],
         "stock_script_sha256": identity["stock_script_sha256"],
-        "workers": workers, "accepted_cases": accepted,
+        "workers": workers, "variant_parallelism": variants,
+        "accepted_cases": accepted,
         "real_guest_processes": receipt["real_guest_processes"],
         "research_wall_seconds": elapsed,
         "declared_cohort_wall_seconds_budget": horizon,

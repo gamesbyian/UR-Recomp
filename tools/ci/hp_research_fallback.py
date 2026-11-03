@@ -107,9 +107,16 @@ def classify(rows: list[dict], *, expected_workflow: str) -> list[dict]:
         if status not in RUN_STATES and status != "completed":
             raise ValueError(f"unknown {expected_workflow} status")
         date = parse_utc(row.get("created_at"))
+        updated = parse_utc(row.get("updated_at"))
+        # A queued Actions run may be created hours before execution. A
+        # completed run's updated_at advances on completion; the earlier
+        # created_at alone is not a cooldown timestamp. Missing or inverted
+        # data must fail closed rather than authorize a premature dispatch.
+        if updated < date:
+            raise ValueError("Actions update precedes creation")
         result.append({"id": row["id"], "sha": row["head_sha"],
                        "status": status, "conclusion": row.get("conclusion"),
-                       "created": date, "event": row["event"]})
+                       "created": date, "updated": updated, "event": row["event"]})
     return sorted(result, key=lambda x: (x["created"], x["id"]), reverse=True)
 
 
@@ -124,8 +131,17 @@ def decision(now: datetime, sha: str, research: list[dict], priority: list[dict]
         latest = research[0]
         if latest["created"] > now + timedelta(minutes=3):
             raise ValueError("Actions clock is in the future")
-        if now - latest["created"] < COOLDOWN:
-            return "skip:recent-research"
+        # A delayed queued run retains its original created_at even after
+        # completing hours later. Check the latest *completion update* across
+        # all completed research runs, not only the newest creation. GitHub's
+        # workflow-run updated_at is a conservative completion-time proxy.
+        completed = [row for row in research if row["status"] == "completed"]
+        if completed:
+            finished = max(completed, key=lambda row: (row["updated"], row["id"]))
+            if finished["updated"] > now + timedelta(minutes=3):
+                raise ValueError("Actions completion clock is in the future")
+            if now - finished["updated"] < COOLDOWN:
+                return "skip:recent-research"
         if latest["sha"] == sha and latest["conclusion"] != "success":
             return "skip:latest-source-research-not-successful"
     return "dispatch:missed-research-window"

@@ -6,7 +6,7 @@ self-hosted GitHub Actions replacement, or authorization to run arbitrary PR cod
 
 ## Contract
 
-- `tools/hp_safe_job_broker.py` offers `submit`, `run-once`, and `status`.
+- `tools/hp_safe_job_broker.py` offers `submit`, `run-once`, `diagnose`, and `status`.
 - `submit` requires a 40-character commit on the locally fetched
   `origin/main` ancestry, an agent identifier 1..5 and an allowlisted kind.
 - `repo-status` reads the submitted immutable commit's title and hash.
@@ -17,6 +17,9 @@ self-hosted GitHub Actions replacement, or authorization to run arbitrary PR cod
   subprocesses time out after 45 seconds.
 - `run-once` attempts one pending job, writing a durable JSON success/failure
   receipt, then exits. A directory lock prohibits simultaneous runners.
+  Its owner metadata records the worker PID and start time.
+- `diagnose` reports the worker lock owner and potentially stranded running
+  receipts without modifying any state or retrying anything.
 - The owner must separately arrange any automatic invocation. This PR does
   **not** create Windows scheduled tasks or modify GHA, runner services,
   machine settings, credentials, or the five hourly ChatGPT schedules.
@@ -40,9 +43,11 @@ python $script --repo $repo --state-dir $state status --job-id <returned-job-id>
 
 Do not execute this against arbitrary PR heads or the trusted-main GHA runner
 checkout. `agent-selector` requires a dedicated source-matched clean checkout.
-A process crash may strand a receipt in `running` or leave `worker.lock`;
-inspect the filesystem and process state before manually recovering it. Do not
-silently requeue an uncertain job. There is no automatic retry, watchdog,
+A process crash may strand a receipt in `running` or leave `worker.lock`.
+Use `diagnose` to inspect lock PID, start time and running receipts; independently
+verify actual Windows processes before any manual recovery. A PID may have been
+reused, so its presence or absence alone does not establish job completion.
+Do not silently requeue an uncertain job. There is no automatic retry, watchdog,
 heartbeat, resource scheduling, workload priority, multihost support, or
 cross-process proof of noninterference with existing Windows builds.
 

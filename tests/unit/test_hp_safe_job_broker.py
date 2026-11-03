@@ -52,6 +52,20 @@ class BrokerTests(unittest.TestCase):
         (self.root / "worker.lock").mkdir()
         self.assertEqual(broker.run_once(self.root, self.repo)["state"], "busy")
 
+    def test_diagnostics_only_report_stranded_jobs(self):
+        self.assertFalse(broker.diagnose(self.root)["needs_operator_inspection"])
+        lock = self.root / "worker.lock"
+        lock.mkdir()
+        broker.atomic_json(lock / "owner.json", {"pid": 12345, "started_utc": "test"})
+        job = broker.submit(self.root, self.repo, "repo-status", self.sha, "agent-1")
+        (self.root / "pending" / (job["job_id"] + ".json")).rename(
+            self.root / "running" / (job["job_id"] + ".json"))
+        finding = broker.diagnose(self.root)
+        self.assertTrue(finding["needs_operator_inspection"])
+        self.assertEqual(finding["owner"]["pid"], 12345)
+        self.assertEqual(finding["running_jobs"][0]["job_id"], job["job_id"])
+        self.assertTrue((self.root / "running" / (job["job_id"] + ".json")).exists())
+
     def test_failed_job_keeps_receipt(self):
         job = broker.submit(self.root, self.repo, "agent-selector", self.sha, "agent-2")
         result = broker.run_once(self.root, self.repo)

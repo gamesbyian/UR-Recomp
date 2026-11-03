@@ -79,13 +79,37 @@ def execute(repo, record):
                 "--agent", record["agent"].split("-")[1]]
 
 
+def diagnose(root):
+    """Read-only crash diagnostics; never assume that an old lock is safe to break."""
+    lock = root / "worker.lock"
+    owner = lock / "owner.json"
+    result = {"lock_present": lock.is_dir(), "running_jobs": [], "owner": None}
+    if owner.is_file():
+        try:
+            result["owner"] = json.loads(owner.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            result["owner_error"] = f"{type(exc).__name__}: {exc}"
+    for path in sorted((root / "running").glob("*.json")):
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+            result["running_jobs"].append({"job_id": record.get("job_id"),
+                                           "started_utc": record.get("started_utc")})
+        except (OSError, ValueError) as exc:
+            result["running_jobs"].append({"file": path.name,
+                                           "read_error": f"{type(exc).__name__}: {exc}"})
+    result["needs_operator_inspection"] = bool(result["running_jobs"] or result["lock_present"])
+    return result
+
+
 def run_once(root, repo):
     lock = root / "worker.lock"
     try:
         lock.mkdir()
     except FileExistsError:
         return dict(state="busy", reason="another worker holds the lock")
+    owner = lock / "owner.json"
     try:
+        atomic_json(owner, {"pid": os.getpid(), "started_utc": utc()})
         pending = sorted((root / "pending").glob("*.json"))
         if not pending:
             return dict(state="empty")
@@ -113,6 +137,7 @@ def run_once(root, repo):
         running.unlink(missing_ok=True)
         return record
     finally:
+        owner.unlink(missing_ok=True)
         lock.rmdir()
 
 
@@ -126,6 +151,7 @@ def main():
     submit_p.add_argument("--sha", required=True)
     submit_p.add_argument("--agent", choices=[f"agent-{i}" for i in range(1, 6)], required=True)
     sub.add_parser("run-once")
+    sub.add_parser("diagnose")
     status = sub.add_parser("status")
     status.add_argument("--job-id", required=True)
     args = p.parse_args()
@@ -137,6 +163,8 @@ def main():
         result = submit(root, repo, args.kind, args.sha, args.agent)
     elif args.command == "run-once":
         result = run_once(root, repo)
+    elif args.command == "diagnose":
+        result = diagnose(root)
     else:
         if not re.fullmatch(r"[0-9a-f]{32}", args.job_id):
             p.error("invalid job id")

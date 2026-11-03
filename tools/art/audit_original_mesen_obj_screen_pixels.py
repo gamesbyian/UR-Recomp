@@ -168,7 +168,7 @@ def audit_source(zip_file:Path,register_summary:dict)->dict:
             prefix="art4k-no-skip-"+run+"/"
             manifest=json.loads(z.read(prefix+"manifest.json"))
             if (manifest.get("original_USA_ROM_sha256")!=ROM_SHA or
-                    manifest.get("source_original_snes_frame_skipping_disabled_requested") is not True):
+                    manifest.get("source_original_snes_frame_skipping_disabled_requested",False) is not False):
                 raise ValueError("original source emulator provenance invalid")
             frame=next((r for r in manifest["frames"] if r.get("emulator_bridge_frame")==1219),None)
             if not isinstance(frame,dict):

@@ -1,0 +1,56 @@
+# HP safe job broker: initial constrained pilot (2026-11-03)
+
+This experimental local broker is for **read-only, source-bound** work dispatched
+through Desktop Commander by ChatGPT tasks. It is NOT an unattended code executor,
+self-hosted GitHub Actions replacement, or authorization to run arbitrary PR code.
+
+## Contract
+
+- `tools/hp_safe_job_broker.py` offers `submit`, `run-once`, and `status`.
+- `submit` requires a 40-character commit on the locally fetched
+  `origin/main` ancestry, an agent identifier 1..5 and an allowlisted kind.
+- `repo-status` reads the submitted immutable commit's title and hash.
+- `agent-selector` runs the repository's selector for an agent only if the
+  dedicated checkout is clean and HEAD equals the requested trusted commit.
+- Job payloads cannot specify shell commands, repository paths, environment,
+  arbitrary script names, or execution timeouts. Process output is capped;
+  subprocesses time out after 45 seconds.
+- `run-once` attempts one pending job, writing a durable JSON success/failure
+  receipt, then exits. A directory lock prohibits simultaneous runners.
+- The owner must separately arrange any automatic invocation. This PR does
+  **not** create Windows scheduled tasks or modify GHA, runner services,
+  machine settings, credentials, or the five hourly ChatGPT schedules.
+
+## Windows example
+
+Use a dedicated clean checkout pinned to trusted main, never the active GHA
+runner's worktree. An operator fetches origin/main before using a new SHA.
+
+```powershell
+$script = 'C:\DevNode\repos\UR-Recomp-hp-broker\tools\hp_safe_job_broker.py'
+$repo = 'C:\DevNode\repos\UR-Recomp'  # clean trusted-main checkout
+$state = 'C:\DevNode\hp-agent-jobs'
+$sha = git -C $repo rev-parse HEAD
+python $script --repo $repo --state-dir $state submit --kind repo-status --sha $sha --agent agent-1
+python $script --repo $repo --state-dir $state run-once
+python $script --repo $repo --state-dir $state status --job-id <returned-job-id>
+```
+
+## Guardrails and unresolved work
+
+Do not execute this against arbitrary PR heads or the trusted-main GHA runner
+checkout. `agent-selector` requires a dedicated source-matched clean checkout.
+A process crash may strand a receipt in `running` or leave `worker.lock`;
+inspect the filesystem and process state before manually recovering it. Do not
+silently requeue an uncertain job. There is no automatic retry, watchdog,
+heartbeat, resource scheduling, workload priority, multihost support, or
+cross-process proof of noninterference with existing Windows builds.
+
+Before authorizing mutation-capable work: implement bounded leases/recovery,
+proper machine-resource coordination with the existing self-hosted GHA runner,
+unique worktrees per writer, explicit command/job kinds, audit logging,
+sandbox/credential boundaries, and independent exact-head acceptance.
+No results from this read-only pilot count as Windows product qualification.
+
+Focused qualification:
+`python -m unittest discover -s tests/unit -p test_hp_safe_job_broker.py -v`.

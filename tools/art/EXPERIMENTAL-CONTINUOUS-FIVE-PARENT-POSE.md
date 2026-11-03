@@ -11,7 +11,7 @@ Both commands act on the original *part-parent transforms* with the axle-conjuga
 
 ## Reuse and validation
 
-The pure ROM-free regression tests validate bounded finite parameters, sign conventions, full-turn closure, invalid source rejection and, where NumPy/Trimesh are available, a synthetic translated-axle scene with exactly five parents and sixteen meshes. The optional real artifact path checks source GLB SHA, genuine scene hierarchy, all unchanged local mesh buffers, 16 colour/material children, and actual GLB export/reimport parent matrices. No new scheduled agent, web viewer, CI workflow or source emulation.
+The ROM-free tests validate bounded finite parameters, sign conventions, full-turn closure and invalid-source rejection. With NumPy/Trimesh they exercise both a direct-parent synthetic 16-mesh rig and a rotated/translated intermediate-parent (`world_1`) export hierarchy, including absolute A→B→neutral recovery. The real GLB exporter actually inserts `world_1` between `world` and all five sibling part nodes; initial source code assumed direct `world` parenting and failed before generating geometry. The corrected operator preserves either supported hierarchy and converts world target matrices into the original common parent's coordinate space, while rejecting split/deeply nested, nonrigid or mutated hierarchies. Its optional real artifact path checks exact source GLB SHA, unchanged local mesh buffers, 16 material children, and actual GLB export/reimport parent matrices. No new agent, viewer, CI workflow or source emulation.
 
     python3 -m unittest tests.unit.test_experimental_continuous_five_parent_pose
 
@@ -23,7 +23,7 @@ For explicit owner review using the already-authenticated viewer GLB artifact #1
       --out-glb /private/new/phase25-pitch10.glb \
       --receipt /private/new/phase25-pitch10.json
 
-The generated GLB and receipt are exclusive/no-overwrite. A real artifact-derived output has **not** been claimed merely because this source is written; it requires executing this CLI against the actual SHA-pinned upright GLB. The continuous operator can also act **in memory** without exporting a GLB for every candidate, keeping future source registration cheap.
+The generated GLB and receipt are exclusive/no-overwrite. On the owner's HP, the actual original artifact #13063969312 was downloaded on 2026-11-03; all five authentic GLB SHA-256 digests matched the original immutable receipts. Python 3.12 with NumPy/Trimesh, using the exact authentic upright input (`efdc8425...595f5`), successfully exported and reimported the **+25° drive / +10° frame** candidate after correcting the intermediate-parent bug: **640,192 bytes, SHA-256 `dc89cf429ec137316887debca58b59e8a3e7fab57d877a43d0aa992587ca3f49`**, with 16 local meshes and five part-parent transforms preserved. The initial implementation had failed with `ValueError: source part parents have changed` on the identical GLB. The HP run is a real **2026 model** mechanical exporter qualification; no original 1994 source-pose registration was attempted. The continuous operator can also act in memory without exporting a GLB for every candidate.
 
 ## Next falsifiable source-registration experiment
 

@@ -60,8 +60,22 @@ def apply_scene(scene, wheel_crank_delta_deg: float, frame_pitch_deg: float) -> 
     root = scene.graph.base_frame
     all_nodes = set(scene.graph.nodes)
     all_geom = set(scene.geometry)
-    if any(scene.graph.transforms.parents.get(p) != root for p in PARTS):
-        raise ValueError("source part parents have changed")
+    # Real glTF exports may introduce one common intermediate world_1 node.
+    # Preserve it and convert world-space targets back into that parent space.
+    parent = scene.graph.transforms.parents.get("tire")
+    if (parent is None or
+            any(scene.graph.transforms.parents.get(p) != parent for p in PARTS) or
+            (parent != root and scene.graph.transforms.parents.get(parent) != root)):
+        raise ValueError("source five-part parent hierarchy is not shared")
+    parent_world = (np.array(scene.graph.get(parent)[0], dtype=float)
+                    if parent != root else np.eye(4))
+    if (parent_world.shape != (4, 4) or not np.isfinite(parent_world).all() or
+            not np.allclose(parent_world[3, :], [0, 0, 0, 1], atol=1e-8, rtol=0) or
+            not np.allclose(parent_world[:3, :3].T @ parent_world[:3, :3],
+                            np.eye(3), atol=1e-7, rtol=0) or
+            not np.isclose(np.linalg.det(parent_world[:3, :3]), 1, atol=1e-7, rtol=0)):
+        raise ValueError("source common part parent transform is not rigid")
+    inv_parent = np.linalg.inv(parent_world)
     for p, n in CHILD_COUNTS.items():
         child_nodes = [
             x for x in scene.graph.nodes_geometry
@@ -101,7 +115,8 @@ def apply_scene(scene, wheel_crank_delta_deg: float, frame_pitch_deg: float) -> 
     frame = axle @ np.asarray(frame_rotation(pitch), dtype=float) @ np.linalg.inv(axle)
     for p in PARTS:
         transform = drive if p in DRIVE else frame
-        scene.graph.update(frame_to=p, frame_from=root, matrix=transform @ before[p])
+        scene.graph.update(frame_to=p, frame_from=parent,
+                           matrix=inv_parent @ transform @ before[p])
     if all_nodes != set(scene.graph.nodes) or all_geom != set(scene.geometry):
         raise ValueError("source node and material identity changed")
 

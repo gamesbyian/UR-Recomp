@@ -91,6 +91,44 @@ class ContinuousParentPoseTests(unittest.TestCase):
             apply_scene(scene, 20, 4)
 
     @unittest.skipUnless(np is not None and trimesh is not None, "optional trimesh/numpy")
+    def test_real_export_style_intermediate_nonidentity_parent_keeps_topology(self):
+        scene = trimesh.Scene()
+        parent_world = np.eye(4)
+        angle = np.deg2rad(19.0)
+        parent_world[:2, :2] = [
+            [np.cos(angle), -np.sin(angle)],
+            [np.sin(angle), np.cos(angle)]]
+        parent_world[:3, 3] = [4.0, -2.0, 3.0]
+        scene.graph.update(frame_to="world_1", frame_from="world",
+                           matrix=parent_world)
+        axle = np.eye(4)
+        axle[:3, 3] = [-1.0, 2.0, 1.0]
+        for part in PARTS:
+            initial = axle.copy()
+            if part == "saddle":
+                initial[:3, 3] += [0.08, 0, 2.2]
+            scene.graph.update(frame_to=part, frame_from="world_1",
+                               matrix=np.linalg.inv(parent_world) @ initial)
+            for i in range(CHILD_COUNTS[part]):
+                name = f"{part}__material_{i}"
+                scene.add_geometry(trimesh.creation.box(extents=(.2, .3, .4)),
+                                   node_name=name, geom_name=name,
+                                   parent_node_name=part)
+        before = {part: np.array(scene.graph.get(part)[0], copy=True)
+                  for part in PARTS}
+        apply_scene(scene, 71, -17)
+        self.assertEqual(scene.graph.transforms.parents.get("tire"), "world_1")
+        self.assertTrue(np.allclose(scene.graph.get("tire")[0][:3, 3],
+                                    [-1., 2., 1.]))
+        apply_scene(scene, -32, 9)
+        apply_scene(scene, 0, 0)
+        for part in PARTS:
+            self.assertEqual(scene.graph.transforms.parents.get(part), "world_1")
+            self.assertTrue(np.allclose(scene.graph.get(part)[0], before[part],
+                                        atol=1e-8, rtol=0))
+        self.assertEqual(len(scene.graph.nodes_geometry), 16)
+
+    @unittest.skipUnless(np is not None and trimesh is not None, "optional trimesh/numpy")
     def test_reject_bad_source_scene_hierarchy_and_unauthenticated_glb(self):
         scene = trimesh.Scene()
         with self.assertRaisesRegex(ValueError, "canonical"):

@@ -91,6 +91,7 @@ class MesenCeCacheTests(unittest.TestCase):
         self.assertIn("github.ref == 'refs/heads/main'", main)
         self.assertIn("github.repository == 'gamesbyian/UR-Recomp'", main)
         self.assertIn("      seed_only: true", main)
+        self.assertNotIn('      - ".github/workflows/art4k-mesence-main-cache-seed.yml"', main)
         self.assertIn("    branches: [main]", main)
         self.assertIn("    paths:\n", main)
         self.assertNotIn("  pull_request:", main)

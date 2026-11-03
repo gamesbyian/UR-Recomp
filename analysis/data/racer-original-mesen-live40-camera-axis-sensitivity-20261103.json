@@ -1,0 +1,71 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-LIVE40-SOURCE-VS-2026-GLB-PAINT-AXIS-MIRROR-SENSITIVITY/1",
+  "original_USA_ROM_SHA256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_source_zip_sha256": "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f",
+  "original_Mesen_source_run_id": 41605614082,
+  "original_source_artifact_id": 13217381754,
+  "frozen_experimental_2026_GLb_axis_report_sha256": "ebc05e6ff904d1e84482ce023a54d28b064289b5cbf67996d0f64a06c82b5984",
+  "frozen_2026_GLb_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "source_pixel_aspect": "7:6",
+  "source_all_40_screen_correspondences_verified": true,
+  "fixed_racer_wide_screen_orientation": "red source alpha and RGB reflected to original completed upper viewport; blue unchanged",
+  "model_projection_orientation_arms": [
+    "shared_model_projection",
+    "red_model_projection_reflected"
+  ],
+  "model_mirror_choice_optimized_per_source": false,
+  "experimental_glb_geometry_or_camera_fitted": false,
+  "genuine_original_1994_3D_camera_or_joint_pose_recovered": false,
+  "source_to_2026_GLb_pose_labels_verified": false,
+  "model_painted_frame_equals_original_3D_anatomical_part": false,
+  "owner_likeness_approved": false,
+  "summary": {
+    "shared_model_projection": {
+      "original_2D_source_observations": 40,
+      "source_observations_gap_over_10_deg": 28,
+      "source_observations_gap_over_20_deg": 7,
+      "mean_nearest_glb_axis_gap_deg": 13.514623,
+      "maximum_nearest_glb_axis_gap_deg": 24.925561,
+      "by_original_racer": {
+        "blue": {
+          "source_observations": 20,
+          "mean_nearest_glb_axis_gap_deg": 13.406503,
+          "max_nearest_glb_axis_gap_deg": 24.925561,
+          "source_observations_gap_over_10_deg": 13,
+          "source_observations_gap_over_20_deg": 3
+        },
+        "red": {
+          "source_observations": 20,
+          "mean_nearest_glb_axis_gap_deg": 13.622743,
+          "max_nearest_glb_axis_gap_deg": 23.472101,
+          "source_observations_gap_over_10_deg": 15,
+          "source_observations_gap_over_20_deg": 4
+        }
+      }
+    },
+    "red_model_projection_reflected": {
+      "original_2D_source_observations": 40,
+      "source_observations_gap_over_10_deg": 18,
+      "source_observations_gap_over_20_deg": 4,
+      "mean_nearest_glb_axis_gap_deg": 10.325687,
+      "maximum_nearest_glb_axis_gap_deg": 24.925561,
+      "by_original_racer": {
+        "blue": {
+          "source_observations": 20,
+          "mean_nearest_glb_axis_gap_deg": 13.406503,
+          "max_nearest_glb_axis_gap_deg": 24.925561,
+          "source_observations_gap_over_10_deg": 13,
+          "source_observations_gap_over_20_deg": 3
+        },
+        "red": {
+          "source_observations": 20,
+          "mean_nearest_glb_axis_gap_deg": 7.244871,
+          "max_nearest_glb_axis_gap_deg": 23.610339,
+          "source_observations_gap_over_10_deg": 5,
+          "source_observations_gap_over_20_deg": 1
+        }
+      }
+    }
+  }
+}

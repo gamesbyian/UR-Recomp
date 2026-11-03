@@ -1,11 +1,11 @@
 {
   "fixed_provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
-  "original_1994_camera_pose_or_bone_mapping_recovered": false,
   "only_predeclared_after_pitches_degrees": [
     0,
     10,
     -10
   ],
+  "original_1994_camera_pose_or_bone_mapping_recovered": false,
   "original_source_archive_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
   "original_upright_2026_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
   "per_source_player": {

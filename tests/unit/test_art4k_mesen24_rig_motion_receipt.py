@@ -5,7 +5,7 @@ from pathlib import Path
 import unittest
 
 REPORT=Path(__file__).resolve().parents[2]/"analysis/data/racer-original-mesen24-continuous-pose-control-20261103.json"
-REPORT_SHA="678ef943675d893e6eb7fc78af94f3a35a3dbe4bc155574c64941b1eae4fb075"
+REPORT_SHA="4fc431cbcdc21e2c84197869fd52e1131b5332215c27d44f48227fc577623b32"
 SOURCE_SHA="28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6"
 MODEL_SHA="efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5"
 CAMERA_SHA="1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028"
@@ -15,6 +15,7 @@ class RigMotionEvidenceTests(unittest.TestCase):
     def test_frozen_original_and_model_sources_and_no_fit_claim(self):
         raw=REPORT.read_bytes()
         self.assertEqual(hashlib.sha256(raw).hexdigest(),REPORT_SHA)
+        self.assertNotIn(b"\r",raw)
         r=json.loads(raw)
         self.assertEqual(r["schema"],"UR-ART4K-AUTHENTIC-MESEN24-VS-2026-FIVE-PARENT-MOTION-CONTROLS/1")
         self.assertEqual(r["source_original_ticks"],list(range(1601,1625)))

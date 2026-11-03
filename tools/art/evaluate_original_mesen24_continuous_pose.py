@@ -1,6 +1,7 @@
 """One bounded true-source 24-tick illustration, NOT original 3D inference."""
 import hashlib,io,json,math,statistics,sys,time,zipfile
 from pathlib import Path
+from tools.art.no_replace_report import publish_text_once
 import numpy as np
 import trimesh
 from tools.art.audit_original_mesen_oam_descriptors import decode_oam
@@ -125,15 +126,14 @@ result={
  "no_fitted_phase_camera_geometry_or_frame_translation":True,
  "original_observed_source_per_player_orientation":"held OAM source; no completed-screen reflection applied",
  "original_1994_3d_animation_or_art_approved":False,
- "computer_seconds":round(time.perf_counter()-start,2),
  "arms":output_arms,
 }
-output.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+publish_text_once(output,json.dumps(result,indent=2,sort_keys=True)+"\n")
 print(json.dumps({
  "status":"PASS",
  "source_original_frames":24,
  "model_original_source_sha256":SOURCE_GLB_SHA256,
- "elapsed_seconds":result["computer_seconds"],
+ "elapsed_seconds":round(time.perf_counter()-start,2),
  "arms":{arm:{p:{key:v[key] for key in
    ("mean_24_source_silhouette_iou","model_changed_edges",
     "mean_model_changed_pixels_per_edge","change_pixel_recall",

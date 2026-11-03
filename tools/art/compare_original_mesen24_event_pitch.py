@@ -1,6 +1,7 @@
 """Two predeclared authentic upper-band events; three fixed control arms."""
 import hashlib,io,json,sys,zipfile
 from pathlib import Path
+from tools.art.no_replace_report import publish_text_once
 import numpy as np
 import trimesh
 from tools.art.audit_original_mesen_oam_descriptors import decode_oam
@@ -84,5 +85,5 @@ report={"schema":"UR-ART4K-MESEN24-PREDECLARED-TWO-UPPER-EDGES-FRAME-STEP-CONTRO
         "only_predeclared_after_pitches_degrees":[0,10,-10],
         "original_1994_camera_pose_or_bone_mapping_recovered":False,
         "per_source_player":out}
-out_path.write_text(json.dumps(report,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+publish_text_once(out_path,json.dumps(report,sort_keys=True,indent=2)+"\n")
 print(json.dumps(report,sort_keys=True,indent=2))

@@ -19,12 +19,37 @@ from tools.art.experimental_fixed_root_orbit import apply_root_scene
 from tools.art.experimental_temporary_saddle_lean import temporary_saddle_pitch
 from tools.art.no_replace_report import publish_text_once
 
-SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/1"
+SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/2"
 TICKS=tuple(range(1601,1625))
 SADDLE_TRIALS=(("axle_root_saddle_neutral",0.),
                ("axle_root_saddle_plus15",15.),
                ("axle_root_saddle_minus15",-15.))
-ARMS=("original_source_2d_rotation",)+tuple(x for x,_ in SADDLE_TRIALS)
+# The first four controls retain the already executed, immutable 48-frame
+# saddle-only baseline. Two further controls are predeclared 2026 hypotheses,
+# never fitted independently for each source tick or player.
+BASE_ARMS=("original_source_2d_rotation",)+tuple(x for x,_ in SADDLE_TRIALS)
+DRIVE_TRIALS=(("axle_root_saddle_plus15_rom_phase_15deg","rom_phase"),
+              ("axle_root_saddle_plus15_fixed_tick_24deg","fixed_tick"))
+ARMS=BASE_ARMS+tuple(name for name,_ in DRIVE_TRIALS)
+
+
+def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
+    """Two fixed drive conventions, each with a zero delta at original tick1601.
+
+    ROM phase is an exact 0..23 source *2D drawing* index. The 15-degree
+    mapping is a counterfactual, not identified 1994 wheel/crank rotation.
+    The 24-degree per-tick control is reused from the earlier bounded rig
+    study and is not inferred from game physics.
+    """
+    if (type(phase) is not int or type(start_phase) is not int or
+            type(tick) is not int or not 0<=phase<24 or
+            not 0<=start_phase<24 or tick not in TICKS):
+        raise ValueError("exact source ROM phase 0..23 and tick 1601..1624 required")
+    if mode=="rom_phase":
+        return float(((phase-start_phase)%24)*15)
+    if mode=="fixed_tick":
+        return float(((tick-1601)*24)%360)
+    raise ValueError("only the two predeclared 2026 drive controls allowed")
 
 
 def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[str,bytes]])->dict:
@@ -100,8 +125,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         raise ValueError("same source-owned 2026 GLB success receipt changed")
     scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
 
-    def model4(angle:int,lean:float):
-        apply_root_scene(scene,angle,"wheel_axle",0.,0.)
+    def model4(angle:int,lean:float,wheel:float=0.):
+        apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             world=(scene.to_geometry() if callable(
                 getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
@@ -128,9 +153,15 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     reference["alpha"],frame["angle"]-reference["angle"],center)
             }
             for name,lean in SADDLE_TRIALS:
-                key=(frame["angle"],lean)
+                key=(frame["angle"],lean,0.)
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],lean)
+                    renders[key]=model4(frame["angle"],lean,0.)
+                arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
+            for name,mode in DRIVE_TRIALS:
+                wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
+                key=(frame["angle"],15.,wheel)
+                if key not in renders:
+                    renders[key]=model4(frame["angle"],15.,wheel)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -166,6 +197,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "source_each_player_has_all_24_consecutive_original_PPU_images":True,
         "source_orientation_to_root_angle_is_uncalibrated_2026_hypothesis":True,
         "2026_saddle_only_constant_degrees_both_players_all_ticks":[0.,15.,-15.],
+        "2026_additional_drive_controls_predeclared_not_fitted":list(DRIVE_TRIALS),
+        "source_ROM_phase_24_to_2026_wheel_degrees_is_uncalibrated":True,
+        "source_2026_fixed_24deg_per_tick_is_not_original_animation_cadence":True,
+        "source_phase_drive_is_relative_to_own_player_original_tick1601":True,
         "2026_frame_fork_wheel_geometry_camera_and_mount_unchanged":True,
         "source_unique_binary_silhouettes_grouped_without_duplicate_vote_weight":True,
         "source_actual_timeline_motion_distinct_from_repeated_static_shapes":True,
@@ -184,21 +219,22 @@ def summary_for_exact_original_source(record:dict)->dict:
         raise ValueError("complete real original Mesen source/model report required")
     result={}
     for role,entry in record["original_source_per_role"].items():
-        if (set(entry.get("arms",{}))!=set(ARMS) or
+        if (not set(BASE_ARMS).issubset(set(entry.get("arms",{}))) or
                 set(entry.get("original_24_tick_samples",{}))!={str(t) for t in TICKS}):
             raise ValueError("all 24 authentic original ticks and candidate arms required")
         result[role]={}
-        for arm,entry in entry["arms"].items():
-            if (entry.get("original_chronological_source_frame_count")!=24 or
-                    entry.get("source_actual_timeline_edge_count")!=23):
+        for arm in BASE_ARMS:
+            arm_row=entry["arms"][arm]
+            if (arm_row.get("original_chronological_source_frame_count")!=24 or
+                    arm_row.get("source_actual_timeline_edge_count")!=23):
                 raise ValueError("genuine source 24-frame/23-edge chronology required")
             result[role][arm]={
-                "unique_shapes":entry["original_unique_64px_binary_shape_count"],
-                "chronological_pooled_iou":entry["source_frame_pooled_alpha_iou"],
+                "unique_shapes":arm_row["original_unique_64px_binary_shape_count"],
+                "chronological_pooled_iou":arm_row["source_frame_pooled_alpha_iou"],
                 "unique_shape_equal_vote_mean_iou":
-                    entry["source_unique_shape_equal_vote_mean_alpha_iou"],
+                    arm_row["source_unique_shape_equal_vote_mean_alpha_iou"],
                 "real_23_tick_edge_change_pooled_iou":
-                    entry["source_actual_23_consecutive_edge_change_pooled_iou"],
+                    arm_row["source_actual_23_consecutive_edge_change_pooled_iou"],
             }
     return result
 

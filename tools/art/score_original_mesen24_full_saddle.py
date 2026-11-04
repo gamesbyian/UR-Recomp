@@ -177,6 +177,61 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
     }
 
 
+def summary_for_exact_original_source(record:dict)->dict:
+    """Read-only original 48-frame results independent of variable GLB bytes."""
+    if (not isinstance(record,dict) or record.get("schema")!=SCHEMA or
+            set(record.get("original_source_per_role",{}))!={"blue","red"}):
+        raise ValueError("complete real original Mesen source/model report required")
+    result={}
+    for role,entry in record["original_source_per_role"].items():
+        if (set(entry.get("arms",{}))!=set(ARMS) or
+                set(entry.get("original_24_tick_samples",{}))!={str(t) for t in TICKS}):
+            raise ValueError("all 24 authentic original ticks and candidate arms required")
+        result[role]={}
+        for arm,entry in entry["arms"].items():
+            if (entry.get("original_chronological_source_frame_count")!=24 or
+                    entry.get("source_actual_timeline_edge_count")!=23):
+                raise ValueError("genuine source 24-frame/23-edge chronology required")
+            result[role][arm]={
+                "unique_shapes":entry["original_unique_64px_binary_shape_count"],
+                "chronological_pooled_iou":entry["source_frame_pooled_alpha_iou"],
+                "unique_shape_equal_vote_mean_iou":
+                    entry["source_unique_shape_equal_vote_mean_alpha_iou"],
+                "real_23_tick_edge_change_pooled_iou":
+                    entry["source_actual_23_consecutive_edge_change_pooled_iou"],
+            }
+    return result
+
+
+def check_exact_source_evidence(record:dict,evidence:dict)->None:
+    """Detect drift from one actual original ROM and authored-GLB run.
+
+    The GLB file SHA may vary, but source OpenSCAD SHA and exact exporter
+    receipt must remain verified by analyze() before calling this helper.
+    """
+    if (not isinstance(evidence,dict) or
+            evidence.get("schema")!="UR-ART4K-EXACT-ORIGINAL-MESEN24-SADDLE-TEMPORAL-EVIDENCE/1"):
+        raise ValueError("wrong original Mesen24 saddle temporal evidence schema")
+    source=evidence.get("producer",{})
+    checks={
+        "original_Mesen24_archive_sha256":record.get("source_exact_original_Mesen24_archive_sha256"),
+        "original_pose_report_sha256":record.get("source_exact_ROM_phase_orientation_report_sha256"),
+        "original_axis_sha256":record.get("source_exact_64_angle_report_sha256"),
+        "provisional_camera_sha256":record.get("source_unchanged_7_6_camera_sha256"),
+        "current_2026_authored_SCAD_sha256":record.get("current_source_authored_2026_SCAD_sha256"),
+    }
+    if any(source.get(key)!=value or type(value) is not str or len(value)!=64
+           for key,value in checks.items()):
+        raise ValueError("original source/2026 model provenance changed")
+    if (source.get("original_1994_physical_3d_model_or_camera_recovered") is not False or
+            source.get("original_art_likeness_approved") is not False or
+            record.get("original_1994_3D_mesh_camera_joint_or_source_materials_recovered") is not False or
+            record.get("owner_2026_character_art_likeness_approved") is not False):
+        raise ValueError("original 3D/art likeness cannot be awarded by this experiment")
+    if summary_for_exact_original_source(record)!=evidence.get("reported_per_role"):
+        raise ValueError("actual original 48-frame saddle shape/motion scores drifted")
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source-zip",required=True,type=Path)
@@ -184,10 +239,14 @@ def main():
     p.add_argument("--axis-report",required=True,type=Path)
     p.add_argument("--camera",required=True,type=Path)
     p.add_argument("--verified-exports",required=True,type=Path)
+    p.add_argument("--expected-summary",type=Path,
+                   help="SHA-bound prior executed original source/GLB baseline")
     p.add_argument("--out",required=True,type=Path)
     a=p.parse_args()
     result=analyze(a.source_zip.read_bytes(),a.pose_report.read_bytes(),
                    a.axis_report.read_bytes(),a.camera.read_bytes(),a.verified_exports)
+    if a.expected_summary is not None:
+        check_exact_source_evidence(result,json.loads(a.expected_summary.read_text()))
     publish_text_once(a.out,json.dumps(result,sort_keys=True,indent=2)+"\n")
     print("OK ART4K_REAL_2026_SADDLE_ALL24_SOURCE_MOTION",
           json.dumps({role:{arm:{

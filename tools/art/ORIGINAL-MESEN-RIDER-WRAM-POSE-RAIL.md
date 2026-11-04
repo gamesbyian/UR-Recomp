@@ -46,6 +46,8 @@ This reader must **not** interpret the current-player scratch field `0F49` as pe
 
 ## Qualification
 
+The opt-in must preserve existing regular Mesen raw PPU semantics. **Qualification enhancement:** the existing PR-triggered original-emulator proof explicitly enables the 6KiB WRAM sidecar for its already scheduled two-frame Mesen capture, checking the actual Mesen `snesWorkRam` namespace, same-emulator-tick snapshot, original PPU-plus-WRAM SHA manifest and complete output. No additional workflow job or scheduled replay is added. When `workflow_dispatch` is used manually, `capture_rider_wram` remains default **false**, so the historical original capture behavior does not change. The source WRAM proof on PR is only two frames and therefore **does not** constitute an observed 24-tick original animation phase rail; that still requires a deliberately selected future 1601–1624 one-off run.
+
 The opt-in must preserve existing regular Mesen raw PPU semantics. ROM-free synthetic tests require the exact 6144-byte read schedule, unchanged default selection, correct same-tick binding, SHA/metadata verification and refusal to overclaim CPU writer or 1994 pose, invalid boolean types, and emulator advancement during WRAM read. The existing Mesen workflow is the only integration point; no new hosted cron or recurring source-ROM workflow.
 
 Run `python3 -m unittest tests.unit.test_capture_original_mesen_ppu_raw` and the existing tooling-unit/hygiene jobs. An **independent source review and exact-head CI** remain necessary before merging or dispatching the optional original evidence run.

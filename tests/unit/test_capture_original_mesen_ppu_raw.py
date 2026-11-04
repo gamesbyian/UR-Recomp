@@ -363,6 +363,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
         self.assertIn("      capture_rider_wram:",workflow)
         self.assertIn("          RIDER_WRAM_CAPTURE:",workflow)
         self.assertIn("rider_capture=(--include-rider-wram)",workflow)
+        self.assertIn("github.event_name == 'pull_request'",workflow)
         self.assertIn("        default: false",workflow)
 
     def test_legacy_raw_capture_no_skip_default_and_invalid_flag(self):

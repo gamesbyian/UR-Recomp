@@ -152,7 +152,9 @@ jobs:
         env:
           MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
           CAPTURE_TICKS: ${{ inputs.capture_ticks || '' }}
-          RIDER_WRAM_CAPTURE: ${{ inputs.capture_rider_wram || 'false' }}
+          # Reuse the ordinary two-frame PR proof to qualify real Mesen WRAM.
+          # Manual workflow dispatch remains strictly opt-in/default false.
+          RIDER_WRAM_CAPTURE: ${{ github.event_name == 'pull_request' && 'true' || inputs.capture_rider_wram || 'false' }}
         shell: bash
         run: |
           set -euo pipefail

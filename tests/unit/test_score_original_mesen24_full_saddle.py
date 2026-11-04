@@ -7,7 +7,8 @@ import unittest
 from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
-    SCHEMA,TICKS,ARMS,SADDLE_TRIALS,aggregate_original_timeline,main,analyze,
+    SCHEMA,TICKS,ARMS,BASE_ARMS,SADDLE_TRIALS,DRIVE_TRIALS,drive_delta_degrees,
+    aggregate_original_timeline,main,analyze,
     summary_for_exact_original_source,check_exact_source_evidence,
 )
 
@@ -19,9 +20,26 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_saddle_neutral",0.),
             ("axle_root_saddle_plus15",15.),
             ("axle_root_saddle_minus15",-15.)))
-        self.assertEqual(set(ARMS),{"original_source_2d_rotation",
+        self.assertEqual(set(BASE_ARMS),{"original_source_2d_rotation",
                                     *(name for name,_ in SADDLE_TRIALS)})
+        self.assertEqual(set(ARMS),set(BASE_ARMS)|{n for n,_ in DRIVE_TRIALS})
         self.assertIn("ALL24",SCHEMA) if "ALL24" in SCHEMA else self.assertIn("24TICK",SCHEMA)
+
+    def test_source_phase_and_tick_drive_controls_are_fixed_not_fitted(self):
+        self.assertEqual(DRIVE_TRIALS,(
+            ("axle_root_saddle_plus15_rom_phase_15deg","rom_phase"),
+            ("axle_root_saddle_plus15_fixed_tick_24deg","fixed_tick")))
+        self.assertEqual(drive_delta_degrees(3,3,1601,"rom_phase"),0.)
+        self.assertEqual(drive_delta_degrees(5,3,1602,"rom_phase"),30.)
+        self.assertEqual(drive_delta_degrees(1,23,1602,"rom_phase"),30.)
+        self.assertEqual(drive_delta_degrees(1,23,1602,"fixed_tick"),24.)
+        self.assertEqual(drive_delta_degrees(0,0,1624,"fixed_tick"),192.)
+        self.assertEqual(drive_delta_degrees(23,0,1602,"rom_phase"),345.)
+        for args in ((24,0,1601,"rom_phase"),(0,24,1601,"rom_phase"),
+                     (True,0,1601,"rom_phase"),(0,0,1600,"fixed_tick"),
+                     (0,0,1625,"fixed_tick"),(0,0,1601,"fitted")):
+            with self.subTest(args=args),self.assertRaises(ValueError):
+                drive_delta_degrees(*args)
 
     def test_one_vote_per_unique_original_shape_not_23_repeated_snapshots(self):
         first=bytes([1])+bytes(4095)
@@ -35,6 +53,8 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
                 "axle_root_saddle_plus15":first,
                 "axle_root_saddle_minus15":second,
             }
+            for name,_ in DRIVE_TRIALS:
+                predicted[t][name]=first
         report=aggregate_original_timeline(original,predicted)
         self.assertEqual(len(report["original_unique_binary_source_alpha_shape_sha256_to_ticks"]),2)
         one=report["arms"]["axle_root_saddle_neutral"]
@@ -90,7 +110,7 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
         }
         for role,arms in observed.items():
             with self.subTest(role=role):
-                self.assertEqual(set(arms),set(ARMS))
+                self.assertEqual(set(arms),set(BASE_ARMS))
                 for _,(unique,pooled,equal,edge) in arms.items():
                     self.assertEqual(unique,19 if role=="blue" else 23)
                     self.assertTrue(0<edge<pooled<equal+.01<1)

@@ -129,6 +129,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
     import numpy as np
     import trimesh
     from tools.art.render_racer_glb_projection import render_mask
+    from tools.art.count_real_glb_parent_source_y_bands import project_real_parent_masks256
+    from tools.art.partition_2026_glb_parent_edge import source_vs_model_motion_regions
     pose,axis,camera=check_receipts(zip_raw,pose_raw,axis_raw,camera_raw)
     if sha(camera_raw)!=CAMERA_SHA:
         raise ValueError("previous frozen original source camera SHA changed")
@@ -205,6 +207,53 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
             "original_24_tick_samples":samples,
             **timeline,
         }
+    # Predeclared genuine source upper-change events, not a shape or fit
+    # selected from current model predictions. Compare the two existing
+    # globally fixed source-phase/fixed-tick drives using real named 2026
+    # parent meshes and the *same* actual GLB/camera/first-tick anchor.
+    selected_upper_source_events={"blue":(1602,1603),"red":(1605,1606)}
+    if set(originals)!=set(selected_upper_source_events):
+        raise ValueError("authentic source upper events require both original racers")
+    original_vs_authored_2026_parent_motion={}
+    for role,(first,last) in selected_upper_source_events.items():
+        original=originals[role]
+        placement=anchor(original[1601]["alpha"])
+        events={}
+        for name,mode in DRIVE_TRIALS:
+            projected={}
+            for tick in (first,last):
+                frame=original[tick]
+                wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
+                key=(frame["angle"],15.,wheel)
+                if key not in renders:
+                    raise ValueError("same already rendered actual GLB pose missing")
+                apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
+                with temporary_saddle_pitch(scene,15.):
+                    parent256=project_real_parent_masks256(scene,camera)
+                union=np.logical_or.reduce(list(parent256.values()))
+                if not np.array_equal(union,renders[key]):
+                    raise ValueError("authored 2026 GLB parents do not reproduce whole")
+                parent64={part:registered_mask4(mask,placement,neutral_anchor)
+                          for part,mask in parent256.items()}
+                if bytes(int(any(part[k] for part in parent64.values()))
+                         for k in range(4096))!=registered_mask4(union,placement,neutral_anchor):
+                    raise ValueError("registered actual 2026 GLB parent union not conserved")
+                projected[tick]=parent64
+            outcome=source_vs_model_motion_regions(
+                original[first]["alpha"],original[last]["alpha"],
+                projected[first],projected[last])
+            whole_edge=[row for row in data[role]["arms"][name][
+                "per_original_chronological_edge"]
+                if row["source_ticks"]==[first,last]]
+            if len(whole_edge)!=1 or any(outcome["source_vs_2026_motion_tp_fp_fn"][k]!=
+                                         whole_edge[0][k] for k in ("tp","fp","fn")):
+                raise ValueError("model parent edge disagrees with previously qualified whole GLB")
+            events[name]=outcome
+        original_vs_authored_2026_parent_motion[role]={
+            "source_original_consecutive_Mesen_ticks":[first,last],
+            "retrospectively_inspected_original_source_event":True,
+            "2026_candidate_motion_controls":events,
+        }
     return {
         "schema":SCHEMA,
         "source_exact_original_USA_ROM_sha256":pose["original_usa_ROM_sha256"],
@@ -232,6 +281,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "owner_2026_character_art_likeness_approved":False,
         "real_2026_GLb_unique_model_pose_renders_cached":len(renders),
         "original_source_per_role":data,
+        "original_upper_event_2026_visible_parent_motion":
+            original_vs_authored_2026_parent_motion,
+        "2026_visible_motion_ambiguous_parent_overlap_reported_separately":True,
+        "source_y_image_bands_not_1994_anatomical_part_labels":True,
     }
 
 

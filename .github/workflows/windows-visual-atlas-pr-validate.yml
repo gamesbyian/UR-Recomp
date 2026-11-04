@@ -212,6 +212,13 @@ jobs:
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --verified-exports "$RUNNER_TEMP/model-exports" \
             --out "$RUNNER_TEMP/real-model-evidence/original-source-vs-real-root-pivots.json"
+      - name: Quantify actual unmodified 2026 model parent pixels in original 64px source bands
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/rig-venv/bin/python" -m tools.art.count_real_glb_parent_source_y_bands \
+            --verified-exports "$RUNNER_TEMP/model-exports" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --out "$RUNNER_TEMP/real-model-evidence/real-glb-parent-source-y-band-census.json"
       - name: Exercise actual five-part glTF exports and original sprite rail in Chromium
         run: |
           set -euo pipefail

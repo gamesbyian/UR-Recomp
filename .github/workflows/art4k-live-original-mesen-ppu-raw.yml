@@ -25,6 +25,16 @@ on:
         type: string
         default: ""
         required: false
+      include_rider_wram:
+        description: "Probe 11 original rider/queue WRAM words plus bounded original CPU write callback PCs"
+        type: boolean
+        default: false
+        required: false
+      include_rider_wram_full:
+        description: "Optional complete 6KiB post-frame original WRAM snapshot (distinct from executed writers)"
+        type: boolean
+        default: false
+        required: false
   pull_request:
     paths:
       - 'tools/art/capture_original_mesen_ppu_raw.py'
@@ -44,6 +54,8 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   MESENCE_REVISION: a60e79feb4d6dcced5922d636f9211837d01e381
   MESENCE_INPUT_PATCH_REV: v2
+  RIDER_CAPTURE: ${{ github.event_name == 'pull_request' && '1' || inputs.include_rider_wram && '1' || '0' }}
+  RIDER_FULL_CAPTURE: ${{ github.event_name == 'pull_request' && '1' || inputs.include_rider_wram_full && '1' || '0' }}
 
 jobs:
   proof:
@@ -146,7 +158,7 @@ jobs:
         if: ${{ !inputs.seed_only }}
         env:
           MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
-          CAPTURE_TICKS: ${{ inputs.capture_ticks || '' }}
+          CAPTURE_TICKS: ${{ github.event_name == 'pull_request' && '1601,1602,1603,1605,1606,1609,1610,1624' || inputs.capture_ticks || '' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -170,12 +182,15 @@ jobs:
             (( 1 <= CAPTURE_FRAMES && CAPTURE_FRAMES <= 5 ))
             selection=(--advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES")
           fi
+          rider_args=()
+          if [[ "$RIDER_CAPTURE" == "1" ]]; then rider_args+=(--include-rider-wram); fi
+          if [[ "$RIDER_FULL_CAPTURE" == "1" ]]; then rider_args+=(--include-rider-wram-full); fi
           timeout 300s xvfb-run -a python3 -m tools.art.capture_original_mesen_ppu_raw \
             --rom reference/roms/retail/Uniracers_USA.sfc \
             --input-file tests/input/two-player-first-race.input \
             --mesen-for-ai-repo third_party/src/mesen-for-ai \
             --mesen-executable "$MESEN_BIN" \
-            "${selection[@]}" --include-held-framebuffer \
+            "${selection[@]}" --include-held-framebuffer "${rider_args[@]}" \
             --out-dir "$RUNNER_TEMP/art4k-actual-ppu-raw"
           python3 - <<'PY'
           import json, os
@@ -184,6 +199,19 @@ jobs:
           root=Path(os.environ["RUNNER_TEMP"])/"art4k-actual-ppu-raw"
           report=json.loads((root/"manifest.json").read_text())
           validate_snapshot_files(root,report)
+          rider_requested=os.environ.get("RIDER_CAPTURE")=="1"
+          full_requested=os.environ.get("RIDER_FULL_CAPTURE")=="1"
+          assert report.get("source_original_rider_WRAM_at_bridge_boundary_exported",False) is rider_requested
+          assert report.get("source_original_rider_work_ram_0000_17ff_captured",False) is full_requested
+          if full_requested:
+              for row in report["frames"]:
+                  assert row["original_snes_rider_work_ram_0000_17ff"]["byte_size"]==0x1800
+          if rider_requested:
+              for row in report["frames"]:
+                  values=row["source_original_rider_WRAM_at_bridge_boundary"]
+                  events=row["source_original_rider_writer_events"]
+                  queue=row["source_original_DMA_queue_at_bridge_boundary"]
+                  print("ART4K_ORIGINAL_RIDER_BOUNDARY",json.dumps({"tick":row["emulator_bridge_frame"],"WRAM":values["source_u16_le"],"WRAM_SHA256":values["source_raw_22_bytes_sha256"],"writer_events":events["events"],"DMA_queue":queue,"callback_alignment_verified":False},sort_keys=True))
           advance=int(os.environ["ADVANCE_FRAMES"])
           count=int(os.environ["CAPTURE_FRAMES"])
           actual=[f["emulator_bridge_frame"] for f in report["frames"]]
@@ -223,6 +251,26 @@ jobs:
                     actual,original_screen_shas)
           print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",actual,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
+
+      - name: Compare original ROM queued 32-byte tile sources with held source VRAM
+        if: ${{ github.event_name == 'pull_request' || inputs.include_rider_wram }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.art.audit_original_mesen_dma_source_tile_timing \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --source-zip analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip \
+            --source-queue-json analysis/data/racer-original-mesen-rider-queue-vram-tile-mapping-eight-20261103.json \
+            --out "$RUNNER_TEMP/art4k-actual-ppu-raw/original-ROM-DMA-held-PPU-timing.json"
+
+      - name: Audit optional full original 6KiB post-frame WRAM evidence
+        if: ${{ github.event_name == 'pull_request' || inputs.include_rider_wram_full }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.art.audit_original_mesen_rider_wram_fields \
+            --source-dir "$RUNNER_TEMP/art4k-actual-ppu-raw" \
+            --out "$RUNNER_TEMP/art4k-actual-ppu-raw/original-rider-wram-full-audit.json"
 
       - name: Upload SHA-bound original emulator PPU raw RAM states
         if: ${{ !inputs.seed_only }}

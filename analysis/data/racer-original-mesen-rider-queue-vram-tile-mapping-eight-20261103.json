@@ -1,0 +1,2152 @@
+{
+  "schema": "UR-ART4K-EXECUTED-MESEN-RIDER-QUEUED-32B-TILES-TO-ORIGINAL-OBJS/1",
+  "source_original_Mesen_workflow_run": 41774019061,
+  "source_original_Mesen_job": 126390044838,
+  "original_workflow_execution_head": "23a82d36c514347fae0e3d32844927a575b184c8",
+  "source_original_ROM_SHA256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_24tick_ppu_source_ZIP_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "source_independent_OAM_tile_address_report_SHA256": "05c0e44a9143778c15d8119f74931ce65c03b59a638d087f9405f5409c72566c",
+  "source_first_eight_wram_callback_receipt_Git_blob": "95daf2e1f11ffbe1e8f4e37dc73cd91e17a0bdcc",
+  "original_SNESCapture_OBSEL_register_per_tick_verified": false,
+  "source_1994_original_NMI_destination_flag_bit": 128,
+  "source_1994_original_NMI_destination_plus_words_if_flag": 2048,
+  "source_1994_original_OAM96_blue_tile_words": [
+    26752,
+    26768,
+    26784,
+    26800,
+    26816,
+    26832,
+    26848,
+    26864,
+    27008,
+    27024,
+    27040,
+    27056,
+    27072,
+    27088,
+    27104,
+    27120,
+    27264,
+    27280,
+    27296,
+    27312,
+    27328,
+    27344,
+    27360,
+    27376,
+    27520,
+    27536,
+    27552,
+    27568,
+    27584,
+    27600,
+    27616,
+    27632,
+    27776,
+    27792,
+    27808,
+    27824,
+    27840,
+    27856,
+    27872,
+    27888,
+    28032,
+    28048,
+    28064,
+    28080,
+    28096,
+    28112,
+    28128,
+    28144,
+    28288,
+    28304,
+    28320,
+    28336,
+    28352,
+    28368,
+    28384,
+    28400,
+    28544,
+    28560,
+    28576,
+    28592,
+    28608,
+    28624,
+    28640,
+    28656
+  ],
+  "source_1994_original_OAM97_red_tile_words": [
+    24576,
+    24592,
+    24608,
+    24624,
+    24640,
+    24656,
+    24672,
+    24688,
+    24832,
+    24848,
+    24864,
+    24880,
+    24896,
+    24912,
+    24928,
+    24944,
+    25088,
+    25104,
+    25120,
+    25136,
+    25152,
+    25168,
+    25184,
+    25200,
+    25344,
+    25360,
+    25376,
+    25392,
+    25408,
+    25424,
+    25440,
+    25456,
+    25600,
+    25616,
+    25632,
+    25648,
+    25664,
+    25680,
+    25696,
+    25712,
+    25856,
+    25872,
+    25888,
+    25904,
+    25920,
+    25936,
+    25952,
+    25968,
+    26112,
+    26128,
+    26144,
+    26160,
+    26176,
+    26192,
+    26208,
+    26224,
+    26368,
+    26384,
+    26400,
+    26416,
+    26432,
+    26448,
+    26464,
+    26480
+  ],
+  "original_queued_writes_to_racer_tile_region_covered_all_selected_frames": true,
+  "original_queue_source_32byte_payload_written_to_observed_PPU_at_exact_phase_independently_verified": false,
+  "original_queue_P1_P2_graphics_ID_to_OAM96_97_source_colour_resolved": false,
+  "original_1994_3D_mesh_skeleton_camera_physical_angle_recovered": false,
+  "owner_art_approved": false,
+  "rows": [
+    {
+      "original_bridge_tick": 1601,
+      "source_queue_sha256": "2753a0b8d64e12d34c8b2cec3f69f1794cb8c1843082651fb0ab049388d5ecfd",
+      "source_QUEUE_terminator_index": 27,
+      "source_queue_transfer_count": 27,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 14,
+        "red_OAM97": 13,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRBBBRRRBBRRRBBBRRRBBBRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54336,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54368,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 56064,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 56096,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 56128,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 54400,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54432,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54464,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 56160,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 56192,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 54496,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 46848,
+          "source_bank_word": 44,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 48160,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 56224,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 56256,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 39200,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 54592,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 46880,
+          "source_bank_word": 44,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 46912,
+          "source_bank_word": 44,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 65312,
+          "source_bank_word": 40,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 65344,
+          "source_bank_word": 40,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 65376,
+          "source_bank_word": 40,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 35328,
+          "source_bank_word": 40,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 39872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 65408,
+          "source_bank_word": 40,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 65440,
+          "source_bank_word": 40,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 65472,
+          "source_bank_word": 40,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 381,
+      "source_boundary_P1_queued_ID": 1401,
+      "source_boundary_P2_queued_ID": 381
+    },
+    {
+      "original_bridge_tick": 1602,
+      "source_queue_sha256": "9d74578afdf27871ed9605bb3c197cc216b5a973e1c7b152a1a3a57cac3e674f",
+      "source_QUEUE_terminator_index": 28,
+      "source_queue_transfer_count": 28,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 13,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRBBBRRRBBBRRRBBBRRRBBBRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54336,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54368,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 54400,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54432,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54464,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 54496,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 65056,
+          "source_bank_word": 39,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 65088,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 54592,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 65120,
+          "source_bank_word": 39,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 65152,
+          "source_bank_word": 39,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 55904,
+          "source_bank_word": 39,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 54944,
+          "source_bank_word": 41,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 54976,
+          "source_bank_word": 41,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 65184,
+          "source_bank_word": 39,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 39872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 34880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 55008,
+          "source_bank_word": 41,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 56032,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 572,
+      "source_boundary_P1_queued_ID": 121,
+      "source_boundary_P2_queued_ID": 572
+    },
+    {
+      "original_bridge_tick": 1603,
+      "source_queue_sha256": "d56f958331dffbc1369ec621aee9dad80c377b588466cee095d3e8e50f4c9b6a",
+      "source_QUEUE_terminator_index": 28,
+      "source_queue_transfer_count": 28,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 13,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRBBBRRRBBBRRRBBBRRRBBBRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54336,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54368,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 54400,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54432,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54464,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 54496,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 39840,
+          "source_bank_word": 41,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 48160,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 54592,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 39872,
+          "source_bank_word": 41,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 39904,
+          "source_bank_word": 41,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 48576,
+          "source_bank_word": 41,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 43648,
+          "source_bank_word": 42,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 34848,
+          "source_bank_word": 39,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 35328,
+          "source_bank_word": 40,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 39936,
+          "source_bank_word": 41,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 34880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 43680,
+          "source_bank_word": 42,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 56032,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 764,
+      "source_boundary_P1_queued_ID": 441,
+      "source_boundary_P2_queued_ID": 764
+    },
+    {
+      "original_bridge_tick": 1605,
+      "source_queue_sha256": "9433336a444fa29216269297df8355a56099705f6722eb30a8a98df2c1385df0",
+      "source_QUEUE_terminator_index": 30,
+      "source_queue_transfer_count": 30,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 15,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRRBBBRRRBBBRRRBBBRRRBBBRRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54720,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54752,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 39200,
+          "source_bank_word": 39,
+          "vram_destination_word": 24640,
+          "source_vram_dest_after_nmi_flag_rule": 24640,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54784,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54816,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 54848,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 54880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 54912,
+          "source_bank_word": 39,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 54944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 54976,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 38432,
+          "source_bank_word": 43,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 38464,
+          "source_bank_word": 43,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 51616,
+          "source_bank_word": 42,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 45504,
+          "source_bank_word": 43,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 55968,
+          "source_bank_word": 39,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 55072,
+          "source_bank_word": 39,
+          "vram_destination_word": 25648,
+          "source_vram_dest_after_nmi_flag_rule": 25648,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 38496,
+          "source_bank_word": 43,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 55136,
+          "source_bank_word": 39,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 34880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 28,
+          "source_address_word": 45536,
+          "source_bank_word": 43,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 29,
+          "source_address_word": 34944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 1084,
+      "source_boundary_P1_queued_ID": 1018,
+      "source_boundary_P2_queued_ID": 1084
+    },
+    {
+      "original_bridge_tick": 1606,
+      "source_queue_sha256": "b0c9ec759d54b26c7903f0bffaa24904c6b923828122e7680b993b3ce1e5ac0f",
+      "source_QUEUE_terminator_index": 30,
+      "source_queue_transfer_count": 30,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 15,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRRBBBRRRBBBRRRBBBRRRBBBRRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54720,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54752,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 39200,
+          "source_bank_word": 39,
+          "vram_destination_word": 24640,
+          "source_vram_dest_after_nmi_flag_rule": 24640,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54784,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54816,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 54848,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 54880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 50464,
+          "source_bank_word": 42,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 64928,
+          "source_bank_word": 40,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 54976,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 40032,
+          "source_bank_word": 44,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 40064,
+          "source_bank_word": 44,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 39424,
+          "source_bank_word": 43,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 33312,
+          "source_bank_word": 44,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 34848,
+          "source_bank_word": 39,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 55072,
+          "source_bank_word": 39,
+          "vram_destination_word": 25648,
+          "source_vram_dest_after_nmi_flag_rule": 25648,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 40096,
+          "source_bank_word": 44,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 50592,
+          "source_bank_word": 42,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 34880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 28,
+          "source_address_word": 33344,
+          "source_bank_word": 44,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 29,
+          "source_address_word": 34944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 1276,
+      "source_boundary_P1_queued_ID": 1338,
+      "source_boundary_P2_queued_ID": 1276
+    },
+    {
+      "original_bridge_tick": 1609,
+      "source_queue_sha256": "a7e8e19c15c614efb301c7fc20ead38138056a0e05207867eba97fd098c19d67",
+      "source_QUEUE_terminator_index": 30,
+      "source_queue_transfer_count": 30,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 15,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRRBBBRRRBBBRRRBBBRRRBBBRRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54720,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54752,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 39200,
+          "source_bank_word": 39,
+          "vram_destination_word": 24640,
+          "source_vram_dest_after_nmi_flag_rule": 24640,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54784,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54816,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 54848,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 54880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 54912,
+          "source_bank_word": 39,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 54944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 54976,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 36416,
+          "source_bank_word": 42,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 36448,
+          "source_bank_word": 42,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 57824,
+          "source_bank_word": 39,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 57184,
+          "source_bank_word": 40,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 34848,
+          "source_bank_word": 39,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 55072,
+          "source_bank_word": 39,
+          "vram_destination_word": 25648,
+          "source_vram_dest_after_nmi_flag_rule": 25648,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 36480,
+          "source_bank_word": 42,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 55136,
+          "source_bank_word": 39,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 57888,
+          "source_bank_word": 39,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 28,
+          "source_address_word": 57216,
+          "source_bank_word": 40,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 29,
+          "source_address_word": 57952,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 316,
+      "source_boundary_P1_queued_ID": 698,
+      "source_boundary_P2_queued_ID": 316
+    },
+    {
+      "original_bridge_tick": 1610,
+      "source_queue_sha256": "7fc923ce302422bd0ef7e7ca311eedc16e7064a978b8abcb27a82c4458ce6a57",
+      "source_QUEUE_terminator_index": 30,
+      "source_queue_transfer_count": 30,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 15,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRRBBBRRRBBBRRRBBBRRRBBBRRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54720,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54752,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 39200,
+          "source_bank_word": 39,
+          "vram_destination_word": 24640,
+          "source_vram_dest_after_nmi_flag_rule": 24640,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54784,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54816,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 54848,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 54880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 39968,
+          "source_bank_word": 41,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 54944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 54976,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 64256,
+          "source_bank_word": 42,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 64288,
+          "source_bank_word": 42,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 33632,
+          "source_bank_word": 40,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 47744,
+          "source_bank_word": 41,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 50016,
+          "source_bank_word": 40,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 55072,
+          "source_bank_word": 39,
+          "vram_destination_word": 25648,
+          "source_vram_dest_after_nmi_flag_rule": 25648,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 64320,
+          "source_bank_word": 42,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 55136,
+          "source_bank_word": 39,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 34880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 28,
+          "source_address_word": 47776,
+          "source_bank_word": 41,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 29,
+          "source_address_word": 34944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 508,
+      "source_boundary_P1_queued_ID": 954,
+      "source_boundary_P2_queued_ID": 508
+    },
+    {
+      "original_bridge_tick": 1624,
+      "source_queue_sha256": "307b51b2b31e8f6d8c65d38a6b987b19fc18e16e12640769ff4fcae02be58193",
+      "source_QUEUE_terminator_index": 30,
+      "source_queue_transfer_count": 30,
+      "source_queue_32_byte_graphics_destinations_by_role": {
+        "blue_OAM96": 15,
+        "red_OAM97": 15,
+        "unclassified": 0
+      },
+      "source_queue_entry_role_sequence": "RRRBBBRRRBBBRRRBBBRRRBBBRRRBBB",
+      "source_queue_entries": [
+        {
+          "entry": 0,
+          "source_address_word": 54720,
+          "source_bank_word": 39,
+          "vram_destination_word": 24608,
+          "source_vram_dest_after_nmi_flag_rule": 24608,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 1,
+          "source_address_word": 54752,
+          "source_bank_word": 39,
+          "vram_destination_word": 24624,
+          "source_vram_dest_after_nmi_flag_rule": 24624,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 2,
+          "source_address_word": 39200,
+          "source_bank_word": 39,
+          "vram_destination_word": 24640,
+          "source_vram_dest_after_nmi_flag_rule": 24640,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 3,
+          "source_address_word": 55616,
+          "source_bank_word": 39,
+          "vram_destination_word": 24736,
+          "source_vram_dest_after_nmi_flag_rule": 26784,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 4,
+          "source_address_word": 55648,
+          "source_bank_word": 39,
+          "vram_destination_word": 24752,
+          "source_vram_dest_after_nmi_flag_rule": 26800,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 5,
+          "source_address_word": 55680,
+          "source_bank_word": 39,
+          "vram_destination_word": 24768,
+          "source_vram_dest_after_nmi_flag_rule": 26816,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 6,
+          "source_address_word": 54784,
+          "source_bank_word": 39,
+          "vram_destination_word": 24864,
+          "source_vram_dest_after_nmi_flag_rule": 24864,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 7,
+          "source_address_word": 54816,
+          "source_bank_word": 39,
+          "vram_destination_word": 24880,
+          "source_vram_dest_after_nmi_flag_rule": 24880,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 8,
+          "source_address_word": 54848,
+          "source_bank_word": 39,
+          "vram_destination_word": 24896,
+          "source_vram_dest_after_nmi_flag_rule": 24896,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 9,
+          "source_address_word": 55712,
+          "source_bank_word": 39,
+          "vram_destination_word": 24992,
+          "source_vram_dest_after_nmi_flag_rule": 27040,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 10,
+          "source_address_word": 55744,
+          "source_bank_word": 39,
+          "vram_destination_word": 25008,
+          "source_vram_dest_after_nmi_flag_rule": 27056,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 11,
+          "source_address_word": 55776,
+          "source_bank_word": 39,
+          "vram_destination_word": 25024,
+          "source_vram_dest_after_nmi_flag_rule": 27072,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 12,
+          "source_address_word": 54880,
+          "source_bank_word": 39,
+          "vram_destination_word": 25136,
+          "source_vram_dest_after_nmi_flag_rule": 25136,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 13,
+          "source_address_word": 39968,
+          "source_bank_word": 41,
+          "vram_destination_word": 25152,
+          "source_vram_dest_after_nmi_flag_rule": 25152,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 14,
+          "source_address_word": 54944,
+          "source_bank_word": 39,
+          "vram_destination_word": 25168,
+          "source_vram_dest_after_nmi_flag_rule": 25168,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 15,
+          "source_address_word": 55808,
+          "source_bank_word": 39,
+          "vram_destination_word": 25264,
+          "source_vram_dest_after_nmi_flag_rule": 27312,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 16,
+          "source_address_word": 55840,
+          "source_bank_word": 39,
+          "vram_destination_word": 25280,
+          "source_vram_dest_after_nmi_flag_rule": 27328,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 17,
+          "source_address_word": 55872,
+          "source_bank_word": 39,
+          "vram_destination_word": 25296,
+          "source_vram_dest_after_nmi_flag_rule": 27344,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 18,
+          "source_address_word": 54976,
+          "source_bank_word": 39,
+          "vram_destination_word": 25392,
+          "source_vram_dest_after_nmi_flag_rule": 25392,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 19,
+          "source_address_word": 40000,
+          "source_bank_word": 41,
+          "vram_destination_word": 25408,
+          "source_vram_dest_after_nmi_flag_rule": 25408,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 20,
+          "source_address_word": 40032,
+          "source_bank_word": 41,
+          "vram_destination_word": 25424,
+          "source_vram_dest_after_nmi_flag_rule": 25424,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 21,
+          "source_address_word": 33632,
+          "source_bank_word": 40,
+          "vram_destination_word": 25520,
+          "source_vram_dest_after_nmi_flag_rule": 27568,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 22,
+          "source_address_word": 53760,
+          "source_bank_word": 44,
+          "vram_destination_word": 25536,
+          "source_vram_dest_after_nmi_flag_rule": 27584,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 23,
+          "source_address_word": 37504,
+          "source_bank_word": 42,
+          "vram_destination_word": 25552,
+          "source_vram_dest_after_nmi_flag_rule": 27600,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 24,
+          "source_address_word": 55072,
+          "source_bank_word": 39,
+          "vram_destination_word": 25648,
+          "source_vram_dest_after_nmi_flag_rule": 25648,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 25,
+          "source_address_word": 40064,
+          "source_bank_word": 41,
+          "vram_destination_word": 25664,
+          "source_vram_dest_after_nmi_flag_rule": 25664,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 26,
+          "source_address_word": 40096,
+          "source_bank_word": 41,
+          "vram_destination_word": 25680,
+          "source_vram_dest_after_nmi_flag_rule": 25680,
+          "source_OAM_64px_tile_region": "red_OAM97"
+        },
+        {
+          "entry": 27,
+          "source_address_word": 60032,
+          "source_bank_word": 43,
+          "vram_destination_word": 25776,
+          "source_vram_dest_after_nmi_flag_rule": 27824,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 28,
+          "source_address_word": 53792,
+          "source_bank_word": 44,
+          "vram_destination_word": 25792,
+          "source_vram_dest_after_nmi_flag_rule": 27840,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        },
+        {
+          "entry": 29,
+          "source_address_word": 56032,
+          "source_bank_word": 39,
+          "vram_destination_word": 25808,
+          "source_vram_dest_after_nmi_flag_rule": 27856,
+          "source_OAM_64px_tile_region": "blue_OAM96"
+        }
+      ],
+      "source_boundary_selected_graphics_id": 1468,
+      "source_boundary_P1_queued_ID": 442,
+      "source_boundary_P2_queued_ID": 1468
+    }
+  ]
+}

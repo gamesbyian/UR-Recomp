@@ -80,6 +80,21 @@ def count_parts(source64_by_part:dict[str,bytes])->dict:
     }
 
 
+def scene_part_source_masks(scene,camera:dict)->dict[str,bytes]:
+    """Exact 2026 scene-graph source64 part supports for any fixed pose.
+
+    Uses the same 7:6 camera and 4x source-centre sampling as the canonical
+    real-GLB union renderer. Parent membership is projected support, not a
+    recovered 1994 source-material assignment or 3D visibility oracle.
+    """
+    import numpy as np
+    import trimesh
+    validated_camera(camera)
+    masks=scene_part_source_masks(scene,camera)
+
+    return masks
+
+
 def actual_part_source_masks(verified_exports:Path,camera_path:Path)->dict:
     """Use only a source-verified canonical GLB export attempt (not any GLB)."""
     import numpy as np

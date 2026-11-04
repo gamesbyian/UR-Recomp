@@ -162,6 +162,15 @@ jobs:
           ADVANCE_FRAMES="${{ inputs.advance_frames || 1218 }}"
           CAPTURE_FRAMES="${{ inputs.capture_frames || 2 }}"
           export ADVANCE_FRAMES CAPTURE_FRAMES
+          # ONE-OFF original 24-tick rider-state experiment on this research PR.
+          # Remove after evidence is verified; all other PRs and manual runs
+          # retain their normal two-frame and opt-in settings.
+          if [[ "${{ github.event_name }}" == "pull_request" &&
+                "${{ github.head_ref }}" == "art4k/optional-source-rider-wram-rail-20261104" ]]; then
+            CAPTURE_TICKS="$(seq -s, 1601 1624)"
+            export CAPTURE_TICKS
+            echo "SOURCE_ORIGINAL_RIDER_WRAM_ONE_SHOT_24_TICKS $CAPTURE_TICKS"
+          fi
           rider_capture=()
           if [[ "$RIDER_WRAM_CAPTURE" == "true" ]]; then
             rider_capture=(--include-rider-wram)
@@ -242,6 +251,48 @@ jobs:
                     actual,original_screen_shas)
           print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",actual,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
+          if [[ "$RIDER_WRAM_CAPTURE" == "true" ]]; then
+            python3 -m tools.art.audit_original_mesen_rider_wram_fields \
+              --source-dir "$RUNNER_TEMP/art4k-actual-ppu-raw" \
+              --out "$RUNNER_TEMP/original-rider-candidate-words.json"
+            python3 - <<'PYRIDER'
+          import json,os
+          from pathlib import Path
+          from tools.art.audit_original_mesen_contiguous_24 import ANCHORS
+          root=Path(os.environ["RUNNER_TEMP"])/"art4k-actual-ppu-raw"
+          manifest=json.loads((root/"manifest.json").read_text())
+          rail=json.loads((Path(os.environ["RUNNER_TEMP"])/"original-rider-candidate-words.json").read_text())
+          ticks=[r["emulator_bridge_frame"] for r in manifest["frames"]]
+          if ticks==list(range(1601,1625)):
+              for tick,old_hashes in ANCHORS.items():
+                  row=next(x for x in manifest["frames"] if x["emulator_bridge_frame"]==tick)
+                  actual=tuple(row["raw_original_snes_ppu_memory"][key]["sha256"]
+                      for key in ("oam","vram","cgram"))+(row["original_emulator_held_display_P6"]["sha256"],)
+                  if actual!=old_hashes:
+                      raise ValueError(f"new original rider rail disagrees with previously authenticated PPU tick {tick}")
+              print("ART4K_ORIGINAL_RIDER_PPU_3_ANCHORS_MATCH_12_OF_12",sorted(ANCHORS))
+          # This is source working RAM, not a recorded execution trace or
+          # verified mapping from 1994 3D bones to the unapproved 2026 GLB.
+          fields=("persistent_P1_orientation_04c7","persistent_P2_orientation_04c9",
+                  "current_rider_angle_workspace_0f49","current_rider_wheel_phase_workspace_0f83",
+                  "current_rider_signed_spin_speed_0f8f","current_rider_frame_workspace_0f77",
+                  "current_rider_presentation_id_0f97","tile_DMA_pending_0306")
+          result={"manifest_sha256":rail["source_capture_manifest_sha256"],
+                  "source_original_ROM_sha256":rail["source_original_USA_ROM_sha256"],
+                  "source_original_replay_sha256":rail["source_replay_sha256"],
+                  "source_mesen_executable_sha256":rail["source_original_emulator_executable_sha256"],
+                  "source_WRAM_is_post_frame_not_writer_trace":True,
+                  "source_original_1994_3d_pose_verified":False,
+                  "rows":[{"tick":r["original_emulator_bridge_tick"],
+                      "wram_sha256":r["exact_original_wram_span_sha256"],
+                      "candidate_raw_words":{field:r["candidate_original_ram_fields"][field]
+                                            for field in fields},
+                      "candidate_DMA_source_bank_slice_sha256":
+                           r["candidate_transfer_list_byte_slices"]["source_bank_15a1"]["sha256"]}
+                      for r in rail["source_rows"]]}
+          print("ART4K_ORIGINAL_RIDER_WRAM_SOURCE_WITNESS_JSON",json.dumps(result,sort_keys=True,separators=(",",":")))
+          PYRIDER
+          fi
 
       - name: Upload SHA-bound original emulator PPU raw RAM states
         if: ${{ !inputs.seed_only }}

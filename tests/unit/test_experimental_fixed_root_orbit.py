@@ -120,6 +120,46 @@ class SourceGLBRootOrbitTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"exact SHA"):
             orbit.build(raw,16,"historical_midbody",0,0)
 
+    def test_current_export_requires_validated_model_receipt_not_arbitrary_hash(self):
+        # The exact source OpenSCAD can produce distinct GLB bytes per export.
+        # A claimed hash alone is inadequate; require source-owned, checked
+        # exporter receipt and the same exact on-disk GLB bytes.
+        scene=self.scene(intermediate=True)
+        raw=scene.export(file_type="glb")
+        digest=hashlib.sha256(raw).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            authenticated=root/"upright.glb"
+            authenticated.write_bytes(raw)
+            good_ptr={
+                "source_sha256":orbit.HISTORICAL_SCAD_SHA,
+                "glb_sha256":digest,
+            }
+            def valid(_, pose):
+                self.assertEqual(pose,"upright")
+                return good_ptr,{"glb":authenticated}
+            with patch("runpy.run_path",return_value={"validate":valid}):
+                output,receipt=orbit.build(raw,16,"wheel_axle",0,0,
+                                           verified_export_root=root)
+                self.assertEqual(receipt["source_2026_upright_GLb_sha256"],digest)
+                self.assertEqual(receipt["source_2026_GLb_provenance_class"],
+                                 "current_successful_source_scad_export_receipt")
+                self.assertEqual(receipt["derived_GLB_sha256"],
+                                 hashlib.sha256(output).hexdigest())
+            bad_ptr=dict(good_ptr,source_sha256="0"*64)
+            with patch("runpy.run_path",return_value={
+                    "validate":lambda *_:(bad_ptr,{"glb":authenticated})}):
+                with self.assertRaisesRegex(ValueError,"verified export"):
+                    orbit.build(raw,16,"wheel_axle",0,0,
+                                verified_export_root=root)
+            with patch("runpy.run_path",return_value={
+                    "validate":lambda *_:(good_ptr,{"glb":authenticated})}):
+                with self.assertRaisesRegex(ValueError,"verified export"):
+                    orbit.build(raw+b"X",16,"wheel_axle",0,0,
+                                verified_export_root=root)
+            with self.assertRaisesRegex(ValueError,"SHA-pinned"):
+                orbit.build(raw,16,"wheel_axle",0,0)
+
     def test_bad_mode_does_not_mutate_source_parent_geometry(self):
         scene=self.scene()
         old={p:scene.graph.get(p)[0].copy() for p in orbit.PARTS}

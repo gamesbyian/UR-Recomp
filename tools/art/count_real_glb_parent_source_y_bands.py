@@ -80,47 +80,6 @@ def count_parts(source64_by_part:dict[str,bytes])->dict:
     }
 
 
-def scene_part_source_masks(scene,camera:dict,*,full_256:bool=False):
-    """Actual five-parent model support at source64 or 4x source pixel centres.
-
-    Optional full_256 supports registration once per original racer in the
-    unchanged 4x raster before source64 pixel-centre sampling.
-    """
-    import numpy as np
-    import trimesh
-    validated_camera(camera)
-    if (not isinstance(scene,trimesh.Scene) or
-            not set(PARTS).issubset(scene.graph.nodes) or
-            len(scene.graph.nodes_geometry)!=16):
-        raise ValueError("not the canonical five-parent, sixteen-material real model")
-    by_part={p:[] for p in PARTS}
-    for name in sorted(scene.graph.nodes_geometry):
-        part=name.split("__material_",1)[0]
-        if part not in by_part or scene.graph.transforms.parents.get(name)!=part:
-            raise ValueError("unexpected material mesh parent")
-        transform,geometry=scene.graph.get(name)
-        mesh=scene.geometry[geometry]
-        if not isinstance(mesh,trimesh.Trimesh) or len(mesh.faces)==0:
-            raise ValueError("real source model material geometry missing")
-        world=mesh.copy()
-        world.apply_transform(transform)
-        by_part[part].append((world.vertices,world.faces))
-    masks={}
-    for part,records in by_part.items():
-        if len(records)!=CHILD_COUNTS[part]:
-            raise ValueError("2026 original material geometry child census changed")
-        vertices=np.concatenate([v for v,_ in records])
-        offset=0
-        faces=[]
-        for v,f in records:
-            faces.append(f+offset)
-            offset+=len(v)
-        alpha=render_mask(vertices,np.concatenate(faces),camera)
-        masks[part]=(alpha.astype(bool) if full_256 else
-                     bytes(alpha[2::4,2::4].astype(np.uint8).ravel()))
-    return masks
-
-
 def actual_part_source_masks(verified_exports:Path,camera_path:Path)->dict:
     """Use only a source-verified canonical GLB export attempt (not any GLB)."""
     import numpy as np

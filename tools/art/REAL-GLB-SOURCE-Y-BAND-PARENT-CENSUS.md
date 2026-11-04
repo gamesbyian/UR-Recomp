@@ -19,33 +19,3 @@ python3 -m tools.art.count_real_glb_parent_source_y_bands \
 ```
 
 The output is an immutable no-replace JSON report, retained with the real GLB viewer/source evidence artifact. No new Mesen replay, OpenSCAD invocation, standalone workflow or new model source branch. **Decision:** the current static 2026 model's upper image region is overwhelmingly its *existing saddle silhouette*; independently tested source orientation/root articulation still matters greatly, so do **not** automatically increase saddle width or edit geometry. First distinguish current rig pose registration from genuine upper contour/perspective deficits across both original source players, then predeclare one shared geometry shape parameter and require a real source family holdout, or retain the negative. Original 1994 camera/3D mesh/materials and owner likeness remain unverified.
-
-
-## Follow-up: which actual model part is wrong during authentic original upper motion?
-
-The **neutral** 2026 model census alone cannot answer what moves where: its source-y0..14 upper region consists of 56 saddle and 18 fork/frame projected pixels, but the original Mesen source blue/red upper events occur in already-rotated states. The follow-up `tools/art/attribute_original_mesen_upper_to_real_glb_parts.py` uses the **same exact current source-verified 16-material GLB**, original ZIP/OAM/VRAM/CGRAM/source pose receipts, fixed 7:6 camera, and one tick-1601 registration per racer as the preceding real-GLB comparison.
-
-Scope was fixed before examining new results: **blue Mesen ticks 1602 and 1603, red ticks 1605 and 1606**, only the two existing source-to-rig interpretation arms **absolute wheel-axle root** and **reference-relative mid-body root**, wheel phase and fork/saddle pitch held at zero. Both arms use the same scene, same five GLB named parents and same original 64px source alpha; neither arm receives per-image registration or camera fitting. The source-only 2D rigid-rotation control remains in the report as a baseline.
-
-At each of the eight predetermined arm × original image comparisons, render all five actual GLB parent meshes separately at **256px** using the established source-camera rasterizer. Verify that their 256px logical OR is **bit-exact** to a separate, full real GLB triangle raster. Apply the same whole-model tick1601 anchor shift to *every* part at 256px before sampling source index centres 4x+2,4y+2. Again require the OR of those five registered 64px parts to be **bit-exact** to the registered full 256px silhouette. These are strong fail-closed assurances against part-only pose/registration drift or accidentally counting different model geometry.
-
-In the original image-space bands y0–14, y15–26 and y27–63, report for the whole projected 2026 GLB: source/model alpha centroids, intersection, excess, missing pixels and IoU. For *each* existing 2026 part, report projected support, position, and **exclusive** true/false positive source pixels. If two existing 2026 parts overlap at a source pixel, call the ownership **ambiguous**, never award a double-counted true positive or assert a known original 1994 anatomy/material. Pixels present in original 1994 sprite alpha and absent from **all** 2026 candidate parts are explicitly *unattributed*, rather than being assigned to whichever 2026 model component happened to be nearby.
-
-**Exact calibration correction during qualification:** the original #3104 source region's full-64-angle box-centre mean is `(31.515625,19.5859375)`, but the previously established source-only 2D null fits *even* orientation states 0,2,...62 and obtains `(31.515625,19.578125)`. The first dynamic source comparator mistakenly required the full-census vertical mean while correctly using the even-state calibration algorithm, and failed **before any dynamic GLB render** at [Actions run #41888579139](https://github.com/gamesbyian/UR-Recomp/actions/runs/41888579139). The source ROM/camera/2026 GLB authenticated successfully and the static census remained valid. The dynamic analyzer now requires the **exact source-even mean**, explicitly attested by a separate synthetic even-only fixture; it still fails closed if the SHA-pinned source's calibration ever changes. The earlier failed run cannot be cited as a dynamic part-attribution measurement. The new head needs full exact-head unit and original-real-GLB CI.
-
-A global lower/upper geometry change remains **unjustified** until this dynamic image-space ledger shows whether the failed source upper silhouette comes from incorrect *pose registration*, the 2026 saddle contour, the fork/frame silhouette, overlapping projection, or genuinely unknown original source structure. The 1994 authored mesh, camera, light rig and skeletal joints remain unidentified. No new Mesen replay, OpenSCAD build, CI workflow, temporary model fork or shipping-art claim occurs. The existing Windows Visual Atlas real-GLB validation simply retains the new JSON evidence alongside the already produced viewer and original-source comparison.
-
-Run after the existing authenticated current exporter, using the same SHA-verified input artifacts:
-
-```sh
-python3 -m unittest tests.unit.test_attribute_original_mesen_upper_to_real_glb_parts
-python3 -m tools.art.attribute_original_mesen_upper_to_real_glb_parts \
-  --source-zip /original/sha-verified/mesen24.zip \
-  --pose-report /original/sha-verified/pose-report.json \
-  --axis-report /original/sha-verified/axis-report.json \
-  --camera analysis/data/racer-inverse-side-provisional-1205.json \
-  --verified-exports /current/source-validated/model-exports \
-  --out /new/real-original-upper-parent-attribution.json
-```
-
-This is a new, predeclared, source-matched comparison. **Do not report numerical results until the exact new PR head has run the genuine model export, source checks, and real-image scorer.**

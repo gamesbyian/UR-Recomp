@@ -47,6 +47,20 @@ class SourceTileTimingTests(unittest.TestCase):
                 self.assertLessEqual(count["exact_32_byte_tile_matches"],count["compared_tiles"])
                 self.assertLessEqual(count["equal_bytes_of_compared"],count["total_compared_bytes"])
                 self.assertIn(int(delta),(-1,0,1))
+        # Real original-ROM/Mesen proof at exact source run 41775009525:
+        # all 203 queue tiles having a held tick+1 in the 24-tick archive
+        # match all 32 source ROM bytes. The remaining 30 transfers are
+        # at tick 1624: tick 1625 was not captured and must not be invented.
+        next_frame = [row["temporal_alignment_counts"]["1"] for row in result["rows"]]
+        self.assertEqual([x["compared_tiles"] for x in next_frame],
+                         [27, 28, 28, 30, 30, 30, 30, 0])
+        self.assertEqual(sum(x["exact_32_byte_tile_matches"] for x in next_frame), 203)
+        self.assertEqual(sum(x["equal_bytes_of_compared"] for x in next_frame), 203 * 32)
+        self.assertEqual(sum(x["total_compared_bytes"] for x in next_frame), 203 * 32)
+        for row in result["rows"][:7]:
+            self.assertEqual(row["temporal_alignment_counts"]["1"]["exact_32_byte_tile_matches"],
+                             row["source_queue_size"])
+        self.assertEqual(result["rows"][-1]["temporal_alignment_counts"]["1"]["compared_tiles"], 0)
 
     def test_wrong_real_source_archive_or_queue_identity_rejected(self):
         rom=bytes(ROM_SIZE)

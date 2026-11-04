@@ -155,6 +155,7 @@ jobs:
           # Reuse the ordinary two-frame PR proof to qualify real Mesen WRAM.
           # Manual workflow dispatch remains strictly opt-in/default false.
           RIDER_WRAM_CAPTURE: ${{ github.event_name == 'pull_request' && 'true' || inputs.capture_rider_wram || 'false' }}
+          RESEARCH_HEAD_REF: ${{ github.head_ref }}
         shell: bash
         run: |
           set -euo pipefail
@@ -165,8 +166,8 @@ jobs:
           # ONE-OFF original 24-tick rider-state experiment on this research PR.
           # Remove after evidence is verified; all other PRs and manual runs
           # retain their normal two-frame and opt-in settings.
-          if [[ "${{ github.event_name }}" == "pull_request" &&
-                "${{ github.head_ref }}" == "art4k/optional-source-rider-wram-rail-20261104" ]]; then
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" &&
+                "$RESEARCH_HEAD_REF" == "art4k/optional-source-rider-wram-rail-20261104" ]]; then
             CAPTURE_TICKS="$(seq -s, 1601 1624)"
             export CAPTURE_TICKS
             echo "SOURCE_ORIGINAL_RIDER_WRAM_ONE_SHOT_24_TICKS $CAPTURE_TICKS"

@@ -113,7 +113,7 @@ try{
      const sourceSelect=originalRail.querySelector('select');
      const sourceTick=originalRail.querySelector('input[type=range]');
      const sourceImg=originalRail.querySelector('img');
-     for(let i=0;i<80&&!originalRail.textContent.includes('Original tick 1601');i++)
+     for(let i=0;i<80&&(!originalRail.textContent.includes('Original tick 1601')||sourceImg?.naturalWidth!==64);i++)
        await new Promise(done=>setTimeout(done,50));
      if(!sourceSelect||!sourceTick||!sourceImg||
         !originalRail.textContent.includes('Original tick 1601')||

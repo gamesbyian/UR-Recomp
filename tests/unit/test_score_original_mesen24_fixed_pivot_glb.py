@@ -7,7 +7,7 @@ import unittest
 from tools.art.score_original_mesen24_fixed_pivot_glb import (
     SCHEMA, ARM_NAMES, EVENTS, SELECTED,
     check_receipts, source_center, rotate_source_2d, anchor, metric,
-    reference_relative_index,
+    reference_relative_index, fixed_source_y_band_metrics, SOURCE_Y_BANDS,
 )
 
 try:
@@ -41,6 +41,33 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
         for bad in ((64,61,64),(-1,57,64),(1,24,24),(True,0,64),(1,0,360)):
             with self.subTest(bad=bad),self.assertRaises(ValueError):
                 reference_relative_index(*bad)
+
+    def test_fixed_y_band_residual_counts_recover_whole_sprite_exactly(self):
+        self.assertEqual(SOURCE_Y_BANDS,(
+            ("upper_y0_14",0,14),
+            ("middle_y15_26",15,26),
+            ("lower_y27_63",27,63)))
+        reference=bytearray(4096)
+        candidate=bytearray(4096)
+        reference[4*64+3]=1
+        reference[15*64+5]=1
+        reference[40*64+2]=1
+        candidate[4*64+3]=1
+        candidate[15*64+6]=1
+        candidate[40*64+2]=1
+        candidate[50*64+9]=1
+        bands=fixed_source_y_band_metrics(bytes(reference),bytes(candidate))
+        self.assertEqual(bands["upper_y0_14"]["tp"],1)
+        self.assertEqual(bands["middle_y15_26"]["tp"],0)
+        self.assertEqual((bands["middle_y15_26"]["fp"],
+                          bands["middle_y15_26"]["fn"]),(1,1))
+        self.assertEqual((bands["lower_y27_63"]["tp"],
+                          bands["lower_y27_63"]["fp"]),(1,1))
+        overall=metric(bytes(reference),bytes(candidate))
+        for k in ("tp","fp","fn"):
+            self.assertEqual(sum(v[k] for v in bands.values()),overall[k])
+        with self.assertRaisesRegex(ValueError,"binary original"):
+            fixed_source_y_band_metrics(b"bad",bytes(candidate))
 
     def test_true_64px_alpha_comparison_and_no_false_pixel_registration(self):
         original=bytearray(4096)

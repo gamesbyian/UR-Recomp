@@ -54,6 +54,14 @@ The source-to-2026 GLB 64px registration is fixed **once per player** from its a
 
 **Identified fairness issue:** the first 3D experiment interpreted original orientation index as an **absolute** model rotation while its 2D null used the *change since tick-1601*. Actual original first-frame source values are blue **(phase 3, orientation 61)** and red **(phase 16, orientation 57)**. Both absolute and one-reference-relative 3D laws are now retained as separate predeclared controls without per-frame fit: `(orientation - first_orientation) mod 64`, and for the optional direct-drive arm `15°×((phase-first_phase) mod 24)`. Those offsets are fixed once at tick-1601, not reoptimized per selected event or based on IoU. The old exact-head result above remains the authenticated **absolute** experiment; the extended source-relative experiment requires a new exact-head CI execution. Even an improved relative run cannot prove actual 1994 mechanical degrees or 3D geometry.
 
+## Source-image residual diagnosis, without changing geometry
+
+The first real source comparison ranked seven candidate controls, then a second exact run added four source-first relative controls. **Neither original experiment partitions the remaining silhouette errors by image region**, so model geometry cannot yet be refined responsibly by assuming the apparent best global pivot is the right shape. The scorer now additionally reports **fixed original source-y bands** for every one of its already-rendered original and 2026 candidate masks: upper y=0..14, middle y=15..26, lower y=27..63, following prior source-event descriptions y4..14 / y15..26 / y27..38 and covering all 64 rows.
+
+For every existing arm, player and selected source frame, record the raw *intersection, predicted-only, source-only, IoU* of each band. Aggregate the same counts across four source images per player; also partition the **actual two source chronological alpha-change edges** (not synthetic adjacent ROM registry observations). Invariant: summed band TP/FP/FN must equal the unpartitioned source/GLB mask, and no y region is allowed to move per frame, model, camera, pivot or player. The output is a **diagnostic spatial ledger, not an original anatomical classifier**. The upper band is not proven to be the 1994 saddle, and the lower band is not proven to be physically rotating wheel geometry.
+
+This reuses the **same exact existing GLB export, original source archive, registered per-player tick1601 anchors and candidate render cache**. No extra OpenSCAD build, new reference capture, source pose fit, camera parameter or model geometry search is authorized. When a source band has excess/missing candidate pixels, the next experiment must identify actual visible 2026 model part support there before proposing a bounded change to the single #2832 rig. The source event and absolute/relative comparisons remain intact.
+
 ## Reproduce from an already authenticated export
 
 ```sh

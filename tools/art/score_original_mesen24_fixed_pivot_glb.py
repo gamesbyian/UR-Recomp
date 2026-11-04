@@ -28,6 +28,12 @@ SELECTED = {name:sorted({t for edge in edges for t in edge})
             for name,edges in EVENTS.items()}
 ROLES = {"blue": (96,4), "red": (97,3)}
 PIVOTS = ("wheel_axle", "historical_midbody")
+# Fixed source-y diagnostic partitions, from the already-documented 1994
+# upper event y4..14 / middle y15..26 / wheel-region y27..38.
+# Include the entire 64px raster, with no semantic part assignment.
+SOURCE_Y_BANDS = (("upper_y0_14",0,14),
+                  ("middle_y15_26",15,26),
+                  ("lower_y27_63",27,63))
 ARM_NAMES = ("static_original_2d","source_original_2d_rotation",
              "static_2026_3d","wheel_axle_root_only",
              "historical_midbody_root_only",
@@ -150,6 +156,30 @@ def metric(source:bytes,candidate:bytes)->dict:
             "iou":round(tp/(tp+fp+fn),8) if tp+fp+fn else 1.0}
 
 
+def fixed_source_y_band_metrics(source:bytes,candidate:bytes)->dict:
+    """One fixed partition of genuine original 64px source coordinates.
+
+    No per-pose vertical crop, anatomical labeling, silhouette auto-fit or
+    replacement of whole-mask IoU. Sum TP/FP/FN across bands = full mask.
+    """
+    if (len(source)!=4096 or len(candidate)!=4096 or
+            set(source)-{0,1} or set(candidate)-{0,1}):
+        raise ValueError("one binary original 64px pair required")
+    result={}
+    for name,y0,y1 in SOURCE_Y_BANDS:
+        tp=fp=fn=0
+        for y in range(y0,y1+1):
+            for a,b in zip(source[y*64:y*64+64],candidate[y*64:y*64+64]):
+                if a and b:tp+=1
+                elif b:fp+=1
+                elif a:fn+=1
+        result[name]={
+            "tp":tp,"fp":fp,"fn":fn,
+            "iou":round(tp/(tp+fp+fn),8) if tp+fp+fn else 1.0,
+        }
+    return result
+
+
 def read_original_roles(source_zip:bytes,pose:dict)->dict:
     from tools.art.audit_original_mesen_oam_descriptors import decode_oam
     from tools.art.audit_original_mesen_obj_screen_pixels import decode_source_obj
@@ -250,7 +280,10 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                 "source_relative_orientation_index_from_tick1601":relative_angle,
                 "original_alpha_pixel_count":sum(record["alpha"]),
                 "arms":{name:metric(record["alpha"],m)
-                        for name,m in predictions.items()}
+                        for name,m in predictions.items()},
+                "fixed_source_y_bands": {
+                    name:fixed_source_y_band_metrics(record["alpha"],m)
+                    for name,m in predictions.items()},
             }
             # Keep masks for exactly the predeclared original event comparisons.
             scores[role][t]["_masks"]={key:value for key,value in predictions.items()}
@@ -268,8 +301,20 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                 change.append({"actual_source_ticks":[a,b],
                                "source_change_pixels":sum(source_change),
                                "model_change_pixels":sum(model_change),
+                               "fixed_source_y_bands":fixed_source_y_band_metrics(
+                                   source_change,model_change),
                                **metric(source_change,model_change)})
+            per_bands={}
+            for band,y0,y1 in SOURCE_Y_BANDS:
+                instances=[scores[role][t]["fixed_source_y_bands"][name][band]
+                           for t in SELECTED[role]]
+                counts={key:sum(a[key] for a in instances)
+                        for key in ("tp","fp","fn")}
+                union=sum(counts.values())
+                per_bands[band]={**counts,"pooled_iou":
+                    round(counts["tp"]/union,8) if union else 1.0}
             per_role[role]={
+                "pooled_fixed_source_y_band_alpha":per_bands,
                 "fixed_original_alpha_registration_x2y2":list(anchors[role]),
                 "full_source_observations":len(metrics),
                 "pooled_alpha_iou":round(total["tp"]/sum(total.values()),8),
@@ -299,6 +344,9 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
             for role,r in original_refs.items()},
         "original_1994_3D_geometry_camera_or_pose_recovered":False,
         "source_2026_character_likeness_owner_approved":False,
+        "fixed_original_64px_y_bands":{
+            name:[y0,y1] for name,y0,y1 in SOURCE_Y_BANDS},
+        "fixed_y_bands_are_image_regions_not_verified_3D_anatomy":True,
         "source_frames":scores,"arms":results,
         "actual_root_render_cache_entries":len(model_masks),
         "experimental_hypotheses_are_retrospective_not_blind":True,
@@ -319,6 +367,15 @@ def main():
                  args.verified_exports)
     from tools.art.no_replace_report import publish_text_once
     publish_text_once(args.out,json.dumps(record,indent=2,sort_keys=True)+"\n")
+    print("ART4K_ORIGINAL_REAL_GLB_FIXED_Y_BAND_DIAGNOSTIC",
+          json.dumps({
+              arm:{role:row["pooled_fixed_source_y_band_alpha"]
+                   for role,row in result["arms"][arm].items()}
+              for arm in ("source_original_2d_rotation","static_2026_3d",
+                          "wheel_axle_root_only","historical_midbody_root_only",
+                          "wheel_axle_relative_root_only",
+                          "historical_midbody_relative_root_only")},
+              sort_keys=True))
     print("ART4K_ORIGINAL_REAL_GLB_FIXED_PIVOT_VS_2D",
           json.dumps({arm:{role:{key:row[key] for key in
               ("pooled_alpha_iou","mean_alpha_iou")}

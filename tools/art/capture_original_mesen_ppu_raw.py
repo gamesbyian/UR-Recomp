@@ -262,7 +262,7 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
     elif len(frames)>5:
         raise ValueError("legacy source capture cannot exceed five frames")
     rider_wram_claim=manifest.get("source_original_rider_work_ram_0000_17ff_captured")
-    if rider_wram_claim not in (None,True):
+    if rider_wram_claim is not None and rider_wram_claim is not True:
         raise ValueError("source rider WRAM provenance flag invalid")
     if rider_wram_claim is True and (
             manifest.get("source_wram_queue_is_post_frame_boundary_not_write_trace") is not True or

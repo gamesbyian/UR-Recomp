@@ -321,7 +321,9 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                 ("source_original_CPU_or_DMA_tile_writer_PC_identified",True),
                 ("source_original_1994_3d_pose_recovered_from_wram",True),
                 ("source_wram_queue_is_post_frame_boundary_not_write_trace",False),
-                ("source_original_rider_work_ram_0000_17ff_captured",False)):
+                ("source_original_rider_work_ram_0000_17ff_captured",False),
+                ("source_original_rider_work_ram_0000_17ff_captured",1),
+                ("source_original_rider_work_ram_0000_17ff_captured","true")):
                 changed=copy.deepcopy(record)
                 changed[field]=value
                 with self.subTest(field=field),self.assertRaisesRegex(ValueError,"WRAM|wram"):

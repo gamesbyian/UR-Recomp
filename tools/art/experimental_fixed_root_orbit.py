@@ -189,11 +189,13 @@ def build(source: bytes, source_orientation_index: int, pivot_mode: str,
 
 
 def process(source:Path,index:int,pivot_mode:str,wheel:float,
-            pitch:float,out:Path,receipt:Path):
+            pitch:float,out:Path,receipt:Path,*,
+            verified_export_root:Path|None=None):
     if (len({source.resolve(),out.resolve(),receipt.resolve()}) != 3 or
             any(p.exists() or p.is_symlink() for p in (out,receipt))):
         raise ValueError("source, output and receipt must differ; no overwrite")
-    output,record = build(source.read_bytes(),index,pivot_mode,wheel,pitch)
+    output,record = build(source.read_bytes(),index,pivot_mode,wheel,pitch,
+                          verified_export_root=verified_export_root)
     out.parent.mkdir(parents=True,exist_ok=True)
     receipt.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".art4k-root-glb-",dir=out.parent) as folder, \
@@ -214,12 +216,15 @@ def main():
     p.add_argument("--pivot-mode",choices=MODES,required=True)
     p.add_argument("--wheel-crank-delta-deg",type=float,default=0.)
     p.add_argument("--frame-pitch-deg",type=float,default=0.)
+    p.add_argument("--verified-export-root",type=Path,
+                   help="Existing validated 5-pose exporter root for current GLB bytes")
     p.add_argument("--out-glb",type=Path,required=True)
     p.add_argument("--receipt",type=Path,required=True)
     a=p.parse_args()
     print(json.dumps(process(a.source_glb,a.source_orientation_index,
                              a.pivot_mode,a.wheel_crank_delta_deg,a.frame_pitch_deg,
-                             a.out_glb,a.receipt),indent=2,sort_keys=True))
+                             a.out_glb,a.receipt,
+                             verified_export_root=a.verified_export_root),indent=2,sort_keys=True))
 
 
 if __name__=="__main__":

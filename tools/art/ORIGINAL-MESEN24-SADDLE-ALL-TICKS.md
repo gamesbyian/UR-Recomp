@@ -29,6 +29,23 @@ Report per original tick each candidate's full 64px silhouette TP/FP/FN/IoU and 
 
 The source selection is a full short **retrospective original temporal sequence**, **not** a novel 1994 3D perspective or a prospective blind holdout. Real 2026 part labels and saddle pivot are only current authoring geometry. A positive result in 8 selected frames may reverse or weaken in the full 48-image sequence; **the experiment must publish its negative result if so**. Even if +15° remains favourable, owner-visible visual likeness and a genuinely independent original perspective/source family are required before proposing a new default. No desktop machine, additional 1994 emulator run, new OpenSCAD/GLB export, new workflow, server or alternate model is involved.
 
+## Executed authentic all-24 original source result (2026-11-04)
+
+The complete [Windows Visual Atlas run #41892738666](https://github.com/gamesbyian/UR-Recomp/actions/runs/41892738666) passed the **actual current source-owned 2026 five-part GLB export**, original USA ROM/Mesen24 ZIP and 48 exact source OAM/VRAM/CGRAM source image identities, full source 7:6 registration and real browser checks. Exact implementation head `68439277cd285e91b12ae1486ff0b90cf8cb4dc1` also passed [full tooling #41892738535](https://github.com/gamesbyian/UR-Recomp/actions/runs/41892738535) and [hygiene #41892738707](https://github.com/gamesbyian/UR-Recomp/actions/runs/41892738707). The source sequence actually contains **19 SHA-distinct 64px alpha masks for blue and 23 for red**, among 24 chronological original frames each. This count is based on true alpha SHA rather than treating every source phase index as a unique geometry.
+
+| Authenticated source-mask/2026 GLB model | Blue 24-frame pooled alpha IoU | Blue 19-shape equal-vote mean IoU | Blue 23-edge changed-alpha IoU | Red 24-frame pooled alpha IoU | Red 23-shape equal-vote mean IoU | Red 23-edge changed-alpha IoU |
+|---|---:|---:|---:|---:|---:|---:|
+| Actual original source 2D rigid-rotation control | 0.82069294 | 0.82528384 | 0.09025788 | 0.82181906 | 0.82604553 | 0.10564399 |
+| Current 2026 GLB axle root, saddle neutral | 0.50895141 | 0.51233488 | 0.02032520 | 0.55119306 | 0.55143555 | 0.01780822 |
+| Same exact GLB, saddle **+15° only** | **0.55176933** | **0.55443157** | 0.01771117 | **0.58196450** | **0.58231923** | 0.01641587 |
+| Same exact GLB, saddle −15° only | 0.48967116 | 0.49233279 | 0.02040816 | 0.52993562 | 0.53053689 | 0.01783265 |
+
+**Result:** the previously promising **+15° independent 2026 saddle articulation improves full alpha silhouette on BOTH racers across the entire authentic 24-tick sequence and when each **distinct original alpha shape receives one equal vote**, not just selected eight frames. However the same fixed +15° model **degrades** already-weak **true chronological changed-alpha IoU** from 2.03%→1.77% blue and 1.78%→1.64% red. The cheap original source 2D rotation is itself imperfect at original time evolution (~9.03%/10.56% changed-alpha), yet it remains far more explanatory than this present 2026 3D mechanism. Reproducing a per-frame silhouette and reproducing *real sequential original sprite animation* are materially different objectives.
+
+The exact executed scores and all source/model SHA identities are now preserved in `analysis/data/racer-original-mesen24-saddle-temporal-evidence-20261104.json`. The GHA real-GLB scorer has been updated to compare **all four arms across both racers, 24 original ticks and 23 actual source edges** against that original measured baseline before publishing, while verifying the current source-authored model SCAD identity and attested real GLB export receipt. The subsequent stronger assertion commit requires its **own latest-head CI**; the original run above qualifies the previous implementation, not the new baselined head.
+
+**Next mechanical discriminator:** do not promote a constant +15° as the default owner-approved model, nor resize the saddle (previous global X-span ablations were negative). Preserve this uniquely promising **static articulation control**; compare a **predeclared common source phase-driven wheel/crank rotation** with the same constant saddle-only posture, using the exact current 24×64 ROM source phase IDs, unchanged camera and neutral fork/frame, to ask whether real temporal sprite changes can be explained by the existing 2026 wheel/pedal mechanical degree of freedom. No fitted time-to-angle mapping per image or actual 1994 physical angle recovery. Use the original 2D source reference, identical authentic source sequence and one vote per distinct source shape as controls. Reject if edge change does not improve both players without destroying the shape gains.
+
 ## Reproduction and provenance
 
 ```sh

@@ -13,7 +13,7 @@ from tools.art.score_original_mesen24_fixed_pivot_glb import (
     SCHEMA, ARM_NAMES, EVENTS, SELECTED,
     check_receipts, source_center, rotate_source_2d, anchor, metric,
     reference_relative_index, fixed_source_y_band_metrics, SOURCE_Y_BANDS,
-    source_horizontal_reflect4, FRAME_PITCH_CONTROLS,
+    source_horizontal_reflect4, FRAME_PITCH_CONTROLS, SADDLE_LOCAL_PITCH_CONTROLS,
 )
 
 try:
@@ -28,7 +28,11 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
         self.assertEqual(set(EVENTS),{"blue","red"})
         self.assertEqual(SELECTED["blue"],[1602,1603,1609,1610])
         self.assertEqual(SELECTED["red"],[1605,1606,1609,1610])
-        self.assertEqual(len(ARM_NAMES),18)
+        self.assertEqual(len(ARM_NAMES),20)
+        self.assertEqual(SADDLE_LOCAL_PITCH_CONTROLS,
+                         (("minus15",-15.),("plus15",15.)))
+        self.assertIn("wheel_axle_root_saddle_lean_minus15",ARM_NAMES)
+        self.assertIn("wheel_axle_root_saddle_lean_plus15",ARM_NAMES)
         self.assertEqual(FRAME_PITCH_CONTROLS,(("minus15",-15.0),("plus15",15.0)))
         self.assertEqual({n for n in ARM_NAMES if "frame_pitch_" in n},
                          {"wheel_axle_root_frame_pitch_minus15",

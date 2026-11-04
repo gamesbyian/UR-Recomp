@@ -47,7 +47,10 @@ ARM_NAMES = ("static_original_2d","source_original_2d_rotation",
              "wheel_axle_relative_root_only_mirror",
              "historical_midbody_relative_root_only_mirror",
              "wheel_axle_root_frame_pitch_minus15",
-             "wheel_axle_root_frame_pitch_plus15")
+             "wheel_axle_root_frame_pitch_plus15",
+             "wheel_axle_root_saddle_lean_minus15",
+             "wheel_axle_root_saddle_lean_plus15")
+SADDLE_LOCAL_PITCH_CONTROLS=(("minus15",-15.0),("plus15",15.0))
 FRAME_PITCH_CONTROLS = (("minus15",-15.0),("plus15",15.0))
 
 
@@ -254,6 +257,7 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
     import numpy as np
     import trimesh
     from tools.art.experimental_fixed_root_orbit import apply_root_scene
+    from tools.art.experimental_temporary_saddle_lean import temporary_saddle_pitch
     from tools.art.render_racer_glb_projection import render_mask
     from tools.art.no_replace_report import publish_text_once  # existing no-replace standard
     pose,axis,camera=check_receipts(source_zip,pose_raw,axis_raw,camera_raw)
@@ -273,6 +277,16 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
         geom=(scene.to_geometry() if callable(getattr(scene,"to_geometry",None))
               else scene.dump(concatenate=True))
         return render_mask(np.asarray(geom.vertices),np.asarray(geom.faces),camera).astype(bool)
+    def model4_saddle(angle:int,lean:float):
+        # Experimentally pitch only the existing 2026 saddle mount, retaining
+        # the same verified model, wheel/root transform, source camera and all
+        # original 1994 source pixels. Restore exactly before next model arm.
+        apply_root_scene(scene,angle,"wheel_axle",0.,0.)
+        with temporary_saddle_pitch(scene,lean):
+            geom=(scene.to_geometry() if callable(getattr(scene,"to_geometry",None))
+                  else scene.dump(concatenate=True))
+            return render_mask(np.asarray(geom.vertices),
+                               np.asarray(geom.faces),camera).astype(bool)
     neutral=model4(0,"wheel_axle",0)
     neutral_mask=bytes(neutral[2::4,2::4].astype(np.uint8).ravel())
     neutral_anchor=anchor(neutral_mask)
@@ -329,6 +343,12 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                 if key not in model_masks:
                     model_masks[key]=model4(record["angle"],"wheel_axle",0.,pitch)
                 predictions["wheel_axle_root_frame_pitch_"+label]=registered_mask4(
+                    model_masks[key],anchors[role],neutral_anchor)
+            for label,pitch in SADDLE_LOCAL_PITCH_CONTROLS:
+                key=("saddle_mount_only",record["angle"],pitch)
+                if key not in model_masks:
+                    model_masks[key]=model4_saddle(record["angle"],pitch)
+                predictions["wheel_axle_root_saddle_lean_"+label]=registered_mask4(
                     model_masks[key],anchors[role],neutral_anchor)
             if set(predictions)!=set(ARM_NAMES):
                 raise ValueError("missing original 2D null or same real 3D candidate")
@@ -398,6 +418,9 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
         "unverified_physical_2026_root_angle_deg_per_source_index":360/64,
         "source_first_tick_absolute_and_relative_rig_controls_both_scored":True,
         "candidate_frame_pitch_tested_at_fixed_degrees":[pitch for _,pitch in FRAME_PITCH_CONTROLS],
+        "candidate_saddle_local_mount_pitch_degrees":[pitch for _,pitch in SADDLE_LOCAL_PITCH_CONTROLS],
+        "saddle_lean_changes_only_authored_2026_parent_not_1994_joints":True,
+        "saddle_lean_one_shared_pitch_per_arm_no_per_source_frame_fit":True,
         "candidate_frame_pitch_only_on_original_absolute_axle_root":True,
         "candidate_frame_pitch_predeclared_once_not_fit_per_source_player_or_frame":True,
         "source_original_tick1601_reference_phase_orientation_by_player":{
@@ -442,7 +465,9 @@ def main():
                           "wheel_axle_root_only_mirror",
                           "historical_midbody_relative_root_only_mirror",
                           "wheel_axle_root_frame_pitch_minus15",
-                          "wheel_axle_root_frame_pitch_plus15")},
+                          "wheel_axle_root_frame_pitch_plus15",
+                          "wheel_axle_root_saddle_lean_minus15",
+                          "wheel_axle_root_saddle_lean_plus15")},
               sort_keys=True))
     print("ART4K_ORIGINAL_REAL_GLB_FIXED_PIVOT_VS_2D",
           json.dumps({arm:{role:{key:row[key] for key in

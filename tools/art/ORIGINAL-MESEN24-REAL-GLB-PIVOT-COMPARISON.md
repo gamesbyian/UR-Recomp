@@ -6,7 +6,7 @@ This is the first **direct paired original 1994 source-PPU / real 2026 GLB silho
 
 ## Source evidence, no emulator replay
 
-- Reuse the already-merged **24 consecutive authentic no-frame-skip original Mesen ticks 1601–1624**, ZIP SHA-256 `28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6`, with original OAM/VRAM/CGRAM member verification.
+- Reuse the already-merged **24 consecutive authentic no-frame-skip original Mesen ticks 1601–1624**, ZIP SHA-256 `28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6`. This stacked rig branch predates the ZIP merge, so the existing PR validation fetches the 233,939-byte original ZIP from **immutable commit `822d4b3fecfef66e52b2799fa686afcd8afda2fd`**, verifies the exact entire-archive SHA, ZIP CRC/97 members, OAM/VRAM/CGRAM lengths and each used decoded original index-plane SHA from #3104. It does not duplicate the more recently merged full-auditor code.
 - Reuse #3104's **48 uniquely exact original-ROM primary frame IDs** (SHA-256 `6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20`) and the original 24×64 source-axis report (SHA-256 `23aa563c094471a3d7f1b5dcb12489cc1b5ca45b1240aee06fde3934a932bbd0`), both from #3104 head `820ca7b84c5ffe21996ae593043c8ef4a874bd66`. Since that PR is not yet merged, the exact read-only inputs are separately SHA-verified; **do not copy source parser code into this stacked model PR**.
 - Exact current export from the **existing** #2832 OpenSCAD authoring branch and existing Windows Visual Atlas real-model-export job. It already validates exporter attempt/current pointers, GLB digest, one source SCAD SHA `e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984`, five parents and 16 material meshes. Same source may emit variable GLB bytes across builds; never assume one historical GLB SHA. **No additional model export**.
 - One fixed, **provisional** side orthographic camera, SHA-256 `1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028`, with source SNES display aspect **7:6**. All scoring is on 64×64 *held OAM-local source* alpha, not reflected red final-screen pixels. Source alpha base placement is the tick-1601 lowest visible alpha span midpoint, once per racer; it is **not** independently established ground contact.
@@ -40,7 +40,7 @@ The source-to-2026 GLB 64px registration is fixed **once per player** from its a
 ```sh
 python3 -m unittest tests.unit.test_score_original_mesen24_fixed_pivot_glb
 python3 -m tools.art.score_original_mesen24_fixed_pivot_glb \
-  --source-zip analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip \
+  --source-zip /exact/sha-verified/original-mesen-consecutive-1601-1624.zip \
   --pose-report /exact/sha-verified/original-mesen24-exact-pose-IDs.json \
   --axis-report /exact/sha-verified/original-ROM-24phase-64angle-source-axis.json \
   --camera analysis/data/racer-inverse-side-provisional-1205.json \

@@ -9,11 +9,15 @@ from tools.art.audit_original_mesen_obj_screen_pixels import decode_source_obj
 from tools.art.experimental_continuous_five_parent_pose import apply_scene, SOURCE_GLB_SHA256
 from tools.art.render_racer_glb_projection import model_mesh,render_mask
 zip_path,model_path,camera_path,out_path=map(Path,sys.argv[1:])
-assert not out_path.exists()
-assert hashlib.sha256(zip_path.read_bytes()).hexdigest()=="28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6"
-assert hashlib.sha256(model_path.read_bytes()).hexdigest()==SOURCE_GLB_SHA256
+if out_path.exists() or out_path.is_symlink():
+    raise FileExistsError(out_path)
+if hashlib.sha256(zip_path.read_bytes()).hexdigest()!="28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6":
+    raise ValueError("original Mesen24 source archive SHA changed")
+if hashlib.sha256(model_path.read_bytes()).hexdigest()!=SOURCE_GLB_SHA256:
+    raise ValueError("authenticated 2026 upright GLB SHA changed")
 camera_raw=camera_path.read_bytes()
-assert hashlib.sha256(camera_raw).hexdigest()=="1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028"
+if hashlib.sha256(camera_raw).hexdigest()!="1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028":
+    raise ValueError("fixed provisional camera SHA changed")
 camera=json.loads(camera_raw)
 with zipfile.ZipFile(zip_path) as z:
     def original(tick,slot):

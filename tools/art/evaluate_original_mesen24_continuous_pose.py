@@ -16,16 +16,20 @@ from tools.art.render_racer_glb_projection import model_mesh,render_mask,camera_
 
 archive,model,camera_file,output=map(Path,sys.argv[1:])
 if output.exists(): raise FileExistsError(output)
-assert hashlib.sha256(archive.read_bytes()).hexdigest()==ZIP_SHA
-assert hashlib.sha256(model.read_bytes()).hexdigest()==SOURCE_GLB_SHA256
+if hashlib.sha256(archive.read_bytes()).hexdigest()!=ZIP_SHA:
+    raise ValueError("original no-skip Mesen24 source archive SHA changed")
+if hashlib.sha256(model.read_bytes()).hexdigest()!=SOURCE_GLB_SHA256:
+    raise ValueError("authentic 2026 upright GLB SHA changed")
 camera_raw=camera_file.read_bytes()
 camera=json.loads(camera_raw)
-assert hashlib.sha256(camera_raw).hexdigest()=="1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028"
+if hashlib.sha256(camera_raw).hexdigest()!="1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028":
+    raise ValueError("fixed provisional 7:6 camera SHA changed")
 camera_config(camera)
 
 original={"blue":[],"red":[]}
 with zipfile.ZipFile(archive) as z:
-    assert json.loads(z.read("manifest.json"))["source_requested_capture_ticks"]==list(TICKS)
+    if json.loads(z.read("manifest.json")).get("source_requested_capture_ticks")!=list(TICKS):
+        raise ValueError("authentic original no-skip Mesen24 ticks changed")
     for tick in TICKS:
         oam=decode_oam(z.read(f"frame-{tick:06d}-oam.bin"))
         vram=z.read(f"frame-{tick:06d}-vram.bin")
@@ -33,7 +37,8 @@ with zipfile.ZipFile(archive) as z:
         for name,slot in (("blue",96),("red",97)):
             obj=decode_source_obj(oam[slot],vram,cgram,
                      oam_mode=4,obj_base=0x6000,second_table_offset=0x1000)
-            assert obj["size"]==64 and obj["slot"]==slot
+            if obj["size"]!=64 or obj["slot"]!=slot:
+                raise ValueError("expected original 64px source racer OAM slot")
             original[name].append(np.frombuffer(obj["alpha_mask"],dtype=np.uint8)
                                   .reshape(64,64).astype(bool).copy())
 

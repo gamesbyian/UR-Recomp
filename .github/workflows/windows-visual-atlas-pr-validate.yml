@@ -227,6 +227,7 @@ jobs:
             --axis-report "$RUNNER_TEMP/source-2d-axes.json" \
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --verified-exports "$RUNNER_TEMP/model-exports" \
+            --expected-summary analysis/data/racer-original-mesen24-saddle-temporal-evidence-20261104.json \
             --out "$RUNNER_TEMP/real-model-evidence/original-all24-saddle-only-generalization.json"
 
       - name: Quantify actual unmodified 2026 model parent pixels in original 64px source bands

@@ -7,7 +7,8 @@ import unittest
 from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
-    SCHEMA,TICKS,ARMS,SADDLE_TRIALS,aggregate_original_timeline,main,analyze,
+    SCHEMA,TICKS,ARMS,BASELINE_ARMS,SADDLE_TRIALS,CRANK_PHASE_CONTROLS,
+    drive_for_original_phase_index,aggregate_original_timeline,main,analyze,
     summary_for_exact_original_source,check_exact_source_evidence,
 )
 
@@ -19,9 +20,22 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_saddle_neutral",0.),
             ("axle_root_saddle_plus15",15.),
             ("axle_root_saddle_minus15",-15.)))
-        self.assertEqual(set(ARMS),{"original_source_2d_rotation",
+        self.assertEqual(set(BASELINE_ARMS),{"original_source_2d_rotation",
                                     *(name for name,_ in SADDLE_TRIALS)})
         self.assertIn("ALL24",SCHEMA) if "ALL24" in SCHEMA else self.assertIn("24TICK",SCHEMA)
+        self.assertEqual(CRANK_PHASE_CONTROLS,(
+            ("axle_root_saddle_neutral_crank_plus15perphase",0.,15.),
+            ("axle_root_saddle_plus15_crank_plus15perphase",15.,15.),
+            ("axle_root_saddle_plus15_crank_minus15perphase",15.,-15.)))
+        self.assertEqual(len(ARMS),7)
+        self.assertEqual(set(ARMS),set(BASELINE_ARMS)|{x for x,_,_ in CRANK_PHASE_CONTROLS})
+        for phase in range(24):
+            self.assertEqual(drive_for_original_phase_index(phase,15.),15.*phase)
+            self.assertEqual(drive_for_original_phase_index(phase,-15.),-15.*phase)
+        for phase,step in ((-1,15.),(24,15.),(1.5,15.),
+                           (True,15.),(9,14.),(9,float("nan")),(9,True)):
+            with self.subTest(phase=phase,step=step),self.assertRaises(ValueError):
+                drive_for_original_phase_index(phase,step)
 
     def test_one_vote_per_unique_original_shape_not_23_repeated_snapshots(self):
         first=bytes([1])+bytes(4095)
@@ -34,6 +48,9 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
                 "axle_root_saddle_neutral":first,
                 "axle_root_saddle_plus15":first,
                 "axle_root_saddle_minus15":second,
+                "axle_root_saddle_neutral_crank_plus15perphase":first,
+                "axle_root_saddle_plus15_crank_plus15perphase":first,
+                "axle_root_saddle_plus15_crank_minus15perphase":second,
             }
         report=aggregate_original_timeline(original,predicted)
         self.assertEqual(len(report["original_unique_binary_source_alpha_shape_sha256_to_ticks"]),2)
@@ -90,7 +107,7 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
         }
         for role,arms in observed.items():
             with self.subTest(role=role):
-                self.assertEqual(set(arms),set(ARMS))
+                self.assertEqual(set(arms),set(BASELINE_ARMS))
                 for _,(unique,pooled,equal,edge) in arms.items():
                     self.assertEqual(unique,19 if role=="blue" else 23)
                     self.assertTrue(0<edge<pooled<equal+.01<1)

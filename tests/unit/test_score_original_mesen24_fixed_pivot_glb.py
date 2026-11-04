@@ -13,6 +13,7 @@ from tools.art.score_original_mesen24_fixed_pivot_glb import (
     SCHEMA, ARM_NAMES, EVENTS, SELECTED,
     check_receipts, source_center, rotate_source_2d, anchor, metric,
     reference_relative_index, fixed_source_y_band_metrics, SOURCE_Y_BANDS,
+    source_horizontal_reflect4,
 )
 
 try:
@@ -27,7 +28,10 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
         self.assertEqual(set(EVENTS),{"blue","red"})
         self.assertEqual(SELECTED["blue"],[1602,1603,1609,1610])
         self.assertEqual(SELECTED["red"],[1605,1606,1609,1610])
-        self.assertEqual(len(ARM_NAMES),11)
+        self.assertEqual(len(ARM_NAMES),16)
+        self.assertIn("static_2026_3d_mirror",ARM_NAMES)
+        self.assertIn("wheel_axle_relative_root_only_mirror",ARM_NAMES)
+        self.assertIn("historical_midbody_root_only_mirror",ARM_NAMES)
         self.assertIn("wheel_axle_relative_root_only",ARM_NAMES)
         self.assertIn("historical_midbody_relative_root_plus_phase",ARM_NAMES)
         self.assertIn("source_original_2d_rotation",ARM_NAMES)
@@ -63,6 +67,10 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
         candidate[50*64+9]=1
         bands=fixed_source_y_band_metrics(bytes(reference),bytes(candidate))
         self.assertEqual(bands["upper_y0_14"]["tp"],1)
+        self.assertEqual(bands["upper_y0_14"]["source_opaque_centroid_xy"],[3.,4.])
+        self.assertEqual(bands["upper_y0_14"]["candidate_opaque_centroid_xy"],[3.,4.])
+        self.assertEqual(bands["middle_y15_26"]["source_opaque_centroid_xy"],[5.,15.])
+        self.assertEqual(bands["middle_y15_26"]["candidate_opaque_centroid_xy"],[6.,15.])
         self.assertEqual(bands["middle_y15_26"]["tp"],0)
         self.assertEqual((bands["middle_y15_26"]["fp"],
                           bands["middle_y15_26"]["fn"]),(1,1))
@@ -168,6 +176,21 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
 
 @unittest.skipUnless(np is not None,"optional NumPy")
 class MaskRegistrationTests(unittest.TestCase):
+    def test_candidate_mirror_preserves_original_4x_source_pixel_centres(self):
+        actual=np.zeros((256,256),dtype=bool)
+        actual[4*10+2,4*5+2]=True
+        actual[4*37+2,4*31+2]=True
+        reflected=source_horizontal_reflect4(actual)
+        self.assertEqual(int(reflected.sum()),2)
+        self.assertTrue(reflected[4*10+2,4*(63-5)+2])
+        self.assertTrue(reflected[4*37+2,4*(63-31)+2])
+        self.assertTrue(np.array_equal(
+            source_horizontal_reflect4(reflected),actual))
+        with self.assertRaisesRegex(ValueError,"256x256"):
+            source_horizontal_reflect4(np.zeros((64,64),dtype=bool))
+        with self.assertRaisesRegex(ValueError,"256x256"):
+            source_horizontal_reflect4(np.zeros((256,256),dtype=np.uint8))
+
     def test_single_full_4x_source_alpha_anchor_preserves_pixel_identity(self):
         array=np.zeros((256,256),dtype=bool)
         array[4*37+2,4*31+2]=True

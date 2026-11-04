@@ -40,7 +40,12 @@ ARM_NAMES = ("static_original_2d","source_original_2d_rotation",
              "wheel_axle_root_plus_phase","historical_midbody_root_plus_phase",
              "wheel_axle_relative_root_only","historical_midbody_relative_root_only",
              "wheel_axle_relative_root_plus_phase",
-             "historical_midbody_relative_root_plus_phase")
+             "historical_midbody_relative_root_plus_phase",
+             "static_2026_3d_mirror",
+             "wheel_axle_root_only_mirror",
+             "historical_midbody_root_only_mirror",
+             "wheel_axle_relative_root_only_mirror",
+             "historical_midbody_relative_root_only_mirror")
 
 
 def sha(payload: bytes) -> str:
@@ -128,6 +133,24 @@ def anchor(mask:bytes) -> tuple[int,int]:
     return xs[0]+xs[-1],2*y
 
 
+def source_horizontal_reflect4(mask4):
+    """Reflect candidate along logical 64px *source-index centre* x2=63.
+
+    The actual 4x source pixel centres are x=4*k+2. A naive 256x reverse
+    maps them to 4*(63-k)+1 (one quarter source pixel off the sampling grid).
+    Here source x -> 256-x preserves the x=4*k+2 centre lattice exactly;
+    leftmost column is clipped rather than wrapped. Source model geometry
+    must already be fully contained by the fixed camera.
+    """
+    import numpy as np
+    if (not isinstance(mask4,np.ndarray) or mask4.shape!=(256,256)
+            or mask4.dtype!=np.bool_):
+        raise ValueError("one binary 256x256 real GLB projection required")
+    out=np.zeros_like(mask4)
+    out[:,1:]=mask4[:,255:0:-1]
+    return out
+
+
 def registered_mask4(model4, original_anchor:tuple[int,int],
                      neutral_anchor:tuple[int,int])->bytes:
     import numpy as np
@@ -173,9 +196,17 @@ def fixed_source_y_band_metrics(source:bytes,candidate:bytes)->dict:
                 if a and b:tp+=1
                 elif b:fp+=1
                 elif a:fn+=1
+        def centroid(plane):
+            places=[(x,y) for y in range(y0,y1+1)
+                    for x in range(64) if plane[y*64+x]]
+            if not places:return None
+            return [round(sum(x for x,_ in places)/len(places),4),
+                    round(sum(y for _,y in places)/len(places),4)]
         result[name]={
             "tp":tp,"fp":fp,"fn":fn,
             "iou":round(tp/(tp+fp+fn),8) if tp+fp+fn else 1.0,
+            "source_opaque_centroid_xy":centroid(source),
+            "candidate_opaque_centroid_xy":centroid(candidate),
         }
     return result
 
@@ -242,6 +273,9 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
     neutral=model4(0,"wheel_axle",0)
     neutral_mask=bytes(neutral[2::4,2::4].astype(np.uint8).ravel())
     neutral_anchor=anchor(neutral_mask)
+    neutral_mirrored=source_horizontal_reflect4(neutral)
+    neutral_mirrored_anchor=anchor(
+        bytes(neutral_mirrored[2::4,2::4].astype(np.uint8).ravel()))
     anchors={role:anchor(rows[1601]["alpha"]) for role,rows in src.items()}
     original_refs={role:rows[1601] for role,rows in src.items()}
     model_masks={}
@@ -259,7 +293,9 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                 "source_original_2d_rotation":rotate_source_2d(
                     original_refs[role]["alpha"],
                     record["angle"]-original_refs[role]["angle"],centre),
-                "static_2026_3d":registered_mask4(neutral,anchors[role],neutral_anchor)
+                "static_2026_3d":registered_mask4(neutral,anchors[role],neutral_anchor),
+                "static_2026_3d_mirror":registered_mask4(
+                    neutral_mirrored,anchors[role],neutral_mirrored_anchor)
             }
             for pivot in PIVOTS:
                 for label,model_angle,delta in (
@@ -272,6 +308,14 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                         model_masks[key]=model4(model_angle,pivot,delta)
                     predictions[pivot+"_"+label]=registered_mask4(
                         model_masks[key],anchors[role],neutral_anchor)
+                    if label in ("root_only","relative_root_only"):
+                        # A fixed alternative *candidate-only* image-space
+                        # handedness null, scored for BOTH original players.
+                        # Never silently apply original completed-screen red
+                        # OAM reflection to held OAM-local source pixels.
+                        predictions[pivot+"_"+label+"_mirror"]=registered_mask4(
+                            source_horizontal_reflect4(model_masks[key]),
+                            anchors[role],neutral_mirrored_anchor)
             if set(predictions)!=set(ARM_NAMES):
                 raise ValueError("missing original 2D null or same real 3D candidate")
             scores[role][t]={
@@ -347,6 +391,8 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
         "fixed_original_64px_y_bands":{
             name:[y0,y1] for name,y0,y1 in SOURCE_Y_BANDS},
         "fixed_y_bands_are_image_regions_not_verified_3D_anatomy":True,
+        "source_OAM_local_candidate_horizontal_mirror_is_alternative_not_canonical_3D":True,
+        "same_model_mirror_null_measured_for_both_players_no_best_per_frame":True,
         "source_frames":scores,"arms":results,
         "actual_root_render_cache_entries":len(model_masks),
         "experimental_hypotheses_are_retrospective_not_blind":True,
@@ -374,7 +420,10 @@ def main():
               for arm in ("source_original_2d_rotation","static_2026_3d",
                           "wheel_axle_root_only","historical_midbody_root_only",
                           "wheel_axle_relative_root_only",
-                          "historical_midbody_relative_root_only")},
+                          "historical_midbody_relative_root_only",
+                          "static_2026_3d_mirror",
+                          "wheel_axle_root_only_mirror",
+                          "historical_midbody_relative_root_only_mirror")},
               sort_keys=True))
     print("ART4K_ORIGINAL_REAL_GLB_FIXED_PIVOT_VS_2D",
           json.dumps({arm:{role:{key:row[key] for key in

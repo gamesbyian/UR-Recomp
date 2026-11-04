@@ -16,9 +16,12 @@ self-hosted GitHub Actions replacement, or authorization to run arbitrary PR cod
   arbitrary script names, or execution timeouts. Two concurrent pipe readers
   retain at most 64 KiB per stream, killing the direct child on overflow and
   recording a failed receipt. Direct subprocesses time out after 45 seconds.
-  Windows descendants may survive direct-child termination; no job type
-  launching descendant processes is permitted until job-object containment
-  and process-tree exit validation are implemented.
+  Git and the advisory Windows tasklist probe also use bounded capture
+  (64 KiB per stream for Git, 1 MiB for tasklist), refusing overflow.
+  A second direct-child termination timeout is recorded as unconfirmed
+  instead of bypassing pipe-reader cleanup. Windows descendants may survive
+  direct-child termination; no job type launching descendants is permitted
+  until job-object containment and process-tree exit validation are implemented.
 - `run-once` attempts one pending job, writing a durable JSON success/failure
   receipt, then exits. A directory lock prohibits simultaneous runners.
   Its owner metadata records the worker PID and start time.

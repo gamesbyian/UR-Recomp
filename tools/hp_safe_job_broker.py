@@ -39,8 +39,14 @@ def atomic_json(path, data):
 
 
 def git(repo, *args):
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True,
-                          text=True, encoding="utf-8", errors="replace", timeout=15, check=True).stdout.strip()
+    command = ["git", "-C", str(repo), *args]
+    result = bounded_process(command, cwd=repo, env=os.environ.copy(), timeout=15)
+    if (result["returncode"] != 0 or any(
+            result[k] for k in ("output_overflow", "timed_out", "pipe_read_incomplete"))):
+        raise RuntimeError("bounded Git subprocess failed: " + repr({
+            k: result[k] for k in ("returncode", "output_overflow", "timed_out",
+                                    "pipe_read_incomplete", "stderr")}))
+    return result["stdout"].strip()
 
 
 def trusted_sha(repo, commit):
@@ -126,9 +132,13 @@ def host_status():
         status.length = ctypes.sizeof(status)
         if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
             raise OSError("GlobalMemoryStatusEx failed")
-        output = subprocess.run(["tasklist.exe", "/fo", "csv", "/nh"], check=True,
-                                capture_output=True, text=True, encoding="utf-8",
-                                errors="replace", timeout=15).stdout
+        task = bounded_process(["tasklist.exe", "/fo", "csv", "/nh"],
+                               cwd=Path.cwd(), env=os.environ.copy(), timeout=15,
+                               output_limit=1024 * 1024)
+        if (task["returncode"] != 0 or any(
+                task[k] for k in ("output_overflow", "timed_out", "pipe_read_incomplete"))):
+            raise OSError("bounded tasklist probe failed")
+        output = task["stdout"]
         names = {"runner.worker.exe", "msbuild.exe", "cl.exe", "link.exe",
                  "ninja.exe", "cmake.exe", "clang-cl.exe"}
         active = sorted({row[0].casefold() for row in csv.reader(io.StringIO(output))
@@ -174,19 +184,28 @@ def bounded_process(command, cwd, env, timeout=45, output_limit=MAX_OUTPUT):
     for thread in threads:
         thread.start()
     timed_out = False
+    termination_unconfirmed = False
     try:
         process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         timed_out = True
-        process.kill()
-        process.wait(timeout=5)
-    for thread in threads:
-        thread.join(timeout=2)
+        try:
+            process.kill()
+        except OSError:
+            pass
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            termination_unconfirmed = True
+    finally:
+        for thread in threads:
+            thread.join(timeout=2)
     incomplete = any(not done.is_set() for done in readers_done)
     return {"returncode": process.returncode, "stdout": buffers[0].decode("utf-8", "replace"),
             "stderr": buffers[1].decode("utf-8", "replace"),
             "output_overflow": overflow.is_set(),
-            "timed_out": timed_out, "pipe_read_incomplete": incomplete}
+            "timed_out": timed_out, "termination_unconfirmed": termination_unconfirmed,
+            "pipe_read_incomplete": incomplete}
 
 
 def run_once(root, repo):
@@ -220,13 +239,15 @@ def run_once(root, repo):
             env = dict(os.environ, PYTHONIOENCODING="utf-8")
             result = bounded_process(command, cwd=repo, env=env)
             ok = result["returncode"] == 0 and not any(
-                result[k] for k in ("output_overflow", "timed_out", "pipe_read_incomplete"))
+                result[k] for k in ("output_overflow", "timed_out",
+                                    "termination_unconfirmed", "pipe_read_incomplete"))
             record.update(state="complete" if ok else "failed",
                           exit_code=result["returncode"],
                           duration_s=round(time.monotonic() - start, 3),
                           stdout=result["stdout"], stderr=result["stderr"],
                           output_overflow=result["output_overflow"],
                           timed_out=result["timed_out"],
+                          termination_unconfirmed=result["termination_unconfirmed"],
                           pipe_read_incomplete=result["pipe_read_incomplete"])
         except Exception as exc:
             record.update(state="failed", error=f"{type(exc).__name__}: {exc}")

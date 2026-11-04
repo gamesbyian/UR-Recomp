@@ -70,6 +70,24 @@ class BrokerTests(unittest.TestCase):
         self.assertFalse(result["output_overflow"])
         self.assertFalse(result["pipe_read_incomplete"])
 
+    def test_direct_child_timeout_is_recorded(self):
+        import os
+        import sys
+        result = broker.bounded_process(
+            [sys.executable, "-c", "import time; time.sleep(15)"],
+            self.repo, os.environ.copy(), timeout=0.1)
+        self.assertTrue(result["timed_out"])
+        self.assertFalse(result["termination_unconfirmed"])
+        self.assertFalse(result["pipe_read_incomplete"])
+
+    def test_git_helper_rejects_output_overflow(self):
+        with patch.object(broker, "bounded_process", return_value={
+            "returncode": 0, "output_overflow": True, "timed_out": False,
+            "termination_unconfirmed": False, "pipe_read_incomplete": False,
+            "stderr": "", "stdout": "x" * broker.MAX_OUTPUT}):
+            with self.assertRaises(RuntimeError):
+                broker.git(self.repo, "status", "--porcelain")
+
     def test_single_worker_lock(self):
         (self.root / "worker.lock").mkdir()
         self.assertEqual(broker.run_once(self.root, self.repo)["state"], "busy")

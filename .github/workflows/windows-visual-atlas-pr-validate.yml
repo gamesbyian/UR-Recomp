@@ -167,20 +167,20 @@ jobs:
           "$RUNNER_TEMP/rig-venv/bin/python" - <<'PY'
           import hashlib, json, os
           from pathlib import Path
-          from tools.art.experimental_fixed_root_orbit import (
-              build, HISTORICAL_SCAD_SHA, LIVE_2026_UPRIGHT_GLB_SHA256)
+          from tools.art.experimental_fixed_root_orbit import build, HISTORICAL_SCAD_SHA
           site=Path(os.environ["RUNNER_TEMP"])/"real-model-site/model-review"
           manifest=json.loads((site/"manifest.json").read_text())
           src=site/manifest["model_url"]
           original=src.read_bytes()
           assert hashlib.sha256(original).hexdigest()==manifest["candidate_sha256"]
           assert manifest["source_model_sha256"]==HISTORICAL_SCAD_SHA
-          assert manifest["candidate_sha256"]==LIVE_2026_UPRIGHT_GLB_SHA256
           for mode in ("wheel_axle","historical_midbody"):
-              output,receipt=build(original,16,mode,25,10)
+              output,receipt=build(original,16,mode,25,10,
+                                   verified_export_root=Path(os.environ["RUNNER_TEMP"])/"model-exports")
               assert output[:4]==b"glTF"
               assert receipt["material_geometry_and_all_parent_matrices_survived_roundtrip"]
               assert receipt["source_original_ROM_orientation_index"]==16
+              assert receipt["source_2026_GLb_provenance_class"]=="current_successful_source_scad_export_receipt"
               assert receipt["original_1994_3D_angle_camera_or_joint_pivot_recovered"] is False
               assert receipt["shipping_art_approved"] is False
               print("ART4K_REAL_SOURCE_GLB_FIXED_ROOT_PIVOT",

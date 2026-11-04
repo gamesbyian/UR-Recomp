@@ -24,7 +24,15 @@ TICKS=tuple(range(1601,1625))
 SADDLE_TRIALS=(("axle_root_saddle_neutral",0.),
                ("axle_root_saddle_plus15",15.),
                ("axle_root_saddle_minus15",-15.))
-ARMS=("original_source_2d_rotation",)+tuple(x for x,_ in SADDLE_TRIALS)
+BASELINE_ARMS=("original_source_2d_rotation",)+tuple(x for x,_ in SADDLE_TRIALS)
+# Predeclared original ROM phase-index *hypotheses* on the same authored
+# 2026 wheel/crank controller. Neither sign is calibrated 1994 angular motion.
+CRANK_PHASE_CONTROLS=(
+    ("axle_root_saddle_neutral_crank_plus15perphase",0.,15.),
+    ("axle_root_saddle_plus15_crank_plus15perphase",15.,15.),
+    ("axle_root_saddle_plus15_crank_minus15perphase",15.,-15.),
+)
+ARMS=BASELINE_ARMS+tuple(name for name,_,_ in CRANK_PHASE_CONTROLS)
 
 
 def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[str,bytes]])->dict:
@@ -100,8 +108,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         raise ValueError("same source-owned 2026 GLB success receipt changed")
     scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
 
-    def model4(angle:int,lean:float):
-        apply_root_scene(scene,angle,"wheel_axle",0.,0.)
+    def model4(angle:int,lean:float,drive:float=0.):
+        apply_root_scene(scene,angle,"wheel_axle",drive,0.)
         with temporary_saddle_pitch(scene,lean):
             world=(scene.to_geometry() if callable(
                 getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
@@ -128,9 +136,18 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     reference["alpha"],frame["angle"]-reference["angle"],center)
             }
             for name,lean in SADDLE_TRIALS:
-                key=(frame["angle"],lean)
+                key=(frame["angle"],lean,0.)
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],lean)
+                    renders[key]=model4(frame["angle"],lean,0.)
+                arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
+            for name,lean,phase_degrees in CRANK_PHASE_CONTROLS:
+                # Original ROM animation phase is an integer state, not
+                # independently recovered physical crank degrees or rate.
+                # Every control uses exactly one globally fixed phase law.
+                degree=phase_degrees*frame["phase"]
+                key=(frame["angle"],lean,degree)
+                if key not in renders:
+                    renders[key]=model4(frame["angle"],lean,degree)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -166,6 +183,9 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "source_each_player_has_all_24_consecutive_original_PPU_images":True,
         "source_orientation_to_root_angle_is_uncalibrated_2026_hypothesis":True,
         "2026_saddle_only_constant_degrees_both_players_all_ticks":[0.,15.,-15.],
+        "2026_constant_ROM_phase_index_to_crank_step_degrees":[15.,-15.],
+        "2026_CRANK_PHASE_control_laws_global_not_fitted_per_player_or_tick":True,
+        "2026_CRANK_PHASE_mechanics_are_uncalibrated_1994_source_hypotheses":True,
         "2026_frame_fork_wheel_geometry_camera_and_mount_unchanged":True,
         "source_unique_binary_silhouettes_grouped_without_duplicate_vote_weight":True,
         "source_actual_timeline_motion_distinct_from_repeated_static_shapes":True,
@@ -188,7 +208,8 @@ def summary_for_exact_original_source(record:dict)->dict:
                 set(entry.get("original_24_tick_samples",{}))!={str(t) for t in TICKS}):
             raise ValueError("all 24 authentic original ticks and candidate arms required")
         result[role]={}
-        for arm,entry in entry["arms"].items():
+        for arm in BASELINE_ARMS:
+            entry=entry["arms"][arm]
             if (entry.get("original_chronological_source_frame_count")!=24 or
                     entry.get("source_actual_timeline_edge_count")!=23):
                 raise ValueError("genuine source 24-frame/23-edge chronology required")

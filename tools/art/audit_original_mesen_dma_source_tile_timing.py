@@ -100,7 +100,7 @@ def audit(rom: bytes, source_zip: bytes, source_queue: dict) -> dict:
                         "source_original_PPU_held_frame_temporal_candidates":for_priorities})
         stats = {}
         for delta in (-1,0,1):
-            available = [s for s in samples for t in s["source_original_PPU_held_frame_temporal_candidates"]
+            available = [t for s in samples for t in s["source_original_PPU_held_frame_temporal_candidates"]
                          if t["source_frame_delta"]==delta]
             stats[str(delta)] = {
                 "compared_tiles":len(available),

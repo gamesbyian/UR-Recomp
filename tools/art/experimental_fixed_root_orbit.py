@@ -20,12 +20,7 @@ from tools.art.experimental_continuous_five_parent_pose import (
 )
 
 SCHEMA = "UR-ART4K-EXPERIMENTAL-SINGLE-GLB-FIXED-ROOT-ORBIT/1"
-# The new exact 2026 draft exporter/GHA toolchain produced a different GLB
-# from the retained 2026-11-01 verified viewer GLB, while the authored SCAD
-# remains the same pinned source. Both are distinct immutable byte receipts.
-LIVE_2026_UPRIGHT_GLB_SHA256 = "d0e61cd5e9bf2f5bb871273aa875e94ab0747519fca28d5302c8d19f8b5f714e"
-LIVE_2026_SOURCE_HEAD = "7f08f9e5317a0447f37dca4107281438514ab67c"
-
+# The 2026 OpenSCAD authoring source is pinned. Its valid GLB exports are\n# byte-variable across actual GHA runs, so authorize current inputs through\n# the existing successful exporter receipt and exact-file SHA verifier.\n
 MODES = ("wheel_axle", "historical_midbody")
 MIDBODY_OFFSET_ABOVE_AXLE_WORLD_Z = 0.8
 # Original 2026 OpenSCAD shared_rig puts the axle at Z=1.00;
@@ -118,7 +113,6 @@ def apply_root_scene(scene, index: int, pivot_mode: str,
         "historical_2026_pivot_mode": pivot_mode,
         "historical_2026_pivot_world_xyz": pivot.tolist(),
         "historical_2026_openSCAD_sha256": HISTORICAL_SCAD_SHA,
-        "candidate_2026_GLb_SHAs_before_actual_input_verification": sorted((SOURCE_GLB_SHA256, LIVE_2026_UPRIGHT_GLB_SHA256)),
         "input_GLb_digest_bound_during_authenticated_build": False,
         "wheel_crank_delta_degrees_2026_hypothesis": float(wheel_crank_delta_deg),
         "frame_pitch_degrees_2026_hypothesis": float(frame_pitch_deg),
@@ -131,14 +125,29 @@ def apply_root_scene(scene, index: int, pivot_mode: str,
 
 
 def build(source: bytes, source_orientation_index: int, pivot_mode: str,
-          wheel_crank_delta_deg: float, frame_pitch_deg: float):
+          wheel_crank_delta_deg: float, frame_pitch_deg: float, *,
+          verified_export_root: Path | None = None):
     import numpy as np
     import trimesh
     actual_sha = hashlib.sha256(source).hexdigest() if type(source) is bytes else ""
-    if (type(source) is not bytes or
-            actual_sha not in {SOURCE_GLB_SHA256, LIVE_2026_UPRIGHT_GLB_SHA256} or
-            source[:4] != b"glTF"):
-        raise ValueError("source must be the exact SHA-pinned real 2026 upright GLB")
+    if type(source) is not bytes or source[:4] != b"glTF":
+        raise ValueError("source must be an authenticated actual 2026 upright GLB")
+    if verified_export_root is None:
+        if actual_sha != SOURCE_GLB_SHA256:
+            raise ValueError("source must be the exact SHA-pinned real 2026 upright GLB")
+        input_source_class = "historical_immutable_viewer_artifact"
+    else:
+        # The OpenSCAD-to-Trimesh exporter emits variable GLB bytes across
+        # builds of the same source. The established Pages staging verifier
+        # checks original source SCAD SHA, attempt/current pointer integrity,
+        # actual GLB bytes, exact receipt and unapproved-art flags.
+        from tools.art.model_review.stage_pages import validate
+        ptr, outputs = validate(verified_export_root, "upright")
+        if (ptr["source_sha256"] != HISTORICAL_SCAD_SHA or
+                ptr["glb_sha256"] != actual_sha or
+                outputs["glb"].read_bytes() != source):
+            raise ValueError("current source GLB failed verified export receipt")
+        input_source_class = "current_successful_source_scad_export_receipt"
     scene = trimesh.load(io.BytesIO(source), file_type="glb", force="scene", process=False)
     old_nodes, old_geom_nodes = set(scene.graph.nodes), set(scene.graph.nodes_geometry)
     old_parents = dict(scene.graph.transforms.parents)
@@ -168,6 +177,7 @@ def build(source: bytes, source_orientation_index: int, pivot_mode: str,
     result.update({
         "source_2026_upright_GLb_sha256": actual_sha,
         "input_GLb_digest_bound_during_authenticated_build": True,
+        "source_2026_GLb_provenance_class": input_source_class,
         "source_historical_2026_SCAD_sha256": HISTORICAL_SCAD_SHA,
         "derived_GLB_sha256": hashlib.sha256(output).hexdigest(),
         "derived_GLB_bytes": len(output),

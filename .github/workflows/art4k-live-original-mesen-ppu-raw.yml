@@ -240,6 +240,17 @@ jobs:
           print("ACTUAL_MESENCE_SNES_RAW_PPU_PLUS_P6",actual,"held_source_screen_with_no_OBJ_or_3D_claim")
           PY
 
+      - name: Compare original ROM queued 32-byte tile sources with held source VRAM
+        if: ${{ github.event_name == 'pull_request' || inputs.include_rider_wram }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.art.audit_original_mesen_dma_source_tile_timing \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --source-zip analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip \
+            --source-queue-json analysis/data/racer-original-mesen-rider-queue-vram-tile-mapping-eight-20261103.json \
+            --out "$RUNNER_TEMP/art4k-actual-ppu-raw/original-ROM-DMA-held-PPU-timing.json"
+
       - name: Upload SHA-bound original emulator PPU raw RAM states
         if: ${{ !inputs.seed_only }}
         uses: actions/upload-artifact@v4

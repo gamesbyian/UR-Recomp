@@ -219,6 +219,20 @@ jobs:
             --verified-exports "$RUNNER_TEMP/model-exports" \
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --out "$RUNNER_TEMP/real-model-evidence/real-glb-parent-source-y-band-census.json"
+      - name: Attribute exact original upper-motion source pixels to the real current GLB parts
+        run: |
+          set -euo pipefail
+          # Reuse the preceding SHA-authenticated original source receipts,
+          # original no-frame-skip Mesen ZIP and exact same real 2026 GLB.
+          # No second exporter, replay, camera or per-source fitting.
+          "$RUNNER_TEMP/rig-venv/bin/python" -m tools.art.attribute_original_mesen_upper_to_real_glb_parts \
+            --source-zip "$RUNNER_TEMP/original-mesen24.zip" \
+            --pose-report "$RUNNER_TEMP/source-pose-IDs.json" \
+            --axis-report "$RUNNER_TEMP/source-2d-axes.json" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --verified-exports "$RUNNER_TEMP/model-exports" \
+            --out "$RUNNER_TEMP/real-model-evidence/original-upper-real-glb-part-attribution.json"
+
       - name: Exercise actual five-part glTF exports and original sprite rail in Chromium
         run: |
           set -euo pipefail

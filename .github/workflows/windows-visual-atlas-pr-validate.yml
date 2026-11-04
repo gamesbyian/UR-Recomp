@@ -18,6 +18,7 @@ on:
       - "tools/visual_atlas_web/**"
       - "tools/art/model-review/**"
       - "tools/art/score_original_mesen24_fixed_pivot_glb.py"
+      - "tools/art/score_original_mesen24_full_saddle.py"
       - "tools/art/audit_source_registered_glb_parent_overlap.py"
       - "tools/art/count_real_glb_parent_source_y_bands.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
@@ -214,6 +215,20 @@ jobs:
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --verified-exports "$RUNNER_TEMP/model-exports" \
             --out "$RUNNER_TEMP/real-model-evidence/original-source-vs-real-root-pivots.json"
+      - name: Check fixed saddle-only articulation across all 48 original two-player PPU images
+        run: |
+          set -euo pipefail
+          # Reuse the already authenticated original no-skip 24-tick ZIP,
+          # source 24x64 exact phase IDs, one provisional 7:6 camera,
+          # and the SAME source-owned 2026 GLB export and success receipt.
+          "$RUNNER_TEMP/rig-venv/bin/python" -m tools.art.score_original_mesen24_full_saddle \
+            --source-zip "$RUNNER_TEMP/original-mesen24.zip" \
+            --pose-report "$RUNNER_TEMP/source-pose-IDs.json" \
+            --axis-report "$RUNNER_TEMP/source-2d-axes.json" \
+            --camera analysis/data/racer-inverse-side-provisional-1205.json \
+            --verified-exports "$RUNNER_TEMP/model-exports" \
+            --out "$RUNNER_TEMP/real-model-evidence/original-all24-saddle-only-generalization.json"
+
       - name: Quantify actual unmodified 2026 model parent pixels in original 64px source bands
         run: |
           set -euo pipefail

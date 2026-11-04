@@ -1,0 +1,1219 @@
+{
+  "candidate_integer_shift_bounds_inclusive": [
+    -2,
+    2
+  ],
+  "original_PPU_final_screen_pixel_ownership_proven_by_this_audit": false,
+  "per_source_player": {
+    "blue": {
+      "actual_upper_source_event": [
+        1602,
+        1603
+      ],
+      "baseline_unchanged_upper_edges": 22,
+      "original_23_consecutive_source_edge_comparisons": [
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1601,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1602
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": -1,
+              "dy": 0,
+              "upper_alpha_xor": 15,
+              "upper_index_mismatch": 61
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 27,
+            "upper_index_mismatch": 72
+          },
+          "from_tick": 1602,
+          "lowest_upper_alpha_xor": 15,
+          "preferred_by_index_and_magnitude": {
+            "dx": -1,
+            "dy": 0,
+            "upper_alpha_xor": 15,
+            "upper_index_mismatch": 61
+          },
+          "to_tick": 1603
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1603,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1604
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1604,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1605
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1605,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1606
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1606,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1607
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1607,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1608
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1608,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1609
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1609,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1610
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1610,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1611
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1611,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1612
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1612,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1613
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1613,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1614
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1614,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1615
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1615,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1616
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1616,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1617
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1617,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1618
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1618,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1619
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1619,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1620
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1620,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1621
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1621,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1622
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1622,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1623
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1623,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1624
+        }
+      ],
+      "source_image_y_band": [
+        4,
+        14
+      ],
+      "upper_edges_improved_by_bounded_2d_shift": 1
+    },
+    "red": {
+      "actual_upper_source_event": [
+        1605,
+        1606
+      ],
+      "baseline_unchanged_upper_edges": 22,
+      "original_23_consecutive_source_edge_comparisons": [
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1601,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1602
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1602,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1603
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1603,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1604
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1604,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1605
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 1,
+              "dy": 0,
+              "upper_alpha_xor": 14,
+              "upper_index_mismatch": 43
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 20,
+            "upper_index_mismatch": 55
+          },
+          "from_tick": 1605,
+          "lowest_upper_alpha_xor": 14,
+          "preferred_by_index_and_magnitude": {
+            "dx": 1,
+            "dy": 0,
+            "upper_alpha_xor": 14,
+            "upper_index_mismatch": 43
+          },
+          "to_tick": 1606
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1606,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1607
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1607,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1608
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1608,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1609
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1609,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1610
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1610,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1611
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1611,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1612
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1612,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1613
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1613,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1614
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1614,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1615
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1615,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1616
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1616,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1617
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1617,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1618
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1618,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1619
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1619,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1620
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1620,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1621
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1621,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1622
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1622,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1623
+        },
+        {
+          "all_alpha_minima": [
+            {
+              "dx": 0,
+              "dy": 0,
+              "upper_alpha_xor": 0,
+              "upper_index_mismatch": 0
+            }
+          ],
+          "baseline": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "from_tick": 1623,
+          "lowest_upper_alpha_xor": 0,
+          "preferred_by_index_and_magnitude": {
+            "dx": 0,
+            "dy": 0,
+            "upper_alpha_xor": 0,
+            "upper_index_mismatch": 0
+          },
+          "to_tick": 1624
+        }
+      ],
+      "source_image_y_band": [
+        5,
+        15
+      ],
+      "upper_edges_improved_by_bounded_2d_shift": 1
+    }
+  },
+  "schema": "UR-ART4K-MESEN24-SOURCE-UPPER-BAND-BOUNDED-2D-TRANSLATION/1",
+  "searched_observed_2d_only_not_3d_pose": true,
+  "source_actual_original_mesen_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "source_actual_original_ticks": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605,
+    1606,
+    1607,
+    1608,
+    1609,
+    1610,
+    1611,
+    1612,
+    1613,
+    1614,
+    1615,
+    1616,
+    1617,
+    1618,
+    1619,
+    1620,
+    1621,
+    1622,
+    1623,
+    1624
+  ],
+  "source_frames_prospective_blind_holdout": false,
+  "source_original_1994_rig_camera_or_pose_recovered": false,
+  "source_shift_zero_fill_no_wrap": true
+}

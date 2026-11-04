@@ -1,0 +1,301 @@
+{
+  "candidate_GLB_part_id_raster_full256_sha256": "0b2b1e2979bf08fb145d59ed6090c1db6099075c7b91b8494badd3bb905cc1b5",
+  "candidate_GLB_part_id_raster_source64_sha256": "7493a9168be9d4f27584955db015d1681b5d6f74c3e6cc8424e2039d80e04670",
+  "fixed_7_6_provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "one_lower_alpha_registration_at_tick1601_per_player": true,
+  "one_static_candidate_projection_no_fitted_motion": true,
+  "original_1994_part_to_GLB_identity_proven": false,
+  "original_2026_real_upright_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "original_3d_motion_or_source_painted_material_recovered": false,
+  "original_authentic_source_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "per_source_player": {
+    "blue": {
+      "actual_original_alpha_change_instances": 660,
+      "actual_original_interior_change_instances": 717,
+      "comparison": {
+        "null_x_minus8": {
+          "interior_change_model_footprint_fraction": 0.27894003,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            -8,
+            0
+          ],
+          "original_interior_change_outside_candidate_model": 517,
+          "original_interior_change_pixel_instances_on_candidate_model": 200,
+          "original_tick1601_alpha_iou": 0.22736842,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 2,
+            "pedals": 3,
+            "rim_and_hub": 68,
+            "saddle": 12,
+            "tire": 103
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 3,
+            "pedals": 11,
+            "rim_and_hub": 27,
+            "saddle": 27,
+            "tire": 132
+          }
+        },
+        "null_x_plus8": {
+          "interior_change_model_footprint_fraction": 0.44351464,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            8,
+            0
+          ],
+          "original_interior_change_outside_candidate_model": 399,
+          "original_interior_change_pixel_instances_on_candidate_model": 318,
+          "original_tick1601_alpha_iou": 0.14313725,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 3,
+            "pedals": 52,
+            "rim_and_hub": 82,
+            "saddle": 2,
+            "tire": 149
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 4,
+            "pedals": 26,
+            "rim_and_hub": 69,
+            "saddle": 0,
+            "tire": 219
+          }
+        },
+        "null_y_minus8": {
+          "interior_change_model_footprint_fraction": 0.37377964,
+          "model_visible_pixels": 231,
+          "offset_source_logical_pixels": [
+            0,
+            -8
+          ],
+          "original_interior_change_outside_candidate_model": 449,
+          "original_interior_change_pixel_instances_on_candidate_model": 268,
+          "original_tick1601_alpha_iou": 0.22098214,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 4,
+            "pedals": 1,
+            "rim_and_hub": 42,
+            "saddle": 0,
+            "tire": 178
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 5,
+            "pedals": 4,
+            "rim_and_hub": 49,
+            "saddle": 0,
+            "tire": 210
+          }
+        },
+        "null_y_plus8": {
+          "interior_change_model_footprint_fraction": 0.49790795,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            0,
+            8
+          ],
+          "original_interior_change_outside_candidate_model": 360,
+          "original_interior_change_pixel_instances_on_candidate_model": 357,
+          "original_tick1601_alpha_iou": 0.2457265,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 48,
+            "pedals": 1,
+            "rim_and_hub": 27,
+            "saddle": 4,
+            "tire": 159
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 117,
+            "pedals": 4,
+            "rim_and_hub": 52,
+            "saddle": 10,
+            "tire": 174
+          }
+        },
+        "registered": {
+          "interior_change_model_footprint_fraction": 0.60390516,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            0,
+            0
+          ],
+          "original_interior_change_outside_candidate_model": 284,
+          "original_interior_change_pixel_instances_on_candidate_model": 433,
+          "original_tick1601_alpha_iou": 0.5464191,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 3,
+            "pedals": 53,
+            "rim_and_hub": 155,
+            "saddle": 1,
+            "tire": 25
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 64,
+            "pedals": 95,
+            "rim_and_hub": 140,
+            "saddle": 14,
+            "tire": 120
+          }
+        }
+      },
+      "registered_2026_model_part_names": [
+        "tire",
+        "rim_and_hub",
+        "fork_and_frame",
+        "pedals",
+        "saddle"
+      ],
+      "source_OAM_slot": 96,
+      "source_frame_1601_bottom_alpha_anchor_x2y2": [
+        69,
+        76
+      ]
+    },
+    "red": {
+      "actual_original_alpha_change_instances": 659,
+      "actual_original_interior_change_instances": 834,
+      "comparison": {
+        "null_x_minus8": {
+          "interior_change_model_footprint_fraction": 0.47122302,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            -8,
+            0
+          ],
+          "original_interior_change_outside_candidate_model": 441,
+          "original_interior_change_pixel_instances_on_candidate_model": 393,
+          "original_tick1601_alpha_iou": 0.21940928,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 3,
+            "pedals": 35,
+            "rim_and_hub": 37,
+            "saddle": 6,
+            "tire": 97
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 15,
+            "pedals": 15,
+            "rim_and_hub": 88,
+            "saddle": 0,
+            "tire": 275
+          }
+        },
+        "null_x_plus8": {
+          "interior_change_model_footprint_fraction": 0.26378897,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            8,
+            0
+          ],
+          "original_interior_change_outside_candidate_model": 614,
+          "original_interior_change_pixel_instances_on_candidate_model": 220,
+          "original_tick1601_alpha_iou": 0.11798839,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 6,
+            "pedals": 6,
+            "rim_and_hub": 72,
+            "saddle": 0,
+            "tire": 162
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 1,
+            "pedals": 13,
+            "rim_and_hub": 39,
+            "saddle": 0,
+            "tire": 167
+          }
+        },
+        "null_y_minus8": {
+          "interior_change_model_footprint_fraction": 0.32494005,
+          "model_visible_pixels": 211,
+          "offset_source_logical_pixels": [
+            0,
+            -8
+          ],
+          "original_interior_change_outside_candidate_model": 563,
+          "original_interior_change_pixel_instances_on_candidate_model": 271,
+          "original_tick1601_alpha_iou": 0.19450801,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 2,
+            "pedals": 2,
+            "rim_and_hub": 21,
+            "saddle": 0,
+            "tire": 126
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 0,
+            "pedals": 4,
+            "rim_and_hub": 77,
+            "saddle": 0,
+            "tire": 190
+          }
+        },
+        "null_y_plus8": {
+          "interior_change_model_footprint_fraction": 0.5647482,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            0,
+            8
+          ],
+          "original_interior_change_outside_candidate_model": 363,
+          "original_interior_change_pixel_instances_on_candidate_model": 471,
+          "original_tick1601_alpha_iou": 0.18930041,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 64,
+            "pedals": 4,
+            "rim_and_hub": 44,
+            "saddle": 0,
+            "tire": 199
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 207,
+            "pedals": 6,
+            "rim_and_hub": 66,
+            "saddle": 0,
+            "tire": 192
+          }
+        },
+        "registered": {
+          "interior_change_model_footprint_fraction": 0.61630695,
+          "model_visible_pixels": 267,
+          "offset_source_logical_pixels": [
+            0,
+            0
+          ],
+          "original_interior_change_outside_candidate_model": 320,
+          "original_interior_change_pixel_instances_on_candidate_model": 514,
+          "original_tick1601_alpha_iou": 0.43424318,
+          "per_candidate_2026_part_alpha_boundary_change_instances": {
+            "fork_and_frame": 26,
+            "pedals": 56,
+            "rim_and_hub": 162,
+            "saddle": 0,
+            "tire": 32
+          },
+          "per_candidate_2026_part_interior_change_instances": {
+            "fork_and_frame": 75,
+            "pedals": 111,
+            "rim_and_hub": 189,
+            "saddle": 0,
+            "tire": 139
+          }
+        }
+      },
+      "registered_2026_model_part_names": [
+        "tire",
+        "rim_and_hub",
+        "fork_and_frame",
+        "pedals",
+        "saddle"
+      ],
+      "source_OAM_slot": 97,
+      "source_frame_1601_bottom_alpha_anchor_x2y2": [
+        77,
+        72
+      ]
+    }
+  },
+  "schema": "UR-ART4K-MESEN24-STATIC-2026-VISIBLE-PART-ID-SUPPORT/1",
+  "whole_glb_256_silhouette_matches_depth_ID_raster_exactly": true
+}

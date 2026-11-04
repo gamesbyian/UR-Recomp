@@ -141,7 +141,9 @@ def build(source: bytes, source_orientation_index: int, pivot_mode: str,
         # builds of the same source. The established Pages staging verifier
         # checks original source SCAD SHA, attempt/current pointer integrity,
         # actual GLB bytes, exact receipt and unapproved-art flags.
-        from tools.art.model_review.stage_pages import validate
+        from runpy import run_path
+        validate = run_path(str(Path(__file__).resolve().parent /
+                                "model-review/stage_pages.py"))["validate"]
         ptr, outputs = validate(verified_export_root, "upright")
         if (ptr["source_sha256"] != HISTORICAL_SCAD_SHA or
                 ptr["glb_sha256"] != actual_sha or

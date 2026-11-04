@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 import wave
@@ -39,6 +40,7 @@ class NativeKonPCMTests(unittest.TestCase):
             return {"ok": True, "path": parts[1], "start": start, "count": count}
         return handler
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_real_exact_kon_sample_window_and_digest(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
@@ -113,6 +115,7 @@ class NativeKonPCMTests(unittest.TestCase):
             self.assertEqual(observed_lengths, [44 + 4 * 2500 + 17])
             self.assertFalse(path.exists())
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_existing_file_and_whitespace_path_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
@@ -132,6 +135,7 @@ class NativeKonPCMTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "malformed native KON"):
             pcm.kon_candidates([{"s": "40000", "t": "reg", "adr": "0x4c", "val": "0x80"}])
 
+    @unittest.skipIf(os.name == "nt", "symlink creation requires unavailable Windows privileges")
     def test_output_alias_rejected_before_debug_server_connect(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -155,6 +159,7 @@ class NativeKonPCMTests(unittest.TestCase):
                     self.assertFalse(wav_path.exists())
 
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_raced_foreign_destination_never_overwritten(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
@@ -168,6 +173,7 @@ class NativeKonPCMTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(), b"FOREIGN-DO-NOT-CLOBBER")
             self.assertFalse(list(Path(tmp).glob(".qa01-kon-*")))
 
+    @unittest.skipIf(os.name == "nt", "symlink creation requires unavailable Windows privileges")
     def test_raced_symlink_destination_never_followed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -183,6 +189,7 @@ class NativeKonPCMTests(unittest.TestCase):
                                     before=500, after=2000)
             self.assertEqual(foreign.read_bytes(), b"KEEP-FOREIGN")
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_explicit_ascii_stage_root_allows_unicode_space_parent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -218,6 +225,7 @@ class NativeKonPCMTests(unittest.TestCase):
                                     before=500, after=2000, stage_root=missing)
             self.assertFalse(path.exists())
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_no_hardlink_volume_falls_back_to_exclusive_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
@@ -257,6 +265,7 @@ class NativeKonPCMTests(unittest.TestCase):
             self.assertFalse((foreign / "kon.wav").exists())
             self.assertEqual((old_parent / "kon.wav").read_bytes(), b"VALID-WAV-BYTES")
 
+    @unittest.skipIf(os.name == "nt", "symlink creation requires unavailable Windows privileges")
     def test_symlinked_wav_parent_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -270,6 +279,7 @@ class NativeKonPCMTests(unittest.TestCase):
                 pcm.publish_wav_no_replace(stage, alias / "kon.wav")
             self.assertEqual(list(foreign.iterdir()), [])
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_hardlink_mutation_after_publication_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
@@ -286,6 +296,7 @@ class NativeKonPCMTests(unittest.TestCase):
                         kon_sample_index=40000, wav_path=path,
                         before=500, after=2000)
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_hardlink_mutation_before_publication_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "kon.wav"
@@ -302,6 +313,7 @@ class NativeKonPCMTests(unittest.TestCase):
                         kon_sample_index=40000, wav_path=path,
                         before=500, after=2000)
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_mutation_after_publisher_check_cannot_redefine_receipt_identity(self):
         # The publisher's own digest check passed. A later mutation of its
         # final hardlink must not be blessed by the caller's receipt fields.
@@ -365,6 +377,7 @@ class NativeWavWirePathTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "511-byte"):
             pcm.wav_command_path(Path("/" + "a" * 509 + "é"))
 
+    @unittest.skipIf(os.name == "nt", "secure WAV publication requires POSIX dir_fd and O_NOFOLLOW")
     def test_unicode_basename_publishes_via_ascii_staging(self):
         # A Unicode final basename need not enter the ASCII debug protocol.
         # This exercises a POSIX ASCII parent; Windows Unicode parents still

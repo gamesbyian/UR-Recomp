@@ -13,7 +13,7 @@ import runpy
 
 from tools.art.score_original_mesen24_fixed_pivot_glb import (
     check_receipts,read_original_roles,source_center,anchor,registered_mask4,
-    rotate_source_2d,metric,fixed_source_y_band_metrics,sha,CAMERA_SHA,SCAD_SHA,
+    rotate_source_2d,metric,fixed_source_y_band_metrics,SOURCE_Y_BANDS,sha,CAMERA_SHA,SCAD_SHA,
 )
 from tools.art.experimental_fixed_root_orbit import apply_root_scene
 from tools.art.experimental_temporary_saddle_lean import temporary_saddle_pitch
@@ -71,13 +71,33 @@ def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[st
         for digest,times in shapes.items():
             unique_mean.append(sum(scores[t]["iou"] for t in times)/len(times))
         edge={}
+        band_sums={name:{"tp":0,"fp":0,"fn":0} for name,_,_ in SOURCE_Y_BANDS}
         for previous,current in zip(TICKS[:-1],TICKS[1:]):
             source_edge=bytes(int(x!=y) for x,y in zip(
                 rows[previous]["alpha"],rows[current]["alpha"]))
             candidate_edge=bytes(int(x!=y) for x,y in zip(
                 predictions[previous][arm],predictions[current][arm]))
             edge[(previous,current)]=metric(source_edge,candidate_edge)
+            for name,band in fixed_source_y_band_metrics(source_edge,candidate_edge).items():
+                for count in ("tp","fp","fn"):
+                    band_sums[name][count]+=band[count]
         sums={k:sum(v[k] for v in edge.values()) for k in ("tp","fp","fn")}
+        if any(sum(band_sums[b][k] for b in band_sums)!=sums[k]
+               for k in ("tp","fp","fn")):
+            raise ValueError("temporal source band census disagrees with full edge score")
+        band_report={}
+        for name,y0,y1 in SOURCE_Y_BANDS:
+            counts=band_sums[name]
+            denom=sum(counts.values())
+            band_report[name]={
+                "source_image_y_inclusive":[y0,y1],
+                "source_chronological_edge_count":len(edge),
+                "source_actual_xor_changed_pixel_instances":counts["tp"]+counts["fn"],
+                "2026_candidate_xor_changed_pixel_instances":counts["tp"]+counts["fp"],
+                "tp_fp_fn":counts,
+                "pooled_temporal_alpha_change_iou":
+                    round(counts["tp"]/denom,8) if denom else 1.,
+            }
         outcome[arm]={
             "original_chronological_source_frame_count":len(TICKS),
             "original_unique_64px_binary_shape_count":len(shapes),
@@ -86,6 +106,7 @@ def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[st
                 round(sum(unique_mean)/len(unique_mean),8),
             "source_actual_timeline_edge_count":len(edge),
             "source_actual_23_consecutive_edge_change_tp_fp_fn":sums,
+            "source_actual_23_consecutive_edge_change_fixed_y_bands":band_report,
             "source_actual_23_consecutive_edge_change_pooled_iou":
                 round(sums["tp"]/sum(sums.values()),8)
                 if sum(sums.values()) else 1.,
@@ -204,6 +225,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_frame_fork_wheel_geometry_camera_and_mount_unchanged":True,
         "source_unique_binary_silhouettes_grouped_without_duplicate_vote_weight":True,
         "source_actual_timeline_motion_distinct_from_repeated_static_shapes":True,
+        "original_source_fixed_y_band_temporal_edges_partition_exactly":True,
+        "original_source_fixed_y_bands_are_not_authentic_1994_part_labels":True,
         "source_viewpoint_families_are_known_NOT_prospective_blind":True,
         "original_1994_3D_mesh_camera_joint_or_source_materials_recovered":False,
         "owner_2026_character_art_likeness_approved":False,

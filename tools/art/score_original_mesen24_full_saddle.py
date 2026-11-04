@@ -35,6 +35,14 @@ CRANK_PHASE_CONTROLS=(
 ARMS=BASELINE_ARMS+tuple(name for name,_,_ in CRANK_PHASE_CONTROLS)
 
 
+def drive_for_original_phase_index(phase:int,step:float)->float:
+    """One frozen 2026 crank step per 1994 ROM animation ID, not physical truth."""
+    if (type(phase) is not int or not 0<=phase<24 or
+            type(step) not in (int,float) or step not in (15.,-15.)):
+        raise ValueError("original phase 0..23 and predeclared +/-15 2026 crank step required")
+    return float(step*phase)
+
+
 def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[str,bytes]])->dict:
     """Keep temporal-frame and one-vote-per-unique-2D-source-shape distinct."""
     if (set(rows)!=set(TICKS) or set(predictions)!=set(TICKS) or
@@ -144,7 +152,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 # Original ROM animation phase is an integer state, not
                 # independently recovered physical crank degrees or rate.
                 # Every control uses exactly one globally fixed phase law.
-                degree=phase_degrees*frame["phase"]
+                degree=drive_for_original_phase_index(frame["phase"],phase_degrees)
                 key=(frame["angle"],lean,degree)
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,degree)

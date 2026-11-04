@@ -27,3 +27,23 @@ python3 -m tools.art.analyze_original_rom_phase_orbit \
 ```
 
 **Next 3D discriminator:** Under one frozen source 7:6 projection and unchanged GLB geometry, measure the projected motion of each *candidate 2026 wheel/crank part-ID region* under a single rigid screen-plane orientation control and a mechanically coupled frame/saddle control. Compare its movement support, angular sign, path centre and radius in original screen coordinates to the **entire original source-index/alpha change masks**, not just the same bounding boxes used to propose the hypothesis. Include a source-only rigid 2D rotation/deformation control, and do not optimize per-angle translations or permit an unconstrained camera per sprite. A good fit indicates a useful 3D replacement construction; it still cannot uniquely recover the 1994 artist's source mesh.
+
+## Provisional 2026 model-pivot backprojection (new diagnostic)
+
+The previously authored **2026 experimental** OpenSCAD character in draft #2832 uses `shared_rig` with the wheel axle at world Z=**1.00**, and `continuous_rig` with an in-air spin pivot at world Z=**1.80**. Those are 2026 art-construction choices, never recovered 1994 pivots. The retained original 2026 SCAD identifier is SHA-256 `e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984`.
+
+With the **one previously fixed, provisional, unfitted 2026 side camera**, SHA-256 `1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028`, original 7:6 pixel aspect and 9.5 vertical logical pixels/model unit, the measured **original 2D phase-region orbit mean** `(31.515625, 19.5859375)` backprojects to lateral model-world X about **−0.24370**, vertical Z about **1.93832**, with **all camera-depth positions unconstrained**. It is a *line* in three-dimensional space, not a recovered joint or source-model coordinate. This uses raw source-local sprite coordinates; the original sprite/model registration, display orientation and shared physical camera remain hypothetical.
+
+Under that same frozen projection, the historical 2026 spin pivot `(0,0,1.8)` projects to original-source pixels `(33.5,20.9)`, **2.662** display-corrected source-pixel units from the orbit mean. The wheel axle `(0,0,1.0)` projects to `(33.5,28.5)`, **9.210** display-corrected units away. These are only **two prior authored candidate pivots**, not a free optimization or blind test. The fact that the historically hand-chosen mid-body pivot is closer is suggestive for a **2026 rig control to test**, but can arise from the source artist already eyeballing original art. It cannot authenticate the 1994 camera, a physical centre of rotation, wheel contact, or model likeness.
+
+The source-locked numerical tool is `tools/art/compare_source_orbit_to_candidate_pivots.py`, and its regression `tests/unit/test_compare_source_orbit_to_candidate_pivots.py` explicitly checks the **unidentifiable depth dimension** alongside both numerical residuals. No actual historical GLB was modified or auto-aligned. Reproduce offline, without a new ROM/emulator/GLB run:
+
+```sh
+python3 -m unittest tests.unit.test_compare_source_orbit_to_candidate_pivots
+python3 -m tools.art.compare_source_orbit_to_candidate_pivots \
+  --original-axis-report analysis/data/racer-original-ROM-24phase-64angle-source-axis-20261103.json \
+  --camera analysis/data/racer-inverse-side-provisional-1205.json \
+  --out /new/source-orbit-two-2026-pivots.json
+```
+
+**Next 3D discriminator:** test the already-authorized single 2026 GLB under a *globally fixed* root/pivot transform derived from the same camera hypothesis, with both 2026 authored pivots held fixed in advance. Compare entire original alpha/index change masks and original frame-specific orientation, including the stronger original-ROM 2D null from #3114. Do not optimise a pivot or scale per frame or silently treat 64 source orientation values as 64 calibrated physical rotation increments.

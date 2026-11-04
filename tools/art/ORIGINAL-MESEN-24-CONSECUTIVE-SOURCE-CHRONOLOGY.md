@@ -43,3 +43,22 @@ The exact-source re-audit verifies canonical ZIP/manifest, all 97 members and me
 **Next cheapest discriminator:** use the *one* experimental five-parent GLB rig from #3101 under the frozen provisional 7:6 camera. Compare a predeclared zero-motion baseline against one or two **time-continuous direct-drive / bounded frame-tilt** hypotheses at these actual ticks, with one fixed image registration per player and no per-frame camera, geometry, translation, handedness or pose-class choices. Score real 2D changed-pixel spatial support/size, original colours/landmarks where identifiable, and static-fit costs separately. A model that reproduces changes every tick but misses their support or source appearance is a negative result, not a 3D recovery. Avoid re-running original Mesen; this archive supplies all evidence for this decision. Treat all 24 as exploratory because the current observation has already been examined.
 
 No new recurring workflow, release/ART shipping gate, recovered camera, original SNES hardware observation, direct source part labelling or owner likeness approval is claimed.
+
+## Follow-on: is the isolated upper 2D event a pixel-local shift?
+
+An additional **read-only, bounded source-only** diagnostic inspects the exact same previously authenticated 24 consecutive original Mesen PPU ticks. The upper silhouette occupies blue source-local y=4..14 and red y=5..15, each the upper third of the observed per-player 64×64 alpha envelope. Across **23 truly adjacent executed edges**, blue and red each hold identical upper **binary silhouettes and 4bpp source index pixels on 22 edges**. The only changed blue upper edge is 1602→1603; red is 1605→1606. Lower-band pixels continue changing every edge, so "upper" is a source-image band, **not a recovered physical part**.
+
+Before inspecting translation scores, a finite **25-way integer source-only offset control** was predeclared on draft #2832: dx,dy each in [−2,+2], unresampled and zero-filled (never wrap), evaluating binary alpha XOR with 4bpp index mismatch as a secondary discriminator. For **blue 1602→1603**, unshifted upper mask XOR is **27** pixels and upper index mismatch **72**. A unique best alpha shift of **one pixel left** (dx=−1,dy=0) lowers alpha XOR to **15** and index mismatch to **61**. For **red 1605→1606**, unshifted upper mask XOR is **20** pixels and index mismatch **55**. A unique best alpha shift of **one pixel right** (dx=+1,dy=0) lowers alpha XOR to **14** and index mismatch to **43**. Every one of the 22 other edges per player has a zero upper alpha/index mismatch at zero shift; none improves with an offset.
+
+Thus an image-plane displacement explains part, **not all**, of either actual source upper-region event. It does not justify a complete rigid translation, much less a 1994 hinge, camera, part association, joint angle, wheel period or original 3D source asset. The current 2026 rigid fork/saddle ±10° step already produced far too many unsupported upper-region changes; this additional 2D diagnostic narrows the prospective model-parts inquiry to small event-local shifts and the **residual 15 blue / 14 red upper pixels** instead of a broad 3D angle sweep. The finite offset search was performed on an already-inspected series, so there is **no prospective blind test**.
+
+The reproducible source-only auditor is `tools/art/audit_original_mesen24_upper_shift.py`; its full 46-edge numeric receipt `analysis/data/racer-original-mesen24-source-upper-shifts-20261103.json` has SHA-256 **`b892a372cc8365e21848da3eb1fa0fa7d67c8fba94327f553064a70dc7ee15e7`**. Four cheap ROM-free tests verify zero-fill/no-wrap, exact 1px recovery on synthetic pixels, 23-edge original-source receipt identities, and fail-closed corrupt archive behavior. No new original ROM execution, unrelated CI workflow or shipping art modification is required.
+
+To reproduce:
+
+```sh
+python3 -m unittest tests.unit.test_audit_original_mesen24_upper_shift
+python3 -m tools.art.audit_original_mesen24_upper_shift \
+  --archive analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip \
+  --out /private/new/checked-source-upper-shifts.json
+```

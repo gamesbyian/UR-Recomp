@@ -67,6 +67,22 @@ class OriginalPhaseSupport2DNullTests(unittest.TestCase):
             self.assertTrue(0<=row["pooled_iou"]<=1)
             self.assertTrue(0<=row["mean_per_orientation_iou"]<=1)
             self.assertGreater(row["pooled_intersection"]+row["pooled_false_negative"],0)
+        # Original-ROM source test at implementation head f6d7558e, Actions
+        # run 41785648962, 32 odd orientations. Freeze exact result, not
+        # merely a nonempty JSON report or a flattering fit claim.
+        frozen = {
+            "static_support": (613, 3099, 3124, 0.08967232),
+            "orbit_translation": (3410, 302, 327, 0.84426838),
+            "rigid_screen_rotation": (3477, 243, 260, 0.87361809),
+        }
+        for name, (tp, fp, fn, iou) in frozen.items():
+            row = report["summary"][name]
+            self.assertEqual(row["pooled_intersection"], tp)
+            self.assertEqual(row["pooled_false_positive"], fp)
+            self.assertEqual(row["pooled_false_negative"], fn)
+            self.assertAlmostEqual(row["pooled_iou"], iou, places=8)
+        self.assertGreater(report["summary"]["rigid_screen_rotation"]["pooled_iou"],
+                           report["summary"]["orbit_translation"]["pooled_iou"])
         print("OK ART4K_PHASE_SUPPORT_2D_NULL_TEST_SUMMARY",
               json.dumps(report["summary"],sort_keys=True))
 

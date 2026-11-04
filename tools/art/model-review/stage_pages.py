@@ -76,7 +76,7 @@ def stage(exports, site, source_commit):
         if (target.is_symlink() or not target.is_dir() or
                 not {"index.html", "manifest.json"}.issubset({p.name for p in target.iterdir()}) or
                 not {p.name for p in target.iterdir()}.issubset(
-                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original-index-lookup.json", "sprites", "sprites.json"}) or
+                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "original-mesen24", "original-index-lookup.json", "sprites", "sprites.json"}) or
                 not manifest_path.is_file() or manifest_path.is_symlink() or
                 json.loads(manifest_path.read_text()).get("model_url") is not None):
             raise ValueError("refusing to replace a non-placeholder model-review site")
@@ -99,7 +99,39 @@ def stage(exports, site, source_commit):
         shutil.copy2(here / "frame_hinge_hypothesis.mjs", work / "frame_hinge_hypothesis.mjs")
         shutil.copy2(here / "direct_drive_hypothesis.mjs", work / "direct_drive_hypothesis.mjs")
         shutil.copy2(here / "index_overlay.mjs", work / "index_overlay.mjs")
+        shutil.copy2(here / "original_mesen24_rail.mjs", work / "original_mesen24_rail.mjs")
         shutil.copy2(here.parents[2] / "analysis/data/racer-original-index-lookup-20261102.json", work / "original-index-lookup.json")
+        # Preserve the independently SHA-authenticated 24-tick original source
+        # rail when replacing the same Pages route with opt-in model GLBs.
+        original_rail = target / "original-mesen24"
+        if target.exists() and original_rail.exists():
+            if original_rail.is_symlink() or not original_rail.is_dir():
+                raise ValueError("redirected original Mesen24 source rail")
+            packet_path = original_rail / "source-poses.json"
+            if not packet_path.is_file() or packet_path.is_symlink():
+                raise ValueError("missing original Mesen24 source identity")
+            packet = json.loads(packet_path.read_text())
+            if (packet.get("schema") != "UR-ART4K-ORIGINAL-MESEN24-VIEWER-REFERENCE/1"
+                    or packet.get("original_1994_3D_mesh_camera_pose_recovered") is not False
+                    or packet.get("original_source_to_2026_GLB_joint_pose_verified") is not False
+                    or len(packet.get("frames", [])) != 48):
+                raise ValueError("original Mesen24 source identity changed")
+            expected = {"source-poses.json"}
+            for row in packet["frames"]:
+                name = row.get("png")
+                if (not isinstance(name, str)
+                        or not name.startswith(("blue-", "red-"))
+                        or not name.endswith(".png")
+                        or "/" in name or "\\\\" in name):
+                    raise ValueError("invalid original Mesen24 PNG filename")
+                path = original_rail / name
+                if (not path.is_file() or path.is_symlink()
+                        or digest(path) != row.get("png_sha256")):
+                    raise ValueError("original Mesen24 PNG identity mismatch")
+                expected.add(name)
+            if {item.name for item in original_rail.iterdir()} != expected:
+                raise ValueError("unexpected original Mesen24 source asset")
+            shutil.copytree(original_rail, work / "original-mesen24", symlinks=False)
         if target.exists() and (target / "sprites.json").is_file():
             source_dir = target / "sprites"
             if (source_dir.is_symlink() or not source_dir.is_dir() or

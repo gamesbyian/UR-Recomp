@@ -45,7 +45,10 @@ ARM_NAMES = ("static_original_2d","source_original_2d_rotation",
              "wheel_axle_root_only_mirror",
              "historical_midbody_root_only_mirror",
              "wheel_axle_relative_root_only_mirror",
-             "historical_midbody_relative_root_only_mirror")
+             "historical_midbody_relative_root_only_mirror",
+             "wheel_axle_root_frame_pitch_minus15",
+             "wheel_axle_root_frame_pitch_plus15")
+FRAME_PITCH_CONTROLS = (("minus15",-15.0),("plus15",15.0))
 
 
 def sha(payload: bytes) -> str:
@@ -265,8 +268,8 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
     if pointer["source_sha256"]!=SCAD_SHA or sha(outputs["glb"].read_bytes())!=pointer["glb_sha256"]:
         raise ValueError("source-owned real 2026 model not authenticated")
     scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
-    def model4(angle:int,pivot:str,drive:float):
-        apply_root_scene(scene,angle,pivot,drive,0)
+    def model4(angle:int,pivot:str,drive:float,frame_pitch:float=0.):
+        apply_root_scene(scene,angle,pivot,drive,frame_pitch)
         geom=(scene.to_geometry() if callable(getattr(scene,"to_geometry",None))
               else scene.dump(concatenate=True))
         return render_mask(np.asarray(geom.vertices),np.asarray(geom.faces),camera).astype(bool)
@@ -303,9 +306,9 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                         ("root_plus_phase",record["angle"],15.*record["phase"]),
                         ("relative_root_only",relative_angle,0.),
                         ("relative_root_plus_phase",relative_angle,15.*relative_phase)):
-                    key=(pivot,model_angle,delta)
+                    key=(pivot,model_angle,delta,0.)
                     if key not in model_masks:
-                        model_masks[key]=model4(model_angle,pivot,delta)
+                        model_masks[key]=model4(model_angle,pivot,delta,0.)
                     predictions[pivot+"_"+label]=registered_mask4(
                         model_masks[key],anchors[role],neutral_anchor)
                     if label in ("root_only","relative_root_only"):
@@ -316,6 +319,17 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                         predictions[pivot+"_"+label+"_mirror"]=registered_mask4(
                             source_horizontal_reflect4(model_masks[key]),
                             anchors[role],neutral_mirrored_anchor)
+            # One common, fixed genuine 2026 frame/saddle articulation
+            # per independent control arm, tested against BOTH original
+            # players. No extra root pivot, per-sprite camera, drive or
+            # model geometry adjustment. These two angles are predeclared
+            # candidate mechanics, NOT recovered 1994 source pitch degrees.
+            for label,pitch in FRAME_PITCH_CONTROLS:
+                key=("wheel_axle",record["angle"],0.,pitch)
+                if key not in model_masks:
+                    model_masks[key]=model4(record["angle"],"wheel_axle",0.,pitch)
+                predictions["wheel_axle_root_frame_pitch_"+label]=registered_mask4(
+                    model_masks[key],anchors[role],neutral_anchor)
             if set(predictions)!=set(ARM_NAMES):
                 raise ValueError("missing original 2D null or same real 3D candidate")
             scores[role][t]={
@@ -383,6 +397,9 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
         "unverified_physical_2026_wheel_deg_per_source_phase":15,
         "unverified_physical_2026_root_angle_deg_per_source_index":360/64,
         "source_first_tick_absolute_and_relative_rig_controls_both_scored":True,
+        "candidate_frame_pitch_tested_at_fixed_degrees":[pitch for _,pitch in FRAME_PITCH_CONTROLS],
+        "candidate_frame_pitch_only_on_original_absolute_axle_root":True,
+        "candidate_frame_pitch_predeclared_once_not_fit_per_source_player_or_frame":True,
         "source_original_tick1601_reference_phase_orientation_by_player":{
             role:{"phase":r["phase"],"orientation":r["angle"]}
             for role,r in original_refs.items()},
@@ -423,7 +440,9 @@ def main():
                           "historical_midbody_relative_root_only",
                           "static_2026_3d_mirror",
                           "wheel_axle_root_only_mirror",
-                          "historical_midbody_relative_root_only_mirror")},
+                          "historical_midbody_relative_root_only_mirror",
+                          "wheel_axle_root_frame_pitch_minus15",
+                          "wheel_axle_root_frame_pitch_plus15")},
               sort_keys=True))
     print("ART4K_ORIGINAL_REAL_GLB_FIXED_PIVOT_VS_2D",
           json.dumps({arm:{role:{key:row[key] for key in

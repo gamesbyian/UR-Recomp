@@ -69,7 +69,7 @@ class OriginalMesen24ReviewRailTests(unittest.TestCase):
             rgba = png_pixels(png)
             self.assertEqual(hashlib.sha256(rgba).hexdigest(), row["source_RGBA_sha256"])
             self.assertGreater(sum(rgba[3::4]),0)
-        with self.assertRaisesRegex(ValueError,"original 24-tick"):
+        with self.assertRaisesRegex(ValueError,"authenticated original"):
             export(rom, original+b"X", receipt)
 
 

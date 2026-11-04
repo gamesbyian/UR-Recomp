@@ -236,7 +236,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     model_review = Path(__file__).resolve().parent / "art/model-review"
     review_target = target / "model-review"
     review_target.mkdir()
-    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs"):
+    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs"):
         shutil.copyfile(model_review / filename, review_target / filename)
     # This numeric look-up is original-USA-ROM/PNG-SHA-bound; never a 3D part label.
     shutil.copyfile(Path(__file__).resolve().parents[1] / "analysis/data/racer-original-index-lookup-20261102.json",
@@ -283,6 +283,20 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         "source_sha256": stock_corpus["historical_manifest_declared_rom_sha256"],
         "sprite_3d_pose_mapping_verified": False,
         "frames": sprite_rows}, indent=2) + "\n", encoding="utf-8")
+    # Optional source-exact 24-tick 2D chronology is a separate visual rail.
+    # Never bind source ROM phase/orientation indices to a speculative GLB joint.
+    from tools.art.export_original_mesen24_review_rail import export as exact_original_rail
+    repo_root = Path(__file__).resolve().parents[1]
+    rail_packet, rail_assets = exact_original_rail(
+        (repo_root / "reference/roms/retail/Uniracers_USA.sfc").read_bytes(),
+        (repo_root / "analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip").read_bytes(),
+        (repo_root / "analysis/data/racer-original-mesen24-exact-ROM-pose-IDs-20261103.json").read_bytes())
+    rail_folder = review_target / "original-mesen24"
+    rail_folder.mkdir()
+    for filename, blob in rail_assets.items():
+        (rail_folder / filename).write_bytes(blob)
+    (rail_folder / "source-poses.json").write_text(
+        json.dumps(rail_packet, sort_keys=True, indent=2) + "\\n", encoding="utf-8")
     published = []
     exe_digest = None
     # Reviewed, content-addressed incidental snapshots from the repository.

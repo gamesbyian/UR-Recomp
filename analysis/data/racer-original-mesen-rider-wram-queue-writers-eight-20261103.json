@@ -1,0 +1,1629 @@
+{
+  "schema": "UR-ART4K-EXECUTED-MESEN-RIDER-WRAM-DMA-CALLBACK-8TICKS/1",
+  "source_workflow_run_id": 41773225199,
+  "source_workflow_job_id": 126387503637,
+  "source_workflow_execution_head": "58952694a712338f39c63d19aac4614f400e2119",
+  "source_original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_replay": "tests/input/two-player-first-race.input",
+  "source_emulator_revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+  "original_selected_bridge_ticks": [
+    1601,
+    1602,
+    1603,
+    1605,
+    1606,
+    1609,
+    1610,
+    1624
+  ],
+  "observed_ordinary_phase_orientation_index_matches_all_samples": true,
+  "observed_selected_graphics_id_equals_P2_queued_at_all_samples": true,
+  "WRAM_active_rider_context_alone_proves_P2_geometry": false,
+  "source_callback_frame_equals_PPU_held_sample_frame": false,
+  "source_specific_CPU_WRAM_writer_callbacks_observed": true,
+  "source_specific_CPU_to_original_64px_racer_vram_tile_ownership_verified": false,
+  "original_3D_articulated_skeleton_camera_or_pose_recovered": false,
+  "owner_likeness_approved": false,
+  "rows": [
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54336,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 1401,
+        "p2_queued_graphics_id_0feb": 381,
+        "selected_rider_angle_0f49": 61,
+        "selected_rider_animation_phase_0f83": 5,
+        "selected_rider_graphics_id_0f97": 381,
+        "selected_rider_motion_delta_0f69": 6,
+        "selected_rider_orientation_0f77": 61
+      },
+      "WRAM_SHA256": "8313bd2de18950ef6fc42090e789288207a26329c97aff6b49332245b481dab8",
+      "callback_alignment_verified": false,
+      "tick": 1601,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 74942382,
+          "source_CPU_master_clock": 571738026,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 57,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 74946583,
+          "source_CPU_master_clock": 571773600,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 4,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 74946584,
+          "source_CPU_master_clock": 571773608,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 121,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 74949689,
+          "source_CPU_master_clock": 571795148,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 5,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 74949690,
+          "source_CPU_master_clock": 571795156,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 121,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 74950538,
+          "source_CPU_master_clock": 571801368,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 5,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 74950539,
+          "source_CPU_master_clock": 571801376,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 253,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 74951390,
+          "source_CPU_master_clock": 571807634,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 74951391,
+          "source_CPU_master_clock": 571807642,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 125,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 74955382,
+          "source_CPU_master_clock": 571835728,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 74955383,
+          "source_CPU_master_clock": 571835736,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 125,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 74956235,
+          "source_CPU_master_clock": 571841996,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 74956236,
+          "source_CPU_master_clock": 571842004,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 64,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 74972415,
+          "source_CPU_master_clock": 571955332,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 212,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 74972416,
+          "source_CPU_master_clock": 571955340,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 74972435,
+          "source_CPU_master_clock": 571955460,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 74972436,
+          "source_CPU_master_clock": 571955468,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 74972455,
+          "source_CPU_master_clock": 571955592,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 74972456,
+          "source_CPU_master_clock": 571955600,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1600,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 74978744,
+          "source_CPU_master_clock": 571999640,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54336,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 121,
+        "p2_queued_graphics_id_0feb": 572,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 8,
+        "selected_rider_graphics_id_0f97": 572,
+        "selected_rider_motion_delta_0f69": 8,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "5b88df6f4f3c8b405b7be9143af69b875e5b6ded5c0c828364a8ae17e95e8a05",
+      "callback_alignment_verified": false,
+      "tick": 1602,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 74993000,
+          "source_CPU_master_clock": 572095428,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 121,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 74997110,
+          "source_CPU_master_clock": 572130246,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 5,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 74997111,
+          "source_CPU_master_clock": 572130254,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 121,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75001153,
+          "source_CPU_master_clock": 572158260,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75001154,
+          "source_CPU_master_clock": 572158268,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 121,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75002002,
+          "source_CPU_master_clock": 572164488,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75002003,
+          "source_CPU_master_clock": 572164496,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 125,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75002854,
+          "source_CPU_master_clock": 572170750,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75002855,
+          "source_CPU_master_clock": 572170758,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 60,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75005926,
+          "source_CPU_master_clock": 572192406,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 2,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75005927,
+          "source_CPU_master_clock": 572192414,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 60,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75006779,
+          "source_CPU_master_clock": 572198720,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 2,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75006780,
+          "source_CPU_master_clock": 572198728,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 64,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75024649,
+          "source_CPU_master_clock": 572323758,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 212,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75024650,
+          "source_CPU_master_clock": 572323766,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75024669,
+          "source_CPU_master_clock": 572323886,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75024670,
+          "source_CPU_master_clock": 572323894,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75024689,
+          "source_CPU_master_clock": 572324018,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75024690,
+          "source_CPU_master_clock": 572324026,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1601,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 75031065,
+          "source_CPU_master_clock": 572368684,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54336,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 441,
+        "p2_queued_graphics_id_0feb": 764,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 11,
+        "selected_rider_graphics_id_0f97": 764,
+        "selected_rider_motion_delta_0f69": 8,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "ead98239bff66b232c5b01e858a8ec81735165178a49298b6157abd8afc560f7",
+      "callback_alignment_verified": false,
+      "tick": 1603,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 75043586,
+          "source_CPU_master_clock": 572452796,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 121,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75047835,
+          "source_CPU_master_clock": 572488954,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75047836,
+          "source_CPU_master_clock": 572488962,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 185,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75050941,
+          "source_CPU_master_clock": 572510504,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75050942,
+          "source_CPU_master_clock": 572510512,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 185,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75051790,
+          "source_CPU_master_clock": 572516744,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75051791,
+          "source_CPU_master_clock": 572516752,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 60,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75052642,
+          "source_CPU_master_clock": 572522988,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 2,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75052643,
+          "source_CPU_master_clock": 572522996,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 252,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75056609,
+          "source_CPU_master_clock": 572550924,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 2,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75056610,
+          "source_CPU_master_clock": 572550932,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 252,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75057462,
+          "source_CPU_master_clock": 572557168,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 2,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75057463,
+          "source_CPU_master_clock": 572557176,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 64,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75072004,
+          "source_CPU_master_clock": 572659070,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 212,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75072005,
+          "source_CPU_master_clock": 572659078,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75072024,
+          "source_CPU_master_clock": 572659238,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75072025,
+          "source_CPU_master_clock": 572659246,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75072044,
+          "source_CPU_master_clock": 572659370,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75072045,
+          "source_CPU_master_clock": 572659378,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1602,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 75078420,
+          "source_CPU_master_clock": 572704000,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54720,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 1018,
+        "p2_queued_graphics_id_0feb": 1084,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 16,
+        "selected_rider_graphics_id_0f97": 1084,
+        "selected_rider_motion_delta_0f69": 8,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "f93b57e8b21e3b2376f95c85a9bd5e364349ff76fa9d176090ba6c924cdb0c32",
+      "callback_alignment_verified": false,
+      "tick": 1605,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 75144776,
+          "source_CPU_master_clock": 573167490,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 249,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75149146,
+          "source_CPU_master_clock": 573204384,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 2,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75149147,
+          "source_CPU_master_clock": 573204392,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 250,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75152175,
+          "source_CPU_master_clock": 573225410,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 3,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75152176,
+          "source_CPU_master_clock": 573225418,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 250,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75153024,
+          "source_CPU_master_clock": 573231660,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 3,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75153025,
+          "source_CPU_master_clock": 573231668,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 188,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75153876,
+          "source_CPU_master_clock": 573237918,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 3,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75153877,
+          "source_CPU_master_clock": 573237926,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 60,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75157711,
+          "source_CPU_master_clock": 573264930,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 4,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75157712,
+          "source_CPU_master_clock": 573264938,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 60,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75158564,
+          "source_CPU_master_clock": 573271206,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 4,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75158565,
+          "source_CPU_master_clock": 573271214,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 192,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75176518,
+          "source_CPU_master_clock": 573396796,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 213,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75176519,
+          "source_CPU_master_clock": 573396804,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75176538,
+          "source_CPU_master_clock": 573396924,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75176539,
+          "source_CPU_master_clock": 573396932,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75176558,
+          "source_CPU_master_clock": 573397096,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75176559,
+          "source_CPU_master_clock": 573397104,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1604,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 75183110,
+          "source_CPU_master_clock": 573442992,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54720,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 1338,
+        "p2_queued_graphics_id_0feb": 1276,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 19,
+        "selected_rider_graphics_id_0f97": 1276,
+        "selected_rider_motion_delta_0f69": 9,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "e2eb99bb0737f82cff77f1e9f3ac7a1aa5344f5bc481c2abb6d2b7b5ef233115",
+      "callback_alignment_verified": false,
+      "tick": 1606,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 75195302,
+          "source_CPU_master_clock": 573524888,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 250,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75199589,
+          "source_CPU_master_clock": 573561834,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 3,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75199590,
+          "source_CPU_master_clock": 573561842,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 58,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75203489,
+          "source_CPU_master_clock": 573588994,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 5,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75203490,
+          "source_CPU_master_clock": 573589002,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 58,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75204338,
+          "source_CPU_master_clock": 573595212,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 5,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75204339,
+          "source_CPU_master_clock": 573595220,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 60,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75205190,
+          "source_CPU_master_clock": 573601482,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 4,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75205191,
+          "source_CPU_master_clock": 573601490,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 252,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75208104,
+          "source_CPU_master_clock": 573622012,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 4,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75208105,
+          "source_CPU_master_clock": 573622020,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 252,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75208957,
+          "source_CPU_master_clock": 573628320,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 4,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75208958,
+          "source_CPU_master_clock": 573628328,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 192,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75225162,
+          "source_CPU_master_clock": 573741756,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 213,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75225163,
+          "source_CPU_master_clock": 573741764,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75225182,
+          "source_CPU_master_clock": 573741884,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75225183,
+          "source_CPU_master_clock": 573741892,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75225202,
+          "source_CPU_master_clock": 573742016,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75225203,
+          "source_CPU_master_clock": 573742024,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1605,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 75231754,
+          "source_CPU_master_clock": 573787922,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54720,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 698,
+        "p2_queued_graphics_id_0feb": 316,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 4,
+        "selected_rider_graphics_id_0f97": 316,
+        "selected_rider_motion_delta_0f69": 8,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "5b0c0cb21a08794a690f1a9f77dab36d2d9c200167d3d056a06d5d862e0009e1",
+      "callback_alignment_verified": false,
+      "tick": 1609,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 75346727,
+          "source_CPU_master_clock": 574596958,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 122,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75351030,
+          "source_CPU_master_clock": 574633850,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75351031,
+          "source_CPU_master_clock": 574633858,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 186,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75354009,
+          "source_CPU_master_clock": 574654498,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 2,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75354010,
+          "source_CPU_master_clock": 574654506,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 186,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75354858,
+          "source_CPU_master_clock": 574660788,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 2,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75354859,
+          "source_CPU_master_clock": 574660796,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 124,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75355710,
+          "source_CPU_master_clock": 574667030,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75355711,
+          "source_CPU_master_clock": 574667038,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 60,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75359541,
+          "source_CPU_master_clock": 574693974,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75359542,
+          "source_CPU_master_clock": 574693982,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 60,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75360394,
+          "source_CPU_master_clock": 574700272,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75360395,
+          "source_CPU_master_clock": 574700280,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 192,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75378396,
+          "source_CPU_master_clock": 574826200,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 213,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75378397,
+          "source_CPU_master_clock": 574826208,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75378416,
+          "source_CPU_master_clock": 574826328,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75378417,
+          "source_CPU_master_clock": 574826336,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75378436,
+          "source_CPU_master_clock": 574826460,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75378437,
+          "source_CPU_master_clock": 574826468,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1608,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 75384988,
+          "source_CPU_master_clock": 574872384,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54720,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 954,
+        "p2_queued_graphics_id_0feb": 508,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 7,
+        "selected_rider_graphics_id_0f97": 508,
+        "selected_rider_motion_delta_0f69": 9,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "5769c95b3b509428a2b4b9c16bf194eed9b5689ad220afedba81fcb5777294ce",
+      "callback_alignment_verified": false,
+      "tick": 1610,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 75397192,
+          "source_CPU_master_clock": 574954356,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 186,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75401601,
+          "source_CPU_master_clock": 574992054,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 2,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 75401602,
+          "source_CPU_master_clock": 574992062,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 186,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75405501,
+          "source_CPU_master_clock": 575019224,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 3,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75405502,
+          "source_CPU_master_clock": 575019232,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 186,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75406350,
+          "source_CPU_master_clock": 575025468,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 3,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 75406351,
+          "source_CPU_master_clock": 575025476,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 60,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75407202,
+          "source_CPU_master_clock": 575031768,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 75407203,
+          "source_CPU_master_clock": 575031776,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 252,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75410120,
+          "source_CPU_master_clock": 575052316,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 75410121,
+          "source_CPU_master_clock": 575052324,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 252,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75410973,
+          "source_CPU_master_clock": 575058562,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 75410974,
+          "source_CPU_master_clock": 575058570,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 192,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75427142,
+          "source_CPU_master_clock": 575171832,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 213,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 75427143,
+          "source_CPU_master_clock": 575171840,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75427162,
+          "source_CPU_master_clock": 575171960,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 75427163,
+          "source_CPU_master_clock": 575171968,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75427182,
+          "source_CPU_master_clock": 575172092,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 75427183,
+          "source_CPU_master_clock": 575172100,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1609,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 75433734,
+          "source_CPU_master_clock": 575218008,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    },
+    {
+      "WRAM": {
+        "dma_queue_pending_0306": 1,
+        "first_dma_source_address_1645": 54720,
+        "first_dma_source_bank_15a1": 39,
+        "first_dma_vram_destination_16e9": 24608,
+        "p1_queued_graphics_id_0fe9": 442,
+        "p2_queued_graphics_id_0feb": 1468,
+        "selected_rider_angle_0f49": 60,
+        "selected_rider_animation_phase_0f83": 22,
+        "selected_rider_graphics_id_0f97": 1468,
+        "selected_rider_motion_delta_0f69": 8,
+        "selected_rider_orientation_0f77": 60
+      },
+      "WRAM_SHA256": "1148be3d2b6a84b32f77ca29a0b448e9e369f243038468cce030ccb46b56ca8d",
+      "callback_alignment_verified": false,
+      "tick": 1624,
+      "writer_events": [
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:B8BA",
+          "source_CPU_cycle_count": 76104015,
+          "source_CPU_master_clock": 579957448,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 122,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 76108217,
+          "source_CPU_master_clock": 579993546,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 0,
+          "source_CPU_PC": "$82:8B72",
+          "source_CPU_cycle_count": 76108218,
+          "source_CPU_master_clock": 579993554,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 186,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 76112121,
+          "source_CPU_master_clock": 580020668,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 76112122,
+          "source_CPU_master_clock": 580020676,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 186,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 76112970,
+          "source_CPU_master_clock": 580026902,
+          "source_byte_address": 4073,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 1,
+          "source_CPU_PC": "$82:8E72",
+          "source_CPU_cycle_count": 76112971,
+          "source_CPU_master_clock": 580026910,
+          "source_byte_address": 4074,
+          "watched_source_word": "p1_graphics_0fe9"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 252,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 76113822,
+          "source_CPU_master_clock": 580033148,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 4,
+          "source_CPU_PC": "$82:907A",
+          "source_CPU_cycle_count": 76113823,
+          "source_CPU_master_clock": 580033156,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 188,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 76116715,
+          "source_CPU_master_clock": 580053530,
+          "source_byte_address": 3991,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 5,
+          "source_CPU_PC": "$83:EF0F",
+          "source_CPU_cycle_count": 76116716,
+          "source_CPU_master_clock": 580053538,
+          "source_byte_address": 3992,
+          "watched_source_word": "selected_graphics_0f97"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 188,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 76117568,
+          "source_CPU_master_clock": 580059794,
+          "source_byte_address": 4075,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 5,
+          "source_CPU_PC": "$82:9360",
+          "source_CPU_cycle_count": 76117569,
+          "source_CPU_master_clock": 580059802,
+          "source_byte_address": 4076,
+          "watched_source_word": "p2_graphics_0feb"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 192,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 76135459,
+          "source_CPU_master_clock": 580185022,
+          "source_byte_address": 5701,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 213,
+          "source_CPU_PC": "$83:F21D",
+          "source_CPU_cycle_count": 76135460,
+          "source_CPU_master_clock": 580185030,
+          "source_byte_address": 5702,
+          "watched_source_word": "first_dma_source_address_1645"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 39,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 76135479,
+          "source_CPU_master_clock": 580185150,
+          "source_byte_address": 5537,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 0,
+          "source_CPU_PC": "$83:F22A",
+          "source_CPU_cycle_count": 76135480,
+          "source_CPU_master_clock": 580185158,
+          "source_byte_address": 5538,
+          "watched_source_word": "first_dma_bank_15a1"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 32,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 76135499,
+          "source_CPU_master_clock": 580185282,
+          "source_byte_address": 5865,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 96,
+          "source_CPU_PC": "$83:F26E",
+          "source_CPU_cycle_count": 76135500,
+          "source_CPU_master_clock": 580185290,
+          "source_byte_address": 5866,
+          "watched_source_word": "first_dma_vram_destination_16e9"
+        },
+        {
+          "bridge_callback_frame": 1623,
+          "byte_written": 1,
+          "source_CPU_PC": "$83:F295",
+          "source_CPU_cycle_count": 76142051,
+          "source_CPU_master_clock": 580231164,
+          "source_byte_address": 774,
+          "watched_source_word": "dma_pending_0306"
+        }
+      ]
+    }
+  ]
+}

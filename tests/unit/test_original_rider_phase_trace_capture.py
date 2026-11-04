@@ -79,7 +79,8 @@ class SourceRiderPhaseTraceTests(unittest.TestCase):
                          '"watch.delete"','"breakpoint.create"',
                          '"snesWorkRam"','"snesPrgRom"','source_rom_sha256',
                          'shared_working_phase_angle_not_per_player_bone_identity',
-                         'original_1994_3d_rig_camera_or_joint_angles_recovered'):
+                         'original_1994_3d_rig_camera_or_joint_angles_recovered',
+                         'original_source_frame_skipping_explicitly_disabled'):
             self.assertIn(required,s)
 
     def test_manual_workflow_unchanged_default_and_bounded_override(self):
@@ -89,6 +90,7 @@ class SourceRiderPhaseTraceTests(unittest.TestCase):
         self.assertIn('if [[ "${{ inputs.trace_rider_state }}" == "true" ]]',w)
         self.assertIn('--advance-frames "${{ inputs.advance_frames || 1218 }}"',w)
         self.assertIn('trace+=(--trace-rider-state)',w)
+        self.assertIn('MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"',w)
         self.assertIn("SYNCHRONIZED_RACER_COMPOSITION_CONFIRMED",w)
 
 

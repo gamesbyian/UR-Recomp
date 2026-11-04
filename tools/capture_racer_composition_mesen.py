@@ -171,6 +171,8 @@ def main() -> int:
     args = ap.parse_args()
     if not 0<=args.advance_frames<=2500:
         ap.error("original no-skip replay frame advance must be within 0..2500")
+    if args.trace_rider_state and os.environ.get("MESEN_SNES_DISABLE_FRAME_SKIPPING")!="1":
+        ap.error("source rider phase tracing requires original Mesen frame skipping disabled")
 
     rom = args.rom.read_bytes()
     if hashlib.sha256(rom).hexdigest()!="859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478":
@@ -345,6 +347,9 @@ def main() -> int:
     report = {
         "schema_version": 1,
         "original_source_rom_sha256": hashlib.sha256(rom).hexdigest(),
+        "original_source_frame_skipping_explicitly_disabled": (
+            os.environ.get("MESEN_SNES_DISABLE_FRAME_SKIPPING")=="1"
+        ),
         "original_replay_input_sha256": hashlib.sha256(args.input_file.read_bytes()).hexdigest(),
         "synchronized_original_composer_advance_frames": args.advance_frames,
         "original_source_wram_0x0000_to_0x17ff_captured_at_both_CPU_breakpoints": True,

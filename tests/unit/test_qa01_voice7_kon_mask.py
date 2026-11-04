@@ -50,7 +50,7 @@ class Voice7KonMaskTests(unittest.TestCase):
             if line == "audio_stats 0":
                 return {"event_count": 100, "produced": 0}
             if line == "audio_events 100 8000 1":
-                return {"oldest": 0, "first": 100, "scanned": 2,
+                return {"oldest": 0, "first": 100, "scanned": 2, "returned": 2,
                         "events": [event("0x81", 44900), event("0x80", 45000)]}
             self.fail(f"unexpected command {line}")
         capture = Mock()
@@ -69,10 +69,10 @@ class Voice7KonMaskTests(unittest.TestCase):
                     return {"event_count": 100, "produced": 0}
                 return {"event_count": state["head"], "produced": 47000}
             if line == "audio_events 100 8000 1":
-                return {"oldest": 0, "first": 100, "scanned": 1,
+                return {"oldest": 0, "first": 100, "scanned": 1, "returned": 1,
                         "events": [event("0x80", 45000)]}
             if line == "audio_events 101 1 1":
-                return {"oldest": 0, "first": 101, "scanned": 1,
+                return {"oldest": 0, "first": 101, "scanned": 1, "returned": 1,
                         "events": [event("0x81", 46000)]}
             self.fail(f"unexpected command {line}")
         def wav(*args, **kwargs):
@@ -94,7 +94,7 @@ class Voice7KonMaskTests(unittest.TestCase):
                     return {"event_count": 100, "produced": 0}
                 return {"event_count": 102, "produced": 47000}
             if line == "audio_events 100 8000 1":
-                return {"oldest": 0, "first": 100, "scanned": 2,
+                return {"oldest": 0, "first": 100, "scanned": 2, "returned": 2,
                         "events": [event("0x01", 44000), event("0x80", 45000)]}
             self.fail(f"unexpected command {line}")
         capture = Mock(return_value={"kon_sample_index": 45000, "sample_frames": 2500})

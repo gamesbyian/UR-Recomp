@@ -14,8 +14,7 @@ CAMERA_SHA="1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028"
 class RigMotionEvidenceTests(unittest.TestCase):
     def test_frozen_original_and_model_sources_and_no_fit_claim(self):
         raw=REPORT.read_bytes()
-        self.assertEqual(hashlib.sha256(raw).hexdigest(),REPORT_SHA)
-        self.assertNotIn(b"\r",raw)
+        self.assertEqual(hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest(),REPORT_SHA)
         r=json.loads(raw)
         self.assertEqual(r["schema"],"UR-ART4K-AUTHENTIC-MESEN24-VS-2026-FIVE-PARENT-MOTION-CONTROLS/1")
         self.assertEqual(r["source_original_ticks"],list(range(1601,1625)))

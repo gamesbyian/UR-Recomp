@@ -23,8 +23,7 @@ class OriginalMaterialMotionTests(unittest.TestCase):
         cls.report=json.loads(cls.raw)
 
     def test_exact_source_and_candidate_identity_without_historic_mapping(self):
-        self.assertEqual(hashlib.sha256(self.raw).hexdigest(),REPORT_SHA)
-        self.assertNotIn(b"\r",self.raw)
+        self.assertEqual(hashlib.sha256(self.raw.replace(b'\r\n', b'\n')).hexdigest(),REPORT_SHA)
         r=self.report
         self.assertEqual(r["schema"],"UR-ART4K-MESEN24-REAL-GLB-MOVING-MATERIAL-VS-ORIGINAL-INTERIOR/1")
         self.assertEqual(r["source_original_24tick_zip_sha256"],SOURCE_SHA)
@@ -39,6 +38,13 @@ class OriginalMaterialMotionTests(unittest.TestCase):
         self.assertTrue(r["source_original_replay_24tick_is_already_inspected_not_blind"])
         self.assertTrue(r["exact_256px_neutral_material_silhouette_and_five_part_renderer_agreement"])
         self.assertTrue(r["all_six_poses_pixel_identical_alpha_to_independent_renderer"])
+
+    def test_windows_crlf_normalization_still_detects_tampering(self):
+        normalized = self.raw.replace(b"\r\n", b"\n")
+        windows = normalized.replace(b"\n", b"\r\n")
+        self.assertEqual(hashlib.sha256(windows.replace(b"\r\n", b"\n")).hexdigest(), REPORT_SHA)
+        tampered = windows.replace(b'"schema"', b'"tampered_schema"', 1)
+        self.assertNotEqual(hashlib.sha256(tampered.replace(b"\r\n", b"\n")).hexdigest(), REPORT_SHA)
 
     def test_all_material_ids_coarsen_to_five_provisional_parent_parts(self):
         r=self.report

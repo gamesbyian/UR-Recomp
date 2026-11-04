@@ -9,8 +9,7 @@ SHA="fb64781ac7dfbb8de11012c2d569647358aca824cb6fc6cec073fbd795f39323"
 class EventPitchTests(unittest.TestCase):
     def test_source_receipt_pinned_and_no_original_3d_claim(self):
         raw=REPORT.read_bytes()
-        self.assertEqual(hashlib.sha256(raw).hexdigest(),SHA)
-        self.assertNotIn(b"\r",raw)
+        self.assertEqual(hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest(),SHA)
         r=json.loads(raw)
         self.assertEqual(r["schema"],"UR-ART4K-MESEN24-PREDECLARED-TWO-UPPER-EDGES-FRAME-STEP-CONTROL/1")
         self.assertEqual(r["original_source_archive_sha256"],"28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6")

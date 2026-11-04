@@ -48,6 +48,28 @@ class BrokerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             broker.submit(self.root, self.repo, "repo-status", self.sha, "agent-99")
 
+    def test_bounded_capture_rejects_noisy_child(self):
+        import os
+        import sys
+        result = broker.bounded_process(
+            [sys.executable, "-c",
+             "import sys; sys.stdout.write('x'*2000000); sys.stderr.write('y'*2000000)"],
+            self.repo, os.environ.copy(), timeout=15, output_limit=2048)
+        self.assertTrue(result["output_overflow"])
+        self.assertLessEqual(len(result["stdout"].encode("utf-8")), 2048)
+        self.assertLessEqual(len(result["stderr"].encode("utf-8")), 2048)
+
+    def test_bounded_capture_normal_output(self):
+        import os
+        import sys
+        result = broker.bounded_process(
+            [sys.executable, "-c", "print('safe')"],
+            self.repo, os.environ.copy(), timeout=15)
+        self.assertEqual(result["returncode"], 0)
+        self.assertEqual(result["stdout"].strip(), "safe")
+        self.assertFalse(result["output_overflow"])
+        self.assertFalse(result["pipe_read_incomplete"])
+
     def test_single_worker_lock(self):
         (self.root / "worker.lock").mkdir()
         self.assertEqual(broker.run_once(self.root, self.repo)["state"], "busy")

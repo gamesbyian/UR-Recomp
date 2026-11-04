@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import threading
 import time
 import uuid
 
@@ -141,6 +142,53 @@ def host_status():
         return {"available": False, "reason": f"{type(exc).__name__}: {exc}"}
 
 
+def bounded_process(command, cwd, env, timeout=45, output_limit=MAX_OUTPUT):
+    """Drain child pipes concurrently without accumulating unlimited output."""
+    process = subprocess.Popen(command, cwd=cwd, env=env, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, bufsize=0)
+    buffers = [bytearray(), bytearray()]
+    overflow = threading.Event()
+    readers_done = [threading.Event(), threading.Event()]
+
+    def drain(index, stream):
+        try:
+            while True:
+                chunk = stream.read(8192)
+                if not chunk:
+                    break
+                remain = max(0, output_limit - len(buffers[index]))
+                buffers[index].extend(chunk[:remain])
+                if len(chunk) > remain:
+                    overflow.set()
+                    try:
+                        process.kill()
+                    except OSError:
+                        pass
+                    break
+        finally:
+            readers_done[index].set()
+            stream.close()
+
+    threads = [threading.Thread(target=drain, args=(i, s), daemon=True)
+               for i, s in enumerate((process.stdout, process.stderr))]
+    for thread in threads:
+        thread.start()
+    timed_out = False
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        process.kill()
+        process.wait(timeout=5)
+    for thread in threads:
+        thread.join(timeout=2)
+    incomplete = any(not done.is_set() for done in readers_done)
+    return {"returncode": process.returncode, "stdout": buffers[0].decode("utf-8", "replace"),
+            "stderr": buffers[1].decode("utf-8", "replace"),
+            "output_overflow": overflow.is_set(),
+            "timed_out": timed_out, "pipe_read_incomplete": incomplete}
+
+
 def run_once(root, repo):
     lock = root / "worker.lock"
     try:
@@ -170,11 +218,16 @@ def run_once(root, repo):
             command = execute(repo, record)
             start = time.monotonic()
             env = dict(os.environ, PYTHONIOENCODING="utf-8")
-            result = subprocess.run(command, cwd=repo, capture_output=True, text=True,
-                                    encoding="utf-8", errors="replace", env=env, timeout=45)
-            record.update(state="complete" if result.returncode == 0 else "failed",
-                          exit_code=result.returncode, duration_s=round(time.monotonic() - start, 3),
-                          stdout=result.stdout[:MAX_OUTPUT], stderr=result.stderr[:MAX_OUTPUT])
+            result = bounded_process(command, cwd=repo, env=env)
+            ok = result["returncode"] == 0 and not any(
+                result[k] for k in ("output_overflow", "timed_out", "pipe_read_incomplete"))
+            record.update(state="complete" if ok else "failed",
+                          exit_code=result["returncode"],
+                          duration_s=round(time.monotonic() - start, 3),
+                          stdout=result["stdout"], stderr=result["stderr"],
+                          output_overflow=result["output_overflow"],
+                          timed_out=result["timed_out"],
+                          pipe_read_incomplete=result["pipe_read_incomplete"])
         except Exception as exc:
             record.update(state="failed", error=f"{type(exc).__name__}: {exc}")
         record["finished_utc"] = utc()

@@ -13,8 +13,12 @@ self-hosted GitHub Actions replacement, or authorization to run arbitrary PR cod
 - `agent-selector` runs the repository's selector for an agent only if the
   dedicated checkout is clean and HEAD equals the requested trusted commit.
 - Job payloads cannot specify shell commands, repository paths, environment,
-  arbitrary script names, or execution timeouts. Process output is capped;
-  subprocesses time out after 45 seconds.
+  arbitrary script names, or execution timeouts. Two concurrent pipe readers
+  retain at most 64 KiB per stream, killing the direct child on overflow and
+  recording a failed receipt. Direct subprocesses time out after 45 seconds.
+  Windows descendants may survive direct-child termination; no job type
+  launching descendant processes is permitted until job-object containment
+  and process-tree exit validation are implemented.
 - `run-once` attempts one pending job, writing a durable JSON success/failure
   receipt, then exits. A directory lock prohibits simultaneous runners.
   Its owner metadata records the worker PID and start time.

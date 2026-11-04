@@ -8,8 +8,10 @@ from unittest.mock import patch
 
 from tools.art.attribute_original_mesen_upper_to_real_glb_parts import (
     ARMS, UPPER_EVENTS, SCHEMA, PARTS, union_planes, attribute_bands,
-    main, analyze,
+    main, analyze, FROZEN_EVEN_SOURCE_CENTRE,
 )
+from tools.art.score_original_mesen24_fixed_pivot_glb import source_center
+
 
 
 class FrozenOriginalSourceAttributionTests(unittest.TestCase):
@@ -18,6 +20,22 @@ class FrozenOriginalSourceAttributionTests(unittest.TestCase):
         self.assertEqual(ARMS,(
             "absolute_wheel_axle_root","reference_relative_midbody_root"))
         self.assertIn("PARENT-ATTRIBUTION",SCHEMA)
+
+    def test_frozen_even_source_calibration_is_distinct_from_full_census(self):
+        self.assertEqual(FROZEN_EVEN_SOURCE_CENTRE,(31.515625,19.578125))
+        # A fully controlled 64-angle fixture with one x half-pixel offset
+        # and five y half-pixel offsets among the 32 even states.
+        boxes={str(k):[31,19,32,20] for k in range(64)}
+        boxes["2"]=[32,20,32,20]
+        for k in (4,6,8,10):
+            boxes[str(k)]=[31,20,32,20]
+        axis={"source_phase_variation_bbox_by_ROM_angle_index":boxes}
+        self.assertEqual(source_center(axis),FROZEN_EVEN_SOURCE_CENTRE)
+        # The original all-orientation census is a different denominator:
+        # odd entries must not leak into this fitted even-only source null.
+        boxes["3"]=[0,0,63,63]
+        self.assertEqual(source_center(axis),FROZEN_EVEN_SOURCE_CENTRE)
+        self.assertNotEqual(FROZEN_EVEN_SOURCE_CENTRE[1],19.5859375)
 
     def test_exclusive_model_parts_overlap_and_missing_source_are_distinct(self):
         source=bytearray(4096)

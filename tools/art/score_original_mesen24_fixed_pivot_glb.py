@@ -370,7 +370,7 @@ def main():
     print("ART4K_ORIGINAL_REAL_GLB_FIXED_Y_BAND_DIAGNOSTIC",
           json.dumps({
               arm:{role:row["pooled_fixed_source_y_band_alpha"]
-                   for role,row in result["arms"][arm].items()}
+                   for role,row in record["arms"][arm].items()}
               for arm in ("source_original_2d_rotation","static_2026_3d",
                           "wheel_axle_root_only","historical_midbody_root_only",
                           "wheel_axle_relative_root_only",

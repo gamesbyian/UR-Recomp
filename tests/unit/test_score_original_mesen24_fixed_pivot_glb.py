@@ -3,6 +3,11 @@ import json
 import math
 from pathlib import Path
 import unittest
+import tempfile
+import io
+import contextlib
+from unittest.mock import patch
+from tools.art import score_original_mesen24_fixed_pivot_glb as score_module
 
 from tools.art.score_original_mesen24_fixed_pivot_glb import (
     SCHEMA, ARM_NAMES, EVENTS, SELECTED,
@@ -111,6 +116,50 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
         source["source_phase_variation_bbox_by_ROM_angle_index"]["4"]=[-1,0,3,4]
         with self.assertRaisesRegex(ValueError,"bounding box"):
             source_center(source)
+
+    def test_cli_publishes_summary_without_undefined_local_or_model_run(self):
+        # Regress the real GHA failure after all expensive GLB/source renders
+        # completed: the last stdout summary referenced an undefined 'result'.
+        arms={
+            name:{
+                role:{
+                    "pooled_alpha_iou":0.5,
+                    "mean_alpha_iou":0.5,
+                    "pooled_fixed_source_y_band_alpha":{
+                        band:{"tp":1,"fp":0,"fn":0,"pooled_iou":1.0}
+                        for band,_,_ in SOURCE_Y_BANDS},
+                } for role in ("blue","red")
+            } for name in ARM_NAMES
+        }
+        record={"schema":SCHEMA,"arms":arms}
+        with tempfile.TemporaryDirectory() as td:
+            folder=Path(td)
+            inputs=[]
+            for index in range(4):
+                file=folder/f"input-{index}.bin"
+                file.write_bytes(b"fixture")
+                inputs.append(str(file))
+            output=folder/"new.json"
+            args=["score_original_mesen24_fixed_pivot_glb",
+                  "--source-zip",inputs[0],
+                  "--pose-report",inputs[1],
+                  "--axis-report",inputs[2],
+                  "--camera",inputs[3],
+                  "--verified-exports",str(folder),
+                  "--out",str(output)]
+            stdout=io.StringIO()
+            with patch("sys.argv",args),patch.object(
+                    score_module,"audit",return_value=record),contextlib.redirect_stdout(stdout):
+                score_module.main()
+            self.assertEqual(json.loads(output.read_text()),record)
+            self.assertIn("ART4K_ORIGINAL_REAL_GLB_FIXED_Y_BAND_DIAGNOSTIC",
+                          stdout.getvalue())
+            self.assertIn("ART4K_ORIGINAL_REAL_GLB_FIXED_PIVOT_VS_2D",
+                          stdout.getvalue())
+            with patch("sys.argv",args),patch.object(
+                    score_module,"audit",return_value=record),contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaises(FileExistsError):
+                    score_module.main()
 
     def test_missing_sha_checked_source_data_fails_before_any_model(self):
         with self.assertRaisesRegex(ValueError,"SHA mismatch"):

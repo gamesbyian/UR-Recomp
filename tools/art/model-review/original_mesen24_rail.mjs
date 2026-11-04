@@ -63,7 +63,7 @@ export async function mountOriginalMesen24Rail(host){
  tick.style.width='100%';tick.style.minHeight='44px';
  controls.append(player,tick);
  const image=document.createElement('img');image.width=224;image.height=192;
- image.alt='Authentic source sprite unavailable';image.style.cssText='width:224px;height:192px;object-fit:contain;image-rendering:pixelated';
+ image.alt='Authentic source sprite unavailable';image.style.cssText='width:224px;height:192px;object-fit:fill;image-rendering:pixelated';
  const note=document.createElement('div');note.className='tiny';
  note.textContent='Original ROM state integers only. Source selection never changes the experimental GLB, camera or material.';
  host.append(title,controls,image,status,note);

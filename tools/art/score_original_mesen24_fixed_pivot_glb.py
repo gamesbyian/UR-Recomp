@@ -43,10 +43,15 @@ def check_receipts(source_zip:bytes, pose_raw:bytes, axis_raw:bytes,
     if (sha(source_zip)!=ZIP_SHA or sha(pose_raw)!=POSE_SHA or
             sha(axis_raw)!=AXIS_SHA or sha(camera_raw)!=CAMERA_SHA):
         raise ValueError("authenticated original source/camera SHA mismatch")
-    from tools.art.audit_original_mesen_contiguous_24 import audit as audit_mesen
-    verified=audit_mesen(source_zip)
-    if verified["source_canonical_archive_sha256"]!=ZIP_SHA:
-        raise ValueError("original Mesen archive member-hash verification failed")
+    # The SHA-locked original archive from #3103 includes its 97 exact
+    # original emulator files. Its canonical auditor was introduced *after*
+    # this model-controller branch split from main. Preserve the precise
+    # entire-archive cryptographic oracle without copying that auditor into
+    # a competing model branch. CRC and selected-file length/pose hashes are
+    # independently checked below as additional fail-closed guards.
+    with zipfile.ZipFile(io.BytesIO(source_zip)) as z:
+        if z.testzip() is not None or len(z.namelist())!=97:
+            raise ValueError("original Mesen24 archive member integrity failed")
     pose=json.loads(pose_raw)
     axis=json.loads(axis_raw)
     camera=json.loads(camera_raw)
@@ -147,9 +152,11 @@ def read_original_roles(source_zip:bytes,pose:dict)->dict:
             frames[role]={}
             for t in [1601,*SELECTED[role]]:
                 desc=decode_oam(z.read(f"frame-{t:06d}-oam.bin"))[slot]
-                obj=decode_source_obj(desc,
-                    z.read(f"frame-{t:06d}-vram.bin"),
-                    z.read(f"frame-{t:06d}-cgram.bin"),
+                vram=z.read(f"frame-{t:06d}-vram.bin")
+                cgram=z.read(f"frame-{t:06d}-cgram.bin")
+                if len(vram)!=65536 or len(cgram)!=512:
+                    raise ValueError("original Mesen24 PPU member byte length invalid")
+                obj=decode_source_obj(desc,vram,cgram,
                     oam_mode=4,obj_base=0x6000,second_table_offset=0x1000)
                 pose_row=lookup[t]
                 phase=pose_row["source_primary_phase_index"]

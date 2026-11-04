@@ -5,7 +5,7 @@ import json
 import tempfile
 import unittest
 import wave
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import sys
 from unittest import mock
 
@@ -194,7 +194,7 @@ class NativeKonPCMTests(unittest.TestCase):
             seen = []
             def transport(line):
                 self.assertTrue(line.isascii())
-                self.assertIn(str(stage_root), line)
+                self.assertIn(pcm.wav_command_path(stage_root), line)
                 seen.append(line)
                 return self.command(path)(line)
             with mock.patch.object(pcm.os, "link", side_effect=OSError("cross-device")):
@@ -406,10 +406,11 @@ class NativeWavWirePathTests(unittest.TestCase):
                      "/tmp/has\ttab.wav"):
             with self.subTest(path=repr(name)):
                 with self.assertRaisesRegex(ValueError, "safely"):
-                    pcm.wav_command_path(Path(name))
+                    pcm.wav_command_path(PurePosixPath(name))
 
 
 
+@unittest.skipIf(sys.platform == "win32", "POSIX descriptor-relative receipt publication unavailable")
 class ReceiptPublicationPinnedDirectoryTests(unittest.TestCase):
     def test_normal_publication_and_existing_final_are_no_replace(self):
         with tempfile.TemporaryDirectory() as tmp:

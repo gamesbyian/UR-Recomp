@@ -23,6 +23,9 @@ from tools.art.experimental_fixed_root_orbit import apply_root_scene
 from tools.art.no_replace_report import publish_text_once
 
 SCHEMA="UR-ART4K-ORIGINAL-MESEN-UPPER-MOTION-REAL-2026-PARENT-ATTRIBUTION/1"
+# Even-orientation (0,2,...,62) source bbox centre; the full 64-state
+# vertical centre is 19.5859375 and is deliberately NOT interchangeable.
+FROZEN_EVEN_SOURCE_CENTRE=(31.515625,19.578125)
 UPPER_EVENTS={"blue":(1602,1603),"red":(1605,1606)}
 ARMS=("absolute_wheel_axle_root","reference_relative_midbody_root")
 
@@ -116,8 +119,8 @@ def analyze(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,
     source_reference={role:rows[1601] for role,rows in src.items()}
     sources_anchors={role:anchor(ref["alpha"]) for role,ref in source_reference.items()}
     source_pivot=source_center(axis)
-    if any(abs(a-b)>1e-8 for a,b in zip(source_pivot,(31.515625,19.5859375))):
-        raise ValueError("original ROM 64-orientation source pivot changed")
+    if tuple(source_pivot)!=FROZEN_EVEN_SOURCE_CENTRE:
+        raise ValueError("original ROM even-orientation source pivot changed")
 
     def one_real_pose(model_angle:int,pivot:str)->dict[str,bytes]:
         apply_root_scene(scene,model_angle,pivot,0.,0.)
@@ -203,6 +206,7 @@ def analyze(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,
         "source_original_Mesen24_zip_SHA256":sha(source_zip),
         "source_original_exact_ROM_pose_report_sha256":sha(pose_raw),
         "source_original_24x64_orientation_report_sha256":sha(axis_raw),
+        "source_even_orientation_calibration_pivot_xy":list(FROZEN_EVEN_SOURCE_CENTRE),
         "source_provisional_7_6_camera_sha256":sha(camera_raw),
         "source_existing_2026_SCAD_sha256":SOURCE_SCAD_SHA,
         "source_attempt_verified_2026_upright_GLB_sha256":sha(model),

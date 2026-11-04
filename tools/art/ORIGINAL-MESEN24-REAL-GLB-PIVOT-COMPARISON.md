@@ -82,6 +82,14 @@ The same source OAM-local 64px silhouette IoU, per-y-band source/candidate centr
 
 This runs inside the **same existing** CI real OpenSCAD-to-GLB export route as #3116/#3117, with 2026 source SCAD, original Mesen24 and exact ROM-phase/angle source data all SHA-verified, and no new workflow/emulator. The original 1994 pre-rendered sprites, PPU-index material semantics, camera, source physical degrees and owner visual approval remain unverified.
 
+## Independent authored saddle-mount pitch, after the shared frame-hinge result
+
+The tested common **±15° fork/frame+saddle** hinge in #3118 failed to improve original 2P silhouettes under a shared mechanical law: +15° improved blue total IoU **0.52846054→0.55511551** but worsened red **0.55107352→0.47091584**; −15° worsened both. The same untouched 2026 OpenSCAD source already exposes a **separately pivoted saddle(lean)** about its actual source-owned mount (the existing GLB saddle node, 2 of 16 material child meshes). That is a narrower 2026 candidate articulation with independently identifiable upper-region geometry: neutral source #3119 exact GLB raster assigns 56 upper image pixels to saddle, 18 to fork/frame, with 4 pixels overlapping. This is strictly **2026 candidate shape anatomy**, not proven original 1994 saddle animation.
+
+**New bounded hypothesis:** On the existing actual, SHA-verified 2026 GLB and the same eight authentic original Mesen24 selected blue/red PPU frames, maintain the exact pre-existing **absolute index axle-root** pose (crank/frame pitch 0) and one frozen camera/source registration. Test exactly **−15°** and **+15°** additional local saddle mounting rotation (2026 mechanical degrees) against the unchanged 0° arm. Unlike #3118, the tire, rim, pedals and fork/frame world transforms remain unchanged: a reversible context manager temporarily right-multiplies the original saddle local-parent matrix by source-world Y rotation around its authentic GLB mount, then restores the exact original parent matrix before the next GLB controller state. The same source y-band TP/FP/FN, centroids, original true-event change and full alpha metrics are recorded with all existing controls. No new 2026 saddle geometry, copied rig, camera, per-frame fitted lean, original ROM changes, emulator captures or standalone workflows.
+
+**Decision:** A fixed saddle-only tilt must improve the **upper** source region without worsening middle/lower and preferably both original racers before being considered a plausible globally shared model articulation. If only one player improves or both remain far below the rigid source-2D baseline, preserve the negative and seek better source pose/viewpoint evidence. No original 1994 joint, camera, physical lean or owner likeness approval is claimed by a numerical improvement.
+
 ## Reproduce from an already authenticated export
 
 ```sh

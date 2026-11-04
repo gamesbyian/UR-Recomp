@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
     SCHEMA,TICKS,ARMS,SADDLE_TRIALS,aggregate_original_timeline,main,analyze,
+    summary_for_exact_original_source,check_exact_source_evidence,
 )
 
 
@@ -105,6 +106,67 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
                          (19,.55176933,.55443157,.01771117))
         self.assertEqual(observed["red"]["axle_root_saddle_plus15"],
                          (23,.5819645,.58231923,.01641587))
+
+    def test_sha_authenticated_original_real_glb_golden_detects_any_drift(self):
+        path=Path(__file__).resolve().parents[2]/(
+            "analysis/data/racer-original-mesen24-saddle-temporal-evidence-20261104.json")
+        golden=json.loads(path.read_text())
+        self.assertEqual(golden["schema"],
+                         "UR-ART4K-EXACT-ORIGINAL-MESEN24-SADDLE-TEMPORAL-EVIDENCE/1")
+        producer=golden["producer"]
+        record={
+            "schema":SCHEMA,
+            "source_exact_original_Mesen24_archive_sha256":
+                producer["original_Mesen24_archive_sha256"],
+            "source_exact_ROM_phase_orientation_report_sha256":
+                producer["original_pose_report_sha256"],
+            "source_exact_64_angle_report_sha256":
+                producer["original_axis_sha256"],
+            "source_unchanged_7_6_camera_sha256":
+                producer["provisional_camera_sha256"],
+            "current_source_authored_2026_SCAD_sha256":
+                producer["current_2026_authored_SCAD_sha256"],
+            "original_1994_3D_mesh_camera_joint_or_source_materials_recovered":False,
+            "owner_2026_character_art_likeness_approved":False,
+            "original_source_per_role":{},
+        }
+        for role,arms in golden["reported_per_role"].items():
+            record["original_source_per_role"][role]={
+                "original_24_tick_samples":{str(t):{"authentic":True} for t in TICKS},
+                "arms":{
+                    arm:{
+                        "original_chronological_source_frame_count":24,
+                        "source_actual_timeline_edge_count":23,
+                        "original_unique_64px_binary_shape_count":row["unique_shapes"],
+                        "source_frame_pooled_alpha_iou":row["chronological_pooled_iou"],
+                        "source_unique_shape_equal_vote_mean_alpha_iou":
+                            row["unique_shape_equal_vote_mean_iou"],
+                        "source_actual_23_consecutive_edge_change_pooled_iou":
+                            row["real_23_tick_edge_change_pooled_iou"],
+                    } for arm,row in arms.items()
+                },
+            }
+        self.assertEqual(summary_for_exact_original_source(record),
+                         golden["reported_per_role"])
+        check_exact_source_evidence(record,golden)
+        import copy
+        bad=copy.deepcopy(record)
+        bad["original_source_per_role"]["red"]["arms"][
+            "axle_root_saddle_plus15"]["source_frame_pooled_alpha_iou"]+=.0001
+        with self.assertRaisesRegex(ValueError,"scores drifted"):
+            check_exact_source_evidence(bad,golden)
+        bad=copy.deepcopy(record)
+        bad["source_unchanged_7_6_camera_sha256"]="0"*64
+        with self.assertRaisesRegex(ValueError,"provenance changed"):
+            check_exact_source_evidence(bad,golden)
+        bad=copy.deepcopy(record)
+        del bad["original_source_per_role"]["blue"]["original_24_tick_samples"]["1601"]
+        with self.assertRaisesRegex(ValueError,"all 24 authentic"):
+            check_exact_source_evidence(bad,golden)
+        tampered=copy.deepcopy(golden)
+        tampered["producer"]["original_art_likeness_approved"]=True
+        with self.assertRaisesRegex(ValueError,"3D/art likeness"):
+            check_exact_source_evidence(record,tampered)
 
     def test_cli_no_replace_after_all_original_model_diagnostics(self):
         record={"schema":SCHEMA,"original_source_per_role":{

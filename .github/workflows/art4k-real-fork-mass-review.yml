@@ -4,6 +4,8 @@ on:
     paths:
       - ".github/workflows/art4k-real-fork-mass-review.yml"
       - "tools/art/export_articulated_unicycle.py"
+      - "tools/art/fingerprint_authored_glb_surface.py"
+      - "tests/unit/test_fingerprint_authored_glb_surface.py"
       - "tests/unit/test_export_articulated_unicycle.py"
   workflow_dispatch:
 permissions:
@@ -148,6 +150,39 @@ jobs:
               out.write(f"- Source fork material geometries differing: {distinct}; all other four source part surfaces verified oriented-triangle equivalent (buffer ordering may differ)\n")
               out.write("- No source 1994 3D pose, likeness or shipping art proof.\n")
           PY
+      - name: Compare source-identical real GLB geometry independent of temporary metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          from tools.art.fingerprint_authored_glb_surface import inspect_glb
+          root=Path(os.environ["RUNNER_TEMP"])
+          cases={}
+          for key in ("unchanged","fork-1p4"):
+              folder=root/key
+              pointer=json.loads((folder/"articulated_blockout_current.json").read_text())
+              source=(folder/pointer["glb_path"]).read_bytes()
+              report=inspect_glb(source,expected_sha256=pointer["glb_sha256"])
+              cases[key]=report
+          historic="bd4c68104c854226a5f769a3bf39b3a7ee56314b0f7e5e85cee98b933ad89932"
+          assert cases["unchanged"]["authored_2026_geometry_colour_parent_pose_fingerprint_sha256"]==historic
+          unchanged=cases["unchanged"]["source_materials"]
+          fork=cases["fork-1p4"]["source_materials"]
+          assert set(unchanged)==set(fork) and len(unchanged)==16
+          changed=[name for name in unchanged if unchanged[name]!=fork[name]]
+          assert changed and all(name.startswith("fork_and_frame__material_") for name in changed)
+          output={"source_2026_SCAD_sha256":cases["unchanged"]["source_SCAD_sha256_expected_but_must_verify_exporter_receipt"],
+                  "unchanged_GLb_sha256":cases["unchanged"]["input_GLb_sha256"],
+                  "fork1p4_GLb_sha256":cases["fork-1p4"]["input_GLb_sha256"],
+                  "unchanged_source_oriented_surface_sha256":historic,
+                  "fork_changed_material_nodes":changed,
+                  "only_source_fork_polygon_surfaces_changed":True,
+                  "1994_original_3D_likeness_recovered":False}
+          (root/"surface-comparison.json").write_text(json.dumps(output,indent=2,sort_keys=True)+"\n")
+          print("ART4K_REAL_2026_SOURCE_SURFACE_FINGERPRINT",json.dumps(output,sort_keys=True))
+          PY
       - name: Retain exact real GLB A/B source-built artifacts and receipts
         uses: actions/upload-artifact@v4
         with:
@@ -162,5 +197,6 @@ jobs:
             ${{ runner.temp }}/fork-1p4/attempts/*/unicycle_articulated_blockout.glb
             ${{ runner.temp }}/fork-1p4/attempts/*/articulated_blockout_receipt.json
             ${{ runner.temp }}/fork-comparison.json
+            ${{ runner.temp }}/surface-comparison.json
           if-no-files-found: error
           retention-days: 30

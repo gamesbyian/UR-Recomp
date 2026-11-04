@@ -1,6 +1,10 @@
 """No-ROM tests for exact-receipt fixed 2D projection-handedness control."""
 import copy
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
+import tools.art.evaluate_original_mesen_live_reflection_control as reflection
 
 from tools.art.evaluate_original_mesen_live_reflection_control import (
     evaluate, frozen_inputs, reflect64, lowest_alpha_x2, iou, SCHEMA,
@@ -8,6 +12,19 @@ from tools.art.evaluate_original_mesen_live_reflection_control import (
 
 
 class LiveReflectionControlTests(unittest.TestCase):
+    def test_frozen_receipts_accept_crlf_checkout_but_reject_tampering(self):
+        original = b'{"value": 1}\n'
+        with tempfile.TemporaryDirectory() as tmp:
+            receipt = Path(tmp) / "receipt.json"
+            receipt.write_bytes(original.replace(b"\n", b"\r\n"))
+            with patch.object(reflection, "DATA", Path(tmp)), patch.object(
+                reflection, "BLOBS", {receipt.name: reflection.git_blob_sha(original)}
+            ):
+                self.assertEqual(frozen_inputs(), ({"value": 1},))
+                receipt.write_bytes(b'{"value": 2}\r\n')
+                with self.assertRaisesRegex(ValueError, "frozen original/model receipt changed"):
+                    frozen_inputs()
+
     def test_reflecting_both_source_and_registered_model_preserves_iou_and_anchor(self):
         source = bytearray(4096)
         model = bytearray(4096)

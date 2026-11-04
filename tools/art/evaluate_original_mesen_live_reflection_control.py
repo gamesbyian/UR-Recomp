@@ -42,7 +42,10 @@ def frozen_inputs() -> tuple[dict, dict, dict]:
     packets = []
     for name, expected in BLOBS.items():
         raw = (DATA / name).read_bytes()
-        if git_blob_sha(raw) != expected:
+        # Git may check text receipts out with CRLF on Windows. Hash their
+        # canonical LF bytes while still rejecting substantive modifications.
+        canonical = raw.replace(b"\r\n", b"\n")
+        if git_blob_sha(canonical) != expected:
             raise ValueError(f"frozen original/model receipt changed: {name}")
         packets.append(json.loads(raw))
     return tuple(packets)

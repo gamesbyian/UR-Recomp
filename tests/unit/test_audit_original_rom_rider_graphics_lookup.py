@@ -33,7 +33,7 @@ class OriginalRiderLookupTests(unittest.TestCase):
                 default_index(*bad)
 
     def test_lorom_translation_and_pointer_bank_offset(self):
-        self.assertEqual(rom_offset(0x83,0xED33), 0x16D33)
+        self.assertEqual(rom_offset(0x83,0xED33), 0x1ED33)
         self.assertEqual(rom_offset(0x82,0xB8AB), 0x138AB)
         self.assertEqual(rom_offset(0xA0,0x8000), 0x100000)
         fake = bytearray(ROM_LENGTH)

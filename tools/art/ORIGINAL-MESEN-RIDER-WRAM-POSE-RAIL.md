@@ -32,6 +32,18 @@ Each optional frame carries only the declared `source_original_rider_work_ram_00
 
 **No new capture has been executed by this change.** In particular, no authenticated original 1994 model, rig, bone hierarchy, 3D camera, artwork likeness, source-to-2026 material semantics, original wheel rate, or shipping acceptance follows from merely implementing a WRAM sidecar. The current 2026 five-parent GLB remains experimental and draft #2832 remains unapproved.
 
+## Offline decoded candidate-word reader
+
+The proposed optional source rail is paired with `tools/art/audit_original_mesen_rider_wram_fields.py`, a standard-library-only post-processing tool. It first invokes the existing **entire PPU + optional WRAM original-capture manifest verifier**, including all SHA-bound OAM/VRAM/CGRAM/P6/WRAM files and exact original ROM/replay/Mesen source identities. It refuses legacy captures without the explicitly opted-in WRAM sidecar. It then emits the raw little-endian unsigned/signed 16-bit values at the documented candidate offsets, and independently SHA-pins the three 162-byte DMA list array slices. The first four raw u16 values and first sentinel `FFFF` position are reported as *potential queue memory*, never as a proven transfer. Source bytes, emulator frame-step, controller masks and executable SHA stay bound to each record.
+
+```sh
+python3 -m tools.art.audit_original_mesen_rider_wram_fields \\
+  --source-dir /private/new/mesen-original-ppu-plus-rider-wram/ \\
+  --out /private/new/original-rider-raw-candidate-words.json
+```
+
+This reader must **not** interpret the current-player scratch field `0F49` as persistent P1 orientation, claim queue entries are still pending post-NMI or identify a physical wheel angle from the raw 0F83 word. Four additional ROM-free tests cover signed little-endian interpretation, complete candidate field/queue slices, a same-tick synthetic live-capture roundtrip, tampering and correct refusal of default PPU-only archives. The offline reader produces no new source observation until an actual original emulator run has been performed.
+
 ## Qualification
 
 The opt-in must preserve existing regular Mesen raw PPU semantics. ROM-free synthetic tests require the exact 6144-byte read schedule, unchanged default selection, correct same-tick binding, SHA/metadata verification and refusal to overclaim CPU writer or 1994 pose, invalid boolean types, and emulator advancement during WRAM read. The existing Mesen workflow is the only integration point; no new hosted cron or recurring source-ROM workflow.

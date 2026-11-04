@@ -20,6 +20,7 @@ border-radius:8px;border:1px solid #465573}
 <div class="tiny" id="indexStatus" role="status">Authenticating original index evidence…</div>
 <div class="tiny" id="sourceInfo" role="status">Checking verified original-source frames…</div>
 <div class="tiny">Source sprite and 3D pose are independent selections. A source-authenticated 3D pose mapping is not yet available.</div></div>
+<div class="group" id="originalMesen24Rail" aria-label="Optional original 24 tick racer reference"></div>
 <div class="group" aria-labelledby="measurementTitle"><h2 id="measurementTitle">Experimental source comparison</h2>
 <button id="measureToggle" type="button" aria-expanded="false" aria-controls="measurements">Load verified comparisons</button>
 <div id="measureStatus" class="tiny" role="status">Optional original-sprite versus experimental-GLB measurements. No authentic pose mapping or camera reconstruction is claimed.</div>
@@ -49,6 +50,7 @@ import {applyWheelWidthHypothesis} from './wheel_hypothesis.mjs';
 import {rootLeanQuaternion,tireVisualLift} from './root_lean_hypothesis.mjs';
 import {frameHingeSourceRotation} from './frame_hinge_hypothesis.mjs';
 import {SOURCE_SHA,sourceDriveMatrix,sourcePhaseDelta,sourceCrankMatrix,sourceWheelPoseMatrix,sourceCrankDegrees,CRANK_STEPS} from './direct_drive_hypothesis.mjs';
+import {mountOriginalMesen24Rail} from './original_mesen24_rail.mjs';
 const $=id=>document.getElementById(id), stage=$('viewport'), scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(35,1,.01,200);
 camera.position.set(6,4.3,8);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;stage.append(renderer.domElement);
@@ -515,4 +517,5 @@ if(new URLSearchParams(location.search).has('art4k-still')){
 }
 }
 init();
+void mountOriginalMesen24Rail(document.getElementById('originalMesen24Rail'));
 </script></body></html>

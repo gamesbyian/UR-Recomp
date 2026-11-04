@@ -1,0 +1,486 @@
+{
+  "breakpoints": {
+    "post": {
+      "cpu": "83:F292",
+      "hit": {
+        "access": "exec",
+        "address": 127634,
+        "breakpoint": "breakpoint-2",
+        "cpuCycleCount": 55906189,
+        "cpuType": 0,
+        "frame": 1218,
+        "handle": "breakpoint-2",
+        "masterClock": 435481236,
+        "memoryType": "snesPrgRom",
+        "pc": 62098,
+        "pcBank": 131,
+        "pcDisplay": "$83:F292",
+        "value": 140
+      },
+      "rom_offset": 127634
+    },
+    "pre": {
+      "cpu": "83:F129",
+      "hit": {
+        "access": "exec",
+        "address": 127273,
+        "breakpoint": "breakpoint-1",
+        "cpuCycleCount": 55899599,
+        "cpuType": 0,
+        "frame": 1218,
+        "handle": "breakpoint-1",
+        "masterClock": 435433518,
+        "memoryType": "snesPrgRom",
+        "pc": 61737,
+        "pcBank": 131,
+        "pcDisplay": "$83:F129",
+        "value": 194
+      },
+      "rom_offset": 127273
+    }
+  },
+  "companion_enabled": {
+    "p1": true,
+    "p2": false
+  },
+  "companion_gate_words": {
+    "p1": "0x0001",
+    "p2": "0x0000"
+  },
+  "ids": {
+    "p1_companion": "0x0D0D",
+    "p1_primary": "0x0541",
+    "p2_companion": "0x0000",
+    "p2_primary": "0x0540"
+  },
+  "mask_checks": {
+    "actual_companion_raw": [
+      "0x3070",
+      "0x3030",
+      "0x0030",
+      "0x0078",
+      "0x0030"
+    ],
+    "actual_primary": [
+      "0x3070",
+      "0x3030",
+      "0x3030",
+      "0x7078",
+      "0x7030"
+    ],
+    "companion_raw_exact": true,
+    "expected_companion_effective": [
+      "0x3000",
+      "0x3000",
+      "0x0000",
+      "0x0000",
+      "0x0000"
+    ],
+    "expected_companion_raw": [
+      "0x3070",
+      "0x3030",
+      "0x0030",
+      "0x0078",
+      "0x0030"
+    ],
+    "expected_primary": [
+      "0x3070",
+      "0x3030",
+      "0x3030",
+      "0x7078",
+      "0x7030"
+    ],
+    "primary_exact": true
+  },
+  "purpose": "Reference-emulator synchronized proof of the four-record racer cache composer.",
+  "schema_version": 1,
+  "selectors": {
+    "p1": 0,
+    "p2": 0
+  },
+  "staging": {
+    "all_occupied_destinations_present": true,
+    "all_occupied_sources_exact": true,
+    "cells": [
+      {
+        "actual_sources": [
+          "39:AD60"
+        ],
+        "choice": "p1_companion",
+        "column": 2,
+        "expected_source": "39:AD60",
+        "matching_slots": [
+          0
+        ],
+        "player": "p1",
+        "row": 0,
+        "source_exact": true,
+        "vram_word": "0x6030"
+      },
+      {
+        "actual_sources": [
+          "39:AD80"
+        ],
+        "choice": "p1_companion",
+        "column": 3,
+        "expected_source": "39:AD80",
+        "matching_slots": [
+          1
+        ],
+        "player": "p1",
+        "row": 0,
+        "source_exact": true,
+        "vram_word": "0x6040"
+      },
+      {
+        "actual_sources": [
+          "27:8040"
+        ],
+        "choice": "p2_primary",
+        "column": 9,
+        "expected_source": "27:8040",
+        "matching_slots": [
+          2
+        ],
+        "player": "p2",
+        "row": 0,
+        "source_exact": true,
+        "vram_word": "0x60A0"
+      },
+      {
+        "actual_sources": [
+          "27:8060"
+        ],
+        "choice": "p2_primary",
+        "column": 10,
+        "expected_source": "27:8060",
+        "matching_slots": [
+          3
+        ],
+        "player": "p2",
+        "row": 0,
+        "source_exact": true,
+        "vram_word": "0x60B0"
+      },
+      {
+        "actual_sources": [
+          "27:8080"
+        ],
+        "choice": "p2_primary",
+        "column": 11,
+        "expected_source": "27:8080",
+        "matching_slots": [
+          4
+        ],
+        "player": "p2",
+        "row": 0,
+        "source_exact": true,
+        "vram_word": "0x60C0"
+      },
+      {
+        "actual_sources": [
+          "39:ADA0"
+        ],
+        "choice": "p1_companion",
+        "column": 2,
+        "expected_source": "39:ADA0",
+        "matching_slots": [
+          5
+        ],
+        "player": "p1",
+        "row": 1,
+        "source_exact": true,
+        "vram_word": "0x6130"
+      },
+      {
+        "actual_sources": [
+          "39:ADC0"
+        ],
+        "choice": "p1_companion",
+        "column": 3,
+        "expected_source": "39:ADC0",
+        "matching_slots": [
+          6
+        ],
+        "player": "p1",
+        "row": 1,
+        "source_exact": true,
+        "vram_word": "0x6140"
+      },
+      {
+        "actual_sources": [
+          "27:80A0"
+        ],
+        "choice": "p2_primary",
+        "column": 10,
+        "expected_source": "27:80A0",
+        "matching_slots": [
+          7
+        ],
+        "player": "p2",
+        "row": 1,
+        "source_exact": true,
+        "vram_word": "0x61B0"
+      },
+      {
+        "actual_sources": [
+          "27:80C0"
+        ],
+        "choice": "p2_primary",
+        "column": 11,
+        "expected_source": "27:80C0",
+        "matching_slots": [
+          8
+        ],
+        "player": "p2",
+        "row": 1,
+        "source_exact": true,
+        "vram_word": "0x61C0"
+      },
+      {
+        "actual_sources": [
+          "27:8260"
+        ],
+        "choice": "p1_primary",
+        "column": 2,
+        "expected_source": "27:8260",
+        "matching_slots": [
+          9
+        ],
+        "player": "p1",
+        "row": 2,
+        "source_exact": true,
+        "vram_word": "0x6230"
+      },
+      {
+        "actual_sources": [
+          "27:8280"
+        ],
+        "choice": "p1_primary",
+        "column": 3,
+        "expected_source": "27:8280",
+        "matching_slots": [
+          10
+        ],
+        "player": "p1",
+        "row": 2,
+        "source_exact": true,
+        "vram_word": "0x6240"
+      },
+      {
+        "actual_sources": [
+          "27:80E0"
+        ],
+        "choice": "p2_primary",
+        "column": 10,
+        "expected_source": "27:80E0",
+        "matching_slots": [
+          11
+        ],
+        "player": "p2",
+        "row": 2,
+        "source_exact": true,
+        "vram_word": "0x62B0"
+      },
+      {
+        "actual_sources": [
+          "27:8100"
+        ],
+        "choice": "p2_primary",
+        "column": 11,
+        "expected_source": "27:8100",
+        "matching_slots": [
+          12
+        ],
+        "player": "p2",
+        "row": 2,
+        "source_exact": true,
+        "vram_word": "0x62C0"
+      },
+      {
+        "actual_sources": [
+          "27:82A0"
+        ],
+        "choice": "p1_primary",
+        "column": 1,
+        "expected_source": "27:82A0",
+        "matching_slots": [
+          13
+        ],
+        "player": "p1",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x6320"
+      },
+      {
+        "actual_sources": [
+          "2C:9F60"
+        ],
+        "choice": "p1_primary",
+        "column": 2,
+        "expected_source": "2C:9F60",
+        "matching_slots": [
+          14
+        ],
+        "player": "p1",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x6330"
+      },
+      {
+        "actual_sources": [
+          "2C:9F80"
+        ],
+        "choice": "p1_primary",
+        "column": 3,
+        "expected_source": "2C:9F80",
+        "matching_slots": [
+          15
+        ],
+        "player": "p1",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x6340"
+      },
+      {
+        "actual_sources": [
+          "27:8120"
+        ],
+        "choice": "p2_primary",
+        "column": 9,
+        "expected_source": "27:8120",
+        "matching_slots": [
+          16
+        ],
+        "player": "p2",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x63A0"
+      },
+      {
+        "actual_sources": [
+          "2C:9F00"
+        ],
+        "choice": "p2_primary",
+        "column": 10,
+        "expected_source": "2C:9F00",
+        "matching_slots": [
+          17
+        ],
+        "player": "p2",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x63B0"
+      },
+      {
+        "actual_sources": [
+          "2C:9F20"
+        ],
+        "choice": "p2_primary",
+        "column": 11,
+        "expected_source": "2C:9F20",
+        "matching_slots": [
+          18
+        ],
+        "player": "p2",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x63C0"
+      },
+      {
+        "actual_sources": [
+          "27:8180"
+        ],
+        "choice": "p2_primary",
+        "column": 12,
+        "expected_source": "27:8180",
+        "matching_slots": [
+          19
+        ],
+        "player": "p2",
+        "row": 3,
+        "source_exact": true,
+        "vram_word": "0x63D0"
+      },
+      {
+        "actual_sources": [
+          "27:8300"
+        ],
+        "choice": "p1_primary",
+        "column": 1,
+        "expected_source": "27:8300",
+        "matching_slots": [
+          20
+        ],
+        "player": "p1",
+        "row": 4,
+        "source_exact": true,
+        "vram_word": "0x6420"
+      },
+      {
+        "actual_sources": [
+          "2C:9FA0"
+        ],
+        "choice": "p1_primary",
+        "column": 2,
+        "expected_source": "2C:9FA0",
+        "matching_slots": [
+          21
+        ],
+        "player": "p1",
+        "row": 4,
+        "source_exact": true,
+        "vram_word": "0x6430"
+      },
+      {
+        "actual_sources": [
+          "29:81C0"
+        ],
+        "choice": "p1_primary",
+        "column": 3,
+        "expected_source": "29:81C0",
+        "matching_slots": [
+          22
+        ],
+        "player": "p1",
+        "row": 4,
+        "source_exact": true,
+        "vram_word": "0x6440"
+      },
+      {
+        "actual_sources": [
+          "2C:9F40"
+        ],
+        "choice": "p2_primary",
+        "column": 10,
+        "expected_source": "2C:9F40",
+        "matching_slots": [
+          23
+        ],
+        "player": "p2",
+        "row": 4,
+        "source_exact": true,
+        "vram_word": "0x64B0"
+      },
+      {
+        "actual_sources": [
+          "2B:E920"
+        ],
+        "choice": "p2_primary",
+        "column": 11,
+        "expected_source": "2B:E920",
+        "matching_slots": [
+          24
+        ],
+        "player": "p2",
+        "row": 4,
+        "source_exact": true,
+        "vram_word": "0x64C0"
+      }
+    ],
+    "descriptor_count": 25,
+    "occupied_cells": 25,
+    "occupied_destinations_present": 25,
+    "occupied_sources_exact": 25
+  }
+}

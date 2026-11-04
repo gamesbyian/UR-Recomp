@@ -124,7 +124,7 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
         self.assertIn('        default: ""', workflow)
         self.assertIn("CAPTURE_TICKS: $" + "{{ github.event_name == 'pull_request' && '1601,1602,1603,1605,1606,1609,1610,1624' || inputs.capture_ticks || '' }}", workflow)
         self.assertIn("RIDER_CAPTURE: $" + "{{ github.event_name == 'pull_request' && '1' || inputs.include_rider_wram && '1' || '0' }}", workflow)
-        self.assertIn('rider_args=(--include-rider-wram)', workflow)
+        self.assertIn('rider_args+=(--include-rider-wram)', workflow)
         self.assertIn('print("ART4K_ORIGINAL_RIDER_BOUNDARY"', workflow)
         self.assertIn('selection=(--capture-ticks "$CAPTURE_TICKS")', workflow)
         self.assertIn('selection=(--advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES")', workflow)

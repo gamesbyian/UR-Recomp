@@ -17,6 +17,7 @@ on:
       - "media/windows-visual-atlas/**"
       - "tools/visual_atlas_web/**"
       - "tools/art/model-review/**"
+      - "tools/art/score_original_mesen24_fixed_pivot_glb.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"

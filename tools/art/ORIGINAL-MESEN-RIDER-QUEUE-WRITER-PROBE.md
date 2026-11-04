@@ -42,3 +42,26 @@ These PC values are the **emulator's callback program-counter readings**, often 
 **Next discriminating reconstruction step:** use exact ROM graphics pointer/queue architecture and the observed source phase/graphic IDs to map the queue's multiple VRAM destinations against the *specific* 64 source 8×8 tiles of OAM96/OAM97, including timing and source 4bpp colours. Confirm player/OAM assignments with original PPU tile-byte differences, then determine whether any source-aligned phase sequence meaningfully constrains wheel, fork, crank or saddle geometry. Preserve **source-original 2D tile-generation** as a competing hypothesis; don't convert a source 24-state integer into physical wheel degrees without proof. The unapproved 2026 GLB, viewer, owner visual likeness and Windows release remain separate.
 
 The four focused, ROM-free receipt tests recheck immutable Git blob bytes, original SHA/baseline, all eight actual `64×phase+orientation` relations, both queued graphics values, per-boundary 22-byte SHA-256, callback PC/address/frame data and no-3D claims. The prior exact-head real-Mesen run passed; a later docs/data commit does not claim a new emulator execution.
+
+## Executed full graphics queue: 233 original sprite-tile destinations
+
+Second exact original Mesen run [#41774019061](https://github.com/gamesbyian/UR-Recomp/actions/runs/41774019061), job `126390044838`, passed at implementation head `23a82d36c514347fae0e3d32844927a575b184c8`. It captured the three original 82-word DMA queue arrays (source bank WRAM `$15A1`, source address `$1645`, destination `$16E9`) at the same eight selected original game ticks. Each array's source `$FFFF` terminating bank word gives 27–30 entries, each representing a queued 32-byte original graphics transfer.
+
+**Crucial source address correction.** The original ROM's NMI transfer routine checks destination bit `$0080` and adds **`$0800` words** to the queued VRAM destination in that case, before writing `$2116`. Using that actual flag rule and the previously authenticated 64 tile addresses from each original 64×64 source OBJ produces the following exact address-region partition:
+
+| Original bridge tick | Queued tile transfers | Red OAM97 addresses | Blue OAM96 addresses | Unclassified |
+|---|---:|---:|---:|---:|
+| 1601 | 27 | 13 | 14 | 0 |
+| 1602 | 28 | 13 | 15 | 0 |
+| 1603 | 28 | 13 | 15 | 0 |
+| 1605 | 30 | 15 | 15 | 0 |
+| 1606 | 30 | 15 | 15 | 0 |
+| 1609 | 30 | 15 | 15 | 0 |
+| 1610 | 30 | 15 | 15 | 0 |
+| 1624 | 30 | 15 | 15 | 0 |
+
+**All 233/233 source queue destinations map into exactly one of the independently authenticated red or blue racer source sprite tile sets.** The first three observations show slightly shorter groups, while the last five have exactly five repetitions of the original red/red/red/blue/blue/blue interleaving. This is a strong executed linkage between game graphics selection, actual SNES DMA queue contents, and original sprite tiles. It does not prove that all 233 queued transfers were executed *before* the PPU image held at that same bridge tick. The source callback frame reported `tick−1`, and intra-frame PPU DMA/scanout timing is not independently aligned. The individual player graphic index to individual queued ROM source tile bytes is still to be verified; original 1994 3D geometry is not identified.
+
+Complete 233-entry *derived* receipt: `analysis/data/racer-original-mesen-rider-queue-vram-tile-mapping-eight-20261103.json`, Git blob `e1102a691ac6e5da738187ac83fb69afed6f1497`. It includes every original source bank/address, raw destination, NMI-adjusted destination, sprite colour role, queue terminator, source ROM hash, source 24-tick PPU hash and exact Mesen workflow/head provenance. The independent ROM-free test `tests.unit.test_original_mesen_rider_full_dma_queue_receipt` freezes 233 transfers, the 64+64 genuine OBJ tile-word address sets, every NMI flag adjustment, the exact interleaving, and the unproven 3D/scanout flags. No additional emulator work is required to reproduce the original queued *destination* classification.
+
+**Next actual geometry discriminator:** map the source ROM tile bytes referenced by each queued `source_bank_word:source_address_word` into exact 4bpp tiles and compare them to the authentic captured original VRAM tile payloads, with an explicit possible 1-frame/scanout timing offset. Only after assigning the graphics ID to source tile content should a source-aligned pose sampler drive or evaluate the experimental 2026 articulated GLB. The source's 24 phase states and 64 orientation indices are graphics-selection labels, not independently proved 15° wheel or 5.625° physical angle steps.

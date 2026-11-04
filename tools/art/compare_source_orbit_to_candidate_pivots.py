@@ -60,6 +60,75 @@ def source_backprojection(camera: dict, pixel: tuple[float, float]) -> dict:
     }
 
 
+def projected_2026_wheel_axle_root_orbit(camera:dict,
+                                           pivot:tuple[float,float,float],
+                                           source_orientation_index:int)->tuple[float,float]:
+    """One frozen provisional 3D root-angle hypothesis, one 2026 axle.
+
+    The whole 2026 GLB source is a lost-historical-rig **candidate only**.
+    The original 64 ROM orientation IDs are an uncalibrated 2D index system,
+    not measured physical 1994 degrees.
+    """
+    if (type(source_orientation_index) is not int or
+            not 0<=source_orientation_index<64 or
+            pivot not in CANDIDATE_PIVOTS.values()):
+        raise ValueError("one original 64-index state and a historical 2026 pivot required")
+    axle=CANDIDATE_PIVOTS["historical_2026_wheel_axle"]
+    theta=math.tau*source_orientation_index/64
+    c,s=math.cos(theta),math.sin(theta)
+    x=pivot[0]+c*(axle[0]-pivot[0])+s*(axle[2]-pivot[2])
+    y=pivot[1]+(axle[1]-pivot[1])
+    z=pivot[2]-s*(axle[0]-pivot[0])+c*(axle[2]-pivot[2])
+    return projection(camera,(x,y,z))
+
+
+def compare_full_64_source_orbit(camera:dict,source_boxes:dict)->dict:
+    if (not isinstance(source_boxes,dict) or
+            set(source_boxes)!={str(i) for i in range(64)}):
+        raise ValueError("original 64-state ROM phase-region box table required")
+    observed=[]
+    for k in range(64):
+        b=source_boxes[str(k)]
+        if (type(b) is not list or len(b)!=4 or
+                any(type(v) is not int for v in b) or
+                not 0<=b[0]<=b[2]<64 or not 0<=b[1]<=b[3]<64):
+            raise ValueError("invalid original 1994 source-region bounding box")
+        observed.append(((b[0]+b[2])/2,(b[1]+b[3])/2))
+    report={}
+    for name,pivot in CANDIDATE_PIVOTS.items():
+        predicted=[projected_2026_wheel_axle_root_orbit(camera,pivot,k)
+                   for k in range(64)]
+        total_raw=[0.,0.];total_displacement=[0.,0.]
+        for k,(sx,sy) in enumerate(observed):
+            for j,source_coord in enumerate((sx,sy)):
+                total_raw[j]+=(source_coord-predicted[k][j])**2
+                total_displacement[j]+=(
+                    (source_coord-observed[0][j])-
+                    (predicted[k][j]-predicted[0][j]))**2
+        raw_rmse=[math.sqrt(x/64) for x in total_raw]
+        relative_rmse=[math.sqrt(x/64) for x in total_displacement]
+        report[name]={
+            "historical_2026_fixed_source_world_pivot":list(pivot),
+            "model_wheel_axle_at_source_orientation_zero_xy":list(predicted[0]),
+            "model_wheel_axle_at_source_orientation_32_xy":list(predicted[32]),
+            "source_absolute_unfitted_pixel_xy_rmse":raw_rmse,
+            "source_angle_zero_reference_subtracted_pixel_xy_rmse":relative_rmse,
+            "source_angle_zero_reference_subtracted_7_6_display_xy_rmse":
+                [relative_rmse[0]*7/6,relative_rmse[1]],
+            "whole_2d_orbit_displacement_rmse_7_6_display_pixels":
+                math.hypot(relative_rmse[0]*7/6,relative_rmse[1]),
+            "original_1994_wheel_axle_location_measured":False,
+        }
+    return {
+        "original_ROM_source_orientation_count":64,
+        "source_angle_zero_region_center_source_xy":list(observed[0]),
+        "source_angle_32_region_center_source_xy":list(observed[32]),
+        "rig_candidate_root_index_angle_assumption":"2pi * original index / 64, UNCALIBRATED",
+        "source_phase_sensitive_region_not_a_verified_original_3D_wheel_hub":True,
+        "source_2D_orbit_hypothesis_two_historical_2026_pivots":report,
+    }
+
+
 def audit(axis_raw: bytes, camera_raw: bytes) -> dict:
     if hashlib.sha256(axis_raw).hexdigest() != SOURCE_SHA:
         raise ValueError("wrong original ROM phase-orbit axis report")
@@ -76,6 +145,8 @@ def audit(axis_raw: bytes, camera_raw: bytes) -> dict:
         orbit["source_y_first_harmonic"]["mean_source_pixel_center"],
     )
     recovered_line = source_backprojection(camera, centre)
+    full_orbits=compare_full_64_source_orbit(
+        camera,src["source_phase_variation_bbox_by_ROM_angle_index"])
     row = {}
     for name, world in CANDIDATE_PIVOTS.items():
         px = projection(camera, world)
@@ -97,6 +168,7 @@ def audit(axis_raw: bytes, camera_raw: bytes) -> dict:
         "source_orbit_pivot_backprojection_is_camera_conditional": True,
         "source_orbit_centre_backprojected_world_line": recovered_line,
         "hypothetical_existing_2026_part_pivots": row,
+        "all_original_64_source_angle_region_vs_existing_2026_axle_orbits": full_orbits,
         "original_source_1994_camera_or_mesh_recovered": False,
         "original_1994_3D_joint_pivot_recovered": False,
         "owner_likeness_approved": False,
@@ -115,6 +187,11 @@ def main():
     publish_text_once(a.out, json.dumps(record, indent=2, sort_keys=True) + "\n")
     print("ART4K_SOURCE_ORBIT_TWO_HISTORICAL_2026_PIVOTS",
           json.dumps(record["hypothetical_existing_2026_part_pivots"], sort_keys=True))
+    print("OK ART4K_SOURCE_ORBIT_ALL64_2026_AXLE_ROOT_CONTROLS",
+          json.dumps(
+              record["all_original_64_source_angle_region_vs_existing_2026_axle_orbits"]
+              ["source_2D_orbit_hypothesis_two_historical_2026_pivots"],
+              sort_keys=True))
 
 
 if __name__ == "__main__":

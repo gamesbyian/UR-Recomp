@@ -6,6 +6,7 @@ import unittest
 from tools.art.compare_source_orbit_to_candidate_pivots import (
     CAMERA_SHA, SOURCE_SHA, SCHEMA,
     projection, source_backprojection, audit,
+    projected_2026_wheel_axle_root_orbit, compare_full_64_source_orbit,
 )
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -41,6 +42,27 @@ class SourceOrbitPivotTests(unittest.TestCase):
         line=result["source_orbit_centre_backprojected_world_line"]
         self.assertAlmostEqual(line["world_point_at_zero_declaration_depth"][0],-0.2436951754,places=7)
         self.assertAlmostEqual(line["world_point_at_zero_declaration_depth"][2],1.9383223684,places=7)
+        orbit=result["all_original_64_source_angle_region_vs_existing_2026_axle_orbits"]
+        self.assertEqual(orbit["original_ROM_source_orientation_count"],64)
+        self.assertEqual(orbit["source_angle_zero_region_center_source_xy"],[31.5,29.5])
+        self.assertEqual(orbit["source_angle_32_region_center_source_xy"],[31.5,10.5])
+        candidates=orbit["source_2D_orbit_hypothesis_two_historical_2026_pivots"]
+        wheel=candidates["historical_2026_wheel_axle"]
+        spin=candidates["historical_2026_continuous_stunt_midbody"]
+        self.assertAlmostEqual(wheel["source_angle_zero_reference_subtracted_pixel_xy_rmse"][0],
+                               6.8846523151136685,places=8)
+        self.assertAlmostEqual(wheel["source_angle_zero_reference_subtracted_pixel_xy_rmse"][1],
+                               12.315989353275684,places=8)
+        self.assertAlmostEqual(spin["source_angle_zero_reference_subtracted_pixel_xy_rmse"][0],
+                               2.3050397003069500,places=8)
+        self.assertAlmostEqual(spin["source_angle_zero_reference_subtracted_pixel_xy_rmse"][1],
+                               3.0398659947033133,places=8)
+        self.assertEqual(wheel["model_wheel_axle_at_source_orientation_32_xy"],[33.5,28.5])
+        self.assertAlmostEqual(spin["model_wheel_axle_at_source_orientation_32_xy"][1],13.3,places=8)
+        self.assertLess(spin["whole_2d_orbit_displacement_rmse_7_6_display_pixels"],
+                        wheel["whole_2d_orbit_displacement_rmse_7_6_display_pixels"]/2)
+        self.assertTrue(orbit["source_phase_sensitive_region_not_a_verified_original_3D_wheel_hub"])
+        self.assertFalse(spin["original_1994_wheel_axle_location_measured"])
         points=result["hypothetical_existing_2026_part_pivots"]
         axle=points["historical_2026_wheel_axle"]
         midbody=points["historical_2026_continuous_stunt_midbody"]
@@ -51,6 +73,27 @@ class SourceOrbitPivotTests(unittest.TestCase):
         self.assertTrue(result["shared_camera_7_6_and_glb_model_same_scale_not_independently_verified"])
         self.assertFalse(result["original_source_1994_camera_or_mesh_recovered"])
         self.assertFalse(result["original_1994_3D_joint_pivot_recovered"])
+
+    def test_source_rotated_2026_axle_is_one_fixed_3d_trajectory(self):
+        cam=json.loads((ROOT/"analysis/data/racer-inverse-side-provisional-1205.json").read_text())
+        axle=(0.,0.,1.);midbody=(0.,0.,1.8)
+        self.assertEqual(projected_2026_wheel_axle_root_orbit(cam,axle,0),
+                         (33.5,28.5))
+        self.assertEqual(projected_2026_wheel_axle_root_orbit(cam,axle,32),
+                         (33.5,28.5))
+        self.assertAlmostEqual(
+            projected_2026_wheel_axle_root_orbit(cam,midbody,16)[0],
+            33.5-(0.8*9.5*6/7),places=8)
+        self.assertAlmostEqual(
+            projected_2026_wheel_axle_root_orbit(cam,midbody,32)[1],
+            13.3,places=8)
+        for invalid in (-1,64,1.5,True):
+            with self.subTest(index=invalid),self.assertRaises(ValueError):
+                projected_2026_wheel_axle_root_orbit(cam,midbody,invalid)
+        with self.assertRaises(ValueError):
+            projected_2026_wheel_axle_root_orbit(cam,(0.,0.,1.6),16)
+        with self.assertRaises(ValueError):
+            compare_full_64_source_orbit(cam,{"0":[0,0,1,1]})
 
     def test_corrupted_source_or_camera_rejected(self):
         cam=(ROOT/"analysis/data/racer-inverse-side-provisional-1205.json").read_bytes()

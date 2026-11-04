@@ -224,17 +224,17 @@ def summary_for_exact_original_source(record:dict)->dict:
             raise ValueError("all 24 authentic original ticks and candidate arms required")
         result[role]={}
         for arm in BASE_ARMS:
-            entry=entry["arms"][arm]
-            if (entry.get("original_chronological_source_frame_count")!=24 or
-                    entry.get("source_actual_timeline_edge_count")!=23):
+            arm_row=entry["arms"][arm]
+            if (arm_row.get("original_chronological_source_frame_count")!=24 or
+                    arm_row.get("source_actual_timeline_edge_count")!=23):
                 raise ValueError("genuine source 24-frame/23-edge chronology required")
             result[role][arm]={
-                "unique_shapes":entry["original_unique_64px_binary_shape_count"],
-                "chronological_pooled_iou":entry["source_frame_pooled_alpha_iou"],
+                "unique_shapes":arm_row["original_unique_64px_binary_shape_count"],
+                "chronological_pooled_iou":arm_row["source_frame_pooled_alpha_iou"],
                 "unique_shape_equal_vote_mean_iou":
-                    entry["source_unique_shape_equal_vote_mean_alpha_iou"],
+                    arm_row["source_unique_shape_equal_vote_mean_alpha_iou"],
                 "real_23_tick_edge_change_pooled_iou":
-                    entry["source_actual_23_consecutive_edge_change_pooled_iou"],
+                    arm_row["source_actual_23_consecutive_edge_change_pooled_iou"],
             }
     return result
 

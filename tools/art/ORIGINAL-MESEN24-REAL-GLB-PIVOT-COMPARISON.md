@@ -29,11 +29,30 @@ Frozen comparison arms:
 - The unchanged static 2026 upright GLB silhouette.
 - The **same** GLB with whole-character source orientation index (provisionally `360×index/64` degrees), rotated around the historic wheel-axle pivot, with wheel phase fixed.
 - Equivalent whole-character orientation around the **already authored** 2026 midbody stunt pivot, with wheel phase fixed.
-- Both historical root pivots again with one common hypothetical crank phase law `source_phase×15°`; 2026 fork/saddle pitch remains zero. This physical angle law is a *predeclared convenience hypothesis*, not a recovered 1994 wheel rotation or original clock rate.
+- Both historical root pivots again with one common hypothetical crank phase law `source_phase×15°`; 2026 fork/saddle pitch remains zero.
+- For both root pivots, additional **source-first relative controls**: rotate by the wrapped orientation-index change since each player's tick-1601 original frame, either with fixed crank or with the corresponding phase-index change since the **same** tick1601 source. The original absolute-index arms stay intact, making this a transparent origin-calibration sensitivity experiment rather than replacing a negative result. This physical angle law is a *predeclared convenience hypothesis*, not a recovered 1994 wheel rotation or original clock rate.
 
 The source-to-2026 GLB 64px registration is fixed **once per player** from its actual tick-1601 alpha anchor, **not tuned per frame/pivot/camera/phase**. Each candidate is rendered under the same 7:6 camera using actual 2026 mesh triangles and root/axle parent transforms, not a silhouette surrogate. No 2026 GLB geometry, materials, pivot positions, source colours, original PPU state or source tuple is edited. The dynamic GLB is reused in memory and render cache entries are keyed by explicit integer original source phase/orientation and fixed pivot mode.
 
 **Score:** per-frame/pivot binary silhouette intersection, FP, FN, IoU; pooled and mean IoU separately for blue/red; **alpha change support** overlap on the four authentic chronological edges. Exact 4bpp source palette index correspondence is **not yet scored** against the 2026 material-ID model, because source palette indices have no independent one-to-one 3D part/material identification. Report missing/clip conditions as experimental failure, not as silently optimized source placement.
+
+## Executed original 3D comparison, before reference-relative controls
+
+**Actual GHA execution:** [run #41790188939](https://github.com/gamesbyian/UR-Recomp/actions/runs/41790188939), original Mesen source versus verified real #2832 five-part GLB, job `126441785643`, exact-head `c11e50ca48057c1c0e8fa91ce89f51286c0befa6`. Repo hygiene, full tooling units, 320–1440px Chromium smoke, true five-pose model export and exact original source-versus-rendered-GLB checks passed. Model source-derived upright GLB actual SHA during this run: `90dc439ee711847b44211ce5e82845db0ebccd0b3d60d7fd983c2d6f10b02034`; it may vary across export runs and was validated against the exact source and success-pointer receipt.
+
+| Frozen original source versus 3D arm | Blue pooled alpha IoU | Red pooled alpha IoU |
+|---|---:|---:|
+| Original tick-1601 2D source sprite, held | 0.77513966 | 0.74206897 |
+| Same original 2D sprite, rigidly rotated by source orientation delta | **0.83754513** | **0.82731214** |
+| Static authored 2026 upright GLB | 0.49047014 | 0.36390017 |
+| 2026 GLB root at wheel axle, absolute original orientation index | 0.52846054 | 0.55107352 |
+| 2026 GLB root at wheel axle plus absolute 15°×source phase | 0.53441558 | 0.56028834 |
+| 2026 GLB root at historic mid-body pivot, absolute index | 0.51254019 | 0.28563744 |
+| Same historic mid-body root plus absolute source phase | 0.51213282 | 0.27885653 |
+
+**Negative finding:** the current unfitted 2026 3D GLB loses to both true-source-derived 2D controls across both racers, on the *same eight authentic selected frames*. The historic mid-body pivot's retrospectively close source orbit-centre projection **does not** confer superior source silhouette overlap. The source 2D baseline uses authentic initial artwork while the GLB uses a hand-authored experimental 2026 shape; this is a stringent existing-image comparison and **cannot** by itself refute a different source-authored 1994 3D rig. It says the current candidate did not recover source visual fidelity.
+
+**Identified fairness issue:** the first 3D experiment interpreted original orientation index as an **absolute** model rotation while its 2D null used the *change since tick-1601*. Actual original first-frame source values are blue **(phase 3, orientation 61)** and red **(phase 16, orientation 57)**. Both absolute and one-reference-relative 3D laws are now retained as separate predeclared controls without per-frame fit: `(orientation - first_orientation) mod 64`, and for the optional direct-drive arm `15°×((phase-first_phase) mod 24)`. Those offsets are fixed once at tick-1601, not reoptimized per selected event or based on IoU. The old exact-head result above remains the authenticated **absolute** experiment; the extended source-relative experiment requires a new exact-head CI execution. Even an improved relative run cannot prove actual 1994 mechanical degrees or 3D geometry.
 
 ## Reproduce from an already authenticated export
 

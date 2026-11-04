@@ -7,6 +7,7 @@ import unittest
 from tools.art.score_original_mesen24_fixed_pivot_glb import (
     SCHEMA, ARM_NAMES, EVENTS, SELECTED,
     check_receipts, source_center, rotate_source_2d, anchor, metric,
+    reference_relative_index,
 )
 
 try:
@@ -21,10 +22,25 @@ class GenuineSourceGLBPivotScoreContracts(unittest.TestCase):
         self.assertEqual(set(EVENTS),{"blue","red"})
         self.assertEqual(SELECTED["blue"],[1602,1603,1609,1610])
         self.assertEqual(SELECTED["red"],[1605,1606,1609,1610])
-        self.assertEqual(len(ARM_NAMES),7)
+        self.assertEqual(len(ARM_NAMES),11)
+        self.assertIn("wheel_axle_relative_root_only",ARM_NAMES)
+        self.assertIn("historical_midbody_relative_root_plus_phase",ARM_NAMES)
         self.assertIn("source_original_2d_rotation",ARM_NAMES)
         self.assertIn("wheel_axle_root_plus_phase",ARM_NAMES)
         self.assertIn("historical_midbody_root_only",ARM_NAMES)
+
+    def test_first_tick_relative_indices_are_single_cyclic_calibration(self):
+        # Authentic Mesen24 first frames: blue phase 3 orientation 61,
+        # red phase 16 orientation 57. No per-frame fitted 3D degrees.
+        self.assertEqual(reference_relative_index(61,61,64),0)
+        self.assertEqual(reference_relative_index(60,61,64),63)
+        self.assertEqual(reference_relative_index(58,57,64),1)
+        self.assertEqual(reference_relative_index(1,23,24),2)
+        self.assertEqual(reference_relative_index(16,3,24),13)
+        self.assertEqual(reference_relative_index(1,16,24),9)
+        for bad in ((64,61,64),(-1,57,64),(1,24,24),(True,0,64),(1,0,360)):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):
+                reference_relative_index(*bad)
 
     def test_true_64px_alpha_comparison_and_no_false_pixel_registration(self):
         original=bytearray(4096)

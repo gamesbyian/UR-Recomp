@@ -31,11 +31,23 @@ PIVOTS = ("wheel_axle", "historical_midbody")
 ARM_NAMES = ("static_original_2d","source_original_2d_rotation",
              "static_2026_3d","wheel_axle_root_only",
              "historical_midbody_root_only",
-             "wheel_axle_root_plus_phase","historical_midbody_root_plus_phase")
+             "wheel_axle_root_plus_phase","historical_midbody_root_plus_phase",
+             "wheel_axle_relative_root_only","historical_midbody_relative_root_only",
+             "wheel_axle_relative_root_plus_phase",
+             "historical_midbody_relative_root_plus_phase")
 
 
 def sha(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def reference_relative_index(value:int, reference:int, states:int)->int:
+    """One source-first angular/phase zero, not a recovered physical angle."""
+    if (type(states) is not int or states not in (24,64) or
+            any(type(x) is not int or not 0<=x<states
+                for x in (value,reference))):
+        raise ValueError("original source index/reference must share the correct 24/64-state table")
+    return (value-reference)%states
 
 
 def check_receipts(source_zip:bytes, pose_raw:bytes, axis_raw:bytes,
@@ -208,6 +220,10 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
         scores[role]={}
         for t in SELECTED[role]:
             record=rows[t]
+            relative_angle=reference_relative_index(
+                record["angle"],original_refs[role]["angle"],64)
+            relative_phase=reference_relative_index(
+                record["phase"],original_refs[role]["phase"],24)
             predictions={
                 "static_original_2d":original_refs[role]["alpha"],
                 "source_original_2d_rotation":rotate_source_2d(
@@ -216,16 +232,22 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
                 "static_2026_3d":registered_mask4(neutral,anchors[role],neutral_anchor)
             }
             for pivot in PIVOTS:
-                for label,delta in (("root_only",0.),("root_plus_phase",15.*record["phase"])):
-                    key=(pivot,record["angle"],delta)
+                for label,model_angle,delta in (
+                        ("root_only",record["angle"],0.),
+                        ("root_plus_phase",record["angle"],15.*record["phase"]),
+                        ("relative_root_only",relative_angle,0.),
+                        ("relative_root_plus_phase",relative_angle,15.*relative_phase)):
+                    key=(pivot,model_angle,delta)
                     if key not in model_masks:
-                        model_masks[key]=model4(record["angle"],pivot,delta)
+                        model_masks[key]=model4(model_angle,pivot,delta)
                     predictions[pivot+"_"+label]=registered_mask4(
                         model_masks[key],anchors[role],neutral_anchor)
             if set(predictions)!=set(ARM_NAMES):
                 raise ValueError("missing original 2D null or same real 3D candidate")
             scores[role][t]={
                 "source_phase":record["phase"],"source_orientation":record["angle"],
+                "source_relative_phase_index_from_tick1601":relative_phase,
+                "source_relative_orientation_index_from_tick1601":relative_angle,
                 "original_alpha_pixel_count":sum(record["alpha"]),
                 "arms":{name:metric(record["alpha"],m)
                         for name,m in predictions.items()}
@@ -271,6 +293,10 @@ def audit(source_zip:bytes,pose_raw:bytes,axis_raw:bytes,camera_raw:bytes,
         "source_original_red_and_blue_OAM_local_not_completed_screen":True,
         "unverified_physical_2026_wheel_deg_per_source_phase":15,
         "unverified_physical_2026_root_angle_deg_per_source_index":360/64,
+        "source_first_tick_absolute_and_relative_rig_controls_both_scored":True,
+        "source_original_tick1601_reference_phase_orientation_by_player":{
+            role:{"phase":r["phase"],"orientation":r["angle"]}
+            for role,r in original_refs.items()},
         "original_1994_3D_geometry_camera_or_pose_recovered":False,
         "source_2026_character_likeness_owner_approved":False,
         "source_frames":scores,"arms":results,

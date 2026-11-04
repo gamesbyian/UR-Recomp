@@ -13,6 +13,9 @@ class OriginalMesen24BrowserTests(unittest.TestCase):
         self.assertIn("id=\"originalMesen24Rail\"", page)
         self.assertIn("mountOriginalMesen24Rail", page)
         self.assertIn("original_mesen24_rail.mjs", page)
+        rail = (ROOT/"tools/art/model-review/original_mesen24_rail.mjs").read_text()
+        self.assertIn('width:224px;height:192px;object-fit:fill', rail)
+        self.assertNotIn('object-fit:contain', rail)
         for path in ("tools/windows_visual_atlas.py", "tools/art/model-review/stage_pages.py"):
             self.assertIn("original_mesen24_rail.mjs", (ROOT/path).read_text())
             self.assertIn("original-mesen24", (ROOT/path).read_text())

@@ -198,9 +198,14 @@ jobs:
           curl -fsSL --retry 3 "$base/racer-original-ROM-24phase-64angle-source-axis-20261103.json" -o "$RUNNER_TEMP/source-2d-axes.json"
           echo "6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20  $RUNNER_TEMP/source-pose-IDs.json" | sha256sum -c -
           echo "23aa563c094471a3d7f1b5dcb12489cc1b5ca45b1240aee06fde3934a932bbd0  $RUNNER_TEMP/source-2d-axes.json" | sha256sum -c -
+          # This stacked 2026 GLB controller predates #3103's original ZIP
+          # merge. Fetch the exact main commit's immutable 233,939-byte
+          # original archive, then verify the original SHA before decoding.
+          curl -fsSL --retry 3 "https://raw.githubusercontent.com/gamesbyian/UR-Recomp/822d4b3fecfef66e52b2799fa686afcd8afda2fd/analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip" -o "$RUNNER_TEMP/original-mesen24.zip"
+          echo "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6  $RUNNER_TEMP/original-mesen24.zip" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/real-model-evidence"
           "$RUNNER_TEMP/rig-venv/bin/python" -m tools.art.score_original_mesen24_fixed_pivot_glb \
-            --source-zip analysis/data/racer-original-mesen-consecutive-1601-1624-20261103.zip \
+            --source-zip "$RUNNER_TEMP/original-mesen24.zip" \
             --pose-report "$RUNNER_TEMP/source-pose-IDs.json" \
             --axis-report "$RUNNER_TEMP/source-2d-axes.json" \
             --camera analysis/data/racer-inverse-side-provisional-1205.json \

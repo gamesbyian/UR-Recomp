@@ -1,0 +1,813 @@
+{
+  "original_1994_3d_mesh_rig_camera_or_animation_source_recovered": false,
+  "original_24tick_source_ZIP_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "original_2d_sprite_changes_explained_by_source_vram_payload_updates_under_stable_tile_addresses": true,
+  "original_CPU_DMA_PPU_specific_writer_identified": false,
+  "original_USA_rom_executed_Mesen_ticks": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605,
+    1606,
+    1607,
+    1608,
+    1609,
+    1610,
+    1611,
+    1612,
+    1613,
+    1614,
+    1615,
+    1616,
+    1617,
+    1618,
+    1619,
+    1620,
+    1621,
+    1622,
+    1623,
+    1624
+  ],
+  "owner_likeness_approved": false,
+  "per_original_source_racer": {
+    "blue": {
+      "actual_source_oam_slot": 96,
+      "all_23_original_adjacent_source_index_planes_change": true,
+      "all_23_original_adjacent_source_tile_payloads_change": true,
+      "backing_4bpp_payload_bytes_per_observation": 2048,
+      "fixed_oam_source_palette_id": 4,
+      "fixed_oam_source_tileword9": 136,
+      "fixed_source_OAM_large_64px_and_no_flips": true,
+      "source_23_edge_byte_changes_total": 1457,
+      "source_23_edge_changed_tile_instances_total": 122,
+      "source_23_edges": [
+        {
+          "from_original_bridge_tick": 1601,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 55,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1602
+        },
+        {
+          "from_original_bridge_tick": 1602,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 253,
+          "source_racer_8x8_tile_payloads_changed": 15,
+          "to_original_bridge_tick": 1603
+        },
+        {
+          "from_original_bridge_tick": 1603,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1604
+        },
+        {
+          "from_original_bridge_tick": 1604,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 44,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1605
+        },
+        {
+          "from_original_bridge_tick": 1605,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 55,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1606
+        },
+        {
+          "from_original_bridge_tick": 1606,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 58,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1607
+        },
+        {
+          "from_original_bridge_tick": 1607,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 59,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1608
+        },
+        {
+          "from_original_bridge_tick": 1608,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 60,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1609
+        },
+        {
+          "from_original_bridge_tick": 1609,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1610
+        },
+        {
+          "from_original_bridge_tick": 1610,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 58,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1611
+        },
+        {
+          "from_original_bridge_tick": 1611,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 58,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1612
+        },
+        {
+          "from_original_bridge_tick": 1612,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 47,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1613
+        },
+        {
+          "from_original_bridge_tick": 1613,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 53,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1614
+        },
+        {
+          "from_original_bridge_tick": 1614,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 55,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1615
+        },
+        {
+          "from_original_bridge_tick": 1615,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1616
+        },
+        {
+          "from_original_bridge_tick": 1616,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 54,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1617
+        },
+        {
+          "from_original_bridge_tick": 1617,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 49,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1618
+        },
+        {
+          "from_original_bridge_tick": 1618,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 61,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1619
+        },
+        {
+          "from_original_bridge_tick": 1619,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 52,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1620
+        },
+        {
+          "from_original_bridge_tick": 1620,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1621
+        },
+        {
+          "from_original_bridge_tick": 1621,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 44,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1622
+        },
+        {
+          "from_original_bridge_tick": 1622,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1623
+        },
+        {
+          "from_original_bridge_tick": 1623,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1624
+        }
+      ],
+      "source_OAM_held_positions_by_tick": [
+        {
+          "oam_x": 82,
+          "oam_y": 151,
+          "tick": 1601
+        },
+        {
+          "oam_x": 83,
+          "oam_y": 151,
+          "tick": 1602
+        },
+        {
+          "oam_x": 84,
+          "oam_y": 151,
+          "tick": 1603
+        },
+        {
+          "oam_x": 85,
+          "oam_y": 151,
+          "tick": 1604
+        },
+        {
+          "oam_x": 86,
+          "oam_y": 151,
+          "tick": 1605
+        },
+        {
+          "oam_x": 87,
+          "oam_y": 151,
+          "tick": 1606
+        },
+        {
+          "oam_x": 88,
+          "oam_y": 151,
+          "tick": 1607
+        },
+        {
+          "oam_x": 89,
+          "oam_y": 151,
+          "tick": 1608
+        },
+        {
+          "oam_x": 90,
+          "oam_y": 151,
+          "tick": 1609
+        },
+        {
+          "oam_x": 91,
+          "oam_y": 151,
+          "tick": 1610
+        },
+        {
+          "oam_x": 92,
+          "oam_y": 151,
+          "tick": 1611
+        },
+        {
+          "oam_x": 93,
+          "oam_y": 151,
+          "tick": 1612
+        },
+        {
+          "oam_x": 94,
+          "oam_y": 151,
+          "tick": 1613
+        },
+        {
+          "oam_x": 95,
+          "oam_y": 151,
+          "tick": 1614
+        },
+        {
+          "oam_x": 96,
+          "oam_y": 151,
+          "tick": 1615
+        },
+        {
+          "oam_x": 97,
+          "oam_y": 151,
+          "tick": 1616
+        },
+        {
+          "oam_x": 98,
+          "oam_y": 151,
+          "tick": 1617
+        },
+        {
+          "oam_x": 99,
+          "oam_y": 151,
+          "tick": 1618
+        },
+        {
+          "oam_x": 100,
+          "oam_y": 151,
+          "tick": 1619
+        },
+        {
+          "oam_x": 101,
+          "oam_y": 151,
+          "tick": 1620
+        },
+        {
+          "oam_x": 102,
+          "oam_y": 151,
+          "tick": 1621
+        },
+        {
+          "oam_x": 103,
+          "oam_y": 151,
+          "tick": 1622
+        },
+        {
+          "oam_x": 104,
+          "oam_y": 151,
+          "tick": 1623
+        },
+        {
+          "oam_x": 105,
+          "oam_y": 151,
+          "tick": 1624
+        }
+      ],
+      "source_relevant_palette_CGRAM_unchanged_24_ticks": true,
+      "tile_count": 64,
+      "unique_fixed_original_tile_word_addresses": [
+        26752,
+        26768,
+        26784,
+        26800,
+        26816,
+        26832,
+        26848,
+        26864,
+        27008,
+        27024,
+        27040,
+        27056,
+        27072,
+        27088,
+        27104,
+        27120,
+        27264,
+        27280,
+        27296,
+        27312,
+        27328,
+        27344,
+        27360,
+        27376,
+        27520,
+        27536,
+        27552,
+        27568,
+        27584,
+        27600,
+        27616,
+        27632,
+        27776,
+        27792,
+        27808,
+        27824,
+        27840,
+        27856,
+        27872,
+        27888,
+        28032,
+        28048,
+        28064,
+        28080,
+        28096,
+        28112,
+        28128,
+        28144,
+        28288,
+        28304,
+        28320,
+        28336,
+        28352,
+        28368,
+        28384,
+        28400,
+        28544,
+        28560,
+        28576,
+        28592,
+        28608,
+        28624,
+        28640,
+        28656
+      ]
+    },
+    "red": {
+      "actual_source_oam_slot": 97,
+      "all_23_original_adjacent_source_index_planes_change": true,
+      "all_23_original_adjacent_source_tile_payloads_change": true,
+      "backing_4bpp_payload_bytes_per_observation": 2048,
+      "fixed_oam_source_palette_id": 3,
+      "fixed_oam_source_tileword9": 0,
+      "fixed_source_OAM_large_64px_and_no_flips": true,
+      "source_23_edge_byte_changes_total": 1565,
+      "source_23_edge_changed_tile_instances_total": 127,
+      "source_23_edges": [
+        {
+          "from_original_bridge_tick": 1601,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1602
+        },
+        {
+          "from_original_bridge_tick": 1602,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 60,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1603
+        },
+        {
+          "from_original_bridge_tick": 1603,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 65,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1604
+        },
+        {
+          "from_original_bridge_tick": 1604,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 64,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1605
+        },
+        {
+          "from_original_bridge_tick": 1605,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 238,
+          "source_racer_8x8_tile_payloads_changed": 15,
+          "to_original_bridge_tick": 1606
+        },
+        {
+          "from_original_bridge_tick": 1606,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 54,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1607
+        },
+        {
+          "from_original_bridge_tick": 1607,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 65,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1608
+        },
+        {
+          "from_original_bridge_tick": 1608,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 63,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1609
+        },
+        {
+          "from_original_bridge_tick": 1609,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 71,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1610
+        },
+        {
+          "from_original_bridge_tick": 1610,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 58,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1611
+        },
+        {
+          "from_original_bridge_tick": 1611,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 52,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1612
+        },
+        {
+          "from_original_bridge_tick": 1612,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 56,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1613
+        },
+        {
+          "from_original_bridge_tick": 1613,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1614
+        },
+        {
+          "from_original_bridge_tick": 1614,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 68,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1615
+        },
+        {
+          "from_original_bridge_tick": 1615,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 66,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1616
+        },
+        {
+          "from_original_bridge_tick": 1616,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 59,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1617
+        },
+        {
+          "from_original_bridge_tick": 1617,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 58,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1618
+        },
+        {
+          "from_original_bridge_tick": 1618,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 56,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1619
+        },
+        {
+          "from_original_bridge_tick": 1619,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 64,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1620
+        },
+        {
+          "from_original_bridge_tick": 1620,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 61,
+          "source_racer_8x8_tile_payloads_changed": 6,
+          "to_original_bridge_tick": 1621
+        },
+        {
+          "from_original_bridge_tick": 1621,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 57,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1622
+        },
+        {
+          "from_original_bridge_tick": 1622,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 56,
+          "source_racer_8x8_tile_payloads_changed": 5,
+          "to_original_bridge_tick": 1623
+        },
+        {
+          "from_original_bridge_tick": 1623,
+          "source_index_plane_changed": true,
+          "source_palette_CGRAM_changed_bytes": 0,
+          "source_racer_4bpp_tile_payload_changed_bytes": 60,
+          "source_racer_8x8_tile_payloads_changed": 4,
+          "to_original_bridge_tick": 1624
+        }
+      ],
+      "source_OAM_held_positions_by_tick": [
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1601
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1602
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1603
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1604
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1605
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1606
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1607
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1608
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1609
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1610
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1611
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1612
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1613
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1614
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1615
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1616
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1617
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1618
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1619
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1620
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1621
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1622
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1623
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1624
+        }
+      ],
+      "source_relevant_palette_CGRAM_unchanged_24_ticks": true,
+      "tile_count": 64,
+      "unique_fixed_original_tile_word_addresses": [
+        24576,
+        24592,
+        24608,
+        24624,
+        24640,
+        24656,
+        24672,
+        24688,
+        24832,
+        24848,
+        24864,
+        24880,
+        24896,
+        24912,
+        24928,
+        24944,
+        25088,
+        25104,
+        25120,
+        25136,
+        25152,
+        25168,
+        25184,
+        25200,
+        25344,
+        25360,
+        25376,
+        25392,
+        25408,
+        25424,
+        25440,
+        25456,
+        25600,
+        25616,
+        25632,
+        25648,
+        25664,
+        25680,
+        25696,
+        25712,
+        25856,
+        25872,
+        25888,
+        25904,
+        25920,
+        25936,
+        25952,
+        25968,
+        26112,
+        26128,
+        26144,
+        26160,
+        26176,
+        26192,
+        26208,
+        26224,
+        26368,
+        26384,
+        26400,
+        26416,
+        26432,
+        26448,
+        26464,
+        26480
+      ]
+    }
+  },
+  "schema": "UR-ART4K-AUTHENTIC-MESEN24-FIXED-OBJ-VRAM-4BPP-TILE-PAYLOAD/1",
+  "source_OAM_positions_can_change_while_tileword_and_palette_stay_fixed": true,
+  "source_OBSEL_registers_independently_read_each_new_tick": false,
+  "source_prior_register_mode4_base6000_offset1000_assumed_fixed": true
+}

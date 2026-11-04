@@ -54,6 +54,36 @@ class OriginalWholeSpriteRotationTests(unittest.TestCase):
             self.assertTrue(0<=row["pooled_source_opaque_index_exact_recall"]<=1)
             self.assertGreater(row["source_opaque_alpha_intersection"]+
                                row["source_opaque_alpha_false_negative"],0)
+        # Exact executed original ROM receipt at 093d31998bee, Actions run
+        # 41787502835, job 126433276743. Freeze 128 original full sprite
+        # comparisons: higher phase-region support IoU does not imply
+        # whole-source geometry/paint recovery.
+        expected={
+            "static_2D_sprite": {
+                "source_opaque_alpha_intersection":14788,
+                "source_opaque_alpha_false_positive":26300,
+                "source_opaque_alpha_false_negative":26353,
+                "original_4bpp_exact_matching_opaque_pixels":2660,
+                "original_4bpp_differing_opaque_intersection":12128,
+                "pooled_alpha_iou":0.21927314,
+                "pooled_source_opaque_index_exact_recall":0.0646557,
+            },
+            "one_pivot_2D_rigid_rotation": {
+                "source_opaque_alpha_intersection":32793,
+                "source_opaque_alpha_false_positive":8183,
+                "source_opaque_alpha_false_negative":8348,
+                "original_4bpp_exact_matching_opaque_pixels":9806,
+                "original_4bpp_differing_opaque_intersection":22987,
+                "pooled_alpha_iou":0.66484876,
+                "pooled_source_opaque_index_exact_recall":0.23835104,
+            }
+        }
+        for arm,items in expected.items():
+            for key,value in items.items():
+                self.assertEqual(result["aggregate"][arm][key],value,
+                                 (arm,key))
+        self.assertLess(result["aggregate"]["one_pivot_2D_rigid_rotation"]
+                        ["pooled_source_opaque_index_exact_recall"],0.25)
         # Print a compact exact-head evidence record in the existing unit
         # shard's accepted OK-line channel without adding CI jobs.
         print("OK ART4K_ORIGINAL_FULLSPRITE_ROTATION_NULL",

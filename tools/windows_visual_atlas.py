@@ -296,7 +296,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     for filename, blob in rail_assets.items():
         (rail_folder / filename).write_bytes(blob)
     (rail_folder / "source-poses.json").write_text(
-        json.dumps(rail_packet, sort_keys=True, indent=2) + "\\n", encoding="utf-8")
+        json.dumps(rail_packet, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     published = []
     exe_digest = None
     # Reviewed, content-addressed incidental snapshots from the repository.

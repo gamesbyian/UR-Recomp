@@ -49,3 +49,32 @@ python3 -m tools.art.recover_original_mesen24_rom_pose_ids \
 Retained receipt: `analysis/data/racer-original-mesen24-exact-ROM-pose-IDs-20261103.json`, SHA-256 `6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20`. Six cheap ROM/GLB-free unit tests passed, including exact source-identity/pixel-sum accounting, 24-tick phase and angle histories, 4bpp planar bits 0..15, synthetic exact-match/tie/corrupt-source failure controls and explicit refusal to claim 3D source assets. The full real USA ROM plus original Mesen archive run on the HP also passed.
 
 **Next discriminators, not duplicated work:** (1) take the two original angle transition events and use the **ROM-exact** 24×64 pose grid to separately measure phase-only versus angle-only silhouette/index changes, including interaction; (2) feed the **actual recovered phase timeline**, with declared uncalibrated interpretation, into the existing #3101 2026 articulated five-parent GLB and score original 2D change support under its frozen camera; (3) compare the resulting controlled source-axis change regions against independent model joints/geometry and period detailed visual references. Keep current canonical #2832 rig unapproved, no release/owner likeness milestone.
+
+## Exhaustive original ROM axis separation, not a pose guess
+
+The exact 1,536 original packed records form a **rectangular source-state manifold**: 24 primary phase indexes, each with 64 angle-index alternatives. This supports exact 2D source **counterfactuals** absent from the actual 24-tick PPU replay: render either observed event's initial `(phase, angle)` as-is, substitute only the destination phase under the original angle, substitute only the destination angle under the original phase, and compare both possible orderings against the original final state. All four images are original ROM-authored frames, with **no generated geometry**.
+
+For the blue original upper-silhouette event, the recovered states are **(phase5, angle61) → (phase8, angle60)**. In the original source upper y=4..14, the executed 2D change is **72 index pixels**, including **27 alpha boundary changes** and **45 opaque-to-opaque index changes**. Changing **only phase** causes **zero** source upper-index or alpha changes regardless of whether it happens before or after the index-angle change; changing **only angle** causes **all 72 index and 27 alpha changes**, in either ordering. For red **(phase11, angle57) → (phase15, angle58)**, its source upper y=5..15 changes **55 index pixels = 20 alpha + 35 opaque interior**; again, **phase-only causes zero** and **angle-only causes all 55**, in either ordering. The intermediate lower/middle source pixel changes can interact or cancel, so full-frame source differences are **not** naively additive across the axes.
+
+Across all **24 phases** at each of the four **actually observed** angle states, the source 4bpp index variation remains entirely in a compact moving wheel-region footprint:
+
+| Original ROM angle index | Phase-sensitive source pixels | Phase-sensitive alpha pixels | 64px bounding box of phase-sensitive pixels |
+|---:|---:|---:|---|
+| 57 | 118 | 50 | x33..44, y22..33 |
+| 58 | 115 | 47 | x32..43, y23..34 |
+| 60 | 116 | 52 | x30..41, y24..35 |
+| 61 | 117 | 54 | x29..40, y24..35 |
+
+At those exact original source angle indexes, the original source region y=0..15 is **strictly phase-independent**. The global manifold has a caveat: across **all 64** angle states, the phase-varying source footprint spans **x17..46, y4..35**. The moving wheel region can itself be carried upward by the broader angle/pose transform. Therefore this result supports a *moving local phase-controlled subsystem* acted on by a more general angle-controlled pose transform, **not a permanently fixed screen-space wheel or a universal upper/lower split**.
+
+The reproducible standard-library implementation is `tools/art/analyze_original_rom_pose_axes.py`, consuming the authentic ROM plus the already SHA-pinned frame ID recovery report. Its numerical receipt is `analysis/data/racer-original-ROM-24phase-64angle-source-axis-20261103.json`, SHA-256 `23aa563c094471a3d7f1b5dcb12489cc1b5ca45b1240aee06fde3934a932bbd0`. Five ROM/GLB-free unit tests check authentic source/ROM hashes, both counterfactual path orders, exact upper pixel partitions, phase-localized source bounding boxes, synthetic 4bpp index/alpha partition and fail-closed identity rejection. The full ROM-authenticated run and all five tests passed on the HP.
+
+```sh
+python3 -m unittest tests.unit.test_art4k_original_rom_pose_axes
+python3 -m tools.art.analyze_original_rom_pose_axes \
+  --rom reference/roms/retail/Uniracers_USA.sfc \
+  --exact-pose-report analysis/data/racer-original-mesen24-exact-ROM-pose-IDs-20261103.json \
+  --out /new/location/original-two-axis-variation.json
+```
+
+**Rig consequence:** a meaningful recovered 2026 animation should have a **separately controllable phase subsystem** whose pixel motion moves along with the angle/pose transformation. The existing five-parent GLB's wheel/crank and frame controllers provide candidate *implementation joints* only, not recovered original 1994 joints. Use the real recovered per-tick phase history for the next bounded trial. Do not force source angle-index steps to equal physically measured 3D pitch degrees without independent camera/landmark calibration, and do not turn the now-explained original 2D tile producer into a reason for another full emulator capture.

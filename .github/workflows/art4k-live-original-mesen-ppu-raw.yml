@@ -25,6 +25,11 @@ on:
         type: string
         default: ""
         required: false
+      capture_rider_wram:
+        description: "Optional same-tick original WRAM 0000-17FF sidecar for rider state / graphics queue; off by default"
+        type: boolean
+        default: false
+        required: false
   pull_request:
     paths:
       - 'tools/art/capture_original_mesen_ppu_raw.py'
@@ -147,6 +152,7 @@ jobs:
         env:
           MESEN_SNES_DISABLE_FRAME_SKIPPING: "1"
           CAPTURE_TICKS: ${{ inputs.capture_ticks || '' }}
+          RIDER_WRAM_CAPTURE: ${{ inputs.capture_rider_wram || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -154,6 +160,13 @@ jobs:
           ADVANCE_FRAMES="${{ inputs.advance_frames || 1218 }}"
           CAPTURE_FRAMES="${{ inputs.capture_frames || 2 }}"
           export ADVANCE_FRAMES CAPTURE_FRAMES
+          rider_capture=()
+          if [[ "$RIDER_WRAM_CAPTURE" == "true" ]]; then
+            rider_capture=(--include-rider-wram)
+          elif [[ "$RIDER_WRAM_CAPTURE" != "false" ]]; then
+            echo "Invalid optional rider WRAM capture flag" >&2
+            exit 2
+          fi
           if [[ -n "$CAPTURE_TICKS" ]]; then
             # A manual sparse capture executes the whole original input replay
             # once, but snapshots only the requested bounded bridge ticks.
@@ -175,7 +188,7 @@ jobs:
             --input-file tests/input/two-player-first-race.input \
             --mesen-for-ai-repo third_party/src/mesen-for-ai \
             --mesen-executable "$MESEN_BIN" \
-            "${selection[@]}" --include-held-framebuffer \
+            "${selection[@]}" "${rider_capture[@]}" --include-held-framebuffer \
             --out-dir "$RUNNER_TEMP/art4k-actual-ppu-raw"
           python3 - <<'PY'
           import json, os
@@ -200,6 +213,10 @@ jobs:
           assert not report["live_original_per_player_64x64_alpha_composition_verified"]
           assert not report["source_original_3d_camera_or_articulated_rig_verified"]
           assert report["original_held_framebuffer_P6_exported"] is True
+          rider_capture=os.environ.get("RIDER_WRAM_CAPTURE","false")=="true"
+          assert (report.get("source_original_rider_work_ram_0000_17ff_captured")
+                  is True if rider_capture else
+                  "source_original_rider_work_ram_0000_17ff_captured" not in report)
           assert report["source_original_snes_frame_skipping_disabled_requested"] is True
           assert report["original_PPU_RGB_to_source_OBJ_pixel_ownership_verified"] is False
           for row in report["frames"]:

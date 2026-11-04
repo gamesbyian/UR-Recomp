@@ -24,6 +24,11 @@ MAX_CHUNK=1024
 MAX_DISPLAY_AXIS=1024
 MAX_SPARSE_SNAPSHOTS=24
 MAX_SPARSE_TICK=2500
+# Optional source WRAM span covering rider state and annotated DMA queue.
+RIDER_WRAM_MEMORY_TYPE="snesWorkRam"
+RIDER_WRAM_START=0
+RIDER_WRAM_SIZE=0x1800
+RIDER_WRAM_FILENAME_SUFFIX="wram-0000-17ff.bin"
 
 
 def validate_capture_ticks(ticks:tuple[int,...])->tuple[int,...]:
@@ -105,9 +110,11 @@ def inspect_held_ppm(raw: bytes, reply: dict, requested_path: str) -> dict:
 def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
                    include_held_framebuffer:bool=False,
                    source_snes_frame_skipping_disabled_requested:bool=False,
-                   *,source_capture_ticks:tuple[int,...]|None=None)->dict:
+                   *,source_capture_ticks:tuple[int,...]|None=None,
+                   include_rider_wram:bool=False)->dict:
     if (type(source_snes_frame_skipping_disabled_requested) is not bool or
             type(include_held_framebuffer) is not bool or
+            type(include_rider_wram) is not bool or
             type(advance) is not int or not 0<=advance<=2500 or
             type(count) is not int or not 1<=count<=5):
         raise ValueError("bounded original emulator capture range required")
@@ -167,14 +174,37 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             display["relative_file"]=filename
             if mesen.tool("run.status").get("frame")!=expected:
                 raise ValueError("original emulator advanced during held display read")
-        frames.append({
+        rider=None
+        if include_rider_wram:
+            # Read after the PPU and display at the same paused bridge tick.
+            # A frame-boundary queue may already have been consumed by NMI.
+            if mesen.tool("run.status").get("frame")!=expected:
+                raise ValueError("emulator advanced before original rider WRAM read")
+            contents=read_region(mesen,RIDER_WRAM_MEMORY_TYPE,RIDER_WRAM_SIZE)
+            filename=f"frame-{expected:06d}-{RIDER_WRAM_FILENAME_SUFFIX}"
+            with (output/filename).open("xb") as stream:
+                stream.write(contents)
+            rider={
+                "relative_file":filename,
+                "sha256":sha(contents),
+                "byte_size":len(contents),
+                "source_memory_type":RIDER_WRAM_MEMORY_TYPE,
+                "source_offset":RIDER_WRAM_START,
+                "capture_order":"after_original_PPU_and_optional_held_screen",
+            }
+            if mesen.tool("run.status").get("frame")!=expected:
+                raise ValueError("emulator advanced during original rider WRAM read")
+        row={
             "original_emulator_held_display_P6":display,
             "emulator_bridge_frame":expected,
             "replayed_controller_step_index":step,
             "p1_controller_mask":current[0],
             "p2_controller_mask":current[1],
             "raw_original_snes_ppu_memory":raw,
-        })
+        }
+        if rider is not None:
+            row["original_snes_rider_work_ram_0000_17ff"]=rider
+        frames.append(row)
     if [frame["emulator_bridge_frame"] for frame in frames]!=list(requested):
         raise ValueError("missing requested original emulator source frame")
     record={"schema":SCHEMA,"emulator_source_revision":MESEN_REVISION,
@@ -196,6 +226,11 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "frames":frames}
     if source_capture_ticks is not None:
         record["source_requested_capture_ticks"]=list(requested)
+    if include_rider_wram:
+        record["source_original_rider_work_ram_0000_17ff_captured"]=True
+        record["source_wram_queue_is_post_frame_boundary_not_write_trace"]=True
+        record["source_original_CPU_or_DMA_tile_writer_PC_identified"]=False
+        record["source_original_1994_3d_pose_recovered_from_wram"]=False
     return record
 
 
@@ -226,6 +261,14 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
             raise ValueError("sparse original capture tick manifest disagrees with frames")
     elif len(frames)>5:
         raise ValueError("legacy source capture cannot exceed five frames")
+    rider_wram_claim=manifest.get("source_original_rider_work_ram_0000_17ff_captured")
+    if rider_wram_claim not in (None,True):
+        raise ValueError("source rider WRAM provenance flag invalid")
+    if rider_wram_claim is True and (
+            manifest.get("source_wram_queue_is_post_frame_boundary_not_write_trace") is not True or
+            manifest.get("source_original_CPU_or_DMA_tile_writer_PC_identified") is not False or
+            manifest.get("source_original_1994_3d_pose_recovered_from_wram") is not False):
+        raise ValueError("overclaimed original WRAM graphics producer or 3D pose")
     seen=set()
     last=None
     for frame in frames:
@@ -251,6 +294,25 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
                     record.get("mesen_memory_type")!=REGIONS[region][0] or
                     sha(raw)!=record.get("sha256")):
                 raise ValueError("actual emulator original PPU region SHA mismatch")
+        rider=frame.get("original_snes_rider_work_ram_0000_17ff")
+        if rider_wram_claim is True:
+            filename=f"frame-{n:06d}-{RIDER_WRAM_FILENAME_SUFFIX}"
+            if (not isinstance(rider,dict) or
+                    rider.get("relative_file")!=filename or filename in seen or
+                    rider.get("byte_size")!=RIDER_WRAM_SIZE or
+                    rider.get("source_offset")!=RIDER_WRAM_START or
+                    rider.get("source_memory_type")!=RIDER_WRAM_MEMORY_TYPE or
+                    rider.get("capture_order")!="after_original_PPU_and_optional_held_screen"):
+                raise ValueError("source original rider WRAM frame identity or metadata invalid")
+            seen.add(filename)
+            path=directory/filename
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("source original rider WRAM file absent or linked")
+            contents=path.read_bytes()
+            if len(contents)!=RIDER_WRAM_SIZE or sha(contents)!=rider.get("sha256"):
+                raise ValueError("source original rider WRAM SHA or length invalid")
+        elif rider is not None:
+            raise ValueError("unclaimed original rider WRAM file/metadata")
         display=frame.get("original_emulator_held_display_P6")
         if manifest.get("original_held_framebuffer_P6_exported") is True:
             if not isinstance(display,dict):
@@ -290,6 +352,8 @@ def main():
     p.add_argument("--capture-frames",type=int)
     p.add_argument("--capture-ticks",type=str,help="1..24 increasing decimal ticks, one replay")
     p.add_argument("--include-held-framebuffer",action="store_true")
+    p.add_argument("--include-rider-wram",action="store_true",
+                   help="Add 0000..17FF original WRAM rail at each captured PPU tick")
     p.add_argument("--out-dir",required=True,type=Path)
     args=p.parse_args()
     if args.capture_ticks is not None and (args.advance_frames is not None or args.capture_frames is not None):
@@ -314,13 +378,15 @@ def main():
         report=capture_states(mesen,runs,advance,count,args.out_dir,
                               include_held_framebuffer=args.include_held_framebuffer,
                               source_snes_frame_skipping_disabled_requested=disable_request,
-                              source_capture_ticks=sparse_ticks)
+                              source_capture_ticks=sparse_ticks,
+                              include_rider_wram=args.include_rider_wram)
     report["original_input_replay_sha256"]=sha(args.input_file.read_bytes())
     report["actual_emulator_executable_sha256"]=sha(args.mesen_executable.read_bytes())
     validate_snapshot_files(args.out_dir,report)
     publish_text_once(args.out_dir/"manifest.json",json.dumps(report,sort_keys=True,indent=2)+"\n")
     print(json.dumps({"schema":SCHEMA,"emulator_ticks":[x["emulator_bridge_frame"] for x in report["frames"]],
                       "captured_regions":list(REGIONS),
+                      "source_original_rider_wram_captured":args.include_rider_wram,
                       "live_source_racer_alpha_reconstructed":False,
                       "original_held_emulator_screen_exported":args.include_held_framebuffer,
                       "source_no_frameskip_explicitly_requested":disable_request},sort_keys=True))

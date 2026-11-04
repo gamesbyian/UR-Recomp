@@ -51,6 +51,7 @@ class KonWindowIsolationTests(unittest.TestCase):
                 self.assertIn("ambiguous", result)
                 self.assertEqual(calls, 0)
 
+    @unittest.skipIf(sys.platform == "win32", "secure descriptor-relative WAV publication requires POSIX")
     def test_second_kon_outside_wav_window_does_not_poison_capture(self):
         for sample in (39499, 42000, 43000):
             with self.subTest(sample=sample):

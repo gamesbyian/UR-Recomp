@@ -65,9 +65,11 @@ class LivePublicationTests(unittest.TestCase):
     def test_post_wav_rejection_leaves_no_final_wav(self):
         self.exercise("post_wav_failure")
 
+    @unittest.skipIf(sys.platform == "win32", "secure descriptor-relative WAV publication requires POSIX")
     def test_final_publication_preserves_foreign_race_winner(self):
         self.exercise("destination_race")
 
+    @unittest.skipIf(sys.platform == "win32", "secure descriptor-relative WAV publication requires POSIX")
     def test_success_publishes_wav_and_receipt(self):
         self.exercise("success")
 
@@ -127,6 +129,7 @@ class NativeExecutableSnapshotTests(unittest.TestCase):
                 self.assertFalse(wav.exists())
                 self.assertFalse(receipt.exists())
 
+    @unittest.skipIf(sys.platform == "win32", "secure descriptor-relative WAV publication requires POSIX")
     def test_live_binary_disappearance_after_snapshot_preserves_pre_capture_digest(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -158,6 +161,7 @@ class NativeExecutableSnapshotTests(unittest.TestCase):
 
 
 class AtomicReceiptPublicationTests(unittest.TestCase):
+    @unittest.skipIf(sys.platform == "win32", "secure descriptor-relative receipt publication requires POSIX")
     def test_complete_receipt_visible_only_after_staging_fsync(self):
         import qa01_native_pcm_at_kon as offline
         with tempfile.TemporaryDirectory() as tmp:
@@ -179,6 +183,7 @@ class AtomicReceiptPublicationTests(unittest.TestCase):
             self.assertEqual(destination.read_text(encoding="utf-8"), payload)
             self.assertFalse(list(root.glob(".qa01-receipt-stage-*")))
 
+    @unittest.skipIf(sys.platform == "win32", "secure descriptor-relative receipt publication requires POSIX")
     def test_existing_and_dangling_symlink_receipts_are_preserved(self):
         import qa01_native_pcm_at_kon as offline
         with tempfile.TemporaryDirectory() as tmp:

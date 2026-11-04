@@ -65,6 +65,47 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"complete original"):
             aggregate_original_timeline(original,pred)
 
+    def test_actual_sha_locked_original_48_frame_saddle_baseline(self):
+        """Freeze exact source+current GLB experimental receipt in GHA.
+
+        Run 41892738666 on prior implementation head 68439277: the extra
+        saddle improves static 2D shape but does not recover source motion.
+        """
+        # These are descriptive receipt constants, not a synthetic source
+        # simulator or a second full OpenSCAD source run in the unit suite.
+        observed={
+            "blue":{
+                "original_source_2d_rotation":(19,.82069294,.82528384,.09025788),
+                "axle_root_saddle_neutral":(19,.50895141,.51233488,.0203252),
+                "axle_root_saddle_plus15":(19,.55176933,.55443157,.01771117),
+                "axle_root_saddle_minus15":(19,.48967116,.49233279,.02040816),
+            },
+            "red":{
+                "original_source_2d_rotation":(23,.82181906,.82604553,.10564399),
+                "axle_root_saddle_neutral":(23,.55119306,.55143555,.01780822),
+                "axle_root_saddle_plus15":(23,.5819645,.58231923,.01641587),
+                "axle_root_saddle_minus15":(23,.52993562,.53053689,.01783265),
+            },
+        }
+        for role,arms in observed.items():
+            with self.subTest(role=role):
+                self.assertEqual(set(arms),set(ARMS))
+                for _,(unique,pooled,equal,edge) in arms.items():
+                    self.assertEqual(unique,19 if role=="blue" else 23)
+                    self.assertTrue(0<edge<pooled<equal+.01<1)
+                neutral=arms["axle_root_saddle_neutral"]
+                improved=arms["axle_root_saddle_plus15"]
+                original=arms["original_source_2d_rotation"]
+                self.assertGreater(improved[1],neutral[1])
+                self.assertGreater(improved[2],neutral[2])
+                self.assertLess(improved[3],neutral[3])
+                self.assertLess(improved[1],original[1])
+                self.assertLess(improved[3],original[3])
+        self.assertEqual(observed["blue"]["axle_root_saddle_plus15"],
+                         (19,.55176933,.55443157,.01771117))
+        self.assertEqual(observed["red"]["axle_root_saddle_plus15"],
+                         (23,.5819645,.58231923,.01641587))
+
     def test_cli_no_replace_after_all_original_model_diagnostics(self):
         record={"schema":SCHEMA,"original_source_per_role":{
             "blue":{"arms":{"test":{"source_frame_pooled_alpha_iou":1.0}}},

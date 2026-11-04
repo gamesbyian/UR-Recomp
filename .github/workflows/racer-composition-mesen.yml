@@ -2,6 +2,17 @@ name: Synchronized racer composition proof
 
 on:
   workflow_dispatch:
+    inputs:
+      advance_frames:
+        description: "Original bridge frames before synchronized composer, 0..2500"
+        type: number
+        default: 1218
+        required: true
+      trace_rider_state:
+        description: "Capture bounded original rider phase/angle WRAM write callbacks"
+        type: boolean
+        default: false
+        required: false
 
 concurrency:
   group: racer-composition-mesen-${{ github.ref }}
@@ -113,7 +124,11 @@ jobs:
           set -euo pipefail
           export MESEN_BIN="$RUNNER_TEMP/mesence-cache/Mesen"
           export MESEN_FOR_AI_REPO="$GITHUB_WORKSPACE/third_party/src/mesen-for-ai"
-          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames 1218               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
+          trace=()
+          if [[ "${{ inputs.trace_rider_state }}" == "true" ]]; then
+            trace+=(--trace-rider-state)
+          fi
+          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames "${{ inputs.advance_frames || 1218 }}"               "${trace[@]}"               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
           cat "$RUNNER_TEMP/racer-composition-mesen.md"
 
       - name: Require synchronized mask and occupied-source agreement

@@ -198,7 +198,8 @@ jobs:
               for row in report["frames"]:
                   values=row["source_original_rider_WRAM_at_bridge_boundary"]
                   events=row["source_original_rider_writer_events"]
-                  print("ART4K_ORIGINAL_RIDER_BOUNDARY",json.dumps({"tick":row["emulator_bridge_frame"],"WRAM":values["source_u16_le"],"WRAM_SHA256":values["source_raw_22_bytes_sha256"],"writer_events":events["events"],"callback_alignment_verified":False},sort_keys=True))
+                  queue=row["source_original_DMA_queue_at_bridge_boundary"]
+                  print("ART4K_ORIGINAL_RIDER_BOUNDARY",json.dumps({"tick":row["emulator_bridge_frame"],"WRAM":values["source_u16_le"],"WRAM_SHA256":values["source_raw_22_bytes_sha256"],"writer_events":events["events"],"DMA_queue":queue,"callback_alignment_verified":False},sort_keys=True))
           advance=int(os.environ["ADVANCE_FRAMES"])
           count=int(os.environ["CAPTURE_FRAMES"])
           actual=[f["emulator_bridge_frame"] for f in report["frames"]]

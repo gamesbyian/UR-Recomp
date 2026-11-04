@@ -16,7 +16,8 @@ from tools.capture_racer_composition_mesen import load_mesen_class, buttons_for_
 from tools.controller_input import load_controller_runs, masks_at
 from tools.art.mesen_rider_wram_probe import (capture as capture_rider_wram,
     validate as validate_rider_wram, start_watches as start_rider_watches,
-    recent_writes as rider_recent_writes, validate_recent_writes as validate_rider_writes)
+    recent_writes as rider_recent_writes, validate_recent_writes as validate_rider_writes,
+    source_dma_queue as capture_rider_DMA_queue, validate_dma_queue as validate_rider_DMA_queue)
 
 SCHEMA="UR-ART4K-MESENCE-LIVE-RAW-SNES-PPU-STATES/1"
 ROM_SHA="859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
@@ -188,6 +189,7 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             if watch_handles is None:
                 raise ValueError("source original writer watches not installed")
             frame_row["source_original_rider_WRAM_at_bridge_boundary"]=rider_wram
+            frame_row["source_original_DMA_queue_at_bridge_boundary"]=capture_rider_DMA_queue(mesen,expected)
             frame_row["source_original_rider_writer_events"]=rider_recent_writes(
                 mesen,watch_handles,expected)
         frames.append(frame_row)
@@ -205,6 +207,7 @@ def capture_states(mesen,controller_runs,advance:int,count:int,output:Path,
             "source_regional_memory_bytes_sha_bound":True,
             "source_original_rider_WRAM_at_bridge_boundary_exported":include_rider_wram,
             "source_original_rider_WRAM_callback_events_exported":include_rider_wram,
+            "source_original_DMA_queue_entries_exported":include_rider_wram,
             "original_rider_CPU_WRAM_writers_dynamically_identified":False,
             "live_original_per_player_64x64_alpha_composition_verified":False,
             "source_original_live_OAM_sprite_to_racer_identity_verified":False,
@@ -262,8 +265,13 @@ def validate_snapshot_files(directory:Path,manifest:dict)->None:
             if manifest.get("source_original_rider_WRAM_callback_events_exported") is not True:
                 raise ValueError("original callback event evidence missing")
             validate_rider_writes(frame.get("source_original_rider_writer_events"),n)
+            if manifest.get("source_original_DMA_queue_entries_exported") is not True:
+                raise ValueError("source original DMA queue evidence missing")
+            validate_rider_DMA_queue(frame.get("source_original_DMA_queue_at_bridge_boundary"),n)
         elif (rider is not None or include_rider is not False or
               "source_original_rider_writer_events" in frame or
+              "source_original_DMA_queue_at_bridge_boundary" in frame or
+              manifest.get("source_original_DMA_queue_entries_exported",False) is not False or
               manifest.get("source_original_rider_WRAM_callback_events_exported",False) is not False):
             raise ValueError("unclaimed original rider WRAM or malformed capture flag")
         for region,(_,size) in REGIONS.items():

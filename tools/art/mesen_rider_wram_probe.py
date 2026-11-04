@@ -163,3 +163,78 @@ def validate_recent_writes(row: object, tick: int) -> None:
         pc = event.get("source_CPU_PC")
         if pc is not None and (not isinstance(pc, str) or len(pc) > 32):
             raise ValueError("source callback program counter invalid")
+
+# The original ROM's three parallel 16-bit DMA queue arrays have 82 entries
+# between successive source bank/address/destination base offsets.
+DMA_QUEUE = (("source_bank",0x15A1),("source_address",0x1645),
+             ("vram_destination",0x16E9))
+MAX_QUEUE_ENTRIES = 82
+
+def source_dma_queue(mesen: object, tick: int) -> dict:
+    before=mesen.tool("run.status")
+    if not isinstance(before,dict) or before.get("frame")!=tick:
+        raise ValueError("original frame advanced before queued DMA capture")
+    fields={}
+    raw=b""
+    for label,address in DMA_QUEUE:
+        reply=mesen.tool("cpu.read_memory",memoryType=MEM_TYPE,
+                         address=address,length=MAX_QUEUE_ENTRIES*2)
+        if (not isinstance(reply,dict) or reply.get("memoryType")!=MEM_TYPE
+                or reply.get("address")!=address
+                or reply.get("length")!=MAX_QUEUE_ENTRIES*2):
+            raise ValueError("wrong source DMA queue array memory span")
+        buf=reply.get("bytes")
+        if (not isinstance(buf,list) or len(buf)!=MAX_QUEUE_ENTRIES*2
+                or any(type(b) is not int or not 0<=b<=255 for b in buf)):
+            raise ValueError("invalid original DMA queue bytes")
+        data=bytes(buf)
+        raw+=data
+        fields[label]=[int.from_bytes(data[2*i:2*i+2],"little")
+                       for i in range(MAX_QUEUE_ENTRIES)]
+    after=mesen.tool("run.status")
+    if not isinstance(after,dict) or after.get("frame")!=tick:
+        raise ValueError("original advanced during DMA queue array reading")
+    bank=fields["source_bank"]
+    try:
+        sentinel=bank.index(0xFFFF)
+    except ValueError as exc:
+        raise ValueError("original DMA source-bank queue missing terminating FFFF") from exc
+    entries=[{"entry":i,"source_bank_word":fields["source_bank"][i],
+              "source_address_word":fields["source_address"][i],
+              "vram_destination_word":fields["vram_destination"][i]}
+             for i in range(sentinel)]
+    return {
+        "original_bridge_tick":tick,
+        "source_3x82_word_arrays_SHA256":hashlib.sha256(raw).hexdigest(),
+        "source_parallel_array_word_bases":[a for _,a in DMA_QUEUE],
+        "source_queue_terminator_index":sentinel,
+        "source_queue_terminator_bank_word":0xFFFF,
+        "queue_entries":entries,
+        "all_queued_destinations_necessarily_written_before_held_PPU":False,
+        "source_queue_entry_to_specific_original_racer_verified":False,
+    }
+
+def validate_dma_queue(row: object, tick: int) -> None:
+    if not isinstance(row,dict) or row.get("original_bridge_tick")!=tick:
+        raise ValueError("original DMA queue wrong bridge tick")
+    if (row.get("source_parallel_array_word_bases")!=[a for _,a in DMA_QUEUE]
+        or row.get("source_queue_terminator_bank_word")!=0xFFFF
+        or row.get("all_queued_destinations_necessarily_written_before_held_PPU") is not False
+        or row.get("source_queue_entry_to_specific_original_racer_verified") is not False):
+        raise ValueError("source DMA queue provenance overclaimed")
+    entries=row.get("queue_entries")
+    n=row.get("source_queue_terminator_index")
+    if (type(n) is not int or not 0<=n<MAX_QUEUE_ENTRIES or
+            not isinstance(entries,list) or len(entries)!=n):
+        raise ValueError("source DMA queue not terminated within bounded arrays")
+    if not isinstance(row.get("source_3x82_word_arrays_SHA256"),str) or len(row["source_3x82_word_arrays_SHA256"])!=64:
+        raise ValueError("source DMA queue SHA missing")
+    for i,e in enumerate(entries):
+        if not isinstance(e,dict) or e.get("entry")!=i:
+            raise ValueError("out of order original DMA queue entry")
+        for key in ("source_bank_word","source_address_word","vram_destination_word"):
+            value=e.get(key)
+            if type(value) is not int or not 0<=value<=0xFFFF:
+                raise ValueError("invalid original DMA queue 16-bit entry")
+        if e["source_bank_word"]==0xFFFF:
+            raise ValueError("terminator must not appear as transfer")

@@ -108,3 +108,54 @@ class ActualWriterWatchTests(unittest.TestCase):
             invalid={**good,"events":[{**good["events"][0],**change}]}
             with self.assertRaises(ValueError):
                 validate_recent_writes(invalid,1603)
+
+
+class FakeDMAQueue:
+    def __init__(self):
+        self.tick=1603
+    def tool(self,name,**kw):
+        if name=="run.status":
+            return {"frame":self.tick}
+        if name!="cpu.read_memory":
+            raise ValueError(name)
+        from tools.art.mesen_rider_wram_probe import MAX_QUEUE_ENTRIES
+        selfbytes=bytearray(2*MAX_QUEUE_ENTRIES)
+        address=kw["address"]
+        if address==0x15A1:
+            selfbytes[0:2]=(39).to_bytes(2,"little")
+            selfbytes[2:4]=(0xFFFF).to_bytes(2,"little")
+        elif address==0x1645:
+            selfbytes[0:2]=(0xD440).to_bytes(2,"little")
+        elif address==0x16E9:
+            selfbytes[0:2]=(0x6020).to_bytes(2,"little")
+        return {"memoryType":"snesWorkRam","address":address,
+                "length":2*MAX_QUEUE_ENTRIES,"bytes":list(selfbytes)}
+
+class SourceQueueTests(unittest.TestCase):
+    def test_full_three_parallel_82_word_lists_sentinel_and_identity(self):
+        from tools.art.mesen_rider_wram_probe import source_dma_queue,validate_dma_queue
+        fake=FakeDMAQueue()
+        row=source_dma_queue(fake,1603)
+        validate_dma_queue(row,1603)
+        self.assertEqual(row["source_queue_terminator_index"],1)
+        self.assertEqual(row["source_parallel_array_word_bases"],
+                         [0x15A1,0x1645,0x16E9])
+        self.assertEqual(row["queue_entries"],[{
+            "entry":0,"source_bank_word":39,
+            "source_address_word":0xD440,"vram_destination_word":0x6020}])
+        self.assertFalse(row["source_queue_entry_to_specific_original_racer_verified"])
+        self.assertFalse(row["all_queued_destinations_necessarily_written_before_held_PPU"])
+
+    def test_bad_queue_terminator_or_held_tick_rejected(self):
+        from tools.art.mesen_rider_wram_probe import source_dma_queue,validate_dma_queue
+        fake=FakeDMAQueue()
+        row=source_dma_queue(fake,1603)
+        with self.assertRaises(ValueError):
+            source_dma_queue(fake,1602)
+        for change in ({"original_bridge_tick":1602},
+                       {"source_queue_terminator_index":82},
+                       {"source_queue_entry_to_specific_original_racer_verified":True},
+                       {"queue_entries":[{"entry":0,"source_bank_word":0xFFFF,
+                                          "source_address_word":0,"vram_destination_word":0}]}):
+            with self.assertRaises(ValueError):
+                validate_dma_queue({**row,**change},1603)

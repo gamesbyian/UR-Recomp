@@ -33,6 +33,21 @@ python3 -m tools.art.recover_original_rom_derotated_consensus \
 
 No new original Mesen capture, OpenSCAD geometry, renderer or GitHub workflow. The standard source SHA checks and exclusive no-overwrite report publisher fail closed. Tests verify synthetic 4bpp opacity/fringe/missing-view contracts and the **actual complete original USA ROM source family**; all numeric results must be drawn from exact-head CI execution.
 
+## Executed original ROM contour result
+
+The exact original 2,097,152-byte USA ROM and SHA-pinned 24×64 phase/orientation source report were exercised in the full dependency-free tooling suite at implementation head `5a862badb692f246199a6ecd1aa8a321f1aa5b08`, [GHA run #41890911468](https://github.com/gamesbyian/UR-Recomp/actions/runs/41890911468), with [hygiene #41890911798](https://github.com/gamesbyian/UR-Recomp/actions/runs/41890911798) also green. These are source-only exact evidence pixels, *not* the 2026 GLB's model parts. The observed original 2D inverse-rotation consensus per predeclared phase is:
+
+| Original ROM phase | 2D consensus opaque pixels | Near-invariant 2D core pixels | Orientation-dependent 2D fringe pixels |
+|---|---:|---:|---:|
+| 0 | **297** | **173** | 329 |
+| 6 | **300** | **165** | 337 |
+| 12 | **295** | **176** | 326 |
+| 18 | **297** | **171** | 331 |
+
+Core is a subset of consensus; fringe overlaps other classifications, so **do not add those three counts** as disjoint components. The 2D source view-dependence and opacity uncertainty remain large even after a single fixed original orientation-index-space rotation, and the source evidence supports retaining multiple independently authored 2D views. Original view-dependent pixels could reflect 3D occlusion, shading or hand-authored sprite changes. **Do not infer a recovered 1994 surface or a physical camera.**
+
+The subsequent test commit freezes these **12 exact source counts**, not just the existence of a report; it requires its own final-head unit/hygiene checks after the implementation run above.
+
 ## Scientific stop and handoff
 
 This experiment is source-only, stacked on #3104/#3113/#3114; compare any later changed 2026 mesh against the **same** 2D source-normalized core and a truly held-out source perspective/orientation family, retaining prior 2D rigid rotation, source-phase orbit and full 4bpp references as controls. Do not select a mesh parameter or camera per original image after inspecting residuals. Current 2026 #2832 model authoring and owner art veto remain fully intact.

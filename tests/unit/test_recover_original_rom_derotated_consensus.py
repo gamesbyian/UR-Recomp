@@ -73,6 +73,20 @@ class OriginalROMDerotatedConsensus(unittest.TestCase):
         self.assertFalse(result["original_1994_3D_geometry_camera_joint_or_materials_recovered"])
         self.assertFalse(result["owner_art_likeness_approved"])
         self.assertTrue(result["source_64x64_rotation_canvas_cropping_not_counted_as_background"])
+        # Authentic USA ROM execution, head 5a862badb692, Actions
+        # 41890911468; freeze the original 4x64 orientation normalized
+        # source pixel counts to detect decoder/rotation/crop regressions.
+        frozen={
+            "0":(297,173,329),
+            "6":(300,165,337),
+            "12":(295,176,326),
+            "18":(297,171,331),
+        }
+        for phase,(expected_consensus,expected_core,expected_fringe) in frozen.items():
+            frame=result["per_original_ROM_phase"][phase]
+            self.assertEqual(frame["source_consensus_opaque_pixels"],expected_consensus)
+            self.assertEqual(frame["source_near_invariant_opaque_core_pixels"],expected_core)
+            self.assertEqual(frame["source_mid_frequency_view_dependent_pixels"],expected_fringe)
         for phase,record in result["per_original_ROM_phase"].items():
             with self.subTest(phase=phase):
                 self.assertEqual(record["orientation_samples"],64)

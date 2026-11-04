@@ -15,6 +15,22 @@ Three fixed 2D nulls predict each odd-angle support: (1) the unmodified orientat
 
 Report per-angle and pooled intersection, predicted-only, source-only, IoU, precision and recall, with one vote per odd index in the mean IoU. Source support masks are source-derived geometric *regions* only, not physical part labels. The original SNES **7:6** pixel aspect remains explicit: the match operates in original 64×64 integer source coordinates, not incorrectly pre-stretched display pixels.
 
+## Executed real-original-ROM result (2026-11-04)
+
+The full tooling suite passed at exact implementation head `f6d7558e041b76cf9c8c79beb166208c17a653cc`, [Actions run #41785648962](https://github.com/gamesbyian/UR-Recomp/actions/runs/41785648962), unit job `126427064938`. The ordinary sharded test runner surfaced its machine-measured `OK ART4K_PHASE_SUPPORT_2D_NULL_TEST_SUMMARY` from the real authenticated ROM, **32 odd orientation indices**, with even-only centre harmonics and one unfitted phase-support reference at angle zero:
+
+| Fixed original pixel-region explanation | Correct pixels | False positives | False negatives | Mean IoU across angles | Pooled IoU |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Unmodified reference support | 613 | 3,099 | 3,124 | 0.12345763 | **0.08967232** |
+| Harmonic 2D orbit, translation only | 3,410 | 302 | 327 | 0.84807947 | **0.84426838** |
+| Same reference support, rigid 2D rotation | **3,477** | **243** | **260** | **0.87411704** | **0.87361809** |
+
+The 2D rigid rotation improves pooled IoU by **0.02934971** over the fixed-form orbit translation and by **0.78394577** over a stationary source support. The two moving controls use the same 64×64 true-source comparison and a shared harmonic centre fitted only on even orientation positions. The rigid rotation is a low-parameter *2D source-image explanation*. It correctly covers **3,477 of 3,737 phase-sensitive source pixel positions summed over the 32 odd test orientations**, but that count is intentionally *instances*, not independently observed 1994 world geometry.
+
+**Inference:** the source supports rigidly rotating a local phase-dependent *image region* more strongly than simply translating an unrotated fixed region along the same near-circular path. This does **not** yet prove that full original sprites rotate rigidly, because the comparison scores phase-sensitive **union masks**, not detailed 4bpp colour samples, depth/occlusion or the static parts of the racer. The source objects were already inspected; no prospective test was performed, and the source ROM images are original pre-rendered graphics. A real 3D replacement rig must show additional predictive value over this successful 2D null.
+
+The follow-up exact-count regression on this PR freezes all three (TP, FP, FN, IoU) outputs. Its stronger test commit requires separate final-head CI; do not attribute the previous successful run to the later head.
+
 ## Decision rule and next actual 3D discriminator
 
 If rigid 2D rotation fails to outperform a translated/static phase-support template on the changed-pixel support, reject the claim that the observed bounding-box orbit by itself supports rigid rotated source anatomy. If rotation works better, it still supplies a credible **2D rotation null** that any more elaborate 3D rig must beat on independent full alpha, opaque 4bpp painted-index and temporal evidence. Neither result can uniquely identify a 3D object. Do not make the existing #2832 GLB a default or edit geometry from an unpaired retrospective gain.

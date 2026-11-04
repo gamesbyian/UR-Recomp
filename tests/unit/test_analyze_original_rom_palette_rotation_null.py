@@ -65,6 +65,24 @@ class OriginalROMPaletteMappingNullTests(unittest.TestCase):
         self.assertEqual(stats["index_identity"]["source_opaque_pixels"],41141)
         self.assertEqual(stats["index_identity"]["exact_original_index_matches"],9806)
         self.assertGreater(record["training_pixel_pairs_in_opaque_overlap"],0)
+        # Real original-ROM Actions run 41826651132, exact implementation
+        # head 87844f8e0c16, job 126562967879. Source-only 128-frame
+        # even-train/odd-score; never a new 1994 3D art/material proof.
+        frozen={
+            "index_identity":(9806,0.23835104,0.29902723),
+            "one_global_bijective_relabel":(9887,0.24031988,0.30149727),
+            "one_global_majority_relabel":(10976,0.26678982,0.33470558),
+        }
+        for arm,(matched,recall,conditional) in frozen.items():
+            self.assertEqual(stats[arm]["exact_original_index_matches"],matched)
+            self.assertEqual(stats[arm]["overlap_opaque_pixels"],32793)
+            self.assertEqual(stats[arm]["source_opaque_pixels"],41141)
+            self.assertEqual(stats[arm]["pooled_source_exact_index_recall"],recall)
+            self.assertEqual(stats[arm]["pooled_within_overlap_exact_fraction"],conditional)
+        self.assertLess(stats["one_global_bijective_relabel"]
+                        ["pooled_source_exact_index_recall"]-stats["index_identity"]
+                        ["pooled_source_exact_index_recall"],0.002)
+
         for model in MODELS:
             self.assertEqual(stats[model]["source_opaque_pixels"],41141)
             self.assertTrue(0<=stats[model]["pooled_source_exact_index_recall"]<=1)

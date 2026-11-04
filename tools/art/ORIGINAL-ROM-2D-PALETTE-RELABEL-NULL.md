@@ -16,6 +16,20 @@ All three use **identical source rotation, 7:6 source/display aspect treatment, 
 
 If the shared remaps yield little gain, the large original source-paint mismatch requires more than a fixed source palette permutation: view-dependent shading/occlusion/detail, sprite redraw or incorrect source 2D model remain. If gain is material, preserve it as a *cheap source 2D appearance control* that an actual 2026 five-parent GLB material/lighting proposal must surpass with meaningful unseen viewpoint or motion predictions. Neither outcome proves the source 1994 3D artist's material names or the original camera.
 
+## Executed genuine ROM result
+
+The source-only original USA ROM test completed successfully at exact implementation head `87844f8e0c16351dbff0e2b4e0599df829af3581`, [Actions run #41826651132](https://github.com/gamesbyian/UR-Recomp/actions/runs/41826651132), unit job `126562967879`. All source inputs were SHA-verified; the index-only comparison covers **128 original ROM-authored images**, four fixed phases × 32 odd orientation indices, and shares a global mapping fitted using only even orientation indices 2–62.
+
+| Single globally applied indexed-colour rule | Exact source 4bpp index matches | Recall of 41,141 opaque source pixels | Exact fraction within 32,793 alpha-overlap pixels |
+|---|---:|---:|---:|
+| Unchanged palette indices, rigid 2D rotation | **9,806** | **23.835104%** | 29.902723% |
+| One optimal bijective 4bpp-index permutation | **9,887** | **24.031988%** | 30.149727% |
+| One more flexible many-to-one 4bpp relabelling | **10,976** | **26.678982%** | 33.470558% |
+
+The best one-to-one remap improves recall by only **0.196884 percentage points** over the original rigid-rotation index baseline. Even the more expressive many-to-one mapping adds just **2.843878 points**, and collapses original palette-index distinctions in ways a physically faithful material system may not permit. Both use the **same** 32,793 geometrically overlapping predicted/source opaque pixels and do not improve silhouette or uncover source depth. The majority of source-painted index structure remains unexplained by global index relabelling.
+
+**Decision:** do not spend model-reconstruction effort fitting a single global 4bpp palette conversion as a substitute for geometry/view-dependent 3D structure. Preserve the source original pixel-index correspondence and test source-relative shape, occlusion and localized apparent motion. Lighting, CGRAM interpretation, sprite redrawing and 3D surface/material hypotheses remain possible but unverified. The follow-up numerical regression asserts the exact three real-ROM count/recall results, and requires its own final-head CI before integration; the implementation run above predates the assertion.
+
 ## Reproduce
 
 ```sh

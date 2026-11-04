@@ -67,7 +67,7 @@ class OriginalPhaseSupport2DNullTests(unittest.TestCase):
             self.assertTrue(0<=row["pooled_iou"]<=1)
             self.assertTrue(0<=row["mean_per_orientation_iou"]<=1)
             self.assertGreater(row["pooled_intersection"]+row["pooled_false_negative"],0)
-        print("ART4K_PHASE_SUPPORT_2D_NULL_TEST_SUMMARY",
+        print("OK ART4K_PHASE_SUPPORT_2D_NULL_TEST_SUMMARY",
               json.dumps(report["summary"],sort_keys=True))
 
     def test_wrong_original_axis_and_rom_refused(self):

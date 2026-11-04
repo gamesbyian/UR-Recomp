@@ -293,6 +293,40 @@ jobs:
                       for r in rail["source_rows"]]}
           print("ART4K_ORIGINAL_RIDER_WRAM_SOURCE_WITNESS_JSON",json.dumps(result,sort_keys=True,separators=(",",":")))
           PYRIDER
+            # ONE-SHOT source preservation bridge: compare the second real
+            # 24-tick replay to all 24 original WRAM hashes before emitting
+            # bounded xz/base64 for a GitHub evidence blob.
+            if [[ "$GITHUB_EVENT_NAME" == "pull_request" &&
+                  "$RESEARCH_HEAD_REF" == "art4k/optional-source-rider-wram-rail-20261104" ]]; then
+              python3 - <<'PYWRAM'
+          import base64,hashlib,json,lzma,os
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])/"art4k-actual-ppu-raw"
+          old=json.loads('{"1601":"57ff1a4e9174410c95bef7c453a3aaf5bfc3a731e1b94a305c9f7848f3c1878e","1602":"77f899efefd6e00ad25ad9a6a87593ec8d982572f7f56b03a11c2b996560eba0","1603":"004a64a34dcd14e0275191c5d963f3d1ea99889eba0cae663b647beeb7b2678f","1604":"c146d5f6568b3829e39d2a3a846817cd5a7894005777c4d6e73f2ede7feb3f8c","1605":"9c0c04c914f76380b93857222fb81837331adf44c383c8f1d83fcdf57a6a6313","1606":"9d9025d67128bc0612e4ae565f88e36e67cd63aa15a5f8bbf87f598229b7f73e","1607":"21607dc841f230e96c3767aadef582f7f33dddb8226f676b472f54456f3e77d1","1608":"33c71e211f3303551e6159d6997b8968f9d157d471c0d4d87836167236ec19d7","1609":"2d30dad22e057ca744ae094d5d19ecb5ed17b1df5bfe387aaa89a893ba0bdb86","1610":"7ead4abc03b79439048be3954fb01a14a90e29f4f03add9a5fe663206ea996b5","1611":"35458c89986d52eadcd08be7b403b4442c5b4188d66233527e283c6d6fb14eb3","1612":"cdd9880bee862341746004353ed6f65a58076081f1e5380ad3abb51b376a7b93","1613":"6200d56bac764c7f9c6a5c42d264f389cabf31feab3b63f62e119fa8d8c8f3d6","1614":"e550ca8309b0913f2775a7a817ea789fa9dd4465cf35f195027d2579957cbbd7","1615":"973ef83c216547aefe88ff1be7b7f1593274e332ed51d1b6238b365e57e50b1f","1616":"0eb68561442bcdbf4a09654bfd9ab8be259b673dadc0b40d9eca19d32b20535f","1617":"7c95ffacb36b7b4b0600d8d750adf61eb066b683e5f0591674e60bc4624eb98f","1618":"7de2e894deaa6286e970aba13a8f3b3b13ac5d5c1ca6940c44f385cbcdaa5d10","1619":"2c3fe1871c697cd6b035a1fa16c4b33ffdcfdb466f1cc9fad557a1ddd3840072","1620":"8a6617328a4e84e93e3a9eba52c8a9179ba251450b1d3eb46cdd21d2f18be5b1","1621":"9854534298b59329fba3fc0d92787f9b141f0385dcaf966645037459242078d0","1622":"98cead4537897055ade8b47171960017eccf74fd25cea6146623efbd047d042c","1623":"5b031dcb4d5053c745a7e6c34f44abc3b02fdda641104c89b5793eecb2dd6b4d","1624":"77d2326d512cbab0c9b2930fae7b96608e3316cd98acfbcc5f0922a602db5034"}')
+          rows=[]
+          for tick in range(1601,1625):
+              b=(root/f"frame-{tick:06d}-wram-0000-17ff.bin").read_bytes()
+              if len(b)!=6144 or hashlib.sha256(b).hexdigest()!=old[str(tick)]:
+                  raise ValueError(f"second 24-tick original WRAM replay differs at {tick}")
+              rows.append(b)
+          raw=b"".join(rows)
+          if len(raw)!=147456 or hashlib.sha256(raw).hexdigest()!="c81fd37d4475a9627a658b70e8fc23948043b700cda0746320d8064a0fb489db":
+              raise ValueError("original 24-tick combined WRAM source identity mismatch")
+          packed=lzma.compress(raw,preset=9)
+          info={"schema":"UR-ART4K-24-ORIGINAL-MESEN-WRAM-RAW-XZ/1",
+              "original_source_run_first":41773517842,
+              "source_second_run_id":os.environ.get("GITHUB_RUN_ID"),
+              "source_ticks":list(range(1601,1625)),
+              "original_source_raw_Wram_bytes":len(raw),
+              "sha256_original_raw_concat":hashlib.sha256(raw).hexdigest(),
+              "sha256_xz":hashlib.sha256(packed).hexdigest(),
+              "xz_size":len(packed),
+              "frame_sha256_by_tick":old,
+              "source_1994_3d_pose_recovered":False}
+          print("ART4K_ORIGINAL_RIDER_WRAM24_EXACT_REPLAY_FREEZE",json.dumps(info,sort_keys=True,separators=(",",":")))
+          print("ART4K_ORIGINAL_RIDER_WRAM24_XZ_BASE64",base64.b64encode(packed).decode("ascii"))
+          PYWRAM
+            fi
           fi
 
       - name: Upload SHA-bound original emulator PPU raw RAM states

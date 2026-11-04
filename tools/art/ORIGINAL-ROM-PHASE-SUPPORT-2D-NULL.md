@@ -31,6 +31,29 @@ The 2D rigid rotation improves pooled IoU by **0.02934971** over the fixed-form 
 
 The follow-up exact-count regression on this PR freezes all three (TP, FP, FN, IoU) outputs. Its stronger test commit requires separate final-head CI; do not attribute the previous successful run to the later head.
 
+## Full original sprite versus the same two-dimensional rotation (2026-11-04)
+
+The prior 87.36% result evaluates only the **union of original phase-sensitive pixels**. This follow-up examines all original 64×64 4bpp indices, including stationary body/fork/saddle pixels and their individual palette indices. The source-only `tools/art/audit_original_rom_fullsprite_rotation_null.py` reuses the exact ROM source decoder and original 24×64 report. It freezes the one 2D centre from even orientation states, selects **four original phase slices (0,6,12,18)**, and evaluates **32 odd source orientations each (128 original authored full-frame sprites)** against two source-only predictions: unchanged orientation-zero source sprite and one rigid 2D rotation of that reference by `2π×index/64`. The latter index→2D angle is an explicit orientation hypothesis, **not** measured source physical 3D degrees.
+
+The completed full project tooling suite on implementation head `093d31998bee55e4cc2ddd60debc64dfb47583b8`, [run #41787502835](https://github.com/gamesbyian/UR-Recomp/actions/runs/41787502835), job `126433276743`, surfaced the executed ROM-derived `OK ART4K_ORIGINAL_FULLSPRITE_ROTATION_NULL` receipt:
+
+| Retrospective 128-sprite full 4bpp measure | Unchanged sprite | One fixed 2D rigid rotation |
+|---|---:|---:|
+| Original alpha intersection | 14,788 | **32,793** |
+| Predicted-only alpha pixels | 26,300 | **8,183** |
+| Missing source-alpha pixels | 26,353 | **8,348** |
+| Pooled whole-sprite alpha IoU | 0.21927314 | **0.66484876** |
+| Original source-colour index matches in overlap | 2,660 | **9,806** |
+| Original source-colour mismatches inside overlap | 12,128 | **22,987** |
+| Exact 4bpp colour-index recall of source opaque pixels | 0.06465570 | **0.23835104** |
+| Mean per-sprite alpha IoU | 0.23902855 | **0.66833709** |
+
+This is an important discriminator: while the original **moving region's spatial support** is largely explained by 2D rotation (0.87361809 IoU from the previous experiment), rotating an entire original sprite yields only **0.66484876** alpha IoU and **0.23835104** exact 4bpp opaque-source recall. The full source table contains substantial **residual shape and painted-index structure** not captured by this restricted transform. The residual is *not automatically 3D depth*: source sprite-specific 2D painting, transforms, camera/registration, material/shading, occlusion and source palette reuse all remain possible. Observed original ROM records are pre-rendered sprites, so these 128 data points are **retrospective, not independent camera viewpoints or prospective blind frames**.
+
+The stronger unit regression now asserts the full exact pixel counts, including the shared original-ROM source hashes and explicit no-3D claims. That new regression commit needs its own exact-head check; historical run #41787502835 tested the preceding code version, not the later frozen-score assertion.
+
+**What to test next:** evaluate the same **128** real original sprite index planes against the **single source-authored 2026 GLB** with globally fixed camera and mechanical parameters. Reuse the exact two historical fixed pivot hypotheses on [#3115](https://github.com/gamesbyian/UR-Recomp/pull/3115), wheel/frame coupling from #3101 and consistent red player convention. Score silhouette/colour/occlusion and report any source-index↔candidate-material ambiguity explicitly. First require improvement beyond **0.66484876 alpha IoU** and additional explanatory power beyond the **0.23835104 exact-index** 2D null *using a defensible stable palette/material rule*, not post-hoc material fitting per image. Preserve original source and 2026 GLB evidence classes. Stop if candidate 3D rig underperforms this cheap 2D-only explanation.
+
 ## Decision rule and next actual 3D discriminator
 
 If rigid 2D rotation fails to outperform a translated/static phase-support template on the changed-pixel support, reject the claim that the observed bounding-box orbit by itself supports rigid rotated source anatomy. If rotation works better, it still supplies a credible **2D rotation null** that any more elaborate 3D rig must beat on independent full alpha, opaque 4bpp painted-index and temporal evidence. Neither result can uniquely identify a 3D object. Do not make the existing #2832 GLB a default or edit geometry from an unpaired retrospective gain.

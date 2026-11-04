@@ -80,6 +80,39 @@ def count_parts(source64_by_part:dict[str,bytes])->dict:
     }
 
 
+
+def project_real_parent_masks256(scene,camera:dict)->dict:
+    """Render actual 2026 GLB parent geometry. Overlaps are non-additive."""
+    import numpy as np
+    import trimesh
+    validated_camera(camera)
+    expected={f"{part}__material_{i}"
+              for part in PARTS for i in range(CHILD_COUNTS[part])}
+    if not isinstance(scene,trimesh.Scene) or set(scene.graph.nodes_geometry)!=expected:
+        raise ValueError("unexpected real 2026 GLB five-parent material structure")
+    components={part:[] for part in PARTS}
+    for node in sorted(expected):
+        part=node.split("__material_",1)[0]
+        if scene.graph.transforms.parents.get(node)!=part:
+            raise ValueError("2026 GLB source material disconnected from parent")
+        transform,geometry=scene.graph.get(node)
+        source=scene.geometry[geometry]
+        if not isinstance(source,trimesh.Trimesh) or not len(source.faces):
+            raise ValueError("empty actual 2026 GLB triangle child")
+        mesh=source.copy()
+        mesh.apply_transform(transform)
+        components[part].append((mesh.vertices,mesh.faces))
+    masks={}
+    for part,geometry in components.items():
+        vertices=[];faces=[];offset=0
+        for v,f in geometry:
+            vertices.append(v)
+            faces.append(f+offset)
+            offset+=len(v)
+        masks[part]=render_mask(np.concatenate(vertices),
+                                 np.concatenate(faces),camera).astype(bool)
+    return masks
+
 def actual_part_source_masks(verified_exports:Path,camera_path:Path)->dict:
     """Use only a source-verified canonical GLB export attempt (not any GLB)."""
     import numpy as np
@@ -104,30 +137,9 @@ def actual_part_source_masks(verified_exports:Path,camera_path:Path)->dict:
             not set(PARTS).issubset(scene.graph.nodes) or
             len(scene.graph.nodes_geometry)!=16):
         raise ValueError("not the canonical five-parent, sixteen-material real model")
-    by_part={p:[] for p in PARTS}
-    for name in sorted(scene.graph.nodes_geometry):
-        part=name.split("__material_",1)[0]
-        if part not in by_part or scene.graph.transforms.parents.get(name)!=part:
-            raise ValueError("unexpected material mesh parent")
-        transform,geometry=scene.graph.get(name)
-        mesh=scene.geometry[geometry]
-        if not isinstance(mesh,trimesh.Trimesh) or len(mesh.faces)==0:
-            raise ValueError("real source model material geometry missing")
-        world=mesh.copy()
-        world.apply_transform(transform)
-        by_part[part].append((world.vertices,world.faces))
-    masks={}
-    for part,records in by_part.items():
-        if len(records)!=CHILD_COUNTS[part]:
-            raise ValueError("2026 original material geometry child census changed")
-        vertices=np.concatenate([v for v,_ in records])
-        offset=0
-        faces=[]
-        for v,f in records:
-            faces.append(f+offset)
-            offset+=len(v)
-        alpha=render_mask(vertices,np.concatenate(faces),camera)
-        masks[part]=bytes(alpha[2::4,2::4].astype(np.uint8).ravel())
+    projected=project_real_parent_masks256(scene,camera)
+    masks={part:bytes(image[2::4,2::4].astype(np.uint8).ravel())
+           for part,image in projected.items()}
     census=count_parts(masks)
     if (census["full_2026_model_union_64px_pixels"]!=CANONICAL_TOTAL or
             census["full_2026_model_part_occupancy_before_union"]!=CANONICAL_PARTS):

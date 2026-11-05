@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parents[2]
 
 class AuthoredUpperShapeViewerTests(unittest.TestCase):
     def test_only_existing_model_review_route_and_nonshipping_source_gate(self):
-        page=(ROOT/"tools/art/model-review/index.html").read_text()
+        page=(ROOT/"tools/art/model-review/index.html").read_text(encoding="utf-8")
         self.assertIn('id="upperShape"',page)
         self.assertIn('id="upperShapeStatus"',page)
         self.assertIn("authored_upper_shape_controls.mjs",page)
@@ -39,7 +39,7 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker,page)
-        smoke=(ROOT/"tools/art/model-review/browser-smoke.mjs").read_text()
+        smoke=(ROOT/"tools/art/model-review/browser-smoke.mjs").read_text(encoding="utf-8")
         for marker in (
             "real saddle contour 0.90 shape changed original mount",
             "real saddle contour 1.10 shape changed original mount",
@@ -54,7 +54,7 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
             with self.subTest(smoke=marker):
                 self.assertIn(marker,smoke)
         for filename in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
-            source=(ROOT/filename).read_text()
+            source=(ROOT/filename).read_text(encoding="utf-8")
             self.assertIn("authored_upper_shape_controls.mjs",source)
 
     @unittest.skipUnless(shutil.which("node"),"node not available")

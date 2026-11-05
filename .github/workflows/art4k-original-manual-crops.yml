@@ -2,6 +2,12 @@ name: ART-4K authenticated original manual crop review (on demand)
 
 on:
   workflow_dispatch:
+  # Bootstrap source evidence once when this workflow first reaches main.
+  # Later pushes to unrelated app/game/art code do not run this workflow.
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/art4k-original-manual-crops.yml
   pull_request:
     paths:
       - .github/workflows/art4k-original-manual-crops.yml

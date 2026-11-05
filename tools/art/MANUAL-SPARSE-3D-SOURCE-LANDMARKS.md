@@ -18,7 +18,7 @@ python3 tools/art/audit_manual_sparse_landmarks.py \
   --out /private/ur-manual-crops/observations-measured.json
 ```
 
-The annotations file uses `UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1`, the **actual PDF SHA256** from `source-crops.json`, and one or more records with a unique `reference_id`, nonzero positive `pixel_uncertainty`, genuine `annotator`, nonempty `perspective_and_occlusion_notes`, `visible_points` and `unmeasurable` reasons. For every group, supply all its points or supply a specific occlusion explanation:
+The annotations file uses `UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1`, the **actual PDF SHA256** from `source-crops.json`, and one or more records with a unique `reference_id`, the **exact matching `crop_png_sha256`** (from the same source receipt as the points), nonzero positive `pixel_uncertainty`, genuine `annotator`, nonempty `perspective_and_occlusion_notes`, `visible_points` and `unmeasurable` reasons. For every group, supply all its points or supply a specific occlusion explanation:
 
 - `wheel`, `hub`, `saddle`: left/right/top/bottom point pairs on the **same printed** 2D object.
 - `crown`, `fork`: left/right points.

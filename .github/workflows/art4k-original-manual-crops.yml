@@ -2,12 +2,6 @@ name: ART-4K authenticated original manual crop review (on demand)
 
 on:
   workflow_dispatch:
-  # Bootstrap source evidence once when this workflow first reaches main.
-  # Later pushes to unrelated app/game/art code do not run this workflow.
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/art4k-original-manual-crops.yml
   pull_request:
     paths:
       - .github/workflows/art4k-original-manual-crops.yml
@@ -15,6 +9,10 @@ on:
       - tools/art/audit_manual_sparse_landmarks.py
       - tests/unit/test_extract_manual_3d_reference_views.py
       - tests/unit/test_audit_manual_sparse_landmarks.py
+
+concurrency:
+  group: art4k-original-manual-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read

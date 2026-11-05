@@ -54,6 +54,28 @@ python3 -m unittest tests.unit.test_ci_cancelled_runner_census
 
 The collector makes read-only GitHub requests; it does not schedule checks, execute PR code or dispatch runners. It bounds pagination, worker count and the calendar window and rejects duplicate/incomplete API source sets. To measure actual avoided compute, further pair a candidate with equivalent workloads and capture source, relevant cases, job steps, queueing and billed runner telemetry where available.
 
+## Follow-up schema-v2 recorded-step measurement (separate November 5 read)
+
+The same frozen `created_at` interval was queried again on November 5, after the collector acquired step-level timing fields. This was an **independent later API snapshot** using read-only authenticated GitHub queries, with complete status-filtered cancelled-run and per-run job inventories. It is **not** a retroactive modification to the original 583-cancellation v1 snapshot.
+
+| Workflow | Cancelled workflows in later snapshot | Valid job intervals | Jobs with valid step evidence | GitHub job-interval minutes | Sum of valid recorded step minutes | Job-start to first-timed-step gap minutes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Project tooling | 308 | 382 | 197 | 295.02 | 234.02 | 2.75 |
+| Repository hygiene | 164 | 155 | 106 | 67.23 | 31.60 | 1.45 |
+| Windows Visual Atlas | 66 | 125 | 112 | 88.85 | 78.55 | 1.73 |
+| QA-05/09 Windows candidate | 36 | 34 | 30 | 111.15 | 107.08 | 0.48 |
+| Windows native smoke | 8 | 8 | 8 | 43.38 | 42.97 | 0.13 |
+| HP seeded research | 0 | 0 | 0 | 0 | 0 | 0 |
+| **Total** | **582** | **704** | **453** | **605.63** | **494.22** | **6.54** |
+
+The Visual Atlas cancelled-run count was **66 in this later read**, versus **67 in the original frozen snapshot**; the observed job-interval sum remained 88.85 minutes. No particular reason for that one-run reclassification has been established. Preserve both readings and their collection times instead of silently rewriting historical outcomes.
+
+The **111.41-minute arithmetic difference** between job intervals and recorded step durations is not a measure of saved time. Only 453 of 704 jobs with valid GitHub job intervals had usable timed steps. Missing step data, reporting semantics, zero-length steps and inter-step gaps all affect completeness. The 6.54 minutes of job-to-first-step gap was computed only for jobs with a valid first step; it is **not a full explanation** of the 111.41-minute difference. Summing step spans is likewise **not guaranteed billable or active CPU time**, and may include setup/post-processing steps. Invalid/inverted job and step timestamps were excluded from their respective totals; missing observations must never be imputed as zero execution.
+
+For prioritization, the larger observed cancelled **step-duration** buckets were: tooling `unit` 216.47 minutes, QA-05/09 `windows-candidate / windows` 107.08 minutes, Visual Atlas `experimental-real-model-export` 48.27 minutes, Windows native `windows` 42.97 minutes, and repository `hygiene` 31.60 minutes. These are targets for *measurement*, not permission to skip required checks. Keep comparison cohorts source-matched and preserve exact acceptance conditions and `cancel-in-progress` safeguards until an actual, separately qualified P2 experiment proves a benefit.
+
+The full evidence, individual job-name breakdown and limitations were also recorded in [P3 discussion](https://github.com/gamesbyian/UR-Recomp/pull/3156#issuecomment-6670947983). This report establishes the observational baseline and nothing about individual-source acceptance, Windows PE/ZIP identity, HP PR-code authorization or measured recoverable compute.
+
 ## Reproducibility and decision rules
 
 1. Obtain each workflow's exact seven-day `total_count`. For large workflows, separately read `GET /repos/gamesbyian/UR-Recomp/actions/workflows/{workflow_id}/runs?created=2026-10-29T08:14:05Z..2026-11-05T08:14:05Z&status=cancelled&per_page=100&page=N`, advancing pages until the filtered `total_count` is retrieved. Read additional `status=success`, `failure`, `skipped`, `in_progress`, etc. counts to reconcile outcome totals; do not treat an unfiltered 1,000-row sample as complete.

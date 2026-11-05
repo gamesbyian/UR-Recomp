@@ -110,6 +110,7 @@ function validGroup(group,raw){
 export function buildAnnotations(receipt,figures,annotator,uncertainty){
  verifyReceipt(receipt);
  const user=text(annotator,"annotator");
+ if(user.startsWith("UNANNOTATED"))throw Error("actual original print reviewer required");
  if(!Number.isFinite(uncertainty)||uncertainty<=0||uncertainty>100)
   throw Error("nonzero bounded print pixel uncertainty required");
  const observations=[];

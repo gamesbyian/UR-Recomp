@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SOURCE_STEM,SOURCE_STEM_LENGTH,SADDLE_HEIGHT,SHAPE_MODES,sourceShapeIntervention,saddleCupZ} from './authored_upper_shape_controls.mjs';
+import {SOURCE_STEM,SOURCE_STEM_LENGTH,SADDLE_HEIGHT,SHAPE_MODES,sourceShapeIntervention,saddleCupZ,forkCrownXYZ} from './authored_upper_shape_controls.mjs';
 
 test('five fixed source-authored upper-model visual preview hypotheses',()=>{
- assert.deepEqual(SHAPE_MODES,['original','saddle-up','saddle-down','frame-short','frame-long','saddle-narrow','saddle-wide','saddle-cup-deep','saddle-cup-soft']);
+ assert.deepEqual(SHAPE_MODES,['original','saddle-up','saddle-down','frame-short','frame-long','saddle-narrow','saddle-wide','saddle-cup-deep','saddle-cup-soft','fork-crown-narrow','fork-crown-full']);
  assert.deepEqual(sourceShapeIntervention('original').offset,[0,0,0]);
  assert.ok(Math.abs(Math.hypot(...SOURCE_STEM)/SOURCE_STEM_LENGTH-1)<1e-12);
  for(const [name,sign] of [['saddle-up',1],['saddle-down',-1]]){
@@ -36,6 +36,14 @@ test('five fixed source-authored upper-model visual preview hypotheses',()=>{
  }
  assert.equal(sourceShapeIntervention('original').saddleSpan,1);
  assert.equal(sourceShapeIntervention('original').saddleCup,0);
+ assert.equal(sourceShapeIntervention('original').crownScale,1);
+ for(const [mode,value] of [['fork-crown-narrow',.9],['fork-crown-full',1.1]]){
+   const proposal=sourceShapeIntervention(mode);
+   assert.equal(proposal.crownScale,value);
+   assert.equal(proposal.stroke,0);assert.equal(proposal.stretch,1);
+   assert.equal(proposal.saddleCup,0);assert.equal(proposal.saddleSpan,1);
+   assert.deepEqual(proposal.offset,[0,0,0]);
+ }
  for(const invalid of [null,undefined,{},true,'fake','0.12']){
   assert.throws(()=>sourceShapeIntervention(invalid),/unknown/);
  }
@@ -58,4 +66,28 @@ test('shared-bound saddle cupping leaves tips and lower mount fixed',()=>{
   assert.throws(()=>saddleCupZ(0,.3,cup,box));
  assert.throws(()=>saddleCupZ(2,.5,-.08,bounds));
  assert.throws(()=>saddleCupZ(0,NaN,-.08,bounds));
+});
+
+test('source-authored fork crown cross-section is localized and leaves axle + saddle unchanged',()=>{
+ const cx=-.17+(1.42-1.39)*(-.25+.17)/(2.09-1.39);
+ for(const scale of [.9,1.1]){
+  const [x,y,z]=forkCrownXYZ(cx+.2,.1,1.42,scale);
+  assert.ok(Math.abs(x-(cx+.2*scale))<1e-12);
+  assert.ok(Math.abs(y-.1*scale)<1e-12);
+  assert.equal(z,1.42);
+  for(const original of [[-.2,.07,.86],[-.1,-.1,1.98],
+                         [-.21,.08,2.09],[-.05,.1,.07]]){
+   const result=forkCrownXYZ(...original,scale);
+   for(let i=0;i<3;i++)
+    assert.ok(Math.abs(result[i]-original[i])<1e-13,
+              'boundary/source-mounted geometry changed');
+  }
+  const stationary=forkCrownXYZ(cx,0,1.42,scale);
+  assert.ok(Math.abs(stationary[0]-cx)<1e-14);
+  assert.equal(stationary[1],0);
+ }
+ for(const [factor,coords] of [[1,[0,0,1.42]],[true,[0,0,1.42]],
+                               [.8,[0,0,1.42]],[1.1,[NaN,0,1.42]],
+                               [.9,[0,Infinity,1.42]]])
+  assert.throws(()=>forkCrownXYZ(...coords,factor));
 });

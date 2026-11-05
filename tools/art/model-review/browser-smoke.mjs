@@ -361,9 +361,15 @@ try{
        const softCup=upperPreview('saddle-cup-soft');
        if(status.dataset.saddleCup!=='0.08'||softCup!==initial)
          issues.push('source GLB saddle center hollow softness moved original mount');
+       const narrowCrown=upperPreview('fork-crown-narrow');
+       if(status.dataset.crownScale!=='0.90'||narrowCrown!==initial)
+         issues.push('source GLB fork crown narrow moved original saddle mount');
+       const fullCrown=upperPreview('fork-crown-full');
+       if(status.dataset.crownScale!=='1.10'||fullCrown!==initial)
+         issues.push('source GLB fork crown fuller moved original saddle mount');
        upperPreview('original');
        if(status.dataset.saddlePosition!==initial||status.dataset.saddleSpan!=='1.00'||
-          status.dataset.saddleCup!=='0.00')
+          status.dataset.saddleCup!=='0.00'||status.dataset.crownScale!=='1.00')
          issues.push('upper-shape preview failed to restore saddle parent exactly');
        q('frameHinge').value='20';
        q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
@@ -583,6 +589,19 @@ try{
      throw Error('saddle cup failed byte-identical GLB viewport restoration');
    writeFileSync(join(out,'model-review-saddle-cup-deep-412.png'),deepCupFrame);
    writeFileSync(join(out,'model-review-saddle-cup-soft-412.png'),softCupFrame);
+   if(!await setSaddle('fork-crown-narrow'))throw Error('real GLB narrower fork crown unavailable');
+   const narrowCrownFrame=await capture();
+   if(!await setSaddle('fork-crown-full'))throw Error('real GLB fuller fork crown unavailable');
+   const fullCrownFrame=await capture();
+   if(!await setSaddle('original'))throw Error('real GLB original fork crown restoration unavailable');
+   const restoredCrown=await capture();
+   if(originalPaint.equals(narrowCrownFrame)||originalPaint.equals(fullCrownFrame)||
+      narrowCrownFrame.equals(fullCrownFrame))
+     throw Error('fork crown geometry alternatives produced no real GLB viewport difference');
+   if(!originalPaint.equals(restoredCrown))
+     throw Error('fork crown variant failed byte-identical original model restoration');
+   writeFileSync(join(out,'model-review-fork-crown-narrow-412.png'),narrowCrownFrame);
+   writeFileSync(join(out,'model-review-fork-crown-full-412.png'),fullCrownFrame);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

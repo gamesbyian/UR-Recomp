@@ -205,6 +205,7 @@ def evaluate(source_zip: Path) -> dict:
         "schema": SCHEMA,
         "exact_original_USA_ROM_sha256": ORIGINAL_ROM_SHA256,
         "source_original_Mesen24_archive_sha256": SOURCE_PPU_SHA,
+        "source_original_Mesen24_manifest_sha256": SOURCE_MANIFEST_SHA,
         "source_original_pose_receipt_sha256": SOURCE_POSE_SHA,
         "source_video_timeline_ticks": [1601, 1624],
         "source_png_rgba_and_alpha_each_verified": True,

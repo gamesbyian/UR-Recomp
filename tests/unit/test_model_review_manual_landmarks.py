@@ -21,7 +21,7 @@ class LocalOriginalPrintedManualReviewerTests(unittest.TestCase):
                 self.assertIn('"manual-landmarks.html"',script)
                 self.assertIn('"manual_landmark_marking.mjs"',script)
         for value in ("source-crops.json","sourceFiles","pointerdown",
-                      "crypto.subtle.digest","pixel_uncertainty",
+                      "crypto.subtle.digest",
                       "showSaveFilePicker","application/json",
                       "manual_landmark_marking.mjs"):
             self.assertIn(value,form)

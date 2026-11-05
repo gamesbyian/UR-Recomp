@@ -27,6 +27,7 @@ SCHEMA = "UR-ART4K-ORIGINAL-MESEN24-WHEEL-DISC-CHROMA-CROSSCHECK/1"
 SOURCE_SCHEMA = "UR-ART4K-ORIGINAL-MESEN24-VIEWER-REFERENCE/1"
 SOURCE_PPU_SHA = "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6"
 SOURCE_POSE_SHA = "6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20"
+SOURCE_MANIFEST_SHA = "5664bf5300ee42d94dcaa72ca10e29ed7277b244f11a63a93440780e8884045b"
 SOURCE_ROOT = "real-model-site/model-review/original-mesen24/"
 ROLES = {"blue": ("p2", 96, 19), "red": ("p1", 97, 23)}
 TICKS = tuple(range(1601, 1625))
@@ -157,7 +158,10 @@ def evaluate(source_zip: Path) -> dict:
         names = archive.namelist()
         if len(names) != len(set(names)):
             raise ValueError("duplicate entries in authenticated original source ZIP")
-        packet = json.loads(archive.read(SOURCE_ROOT + "source-poses.json"))
+        manifest_bytes = archive.read(SOURCE_ROOT + "source-poses.json")
+        if sha(manifest_bytes) != SOURCE_MANIFEST_SHA:
+            raise ValueError("exact original Mesen24 manifest bytes changed")
+        packet = json.loads(manifest_bytes)
         records = verified_manifest(packet)
         observations = []
         with TemporaryDirectory(prefix="art4k-mesen24-paint-") as folder:

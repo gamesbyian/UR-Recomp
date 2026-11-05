@@ -65,7 +65,7 @@ class RealGLBMesenParetoTests(unittest.TestCase):
                          ["axle_root_a","axle_root_b"])
         self.assertEqual(result["per_2026_GLB_arm"]["axle_root_c"][
                          "strictly_dominated_by_2026_GLB_arms"],
-                         ["axle_root_a","axle_root_b"] if False else ["axle_root_a"])
+                         ["axle_root_a","axle_root_b"])
         self.assertEqual(len(result["objectives_all_maximize"]),6)
         self.assertEqual(result["objectives_all_maximize"],list(OBJECTIVES))
         self.assertTrue(result["separate_original_source_2D_rotation_null_six_objective_values"][0]>.8)

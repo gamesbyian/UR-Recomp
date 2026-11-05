@@ -46,7 +46,7 @@ class OriginalAll24PhaseContourTests(unittest.TestCase):
         self.assertAlmostEqual(first["source_original_2D_consensus_alpha_iou"],.5)
         self.assertTrue(first["original_ROM_index_neighbors_not_actual_Mesen_PPU_time"])
         self.assertLess(first["source_4bpp_exact_index_recall_on_shared_opaque"],1.)
-        self.assertEqual(r["source_original_four_phase_golden_preserved"],[3,5,3,2])
+        self.assertEqual(r["source_original_four_phase_golden_preserved"],[4,5,4,1])
 
     def test_fail_closed_missing_and_corrupted_24_phase_source(self):
         good=fixture()

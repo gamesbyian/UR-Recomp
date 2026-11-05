@@ -26,6 +26,8 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
             '<option value="saddle-wide">Saddle contour 10% wider</option>',
             '<option value="saddle-cup-deep">Saddle center cup deeper −0.08</option>',
             '<option value="saddle-cup-soft">Saddle center cup softer +0.08</option>',
+            '<option value="fork-crown-narrow">Fork crown 10% narrower</option>',
+            '<option value="fork-crown-full">Fork crown 10% fuller</option>',
             "saddleMeshes.push({mesh,geometry:mesh.geometry})",
             "mesh.parent!==saddle",
             "const clone=geometry.clone(),pos=clone.getAttribute('position')",
@@ -33,6 +35,8 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
             "saddleCupZ(pos.getX(i),pos.getZ(i),proposal.saddleCup,bounds)",
             "bounds[0]=Math.min(bounds[0],pos.getX(i))",
             "status.dataset.saddleCup=",
+            "status.dataset.crownScale=",
+            "forkCrownXYZ(pos.getX(i),pos.getY(i),pos.getZ(i)",
             "status.dataset.saddleSpan=",
             "upperShapeState.fork,...upperShapeState.saddleMeshes",
             "No original 1994 speed, saddle stroke or saddle 3D contour recovered.",
@@ -49,6 +53,9 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
             "model-review-saddle-wide-412.png",
             "model-review-saddle-cup-deep-412.png",
             "model-review-saddle-cup-soft-412.png",
+            "model-review-fork-crown-narrow-412.png",
+            "model-review-fork-crown-full-412.png",
+            "fork crown variant failed byte-identical original model restoration",
             "saddle cup failed byte-identical GLB viewport restoration",
         ):
             with self.subTest(smoke=marker):

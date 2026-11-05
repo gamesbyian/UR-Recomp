@@ -98,6 +98,27 @@ class RealGLBMesenParetoTests(unittest.TestCase):
             with self.subTest(change=change),self.assertRaises(ValueError):
                 analyze(data)
 
+    def test_matched_saddle_mesh_delta_isolated_from_other_drive_laws(self):
+        data=fake()
+        blue=data["original_source_per_role"]["blue"]["arms"]
+        red=data["original_source_per_role"]["red"]["arms"]
+        control="axle_root_saddle_world_level_fixed_tick_24deg"
+        candidate="axle_root_saddle_span110_fixed_tick_24deg"
+        other_control="axle_root_saddle_world_level_rom_phase_15deg"
+        for role_arms in (blue,red):
+            role_arms[control]=arm(.6,.6,.5,1,1,0)
+            role_arms[other_control]=arm(.4,.4,.33333333,1,1,1)
+            role_arms[candidate]=arm(.7,.7,.33333333,1,1,1)
+        result=analyze(data)
+        matched=result["matched_geometry_only_deltas"][candidate]
+        self.assertEqual(matched["same_wheel_drive_and_saddle_attitude_control"],control)
+        self.assertEqual(matched["signed_six_objective_delta"],[.1,.1,-.16666667]*2)
+        self.assertTrue(matched["shape_improves_both_original_racers"])
+        self.assertFalse(matched["chronological_motion_improves_both_original_racers"])
+        self.assertTrue(matched["mixed_shape_or_motion_tradeoff"])
+        self.assertFalse(matched["strictly_dominates_own_matched_control"])
+        self.assertNotIn("axle_root_b",result["matched_geometry_only_deltas"])
+
     def test_dominance_is_strict_and_six_dimensional(self):
         a=(.5,)*6
         self.assertFalse(dominates(a,a))

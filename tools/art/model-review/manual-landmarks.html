@@ -207,8 +207,11 @@ el("markers").addEventListener("pointerdown",e=>{
  const y=(e.clientY-box.top)/box.height*dim.height;
  place(x,y);
 });
-el("markNumber").addEventListener("click",()=>place(
- Number(el("manualX").value),Number(el("manualY").value)));
+el("markNumber").addEventListener("click",()=>{
+ const sx=el("manualX").value.trim(),sy=el("manualY").value.trim();
+ if(!sx||!sy){say("Enter both X and Y source crop pixel values",true);return}
+ place(Number(sx),Number(sy));
+});
 el("markHidden").addEventListener("click",()=>{
  try{
   states[active]=markOccluded(states[active],el("part").value,el("hiddenReason").value);

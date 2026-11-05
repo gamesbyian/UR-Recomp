@@ -116,9 +116,26 @@ class OriginalROMDerotatedConsensus(unittest.TestCase):
         self.assertEqual(cross["original_four_ROM_phases_compared"],
                          [str(x) for x in PHASES])
         self.assertEqual(len(cross["all_six_original_phase_pair_comparisons"]),6)
-        self.assertGreater(cross["original_four_phase_common_valid_pixels"],N//2)
-        self.assertGreater(cross["original_four_phase_always_near_invariant_core_pixels"],0)
-        self.assertGreater(cross["original_four_phase_phase_varying_2D_alpha_pixels"],0)
+        # Exact authenticated source result: 4 frozen phase indices x
+        # 64 original 4bpp ROM orientation states, with inverse-rotation
+        # sampled-canvas validity. Phase-varying source silhouette is
+        # only 13 pixels in the common-valid 2D region; none upper.
+        self.assertEqual(cross["original_four_phase_common_valid_pixels"],3008)
+        self.assertEqual(cross["original_four_phase_always_near_invariant_core_pixels"],164)
+        self.assertEqual(cross["original_four_phase_always_consensus_alpha_pixels"],291)
+        self.assertEqual(cross["original_four_phase_at_least_once_consensus_alpha_pixels"],304)
+        self.assertEqual(cross["original_four_phase_phase_varying_2D_alpha_pixels"],13)
+        self.assertEqual({
+            name:cross["per_fixed_source_y_band"][name][
+                "original_four_phase_phase_varying_2D_alpha_pixels"]
+            for name in ("upper_y0_14","middle_y15_26","lower_y27_63")},
+            {"upper_y0_14":0,"middle_y15_26":1,"lower_y27_63":12})
+        self.assertEqual({
+            pair:entry["source_2D_consensus_alpha_iou"]
+            for pair,entry in cross["all_six_original_phase_pair_comparisons"].items()},
+            {"0->6":.97029703,"0->12":.97333333,"0->18":.98,
+             "6->12":.97674419,"6->18":.97682119,
+             "12->18":.97333333})
         self.assertFalse(cross["original_2D_phase_drift_not_recovered_1994_physical_3D_geometry"] is False)
         print("OK ART4K_AUTHENTIC_ORIGINAL_ROM_FOUR_PHASE_CONTOUR_DRIFT",
               json.dumps({

@@ -4,6 +4,8 @@ This document is the canonical repository policy for designing, reviewing, and m
 
 The goal is not to minimize CI at any cost. The goal is to get the **cheapest trustworthy answer** for each repository invariant while keeping expensive research and evidence collection from waking on unrelated work.
 
+**Prospective cross-PR qualification design:** [November 4 collective qualification / compute plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md), with a [verbatim live five-agent prompt snapshot](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md). These are proposals only; current workflow triggers, source checks and required CI gates below remain authoritative and unchanged.
+
 ## Current measured audit and Pathfinder-inspired result transport
 
 The [2026-10-10 CI/research-apparatus audit](CI-RESEARCH-APPARATUS-AUDIT-20261010.md) records a bounded 300-run live sample, previous native-router overtriggering, two-suite redundant builds and a misleadingly costly unit-test log hunt. It is an historical measurement, not another priority owner.

@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). The [ranked hourly shared board](HOURLY-AGENT-LINES.md) is the only active five-agent assignment authority. Every generalist considers five eligible jobs. A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Shared CI, compute, HP and five-agent implementation roadmap
+
+The [November 4 collective-qualification infrastructure plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) connects the existing hosted/HP runner architecture, cross-PR test batching, Android build-once lessons, rollout/rollback stages, evidence requirements, science cadence and operational recovery. The [verbatim snapshot of all five live task prompts](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md) is an archival readback with a proposed addendum, **not an update to the live tasks**. The shared board and release ledger retain authority.
+
 ## HD racer inverse-graphics and rig fitting
 
 **Current experiment/handoff (November 3):** [source-to-rig registration decision packet](HD-RACER-RECONSTRUCTION-DECISION-HANDOFF-20261103.md) reconciles the 40 authenticated live 2D racer observations, original tile-content holdouts, five-GLB unpaired negative result and red projection handedness. It prescribes a bounded camera/temporal registration test before geometry refitting, with source-role, compute, owner-likeness and stop rules. This is a research handoff, not another scheduling authority.

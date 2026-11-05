@@ -1,5 +1,7 @@
 # HP service-identity Job Object qualification (2026-11-04)
 
+**Post-merge actual owner HP proof:** [run #41943194209](https://github.com/gamesbyian/UR-Recomp/actions/runs/41943194209) succeeded under `nt authority\\network service` with both `atomic_job_list=pass` and `kill_on_close=pass`. It validates this bounded primitive only; hooks, a shared GHA/broker reservation and heavyweight local broker remain uninstalled. The earlier below-described pre-qualification checklist is retained as historical procedure. See the [integrated plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md).
+
 This standalone, main-only probe tests the Windows execution identity and
 atomic Job Object creation under GitHub Actions on the existing HP. It does
 not create a new runner, install hooks, change Windows services, or enable

@@ -52,11 +52,11 @@ def silhouette(mesh,angle:int,resolution:int):
 
 
 def analyze(path:Path)->dict:
-    import numpy as np
-    import trimesh
     raw=path.read_bytes()
     if hashlib.sha256(raw).hexdigest()!=SOURCE_GL_B_SHA256:
         raise ValueError("only exact original authored five-parent 2026 GLB permitted")
+    import numpy as np
+    import trimesh
     scene=trimesh.load(path,force="scene",process=False)
     if not isinstance(scene,trimesh.Scene):
         raise ValueError("original source 3D scene graph required")

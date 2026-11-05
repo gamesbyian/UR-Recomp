@@ -24,10 +24,15 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
         for marker in (
             '<option value="saddle-narrow">Saddle contour 10% narrower</option>',
             '<option value="saddle-wide">Saddle contour 10% wider</option>',
+            '<option value="saddle-cup-deep">Saddle center cup deeper −0.08</option>',
+            '<option value="saddle-cup-soft">Saddle center cup softer +0.08</option>',
             "saddleMeshes.push({mesh,geometry:mesh.geometry})",
             "mesh.parent!==saddle",
             "const clone=geometry.clone(),pos=clone.getAttribute('position')",
             "pos.setX(i,pos.getX(i)*proposal.saddleSpan)",
+            "saddleCupZ(pos.getX(i),pos.getZ(i),proposal.saddleCup,bounds)",
+            "bounds[0]=Math.min(bounds[0],pos.getX(i))",
+            "status.dataset.saddleCup=",
             "status.dataset.saddleSpan=",
             "upperShapeState.fork,...upperShapeState.saddleMeshes",
             "No original 1994 speed, saddle stroke or saddle 3D contour recovered.",
@@ -42,6 +47,9 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
             "saddle contour preview did not restore exact original GLB canvas pixels",
             "model-review-saddle-narrow-412.png",
             "model-review-saddle-wide-412.png",
+            "model-review-saddle-cup-deep-412.png",
+            "model-review-saddle-cup-soft-412.png",
+            "saddle cup failed byte-identical GLB viewport restoration",
         ):
             with self.subTest(smoke=marker):
                 self.assertIn(marker,smoke)

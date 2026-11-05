@@ -105,7 +105,42 @@ def authenticated_crops(folder:Path, raw_pdf:bytes,
                 or (w,h)!=(c-a,d-b)):
             fail("real source PNG dimensions must equal original PDF crop: "+name)
         registered[name]={"dims":(w,h),"receipt":row}
+    # Hashing a cropped PNG against its own JSON receipt is insufficient:
+    # a forged replacement PNG plus forged receipt would still pass. Replay
+    # the actual authenticated PDF renderer and compare all decoded RGB
+    # source pixels, not only the image's self-reported digest.
+    replay_exact_original_pdf_crops(raw_pdf,folder,registered)
     return {"pdf":auth,"figures":registered}
+
+
+def replay_exact_original_pdf_crops(raw_pdf:bytes,folder:Path,registered:dict):
+    try:
+        import fitz
+        from PIL import Image
+    except ImportError as e:
+        raise RuntimeError(
+            "source-faithful landmark verification requires PyMuPDF and Pillow"
+        ) from e
+    with fitz.open(stream=raw_pdf,filetype="pdf") as doc:
+        if doc.page_count!=40 or doc.is_encrypted:
+            fail("original manual PDF pagination/encryption differs")
+        page_images={}
+        for name,index,_,_,_ in FIGURES:
+            if index not in page_images:
+                pix=doc.load_page(index).get_pixmap(
+                    matrix=fitz.Matrix(2,2),colorspace=fitz.csRGB,alpha=False)
+                page_images[index]=Image.frombytes("RGB",(pix.width,pix.height),
+                                                    pix.samples)
+            page=page_images[index]
+            region=registered[name]["receipt"]["page_crop_pixels_xyxy"]
+            a,b,c,d=region
+            if not(0<=a<c<=page.width and 0<=b<d<=page.height):
+                fail("manual print crop escapes actual source PDF raster")
+            original=page.crop((a,b,c,d))
+            with Image.open(folder/(name+".png")) as claimed:
+                if (claimed.mode!="RGB" or claimed.size!=original.size or
+                        claimed.tobytes()!=original.tobytes()):
+                    fail("crop PNG pixels do not match actual authenticated PDF")
 
 
 def measure(annotation:dict,folder:Path,raw_pdf:bytes,

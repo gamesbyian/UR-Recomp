@@ -21,7 +21,7 @@ class OfficialPrint3DCameraViewTests(unittest.TestCase):
                       "source camera is uncalibrated","source GLB unchanged"):
             self.assertIn(value,html)
         for value in ("Print fork","Print hub","manualViewStatus",
-                      "original reference image identity changed"):
+                      "manual camera changed original reference image identity"):
             self.assertIn(value,smoke)
         self.assertNotIn("cameraViewDirection",ROOT.joinpath(
             "tools/art/model-review/original_mesen24_rail.mjs").read_text(encoding="utf-8"))

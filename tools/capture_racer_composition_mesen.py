@@ -13,6 +13,7 @@ It then checks the repository-owned static composer against both boundaries.
 """
 
 from __future__ import annotations
+import hashlib
 
 import argparse
 import importlib.util
@@ -83,11 +84,83 @@ def pc_display(result: dict) -> str:
     return str(hit.get("pcDisplay", "")).upper()
 
 
+
+# These are **shared working CPU-state locations** and are NOT intrinsically
+# player-1/player-2 independent 3D joint angles.
+POSE_WORDS = {
+    "w0F83_rider_wheel_presentation_phase_mod24": 0x0F83,
+    "w0F49_shared_current_uni_angle_index_mod64": 0x0F49,
+    "w0F77_shared_presentation_lookup_offset": 0x0F77,
+    "w0F97_shared_current_presentation_id": 0x0F97,
+    "w0F8F_shared_rider_wheel_speed_signed16": 0x0F8F,
+    "w0F69_shared_rider_motion_signed16": 0x0F69,
+    "w0FE9_player1_persistent_presentation_id": 0x0FE9,
+    "w0FEB_player2_persistent_presentation_id": 0x0FEB,
+    "w04C7_player1_persistent_pitch_index": 0x04C7,
+    "w04C9_player2_persistent_pitch_index": 0x04C9,
+    "w0300_dma_frame_phase_bank_selector": 0x0300,
+    "w0306_dma_pending": 0x0306,
+    "w12EB_dma_uses_frame_phase": 0x12EB,
+}
+TRACE_WATCHES = (
+    ("shared_phase_write", 0x0F83),
+    ("shared_angle_write", 0x0F49),
+    ("shared_presentation_write", 0x0F97),
+    ("p1_presentation_write", 0x0FE9),
+    ("p2_presentation_write", 0x0FEB),
+    ("p1_persistent_pitch_write", 0x04C7),
+    ("p2_persistent_pitch_write", 0x04C9),
+)
+
+
+def pose_snapshot(wram: bytes) -> dict[str, int]:
+    """Capture source-verified original working words, without geometry labels."""
+    if not isinstance(wram,bytes) or len(wram)<0x1800:
+        raise ValueError("full original WRAM pre/post composition region required")
+    values={name:u16(wram,at) for name,at in POSE_WORDS.items()}
+    for name,value in tuple(values.items()):
+        if name.endswith("_signed16") and value>=0x8000:
+            values[name]=value-0x10000
+    return values
+
+
+def bounded_watch_events(reply,handles: dict[str,str]) -> list[dict]:
+    """Refuse silently clipped or malformed debugger evidence."""
+    if not isinstance(reply,dict) or not isinstance(reply.get("events"),list):
+        raise ValueError("original Mesen watch list returned invalid event evidence")
+    events=reply["events"]
+    if len(events)>=2048:
+        raise ValueError("original watch event list may have truncated earlier writes")
+    name_by_handle={handle:name for name,handle in handles.items()}
+    out=[]
+    for event in events:
+        if not isinstance(event,dict):
+            raise ValueError("malformed source execution callback")
+        handle=event.get("handle")
+        if handle not in name_by_handle:
+            raise ValueError("source debugger returned unrecognized callback")
+        if type(event.get("address")) is not int or type(event.get("value")) is not int:
+            raise ValueError("source debugger callback lacks memory-byte evidence")
+        if type(event.get("frame")) is not int:
+            raise ValueError("source debugger callback lacks executed bridge frame")
+        out.append({"named_original_Wram_watch":name_by_handle[handle],
+            "original_source_wram_byte_address":event["address"],
+            "source_written_value":event["value"],
+            "bridge_frame":event["frame"],
+            "source_pc_display":event.get("pcDisplay"),
+            "source_pc":event.get("pc"),
+            "source_pc_bank":event.get("pcBank"),
+            "source_cpu_cycle":event.get("cpuCycleCount"),
+            "original_master_clock":event.get("masterClock")})
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
     ap.add_argument("--input-file", type=Path, required=True)
     ap.add_argument("--advance-frames", type=int, default=1218)
+    ap.add_argument("--trace-rider-state", action="store_true", help="bounded source WRAM write callbacks at synchronized original composer")
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--md-out", type=Path)
     ap.add_argument(
@@ -96,8 +169,14 @@ def main() -> int:
         default=Path(os.environ.get("MESEN_FOR_AI_REPO", str(DEFAULT_MESEN_REPO))),
     )
     args = ap.parse_args()
+    if not 0<=args.advance_frames<=2500:
+        ap.error("original no-skip replay frame advance must be within 0..2500")
+    if args.trace_rider_state and os.environ.get("MESEN_SNES_DISABLE_FRAME_SKIPPING")!="1":
+        ap.error("source rider phase tracing requires original Mesen frame skipping disabled")
 
     rom = args.rom.read_bytes()
+    if hashlib.sha256(rom).hexdigest()!="859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478":
+        ap.error("original USA retail ROM SHA256 identity mismatch")
     runs = load_controller_runs(args.input_file)
     Mesen = load_mesen_class(args.mesen_for_ai_repo.resolve())
 
@@ -129,6 +208,19 @@ def main() -> int:
                     buttons=buttons_for_mask(mask),
                 )
 
+        watch_handles={}
+        if args.trace_rider_state:
+            for name,address in TRACE_WATCHES:
+                created=mesen.tool(
+                    "watch.create",
+                    memoryType="snesWorkRam",
+                    address=address,
+                    length=2,
+                    access="write",
+                    cpuType="snes",
+                )
+                watch_handles[name]=created["handle"]
+
         pre_bp = mesen.tool(
             "breakpoint.create",
             memoryType="snesPrgRom",
@@ -152,6 +244,8 @@ def main() -> int:
                 f"expected first racer composition breakpoint at F129, got {pre_step.get('breakpoint_hit')}"
             )
         pre = read_wram(mesen, 0, 0x1800)
+        watch_events_at_pre=(bounded_watch_events(mesen.tool("watch.list"),watch_handles)
+                             if args.trace_rider_state else [])
         mesen.tool("breakpoint.delete", handle=pre_bp["handle"])
 
         post_step = mesen.tool("run.step_frames", frames=1, reset=False)
@@ -160,7 +254,12 @@ def main() -> int:
                 f"expected second racer composition breakpoint at F292, got {post_step.get('breakpoint_hit')}"
             )
         post = read_wram(mesen, 0, 0x1800)
+        watch_events_at_post=(bounded_watch_events(mesen.tool("watch.list"),watch_handles)
+                              if args.trace_rider_state else [])
         mesen.tool("breakpoint.delete", handle=post_bp["handle"])
+        for handle in watch_handles.values():
+            mesen.tool("watch.delete",handle=handle)
+
 
     ids = {
         "p1_primary": u16(pre, 0x0FE9),
@@ -247,6 +346,20 @@ def main() -> int:
 
     report = {
         "schema_version": 1,
+        "original_source_rom_sha256": hashlib.sha256(rom).hexdigest(),
+        "original_source_frame_skipping_explicitly_disabled": (
+            os.environ.get("MESEN_SNES_DISABLE_FRAME_SKIPPING")=="1"
+        ),
+        "original_replay_input_sha256": hashlib.sha256(args.input_file.read_bytes()).hexdigest(),
+        "synchronized_original_composer_advance_frames": args.advance_frames,
+        "original_source_wram_0x0000_to_0x17ff_captured_at_both_CPU_breakpoints": True,
+        "working_pose_state_at_pre_F129": pose_snapshot(pre),
+        "working_pose_state_at_post_F292": pose_snapshot(post),
+        "shared_working_phase_angle_not_per_player_bone_identity": True,
+        "bounded_original_Wram_write_watch_enabled": args.trace_rider_state,
+        "original_source_write_events_until_pre_F129": watch_events_at_pre,
+        "original_source_write_events_until_post_F292": watch_events_at_post,
+        "original_1994_3d_rig_camera_or_joint_angles_recovered": False,
         "purpose": "Reference-emulator synchronized proof of the four-record racer cache composer.",
         "breakpoints": {
             "pre": {"cpu": "83:F129", "rom_offset": lorom_offset(0x83, 0xF129), "hit": pre_step.get("breakpoint_hit")},

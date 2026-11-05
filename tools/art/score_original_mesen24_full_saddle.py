@@ -22,6 +22,7 @@ from tools.art.experimental_world_level_saddle import temporary_saddle_world_att
 from tools.art.experimental_saddle_stem_slide import temporary_saddle_stem_slide
 from tools.art.experimental_upper_frame_stretch import temporary_upper_frame_stretch
 from tools.art.experimental_saddle_span import temporary_saddle_span
+from tools.art.experimental_saddle_cup import temporary_saddle_cup
 from tools.art.no_replace_report import publish_text_once
 
 SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/3"
@@ -74,7 +75,17 @@ SPAN_TRIALS=(
 )
 SPAN_SETTINGS={name:(mode,ratio) for name,mode,ratio in SPAN_TRIALS}
 ALL_SHAPE_TRIALS=FULL_MOTION_TRIALS+tuple((name,mode) for name,mode,_ in SPAN_TRIALS)
-ARMS=BASE_ARMS+tuple(name for name,_ in ALL_SHAPE_TRIALS)
+# Unlike global saddle X-span, modify upper center contour only. The lower
+# mount and outer tips remain fixed; BOTH source racers get identical controls.
+CUP_TRIALS=(
+    ("axle_root_saddle_cup_deep008_rom_phase_15deg","rom_phase",-.08),
+    ("axle_root_saddle_cup_soft008_rom_phase_15deg","rom_phase",.08),
+    ("axle_root_saddle_cup_deep008_fixed_tick_24deg","fixed_tick",-.08),
+    ("axle_root_saddle_cup_soft008_fixed_tick_24deg","fixed_tick",.08),
+)
+CUP_SETTINGS={name:(mode,offset) for name,mode,offset in CUP_TRIALS}
+ALL_CONTOUR_TRIALS=ALL_SHAPE_TRIALS+tuple((name,mode) for name,mode,_ in CUP_TRIALS)
+ARMS=BASE_ARMS+tuple(name for name,_ in ALL_CONTOUR_TRIALS)
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -194,7 +205,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
 
     def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False,
                saddle_stroke:float=0.,upper_stretch:float=0.,
-               saddle_span:float=0.):
+               saddle_span:float=0.,saddle_cup:float=0.):
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             adjustment=(temporary_saddle_world_attitude(scene,level_reference)
@@ -209,9 +220,13 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                         span=(temporary_saddle_span(scene,saddle_span)
                               if saddle_span else nullcontext())
                         with span:
-                            world=(scene.to_geometry() if callable(
-                                getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
-                            result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
+                            contour=(temporary_saddle_cup(scene,saddle_cup)
+                                     if saddle_cup else nullcontext())
+                            with contour:
+                                world=(scene.to_geometry() if callable(
+                                    getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
+                                result=render_mask(np.asarray(world.vertices),
+                                                   np.asarray(world.faces),camera)
         return result.astype(bool)
 
     neutral=model4(0,0.)
@@ -243,19 +258,21 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,0.)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            for name,mode in ALL_SHAPE_TRIALS:
+            for name,mode in ALL_CONTOUR_TRIALS:
                 wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
                 stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
                 stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
                 span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
-                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS
-                key=(frame["angle"],15.,wheel,"world_level","span",span) if span else (
+                cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
+                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS
+                key=(frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
+                    (frame["angle"],15.,wheel,"world_level","span",span) if span else (
                     (frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel))))
+                    (frame["angle"],15.,wheel)))))
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span)
+                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -290,20 +307,22 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         original=originals[role]
         placement=anchor(original[1601]["alpha"])
         events={}
-        for name,mode in ALL_SHAPE_TRIALS:
+        for name,mode in ALL_CONTOUR_TRIALS:
             projected={}
             stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
             stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
             span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
-            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS
+            cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
+            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
-                key=(frame["angle"],15.,wheel,"world_level","span",span) if span else (
+                key=(frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
+                    (frame["angle"],15.,wheel,"world_level","span",span) if span else (
                     (frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel))))
+                    (frame["angle"],15.,wheel)))))
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
@@ -320,7 +339,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                                 dimension=(temporary_saddle_span(scene,span)
                                            if span else nullcontext())
                                 with dimension:
-                                    parent256=project_real_parent_masks256(scene,camera)
+                                    contour=(temporary_saddle_cup(scene,cup)
+                                             if cup else nullcontext())
+                                    with contour:
+                                        parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
                 if not np.array_equal(union,renders[key]):
                     raise ValueError("authored 2026 GLB parents do not reproduce whole")
@@ -365,6 +387,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_upper_frame_stretch_controls_predeclared_not_fitted":list(STRETCH_TRIALS),
         "2026_upper_frame_stretch_is_not_original_velocity_law":True,
         "2026_authored_saddle_longitudinal_span_controls":list(SPAN_TRIALS),
+        "2026_authored_upper_cupped_saddle_contour_controls":list(CUP_TRIALS),
+        "2026_saddle_cup_is_not_recovered_original_1994_surface":True,
         "2026_saddle_shape_magnitude_not_original_1994_geometry":True,
         "2026_world_level_saddle_retains_real_moving_mount_position":True,
         "2026_saddle_world_attitude_reference_is_authored_rest_not_original":True,

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
     SCHEMA,TICKS,ARMS,BASE_ARMS,SADDLE_TRIALS,DRIVE_TRIALS,LEVEL_TRIALS,
-    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,drive_delta_degrees,
+    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,drive_delta_degrees,
     aggregate_original_timeline,main,analyze,
     summary_for_exact_original_source,check_exact_source_evidence,
 )
@@ -23,7 +23,7 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_saddle_minus15",-15.)))
         self.assertEqual(set(BASE_ARMS),{"original_source_2d_rotation",
                                     *(name for name,_ in SADDLE_TRIALS)})
-        self.assertEqual(set(ARMS),set(BASE_ARMS)|{n for n,_ in ALL_SHAPE_TRIALS})
+        self.assertEqual(set(ARMS),set(BASE_ARMS)|{n for n,_ in ALL_CONTOUR_TRIALS})
         self.assertIn("ALL24",SCHEMA) if "ALL24" in SCHEMA else self.assertIn("24TICK",SCHEMA)
 
     def test_source_phase_and_tick_drive_controls_are_fixed_not_fitted(self):
@@ -49,6 +49,11 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_saddle_span110_rom_phase_15deg","rom_phase",1.1),
             ("axle_root_saddle_span090_fixed_tick_24deg","fixed_tick",.9),
             ("axle_root_saddle_span110_fixed_tick_24deg","fixed_tick",1.1)))
+        self.assertEqual(CUP_TRIALS,(
+            ("axle_root_saddle_cup_deep008_rom_phase_15deg","rom_phase",-.08),
+            ("axle_root_saddle_cup_soft008_rom_phase_15deg","rom_phase",.08),
+            ("axle_root_saddle_cup_deep008_fixed_tick_24deg","fixed_tick",-.08),
+            ("axle_root_saddle_cup_soft008_fixed_tick_24deg","fixed_tick",.08)))
         self.assertEqual(drive_delta_degrees(3,3,1601,"rom_phase"),0.)
         self.assertEqual(drive_delta_degrees(5,3,1602,"rom_phase"),30.)
         self.assertEqual(drive_delta_degrees(1,23,1602,"rom_phase"),30.)
@@ -73,7 +78,7 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
                 "axle_root_saddle_plus15":first,
                 "axle_root_saddle_minus15":second,
             }
-            for name,_ in ALL_SHAPE_TRIALS:
+            for name,_ in ALL_CONTOUR_TRIALS:
                 predicted[t][name]=first
         report=aggregate_original_timeline(original,predicted)
         self.assertEqual(len(report["original_unique_binary_source_alpha_shape_sha256_to_ticks"]),2)

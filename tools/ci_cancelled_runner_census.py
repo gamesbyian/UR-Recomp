@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only seven-day GitHub Actions cancellation runner-time census.
+"""Read-only seven-day GitHub Actions cancellation timing census.
 
 Observed job time is neither proof of avoidable waste nor billing cost.
 No dispatches, schedule edits or runner writes are performed.
@@ -140,7 +140,9 @@ def get_run_jobs(fetch, run_id):
         raise ValueError("incomplete jobs")
     seen = set()
     valid_seconds = cancelled_seconds = 0.
+    step_seconds = prefirst_step_seconds = 0.
     valid = invalid = missing_end = 0
+    timed_steps = invalid_steps = jobs_with_steps = jobs_without_step_evidence = 0
     for job in jobs:
         jid = job.get("id")
         if type(jid) is not int or jid < 1 or jid in seen:
@@ -164,10 +166,54 @@ def get_run_jobs(fetch, run_id):
         valid_seconds += seconds
         if job.get("conclusion") == "cancelled":
             cancelled_seconds += seconds
+
+        # A job can report a start minutes before any real step. Keep
+        # GitHub's job intervals and observed step spans distinct.
+        steps = job.get("steps")
+        if type(steps) is not list:
+            jobs_without_step_evidence += 1
+            continue
+        first_step = None
+        observed = False
+        for step in steps:
+            if type(step) is not dict:
+                raise ValueError("malformed job step")
+            if step.get("conclusion") == "skipped":
+                continue
+            before, after = step.get("started_at"), step.get("completed_at")
+            if before is None or after is None:
+                continue
+            try:
+                st, en = utc(before), utc(after)
+            except (ValueError, TypeError, OverflowError):
+                invalid_steps += 1
+                continue
+            if en < st:
+                invalid_steps += 1
+                continue
+            observed = True
+            timed_steps += 1
+            step_seconds += (en - st).total_seconds()
+            if first_step is None or st < first_step:
+                first_step = st
+        if observed:
+            jobs_with_steps += 1
+            gap = (first_step - utc(start)).total_seconds()
+            if gap < 0:
+                invalid_steps += 1
+            else:
+                prefirst_step_seconds += gap
+        else:
+            jobs_without_step_evidence += 1
     return {"valid_started": valid, "invalid_intervals": invalid,
             "missing_completions": missing_end,
             "seconds_inside_cancelled_run": valid_seconds,
-            "seconds_cancelled_jobs": cancelled_seconds}
+            "seconds_cancelled_jobs": cancelled_seconds,
+            "timed_steps": timed_steps, "invalid_step_intervals": invalid_steps,
+            "jobs_with_timed_steps": jobs_with_steps,
+            "jobs_without_step_evidence": jobs_without_step_evidence,
+            "seconds_in_timed_steps": step_seconds,
+            "seconds_job_to_first_step": prefirst_step_seconds}
 
 
 def measure(fetch, start, end, workflows=WORKFLOWS, workers=6):
@@ -183,15 +229,18 @@ def measure(fetch, start, end, workflows=WORKFLOWS, workers=6):
             jobs = list(pool.map(lambda r: get_run_jobs(fetch, r["id"]), cancelled))
         sums = {key: sum(j[key] for j in jobs) for key in (
             "valid_started", "invalid_intervals", "missing_completions",
-            "seconds_inside_cancelled_run", "seconds_cancelled_jobs")}
+            "seconds_inside_cancelled_run", "seconds_cancelled_jobs",
+            "timed_steps", "invalid_step_intervals", "jobs_with_timed_steps",
+            "jobs_without_step_evidence", "seconds_in_timed_steps",
+            "seconds_job_to_first_step")}
         rows.append({"name": name, "workflow_id": workflow, "all_runs": total,
                      "cancelled_runs": len(cancelled),
                      "cancelled_with_started_jobs": sum(j["valid_started"] > 0 for j in jobs),
                      **sums})
-    return {"schema": "ur-ci-cancelled-runner-census/1", "repository": REPO,
+    return {"schema": "ur-ci-cancelled-runner-census/2", "repository": REPO,
             "created_after_utc": start, "created_before_utc": end,
             "workflows": rows,
-            "limitations": "Valid observed runner spans only; not billable, wasted, avoidable or recovered minutes. Invalid and missing intervals excluded."}
+            "limitations": "GitHub job-interval and step-duration spans only; neither proves billed, active-CPU, wasted, avoidable or recovered minutes. Invalid/missing intervals and skipped steps excluded."}
 
 
 def render_markdown(receipt):
@@ -199,13 +248,16 @@ def render_markdown(receipt):
              "Source: " + receipt["repository"] + " created " +
              receipt["created_after_utc"] + " through " + receipt["created_before_utc"],
              "",
-             "| Workflow | Runs | Cancelled | Valid started job spans | Invalid intervals | Runner minutes | Cancelled job minutes |",
-             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
+             "| Workflow | Runs | Cancelled | Valid job spans | Invalid job intervals | Job interval min | Cancelled job interval min | Step duration min | Pre-first-step gap min | Jobs with step evidence |",
+             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for r in receipt["workflows"]:
         lines.append(f'| {r["name"]} | {r["all_runs"]} | {r["cancelled_runs"]} | '
                      f'{r["valid_started"]} | {r["invalid_intervals"]} | '
                      f'{r["seconds_inside_cancelled_run"]/60:.2f} | '
-                     f'{r["seconds_cancelled_jobs"]/60:.2f} |')
+                     f'{r["seconds_cancelled_jobs"]/60:.2f} | '
+                     f'{r["seconds_in_timed_steps"]/60:.2f} | '
+                     f'{r["seconds_job_to_first_step"]/60:.2f} | '
+                     f'{r["jobs_with_timed_steps"]} |')
     lines.extend(["", "Evidence limit: " + receipt["limitations"], ""])
     return "\n".join(lines)
 

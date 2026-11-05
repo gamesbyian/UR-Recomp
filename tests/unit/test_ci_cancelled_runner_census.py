@@ -83,7 +83,59 @@ class CensusTests(unittest.TestCase):
         self.assertEqual(row["seconds_inside_cancelled_run"], 180)
         self.assertEqual(row["seconds_cancelled_jobs"], 60)
         self.assertIn("3.00", render_markdown(report))
-        self.assertIn("not billable", report["limitations"])
+        self.assertIn("neither proves billed", report["limitations"])
+
+    def test_long_job_start_to_first_step_gap(self):
+        f = MockAPI(jobs={17: [{
+            **job(301, end="2026-11-05T07:12:00Z"),
+            "steps": [
+                {"conclusion": "success", "started_at": "2026-11-05T07:06:00Z",
+                 "completed_at": "2026-11-05T07:07:00Z"},
+                {"conclusion": "cancelled", "started_at": "2026-11-05T07:07:00Z",
+                 "completed_at": "2026-11-05T07:11:00Z"},
+            ]}], 18: []})
+        row = get_run_jobs(f, 17)
+        self.assertEqual(row["seconds_inside_cancelled_run"], 720)
+        self.assertEqual(row["seconds_in_timed_steps"], 300)
+        self.assertEqual(row["seconds_job_to_first_step"], 360)
+        self.assertEqual(row["timed_steps"], 2)
+        self.assertEqual(row["jobs_with_timed_steps"], 1)
+
+    def test_skipped_and_inverted_steps_excluded(self):
+        f = MockAPI(jobs={17: [{
+            **job(301),
+            "steps": [
+                {"conclusion": "skipped", "started_at": "2026-11-05T07:02:00Z",
+                 "completed_at": "2026-11-05T07:01:59Z"},
+                {"conclusion": "cancelled", "started_at": "2026-11-05T07:00:30Z",
+                 "completed_at": "2026-11-05T07:00:20Z"},
+                {"conclusion": "cancelled", "started_at": "2026-11-05T07:00:30Z",
+                 "completed_at": "2026-11-05T07:00:50Z"},
+            ]}], 18: []})
+        row = get_run_jobs(f, 17)
+        self.assertEqual(row["seconds_in_timed_steps"], 20)
+        self.assertEqual(row["seconds_job_to_first_step"], 30)
+        self.assertEqual(row["invalid_step_intervals"], 1)
+        self.assertEqual(row["timed_steps"], 1)
+
+    def test_missing_step_evidence_and_malformed_step(self):
+        f = MockAPI(jobs={17: [job(301), {**job(302), "steps": []}], 18: []})
+        row = get_run_jobs(f, 17)
+        self.assertEqual(row["jobs_without_step_evidence"], 2)
+        f.jobs[17][0]["steps"] = ["malformed"]
+        with self.assertRaisesRegex(ValueError, "malformed job step"):
+            get_run_jobs(f, 17)
+
+    def test_steps_start_before_job_start_cannot_subtract_time(self):
+        f = MockAPI(jobs={17: [{
+            **job(301),
+            "steps": [{"conclusion": "cancelled",
+                       "started_at": "2026-11-05T06:59:59Z",
+                       "completed_at": "2026-11-05T07:00:01Z"}]
+        }], 18: []})
+        row = get_run_jobs(f, 17)
+        self.assertEqual(row["seconds_job_to_first_step"], 0)
+        self.assertEqual(row["invalid_step_intervals"], 1)
 
     def test_missing_completion_excluded(self):
         f = MockAPI(jobs={17: [job(1, end=None),

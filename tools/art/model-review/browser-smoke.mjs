@@ -319,6 +319,48 @@ try{
          issues.push('continuous crank leaked across published pose return');
      }
    }
+   if(q('upperShape').getBoundingClientRect().height<44)
+     issues.push('upper 2026 geometry preview touch target too small');
+   // The 1994 source rail must never automatically drive 2026 shapes.
+   if(${mocked}){
+     if(!q('upperShape').disabled)
+       issues.push('untrusted synthetic model enabled authored upper geometry');
+   }else{
+     if(q('frameHinge').value!=='0'){
+       q('frameHinge').value='0';
+       q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
+     }
+     if(q('upperShape').disabled)issues.push('published real model upper-shape control unavailable');
+     else{
+       const status=q('upperShapeStatus'),initial=status.dataset.saddlePosition;
+       function upperPreview(mode){
+         q('upperShape').value=mode;
+         q('upperShape').dispatchEvent(new Event('change',{bubbles:true}));
+         if(q('upperShape').value!==mode||status.dataset.mode!==mode||
+            status.textContent.includes('unavailable:'))
+           issues.push('real 2026 upper-shape preview failed '+mode);
+         return status.dataset.saddlePosition;
+       }
+       const up=upperPreview('saddle-up');
+       const down=upperPreview('saddle-down');
+       if(up===initial||down===initial||up===down)
+         issues.push('saddle preview failed to move actual source parent');
+       const short=upperPreview('frame-short');
+       const long=upperPreview('frame-long');
+       if(short===long||short===initial||long===initial)
+         issues.push('frame stretch failed to translate actual 2026 saddle mount');
+       upperPreview('original');
+       if(status.dataset.saddlePosition!==initial)
+         issues.push('upper-shape preview failed to restore saddle parent exactly');
+       q('frameHinge').value='20';
+       q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
+       if(!q('upperShape').disabled||q('upperShape').value!=='original')
+         issues.push('experimental frame hinge wrongly combined with mesh stretch');
+       q('frameHinge').value='0';
+       q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
+       if(q('upperShape').disabled)issues.push('upper-shape preview did not re-enable');
+     }
+   }
    if(q('paintHypothesis').getBoundingClientRect().height<44)
      issues.push('paint hypothesis touch target too small');
    if(${mocked}){

@@ -23,6 +23,10 @@ class OfficialPrint3DCameraViewTests(unittest.TestCase):
         for value in ("Print fork","Print hub","manualViewStatus",
                       "manual camera changed original reference image identity"):
             self.assertIn(value,smoke)
+        self.assertIn("manual_view_directions.mjs",
+                      ROOT.joinpath("tools/windows_visual_atlas.py").read_text(encoding="utf-8"))
+        self.assertIn("manual_view_directions.mjs",
+                      ROOT.joinpath("tools/art/model-review/stage_pages.py").read_text(encoding="utf-8"))
         self.assertNotIn("cameraViewDirection",ROOT.joinpath(
             "tools/art/model-review/original_mesen24_rail.mjs").read_text(encoding="utf-8"))
 

@@ -236,7 +236,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     model_review = Path(__file__).resolve().parent / "art/model-review"
     review_target = target / "model-review"
     review_target.mkdir()
-    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs"):
+    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs"):
         shutil.copyfile(model_review / filename, review_target / filename)
     # This numeric look-up is original-USA-ROM/PNG-SHA-bound; never a 3D part label.
     shutil.copyfile(Path(__file__).resolve().parents[1] / "analysis/data/racer-original-index-lookup-20261102.json",

@@ -72,7 +72,12 @@ class SaddleCupGeometryTests(unittest.TestCase):
             scene.graph.update(frame_to=part,frame_from="world_1",matrix=transform)
             for i in range(CHILD_COUNTS[part]):
                 name = f"{part}__material_{i}"
-                mesh=trimesh.creation.box(extents=(2.,.4,.8))
+                # A cuboid has vertices only at its X tips, where this sculpt
+                # is deliberately zero. Use real interior vertices for saddle
+                # materials so the synthetic GLB exercises nonzero cupping.
+                mesh=(trimesh.creation.icosphere(subdivisions=2,radius=.4)
+                      if part=="saddle" else
+                      trimesh.creation.box(extents=(2.,.4,.8)))
                 mesh.visual.vertex_colors=[(48,90,200,255)]*len(mesh.vertices)
                 scene.geometry[name] = mesh
                 scene.graph.update(frame_to=name,frame_from=part,

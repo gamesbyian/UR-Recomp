@@ -1,0 +1,43 @@
+{
+  "schema": "UR-ART4K-AUTHENTIC-ORIGINAL-MESEN-SYNC-RIDER-1602/1",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_input_replay_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+  "executed_original_Mesen_workflow_run_id": 41943233739,
+  "original_source_execution_artifact_id": 13378090515,
+  "original_source_artifact_zip_sha256": "8f57c2bdbf0f7d12c7df592a9b209b0b6b065d011af21636f041f56c90ebc09a",
+  "original_source_full_36005_byte_runtime_json_sha256": "b361c2aec1779a0d88d6db80686169c71b7d039b28fa998b361596315a3e5809",
+  "exact_original_bridge_advance_frames": 1602,
+  "original_source_frame_skipping_disabled": true,
+  "original_synchronized_breakpoints": [
+    {
+      "source_cpu": "83:F129",
+      "executed_original_bridge_frame": 1602
+    },
+    {
+      "source_cpu": "83:F292",
+      "executed_original_bridge_frame": 1602
+    }
+  ],
+  "original_CPU_breakpoint_Wram_captured_at_both": true,
+  "executed_pre_source_writer_event_count": 32,
+  "executed_post_source_writer_event_count": 32,
+  "original_selected_writer_event_sets_identical_across_breakpoints": true,
+  "original_relevant_Wram_word_snapshots_identical_across_breakpoints": true,
+  "distinct_observed_CPU_writer_PC_count": 14,
+  "selected_original_shared_working_phase": 11,
+  "selected_original_shared_working_orientation": 60,
+  "selected_original_shared_working_presentation_id": 764,
+  "original_ID_matches_24phase64orientation_lattice": true,
+  "original_persistent_player_1_presentation_id": 441,
+  "original_persistent_player_2_presentation_id": 764,
+  "shared_selected_ID_equals_persistent_P2_at_this_breakpoint": true,
+  "original_shared_wheel_speed_signed16": 3,
+  "original_shared_rider_motion_signed16": 8,
+  "original_occupied_racer_staging_cells": 28,
+  "original_exact_staging_source_and_destination_matches": 28,
+  "all_original_primary_and_companion_row_masks_equal_source_model": true,
+  "original_source_watch_fields_are_not_fixed_player_bones": true,
+  "source_composer_execution_phase_to_held_PPU_tile_timing_independently_aligned": false,
+  "original_1994_3D_mesh_camera_or_physical_joint_angles_recovered": false,
+  "owner_2026_model_likeness_approved": false
+}

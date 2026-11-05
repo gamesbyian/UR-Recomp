@@ -1,5 +1,6 @@
 """ROM/emulator-free validation of optional synchronized rider-state instrumentation."""
 import ast
+import json
 from pathlib import Path
 import unittest
 
@@ -82,6 +83,33 @@ class SourceRiderPhaseTraceTests(unittest.TestCase):
                          'original_1994_3d_rig_camera_or_joint_angles_recovered',
                          'original_source_frame_skipping_explicitly_disabled'):
             self.assertIn(required,s)
+
+    def test_actual_original_composer_source_receipt_is_conservatively_interpreted(self):
+        path=ROOT/"analysis/data/racer-original-synchronized-phase-composer-1602-20261104.json"
+        proof=json.loads(path.read_text())
+        self.assertEqual(proof["schema"],"UR-ART4K-AUTHENTIC-ORIGINAL-MESEN-SYNC-RIDER-1602/1")
+        self.assertEqual(proof["original_USA_ROM_sha256"],
+            "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478")
+        self.assertEqual(proof["exact_original_bridge_advance_frames"],1602)
+        self.assertEqual([x["source_cpu"] for x in proof["original_synchronized_breakpoints"]],
+                         ["83:F129","83:F292"])
+        self.assertEqual(set(x["executed_original_bridge_frame"] for x in
+                             proof["original_synchronized_breakpoints"]),{1602})
+        self.assertEqual((proof["executed_pre_source_writer_event_count"],
+                          proof["executed_post_source_writer_event_count"]),(32,32))
+        self.assertTrue(proof["original_selected_writer_event_sets_identical_across_breakpoints"])
+        self.assertTrue(proof["original_relevant_Wram_word_snapshots_identical_across_breakpoints"])
+        self.assertEqual(proof["selected_original_shared_working_presentation_id"],
+            proof["selected_original_shared_working_phase"]*64+
+            proof["selected_original_shared_working_orientation"])
+        self.assertEqual(proof["selected_original_shared_working_presentation_id"],
+                         proof["original_persistent_player_2_presentation_id"])
+        self.assertEqual((proof["original_occupied_racer_staging_cells"],
+                          proof["original_exact_staging_source_and_destination_matches"]),(28,28))
+        self.assertTrue(proof["all_original_primary_and_companion_row_masks_equal_source_model"])
+        self.assertFalse(proof["source_composer_execution_phase_to_held_PPU_tile_timing_independently_aligned"])
+        self.assertFalse(proof["original_1994_3D_mesh_camera_or_physical_joint_angles_recovered"])
+        self.assertFalse(proof["owner_2026_model_likeness_approved"])
 
     def test_manual_workflow_unchanged_default_and_bounded_override(self):
         w=WORKFLOW.read_text(encoding="utf-8")

@@ -1,0 +1,37 @@
+name: HP unattended intensive source-bound work
+
+# Run heavier tasks *inside* the existing self-hosted Actions runner queue.
+# No external broker subprocess, runner hooks, or service modifications.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Only pre-qualified, source-bound intensive job kinds'
+        required: true
+        type: choice
+        default: seeded-2p-600
+        options:
+          - seeded-2p-600
+          - native-smoke
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hp-unattended-intensive-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verified-hp-intensive:
+    if: >-
+      github.repository == 'gamesbyian/UR-Recomp' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.mode == 'seeded-2p-600' || inputs.mode == 'native-smoke')
+    uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      run_on_hp: true
+      # Match existing callers: science reuses verified Ninja, manual native smoke uses VS.
+      hp_ninja_auto: ${{ inputs.mode == 'seeded-2p-600' }}
+      hp_seeded_2p: ${{ inputs.mode == 'seeded-2p-600' }}
+      hp_research_wall_seconds: ${{ inputs.mode == 'seeded-2p-600' && '600' || '360' }}

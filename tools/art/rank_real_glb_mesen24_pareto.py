@@ -83,6 +83,29 @@ def dominates(a:tuple[float,...],b:tuple[float,...])->bool:
     return all(x>=y for x,y in zip(a,b)) and any(x>y for x,y in zip(a,b))
 
 
+def matched_control(arm:str, available:set[str])->str|None:
+    """Only compare sculpted 2026 meshes with an identical wheel/attitude arm.
+
+    A different wheel speed or saddle attitude would confound the measured
+    contribution of geometry. This optional annotation never changes the
+    existing six-objective Pareto ranking or omits any candidate.
+    """
+    if not isinstance(arm,str):
+        return None
+    suffix=next((tag for tag in ("rom_phase_15deg","fixed_tick_24deg")
+                 if arm.endswith("_"+tag)),None)
+    if suffix is None:
+        return None
+    prefix=arm[:-(len(suffix)+1)]
+    prefixes=("axle_root_saddle_slide_up012","axle_root_saddle_slide_down012",
+              "axle_root_upper_stretch096","axle_root_upper_stretch104",
+              "axle_root_saddle_span090","axle_root_saddle_span110")
+    if prefix not in prefixes:
+        return None
+    control="axle_root_saddle_world_level_"+suffix
+    return control if control in available else None
+
+
 def analyze(report:dict)->dict:
     if (not isinstance(report,dict) or report.get("schema")!=SOURCE_SCHEMA or
             set(report.get("original_source_per_role",{}))!=set(ROLES) or
@@ -113,6 +136,20 @@ def analyze(report:dict)->dict:
     for arm in glb_arms:
         dominance[arm]=sorted(x for x in glb_arms if x!=arm and dominates(scores[x],scores[arm]))
     nondominated=[arm for arm in glb_arms if not dominance[arm]]
+    matched={}
+    for arm in glb_arms:
+        base=matched_control(arm,set(glb_arms))
+        if base is None:
+            continue
+        delta=[round(a-b,8) for a,b in zip(scores[arm],scores[base])]
+        matched[arm]={
+            "same_wheel_drive_and_saddle_attitude_control":base,
+            "signed_six_objective_delta":delta,
+            "shape_improves_both_original_racers":delta[1]>0 and delta[4]>0,
+            "chronological_motion_improves_both_original_racers":delta[2]>0 and delta[5]>0,
+            "strictly_dominates_own_matched_control":dominates(scores[arm],scores[base]),
+            "mixed_shape_or_motion_tradeoff":any(d>0 for d in delta) and any(d<0 for d in delta),
+        }
     # A numerical gain in static silhouette cannot erase temporal regressions:
     # the complete six-coordinate vector is always preserved with every arm.
     return {
@@ -126,6 +163,7 @@ def analyze(report:dict)->dict:
         "owner_art_likeness_approved":False,
         "candidate_2026_GLB_arm_count":len(glb_arms),
         "pareto_nondominated_2026_GLB_arms":nondominated,
+        "matched_geometry_only_deltas":matched,
         "per_2026_GLB_arm":{
             arm:{
                 "source_six_objective_values":list(scores[arm]),

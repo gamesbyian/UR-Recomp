@@ -6,6 +6,7 @@ separately. No inferred 1994 3D geometry, physical joint degrees or owner art.
 """
 from __future__ import annotations
 import argparse
+from contextlib import nullcontext
 import hashlib
 import json
 from pathlib import Path
@@ -17,9 +18,10 @@ from tools.art.score_original_mesen24_fixed_pivot_glb import (
 )
 from tools.art.experimental_fixed_root_orbit import apply_root_scene
 from tools.art.experimental_temporary_saddle_lean import temporary_saddle_pitch
+from tools.art.experimental_world_level_saddle import temporary_saddle_world_attitude
 from tools.art.no_replace_report import publish_text_once
 
-SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/2"
+SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/3"
 TICKS=tuple(range(1601,1625))
 SADDLE_TRIALS=(("axle_root_saddle_neutral",0.),
                ("axle_root_saddle_plus15",15.),
@@ -30,7 +32,15 @@ SADDLE_TRIALS=(("axle_root_saddle_neutral",0.),
 BASE_ARMS=("original_source_2d_rotation",)+tuple(x for x,_ in SADDLE_TRIALS)
 DRIVE_TRIALS=(("axle_root_saddle_plus15_rom_phase_15deg","rom_phase"),
               ("axle_root_saddle_plus15_fixed_tick_24deg","fixed_tick"))
-ARMS=BASE_ARMS+tuple(name for name,_ in DRIVE_TRIALS)
+# Two further fixed, **identical mechanical** controls: the real saddle's
+# mounting point continues following the 2026 root, but its world orientation
+# is held at one immutable neutral-root +15deg reference. One intervention
+# for each earlier source-phase/fixed-clock wheel control, both real players.
+LEVEL_TRIALS=(("axle_root_saddle_world_level_rom_phase_15deg","rom_phase"),
+              ("axle_root_saddle_world_level_fixed_tick_24deg","fixed_tick"))
+MOTION_TRIALS=DRIVE_TRIALS+LEVEL_TRIALS
+LEVEL_NAMES={name for name,_ in LEVEL_TRIALS}
+ARMS=BASE_ARMS+tuple(name for name,_ in MOTION_TRIALS)
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -148,15 +158,23 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         raise ValueError("same source-owned 2026 GLB success receipt changed")
     scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
 
-    def model4(angle:int,lean:float,wheel:float=0.):
+    def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False):
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
-            world=(scene.to_geometry() if callable(
-                getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
-            result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
+            adjustment=(temporary_saddle_world_attitude(scene,level_reference)
+                        if saddle_level else nullcontext())
+            with adjustment:
+                world=(scene.to_geometry() if callable(
+                    getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
+                result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
         return result.astype(bool)
 
     neutral=model4(0,0.)
+    # One authored 2026 rest orientation, not any original 1994 fitted
+    # source frame. Mount world positions still move with the root.
+    apply_root_scene(scene,0,"wheel_axle",0.,0.)
+    with temporary_saddle_pitch(scene,15.):
+        level_reference=np.asarray(scene.graph.get("saddle")[0][:3,:3]).copy()
     neutral_anchor=anchor(bytes(neutral[2::4,2::4].astype(np.uint8).ravel()))
     center=source_center(axis)
     if (center[0],center[1])!=(31.515625,19.578125):
@@ -180,11 +198,13 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,0.)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            for name,mode in DRIVE_TRIALS:
+            for name,mode in MOTION_TRIALS:
                 wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
-                key=(frame["angle"],15.,wheel)
+                is_level=name in LEVEL_NAMES
+                key=(frame["angle"],15.,wheel,"world_level") if is_level else (
+                    frame["angle"],15.,wheel)
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],15.,wheel)
+                    renders[key]=model4(frame["angle"],15.,wheel,is_level)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -219,17 +239,22 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         original=originals[role]
         placement=anchor(original[1601]["alpha"])
         events={}
-        for name,mode in DRIVE_TRIALS:
+        for name,mode in MOTION_TRIALS:
             projected={}
+            is_level=name in LEVEL_NAMES
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
-                key=(frame["angle"],15.,wheel)
+                key=(frame["angle"],15.,wheel,"world_level") if is_level else (
+                    frame["angle"],15.,wheel)
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
                 with temporary_saddle_pitch(scene,15.):
-                    parent256=project_real_parent_masks256(scene,camera)
+                    adjustment=(temporary_saddle_world_attitude(scene,level_reference)
+                                if is_level else nullcontext())
+                    with adjustment:
+                        parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
                 if not np.array_equal(union,renders[key]):
                     raise ValueError("authored 2026 GLB parents do not reproduce whole")
@@ -268,6 +293,9 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "source_orientation_to_root_angle_is_uncalibrated_2026_hypothesis":True,
         "2026_saddle_only_constant_degrees_both_players_all_ticks":[0.,15.,-15.],
         "2026_additional_drive_controls_predeclared_not_fitted":list(DRIVE_TRIALS),
+        "2026_saddle_world_level_controls_predeclared_not_fitted":list(LEVEL_TRIALS),
+        "2026_world_level_saddle_retains_real_moving_mount_position":True,
+        "2026_saddle_world_attitude_reference_is_authored_rest_not_original":True,
         "source_ROM_phase_24_to_2026_wheel_degrees_is_uncalibrated":True,
         "source_2026_fixed_24deg_per_tick_is_not_original_animation_cadence":True,
         "source_phase_drive_is_relative_to_own_player_original_tick1601":True,

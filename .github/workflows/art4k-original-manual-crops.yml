@@ -1,0 +1,75 @@
+name: ART-4K authenticated original manual crop review (on demand)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/art4k-original-manual-crops.yml
+      - tools/art/extract_manual_3d_reference_views.py
+      - tools/art/audit_manual_sparse_landmarks.py
+      - tests/unit/test_extract_manual_3d_reference_views.py
+      - tests/unit/test_audit_manual_sparse_landmarks.py
+
+permissions:
+  contents: read
+
+jobs:
+  original-1994-manual-four-view-review:
+    name: Authenticated local-source 1994 print views
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout retained original 1994 manual and tools
+        uses: actions/checkout@v4
+
+      - name: Install bounded figure-renderer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned image-only offline rendering dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            'PyMuPDF==1.26.4' 'Pillow==11.3.0'
+
+      - name: Verify original manual source and image-pixel replay tests
+        run: |
+          python -m unittest \
+            tests.unit.test_extract_manual_3d_reference_views \
+            tests.unit.test_audit_manual_sparse_landmarks
+
+      - name: Extract four official figures from exact retained USA manual
+        run: |
+          python -m tools.art.extract_manual_3d_reference_views \
+            --pdf reference/imported/manuals/Uniracers-USA-manual.pdf \
+            --out-dir art4k-original-manual-crop-evidence
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.art.extract_manual_3d_reference_views import SOURCE
+          from tools.art.audit_manual_sparse_landmarks import authenticated_crops
+          folder=Path("art4k-original-manual-crop-evidence")
+          verified=authenticated_crops(folder,SOURCE.read_bytes())
+          assert len(verified["figures"])==4
+          receipt=json.loads((folder/"source-crops.json").read_text(encoding="utf-8"))
+          assert receipt["source_pdf_sha256"]==verified["pdf"]["source_pdf_sha256"]
+          assert len(receipt["figures"])==4
+          assert not receipt["same_historical_3d_mesh_as_source_game_proven"]
+          assert not receipt["shipping_art_approved"]
+          print("ART4K_VERIFIED_ACTUAL_ORIGINAL_MANUAL_FIGURES",
+                json.dumps({"pdf_sha256":receipt["source_pdf_sha256"],
+                            "source_blob":receipt["source_git_blob_sha1"],
+                            "figures":[
+                                {"name":x["crop_png"],"sha256":x["crop_png_sha256"],
+                                 "page":x["original_printed_page"]}
+                                for x in receipt["figures"]]},sort_keys=True))
+          PY
+
+      - name: Save local-review-only four PNGs and provenance, not game assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-original-1994-manual-four-views
+          path: art4k-original-manual-crop-evidence/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6

@@ -38,6 +38,8 @@ border-radius:8px;border:1px solid #465573}
 <option value="frame-long">Upper frame lengthened 4%</option>
 <option value="saddle-narrow">Saddle contour 10% narrower</option>
 <option value="saddle-wide">Saddle contour 10% wider</option>
+<option value="saddle-cup-deep">Saddle center cup deeper −0.08</option>
+<option value="saddle-cup-soft">Saddle center cup softer +0.08</option>
 </select><div id="upperShapeStatus" class="tiny" role="status">Requires the published verified five-part model.</div>
 <div class="tiny">Reversible source-authored 2026 shape preview, distinct from the original 1994 sprite rail. Only one saddle position, frame stretch or saddle contour variation at a time; requires frame hinge 0°. Geometry and GLB files are never saved or modified.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
@@ -68,7 +70,7 @@ import {rootLeanQuaternion,tireVisualLift} from './root_lean_hypothesis.mjs';
 import {frameHingeSourceRotation} from './frame_hinge_hypothesis.mjs';
 import {SOURCE_SHA,sourceDriveMatrix,sourcePhaseDelta,sourceCrankMatrix,sourceWheelPoseMatrix,sourceCrankDegrees,CRANK_STEPS} from './direct_drive_hypothesis.mjs';
 import {mountOriginalMesen24Rail} from './original_mesen24_rail.mjs';
-import {sourceShapeIntervention} from './authored_upper_shape_controls.mjs';
+import {sourceShapeIntervention,saddleCupZ} from './authored_upper_shape_controls.mjs';
 const $=id=>document.getElementById(id), stage=$('viewport'), scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(35,1,.01,200);
 camera.position.set(6,4.3,8);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;stage.append(renderer.domElement);
@@ -347,6 +349,30 @@ function applyUpperShape(mode){
     mesh.geometry=clone;
    }
   }
+  if(proposal.saddleCup!==0){
+   // Common *original* source bounds over both paints: no material seam.
+   // Both X end tips and lower saddle mount retain their existing geometry.
+   const bounds=[Infinity,-Infinity,Infinity,-Infinity];
+   for(const {geometry} of upperShapeState.saddleMeshes){
+    const pos=geometry.getAttribute('position');
+    for(let i=0;i<pos.count;i++){
+     bounds[0]=Math.min(bounds[0],pos.getX(i));
+     bounds[1]=Math.max(bounds[1],pos.getX(i));
+     bounds[2]=Math.min(bounds[2],pos.getZ(i));
+     bounds[3]=Math.max(bounds[3],pos.getZ(i));
+    }
+   }
+   if(!bounds.every(Number.isFinite)||bounds[1]-bounds[0]<=1e-9||
+      bounds[3]-bounds[2]<=1e-9)throw Error('invalid source saddle geometry');
+   for(const {mesh,geometry} of upperShapeState.saddleMeshes){
+    const clone=geometry.clone(),pos=clone.getAttribute('position');
+    for(let i=0;i<pos.count;i++)
+     pos.setZ(i,saddleCupZ(pos.getX(i),pos.getZ(i),proposal.saddleCup,bounds));
+    pos.needsUpdate=true;
+    clone.computeVertexNormals();clone.computeBoundingBox();clone.computeBoundingSphere();
+    mesh.geometry=clone;
+   }
+  }
   upperShapeState.saddle.position.copy(upperShapeState.saddlePosition).add(
     new THREE.Vector3(...proposal.offset));
   upperShapeState.saddle.updateMatrix();
@@ -359,6 +385,7 @@ function updateUpperShapeStatus(origin=''){
  const status=$('upperShapeStatus');
  status.dataset.mode=upperShapeMode;
  status.dataset.saddleSpan=upperShapeState?sourceShapeIntervention(upperShapeMode).saddleSpan.toFixed(2):'';
+ status.dataset.saddleCup=upperShapeState?sourceShapeIntervention(upperShapeMode).saddleCup.toFixed(2):'';
  status.dataset.saddlePosition=upperShapeState?
    upperShapeState.saddle.position.toArray().map(x=>x.toFixed(9)).join(','):'';
  status.textContent=!upperShapeState?'Requires the published verified 2026 five-parent/16-material model.':

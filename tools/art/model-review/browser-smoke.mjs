@@ -355,8 +355,15 @@ try{
        const wide=upperPreview('saddle-wide');
        if(status.dataset.saddleSpan!=='1.10'||wide!==initial)
          issues.push('real saddle contour 1.10 shape changed original mount');
+       const deepCup=upperPreview('saddle-cup-deep');
+       if(status.dataset.saddleCup!=='-0.08'||deepCup!==initial)
+         issues.push('source GLB saddle center hollow depth moved original mount');
+       const softCup=upperPreview('saddle-cup-soft');
+       if(status.dataset.saddleCup!=='0.08'||softCup!==initial)
+         issues.push('source GLB saddle center hollow softness moved original mount');
        upperPreview('original');
-       if(status.dataset.saddlePosition!==initial||status.dataset.saddleSpan!=='1.00')
+       if(status.dataset.saddlePosition!==initial||status.dataset.saddleSpan!=='1.00'||
+          status.dataset.saddleCup!=='0.00')
          issues.push('upper-shape preview failed to restore saddle parent exactly');
        q('frameHinge').value='20';
        q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
@@ -563,6 +570,19 @@ try{
      throw Error('saddle contour preview did not restore exact original GLB canvas pixels');
    writeFileSync(join(out,'model-review-saddle-narrow-412.png'),narrowFrame);
    writeFileSync(join(out,'model-review-saddle-wide-412.png'),wideFrame);
+   if(!await setSaddle('saddle-cup-deep'))throw Error('real GLB deeper saddle center cup unavailable');
+   const deepCupFrame=await capture();
+   if(!await setSaddle('saddle-cup-soft'))throw Error('real GLB softer saddle center cup unavailable');
+   const softCupFrame=await capture();
+   if(!await setSaddle('original'))throw Error('real GLB center cup original restoration unavailable');
+   const exactCupRestored=await capture();
+   if(originalPaint.equals(deepCupFrame)||originalPaint.equals(softCupFrame)||
+      deepCupFrame.equals(softCupFrame))
+     throw Error('center saddle cup changed no source-authenticated model viewport pixels');
+   if(!originalPaint.equals(exactCupRestored))
+     throw Error('saddle cup failed byte-identical GLB viewport restoration');
+   writeFileSync(join(out,'model-review-saddle-cup-deep-412.png'),deepCupFrame);
+   writeFileSync(join(out,'model-review-saddle-cup-soft-412.png'),softCupFrame);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

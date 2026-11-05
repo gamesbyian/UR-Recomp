@@ -40,6 +40,11 @@ border-radius:8px;border:1px solid #465573}
 <div class="tiny">Reversible source-authored 2026 shape preview, distinct from the original 1994 sprite rail. Only one offset or stretch at a time; requires frame hinge 0°. Geometry and GLB files are never saved or modified.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
 <div class="group"><h2>Experimental continuous crank</h2><label for="crankScrub">Source-authored crank cycle · <output id="crankStep">0/64</output></label><input id="crankScrub" class="crank-scrub" type="range" min="0" max="64" step="1" value="0" disabled><div id="crankStatus" class="tiny" role="status">A published source-verified five-part GLB is required. This controls only 2026 authored mechanics.</div><div class="tiny">Each of 64 steps advances the wheel and pedals by 11.25°. This grid deliberately avoids the old spoke-symmetry alias. It is not observed original-game frame timing.</div></div>
+<div class="group"><h2>Experimental model colourway</h2>
+<label for="modelColourway">2026 rig material, independent of original sprite</label>
+<select id="modelColourway" style="min-height:44px;min-width:0;width:100%;max-width:100%" disabled><option value="p2">Original 2026 blue model</option><option value="p1">Provisional P1 red frame</option></select>
+<div id="modelColourwayStatus" class="tiny" role="status">Only the source-verified published five-part GLB supports temporary model colourways.</div>
+<div class="tiny">P1 red RGB 211/43/47 is a documented provisional authoring proposal, not original 1994 material albedo. This selector never changes the original racer or sprite reference.</div></div>
 <div class="group"><h2>Experimental paint allocation</h2><label for="paintHypothesis">Blue-material wheel/hub counterfactual</label><select id="paintHypothesis" style="min-height:44px;min-width:0;width:100%;max-width:100%" disabled><option value="original">Original 2026 materials</option><option value="area">Blue + rim shadow / crank</option><option value="disc">Blue + rim face / crank</option><option value="discPlus">Blue + rim face / both cranks</option></select><div id="paintStatus" class="tiny" role="status">Requires a source-verified published 2026 five-part GLB.</div><div class="tiny">Reversible material-only research preview. Original 1994 sprite paint may belong to different parts. No source geometry or release likeness approval.</div></div>
 <div class="group"><h2>Camera angles</h2><div class="buttons" id="views"></div></div>
 <div class="group"><h2>Inspection</h2><div class="controls"><button id="reset">Reset view</button><button id="spin" aria-pressed="false">Auto orbit</button><button id="wire" aria-pressed="false">Wireframe</button></div>
@@ -68,7 +73,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.set
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.7,0);
 const hemi=new THREE.HemisphereLight(0xddeeff,0x43546e,1.5);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(5,8,6);scene.add(sun);
 const grid=new THREE.GridHelper(12,24,0x7089ad,0x34445b),axes=new THREE.AxesHelper(1.5);scene.add(grid,axes);
-const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null,upperShapeMode='original',upperShapeState=null;
+const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null,modelColourway='p2',colourState=null,upperShapeMode='original',upperShapeState=null;
 const PAINT_HYPOTHESES=Object.freeze({
  original:Object.freeze([]),
  area:Object.freeze(['rim_and_hub__material_1','pedals__material_1']),
@@ -92,7 +97,7 @@ function resetCameraForModel(obj){
  camera.near=Math.max(.001,span/1000);camera.far=span*100;
  camera.updateProjectionMatrix();controls.update();
 }
-function clear(){if(current){restoreUpperShape();restorePaintMaterials();scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;upperShapeMode='original';upperShapeState=null;nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
+function clear(){if(current){restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;modelColourway='p2';colourState=null;upperShapeMode='original';upperShapeState=null;nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
 function markers(){nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[];if(!current||!$('nodes').checked)return;current.updateMatrixWorld(true);const parts=['tire','rim_and_hub','fork_and_frame','pedals','saddle'];for(const n of parts){const x=current.getObjectByName(n);if(!x)continue;const p=x.getWorldPosition(new THREE.Vector3());const marker=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),new THREE.MeshBasicMaterial({color:0xffcc62,depthTest:false}));marker.position.copy(p);marker.renderOrder=100;scene.add(marker);nodeMarkers.push(marker)}}
 function wheelControls(available, origin=''){
  $('wheelOriginal').disabled=!available;$('wheelWide').disabled=!available;
@@ -340,6 +345,65 @@ function updateUpperShapeStatus(origin=''){
   (origin.startsWith('local ')?'Uploaded models are not source-qualified.':
     'Earlier 48-frame scientific metrics refer only to their exact independent GLB render experiment.');
 }
+function restoreModelColourway(){
+ if(!colourState)return;
+ const record=colourState;
+ if(record.mesh.material!==record.original){
+   const temporary=record.mesh.material;
+   record.mesh.material=record.original;
+   temporary?.dispose();
+ }
+ modelColourway='p2';colourState=null;
+}
+function captureModelColourway(origin){
+ // Source SHA, original sixteen nodes and authentic material source are
+ // already confirmed by the existing verified drive/paint gate.
+ if(!wheelDriveState||!origin.startsWith('published ')||
+    manifest?.source_model_sha256!==SOURCE_SHA)return null;
+ const mesh=current?.getObjectByName('fork_and_frame__material_0');
+ if(!mesh?.isMesh||Array.isArray(mesh.material)||
+    !mesh.material?.isMeshStandardMaterial||
+    !mesh.geometry?.getAttribute('color'))return null;
+ return {mesh,original:mesh.material};
+}
+function applyModelColourway(choice){
+ if(!colourState||!['p1','p2'].includes(choice))
+   throw Error('unverified 2026 model colourway');
+ const record=colourState,wireframe=$('wire').getAttribute('aria-pressed')==='true';
+ if(record.mesh.material!==record.original){
+   const temporary=record.mesh.material;
+   record.mesh.material=record.original;
+   temporary?.dispose();
+ }
+ record.original.wireframe=wireframe;
+ if(choice==='p1'){
+   const material=record.original.clone();
+   material.wireframe=wireframe;
+   material.vertexColors=false;
+   // P1 provisional red in source-owned five-GLB cross-pose evidence
+   // (build_racer_colourways.py); not recovered 1994 material albedo.
+   material.color.setRGB(211/255,43/255,47/255,THREE.SRGBColorSpace);
+   material.name='ART-4K provisional P1 red frame, geometry unchanged';
+   material.needsUpdate=true;
+   record.mesh.material=material;
+ }
+ modelColourway=choice;
+}
+function updateModelColourwayStatus(origin=''){
+ const selector=$('modelColourway'),status=$('modelColourwayStatus');
+ selector.disabled=!colourState;
+ selector.value=colourState?modelColourway:'p2';
+ status.dataset.modelColourState=!colourState?'unavailable':
+   modelColourway==='p1'?'p1:temporary-red':'p2:source-original';
+ status.dataset.modelColourWireframe=!colourState?'unavailable':
+   colourState.mesh.material?.wireframe?'wire':'solid';
+ status.textContent=!colourState?
+   'Unavailable: an exact-source-SHA published 2026 five-part GLB is required.':
+   (modelColourway==='p1'?
+     'Temporary P1 red 2026 fork material, with source mesh and GLB bytes unchanged.':
+     'Unmodified P2 blue source-authored 2026 GLB.')+
+   ' Original 1994 surface colours, camera and likeness are not established.';
+}
 function restorePaintMaterials(){
  if(!paintState)return;
  for(const record of paintState.records){
@@ -413,7 +477,7 @@ function useModel(gltf,origin){clear();current=gltf.scene;
 if($('wire').getAttribute('aria-pressed')==='true')current.traverse(o=>{
  if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=true;
 });
-rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);upperShapeMode='original';upperShapeState=captureUpperShape(origin);paintMode='original';paintState=capturePaintMaterials(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);updateUpperShapeStatus(origin);
+rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);upperShapeMode='original';upperShapeState=captureUpperShape(origin);paintMode='original';paintState=capturePaintMaterials(origin);modelColourway='p2';colourState=captureModelColourway(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);updateModelColourwayStatus(origin);updateUpperShapeStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -532,6 +596,11 @@ $('measureToggle').onclick=async()=>{
 $('file').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(file);manifest=null;manifestRaw=null;measurements=null;$('measurements').hidden=true;$('measureToggle').setAttribute('aria-expanded','false');$('measureStatus').textContent='Local GLB: published source comparisons are not transferable to a different model.';try{await load(objectURL,'local '+file.name)}catch(err){say('Cannot read model',err.message)}};
 $('wheelOriginal').onclick=()=>chooseWheelWidth(1);
 $('wheelWide').onclick=()=>chooseWheelWidth(1.1);
+$('modelColourway').onchange=()=>{if(!current||!colourState)return;try{
+ applyModelColourway($('modelColourway').value);
+ updateModelColourwayStatus($('source').textContent);
+}catch(e){applyModelColourway('p2');updateModelColourwayStatus($('source').textContent);
+ $('modelColourwayStatus').textContent='Colourway preview unavailable: '+e.message}};
 $('paintHypothesis').onchange=()=>{if(!current||!paintState)return;try{
  applyPaintHypothesis($('paintHypothesis').value);
  updatePaintHypothesisStatus($('source').textContent);

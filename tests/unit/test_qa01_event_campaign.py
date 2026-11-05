@@ -267,7 +267,12 @@ class QA01CampaignTest(unittest.TestCase):
         (directory/"case-result.json").unlink()
         (directory/"qa01-case"/"case-result.json").unlink()
         (directory/"qa01-case").rmdir()
-        (directory/"qa01-case").symlink_to(self.root/"multi-root",target_is_directory=True)
+        try:
+            (directory/"qa01-case").symlink_to(self.root/"multi-root",target_is_directory=True)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                self.skipTest("Windows account lacks symlink privilege")
+            raise
         with self.assertRaisesRegex(ValueError,"symlinked"):
             c.exact_case_artifact_root(directory)
         still_invalid,_=c.aggregate(plan,self.root/"multi-root")

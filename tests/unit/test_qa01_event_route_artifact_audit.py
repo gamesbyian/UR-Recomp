@@ -24,7 +24,7 @@ def make_fixture(folder: Path, case: str = "bowl") -> dict:
         "dump result-stable\n"
         + ("dump result-tally\n" if case == "bowl" else "")
     )
-    (replay / "complete.script").write_text(script, encoding="ascii")
+    (replay / "complete.script").write_bytes(script.encode("ascii"))
     (replay / "ref.input").write_text("100:3:12\n110:2:7\n", encoding="ascii")
     (replay / "pinned-baldosa.input").write_text("102:3:012\n112:2:007\n", encoding="ascii")
     sha = hashlib.sha256(script.encode("ascii")).hexdigest()
@@ -128,7 +128,7 @@ class EventRouteArtifactsTest(unittest.TestCase):
         replay = self.root / "work" / "switcher" / "replay"
         extra = (replay / "complete.script").read_text() + "dump source-host-minus-one\n"
         other = replay / "switcher-reference-penultimate.script"
-        other.write_text(extra)
+        other.write_bytes(extra.encode("ascii"))
         report["reference_script_sha256"] = hashlib.sha256(extra.encode()).hexdigest()
         self.assertEqual(
             route.audit(self.root, report)["original_reference_script_sha256"],

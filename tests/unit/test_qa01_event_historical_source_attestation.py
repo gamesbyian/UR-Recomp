@@ -98,9 +98,9 @@ class HistoricControllerSourceTests(unittest.TestCase):
             "".join(f"{a}:{b}:{c:03x}\n" for a,b,c in src))
         (target / "pinned-baldosa.input").write_text(
             "".join(f"{a+1}:{b}:{c:03x}\n" for a,b,c in src))
-        (target / "complete.script").write_text(
+        (target / "complete.script").write_bytes((
             "dump race-entered\ndump scene-00001\ndump scene-00002\n"
-            "dump result-onset\ndump result-stable\n")
+            "dump result-onset\ndump result-stable\n").encode("ascii"))
         verified = route.audit(self.root, self.report, source_window=observed)
         self.assertTrue(verified["original_2014_movie_controller_window_recomputed"])
         self.assertEqual(verified["input_event_rows_per_guest"], 2)
@@ -161,9 +161,9 @@ class HistoricControllerSourceTests(unittest.TestCase):
                 (replay / filename).write_text(
                     "".join(f"{start}:{duration}:{mask:03x}\n"
                             for start,duration,mask in pairs))
-            (replay / "complete.script").write_text(
+            (replay / "complete.script").write_bytes((
                 "dump race-entered\ndump scene-00001\ndump scene-00002\n"
-                "dump result-onset\ndump result-stable\n")
+                "dump result-onset\ndump result-stable\n").encode("ascii"))
             result = route.audit(self.root, report, replay_dir=replay,
                                  source_window=observed)
             self.assertEqual(result["input_event_rows_per_guest"], 2)

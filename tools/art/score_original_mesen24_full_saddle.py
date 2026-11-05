@@ -23,6 +23,7 @@ from tools.art.experimental_saddle_stem_slide import temporary_saddle_stem_slide
 from tools.art.experimental_upper_frame_stretch import temporary_upper_frame_stretch
 from tools.art.experimental_saddle_span import temporary_saddle_span
 from tools.art.experimental_saddle_cup import temporary_saddle_cup
+from tools.art.experimental_fork_crown_volume import temporary_fork_crown_volume
 from tools.art.no_replace_report import publish_text_once
 
 SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/3"
@@ -85,7 +86,17 @@ CUP_TRIALS=(
 )
 CUP_SETTINGS={name:(mode,offset) for name,mode,offset in CUP_TRIALS}
 ALL_CONTOUR_TRIALS=ALL_SHAPE_TRIALS+tuple((name,mode) for name,mode,_ in CUP_TRIALS)
-ARMS=BASE_ARMS+tuple(name for name,_ in ALL_CONTOUR_TRIALS)
+# Locally change only the authored 2026 fork/crown cross-section, not its
+# stem, saddle clamp, axle, global scale or material/parent identities.
+CROWN_TRIALS=(
+    ("axle_root_fork_crown_narrow090_rom_phase_15deg","rom_phase",.90),
+    ("axle_root_fork_crown_full110_rom_phase_15deg","rom_phase",1.10),
+    ("axle_root_fork_crown_narrow090_fixed_tick_24deg","fixed_tick",.90),
+    ("axle_root_fork_crown_full110_fixed_tick_24deg","fixed_tick",1.10),
+)
+CROWN_SETTINGS={name:(mode,scale) for name,mode,scale in CROWN_TRIALS}
+ALL_GEOMETRY_TRIALS=ALL_CONTOUR_TRIALS+tuple((name,mode) for name,mode,_ in CROWN_TRIALS)
+ARMS=BASE_ARMS+tuple(name for name,_ in ALL_GEOMETRY_TRIALS)
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -205,7 +216,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
 
     def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False,
                saddle_stroke:float=0.,upper_stretch:float=0.,
-               saddle_span:float=0.,saddle_cup:float=0.):
+               saddle_span:float=0.,saddle_cup:float=0.,crown_scale:float=0.):
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             adjustment=(temporary_saddle_world_attitude(scene,level_reference)
@@ -223,10 +234,13 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                             contour=(temporary_saddle_cup(scene,saddle_cup)
                                      if saddle_cup else nullcontext())
                             with contour:
-                                world=(scene.to_geometry() if callable(
-                                    getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
-                                result=render_mask(np.asarray(world.vertices),
-                                                   np.asarray(world.faces),camera)
+                                crown=(temporary_fork_crown_volume(scene,crown_scale)
+                                       if crown_scale else nullcontext())
+                                with crown:
+                                    world=(scene.to_geometry() if callable(
+                                        getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
+                                    result=render_mask(np.asarray(world.vertices),
+                                                       np.asarray(world.faces),camera)
         return result.astype(bool)
 
     neutral=model4(0,0.)
@@ -258,21 +272,23 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,0.)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            for name,mode in ALL_CONTOUR_TRIALS:
+            for name,mode in ALL_GEOMETRY_TRIALS:
                 wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
                 stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
                 stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
                 span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
                 cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
-                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS
-                key=(frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
+                crown=CROWN_SETTINGS[name][1] if name in CROWN_SETTINGS else 0.
+                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS
+                key=(frame["angle"],15.,wheel,"world_level","crown",crown) if crown else (
+                    (frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
                     (frame["angle"],15.,wheel,"world_level","span",span) if span else (
                     (frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel)))))
+                    (frame["angle"],15.,wheel))))))
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup)
+                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup,crown)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -307,22 +323,24 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         original=originals[role]
         placement=anchor(original[1601]["alpha"])
         events={}
-        for name,mode in ALL_CONTOUR_TRIALS:
+        for name,mode in ALL_GEOMETRY_TRIALS:
             projected={}
             stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
             stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
             span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
             cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
-            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS
+            crown=CROWN_SETTINGS[name][1] if name in CROWN_SETTINGS else 0.
+            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
-                key=(frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
+                key=(frame["angle"],15.,wheel,"world_level","crown",crown) if crown else (
+                    (frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
                     (frame["angle"],15.,wheel,"world_level","span",span) if span else (
                     (frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel)))))
+                    (frame["angle"],15.,wheel))))))
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
@@ -342,7 +360,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                                     contour=(temporary_saddle_cup(scene,cup)
                                              if cup else nullcontext())
                                     with contour:
-                                        parent256=project_real_parent_masks256(scene,camera)
+                                        volume=(temporary_fork_crown_volume(scene,crown)
+                                                if crown else nullcontext())
+                                        with volume:
+                                            parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
                 if not np.array_equal(union,renders[key]):
                     raise ValueError("authored 2026 GLB parents do not reproduce whole")
@@ -388,6 +409,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_upper_frame_stretch_is_not_original_velocity_law":True,
         "2026_authored_saddle_longitudinal_span_controls":list(SPAN_TRIALS),
         "2026_authored_upper_cupped_saddle_contour_controls":list(CUP_TRIALS),
+        "2026_authored_local_fork_crown_volumetric_controls":list(CROWN_TRIALS),
+        "2026_crown_volume_not_measured_original_1994_source_geometry":True,
         "2026_saddle_cup_is_not_recovered_original_1994_surface":True,
         "2026_saddle_shape_magnitude_not_original_1994_geometry":True,
         "2026_world_level_saddle_retains_real_moving_mount_position":True,
@@ -395,7 +418,9 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "source_ROM_phase_24_to_2026_wheel_degrees_is_uncalibrated":True,
         "source_2026_fixed_24deg_per_tick_is_not_original_animation_cadence":True,
         "source_phase_drive_is_relative_to_own_player_original_tick1601":True,
-        "2026_frame_fork_wheel_geometry_camera_and_mount_unchanged":True,
+        "2026_frame_fork_wheel_geometry_camera_and_mount_unchanged":False,
+        "2026_fork_geometry_varies_only_in_new_preregistered_crown_controls":True,
+        "2026_tire_rim_crank_camera_saddle_parent_mount_and_materials_unchanged":True,
         "source_unique_binary_silhouettes_grouped_without_duplicate_vote_weight":True,
         "source_actual_timeline_motion_distinct_from_repeated_static_shapes":True,
         "original_source_fixed_y_band_temporal_edges_partition_exactly":True,

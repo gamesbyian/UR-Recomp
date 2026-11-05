@@ -83,8 +83,6 @@ class OriginalFourPhaseContourTests(unittest.TestCase):
         self.assertEqual(result["all_six_original_phase_pair_comparisons"]["0->6"][
             "source_2D_consensus_tp_fp_fn"],{"tp":2,"fp":1,"fn":0})
         self.assertEqual(result["all_six_original_phase_pair_comparisons"]["0->6"][
-            "source_original_common_valid_pixel_count"] if False else
-            result["all_six_original_phase_pair_comparisons"]["0->6"][
             "source_original_common_valid_pixel_count"],4095)
 
     def test_corrupt_source_receipts_fail_closed(self):

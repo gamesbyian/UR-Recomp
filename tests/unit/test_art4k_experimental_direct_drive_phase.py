@@ -15,6 +15,15 @@ class DirectDrivePureTests(unittest.TestCase):
         self.assertEqual({p: drive.delta_for_pose(p) for p in drive.SOURCE_PHASE},
                          {"upright":0,"pedal":70,"wheelie":26,"stunt":102,"bank":132})
 
+    def test_all_five_exact_artifact_glb_hashes_are_complete(self):
+        self.assertEqual(set(drive.SOURCE_GLBS), set(drive.SOURCE_PHASE))
+        self.assertTrue(all(len(h) == 64 and
+                            all(c in "0123456789abcdef" for c in h)
+                            for h in drive.SOURCE_GLBS.values()))
+        # The actual wheelie 2026 GLB from artifact #13063969312.
+        self.assertEqual(drive.SOURCE_GLBS["wheelie"],
+                         "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27")
+
     def test_openscad_crank_cos_sin_matches_rim_rotation(self):
         # Pedals in the source: [0.31*cos(phase), y, 0.31*sin(phase)].
         x,z=.31*math.cos(math.radians(18)),.31*math.sin(math.radians(18))
@@ -74,6 +83,42 @@ class SourceSceneTests(unittest.TestCase):
         for n,m in s.geometry.items():
             np.testing.assert_array_equal(m.vertices,vertices[n][0])
             np.testing.assert_array_equal(m.faces,vertices[n][1])
+
+    def test_export_style_intermediate_parent_is_preserved(self):
+        s=trimesh.Scene()
+        intermediate=np.eye(4)
+        angle=math.radians(17)
+        intermediate[:2,:2]=[[math.cos(angle),-math.sin(angle)],
+                             [math.sin(angle),math.cos(angle)]]
+        intermediate[:3,3]=[1.5,-2.0,.4]
+        s.graph.update(frame_to="world_1",frame_from=s.graph.base_frame,
+                       matrix=intermediate)
+        bank=math.radians(11)
+        axle=np.eye(4)
+        axle[:3,:3]=[[math.cos(bank),0,math.sin(bank)],
+                     [0,1,0],[-math.sin(bank),0,math.cos(bank)]]
+        axle[:3,3]=[-.2,0,1.3]
+        for part in drive.PARTS:
+            initial=axle.copy()
+            if part=="saddle":
+                initial[:3,3]+=axle[:3,:3]@np.array([.04,0,2.27])
+            s.graph.update(frame_to=part,frame_from="world_1",
+                           matrix=np.linalg.inv(intermediate)@initial)
+            for i in range(drive.CHILD_COUNTS[part]):
+                name=f"{part}__material_{i}"
+                s.add_geometry(trimesh.creation.box(extents=(.01,.01,.01)),
+                               node_name=name,geom_name=name,parent_node_name=part)
+        originals={p:s.graph.get(p)[0].copy() for p in drive.PARTS}
+        record=drive.synchronize(s,70)
+        self.assertEqual(record["rotated_parts"], list(drive.MOVING))
+        self.assertEqual(len(s.graph.nodes_geometry),16)
+        self.assertTrue(all(s.graph.transforms.parents.get(p)=="world_1"
+                            for p in drive.PARTS))
+        expected=originals["tire"]@np.asarray(drive.rotation(70))
+        for p in drive.MOVING:
+            np.testing.assert_allclose(s.graph.get(p)[0],expected,atol=1e-8,rtol=0)
+        for p in drive.STATIONARY:
+            np.testing.assert_allclose(s.graph.get(p)[0],originals[p],atol=1e-8,rtol=0)
 
     def test_zero_phase_identical_and_missing_mesh_rejected(self):
         s=self.scene()

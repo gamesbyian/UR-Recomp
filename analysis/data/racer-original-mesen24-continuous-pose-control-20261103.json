@@ -1,0 +1,179 @@
+{
+  "arms": {
+    "direct_drive_24deg_per_tick": {
+      "parameters": {
+        "initial_drive_deg": 0,
+        "per_tick_drive_deg": 24,
+        "pitch_amplitude_deg": 0,
+        "pitch_period_ticks": null
+      },
+      "per_player": {
+        "blue": {
+          "change_pixel_intersection": 206,
+          "change_pixel_iou": 0.16220472,
+          "change_pixel_precision": 0.25245098,
+          "change_pixel_recall": 0.31212121,
+          "mean_24_source_silhouette_iou": 0.47668481,
+          "mean_model_changed_pixels_per_edge": 35.4783,
+          "median_model_changed_pixels_per_edge": 37,
+          "model_changed_edges": 23,
+          "model_changed_pixels_sum": 816,
+          "model_held_edges": 0,
+          "original_changed_edges": 23,
+          "original_changed_pixels_sum": 660,
+          "source_tick1601_fixed_alpha_anchor_x2y2": [
+            69,
+            76
+          ]
+        },
+        "red": {
+          "change_pixel_intersection": 204,
+          "change_pixel_iou": 0.16050354,
+          "change_pixel_precision": 0.25,
+          "change_pixel_recall": 0.30955994,
+          "mean_24_source_silhouette_iou": 0.35809105,
+          "mean_model_changed_pixels_per_edge": 35.4783,
+          "median_model_changed_pixels_per_edge": 37,
+          "model_changed_edges": 23,
+          "model_changed_pixels_sum": 816,
+          "model_held_edges": 0,
+          "original_changed_edges": 23,
+          "original_changed_pixels_sum": 659,
+          "source_tick1601_fixed_alpha_anchor_x2y2": [
+            77,
+            72
+          ]
+        }
+      },
+      "samples": 24
+    },
+    "same_drive_plus_sinusoidal_frame_pitch_10deg": {
+      "parameters": {
+        "initial_drive_deg": 0,
+        "per_tick_drive_deg": 24,
+        "pitch_amplitude_deg": 10,
+        "pitch_period_ticks": 24
+      },
+      "per_player": {
+        "blue": {
+          "change_pixel_intersection": 206,
+          "change_pixel_iou": 0.12110523,
+          "change_pixel_precision": 0.16519647,
+          "change_pixel_recall": 0.31212121,
+          "mean_24_source_silhouette_iou": 0.48948655,
+          "mean_model_changed_pixels_per_edge": 54.2174,
+          "median_model_changed_pixels_per_edge": 55,
+          "model_changed_edges": 23,
+          "model_changed_pixels_sum": 1247,
+          "model_held_edges": 0,
+          "original_changed_edges": 23,
+          "original_changed_pixels_sum": 660,
+          "source_tick1601_fixed_alpha_anchor_x2y2": [
+            69,
+            76
+          ]
+        },
+        "red": {
+          "change_pixel_intersection": 204,
+          "change_pixel_iou": 0.11985899,
+          "change_pixel_precision": 0.16359262,
+          "change_pixel_recall": 0.30955994,
+          "mean_24_source_silhouette_iou": 0.36340147,
+          "mean_model_changed_pixels_per_edge": 54.2174,
+          "median_model_changed_pixels_per_edge": 55,
+          "model_changed_edges": 23,
+          "model_changed_pixels_sum": 1247,
+          "model_held_edges": 0,
+          "original_changed_edges": 23,
+          "original_changed_pixels_sum": 659,
+          "source_tick1601_fixed_alpha_anchor_x2y2": [
+            77,
+            72
+          ]
+        }
+      },
+      "samples": 24
+    },
+    "static_neutral": {
+      "parameters": {
+        "initial_drive_deg": 0,
+        "per_tick_drive_deg": 0,
+        "pitch_amplitude_deg": 0,
+        "pitch_period_ticks": null
+      },
+      "per_player": {
+        "blue": {
+          "change_pixel_intersection": 0,
+          "change_pixel_iou": 0.0,
+          "change_pixel_precision": 0.0,
+          "change_pixel_recall": 0.0,
+          "mean_24_source_silhouette_iou": 0.48123178,
+          "mean_model_changed_pixels_per_edge": 0,
+          "median_model_changed_pixels_per_edge": 0,
+          "model_changed_edges": 0,
+          "model_changed_pixels_sum": 0,
+          "model_held_edges": 23,
+          "original_changed_edges": 23,
+          "original_changed_pixels_sum": 660,
+          "source_tick1601_fixed_alpha_anchor_x2y2": [
+            69,
+            76
+          ]
+        },
+        "red": {
+          "change_pixel_intersection": 0,
+          "change_pixel_iou": 0.0,
+          "change_pixel_precision": 0.0,
+          "change_pixel_recall": 0.0,
+          "mean_24_source_silhouette_iou": 0.36148543,
+          "mean_model_changed_pixels_per_edge": 0,
+          "median_model_changed_pixels_per_edge": 0,
+          "model_changed_edges": 0,
+          "model_changed_pixels_sum": 0,
+          "model_held_edges": 23,
+          "original_changed_edges": 23,
+          "original_changed_pixels_sum": 659,
+          "source_tick1601_fixed_alpha_anchor_x2y2": [
+            77,
+            72
+          ]
+        }
+      },
+      "samples": 24
+    }
+  },
+  "candidate_actual_upright_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "fixed_source_anchor_selected_once_at_tick1601": true,
+  "no_fitted_phase_camera_geometry_or_frame_translation": true,
+  "original_1994_3d_animation_or_art_approved": false,
+  "original_consecutive_source_24_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "original_observed_source_per_player_orientation": "held OAM source; no completed-screen reflection applied",
+  "provisional_fixed_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "schema": "UR-ART4K-AUTHENTIC-MESEN24-VS-2026-FIVE-PARENT-MOTION-CONTROLS/1",
+  "source_original_ticks": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605,
+    1606,
+    1607,
+    1608,
+    1609,
+    1610,
+    1611,
+    1612,
+    1613,
+    1614,
+    1615,
+    1616,
+    1617,
+    1618,
+    1619,
+    1620,
+    1621,
+    1622,
+    1623,
+    1624
+  ]
+}

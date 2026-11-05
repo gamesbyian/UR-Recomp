@@ -1,0 +1,661 @@
+{
+  "all_six_poses_pixel_identical_alpha_to_independent_renderer": true,
+  "candidate_material_id_to_five_parent": [
+    0,
+    3,
+    3,
+    3,
+    3,
+    4,
+    4,
+    4,
+    2,
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    1,
+    1
+  ],
+  "exact_256px_neutral_material_silhouette_and_five_part_renderer_agreement": true,
+  "frame_pitch_deg": 0,
+  "illustrative_2026_direct_drive_step_deg_per_original_tick": 24,
+  "model_original_sixteen_material_nodes": [
+    "fork_and_frame__material_0",
+    "fork_and_frame__material_1",
+    "fork_and_frame__material_2",
+    "fork_and_frame__material_3",
+    "pedals__material_0",
+    "pedals__material_1",
+    "pedals__material_2",
+    "rim_and_hub__material_0",
+    "rim_and_hub__material_1",
+    "rim_and_hub__material_2",
+    "rim_and_hub__material_3",
+    "rim_and_hub__material_4",
+    "saddle__material_0",
+    "saddle__material_1",
+    "tire__material_0",
+    "tire__material_1"
+  ],
+  "model_single_real_2026_upright_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "no_original_1994_palette_to_model_material_mapping": true,
+  "no_per_frame_source_fit": true,
+  "one_provisional_7_6_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "original_selected_source_edges": [
+    [
+      1602,
+      1603
+    ],
+    [
+      1605,
+      1606
+    ],
+    [
+      1609,
+      1610
+    ]
+  ],
+  "per_original_OAM_source_player": {
+    "blue": {
+      "event_controls": [
+        {
+          "actual_original_source_edge": [
+            1602,
+            1603
+          ],
+          "pose_delta_deg_from_canonical_upright_2026": [
+            24.0,
+            48.0
+          ],
+          "source_changed_alpha_boundary": 104,
+          "source_original_index_change_in_opaque_intersection": 176,
+          "visible_five_parent_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.01104972,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.28571429,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01136364,
+              "spatial_intersection": 2
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.01666667,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.42857143,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01704545,
+              "spatial_intersection": 3
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.01104972,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.28571429,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01136364,
+              "spatial_intersection": 2
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.01104972,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.28571429,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01136364,
+              "spatial_intersection": 2
+            },
+            "registered": {
+              "change_support_iou": 0.01666667,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.42857143,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01704545,
+              "spatial_intersection": 3
+            }
+          },
+          "visible_material_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.01648352,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.33333333,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01704545,
+              "spatial_intersection": 3
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.01648352,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.33333333,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01704545,
+              "spatial_intersection": 3
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.01648352,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.33333333,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01704545,
+              "spatial_intersection": 3
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.01092896,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.22222222,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.01136364,
+              "spatial_intersection": 2
+            },
+            "registered": {
+              "change_support_iou": 0.02777778,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.55555556,
+              "original_opaque_interior_index_changes": 176,
+              "source_recall": 0.02840909,
+              "spatial_intersection": 5
+            }
+          }
+        },
+        {
+          "actual_original_source_edge": [
+            1605,
+            1606
+          ],
+          "pose_delta_deg_from_canonical_upright_2026": [
+            96.0,
+            120.0
+          ],
+          "source_changed_alpha_boundary": 22,
+          "source_original_index_change_in_opaque_intersection": 24,
+          "visible_five_parent_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.06666667,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.25,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.08333333,
+              "spatial_intersection": 2
+            }
+          },
+          "visible_material_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.02564103,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.0625,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.04166667,
+              "spatial_intersection": 1
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.08108108,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.1875,
+              "original_opaque_interior_index_changes": 24,
+              "source_recall": 0.125,
+              "spatial_intersection": 3
+            }
+          }
+        },
+        {
+          "actual_original_source_edge": [
+            1609,
+            1610
+          ],
+          "pose_delta_deg_from_canonical_upright_2026": [
+            -168.0,
+            -144.0
+          ],
+          "source_changed_alpha_boundary": 24,
+          "source_original_index_change_in_opaque_intersection": 33,
+          "visible_five_parent_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.05405405,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.33333333,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.06060606,
+              "spatial_intersection": 2
+            }
+          },
+          "visible_material_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.02272727,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.08333333,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.03030303,
+              "spatial_intersection": 1
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.04651163,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.16666667,
+              "original_opaque_interior_index_changes": 33,
+              "source_recall": 0.06060606,
+              "spatial_intersection": 2
+            }
+          }
+        }
+      ],
+      "fixed_source_tick1601_alpha_anchor_x2y2": [
+        69,
+        76
+      ],
+      "source_OAM_slot": 96
+    },
+    "red": {
+      "event_controls": [
+        {
+          "actual_original_source_edge": [
+            1602,
+            1603
+          ],
+          "pose_delta_deg_from_canonical_upright_2026": [
+            24.0,
+            48.0
+          ],
+          "source_changed_alpha_boundary": 29,
+          "source_original_index_change_in_opaque_intersection": 26,
+          "visible_five_parent_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.03125,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.14285714,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.03846154,
+              "spatial_intersection": 1
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.06451613,
+              "model_label_change_pixels": 7,
+              "model_precision": 0.28571429,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.07692308,
+              "spatial_intersection": 2
+            }
+          },
+          "visible_material_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.02941176,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.11111111,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.03846154,
+              "spatial_intersection": 1
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.09375,
+              "model_label_change_pixels": 9,
+              "model_precision": 0.33333333,
+              "original_opaque_interior_index_changes": 26,
+              "source_recall": 0.11538462,
+              "spatial_intersection": 3
+            }
+          }
+        },
+        {
+          "actual_original_source_edge": [
+            1605,
+            1606
+          ],
+          "pose_delta_deg_from_canonical_upright_2026": [
+            96.0,
+            120.0
+          ],
+          "source_changed_alpha_boundary": 119,
+          "source_original_index_change_in_opaque_intersection": 192,
+          "visible_five_parent_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.01522843,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.375,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.015625,
+              "spatial_intersection": 3
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.01010101,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.25,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.01041667,
+              "spatial_intersection": 2
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.01522843,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.375,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.015625,
+              "spatial_intersection": 3
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.01010101,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.25,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.01041667,
+              "spatial_intersection": 2
+            },
+            "registered": {
+              "change_support_iou": 0.02040816,
+              "model_label_change_pixels": 8,
+              "model_precision": 0.5,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.02083333,
+              "spatial_intersection": 4
+            }
+          },
+          "visible_material_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.03482587,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.4375,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.03645833,
+              "spatial_intersection": 7
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.01463415,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.1875,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.015625,
+              "spatial_intersection": 3
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.02970297,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.375,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.03125,
+              "spatial_intersection": 6
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.02463054,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.3125,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.02604167,
+              "spatial_intersection": 5
+            },
+            "registered": {
+              "change_support_iou": 0.04522613,
+              "model_label_change_pixels": 16,
+              "model_precision": 0.5625,
+              "original_opaque_interior_index_changes": 192,
+              "source_recall": 0.046875,
+              "spatial_intersection": 9
+            }
+          }
+        },
+        {
+          "actual_original_source_edge": [
+            1609,
+            1610
+          ],
+          "pose_delta_deg_from_canonical_upright_2026": [
+            -168.0,
+            -144.0
+          ],
+          "source_changed_alpha_boundary": 25,
+          "source_original_index_change_in_opaque_intersection": 31,
+          "visible_five_parent_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.02777778,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.16666667,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.03225806,
+              "spatial_intersection": 1
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.05714286,
+              "model_label_change_pixels": 6,
+              "model_precision": 0.33333333,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.06451613,
+              "spatial_intersection": 2
+            }
+          },
+          "visible_material_id_support": {
+            "null_x_minus8": {
+              "change_support_iou": 0.02380952,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.08333333,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.03225806,
+              "spatial_intersection": 1
+            },
+            "null_x_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_minus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "null_y_plus8": {
+              "change_support_iou": 0.0,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.0,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.0,
+              "spatial_intersection": 0
+            },
+            "registered": {
+              "change_support_iou": 0.075,
+              "model_label_change_pixels": 12,
+              "model_precision": 0.25,
+              "original_opaque_interior_index_changes": 31,
+              "source_recall": 0.09677419,
+              "spatial_intersection": 3
+            }
+          }
+        }
+      ],
+      "fixed_source_tick1601_alpha_anchor_x2y2": [
+        77,
+        72
+      ],
+      "source_OAM_slot": 97
+    }
+  },
+  "schema": "UR-ART4K-MESEN24-REAL-GLB-MOVING-MATERIAL-VS-ORIGINAL-INTERIOR/1",
+  "source_original_24tick_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "source_original_camera_parts_and_3D_pose_recovered": false,
+  "source_original_replay_24tick_is_already_inspected_not_blind": true
+}

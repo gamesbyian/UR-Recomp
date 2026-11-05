@@ -13,7 +13,7 @@ import math
 from pathlib import Path
 
 from tools.art.extract_manual_3d_reference_views import (
-    FIGURES, SCHEMA as CROP_SCHEMA, SOURCE, SOURCE_BLOB_SHA1, authenticate_pdf,
+    FIGURES, SCHEMA as CROP_SCHEMA, SOURCE, SOURCE_BLOB_SHA1, authenticate_pdf, crop_box,
 )
 from tools.art.validate_upscale_trials import check_identity
 
@@ -134,6 +134,11 @@ def replay_exact_original_pdf_crops(raw_pdf:bytes,folder:Path,registered:dict):
             page=page_images[index]
             region=registered[name]["receipt"]["page_crop_pixels_xyxy"]
             a,b,c,d=region
+            if (registered[name]["receipt"].get("full_page_rendered_pixels") !=
+                    [page.width,page.height] or
+                    (a,b,c,d)!=crop_box(page.width,page.height,
+                                        next(row[2] for row in FIGURES if row[0]==name))):
+                fail("source cropped region does not match frozen printed-page basis")
             if not(0<=a<c<=page.width and 0<=b<d<=page.height):
                 fail("manual print crop escapes actual source PDF raster")
             original=page.crop((a,b,c,d))
@@ -161,6 +166,9 @@ def measure(annotation:dict,folder:Path,raw_pdf:bytes,
         if name not in source["figures"] or name in seen:
             fail("original manual figure must be unique and known")
         seen.add(name)
+        if (record.get("crop_png_sha256") !=
+                source["figures"][name]["receipt"]["crop_png_sha256"]):
+            fail("annotation was made for a different exact print crop PNG SHA-256")
         uncertainty=record.get("pixel_uncertainty")
         if (type(uncertainty) not in (int,float) or
                 not math.isfinite(uncertainty) or not 0<uncertainty<=100):

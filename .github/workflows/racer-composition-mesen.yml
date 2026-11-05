@@ -13,6 +13,14 @@ on:
         type: boolean
         default: false
         required: false
+  # Run *only* when this old synchronized composer/probe itself changes.
+  # A PR executes one sparse real source 1602 breakpoint witness; ordinary
+  # manual default remains 1218 without CPU writer watches.
+  pull_request:
+    paths:
+      - 'tools/capture_racer_composition_mesen.py'
+      - 'tests/unit/test_original_rider_phase_trace_capture.py'
+      - '.github/workflows/racer-composition-mesen.yml'
 
 concurrency:
   group: racer-composition-mesen-${{ github.ref }}
@@ -127,10 +135,10 @@ jobs:
           export MESEN_BIN="$RUNNER_TEMP/mesence-cache/Mesen"
           export MESEN_FOR_AI_REPO="$GITHUB_WORKSPACE/third_party/src/mesen-for-ai"
           trace=()
-          if [[ "${{ inputs.trace_rider_state }}" == "true" ]]; then
+          if [[ "${{ github.event_name == 'pull_request' && 'true' || inputs.trace_rider_state }}" == "true" ]]; then
             trace+=(--trace-rider-state)
           fi
-          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames "${{ inputs.advance_frames || 1218 }}"               "${trace[@]}"               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
+          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames "${{ github.event_name == 'pull_request' && '1602' || inputs.advance_frames || 1218 }}"               "${trace[@]}"               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
           cat "$RUNNER_TEMP/racer-composition-mesen.md"
 
       - name: Require synchronized mask and occupied-source agreement

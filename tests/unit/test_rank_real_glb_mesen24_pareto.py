@@ -119,6 +119,32 @@ class RealGLBMesenParetoTests(unittest.TestCase):
         self.assertFalse(matched["strictly_dominates_own_matched_control"])
         self.assertNotIn("axle_root_b",result["matched_geometry_only_deltas"])
 
+    def test_signed_saddle_center_cup_uses_identical_mechanical_control(self):
+        data=fake()
+        for role in ("blue","red"):
+            arms=data["original_source_per_role"][role]["arms"]
+            baseline="axle_root_saddle_world_level_rom_phase_15deg"
+            arms[baseline]=arm(.6,.6,.5,1,1,0)
+            arms["axle_root_saddle_cup_deep008_rom_phase_15deg"]=arm(
+                .7,.7,.33333333,1,1,1)
+            arms["axle_root_saddle_cup_soft008_rom_phase_15deg"]=arm(
+                .5,.5,.66666667,2,1,0)
+        matched=analyze(data)["matched_geometry_only_deltas"]
+        deep=matched["axle_root_saddle_cup_deep008_rom_phase_15deg"]
+        soft=matched["axle_root_saddle_cup_soft008_rom_phase_15deg"]
+        self.assertEqual(deep["same_wheel_drive_and_saddle_attitude_control"],
+                         "axle_root_saddle_world_level_rom_phase_15deg")
+        self.assertEqual(soft["same_wheel_drive_and_saddle_attitude_control"],
+                         "axle_root_saddle_world_level_rom_phase_15deg")
+        self.assertEqual(deep["signed_six_objective_delta"],
+                         [.1,.1,-.16666667]*2)
+        self.assertTrue(deep["shape_improves_both_original_racers"])
+        self.assertFalse(deep["chronological_motion_improves_both_original_racers"])
+        self.assertTrue(soft["chronological_motion_improves_both_original_racers"])
+        self.assertFalse(soft["shape_improves_both_original_racers"])
+        self.assertFalse(deep["strictly_dominates_own_matched_control"])
+        self.assertFalse(soft["strictly_dominates_own_matched_control"])
+
     def test_dominance_is_strict_and_six_dimensional(self):
         a=(.5,)*6
         self.assertFalse(dominates(a,a))

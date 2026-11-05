@@ -44,6 +44,31 @@ class ManualSpokeBladeVolumeTests(unittest.TestCase):
             with self.subTest(candidate=candidate),self.assertRaises(ValueError):
                 wider_blade_vertices(candidate)
 
+    def test_exact_real_glb_numeric_receipt_is_nonshipping_and_source_bound(self):
+        import json
+        from pathlib import Path
+        source=Path(__file__).resolve().parents[2]
+        record=json.loads((source/"analysis/data/racer-art4k-2026-source-glb-blade-spoke-volume-20261105.json").read_text(encoding="utf-8"))
+        self.assertEqual(record["schema"],
+                         "UR-ART4K-2026-REAL-GLB-PRINT-INSPIRED-SPOKE-VOLUME/1")
+        self.assertEqual(record["source_2026_upright_GLb_sha256"],
+                         "d83a39b805107eb309d3f56db8d5aeb77f435038170005fd5d15c0c45ed4c94a")
+        self.assertEqual(record["original_source_GLb_byte_count"],639132)
+        self.assertEqual(record["original_rim_spoke_material_node"],"rim_and_hub__material_2")
+        self.assertEqual(record["original_fixed_spoke_count"],8)
+        self.assertEqual(record["source_spoke_vertices"],1788)
+        self.assertEqual(record["source_spoke_faces"],3572)
+        self.assertEqual(record["changed_original_vertices_over_1e_5_model_units"],1264)
+        self.assertAlmostEqual(record["max_vertex_displacement_model_units"],0.01811738)
+        self.assertAlmostEqual(record["original_spoke_mesh_signed_volume_model_units3"],0.015428575,9)
+        self.assertAlmostEqual(record["proposed_spoke_mesh_signed_volume_model_units3"],0.019122291,9)
+        self.assertAlmostEqual(record["changed_spoke_mesh_volume_percent"],23.940743,5)
+        self.assertTrue(record["original_source_2026_spoke_mesh_watertight_after_deformation"])
+        self.assertTrue(record["original_2026_model_vertex_arrays_restored_exactly"])
+        self.assertFalse(record["original_1994_3D_mesh_camera_spoke_count_or_rig_recovered"])
+        self.assertFalse(record["owner_2026_character_likeness_approved"])
+        self.assertFalse(record["shipping_art_approved"])
+
     @unittest.skipUnless(importlib.util.find_spec("numpy") and
                          importlib.util.find_spec("trimesh"),
                          "optional real GLB mesh geometry requires NumPy/Trimesh")

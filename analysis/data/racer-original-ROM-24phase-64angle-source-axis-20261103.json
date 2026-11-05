@@ -1,0 +1,669 @@
+{
+  "exact_authenticated_original_48_frame_pose_report_sha256": "6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20",
+  "original_1994_3d_angle_camera_mesh_material_or_bone_mapping_recovered": false,
+  "original_2026_rig_likeness_owner_approved": false,
+  "original_ROM_24phase_64angle_exact_source_frame_count": 1536,
+  "original_authenticated_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_observed_source_event_counterfactuals_are_retrospective": true,
+  "original_source_2d_phase_axis_independent_of_3d_rig_physical_spin": true,
+  "schema": "UR-ART4K-ORIGINAL-ROM-24PHASE-64ANGLE-AXIS-COUNTERFACTUAL/1",
+  "source_phase_variation_all_angles_bbox_xyxy": [
+    17,
+    4,
+    46,
+    35
+  ],
+  "source_phase_variation_bbox_by_ROM_angle_index": {
+    "0": [
+      26,
+      24,
+      37,
+      35
+    ],
+    "1": [
+      25,
+      24,
+      36,
+      35
+    ],
+    "10": [
+      18,
+      20,
+      30,
+      31
+    ],
+    "11": [
+      17,
+      19,
+      29,
+      30
+    ],
+    "12": [
+      17,
+      18,
+      28,
+      29
+    ],
+    "13": [
+      17,
+      17,
+      28,
+      28
+    ],
+    "14": [
+      17,
+      16,
+      28,
+      27
+    ],
+    "15": [
+      17,
+      15,
+      28,
+      26
+    ],
+    "16": [
+      17,
+      14,
+      28,
+      25
+    ],
+    "17": [
+      17,
+      13,
+      28,
+      24
+    ],
+    "18": [
+      17,
+      12,
+      28,
+      23
+    ],
+    "19": [
+      17,
+      11,
+      28,
+      22
+    ],
+    "2": [
+      24,
+      24,
+      35,
+      35
+    ],
+    "20": [
+      17,
+      10,
+      28,
+      21
+    ],
+    "21": [
+      17,
+      9,
+      28,
+      20
+    ],
+    "22": [
+      18,
+      8,
+      29,
+      19
+    ],
+    "23": [
+      18,
+      7,
+      29,
+      18
+    ],
+    "24": [
+      19,
+      6,
+      30,
+      17
+    ],
+    "25": [
+      19,
+      6,
+      30,
+      17
+    ],
+    "26": [
+      20,
+      5,
+      31,
+      16
+    ],
+    "27": [
+      21,
+      5,
+      32,
+      16
+    ],
+    "28": [
+      22,
+      4,
+      33,
+      15
+    ],
+    "29": [
+      23,
+      4,
+      34,
+      18
+    ],
+    "3": [
+      23,
+      24,
+      34,
+      35
+    ],
+    "30": [
+      24,
+      4,
+      35,
+      18
+    ],
+    "31": [
+      25,
+      4,
+      36,
+      15
+    ],
+    "32": [
+      26,
+      4,
+      37,
+      17
+    ],
+    "33": [
+      27,
+      4,
+      38,
+      15
+    ],
+    "34": [
+      28,
+      4,
+      39,
+      15
+    ],
+    "35": [
+      29,
+      4,
+      40,
+      18
+    ],
+    "36": [
+      30,
+      4,
+      41,
+      15
+    ],
+    "37": [
+      31,
+      5,
+      42,
+      16
+    ],
+    "38": [
+      32,
+      5,
+      43,
+      16
+    ],
+    "39": [
+      33,
+      6,
+      44,
+      17
+    ],
+    "4": [
+      22,
+      24,
+      33,
+      35
+    ],
+    "40": [
+      33,
+      6,
+      44,
+      17
+    ],
+    "41": [
+      34,
+      7,
+      45,
+      18
+    ],
+    "42": [
+      34,
+      8,
+      45,
+      19
+    ],
+    "43": [
+      35,
+      9,
+      46,
+      20
+    ],
+    "44": [
+      35,
+      10,
+      46,
+      21
+    ],
+    "45": [
+      35,
+      11,
+      46,
+      22
+    ],
+    "46": [
+      35,
+      12,
+      46,
+      23
+    ],
+    "47": [
+      35,
+      13,
+      46,
+      24
+    ],
+    "48": [
+      35,
+      14,
+      46,
+      25
+    ],
+    "49": [
+      35,
+      15,
+      46,
+      26
+    ],
+    "5": [
+      21,
+      23,
+      32,
+      34
+    ],
+    "50": [
+      35,
+      16,
+      46,
+      27
+    ],
+    "51": [
+      35,
+      17,
+      46,
+      28
+    ],
+    "52": [
+      35,
+      18,
+      46,
+      29
+    ],
+    "53": [
+      35,
+      19,
+      46,
+      30
+    ],
+    "54": [
+      34,
+      20,
+      45,
+      31
+    ],
+    "55": [
+      34,
+      21,
+      45,
+      32
+    ],
+    "56": [
+      33,
+      22,
+      44,
+      33
+    ],
+    "57": [
+      33,
+      22,
+      44,
+      33
+    ],
+    "58": [
+      32,
+      23,
+      43,
+      34
+    ],
+    "59": [
+      31,
+      23,
+      42,
+      34
+    ],
+    "6": [
+      20,
+      23,
+      31,
+      34
+    ],
+    "60": [
+      30,
+      24,
+      41,
+      35
+    ],
+    "61": [
+      29,
+      24,
+      40,
+      35
+    ],
+    "62": [
+      28,
+      24,
+      39,
+      35
+    ],
+    "63": [
+      27,
+      24,
+      38,
+      35
+    ],
+    "7": [
+      19,
+      22,
+      30,
+      33
+    ],
+    "8": [
+      19,
+      22,
+      30,
+      33
+    ],
+    "9": [
+      18,
+      21,
+      29,
+      32
+    ]
+  },
+  "source_phase_variation_by_actually_observed_ROM_angle": {
+    "57": {
+      "distinct_source_alpha_positions_across_24_phase_states": 50,
+      "distinct_source_index_positions_across_24_phase_states": 118,
+      "index_pixels_in_y_0_15_change_as_phase_varies": 0,
+      "source_index_variant_region_bbox_xyxy": [
+        33,
+        22,
+        44,
+        33
+      ]
+    },
+    "58": {
+      "distinct_source_alpha_positions_across_24_phase_states": 47,
+      "distinct_source_index_positions_across_24_phase_states": 115,
+      "index_pixels_in_y_0_15_change_as_phase_varies": 0,
+      "source_index_variant_region_bbox_xyxy": [
+        32,
+        23,
+        43,
+        34
+      ]
+    },
+    "60": {
+      "distinct_source_alpha_positions_across_24_phase_states": 52,
+      "distinct_source_index_positions_across_24_phase_states": 116,
+      "index_pixels_in_y_0_15_change_as_phase_varies": 0,
+      "source_index_variant_region_bbox_xyxy": [
+        30,
+        24,
+        41,
+        35
+      ]
+    },
+    "61": {
+      "distinct_source_alpha_positions_across_24_phase_states": 54,
+      "distinct_source_index_positions_across_24_phase_states": 117,
+      "index_pixels_in_y_0_15_change_as_phase_varies": 0,
+      "source_index_variant_region_bbox_xyxy": [
+        29,
+        24,
+        40,
+        35
+      ]
+    }
+  },
+  "source_phase_variation_positions_any_angle_count": 797,
+  "two_original_upper_source_events": {
+    "blue": {
+      "actual_original_index_delta": {
+        "observed_source_upper_third": {
+          "alpha_xor_pixels": 27,
+          "index4bpp_changed_pixels": 72,
+          "shared_opaque_index_changed_pixels": 45
+        },
+        "source_y_0_15": {
+          "alpha_xor_pixels": 28,
+          "index4bpp_changed_pixels": 75,
+          "shared_opaque_index_changed_pixels": 47
+        },
+        "whole_64px": {
+          "alpha_xor_pixels": 104,
+          "index4bpp_changed_pixels": 280,
+          "shared_opaque_index_changed_pixels": 176
+        }
+      },
+      "actual_original_ticks": [
+        1602,
+        1603
+      ],
+      "angle_first_then_phase": {
+        "hold_final_angle_change_phase": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 25,
+            "index4bpp_changed_pixels": 48,
+            "shared_opaque_index_changed_pixels": 23
+          }
+        },
+        "hold_phase_change_angle": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 27,
+            "index4bpp_changed_pixels": 72,
+            "shared_opaque_index_changed_pixels": 45
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 28,
+            "index4bpp_changed_pixels": 75,
+            "shared_opaque_index_changed_pixels": 47
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 91,
+            "index4bpp_changed_pixels": 271,
+            "shared_opaque_index_changed_pixels": 180
+          }
+        }
+      },
+      "original_24phase_64angle_after": [
+        8,
+        60
+      ],
+      "original_24phase_64angle_before": [
+        5,
+        61
+      ],
+      "original_source_upper_observed_y_inclusive": [
+        4,
+        14
+      ],
+      "phase_first_then_angle": {
+        "hold_angle_change_phase": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 24,
+            "index4bpp_changed_pixels": 51,
+            "shared_opaque_index_changed_pixels": 27
+          }
+        },
+        "hold_final_phase_change_angle": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 27,
+            "index4bpp_changed_pixels": 72,
+            "shared_opaque_index_changed_pixels": 45
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 28,
+            "index4bpp_changed_pixels": 75,
+            "shared_opaque_index_changed_pixels": 47
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 92,
+            "index4bpp_changed_pixels": 274,
+            "shared_opaque_index_changed_pixels": 182
+          }
+        }
+      },
+      "source_original_event_in_previously_inspected_series": true,
+      "source_upper_change_independent_of_phase_order": true
+    },
+    "red": {
+      "actual_original_index_delta": {
+        "observed_source_upper_third": {
+          "alpha_xor_pixels": 20,
+          "index4bpp_changed_pixels": 55,
+          "shared_opaque_index_changed_pixels": 35
+        },
+        "source_y_0_15": {
+          "alpha_xor_pixels": 20,
+          "index4bpp_changed_pixels": 55,
+          "shared_opaque_index_changed_pixels": 35
+        },
+        "whole_64px": {
+          "alpha_xor_pixels": 119,
+          "index4bpp_changed_pixels": 311,
+          "shared_opaque_index_changed_pixels": 192
+        }
+      },
+      "actual_original_ticks": [
+        1605,
+        1606
+      ],
+      "angle_first_then_phase": {
+        "hold_final_angle_change_phase": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 27,
+            "index4bpp_changed_pixels": 51,
+            "shared_opaque_index_changed_pixels": 24
+          }
+        },
+        "hold_phase_change_angle": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 20,
+            "index4bpp_changed_pixels": 55,
+            "shared_opaque_index_changed_pixels": 35
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 20,
+            "index4bpp_changed_pixels": 55,
+            "shared_opaque_index_changed_pixels": 35
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 112,
+            "index4bpp_changed_pixels": 311,
+            "shared_opaque_index_changed_pixels": 199
+          }
+        }
+      },
+      "original_24phase_64angle_after": [
+        15,
+        58
+      ],
+      "original_24phase_64angle_before": [
+        11,
+        57
+      ],
+      "original_source_upper_observed_y_inclusive": [
+        5,
+        15
+      ],
+      "phase_first_then_angle": {
+        "hold_angle_change_phase": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 0,
+            "index4bpp_changed_pixels": 0,
+            "shared_opaque_index_changed_pixels": 0
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 28,
+            "index4bpp_changed_pixels": 49,
+            "shared_opaque_index_changed_pixels": 21
+          }
+        },
+        "hold_final_phase_change_angle": {
+          "observed_source_upper_third": {
+            "alpha_xor_pixels": 20,
+            "index4bpp_changed_pixels": 55,
+            "shared_opaque_index_changed_pixels": 35
+          },
+          "source_y_0_15": {
+            "alpha_xor_pixels": 20,
+            "index4bpp_changed_pixels": 55,
+            "shared_opaque_index_changed_pixels": 35
+          },
+          "whole_64px": {
+            "alpha_xor_pixels": 115,
+            "index4bpp_changed_pixels": 304,
+            "shared_opaque_index_changed_pixels": 189
+          }
+        }
+      },
+      "source_original_event_in_previously_inspected_series": true,
+      "source_upper_change_independent_of_phase_order": true
+    }
+  }
+}

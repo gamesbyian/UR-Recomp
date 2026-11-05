@@ -105,6 +105,36 @@ try{
    if(!document.querySelector('#viewport canvas'))issues.push('no WebGL canvas');
    if(!q('parts').textContent.includes('tire'))issues.push('no glTF part');
    if(!q('sourceInfo').textContent.includes('frame 1205'))issues.push('missing original provenance');
+   // Independent authenticated 24-tick original-ROM states must not alter
+   // the preexisting source sprite, selected GLB or scene pose.
+   const originalRail=q('originalMesen24Rail');
+   if(!originalRail)issues.push('original Mesen24 rail missing');
+   else{
+     const sourceSelect=originalRail.querySelector('select');
+     const sourceTick=originalRail.querySelector('input[type=range]');
+     const sourceImg=originalRail.querySelector('img');
+     for(let i=0;i<80&&(!originalRail.textContent.includes('Original tick 1601')||sourceImg?.naturalWidth!==64);i++)
+       await new Promise(done=>setTimeout(done,50));
+     if(!sourceSelect||!sourceTick||!sourceImg||
+        !originalRail.textContent.includes('Original tick 1601')||
+        sourceImg.naturalWidth!==64)issues.push('source authentic tick1601 load');
+     else{
+       const beforeGLB=q('source').textContent, beforeStock=q('sourceInfo').textContent;
+       sourceSelect.value='red';sourceSelect.dispatchEvent(new Event('change'));
+       sourceTick.value='1603';sourceTick.dispatchEvent(new Event('input'));
+       for(let i=0;i<80&&!originalRail.textContent.includes('Original tick 1603');i++)
+         await new Promise(done=>setTimeout(done,50));
+       if(!originalRail.textContent.includes('Original tick 1603')||
+          !originalRail.textContent.includes('phase 1/23')||
+          !originalRail.textContent.includes('orientation 57/63'))
+         issues.push('red source ROM frame ID/phase/orientation selection');
+       if(sourceSelect.getBoundingClientRect().height<44||
+          sourceTick.getBoundingClientRect().height<44)
+         issues.push('original Mesen source touch targets');
+       if(q('source').textContent!==beforeGLB||q('sourceInfo').textContent!==beforeStock)
+         issues.push('original source selector mutated GLB or stock sprite');
+     }
+   }
    q('frame').value='1210';q('frame').dispatchEvent(new Event('input'));
    if(!q('sourceInfo').textContent.includes('frame 1210'))issues.push('sprite scrub');
    if(!q('spriteIndex')||q('spriteIndex').disabled)issues.push('index selector unavailable');

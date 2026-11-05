@@ -7,7 +7,7 @@ import unittest
 from tools.art.capture_original_mesen_ppu_raw import (
     REGIONS, SCHEMA, capture_states, read_region, valid_bytes,
     validate_snapshot_files, inspect_held_ppm, parse_capture_ticks,
-    validate_capture_ticks,
+    validate_capture_ticks, RIDER_WRAM_MEMORY_TYPE, RIDER_WRAM_SIZE,
 )
 
 
@@ -30,7 +30,7 @@ class FakeMesen:
             address=arguments["address"]
             length=arguments["length"]
             mem=arguments["memoryType"]
-            if mem not in {v[0] for v in REGIONS.values()}:
+            if mem not in ({v[0] for v in REGIONS.values()} | {RIDER_WRAM_MEMORY_TYPE}):
                 raise AssertionError("invalid memory region")
             return {"memoryType":mem,"address":address,"length":length,
                     "bytes":[(address+i+self.frame+(20 if mem=="snesSpriteRam" else 50 if mem=="snesCgRam" else 0))&255
@@ -122,7 +122,10 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
                   ".github/workflows/art4k-live-original-mesen-ppu-raw.yml").read_text()
         self.assertIn("      capture_ticks:", workflow)
         self.assertIn('        default: ""', workflow)
-        self.assertIn("CAPTURE_TICKS: $" + "{{ inputs.capture_ticks || '' }}", workflow)
+        self.assertIn("CAPTURE_TICKS: $" + "{{ github.event_name == 'pull_request' && '1601,1602,1603,1605,1606,1609,1610,1624' || inputs.capture_ticks || '' }}", workflow)
+        self.assertIn("RIDER_CAPTURE: $" + "{{ github.event_name == 'pull_request' && '1' || inputs.include_rider_wram && '1' || '0' }}", workflow)
+        self.assertIn('rider_args+=(--include-rider-wram)', workflow)
+        self.assertIn('print("ART4K_ORIGINAL_RIDER_BOUNDARY"', workflow)
         self.assertIn('selection=(--capture-ticks "$CAPTURE_TICKS")', workflow)
         self.assertIn('selection=(--advance-frames "$ADVANCE_FRAMES" --capture-frames "$CAPTURE_FRAMES")', workflow)
         self.assertIn('parse_capture_ticks(os.environ["CAPTURE_TICKS"])', workflow)
@@ -283,6 +286,87 @@ class OriginalMesenRawPpuTests(unittest.TestCase):
         self.assertIn('1) SNES_DISABLE_FRAME_SKIPPING_JSON=true ;;',text)
         self.assertIn('MESEN_SNES_DISABLE_FRAME_SKIPPING must be 0 or 1',text)
         self.assertIn('"DisableFrameSkipping": $SNES_DISABLE_FRAME_SKIPPING_JSON',text)
+
+    def test_opt_in_rider_wram_same_bridge_ticks_and_exact_span(self):
+        fake=FakeMesen()
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            report=capture_states(fake,[],0,1,root,
+                source_capture_ticks=(2,5),include_rider_wram_full=True,
+                source_snes_frame_skipping_disabled_requested=True)
+            self.assertEqual([x["emulator_bridge_frame"] for x in report["frames"]],[2,5])
+            self.assertTrue(report["source_original_rider_work_ram_0000_17ff_captured"])
+            self.assertTrue(report["source_wram_queue_is_post_frame_boundary_not_write_trace"])
+            self.assertFalse(report["source_original_CPU_or_DMA_tile_writer_PC_identified"])
+            self.assertFalse(report["source_original_1994_3d_pose_recovered_from_wram"])
+            validate_snapshot_files(root,report)
+            for frame in report["frames"]:
+                meta=frame["original_snes_rider_work_ram_0000_17ff"]
+                self.assertEqual(meta["byte_size"],RIDER_WRAM_SIZE)
+                self.assertEqual(meta["source_memory_type"],RIDER_WRAM_MEMORY_TYPE)
+                self.assertEqual(meta["source_offset"],0)
+                self.assertEqual(meta["relative_file"],
+                    f'frame-{frame["emulator_bridge_frame"]:06d}-wram-0000-17ff.bin')
+                self.assertEqual(len((root/meta["relative_file"]).read_bytes()),RIDER_WRAM_SIZE)
+            reads=[args for kind,args in fake.events
+                   if kind=="cpu.read_memory" and args["memoryType"]==RIDER_WRAM_MEMORY_TYPE]
+            self.assertEqual(len(reads),12)
+            self.assertEqual([x["address"] for x in reads],
+                             list(range(0,RIDER_WRAM_SIZE,1024))*2)
+
+    def test_rider_wram_claims_metadata_and_hash_fail_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            record=capture_states(FakeMesen(),[],0,1,root,include_rider_wram_full=True)
+            validate_snapshot_files(root,record)
+            for field,value in (
+                ("source_original_CPU_or_DMA_tile_writer_PC_identified",True),
+                ("source_original_1994_3d_pose_recovered_from_wram",True),
+                ("source_wram_queue_is_post_frame_boundary_not_write_trace",False),
+                ("source_original_rider_work_ram_0000_17ff_captured",False),
+                ("source_original_rider_work_ram_0000_17ff_captured",1),
+                ("source_original_rider_work_ram_0000_17ff_captured","true")):
+                changed=copy.deepcopy(record)
+                changed[field]=value
+                with self.subTest(field=field),self.assertRaisesRegex(ValueError,"WRAM|wram"):
+                    validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(record)
+            del changed["source_original_rider_work_ram_0000_17ff_captured"]
+            with self.assertRaisesRegex(ValueError,"unclaimed"):
+                validate_snapshot_files(root,changed)
+            changed=copy.deepcopy(record)
+            changed["frames"][0]["original_snes_rider_work_ram_0000_17ff"]["source_offset"]=1
+            with self.assertRaisesRegex(ValueError,"identity|metadata"):
+                validate_snapshot_files(root,changed)
+            file=root/record["frames"][0]["original_snes_rider_work_ram_0000_17ff"]["relative_file"]
+            raw=bytearray(file.read_bytes())
+            raw[0x0F83]^=1
+            file.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError,"SHA"):
+                validate_snapshot_files(root,record)
+
+    def test_rider_wram_rejects_emulator_advance_and_nonboolean_opt_in(self):
+        class Moving(FakeMesen):
+            def tool(self,kind,**args):
+                out=super().tool(kind,**args)
+                if kind=="cpu.read_memory" and args["memoryType"]==RIDER_WRAM_MEMORY_TYPE:
+                    self.frame+=1
+                return out
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(ValueError,"advanced during"):
+                capture_states(Moving(),[],0,1,Path(d),include_rider_wram_full=True)
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaisesRegex(ValueError,"bounded"):
+                capture_states(FakeMesen(),[],0,1,Path(d),include_rider_wram_full="true")
+
+    def test_optional_wram_workflow_default_and_explicit_dispatch(self):
+        workflow=(Path(__file__).resolve().parents[2]/
+                 ".github/workflows/art4k-live-original-mesen-ppu-raw.yml").read_text()
+        self.assertIn("      include_rider_wram_full:",workflow)
+        self.assertIn("  RIDER_FULL_CAPTURE:",workflow)
+        self.assertIn("rider_args+=(--include-rider-wram-full)",workflow)
+        self.assertIn("github.event_name == 'pull_request'",workflow)
+        self.assertIn("        default: false",workflow)
 
     def test_legacy_raw_capture_no_skip_default_and_invalid_flag(self):
         with tempfile.TemporaryDirectory() as d:

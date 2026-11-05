@@ -21,6 +21,7 @@ from tools.art.experimental_temporary_saddle_lean import temporary_saddle_pitch
 from tools.art.experimental_world_level_saddle import temporary_saddle_world_attitude
 from tools.art.experimental_saddle_stem_slide import temporary_saddle_stem_slide
 from tools.art.experimental_upper_frame_stretch import temporary_upper_frame_stretch
+from tools.art.experimental_saddle_span import temporary_saddle_span
 from tools.art.no_replace_report import publish_text_once
 
 SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/3"
@@ -63,7 +64,17 @@ STRETCH_TRIALS=(
 )
 STRETCH_SETTINGS={name:(mode,scale) for name,mode,scale in STRETCH_TRIALS}
 FULL_MOTION_TRIALS=ALL_MOTION_TRIALS+tuple((name,mode) for name,mode,_ in STRETCH_TRIALS)
-ARMS=BASE_ARMS+tuple(name for name,_ in FULL_MOTION_TRIALS)
+# Independent source-*mesh* width hypothesis. It does not move the saddle
+# mounting pivot and does not infer the original 1994 production geometry.
+SPAN_TRIALS=(
+    ("axle_root_saddle_span090_rom_phase_15deg","rom_phase",.9),
+    ("axle_root_saddle_span110_rom_phase_15deg","rom_phase",1.1),
+    ("axle_root_saddle_span090_fixed_tick_24deg","fixed_tick",.9),
+    ("axle_root_saddle_span110_fixed_tick_24deg","fixed_tick",1.1),
+)
+SPAN_SETTINGS={name:(mode,ratio) for name,mode,ratio in SPAN_TRIALS}
+ALL_SHAPE_TRIALS=FULL_MOTION_TRIALS+tuple((name,mode) for name,mode,_ in SPAN_TRIALS)
+ARMS=BASE_ARMS+tuple(name for name,_ in ALL_SHAPE_TRIALS)
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -182,7 +193,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
     scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
 
     def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False,
-               saddle_stroke:float=0.,upper_stretch:float=0.):
+               saddle_stroke:float=0.,upper_stretch:float=0.,
+               saddle_span:float=0.):
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             adjustment=(temporary_saddle_world_attitude(scene,level_reference)
@@ -194,9 +206,12 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     deformation=(temporary_upper_frame_stretch(scene,upper_stretch)
                                  if upper_stretch else nullcontext())
                     with deformation:
-                        world=(scene.to_geometry() if callable(
-                            getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
-                        result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
+                        span=(temporary_saddle_span(scene,saddle_span)
+                              if saddle_span else nullcontext())
+                        with span:
+                            world=(scene.to_geometry() if callable(
+                                getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
+                            result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
         return result.astype(bool)
 
     neutral=model4(0,0.)
@@ -228,17 +243,19 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,0.)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            for name,mode in FULL_MOTION_TRIALS:
+            for name,mode in ALL_SHAPE_TRIALS:
                 wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
                 stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
                 stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
-                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS
-                key=(frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
+                span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
+                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS
+                key=(frame["angle"],15.,wheel,"world_level","span",span) if span else (
+                    (frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel)))
+                    (frame["angle"],15.,wheel))))
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch)
+                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -273,18 +290,20 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         original=originals[role]
         placement=anchor(original[1601]["alpha"])
         events={}
-        for name,mode in FULL_MOTION_TRIALS:
+        for name,mode in ALL_SHAPE_TRIALS:
             projected={}
             stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
             stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
-            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS
+            span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
+            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
-                key=(frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
+                key=(frame["angle"],15.,wheel,"world_level","span",span) if span else (
+                    (frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel)))
+                    (frame["angle"],15.,wheel))))
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
@@ -298,7 +317,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                             deformation=(temporary_upper_frame_stretch(scene,stretch)
                                          if stretch else nullcontext())
                             with deformation:
-                                parent256=project_real_parent_masks256(scene,camera)
+                                dimension=(temporary_saddle_span(scene,span)
+                                           if span else nullcontext())
+                                with dimension:
+                                    parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
                 if not np.array_equal(union,renders[key]):
                     raise ValueError("authored 2026 GLB parents do not reproduce whole")
@@ -342,6 +364,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_signed_stem_offsets_are_authoring_units_not_original_1994_stroke":True,
         "2026_upper_frame_stretch_controls_predeclared_not_fitted":list(STRETCH_TRIALS),
         "2026_upper_frame_stretch_is_not_original_velocity_law":True,
+        "2026_authored_saddle_longitudinal_span_controls":list(SPAN_TRIALS),
+        "2026_saddle_shape_magnitude_not_original_1994_geometry":True,
         "2026_world_level_saddle_retains_real_moving_mount_position":True,
         "2026_saddle_world_attitude_reference_is_authored_rest_not_original":True,
         "source_ROM_phase_24_to_2026_wheel_degrees_is_uncalibrated":True,

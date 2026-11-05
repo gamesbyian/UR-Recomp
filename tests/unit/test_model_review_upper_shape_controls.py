@@ -21,6 +21,30 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
         self.assertIn("No original 1994 speed or saddle stroke law recovered.",page)
         self.assertIn("min-height:44px",page)
         self.assertIn("Original 1994 sprite",page)
+        for marker in (
+            '<option value="saddle-narrow">Saddle contour 10% narrower</option>',
+            '<option value="saddle-wide">Saddle contour 10% wider</option>',
+            "saddleMeshes.push({mesh,geometry:mesh.geometry})",
+            "mesh.parent!==saddle",
+            "const clone=geometry.clone(),pos=clone.getAttribute('position')",
+            "pos.setX(i,pos.getX(i)*proposal.saddleSpan)",
+            "status.dataset.saddleSpan=",
+            "upperShapeState.fork,...upperShapeState.saddleMeshes",
+            "No original 1994 speed, saddle stroke or saddle 3D contour recovered.",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker,page)
+        smoke=(ROOT/"tools/art/model-review/browser-smoke.mjs").read_text()
+        for marker in (
+            "real saddle contour 0.90 shape changed original mount",
+            "real saddle contour 1.10 shape changed original mount",
+            "real saddle contour hypotheses failed to change source GLB viewport pixels",
+            "saddle contour preview did not restore exact original GLB canvas pixels",
+            "model-review-saddle-narrow-412.png",
+            "model-review-saddle-wide-412.png",
+        ):
+            with self.subTest(smoke=marker):
+                self.assertIn(marker,smoke)
         for filename in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
             source=(ROOT/filename).read_text()
             self.assertIn("authored_upper_shape_controls.mjs",source)

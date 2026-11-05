@@ -20,6 +20,7 @@ from tools.art.experimental_fixed_root_orbit import apply_root_scene
 from tools.art.experimental_temporary_saddle_lean import temporary_saddle_pitch
 from tools.art.experimental_world_level_saddle import temporary_saddle_world_attitude
 from tools.art.experimental_saddle_stem_slide import temporary_saddle_stem_slide
+from tools.art.experimental_upper_frame_stretch import temporary_upper_frame_stretch
 from tools.art.no_replace_report import publish_text_once
 
 SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/3"
@@ -51,7 +52,18 @@ SLIDE_TRIALS=(
 )
 SLIDE_SETTINGS={name:(mode,offset) for name,mode,offset in SLIDE_TRIALS}
 ALL_MOTION_TRIALS=MOTION_TRIALS+tuple((name,mode) for name,mode,_ in SLIDE_TRIALS)
-ARMS=BASE_ARMS+tuple(name for name,_ in ALL_MOTION_TRIALS)
+# A separate physical 2026 *mesh deformation*, not inferred original
+# velocity. Only fork/frame axial vertices change, saddle follows its
+# authored 2.27-unit mount; wheel/ground contact and all colours untouched.
+STRETCH_TRIALS=(
+    ("axle_root_upper_stretch096_rom_phase_15deg","rom_phase",.96),
+    ("axle_root_upper_stretch104_rom_phase_15deg","rom_phase",1.04),
+    ("axle_root_upper_stretch096_fixed_tick_24deg","fixed_tick",.96),
+    ("axle_root_upper_stretch104_fixed_tick_24deg","fixed_tick",1.04),
+)
+STRETCH_SETTINGS={name:(mode,scale) for name,mode,scale in STRETCH_TRIALS}
+FULL_MOTION_TRIALS=ALL_MOTION_TRIALS+tuple((name,mode) for name,mode,_ in STRETCH_TRIALS)
+ARMS=BASE_ARMS+tuple(name for name,_ in FULL_MOTION_TRIALS)
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -170,7 +182,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
     scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
 
     def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False,
-               saddle_stroke:float=0.):
+               saddle_stroke:float=0.,upper_stretch:float=0.):
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             adjustment=(temporary_saddle_world_attitude(scene,level_reference)
@@ -179,9 +191,12 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 displacement=(temporary_saddle_stem_slide(scene,saddle_stroke)
                               if saddle_stroke else nullcontext())
                 with displacement:
-                    world=(scene.to_geometry() if callable(
-                        getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
-                    result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
+                    deformation=(temporary_upper_frame_stretch(scene,upper_stretch)
+                                 if upper_stretch else nullcontext())
+                    with deformation:
+                        world=(scene.to_geometry() if callable(
+                            getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
+                        result=render_mask(np.asarray(world.vertices),np.asarray(world.faces),camera)
         return result.astype(bool)
 
     neutral=model4(0,0.)
@@ -213,15 +228,17 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,0.)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            for name,mode in ALL_MOTION_TRIALS:
+            for name,mode in FULL_MOTION_TRIALS:
                 wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
                 stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
-                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS
-                key=(frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
+                stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
+                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS
+                key=(frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
+                    (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel))
+                    (frame["angle"],15.,wheel)))
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke)
+                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -256,16 +273,18 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         original=originals[role]
         placement=anchor(original[1601]["alpha"])
         events={}
-        for name,mode in ALL_MOTION_TRIALS:
+        for name,mode in FULL_MOTION_TRIALS:
             projected={}
             stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
-            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS
+            stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
+            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
-                key=(frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
+                key=(frame["angle"],15.,wheel,"world_level","stretch",stretch) if stretch else (
+                    (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
-                    (frame["angle"],15.,wheel))
+                    (frame["angle"],15.,wheel)))
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
@@ -276,7 +295,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                         displacement=(temporary_saddle_stem_slide(scene,stroke)
                                       if stroke else nullcontext())
                         with displacement:
-                            parent256=project_real_parent_masks256(scene,camera)
+                            deformation=(temporary_upper_frame_stretch(scene,stretch)
+                                         if stretch else nullcontext())
+                            with deformation:
+                                parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
                 if not np.array_equal(union,renders[key]):
                     raise ValueError("authored 2026 GLB parents do not reproduce whole")
@@ -318,6 +340,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_saddle_world_level_controls_predeclared_not_fitted":list(LEVEL_TRIALS),
         "2026_independent_saddle_stem_displacement_controls":list(SLIDE_TRIALS),
         "2026_signed_stem_offsets_are_authoring_units_not_original_1994_stroke":True,
+        "2026_upper_frame_stretch_controls_predeclared_not_fitted":list(STRETCH_TRIALS),
+        "2026_upper_frame_stretch_is_not_original_velocity_law":True,
         "2026_world_level_saddle_retains_real_moving_mount_position":True,
         "2026_saddle_world_attitude_reference_is_authored_rest_not_original":True,
         "source_ROM_phase_24_to_2026_wheel_degrees_is_uncalibrated":True,

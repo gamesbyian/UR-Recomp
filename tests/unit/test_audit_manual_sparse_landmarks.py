@@ -73,6 +73,7 @@ class SparseManualLandmarkTests(unittest.TestCase):
             self.assertEqual(original["source_pdf_sha256"],digest)
             expected=git_blob_sha1(raw)
             first=annotation(digest)
+            first['annotations'][0]['crop_png_sha256']=original['figures'][0]['crop_png_sha256']
             report=measure(first,output,raw,expected_blob=expected)
             self.assertEqual(report["reviewed_print_figure_count"],1)
             a=report["observations"][0]
@@ -85,6 +86,7 @@ class SparseManualLandmarkTests(unittest.TestCase):
             self.assertIs(report["shipping_art_approved"],False)
 
             second=annotation(digest,part="wheel",ref="p15-mega-underside")
+            second["annotations"][0]["crop_png_sha256"]=original["figures"][2]["crop_png_sha256"]
             report2=measure(second,output,raw,expected_blob=expected)
             b=report2["observations"][0]
             self.assertEqual(b["projected_pixel_distances"]["wheel"]["height_px"],600)
@@ -93,13 +95,19 @@ class SparseManualLandmarkTests(unittest.TestCase):
                 ["crown"]["width_over_projected_wheel_diameter"],round(100/600,6))
 
             malformed=annotation(digest)
+            malformed["annotations"][0]["crop_png_sha256"]=original["figures"][0]["crop_png_sha256"]
             del malformed["annotations"][0]["unmeasurable"]["wheel"]
             with self.assertRaisesRegex(ValueError,"observed OR explicitly"):
                 measure(malformed,output,raw,expected_blob=expected)
             erroneous=annotation(digest)
+            erroneous["annotations"][0]["crop_png_sha256"]=original["figures"][0]["crop_png_sha256"]
             erroneous["annotations"][0]["visible_points"]["crown"]["crown_right"]=[5,100]
             with self.assertRaisesRegex(ValueError,"inverted"):
                 measure(erroneous,output,raw,expected_blob=expected)
+            stale=annotation(digest)
+            stale["annotations"][0]["crop_png_sha256"]="f"*64
+            with self.assertRaisesRegex(ValueError,"different exact print crop"):
+                measure(stale,output,raw,expected_blob=expected)
             wrong_pdf=annotation("f"*64)
             with self.assertRaisesRegex(ValueError,"authenticated PDF"):
                 measure(wrong_pdf,output,raw,expected_blob=expected)

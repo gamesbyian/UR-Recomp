@@ -105,6 +105,21 @@ try{
    if(!document.querySelector('#viewport canvas'))issues.push('no WebGL canvas');
    if(!q('parts').textContent.includes('tire'))issues.push('no glTF part');
    if(!q('sourceInfo').textContent.includes('frame 1205'))issues.push('missing original provenance');
+   const sourceBeforePrintViews=q('sourceInfo').textContent;
+   for(const [label,page] of [['Print fork','14'],['Print hub','15']]){
+    const choice=[...q('views').querySelectorAll('button')].find(b=>b.textContent===label);
+    if(!choice){issues.push('missing manual-inspired 3D '+label);continue}
+    if(choice.getBoundingClientRect().height<44)issues.push('manual camera touch target');
+    choice.click();
+    const status=q('manualViewStatus');
+    if(status?.dataset.preset!==(label==='Print fork'?'print-fork':'print-hub')||
+       !status.textContent.includes('p.'+page)||
+       !status.textContent.includes('source camera is uncalibrated'))
+      issues.push('manual 3D camera provenance/feedback unavailable '+label);
+    if(q('sourceInfo').textContent!==sourceBeforePrintViews)
+      issues.push('manual camera changed original reference image identity');
+   }
+   q('reset').click();
    // Independent authenticated 24-tick original-ROM states must not alter
    // the preexisting source sprite, selected GLB or scene pose.
    const originalRail=q('originalMesen24Rail');

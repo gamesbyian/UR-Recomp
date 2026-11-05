@@ -84,6 +84,8 @@ class ModelReviewPublicationTests(unittest.TestCase):
             self.assertTrue((site / "model-review/wheel_hypothesis.mjs").is_file())
             self.assertTrue((site / "model-review/root_lean_hypothesis.mjs").is_file())
             self.assertTrue((site / "model-review/index_overlay.mjs").is_file())
+            self.assertTrue((site / "model-review/manual_view_directions.mjs").is_file())
+            self.assertIn("CAMERA_VIEW_PRESETS", (site / "model-review/manual_view_directions.mjs").read_text(encoding="utf-8"))
             self.assertTrue((site / "model-review/original-index-lookup.json").is_file())
             with self.assertRaisesRegex(ValueError, "non-placeholder"):
                 stage(exports, site, SHA)

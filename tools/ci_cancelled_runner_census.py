@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import functools
 import json
 import os
 import re
+import subprocess
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -44,14 +46,43 @@ def span(start, end):
     return start + ".." + end
 
 
+@functools.lru_cache(maxsize=1)
+def auth_token():
+    """Resolve read-only GitHub credentials once; never use anonymous fallback.
+
+    An authenticated GitHub CLI on a Windows owner workstation does not
+    automatically populate GH_TOKEN/GITHUB_TOKEN in the calling shell.
+    Silent anonymous fallback would exhaust the 60-request/hour limit before
+    this bounded multi-workflow census could complete.
+    """
+    for name in ("GH_TOKEN", "GITHUB_TOKEN"):
+        token = os.environ.get(name)
+        if token and token.strip():
+            return token.strip()
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"], check=True, capture_output=True,
+            text=True, timeout=10,
+        )
+    except (FileNotFoundError, OSError, subprocess.CalledProcessError,
+            subprocess.TimeoutExpired):
+        raise RuntimeError(
+            "GitHub authentication required: set GH_TOKEN/GITHUB_TOKEN "
+            "or authenticate the GitHub CLI with gh auth login"
+        ) from None
+    token = result.stdout.strip()
+    if not token:
+        raise RuntimeError("GitHub CLI returned no token; set GH_TOKEN or run gh auth login")
+    return token
+
+
 def api_get(path):
     if not path.startswith(ROOT + "/"):
         raise ValueError("GitHub API route outside repository")
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = auth_token()
     headers = {"Accept": "application/vnd.github+json",
-               "User-Agent": "ur-ci-cancelled-runner-census/1"}
-    if token:
-        headers["Authorization"] = "Bearer " + token
+               "User-Agent": "ur-ci-cancelled-runner-census/2",
+               "Authorization": "Bearer " + token}
     request = urllib.request.Request("https://api.github.com" + path,
                                      headers=headers)
     with urllib.request.urlopen(request, timeout=35) as response:

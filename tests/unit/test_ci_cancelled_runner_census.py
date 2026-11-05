@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import unittest
+from unittest import mock
 from urllib.parse import parse_qs, urlsplit
 
 from tools.ci_cancelled_runner_census import (measure, span, get_run_census,
-                                              get_run_jobs, render_markdown)
+                                              get_run_jobs, render_markdown,
+                                              auth_token, api_get)
 
 START = "2026-10-29T08:14:05Z"
 END = "2026-11-05T08:14:05Z"
@@ -136,6 +139,50 @@ class CensusTests(unittest.TestCase):
         row = get_run_jobs(f, 17)
         self.assertEqual(row["seconds_job_to_first_step"], 0)
         self.assertEqual(row["invalid_step_intervals"], 1)
+
+    def tearDown(self):
+        auth_token.cache_clear()
+
+    def test_auth_environment_token_preferred_without_subprocess(self):
+        auth_token.cache_clear()
+        with mock.patch.dict("os.environ", {"GH_TOKEN": "  environment-token  ",
+                                            "GITHUB_TOKEN": "secondary"}, clear=True):
+            with mock.patch("subprocess.run") as run:
+                self.assertEqual(auth_token(), "environment-token")
+                run.assert_not_called()
+
+    def test_auth_authenticated_cli_fallback_is_cached(self):
+        auth_token.cache_clear()
+        with mock.patch.dict("os.environ", {}, clear=True):
+            with mock.patch("subprocess.run", return_value=mock.Mock(
+                    stdout="  cli-access-token  ")) as run:
+                self.assertEqual(auth_token(), "cli-access-token")
+                self.assertEqual(auth_token(), "cli-access-token")
+                run.assert_called_once()
+                self.assertEqual(run.call_args.args[0],
+                                 ["gh", "auth", "token"])
+                self.assertTrue(run.call_args.kwargs["capture_output"])
+
+    def test_auth_missing_fails_before_any_api_request(self):
+        auth_token.cache_clear()
+        with mock.patch.dict("os.environ", {}, clear=True):
+            with mock.patch("subprocess.run", side_effect=FileNotFoundError):
+                with mock.patch("urllib.request.urlopen") as urlopen:
+                    with self.assertRaisesRegex(RuntimeError,
+                                                "authentication required"):
+                        api_get("/repos/gamesbyian/UR-Recomp/actions/runs/12")
+                    urlopen.assert_not_called()
+
+    def test_auth_cli_failure_must_not_publish_token_or_fallback(self):
+        auth_token.cache_clear()
+        with mock.patch.dict("os.environ", {}, clear=True):
+            with mock.patch("subprocess.run",
+                            side_effect=subprocess.CalledProcessError(
+                                1, ["gh", "auth", "token"], "secret")):
+                with self.assertRaisesRegex(RuntimeError,
+                                            "authentication required") as cm:
+                    auth_token()
+                self.assertNotIn("secret", str(cm.exception))
 
     def test_missing_completion_excluded(self):
         f = MockAPI(jobs={17: [job(1, end=None),

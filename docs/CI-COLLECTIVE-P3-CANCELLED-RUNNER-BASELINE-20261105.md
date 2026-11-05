@@ -52,7 +52,7 @@ python3 tools/ci_cancelled_runner_census.py \
 python3 -m unittest tests.unit.test_ci_cancelled_runner_census
 ```
 
-The collector makes read-only GitHub requests; it does not schedule checks, execute PR code or dispatch runners. It bounds pagination, worker count and the calendar window and rejects duplicate/incomplete API source sets. To measure actual avoided compute, further pair a candidate with equivalent workloads and capture source, relevant cases, job steps, queueing and billed runner telemetry where available.
+**Authentication on Windows and other local hosts:** the collector uses a non-empty `GH_TOKEN` or `GITHUB_TOKEN` environment variable first. If neither is present, it reads the existing GitHub CLI credentials once through `gh auth token` without printing the token. If neither source works, it **fails before any API request** rather than silently falling back to the 60-request/hour anonymous limit. On the owner's HP workstation, GitHub CLI is installed but those two environment variables were absent when checked; this fallback makes the documented manual invocation workable with the existing authenticated CLI. The collector makes read-only GitHub requests; it does not schedule checks, execute PR code or dispatch runners. It bounds pagination, worker count and the calendar window and rejects duplicate/incomplete API source sets. To measure actual avoided compute, further pair a candidate with equivalent workloads and capture source, relevant cases, job steps, queueing and billed runner telemetry where available.
 
 ## Follow-up schema-v2 recorded-step measurement (separate November 5 read)
 

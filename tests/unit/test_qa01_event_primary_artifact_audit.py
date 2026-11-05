@@ -28,7 +28,7 @@ def source_replay_script(case: str) -> str:
 def write_synthetic_source_replay(folder: Path, case: str) -> None:
     replay = folder / "work" / case / "replay"
     replay.mkdir(parents=True, exist_ok=True)
-    (replay / "complete.script").write_text(source_replay_script(case), encoding="ascii")
+    (replay / "complete.script").write_bytes(source_replay_script(case).encode("ascii"))
     (replay / "ref.input").write_text("100:3:12\n110:2:7\n", encoding="ascii")
     (replay / "pinned-baldosa.input").write_text(
         "102:3:012\n112:2:007\n", encoding="ascii")

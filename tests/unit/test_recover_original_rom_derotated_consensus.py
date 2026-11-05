@@ -10,6 +10,10 @@ from tools.art.recover_original_rom_derotated_consensus import (
     consensus, even_source_pivot, analyze,
 )
 
+from tools.art.analyze_original_rom_four_phase_contour_drift import (
+    analyze as analyze_cross_phase_contours,
+)
+
 ROOT=Path(__file__).resolve().parents[2]
 
 
@@ -106,6 +110,47 @@ class OriginalROMDerotatedConsensus(unittest.TestCase):
                   "consensus":r["source_consensus_opaque_pixels"],
                   "fringe":r["source_mid_frequency_view_dependent_pixels"]}
                   for p,r in result["per_original_ROM_phase"].items()},sort_keys=True))
+        # Reuse the *same already decoded original 4×64 source family*;
+        # never re-run a second ROM capture/expensive 4bpp extraction.
+        cross=analyze_cross_phase_contours(result)
+        self.assertEqual(cross["original_four_ROM_phases_compared"],
+                         [str(x) for x in PHASES])
+        self.assertEqual(len(cross["all_six_original_phase_pair_comparisons"]),6)
+        # Exact authenticated source result: 4 frozen phase indices x
+        # 64 original 4bpp ROM orientation states, with inverse-rotation
+        # sampled-canvas validity. Phase-varying source silhouette is
+        # only 13 pixels in the common-valid 2D region; none upper.
+        self.assertEqual(cross["original_four_phase_common_valid_pixels"],3008)
+        self.assertEqual(cross["original_four_phase_always_near_invariant_core_pixels"],164)
+        self.assertEqual(cross["original_four_phase_always_consensus_alpha_pixels"],291)
+        self.assertEqual(cross["original_four_phase_at_least_once_consensus_alpha_pixels"],304)
+        self.assertEqual(cross["original_four_phase_phase_varying_2D_alpha_pixels"],13)
+        self.assertEqual({
+            name:cross["per_fixed_source_y_band"][name][
+                "original_four_phase_phase_varying_2D_alpha_pixels"]
+            for name in ("upper_y0_14","middle_y15_26","lower_y27_63")},
+            {"upper_y0_14":0,"middle_y15_26":1,"lower_y27_63":12})
+        self.assertEqual({
+            pair:entry["source_2D_consensus_alpha_iou"]
+            for pair,entry in cross["all_six_original_phase_pair_comparisons"].items()},
+            {"0->6":.97029703,"0->12":.97333333,"0->18":.98,
+             "6->12":.97674419,"6->18":.97682119,
+             "12->18":.97333333})
+        self.assertFalse(cross["original_2D_phase_drift_not_recovered_1994_physical_3D_geometry"] is False)
+        print("OK ART4K_AUTHENTIC_ORIGINAL_ROM_FOUR_PHASE_CONTOUR_DRIFT",
+              json.dumps({
+                  "common_valid":cross["original_four_phase_common_valid_pixels"],
+                  "all_phase_core":cross["original_four_phase_always_near_invariant_core_pixels"],
+                  "ever_consensus":cross["original_four_phase_at_least_once_consensus_alpha_pixels"],
+                  "always_consensus":cross["original_four_phase_always_consensus_alpha_pixels"],
+                  "phase_varying":cross["original_four_phase_phase_varying_2D_alpha_pixels"],
+                  "bands":cross["per_fixed_source_y_band"],
+                  "pairs":{k:{
+                      "alpha_iou":v["source_2D_consensus_alpha_iou"],
+                      "indexed_paint_recall":
+                          v["source_exact_index_paint_recall_on_shared_opaque"]}
+                      for k,v in cross["all_six_original_phase_pair_comparisons"].items()},
+              },sort_keys=True))
 
     def test_corrupted_original_provenance_fails(self):
         with self.assertRaisesRegex(ValueError,"SHA"):

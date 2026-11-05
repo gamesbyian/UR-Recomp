@@ -19,7 +19,7 @@ Run `python3 tools/ci_collective_candidate.py proposed-batch.json` on a **manual
 
 These source IDs and PRs are **illustrative**, not a real candidate.
 
-The offline validator establishes *only* coherent claimed fields. A separate, opt-in **read-only live attestation** is now available:
+The offline validator establishes *only* coherent claimed fields. It also rejects Windows case-insensitive filename collisions, file-vs-directory path ancestry collisions, reserved DOS path segments and noncanonical Windows filename forms; a boolean is not accepted as JSON schema version 1. A separate, opt-in **read-only live attestation** is now available:
 
 ```sh
 python3 tools/ci_collective_live.py proposed-batch.json

@@ -79,5 +79,35 @@ class TestCollectiveCandidate(unittest.TestCase):
             validate_manifest(x)
 
 
+    def test_windows_case_insensitive_collision(self):
+        x = fixture()
+        x["members"][1]["changed_paths"] = ["native/PRESENTATION/ONE.cpp"]
+        with self.assertRaisesRegex(ValueError, "overlap"):
+            validate_manifest(x)
+
+    def test_file_directory_collision(self):
+        x = fixture()
+        x["members"][1]["changed_paths"] = ["native/PRESENTATION/ONE.cpp/child"]
+        with self.assertRaisesRegex(ValueError, "overlap"):
+            validate_manifest(x)
+
+    def test_windows_unsupported_segments(self):
+        paths = ("native/CON", "native/AUX.txt", "native/LPT9.bin",
+                 "native/file.", "native/file ", "native/a:b", "native/a?b")
+        for path in paths:
+            with self.subTest(path=path):
+                x = fixture()
+                x["members"][0]["changed_paths"] = [path]
+                with self.assertRaisesRegex(ValueError, "Windows"):
+                    validate_manifest(x)
+
+    def test_boolean_schema_does_not_count_as_version_one(self):
+        x = fixture()
+        x["schema"] = True
+        with self.assertRaisesRegex(ValueError, "invalid schema"):
+            validate_manifest(x)
+
+
+
 if __name__ == "__main__":
     unittest.main()

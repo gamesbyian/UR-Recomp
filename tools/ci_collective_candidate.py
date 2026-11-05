@@ -16,7 +16,7 @@ ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{2,100}\Z")
 def validate_manifest(d):
     if type(d) is not dict or set(d) != {"schema", "batch_id", "base_sha", "candidate_sha", "members"}:
         raise ValueError("unexpected or absent manifest keys")
-    if d["schema"] != 1 or type(d["batch_id"]) is not str or not ID.fullmatch(d["batch_id"]):
+    if type(d["schema"]) is not int or d["schema"] != 1 or type(d["batch_id"]) is not str or not ID.fullmatch(d["batch_id"]):
         raise ValueError("invalid schema or batch ID")
     for key in ("base_sha", "candidate_sha"):
         if type(d[key]) is not str or not SHA.fullmatch(d[key]):
@@ -49,12 +49,22 @@ def validate_manifest(d):
                     or "\\" in path or any(c in path for c in "\x00\r\n")
                     or any(segment in ("", ".", "..") for segment in path.split("/"))):
                 raise ValueError("noncanonical repository path")
-            if path in local:
+            for segment in path.split("/"):
+                stem = segment.split(".")[0].upper()
+                if (segment.endswith((" ", "."))
+                        or any(ord(char) < 32 or char in '<>:"|?*' for char in segment)
+                        or stem in ("CON", "PRN", "AUX", "NUL")
+                        or stem in {"COM" + str(n) for n in range(1, 10)}
+                        or stem in {"LPT" + str(n) for n in range(1, 10)}):
+                    raise ValueError("path incompatible with Windows checkout")
+            folded = path.casefold()
+            if folded in local:
                 raise ValueError("duplicate path within a member")
-            if path in paths:
+            if any(folded == earlier or folded.startswith(earlier + "/")
+                   or earlier.startswith(folded + "/") for earlier in paths):
                 raise ValueError("overlap: " + path)
-            local.add(path)
-            paths[path] = wid
+            local.add(folded)
+            paths[folded] = wid
     return {"status": "manifest-coherent-only", "batch_id": d["batch_id"],
             "members": len(members), "declared_paths": len(paths),
             "live_github_heads_and_diffs_verified": False,

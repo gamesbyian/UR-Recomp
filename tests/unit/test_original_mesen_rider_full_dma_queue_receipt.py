@@ -17,10 +17,15 @@ class OriginalRiderQueueMappingTests(unittest.TestCase):
         cls.raw=PATH.read_bytes()
         cls.report=json.loads(cls.raw)
 
+    @staticmethod
+    def receipt_blob_sha(raw):
+        # Git records LF bytes; Windows checkouts may transparently use CRLF.
+        # Normalize only line endings, retaining exact content/tamper checks.
+        canonical=raw.replace(b"\r\n",b"\n")
+        return hashlib.sha1(b"blob "+str(len(canonical)).encode()+b"\0"+canonical).hexdigest()
+
     def test_source_log_blob_and_provenance(self):
-        raw=self.raw
-        self.assertNotIn(b"\r",raw)
-        self.assertEqual(hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest(),BLOB)
+        self.assertEqual(self.receipt_blob_sha(self.raw),BLOB)
         r=self.report
         self.assertEqual(r["schema"],"UR-ART4K-EXECUTED-MESEN-RIDER-QUEUED-32B-TILES-TO-ORIGINAL-OBJS/1")
         self.assertEqual(r["source_original_Mesen_workflow_run"],41774019061)
@@ -32,6 +37,15 @@ class OriginalRiderQueueMappingTests(unittest.TestCase):
         self.assertFalse(r["original_queue_P1_P2_graphics_ID_to_OAM96_97_source_colour_resolved"])
         self.assertFalse(r["original_1994_3D_mesh_skeleton_camera_physical_angle_recovered"])
         self.assertFalse(r["owner_art_approved"])
+
+    def test_windows_crlf_is_allowed_but_receipt_tampering_is_not(self):
+        canonical=self.raw.replace(b"\r\n",b"\n")
+        self.assertEqual(self.receipt_blob_sha(canonical),BLOB)
+        self.assertEqual(self.receipt_blob_sha(canonical.replace(b"\n",b"\r\n")),BLOB)
+        altered=canonical.replace(b'"source_original_Mesen_job"',
+                                  b'"source_original_Mesen_j0b"',1)
+        self.assertNotEqual(altered,canonical)
+        self.assertNotEqual(self.receipt_blob_sha(altered),BLOB)
 
     def test_64_authenticated_racer_tile_addresses_are_separate(self):
         r=self.report

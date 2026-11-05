@@ -1,0 +1,420 @@
+{
+  "schema": "UR-ART4K-REAL-MESEN24-FORK-CROWN-QUALIFIED-SOURCE-SCORE/1",
+  "source_repository": "gamesbyian/UR-Recomp",
+  "experimental_PR": 3163,
+  "source_head_sha": "35e28238ce308a256cf2463682b108a9580f2cae",
+  "source_qualification_run_id": 42099979791,
+  "source_exact_job_id": 127499918916,
+  "source_artifact_id": 13449649356,
+  "source_artifact_outer_zip_sha256": "c559c6c2ee11fe23d52428daaf73596264b57a32e77d2c62b7bcb27f134cc492",
+  "source_report_member": "real-model-evidence/original-all24-saddle-only-generalization.json",
+  "source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_original_Mesen24_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "source_2026_SCAD_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "source_provisional_7_6_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "source_historical_existing_controls_count": 24,
+  "source_new_crown_controls_count": 4,
+  "source_historical_controls_exact_match_against_previous_experiment": true,
+  "source_original_chronological_frame_count_per_racer": 24,
+  "source_original_true_consecutive_edges_per_racer": 23,
+  "source_all28_named_controls_per_role": {
+    "blue": {
+      "axle_root_fork_crown_full110_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16121495,
+        "source_frame_pooled_alpha_iou": 0.57007178,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57242234
+      },
+      "axle_root_fork_crown_full110_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.13189897,
+        "source_frame_pooled_alpha_iou": 0.56894081,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57149485
+      },
+      "axle_root_fork_crown_narrow090_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16134061,
+        "source_frame_pooled_alpha_iou": 0.56765457,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.56995522
+      },
+      "axle_root_fork_crown_narrow090_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.13202247,
+        "source_frame_pooled_alpha_iou": 0.56652265,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.56902744
+      },
+      "axle_root_saddle_cup_deep008_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16159251,
+        "source_frame_pooled_alpha_iou": 0.55876814,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.56130387
+      },
+      "axle_root_saddle_cup_deep008_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.13227017,
+        "source_frame_pooled_alpha_iou": 0.55765616,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.5604021
+      },
+      "axle_root_saddle_cup_soft008_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16003123,
+        "source_frame_pooled_alpha_iou": 0.57873278,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58099781
+      },
+      "axle_root_saddle_cup_soft008_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.130394,
+        "source_frame_pooled_alpha_iou": 0.57758715,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58005405
+      },
+      "axle_root_saddle_minus15": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.02040816,
+        "source_frame_pooled_alpha_iou": 0.48967116,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.49233279
+      },
+      "axle_root_saddle_neutral": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.0203252,
+        "source_frame_pooled_alpha_iou": 0.50895141,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.51233488
+      },
+      "axle_root_saddle_plus15": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.01771117,
+        "source_frame_pooled_alpha_iou": 0.55176933,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.55443157
+      },
+      "axle_root_saddle_plus15_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15474339,
+        "source_frame_pooled_alpha_iou": 0.55180697,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.55504453
+      },
+      "axle_root_saddle_plus15_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.12418301,
+        "source_frame_pooled_alpha_iou": 0.55072464,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.55418009
+      },
+      "axle_root_saddle_slide_down012_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.1575663,
+        "source_frame_pooled_alpha_iou": 0.51871715,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.5218694
+      },
+      "axle_root_saddle_slide_down012_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.12746017,
+        "source_frame_pooled_alpha_iou": 0.51771759,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.52109224
+      },
+      "axle_root_saddle_slide_up012_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15654206,
+        "source_frame_pooled_alpha_iou": 0.57772392,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57964137
+      },
+      "axle_root_saddle_slide_up012_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.12628625,
+        "source_frame_pooled_alpha_iou": 0.57658054,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57869678
+      },
+      "axle_root_saddle_span090_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15974941,
+        "source_frame_pooled_alpha_iou": 0.57037616,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57261299
+      },
+      "axle_root_saddle_span090_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.1299435,
+        "source_frame_pooled_alpha_iou": 0.56923248,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57167458
+      },
+      "axle_root_saddle_span110_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16289945,
+        "source_frame_pooled_alpha_iou": 0.56455669,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.56706294
+      },
+      "axle_root_saddle_span110_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.13389513,
+        "source_frame_pooled_alpha_iou": 0.5634479,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.56615931
+      },
+      "axle_root_saddle_world_level_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16134061,
+        "source_frame_pooled_alpha_iou": 0.56870778,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.5709925
+      },
+      "axle_root_saddle_world_level_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.13202247,
+        "source_frame_pooled_alpha_iou": 0.56757653,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57006528
+      },
+      "axle_root_upper_stretch096_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15974941,
+        "source_frame_pooled_alpha_iou": 0.53873659,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.54160544
+      },
+      "axle_root_upper_stretch096_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.1299435,
+        "source_frame_pooled_alpha_iou": 0.5376879,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.54077436
+      },
+      "axle_root_upper_stretch104_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15813953,
+        "source_frame_pooled_alpha_iou": 0.58067386,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58235501
+      },
+      "axle_root_upper_stretch104_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.12837209,
+        "source_frame_pooled_alpha_iou": 0.57951393,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58138818
+      },
+      "original_source_2d_rotation": {
+        "original_unique_64px_binary_shape_count": 19,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.09025788,
+        "source_frame_pooled_alpha_iou": 0.82069294,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.82528384
+      }
+    },
+    "red": {
+      "axle_root_fork_crown_full110_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15970149,
+        "source_frame_pooled_alpha_iou": 0.58818283,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59014638
+      },
+      "axle_root_fork_crown_full110_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18039773,
+        "source_frame_pooled_alpha_iou": 0.58893938,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59110794
+      },
+      "axle_root_fork_crown_narrow090_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15871833,
+        "source_frame_pooled_alpha_iou": 0.58471835,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58663941
+      },
+      "axle_root_fork_crown_narrow090_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.17943262,
+        "source_frame_pooled_alpha_iou": 0.58549568,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58761115
+      },
+      "axle_root_saddle_cup_deep008_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.1595824,
+        "source_frame_pooled_alpha_iou": 0.58360435,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58566181
+      },
+      "axle_root_saddle_cup_deep008_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18026969,
+        "source_frame_pooled_alpha_iou": 0.58439242,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58665739
+      },
+      "axle_root_saddle_cup_soft008_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15907394,
+        "source_frame_pooled_alpha_iou": 0.59056687,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59279629
+      },
+      "axle_root_saddle_cup_soft008_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.17981521,
+        "source_frame_pooled_alpha_iou": 0.59130435,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59375403
+      },
+      "axle_root_saddle_minus15": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.01783265,
+        "source_frame_pooled_alpha_iou": 0.52993562,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.53053689
+      },
+      "axle_root_saddle_neutral": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.01780822,
+        "source_frame_pooled_alpha_iou": 0.55119306,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.55143555
+      },
+      "axle_root_saddle_plus15": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.01641587,
+        "source_frame_pooled_alpha_iou": 0.5819645,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58231923
+      },
+      "axle_root_saddle_plus15_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15840841,
+        "source_frame_pooled_alpha_iou": 0.57199779,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57254176
+      },
+      "axle_root_saddle_plus15_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.17928571,
+        "source_frame_pooled_alpha_iou": 0.57284331,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.5734812
+      },
+      "axle_root_saddle_slide_down012_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16107383,
+        "source_frame_pooled_alpha_iou": 0.58322163,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58417234
+      },
+      "axle_root_saddle_slide_down012_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18168914,
+        "source_frame_pooled_alpha_iou": 0.58400888,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58508376
+      },
+      "axle_root_saddle_slide_up012_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16071429,
+        "source_frame_pooled_alpha_iou": 0.56434992,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.56742382
+      },
+      "axle_root_saddle_slide_up012_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18130312,
+        "source_frame_pooled_alpha_iou": 0.56523161,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.5685537
+      },
+      "axle_root_saddle_span090_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15856395,
+        "source_frame_pooled_alpha_iou": 0.58792325,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58982227
+      },
+      "axle_root_saddle_span090_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.17935943,
+        "source_frame_pooled_alpha_iou": 0.58869068,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59080011
+      },
+      "axle_root_saddle_span110_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16109874,
+        "source_frame_pooled_alpha_iou": 0.58944216,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59200644
+      },
+      "axle_root_saddle_span110_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18162544,
+        "source_frame_pooled_alpha_iou": 0.59018743,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.59298599
+      },
+      "axle_root_saddle_world_level_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.15871833,
+        "source_frame_pooled_alpha_iou": 0.58471835,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58663941
+      },
+      "axle_root_saddle_world_level_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.17943262,
+        "source_frame_pooled_alpha_iou": 0.58549568,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58761115
+      },
+      "axle_root_upper_stretch096_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16242515,
+        "source_frame_pooled_alpha_iou": 0.57743191,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57889172
+      },
+      "axle_root_upper_stretch096_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18304843,
+        "source_frame_pooled_alpha_iou": 0.57824934,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.57988256
+      },
+      "axle_root_upper_stretch104_fixed_tick_24deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.16032811,
+        "source_frame_pooled_alpha_iou": 0.58321306,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58609252
+      },
+      "axle_root_upper_stretch104_rom_phase_15deg": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.18097942,
+        "source_frame_pooled_alpha_iou": 0.58399558,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.58712274
+      },
+      "original_source_2d_rotation": {
+        "original_unique_64px_binary_shape_count": 23,
+        "source_actual_23_consecutive_edge_change_pooled_iou": 0.10564399,
+        "source_frame_pooled_alpha_iou": 0.82181906,
+        "source_unique_shape_equal_vote_mean_alpha_iou": 0.82604553
+      }
+    }
+  },
+  "source_new_crown_same_mechanical_control_deltas": {
+    "axle_root_fork_crown_narrow090_rom_phase_15deg": {
+      "matched_control": "axle_root_saddle_world_level_rom_phase_15deg",
+      "signed_source_six_objective_delta": [
+        -0.00105388,
+        -0.00103784,
+        0,
+        0,
+        0,
+        0
+      ],
+      "strictly_dominates_matched_control": false,
+      "dominated_by_matched_control": true
+    },
+    "axle_root_fork_crown_narrow090_fixed_tick_24deg": {
+      "matched_control": "axle_root_saddle_world_level_fixed_tick_24deg",
+      "signed_source_six_objective_delta": [
+        -0.00105321,
+        -0.00103728,
+        0,
+        0,
+        0,
+        0
+      ],
+      "strictly_dominates_matched_control": false,
+      "dominated_by_matched_control": true
+    },
+    "axle_root_fork_crown_full110_rom_phase_15deg": {
+      "matched_control": "axle_root_saddle_world_level_rom_phase_15deg",
+      "signed_source_six_objective_delta": [
+        0.00136428,
+        0.00142957,
+        -0.0001235,
+        0.0034437,
+        0.00349679,
+        0.00096511
+      ],
+      "strictly_dominates_matched_control": false,
+      "dominated_by_matched_control": false
+    },
+    "axle_root_fork_crown_full110_fixed_tick_24deg": {
+      "matched_control": "axle_root_saddle_world_level_fixed_tick_24deg",
+      "signed_source_six_objective_delta": [
+        0.001364,
+        0.00142984,
+        -0.00012566,
+        0.00346448,
+        0.00350697,
+        0.00098316
+      ],
+      "strictly_dominates_matched_control": false,
+      "dominated_by_matched_control": false
+    }
+  },
+  "source_1994_3d_mesh_camera_material_or_physical_width_recovered": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false,
+  "note": "Derived without source raster copying from exact-head successfully completed Windows Visual Atlas job's OK ART4K_REAL_2026_SADDLE_ALL24_SOURCE_MOTION JSON. Retrospective original 2D Mesen24 and unapproved 2026 GLB proposal. No current source image artwork or physical 3D geometry approved."
+}

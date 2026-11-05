@@ -1,6 +1,6 @@
 # Enabling intensive unattended work on the existing HP runner
 
-Status: implementation PR, subject to exact-head CI and independent review.
+Status: **merged** via [PR #3134](https://github.com/gamesbyian/UR-Recomp/pull/3134), and the real source-bound owner HP [run #41943025260](https://github.com/gamesbyian/UR-Recomp/actions/runs/41943025260) **succeeded** with actual Windows native build/package/research and recorded SDL3/analyzer cache hits. This establishes the two fixed main-only modes as an available execution route, not approval for arbitrary local broker commands or a release gate. See the [integrated compute/qualification plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md).
 
 ## Why the execution route is GitHub Actions
 
@@ -32,7 +32,7 @@ caller is allowed **only** for `gamesbyian/UR-Recomp` on `refs/heads/main`
 through owner-authorized `workflow_dispatch`. The downstream workflow also
 checks the owner HP runner name, source, event and execution mode.
 
-To request an unattended job **after this workflow is merged**, use:
+To request a further unattended job **through the already merged workflow**, use:
 
 ```powershell
 gh workflow run hp-unattended-intensive.yml --repo gamesbyian/UR-Recomp --ref main -f mode=seeded-2p-600

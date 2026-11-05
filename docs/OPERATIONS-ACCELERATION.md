@@ -4,6 +4,8 @@
 
 This document owns the project-wide process changes that reduce repeated agent, CI and evidence-production work. It does not replace subsystem plans or the work queue.
 
+**Coordinated next-stage plan:** [collective qualification and compute acceleration](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md). It specifies an optional, measured build-once/frozen-source pilot, live-agent prompt handling and HP guardrails, without changing this document's existing integrate-in-batches or evidence rules. No plan-only proposal authorizes a new automatic workflow.
+
 ## Structured evidence
 
 Durable machine-consumed acceptance should emit the common envelope defined by `analysis/evidence-envelope.schema.json` and constructed/validated by `tools/evidence_contract.py`.

@@ -2,6 +2,8 @@
 
 **Active dispatch authority, 2026-10-26.** All five scheduled agents are **interchangeable generalists**. They pull work from the same ordered board, not from assigned specialties, anchor pairs or historical support rotations. The prior fixed-anchor board is preserved at [the October 26 archive](archive/HOURLY-AGENT-LINES-FIXED-ANCHORS-20261026.md), for history only. This document owns **selection order and actionable work IDs**; [WORK-QUEUE.md](WORK-QUEUE.md) owns the short product context, [PROJECT-PLAN.md](PROJECT-PLAN.md) owns intent, and [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns QA release verdicts. Neither this board nor a PR title proves work is already integrated.
 
+The [collective qualification proposal](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) describes optional shared-test integration without assigning permanent specializations. Its [installed prompt snapshot](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md) reflects a live scheduler readback; no proposed amendments have been installed. This board continues to decide each run's actual work.
+
 ## Five identical workers, staggered starts
 
 | Scheduled agent | Start minute | Selection pool | Only hard constraints |

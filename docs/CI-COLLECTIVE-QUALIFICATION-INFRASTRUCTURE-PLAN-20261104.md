@@ -1,0 +1,305 @@
+# Collective qualification and compute acceleration: integrated implementation plan
+
+**Status:** implementation proposal and operating design, not a newly enabled scheduler or CI gate. **Snapshot:** November 4, 2026 America/Edmonton (some GitHub evidence is dated November 5 UTC). **Scope:** gamesbyian/UR-Recomp, the five existing hourly ChatGPT tasks, hosted GitHub Actions, the owner HP Windows PC, Remote Desktop Commander, trusted-main HP research, release and original/native verification, and bounded cross-project lessons. **Change control:** enact one small independently reviewable stage at a time; this document is a plan, not authorization for an agent to bypass source, test, ownership or platform restrictions.
+
+**In one sentence:** preserve fast per-change diagnostics, qualify several compatible changes against one frozen integrated candidate and its reused build, and still independently validate the exact final Windows product and original-game claims. Measure independently accepted player outcomes per elapsed hour, with runner-minutes and defect detection as guardrails.
+
+## 0. Authority and non-negotiable boundaries
+
+This plan coordinates existing implementation; it is not a rival work queue, per-agent assignment roster, CI policy, product specification or release ledger. In conflicts, follow: [AGENTS.md](../AGENTS.md), [ranked shared board](HOURLY-AGENT-LINES.md), [active queue](WORK-QUEUE.md), [product plan](PROJECT-PLAN.md), [CI policy](CI-WORKFLOW-BEST-PRACTICES.md), [operations policy](OPERATIONS-ACCELERATION.md), [validation](VALIDATION.md), and [release quality ledger](RELEASE-QUALITY-LEDGER.json). The board alone decides product work priority; this plan supplies an optional integration/efficiency mechanism. Put product discoveries back under their *existing stable work ID* and owning PR/issue, not a parallel optimization backlog.
+
+- **Target:** a private usable Windows x64 Uniracers remaster, genuine Modern frontend/controller/records journey, source-grounded original/native game fidelity, suitable modern/widescreen/4K display and racer art. Multiplayer remains P2P; Switch, web and macOS remain deferred consumer targets. A browser atlas/3D viewer is a development/review tool, not a replacement release target.
+- **Acceptance:** current ledger remains **0/12 accepted Windows release gates and 0/45 independently accepted complete USA original/native events** until independent, source-bound evidence legitimately changes it. Earlier hosted source qualification and bounded v2 criteria never silently promote these totals. Preserve H01–H07 physical playtesting, two actual pads, cold-save/fault scenarios, audio, real widescreen/4K and owner artist review where required.
+- **No false-green batching:** no skipped test can count as executed, no missing JUnit/test identities, no lost logs, no reused binary across materially different sources, no substituted original emulator, no silently modified assertions and no green badge for a partially executed suite. Exact source SHA, ROM/fixture/toolchain identity, case enumeration and negative controls remain auditable.
+- **HP security:** only existing trusted-main, source-guarded GHA pathways may run substantial native code on the personal self-hosted runner. An unmerged PR/fork or remotely supplied shell command is never admitted to the HP merely because it is in a batch. Do not touch stored credentials, install unknown execution code, disable Defender, relax native package guards, or override platform denials. The owner has accepted discoverability of ROM-derived research, *not* blanket redistribution rights.
+- **Collision and release discipline:** one accountable writer per overlapping seam; no forced pushes; an integration batch must not erase or appropriate other agents' branches. An author cannot certify their own release/original fidelity or art acceptance. Routine product CI and manual scientific experiments have different purposes.
+
+## 1. Evidence inventory: what is already in place
+
+The following are observed or documented baselines, **not additive time savings**. Where runs used different source epochs or runner conditions, causality is not established.
+
+| Area | Current implementation / evidence | Consequence |
+| --- | --- | --- |
+| HP Windows source-matched SDL3 | Same-source cold/warm complete Windows job **594s to 446s**, 148s or about **24.9%** reduction, both product suites intact ([HP Ninja pilot](HP-NINJA-GENERATOR-PILOT.md), [#2885](https://github.com/gamesbyian/UR-Recomp/issues/2885)) | Keep the verified cache; quantify cache misses, invalidation and whole-job time. |
+| HP compiler | Owner-installed pinned Ninja; source-bound HP job uses up to 10 compiler workers; measured compile around 33–39s in selected runs; CPU not saturated throughout ([Ninja pilot](HP-NINJA-GENERATOR-PILOT.md)) | Further concurrency is unlikely to beat eliminating repeated work without new evidence. |
+| HP research | Eight parallel seeded two-player cases, four true game processes per case = **8 cases / 32 processes**; scheduled default 360s; successful 600s manual experiment **16 / 64** in 452.282 research seconds ([research record](HP-UNATTENDED-2P-RESEARCH.md)) | Keep default small enough to yield to product work; use longer experiments deliberately, not continuously. |
+| Rejected HP parallelism | The two-variant 16-process simultaneous experiment had **16 timeouts and zero successes** ([#3084](https://github.com/gamesbyian/UR-Recomp/pull/3084)) | Never infer benefit from higher CPU occupancy, higher worker count or more jobs. |
+| HP science acceptance reuse | A cross-epoch comparison of a complete science job found **559s vs 386s** after scoped reuse, not a controlled same-source A/B ([#3079](https://github.com/gamesbyian/UR-Recomp/pull/3079)) | Keep science-only skips fenced; separately confirm ordinary product QA still runs in full. |
+| Source-keyed HP analyzer | [#3095](https://github.com/gamesbyian/UR-Recomp/pull/3095) introduced verified source/flags/toolchain keyed reuse; a real [successful HP run](https://github.com/gamesbyian/UR-Recomp/actions/runs/41943025260) reported analyzer and SDL3 cache hits | Hit proven; saved analyzer wall time still needs controlled measurement. |
+| Hosted CI | Four complete Python unit shards; separate fast draft diagnostics; path-selective windows, original emulator, art and science workflows; compile/test caches; real package fanout ([CI policy](CI-WORKFLOW-BEST-PRACTICES.md)) | Evolve existing workflows, not a second automatic Windows suite. |
+| CI churn | A bounded sample saw 20/31 cancelled tooling runs and 5/7 cancelled visual-atlas runs. These are workflow **counts**, not billed minutes ([coordination](AGENT-COORDINATION.md)) | Publish coherent candidate heads; measure *started job* seconds before claiming reclaimed cost. |
+| Chunks build once | [Experiment #1155](https://github.com/gamesbyian/Chunks/pull/1155), [promotion #1159](https://github.com/gamesbyian/Chunks/pull/1159): one source-hashed APK pair shared by two real emulators, 347 exact JUnit identities, 319 executed, 28 expected skips, 24 images; **13.37** aggregate runner-minutes vs **16.90–18.90** historical | Share one immutable build among isolated consumers; verify equal test populations; comparison across epochs is not causal proof. |
+| Chunks deferred emulator CI | [#1139](https://github.com/gamesbyian/Chunks/pull/1139) and [#1148](https://github.com/gamesbyian/Chunks/pull/1148) defer expensive native Add, R8 and atlas checks on drafts; a nine-revision PR generated 35 workflows/172 runner-minutes (~55 in cancelled work, historical) ([#1153](https://github.com/gamesbyian/Chunks/pull/1153)) | Expensive tests should attach to a reviewable **frozen** candidate, not each working checkpoint. |
+| Expository one-emulator batching | [#418](https://github.com/gamesbyian/Expository/pull/418) implements 2–5 allowlisted independent synthetic Android classes in one emulator/Gradle session, with test identity receipts; earlier single sessions 6–8 minutes | Amortize environment start. **Savings not yet measured**; real OS picker/SAF acceptance remains isolated. |
+
+Additional merged optimizations include source-specific HP/main trigger filtering, eliminated duplicate Windows workflow triggers ([#2926](https://github.com/gamesbyian/UR-Recomp/pull/2926)), science-only package/boot reuse ([#3090](https://github.com/gamesbyian/UR-Recomp/pull/3090)), seeded MesenCE cache and faster diagnostic PNG comparisons. Retain benchmarks and negative findings in their existing reports; do not multiply claimed savings percentages.
+
+## 2. Proposed architecture, with two separate trust zones
+
+~~~text
+5 hourly agents (:00 / :12 / :24 / :36 / :48)
+        | inspect same live ranked workboard; no permanent lanes
+        v
+A. Individual PRs, fast draft checks, local/focused tests
+        | verified compatible and stable, conflict-free
+        v
+B. Frozen integration candidate (exact synthetic source/merge SHA)
+        | cheap checks -> one shared Windows build on hosted CI
+        | independent test consumers and a strict receipt coordinator
+        v
+C. Reviewed integration, exact final source on main
+        | normal hosted Windows producer + guarded HP main worker
+        | original/native + package/boot/QA as actually applicable
+        v
+D. Distinct independent H01-H07/art/release sign-off, if required
+~~~
+
+**Zone B is hosted GitHub Actions and/or other disposable, unprivileged environments**. Do not allow merged-but-unreviewed cross-PR code, secrets, mutable PR head or arbitrary source to execute on the owner's HP. **Zone C** can use existing main-only HP workflows and the exact source already accepted for trusted-main execution. Distinct workspaces avoid incidental state bleed; a shared artifact never licenses shared mutable user data.
+
+The implementation unit is a **frozen, reproducible qualification batch**, not a collection of vaguely related PR numbers. Its input is one specific base commit plus specific source heads merged into one immutable tree; its output is a source-qualified build identity, complete expected test set, per-case verdicts and a final disposition. The integration candidate may need a small conflict-resolution commit; that creates a **new tested source epoch**. Never claim the individual heads alone prove that composite tree works.
+
+### 2.1 Three test levels and when to pay for them
+
+| Level | Trigger | Required evidence | Can block/authorize |
+| --- | --- | --- | --- |
+| **L0: per-edit** | Local edit, draft change, cheap relevant PR path | Syntax, type/static checks, direct unit/contract tests, small fixtures; optional real target diagnostic | Can reject a broken change; **cannot authorize merge or release**. |
+| **L1: frozen batch** | Owner/reviewer or dispatcher finds 2–5 *compatible* ready changes, or one change whose setup cost dominates | Exact composite SHA, one verified build, all selected full test identities, isolated consumer results, failure classification | Can qualify an integrated proposal for review; not a substitute for required individual changeset/merge checks. |
+| **L2: final integrated** | Ready-for-review/required check or merged main, according to owning workflow | Full exact-head four-shard unit when required; hygiene; required product/ROM/Windows/manual tests; exact final PE/ZIP | Supports ordinary integration; independent original/native, art and physical release verdicts remain separate. |
+
+Existing [tooling-unit-tests.yml](../.github/workflows/tooling-unit-tests.yml) deliberately **skips full unit on draft** and runs only bounded draft diagnostics; on ready or manual dispatch the full four-shard gate is required. For a docs-only/ops-only ready head where automatic full tooling checks were not triggered, dispatch the **existing full workflow** against that **unchanged branch/ref**, and inspect checkout SHA and four complete unit shards. A skipped draft gate is never green acceptance. Likewise [windows-native-smoke.yml](../.github/workflows/windows-native-smoke.yml) is the canonical Windows game producer; do not add a competing automatic Windows smoke for every batch.
+
+### 2.2 Test impact rules (fail closed)
+
+At batch creation, compare each PR's exact diff to a versioned test-dependency mapping derived from *actual consumed paths*, not broad directory guesses. Each rule records owner, trigger paths, cheapest useful check, mandatory integration gate, and whether it can share a build. **Unknown/deleted/renamed/test-selector/workflow/security paths** default to the broader required checks until independently reviewed. Initial inventory:
+
+| Input class | L0 | L1 reuse | L2 / never skipped |
+| --- | --- | --- | --- |
+| Pure Python/tooling/docs | Syntax, directly related tests, hygiene; docs validators | One 4-shard full unit run if required after composite source freezes | Full unchanged-head unit when policy requires; no native build for prose-only. |
+| Native gameplay / Modern menus / controller | Focused C++ + appropriate source-level unit | One source-bound Windows candidate; run multiple UI, input and persistence consumers in isolated directories | Canonical Windows packaged acceptance, release-specific journeys and physical pads where demanded. |
+| Presentation / 342-wide / scaling / visual atlas | Static and pinpoint viewport/image assertions | Reuse candidate for multiple screenshots, visual comparisons, viewport/pad configurations | Actual rendered pixels and independent 1080p/4K sign-off; no stale atlas credit. |
+| CPU/SPC / original fidelity / reference tool | Small causality test, source-bound syntax | Reuse same pinned original/native tools and registered inputs for distinct evidence questions; separate unaffected test campaigns | Genuine original emulator, correct source/ROM/movie/seed, real event-relative proof; 0/45 unchanged until accepted. |
+| ART-4K model / viewer | GLB syntax, geometry/projection, stable camera contract, targeted pixel comparison | Multiple source-grounded pose/holdout frames from one *verified* asset/model export | Owner likeness/art acceptance and source fidelity. |
+| Windows build, workflows, cache, runner tools | actionlint/ShellCheck, Python/Bash syntax, focused policy tests | Dedicated synthetic workflow contract; one real route only when mechanics changed | Exact-head hygiene, full applicable unit/product tests, restricted runner identities. |
+| Unclear overlap, security, persistence, source identity | All directly relevant negative controls | No automatic sharing until isolation proven | Full source-matched acceptance, independent review. |
+
+Maintain explicit exclusions: real stateful physical controller focus, protected local profile/registry/APPDATA interactions, destructive files, process-kill/fault tests, original hardware, machine-specific display/audio, and third-party network behavior cannot be made independent merely by giving tests different names.
+
+## 3. Fully specified batch-candidate lifecycle
+
+1. **Intake.** Read fresh main and existing top-five shared work IDs. Enumerate open PRs, draft/ready state, latest reviewed commit SHA, changed files, owners, dependencies, current CI, target Windows/game effect and unresolved hard holds. Read-only proposal first. Never create a second workboard.
+2. **Compatibility.** Admit 2–5 PRs only when the exact source/write sets have no active owner conflict, branch ancestry and dependent changes are understood, and no mutable external environment or incompatible hypothesis contaminates the set. A single ready change is a legitimate batch of one when urgency dominates waiting. Keep current QA01/CPU coupled only when source and evidence dependencies actually demand it, and ART-4K viewer changes separate from release product checks unless both truly share the producer.
+3. **Freeze.** Record source base SHA, each PR number/head SHA, ordering, conflict-resolution SHA, composite commit/tree SHA, test mapping revision and proposed acceptance. Produce a new non-forced, branch-scoped candidate under a unique stable batch ID. Reject branches that moved or composites with non-audited dependencies. The source manifest becomes immutable for that test attempt.
+4. **Cheap preflight.** Run syntax, relevant unit, workflow contract/actionlint and file conflict checks before allocating hosted Windows. Fail before build if any expected source/metadata is missing. Never execute arbitrary PR code on the HP.
+5. **Build once.** Use or minimally extend the existing hosted Windows producer/reusable build. Emit immutable source-identity manifest, toolchain/SDK identity, generated game binary digest, ROM-free ZIP digest, config hash and artifact manifest. Build outside protected local directories. The build producer and every consumer must verify SHA-256 and exact source; no cache is trusted without its existing content/source validation.
+6. **Fan out useful *independent* consumers.** Examples: Modern title navigation; two virtual SDL pad journeys; Tour/result/Records; Unicode/cold-data; special-path/read-only APPDATA boots; 342×224/PAR and 1080p/4K framebuffer checks; reproducible source-grounded art preview. Reuse *read-only* build bits, not writable profile, process state, controller focus or test output. Existing HP boot three-way offscreen fanout is a precedent only for known isolated fixtures; host audio/GUI cases need explicit serialization.
+7. **Reconcile receipts.** A coordinator validates the requested case list equals real executed plus explicitly expected skips; test identifiers and source/build SHA match; no duplicates, missing terminator, altered counts, forged PNG, lost failures or missing JUnit; each negative survives as red/incomplete. Show one concise answer and link all raw source-bound artifacts. Reuse existing [evidence envelope](../analysis/evidence-envelope.schema.json) and [evidence-contract implementation](../tools/evidence_contract.py).
+8. **Diagnose failures narrowly.** First distinguish infrastructure/queue/cancel from test regression, then exact failing test and first relevant code change. Run cheapest discriminating check and, if attribution is ambiguous, bisect compatible subsets *using independently frozen new source identities*, with a cap of two extra candidate builds per failure before human/agent reconciliation. Never promote green tests from a failed composite as final acceptance for a different SHA.
+9. **Review and integrate.** Integrate existing PRs by normal independently reviewed rules. Before merging into main, require mandatory full ready-state checks on the actual final composite/ref and verify no source change occurred after validation. If merges cause a new tree, rerun whichever source-bound mandatory checks are invalidated. Do not merge one red intermediate because the final batch "probably" passes.
+10. **Trust-main and release.** On merged main, preserve canonical hosted Windows PE nomination, trusted-main HP production/research triggers, original/native comparisons, and physical H01–H07 separate. Do not invoke HP science as a substitute for release validation. Attach batch traceability to the existing work-ID handoffs and current issue/PR comments. Close or archive the temporary branch only after results are recoverable.
+
+A first pilot can implement the above **manually with existing reusable workflows, PR source pins, scripts and one coherent integration branch**. Automation comes after measured positive throughput and proven unchanged mandatory coverage. Avoid inventing a permanent mega-workflow, central control service or new scheduled agent at the outset.
+
+### 3.1 Proposed minimum manifest contract (v1, not yet an implemented schema)
+
+~~~json
+{
+  "schema": "UR-COLLECTIVE-QUALIFICATION/1",
+  "batch_id": "ur-cq-YYYYMMDD-NNN",
+  "base_main_sha": "40-lowercase-hex",
+  "candidate_sha": "40-lowercase-hex",
+  "source_tree_sha": "40-lowercase-hex",
+  "members": [
+    {"work_id":"existing-stable-id","pr":1234,"head_sha":"40-lowercase-hex"}
+  ],
+  "test_plan_revision": "40-lowercase-hex",
+  "producer": {"workflow":"existing-hosted-producer","run_id":0,"artifact_sha256":"64-lowercase-hex"},
+  "expected_cases": ["stable-case-id"],
+  "executed_cases": [{"id":"stable-case-id","status":"passed","receipt_sha256":"64-lowercase-hex"}],
+  "expected_skips": [],
+  "status": "incomplete",
+  "independent_reviewer": null
+}
+~~~
+
+Implementation must validate the schema and compare the manifest against GitHub's actual API run/checkout SHA, authenticated artifacts and real runner/JUnit data. **Do not rely on this illustrative object as proof or upload it with dummy values.** Required invariants: sorted unique member IDs and case IDs; all hashes validated; every expected case executed or narrowly justified expected-skip; zero unknown/extra IDs; fail on absent producer, cancelled/partial execution, unexpected source or untrusted worker; no "passed" aggregate without all mandatory cases. Receipt paths must be redacted of private user files, credentials and protected host data.
+
+## 4. Five scheduled agents: preserve and extend the shared pool
+
+The **actual installed tasks** were read on November 5 UTC. All are enabled; all five full prompts are the same shared-pool text with only agent number and minute substituted. The **verbatim, normalization-checked prompt snapshot**, exact task IDs and a proposed future addendum are in [the prompt appendix](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md). Do not treat a Markdown file as a command to alter a live ChatGPT task: changes to task prompts require an explicit task update and subsequent live readback.
+
+| Agent | Installed UTC-minute cadence | Task ID | Assignment |
+| --- | --- | --- | --- |
+| 1 | hourly :00 | 6ad6cc96db1081919d3ca433fdca5654 | Generalist, same board |
+| 2 | hourly :12 | 6ad6cca2843481918a2bfedb77bc8316 | Generalist, same board |
+| 3 | hourly :24 | 6ad6cff909fc8191a9b0f5d4582135f6 | Generalist, same board |
+| 4 | hourly :36 | 6ad6d0068d2c819188a1f6f3e6f1c4fe | Generalist, same board |
+| 5 | hourly :48 | 6ad6d01445888191806eb95f5f694efd | Generalist, same board |
+
+They inspect the **same top five eligible distinct work IDs**, run tools/agent_control.py --agent N, apply rotating UTC-day advisory choice, verify *actual* live writers and can use --busy-work-id to find outside-cohort options. No permanent merge, QA, Vault or batching specialist is assigned. Existing priority candidates include QA01 event parity, CPU causality, release progress/WIDE-07, ART-4K and Windows display; held physical work remains held. Any qualified agent may be an integration reviewer **for a different author**.
+
+**Recommended prompt amendment (only after a doc+policy pilot):**
+- After reviewing current writes, notice *already-finished compatible PRs* that could share one expensive source-pinned qualification session. Record a candidate batch proposal under existing IDs; do not halt useful work or demand a minimum batch size. Prefer finish/integrate over batching for its own sake.
+- Keep drafts cheap and make one stable ready transition. A ready PR or integrated batch needs actual complete required checks on the exact final source. A cancelled/superseded run is not acceptance.
+- If the agent's isolated environment cannot reach GitHub, use the available GitHub connector for API reads/writes. If Remote Desktop Commander is available, it may inspect the owner HP **read-only trusted-main checkout** or call the existing allowlisted short broker jobs under the documented restrictions. Never run untrusted PR code, unknown shells, destructive operations or heavy local work on HP through the plugin. Intensive tasks go through the existing fixed main-only Actions dispatch, subject to owner authorization. Missing plugin/HP access is a reportable capability limitation, not a reason to idle or to bypass controls.
+- Keep source branches and PR publication atomic, avoid hot-file overlap; report work ID, the batch ID when applicable, exact source SHA, real tests, unchanged gate status, useful next step and occupied runner cost when measurable. Then continue another valuable job rather than polling.
+
+**Rollout:** verify selector and prompt-text contract tests; apply one small *additive* shared addendum to all five through task-management tools without touching their DTSTART or RRULE; read back all five live prompts, schedules and enabled states; observe at least one invocation per task and ensure no excess speculative batches. Roll back addendum text, preserving original full prompt snapshots and times, if source collisions, dropped product outcomes or plugin-dependent idling increase. The current task prompts remain unchanged by this plan-writing PR.
+
+### 4.1 Controlled agent ownership without a new queue
+
+Use the stable work ID plus PR head, changed-file set and timestamped handoff to identify an actual writer. The advisory rotating selector is not an atomic lease. For a short integration batch, nominate an **integration coordinator for that batch only** (any free generalist), responsible for freezing the candidate and its CI, not for appropriating members' ongoing work. Each member source owner retains its scope until handed off; conflicts require explicit reconciliation. A frozen candidate may finish testing while all agents advance other independent work. Never open five PRs merely because five candidates were scanned.
+
+## 5. GitHub Actions topology and test economics
+
+**Retain these actual workflows and responsibilities:**
+
+| Existing workflow / component | Role after rollout |
+| --- | --- |
+| .github/workflows/tooling-unit-tests.yml | Fast draft diagnostics; full four-shard unit on review-ready/manual exact head. A missing full run must be dispatched on unchanged ref. |
+| .github/workflows/repo-hygiene.yml | Every-PR low-cost repository integrity and actionlint/ShellCheck; cannot silently skip on batching. |
+| .github/workflows/windows-native-smoke.yml | Canonical Windows x64 portable package, executable provenance and startup/QA. Reusable product producer; avoid duplicate production workflows. |
+| .github/workflows/qa05-qa09-windows-candidate.yml | Existing review-ready hosted Windows consumer; confirm required check context before changing call graph. |
+| .github/workflows/owner-hp-main-windows-smoke.yml | Trusted current-main product acceptance on physical HP, distinct from untrusted PR tests. |
+| .github/workflows/owner-hp-seeded-2p-research.yml | Nominal :11 and :41 UTC research opportunities; 360s default, eight cases and 32 processes when successful; not a ChatGPT worker. |
+| .github/workflows/hp-unattended-intensive.yml | Merged owner-only main workflow_dispatch: seeded-2p-600 and native-smoke fixed modes; already exercised on a real HP run; do not enable arbitrary job kinds. |
+| .github/workflows/qa-cumulative-research.yml | Seven-family manual serialized scientific ledger authoring with separate admission. Never use batch PR integration to write an unreviewed cumulative scientific result. |
+| .github/workflows/windows-visual-atlas-pr-validate.yml | Atlas contract and mobile smoke, with expensive original-model export on non-draft; source-bound proof still required. |
+| tools/ops_live_status.py, tools/report_ci_runtime.py, tools/ci_cancelled_job_sample.py | Existing measurement and collision signals; extend these before inventing a new dashboard. |
+| tools/ci_select_unit_suite.py, tools/partition_unit_tests.py | Existing fail-closed focused routing and four-shard complete unit balance; test impact additions must not drop unknown cases. |
+
+**Pilot topology:** initially use a manually nominated *single* hosted composite candidate with a retained producer and multiple lightweight consumers. Before changing workflows, inventory exact YAML trigger paths, job contexts, required branch rules, runner labels, inputs, outputs, permissions, artifact globs, and every test assertion. Expand an existing reusable workflow only where source-bound artifact handoff is actually possible; no second duplicate automatic Android-inspired "batch verifier." Keep actions/checkout pinned, least-privilege GITHUB_TOKEN, exact immutable sources, short retention and real negative fixture tests.
+
+**GitHub concurrency caveats:** default group policy can cancel an earlier pending run when another queues; cancel-in-progress true also cancels a running job. For immutable expensive accepted test campaigns and generated-evidence writers, choose non-cancelling, bounded and explicitly owned groups, with no queue explosion. For cheap superseded draft diagnostics, cancel old source heads. A job-level group is not a global, cross-repository reservation. Keep group keys distinct between callers/reusable workflows to avoid accidental self-cancellation. See [official concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency) and [reusable-workflow caveats](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations). Verify any newer queue syntax against the runner's *actual* GitHub availability before adopting it.
+
+**Shared-build trial measurements:** compare the same *frozen* candidate population with conventional sequential/duplicate-build topology and build-once fanout. Record wall time to final actionable verdict; sum actually started runner job seconds; setup/build/test/upload/download/check-out seconds; max concurrent jobs; case identity set, full pass/skip counts; per-job waits; source SHA; cache cold/warm; failures and retries. Artifact upload/download and shard scheduling may erase savings. Accept change only after 2–3 qualified comparisons that retain all evidence; do not assume lower compiler time implies cheaper whole job.
+
+### 5.1 Spend runner capacity on a decision, not on occupancy
+
+Historical owner account standard-runner concurrency has reached **20** simultaneous jobs; this is a service/account ceiling, not a guaranteed 20-runner reservation. Scientific frontier admission currently assumes unseen cross-repo occupancy and keeps agent headroom ([capacity policy](HYBRID-AGENT-RESEARCH-CAPACITY.md)). Avoid launching research just because slots are empty when the next information does not change a product decision. Keep cumulative scientific ledger single-writer unless a separately measured real contention bottleneck justifies its redesign. Use manual capped 1/2/4 experiment shards according to actual CI pressure.
+
+Avoid background CI polling by agents. Read already-started job outcomes opportunistically; use one digest and link to detailed logs. A campaign's **queued** time, **started runner-minutes**, **critical path wall time** and **billed minutes** are distinct metrics. Check source consistency before combining comparable epochs. Do not infer weekly trends from a truncated 100-run/300-run sample. Fail an incomplete time census rather than silently presenting it as a complete week.
+
+## 6. Owner HP: one trusted heavyweight queue, two distinct auxiliary pathways
+
+The connected host **DESKTOP-TRH1VBI** runs the owner self-hosted runner **hpmini-ur-recomp**, currently under **NT AUTHORITY\NETWORK SERVICE** with 12 logical processors. It is also a personal Windows 10 machine, used for other activities; avoid pop-up windows, interactive UI takeover, service resets or machine-wide tuning without a demonstrated need.
+
+**A. Supported intensive path (active):** owner main-only GitHub Actions on the existing single-job self-hosted runner. The [intensive workflow](HP-UNATTENDED-INTENSIVE-ACTIONS-20261104.md) already has the fixed seeded-2p-600 and native-smoke modes, exact main/ref guard, source-bound reusable Windows smoke and real successful [run #41943025260](https://github.com/gamesbyian/UR-Recomp/actions/runs/41943025260). Dispatch success is not execution success; audit full job, source and science/package artifact. Do not trigger redundant manual work if a matching case is already queued/running. The 360s science default yields more often to product tests; 600s remains an opt-in benchmark/need-driven campaign.
+
+**B. Scheduled fallback for missed GitHub cron (active, independent of LLMs):** Windows Scheduled Task **UR-Recomp HP Research Missed-Schedule Fallback** runs about every **15 minutes**; on the November 4 local evening readback it was **Ready**, last result **0**, with installed script **COOLDOWN = timedelta(minutes=60)** and conservative completed-run **updated_at** logic. The retained nominal GitHub workflow cron is :11/:41 UTC, but delivery is not reliable; classify genuine schedule from manual/fallback events. The fallback refuses active HP priority jobs, queued science, failed same-source research, malformed API, changed main ref, mutex contention and too-recent completions. It performs a second independent pre-dispatch read; race after final read still requires independent artifact audit. This is **supplemental dispatch recovery**, not another worker or a promise of exactly two batches an hour. Preserve the existing Defender warning about a withdrawn detected installer and never allow-list or reuse it. [Fallback runbook](HP-RESEARCH-FALLBACK.md).
+
+**C. Remote Desktop Commander / short safe broker (constrained pilot):** [tools/hp_safe_job_broker.py](../tools/hp_safe_job_broker.py) already supports only **repo-status** and **agent-selector** for exact trusted main ancestry, with clean dedicated checkout, 45s timeout, durable receipts and per-worker lock. The remote plugin may read/run authorized local git/gh for trusted-main source inspection if available. Do not treat plugin access as a reliable ChatGPT task execution environment or as permission to run arbitrary PR code. If direct network access fails in the ephemeral agent environment, use the existing GitHub connector, optional HP read-only route and an exact blocked handoff. Reconcile every HP observation with GitHub's actual ref, not an old local clone. The owner HP's separate main GHA runner worktree must never be replaced by a task agent checkout.
+
+**D. Heavy local broker expansion (NOT enabled):** [resource reservation protocol](HP-RUNNER-COORDINATION-PROTOCOL-20261103.md) is prototype-disabled. It uses durable atomic reservations by role and exact ID, and it passed focused local races, but no actual runner service before/after hooks, ACL tests, restart, cancellation recovery, crash reconciliation or process-tree-proof deployment has occurred. A [service-account Job Object probe](HP-SERVICE-ACCOUNT-JOB-PROBE-20261104.md) passed under real NETWORK SERVICE in [run #41943194209](https://github.com/gamesbyian/UR-Recomp/actions/runs/41943194209), proving one containment primitive only. [PR #3108](https://github.com/gamesbyian/UR-Recomp/pull/3108) for suspended Windows-process containment still needs normal exact-head review/qualification. None of these facts authorizes a second locally scheduled CPU-heavy broker to race GitHub.
+
+**Sequence before any heavy non-GHA broker:**
+1. Independently qualify suspended-creation Job Object containment, process descendants, output limits and teardown for timeouts/crashes; keep one job family at a time.
+2. Put hook binaries/wrappers **outside repo-controlled or PR-controlled paths**, pin executable/interpreter digests, test runner-service ACL and local Desktop Commander account writes in a dedicated state directory. Never load hooks out of a transient repository worktree.
+3. Under an owner-visible maintenance window, snapshot existing runner .env/service settings; test synchronous pre/post hooks for unique job identity, bounded wait and fail-closed faults as **NETWORK SERVICE**, using no real product job initially.
+4. Verify owner rollback after a synthetic pre-hook failure, queued job, abrupt cancellation, machine restart, stalled lock and nested child job; never automatically discard a stale reservation.
+5. Only after hooks and recovery pass, permit one reviewed heavyweight broker allowlist kind on a known source; run contended GHA/broker A/B in both orders; compare effect on product queue. Stop immediately on uncertainty. Hooks can fail valid GHA work and have no native timeout: [GitHub documentation](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/run-scripts).
+6. Prefer **not enabling** this complexity at all if the current main-only Actions queue supplies sufficient work. A second resource scheduler has negative expected value unless it solves a measured need.
+
+**HP resource yield policy:** product Windows qualification and urgent exact-head repair take precedence over new science dispatch. The fallback does not interrupt running work; when the product queue delay attributable to fallback exceeds the existing **10-minute** rollback threshold or throughput/correctness declines, return cooldown to 90 minutes by a safely verified change and observe. No more speculative 16-process saturation. Keep telemetry bounded and aggregated (CPU, memory, per-phase times, run ID), no credentials or file contents. Benchmark Ninja job-count 6 versus 10 and any affinity/power experiment only on matched source with complete tests and genuine elapsed savings.
+
+## 7. Release/product and research work must remain legible
+
+Batching is a **means** to the real shared board. Use a source and evidence graph to share *unaffected verified preparation* across tasks, not to conflate their claims:
+
+- **QA01 first genuine complete USA event / CPU cause:** existing draft [#2872](https://github.com/gamesbyian/UR-Recomp/pull/2872) RF095 stereo PCM and [#2873](https://github.com/gamesbyian/UR-Recomp/pull/2873) voice-7 KON downstream evidence need a coherent original/native, source-registered event question. Reuse retained sequence-19 evidence and emulator build where semantically valid; get a paired real PCM/downstream consumer witness before any mask or acceptance. Do not blindly regenerate large repeat captures or count 0/45 as changed.
+- **Release progress / Windows display:** WIDE-07 calls for real moving-camera, tile-stream parity, divergent P1/P2 view and actual production PE. Use one current executable/fixture for multiple display assertions where safe; keep actual 1080p/4K host evidence and independent H01–H07 separate.
+- **Modern game:** source-grounded title → profile/racer → game → pause/resume → genuine result → Records → restart/quit → cold persistence journey, 2 actual pads, input release, audio continuity, data isolation and Unicode fault tests. Share package construction but never omit fresh-process/data-root isolation.
+- **ART-4K reconstruction:** one authenticated GLB/source pose family supports several *distinct* rendered frames, renderer/export stability and holdout comparisons; use previous negative registrations to guide cheap discriminators before another broad render. Five-stage geometry/rig/pose/likeness validation is distinct from gameplay correctness and not made shipping-ready by a PNG similarity score. Keep the browser Pages reviewer/atlas useful but never confuse it with the game release.
+- **Windows playable ZIP:** source/PE/ROM-free manifest, QA05/QA09 and independent real machine H01–H07. Existing audited packaged candidate artifact #12850662557 is currently documented as expiring **November 11 2026 at 20:54 UTC**; verify and preserve it before expiry without silently promoting its older producer source to current main.
+- **Vault and other research:** only live needed unresolved work; do not reopen already merged features or create repeated proof packets. Work-ID stable handoffs, archive valuable negative evidence, keep scientific cumulative ledger exclusive.
+
+For true game fidelity, comparing only *similar* picture output is insufficient. A registered original game source, correct timing/inputs, internal state, downstream audio/visual outputs, durable results and an independently verified full event remain explicit evidence tiers ([VALIDATION.md](VALIDATION.md)). Optimize the setup and case selection, never weaken the meaning of an accepted event.
+
+## 8. Measurement system, weekly decision and stop conditions
+
+Extend **existing** manual CI runtime reports and live-ops signals instead of a new always-on telemetry pipeline. Source of truth is job timestamps, GitHub event, checked-out SHA and actual receipt artifacts; preserve sample coverage. Use the following **seven-day scorecard** (owner-readable summary with drill-down links):
+
+| Measure | Calculation | Why it matters |
+| --- | --- | --- |
+| Accepted integrated outcomes | Independently reviewed *distinct* game behaviours, QA criteria, issue fixes and merged tested sources; exclude speculative PR count | Primary numerator: useful progress |
+| Lead time | Median and p90 hours from review-ready candidate to accepted integration; report sample size | Is combining work speeding delivery? |
+| Full campaigns per accepted outcome | Number of complete native/Windows/art test campaigns divided by outcomes actually earned | Direct batching value |
+| Runner cost | Sum actual job execution seconds; split hosted/HP, cold/warm, start/queue, cancellation, workflow | Prevent cheap-looking wall time with inflated runner use |
+| Batch quality | Exact case identity coverage, unexpected skips, independently reproduced failures, regression escapes, retest count | Detect hidden correctness cost |
+| Agent efficiency | Distinct compatible jobs advanced per hour, writer conflicts, idle/no-source-update runs and verified merges | Prevent five agents duplicating one job |
+| HP yield | Source-bound passing science cases / HP busy hour; Windows product queue delay, cron delivery vs fallback recovery | Keep unattended use useful without starving release |
+| Storage | Artifact GiB/days, oldest redundant package, retained evidence reason, cache hit/miss and eviction | Reduce clutter without deleting critical proof |
+
+**Baseline instrumentation:** tools/report_ci_runtime.py and existing manual CI runtime workflow; tools/ops_live_status.py collision/cancellation hints; actual HP telemetry and the scientific archive auditor. Collect data for at least **two comparable weeks** before declaring a systemic improvement. Compare a bounded standard integration path against a batch path of the same test population; changing source, SDK, machine or cache state requires an explicit qualifier. Never convert cancelled workflow *counts* into runner-minutes or project historical one-time setup costs into recurrent savings.
+
+**Pilot decision rules (proposed, not universal constants):**
+- **Accept** when complete mandatory test identities and independent acceptance gates are unchanged, 2–3 comparable trials show lower full-job wall and/or runner-minutes **without higher regression escape, merge delay or HP product waiting**, and a reviewer signs off the result.
+- **Revise** when only one metric improves, e.g. runner-minutes fall but the longest test or attribution delay worsens; optimize critical path instead of blindly increasing parallelism.
+- **Stop/revert** on any missing test or source receipt, unexpected skip, consumer-state coupling, cache mismatch, unauthorized HP PR execution, main source verification regression, >10 minute fallback-attributable product delay, inconsistent batch attribution, stale required-check semantics or repeated new CI triggers. Keep the old validated workflow until replacement passes actual CI.
+- **Do not expand** when the same test requires true isolation and its extra cost is the price of trustworthy evidence.
+
+**Artifact storage:** a read-only [account snapshot](https://github.com/gamesbyian/UR-Recomp/issues/3048) measured roughly **90 GiB** compressed artifacts in 16 of 17 other repositories but could not census UR-Recomp itself; never describe this as a complete account total. Prefer 14-day default evidence retention where already implemented; protect release artifacts, latest source-bound successful tests, unique negative science cases and audit manifests. Prepare a reviewed removal manifest with exact artifact ID, repo, digest, age, reproducibility and owner protection, then separately authorize deletion. Cache size, artifacts and storage billing are distinct.
+
+## 9. Rollout program with owners, acceptance and rollback
+
+This is the ordered project plan. **Suggested owner** means a temporary role any eligible generalist/reviewer can assume, not a permanent slot or a second backlog. Do not pre-empt current QA01, Windows release or ART-4K work to execute a low-value infra step.
+
+| Stage | Concrete deliverable (paths/route) | Dependency / verifier | Exit evidence / rollback |
+| --- | --- | --- | --- |
+| **P0 Documentation and baseline** | This plan, verbatim prompt snapshot, updated document map and corrected HP runbook statuses; fresh 7-day CI sample from existing tools; inventory current required checks and source path consumption | No workflow changes; independent doc/hygiene reviewer | Exact README/agent/HP route links; truthful coverage; existing checks unchanged. |
+| **P1 Pilot candidate selection** | Small reviewed proposal algorithm: find 2–5 compatible ready source heads, identify exact work IDs/conflicts, record composite commit and expected tests. Manual selection first; no new background task | Existing agent_control.py + actual PR data, workboard owner | Two source-frozen, reproducible batches and one rejected collision; unknown path triggers full tests. Stop if busy-PR overlap is underreported. |
+| **P2 First hosted qualification batch** | One manual opt-in composite of two independent Modern/UI or display changes; reuse existing hosted Windows producer and consumers; strict source/receipt coordinator and isolated writable state | P1, current Windows producer and CI policy; separately review workflow/manifest validator | Identical case population, true Windows binary ZIP/hash, independently executed suites, all negative fixture tests; preserve old route as fallback. |
+| **P3 Trustworthy savings measurement** | 2–3 matched build-once vs original comparisons, cost reports with real job steps, queue effects and reviewer decision; no fabricated benchmark run purely to inflate throughput | P2 actual passing runs | Adopt only if full end-to-end elapsed/cost positive and correctness identical. Revert fanout if upload/VM startup dominates. |
+| **P4 Agent integration behavior** | Short reviewed common addendum to all five live task prompts; unchanged enabled/hourly minutes and original full-contract body; optional batch coordinator handoff field | P1–P3 benefit and exact live scheduler control | Read back five prompts/schedules; observe one run each; no extra agent, no increased duplicate PR/CI. Revert only addendum if harm. |
+| **P5 HP reliability and yield** | Confirm current fallback source hash/task history, measure genuine cron/fallback/priority Windows queue delay, monitor cache hit and 360/600 throughput; update existing runbooks | No service change for initial measurement | 7-day receipt census, no starvation. Only consider 90m rollback for threshold violation. |
+| **P6 Optional heavy broker research** | Job Object #3108 qualification, hooks/ACL/restart/crash plan and independent lab test *without enabling production hooks* | Measured need outside current main GHA queue | Owner-controlled review/maintenance/rollback. Default remains disabled if no material benefit. |
+| **P7 Continuous economy** | Safe artifact-retention proposal, CI trigger dependency audit, source-equivalence build caching A/B only where validated, weekly brief scoreboard | P3 measurement and proof of need | Measured reduction with unchanged gate reliability; unqualified caches/triggers immediately roll back. |
+| **P8 Product QA integration** | Turn accepted throughput improvements into faster closure of QA01/CPU, WIDE-07, 4K rig and real Windows playtesting, using same work IDs | Applicable product implementation and independent QA | Current ledger changes **only** on source-bound accepted evidence, never because CI got faster. |
+
+### 9.1 First pilot recipe (one existing-PR campaign, no automatic deployment)
+
+1. From fresh main, choose two disjoint *already reviewable* Windows UI/presentation changes whose individual standard hosted checks have known identities. Record baseline source epoch, workflow run durations and duplicate build cost.
+2. Verify no agent is actively writing either branch. Construct a frozen integration branch from main with the changes, ordinary git conflict resolution and an exact composite SHA. If a second edit would invalidate it, create a new candidate and mark the old evidence historical.
+3. Run syntax, targeted C++/Python, tests/unit/test_ci_trigger_policy.py and repository hygiene. Compare required check names/status semantics for draft/ready.
+4. Run the **existing canonical hosted** Windows build once on that candidate through an approved PR or manual route and run multiple existing independent checks against its one artifact, revalidating source/PE/ZIP/test case SHA everywhere. Do not send it to the HP unless merged to trusted main.
+5. Preserve per-test identity, raw failure digest and tested source, then compare complete elapsed wall, started runner-minutes and same-case coverage with the conventional route. A failed batch is valuable evidence; isolate its source and never call it a pass.
+6. Review the final composite and integrate through ordinary PR rules. On main, permit the existing product Windows/HP triggers and inspect their actual main SHA; submit a concise report. Do not award original/native or physical release progress absent separate independent proof.
+
+**Implementation seam:** start by extending the already present CI runtime/candidate producer and evidence-envelope tools; create at most one small new manifest validator if current parsers lack source/member/case set equality. Add unit tests for moved PR heads, duplicate test IDs, missing output, partial shard, wrong producer SHA, invalid cache, unexpected extra test, artifact tampering and cancelled runs. Put a small integration runbook under docs only after actual pilot design is proven; avoid a large permanent orchestrator before positive trials.
+
+## 10. Future hypotheses suggested by the experiments (explicitly NOT approved implementation)
+
+1. **Source-equivalence reuse for research-only unchanged game binaries.** HP archive audit found equal timestamp-neutral PE code/resources in some different builds while raw PE hashes differed. Investigate narrowly whether *scientific* runs can reuse a genuinely identical, independently checked executable and ROM/toolchain inputs. No source cross-epoch assumption, no replacement for product build identity or independent QA. Cache key must incorporate all generated-code inputs; any uncertainty means rebuild.
+2. **Adaptive, evidence-driven test planning.** After sufficient good data, use dependency and historical failure patterns to propose the cheapest decisive tests, but retain full ready/main gates and have an explicit "unknown dependency => broader tests" rule. No opaque AI choice may silently remove an acceptance test.
+3. **Bounded automatic failure minimization.** When a composite fails, bisect two or three exact candidate subsets and show the original failing test; cap compute and preserve red result. Do not automatically amend another agent's branch or merge an experimental subset.
+4. **Reusable genuinely clean desktop/GUI fixtures.** Evaluate Windows fresh-user data-root, gamepad simulator, audio/device and visible-pixel capture fixtures individually; only group where process/registry/focus isolation is independently demonstrated. Physical hardware still requires real testing.
+5. **Source-registered shared art work.** Reuse one authenticated geometry/rig export for all semantically distinct poses but do not produce duplicate assets for byte-identical source shapes; owner likeness/pose review stays independent.
+6. **Selective HP co-scheduling instead of parallel saturation.** If actual workload proves it useful, combine read-only light broker telemetry and GHA main jobs, but only with trusted identity and no competing heavyweight process. Shared CPU occupancy does not mean safe execution.
+7. **Cross-project tooling reuse.** Bring Chunks' immutable build-artifact/JUnit cardinality verification and Expository's allowlisted one-emulator batch semantics into the existing UR evidence-envelope abstractions. Copy principles and proven test invariants, not a second Android-specific harness or a generic framework.
+
+## 11. Operational runbook: recovery, failures and proof
+
+**At each scheduled-agent start:** read current main + board + current PRs; run selector; inspect current actual writers; pick unblocked task; quick local tests; one coherent source publication; after a stable ready head, verify full required unit/hygiene/product checks; create an exact work-ID handoff; take useful next work rather than poll. If Github DNS fails locally, use the GitHub connector or read-only optional HP route, and disclose limits; no fake checkout.
+
+**At each integration-batch start:** snapshot member heads, paths and dependencies; ensure unique batch ID; freeze manifest; no owner PR head changes; cheap tests; one hosted build; independent consumer cases; receipt reconciliation; review; final main checks. Do not automatically send any unmerged candidate to personal HP.
+
+**When a GHA job fails:** classify source regression, flaky infrastructure, invalid source receipt, scheduled-delivery loss, real product failure or insufficient evidence. A cancelled superseded run is **incomplete**; an old-head green is **historical**. Keep last valid source-bound artifact and all failed evidence. Do not retry unchanged cases blindly or cancel a qualified main job for a speculative optimization.
+
+**When HP cron is missing:** inspect actual :11/:41 schedule vs observed Actions event; read local fallback last-status and Task Scheduler state; check queued product/research jobs; confirm source/updated_at cooldown, same-SHA failure fence and next check. Do not manually dispatch repeated science merely because an expected cron time passed. If a fallback dispatch happened, inspect the run to see whether real game work and artifact succeeded.
+
+**When HP broker appears wedged:** do **not** delete a stale lock or reset runner hooks; current safe broker diagnose is read-only. Record running receipt/owner and review with the existing protocol; heavy broker is disabled. Never kill a GitHub runner job or personal process as a shortcut.
+
+**When a machine-security warning occurs:** keep the known withdrawn fallback installer disallowed; investigate it separately, do not suppress Defender or repackage refused bytes to bypass enforcement.
+
+**When project storage grows:** take an API-bounded census, preserve exact source-bound release/science evidence, nominate individually reviewable deletions and audit storage savings separately from runner-time savings.
+
+**At weekly review:** summarize true completed integrated outcomes, exact main/head and required-check coverage, CI critical path, runner-minute cost/cancellation, HP product waiting vs science yield, agent collisions/idle runs, artifact storage and next one measurable hypothesis. If progress declines, stop expanding the batching system and direct agents back to the highest-value product work.
+
+## 12. Source and design references
+
+**UR-Recomp:** [AGENTS](../AGENTS.md); [WORK-QUEUE](WORK-QUEUE.md); [HOURLY-AGENT-LINES](HOURLY-AGENT-LINES.md); [AGENT-COORDINATION](AGENT-COORDINATION.md); [OPERATIONS-ACCELERATION](OPERATIONS-ACCELERATION.md); [CI-WORKFLOW-BEST-PRACTICES](CI-WORKFLOW-BEST-PRACTICES.md); [CI-ACCELERATION-EXECUTION](CI-ACCELERATION-EXECUTION-20261014.md); [HYBRID-AGENT-RESEARCH-CAPACITY](HYBRID-AGENT-RESEARCH-CAPACITY.md); [HP-NINJA-GENERATOR-PILOT](HP-NINJA-GENERATOR-PILOT.md); [HP-BOOT-FANOUT-PILOT](HP-BOOT-FANOUT-PILOT.md); [HP-RESEARCH-FALLBACK](HP-RESEARCH-FALLBACK.md); [HP-UNATTENDED-2P-RESEARCH](HP-UNATTENDED-2P-RESEARCH.md); [HP-SAFE-JOB-BROKER-PILOT](HP-SAFE-JOB-BROKER-PILOT-20261103.md); [HP-RUNNER-COORDINATION](HP-RUNNER-COORDINATION-PROTOCOL-20261103.md); [HP-UNATTENDED-INTENSIVE-ACTIONS](HP-UNATTENDED-INTENSIVE-ACTIONS-20261104.md); [HP-SERVICE-ACCOUNT-JOB-PROBE](HP-SERVICE-ACCOUNT-JOB-PROBE-20261104.md); [RELEASE-QUALITY-LEDGER](RELEASE-QUALITY-LEDGER.json).
+
+**Android transfer:** [Chunks #1155](https://github.com/gamesbyian/Chunks/pull/1155), [#1159](https://github.com/gamesbyian/Chunks/pull/1159), [#1139](https://github.com/gamesbyian/Chunks/pull/1139), [#1148](https://github.com/gamesbyian/Chunks/pull/1148), [#1153](https://github.com/gamesbyian/Chunks/pull/1153); [Expository #418](https://github.com/gamesbyian/Expository/pull/418). The rollout deliberately adopts evidence contracts, build-once sharing and draft/ready timing, not Android platform-specific code.
+
+**External authoritative design constraints:** [GitHub Actions concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency), [self-hosted runner hooks](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/run-scripts), [reusable workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations), and [self-hosted runners](https://docs.github.com/en/actions/concepts/runners/self-hosted-runners). Source documentation is normative for capabilities, not evidence that uninstalled features are active.
+
+**Disposition of this commit:** documentation, live task prompt snapshot and stale-status correction only. No task schedule/prompt, workflow event, Windows service, HP installed script, new automatic CI, source-build, release ledger or acceptance test was changed.

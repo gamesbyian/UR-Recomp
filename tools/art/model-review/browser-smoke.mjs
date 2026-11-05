@@ -363,12 +363,34 @@ try{
    }
    if(q('paintHypothesis').getBoundingClientRect().height<44)
      issues.push('paint hypothesis touch target too small');
+   if(q('modelColourway').getBoundingClientRect().height<44)
+     issues.push('model colourway touch target too small');
    if(${mocked}){
      if(!q('paintHypothesis').disabled)
        issues.push('synthetic non-source model falsely enabled paint hypotheses');
+     if(!q('modelColourway').disabled)
+       issues.push('synthetic non-source model falsely enabled colourways');
    }else{
      if(q('paintHypothesis').disabled)issues.push('real source GLB paint hypothesis disabled');
+     if(q('modelColourway').disabled)issues.push('real source GLB model colourway disabled');
      else{
+       const old=q('source').textContent,partNames=q('parts').textContent;
+       const paintBefore=q('paintStatus').dataset.materialState;
+       q('modelColourway').value='p1';
+       q('modelColourway').dispatchEvent(new Event('change',{bubbles:true}));
+       if(q('modelColourway').value!=='p1'||
+          q('modelColourwayStatus').dataset.modelColourState!=='p1:temporary-red'||
+          q('modelColourwayStatus').textContent.includes('unavailable'))
+         issues.push('model colourway not implemented');
+       if(q('source').textContent!==old||q('parts').textContent!==partNames||
+          q('paintStatus').dataset.materialState!==paintBefore)
+         issues.push('model colourway changed GLB source identity');
+       q('modelColourway').value='p2';
+       q('modelColourway').dispatchEvent(new Event('change',{bubbles:true}));
+       if(q('modelColourwayStatus').dataset.modelColourState!=='p2:source-original')
+         issues.push('model colourway original not restored');
+     }
+     if(!q('paintHypothesis').disabled){
        const source=q('source').textContent,parts=q('parts').textContent;
        const original=q('paintStatus').dataset.materialState;
        if(!original||original.includes(':temporary'))
@@ -425,6 +447,10 @@ try{
        if(!q('source').textContent.includes('published bank GLB')||
           q('paintHypothesis').value!=='original')
          issues.push('paint experiment leaked across named pose roundtrip');
+       if(q('modelColourway').disabled||
+          q('modelColourway').value!=='p2'||
+          q('modelColourwayStatus').dataset.modelColourState!=='p2:source-original')
+         issues.push('model colourway persisted across named pose');
      }
    }
    if(q('rootLean').getBoundingClientRect().height<44)
@@ -506,6 +532,17 @@ try{
      throw Error('stationary original 3D GLB paint pixels not exactly restored');
    writeFileSync(join(out,'model-review-paint-original-412.png'),originalPaint);
    writeFileSync(join(out,'model-review-paint-disc-412.png'),alternativePaint);
+   const redSet=await evaluate("(()=>{const c=document.getElementById('modelColourway');if(c.disabled)return false;c.value='p1';c.dispatchEvent(new Event('change',{bubbles:true}));return document.getElementById('modelColourwayStatus').dataset.modelColourState==='p1:temporary-red'})()");
+   if(!redSet)throw Error('source-authenticated P1 red material preview unavailable');
+   const redFrame=await capture();
+   await evaluate("(()=>{const c=document.getElementById('modelColourway');c.value='p2';c.dispatchEvent(new Event('change',{bubbles:true}))})()");
+   const restoredBlue=await capture();
+   if(originalPaint.equals(redFrame))
+     throw Error('provisional red change did not alter actual GLB viewport pixels');
+   if(!originalPaint.equals(restoredBlue))
+     throw Error('provisional red model pixels not exactly restored');
+   writeFileSync(join(out,'model-review-p1-red-412.png'),redFrame);
+   writeFileSync(join(out,'model-review-p2-blue-412.png'),restoredBlue);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

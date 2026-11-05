@@ -120,7 +120,7 @@ class OriginalROMDerotatedConsensus(unittest.TestCase):
         self.assertGreater(cross["original_four_phase_always_near_invariant_core_pixels"],0)
         self.assertGreater(cross["original_four_phase_phase_varying_2D_alpha_pixels"],0)
         self.assertFalse(cross["original_2D_phase_drift_not_recovered_1994_physical_3D_geometry"] is False)
-        print("ART4K_AUTHENTIC_ORIGINAL_ROM_FOUR_PHASE_CONTOUR_DRIFT",
+        print("OK ART4K_AUTHENTIC_ORIGINAL_ROM_FOUR_PHASE_CONTOUR_DRIFT",
               json.dumps({
                   "common_valid":cross["original_four_phase_common_valid_pixels"],
                   "all_phase_core":cross["original_four_phase_always_near_invariant_core_pixels"],

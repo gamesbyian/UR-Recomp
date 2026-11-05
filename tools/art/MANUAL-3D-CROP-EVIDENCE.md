@@ -3,7 +3,7 @@
 If a local computer cannot run the PDF renderer, use the opt-in Actions
 workflow **ART-4K authenticated original manual crop review (on demand)**,
 `.github/workflows/art4k-original-manual-crops.yml`.
-Its first merge into `main` triggers a single **bootstrap source crop** run via a push path matching only the workflow file. Afterwards it runs only on demand, or on PRs modifying that workflow or its specific original
+The first review artifact is already generated and SHA-verified in the PR workflow qualification. Once this workflow reaches `main`, it runs only on demand, or on PRs modifying that workflow or its specific original
 manual extractor/validator/tests. It is **not scheduled**; it does not
 run for unrelated 3D, game, Android or CI work. From GitHub Actions,
 select that workflow and **Run workflow** on `main`.
